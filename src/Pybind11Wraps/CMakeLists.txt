@@ -36,6 +36,13 @@ set (_python_packages
   OpenMP
   )
 
+if (ENABLE_ANEOS)
+  list(APPEND _python_packages ANEOS)
+endif()
+if (ENABLE_HELMHOLTZ)
+  list(APPEND _python_packages Helmholtz)
+endif()
+
 if(NOT ENABLE_MPI)
   list(REMOVE_ITEM _python_packages
     Distributed

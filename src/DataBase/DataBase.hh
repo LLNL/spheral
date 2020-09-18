@@ -59,8 +59,8 @@ public:
   DataBase& operator=(const DataBase& rhs);
 
   // Number of NodeLists we have in the DataBase.
-  int numNodeLists() const;
-  int numFluidNodeLists() const;
+  unsigned int numNodeLists() const;
+  unsigned int numFluidNodeLists() const;
   int numSolidNodeLists() const;
 
   // Numbers of nodes.

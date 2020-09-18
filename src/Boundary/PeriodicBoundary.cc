@@ -89,10 +89,11 @@ PeriodicBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
   BEGIN_CONTRACT_SCOPE
   {
     const unsigned num = nodeList.numNodes();
-    for (unsigned i: mPlane1Boundary.controlNodes(nodeList)) { CHECK(i < num); }
-    for (unsigned i: mPlane1Boundary.ghostNodes(nodeList)) { CHECK(i < num); }
-    for (unsigned i: mPlane2Boundary.controlNodes(nodeList)) { CHECK(i < num); }
-    for (unsigned i: mPlane2Boundary.ghostNodes(nodeList)) { CHECK(i < num); }
+    CONTRACT_VAR(num);
+    for (unsigned i: mPlane1Boundary.controlNodes(nodeList)) { CONTRACT_VAR(i); CHECK(i < num); }
+    for (unsigned i: mPlane1Boundary.ghostNodes(nodeList))   { CONTRACT_VAR(i); CHECK(i < num); }
+    for (unsigned i: mPlane2Boundary.controlNodes(nodeList)) { CONTRACT_VAR(i); CHECK(i < num); }
+    for (unsigned i: mPlane2Boundary.ghostNodes(nodeList))   { CONTRACT_VAR(i); CHECK(i < num); }
   }
   END_CONTRACT_SCOPE
 

@@ -154,7 +154,7 @@ template<typename Dimension>
 void
 Neighbor<Dimension>::
 setNodeExtents() {
-  for (int nodeID = 0; nodeID < nodeList().numNodes(); ++nodeID) {
+  for (auto nodeID = 0u; nodeID < nodeList().numNodes(); ++nodeID) {
     mNodeExtent(nodeID) = nodeExtent(nodeID);
   }
 }
@@ -175,7 +175,7 @@ template<typename Dimension>
 void
 Neighbor<Dimension>::
 setInternalNodeExtents() {
-  for (int nodeID = 0; nodeID < nodeList().numInternalNodes(); ++nodeID) {
+  for (auto nodeID = 0u; nodeID < nodeList().numInternalNodes(); ++nodeID) {
     mNodeExtent(nodeID) = nodeExtent(nodeID);
   }
 }
@@ -184,7 +184,7 @@ template<typename Dimension>
 void
 Neighbor<Dimension>::
 setGhostNodeExtents() {
-  for (int nodeID = nodeList().firstGhostNode(); nodeID < nodeList().numNodes(); ++nodeID) {
+  for (int nodeID = nodeList().firstGhostNode(); nodeID < (int)nodeList().numNodes(); ++nodeID) {
     mNodeExtent(nodeID) = nodeExtent(nodeID);
   }
 }
@@ -249,7 +249,7 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
     // {
     //   vector<int> cullList_private;
 // #pragma omp for nowait
-      for (auto k = 0; k < n; ++k) {
+      for (auto k = 0u; k < n; ++k) {
         const auto  j = coarseList[k];
         const auto& nodePosition = positions(j);
         const auto  minNodeExtent = nodePosition - nodeExtents(j);

@@ -145,7 +145,7 @@ decompose(std::vector<std::array<Vector, 3>>& subfacets) const {
   // default:
   const auto centroid = this->position();
   subfacets.resize(numPoints);
-  for (auto i = 0; i < numPoints; ++i) {
+  for (auto i = 0u; i < numPoints; ++i) {
     subfacets[i] = {point(i), point((i+1) % numPoints), centroid};
   }
   //   break;
@@ -160,6 +160,7 @@ decompose(std::vector<std::array<Vector, 3>>& subfacets) const {
       const auto ac = subfacet[2] - subfacet[0];
       const auto subnormal = ab.cross(ac); 
       const auto subarea = 0.5 * subnormal.magnitude();
+      CONTRACT_VAR(originalArea);
       CHECK(0 < subarea and subarea < originalArea);
       const auto subnormalUnit = subnormal.unitVector();
       const auto normalUnit = mNormal.unitVector();
@@ -181,7 +182,7 @@ GeomFacet3d::
 triangles() const {
   std::vector<GeomFacet3d> result;
   const auto nverts = mPoints.size();
-  for (auto k = 1; k < nverts - 1; ++k) {
+  for (auto k = 1u; k < nverts - 1; ++k) {
     result.emplace_back(*mVerticesPtr, std::vector<unsigned>({mPoints[0], mPoints[k], mPoints[k+1]}), mNormal);
   }
   return result;

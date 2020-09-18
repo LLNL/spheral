@@ -17,10 +17,7 @@ set(SolidMaterial_inst
 
 set(SolidMaterial_sources )
 
-instantiate(SolidMaterial_inst SolidMaterial_sources)
-
 set(SolidMaterial_headers
-    ANEOS.hh
     CollinsStrength.hh
     ConstantStrength.hh
     Geodyn.hh
@@ -58,6 +55,20 @@ spheral_install_python_files(
   ShadowConstantStrength.py
   )
 
+# ANEOS
+if (ENABLE_ANEOS)
+  message("-- ANEOS enabled")
+  list(APPEND SolidMaterial_inst      ANEOS)
+  list(APPEND SolidMaterial_headers   ANEOS.hh)
+  list(APPEND SolidMaterial_sources   ANEOS_initialize.f)
+else()
+  message("-- ANEOS disabled")
+endif()
+
+instantiate(SolidMaterial_inst SolidMaterial_sources)
+
+# Ignore -W-maybe-uninitialized warnings thrown from bisectSearch for possibly uninitialized iterators from boost multi-array.
+set_source_files_properties(ANEOSInst1d.cc ANEOSInst2d.cc ANEOSInst3d.cc PROPERTIES COMPILE_FLAGS -Wno-maybe-uninitialized)
 
 spheral_add_cxx_library(SolidMaterial)
 

@@ -42,8 +42,6 @@ gradDivVectorFieldList
   // Some convenient typedefs.
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
 
   // First evaluate the divergence of the input field list.
   FieldList<Dimension, Scalar> divField = divergence(fieldList,

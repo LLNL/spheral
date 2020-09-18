@@ -99,7 +99,7 @@ hashPosition(const Dim<2>::Vector& position,
   CHECK(yfine >= 0 and yfine < ncells);
 
   // Recursively quadrant the position, until we get to the desired level.
-  for (int level = 0; level != KeyTraits::numbits1d; ++level) {
+  for (auto level = 0u; level != KeyTraits::numbits1d; ++level) {
 
     // Compute the integer coordinates on this level.
     const int ncellDelta = KeyTraits::one << (KeyTraits::numbits1d - level);
@@ -107,6 +107,7 @@ hashPosition(const Dim<2>::Vector& position,
     const int y = yfine / ncellDelta;
 
     const Key ncells = KeyTraits::two << level;
+    CONTRACT_VAR(ncells);
     CHECK(x >= 0 and x < ncells);
     CHECK(y >= 0 and y < ncells);
 
@@ -207,7 +208,7 @@ hashPosition(const Dim<3>::Vector& position,
   CHECK(zfine >= 0 and zfine < ncells);
 
   // Recursively quadrant the position, until we get to the desired level.
-  for (int level = 0; level != KeyTraits::numbits1d; ++level) {
+  for (auto level = 0u; level != KeyTraits::numbits1d; ++level) {
 
     // Compute the integer coordinates on this level.
     const int ncellDelta = KeyTraits::one << (KeyTraits::numbits1d - level);
@@ -216,6 +217,7 @@ hashPosition(const Dim<3>::Vector& position,
     const int z = zfine / ncellDelta;
 
     const Key ncells = KeyTraits::two << level;
+    CONTRACT_VAR(ncells);
     CHECK(x >= 0 and x < ncells);
     CHECK(y >= 0 and y < ncells);
     CHECK(z >= 0 and z < ncells);
@@ -419,7 +421,6 @@ FieldList<Dimension, KeyTraits::Key>
 peanoHilbertOrderIndices(const FieldList<Dimension, typename Dimension::Vector>& positions) {
 
   typedef typename KeyTraits::Key Key;
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
 
   // Prepare the result.

@@ -13,7 +13,7 @@ function(spheral_install_python_files)
     install(FILES ${ARGV}
             DESTINATION Spheral)
     install(CODE "execute_process( \
-            COMMAND ${SPHERAL_INSTALL_DIR}/python/bin/python -m compileall Spheral \
+            COMMAND ${PYTHON_EXE} -m compileall Spheral \
             WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX})")
   endif()
 

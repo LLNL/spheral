@@ -77,14 +77,13 @@ std::vector<GeomPlane<Dim<3>>>
 facetGhostPlanes(const GeomPolyhedron& poly,
                  const GeomFacet3d& facet,
                  const bool interiorBoundary) {
-  typedef Dim<3>::Vector Vector;
   typedef GeomPlane<Dim<3>> Plane;
   std::vector<Plane> result;
   const auto& centroid = poly.centroid();
   const auto& coords = poly.vertices();
   const auto& iverts = facet.ipoints();
   const auto  nverts = iverts.size();
-  for (auto k = 0; k < nverts; ++k) {
+  for (auto k = 0u; k < nverts; ++k) {
     const auto& p1 = coords[iverts[k]];
     const auto& p2 = coords[iverts[(k + 1) % nverts]];
     result.push_back(Plane(centroid, ((p1 - centroid).cross(p2 - centroid)).unitVector()));
@@ -131,9 +130,9 @@ nodesTouchingFacet(const NodeList<Dim<2>>& nodes,
 //..............................................................................
 // Polyhedron
 std::vector<int>
-nodesTouchingFacet(const NodeList<Dim<3>>& nodes,
-                   const GeomFacet3d& facet,
-                   const bool interiorBoundary) {
+nodesTouchingFacet(const NodeList<Dim<3>>&,
+                   const GeomFacet3d&,
+                   const bool /*interiorBoundary*/) {
   std::vector<int> result;
   return result;
 }
@@ -277,7 +276,7 @@ mapControlValues(Field<Dimension, Value>& field,
   const auto  nfacets = reflectOperators.size();
   REQUIRE(controlNodes.size() == nfacets);
   REQUIRE(ghostNodeRanges.size() == nfacets);
-  for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+  for (auto ifacet = 0u; ifacet < nfacets; ++ifacet) {
     const auto& R = reflectOperators[ifacet];
     const auto& controls = controlNodes[ifacet];
     auto        ghostID = ghostNodeRanges[ifacet].first;
@@ -301,7 +300,7 @@ enforceViolationValues(Field<Dimension, Value>& field,
   const auto n = violationNodes.size();
   REQUIRE(violationOps.size() == n);
   Value newVal;
-  for (auto k = 0; k < n; ++k) {
+  for (auto k = 0u; k < n; ++k) {
     const auto i = violationNodes[k];
     mapValue<Dimension>(newVal, field(i), violationOps[k]);
     field(i) = newVal;
@@ -371,7 +370,7 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     auto firstGhost = nodeList.numNodes();
     vector<Vector> posGhost;
     vector<SymTensor> Hghost;
-    for (auto k = 0; k < nfacets; ++k) {
+    for (auto k = 0u; k < nfacets; ++k) {
       const auto& facet = facets[k];
       const auto  boundPlanes = facetGhostPlanes(mPoly, facet, mInteriorBoundary);
       const auto  plane = facetPlane(facet, mInteriorBoundary);
@@ -405,7 +404,7 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
     std::copy(posGhost.begin(), posGhost.end(), &(pos[firstGhost]));
     std::copy(Hghost.begin(), Hghost.end(), &(H[firstGhost]));
     boundaryNodes.ghostNodes.resize(numNewGhosts);
-    for (auto k = 0; k < numNewGhosts; ++k) boundaryNodes.ghostNodes[k] = k + firstGhost;
+    for (auto k = 0u; k < numNewGhosts; ++k) boundaryNodes.ghostNodes[k] = k + firstGhost;
     CHECK(boundaryNodes.controlNodes.size() == boundaryNodes.ghostNodes.size());
     // std::cerr << "Introduced ghosts in range: " << firstGhost << " " << nodeList.numNodes() << std::endl;
   }
@@ -430,12 +429,12 @@ FacetedVolumeBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList
     CHECK(ghostRanges.size() == nfacets);
 
     // Walk each of the facets
-    for (auto ifacet = 0; ifacet < nfacets; ++ifacet) {
+    for (auto ifacet = 0u; ifacet < nfacets; ++ifacet) {
       const auto  n = controls[ifacet].size();
       const auto  plane = facetPlane(facets[ifacet], mInteriorBoundary);
       const auto& R = mReflectOperators[ifacet];
       CHECK(ghostRanges[ifacet].second - ghostRanges[ifacet].first == n);
-      for (auto k = 0; k < n; ++k) {
+      for (auto k = 0u; k < n; ++k) {
         const auto i = controls[ifacet][k];
         const auto j = ghostRanges[ifacet].first + k;
         pos(j) = mapPositionThroughPlanes(pos(i), plane, plane);
@@ -559,7 +558,7 @@ FacetedVolumeBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeLis
   // wandered into the excluded region.
   const auto& pos = nodeList.positions();
   const auto  n = nodeList.numInternalNodes();
-  for (auto i = 0; i < n; ++i) {
+  for (auto i = 0u; i < n; ++i) {
     if ((not mInteriorBoundary) xor mPoly.contains(pos(i), false)) vNodes.push_back(i);
   }
 
@@ -591,7 +590,6 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
 
   // Loop over these nodes, and reset their positions to valid values.
   auto&       pos = nodeList.positions();
-  auto&       H = nodeList.Hfield();
   const auto& vel = nodeList.velocity();
   vector<unsigned> potentialFacets;
   vector<Vector> intersections;
@@ -602,7 +600,7 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
   int minFacet;
   Scalar minDist;
   const int maxIters = 5;
-  for (auto k = 0; k < numViolation; ++k) {
+  for (auto k = 0u; k < numViolation; ++k) {
     auto  i = vNodes[k];
     auto& R = violationOps[k];
     newPos = pos(i);
@@ -618,7 +616,7 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
       CHECK(potentialFacets.size() == intersections.size());
       minFacet = potentialFacets[0];
       minDist = (intersections[0] - newPos).magnitude2();
-      for (auto kk = 1; kk < intersections.size(); ++kk) {
+      for (auto kk = 1u; kk < intersections.size(); ++kk) {
         if ((intersections[kk] - newPos).magnitude2() < minDist) {
           minFacet = potentialFacets[kk];
           minDist = (intersections[kk] - newPos).magnitude2();
@@ -646,14 +644,14 @@ FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& node
 template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
-enforceBoundary(Field<Dimension, int>& field) const {
+enforceBoundary(Field<Dimension, int>&) const {
 }
 
 // Specialization for scalar fields.  A no-op.
 template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::Scalar>& field) const {
+enforceBoundary(Field<Dimension, typename Dimension::Scalar>&) const {
 }
 
 // Specialization for vector fields.  Apply the reflection operator.
@@ -708,7 +706,7 @@ enforceBoundary(Field<Dimension, typename Dimension::FifthRankTensor>& field) co
 template<typename Dimension>
 void
 FacetedVolumeBoundary<Dimension>::
-enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) const {
+enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>&) const {
   // Punt on FacetedVolumes for now.
 }
 
@@ -738,20 +736,20 @@ FacetedVolumeBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
   if (mUseGhosts) {
     const auto numNodeLists = flagSet.numFields();
     const auto numFacets = mPoly.facets().size();
-    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
       const auto& nodeList = flagSet[nodeListi]->nodeList();
       const auto  name = nodeList.name();
       auto&       facetControls = mFacetControlNodes[name];
       auto&       facetGhostRanges = mFacetGhostNodes[name];
       CHECK(facetControls.size() == numFacets);
       CHECK(facetGhostRanges.size() == numFacets);
-      for (auto ifacet = 0; ifacet < numFacets; ++ifacet) {
+      for (auto ifacet = 0u; ifacet < numFacets; ++ifacet) {
         CHECK(facetControls[ifacet].size() == facetGhostRanges[ifacet].second - facetGhostRanges[ifacet].first);
 
         // Update facet controls
         vector<int> newControls;
         const auto oldFirstGhost = facetGhostRanges[ifacet].first;
-        for (auto k = 0; k < facetControls[ifacet].size(); ++k) {
+        for (auto k = 0u; k < facetControls[ifacet].size(); ++k) {
           const auto i = facetControls[ifacet][k];
           const auto j = oldFirstGhost + k;
           if (flagSet(nodeListi, i) == 1 and flagSet(nodeListi, j) == 1) newControls.push_back(old2newIndexMap(nodeListi, i));

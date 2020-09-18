@@ -99,7 +99,6 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 bool pointInPolygon(const Dim<2>::Vector& p,
                     const std::vector<Dim<2>::Vector>& vertices) {
-  typedef Dim<2>::Vector Vector;
 
   // Now we do the test of casting a semi-infinite ray in the x direction from 
   // the point and counting intersections with the polygon.
@@ -188,6 +187,7 @@ bool pointInPolygon(const Dim<3>::Vector& p,
       j = (i + 1) % npts;
       k = (i + 2) % npts;
       normi = (vertices[j] - vertices[i]).cross(vertices[k] - vertices[i]);
+      CONTRACT_VAR(normmag);
       REQUIRE(fuzzyEqual(std::abs(normi.dot(normal)), normmag*normi.magnitude(), 1.0e-10));
     }
     REQUIRE(fuzzyEqual(pointPlaneDistance(p, vertices[0], normal.unitVector()), 0.0, 1.0e-10));
@@ -275,7 +275,6 @@ bool pointInPolygon(const Dim<3>::Vector& p,
                     const bool countBoundary,
                     const double tol) {
 
-  typedef Dim<3>::Vector Vector;
   // typedef boost::tuple<double, double> BGPoint;
   // typedef boost::geometry::model::polygon<BGPoint> BGPolygon;
 
@@ -330,7 +329,6 @@ bool pointInPolygon(const Dim<3>::Vector& p,
 
     // Figure out which plane we're going to project to.
     const double nmax = normal.maxAbsElement();
-    bool facetTest = false;
 
     // x plane -- use (y,z) coordinates.
     if (std::abs(normal.x()) > 0.9*nmax) {

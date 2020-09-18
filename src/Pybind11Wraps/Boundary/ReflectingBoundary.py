@@ -176,11 +176,12 @@ class ReflectingBoundary(PlanarBoundary):
         return "void"
 
     #...........................................................................
+    @PYB11const
     def rkReflectOperator(self,
                           order = "const RKOrder",
                           useHessian = "const bool"):
         "The special reflection operator for RKCoefficients"
-        return "ReflectingBoundary<%(Dimension)s>::TransformationMatrix"
+        return "const ReflectingBoundary<%(Dimension)s>::TransformationMatrix&"
 
     #...........................................................................
     # Properties

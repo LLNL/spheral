@@ -107,7 +107,7 @@ class Vector:
         return
 
     # Sequence methods
-    @PYB11implementation("[](const Dim<%(ndim)s>::Vector& self) { return Dim<%(ndim)s>::nDim; }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::Vector&) { return Dim<%(ndim)s>::nDim; }")
     def __len__(self):
         "The size (in number of coordinates) of the Vector."
 

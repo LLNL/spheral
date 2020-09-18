@@ -674,7 +674,7 @@ operator/=(const Scalar& rhs) {
   REQUIRE(valid());
   REQUIRE(rhs != 0.0);
   const unsigned n = this->numElements();
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < (int)n; ++i) {
     (*this)(i) /= rhs;
   }
   return *this;
@@ -775,7 +775,7 @@ operator==(const Field<Dimension, DataType>& rhs) const {
   if (n != rhs.size()) return false;
   auto result = true;
   auto i = 0;
-  while (i < n and result) {
+  while (i < (int)n and result) {
     result = (*this)(i) == rhs(i);
   }
   return result;
@@ -1357,7 +1357,7 @@ template<typename Dimension, typename DataType>
 inline
 std::string
 Field<Dimension, DataType>::
-string(const int precision) const {
+string(const int /*precision*/) const {
   const int n = numInternalElements();
   std::vector<int> indices;
   indices.reserve(n);
@@ -1445,7 +1445,7 @@ operator*(const Field<Dimension, DataType>& lhs,
   CHECK(lhs.nodeList().numNodes() == rhs.nodeList().numNodes());
   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
     result("product", const_cast<Field<Dimension, DataType>&>(lhs).nodeList());
-  for (int i = 0; i < result.numElements(); ++i) {
+  for (auto i = 0u; i < result.numElements(); ++i) {
     result(i) = lhs(i) * rhs(i);
   }
   return result;
@@ -1474,7 +1474,7 @@ operator*(const DataType& lhs,
   CHECK(rhs.valid());
   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
     result("product", const_cast<Field<Dimension, OtherDataType>&>(rhs).nodeList());
-  for (int i = 0; i < result.numElements(); ++i) {
+  for (auto i = 0u; i < result.numElements(); ++i) {
     result(i) = lhs * rhs(i);
   }
   return result;

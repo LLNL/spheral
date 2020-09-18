@@ -60,21 +60,21 @@ public:
   virtual
   SymTensor
   idealSmoothingScale(const SymTensor& H,
-                      const Vector& pos,
+                      const Vector& /*pos*/,
                       const Scalar zerothMoment,
                       const SymTensor& secondMoment,
                       const TableKernel<Dimension>& W,
-                      const Scalar hmin,
-                      const Scalar hmax,
+                      const Scalar /*hmin*/,
+                      const Scalar /*hmax*/,
                       const Scalar hminratio,
                       const Scalar nPerh,
-                      const ConnectivityMap<Dimension>& connectivityMap,
-                      const unsigned nodeListi,
-                      const unsigned i) const override;
+                      const ConnectivityMap<Dimension>& /*connectivityMap*/,
+                      const unsigned /*nodeListi*/,
+                      const unsigned /*i*/) const override;
 
   // Compute the new H tensors for a tessellation.
   virtual SymTensor
-  idealSmoothingScale(const SymTensor& H,
+  idealSmoothingScale(const SymTensor& /*H*/,
                       const Mesh<Dimension>& mesh,
                       const typename Mesh<Dimension>::Zone& zone,
                       const Scalar hmin,

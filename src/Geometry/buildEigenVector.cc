@@ -27,6 +27,7 @@ buildEigenVector(const Dim<3>::SymTensor& A,
   BEGIN_CONTRACT_SCOPE
   // Compute an appropriate tolerance for "zero" on the matrix.
   const double tol = 1.0e-3*std::max(1.0, A.diagonalElements().magnitude());
+  CONTRACT_VAR(tol);
   REQUIRE(fuzzyEqual(B.Determinant(), 0.0, tol));
   END_CONTRACT_SCOPE
 
@@ -98,7 +99,6 @@ buildUniqueEigenVector(const Dim<3>::SymTensor& A,
   const double tolerance = 1.0e-5;
 
   typedef Dim<3>::Vector Vector;
-  typedef Dim<3>::SymTensor SymTensor;
 
   const double p00 = (A*U0).dot(U0) - lambda;
   const double p01 = (A*U0).dot(U1);
@@ -130,6 +130,7 @@ buildUniqueEigenVector(const Dim<3>::SymTensor& A,
   CHECK(fuzzyEqual(c0*c0 + c1*c1, 1.0));
   
   const Vector V0 = c0*U0 + c1*U1;
+  CONTRACT_VAR(tolerance);
   ENSURE(fuzzyEqual(V0.magnitude2(), 1.0, tolerance));
   ENSURE(fuzzyEqual(((A - lambda*SymTensor::one)*V0).maxAbsElement(), 0.0, tolerance));
   return V0;

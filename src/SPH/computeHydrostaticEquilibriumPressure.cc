@@ -44,7 +44,6 @@ computeSPHHydrostaticEquilibriumPressure(const DataBase<Dim<3> >& db,
   typedef Dim<3> Dimension;
   typedef Dim<3>::Scalar Scalar;
   typedef Dim<3>::Vector Vector;
-  typedef Dim<3>::Tensor Tensor;
   typedef Dim<3>::SymTensor SymTensor;
 
   // Grab the state fields from the data base.

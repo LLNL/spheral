@@ -34,17 +34,14 @@ generateMesh(const NodeListIterator nodeListBegin,
              const typename Dimension::Vector& xmax,
              const bool meshGhostNodes,
              const bool generateVoid,
-             const bool generateParallelConnectivity,
+             const bool /*generateParallelConnectivity*/,
              const bool removeBoundaryZones,
              const double voidThreshold,
              Mesh<Dimension>& mesh,
              NodeList<Dimension>& voidNodes) {
 
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Mesh<Dimension>::Zone Zone;
-  typedef typename Mesh<Dimension>::Face Face;
 
   // The total number of NodeLists we're working on.
   const size_t numNodeLists = distance(nodeListBegin, nodeListEnd);
@@ -87,7 +84,7 @@ generateMesh(const NodeListIterator nodeListBegin,
   if (generateVoid or removeBoundaryZones) {
     // if (Process::getRank() == 0)  cerr << "Computing void nodes." << endl;
     unsigned numInternal = 0;
-    double nPerh;
+    double nPerh = 0;
     for (NodeListIterator itr = nodeListBegin; itr != nodeListEnd - 1; ++itr) {
       numInternal += (**itr).numInternalNodes();
       nPerh = (**itr).nodesPerSmoothingScale();

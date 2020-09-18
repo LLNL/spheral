@@ -56,10 +56,10 @@ void
 LongitudinalSoundSpeedPolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
-       StateDerivatives<Dimension>& derivs,
-       const double multiplier,
-       const double t,
-       const double dt) {
+       StateDerivatives<Dimension>& /*derivs*/,
+       const double /*multiplier*/,
+       const double /*t*/,
+       const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == SolidFieldNames::longitudinalSoundSpeed);
@@ -81,7 +81,7 @@ update(const KeyType& key,
   const Field<Dimension, Scalar>& mu = state.field(muKey, 0.0);
 
   // Now set the longitudinal sound speed.
-  for (int i = 0; i != stateField.numInternalElements(); ++i) {
+  for (auto i = 0u; i != stateField.numInternalElements(); ++i) {
     const double ack = 3.0*K(i) + mu(i) + 1.0e-30*std::max(1.0, K(i));
     CHECK2(ack > 0.0, i << " " << ack << " " << K(i) << " " << mu(i));
     const double nu = min(0.5, max(0.0, 0.5*(3.0*K(i) - 2.0*mu(i))/ack));

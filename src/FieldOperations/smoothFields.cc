@@ -28,15 +28,14 @@ FieldList<Dimension, DataType>
 smoothFields(const FieldList<Dimension, DataType>& fieldList,
              const FieldList<Dimension, typename Dimension::Vector>& position,
              const FieldList<Dimension, typename Dimension::Scalar>& weight,
-             const FieldList<Dimension, typename Dimension::Scalar>& mass,
-             const FieldList<Dimension, typename Dimension::Scalar>& rho,
+             const FieldList<Dimension, typename Dimension::Scalar>& /*mass*/,
+             const FieldList<Dimension, typename Dimension::Scalar>& /*rho*/,
              const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
              const TableKernel<Dimension>& kernel) {
 
   // Some convenient typedefs.
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
   // Return FieldList.
@@ -75,8 +74,8 @@ smoothFields(const FieldList<Dimension, DataType>& fieldList,
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        const Scalar& weighti = weight(masterItr);
-        const DataType& fieldi = fieldList(masterItr);
+        //const Scalar& weighti = weight(masterItr);
+        //const DataType& fieldi = fieldList(masterItr);
 
         for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin(refineNeighbors);
              neighborItr < fieldList.refineNodeEnd();

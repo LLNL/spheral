@@ -16,7 +16,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 #-------------------------------------------------------------------------------
 # Optionally suppress compiler warnings
 #-------------------------------------------------------------------------------
-option(ENABLE_WARNINGS "show compiler warnings" OFF)
+option(ENABLE_WARNINGS "show compiler warnings" ON)
 if (NOT ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
 endif()
@@ -45,10 +45,13 @@ include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 # Include standard build system logic and options / definitions
 #-------------------------------------------------------------------------------
 set(ENABLE_CXXONLY OFF CACHE BOOL "enable C++ only build without python bindings")
+set(ENABLE_1D ON CACHE BOOL "enable 1d")
 set(ENABLE_2D ON CACHE BOOL "enable 2d")
 set(ENABLE_3D ON CACHE BOOL "enable 3d")
 set(ENABLE_INSTANTIATIONS ON CACHE BOOL "enable instantiations")
 set(ENABLE_TIMER OFF CACHE BOOL "enable timer")
+set(ENABLE_ANEOS ON CACHE BOOL "enable the ANEOS equation of state package")
+set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state package")
 
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
 if(ENABLE_STATIC_CXXONLY)
@@ -131,7 +134,7 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #-------------------------------------------------------------------------------
 if (NOT ENABLE_CXXONLY)
   install(CODE "execute_process( \
-    COMMAND ${CMAKE_COMMAND} -E create_symlink python/bin/python spheral \
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
     WORKING_DIRECTORY ${SPHERAL_INSTALL_DIR})")
 endif()
 
@@ -143,4 +146,6 @@ add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 #-------------------------------------------------------------------------------
 # Add the documentation
 #-------------------------------------------------------------------------------
-add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+if (NOT ENABLE_CXXONLY)
+  add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+endif()

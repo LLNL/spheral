@@ -53,13 +53,13 @@ FixedSmoothingScale<Dimension>::
 template<typename Dimension>
 typename Dimension::SymTensor
 FixedSmoothingScale<Dimension>::
-smoothingScaleDerivative(const SymTensor& H,
-                         const Vector& pos,
-                         const Tensor& DvDx,
-                         const Scalar hmin,
-                         const Scalar hmax,
-                         const Scalar hminratio,
-                         const Scalar nPerh) const {
+smoothingScaleDerivative(const SymTensor& /*H*/,
+                         const Vector& /*pos*/,
+                         const Tensor& /*DvDx*/,
+                         const Scalar /*hmin*/,
+                         const Scalar /*hmax*/,
+                         const Scalar /*hminratio*/,
+                         const Scalar /*nPerh*/) const {
   return SymTensor::zero;
 }
 
@@ -70,17 +70,17 @@ template<typename Dimension>
 typename Dimension::SymTensor
 FixedSmoothingScale<Dimension>::
 newSmoothingScale(const SymTensor& H,
-                  const Vector& pos,
-                  const Scalar zerothMoment,
-                  const SymTensor& secondMoment,
-                  const TableKernel<Dimension>& W,
-                  const Scalar hmin,
-                  const Scalar hmax,
-                  const Scalar hminratio,
-                  const Scalar nPerh,
-                  const ConnectivityMap<Dimension>& connectivityMap,
-                  const unsigned nodeListi,
-                  const unsigned i) const {
+                  const Vector& /*pos*/,
+                  const Scalar /*zerothMoment*/,
+                  const SymTensor& /*secondMoment*/,
+                  const TableKernel<Dimension>& /*W*/,
+                  const Scalar /*hmin*/,
+                  const Scalar /*hmax*/,
+                  const Scalar /*hminratio*/,
+                  const Scalar /*nPerh*/,
+                  const ConnectivityMap<Dimension>& /*connectivityMap*/,
+                  const unsigned /*nodeListi*/,
+                  const unsigned /*i*/) const {
   return H;
 }
 
@@ -91,17 +91,17 @@ template<typename Dimension>
 typename Dimension::SymTensor
 FixedSmoothingScale<Dimension>::
 idealSmoothingScale(const SymTensor& H,
-                    const Vector& pos,
-                    const Scalar zerothMoment,
-                    const SymTensor& secondMoment,
-                    const TableKernel<Dimension>& W,
-                    const Scalar hmin,
-                    const Scalar hmax,
-                    const Scalar hminratio,
-                    const Scalar nPerh,
-                    const ConnectivityMap<Dimension>& connectivityMap,
-                    const unsigned nodeListi,
-                    const unsigned i) const {
+                    const Vector& /*pos*/,
+                    const Scalar /*zerothMoment*/,
+                    const SymTensor& /*secondMoment*/,
+                    const TableKernel<Dimension>& /*W*/,
+                    const Scalar /*hmin*/,
+                    const Scalar /*hmax*/,
+                    const Scalar /*hminratio*/,
+                    const Scalar /*nPerh*/,
+                    const ConnectivityMap<Dimension>& /*connectivityMap*/,
+                    const unsigned /*nodeListi*/,
+                    const unsigned /*i*/) const {
   return H;
 }
 
@@ -112,12 +112,12 @@ template<typename Dimension>
 typename Dimension::SymTensor
 FixedSmoothingScale<Dimension>::
 idealSmoothingScale(const SymTensor& H,
-                    const Mesh<Dimension>& mesh,
-                    const typename Mesh<Dimension>::Zone& zone,
-                    const Scalar hmin,
-                    const Scalar hmax,
-                    const Scalar hminratio,
-                    const Scalar nPerh) const {
+                    const Mesh<Dimension>& /*mesh*/,
+                    const typename Mesh<Dimension>::Zone& /*zone*/,
+                    const Scalar /*hmin*/,
+                    const Scalar /*hmax*/,
+                    const Scalar /*hminratio*/,
+                    const Scalar /*nPerh*/) const {
   return H;
 }
 

@@ -16,7 +16,7 @@ operator++() {
 
   // If the index is out of range, then proceed to the next NodeList with a 
   // nonzero number of nodes.
-  if (mNodeID >= (*mNodeListItr)->numInternalNodes()) {
+  if (mNodeID >= (int)(*mNodeListItr)->numInternalNodes()) {
     mNodeID = 0;
     ++mNodeListItr;
     while (mNodeListItr < mNodeListEnd &&

@@ -12,6 +12,7 @@ class RKUtilities:
     typedef typename %(Dimension)s::Vector Vector;
     typedef typename %(Dimension)s::Tensor Tensor;
     typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef typename Eigen::SparseMatrix<double> TransformationMatrix;
 """
 
     def pyinit(self):
@@ -92,7 +93,7 @@ class RKUtilities:
     
     @PYB11static
     def applyTransformation(self,
-                            T = "const Tensor&",
+                            T = "const TransformationMatrix&",
                             corrections = "RKCoefficients<%(Dimension)s>&"):
         "Apply a transformation to the corrections"
         return "void"

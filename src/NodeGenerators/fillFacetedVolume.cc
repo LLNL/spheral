@@ -26,7 +26,7 @@ void HCPposition(const unsigned i,
                  const double dy,
                  const double dz,
                  const Dim<3>::Vector& xmin,
-                 const Dim<3>::Vector& xmax,
+                 const Dim<3>::Vector& /*xmax*/,
                  Dim<3>::Vector& result) {
   const auto ix = i % nx;
   const auto iy = (i / nx) % ny;
@@ -46,7 +46,6 @@ fillFacetedVolume(const Dim<3>::FacetedVolume& outerBoundary,
                   const unsigned domain,
                   const unsigned numDomains) {
   VERIFY(n1d > 0);
-  typedef Dim<3>::Vector Vector;
   typedef Dim<3>::FacetedVolume FacetedVolume;
   const auto& xmin = outerBoundary.xmin();
   const auto& xmax = outerBoundary.xmax();
@@ -63,7 +62,6 @@ fillFacetedVolume2(const Dim<3>::FacetedVolume& outerBoundary,
                    const unsigned domain,
                    const unsigned numDomains) {
   VERIFY(dx > 0.0);
-  typedef Dim<3>::Vector Vector;
   typedef Dim<3>::FacetedVolume FacetedVolume;
   return fillFacetedVolume10(outerBoundary, FacetedVolume(), dx, domain, numDomains);
 }
@@ -72,13 +70,12 @@ fillFacetedVolume2(const Dim<3>::FacetedVolume& outerBoundary,
 // Fill between an inner and outer boundary (specify x number of points).
 //------------------------------------------------------------------------------
 vector<Dim<3>::Vector>
-fillFacetedVolume3(const Dim<3>::FacetedVolume& innerBoundary,
+fillFacetedVolume3(const Dim<3>::FacetedVolume& /*innerBoundary*/,
                    const Dim<3>::FacetedVolume& outerBoundary,
                    const unsigned n1d,
                    const unsigned domain,
                    const unsigned numDomains) {
   VERIFY(n1d > 0);
-  typedef Dim<3>::Vector Vector;
   typedef Dim<3>::FacetedVolume FacetedVolume;
   const auto& xmin = outerBoundary.xmin();
   const auto& xmax = outerBoundary.xmax();
@@ -91,7 +88,7 @@ fillFacetedVolume3(const Dim<3>::FacetedVolume& innerBoundary,
 //------------------------------------------------------------------------------
 vector<Dim<3>::Vector>
 fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
-                    const Dim<3>::FacetedVolume& innerBoundary,
+                    const Dim<3>::FacetedVolume& /*innerBoundary*/,
                     const double dx,
                     const unsigned domain,
                     const unsigned numDomains) {
@@ -100,7 +97,6 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
   VERIFY(numDomains >= 1);
   VERIFY(domain < numDomains);
 
-  const bool useInner = not (innerBoundary.facets().empty());
   vector<Vector> result;
 
   // Find numbers of points
@@ -179,7 +175,7 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
       // cerr << endl;
 
       // Now points between pairs of intersections should be interior to the surface.
-      for (auto i = 0; i < nintersect;) {
+      for (auto i = 0u; i < nintersect;) {
         if (i + 1 < nintersect) {
           const auto& x1 = intersections[i];
           const auto& x2 = intersections[i + 1];

@@ -56,7 +56,6 @@ boundingBox(const FieldList<Dimension, typename Dimension::Vector>& positions,
             typename Dimension::Vector& xmin,
             typename Dimension::Vector& xmax,
             const bool useGhosts) {
-  typedef typename Dimension::Vector Vector;
 
   xmin = DBL_MAX;
   xmax = -DBL_MAX;

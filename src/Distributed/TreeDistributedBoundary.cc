@@ -84,6 +84,8 @@ setAllGhostNodes(DataBase<Dimension>& dataBase) {
   // This processor's ID.
   const int procID = this->domainID();
   const int numProcs = this->numDomains();
+  CONTRACT_VAR(numProcs);
+  CONTRACT_VAR(procID);
   CHECK(procID < numProcs);
 
   // Clear out the existing communication map for the given database.
@@ -141,14 +143,14 @@ flattenTrees(const DataBase<Dimension>& dataBase) const {
     const auto  nlocallevels = localOccupation.size();
     const auto  nlevels = std::max(result.size(), nlocallevels);
     result.resize(nlevels);
-    for (auto k = 0; k < nlocallevels; ++k) {
+    for (auto k = 0u; k < nlocallevels; ++k) {
       result[k].insert(result[k].end(), localOccupation[k].begin(), localOccupation[k].end());
     }
   }
 
   // Reduce to the unique set.
   const auto nlevels = result.size();
-  for (auto k = 0; k < nlevels; ++k) {
+  for (auto k = 0u; k < nlevels; ++k) {
     std::sort(result[k].begin(), result[k].end());
     result[k].erase(std::unique(result[k].begin(), result[k].end()), result[k].end());
   }
@@ -243,8 +245,8 @@ buildSendNodes(const DataBase<Dimension>& dataBase,
       auto nodeListi = 0;
       for (auto nodeListItr = dataBase.nodeListBegin(); nodeListItr < dataBase.nodeListEnd(); ++nodeListItr, ++nodeListi) {
         const auto* neighborPtr = this->getTreeNeighborPtr(*nodeListItr);
-        for (auto klevel = 0; klevel < otherTree.size(); ++klevel) {
-          for (auto kcell = 0; kcell < otherTree[klevel].size(); ++kcell) {
+        for (auto klevel = 0u; klevel < otherTree.size(); ++klevel) {
+          for (auto kcell = 0u; kcell < otherTree[klevel].size(); ++kcell) {
 
             // Find the master/coarse neighbor info for this tree level/cell.
             vector<int> masterList, coarseNeighbors;
@@ -273,7 +275,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase,
           const auto& extents = neighborPtr->nodeExtentField();
           const auto& Hinv = *Hinverse[nodeListi];
           vector<int> indicesToKill;
-          for (auto kk = 0; kk != sendNodes.size(); ++kk) {
+          for (auto kk = 0u; kk != sendNodes.size(); ++kk) {
             const auto  i = sendNodes[kk];
             const auto& xi = positions(i);
             const auto& extenti = extents(i);

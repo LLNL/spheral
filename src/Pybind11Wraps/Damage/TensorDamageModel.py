@@ -87,7 +87,7 @@ required of descendant classes."""
 
     #...........................................................................
     # Properties
-    strain = PYB11property("Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
+    strain = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
     effectiveStrain = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
     DdamageDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     newEffectiveDamage = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")

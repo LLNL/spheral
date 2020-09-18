@@ -64,7 +64,7 @@ class JohnsonCookStrength(StrengthModel):
     Tmelt = PYB11property("double")
     Troom = PYB11property("double")
     mu0 = PYB11property("double")
-    shearModulusScaling = PYB11property("double")
+    shearModulusScaling = PYB11property("bool")
 
 #-------------------------------------------------------------------------------
 # Inject Strength interface

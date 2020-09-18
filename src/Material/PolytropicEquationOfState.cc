@@ -97,8 +97,8 @@ template<typename Dimension>
 void
 PolytropicEquationOfState<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
-                const Field<Dimension, Scalar>& massDensity,
-                const Field<Dimension, Scalar>& temperature) const {
+                const Field<Dimension, Scalar>& /*massDensity*/,
+                const Field<Dimension, Scalar>& /*temperature*/) const {
   CHECK(valid());
   const double kB = mConstants.kB();
   const double mp = mConstants.protonMass();
@@ -128,8 +128,8 @@ template<typename Dimension>
 void
 PolytropicEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
-	      const Field<Dimension, Scalar>& massDensity,
-	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
+              const Field<Dimension, Scalar>& /*massDensity*/,
+              const Field<Dimension, Scalar>& /*specificThermalEnergy*/) const {
   CHECK(valid());
   gamma = mGamma;
 }
@@ -171,7 +171,7 @@ template<typename Dimension>
 typename Dimension::Scalar
 PolytropicEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
-         const Scalar specificThermalEnergy) const {
+         const Scalar /*specificThermalEnergy*/) const {
   CHECK(valid());
   return this->applyPressureLimits(mPolytropicConstant*pow(massDensity, mGamma) - mExternalPressure);
 }
@@ -182,7 +182,7 @@ pressure(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 PolytropicEquationOfState<Dimension>::
-temperature(const Scalar massDensity,
+temperature(const Scalar /*massDensity*/,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
   const double kB = mConstants.kB();
@@ -196,7 +196,7 @@ temperature(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 PolytropicEquationOfState<Dimension>::
-specificThermalEnergy(const Scalar massDensity,
+specificThermalEnergy(const Scalar /*massDensity*/,
                       const Scalar temperature) const {
   CHECK(valid());
   const double kB = mConstants.kB();
@@ -209,8 +209,8 @@ specificThermalEnergy(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 PolytropicEquationOfState<Dimension>::
-specificHeat(const Scalar massDensity,
-             const Scalar temperature) const {
+specificHeat(const Scalar /*massDensity*/,
+             const Scalar /*temperature*/) const {
   CHECK(valid());
   const double kB = mConstants.kB();
   const double mp = mConstants.protonMass();
@@ -224,7 +224,7 @@ template<typename Dimension>
 typename Dimension::Scalar
 PolytropicEquationOfState<Dimension>::
 soundSpeed(const Scalar massDensity,
-           const Scalar specificThermalEnergy) const {
+           const Scalar /*specificThermalEnergy*/) const {
   CHECK(valid());
   const double c2 = mPolytropicConstant*pow(massDensity, mGamma1);
   CHECK(c2 >= 0.0);
@@ -237,8 +237,8 @@ soundSpeed(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 PolytropicEquationOfState<Dimension>::
-gamma(const Scalar massDensity,
-      const Scalar specificThermalEnergy) const {
+gamma(const Scalar /*massDensity*/,
+      const Scalar /*specificThermalEnergy*/) const {
   return mGamma;
 }
 

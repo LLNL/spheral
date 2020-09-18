@@ -58,7 +58,7 @@ template<typename DataType>
 inline
 std::vector<DataType>
 InflowOutflowBoundary<Dimension>::
-storedValues(const KeyType key, const DataType& dummy) {
+storedValues(const KeyType key, const DataType&) {
   const auto itr = mBufferedValues.find(key);
   VERIFY2(itr != mBufferedValues.end(), "InflowOutflowBoundary ERROR: attempt to extract stored value for " << key << ", which was not found.");
   return extractBufferedValues<DataType>(itr->second);
@@ -90,7 +90,7 @@ setStoredValues(const KeyType key, const std::vector<DataType>& values) {
   VERIFY2(values.size() == n, "InflowOutflowBoundary ERROR: attempt to set stored value for " << key << " with vector of wrong size");
   auto& buffer = itr->second;
   buffer.clear();
-  for (auto i = 0; i < n; ++i) packElement(values[i], buffer);
+  for (auto i = 0u; i < n; ++i) packElement(values[i], buffer);
 }
 
 template<typename Dimension>
@@ -118,7 +118,7 @@ setStoredValues(const KeyType key, const DataType& value) {
   const auto n = currentVals.size();
   auto& buffer = itr->second;
   buffer.clear();
-  for (auto i = 0; i < n; ++i) packElement(value, buffer);
+  for (auto i = 0u; i < n; ++i) packElement(value, buffer);
 }
 
 template<typename Dimension>

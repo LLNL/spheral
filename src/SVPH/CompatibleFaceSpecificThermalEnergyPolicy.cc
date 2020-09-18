@@ -59,8 +59,8 @@ namespace {
 inline
 double standardWeighting(const double& ui,
                          const double& uj,
-                         const double& mi,
-                         const double& mj,
+                         const double& /*mi*/,
+                         const double& /*mj*/,
                          const double& duij) {
   const double uji = uj - ui;
   const double result = 0.5*(1.0 + uji*sgn0(duij)/(abs(uji) + 0.5));
@@ -185,7 +185,7 @@ update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double t,
+       const double /*t*/,
        const double dt) {
   typedef typename Mesh<Dimension>::Zone Zone;
   typedef typename Mesh<Dimension>::Face Face;
@@ -224,7 +224,7 @@ update(const KeyType& key,
     const Mesh<Dimension>& mesh = state.mesh();
 
     // Walk the nodes of this NodeList
-    unsigned i, j, k, n, nodeListi, nodeListj, z2id;
+    unsigned i, k, n, nodeListi;
     Scalar DepsDti, duij;
     Vector vi12, vj12, vji12, vface12;
     for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {

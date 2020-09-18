@@ -29,9 +29,6 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
   REQUIRE(H.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
 
   // Some useful variables.
   const auto W0 = W.kernelValue(0.0, 1.0);
@@ -41,7 +38,7 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
 
   // Prepare a FieldList to hold the sum gradient.
   FieldList<Dimension, Scalar> gradsum(FieldStorageType::CopyFields);
-  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
     const auto& nodeList = omegaGradh[nodeListi]->nodeList();
     gradsum.appendNewField("sum of the gradient", nodeList, 0.0);
   }
@@ -62,7 +59,7 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
     auto gradsum_thread = gradsum.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
       nodeListi = pairs[kk].i_list;
@@ -98,10 +95,10 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
   }    // OMP parallel
   
   // Finish up for each point.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto ni = omegaGradh[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // If this point is isolated, we punt to unity.
       if (connectivityMap.numNeighborsForNode(nodeListi, i) == 0) {

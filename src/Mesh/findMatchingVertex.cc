@@ -21,7 +21,6 @@ findMatchingVertex(const unsigned i,
                    const vector<Dim<2>::Vector>& verticesi,
                    const vector<Dim<2>::Vector>& verticesj) {
   REQUIRE(i < verticesi.size());
-  typedef Dim<2>::Vector Vector;
   const unsigned ni = verticesi.size(), nj = verticesj.size();
   const unsigned ii = (i + 1) % ni;
   vector<double> chi2;

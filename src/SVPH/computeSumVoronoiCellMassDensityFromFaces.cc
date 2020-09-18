@@ -34,7 +34,6 @@ computeSumVoronoiCellMassDensityFromFaces(const Mesh<Dimension>& mesh,
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Mesh<Dimension>::Zone Zone;
   typedef typename Mesh<Dimension>::Face Face;

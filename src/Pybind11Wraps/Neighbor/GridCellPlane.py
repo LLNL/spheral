@@ -8,6 +8,7 @@ class GridCellPlane:
 
     PYB11typedefs = """
     typedef GridCellIndex<%(Dimension)s> GridCellIndexType;
+    //typedef GridCellPlane<%(Dimension)s> GridCellPlaneType;
 """
 
     #...........................................................................
@@ -55,5 +56,5 @@ class GridCellPlane:
 
     #...........................................................................
     # Properties
-    point = PYB11property("const GridCellIndexType&", "point", "point", "Point in the plane")
-    normal = PYB11property("const GridCellIndexType&", "normal", "normal", "Normal to plane")
+    point = PYB11property("", "point", "point", "Point in the plane")
+    normal = PYB11property("", "normal", "normal", "Normal to plane")

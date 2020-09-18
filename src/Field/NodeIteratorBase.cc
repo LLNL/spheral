@@ -88,7 +88,7 @@ valid() const {
   // Are we on a valid NodeList?
   if (nodeListRange && mNodeListItr < mNodeListEnd) {
 
-    const bool nodeIDTest = mNodeID >= 0 && mNodeID < nodeListPtr()->numNodes();
+    const bool nodeIDTest = mNodeID >= 0 && mNodeID < (int)nodeListPtr()->numNodes();
     const bool fieldIDTest = mFieldID == distance(mNodeListBegin, mNodeListItr);
     return nodeListRange && nodeIDTest && fieldIDTest;
 

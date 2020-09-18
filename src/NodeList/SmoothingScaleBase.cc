@@ -20,7 +20,7 @@ SmoothingScaleBase() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 SmoothingScaleBase<Dimension>::
-SmoothingScaleBase(const SmoothingScaleBase<Dimension>& rhs) {
+SmoothingScaleBase(const SmoothingScaleBase<Dimension>& ) {
 }
 
 //------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ SmoothingScaleBase(const SmoothingScaleBase<Dimension>& rhs) {
 template<typename Dimension>
 SmoothingScaleBase<Dimension>&
 SmoothingScaleBase<Dimension>::
-operator=(const SmoothingScaleBase& rhs) {
+operator=(const SmoothingScaleBase&) {
   return *this;
 }
 

@@ -111,6 +111,7 @@ removeExpiredPointers() {
     }
   }
 
+  CONTRACT_VAR(itr);
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
   {
