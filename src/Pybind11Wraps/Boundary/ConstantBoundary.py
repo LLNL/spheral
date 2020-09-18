@@ -60,7 +60,7 @@ NodeList.
     nodeList = PYB11property("const NodeList<%(Dimension)s>&", "nodeList", doc="The NodeList this boundary applies to")
     nodeIndices = PYB11property("std::vector<int>", "nodeIndices", doc="The nodes this boundary is in control of")
     numConstantNodes = PYB11property("int", "numConstantNodes", doc="The number of nodes we are controlling")
-    reflectOperator = PYB11property("const Tensor&", "reflectOperator", doc="The tensor reflection transformation")
+    reflectOperator = PYB11property("const Tensor", "reflectOperator", doc="The tensor reflection transformation")
 
 #-------------------------------------------------------------------------------
 # Inject methods

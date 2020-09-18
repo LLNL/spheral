@@ -81,7 +81,7 @@ class GridCellIndex:
 
     #...........................................................................
     # Sequence methods
-    @PYB11implementation("[](const GridCellIndex<%(Dimension)s>& self) { return %(Dimension)s::nDim; }")
+    @PYB11implementation("[](const GridCellIndex<%(Dimension)s>&) { return %(Dimension)s::nDim; }")
     def __len__(self):
         "The size (in number of coordinates) of the GridCellIndex."
 

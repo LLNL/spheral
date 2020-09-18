@@ -41,7 +41,7 @@ class SymTensor:
         "Construct with element values."
 
     # Sequence methods
-    @PYB11implementation("[](const Dim<%(ndim)s>::SymTensor& self) { return Dim<%(ndim)s>::SymTensor::numElements; }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::SymTensor&) { return Dim<%(ndim)s>::SymTensor::numElements; }")
     def __len__(self):
         "The size (number of elements) of the SymTensor."
 

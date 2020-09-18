@@ -67,11 +67,6 @@ HelmholtzEquationOfState(const PhysicalConstants& constants,
                          const Scalar abar0,
                          const Scalar zbar0):
   EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
-  mabar0(abar0),
-  mzbar0(zbar0),
-  mPmin(minimumPressure),
-  mPmax(maximumPressure),
-  mTmin(minimumTemperature),
   myAbar(),
   myZbar(),
   mySpecificThermalEnergy(),
@@ -81,10 +76,15 @@ HelmholtzEquationOfState(const PhysicalConstants& constants,
   mySoundSpeed(),
   myGamma(),
   myEntropy(),
+  mabar0(abar0),
+  mzbar0(zbar0),
+  mPmin(minimumPressure),
+  mPmax(maximumPressure),
+  mTmin(minimumTemperature),
   mConstants(constants)
 {
   needUpdate = 1; // flip this on and off later
-  Fortran2(init_helm_table);
+  //Fortran2(init_helm_table);
       
   /*
     need to set constants here to use CGS no matter what
@@ -135,7 +135,7 @@ setPressure(Field<Dimension, Scalar>& Pressure,
   unsigned int k = 0;
       
   if(needUpdate){
-    for (unsigned int j=0; j<nloop; ++j)
+    for (int j=0; j<nloop; ++j)
     {
       k = j*nblock;
       Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
@@ -155,7 +155,7 @@ setPressure(Field<Dimension, Scalar>& Pressure,
           
   }
       
-  for (size_t i = 0; i != npart; ++i) {
+  for (int i = 0; i != npart; ++i) {
     Pressure(i) = (*myPressure)[i] / mPressureinbarye;
   }
 }
@@ -182,7 +182,7 @@ setTemperature(Field<Dimension, Scalar>& temperature,
   unsigned int k = 0;
       
   if(needUpdate){
-    for (unsigned int j=0; j<nloop; ++j)
+    for (int j=0; j<nloop; ++j)
     {
       k = j*nblock;
       Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
@@ -214,9 +214,9 @@ setTemperature(Field<Dimension, Scalar>& temperature,
 template<typename Dimension>
 void
 HelmholtzEquationOfState<Dimension>::
-setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
-                         const Field<Dimension, Scalar>& massDensity,
-                         const Field<Dimension, Scalar>& temperature) const {
+setSpecificThermalEnergy(Field<Dimension, Scalar>& /*specificThermalEnergy*/,
+                         const Field<Dimension, Scalar>& /*massDensity*/,
+                         const Field<Dimension, Scalar>& /*temperature*/) const {
   /*
       
     CHECK(valid());
@@ -248,9 +248,9 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
 template<typename Dimension>
 void
 HelmholtzEquationOfState<Dimension>::
-setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
-                const Field<Dimension, Scalar>& massDensity,
-                const Field<Dimension, Scalar>& temperature) const {
+setSpecificHeat(Field<Dimension, Scalar>& /*specificHeat*/,
+                const Field<Dimension, Scalar>& /*massDensity*/,
+                const Field<Dimension, Scalar>& /*temperature*/) const {
   /*  
       CHECK(valid());
       
@@ -291,7 +291,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
   unsigned int k = 0;
       
   if(needUpdate){
-    for (unsigned int j=0; j<nloop; ++j)
+    for (int j=0; j<nloop; ++j)
     {
       k = j*nblock;
       Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
@@ -311,7 +311,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
           
   }
       
-  for (size_t i = 0; i != npart; ++i) {
+  for (int i = 0; i != npart; ++i) {
     soundSpeed(i) = (*mySoundSpeed)[i] / mVelincmps;
     (*myGamma)[i] = soundSpeed(i) * soundSpeed(i) * massDensity(i) / ((*myPressure)[i] / mPressureinbarye);
   }
@@ -339,7 +339,7 @@ setGammaField(Field<Dimension, Scalar>& gamma,
   unsigned int k = 0;
       
   if(needUpdate){
-    for (unsigned int j=0; j<nloop; ++j)
+    for (int j=0; j<nloop; ++j)
     {
       k = j*nblock;
       Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
@@ -359,7 +359,7 @@ setGammaField(Field<Dimension, Scalar>& gamma,
           
   }
       
-  for (size_t i = 0; i != npart; ++i) {
+  for (int i = 0; i != npart; ++i) {
     gamma(i) = (*myGamma)[i];
   }
 }
@@ -381,7 +381,7 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 
 /* ACCESSORS */
 template<typename Dimension>
-const bool
+bool
 HelmholtzEquationOfState<Dimension>::
 getUpdateStatus() const {
   return needUpdate;
@@ -416,7 +416,7 @@ setEntropy(Field<Dimension, Scalar>& entropy,
   unsigned int k = 0;
       
   if(needUpdate){
-    for (unsigned int j=0; j<nloop; ++j)
+    for (int j=0; j<nloop; ++j)
     {
       k = j*nblock;
       Fortran2(wrapper_invert_helm_ed)(&nblock, &(myMassDensity->at(k)), &(mySpecificThermalEnergy->at(k)),
@@ -436,7 +436,7 @@ setEntropy(Field<Dimension, Scalar>& entropy,
           
   }
       
-  for (size_t i = 0; i != npart; ++i) {
+  for (int i = 0; i != npart; ++i) {
     entropy(i) = (*myEntropy)[i] / mEnergyinergpg;
   }
 }
