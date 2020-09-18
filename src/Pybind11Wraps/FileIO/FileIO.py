@@ -229,7 +229,7 @@ def readPlane%(ndim)i(self,
 ''' % {"ndim" : ndim})
 
     @PYB11const
-    def splitPathComponents(self, pathName="const std::string&"):
+    def splitPathComponents(self, pathName="const std::string"):
         "A helper function to split a string up into substrings delimited by '/'."
         return "std::vector<std::string>"
 

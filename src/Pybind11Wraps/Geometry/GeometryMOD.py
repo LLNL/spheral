@@ -81,14 +81,14 @@ from CellFaceFlag import *
 # Vector standalone functions
 #-------------------------------------------------------------------------------
 @PYB11template("nDim")
-def elementWiseMin(lhs = "Dim<%(nDim)s>::Vector",
-                   rhs = "Dim<%(nDim)s>::Vector"):
+def elementWiseMin(lhs = "const Dim<%(nDim)s>::Vector&",
+                   rhs = "const Dim<%(nDim)s>::Vector&"):
     "Find the coordinate by coordinate minimum of two Vectors."
     return "Dim<%(nDim)s>::Vector"
 
 @PYB11template("nDim")
-def elementWiseMax(lhs = "Dim<%(nDim)s>::Vector",
-                   rhs = "Dim<%(nDim)s>::Vector"):
+def elementWiseMax(lhs = "const Dim<%(nDim)s>::Vector&",
+                   rhs = "const Dim<%(nDim)s>::Vector&"):
     "Find the coordinate by coordinate maximum of two Vectors."
     return "Dim<%(nDim)s>::Vector"
 
@@ -123,8 +123,8 @@ invertRankNTensor3 = PYB11TemplateFunction(invertRankNTensor,
 #-------------------------------------------------------------------------------
 @PYB11template("Dim")
 def computeEigenValues(field = "const Field<%(Dim)s, %(Dim)s::SymTensor>&",
-                       eigenValues = "const Field<%(Dim)s, %(Dim)s::Vector>&",
-                       eigenVectors = "const Field<%(Dim)s, %(Dim)s::Tensor>&"):
+                       eigenValues = "Field<%(Dim)s, %(Dim)s::Vector>&",
+                       eigenVectors = "Field<%(Dim)s, %(Dim)s::Tensor>&"):
     "Compute the eigenvalues for a field of symmetric tensors."
     return "void"
 

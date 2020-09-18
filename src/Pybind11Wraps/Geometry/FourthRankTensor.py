@@ -26,7 +26,7 @@ class FourthRankTensor:
         "Construct setting the element values to a constant value."
 
     # Sequence methods
-    @PYB11implementation("[](const Dim<%(ndim)s>::FourthRankTensor& self) { return Dim<%(ndim)s>::FourthRankTensor::numElements; }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::FourthRankTensor&) { return Dim<%(ndim)s>::FourthRankTensor::numElements; }")
     def __len__(self):
         "The size (number of elements) of the FourthRankTensor."
 
@@ -74,7 +74,7 @@ class FourthRankTensor:
         return "void"
 
     @PYB11const
-    def doubledot(self, rhs="const Dim<%(ndim)s>::FourthRankTensor"):
+    def doubledot(self, rhs="const RankNTensor<%(ndim)s, 4, GeomFourthRankTensor<%(ndim)s>>& rhs"):
         return "double"
 
     @PYB11const

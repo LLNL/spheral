@@ -106,7 +106,7 @@ parameter (alpha) and gives it to the PorousEquationOfState."""
     gammaS0 = PYB11property(doc="Reference gamma at full density")
     cS0 = PYB11property(doc="Reference sound speed at full density")
     porousEOS = PYB11property("const PorousEquationOfState<%(Dimension)s>&", returnpolicy="reference_internal")
-    porousStrength = PYB11property("PorousStrengthModel<%(Dimension)s>&", returnpolicy="reference_internal")
+    porousStrength = PYB11property("const PorousStrengthModel<%(Dimension)s>&", returnpolicy="reference_internal")
     nodeList = PYB11property("const NodeList<%(Dimension)s>&", returnpolicy="reference_internal")
     c0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     alpha0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")

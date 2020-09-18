@@ -39,7 +39,7 @@ string2vector(const std::string& val) {
   result.reserve(size);
   T x;
   while (ss >> x) result.push_back(x);
-  VERIFY(result.size() == size);
+  VERIFY((int)result.size() == size);
   return result;
 }
 

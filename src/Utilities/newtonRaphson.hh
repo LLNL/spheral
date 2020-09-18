@@ -57,7 +57,7 @@ newtonRaphson(const Function& functor,
   double df = fdf.second;
 
   // Iterate until we either converge or achieve the desired accuracy.
-  int iter = 0;
+  unsigned iter = 0;
   while (iter < maxIterations) {
     ++iter;
 

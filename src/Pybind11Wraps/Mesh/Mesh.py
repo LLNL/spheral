@@ -244,9 +244,9 @@ on the surface of the local mesh!"""
     numEdges = PYB11property("unsigned")
     numFaces = PYB11property("unsigned")
     numZones = PYB11property("unsigned")
-    neighborDomains = PYB11property("std::vector<unsigned>&", returnpolicy="reference_internal")
-    sharedNodes = PYB11property("std::vector<std::vector<unsigned>>&", returnpolicy="reference_internal")
-    sharedFaces = PYB11property("std::vector<std::vector<unsigned>>&", returnpolicy="reference_internal")
+    neighborDomains = PYB11property("const std::vector<unsigned>&", returnpolicy="reference_internal")
+    sharedNodes = PYB11property("const std::vector<std::vector<unsigned>>&", returnpolicy="reference_internal")
+    sharedFaces = PYB11property("const std::vector<std::vector<unsigned>>&", returnpolicy="reference_internal")
     minimumScale = PYB11property(doc="Compute the minimum scale (distance between nodes).")
 
     #---------------------------------------------------------------------------
