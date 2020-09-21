@@ -197,7 +197,8 @@ specificThermalEnergy(const Scalar /*massDensity*/,
                       const Scalar temperature) const {
   CHECK(valid());
   const double kB = mConstants.kB();
-  return kB/(mGamma1*mMolecularWeight)*temperature;
+  const double mp = mConstants.protonMass();
+  return kB/(mGamma1*mMolecularWeight*mp)*temperature;
 }
 
 //------------------------------------------------------------------------------
