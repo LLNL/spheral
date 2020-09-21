@@ -267,8 +267,9 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
   // Grab the connectivity map from the DataBase.
   const auto& connectivityMap = dataBase.connectivityMap();
-  //const auto& nodeLists = connectivityMap.nodeLists();
+  const auto& nodeLists = connectivityMap.nodeLists();
   const auto  numNodeLists = dataBase.numFluidNodeLists();
+  CONTRACT_VAR(nodeLists);
   CHECK(nodeLists.size() == numNodeLists);
 
   // The set of interacting node pairs.

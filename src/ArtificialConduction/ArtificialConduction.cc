@@ -183,13 +183,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
             
             // Get the state for node i.
             const Vector& ri    = position(nodeListi, i);
-            //const Scalar& mi    = mass(nodeListi, i);
+            const Scalar& mi    = mass(nodeListi, i);
             const Scalar& rhoi  = massDensity(nodeListi, i);
             const Scalar& epsi  = specificThermalEnergy(nodeListi, i);
             const Scalar& Pi    = pressure(nodeListi, i);
             const SymTensor& Hi = H(nodeListi, i);
             const Scalar hhi    = Dimension::nDim/(Hi.Trace());
             
+            CONTRACT_VAR(mi);
             CHECK(mi > 0.0);
             CHECK(rhoi > 0.0);
             
