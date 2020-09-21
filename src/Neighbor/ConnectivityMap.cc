@@ -525,7 +525,7 @@ valid() const {
     const int numNodes = (ghostConnectivity ?
                           nodeListPtri->numNodes() : 
                           nodeListPtri->numInternalNodes());
-    const int firstGhostNodei = nodeListPtri->firstGhostNode();
+    //const int firstGhostNodei = nodeListPtri->firstGhostNode();
     if ((((int)nodeListIDi < numNodeLists - 1) and ((int)(mOffsets[nodeListIDi + 1] - mOffsets[nodeListIDi]) != numNodes)) or
         (((int)nodeListIDi == numNodeLists - 1) and ((int)(mConnectivity.size() - mOffsets[nodeListIDi]) != numNodes))) {
       cerr << "ConnectivityMap::valid: Failed test that all nodes set for NodeList "
@@ -549,7 +549,7 @@ valid() const {
       // Iterate over the sets of NodeList neighbors for this node.
       for (int nodeListIDj = 0; nodeListIDj != numNodeLists; ++nodeListIDj) {
         const NodeList<Dimension>* nodeListPtrj = mNodeLists[nodeListIDj];
-        const int firstGhostNodej = nodeListPtrj->firstGhostNode();
+        //const int firstGhostNodej = nodeListPtrj->firstGhostNode();
         const vector<int>& neighbors = allNeighborsForNode[nodeListIDj];
 
         // We require that the node IDs be sorted, unique, and of course in a valid range.
