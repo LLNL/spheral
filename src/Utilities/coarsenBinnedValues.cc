@@ -131,7 +131,7 @@ coarsenBinnedValues(vector<vector<Value> >& values,
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
   {
-    for (size_t level = 1; level < numLevels; ++level) {
+    for (size_t level = 1; (int)level < numLevels; ++level) {
       const unsigned nx = nxFine/(1U << (numLevels - level - 1));
       const unsigned ny = nyFine/(1U << (numLevels - level - 1));
       const unsigned nz = nzFine/(1U << (numLevels - level - 1));

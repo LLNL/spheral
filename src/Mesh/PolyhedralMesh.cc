@@ -514,8 +514,8 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
         mFaces.push_back(Face(*this, iface, zones.first, zones.second, faceEdges));
       } else {
         iface = itr->second;
-        CHECK(positiveID(mFaces[iface].mZone1ID) == newZoneID or
-              positiveID(mFaces[iface].mZone2ID) == newZoneID);
+        CHECK((int)positiveID(mFaces[iface].mZone1ID) == newZoneID or
+              (int)positiveID(mFaces[iface].mZone2ID) == newZoneID);
         if (mFaces[iface].mZone1ID == ~newZoneID or
             mFaces[iface].mZone2ID == ~newZoneID) iface = ~iface;
       }

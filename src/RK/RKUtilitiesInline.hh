@@ -16,8 +16,8 @@ innerProductRK(const DataType1& x,
                const DataType2& y,
                const int offsetx,
                const int offsety) {
-  CHECK(x.size() >= offsetx + polynomialSize);
-  CHECK(y.size() >= offsety + polynomialSize);
+  CHECK((int)x.size() >= offsetx + polynomialSize);
+  CHECK((int)y.size() >= offsety + polynomialSize);
   return std::inner_product(std::begin(x) + offsetx,
                             std::begin(x) + offsetx + polynomialSize,
                             std::begin(y) + offsety,

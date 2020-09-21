@@ -54,7 +54,7 @@ ConstantBoundary(DataBase<Dimension>& dataBase,
 
   // Store the ids of the nodes we're watching.
   for (auto itr = nodeIDs.begin(); itr < nodeIDs.end(); ++itr) {
-    REQUIRE(*itr >= 0.0 && *itr < nodeList.numInternalNodes());
+    REQUIRE(*itr >= 0.0 && *itr < (int)nodeList.numInternalNodes());
     mNodeFlags[*itr] = 1;
   }
 

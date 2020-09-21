@@ -321,8 +321,8 @@ domainsPerChunk(const Dim<3>::SymTensor::EigenStructType& shapeTensor) const {
 
   // Iterate over each yz slab.
   for (int i = 0; i != xChunks; ++i) {
-    CHECK(i < result.size());
-    CHECK(i < remainProcs.size());
+    CHECK(i < (int)result.size());
+    CHECK(i < (int)remainProcs.size());
 
     // The total number of domains for this slab.
     const int numDomainsInSlab = yzChunks + remainProcs[i];
@@ -345,7 +345,7 @@ domainsPerChunk(const Dim<3>::SymTensor::EigenStructType& shapeTensor) const {
         result[i].push_back(zChunks);
       }
     }
-    CHECK(result[i].size() == yChunks);
+    CHECK((int)result[i].size() == yChunks);
 
     BEGIN_CONTRACT_SCOPE
     {
@@ -360,7 +360,7 @@ domainsPerChunk(const Dim<3>::SymTensor::EigenStructType& shapeTensor) const {
   }
 
   // That's it.  Check our post-conditions and return the answer.
-  ENSURE(result.size() == xChunks);
+  ENSURE((int)result.size() == xChunks);
   BEGIN_CONTRACT_SCOPE
   {
     int checkCount = 0;

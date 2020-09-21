@@ -56,8 +56,8 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
     for (vector<int>::const_iterator itr = nodeIDs.begin();
          itr < nodeIDs.end();
          ++itr, ++i) {
-      CHECK(*itr < field.numElements());
-      CHECK(i < this->velocityCondition().size());
+      CHECK(*itr < (int)field.numElements());
+      CHECK(i < (int)this->velocityCondition().size());
       field[*itr].z(this->velocityCondition()[i].z());
     }
   }

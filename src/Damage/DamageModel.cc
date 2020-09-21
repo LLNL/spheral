@@ -117,7 +117,7 @@ computeScalarDDDt(const DataBase<Dimension>& /*dataBase*/,
 
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
-  for (int i = 0; i != mNodeList.numInternalNodes(); ++i) {
+  for (int i = 0; i != (int)mNodeList.numInternalNodes(); ++i) {
     if (mExcludeNode(i) == 1) {
       ENSURE(DDDt(i) == 0.0);
     }
@@ -215,7 +215,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto  nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), &mNodeList));
       CONTRACT_VAR(nodeListi);
       CONTRACT_VAR(numNodeLists);
-      CHECK(nodeListi < numNodeLists);
+      CHECK(nodeListi < (int)numNodeLists);
 
       // Invert the flaws again, and remove the number of flaws normalization.
 #pragma omp parallel for
@@ -246,7 +246,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
         const auto& connectivity = connectivityMap.connectivityForNode(&mNodeList, i)[nodeListi];
         for (auto jItr = connectivity.begin(); jItr < connectivity.end(); ++jItr) {
           const int j = *jItr;
-          CHECK(j < mNodeList.numNodes());
+          CHECK(j < (int)mNodeList.numNodes());
           const auto rij = ri - positions(j);
           const auto Wi = mW(Hi*rij, Hdeti);
           effectiveFlaws(i) += Wi*flawCopy(j);
@@ -384,7 +384,7 @@ excludeNodes(vector<int> ids) {
   for (vector<int>::const_iterator itr = ids.begin();
        itr != ids.end();
        ++itr) {
-    REQUIRE(*itr >= 0 && *itr < mNodeList.numInternalNodes());
+    REQUIRE(*itr >= 0 && *itr < (int)mNodeList.numInternalNodes());
     mExcludeNode(*itr) = 1;
   }
 }

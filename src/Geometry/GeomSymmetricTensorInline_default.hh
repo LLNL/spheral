@@ -35,7 +35,7 @@ GeomSymmetricTensor<2>::elementIndex(const GeomSymmetricTensor<2>::size_type row
   int i = std::min(row, column);
   int j = std::max(row, column);
   int result = (5 - i)*i/2 + j - i;
-  ENSURE(result >= 0 and result < numElements);
+  ENSURE(result >= 0 and result < (int)numElements);
   return result;
 }
 
@@ -49,7 +49,7 @@ GeomSymmetricTensor<3>::elementIndex(const GeomSymmetricTensor<3>::size_type row
   int i = std::min(row, column);
   int j = std::max(row, column);
   int result = (7 - i)*i/2 + j - i;
-  ENSURE(result >= 0 and result < numElements);
+  ENSURE(result >= 0 and result < (int)numElements);
   return result;
 }
 
