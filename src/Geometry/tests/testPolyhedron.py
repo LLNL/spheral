@@ -10,6 +10,7 @@ from Spheral3d import *
 
 # Create a global random number generator.
 import random
+random.seed(630)
 rangen = random.Random()
 
 #===============================================================================
