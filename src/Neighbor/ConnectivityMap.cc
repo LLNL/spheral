@@ -309,11 +309,11 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
 
   // Pre-conditions.
   const auto numNodeLists = mNodeLists.size();
-  REQUIRE(nodeListi < numNodeLists and
-          nodeListj < numNodeLists);
+  REQUIRE(nodeListi < (int)numNodeLists and
+          nodeListj < (int)numNodeLists);
   const auto firstGhostNodei = mNodeLists[nodeListi]->firstGhostNode();
   const auto firstGhostNodej = mNodeLists[nodeListj]->firstGhostNode();
-  REQUIRE(i < firstGhostNodei or j < firstGhostNodej);
+  REQUIRE(i < (int)firstGhostNodei or j < (int)firstGhostNodej);
 
   // Prepare the result.
   vector<vector<int>> result(numNodeLists);
@@ -384,13 +384,13 @@ connectivityUnionForNodes(const int nodeListi, const int i,
 
   // Pre-conditions.
   const unsigned numNodeLists = mNodeLists.size();
-  REQUIRE(nodeListi < numNodeLists and
-          nodeListj < numNodeLists);
+  REQUIRE(nodeListi < (int)numNodeLists and
+          nodeListj < (int)numNodeLists);
   const unsigned firstGhostNodei = mNodeLists[nodeListi]->firstGhostNode();
   const unsigned firstGhostNodej = mNodeLists[nodeListj]->firstGhostNode();
   CONTRACT_VAR(firstGhostNodei);
   CONTRACT_VAR(firstGhostNodej);
-  REQUIRE(i < firstGhostNodei or j < firstGhostNodej);
+  REQUIRE(i < (int)firstGhostNodei or j < (int)firstGhostNodej);
 
   // Do the deed.
   vector<vector<int> > result(numNodeLists);
@@ -450,7 +450,7 @@ globalConnectivity(vector<Boundary<Dimension>*>& boundaries) const {
              ++jItr) result[gid].push_back(globalIDs(nodeListj, *jItr));
 
       }
-      ENSURE(result[gid].size() == numNeighborsForNode(nodeListPtr, i));
+      ENSURE((int)result[gid].size() == numNeighborsForNode(nodeListPtr, i));
     }
   }
 
@@ -525,7 +525,7 @@ valid() const {
     const int numNodes = (ghostConnectivity ?
                           nodeListPtri->numNodes() : 
                           nodeListPtri->numInternalNodes());
-    const int firstGhostNodei = nodeListPtri->firstGhostNode();
+    //const int firstGhostNodei = nodeListPtri->firstGhostNode();
     if ((((int)nodeListIDi < numNodeLists - 1) and ((int)(mOffsets[nodeListIDi + 1] - mOffsets[nodeListIDi]) != numNodes)) or
         (((int)nodeListIDi == numNodeLists - 1) and ((int)(mConnectivity.size() - mOffsets[nodeListIDi]) != numNodes))) {
       cerr << "ConnectivityMap::valid: Failed test that all nodes set for NodeList "
@@ -549,7 +549,7 @@ valid() const {
       // Iterate over the sets of NodeList neighbors for this node.
       for (int nodeListIDj = 0; nodeListIDj != numNodeLists; ++nodeListIDj) {
         const NodeList<Dimension>* nodeListPtrj = mNodeLists[nodeListIDj];
-        const int firstGhostNodej = nodeListPtrj->firstGhostNode();
+        //const int firstGhostNodej = nodeListPtrj->firstGhostNode();
         const vector<int>& neighbors = allNeighborsForNode[nodeListIDj];
 
         // We require that the node IDs be sorted, unique, and of course in a valid range.
@@ -835,7 +835,7 @@ computeConnectivity() {
               const auto& ri = position(iNodeList, i);
               const auto& Hi = H(iNodeList, i);
               auto&       worki = mNodeLists[iNodeList]->work();
-              CHECK2(mOffsets[iNodeList] + i < mConnectivity.size(),
+              CHECK2(mOffsets[iNodeList] + i < (int)mConnectivity.size(),
                      iNodeList << " " << i << " " << mOffsets[iNodeList] << " " << mConnectivity.size());
               const auto start = Timing::currentTime();
 
@@ -1051,11 +1051,11 @@ computeConnectivity() {
   // Post conditions.
   BEGIN_CONTRACT_SCOPE
   // Make sure that the correct number of nodes have been completed.
-  for (auto iNodeList = 0; iNodeList != numNodeLists; ++iNodeList) {
+  for (auto iNodeList = 0; iNodeList != (int)numNodeLists; ++iNodeList) {
     const auto n = (ghostConnectivity ? 
                     mNodeLists[iNodeList]->numNodes() :
                     mNodeLists[iNodeList]->numInternalNodes());
-    for (auto i = 0; i != n; ++i) {
+    for (auto i = 0; i != (int)n; ++i) {
       ENSURE2(flagNodeDone(iNodeList, i) == 1,
               "Missed connnectivity for (" << iNodeList << " " << i << ")");
     }

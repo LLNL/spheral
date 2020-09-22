@@ -38,10 +38,10 @@ Face(const Mesh<Dim<3> >& mesh,
   mZone2ID(zone2ID),
   mNodeIDs(),
   mEdgeIDs(edgeIDs) {
-  REQUIRE(not (mZone1ID ==  UNSETID and mZone2ID ==  UNSETID));
-  REQUIRE(not (mZone1ID == ~UNSETID and mZone2ID ==  UNSETID));
-  REQUIRE(not (mZone1ID ==  UNSETID and mZone2ID == ~UNSETID));
-  REQUIRE(not (mZone1ID == ~UNSETID and mZone2ID == ~UNSETID));
+  REQUIRE(not (mZone1ID ==  (int)UNSETID and mZone2ID ==  (int)UNSETID));
+  REQUIRE(not (mZone1ID == ~(int)UNSETID and mZone2ID ==  (int)UNSETID));
+  REQUIRE(not (mZone1ID ==  (int)UNSETID and mZone2ID == ~(int)UNSETID));
+  REQUIRE(not (mZone1ID == ~(int)UNSETID and mZone2ID == ~(int)UNSETID));
   REQUIRE(mEdgeIDs.size() > 2);
   REQUIRE(*std::max_element(mEdgeIDs.begin(), mEdgeIDs.end()) < mMeshPtr->mEdges.size());
 

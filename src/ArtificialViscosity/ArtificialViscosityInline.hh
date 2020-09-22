@@ -422,8 +422,8 @@ shockDirection(const Scalar ci,
   REQUIRE(csMultiplier() > 0.0);
   REQUIRE(negligibleSoundSpeed() > 0.0);
   REQUIRE(epsilon2() > 0.0);
-  REQUIRE(nodeListID >= 0 && nodeListID < mGradDivVelocity.size());
-  REQUIRE(nodeID >= 0 && nodeID < mGradDivVelocity[nodeListID]->nodeListPtr()->numNodes());
+  REQUIRE(nodeListID >= 0 && nodeListID < (int)mGradDivVelocity.size());
+  REQUIRE(nodeID >= 0 && nodeID < (int)mGradDivVelocity[nodeListID]->nodeListPtr()->numNodes());
 
   const Scalar csi = max(mNegligibleSoundSpeed, mCsMultiplier*ci);
   const Scalar csOverhi2 = csi/(hi*hi);

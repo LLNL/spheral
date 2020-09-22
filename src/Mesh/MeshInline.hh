@@ -412,7 +412,7 @@ recomputeIDs(const std::vector<unsigned>& mask) const {
       ++newID;
     }
   }
-  ENSURE(std::accumulate(mask.begin(), mask.end(), 0) == newID);
+  ENSURE(std::accumulate(mask.begin(), mask.end(), 0) == (int)newID);
   return result;
 }
 

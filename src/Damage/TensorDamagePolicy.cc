@@ -278,7 +278,7 @@ update(const KeyType& key,
           const int numFailedCracks = int(D0*double(totalCracks));
           const auto numRemainingCracks = totalCracks - numFailedCracks;
           CONTRACT_VAR(numRemainingCracks);
-          CHECK(numFailedCracks >=0 && numFailedCracks <= totalCracks);
+          CHECK(numFailedCracks >=0 && numFailedCracks <= (int)totalCracks);
           CHECK(numRemainingCracks >= 0 && numRemainingCracks <= totalCracks);
           CHECK(numRemainingCracks + numFailedCracks == totalCracks);
 
@@ -288,11 +288,11 @@ update(const KeyType& key,
           //           numActiveCracks = numRemainingCracks;
           //         } else {
           for (auto k = numFailedCracks; k < (int)totalCracks; ++k) {
-            CHECK(k < flaws.size());
+            CHECK(k < (int)flaws.size());
             if (straini >= flaws[k]) ++numActiveCracks;
           }
           //         }
-          CHECK(numActiveCracks >= 0 && numActiveCracks <= totalCracks);
+          CHECK(numActiveCracks >= 0 && numActiveCracks <= (int)totalCracks);
 
           // Choose the allowed range of D.
           double Dmin, Dmax;

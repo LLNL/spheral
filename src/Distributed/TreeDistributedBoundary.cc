@@ -209,7 +209,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase,
       MPI_Isend(&localBuffer[0], localBufSize, MPI_CHAR, sendProc, numProcs + procID, Communicator::communicator(), &sendRequests.back());
     }
   }
-  CHECK(sendRequests.size() == 2*(numProcs -1 ));
+  CHECK((int)sendRequests.size() == 2*(numProcs -1 ));
 
   // Compute the local H inverse for our box culling of send nodes.
   FieldList<Dimension, SymTensor> Hinverse = dataBase.newGlobalFieldList(SymTensor::zero, "H inverse");

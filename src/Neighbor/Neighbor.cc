@@ -112,7 +112,6 @@ template<typename Dimension>
 void
 Neighbor<Dimension>::
 nodeList(NodeList<Dimension>& nodeList) {
-  CHECK(&nodeList);
   mNodeListPtr = &nodeList;
   mNodeExtent.setNodeList(nodeList);
 }
@@ -143,7 +142,7 @@ template<typename Dimension>
 typename Dimension::Vector
 Neighbor<Dimension>::
 nodeExtent(int nodeID) const {
-  CHECK(nodeID >= 0 and nodeID < nodeList().numNodes());
+  CHECK(nodeID >= 0 and nodeID < (int)nodeList().numNodes());
   return HExtent(nodeList().Hfield()(nodeID), kernelExtent());
 }
 
@@ -166,7 +165,7 @@ setNodeExtents(const vector<int>& nodeIDs) {
   for (typename vector<int>::const_iterator nodeIDItr = nodeIDs.begin();
        nodeIDItr < nodeIDs.end();
        ++nodeIDItr) {
-    CHECK(*nodeIDItr >= 0 and *nodeIDItr < nodeList().numNodes());
+    CHECK(*nodeIDItr >= 0 and *nodeIDItr < (int)nodeList().numNodes());
     mNodeExtent(*nodeIDItr) = nodeExtent(*nodeIDItr);
   }
 }
@@ -200,7 +199,7 @@ setMasterList(int nodeID,
               std::vector<int>& coarseNeighbors,
               const bool ghostConnectivity) const {
   CHECK(valid());
-  CHECK(nodeID >= 0 and nodeID < nodeList().numInternalNodes());
+  CHECK(nodeID >= 0 and nodeID < (int)nodeList().numInternalNodes());
   const auto& positions = nodeList().positions();
   const auto& Hfield = nodeList().Hfield();
   this->setMasterList(positions(nodeID), Hfield(nodeID), masterList, coarseNeighbors, ghostConnectivity);
@@ -216,7 +215,7 @@ setRefineNeighborList(int nodeID,
                       const std::vector<int>& coarseNeighbors,
                       std::vector<int>& refineNeighbors) const {
   CHECK(valid());
-  CHECK(nodeID >= 0 and nodeID < nodeList().numInternalNodes());
+  CHECK(nodeID >= 0 and nodeID < (int)nodeList().numInternalNodes());
   const auto& positions = nodeList().positions();
   const auto& Hfield = nodeList().Hfield();
   this->setRefineNeighborList(positions(nodeID), Hfield(nodeID), coarseNeighbors, refineNeighbors);

@@ -33,7 +33,7 @@ InternalNodeIterator(typename vector<NodeList<Dimension>*>::const_iterator nodeL
   // Pre-conditions.
   REQUIRE((nodeListItr == nodeListEnd && nodeID == 0) ||
           (nodeListItr < nodeListEnd &&
-           nodeID >= 0 && nodeID <= (*nodeListItr)->numInternalNodes()));
+           nodeID >= 0 && nodeID <= (int)(*nodeListItr)->numInternalNodes()));
 
   mNodeID = nodeID;
   mFieldID = distance(nodeListBegin, nodeListItr);

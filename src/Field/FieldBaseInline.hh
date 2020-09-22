@@ -133,7 +133,6 @@ template<typename Dimension>
 inline
 void
 FieldBase<Dimension>::setFieldBaseNodeList(const NodeList<Dimension>& nodeList) {
-  CHECK(&nodeList);
   if (mNodeListPtr != 0) unregisterNodeList();
   mNodeListPtr = &nodeList;
   nodeList.registerField(*this);

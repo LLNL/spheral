@@ -315,7 +315,7 @@ dt(const DataBase<Dimension>& dataBase,
     Scalar lastMinDt = minDt;
     int lastNodeID = -1;
     string lastNodeListName, reason;
-    Scalar lastNodeScale, lastEps, lastVsig, lastRho;
+    Scalar lastEps, lastVsig, lastRho;
     
     // Loop over every fluid node.
     size_t nodeListi = 0;
@@ -365,7 +365,6 @@ dt(const DataBase<Dimension>& dataBase,
     reasonStream << "mindt = " << minDt << std::endl
     << reason << std::endl
     << "  (nodeList, node) = (" << lastNodeListName << ", " << lastNodeID << ") | "
-    << "  h = " << lastNodeScale << std::endl
     << "  vsig = " << lastVsig << std::endl
     << "  rho = " << lastRho << std::endl
     << "  eps = " << lastEps << std::endl

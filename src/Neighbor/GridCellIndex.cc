@@ -35,7 +35,7 @@ GridCellIndexRange(const GridCellIndex<Dim<1> >& gridCellMin,
   result.reserve(numCells);
   for (int ix = gridCellMin.xIndex(); ix <= gridCellMax.xIndex(); ++ix) {
     result.push_back(GridCellIndex<Dim<1> >(ix));
-    CHECK(result.size() <= numCells);
+    CHECK((int)result.size() <= numCells);
   }
 
   return result;  
@@ -56,7 +56,7 @@ GridCellIndexRange(const GridCellIndex<Dim<2> >& gridCellMin,
   for (int ix = gridCellMin.xIndex(); ix <= gridCellMax.xIndex(); ++ix) {
     for (int iy = gridCellMin.yIndex(); iy <= gridCellMax.yIndex(); ++iy) {
       result.push_back(GridCellIndex<Dim<2> >(ix, iy));
-      CHECK(result.size() <= numCells);
+      CHECK((int)result.size() <= numCells);
     }
   }
 
@@ -80,7 +80,7 @@ GridCellIndexRange(const GridCellIndex<Dim<3> >& gridCellMin,
     for (int iy = gridCellMin.yIndex(); iy <= gridCellMax.yIndex(); ++iy) {
       for (int iz = gridCellMin.zIndex(); iz <= gridCellMax.zIndex(); ++iz) {
         result.push_back(GridCellIndex<Dim<3> >(ix, iy, iz));
-        CHECK(result.size() <= numCells);
+        CHECK((int)result.size() <= numCells);
       }
     }
   }

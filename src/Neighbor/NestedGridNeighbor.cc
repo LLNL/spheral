@@ -172,7 +172,7 @@ setMasterList(const int nodeID,
               std::vector<int>& coarseNeighbors,
               const bool ghostConnectivity) const {
   REQUIRE(valid());
-  REQUIRE(nodeID >= 0 and nodeID < this->nodeList().numInternalNodes());
+  REQUIRE(nodeID >= 0 and nodeID < (int)this->nodeList().numInternalNodes());
   masterList.clear();
   const auto& positions = this->nodeList().positions();
   const auto& Hfield = this->nodeList().Hfield();
@@ -197,7 +197,7 @@ setRefineNeighborList(const int nodeID,
                       const std::vector<int>& coarseNeighbors,
                       std::vector<int>& refineNeighbors) const {
   REQUIRE(valid());
-  REQUIRE(nodeID >= 0 and nodeID < this->nodeList().numInternalNodes());
+  REQUIRE(nodeID >= 0 and nodeID < (int)this->nodeList().numInternalNodes());
   const auto& positions = this->nodeList().positions();
   const auto& Hfield = this->nodeList().Hfield();
   setRefineNeighborList(positions(nodeID), Hfield(nodeID), coarseNeighbors, refineNeighbors);
@@ -314,11 +314,11 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
 	  // set.
           auto nodeID = headOfGridCell(gridCell, gridLevelID);
           while (nodeID != mEndOfLinkList) {
-            CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
+            CHECK((nodeID >= 0 and nodeID < (int)this->nodeList().numNodes()) or
                   this->nodeList().numNodes() == 0);
             masterList.push_back(nodeID);
             nodeID = nextNodeInCell(nodeID);
-            CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
+            CHECK((nodeID >= 0 and nodeID < (int)this->nodeList().numNodes()) or
                   this->nodeList().numNodes() == 0 or
                   nodeID == mEndOfLinkList);
           }
@@ -369,11 +369,11 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
           // neighbors) nodes to the coarse neighbor list.
           auto nodeID = headOfGridCell(gridCell, gridLevelID);
           while (nodeID != mEndOfLinkList) {
-            CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
+            CHECK((nodeID >= 0 and nodeID < (int)this->nodeList().numNodes()) or
                   this->nodeList().numNodes() == 0);
             coarseNeighbors.push_back(nodeID);
             nodeID = nextNodeInCell(nodeID);
-            CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
+            CHECK((nodeID >= 0 and nodeID < (int)this->nodeList().numNodes()) or
                   this->nodeList().numNodes() == 0 or
                   nodeID == mEndOfLinkList);
           }
@@ -917,9 +917,9 @@ NestedGridNeighbor<Dimension>::updateNodes() {
   // Resize things to the correct sizes.
   const int numNodes = this->nodeList().numNodes();
   for (int gridLevelID = 0; gridLevelID < numGridLevels(); ++gridLevelID) {
-    CHECK(gridLevelID < mGridLevelOccupied.size());
-    CHECK(gridLevelID < mGridCellHead.size());
-    CHECK(gridLevelID < mNodeInCell.size());
+    CHECK(gridLevelID < (int)mGridLevelOccupied.size());
+    CHECK(gridLevelID < (int)mGridCellHead.size());
+    CHECK(gridLevelID < (int)mNodeInCell.size());
     mGridLevelOccupied[gridLevelID] = false;
     mGridCellHead[gridLevelID] = SafeIndexMap<GridCellIndex<Dimension>, int>();
     mNodeInCell[gridLevelID].resize(numNodes);
@@ -930,7 +930,7 @@ NestedGridNeighbor<Dimension>::updateNodes() {
 
   // Blank out the link list of nodes.
   for (int nodeID = 0; nodeID != numNodes; ++nodeID) {
-    CHECK(nodeID < mNextNodeInCell.size());
+    CHECK(nodeID < (int)mNextNodeInCell.size());
     mNextNodeInCell[nodeID] = mEndOfLinkList;
   }
 
@@ -943,22 +943,22 @@ NestedGridNeighbor<Dimension>::updateNodes() {
     CHECK(gridLevelID >= 0 and gridLevelID < mMaxGridLevels);
 
     // Assign the nodes grid level.
-    CHECK(nodeID >= 0 and nodeID < mNodeOnGridLevel.size());
+    CHECK(nodeID >= 0 and nodeID < (int)mNodeOnGridLevel.size());
     mNodeOnGridLevel[nodeID] = gridLevelID;
 
     // Link this node into the grid cell/grid level.
     linkNode(nodeID, gridLevelID, gridCellID);
 
     // Flag the grid level this node is on as occupied.
-    CHECK(gridLevelID >= 0 and gridLevelID < mGridLevelOccupied.size());
+    CHECK(gridLevelID >= 0 and gridLevelID < (int)mGridLevelOccupied.size());
     mGridLevelOccupied[gridLevelID] = true;
   }
 
   // Now we need to identify which cell on each grid level each node occupies.
   for (int gridLevelID = 0; gridLevelID != mMaxGridLevels; ++gridLevelID) {
     for (int nodeID = 0; nodeID != numNodes; ++nodeID) {
-      CHECK(gridLevelID >= 0 and gridLevelID < mNodeInCell.size());
-      CHECK(nodeID >= 0 and nodeID < mNodeInCell[gridLevelID].size());
+      CHECK(gridLevelID >= 0 and gridLevelID < (int)mNodeInCell.size());
+      CHECK(nodeID >= 0 and nodeID < (int)mNodeInCell[gridLevelID].size());
       mNodeInCell[gridLevelID][nodeID] = gridCellIndex(nodeID, gridLevelID);
     }
   }
@@ -997,7 +997,7 @@ NestedGridNeighbor<Dimension>::updateNodes() {
         }
       }
     }
-    for (int i = 0; i != nodes.numNodes(); ++i) ENSURE(count(i) == 1);
+    for (int i = 0; i != (int)nodes.numNodes(); ++i) ENSURE(count(i) == 1);
   }
   END_CONTRACT_SCOPE
 
@@ -1016,7 +1016,7 @@ updateNodes(const vector<int>& nodeIDs) {
   // Make sure the internal data structures are sized correctly.
   int numNodes = this->nodeList().numNodes();
   for (int gridLevelID = 0; gridLevelID < numGridLevels(); ++gridLevelID) {
-    REQUIRE(gridLevelID < mNodeInCell.size());
+    REQUIRE(gridLevelID < (int)mNodeInCell.size());
     mNodeInCell[gridLevelID].resize(numNodes);
   }
   mNextNodeInCell.resize(numNodes);
@@ -1025,7 +1025,7 @@ updateNodes(const vector<int>& nodeIDs) {
   // Loop over the nodes we're working on.
   for (typename vector<int>::const_iterator nodeIDItr = nodeIDs.begin();
        nodeIDItr < nodeIDs.end(); ++nodeIDItr) {
-    CHECK(*nodeIDItr >= 0 and *nodeIDItr < this->nodeList().numNodes());
+    CHECK(*nodeIDItr >= 0 and *nodeIDItr < (int)this->nodeList().numNodes());
 
     // Determine the nodes current grid level and cell.
     const int gridLevelID = gridLevel(*nodeIDItr);
@@ -1051,13 +1051,13 @@ updateNodes(const vector<int>& nodeIDs) {
     // For all gridlevels we need to identify the grid cell that contains this
     // node.
     for (int gridLevelID = 0; gridLevelID < mMaxGridLevels; ++gridLevelID) {
-      CHECK(gridLevelID >= 0 and gridLevelID < mNodeInCell.size());
-      CHECK(*nodeIDItr >= 0 and *nodeIDItr < mNodeInCell[gridLevelID].size());
+      CHECK(gridLevelID >= 0 and gridLevelID < (int)mNodeInCell.size());
+      CHECK(*nodeIDItr >= 0 and *nodeIDItr < (int)mNodeInCell[gridLevelID].size());
       mNodeInCell[gridLevelID][*nodeIDItr] = gridCellIndex(*nodeIDItr, gridLevelID);
     }
 
     // Flag the grid level this node is on as occupied.
-    CHECK(gridLevelID >= 0 and gridLevelID < mGridLevelOccupied.size());
+    CHECK(gridLevelID >= 0 and gridLevelID < (int)mGridLevelOccupied.size());
     mGridLevelOccupied[gridLevelID] = true;
   }
 
@@ -1085,8 +1085,8 @@ NestedGridNeighbor<Dimension>::
 rebuildOccupiedGridCells() {
 
   REQUIRE(readyToAssignNodes());
-  REQUIRE(mGridCellHead.size() == numGridLevels());
-  REQUIRE(mOccupiedGridCells.size() == numGridLevels());
+  REQUIRE((int)mGridCellHead.size() == numGridLevels());
+  REQUIRE((int)mOccupiedGridCells.size() == numGridLevels());
 
   // Loop over all grid levels.
   for (int gridLevelID = 0; gridLevelID < numGridLevels(); ++gridLevelID) {
@@ -1101,7 +1101,7 @@ rebuildOccupiedGridCells() {
            headItr != mGridCellHead[gridLevelID].end(); ++headItr) {
 
         // Add this grid cell to the list for this grid level.
-        CHECK((*headItr).second >= 0 and (*headItr).second < this->nodeList().numNodes());
+        CHECK((*headItr).second >= 0 and (*headItr).second < (int)this->nodeList().numNodes());
         mOccupiedGridCells[gridLevelID].push_back((*headItr).first);
       }
     }
