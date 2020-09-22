@@ -12,9 +12,9 @@
 #include "Field/FieldList.hh"
 #include "Geometry/CellFaceFlag.hh"
 #include "Physics/Physics.hh"
+#include "boost/unordered_map.hpp"
 
 #include <set>
-#include <unordered_map>
 
 namespace Spheral {
 
@@ -139,7 +139,7 @@ private:
   const DataBase<Dimension>& mDataBase;
   const RKVolumeType mVolumeType;
   const bool mNeedHessian;
-  std::unordered_map<RKOrder, ReproducingKernel<Dimension>> mWR;
+  boost::unordered_map<RKOrder, ReproducingKernel<Dimension>> mWR;
 
   // State
   FieldList<Dimension, Scalar> mVolume;
@@ -147,7 +147,7 @@ private:
   // Corrections
   FieldList<Dimension, Scalar> mSurfaceArea;
   FieldList<Dimension, Vector> mNormal;
-  std::unordered_map<RKOrder, FieldList<Dimension, RKCoefficients<Dimension>>> mCorrections;
+  boost::unordered_map<RKOrder, FieldList<Dimension, RKCoefficients<Dimension>>> mCorrections;
   
   // Voronoi stuff
   FieldList<Dimension, int> mSurfacePoint;

@@ -3,7 +3,7 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set(TOOLSET "intel-linux")
 else()
-  set(TOOLSET ${CMAKE_CXX_COMPILER_ID})
+  string(TOLOWER ${CMAKE_CXX_COMPILER_ID} TOOLSET)
 endif()
 
 set(BOOST_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})

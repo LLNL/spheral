@@ -11,6 +11,7 @@
 #include "Boundary/Boundary.hh"
 #include "Boundary/PlanarBoundary.hh"
 #include "RK/RKCorrectionParams.hh"
+#include "boost/unordered_map.hpp"
 
 #include "Eigen/Sparse"
 
@@ -98,7 +99,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   Tensor mReflectOperator;
-  std::unordered_map<RKOrder, std::pair<TransformationMatrix, TransformationMatrix>> mrkReflectOperators;
+  boost::unordered_map<RKOrder, std::pair<TransformationMatrix, TransformationMatrix>> mrkReflectOperators;
 };
 
 }

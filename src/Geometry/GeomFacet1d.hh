@@ -36,7 +36,7 @@ public:
   const Vector& normal() const;
 
   // For consistency with GeomFacet3d.
-  void decompose(std::vector<std::array<Vector, 1>>& subfacets) const;
+  void decompose(std::vector<std::array<Vector, 1>>& subfacets);
   
 private:
   //--------------------------- Private Interface ---------------------------//
