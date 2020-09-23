@@ -208,7 +208,7 @@ struct
 segmentSegmentIntersectionTester {
   double area2(const Vector& a, const Vector& b, const Vector& c) const                  { return (b - a).cross(c - a).z(); }
   bool left(const Vector& a, const Vector& b, const Vector& c, const double tol) const   { return distinctlyGreaterThan(this->area2(a, b, c), 0.0, tol); }
-  bool leftOn(const Vector& a, const Vector& b, const Vector& c, const double tol) const { return fuzzyGreaterThanOrEqual(this->area2(a, b, c), 0.0); }
+  bool leftOn(const Vector& a, const Vector& b, const Vector& c, const double /*tol*/) const { return fuzzyGreaterThanOrEqual(this->area2(a, b, c), 0.0); }
   bool Xor(const bool x, const bool y) const                                             { return !x ^ !y; }
   bool intersectProp(const Vector& a, const Vector& b, const Vector& c, const Vector& d, const double tol) const {
     if (collinear(a, b, c, tol) or

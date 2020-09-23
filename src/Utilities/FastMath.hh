@@ -132,6 +132,7 @@ template<typename D>
 inline
 D
 cbrta_halley(const D a, const D R) {
+  CONTRACT_VAR(R);
 #ifdef __INTEL_COMPILER
   const D a3 = a*a*a;
   const D b = a * (a3 + R + R) / (a3 + a3 + R + tinyValue<D>());
@@ -163,6 +164,7 @@ template<typename D>
 inline
 D
 sqrta_halley(const D a, const D R) {
+  CONTRACT_VAR(R);
 #ifdef __INTEL_COMPILER
   const D a2 = a*a;
   return a*(a2 + R + R + R)/(a2 + a2 + a2 + R + tinyValue<D>());
