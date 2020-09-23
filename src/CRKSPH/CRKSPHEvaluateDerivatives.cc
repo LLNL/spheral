@@ -129,8 +129,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto& Hi = H(nodeListi, i);
       const auto  ci = soundSpeed(nodeListi, i);
       const auto& correctionsi = corrections(nodeListi, i);
-      //const auto  Hdeti = Hi.Determinant();
+      const auto  Hdeti = Hi.Determinant();
       const auto  weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
+      CONTRACT_VAR(Hdeti);
       CHECK2(mi > 0.0, i << " " << mi);
       CHECK2(rhoi > 0.0, i << " " << rhoi);
       CHECK2(Hdeti > 0.0, i << " " << Hdeti);
@@ -157,8 +158,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto& Hj = H(nodeListj, j);
       const auto  cj = soundSpeed(nodeListj, j);
       const auto& correctionsj = corrections(nodeListj, j);
-      //const auto  Hdetj = Hj.Determinant();
+      const auto  Hdetj = Hj.Determinant();
       const auto  weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
+      CONTRACT_VAR(Hdetj);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);

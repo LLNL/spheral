@@ -539,8 +539,8 @@ setNperhValues(const bool scaleTo1D) {
 
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
-  ENSURE(mWsumValues.size() == mNumPoints);
-  ENSURE(mNperhValues.size() == mNumPoints);
+  ENSURE((int)mWsumValues.size() == mNumPoints);
+  ENSURE((int)mNperhValues.size() == mNumPoints);
   for (int i = 0; i != mNumPoints - 1; ++i) {
     ENSURE(mWsumValues[i] <= mWsumValues[i + 1]);
     ENSURE(mNperhValues[i] <= mNperhValues[i + 1]);

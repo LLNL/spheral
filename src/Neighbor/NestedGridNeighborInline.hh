@@ -22,7 +22,7 @@ inline
 int
 NestedGridNeighbor<Dimension>::
 gridLevel(const int nodeID) const {
-  REQUIRE(nodeID >=0 and nodeID < this->nodeList().numNodes());
+  REQUIRE(nodeID >=0 and nodeID < (int)this->nodeList().numNodes());
   return gridLevel(this->nodeList().Hfield()(nodeID));
 }
 
@@ -91,7 +91,7 @@ GridCellIndex<Dimension>
 NestedGridNeighbor<Dimension>::
 gridCellIndex(const int nodeID,
               const int gridLevel) const {
-  REQUIRE(nodeID >= 0 and nodeID < this->nodeList().numNodes());
+  REQUIRE(nodeID >= 0 and nodeID < (int)this->nodeList().numNodes());
   return gridCellIndex(this->nodeList().positions()(nodeID), gridLevel);
 }
 
@@ -189,7 +189,7 @@ NestedGridNeighbor<Dimension>::
 cellOccupied(const GridCellIndex<Dimension>& gridCell,
              const int gridLevel) const {
   REQUIRE(gridLevel >= 0 and gridLevel < numGridLevels());
-  REQUIRE(mOccupiedGridCells.size() == numGridLevels());
+  REQUIRE((int)mOccupiedGridCells.size() == numGridLevels());
   return headOfGridCell(gridCell, gridLevel) != mEndOfLinkList;
 }
 
@@ -313,7 +313,7 @@ inline
 std::vector<int>
 NestedGridNeighbor<Dimension>::
 occupiedGridLevels() const {
-  REQUIRE(mGridLevelOccupied.size() == mMaxGridLevels);
+  REQUIRE((int)mGridLevelOccupied.size() == mMaxGridLevels);
   std::vector<int> result;
   result.reserve(mMaxGridLevels);
   for (int gridLevelID = 0; gridLevelID != mMaxGridLevels; ++gridLevelID) {
@@ -379,7 +379,7 @@ inline
 int
 NestedGridNeighbor<Dimension>::
 nextNodeInCell(int nodeID) const {
-  REQUIRE2(nodeID >= 0 and nodeID < this->nodeList().numNodes(),
+  REQUIRE2(nodeID >= 0 and nodeID < (int)this->nodeList().numNodes(),
            "nodeID out of valid range:  " << nodeID << " not in [0, " << this->nodeList().numNodes() << "]");
   REQUIRE2(mNextNodeInCell.size() == this->nodeList().numNodes(),
            "mNodexNodeInCell wrong size:  " << mNextNodeInCell.size() << " != " << this->nodeList().numNodes());
@@ -399,11 +399,11 @@ internalNodesInCell(const GridCellIndex<Dimension>& gridCell,
   const int firstGhost = this->nodeList().firstGhostNode();
   int nodeID = headOfGridCell(gridCell, gridLevel);
   while (nodeID != mEndOfLinkList) {
-    CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
+    CHECK((nodeID >= 0 and nodeID < (int)this->nodeList().numNodes()) or
           this->nodeList().numNodes() == 0);
     if (nodeID < firstGhost) result.push_back(nodeID);
     nodeID = nextNodeInCell(nodeID);
-    CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
+    CHECK((nodeID >= 0 and nodeID < (int)this->nodeList().numNodes()) or
           this->nodeList().numNodes() == 0 or
           nodeID == mEndOfLinkList);
   }
@@ -422,11 +422,11 @@ nodesInCell(const GridCellIndex<Dimension>& gridCell,
   std::vector<int> result;
   int nodeID = headOfGridCell(gridCell, gridLevel);
   while (nodeID != mEndOfLinkList) {
-    CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
+    CHECK((nodeID >= 0 and nodeID < (int)this->nodeList().numNodes()) or
           this->nodeList().numNodes() == 0);
     result.push_back(nodeID);
     nodeID = nextNodeInCell(nodeID);
-    CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
+    CHECK((nodeID >= 0 and nodeID < (int)this->nodeList().numNodes()) or
           this->nodeList().numNodes() == 0 or
           nodeID == mEndOfLinkList);
   }
@@ -445,11 +445,11 @@ appendNodesInCell(const GridCellIndex<Dimension>& gridCell,
                   std::vector<int>& nodes) const {
   int nodeID = headOfGridCell(gridCell, gridLevel);
   while (nodeID != mEndOfLinkList) {
-    CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
+    CHECK((nodeID >= 0 and nodeID < (int)this->nodeList().numNodes()) or
           this->nodeList().numNodes() == 0);
     nodes.push_back(nodeID);
     nodeID = nextNodeInCell(nodeID);
-    CHECK((nodeID >= 0 and nodeID < this->nodeList().numNodes()) or
+    CHECK((nodeID >= 0 and nodeID < (int)this->nodeList().numNodes()) or
           this->nodeList().numNodes() == 0 or
           nodeID == mEndOfLinkList);
   }
@@ -481,7 +481,7 @@ NestedGridNeighbor<Dimension>::
 linkNode(int nodeID, int gridLevelID, 
          const GridCellIndex<Dimension>& gridCellID) {
 
-  REQUIRE(nodeID >= 0 and nodeID < this->nodeList().numNodes());
+  REQUIRE(nodeID >= 0 and nodeID < (int)this->nodeList().numNodes());
   REQUIRE(gridLevelID >= 0 and gridLevelID < mMaxGridLevels);
 
   // Make the new node the head of this grid cell.
@@ -500,7 +500,7 @@ NestedGridNeighbor<Dimension>::
 unlinkNode(int nodeID, int gridLevelID, 
            const GridCellIndex<Dimension>& gridCellID) {
 
-  REQUIRE(nodeID >= 0 and nodeID < this->nodeList().numNodes());
+  REQUIRE(nodeID >= 0 and nodeID < (int)this->nodeList().numNodes());
   REQUIRE(gridLevelID >= 0 and gridLevelID < mMaxGridLevels);
 
   // Find the node in the grid cell's linked list, and unlink it.
@@ -517,7 +517,7 @@ unlinkNode(int nodeID, int gridLevelID,
   } else {
     while (linkNodeID != mEndOfLinkList and 
            nextNodeInCell(linkNodeID) != nodeID) {
-      CHECK(linkNodeID >= 0 and linkNodeID < this->nodeList().numNodes());
+      CHECK(linkNodeID >= 0 and linkNodeID < (int)this->nodeList().numNodes());
       linkNodeID = nextNodeInCell(linkNodeID);
     }
 

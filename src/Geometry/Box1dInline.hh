@@ -295,7 +295,7 @@ inline
 double
 Box1d::
 facetArea(const unsigned facetID) const {
-  CONTRACT_VAR(facetID)
+  CONTRACT_VAR(facetID);
   REQUIRE(facetID < 2);
   return 1.0;
 }

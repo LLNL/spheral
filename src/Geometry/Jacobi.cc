@@ -22,7 +22,7 @@ int jacobi(vector< vector<float> >& a,
   d.resize(n, 0.0);
   v.resize(n);
   for (int i = 0; i < n; ++i) {
-    CHECK(a[i].size() == n);
+    CHECK((int)a[i].size() == n);
     v[i].resize(n, 0.0);
   }
 

@@ -131,7 +131,7 @@ removeElements(std::vector<Value,DataAllocator<Value>>& vec,
     vec.erase(vec.begin() + newSize, vec.end());
 
     // Post-conditions.
-    ENSURE(vec.size() == newSize);
+    ENSURE((int)vec.size() == (int)newSize);
   }
 }
 

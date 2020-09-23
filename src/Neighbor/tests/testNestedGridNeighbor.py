@@ -1,10 +1,14 @@
-#ATS:test(SELF, np=1, label="NestedGridNeighbor unit tests")
+#ATS:test(SELF, np=1, level=100, label="NestedGridNeighbor unit tests")
 from math import *
 import unittest
 import random
 
 from Spheral import *
 from NeighborTestBase import *
+
+# NestedGridNeighbor doesn't do ghost->ghost connectivity, so the overlap
+# neighbor tests will choke.
+del NeighborTestBase.testConnectivityMapOverlapNeighbors
 
 #===============================================================================
 # Radom node distribution -- 1-D.

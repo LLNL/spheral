@@ -125,7 +125,7 @@ nodeOrdering(const FieldList<Dimension, DataType>& criteria) {
          itr != result.end();
          ++itr, ++iNodeList) {
       const NodeList<Dimension>& nodeList = (**itr).nodeList();
-      for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+      for (int i = 0; i != (int)nodeList.numInternalNodes(); ++i) {
         ENSURE((**itr)(i) >= 0 and (**itr)(i) < numGlobalNodes);
       }
     }

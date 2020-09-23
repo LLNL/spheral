@@ -286,8 +286,8 @@ PlanarBoundary<Dimension>::setGhostNodeIndices(NodeList<Dimension>& nodeList) {
     CHECK(i >= 0 and i < controlNodes.size());
     CHECK(i >= 0 and i < ghostNodes.size());
     ghostNodes[i] = firstNewGhostNode + i;
-    CHECK(ghostNodes[i] >= nodeList.numInternalNodes() and
-          ghostNodes[i] < nodeList.numNodes());
+    CHECK(ghostNodes[i] >= (int)nodeList.numInternalNodes() and
+          ghostNodes[i] < (int)nodeList.numNodes());
   }
 }
 
@@ -311,8 +311,8 @@ PlanarBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
   typename vector<int>::const_iterator controlItr = controlNodes.begin();
   typename vector<int>::const_iterator ghostItr = ghostNodes.begin();
   for (;controlItr < controlNodes.end(); ++controlItr, ++ghostItr) {
-    CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
-    CHECK2(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes(),
+    CHECK(*controlItr >= 0 and *controlItr < (int)nodeList.numNodes());
+    CHECK2(*ghostItr >= (int)nodeList.firstGhostNode() and *ghostItr < (int)nodeList.numNodes(),
            "Ghost node index out of bounds:  " << *ghostItr << " " << nodeList.firstGhostNode() << " " << nodeList.numNodes());
 
 //     if (!(positions(*controlItr) >= mEnterPlane and
