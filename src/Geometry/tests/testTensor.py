@@ -14,6 +14,7 @@ from Spheral import *
 
 # Create a global random number generator.
 import random
+random.seed(690)
 rangen = random.Random()
 nrandom = 10000
 

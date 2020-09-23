@@ -10,6 +10,7 @@ from PolyhedronFileUtilities import *
 
 # Create a global random number generator.
 import random
+random.seed(524)
 rangen = random.Random()
 
 #-------------------------------------------------------------------------------
