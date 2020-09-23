@@ -131,7 +131,7 @@ findInsertionPoint(const ThingyType& thingy,
     CHECK(itr == begin or (nodeListPtr->name() > getNodeListPtr(*(itr - 1))->name()));
     nodeListPtrs.push_back(nodeListPtr);
   }
-  CHECK(nodeListPtrs.size() == containerSize);
+  CHECK((int)nodeListPtrs.size() == containerSize);
 
   // Now we can find where the specified thingy should go.
   auto nodeListPtr = getNodeListPtr(thingy);

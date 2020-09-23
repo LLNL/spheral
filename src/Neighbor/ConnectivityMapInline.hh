@@ -130,12 +130,12 @@ connectivityForNode(const NodeList<Dimension>* nodeListPtr,
                            NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
   CONTRACT_VAR(ghostValid);
   REQUIRE(nodeID >= 0 and 
-          (nodeID < nodeListPtr->numInternalNodes()) or
-          (ghostValid and nodeID < nodeListPtr->numNodes()));
+          ((nodeID < (int)nodeListPtr->numInternalNodes()) or
+          (ghostValid and nodeID < (int)nodeListPtr->numNodes())));
   const int nodeListID = std::distance(mNodeLists.begin(),
                                        std::find(mNodeLists.begin(), mNodeLists.end(), nodeListPtr));
-  REQUIRE(nodeListID < mConnectivity.size() and nodeListID < mOffsets.size());
-  REQUIRE(mOffsets[nodeListID] + nodeID < mConnectivity.size());
+  REQUIRE(nodeListID < (int)mConnectivity.size() and nodeListID < (int)mOffsets.size());
+  REQUIRE(mOffsets[nodeListID] + nodeID < (int)mConnectivity.size());
   return mConnectivity[mOffsets[nodeListID] + nodeID];
 }
 
@@ -151,11 +151,11 @@ connectivityForNode(const int nodeListID,
   const bool ghostValid = (mBuildGhostConnectivity or
                            NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
   CONTRACT_VAR(ghostValid);
-  REQUIRE(nodeListID >= 0 and nodeListID < mConnectivity.size());
+  REQUIRE(nodeListID >= 0 and nodeListID < (int)mConnectivity.size());
   REQUIRE(nodeID >= 0 and 
-          (nodeID < mNodeLists[nodeListID]->numInternalNodes()) or
-          (ghostValid and nodeID < mNodeLists[nodeListID]->numNodes()));
-  REQUIRE(mOffsets[nodeListID] + nodeID < mConnectivity.size());
+          ((nodeID < (int)mNodeLists[nodeListID]->numInternalNodes()) or
+          (ghostValid and nodeID < (int)mNodeLists[nodeListID]->numNodes())));
+  REQUIRE(mOffsets[nodeListID] + nodeID < (int)mConnectivity.size());
   return mConnectivity[mOffsets[nodeListID] + nodeID];
 }
 
@@ -173,12 +173,12 @@ overlapConnectivityForNode(const NodeList<Dimension>* nodeListPtr,
                            NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
   CONTRACT_VAR(ghostValid);
   REQUIRE(nodeID >= 0 and 
-          (nodeID < nodeListPtr->numInternalNodes()) or
-          (ghostValid and nodeID < nodeListPtr->numNodes()));
+          ((nodeID < (int)nodeListPtr->numInternalNodes()) or
+          (ghostValid and nodeID < (int)nodeListPtr->numNodes())));
   const int nodeListID = std::distance(mNodeLists.begin(),
                                        std::find(mNodeLists.begin(), mNodeLists.end(), nodeListPtr));
-  REQUIRE(nodeListID < mConnectivity.size() and nodeListID < mOffsets.size());
-  REQUIRE(mOffsets[nodeListID] + nodeID < mConnectivity.size());
+  REQUIRE(nodeListID < (int)mConnectivity.size() and nodeListID < (int)mOffsets.size());
+  REQUIRE(mOffsets[nodeListID] + nodeID < (int)mConnectivity.size());
   return mOverlapConnectivity[mOffsets[nodeListID] + nodeID];
 }
 
@@ -194,11 +194,11 @@ overlapConnectivityForNode(const int nodeListID,
   const bool ghostValid = (mBuildGhostConnectivity or
                            NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
   CONTRACT_VAR(ghostValid);
-  REQUIRE(nodeListID >= 0 and nodeListID < mConnectivity.size());
+  REQUIRE(nodeListID >= 0 and nodeListID < (int)mConnectivity.size());
   REQUIRE(nodeID >= 0 and 
-          (nodeID < mNodeLists[nodeListID]->numInternalNodes()) or
-          (ghostValid and nodeID < mNodeLists[nodeListID]->numNodes()));
-  REQUIRE(mOffsets[nodeListID] + nodeID < mConnectivity.size());
+          ((nodeID < (int)mNodeLists[nodeListID]->numInternalNodes()) or
+          (ghostValid and nodeID < (int)mNodeLists[nodeListID]->numNodes())));
+  REQUIRE(mOffsets[nodeListID] + nodeID < (int)mConnectivity.size());
   return mOverlapConnectivity[mOffsets[nodeListID] + nodeID];
 }
 
@@ -225,7 +225,7 @@ int
 ConnectivityMap<Dimension>::
 numNeighborsForNode(const int nodeListID,
                     const int nodeID) const {
-  REQUIRE(nodeListID < mNodeLists.size());
+  REQUIRE(nodeListID < (int)mNodeLists.size());
   return this->numNeighborsForNode(mNodeLists[nodeListID], nodeID);
 }
 
@@ -252,7 +252,7 @@ int
 ConnectivityMap<Dimension>::
 numOverlapNeighborsForNode(const int nodeListID,
                            const int nodeID) const {
-  REQUIRE(nodeListID < mNodeLists.size());
+  REQUIRE(nodeListID < (int)mNodeLists.size());
   return this->numOverlapNeighborsForNode(mNodeLists[nodeListID], nodeID);
 }
 
@@ -288,7 +288,7 @@ inline
 typename ConnectivityMap<Dimension>::const_iterator
 ConnectivityMap<Dimension>::
 begin(const int nodeList) const {
-  REQUIRE(nodeList >= 0 and nodeList < mNodeTraversalIndices.size());
+  REQUIRE(nodeList >= 0 and nodeList < (int)mNodeTraversalIndices.size());
   return mNodeTraversalIndices[nodeList].begin();
 }
 
@@ -297,7 +297,7 @@ inline
 typename ConnectivityMap<Dimension>::const_iterator
 ConnectivityMap<Dimension>::
 end(const int nodeList) const {
-  REQUIRE(nodeList >= 0 and nodeList < mNodeTraversalIndices.size());
+  REQUIRE(nodeList >= 0 and nodeList < (int)mNodeTraversalIndices.size());
   return mNodeTraversalIndices[nodeList].end();
 }
 
@@ -309,7 +309,7 @@ inline
 int
 ConnectivityMap<Dimension>::
 numNodes(const int nodeList) const {
-  REQUIRE(nodeList >= 0 and nodeList < mNodeLists.size());
+  REQUIRE(nodeList >= 0 and nodeList < (int)mNodeLists.size());
   return mNodeTraversalIndices[nodeList].size();
 }
 
@@ -321,8 +321,8 @@ inline
 int
 ConnectivityMap<Dimension>::
 ithNode(const int nodeList, const int index) const {
-  REQUIRE(nodeList >= 0 and nodeList < mNodeLists.size());
-  REQUIRE(index >= 0 and index < mNodeTraversalIndices[nodeList].size());
+  REQUIRE(nodeList >= 0 and nodeList < (int)mNodeLists.size());
+  REQUIRE(index >= 0 and index < (int)mNodeTraversalIndices[nodeList].size());
   return mNodeTraversalIndices[nodeList][index];
 }
 
@@ -334,7 +334,7 @@ inline
 const NodeList<Dimension>&
 ConnectivityMap<Dimension>::
 nodeList(const int index) const {
-  REQUIRE(index >= 0 and index < mNodeLists.size());
+  REQUIRE(index >= 0 and index < (int)mNodeLists.size());
   return *(mNodeLists[index]);
 }
 

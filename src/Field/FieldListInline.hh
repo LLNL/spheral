@@ -1126,7 +1126,7 @@ FieldList<Dimension, DataType>::operator+(const FieldList<Dimension, DataType>& 
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
-  for (int i = 0; i != numFields(); ++i) 
+  for (int i = 0; i != (int)numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
@@ -1147,7 +1147,7 @@ FieldList<Dimension, DataType>::operator-(const FieldList<Dimension, DataType>& 
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
-  for (int i = 0; i != numFields(); ++i) 
+  for (int i = 0; i != (int)numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
@@ -1190,7 +1190,7 @@ FieldList<Dimension, DataType>::operator-=(const FieldList<Dimension, DataType>&
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
-  for (int i = 0; i != numFields(); ++i) 
+  for (int i = 0; i != (int)numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
@@ -1428,7 +1428,7 @@ operator==(const FieldList<Dimension, DataType>& rhs) const {
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
-  for (int i = 0; i != numFields(); ++i) 
+  for (int i = 0; i != (int)numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 

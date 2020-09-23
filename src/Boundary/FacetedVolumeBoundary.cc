@@ -280,7 +280,7 @@ mapControlValues(Field<Dimension, Value>& field,
     const auto& R = reflectOperators[ifacet];
     const auto& controls = controlNodes[ifacet];
     auto        ghostID = ghostNodeRanges[ifacet].first;
-    CHECK(ghostNodeRanges[ifacet].second - ghostID == controls.size());
+    CHECK(ghostNodeRanges[ifacet].second - ghostID == (int)controls.size());
     for (const auto i: controls) {
       mapValue<Dimension>(field(ghostID), field(i), R);
       ++ghostID;
@@ -433,7 +433,7 @@ FacetedVolumeBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList
       const auto  n = controls[ifacet].size();
       const auto  plane = facetPlane(facets[ifacet], mInteriorBoundary);
       const auto& R = mReflectOperators[ifacet];
-      CHECK(ghostRanges[ifacet].second - ghostRanges[ifacet].first == n);
+      CHECK(ghostRanges[ifacet].second - ghostRanges[ifacet].first == (int)n);
       for (auto k = 0u; k < n; ++k) {
         const auto i = controls[ifacet][k];
         const auto j = ghostRanges[ifacet].first + k;
@@ -744,7 +744,7 @@ FacetedVolumeBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
       CHECK(facetControls.size() == numFacets);
       CHECK(facetGhostRanges.size() == numFacets);
       for (auto ifacet = 0u; ifacet < numFacets; ++ifacet) {
-        CHECK(facetControls[ifacet].size() == facetGhostRanges[ifacet].second - facetGhostRanges[ifacet].first);
+        CHECK((int)facetControls[ifacet].size() == facetGhostRanges[ifacet].second - facetGhostRanges[ifacet].first);
 
         // Update facet controls
         vector<int> newControls;
@@ -770,7 +770,7 @@ FacetedVolumeBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
           facetGhostRanges[ifacet] = std::make_pair(newBegin, newBegin + numNewGhosts);
         }
 
-        CHECK2(facetControls[ifacet].size() == facetGhostRanges[ifacet].second - facetGhostRanges[ifacet].first,
+        CHECK2((int)facetControls[ifacet].size() == facetGhostRanges[ifacet].second - facetGhostRanges[ifacet].first,
                facetControls[ifacet].size() << " != " << (facetGhostRanges[ifacet].second - facetGhostRanges[ifacet].first)
                << "   ghostRange=(" << facetGhostRanges[ifacet].first << " " << facetGhostRanges[ifacet].second << ")");
       }

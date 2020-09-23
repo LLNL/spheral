@@ -63,9 +63,9 @@ Zone(const Mesh<Dim<2> >& mesh,
     for (const int i: mFaceIDs) {
       int j = (i < 0 ? ~i : i);
       CONTRACT_VAR(j);
-      REQUIRE(j < mMeshPtr->mFaces.size());
+      REQUIRE(j < (int)mMeshPtr->mFaces.size());
       REQUIRE(mMeshPtr->mFaces[j].mEdgeIDs.size() == 1);
-      REQUIRE(mMeshPtr->mFaces[j].mEdgeIDs[0] == j);
+      REQUIRE((int)mMeshPtr->mFaces[j].mEdgeIDs[0] == j);
     }
   }
   END_CONTRACT_SCOPE

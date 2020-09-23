@@ -320,7 +320,7 @@ newSolidFieldList(const DataType value,
     result.appendNewField(name, **nodeListItr, value);
   }
 
-  ENSURE(result.numFields() == numSolidNodeLists());
+  ENSURE((int)result.numFields() == numSolidNodeLists());
   return result;
 }
 
@@ -438,7 +438,7 @@ resizeSolidFieldList(FieldList<Dimension, DataType>& fieldList,
     fieldList = value;
   }
 
-  ENSURE(fieldList.numFields() == numSolidNodeLists());
+  ENSURE((int)fieldList.numFields() == numSolidNodeLists());
 }
 
 //------------------------------------------------------------------------------

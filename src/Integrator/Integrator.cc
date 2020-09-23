@@ -615,7 +615,7 @@ Integrator<Dimension>::setGhostNodes() {
       // All nodes should now be labeled as keepers.
       BEGIN_CONTRACT_SCOPE
       {
-        for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+        for (auto nodeListi = 0; nodeListi < (int)numNodeLists; ++nodeListi) {
           ENSURE(flags[nodeListi]->numElements() == 0 or
                  *min_element(flags[nodeListi]->begin(), flags[nodeListi]->end()) == 1);
         }

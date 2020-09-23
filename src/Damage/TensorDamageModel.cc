@@ -122,7 +122,7 @@ evaluateDerivatives(const Scalar time,
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto  nodeListi = distance(nodeLists.begin(), find(nodeLists.begin(), nodeLists.end(), nodeListPtr));
-  CHECK(nodeListi < nodeLists.size());
+  CHECK(nodeListi < (int)nodeLists.size());
   //const auto firstGhostNodei = nodeListPtr->firstGhostNode();
 
   // Prepare to account for damage statistics.
@@ -135,7 +135,7 @@ evaluateDerivatives(const Scalar time,
     const auto i = connectivityMap.ithNode(nodeListi, k);
 
     // State for node i.
-    //const auto& mi = mass(i);
+    const auto& mi = mass(i);
     const auto& ri = position(i);
     const auto& rhoi = rho(i);
     const auto& Hi = H(i);
@@ -145,6 +145,7 @@ evaluateDerivatives(const Scalar time,
     auto&       normalizationi = normalization(i);
     auto&       Deffi = Deff(i);
     auto&       gradDi = gradD(i);
+    CONTRACT_VAR(mi);
     CHECK(mi > 0.0);
     CHECK(rhoi > 0.0);
     CHECK(Hdeti > 0.0);

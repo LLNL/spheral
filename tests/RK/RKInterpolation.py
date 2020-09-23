@@ -15,20 +15,20 @@
 #ATS:test(SELF, "--dimension 3 --correctionOrder CubicOrder --funcType cubic --testHessian True --numToCheck 10", label="RK interpolation - 3D cubic")
 
 #ATS:test(SELF, "--dimension 1 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01 --testHessian True", label="RK interpolation - 1D quartic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01 --testHessian True --numToCheck 10", label="RK interpolation - 2D quartic")
-#ATS:test(SELF, "--dimension 3 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01 --testHessian True --numToCheck 10", label="RK interpolation - 3D quartic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 2D quartic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder QuarticOrder --funcType quartic --nPerh 5.01 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 3D quartic")
 
 #ATS:test(SELF, "--dimension 1 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11 --testHessian True", label="RK interpolation - 1D quintic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11 --testHessian True --numToCheck 10", label="RK interpolation - 2D quintic")
-#ATS:test(SELF, "--dimension 3 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11 --testHessian True --numToCheck 10", label="RK interpolation - 3D quintic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 2D quintic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder QuinticOrder --funcType quintic --nPerh 6.01 --tolerance 1.e-11 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 3D quintic")
 
 #ATS:test(SELF, "--dimension 1 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01 --tolerance 1.e-10 --testHessian True", label="RK interpolation - 1D sextic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01 --tolerance 1.e-10 --testHessian True --numToCheck 10", label="RK interpolation - 2D sextic")
-#ATS:test(SELF, "--dimension 3 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01 --tolerance 1.e-10 --testHessian True --numToCheck 10", label="RK interpolation - 3D sextic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01 --tolerance 1.e-10 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 2D sextic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01 --tolerance 1.e-10 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 3D sextic")
 
 #ATS:test(SELF, "--dimension 1 --correctionOrder SepticOrder --funcType septic --nx 12 --nPerh 8.01 --tolerance 1.e-8 --testHessian True", label="RK interpolation - 1D septic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-8 --testHessian True --numToCheck 10", label="RK interpolation - 2D septic")
-#ATS:test(SELF, "--dimension 3 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-8 --testHessian True --numToCheck 10", label="RK interpolation - 3D septic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-8 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 2D septic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-8 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 3D septic")
 
 #-------------------------------------------------------------------------------
 # Test of interpolation for reproducing kernels

@@ -341,9 +341,9 @@ reduceDomainNodes(const std::vector<DomainNode<Dimension> >& nodes,
             node.unpack(itr);
             CHECK(itr <= buffer.end());
             result.push_back(node);
-            CHECK(result.size() <= oldNumNodes + numRecvNodes);
+            CHECK((int)result.size() <= oldNumNodes + numRecvNodes);
           }
-          CHECK(result.size() == oldNumNodes + numRecvNodes);
+          CHECK((int)result.size() == oldNumNodes + numRecvNodes);
 
         }
 
@@ -367,7 +367,7 @@ reduceDomainNodes(const std::vector<DomainNode<Dimension> >& nodes,
 
     // Now send that sucker.
     int bufferSize = buffer.size();
-    CHECK(bufferSize == nodes.size() * DomainNode<Dimension>::packSize());
+    CHECK(bufferSize == (int)nodes.size() * (int)DomainNode<Dimension>::packSize());
     MPI_Send(&bufferSize, 1, MPI_INT, targetProc, 200, Communicator::communicator());
     if (bufferSize > 0) MPI_Send(&(*buffer.begin()), bufferSize, MPI_DOUBLE, targetProc, 201, Communicator::communicator());
 
@@ -431,7 +431,7 @@ broadcastDomainNodes(const std::vector<DomainNode<Dimension> >& nodes,
   }
 
   // That's it.
-  ENSURE(result.size() == numNodes);
+  ENSURE((int)result.size() == numNodes);
   return result;
 }
 

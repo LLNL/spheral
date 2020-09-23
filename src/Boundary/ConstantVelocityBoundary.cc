@@ -38,7 +38,7 @@ ConstantVelocityBoundary(const NodeList<Dimension>& nodeList,
   for (vector<int>::const_iterator itr = nodeIndices.begin();
        itr < nodeIndices.end();
        ++itr) {
-    REQUIRE(*itr >= 0.0 && *itr < nodeList.numInternalNodes());
+    REQUIRE(*itr >= 0.0 && *itr < (int)nodeList.numInternalNodes());
     mNodes(*itr) = 1;
   }
 
@@ -137,7 +137,7 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
     for (vector<int>::const_iterator itr = nodeIDs.begin();
          itr < nodeIDs.end();
          ++itr) {
-      CHECK(*itr < field.numElements());
+      CHECK(*itr < (int)field.numElements());
       field[*itr] = mVelocity[*itr];
     }
   }

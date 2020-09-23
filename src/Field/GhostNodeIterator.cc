@@ -33,7 +33,7 @@ GhostNodeIterator(typename vector<NodeList<Dimension>*>::const_iterator nodeList
   // Pre-conditions.
   REQUIRE((nodeListItr == nodeListEnd && nodeID == 0) ||
           (nodeListItr < nodeListEnd &&
-           nodeID >= (*nodeListItr)->firstGhostNode() && nodeID < (*nodeListItr)->numNodes()));
+           nodeID >= (int)(*nodeListItr)->firstGhostNode() && nodeID < (int)(*nodeListItr)->numNodes()));
 
   mNodeID = nodeID;
   mFieldID = distance(nodeListBegin, nodeListItr);

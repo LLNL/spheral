@@ -201,7 +201,7 @@ FileIO::readFieldVector(Field<Dimension, std::vector<DataType> >& field,
     for (std::vector<int>::const_iterator itr = numElementsPerNode.begin();
          itr != numElementsPerNode.end();
          ++itr) numElements += *itr;
-    CHECK(numElements == elements.size());
+    CHECK(numElements == (int)elements.size());
   }
   END_CONTRACT_SCOPE
 

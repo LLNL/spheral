@@ -701,7 +701,7 @@ computeCentroids(const vector<DomainNode<Dimension> >& nodes,
 
   const int numProcs = this->numDomains();
   const size_t numGenerators = generators.size();
-  REQUIRE(numGenerators == numProcs);
+  REQUIRE((int)numGenerators == numProcs);
 
   // Initializations.
   const vector<Vector> generators0(generators);

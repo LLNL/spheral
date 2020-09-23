@@ -312,7 +312,7 @@ convexHull_2d(const std::vector<RealType>& points,
       plc.back().push_back(sortedPoints[result[i]].second);
       plc.back().push_back(sortedPoints[result[j]].second);
     }
-    CHECK(plc.size() == k - 1);
+    CHECK((int)plc.size() == k - 1);
   }
   return plc;
 }
@@ -386,7 +386,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     for (j = 0; j != (int)numVertices; ++j) {
       CHECK(plc[j].size() == 2);
       i = plc[j][0];
-      CHECK(i >= 0 and i < points.size());
+      CHECK(i >= 0 and i < (int)points.size());
       mVertices.push_back(points[i]);
     }
 
