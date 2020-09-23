@@ -15,7 +15,6 @@ NodeListRegistrar<Dimension>&
 NodeListRegistrar<Dimension>::
 instance() {
   if (mInstancePtr == 0) mInstancePtr = new NodeListRegistrar;
-  else mInstancePtr = nullptr;
   CHECK(mInstancePtr != 0);
   return *mInstancePtr;
 }
