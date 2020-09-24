@@ -158,6 +158,8 @@ private:
 
 };
 
+template<typename nDim> NodeListRegistrar<nDim>* NodeListRegistrar<nDim>::mInstancePtr = 0;
+
 }
 
 #include "NodeListRegistrarInline.hh"
