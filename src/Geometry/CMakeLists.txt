@@ -9,14 +9,11 @@ set(Geometry_sources
     Geom3Vector.cc
     GeomFacet2d.cc
     GeomFacet3d.cc
-    GeomFifthRankTensor.cc
-    GeomFourthRankTensor.cc
     GeomPlane.cc
     GeomPolygon.cc
     GeomPolyhedron.cc
     GeomSymmetricTensor.cc
     GeomTensor.cc
-    GeomThirdRankTensor.cc
     GeomVector.cc
     Jacobi.cc
     Jacobi2.cc
