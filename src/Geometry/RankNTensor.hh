@@ -99,6 +99,7 @@ template<int nDim, int rank, typename Descendant> ::std::ostream& operator<<(std
 template<int nDim, int rank, typename Descendant> const typename RankNTensor<nDim, rank, Descendant>::size_type RankNTensor<nDim, rank, Descendant>::nrank = rank;
 template<int nDim, int rank, typename Descendant> const typename RankNTensor<nDim, rank, Descendant>::size_type RankNTensor<nDim, rank, Descendant>::nDimensions = nDim;
 
+template<int nDims, int rank> constexpr int calcNumNRankElements() {return nDims^rank;}
 }
 
 #ifndef __GCCXML__

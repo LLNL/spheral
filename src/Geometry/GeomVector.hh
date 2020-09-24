@@ -12,4 +12,10 @@
 #include "Geometry/GeomVector_default.hh"
 #endif
 
+namespace Spheral {
+  template<int nDim> const unsigned GeomVector<nDim>::nDimensions = nDim;
+  template<int nDim> const unsigned GeomVector<nDim>::numElements = nDim;
+  template<int nDim> const GeomVector<nDim> GeomVector<nDim>::zero = GeomVector<nDim>(0);
+  template<int nDim> const GeomVector<nDim> GeomVector<nDim>::one = GeomVector<nDim>(nDim);
+}
 #endif
