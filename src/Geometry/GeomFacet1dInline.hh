@@ -72,7 +72,8 @@ inline
 void
 GeomFacet1d::
 decompose(std::vector<std::array<Vector, 1>>& subfacets) {
-  subfacets[0] = std::array<Vector,1>{Vector(mPoint)};
+  //subfacets[0] = std::array<Vector,1>{Vector(mPoint)};
+  subfacets = {{mPoint}};
 }
 
 //------------------------------------------------------------------------------
