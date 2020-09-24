@@ -217,6 +217,14 @@ template<typename T> inline T pow7(const T& x) { return x*x*x*x*x*x*x; }
 template<typename T> inline T pow8(const T& x) { return x*x*x*x*x*x*x*x; }
 template<typename T> inline T pow9(const T& x) { return x*x*x*x*x*x*x*x*x; }
 
+//-----------------------------------------------------------------------------
+// Compile time power function
+//-----------------------------------------------------------------------------
+template<typename T>
+constexpr T calcPower(T value, unsigned power) {
+  return power == 0 ? 1 : value * calcPower(value, power - 1);
+}
+
 //------------------------------------------------------------------------------
 // The below CubeRoot method is not recommended for now -- just keeping here in 
 // case we want to try it again sometime.
