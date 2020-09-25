@@ -395,8 +395,8 @@ finalize(const Scalar time,
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
   if (mUpdateInFinalize) {
-    // // We probably don't need new volumes
-    // preStepInitialize(dataBase, state, derivs);
+    // Calculate new volumes
+    preStepInitialize(dataBase, state, derivs);
     
     // Calculate new corrections
     initialize(time, dt, dataBase, state, derivs);
