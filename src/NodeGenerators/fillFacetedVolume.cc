@@ -1,4 +1,9 @@
+#include <cstdlib>
+
 #include "fillFacetedVolume.hh"
+#include "Utilities/rotationMatrix.hh"
+#include "Utilities/allReduce.hh"
+#include "Distributed/Communicator.hh"
 
 using std::vector;
 using std::string;
@@ -87,17 +92,51 @@ fillFacetedVolume3(const Dim<3>::FacetedVolume& /*innerBoundary*/,
 // Fill between an inner and outer boundary (dx specified).
 //------------------------------------------------------------------------------
 vector<Dim<3>::Vector>
-fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
+fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary0,
                     const Dim<3>::FacetedVolume& /*innerBoundary*/,
                     const double dx,
                     const unsigned domain,
                     const unsigned numDomains) {
   typedef Dim<3>::Vector Vector;
+  typedef Dim<3>::Tensor Tensor;
+  typedef Dim<3>::SymTensor SymTensor;
+  typedef Dim<3>::FacetedVolume FacetedVolume;
   VERIFY(dx > 0.0);
   VERIFY(numDomains >= 1);
   VERIFY(domain < numDomains);
 
   vector<Vector> result;
+
+  // Find the centroid and second-moment of the surface
+  const auto cent = outerBoundary0.centroid();
+  SymTensor A;
+  for (const auto& facet: outerBoundary0.facets()) {
+    const auto p = facet.position() - cent;
+    A += p.selfdyad();
+  }
+  A /= outerBoundary0.facets().size();
+
+  // Find the rotational transformation to align with the longest direction across the boundary.
+  Tensor R;
+  {
+    const auto eigen = A.eigenVectors();
+    auto iemax = 0;
+    auto emax = eigen.eigenValues(0);
+    for (auto i = 1; i  < 3; ++i) {
+      if (eigen.eigenValues(i) > emax) {
+        iemax = i;
+        emax = eigen.eigenValues(i);
+      }
+    }
+    R = rotationMatrix(eigen.eigenVectors.getColumn(iemax));
+  }
+  const auto Rinv = R.Transpose();
+
+  // Make a copy of the surface rotated such that the longest direction is aligned with the x axis.
+  // This temporary rotated version also has the centroid at the origin.
+  auto verts = outerBoundary0.vertices();
+  for (auto& v: verts) v = R*(v - cent);
+  FacetedVolume outerBoundary(verts, outerBoundary0.facetVertices());
 
   // Find numbers of points
   const auto& xmin = outerBoundary.xmin();
@@ -186,7 +225,8 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
             // cerr << "     interval: " << x1 << " --> " << x2 << endl;
             const auto  ni = max(1, int((x2[stride_index] - x1[stride_index])/dx + 0.5));
             const auto  dstep = (x2 - x1)/ni;
-            for (auto k = 0; k < ni; ++k) result_thread.push_back(x1 + (k + 0.5)*dstep);
+            for (auto k = 0; k < ni; ++k) result_thread.push_back(Rinv*(x1 + (k + 0.5)*dstep) + cent);
+            // for (auto k = 0; k < ni; ++k) result_thread.push_back(x1 + (k + 0.5)*dstep);
             i += 2;    // This pair was interior, so skip to the next possible start
           } else {
             // cerr << "     -- > reject  : " << x1 << " --> " << x2 << endl;
@@ -202,6 +242,24 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary,
       result.insert(result.end(), result_thread.begin(), result_thread.end());
     }
   }
+
+  // If we didn't find anything, fall back to sampling on the surface.
+  if (allReduce(result.size(), MPI_SUM, Communicator::communicator()) == 0U) {
+    if (Process::getRank() == 0) {
+      cerr << "Falling back to surface points..." << endl;
+      const auto nexpect = std::max(1, std::min(int(verts.size()), int(outerBoundary.volume()/(dx*dx*dx) + 0.5)));
+      std::vector<unsigned> iresult(verts.size());
+      for (auto i = 0U; i < verts.size(); ++i) iresult[i] = i;
+      while (iresult.size() > nexpect) {
+        auto ireject = rand() % iresult.size();
+        iresult.erase(iresult.begin() + ireject);
+      }
+
+      auto& verts0 = outerBoundary0.vertices();
+      for (auto i: iresult) result.push_back(verts0[i]);
+    }
+  }
+
   return result;
 }
 

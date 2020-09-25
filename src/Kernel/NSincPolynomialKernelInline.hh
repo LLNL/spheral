@@ -56,7 +56,7 @@ NSincPolynomialKernel<Dimension>::kernelValue(double etaMagnitude, double Hdet) 
   CHECK(Hdet >= 0.0);
 
   const int numPolynomials = (mOrder + 1)/2;
-  CHECK(numPolynomials > 0 && numPolynomials < mAij.size());
+  CHECK(numPolynomials > 0 && numPolynomials < (int)mAij.size());
 
   CHECK(this->kernelExtent() > 0.0);
   const int iPolynomial = int(etaMagnitude);
@@ -83,7 +83,7 @@ NSincPolynomialKernel<Dimension>::gradValue(double etaMagnitude, double Hdet) co
   CHECK(Hdet >= 0.0);
 
   const int numPolynomials = (mOrder + 1)/2;
-  CHECK(numPolynomials > 0 && numPolynomials < mAij.size());
+  CHECK(numPolynomials > 0 && numPolynomials < (int)mAij.size());
 
   CHECK(this->kernelExtent() > 0.0);
   const int iPolynomial = int(etaMagnitude);
@@ -110,7 +110,7 @@ NSincPolynomialKernel<Dimension>::grad2Value(double etaMagnitude, double Hdet) c
   CHECK(Hdet >= 0.0);
 
   const int numPolynomials = (mOrder + 1)/2;
-  CHECK(numPolynomials > 0 && numPolynomials < mAij.size());
+  CHECK(numPolynomials > 0 && numPolynomials < (int)mAij.size());
 
   CHECK(this->kernelExtent() > 0.0);
   const int iPolynomial = int(etaMagnitude);

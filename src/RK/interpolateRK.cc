@@ -47,7 +47,7 @@ bool checkSizes(const vector<variant<FieldList<Dimension, typename Dimension::Sc
                                      FieldList<Dimension, typename Dimension::ThirdRankTensor>>>& fieldLists,
                 const size_t numNodeLists) {
   for (const auto& f: fieldLists) {
-    if (boost::apply_visitor(FieldListSize(), f) != numNodeLists) return false;
+    if (boost::apply_visitor(FieldListSize(), f) != (int)numNodeLists) return false;
   }
   return true;
 }
@@ -109,19 +109,19 @@ struct IncrementElement: public boost::static_visitor<> {
   template<typename FieldListType>
   inline
   void operator()(FieldListType& x, const FieldListType& y) const {
-    CHECK2(nodeListi < x.size(),
+    CHECK2(nodeListi < (int)x.size(),
            "Bad: (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") [("
            << x[nodeListi]->numInternalElements() << " " << x[nodeListi]->size() << ") ("
            << y[nodeListj]->numInternalElements() << " " << y[nodeListj]->size() << ")]");
-    CHECK2(i < x[nodeListi]->size(),
+    CHECK2(i < (int)x[nodeListi]->size(),
            "Bad: (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") [("
            << x[nodeListi]->numInternalElements() << " " << x[nodeListi]->size() << ") ("
            << y[nodeListj]->numInternalElements() << " " << y[nodeListj]->size() << ")]");
-    CHECK2(nodeListj < y.size(),
+    CHECK2(nodeListj < (int)y.size(),
            "Bad: (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") [("
            << x[nodeListi]->numInternalElements() << " " << x[nodeListi]->size() << ") ("
            << y[nodeListj]->numInternalElements() << " " << y[nodeListj]->size() << ")]");
-    CHECK2(j < y[nodeListj]->size(),
+    CHECK2(j < (int)y[nodeListj]->size(),
            "Bad: (" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ") [("
            << x[nodeListi]->numInternalElements() << " " << x[nodeListi]->size() << ") ("
            << y[nodeListj]->numInternalElements() << " " << y[nodeListj]->size() << ")]");

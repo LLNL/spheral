@@ -237,8 +237,8 @@ void convertToPolygon(Polygon& polygon,
   for (const auto& facet: facets) {
     v1 = facet.ipoint1();
     v2 = facet.ipoint2();
-    CHECK(v1 < nverts0);
-    CHECK(v2 < nverts0);
+    CHECK(v1 < (int)nverts0);
+    CHECK(v2 < (int)nverts0);
     polygon[v1].neighbors.second = v2;
     polygon[v2].neighbors.first  = v1;
   }
@@ -483,7 +483,7 @@ void clipPolygon(Polygon& polygon,
         for (auto v: hangingVertices) {
           std::tie(vprev, vnext) = polygon[v].neighbors;
           CHECK(polygon[v].comp == 0 or polygon[v].comp == 2);
-          CHECK(polygon[vprev].comp == -1 xor polygon[vnext].comp == -1);
+          CHECK(polygon[vprev].comp == (-1 xor (polygon[vnext].comp == -1)));
 
           if (polygon[vprev].comp == -1) {
             // We have to search backwards.
@@ -617,9 +617,9 @@ void collapseDegenerates(Polygon& polygon,
   {
     const auto n = polygon.size();
     for (auto i = 0u; i < n; ++i) {
-      ENSURE(polygon[i].ID == i);
-      ENSURE(polygon[i].neighbors.first < n);
-      ENSURE(polygon[i].neighbors.second < n);
+      ENSURE(polygon[i].ID == (int)i);
+      ENSURE(polygon[i].neighbors.first < (int)n);
+      ENSURE(polygon[i].neighbors.second < (int)n);
     }
   }
   END_CONTRACT_SCOPE

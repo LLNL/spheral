@@ -131,7 +131,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                jItr != connectivity.end();
                ++jItr) {
             const int j = *jItr;
-            CHECK(j < nodeLists[nodeListj]->numNodes());
+            CHECK(j < (int)nodeLists[nodeListj]->numNodes());
 
             // Only proceed if this node pair has not been calculated yet.
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
@@ -214,7 +214,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                jItr != connectivity.end();
                ++jItr) {
             const int j = *jItr;
-            CHECK(j < nodeLists[nodeListj]->numNodes());
+            CHECK(j < (int)nodeLists[nodeListj]->numNodes());
 
             // Only proceed if this node pair has not been calculated yet.
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
@@ -282,8 +282,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                        << pairAccelerationsOffset(nodeListi, i) << " "
                        << pairAccelerationsi.size() << " "
                        << endl;
-                CHECK(i >= firstGhostNodei or pairAccelerationsOffset(nodeListi, i) < pairAccelerationsi.size());
-                CHECK(j >= firstGhostNodej or pairAccelerationsOffset(nodeListj, j) < pairAccelerationsj.size());
+                CHECK(i >= (int)firstGhostNodei or pairAccelerationsOffset(nodeListi, i) < (int)pairAccelerationsi.size());
+                CHECK(j >= (int)firstGhostNodej or pairAccelerationsOffset(nodeListj, j) < (int)pairAccelerationsj.size());
                 if (i < firstGhostNodei) pairAccelerationsi[pairAccelerationsOffset(nodeListi, i)] += DvDtij;
                 if (j < firstGhostNodej) pairAccelerationsj[pairAccelerationsOffset(nodeListj, j)] += DvDtji;
               }
@@ -304,14 +304,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
          itr != dataBase.fluidNodeListEnd();
          ++itr, ++nodeListi) {
       if (compatibleEnergyEvolution) {
-        for (int i = 0; i != (*itr)->numInternalNodes(); ++i) {
-          if (!(pairAccelerations(nodeListi, i).size() == pairAccelerationsOffset(nodeListi, i))) {
+        for (int i = 0; i != (int)(*itr)->numInternalNodes(); ++i) {
+          if (!((int)pairAccelerations(nodeListi, i).size() == pairAccelerationsOffset(nodeListi, i))) {
             cerr << nodeListi << " "
                  << i << " "
                  << pairAccelerations(nodeListi, i).size() << " "
                  << pairAccelerationsOffset(nodeListi, i) << endl;
           }
-          ENSURE(pairAccelerations(nodeListi, i).size() == pairAccelerationsOffset(nodeListi, i));
+          ENSURE((int)pairAccelerations(nodeListi, i).size() == pairAccelerationsOffset(nodeListi, i));
         }
       }
     }

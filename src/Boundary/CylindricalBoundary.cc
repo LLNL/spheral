@@ -124,14 +124,14 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
 
   // Create the set of ghost nodes on the NodeList.
   const int numNewGhostNodes = ghostNodes.size();
-  CHECK(controlNodes.size() == numNewGhostNodes);
-  CHECK(ghostPositions.size() == numNewGhostNodes);
+  CHECK((int)controlNodes.size() == numNewGhostNodes);
+  CHECK((int)ghostPositions.size() == numNewGhostNodes);
   nodeList.numGhostNodes(currentNumGhostNodes + numNewGhostNodes);
-  CHECK(ghostNodeIndex == nodeList.numNodes());
+  CHECK(ghostNodeIndex == (int)nodeList.numNodes());
   Field<Dimension, Vector>& storedGhostPositions = **(mGhostPositions.fieldForNodeList(nodeList));
   for (int k = 0; k != numNewGhostNodes; ++k) {
     const int i = ghostNodes[k];
-    CHECK(i >= nodeList.firstGhostNode() && i < nodeList.numNodes());
+    CHECK(i >= (int)nodeList.firstGhostNode() && i < (int)nodeList.numNodes());
     positions(i) = ghostPositions[k];
     storedGhostPositions(i) = ghostPositions[k];
   }
@@ -248,8 +248,8 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
   vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
   for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
     CHECK(ghostItr < ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    CHECK(*controlItr >= 0 && *controlItr < (int)nodeList.numNodes());
+    CHECK(*ghostItr >= (int)nodeList.firstGhostNode() && *ghostItr < (int)nodeList.numNodes());
     field(*ghostItr) = reflectOperator(position(*controlItr),
                                        position(*ghostItr))*field(*controlItr);
   }
@@ -268,8 +268,8 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
   vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
   for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
     CHECK(ghostItr < ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    CHECK(*controlItr >= 0 && *controlItr < (int)nodeList.numNodes());
+    CHECK(*ghostItr >= (int)nodeList.firstGhostNode() && *ghostItr < (int)nodeList.numNodes());
     const Tensor T = reflectOperator(position(*controlItr), position(*ghostItr));
     field(*ghostItr) = T*(field(*controlItr)*T);
   }
@@ -288,8 +288,8 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
   vector<int>::const_iterator ghostItr = ghostBegin(nodeList);
   for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
     CHECK(ghostItr < ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    CHECK(*controlItr >= 0 && *controlItr < (int)nodeList.numNodes());
+    CHECK(*ghostItr >= (int)nodeList.firstGhostNode() && *ghostItr < (int)nodeList.numNodes());
     const Tensor T = reflectOperator(position(*controlItr), position(*ghostItr));
     field(*ghostItr) = T*(field(*controlItr)*T).Symmetric();
   }
@@ -309,8 +309,8 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field) const {
   ThirdRankTensor val;
   for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
     CHECK(ghostItr < ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    CHECK(*controlItr >= 0 && *controlItr < (int)nodeList.numNodes());
+    CHECK(*ghostItr >= (int)nodeList.firstGhostNode() && *ghostItr < (int)nodeList.numNodes());
     const Tensor T = reflectOperator(position(*controlItr), position(*ghostItr));
     val = ThirdRankTensor::zero;
     const ThirdRankTensor& fc = field(*controlItr);
@@ -345,8 +345,8 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::FourthRankTensor>& field) const {
   FourthRankTensor val;
   for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
     CHECK(ghostItr < ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    CHECK(*controlItr >= 0 && *controlItr < (int)nodeList.numNodes());
+    CHECK(*ghostItr >= (int)nodeList.firstGhostNode() && *ghostItr < (int)nodeList.numNodes());
     const Tensor T = reflectOperator(position(*controlItr), position(*ghostItr));
     val = FourthRankTensor::zero;
     const FourthRankTensor& fc = field(*controlItr);
@@ -385,8 +385,8 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::FifthRankTensor>& field) const {
   FifthRankTensor val;
   for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
     CHECK(ghostItr < ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    CHECK(*controlItr >= 0 && *controlItr < (int)nodeList.numNodes());
+    CHECK(*ghostItr >= (int)nodeList.firstGhostNode() && *ghostItr < (int)nodeList.numNodes());
     const Tensor T = reflectOperator(position(*controlItr), position(*ghostItr));
     val = FifthRankTensor::zero;
     const FifthRankTensor& fc = field(*controlItr);
@@ -428,8 +428,8 @@ applyGhostBoundary(Field<Dim<3>, Dim<3>::FacetedVolume>& field) const {
   auto ghostItr = ghostBegin(nodeList);
   for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
     CHECK(ghostItr < ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+    CHECK(*controlItr >= 0 && *controlItr < (int)nodeList.numNodes());
+    CHECK(*ghostItr >= (int)nodeList.firstGhostNode() && *ghostItr < (int)nodeList.numNodes());
     const auto T = reflectOperator(position(*controlItr), position(*ghostItr));
     const auto& poly = field(*controlItr);
     vector<Vector> verts(poly.vertices());
@@ -482,8 +482,8 @@ applyGhostBoundary(Field<Dim<3>, RKCoefficients<Dim<3>>>& field) const {
     auto ghostItr = ghostBegin(nodeList);
     for (; controlItr < controlEnd(nodeList); ++controlItr, ++ghostItr) {
       CHECK(ghostItr < ghostEnd(nodeList));
-      CHECK(*controlItr >= 0 && *controlItr < nodeList.numNodes());
-      CHECK(*ghostItr >= nodeList.firstGhostNode() && *ghostItr < nodeList.numNodes());
+      CHECK(*controlItr >= 0 && *controlItr < (int)nodeList.numNodes());
+      CHECK(*ghostItr >= (int)nodeList.firstGhostNode() && *ghostItr < (int)nodeList.numNodes());
       field(*ghostItr) = field(*controlItr);
       const auto R = reflectOperator(position(*controlItr), position(*ghostItr));
       const auto T = WR.transformationMatrix(R, false);
@@ -568,7 +568,7 @@ enforceBoundary(Field<Dim<3>, Dim<3>::Vector>& field) const {
   for (vector<int>::const_iterator itr = violationBegin(nodeList);
        itr != violationEnd(nodeList);
        ++itr) {
-    CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
+    CHECK(*itr >= 0 && *itr < (int)nodeList.numInternalNodes());
     field(*itr).z(0.0);
   }
 }
@@ -583,7 +583,7 @@ enforceBoundary(Field<Dim<3>, Dim<3>::Tensor>& field) const {
   for (vector<int>::const_iterator itr = violationBegin(nodeList);
        itr != violationEnd(nodeList);
        ++itr) {
-    CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
+    CHECK(*itr >= 0 && *itr < (int)nodeList.numInternalNodes());
     const double xx = field(*itr).xx();
     const double yy = field(*itr).yy();
     const double zz = field(*itr).zz();
@@ -603,7 +603,7 @@ enforceBoundary(Field<Dim<3>, Dim<3>::SymTensor>& field) const {
   for (vector<int>::const_iterator itr = violationBegin(nodeList);
        itr != violationEnd(nodeList);
        ++itr) {
-    CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
+    CHECK(*itr >= 0 && *itr < (int)nodeList.numInternalNodes());
     const double xx = field(*itr).xx();
     const double yy = field(*itr).yy();
     const double zz = field(*itr).zz();

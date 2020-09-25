@@ -62,7 +62,7 @@ globalReduceToUniqueElements(vector<int>& x) {
     } else {
       otherX.resize(n);
     }
-    CHECK(otherX.size() == n);
+    CHECK((int)otherX.size() == n);
     MPI_Bcast(&(*otherX.begin()), n, MPI_INT, sendID, Communicator::communicator());
     x.reserve(x.size() + n);
     copy(otherX.begin(), otherX.end(), back_inserter(x));
@@ -73,7 +73,7 @@ globalReduceToUniqueElements(vector<int>& x) {
     int tmp = x.size();
     int sum;
     MPI_Allreduce(&tmp, &sum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-    ENSURE(sum == x.size()*numProcs);
+    ENSURE(sum == (int)x.size()*numProcs);
   }
   END_CONTRACT_SCOPE
 #endif

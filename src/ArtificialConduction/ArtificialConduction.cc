@@ -183,13 +183,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
             
             // Get the state for node i.
             const Vector& ri    = position(nodeListi, i);
-            //const Scalar& mi    = mass(nodeListi, i);
+            const Scalar& mi    = mass(nodeListi, i);
             const Scalar& rhoi  = massDensity(nodeListi, i);
             const Scalar& epsi  = specificThermalEnergy(nodeListi, i);
             const Scalar& Pi    = pressure(nodeListi, i);
             const SymTensor& Hi = H(nodeListi, i);
             const Scalar hhi    = Dimension::nDim/(Hi.Trace());
             
+            CONTRACT_VAR(mi);
             CHECK(mi > 0.0);
             CHECK(rhoi > 0.0);
             
@@ -314,7 +315,7 @@ dt(const DataBase<Dimension>& dataBase,
     Scalar lastMinDt = minDt;
     int lastNodeID = -1;
     string lastNodeListName, reason;
-    Scalar lastNodeScale, lastEps, lastVsig, lastRho;
+    Scalar lastEps, lastVsig, lastRho;
     
     // Loop over every fluid node.
     size_t nodeListi = 0;
@@ -364,7 +365,6 @@ dt(const DataBase<Dimension>& dataBase,
     reasonStream << "mindt = " << minDt << std::endl
     << reason << std::endl
     << "  (nodeList, node) = (" << lastNodeListName << ", " << lastNodeID << ") | "
-    << "  h = " << lastNodeScale << std::endl
     << "  vsig = " << lastVsig << std::endl
     << "  rho = " << lastRho << std::endl
     << "  eps = " << lastEps << std::endl

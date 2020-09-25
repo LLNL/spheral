@@ -97,7 +97,7 @@ Boundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
                                     vector<int>& numNodesRemoved) {
 
   auto& registrar = NodeListRegistrar<Dimension>::instance();
-  REQUIRE(numNodesRemoved.size() == registrar.numNodeLists());
+  REQUIRE((int)numNodesRemoved.size() == registrar.numNodeLists());
 
   // Walk the NodeLists.
   auto nodeListi = 0;

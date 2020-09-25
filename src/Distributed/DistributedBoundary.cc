@@ -145,7 +145,7 @@ communicatedProcs(vector<int>& sendProcs,
          itr2 != itr1->second.end();
          ++itr2) {
       const int proc = itr2->first;
-      CHECK(proc >= 0 and proc < numProcs);
+      CHECK(proc >= 0 and proc < (int)numProcs);
       const DomainBoundaryNodes& domNodes = itr2->second;
       if (domNodes.sendNodes.size() > 0) sendFlags[proc] = 1;
       if (domNodes.receiveNodes.size() > 0) sendFlags[proc] = 1;
@@ -590,7 +590,7 @@ beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const {
       string name = field.name();
       int nameSize = name.size();
       MPI_Bcast(&nameSize, 1, MPI_INT, checkProc, Communicator::communicator());
-      REQUIRE(nameSize == name.size());
+      REQUIRE(nameSize == (int)name.size());
       MPI_Bcast(&(*name.begin()), nameSize, MPI_CHAR, checkProc, Communicator::communicator());
       REQUIRE(name == field.name());
       int elementSize = numElementsInType;
@@ -640,8 +640,8 @@ beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const {
             REQUIRE(itr != domBoundNodeMap.end());
             const DomainBoundaryNodes& boundNodes = itr->second;
             CONTRACT_VAR(boundNodes);
-            REQUIRE(boundNodes.sendNodes.size() == numRecvNodes);
-            REQUIRE(boundNodes.receiveNodes.size() == numSendNodes);
+            REQUIRE((int)boundNodes.sendNodes.size() == numRecvNodes);
+            REQUIRE((int)boundNodes.receiveNodes.size() == numSendNodes);
           }
         }
       }
@@ -706,7 +706,7 @@ beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const {
       for (typename list< list< vector<char> > >::const_iterator itr = mRecvBuffers.begin();
            itr != mRecvBuffers.end();
            ++itr) totalNumRecvs += itr->size();
-      CHECK(mRecvRequests.size() == totalNumRecvs);
+      CHECK((int)mRecvRequests.size() == totalNumRecvs);
     }
     END_CONTRACT_SCOPE
 
@@ -745,7 +745,7 @@ beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const {
       for (typename list< list< vector<char> > >::const_iterator itr = mSendBuffers.begin();
            itr != mSendBuffers.end();
            ++itr) totalNumSends += itr->size();
-      CHECK(mSendRequests.size() == totalNumSends);
+      CHECK((int)mSendRequests.size() == totalNumSends);
     }
     END_CONTRACT_SCOPE
   }
@@ -774,7 +774,7 @@ beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const {
       string name = field.name();
       int nameSize = name.size();
       MPI_Bcast(&nameSize, 1, MPI_INT, checkProc, Communicator::communicator());
-      REQUIRE(nameSize == name.size());
+      REQUIRE(nameSize == (int)name.size());
       MPI_Bcast(&(*name.begin()), nameSize, MPI_CHAR, checkProc, Communicator::communicator());
       REQUIRE(name == field.name());
 
@@ -821,8 +821,8 @@ beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const {
             REQUIRE(itr != domBoundNodeMap.end());
             const DomainBoundaryNodes& boundNodes = itr->second;
             CONTRACT_VAR(boundNodes);
-            REQUIRE(boundNodes.sendNodes.size() == numRecvNodes);
-            REQUIRE(boundNodes.receiveNodes.size() == numSendNodes);
+            REQUIRE((int)boundNodes.sendNodes.size() == numRecvNodes);
+            REQUIRE((int)boundNodes.receiveNodes.size() == numSendNodes);
           }
         }
       }
@@ -900,7 +900,7 @@ beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const {
       for (typename list< list< vector<char> > >::const_iterator itr = mSendBuffers.begin();
            itr != mSendBuffers.end();
            ++itr) totalNumSends += itr->size();
-      CHECK(mSendRequests.size() == totalNumSends);
+      CHECK((int)mSendRequests.size() == totalNumSends);
       CHECK(sendBufSizeRequests.size() <= ndoms);
     }
     END_CONTRACT_SCOPE
@@ -952,7 +952,7 @@ beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const {
       for (typename list< list< vector<char> > >::const_iterator itr = mRecvBuffers.begin();
            itr != mRecvBuffers.end();
            ++itr) totalNumRecvs += itr->size();
-      CHECK(mRecvRequests.size() == totalNumRecvs);
+      CHECK((int)mRecvRequests.size() == totalNumRecvs);
     }
     END_CONTRACT_SCOPE
   }
@@ -1037,7 +1037,7 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
   typedef NodeListRegistrar<Dimension> Registrar;
   Registrar& registrar = Registrar::instance();
   CONTRACT_VAR(registrar);
-  REQUIRE(numNodesRemoved.size() == registrar.numNodeLists());
+  REQUIRE((int)numNodesRemoved.size() == registrar.numNodeLists());
 
   const vector<int> numNodesRemovedPreviously(numNodesRemoved);
 
@@ -1196,7 +1196,7 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
             for (size_t k = 0; k != domainNodes.sendNodes.size(); ++k) {
               if (flags[k] == 1) {
                 CONTRACT_VAR(myFirstGhostNode);
-                CHECK(old2newIndexMap(nodeListOff, domainNodes.sendNodes[k]) < myFirstGhostNode);
+                CHECK(old2newIndexMap(nodeListOff, domainNodes.sendNodes[k]) < (int)myFirstGhostNode);
                 newSendNodes.push_back(old2newIndexMap(nodeListOff, domainNodes.sendNodes[k]));
               }
             }
@@ -1278,11 +1278,11 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     // Make sure everyone has the same number of exchange fields.
     int nFields = mExchangeFields.size();
     MPI_Bcast(&nFields, 1, MPI_INT, 0, Communicator::communicator());
-    REQUIRE(nFields == mExchangeFields.size())
-    REQUIRE(mSendBuffers.size() <= nFields);
-    REQUIRE(mRecvBuffers.size() <= nFields);
-    REQUIRE(mField2SendBuffer.size() <= nFields);
-    REQUIRE(mField2RecvBuffer.size() <= nFields);
+    REQUIRE(nFields == (int)mExchangeFields.size())
+    REQUIRE((int)mSendBuffers.size() <= nFields);
+    REQUIRE((int)mRecvBuffers.size() <= nFields);
+    REQUIRE((int)mField2SendBuffer.size() <= nFields);
+    REQUIRE((int)mField2RecvBuffer.size() <= nFields);
 
     // Count the numbers of send and receive buffers and requests.
     int numSendBuffers = 0;
@@ -1293,8 +1293,8 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     for (typename list< list< vector<char> > >::const_iterator itr = mRecvBuffers.begin();
          itr != mRecvBuffers.end();
          ++itr) numRecvBuffers += itr->size();
-    REQUIRE(mSendRequests.size() == numSendBuffers);
-    REQUIRE(mRecvRequests.size() == numRecvBuffers);
+    REQUIRE((int)mSendRequests.size() == numSendBuffers);
+    REQUIRE((int)mRecvRequests.size() == numRecvBuffers);
   }
   END_CONTRACT_SCOPE
 
@@ -1558,7 +1558,7 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
         MPI_Irecv(&numRecvNodes[neighborProc].front(), numNodeLists, MPI_INT, neighborProc, 1001, Communicator::communicator(), &(recvRequests.back()));
       }
     }
-    CHECK(recvRequests.size() == numProcs - 1);
+    CHECK((int)recvRequests.size() == numProcs - 1);
 
     // Determine how many nodes per NodeList we're sending to each domain.
     for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
@@ -1628,7 +1628,7 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
             for (int i = firstNewGhostNode[nodeListID]; 
                  i != firstNewGhostNode[nodeListID] + numRecvNodes[neighborProc][nodeListID];
                  ++i) recvNodes.push_back(i);
-            CHECK(recvNodes.size() == numRecvNodes[neighborProc][nodeListID]);
+            CHECK((int)recvNodes.size() == numRecvNodes[neighborProc][nodeListID]);
             firstNewGhostNode[nodeListID] += numRecvNodes[neighborProc][nodeListID];
           }
         }
@@ -1649,7 +1649,7 @@ buildReceiveAndGhostNodes(const DataBase<Dimension>& dataBase) {
       for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
            nodeListItr != dataBase.nodeListEnd();
            ++nodeListItr, ++nodeListID) {
-        ENSURE((**nodeListItr).numNodes() == firstNewGhostNode[nodeListID]);
+        ENSURE((int)(**nodeListItr).numNodes() == firstNewGhostNode[nodeListID]);
       }
     }
   }

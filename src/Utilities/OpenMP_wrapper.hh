@@ -71,7 +71,7 @@ struct SpheralThreads {
   // Apply the appropriate reduction to a single element of the FieldList
   //------------------------------------------------------------------------------
   struct ReduceElement: public boost::static_visitor<> {
-    int nodeListi, i;
+    unsigned nodeListi, i;
     ThreadReduction reduction;
 
     ReduceElement(int nodeListi_, int i_):

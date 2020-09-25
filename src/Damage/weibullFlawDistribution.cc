@@ -180,9 +180,9 @@ weibullFlawDistributionBenzAsphaug(double volume,
   // That's it.
   BEGIN_CONTRACT_SCOPE
   {
-    for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+    for (int i = 0; i != (int)nodeList.numInternalNodes(); ++i) {
       if (mask(i) == 1) {
-        ENSURE(flaws(i).size() >= minFlawsPerNode);
+        ENSURE((int)flaws(i).size() >= minFlawsPerNode);
         for (vector<double>::const_iterator itr = flaws(i).begin() + 1;
              itr != flaws(i).end();
              ++itr) ENSURE(*itr >= *(itr - 1));
@@ -356,7 +356,7 @@ weibullFlawDistributionOwen(const unsigned seed,
     // That's it.
     BEGIN_CONTRACT_SCOPE
     {
-      for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+      for (int i = 0; i != (int)nodeList.numInternalNodes(); ++i) {
         if (mask(i) == 1) {
           for (vector<double>::const_iterator itr = flaws(i).begin() + 1;
                itr != flaws(i).end();

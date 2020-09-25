@@ -53,7 +53,7 @@ setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+  for (auto i = 0; i != massDensity.numElements(); ++i) {
     Pressure(i) = pressure(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -68,7 +68,7 @@ setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+  for (auto i = 0; i != massDensity.numElements(); ++i) {
     temperature(i) = this->temperature(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -83,7 +83,7 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
   CHECK(valid());
-  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+  for (auto i = 0; i != massDensity.numElements(); ++i) {
     specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), temperature(i));
   }
 }
@@ -98,8 +98,8 @@ setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& /*massDensity*/,
                 const Field<Dimension, Scalar>& /*temperature*/) const {
   CHECK(valid());
-  const double kB = mConstants.kB();
-  const double mp = mConstants.protonMass();
+  const auto kB = mConstants.kB();
+  const auto mp = mConstants.protonMass();
   double Cv = kB/(mGamma1*mMolecularWeight*mp);
   specificHeat = Cv;
 }
@@ -156,7 +156,7 @@ setEntropy(Field<Dimension, Scalar>& entropy,
            const Field<Dimension, Scalar>& massDensity,
            const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+  for (auto i = 0; i != massDensity.numElements(); ++i) {
     entropy(i) = pressure(massDensity(i), specificThermalEnergy(i))*safeInvVar(pow(massDensity(i), mGamma));
   }
 }
@@ -182,8 +182,8 @@ GammaLawGas<Dimension>::
 temperature(const Scalar /*massDensity*/,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  const double kB = mConstants.kB();
-  const double mp = mConstants.protonMass();
+  const auto kB = mConstants.kB();
+  const auto mp = mConstants.protonMass();
   return mGamma1*mMolecularWeight*mp/kB*specificThermalEnergy;
 }
 
@@ -196,8 +196,9 @@ GammaLawGas<Dimension>::
 specificThermalEnergy(const Scalar /*massDensity*/,
                       const Scalar temperature) const {
   CHECK(valid());
-  const double kB = mConstants.kB();
-  return kB/(mGamma1*mMolecularWeight)*temperature;
+  const auto kB = mConstants.kB();
+  const auto mp = mConstants.protonMass();
+  return kB/(mGamma1*mMolecularWeight*mp)*temperature;
 }
 
 //------------------------------------------------------------------------------
@@ -209,8 +210,8 @@ GammaLawGas<Dimension>::
 specificHeat(const Scalar /*massDensity*/,
              const Scalar /*temperature*/) const {
   CHECK(valid());
-  const double kB = mConstants.kB();
-  const double mp = mConstants.protonMass();
+  const auto kB = mConstants.kB();
+  const auto mp = mConstants.protonMass();
   return kB/(mGamma1*mMolecularWeight*mp);
 }
 
