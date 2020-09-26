@@ -627,11 +627,13 @@ class SpheralController:
         rkorders = set()
         rkbcs = []
         needHessian = False
+        rkUpdateInFinalize = False
         index = -1
         for (ipack, package) in enumerate(packages):
             ords = package.requireReproducingKernels()
             rkorders = rkorders.union(ords)
             needHessian |= package.requireReproducingKernelHessian()
+            rkUpdateInFinalize |= package.updateReproducingKernelsInFinalize()
             if ords:
                 pbcs = package.boundaryConditions()
                 rkbcs += [bc for bc in pbcs if not bc in rkbcs]
@@ -644,7 +646,8 @@ class SpheralController:
                                                dataBase = db,
                                                W = W,
                                                volumeType = volumeType,
-                                               needHessian = needHessian)
+                                               needHessian = needHessian,
+                                               updateInFinalize = rkUpdateInFinalize)
             for bc in rkbcs:
                 self.RKCorrections.appendBoundary(bc)
             if facetedBoundaries is not None:
