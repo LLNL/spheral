@@ -1299,16 +1299,19 @@ polyhedralMesh(int*           nnodes,
   int * lnodecounts = new int[numFaces];
   int * lfacecounts = new int[numCells];
   int * lfaceflags = new int[numFaces];
+  for (unsigned i = 0 ; i < numFaces ; ++i) {
+    lfaceflags[i] = 0;
+  }
 
   lfacetonodes[0] = 0;
   lcelltofaces[0] = 0;
   lnodecounts[0] = 0;
   lfacecounts[0] = 0;
-  lfaceflags[0] = 0;
   int vertcounter = 0;
   int facecounter = 0;
   int cellcounter = 0;
   int nodecounter = 0;
+  int flagcounter = 0;
   for (unsigned imat = 0; imat != nmats; ++imat) {
     const unsigned n = me.mNodeLists[imat]->numInternalNodes();
     for (unsigned i = 0; i != n; ++i) {
@@ -1316,6 +1319,7 @@ polyhedralMesh(int*           nnodes,
       auto vertices = celli.vertices();
       auto facets = celli.facets();
       auto facetVertices = celli.facetVertices();
+      auto cellFaceFlagsi = cellFaceFlags(imat, i);
       for (unsigned j = 0; j != facetVertices.size(); ++j) {
         for (unsigned k = 0; k != facetVertices[j].size(); ++k) {
           lfacetonodes[nodecounter] = vertcounter + facetVertices[j][k];
@@ -1331,6 +1335,10 @@ polyhedralMesh(int*           nnodes,
         zcoord[vertcounter] = vertices[j].z();
         ++vertcounter;
       }
+      for (unsigned j = 0; j != cellFaceFlagsi.size() ; ++j) {
+        lfaceflags[flagcounter + cellFaceFlagsi[j].cellFace] = cellFaceFlagsi[j].j;
+      }
+      flagcounter += facets.size();
       lfacecounts[cellcounter] = facets.size();
       ++cellcounter;
     }
