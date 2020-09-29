@@ -64,16 +64,6 @@ not fill out the complete physics package interface."""
                         derivs = "StateDerivatives<%(Dimension)s>&"):
         return "void"
 
-    @PYB11pure_virtual
-    @PYB11const
-    def dt(self,
-           dataBase = "const DataBase<%(Dimension)s>&",
-           state = "const State<%(Dimension)s>&",
-           derivs = "const StateDerivatives<%(Dimension)s>&",
-           currentTime = "const Scalar"):
-        "Vote on a time step."
-        return "TimeStepType"
-
 
     #...........................................................................
     # Methods
