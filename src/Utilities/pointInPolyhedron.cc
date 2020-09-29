@@ -73,7 +73,7 @@ bool pointInPolyhedron(const Dim<3>::Vector& p,
       if (std::abs(fdotr) <= tol) {
 
         // If they are, we only care if the ray is in the plane of the facet.
-        if (std::abs((vertices[ipts[0]] - p).dot(fhat) <= tol)) {
+        if (std::abs((vertices[ipts[0]] - p).dot(fhat)) <= tol) {
 
           // The ray and plane are parallel, and the ray is in the plane.
           // Check if the ray crosses any of the facet lines -- if so, counts as an intersection.
