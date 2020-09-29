@@ -247,7 +247,7 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary0,
   if (allReduce(result.size(), MPI_SUM, Communicator::communicator()) == 0U) {
     if (Process::getRank() == 0) {
       cerr << "Falling back to surface points..." << endl;
-      const auto nexpect = std::max(1, std::min(int(verts.size()), int(outerBoundary.volume()/(dx*dx*dx) + 0.5)));
+      const size_t nexpect = size_t(std::max(1, std::min(int(verts.size()), int(outerBoundary.volume()/(dx*dx*dx) + 0.5))));
       std::vector<unsigned> iresult(verts.size());
       for (auto i = 0U; i < verts.size(); ++i) iresult[i] = i;
       while (iresult.size() > nexpect) {
