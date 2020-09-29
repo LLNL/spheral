@@ -13,30 +13,6 @@ using std::abs;
 
 namespace Spheral {
 
-namespace {
-//------------------------------------------------------------------------------
-// Compute an individual HCP position.
-//------------------------------------------------------------------------------
-inline
-void HCPposition(const unsigned i,
-                 const unsigned nxy,
-                 const unsigned nx,
-                 const unsigned ny,
-                 const double dx,
-                 const double dy,
-                 const double dz,
-                 const Dim<3>::Vector& xmin,
-                 const Dim<3>::Vector& /*xmax*/,
-                 Dim<3>::Vector& result) {
-  const auto ix = i % nx;
-  const auto iy = (i / nx) % ny;
-  const auto iz = i / nxy;
-  result[0] = xmin[0] + (ix + 0.5*((iy % 2) + (iz % 2)))*dx;
-  result[1] = xmin[1] + (iy + 0.5*(iz % 2))*dy;
-  result[2] = xmin[2] + (iz + 0.5)*dz;
-}
-}
-
 //------------------------------------------------------------------------------
 // Fill an outer bounding volume (specify x number of points).
 //------------------------------------------------------------------------------
