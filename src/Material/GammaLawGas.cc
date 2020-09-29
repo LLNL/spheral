@@ -53,7 +53,7 @@ setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (auto i = 0; i != massDensity.numElements(); ++i) {
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
     Pressure(i) = pressure(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -68,7 +68,7 @@ setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (auto i = 0; i != massDensity.numElements(); ++i) {
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
     temperature(i) = this->temperature(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -83,7 +83,7 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
   CHECK(valid());
-  for (auto i = 0; i != massDensity.numElements(); ++i) {
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
     specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), temperature(i));
   }
 }
@@ -114,7 +114,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  for (auto i = 0u; i != soundSpeed.size(); ++i) {
+  for (size_t i = 0u; i != soundSpeed.size(); ++i) {
     soundSpeed(i) = this->soundSpeed(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -156,7 +156,7 @@ setEntropy(Field<Dimension, Scalar>& entropy,
            const Field<Dimension, Scalar>& massDensity,
            const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (auto i = 0; i != massDensity.numElements(); ++i) {
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
     entropy(i) = pressure(massDensity(i), specificThermalEnergy(i))*safeInvVar(pow(massDensity(i), mGamma));
   }
 }

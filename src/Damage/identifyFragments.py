@@ -24,7 +24,9 @@ def identifyFragments(nodeList,
                       linkRadius,
                       damageField,
                       damageThreshold,
-                      assignDustToFragments):
+                      assignDustToFragments,
+                      density = None,
+                      densityThreshold = None):
 
     # Preconditions.
     assert linkRadius > 0.0
@@ -44,12 +46,18 @@ def identifyFragments(nodeList,
     else:
         raise "identifyFragments ERROR: What the heck is %s!  I expected a NodeList." % str(nodeList)
 
+    # Check for any mass density criteria
+    if density is None:
+        density = nodeList.massDensity()
+    if densityThreshold is None:
+        densityThreshold = 0.0
+
     # Eliminate any ghost nodes.
     nodeList.numGhostNodes = 0
 
     # The C++ method does the heavy lifting.
     # Compute the fragments on the undamaged NodeList.
-    result = computeFragMethod(nodeList, linkRadius, damageField, damageThreshold, assignDustToFragments)
+    result = computeFragMethod(nodeList, linkRadius, density, damageField, densityThreshold, damageThreshold, assignDustToFragments)
     numFragments = mpi.allreduce(max(list(result.internalValues()) + [0]), mpi.MAX)
     numFragments += 1
 
