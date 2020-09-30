@@ -10,6 +10,7 @@ from SpheralTestUtilities import fuzzyEqual
 
 # Create a global random number generator.
 import random
+random.seed(660)
 rangen = random.Random()
 
 #-------------------------------------------------------------------------------

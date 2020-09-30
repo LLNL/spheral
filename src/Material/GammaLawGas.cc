@@ -98,8 +98,8 @@ setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& /*massDensity*/,
                 const Field<Dimension, Scalar>& /*temperature*/) const {
   CHECK(valid());
-  const double kB = mConstants.kB();
-  const double mp = mConstants.protonMass();
+  const auto kB = mConstants.kB();
+  const auto mp = mConstants.protonMass();
   double Cv = kB/(mGamma1*mMolecularWeight*mp);
   specificHeat = Cv;
 }
@@ -114,7 +114,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  for (auto i = 0u; i != soundSpeed.size(); ++i) {
+  for (size_t i = 0u; i != soundSpeed.size(); ++i) {
     soundSpeed(i) = this->soundSpeed(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -182,8 +182,8 @@ GammaLawGas<Dimension>::
 temperature(const Scalar /*massDensity*/,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  const double kB = mConstants.kB();
-  const double mp = mConstants.protonMass();
+  const auto kB = mConstants.kB();
+  const auto mp = mConstants.protonMass();
   return mGamma1*mMolecularWeight*mp/kB*specificThermalEnergy;
 }
 
@@ -196,8 +196,9 @@ GammaLawGas<Dimension>::
 specificThermalEnergy(const Scalar /*massDensity*/,
                       const Scalar temperature) const {
   CHECK(valid());
-  const double kB = mConstants.kB();
-  return kB/(mGamma1*mMolecularWeight)*temperature;
+  const auto kB = mConstants.kB();
+  const auto mp = mConstants.protonMass();
+  return kB/(mGamma1*mMolecularWeight*mp)*temperature;
 }
 
 //------------------------------------------------------------------------------
@@ -209,8 +210,8 @@ GammaLawGas<Dimension>::
 specificHeat(const Scalar /*massDensity*/,
              const Scalar /*temperature*/) const {
   CHECK(valid());
-  const double kB = mConstants.kB();
-  const double mp = mConstants.protonMass();
+  const auto kB = mConstants.kB();
+  const auto mp = mConstants.protonMass();
   return kB/(mGamma1*mMolecularWeight*mp);
 }
 

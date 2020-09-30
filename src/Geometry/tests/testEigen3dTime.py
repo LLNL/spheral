@@ -7,6 +7,7 @@ from math import *
 import time
 
 import random
+random.seed(941)
 rangen = random.Random()
 ranrange = 1.0e8
 
