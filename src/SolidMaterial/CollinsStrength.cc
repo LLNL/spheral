@@ -16,6 +16,7 @@
 #include "Utilities/DBC.hh"
 #include "SolidEquationOfState.hh"
 #include "Field/Field.hh"
+#include "NodeList/SolidNodeList.hh"
 
 namespace Spheral {
 
@@ -30,13 +31,33 @@ template<typename Dimension>
 CollinsStrength<Dimension>::
 CollinsStrength(const StrengthModel<Dimension>& shearModulusModel,
                 const double mui,
+                const double mud,
                 const double Y0,     
                 const double Ym):
   StrengthModel<Dimension>(),
   mShearModulusModel(shearModulusModel),
   mmui(mui),
+  mmud(mud),
   mY0(Y0),
   mYm(Ym) {
+}
+
+//------------------------------------------------------------------------------
+// Constructor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+CollinsStrength<Dimension>::
+CollinsStrength(const StrengthModel<Dimension>& shearModulusModel,
+                const double mui,
+                const double Y0,     
+                const double Ym):
+  StrengthModel<Dimension>(),
+  mShearModulusModel(shearModulusModel),
+  mmui(mui),
+  mmud(0.0),
+  mY0(Y0),
+  mYm(Ym) {
+  if (Process::getRank() == 0) printf("Deprecation WARNING: specifying the Collins strength model without the coefficient of friction in damage (mud) is deprecated.\n");
 }
 
 //------------------------------------------------------------------------------
@@ -72,10 +93,20 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
               const Field<Dimension, Scalar>& pressure,
               const Field<Dimension, Scalar>& /*plasticStrain*/,
               const Field<Dimension, Scalar>& /*plasticStrainRate*/) const {
+
+  // Do a janky extraction of the damage (unknown time level) from the NodeList.  Better
+  // be a SolidNodeList since we're using strength!
+  const auto& nodes = dynamic_cast<const SolidNodeList<Dimension>&>(yieldStrength.nodeList());
+  const auto& Dfield = nodes.damage();
+
   const unsigned n = density.numInternalElements();
   const Scalar YdiffInv = safeInvVar(mYm - mY0);
   for (unsigned i = 0; i != n; ++i) {
-    yieldStrength(i) = mY0 + mmui*pressure(i)/(1.0 + mmui*pressure(i)*YdiffInv);
+    const auto Yi = mY0 + mmui*pressure(i)/(1.0 + mmui*pressure(i)*YdiffInv);
+    const auto Yd = std::min(Yi, mmud*pressure(i));
+    const auto Di = Dfield(i).Trace()/Dimension::nDim;
+    CHECK(Di >= 0.0 and Di <= 1.0);
+    yieldStrength(i) = (1.0 - Di)*Yi + Di*Yd;
   }
 }
 
@@ -108,6 +139,13 @@ double
 CollinsStrength<Dimension>::
 mui() const {
   return mmui;
+}
+
+template<typename Dimension>
+double
+CollinsStrength<Dimension>::
+mud() const {
+  return mmud;
 }
 
 template<typename Dimension>
