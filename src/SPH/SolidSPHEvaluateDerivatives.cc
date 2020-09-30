@@ -307,12 +307,16 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto Peffj = (mNegativePressureInDamage or Pj > 0.0 ? Pj : fDeffij*Pj);
 
       // Compute the stress tensors.
+      sigmai = -Peffi*SymTensor::one;
+      sigmaj = -Peffj*SymTensor::one;
       if (sameMatij) {
-        sigmai = fDeffij*Si - Peffi*SymTensor::one;
-        sigmaj = fDeffij*Sj - Peffj*SymTensor::one;
-      } else {
-        sigmai = -Peffi*SymTensor::one;
-        sigmaj = -Peffj*SymTensor::one;
+        if (mStrengthInDamage) {
+          sigmai += Si;
+          sigmaj += Sj;
+        } else {
+          sigmai += fDeffij*Si;
+          sigmaj += fDeffij*Sj;
+        }
       }
 
       // Compute the tensile correction to add to the stress as described in 
