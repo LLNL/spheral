@@ -40,7 +40,7 @@ struct DataTypeTraits<bool> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_C_BOOL; }
 #endif
-  static axom::sidre::TypeID axomType() { return axom::sidre::CHAR8_STR_ID; }
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::CHAR8_STR_ID; }
 };
 
 //------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ struct DataTypeTraits<char> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_CHAR; }
 #endif
-  static axom::sidre::TypeID axomType() { return axom::sidre::CHAR8_STR_ID; }
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::CHAR8_STR_ID; }
 };
 
 //------------------------------------------------------------------------------
@@ -66,7 +66,7 @@ struct DataTypeTraits<int> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_INT; }
 #endif
-  static axom::sidre::TypeID axomType() { return axom::sidre::INT_ID; }
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::INT_ID; }
 };
 
 // //------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ struct DataTypeTraits<uint32_t> {
   static MPI_Datatype MpiDataType() { return MPI_UNSIGNED; }
 #endif
 #endif
-  static axom::sidre::TypeID axomType() { return axom::sidre::UINT32_ID; }
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::UINT32_ID; }
 };
 
 //------------------------------------------------------------------------------
@@ -112,7 +112,7 @@ struct DataTypeTraits<uint64_t> {
   static MPI_Datatype MpiDataType() { return MPI_UNSIGNED_LONG_LONG; }
 #endif
 #endif
-  static axom::sidre::TypeID axomType() { return axom::sidre::UINT64_ID; }
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::UINT64_ID; }
 };
 
 //------------------------------------------------------------------------------
@@ -125,7 +125,7 @@ struct DataTypeTraits<float> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_FLOAT; }
 #endif
-  static axom::sidre::TypeID axomType() { return axom::sidre::FLOAT_ID; }
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::FLOAT_ID; }
 };
 
 //------------------------------------------------------------------------------
@@ -138,7 +138,7 @@ struct DataTypeTraits<double> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_DOUBLE; }
 #endif
-  static axom::sidre::TypeID axomType() { return axom::sidre::DOUBLE_ID; }
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 //------------------------------------------------------------------------------

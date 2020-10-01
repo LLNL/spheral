@@ -1966,7 +1966,7 @@ operator<<(std::ostream& os, const Field<Dimension, DataType>& field) {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-axom::sidre::DataType
+axom::sidre::DataTypeId
 Field<Dimension, DataType>::
 getAxomType() const {
   return DataTypeTraits<DataType>::axomType();

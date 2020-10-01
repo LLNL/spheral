@@ -1,6 +1,7 @@
 from math import *
 import unittest
 from Spheral1d import *
+from SpheralTestUtilities import *
 
 import random
 g = random.Random()
@@ -38,6 +39,7 @@ class testsidreDataCollection(unittest.TestCase):
                                        eos,
                                        n)
         self.field = IntField("test field", self.nodes)
+        self.sidreDataCollection = SidreDataCollection()
         for i in xrange(n):
             self.field[i] = i
         return
@@ -54,7 +56,11 @@ class testsidreDataCollection(unittest.TestCase):
     # alloc_view (Field of int)
     #---------------------------------------------------------------------------
     def testAlloc_viewInt(self):
-        alloc_view("IntSidreTest", self.nodes)
+        self.sidreDataCollection.alloc_view("IntSidreTest", self.field)
+        answer = getView("IntSidreTest").getData()
+        assert len(answer) == len(self.nodes)
+        for i in xrange(len(answer)):
+            assert self.field[i] == answer[i]
         return
 
 

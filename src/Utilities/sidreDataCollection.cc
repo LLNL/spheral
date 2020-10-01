@@ -4,7 +4,8 @@
 namespace sidre = axom::sidre;
 
 
-namespace Spheral {
+namespace Spheral 
+{
 
 SidreDataCollection::SidreDataCollection()
 {

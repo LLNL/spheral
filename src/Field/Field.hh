@@ -236,7 +236,7 @@ public:
   std::vector<DataType> allValues() const;
 
   // Functions to help with the construction of the Sidre datastore.
-  axom::sidre::DataType getAxomType() const;
+  axom::sidre::DataTypeId getAxomType() const;
 
 
 private:
