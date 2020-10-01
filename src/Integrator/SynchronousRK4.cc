@@ -133,6 +133,7 @@ step(typename Dimension::Scalar maxTime,
                                       tmpstate,
                                       derivs2);
     if (dtnew < this->dtCheckFrac()*dt) {
+      this->currentTime(t);
       return false;
     }
   }
@@ -157,6 +158,7 @@ step(typename Dimension::Scalar maxTime,
                                       tmpstate,
                                       derivs3);
     if (dtnew < this->dtCheckFrac()*dt) {
+      this->currentTime(t);
       return false;
     }
   }
@@ -181,6 +183,7 @@ step(typename Dimension::Scalar maxTime,
                                       tmpstate,
                                       derivs4);
     if (dtnew < this->dtCheckFrac()*dt) {
+      this->currentTime(t);
       return false;
     }
   }
