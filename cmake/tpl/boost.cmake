@@ -24,7 +24,7 @@ if(${lib_name}_BUILD)
     DOWNLOAD_DIR ${CACHE_DIR}
     CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${BOOST_SRC_DIR}/bootstrap.sh
     --with-toolset=${TOOLSET}
-    --without-libraries=atomic,container,coroutine,log,chrono,context,date_time,exception,fiber,filesystem,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,system,test,thread,timer,type_erasure,wave
+    --without-libraries=atomic,container,coroutine,log,chrono,context,date_time,exception,fiber,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,test,thread,timer,type_erasure,wave
     --prefix=${${lib_name}_DIR}
     BUILD_IN_SOURCE 1
     BUILD_COMMAND ${BOOST_SRC_DIR}/b2 install
