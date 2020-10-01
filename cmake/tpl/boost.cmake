@@ -12,7 +12,7 @@ set(BOOST_BUILD_DIR ${BOOST_PREFIX}/src/boost-build)
 set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.bz2")
 set(BOOST_CACHE "${CACHE_DIR}/boost_1_69_0.tar.bz2")
 
-set(${lib_name}_libs libboost_filesystem.a libboost_system.a)
+set(${lib_name}_libs libboost_filesystem.so libboost_system.so)
 
 if(${lib_name}_BUILD)
 
