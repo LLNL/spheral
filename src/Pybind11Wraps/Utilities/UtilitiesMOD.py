@@ -51,8 +51,7 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/DamagedNodeCoupling.hh"',
                   '"Utilities/DamagedNodeCouplingWithFrags.hh"',
                   '"Utilities/sidreDataCollection.hh"',
-                  '"axom/sidre.hpp"',
-                  '"axom/sidre/core/View.hpp"']
+                  '"axom/sidre.hpp"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -719,25 +718,18 @@ def clippedVolume(poly = "const Dim<3>::FacetedVolume&",
 # Sidre
 #-------------------------------------------------------------------------------
 @PYB11namespace("axom::sidre::Group")
-def getView(path = "const std::string&"):
-    "Return pointer to non-const View with given name or path."
-    return "axom::sidre::View*"
-
-@PYB11namespace("axom::sidre::Group")
 @PYB11const
-@PYB11pycppname("getView")
-def getViewConst(path = "const std::string&"):
-    "Return pointer to const View with given name or path."
-    return "const axom::sidre::View*"
+@PYB11pycppname("print")
+def printGroup():
+    "JSON description of data Group to stdout."
+    return "void"
 
-@PYB11namespace("axom::sidre::View")
-def getData():
-    "Return data held by view and cast it to any compatible type allowed by Conduit (return type depends on type caller assigns it to)."
-    return "axom::sidre::Node::Value"
+# @PYB11namespace("axom::sidre::Group")
+# def getView(path = "const std::string&"):
+#     "Return pointer to non-const View with given name or path."
+#     return "axom::sidre::View*"
 
-@PYB11namespace("axom::sidre::View")
-@PYB11const
-@PYB11pycppname("getData")
-def getDataConst():
-    "Return data held by view and cast it to any compatible type allowed by Conduit (return type depends on type caller assigns it to)."
-    return "const axom::sidre::Node::Value"
+# @PYB11namespace("axom::sidre::View")
+# def getData():
+#     "Return data held by view and cast it to any compatible type allowed by Conduit (return type depends on type caller assigns it to)."
+#     return "axom::sidre::Node::Value"
