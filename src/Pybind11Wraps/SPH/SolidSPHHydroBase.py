@@ -94,8 +94,8 @@ mass density, velocity, and specific thermal energy."""
                                         doc="Control whether allow damaged material to have stress relieved.")
     negativePressureInDamage = PYB11property("bool", "negativePressureInDamage", "negativePressureInDamage", 
                                              doc="Should we allow damaged material to support negative pressures?")
-    strengthDamage = PYB11property("bool", "strengthInDamage", "strengthInDamage", 
-                                   doc="Should we allow damaged material to support strength?")
+    strengthInDamage = PYB11property("bool", "strengthInDamage", "strengthInDamage", 
+                                     doc="Should we allow damaged material to support strength?")
 
     DdeviatoricStressDt =  PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "DdeviatoricStressDt", returnpolicy="reference_internal")
     bulkModulus =          PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "bulkModulus",         returnpolicy="reference_internal")
