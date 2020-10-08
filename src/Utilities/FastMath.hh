@@ -11,6 +11,7 @@
 #define __Spheral_FastMath__
 
 #include "Utilities/SpheralFunctions.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace FastMath {
