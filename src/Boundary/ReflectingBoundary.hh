@@ -11,6 +11,7 @@
 #include "Boundary/Boundary.hh"
 #include "Boundary/PlanarBoundary.hh"
 #include "RK/RKCorrectionParams.hh"
+#include "boost/unordered_map.hpp"
 
 #include "Eigen/Sparse"
 
@@ -46,7 +47,7 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
-  virtual void applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const;
+  virtual void applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const override;
   virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const override;
 
   // Apply the boundary condition to the violation node values in the given Field.
@@ -57,7 +58,7 @@ public:
   virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const override;
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
-  virtual void enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const;
+  virtual void enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const override;
   virtual void enforceBoundary(Field<Dimension, std::vector<Vector>>& field) const override;
 
   // Apply the boundary condition to face centered fields on a tessellation.
@@ -98,7 +99,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   Tensor mReflectOperator;
-  std::unordered_map<RKOrder, std::pair<TransformationMatrix, TransformationMatrix>> mrkReflectOperators;
+  boost::unordered_map<RKOrder, std::pair<TransformationMatrix, TransformationMatrix>> mrkReflectOperators;
 };
 
 }

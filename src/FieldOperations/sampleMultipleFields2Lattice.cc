@@ -68,9 +68,9 @@ stepSize(const typename Dimension::Vector& xmin,
 template<typename Dimension>
 inline
 vector<int>
-makeIndex(const int ix,
-          const int iy,
-          const int iz) {
+makeIndex(const int /*ix*/,
+          const int /*iy*/,
+          const int /*iz*/) {
   REQUIRE(false);
   return vector<int>();
 }

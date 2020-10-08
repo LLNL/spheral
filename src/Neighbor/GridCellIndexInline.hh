@@ -235,7 +235,7 @@ GridCellIndex<Dimension>::xIndex(int xIndex) {
 template<typename Dimension>
 inline
 void
-GridCellIndex<Dimension>::yIndex(int yIndex) {
+GridCellIndex<Dimension>::yIndex(int /*yIndex*/) {
   VERIFY(false);
 }
 
@@ -259,7 +259,7 @@ GridCellIndex<Dim<3> >::yIndex(int yIndex) {
 template<typename Dimension>
 inline
 void
-GridCellIndex<Dimension>::zIndex(int zIndex) {
+GridCellIndex<Dimension>::zIndex(int /*zIndex*/) {
   VERIFY(false);
 }
 
@@ -533,7 +533,7 @@ GridCellIndex<Dim<3> >::operator+(const int rhs) const {
 template<typename Dimension>
 inline
 GridCellIndex<Dimension>
-GridCellIndex<Dimension>::operator-(const int rhs) const {
+GridCellIndex<Dimension>::operator-(const int /*rhs*/) const {
   VERIFY(false);
   return *this;
 }
@@ -628,7 +628,7 @@ GridCellIndex<Dim<3> >::operator-=(const int rhs) {
 template<typename Dimension>
 inline
 GridCellIndex<Dimension>
-GridCellIndex<Dimension>::operator*(int rhs) const {
+GridCellIndex<Dimension>::operator*(int /*rhs*/) const {
   VERIFY(false);
   return *this;
 }
@@ -663,7 +663,7 @@ GridCellIndex<Dim<3> >::operator*(int rhs) const {
 template<typename Dimension>
 inline
 GridCellIndex<Dimension>
-GridCellIndex<Dimension>::operator/(int rhs) const {
+GridCellIndex<Dimension>::operator/(int /*rhs*/) const {
   VERIFY(false);
   return *this;
 }
@@ -701,7 +701,7 @@ GridCellIndex<Dim<3> >::operator/(int rhs) const {
 template<typename Dimension>
 inline
 int
-GridCellIndex<Dimension>::dot(const GridCellIndex<Dimension>& rhs) const {
+GridCellIndex<Dimension>::dot(const GridCellIndex<Dimension>& /*rhs*/) const {
   VERIFY(false);
   return 0;
 }
@@ -770,7 +770,7 @@ GridCellIndex< Dim<3> >::compare(const GridCellIndex< Dim<3> >& rhs) const {
 template<typename Dimension>
 inline
 bool
-GridCellIndex<Dimension>::operator==(const GridCellIndex<Dimension>& rhs) const {
+GridCellIndex<Dimension>::operator==(const GridCellIndex<Dimension>& /*rhs*/) const {
   VERIFY(false);
   return false;
 }

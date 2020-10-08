@@ -57,8 +57,8 @@ computeCellGradient(const FieldList<Dim<1>, DataType>& fieldList,
             face2ID = Mesh<Dimension>::positiveID(faces[1]);
   const Face face1 = mesh.face(face1ID),
              face2 = mesh.face(face2ID);
-  const int zone1ID = Mesh<Dimension>::positiveID(face1.oppositeZoneID(zonei.ID())),
-            zone2ID = Mesh<Dimension>::positiveID(face2.oppositeZoneID(zonei.ID()));
+  const unsigned zone1ID = Mesh<Dimension>::positiveID(face1.oppositeZoneID(zonei.ID())),
+                 zone2ID = Mesh<Dimension>::positiveID(face2.oppositeZoneID(zonei.ID()));
 
   // Look up the indices into the FieldList for the two neighboring cells.
   unsigned nodeList1ID = nodeListi, node1ID = i, 

@@ -77,7 +77,7 @@ public:
        const std::vector<std::vector<unsigned> >& faceEdges,
        const std::vector<std::vector<int> >& zoneFaces);
   Mesh& operator=(const Mesh& rhs);
-  ~Mesh();
+  virtual ~Mesh();
 
   // Clear out any exising data in the mesh.
   void clear();
