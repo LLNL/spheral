@@ -99,14 +99,17 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
   const auto& nodes = dynamic_cast<const SolidNodeList<Dimension>&>(yieldStrength.nodeList());
   const auto& Dfield = nodes.damage();
 
-  const unsigned n = density.numInternalElements();
-  const Scalar YdiffInv = safeInvVar(mYm - mY0);
+  const auto n = density.numInternalElements();
+  const auto YdiffInv = safeInvVar(mYm - mY0);
   for (unsigned i = 0; i != n; ++i) {
-    const auto Yi = mY0 + mmui*pressure(i)/(1.0 + mmui*pressure(i)*YdiffInv);
-    const auto Yd = std::min(Yi, mmud*pressure(i));
+    const auto Pi = std::max(0.0, pressure(i));
+    const auto Yi = mY0 + mmui*Pi/(1.0 + mmui*Pi*YdiffInv);
+    const auto Yd = std::min(Yi, mmud*Pi);
+    CHECK(Yi >= 0.0 and Yd >= 0.0);
     const auto Di = Dfield(i).Trace()/Dimension::nDim;
     CHECK(Di >= 0.0 and Di <= 1.0);
     yieldStrength(i) = (1.0 - Di)*Yi + Di*Yd;
+    CHECK(yieldStrength(i) >= 0.0);
   }
 }
 
