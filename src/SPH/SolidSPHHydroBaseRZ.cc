@@ -96,6 +96,7 @@ SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                     const double nTensile,
                     const bool damageRelieveRubble,
                     const bool negativePressureInDamage,
+                    const bool strengthInDamage,
                     const Vector& xmin,
                     const Vector& xmax):
   SolidSPHHydroBase<Dim<2> >(smoothingScaleMethod, 
@@ -119,6 +120,7 @@ SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                              nTensile,
                              damageRelieveRubble,
                              negativePressureInDamage,
+                             strengthInDamage,
                              xmin,
                              xmax) {
 }
@@ -540,12 +542,16 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto Peffj = (mNegativePressureInDamage or Pj > 0.0 ? Pj : fDeffij*Pj);
 
       // Compute the stress tensors.
+      sigmai = -Peffi*SymTensor::one;
+      sigmaj = -Peffj*SymTensor::one;
       if (sameMatij) {
-        sigmai = fDeffij*Si - Peffi*SymTensor::one;
-        sigmaj = fDeffij*Sj - Peffj*SymTensor::one;
-      } else {
-        sigmai = -Peffi*SymTensor::one;
-        sigmaj = -Peffj*SymTensor::one;
+        if (mStrengthInDamage) {
+          sigmai += Si;
+          sigmaj += Sj;
+        } else {
+          sigmai += fDeffij*Si;
+          sigmaj += fDeffij*Sj;
+        }
       }
 
       // Compute the tensile correction to add to the stress as described in 
