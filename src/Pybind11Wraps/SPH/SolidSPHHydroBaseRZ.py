@@ -39,6 +39,7 @@ class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
                nTensile = "const double",
                damageRelieveRubble = "const bool",
                negativePressureInDamage = "const bool",
+               strengthInDamage = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "SolidSPHHydroBaseRZ constructor"
