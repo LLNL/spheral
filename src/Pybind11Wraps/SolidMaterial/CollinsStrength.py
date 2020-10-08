@@ -27,9 +27,24 @@ just split up the ideas of what provides shear modulus and yield strength?
     def pyinit(self,
                shearModulusModel = "const StrengthModel<%(Dimension)s>&",
                mui = "const double",
+               mud = "const double",
                Y0 = "const double",
                Ym = "const double"):
         """CollinsStrength constructor
+
+mui : Coefficient of internal friction (intact material)
+mud : Coefficient of internal friction (damaged material)
+Y0  : Shear strength at zero pressure
+yM  : von Mises plastic limit"""
+
+    def pyinit1(self,
+                shearModulusModel = "const StrengthModel<%(Dimension)s>&",
+                mui = "const double",
+                Y0 = "const double",
+                Ym = "const double"):
+        """CollinsStrength constructor
+
+DEPRECATION WARNING: this version without mud is deprecated
 
 mui : Coefficient of internal friction
 Y0  : Shear strength at zero pressure
@@ -55,6 +70,7 @@ yM  : von Mises plastic limit"""
     #...........................................................................
     # Properties
     mui = PYB11property("double")
+    mud = PYB11property("double")
     Y0 = PYB11property("double")
     Ym = PYB11property("double")
 

@@ -39,6 +39,25 @@ negativePressureInDamage(bool x) {
 }
 
 //------------------------------------------------------------------------------
+// Do we allow damaged material to have strength?
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SolidSPHHydroBase<Dimension>::
+strengthInDamage() const {
+  return mStrengthInDamage;
+}
+
+template<typename Dimension>
+inline
+void
+SolidSPHHydroBase<Dimension>::
+strengthInDamage(bool x) {
+  mStrengthInDamage = x;
+}
+
+//------------------------------------------------------------------------------
 // Kernel for velocity gradient.
 //------------------------------------------------------------------------------
 template<typename Dimension>

@@ -83,6 +83,7 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                  nTensile = 4.0,
                  damageRelieveRubble = False,
                  negativePressureInDamage = False,
+                 strengthInDamage = False,
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
@@ -112,6 +113,7 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                                           nTensile,
                                           damageRelieveRubble,
                                           negativePressureInDamage,
+                                          strengthInDamage,
                                           xmin,
                                           xmax)
         return
@@ -256,6 +258,7 @@ class %(classname)s(SolidSPHHydroBaseRZ):
                  nTensile = 4.0,
                  damageRelieveRubble = False,
                  negativePressureInDamage = False,
+                 strengthInDamage = False,
                  xmin = Vector2d(-1e100, -1e100),
                  xmax = Vector2d( 1e100,  1e100),
                  etaMinAxis = 0.1):
@@ -286,6 +289,7 @@ class %(classname)s(SolidSPHHydroBaseRZ):
                                      nTensile,
                                      damageRelieveRubble,
                                      negativePressureInDamage,
+                                     strengthInDamage,
                                      xmin,
                                      xmax)
         self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
@@ -349,6 +353,7 @@ def SPH(dataBase,
         nTensile = 4.0,
         damageRelieveRubble = False,
         negativePressureInDamage = False,
+        strengthInDamage = False,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
         ASPH = False,
@@ -424,8 +429,9 @@ def SPH(dataBase,
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
 
     if nsolid > 0:
-        kwargs.update({"damageRelieveRubble" : damageRelieveRubble,
-                       "negativePressureInDamage" : negativePressureInDamage})
+        kwargs.update({"damageRelieveRubble"      : damageRelieveRubble,
+                       "negativePressureInDamage" : negativePressureInDamage,
+                       "strengthInDamage"         : strengthInDamage})
 
     # Build and return the thing.
     result = Constructor(**kwargs)
@@ -454,6 +460,7 @@ def ASPH(dataBase,
          nTensile = 4.0,
          damageRelieveRubble = False,
          negativePressureInDamage = False,
+         strengthInDamage = False,
          xmin = (-1e100, -1e100, -1e100),
          xmax = ( 1e100,  1e100,  1e100)):
     return SPH(dataBase = dataBase,
@@ -475,6 +482,7 @@ def ASPH(dataBase,
                nTensile = nTensile,
                damageRelieveRubble = damageRelieveRubble,
                negativePressureInDamage = negativePressureInDamage,
+               strengthInDamage = strengthInDamage,
                xmin = xmin,
                xmax = xmax,
                ASPH = True)
@@ -501,6 +509,7 @@ def SPHRZ(dataBase,
           nTensile = 4.0,
           damageRelieveRubble = False,
           negativePressureInDamage = False,
+          strengthInDamage = False,
           xmin = (-1e100, -1e100, -1e100),
           xmax = ( 1e100,  1e100,  1e100),
           etaMinAxis = 0.1,
@@ -524,6 +533,7 @@ def SPHRZ(dataBase,
                nTensile = nTensile,
                damageRelieveRubble = damageRelieveRubble,
                negativePressureInDamage = negativePressureInDamage,
+               strengthInDamage = strengthInDamage,
                xmin = xmin,
                xmax = xmax,
                ASPH = ASPH,
@@ -551,6 +561,7 @@ def ASPHRZ(dataBase,
            nTensile = 4.0,
            damageRelieveRubble = False,
            negativePressureInDamage = False,
+           strengthInDamage = False,
            xmin = (-1e100, -1e100, -1e100),
            xmax = ( 1e100,  1e100,  1e100),
            etaMinAxis = 0.1):
@@ -573,6 +584,7 @@ def ASPHRZ(dataBase,
                nTensile = nTensile,
                damageRelieveRubble = damageRelieveRubble,
                negativePressureInDamage = negativePressureInDamage,
+               strengthInDamage = strengthInDamage,
                xmin = xmin,
                xmax = xmax,
                ASPH = True,
