@@ -150,7 +150,7 @@ gradientRK(const FieldList<Dimension, std::vector<DataType>>& fieldList,
 
   // Get size of vector
   const auto vectorSize = (fieldList.numInternalNodes() > 0 ?
-                           (*fieldList.internalNodeBegin()).size() :
+                           fieldList(fieldList.internalNodeBegin()).size() :
                            0);
   
   // Prepare the result.
@@ -159,18 +159,11 @@ gradientRK(const FieldList<Dimension, std::vector<DataType>>& fieldList,
   for (auto fieldItr = fieldList.begin();
        fieldItr != fieldList.end(); 
        ++fieldItr) {
-    result.appendField(Field<Dimension, std::vector<GradientType>>("grad ", (*fieldItr)->nodeList()));
+    result.appendField(Field<Dimension, std::vector<GradientType>>("grad ",
+                                                                   (*fieldItr)->nodeList(),
+                                                                   std::vector<GradientType>(vectorSize, GradientType::zero)));
   }
   
-  // Set the size of the vectors
-  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto n = position[nodeListi]->nodeList().numNodes();
-    for (auto i = 0u; i < n; ++i) {
-      CHECK(fieldList(nodeListi, i).size() == vectorSize);
-      result(nodeListi, i).assign(vectorSize, GradientType::zero);
-    }
-  }
-
   // Walk all the interacting pairs.
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
@@ -196,6 +189,8 @@ gradientRK(const FieldList<Dimension, std::vector<DataType>>& fieldList,
       const auto& correctionsi = corrections(nodeListi, i);
       const auto& Fi = fieldList(nodeListi, i);
       auto&       gradFi = result_thread(nodeListi, i);
+      CHECK(Fi.size() == vectorSize &&
+            gradFi.size() == vectorSize);
 
       // The coupling between these nodes.
       const auto fij = nodeCoupling(nodeListi, i, nodeListj, j);
@@ -214,13 +209,15 @@ gradientRK(const FieldList<Dimension, std::vector<DataType>>& fieldList,
         const auto& correctionsj = corrections(nodeListj, j);
         const auto& Fj = fieldList(nodeListj, j);
         auto&       gradFj = result(nodeListj, j);
+        CHECK(Fj.size() == vectorSize &&
+              gradFj.size() == vectorSize);
 
         // Pair contributions
         const auto xij = xi - xj;
         gradWj = WR.evaluateGradient( xij, Hj, correctionsi);
         gradWi = WR.evaluateGradient(-xij, Hi, correctionsj);
 
-        for (auto m = 0; m < vectorSize; ++m) {
+        for (auto m = 0u; m < vectorSize; ++m) {
           gradFi[m] += wj*Fj[m]*gradWj;
           gradFj[m] += wi*Fi[m]*gradWi;
         }
@@ -240,7 +237,13 @@ gradientRK(const FieldList<Dimension, std::vector<DataType>>& fieldList,
     for (auto i = 0u; i < n; ++i) {
       const auto& Hi = H(nodeListi, i);
       const auto& correctionsi = corrections(nodeListi, i);
-      result(nodeListi, i) += weight(nodeListi, i)*fieldList(nodeListi, i)*WR.evaluateGradient(Vector::zero, Hi, correctionsi);
+      const auto wi = weight(nodeListi, i);
+      const auto gradWi = WR.evaluateGradient(Vector::zero, Hi, correctionsi);
+      const auto& Fi = fieldList(nodeListi, i);
+      auto& gradFi = result(nodeListi, i);
+      for (auto m = 0u; m < vectorSize; ++m) {
+        gradFi[m] += wi*Fi[m]*gradWi;
+      }
     }
   }
 
