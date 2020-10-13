@@ -91,25 +91,13 @@ set(ENABLE_DOCS OFF CACHE BOOL "enable sphinx Spheral documentation")
 #-------------------------------------------------------------------------------
 set(SPHERAL_INSTALL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
 if (CMAKE_INSTALL_PREFIX)
-  if (NOT SPHERAL_INSTALL_DIR STREQUAL "")
-    message(WARNING "Only specify one of SPHERAL_INSTALL_DIR and CMAKE_INSTALL_PREFIX: setting values to ${SPHERAL_INSTALL_DIR}")
-    set(CMAKE_INSTALL_PREFIX ${SPHERAL_INSTALL_DIR})
-  else()
-    set(SPHERAL_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+  if (SPHERAL_INSTALL_DIR STREQUAL "")
+    set(SPHERAL_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/tpl)
     message("-- setting SPHERAL_INSTALL_DIR ${SPHERAL_INSTALL_DIR}")
   endif()
 endif()
 
 include(${SPHERAL_ROOT_DIR}/cmake/InstallTPLs.cmake)
-
-if(ENABLE_CXXONLY)
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/Spheral)
-  if(SPHERAL_INSTALL_DIR)
-    set(CMAKE_INSTALL_PREFIX ${SPHERAL_INSTALL_DIR})
-  endif()
-else()
-  set(CMAKE_INSTALL_PREFIX ${PYTHON_SITE_PACKAGE_DIR})
-endif()
 
 include(${SPHERAL_ROOT_DIR}/cmake/CMakeDefinitions.cmake)
 
