@@ -54,6 +54,5 @@ Install_PipModules(pip-modules)
 # Run install for custom modules with thier own .cmake file
 foreach(lib_name ${pip-custom-modules})
   include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
-  list(APPEND spheral_py_depends ${lib_name})
 endforeach()
 
