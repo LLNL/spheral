@@ -1,7 +1,6 @@
 #find_package(Sphinx)
 set(SPHINX_FOUND true)
-set(SPHINX_EXECUTABLE "${SPHERAL_INSTALL_DIR}/python/bin/sphinx-build")
-#set(SPHINX_EXECUTABLE "${SPHERAL_INSTALL_DIR}/python/bin/sphinx-build" CACHE STRING "Path to sphinx documentation generator")
+set(SPHINX_EXECUTABLE "${python_DIR}/bin/sphinx-build" CACHE STRING "Path to sphinx documentation generator")
 message("-- Sphinx ${SPHINX_EXECUTABLE}")
  
 if(ENABLE_DOCS AND NOT SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
