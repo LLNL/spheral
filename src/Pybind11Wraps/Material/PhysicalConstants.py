@@ -47,3 +47,5 @@ SI units (m, kg, sec). All other constants are then derived from those choices.
                                             doc="sigma: the Steffan-Boltzmann constant")
     blackBodyConstant = PYB11property("double", "blackBodyConstant",
                                       doc="a: the black body constant")
+    planckConstant = PYB11property("double", "planckConstant",
+                                   doc="h: the Planck constant")
