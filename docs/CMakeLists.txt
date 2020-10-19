@@ -1,9 +1,9 @@
 #find_package(Sphinx)
 set(SPHINX_FOUND true)
-set(SPHINX_EXECUTABLE "${python_DIR}/bin/sphinx-build" CACHE STRING "Path to sphinx documentation generator")
-message("-- Sphinx ${SPHINX_EXECUTABLE}")
+set(SPHINX_EXEC "${python_DIR}/bin/sphinx-build" CACHE STRING "Path to sphinx documentation generator")
+message("-- Sphinx ${SPHINX_EXEC}")
  
-if(ENABLE_DOCS AND NOT SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
+if(ENABLE_DOCS AND NOT SPHINX_EXEC STREQUAL "SPHINX_EXEC-NOTFOUND")
   if(NOT DEFINED SPHINX_THEME)
     set(SPHINX_THEME sphinx_rtd_theme)
   endif()
@@ -27,7 +27,7 @@ if(ENABLE_DOCS AND NOT SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
     @ONLY)
 
   add_custom_target(Spheral_docs ALL
-    ${SPHINX_EXECUTABLE}
+    ${SPHINX_EXEC}
     -q -b html
     -c "${BINARY_BUILD_DIR}"
     -d "${SPHINX_CACHE_DIR}"
