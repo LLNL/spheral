@@ -11,8 +11,13 @@ cd @CMAKE_INSTALL_PREFIX@/.venv/lib/python2.7/site-packages/Spheral
 cp --symbolic-link @CMAKE_INSTALL_PREFIX@/Spheral/* . > /dev/null 2>&1
 cd - > /dev/null 
 
+echo "Installing Gnuplot, ats ..."
+cp -r @PYTHON_SITE_PACKAGE_DIR@/Gnuplot @CMAKE_INSTALL_PREFIX@/.venv/lib/python2.7/site-packages/
+cp -r @PYTHON_SITE_PACKAGE_DIR@/ats @CMAKE_INSTALL_PREFIX@/.venv/lib/python2.7/site-packages/
+
 echo "Creating spheral symlink to spheral-env script ..."
 cd @CMAKE_INSTALL_PREFIX@
 chmod u+x scripts/spheral-env.sh
 cp --symbolic-link scripts/spheral-env.sh spheral
 cd - > /dev/null 
+
