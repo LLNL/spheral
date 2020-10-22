@@ -93,7 +93,7 @@ set(SPHERAL_TPL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Sp
 if (CMAKE_INSTALL_PREFIX)
   if (SPHERAL_TPL_DIR STREQUAL "")
     set(SPHERAL_TPL_DIR ${CMAKE_INSTALL_PREFIX}/tpl)
-    message("-- setting SPHERAL_TPL_DIR ${SPHERAL_TPL_DIR}")
+    message("-- Setting SPHERAL_TPL_DIR ${SPHERAL_TPL_DIR}")
   endif()
 endif()
 
