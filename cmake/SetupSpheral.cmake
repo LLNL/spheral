@@ -89,11 +89,11 @@ set(ENABLE_DOCS OFF CACHE BOOL "enable sphinx Spheral documentation")
 #-------------------------------------------------------------------------------
 # Install / Locate third party libraries
 #-------------------------------------------------------------------------------
-set(SPHERAL_INSTALL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
+set(SPHERAL_TPL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
 if (CMAKE_INSTALL_PREFIX)
-  if (SPHERAL_INSTALL_DIR STREQUAL "")
-    set(SPHERAL_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/tpl)
-    message("-- setting SPHERAL_INSTALL_DIR ${SPHERAL_INSTALL_DIR}")
+  if (SPHERAL_TPL_DIR STREQUAL "")
+    set(SPHERAL_TPL_DIR ${CMAKE_INSTALL_PREFIX}/tpl)
+    message("-- setting SPHERAL_TPL_DIR ${SPHERAL_TPL_DIR}")
   endif()
 endif()
 
@@ -123,7 +123,7 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 if (NOT ENABLE_CXXONLY)
   install(CODE "execute_process( \
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
-    WORKING_DIRECTORY ${SPHERAL_INSTALL_DIR})")
+    WORKING_DIRECTORY ${SPHERAL_TPL_DIR})")
 endif()
 
 #-------------------------------------------------------------------------------

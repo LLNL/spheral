@@ -16,15 +16,15 @@ else()
   set(OUT_PROTOCOL_PIP "-q")
 endif()
 
-# Set the build directory for TPL to default to BUILD/Spheral-tpl if SPHERAL_INSTALL_DIR
+# Set the build directory for TPL to default to BUILD/Spheral-tpl if SPHERAL_TPL_DIR
 # is not set.
-if (NOT SPHERAL_INSTALL_DIR)
+if (NOT SPHERAL_TPL_DIR)
   get_filename_component(DEFAULT_TPL_LOCATION ${CMAKE_BINARY_DIR}/Spheral/tpl ABSOLUTE)
 else()
-  if (NOT IS_ABSOLUTE ${SPHERAL_INSTALL_DIR})
-    set(SPHERAL_INSTALL_DIR ${CMAKE_BINARY_DIR}/${SPHERAL_INSTALL_DIR})
+  if (NOT IS_ABSOLUTE ${SPHERAL_TPL_DIR})
+    set(SPHERAL_TPL_DIR ${CMAKE_BINARY_DIR}/${SPHERAL_TPL_DIR})
   endif()
-  get_filename_component(DEFAULT_TPL_LOCATION ${SPHERAL_INSTALL_DIR} ABSOLUTE)
+  get_filename_component(DEFAULT_TPL_LOCATION ${SPHERAL_TPL_DIR} ABSOLUTE)
 endif()
 message("Default TPL location : ${DEFAULT_TPL_LOCATION}\n")
 
