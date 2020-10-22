@@ -1,7 +1,7 @@
 set(PIP_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(PIP_DIST pip-9.0.1-py2.py3-none-any.whl)
 set(PIP_URL "https://pypi.python.org/packages/b6/ac/7015eb97dc749283ffdec1c3a88ddb8ae03b8fad0f0e611408f196358da3/pip-9.0.1-py2.py3-none-any.whl")
-set(PIP_HASH "MD5=297dbd16ef53bcef0447d245815f5144")
+set(PIP_MD5 "MD5=297dbd16ef53bcef0447d245815f5144")
 set(PIP_CACHE ${CACHE_DIR}/${PIP_DIST})
 set(PIP_EXE ${PYTHON_INSTALL_DIR}/bin/pip2.7)
 
@@ -13,7 +13,7 @@ if(${lib_name}_BUILD)
 
   ExternalProject_add(${lib_name}
     URL ${PIP_URL}
-    URL_HASH ${PIP_HASH}
+    URL_MD5 ${PIP_MD5}
     DOWNLOAD_NO_EXTRACT TRUE
     DOWNLOAD_DIR ${CACHE_DIR}
     PREFIX ${PIP_PREFIX}

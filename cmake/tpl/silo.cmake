@@ -1,6 +1,7 @@
 set(SILO_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(SILO_CACHE "${CACHE_DIR}/silo-4.10.2-bsd.tar.gz")
 set(SILO_URL "https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10.2/silo-4.10.2-bsd.tar.gz")
+set(SILO_MD5 "MD5=60fef9ce373daf1e9cc8320cfa509bc5")
 set(SILO_SRC_DIR ${SILO_PREFIX}/src/silo)
 
 #set(${lib_name}_INCLUDES silo.h)
@@ -15,6 +16,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${SILO_PREFIX}
     URL ${SILO_URL} 
+    URL_MD5 ${SILO_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     PATCH_COMMAND patch -t ${SILO_SRC_DIR}/config/config.guess ${PATCH_DIR}/config.guess-silo-4.10.2-bsd.patch &&
                   patch -t ${SILO_SRC_DIR}/config/config.sub   ${PATCH_DIR}/config.sub-silo-4.10.2-bsd.patch
