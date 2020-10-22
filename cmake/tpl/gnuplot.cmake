@@ -23,4 +23,6 @@ if(python_BUILD)
     COMMENT "Installing gnuplot"
     DEPENDS python-install pip-modules ${lib_name}-unpack
   )
+
+  list(APPEND spheral_py_depends ${lib_name})
 endif()
