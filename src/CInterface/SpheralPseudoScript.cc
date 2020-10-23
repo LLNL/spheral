@@ -373,6 +373,7 @@ template<> struct HydroConstructor<Dim<3>> {
                                                       const double nTensile,
                                                       const bool damageRelieveRubble,
                                                       const bool negativePressureInDamage,
+                                                      const bool strengthInDamage,
                                                       const Dim<3>::Vector& xmin,
                                                       const Dim<3>::Vector& xmax,
                                                       const bool RZ) {
@@ -416,6 +417,7 @@ template<> struct HydroConstructor<Dim<3>> {
                                                                             nTensile,
                                                                             damageRelieveRubble,
                                                                             negativePressureInDamage,
+                                                                            strengthInDamage,
                                                                             xmin,
                                                                             xmax));
     }
@@ -450,6 +452,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                       const double nTensile,
                                                       const bool damageRelieveRubble,
                                                       const bool negativePressureInDamage,
+                                                      const bool strengthInDamage,
                                                       const Dim<2>::Vector& xmin,
                                                       const Dim<2>::Vector& xmax,
                                                       const bool RZ) {
@@ -494,6 +497,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                         nTensile,
                                                                         damageRelieveRubble,
                                                                         negativePressureInDamage,
+                                                                        strengthInDamage,
                                                                         xmin,
                                                                         xmax));
       }
@@ -538,6 +542,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                               nTensile,
                                                                               damageRelieveRubble,
                                                                               negativePressureInDamage,
+                                                                              strengthInDamage,
                                                                               xmin,
                                                                               xmax));
       }
@@ -777,6 +782,7 @@ initialize(const bool     RZ,
                                                           4.0,                                  // nTensile
                                                           false,                                // damageRelieve
                                                           false,                                // negativePressureInDamage
+                                                          false,                                // strengthInDamage
                                                           xmin,                                 // xmin
                                                           xmax,                                 // xmax
                                                           RZ);
