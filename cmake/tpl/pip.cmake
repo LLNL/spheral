@@ -13,7 +13,7 @@ if(${lib_name}_BUILD)
 
   ExternalProject_add(${lib_name}
     URL ${PIP_URL}
-    URL_MD5 ${PIP_MD5}
+    URL_HASH ${PIP_MD5}
     DOWNLOAD_NO_EXTRACT TRUE
     DOWNLOAD_DIR ${CACHE_DIR}
     PREFIX ${PIP_PREFIX}

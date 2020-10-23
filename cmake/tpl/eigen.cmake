@@ -14,7 +14,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${EIGEN_PREFIX}/${EIGEN_TARGET}
     URL ${EIGEN_URL}
-    URL_MD5 ${EIGEN_MD5}
+    URL_HASH ${EIGEN_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     CONFIGURE_COMMAND sleep 1
     BUILD_COMMAND sleep 1

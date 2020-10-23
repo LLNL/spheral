@@ -12,7 +12,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${PYBIND11_PREFIX}/${lib_name}
     URL ${PYBIND11_URL}
-    URL_MD5 ${PYBIND11_MD5}
+    URL_HASH ${PYBIND11_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     CMAKE_ARGS -DPYBIND11_TEST=Off
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}

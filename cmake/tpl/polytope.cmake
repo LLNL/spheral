@@ -26,7 +26,7 @@ if(${lib_name}_BUILD)
     PATCH_COMMAND patch -t ${POLYTOPE_PREFIX}/src/polytope/src/PYB11/CMakeLists.txt  ${PATCH_DIR}/polytope-PYB11-CMakeLists.patch
 
     URL ${POLYTOPE_URL}
-    URL_MD5 ${POLYTOPE_MD5}
+    URL_HASH ${POLYTOPE_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}

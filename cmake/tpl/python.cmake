@@ -37,7 +37,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${PYTHON_PREFIX}
     URL ${PYTHON_URL} 
-    URL_MD5 ${PYTHON_MD5}
+    URL_HASH ${PYTHON_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     CONFIGURE_COMMAND env CC=${PYTHON_C_COMPILER}
                           CXX=${PYTHON_CXX_COMPILER}

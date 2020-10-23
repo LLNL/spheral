@@ -14,7 +14,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${HDF5_PREFIX}
     URL ${HDF5_URL} 
-    URL_MD5 ${HDF5_MD5}
+    URL_HASH ${HDF5_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} CFLAGS=-fPIC CXXFLAGS=-fPIC FCFLAGS=-fPIC ${HDF5_PREFIX}/src/hdf5/configure --prefix=${${lib_name}_DIR}
     BUILD_COMMAND make 

@@ -18,7 +18,7 @@ if (${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${ANEOS_PREFIX}
     URL ${ANEOS_URL} 
-    URL_MD5 ${ANEOS_MD5}
+    URL_HASH ${ANEOS_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     PATCH_COMMAND patch -t ${ANEOS_SRC_DIR}/Makefile ${PATCH_DIR}/MANEOS-v1.0_Makefile.patch
     CONFIGURE_COMMAND ""

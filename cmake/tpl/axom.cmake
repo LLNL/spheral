@@ -15,7 +15,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${AXOM_PREFIX}
     URL ${AXOM_URL}
-    URL_MD5 ${AXOM_MD5}
+    URL_HASH ${AXOM_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     CMAKE_ARGS ../axom/src/
                -DCMAKE_BUILD_TYPE=Release

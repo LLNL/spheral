@@ -17,7 +17,7 @@ if(${lib_name}_BUILD)
     PATCH_COMMAND patch -t ${QHULL_SRC_DIR}/libqhull/qhull_a.h ${PATCH_DIR}/qhull-2015.2-qhull_a.h-patch &&
                   patch -t ${QHULL_SRC_DIR}/libqhull_r/qhull_ra.h ${PATCH_DIR}/qhull-2015.2-qhull_ra.h-patch
     URL ${QHULL_URL}
-    URL_MD5 ${QHULL_MD5}
+    URL_HASH ${QHULL_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}

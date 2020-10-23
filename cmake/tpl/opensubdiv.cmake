@@ -16,7 +16,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${OPENSUBDIV_PREFIX}
     URL ${OPENSUBDIV_URL}
-    URL_MD5 ${OPENSUBDIV_MD5}
+    URL_HASH ${OPENSUBDIV_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}

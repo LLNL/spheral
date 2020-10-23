@@ -18,7 +18,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${CONDUIT_PREFIX}
     URL ${CONDUIT_URL}
-    URL_MD5 ${CONDUIT_MD5}
+    URL_HASH ${CONDUIT_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     CMAKE_ARGS ../conduit/src/ -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}

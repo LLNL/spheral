@@ -22,7 +22,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${BOOST_PREFIX}
     URL ${BOOST_URL} 
-    URL_MD5 ${BOOST_MD5}
+    URL_HASH ${BOOST_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${BOOST_SRC_DIR}/bootstrap.sh
     --with-toolset=${TOOLSET}

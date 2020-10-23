@@ -16,7 +16,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${SILO_PREFIX}
     URL ${SILO_URL} 
-    URL_MD5 ${SILO_MD5}
+    URL_HASH ${SILO_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     PATCH_COMMAND patch -t ${SILO_SRC_DIR}/config/config.guess ${PATCH_DIR}/config.guess-silo-4.10.2-bsd.patch &&
                   patch -t ${SILO_SRC_DIR}/config/config.sub   ${PATCH_DIR}/config.sub-silo-4.10.2-bsd.patch

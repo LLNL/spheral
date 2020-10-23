@@ -16,7 +16,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${ZLIB_PREFIX}
     URL ${ZLIB_URL} 
-    URL_MD5 ${ZLIB_MD5}
+    URL_HASH ${ZLIB_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
     CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} CFLAGS=-fpic ${ZLIB_SRC_DIR}/configure
                       --prefix=${${lib_name}_DIR}
