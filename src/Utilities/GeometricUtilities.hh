@@ -200,7 +200,7 @@ constructSymTensorWithPowDiagonal(const Dim<3>::Vector& vec,
 template<typename TensorType, size_t col>
 inline
 TensorType
-constructTensorWithColumnValue(const double val) {
+constructTensorWithColumnValue(const double /*val*/) {
   VERIFY(false);
 }
 
@@ -260,7 +260,7 @@ constructTensorWithColumnValue<Dim<3>::Tensor, (size_t) 2>(const double val) {
 template<typename TensorType>
 inline
 void
-inPlaceAbsAdd(TensorType& lhs, const TensorType& rhs) {
+inPlaceAbsAdd(TensorType& /*lhs*/, const TensorType& /*rhs*/) {
   VERIFY(false);
 }
 
@@ -302,7 +302,7 @@ inPlaceAbsAdd<Dim<3>::Tensor>(Dim<3>::Tensor& lhs, const Dim<3>::Tensor& rhs) {
 template<typename TensorType>
 inline
 void
-tensorElementWiseDivide(TensorType& lhs, const TensorType& rhs) {
+tensorElementWiseDivide(TensorType& /*lhs*/, const TensorType& /*rhs*/) {
   VERIFY(false);
 }
 

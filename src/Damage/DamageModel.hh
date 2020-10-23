@@ -84,11 +84,6 @@ public:
                        State<Dimension>& state,
                        StateDerivatives<Dimension>& derivatives) override;
 
-  virtual
-  TimeStepType dt(const DataBase<Dimension>& dataBase, 
-                  const State<Dimension>& state,
-                  const StateDerivatives<Dimension>& derivs,
-                  const Scalar currentTime) const = 0;
   //...........................................................................
 
   // Optional method to cull the set of flaws to the single weakest one on

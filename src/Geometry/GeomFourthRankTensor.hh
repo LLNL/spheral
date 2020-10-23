@@ -48,6 +48,9 @@ private:
   using RankNTensor<nDim, 4, GeomFourthRankTensor>::mElements;
 };
 
+template<int nDims> const typename GeomFourthRankTensor<nDims>::size_type GeomFourthRankTensor<nDims>::numElements = calcNumNRankElements<nDims, 4>();
+template<int nDims> const GeomFourthRankTensor<nDims> GeomFourthRankTensor<nDims>::zero = GeomFourthRankTensor<nDims>(0.0);
+
 }
 
 #include "GeomFourthRankTensorInline.hh"

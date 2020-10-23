@@ -537,7 +537,7 @@ intersect(const Vector& s0, const Vector& s1) const {
 
     // First does the line segment intersect the facet plane?
     const auto shat_dot_fhat = shat.dot(fhat);
-    if (abs(shat_dot_fhat) > 1.0e-10) {           // Check for segment parallel to plane
+    if (fabs(shat_dot_fhat) > 1.0e-10) {           // Check for segment parallel to plane
       const auto q = (mVertices[ipoints[0]] - s0).dot(fhat)/shat_dot_fhat;
       if (q >= 0.0 and q <= q01) {                // Does the line segment intersect the plane
         return true;
@@ -576,7 +576,7 @@ intersections(const Vector& s0, const Vector& s1,
 
     // First does the line segment intersect the facet plane?
     const auto shat_dot_fhat = shat.dot(fhat);
-    if (abs(shat_dot_fhat) > 1.0e-10) {           // Check for segment parallel to plane
+    if (fabs(shat_dot_fhat) > 1.0e-10) {           // Check for segment parallel to plane
       const auto q = (mVertices[ipoints[0]] - s0).dot(fhat)/shat_dot_fhat;
       if (q >= 0.0 and q <= q01) {                // Does the line segment intersect the plane
         const auto p = s0 + q*shat;               // point along line in plane

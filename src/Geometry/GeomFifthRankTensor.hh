@@ -48,6 +48,9 @@ private:
   using RankNTensor<nDim, 5, GeomFifthRankTensor>::mElements;
 };
 
+template<int nDims> const typename GeomFifthRankTensor<nDims>::size_type GeomFifthRankTensor<nDims>::numElements = calcNumNRankElements<nDims, 5>();
+template<int nDims> const GeomFifthRankTensor<nDims> GeomFifthRankTensor<nDims>::zero = GeomFifthRankTensor<nDims>(0.0);
+
 }
 
 #include "GeomFifthRankTensorInline.hh"
