@@ -240,7 +240,7 @@ collapseDegenerateVertices(const std::vector<Vector>& vertices,
   using std::vector;
   using std::set;
 
-  unsigned i, j, k;
+  unsigned i, j;
   const unsigned n = vertices.size();
   Key hashi;
 
@@ -394,8 +394,6 @@ exchangeTuples(const std::vector<std::tuple<T, T, T> >& localKeys,
   const unsigned numNeighborDomains = neighborDomains.size();
   REQUIRE(sendIndices.size() == numNeighborDomains);
   if (numNeighborDomains > 0) {
-
-    const unsigned rank = Process::getRank();
 
     // Pack up our local keys.
     std::vector<std::vector<char> > localPacked(numNeighborDomains);

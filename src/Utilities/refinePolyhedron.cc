@@ -105,11 +105,11 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   // to shove into opensubdiv.
   const vector<Vector>& verts0 = poly0.vertices();
   const vector<vector<unsigned> >& facetVerts0 = poly0.facetVertices();
-  const int numVertices0 = verts0.size();
-  const int numFaces0 = facetVerts0.size();
+  const unsigned numVertices0 = verts0.size();
+  const unsigned numFaces0 = facetVerts0.size();
   float g_verts[numVertices0][3];
   int g_vertsperface[numFaces0];
-  int vertsPerFaceSum = 0;
+  unsigned vertsPerFaceSum = 0;
   {
     for (unsigned i = 0; i != numVertices0; ++i) {
       g_verts[i][0] = verts0[i][0];
@@ -177,7 +177,6 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   Vertex * verts = &vbuffer[0];
 
   // Initialize coarse mesh positions
-  int nCoarseVerts = numVertices0;
   for (unsigned i = 0; i != numVertices0; ++i) {
     verts[i].SetPosition(verts0[i][0], verts0[i][1], verts0[i][2]);
   }
@@ -186,7 +185,7 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   Far::PrimvarRefiner primvarRefiner(*refiner);
 
   Vertex * src = verts;
-  for (int level = 1; level <= numLevels; ++level) {
+  for (unsigned level = 1; level <= numLevels; ++level) {
     Vertex * dst = src + refiner->GetLevel(level-1).GetNumVertices();
     primvarRefiner.Interpolate(level, src, dst);
     src = dst;
@@ -194,8 +193,8 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
 
   // Construct the final refined polyhedron.
   Far::TopologyLevel const & refLastLevel = refiner->GetLevel(numLevels);
-  const int numVertices1 = refLastLevel.GetNumVertices();
-  const int numFacets1 = refLastLevel.GetNumFaces();
+  const unsigned numVertices1 = refLastLevel.GetNumVertices();
+  const unsigned numFacets1 = refLastLevel.GetNumFaces();
   vector<Vector> vertices1;
   vertices1.reserve(numVertices1);
   const unsigned firstOfLastVerts = refiner->GetNumVerticesTotal() - numVertices1;
