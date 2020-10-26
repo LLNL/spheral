@@ -13,7 +13,7 @@ set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1
 set(BOOST_MD5 "MD5=a1332494397bf48332cb152abfefcec2")
 set(BOOST_CACHE "${CACHE_DIR}/boost_1_69_0.tar.bz2")
 
-set(${lib_name}_libs libboost_filesystem.so libboost_system.so)
+#set(${lib_name}_libs libboost_filesystem.so libboost_system.so)
 
 if(${lib_name}_BUILD)
 

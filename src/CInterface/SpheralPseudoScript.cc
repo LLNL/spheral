@@ -739,7 +739,8 @@ initialize(const bool     RZ,
                                                  *me.mDataBasePtr,
                                                  *me.mKernelPtr,
                                                  rkVolumeType,
-                                                 false));          // hardwire for no hessian
+                                                 false,
+                                                 false));
   }
 
   // Build the hydro physics objects.
