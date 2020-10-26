@@ -1,4 +1,4 @@
-#include "sidreDataCollection.hh"
+#include "SidreDataCollection.hh"
 
 
 namespace sidre = axom::sidre;

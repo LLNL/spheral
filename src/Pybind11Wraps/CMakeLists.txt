@@ -34,6 +34,7 @@ set (_python_packages
   polytope
   Distributed
   OpenMP
+  Sidre
   )
 
 if (ENABLE_ANEOS)

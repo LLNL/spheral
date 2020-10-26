@@ -21,10 +21,10 @@ set(Utilities_sources
     PeanoHilbertTransform.cc
     RegisterMPIDataTypes.cc
     RedistributionRegistrar.cc
+    SidreDataCollection.cc
     vectorBoundingBoxInst.cc
     lineSegmentIntersections.cc
     segmentIntersectEdges.cc
-    sidreDataCollection.cc
     pointOnPolygon.cc
     pointInPolygon.cc
     pointOnPolyhedron.cc
@@ -64,6 +64,7 @@ set(Utilities_headers
     RedistributionRegistrarInline.hh
     RegisterMPIDataTypes.hh
     SafeIndexMap.hh
+    SidreDataCollection.hh
     SpheralFunctions.hh
     Timer.hh
     Tree.hh
@@ -108,7 +109,6 @@ set(Utilities_headers
     rotationMatrix.hh
     safeInv.hh
     segmentIntersectEdges.hh
-    sidreDataCollection.hh
     simpsonsIntegration.hh
     sort_permutation.hh
     SurfaceNodeCoupling.hh

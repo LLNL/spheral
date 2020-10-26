@@ -3,6 +3,8 @@ import unittest
 from Spheral1d import *
 from SpheralTestUtilities import *
 
+import sys
+
 import random
 g = random.Random()
 
@@ -29,7 +31,7 @@ def vector_from_list(l):
 #-------------------------------------------------------------------------------
 # Define our unit test class.
 #-------------------------------------------------------------------------------
-class testsidreDataCollection(unittest.TestCase):
+class testSidreDataCollection(unittest.TestCase):
 
     #---------------------------------------------------------------------------
     # Constructor
@@ -39,7 +41,7 @@ class testsidreDataCollection(unittest.TestCase):
                                        eos,
                                        n)
         self.field = IntField("test field", self.nodes)
-        self.sidreDataCollection = SidreDataCollection()
+        self.SidreDataCollection = SidreDataCollection()
         for i in xrange(n):
             self.field[i] = i
         return
@@ -56,7 +58,16 @@ class testsidreDataCollection(unittest.TestCase):
     # alloc_view (Field of int)
     #---------------------------------------------------------------------------
     def testAlloc_viewInt(self):
-        self.sidreDataCollection.alloc_view("IntSidreTest", self.field)
+        answer = self.SidreDataCollection.alloc_view("IntSidreTest", self.field).getDataA(n)
+        # for i in self.field:
+        #     print(self.field[i]),
+        # for i in answer:
+        #     print(i),
+        # printVectorData(self.field, n)
+        self.SidreDataCollection.printDataStore()
+        assert sys.getsizeof(self.field[0]) == sys.getsizeof(answer[0])
+        assert len(self.field) == len(answer)
+        #    print(answer[i]),
         # answer = getView("IntSidreTest").getData()
         # assert len(answer) == len(self.nodes)
         # for i in xrange(len(answer)):

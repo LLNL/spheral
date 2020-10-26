@@ -50,8 +50,7 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/NodeCoupling.hh"',
                   '"Utilities/DamagedNodeCoupling.hh"',
                   '"Utilities/DamagedNodeCouplingWithFrags.hh"',
-                  '"Utilities/sidreDataCollection.hh"',
-                  '"axom/sidre.hpp"']
+                  '"Utilities/SidreDataCollection.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -66,7 +65,7 @@ from KeyTraits import *
 from Timer import *
 from DomainNode import *
 from NodeCoupling import *
-from sidreDataCollection import *
+from SidreDataCollection import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
@@ -713,23 +712,3 @@ def clippedVolume(poly = "const Dim<3>::FacetedVolume&",
                   planes = "const std::vector<GeomPlane<Dim<3>>>&"):
     "Return the volume of the clipped region."
     return "double"
-
-#-------------------------------------------------------------------------------
-# Sidre
-#-------------------------------------------------------------------------------
-@PYB11namespace("axom::sidre::Group")
-@PYB11const
-@PYB11pycppname("print")
-def printGroup():
-    "JSON description of data Group to stdout."
-    return "void"
-
-# @PYB11namespace("axom::sidre::Group")
-# def getView(path = "const std::string&"):
-#     "Return pointer to non-const View with given name or path."
-#     return "axom::sidre::View*"
-
-# @PYB11namespace("axom::sidre::View")
-# def getData():
-#     "Return data held by view and cast it to any compatible type allowed by Conduit (return type depends on type caller assigns it to)."
-#     return "axom::sidre::Node::Value"
