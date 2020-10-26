@@ -14,7 +14,8 @@
 namespace Spheral {
 
 template<typename Dimension>
-struct FieldListSet {
+class FieldListSet {
+public:
   std::vector< FieldList<Dimension, typename Dimension::Scalar> > ScalarFieldLists;
   std::vector< FieldList<Dimension, typename Dimension::Vector> > VectorFieldLists;
   std::vector< FieldList<Dimension, typename Dimension::Tensor> > TensorFieldLists;
@@ -34,7 +35,7 @@ struct FieldListSet {
 #else
 
 namespace Spheral {
-  template<typename Dimension> struct FieldListSet;
+  template<typename Dimension> class FieldListSet;
 }
 
 #endif

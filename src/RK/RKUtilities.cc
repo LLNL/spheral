@@ -90,7 +90,7 @@ evaluateKernel(const TableKernel<Dimension>& kernel,
                const Vector& x,
                const SymTensor& H,
                const RKCoefficients<Dimension>& corrections) {
-  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+  CHECK2((int)corrections.size() == correctionsSize(false) || (int)corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
@@ -110,7 +110,7 @@ evaluateGradient(const TableKernel<Dimension>& kernel,
                  const Vector& x,
                  const SymTensor& H,
                  const RKCoefficients<Dimension>& corrections) {
-  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+  CHECK2((int)corrections.size() == correctionsSize(false) || (int)corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
@@ -140,7 +140,7 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
                 const Vector& x,
                 const SymTensor& H,
                 const RKCoefficients<Dimension>& corrections) {
-  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+  CHECK2((int)corrections.size() == correctionsSize(false) || (int)corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
@@ -183,7 +183,7 @@ evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
                           const Vector& x,
                           const SymTensor& H,
                           const RKCoefficients<Dimension>& corrections) {
-  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+  CHECK2((int)corrections.size() == correctionsSize(false) || (int)corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
@@ -213,7 +213,7 @@ evaluateKernelAndGradients(const TableKernel<Dimension>& kernel,
                            const Vector& x,
                            const SymTensor& H,
                            const RKCoefficients<Dimension>& corrections) {
-  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+  CHECK2((int)corrections.size() == correctionsSize(false) || (int)corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Uncorrected base kernel
@@ -709,7 +709,7 @@ RKUtilities<Dimension, correctionOrder>::
 applyTransformation(const TransformationMatrix& T,
                     RKCoefficients<Dimension>& corrections) {
   auto size = T.cols();
-  CHECK(size == corrections.size());
+  CHECK(size == (int)corrections.size());
   Eigen::Map<Eigen::VectorXd, Eigen::AlignmentType::Aligned> V(&corrections[0], size);
   V = T * V;
 }

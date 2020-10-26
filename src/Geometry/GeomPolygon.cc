@@ -16,6 +16,7 @@
 #include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolygon.hh"
+#include "Utilities/KeyTraits.hh"
 
 #include <algorithm>
 #include <numeric>
@@ -46,18 +47,6 @@ namespace Spheral {
 // The following anonymous stuff is lifted from the convex hull method I 
 // implemented in polytope.
 namespace {
-
-struct KeyTraits {
-  // typedef uint64_t Key;
-  typedef int64_t Key;
-  static const uint32_t numbits;
-  static const uint32_t numbits1d;
-  static const Key zero;
-  static const Key one;
-  static const Key two;
-  static const Key maxKey1d;
-  static const Key maxKey;
-};
 
 namespace geometry {
 
@@ -158,7 +147,7 @@ template<typename UintType>
 struct FuzzyPoint2LessThan {
   UintType fuzz;
   FuzzyPoint2LessThan(const UintType ifuzz = 1): fuzz(ifuzz) {}
-  bool operator()(const Point2<UintType>& p1, const Point2<UintType>& p2) {
+  bool operator()(const Point2<UintType>& p1, const Point2<UintType>& p2) const {
     return (p1.x + fuzz < p2.x        ? true :
             p1.x        > p2.x + fuzz ? false :
             p1.y + fuzz < p2.y        ? true :
@@ -166,7 +155,7 @@ struct FuzzyPoint2LessThan {
             false);
   }
   bool operator()(const std::pair<Point2<UintType>, unsigned>& p1,
-                  const std::pair<Point2<UintType>, unsigned>& p2) {
+                  const std::pair<Point2<UintType>, unsigned>& p2) const {
     return operator()(p1.first, p2.first);
   }
 };
@@ -312,7 +301,7 @@ convexHull_2d(const std::vector<RealType>& points,
       plc.back().push_back(sortedPoints[result[i]].second);
       plc.back().push_back(sortedPoints[result[j]].second);
     }
-    CHECK(plc.size() == k - 1);
+    CHECK((int)plc.size() == k - 1);
   }
   return plc;
 }
@@ -386,7 +375,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     for (j = 0; j != (int)numVertices; ++j) {
       CHECK(plc[j].size() == 2);
       i = plc[j][0];
-      CHECK(i >= 0 and i < points.size());
+      CHECK(i >= 0 and i < (int)points.size());
       mVertices.push_back(points[i]);
     }
 

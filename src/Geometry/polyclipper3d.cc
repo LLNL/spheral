@@ -377,7 +377,7 @@ vector<set<int>> convertFromPolyhedron(Spheral::Dim<3>::FacetedVolume& Spheral_p
         }
       }
     }
-    CHECK(coords.size() == count_if(polyhedron.begin(), polyhedron.end(),
+    CHECK((int)coords.size() == count_if(polyhedron.begin(), polyhedron.end(),
                                     [](const Vertex3d& x) { return x.comp >= 0; }));
 
     // Extract the faces as integer vertex index loops.
@@ -523,7 +523,7 @@ void clipPolyhedron(Polyhedron& polyhedron,
                                                                      polyhedron[jn].position,
                                                                      plane),
                                             2));         // 2 indicates new vertex
-              CHECK(polyhedron.size() == inew + 1);
+              CHECK((int)polyhedron.size() == inew + 1);
               polyhedron[inew].neighbors = vector<int>({jn, i});
               polyhedron[inew].clips.insert(plane.ID);
 
@@ -793,10 +793,10 @@ void collapseDegenerates(Polyhedron& polyhedron,
   {
     const auto n = polyhedron.size();
     for (auto i = 0u; i < n; ++i) {
-      ENSURE(polyhedron[i].ID == i);
+      ENSURE(polyhedron[i].ID == (int)i);
       for (auto j: polyhedron[i].neighbors){
         CONTRACT_VAR(j);
-        ENSURE(j >= 0 and j < n);
+        ENSURE(j >= 0 and j < (int)n);
       }
     }
   }

@@ -148,13 +148,13 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
     }
   }
 #endif
-  CHECK(nodeInfo.size() == numGlobalNodes);
+  CHECK((int)nodeInfo.size() == numGlobalNodes);
 
   // Sort the node info.
   if (nodeInfo.size() > 0) {
     sort(nodeInfo.begin(), nodeInfo.end());
     BEGIN_CONTRACT_SCOPE
-    for (int i = 0; i < nodeInfo.size() - 1; ++i) {
+    for (int i = 0; i < (int)nodeInfo.size() - 1; ++i) {
       CHECK(std::get<0>(nodeInfo[i]) <= std::get<0>(nodeInfo[i + 1]));
     }
     END_CONTRACT_SCOPE
@@ -165,7 +165,7 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
   for (auto i = 0u; i != nodeInfo.size(); ++i) {
     const int recvProc = std::get<2>(nodeInfo[i]);
     const unsigned int localID = std::get<1>(nodeInfo[i]);
-    CHECK(recvProc < globalIDs.size());
+    CHECK(recvProc < (int)globalIDs.size());
     if (localID + 1 > globalIDs[recvProc].size()) globalIDs[recvProc].resize(localID + 1);
     globalIDs[recvProc][localID] = i;
   }
@@ -264,7 +264,7 @@ globalNodeIDs(const NodeListIterator& begin,
 
     // Construct the set of global IDs for this NodeList on this domain.
     CONTRACT_VAR(endID);
-    CHECK(endID - beginID >= nodeList.numInternalNodes());
+    CHECK(endID - beginID >= (int)nodeList.numInternalNodes());
     for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) globalIDs(i) = beginID + i;
     beginID += nodeList.numInternalNodes();
   }

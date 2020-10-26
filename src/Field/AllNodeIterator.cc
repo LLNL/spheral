@@ -33,7 +33,7 @@ AllNodeIterator(typename vector<NodeList<Dimension>*>::const_iterator nodeListIt
   // Pre-conditions.
   REQUIRE((nodeListItr == nodeListEnd && nodeID == 0) ||
           (nodeListItr < nodeListEnd && 
-           nodeID >= 0 && nodeID <= (*nodeListItr)->numNodes()));
+           nodeID >= 0 && nodeID <= (int)(*nodeListItr)->numNodes()));
 
   mNodeID = nodeID;
   mFieldID = distance(nodeListBegin, nodeListItr);

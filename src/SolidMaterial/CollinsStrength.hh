@@ -27,10 +27,17 @@ public:
 
   // Constructors, destructor.
   CollinsStrength(const StrengthModel<Dimension>& shearModulusModel,  // Used to compute the shear modulus
+                  const double mui,                                   // Coefficient of internal friction (intact material)
+                  const double mud,                                   // Coefficient of internal friction (damaged material)
+                  const double Y0,                                    // Shear strength at zero pressure
+                  const double Ym);                                   // von Mises plastic limit
+  // Backwards compatible constructor without the mud term.  To be deprecated...
+  CollinsStrength(const StrengthModel<Dimension>& shearModulusModel,  // Used to compute the shear modulus
                   const double mui,                                   // Coefficient of internal friction
                   const double Y0,                                    // Shear strength at zero pressure
                   const double Ym);                                   // von Mises plastic limit
   virtual ~CollinsStrength();
+
 
   // Override the required generic interface.
   virtual bool providesSoundSpeed() const override { return mShearModulusModel.providesSoundSpeed(); }
@@ -55,13 +62,14 @@ public:
   // Access the strength parameters.
   const StrengthModel<Dimension>& shearModulusModel() const;
   double mui() const;
+  double mud() const;
   double Y0() const;
   double Ym() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   const StrengthModel<Dimension>& mShearModulusModel;
-  double mmui, mY0, mYm;
+  double mmui, mmud, mY0, mYm;
 
   // No copying or assignment.
   CollinsStrength(const CollinsStrength&);

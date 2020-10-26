@@ -64,9 +64,9 @@ stepSize(const typename Dimension::Vector& xmin,
 template<typename Dimension>
 inline
 vector<int>
-makeIndex(const int ix,
-          const int iy,
-          const int iz) {
+makeIndex(const int /*ix*/,
+          const int /*iy*/,
+          const int /*iz*/) {
   REQUIRE(false);
   return vector<int>();
 }
@@ -163,8 +163,8 @@ latticePoints(const typename Dimension::Vector& ri,
 
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
-  ENSURE(result.size() == ntot);
-  for (int i = 0; i != result.size(); ++i) {
+  ENSURE((int)result.size() == ntot);
+  for (int i = 0; i != (int)result.size(); ++i) {
     ENSURE(result[i].size() == Dimension::nDim);
     for (int j = 0; j != Dimension::nDim; ++j) {
       ENSURE(result[i][j] >= imin[j] && result[i][j] <= imax[j]);
@@ -547,7 +547,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
         const vector<Scalar>& localSamples = std::get<0>(itr->second);
         for (auto k = 0u; k != numScalarFieldLists; ++k) {
           CHECK(k < localSamples.size());
-          CHECK(k < scalarValues.size() and jlocal < scalarValues[k].size());
+          CHECK(k < scalarValues.size() and jlocal < (int)scalarValues[k].size());
           scalarValues[k][jlocal] += localSamples[k];
         }
       }
@@ -557,7 +557,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
         const vector<Vector>& localSamples = std::get<1>(itr->second);
         for (auto k = 0u; k != numVectorFieldLists; ++k) {
           CHECK(k < localSamples.size());
-          CHECK(k < vectorValues.size() and jlocal < vectorValues[k].size());
+          CHECK(k < vectorValues.size() and jlocal < (int)vectorValues[k].size());
           vectorValues[k][jlocal] += localSamples[k];
         }
       }
@@ -567,7 +567,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
         const vector<Tensor>& localSamples = std::get<2>(itr->second);
         for (auto k = 0u; k != numTensorFieldLists; ++k) {
           CHECK(k < localSamples.size());
-          CHECK(k < tensorValues.size() and jlocal < tensorValues[k].size());
+          CHECK(k < tensorValues.size() and jlocal < (int)tensorValues[k].size());
           tensorValues[k][jlocal] += localSamples[k];
         }
       }
@@ -577,7 +577,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
         const vector<SymTensor>& localSamples = std::get<3>(itr->second);
         for (auto k = 0u; k != numSymTensorFieldLists; ++k) {
           CHECK(k < localSamples.size());
-          CHECK(k < symTensorValues.size() and jlocal < symTensorValues[k].size());
+          CHECK(k < symTensorValues.size() and jlocal < (int)symTensorValues[k].size());
           symTensorValues[k][jlocal] += localSamples[k];
         }
       }
@@ -588,8 +588,8 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
     } else {
 
       // We have to send this data to another processor, so pack it up.
-      CHECK(jdomain < sendIndicesBuffers.size());
-      CHECK(jdomain < sendValuesBuffers.size());
+      CHECK(jdomain < (int)sendIndicesBuffers.size());
+      CHECK(jdomain < (int)sendValuesBuffers.size());
       sendIndicesBuffers[jdomain].push_back(jlocal);
 
       // Scalar fields.
@@ -643,7 +643,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
     for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
       if (sendProc != procID) {
         numSends[sendProc] = sendIndicesBuffers[sendProc].size();
-        CHECK(sendValuesBuffers[sendProc].size() == numSends[sendProc]*sizeOfElement);
+        CHECK((int)sendValuesBuffers[sendProc].size() == numSends[sendProc]*sizeOfElement);
         sendRequests.push_back(MPI_Request());
         MPI_Isend(&numSends[sendProc], 1, MPI_INT, sendProc, 1, Communicator::communicator(), &sendRequests.back());
         if (numSends[sendProc] > 0) {
@@ -654,7 +654,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
         }
       }
     }
-    CHECK(sendRequests.size() <= 3*(numProcs - 1));
+    CHECK((int)sendRequests.size() <= 3*(numProcs - 1));
 
     // Post receives to see how many indices other processors are sending to us.
     vector<int> numReceiveNodes(size_t(numProcs), 0);
@@ -691,7 +691,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
         MPI_Irecv(&(*recvValuesBuffers[recvProc].begin()), numReceiveNodes[recvProc]*sizeOfElement, MPI_CHAR, recvProc, 3, Communicator::communicator(), &recvRequests1.back());
       }
     }
-    CHECK(recvRequests1.size() <= 2*(numProcs - 1));
+    CHECK((int)recvRequests1.size() <= 2*(numProcs - 1));
 
     // Wait until we have the full receive data.
     if (not recvRequests1.empty()) {
@@ -713,7 +713,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
           {
             Scalar element;
             for (auto k = 0u; k != numScalarFieldLists; ++k) {
-              CHECK(k < scalarValues.size() and jlocal < scalarValues[k].size());
+              CHECK(k < scalarValues.size() and jlocal < (int)scalarValues[k].size());
               unpackElement(element, bufItr, buffer.end());
               scalarValues[k][jlocal] += element;
             }
@@ -723,7 +723,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
           {
             Vector element;
             for (auto k = 0u; k != numVectorFieldLists; ++k) {
-              CHECK(k < vectorValues.size() and jlocal < vectorValues[k].size());
+              CHECK(k < vectorValues.size() and jlocal < (int)vectorValues[k].size());
               unpackElement(element, bufItr, buffer.end());
               vectorValues[k][jlocal] += element;
             }
@@ -733,7 +733,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
           {
             Tensor element;
             for (auto k = 0u; k != numTensorFieldLists; ++k) {
-              CHECK(k < tensorValues.size() and jlocal < tensorValues[k].size());
+              CHECK(k < tensorValues.size() and jlocal < (int)tensorValues[k].size());
               unpackElement(element, bufItr, buffer.end());
               tensorValues[k][jlocal] += element;
             }
@@ -743,7 +743,7 @@ sampleMultipleFields2LatticeMash(const FieldListSet<Dimension>& fieldListSet,
           {
             SymTensor element;
             for (auto k = 0u; k != numSymTensorFieldLists; ++k) {
-              CHECK(k < symTensorValues.size() and jlocal < symTensorValues[k].size());
+              CHECK(k < symTensorValues.size() and jlocal < (int)symTensorValues[k].size());
               unpackElement(element, bufItr, buffer.end());
               symTensorValues[k][jlocal] += element;
             }

@@ -164,7 +164,7 @@ template<typename Value>
 struct DataTypeTraits<std::tuple<Value, Value, Value> > {
   typedef Value ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const std::tuple<Value, Value, Value>& x) { return 3; }
+  static int numElements(const std::tuple<Value, Value, Value>&) { return 3; }
   static std::tuple<Value, Value, Value> zero() { return std::make_tuple(Value(), Value(), Value()); }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
@@ -176,7 +176,7 @@ template<typename Value>
 struct DataTypeTraits<std::tuple<Value, Value, Value, Value> > {
   typedef std::tuple<Value, Value, Value, Value> ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const std::tuple<Value, Value, Value, Value>& x) { return 4; }
+  static int numElements(const std::tuple<Value, Value, Value, Value>&) { return 4; }
   static std::tuple<Value, Value, Value, Value> zero() { return std::make_tuple(Value(), Value(), Value(), Value()); }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }

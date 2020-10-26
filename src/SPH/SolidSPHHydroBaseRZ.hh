@@ -65,6 +65,7 @@ public:
                       const double nTensile,
                       const bool damageRelieveRubble,
                       const bool negativePressureInDamage,
+                      const bool strengthInDamage,
                       const Vector& xmin,
                       const Vector& xmax);
 
@@ -73,12 +74,12 @@ public:
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase);
+  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBase<Dimension>& dataBase,
-                     State<Dimension>& state);
+                     State<Dimension>& state) override;
 
   // This method is called once at the beginning of a timestep, after all state registration.
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
@@ -92,21 +93,21 @@ public:
                            const Scalar dt,
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
+                           StateDerivatives<Dimension>& derivatives) const override;
 
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivs);
+                            StateDerivatives<Dimension>& derivs) override;
 
   // Enforce boundary conditions for the physics specific fields.
   virtual
   void enforceBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
+                         StateDerivatives<Dimension>& derivs) override;
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const { return "SolidSPHHydroBaseRZ"; }
+  virtual std::string label() const override { return "SolidSPHHydroBaseRZ"; }
 
 private:
   //--------------------------- Private Interface ---------------------------//

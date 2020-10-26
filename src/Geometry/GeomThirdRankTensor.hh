@@ -48,6 +48,10 @@ private:
   using RankNTensor<nDim, 3, GeomThirdRankTensor>::mElements;
 };
 
+
+template<int nDims> const typename GeomThirdRankTensor<nDims>::size_type GeomThirdRankTensor<nDims>::numElements = calcNumNRankElements<nDims, 3>();
+template<int nDims> const GeomThirdRankTensor<nDims> GeomThirdRankTensor<nDims>::zero = GeomThirdRankTensor<nDims>(0.0);
+
 }
 
 #include "GeomThirdRankTensorInline.hh"

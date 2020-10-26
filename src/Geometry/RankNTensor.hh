@@ -8,6 +8,7 @@
 #define __Spheral_RankNTensor_hh__
 
 #include <iostream>
+#include "Utilities/FastMath.hh"
 
 namespace Spheral {
 
@@ -99,6 +100,7 @@ template<int nDim, int rank, typename Descendant> ::std::ostream& operator<<(std
 template<int nDim, int rank, typename Descendant> const typename RankNTensor<nDim, rank, Descendant>::size_type RankNTensor<nDim, rank, Descendant>::nrank = rank;
 template<int nDim, int rank, typename Descendant> const typename RankNTensor<nDim, rank, Descendant>::size_type RankNTensor<nDim, rank, Descendant>::nDimensions = nDim;
 
+template<int nDims, unsigned rank> constexpr int calcNumNRankElements() {return FastMath::calcPower(nDims, rank);}
 }
 
 #ifndef __GCCXML__

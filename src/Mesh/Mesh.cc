@@ -340,7 +340,7 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
            itr != faceIDs.end();
            ++itr) {
         const int fid = positiveID(*itr);
-        CHECK(fid >= 0 and fid < mFaces.size());
+        CHECK(fid >= 0 and fid < (int)mFaces.size());
         faceMask[fid] = 1;
       }
     }
@@ -803,7 +803,7 @@ generateDomainInfo() {
   BEGIN_CONTRACT_SCOPE
   {
     if (numDomains > 1) {
-      for (int sendProc = 0; sendProc != numDomains; ++sendProc) {
+      for (int sendProc = 0; sendProc != (int)numDomains; ++sendProc) {
         unsigned num = potentialNeighborDomains.size();
         MPI_Bcast(&num, 1, MPI_UNSIGNED, sendProc, Communicator::communicator());
         vector<unsigned> otherNeighbors = potentialNeighborDomains;
@@ -1406,7 +1406,7 @@ globalMeshFaceIDs(const vector<unsigned>& globalNodeIDs) const {
     ENSURE(result.size() == mFaces.size());
 
     // Make sure the local results are unique.
-    for (int i = 0; i < result.size() - 1; ++i) {
+    for (int i = 0; i < (int)result.size() - 1; ++i) {
       ENSURE(find(result.begin() + i + 1, result.end(), result[i]) == result.end());
     }
   }

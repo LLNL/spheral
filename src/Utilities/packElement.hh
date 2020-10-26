@@ -537,7 +537,7 @@ unpackElement(std::unordered_map<T1, T2, T3>& value,
 
   // Iterate over the number of elements to unpack and add them to the map
   value.clear();
-  for (int i = 0; i < size; ++i) {
+  for (int i = 0; i < (int)size; ++i) {
     T1 key;
     T2 val;
     unpackElement(key, itr, endPackedVector);
@@ -650,7 +650,7 @@ packFieldValues(const Field<Dimension, DataType>& field,
   for (std::vector<int>::const_iterator elementItr = packIndices.begin();
        elementItr != packIndices.end();
        ++elementItr) {
-    CHECK(*elementItr >= 0 && *elementItr < field.numElements());
+    CHECK(*elementItr >= 0 && *elementItr < (int)field.numElements());
     packElement(field(*elementItr), result);
   }
 
@@ -673,7 +673,7 @@ unpackFieldValues(Field<Dimension, DataType>& field,
   for (std::vector<int>::const_iterator elementItr = packIndices.begin();
        elementItr != packIndices.end();
        ++elementItr) {
-    CHECK(*elementItr >= 0 && *elementItr < field.numElements());
+    CHECK(*elementItr >= 0 && *elementItr < (int)field.numElements());
     CHECK(bufItr < packedValues.end());
     unpackElement(field(*elementItr), bufItr, packedValues.end());
     CHECK(bufItr <= packedValues.end());

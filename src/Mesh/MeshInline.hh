@@ -54,8 +54,8 @@ void
 Mesh<Dimension>::
 reconstruct(const std::vector<typename Dimension::Vector>& generators,
             const typename Dimension::FacetedVolume& boundary,
-            const BoundaryIterator boundaryBegin,
-            const BoundaryIterator boundaryEnd) {
+            const BoundaryIterator /*boundaryBegin*/,
+            const BoundaryIterator /*boundaryEnd*/) {
   this->clear();
 
   // Dispatch the build.
@@ -412,7 +412,7 @@ recomputeIDs(const std::vector<unsigned>& mask) const {
       ++newID;
     }
   }
-  ENSURE(std::accumulate(mask.begin(), mask.end(), 0) == newID);
+  ENSURE(std::accumulate(mask.begin(), mask.end(), 0) == (int)newID);
   return result;
 }
 

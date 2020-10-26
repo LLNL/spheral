@@ -360,8 +360,8 @@ createNewMeshElements(const vector<vector<vector<unsigned> > >& newCells) {
     int z1 = min(mNodes[inode].mZoneIDs[0], mNodes[inode].mZoneIDs[1]);
     int z2 = max(mNodes[inode].mZoneIDs[0], mNodes[inode].mZoneIDs[1]);
     CHECK(z1 < z2 and 
-          z1 < numOldZones + newCells.size() and 
-          (z2 == UNSETID or z2 < numOldZones + newCells.size()));
+          z1 < (int)numOldZones + (int)newCells.size() and 
+          (z2 == (int)UNSETID or z2 < (int)numOldZones + (int)newCells.size()));
     if (cellX[z1] > mNodePositions[inode].x()) std::swap(z1, z2);
     mFaces.push_back(Face(*this, inode, ~z1, z2, vector<unsigned>(1, inode)));
   }

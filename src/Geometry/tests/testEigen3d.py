@@ -9,6 +9,7 @@ from Spheral import *
 
 # Create a global random number generator.
 import random
+random.seed(375)
 rangen = random.Random()
 ranrange = 1.0e8
 

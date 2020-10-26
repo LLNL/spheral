@@ -256,7 +256,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     CHECK(lowerBound == indexMax);
     CHECK(indexRanges[0].first == indexMin);
     CHECK(indexRanges.back().second == indexMax);
-    CHECK(indexRanges.size() == numProcs);
+    CHECK((int)indexRanges.size() == numProcs);
 
     // We now know the target index range for each domain.
     // Go through our local DomainNode set and assign them appropriately.
@@ -270,7 +270,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
             nodeDistribution.back().domainID < numProcs);
     }
     CONTRACT_VAR(numLocalNodes);
-    CHECK(nodeDistribution.size() == numLocalNodes);
+    CHECK((int)nodeDistribution.size() == numLocalNodes);
 
     // Redistribute nodes between domains.
     CHECK(this->validDomainDecomposition(nodeDistribution, dataBase));
@@ -305,7 +305,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
              nodeListItr != dataBase.nodeListEnd();
              ++nodeListItr) {
           const Field<Dimension, Key> keyField = **indices.fieldForNodeList(**nodeListItr);
-          for (int i = 1; i < (*nodeListItr)->numInternalNodes(); ++i) {
+          for (int i = 1; i < (int)(*nodeListItr)->numInternalNodes(); ++i) {
             ENSURE2(keyField(i) >= keyField(i - 1), (**nodeListItr).name()
                     << " (" << (i - 1) << " " << i << ") (" 
                     << keyField(i-1) << " " << keyField(i) << ")");
@@ -551,7 +551,7 @@ findNextIndex(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension
 
   // Find the position of the given index in our local array.
   const int inext = bisectSearch(indices, index) + 1;
-  CHECK(inext >= 0 and inext <= indices.size());
+  CHECK(inext >= 0 and inext <= (int)indices.size());
 
   // The next value on this processor.
   Key result = maxIndex;

@@ -204,8 +204,8 @@ sigmaij(const typename Dimension::Vector& rij,
 
   REQUIRE(fuzzyEqual(rijUnit.magnitude2(), 1.0));
   REQUIRE(distinctlyGreaterThan(hi2, 0.0));
-  REQUIRE(nodeListID >= 0 and nodeListID < mSigma.size());
-  REQUIRE(nodeID >= 0 and nodeID < mSigma[nodeListID]->nodeListPtr()->numNodes());
+  REQUIRE(nodeListID >= 0 and nodeListID < (int)mSigma.size());
+  REQUIRE(nodeID >= 0 and nodeID < (int)mSigma[nodeListID]->nodeListPtr()->numNodes());
 
   // Get the rotational transformations.
   const auto R = rotationMatrix(rijUnit);  // Gets -1
@@ -267,8 +267,9 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
 
   // Grab the connectivity map from the DataBase.
   const auto& connectivityMap = dataBase.connectivityMap();
-  //const auto& nodeLists = connectivityMap.nodeLists();
+  const auto& nodeLists = connectivityMap.nodeLists();
   const auto  numNodeLists = dataBase.numFluidNodeLists();
+  CONTRACT_VAR(nodeLists);
   CHECK(nodeLists.size() == numNodeLists);
 
   // The set of interacting node pairs.
