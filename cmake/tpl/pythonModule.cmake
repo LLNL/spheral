@@ -28,7 +28,7 @@ set(pip-setup-modules
 # General pip modules, anything from pipy can 
 # be added to this list to install
 set(pip-modules
-    numpy-stl
+    numpy-stl==2.11.2
     PYB11Generator
     matplotlib
     decorator
