@@ -1151,7 +1151,7 @@ computeFragmentID(double* damage,
   // Size the NodeLists.
   for (unsigned imat = 0; imat != nmats; ++imat) {
     me.mNodeLists[imat]->numInternalNodes(me.mNumInternalNodes[imat]);
-    me.mNodeLists[imat]->numGhostNodes(me.mNumHostGhostNodes[imat]);
+    me.mNodeLists[imat]->numGhostNodes(0);
   }
 
   // Copy damage values from the array to the field list.
