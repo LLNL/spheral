@@ -31,7 +31,7 @@ PhysicalConstants(const double unitLm,
   kBoltzmann(kBMKS*unitTeK/(unitMkg*FastMath::square(unitLm/unitTsec))),
   MolarGasConstant(RgasMKS*unitTeK/(unitMkg*FastMath::square(unitLm/unitTsec))),
   KelvinsToEnergyPerMole(unitMkg*FastMath::square(unitLm/unitTsec)/(kBMKS*unitTeK)*NAvogadro),
-  UnitMassDensity(unitMkg/unitLm/unitLm/unitLm),
+  UnitMassDensity(unitMkg/(unitLm*unitLm*unitLm)),
   Sigma(StefanBoltzmannMKS*unitTeK*unitTeK*unitTeK*unitTeK/unitMkg*unitTsec*unitTsec*unitTsec),
   BlackBody(4*StefanBoltzmannMKS*unitTeK*unitTeK*unitTeK*unitTeK/cMKS*unitTsec*unitTsec*unitLm/unitMkg),
   Planck(PlanckMKS*unitTsec/(unitMkg*unitLm*unitLm)) {
