@@ -1,13 +1,13 @@
 #-------------------------------------------------------------------------------
 # Group
 #-------------------------------------------------------------------------------
-from PYB11Generator import *
-# from axom import sidre
-# from sidre import Group
+# from PYB11Generator import *
+# # from axom import sidre
+# # from sidre import Group
 
-@PYB11namespace("axom::sidre")
-@PYB11singleton
-class Group:
+# @PYB11namespace("axom::sidre")
+# @PYB11singleton
+# class Group:
 
     #...........................................................................
     # Constructors
@@ -16,16 +16,16 @@ class Group:
 
     #...........................................................................
     # Methods
-    @PYB11const
-    @PYB11pycppname("print")
-    def printGroup(self):
-        "JSON description of data Group to stdout."
-        return "void"
+    # @PYB11const
+    # @PYB11pycppname("print")
+    # def printGroup(self):
+    #     "JSON description of data Group to stdout."
+    #     return "void"
 
-    @PYB11namespace("axom::sidre::Group")
-    def getView(path = "const std::string&"):
-        "Return pointer to non-const View with given name or path."
-        return "axom::sidre::View*"
+    # @PYB11namespace("axom::sidre::Group")
+    # def getView(path = "const std::string&"):
+    #     "Return pointer to non-const View with given name or path."
+    #     return "axom::sidre::View*"
 
     # @PYB11namespace("axom::sidre::View")
     # def getData():

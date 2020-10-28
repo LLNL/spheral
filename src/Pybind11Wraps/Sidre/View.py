@@ -26,7 +26,7 @@ class View:
     @PYB11implementation("""[](axom::sidre::View &self, int n) {
                                                                 int* viewData = self.getData();
                                                                 py::list result;
-                                                                for (int i; i < n; i++)
+                                                                for (int i = 0; i < n; i++)
                                                                      result.append(viewData[i]);
                                                                 return result;
                                                                }""")

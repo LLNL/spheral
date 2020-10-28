@@ -61,17 +61,16 @@ class testSidreDataCollection(unittest.TestCase):
         answer = self.SidreDataCollection.alloc_view("IntSidreTest", self.field).getDataA(n)
         # for i in self.field:
         #     print(self.field[i]),
-        # for i in answer:
-        #     print(i),
-        # printVectorData(self.field, n)
-        self.SidreDataCollection.printDataStore()
+        # print(id(self.field))
+        # print '[%s]' % ', '.join(map(str, answer))
+        # print(answer[0])
+        # for i in xrange(n):
+        #     print(answer[i]),
+        # self.SidreDataCollection.printDataStore()
         assert sys.getsizeof(self.field[0]) == sys.getsizeof(answer[0])
         assert len(self.field) == len(answer)
-        #    print(answer[i]),
-        # answer = getView("IntSidreTest").getData()
-        # assert len(answer) == len(self.nodes)
-        # for i in xrange(len(answer)):
-        #     assert self.field[i] == answer[i]
+        for i in xrange(n):
+            assert self.field[i] == answer[i]
         return
 
 

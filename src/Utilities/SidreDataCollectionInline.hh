@@ -11,9 +11,9 @@ axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name,
 {
    axom::sidre::DataTypeId dtype = field.getAxomType();
    axom::IndexType num_elements = field.numElements();
-   void *data = field.allValues().data();
+   auto *data = &(*field.begin());
    axom::sidre::View *v = m_datastore_ptr->getRoot()->createView(view_name, dtype,
-                                                           num_elements, data);
+                                                           num_elements, (void*)data);
 
    return v;
 }
