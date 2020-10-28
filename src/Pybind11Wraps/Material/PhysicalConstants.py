@@ -25,8 +25,8 @@ SI units (m, kg, sec). All other constants are then derived from those choices.
     #...........................................................................
     # Properties
     unitLengthMeters = PYB11property("double", "unitLengthMeters", doc="unit of length in SI")
-    unitMassKg       = PYB11property("double", "unitMassKg", doc="unit of length in SI")
-    unitTimeSec      = PYB11property("double", "unitTimeSec", doc="unit of length in SI")
+    unitMassKg       = PYB11property("double", "unitMassKg", doc="unit of mass in SI")
+    unitTimeSec      = PYB11property("double", "unitTimeSec", doc="unit of time in SI")
     unitTemperatureKelvin      = PYB11property("double", "unitTemperatureKelvin", doc="unit of temperature in SI")
     unitChargeCoulomb      = PYB11property("double", "unitChargeCoulomb", doc="unit of charge in SI")
     
@@ -49,3 +49,5 @@ SI units (m, kg, sec). All other constants are then derived from those choices.
                                       doc="a: the black body constant")
     planckConstant = PYB11property("double", "planckConstant",
                                    doc="h: the Planck constant")
+    unitEnergyJ = PYB11property("double", "unitEnergyJ",
+                                doc="unit of energy in SI")
