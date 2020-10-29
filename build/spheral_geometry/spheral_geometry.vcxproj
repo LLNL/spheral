@@ -355,8 +355,6 @@
     <ClCompile Include="..\..\src\Geometry\Geom3Vector.cc" />
     <ClCompile Include="..\..\src\Geometry\GeomFacet2d.cc" />
     <ClCompile Include="..\..\src\Geometry\GeomFacet3d.cc" />
-    <ClCompile Include="..\..\src\Geometry\GeomFifthRankTensor.cc" />
-    <ClCompile Include="..\..\src\Geometry\GeomFourthRankTensor.cc" />
     <ClCompile Include="..\..\src\Geometry\GeomPlane.cc" />
     <ClCompile Include="..\..\src\Geometry\GeomPolygon.cc" />
     <ClCompile Include="..\..\src\Geometry\GeomPolyhedron.cc" />
@@ -366,8 +364,6 @@
     <ClCompile Include="..\..\src\Geometry\GeomTensor.cc" />
     <ClCompile Include="..\..\src\Geometry\GeomTensor_default.cc" />
     <ClCompile Include="..\..\src\Geometry\GeomTensor_eigen.cc" />
-    <ClCompile Include="..\..\src\Geometry\GeomThirdRankTensor.cc" />
-    <ClCompile Include="..\..\src\Geometry\GeomVector.cc" />
     <ClCompile Include="..\..\src\Geometry\Jacobi.cc" />
     <ClCompile Include="..\..\src\Geometry\Jacobi2.cc" />
     <ClCompile Include="..\..\src\Geometry\clipConvexFacetedVolumeByPlanes2d.cc" />
