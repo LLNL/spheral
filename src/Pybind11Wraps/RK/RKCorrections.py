@@ -24,7 +24,8 @@ class RKCorrections(Physics):
                dataBase = "const DataBase<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                volumeType = "const RKVolumeType",
-               needHessian = "const bool"):
+               needHessian = "const bool",
+               updateInFinalize = ("const bool", False)):
         "Constructor"
         
     @PYB11virtual
@@ -112,7 +113,7 @@ class RKCorrections(Physics):
     def WR(self,
            order = "const RKOrder"):
         "Look up the ReproducingKernel for the given order"
-        return "ReproducingKernel<%(Dimension)s>&"
+        return "const ReproducingKernel<%(Dimension)s>&"
 
     @PYB11const
     @PYB11returnpolicy("reference_internal")
@@ -120,7 +121,7 @@ class RKCorrections(Physics):
     def corrections(self,
                     order = "const RKOrder"):
         "Look up the corrections for the given order"
-        return "FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"
+        return "const FieldList<%(Dimension)s, RKCoefficients<%(Dimension)s>>&"
 
     #...........................................................................
     # Properties

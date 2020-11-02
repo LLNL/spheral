@@ -78,14 +78,16 @@ This is really just a convenient front-end for the methods in RKUtilities"""
     @PYB11const
     def evaluateKernelAndGradient(self,
                                   x = "const Vector&",
-                                  H = "const SymTensor&"):
+                                  H = "const SymTensor&",
+                                  corrections = "const RKCoefficients<%(Dimension)s>&"):
         "Return (WR(x,h), gradWR(x,h)) for the reproducing kernel"
         return "std::pair<%(Dimension)s::Scalar, %(Dimension)s::Vector>"
 
     @PYB11const
     def evaluateKernelAndGradients(self,
                                    x = "const Vector&",
-                                   H = "const SymTensor&"):
+                                   H = "const SymTensor&",
+                                  corrections = "const RKCoefficients<%(Dimension)s>&"):
         "Return (WR(x,h), gradWR(x,h), ||gradW(x,h)||) for the reproducing kernel and base kernel"
         return "std::tuple<%(Dimension)s::Scalar, %(Dimension)s::Vector, %(Dimension)s::Scalar>"
 

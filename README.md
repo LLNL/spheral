@@ -10,6 +10,7 @@ Some useful features are
 - Scriptable user interface in python.
 - Extensible by user in python, including the ability to write new physics packages in python.
 
+Basic documentation is under development at https://spheral.readthedocs.io/en/latest/
 
 Release and license:
 

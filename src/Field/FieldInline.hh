@@ -184,7 +184,7 @@ Field<Dimension, DataType>::operator=(const FieldBase<Dimension>& rhs) {
       FieldBase<Dimension>::operator=(rhs);
       mDataArray = rhsPtr->mDataArray;
       mValid = rhsPtr->mValid;
-    } catch (std::bad_cast) {
+    } catch (const std::bad_cast &) {
       VERIFY2(false, "Attempt to assign a field to an incompatible field type.");
     }
   }
@@ -253,7 +253,7 @@ Field<Dimension, DataType>::operator==(const FieldBase<Dimension>& rhs) const {
     const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
     if (rhsPtr == 0) return false;
     return CrappyFieldCompareMethod<DataType>::compare(mDataArray, rhsPtr->mDataArray);
-  } catch (std::bad_cast) {
+  } catch (const std::bad_cast &) {
     return false;
   }
 }
@@ -265,7 +265,7 @@ template<typename Dimension, typename DataType>
 inline
 DataType&
 Field<Dimension, DataType>::operator()(int index) {
-  CHECK(index >= 0 && index < numElements());
+  CHECK(index >= 0 && index < (int)numElements());
   return mDataArray[index];
 }
 
@@ -273,7 +273,7 @@ template<typename Dimension, typename DataType>
 inline
 const DataType&
 Field<Dimension, DataType>::operator()(int index) const {
-  CHECK(index >= 0 && index < numElements());
+  CHECK(index >= 0 && index < (int)numElements());
   return mDataArray[index];
 }
 
@@ -642,7 +642,7 @@ operator/=(const Field<Dimension, typename Dimension::Scalar>& rhs) {
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   const unsigned n = this->numElements();
-  for (int i = 0; i < n; ++i) {
+  for (auto i = 0u; i < n; ++i) {
     (*this)(i) *= safeInvVar(rhs(i), 1.0e-60);
   }
   return *this;
@@ -674,7 +674,7 @@ operator/=(const Scalar& rhs) {
   REQUIRE(valid());
   REQUIRE(rhs != 0.0);
   const unsigned n = this->numElements();
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < (int)n; ++i) {
     (*this)(i) /= rhs;
   }
   return *this;
@@ -775,7 +775,7 @@ operator==(const Field<Dimension, DataType>& rhs) const {
   if (n != rhs.size()) return false;
   auto result = true;
   auto i = 0;
-  while (i < n and result) {
+  while (i < (int)n and result) {
     result = (*this)(i) == rhs(i);
   }
   return result;
@@ -1136,7 +1136,7 @@ Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
   mDataArray.resize(nodeList.numNodes());
 #endif
   if (this->size() > oldSize) {
-    for (int i = oldSize; i < this->size(); ++i) {
+    for (unsigned i = oldSize; i < this->size(); ++i) {
       (*this)(i) = DataTypeTraits<DataType>::zero();
     }
   }
@@ -1174,7 +1174,8 @@ inline
 void
 Field<Dimension, DataType>::deleteElement(int nodeID) {
   const unsigned originalSize = this->size();
-  REQUIRE(nodeID >= 0 && nodeID < originalSize);
+  CONTRACT_VAR(originalSize);
+  REQUIRE(nodeID >= 0 && nodeID < (int)originalSize);
   mDataArray.erase(mDataArray.begin() + nodeID);
   ENSURE(mDataArray.size() == originalSize - 1);
 }
@@ -1233,10 +1234,10 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
   // If there is ghost data, we must preserve it.
   std::vector<DataType,DataAllocator<DataType>> oldGhostValues(numGhostNodes);
   if (numGhostNodes > 0) {
-    for (int i = 0; i != numGhostNodes; ++i) {
+    for (auto i = 0u; i != numGhostNodes; ++i) {
       const int j = oldFirstGhostNode + i;
       CHECK(i >= 0 && i < numGhostNodes);
-      CHECK(j >= 0 && j < this->size());
+      CHECK(j >= 0 && j < (int)this->size());
       oldGhostValues[i] = (*this)(j);
     }
   }
@@ -1258,10 +1259,10 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
 
   // Fill the ghost data back in.
   if (numGhostNodes > 0) {
-    for (int i = 0; i != numGhostNodes; ++i) {
+    for (auto i = 0u; i != numGhostNodes; ++i) {
       const int j = this->nodeList().firstGhostNode() + i;
       CHECK(i >= 0 && i < oldGhostValues.size());
-      CHECK(j >= 0 && j < this->size());
+      CHECK(j >= 0 && j < (int)this->size());
       (*this)(j) = oldGhostValues[i];
     }
   }
@@ -1313,11 +1314,11 @@ copyElements(const std::vector<int>& fromIndices,
              const std::vector<int>& toIndices) {
   REQUIRE(fromIndices.size() == toIndices.size());
   REQUIRE(std::all_of(fromIndices.begin(), fromIndices.end(),
-                      [&](const int i) { return i >= 0 and i < this->size(); }));
+                      [&](const int i) { return i >= 0 and i < (int)this->size(); }));
   REQUIRE(std::all_of(toIndices.begin(), toIndices.end(),
-                      [&](const int i) { return i >= 0 and i < this->size(); }));
+                      [&](const int i) { return i >= 0 and i < (int)this->size(); }));
   const auto ni = fromIndices.size();
-  for (auto k = 0; k < ni; ++k) (*this)(toIndices[k]) = (*this)(fromIndices[k]);
+  for (auto k = 0u; k < ni; ++k) (*this)(toIndices[k]) = (*this)(fromIndices[k]);
 }
 
 //------------------------------------------------------------------------------
@@ -1373,12 +1374,12 @@ template<typename Dimension, typename DataType>
 inline
 std::string
 Field<Dimension, DataType>::
-string(const int precision) const {
+string(const int /*precision*/) const {
   const int n = numInternalElements();
   std::vector<int> indices;
   indices.reserve(n);
   for (int i = 0; i != n; ++i) indices.push_back(i);
-  CHECK(indices.size() == n);
+  CHECK((int)indices.size() == n);
   const std::vector<char> packedValues = packFieldValues(*this, indices);
   return std::string(this->name()) + "|" + std::string(packedValues.begin(), packedValues.end());
 }
@@ -1395,7 +1396,7 @@ string(const std::string& s) {
   std::vector<int> indices;
   indices.reserve(n);
   for (int i = 0; i != n; ++i) indices.push_back(i);
-  CHECK(indices.size() == n);
+  CHECK((int)indices.size() == n);
   const size_t j = s.find("|");
   CHECK(j != std::string::npos and
         j < s.size());
@@ -1461,7 +1462,7 @@ operator*(const Field<Dimension, DataType>& lhs,
   CHECK(lhs.nodeList().numNodes() == rhs.nodeList().numNodes());
   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
     result("product", const_cast<Field<Dimension, DataType>&>(lhs).nodeList());
-  for (int i = 0; i < result.numElements(); ++i) {
+  for (auto i = 0u; i < result.numElements(); ++i) {
     result(i) = lhs(i) * rhs(i);
   }
   return result;
@@ -1490,7 +1491,7 @@ operator*(const DataType& lhs,
   CHECK(rhs.valid());
   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
     result("product", const_cast<Field<Dimension, OtherDataType>&>(rhs).nodeList());
-  for (int i = 0; i < result.numElements(); ++i) {
+  for (auto i = 0u; i < result.numElements(); ++i) {
     result(i) = lhs * rhs(i);
   }
   return result;
@@ -1942,7 +1943,7 @@ operator>>(std::istream& is, Field<Dimension, DataType>& field) {
   // Start by reading the number of elements.
   int numElementsInStream;
   is >> numElementsInStream;
-  CHECK(numElementsInStream == field.nodeList().numInternalNodes());
+  CHECK(numElementsInStream == (int)field.nodeList().numInternalNodes());
 
   // Read in the elements.
   for (typename Field<Dimension, DataType>::iterator itr = field.internalBegin();

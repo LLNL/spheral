@@ -15,7 +15,7 @@ FileIO::writeFieldBlob(const Field<Dimension, DataType>& value,
                        const std::string pathName) {
   const auto n = value.nodeList().numInternalNodes();
   std::vector<int> inds(n);
-  for (auto i = 0; i < n; ++i) inds[i] = i;
+  for (auto i = 0u; i < n; ++i) inds[i] = i;
   const auto blob = value.packValues(inds);
   const std::string sblob(blob.begin(), blob.end());
   this->write(sblob, pathName);
@@ -31,7 +31,7 @@ FileIO::readFieldBlob(Field<Dimension, DataType>& value,
                       const std::string pathName) const {
   const auto n = value.nodeList().numInternalNodes();
   std::vector<int> inds(n);
-  for (auto i = 0; i < n; ++i) inds[i] = i;
+  for (auto i = 0u; i < n; ++i) inds[i] = i;
   std::string sblob;
   this->read(sblob, pathName);
   std::vector<char> blob(sblob.begin(), sblob.end());
@@ -201,16 +201,16 @@ FileIO::readFieldVector(Field<Dimension, std::vector<DataType> >& field,
     for (std::vector<int>::const_iterator itr = numElementsPerNode.begin();
          itr != numElementsPerNode.end();
          ++itr) numElements += *itr;
-    CHECK(numElements == elements.size());
+    CHECK(numElements == (int)elements.size());
   }
   END_CONTRACT_SCOPE
 
   // Fill the Field back in.
   typename std::vector<DataType>::const_iterator elementItr = elements.begin();
-  for (int i = 0; i != field.nodeList().numInternalNodes(); ++i) {
+  for (auto i = 0u; i != field.nodeList().numInternalNodes(); ++i) {
     field(i) = std::vector<DataType>();
     field(i).reserve(numElementsPerNode[i]);
-    for (int j = 0; j != numElementsPerNode[i]; ++j) {
+    for (auto j = 0; j != numElementsPerNode[i]; ++j) {
       CHECK(elementItr < elements.end());
       field(i).push_back(*elementItr);
       ++elementItr;
@@ -242,7 +242,7 @@ FileIO::writeVector(const std::vector<Value>& x, const std::string pathName) {
   const auto n = x.size();
   const auto ne = Value::numElements;
   std::vector<double> buf(n*ne);
-  for (auto i = 0; i < n; ++i) std::copy(x[i].begin(), x[i].end(), &buf[i*ne]);
+  for (auto i = 0u; i < n; ++i) std::copy(x[i].begin(), x[i].end(), &buf[i*ne]);
   this->write(buf, pathName);
 }
 template<> inline void FileIO::write<Dim<1>::Vector>         (const std::vector<Dim<1>::Vector>& x,          const std::string pathName) { this->writeVector(x, pathName); }
@@ -285,7 +285,7 @@ FileIO::readVector(std::vector<Value>& x, const std::string pathName) const {
   const auto ne = Value::numElements;
   const auto n = buf.size()/ne;
   x.resize(n);
-  for (auto i = 0; i < n; ++i) std::copy(&buf[i*ne], &buf[i*ne] + ne, x[i].begin());
+  for (auto i = 0u; i < n; ++i) std::copy(&buf[i*ne], &buf[i*ne] + ne, x[i].begin());
 }
 template<> inline void FileIO::read<Dim<1>::Vector>          (std::vector<Dim<1>::Vector>& x,          const std::string pathName) const { this->readVector(x, pathName); }
 template<> inline void FileIO::read<Dim<1>::Tensor>          (std::vector<Dim<1>::Tensor>& x,          const std::string pathName) const { this->readVector(x, pathName); }

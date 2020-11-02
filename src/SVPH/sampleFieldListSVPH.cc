@@ -45,7 +45,6 @@ computeCellGradient(const FieldList<Dim<1>, DataType>& fieldList,
                     const Mesh<Dim<1> >& mesh) {
   typedef Dim<1> Dimension;
   typedef Dimension::Scalar Scalar;
-  typedef Dimension::Vector Vector;
   typedef Mesh<Dimension>::Zone Zone;
   typedef Mesh<Dimension>::Face Face;
   typedef typename MathTraits<Dim<1>, DataType>::GradientType GradientType;
@@ -58,8 +57,8 @@ computeCellGradient(const FieldList<Dim<1>, DataType>& fieldList,
             face2ID = Mesh<Dimension>::positiveID(faces[1]);
   const Face face1 = mesh.face(face1ID),
              face2 = mesh.face(face2ID);
-  const int zone1ID = Mesh<Dimension>::positiveID(face1.oppositeZoneID(zonei.ID())),
-            zone2ID = Mesh<Dimension>::positiveID(face2.oppositeZoneID(zonei.ID()));
+  const unsigned zone1ID = Mesh<Dimension>::positiveID(face1.oppositeZoneID(zonei.ID())),
+                 zone2ID = Mesh<Dimension>::positiveID(face2.oppositeZoneID(zonei.ID()));
 
   // Look up the indices into the FieldList for the two neighboring cells.
   unsigned nodeList1ID = nodeListi, node1ID = i, 
@@ -101,7 +100,6 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-  typedef typename MathTraits<Dimension, DataType>::GradientType GradientType;
 
   // Prepare the result and some work fields.
   FieldList<Dimension, DataType> result(FieldStorageType::CopyFields);
@@ -122,9 +120,9 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
   if (firstOrderConsistent) {
 
     // Copy the cell volumes to the FieldList.
-    for (int nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
       const NodeList<Dimension>& nodeList = fieldList[nodeListi]->nodeList();
-      for (int i = 0; i != nodeList.numNodes(); ++i) {
+      for (auto i = 0u; i != nodeList.numNodes(); ++i) {
         volume(nodeListi, i) = mesh.zone(nodeListi, i).volume();
       }
     }
@@ -142,8 +140,7 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
   // Walk the NodeLists to build our answer.
   const Scalar W0 = W.kernelValue(0.0, 1.0);
-  for (int nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const NodeList<Dimension>& nodeList = fieldList[nodeListi]->nodeList();
+  for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
 
     // Iterate over the nodes in this node list.
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
@@ -162,7 +159,7 @@ sampleFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
 
       // Walk the neighbors for this node.
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-      for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      for (auto nodeListj = 0u; nodeListj != numNodeLists; ++nodeListj) {
         const vector<int>& connectivity = fullConnectivity[nodeListj];
         for (vector<int>::const_iterator jItr = connectivity.begin();
              jItr != connectivity.end();

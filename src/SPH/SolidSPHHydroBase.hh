@@ -57,6 +57,7 @@ public:
                     const double nTensile,
                     const bool damageRelieveRubble,
                     const bool negativePressureInDamage,
+                    const bool strengthInDamage,
                     const Vector& xmin,
                     const Vector& xmax);
 
@@ -115,6 +116,10 @@ public:
   bool negativePressureInDamage() const;
   void negativePressureInDamage(bool x);
 
+  // Do we allow damaged material to have strength?
+  bool strengthInDamage() const;
+  void strengthInDamage(bool x);
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "SolidSPHHydroBase"; }
@@ -124,7 +129,7 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  bool mDamageRelieveRubble, mNegativePressureInDamage;
+  bool mDamageRelieveRubble, mNegativePressureInDamage, mStrengthInDamage;
 
 private:
   //--------------------------- Private Interface ---------------------------//

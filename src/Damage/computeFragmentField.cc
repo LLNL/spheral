@@ -62,7 +62,7 @@ globalReduceToUniqueElements(vector<int>& x) {
     } else {
       otherX.resize(n);
     }
-    CHECK(otherX.size() == n);
+    CHECK((int)otherX.size() == n);
     MPI_Bcast(&(*otherX.begin()), n, MPI_INT, sendID, Communicator::communicator());
     x.reserve(x.size() + n);
     copy(otherX.begin(), otherX.end(), back_inserter(x));
@@ -73,7 +73,7 @@ globalReduceToUniqueElements(vector<int>& x) {
     int tmp = x.size();
     int sum;
     MPI_Allreduce(&tmp, &sum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-    ENSURE(sum == x.size()*numProcs);
+    ENSURE(sum == (int)x.size()*numProcs);
   }
   END_CONTRACT_SCOPE
 #endif
@@ -94,24 +94,23 @@ computeFragmentField(const NodeList<Dimension>& nodes,
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
   REQUIRE(nodes.numGhostNodes() == 0);
   REQUIRE(density.nodeListPtr() == &nodes);
   REQUIRE(damage.nodeListPtr() == &nodes);
 
+#ifdef USE_MPI
   // Get the rank and total number of processors.
   int procID = 0;
   int numProcs = 1;
-#ifdef USE_MPI
   MPI_Comm_rank(Communicator::communicator(), &procID);
   MPI_Comm_size(Communicator::communicator(), &numProcs);
-#endif
 
   // Figure out how many elements are in a symmetric tensor.
   SymTensor Hthpt;
   const int Hsize = std::distance(Hthpt.begin(), Hthpt.end());
+#endif
 
   // Grab the state.
   const Field<Dimension, Scalar>& m = nodes.mass();
@@ -149,7 +148,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   // Flag any nodes above the damage threshold or below the density threshold as dust.
   // Simultaneously remove them from the set of globalNodesRemaining.
   int numDustNodes = 0;
-  for (int i = 0; i != nodes.numInternalNodes(); ++i) {
+  for (auto i = 0u; i != nodes.numInternalNodes(); ++i) {
     if (damage(i).Trace() > damageThreshold || density(i) < densityThreshold) {
       result(i) = maxGlobalID + 1;
       ++numDustNodes;
@@ -194,10 +193,10 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     CHECK(globalMinID < maxGlobalID);
 
     // Is this node on this domain?
-    int nodeDomain = procID;
     int ilocal = globalMinID;
     bool localNode = true;
 #ifdef USE_MPI
+    int nodeDomain = procID;
     const vector<int>::iterator ilocalItr = find(gIDs.begin(),
                                                  gIDs.end(),
                                                  globalMinID);
@@ -356,7 +355,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   globalReduceToUniqueElements(fragIDs);
   numFragments = fragIDs.size();
   for (int i = 0; i != numFragments; ++i) {
-    for (int j = 0; j != nodes.numInternalNodes(); ++j) {
+    for (auto j = 0u; j != nodes.numInternalNodes(); ++j) {
       if (result(j) == fragIDs[i]) result(j) = i;
     }
   }
@@ -369,7 +368,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     // Find the center of mass for each fragment.
     vector<Vector> rfrag(numFragments - 1);
     vector<double> mfrag(numFragments - 1);
-    for (int i = 0; i != nodes.numInternalNodes(); ++i) {
+    for (auto i = 0u; i != nodes.numInternalNodes(); ++i) {
       if (result[i] != dustID) {
         CHECK(distinctlyGreaterThan(m(i), 0.0));
         mfrag[result[i]] += m(i);
@@ -391,7 +390,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
 
     // Now go over all the dust nodes, find the fragment they're closeet to,
     // and assign them to that fragment.
-    for (int i = 0; i != nodes.numInternalNodes(); ++i) {
+    for (auto i = 0u; i != nodes.numInternalNodes(); ++i) {
       if (result[i] == dustID) {
         const Vector& ri = r(i);
         double rmin = DBL_MAX;
@@ -413,7 +412,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     }
 
     // Check that all dust nodes have been assigned.
-    for (int i = 0; i != nodes.numInternalNodes(); ++i) 
+    for (auto i = 0u; i != nodes.numInternalNodes(); ++i) 
       CHECK(numFragments == 1 or result[i] < dustID);
     
   }

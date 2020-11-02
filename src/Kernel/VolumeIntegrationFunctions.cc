@@ -26,7 +26,7 @@ volumeElement(const double r);
 template<>
 inline
 double
-volumeElement< Dim<1> >(const double r) {
+volumeElement< Dim<1> >(const double) {
   return 2.0;
 }
 

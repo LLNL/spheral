@@ -9,6 +9,7 @@ from Spheral2d import *
 
 # Create a global random number generator.
 import random
+random.seed(402)
 rangen = random.Random()
 
 plots = []

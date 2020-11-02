@@ -21,7 +21,7 @@ template<typename Dimension> class DataBase;
 template<typename Dimension> class NodeList;
 template<typename Dimension> class Boundary;
 template<typename Dimension, typename DataType> class FieldList;
-template<typename Dimension> class DomainNode;
+template<typename Dimension> struct DomainNode;
 
 template<typename Dimension>
 class RedistributeNodes {

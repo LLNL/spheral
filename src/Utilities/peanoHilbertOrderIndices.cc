@@ -95,11 +95,11 @@ hashPosition(const Dim<2>::Vector& position,
   const Vector cellsize = boxsize/ncells;
   const int xfine = int(deltar.x()/cellsize.x());
   const int yfine = int(deltar.y()/cellsize.y());
-  CHECK(xfine >= 0 and xfine < ncells);
-  CHECK(yfine >= 0 and yfine < ncells);
+  CHECK(xfine >= 0 and xfine < (int)ncells);
+  CHECK(yfine >= 0 and yfine < (int)ncells);
 
   // Recursively quadrant the position, until we get to the desired level.
-  for (int level = 0; level != KeyTraits::numbits1d; ++level) {
+  for (auto level = 0u; level != KeyTraits::numbits1d; ++level) {
 
     // Compute the integer coordinates on this level.
     const int ncellDelta = KeyTraits::one << (KeyTraits::numbits1d - level);
@@ -107,8 +107,9 @@ hashPosition(const Dim<2>::Vector& position,
     const int y = yfine / ncellDelta;
 
     const Key ncells = KeyTraits::two << level;
-    CHECK(x >= 0 and x < ncells);
-    CHECK(y >= 0 and y < ncells);
+    CONTRACT_VAR(ncells);
+    CHECK(x >= 0 and x < (int)ncells);
+    CHECK(y >= 0 and y < (int)ncells);
 
     // Decide which (lab frame) quadrant this position represents.
     const int xx = x % 2;
@@ -202,12 +203,12 @@ hashPosition(const Dim<3>::Vector& position,
   const int xfine = int(deltar.x()/cellsize.x());
   const int yfine = int(deltar.y()/cellsize.y());
   const int zfine = int(deltar.z()/cellsize.z());
-  CHECK(xfine >= 0 and xfine < ncells);
-  CHECK(yfine >= 0 and yfine < ncells);
-  CHECK(zfine >= 0 and zfine < ncells);
+  CHECK(xfine >= 0 and xfine < (int)ncells);
+  CHECK(yfine >= 0 and yfine < (int)ncells);
+  CHECK(zfine >= 0 and zfine < (int)ncells);
 
   // Recursively quadrant the position, until we get to the desired level.
-  for (int level = 0; level != KeyTraits::numbits1d; ++level) {
+  for (auto level = 0u; level != KeyTraits::numbits1d; ++level) {
 
     // Compute the integer coordinates on this level.
     const int ncellDelta = KeyTraits::one << (KeyTraits::numbits1d - level);
@@ -216,9 +217,10 @@ hashPosition(const Dim<3>::Vector& position,
     const int z = zfine / ncellDelta;
 
     const Key ncells = KeyTraits::two << level;
-    CHECK(x >= 0 and x < ncells);
-    CHECK(y >= 0 and y < ncells);
-    CHECK(z >= 0 and z < ncells);
+    CONTRACT_VAR(ncells);
+    CHECK(x >= 0 and x < (int)ncells);
+    CHECK(y >= 0 and y < (int)ncells);
+    CHECK(z >= 0 and z < (int)ncells);
 
     // Decide which (lab frame) quadrant this position represents.
     const int xx = x % 2;
@@ -419,7 +421,6 @@ FieldList<Dimension, KeyTraits::Key>
 peanoHilbertOrderIndices(const FieldList<Dimension, typename Dimension::Vector>& positions) {
 
   typedef typename KeyTraits::Key Key;
-  typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
 
   // Prepare the result.

@@ -1,29 +1,34 @@
 include_directories(.)
-set(Distributed_sources
-    Communicator.cc
-    SortAndDivideRedistributeNodes1d.cc
-    SortAndDivideRedistributeNodes2d.cc
-    SortAndDivideRedistributeNodes3d.cc
-   )
+set(Distributed_sources Communicator.cc)
+
+if (ENABLE_1D)
+  list(APPEND Distributed_sources SortAndDivideRedistributeNodes1d.cc)
+endif()
+
+if (ENABLE_2D)
+  list(APPEND Distributed_sources SortAndDivideRedistributeNodes2d.cc)
+endif()
+
+if (ENABLE_3D)
+  list(APPEND Distributed_sources SortAndDivideRedistributeNodes3d.cc)
+endif()
 
 if (ENABLE_MPI)
-   list(APPEND Distributed_sources
-        waitAllWithDeadlockDetection.cc
-       )
-
+   list(APPEND Distributed_sources waitAllWithDeadlockDetection.cc)
 endif()
-   set(Distributed_inst
-     DistributedBoundary
-     NestedGridDistributedBoundary
-     TreeDistributedBoundary
-     BoundingVolumeDistributedBoundary
-     RedistributeNodes
-     DistributeByXPosition
-     SortAndDivideRedistributeNodes
-     SpaceFillingCurveRedistributeNodes
-     MortonOrderRedistributeNodes
-     PeanoHilbertOrderRedistributeNodes
-     VoronoiRedistributeNodes
+
+set(Distributed_inst
+    DistributedBoundary
+    NestedGridDistributedBoundary
+    TreeDistributedBoundary
+    BoundingVolumeDistributedBoundary
+    RedistributeNodes
+    DistributeByXPosition
+    SortAndDivideRedistributeNodes
+    SpaceFillingCurveRedistributeNodes
+    MortonOrderRedistributeNodes
+    PeanoHilbertOrderRedistributeNodes
+    VoronoiRedistributeNodes
     )
 
 instantiate(Distributed_inst Distributed_sources)
@@ -46,16 +51,6 @@ set(Distributed_headers
     )
 
 spheral_add_cxx_library(Distributed)
-
-install(TARGETS              Spheral_Distributed
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Distributed_headers}
-        DESTINATION include/Distributed
-        )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Distributed)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

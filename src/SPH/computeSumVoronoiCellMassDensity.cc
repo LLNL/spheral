@@ -41,9 +41,6 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
   REQUIRE(H.size() == numNodeLists);
 
   typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
 
   // Some useful variables.
   const auto W0 = W.kernelValue(0.0, 1.0);
@@ -63,19 +60,18 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
 #pragma omp parallel
   {
     // Thread private scratch variables
-    int i, j, nodeListi, nodeListj;
-    Scalar Wi, gWi, Wj, gWj;
+    int i, j, nodeListi;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto Veff_thread = Veff.threadCopy(threadStack);
     auto massDensity_thread = massDensity.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
       nodeListi = pairs[kk].i_list;
-      nodeListj = pairs[kk].j_list;
+      //nodeListj = pairs[kk].j_list;
 
       // State for node i
       const auto& ri = position(nodeListi, i);
@@ -113,14 +109,14 @@ computeSumVoronoiCellMassDensity(const ConnectivityMap<Dimension>& connectivityM
 
 
   // Finalize the density for each point.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[0]->nodeList());
     const auto ni = nodeList.numInternalNodes();
     const auto rhoMin = nodeList.rhoMin();
     const auto rhoMax = nodeList.rhoMax();
 
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
       const auto  mi = mass(nodeListi, i);
       const auto  Vi = volume(nodeListi, i);
       const auto& Hi = H(nodeListi, i);

@@ -67,19 +67,19 @@ public:
         const std::vector<DataType,DataAllocator<DataType>>& array);
   Field(const NodeList<Dimension>& nodeList, const Field& field);
   Field(const Field& field);
-  virtual std::shared_ptr<FieldBase<Dimension> > clone() const;
+  virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
 
   // Destructor.
   virtual ~Field();
 
   // Assignment operator.
-  virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs);
+  virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs) override;
   Field& operator=(const Field& rhs);
   Field& operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs);
   Field& operator=(const DataType& rhs);
 
   // Required method to test equivalence with a FieldBase.
-  virtual bool operator==(const FieldBase<Dimension>& rhs) const;
+  virtual bool operator==(const FieldBase<Dimension>& rhs) const override;
 
   // Element access.
   DataType& operator()(int index);
@@ -95,10 +95,10 @@ public:
   unsigned numElements() const;
   unsigned numInternalElements() const;
   unsigned numGhostElements() const;
-  virtual unsigned size() const;
+  virtual unsigned size() const override;
 
   // Zero out the field elements.
-  virtual void Zero();
+  virtual void Zero() override;
 
   // Methods to apply limits to Field data members.
   void applyMin(const DataType& dataMin);
@@ -206,17 +206,17 @@ public:
   const DataType& operator[](const unsigned int index) const;
 
   // Required functions from FieldBase
-  virtual void setNodeList(const NodeList<Dimension>& nodeList);
-  virtual void resizeField(unsigned size);
-  virtual void resizeFieldInternal(unsigned size, unsigned oldFirstGhostNode);
-  virtual void resizeFieldGhost(unsigned size);
-  virtual void deleteElement(int nodeID);
-  virtual void deleteElements(const std::vector<int>& nodeIDs);
-  virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const;
+  virtual void setNodeList(const NodeList<Dimension>& nodeList) override;
+  virtual void resizeField(unsigned size) override;
+  virtual void resizeFieldInternal(unsigned size, unsigned oldFirstGhostNode) override;
+  virtual void resizeFieldGhost(unsigned size) override;
+  virtual void deleteElement(int nodeID) override;
+  virtual void deleteElements(const std::vector<int>& nodeIDs) override;
+  virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const override;
   virtual void unpackValues(const std::vector<int>& nodeIDs,
-                            const std::vector<char>& buffer);
+                            const std::vector<char>& buffer) override;
   virtual void copyElements(const std::vector<int>& fromIndices,
-                            const std::vector<int>& toIndices);
+                            const std::vector<int>& toIndices) override;
   virtual bool fixedSizeDataType() const override;
   virtual int numValsInDataType() const override;
   virtual int sizeofDataType() const override;

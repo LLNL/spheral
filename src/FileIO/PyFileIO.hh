@@ -29,17 +29,17 @@ public:
   virtual ~PyFileIO();
 
   // Check if the specified path is in the file.
-  virtual bool pathExists(const std::string pathName) const override { VERIFY2(false, "pathExists not overridden"); }
+  virtual bool pathExists(const std::string) const override { VERIFY2(false, "pathExists not overridden"); }
 
   // Descendent python objects should provide these write methods.
-  virtual void write_unsigned_int(const unsigned value, const std::string pathName)              override { VERIFY2(false, "write_unsigned_int not overridden"); }
-  virtual void write_int(const int value, const std::string pathName)                            override { VERIFY2(false, "write_int not overridden"); }
-  virtual void write_bool(const bool value, const std::string pathName)                          override { VERIFY2(false, "write_bool not overridden"); }
-  virtual void write_double(const double value, const std::string pathName)                      override { VERIFY2(false, "write_double not overridden"); }
-  virtual void write_string(const std::string value, const std::string pathName)                 override { VERIFY2(false, "write_string not overridden"); }
-  virtual void write_vector_int(const std::vector<int>& value, const std::string pathName)                { VERIFY2(false, "write_vector_int not overridden"); }
-  virtual void write_vector_double(const std::vector<double>& value, const std::string pathName)          { VERIFY2(false, "write_vector_double not overridden"); }
-  virtual void write_vector_string(const std::vector<std::string>& value, const std::string pathName)     { VERIFY2(false, "write_vector_string not overridden"); }
+  virtual void write_unsigned_int(const unsigned, const std::string)              override { VERIFY2(false, "write_unsigned_int not overridden"); }
+  virtual void write_int(const int, const std::string)                            override { VERIFY2(false, "write_int not overridden"); }
+  virtual void write_bool(const bool, const std::string)                          override { VERIFY2(false, "write_bool not overridden"); }
+  virtual void write_double(const double, const std::string)                      override { VERIFY2(false, "write_double not overridden"); }
+  virtual void write_string(const std::string, const std::string)                 override { VERIFY2(false, "write_string not overridden"); }
+  virtual void write_vector_int(const std::vector<int>&, const std::string)                { VERIFY2(false, "write_vector_int not overridden"); }
+  virtual void write_vector_double(const std::vector<double>&, const std::string)          { VERIFY2(false, "write_vector_double not overridden"); }
+  virtual void write_vector_string(const std::vector<std::string>&, const std::string)     { VERIFY2(false, "write_vector_string not overridden"); }
 
   virtual void write_Vector1d(const Dim<1>::Vector& value, const std::string pathName) = 0;
   virtual void write_Tensor1d(const Dim<1>::Tensor& value, const std::string pathName) = 0;
@@ -84,14 +84,14 @@ public:
 #endif
 
   // Descendent python objects should provide these read methods.
-  virtual unsigned read_unsigned_int(const std::string pathName)                          const override { VERIFY2(false, "read_unsigned_int not overridden"); }
-  virtual int read_int(const std::string pathName)                                        const override { VERIFY2(false, "read_int not overridden"); }
-  virtual bool read_bool(const std::string pathName)                                      const override { VERIFY2(false, "read_bool not overridden"); }
-  virtual double read_double(const std::string pathName)                                  const override { VERIFY2(false, "read_double not overridden"); }
-  virtual std::string read_string(const std::string pathName)                             const override { VERIFY2(false, "read_string not overridden"); }
-  virtual void read_vector_int(std::vector<int>* value, const std::string pathName) const                { VERIFY2(false, "read_vector_int not overridden"); }
-  virtual void read_vector_double(std::vector<double>* value, const std::string pathName) const          { VERIFY2(false, "read_vector_double not overridden"); }
-  virtual void read_vector_string(std::vector<std::string>* value, const std::string pathName) const     { VERIFY2(false, "read_vector_string not overridden"); }
+  virtual unsigned read_unsigned_int(const std::string)                          const override { VERIFY2(false, "read_unsigned_int not overridden"); }
+  virtual int read_int(const std::string)                                        const override { VERIFY2(false, "read_int not overridden"); }
+  virtual bool read_bool(const std::string)                                      const override { VERIFY2(false, "read_bool not overridden"); }
+  virtual double read_double(const std::string)                                  const override { VERIFY2(false, "read_double not overridden"); }
+  virtual std::string read_string(const std::string)                             const override { VERIFY2(false, "read_string not overridden"); }
+  virtual void read_vector_int(std::vector<int>*, const std::string) const                { VERIFY2(false, "read_vector_int not overridden"); }
+  virtual void read_vector_double(std::vector<double>*, const std::string) const          { VERIFY2(false, "read_vector_double not overridden"); }
+  virtual void read_vector_string(std::vector<std::string>*, const std::string) const     { VERIFY2(false, "read_vector_string not overridden"); }
 
   virtual Dim<1>::Vector read_Vector1d(const std::string pathName) const = 0;
   virtual Dim<1>::Tensor read_Tensor1d(const std::string pathName) const = 0;

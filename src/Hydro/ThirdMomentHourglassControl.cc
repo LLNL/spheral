@@ -62,8 +62,8 @@ ThirdMomentHourglassControl<Dimension>::
 template<typename Dimension>
 void
 ThirdMomentHourglassControl<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
@@ -104,7 +104,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Compute the third moment of the node distribution.
   mThirdMoment.Zero();
-  for (int nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
     const Scalar W0 = mW.kernelValue(0.0, 1.0);
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
@@ -118,7 +118,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(fullConnectivity.size() == numNodeLists);
 
       // Iterate over the neighboring NodeLists.
-      for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      for (auto nodeListj = 0u; nodeListj != numNodeLists; ++nodeListj) {
 
         // Connectivity of this node with this NodeList.  We only need to proceed if
         // there are some nodes in this list.
@@ -131,7 +131,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                jItr != connectivity.end();
                ++jItr) {
             const int j = *jItr;
-            CHECK(j < nodeLists[nodeListj]->numNodes());
+            CHECK(j < (int)nodeLists[nodeListj]->numNodes());
 
             // Only proceed if this node pair has not been calculated yet.
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
@@ -149,9 +149,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar Wi = mW.kernelValue(etai.magnitude(), 1.0)/W0;
               const Scalar Wj = mW.kernelValue(etaj.magnitude(), 1.0)/W0;
 
-              const Scalar rij2 = rij.magnitude2();
-              const Scalar hi2 = rij2/(etai.magnitude2() + tiny);
-              const Scalar hj2 = rij2/(etaj.magnitude2() + tiny);
+              //const Scalar rij2 = rij.magnitude2();
+              //const Scalar hi2 = rij2/(etai.magnitude2() + tiny);
+              //const Scalar hj2 = rij2/(etaj.magnitude2() + tiny);
 
               // Pair-wise contribution.
               const Vector rijUnit = rij.unitVector();
@@ -180,7 +180,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const bool compatibleEnergyEvolution = derivatives.registered(HydroFieldNames::pairAccelerations);   // BLAGO!!
 
   // Now generate the corrective accelerations based on the third moment.
-  for (int nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
     const int firstGhostNodei = nodeLists[nodeListi]->firstGhostNode();
     for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
          iItr != connectivityMap.end(nodeListi);
@@ -201,7 +201,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(fullConnectivity.size() == numNodeLists);
 
       // Iterate over the neighboring NodeLists.
-      for (int nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+      for (auto nodeListj = 0u; nodeListj != numNodeLists; ++nodeListj) {
 
         // Connectivity of this node with this NodeList.  We only need to proceed if
         // there are some nodes in this list.
@@ -214,7 +214,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                jItr != connectivity.end();
                ++jItr) {
             const int j = *jItr;
-            CHECK(j < nodeLists[nodeListj]->numNodes());
+            CHECK(j < (int)nodeLists[nodeListj]->numNodes());
 
             // Only proceed if this node pair has not been calculated yet.
             if (connectivityMap.calculatePairInteraction(nodeListi, i, 
@@ -246,7 +246,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               const Scalar hj2 = rij2/(etaj.magnitude2() + tiny);
               const Scalar hij2 = 0.5*(hi2 + hj2);
               CHECK(hij2 > 0.0);
-              const Scalar mij = 0.5*(mi + mj);
 
               // Compute the grad^2 T term.
               const ThirdRankTensor Tji = Tj - Ti;
@@ -260,7 +259,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                   }
                 }
               }
-              const Scalar rhoij = 0.5*(rhoi + rhoij);
+              const Scalar rhoij = 0.5*(rhoi + rhoj);
               thpt *= 0.5*mMultiplier*hij2*rhoij*(1.0/(rhoi*rhoi) + 1.0/(rhoj*rhoj))*(DvDtmag(nodeListi, i) + DvDtmag(nodeListj, j));
               const Vector DvDtij =  mj*thpt;
               const Vector DvDtji = -mi*thpt;
@@ -277,14 +276,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // In compatible energy mode, we need to increment the pair-wise
               // accelerations.
               if (compatibleEnergyEvolution) {
-                if (!(i >= firstGhostNodei or pairAccelerationsOffset(nodeListi, i) < pairAccelerationsi.size())) 
+                if (!(i >= firstGhostNodei or pairAccelerationsOffset(nodeListi, i) < (int)pairAccelerationsi.size())) 
                   cerr << i << " "
                        << firstGhostNodei << " "
                        << pairAccelerationsOffset(nodeListi, i) << " "
                        << pairAccelerationsi.size() << " "
                        << endl;
-                CHECK(i >= firstGhostNodei or pairAccelerationsOffset(nodeListi, i) < pairAccelerationsi.size());
-                CHECK(j >= firstGhostNodej or pairAccelerationsOffset(nodeListj, j) < pairAccelerationsj.size());
+                CHECK(i >= (int)firstGhostNodei or pairAccelerationsOffset(nodeListi, i) < (int)pairAccelerationsi.size());
+                CHECK(j >= (int)firstGhostNodej or pairAccelerationsOffset(nodeListj, j) < (int)pairAccelerationsj.size());
                 if (i < firstGhostNodei) pairAccelerationsi[pairAccelerationsOffset(nodeListi, i)] += DvDtij;
                 if (j < firstGhostNodej) pairAccelerationsj[pairAccelerationsOffset(nodeListj, j)] += DvDtji;
               }
@@ -305,14 +304,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
          itr != dataBase.fluidNodeListEnd();
          ++itr, ++nodeListi) {
       if (compatibleEnergyEvolution) {
-        for (int i = 0; i != (*itr)->numInternalNodes(); ++i) {
-          if (!(pairAccelerations(nodeListi, i).size() == pairAccelerationsOffset(nodeListi, i))) {
+        for (int i = 0; i != (int)(*itr)->numInternalNodes(); ++i) {
+          if (!((int)pairAccelerations(nodeListi, i).size() == pairAccelerationsOffset(nodeListi, i))) {
             cerr << nodeListi << " "
                  << i << " "
                  << pairAccelerations(nodeListi, i).size() << " "
                  << pairAccelerationsOffset(nodeListi, i) << endl;
           }
-          ENSURE(pairAccelerations(nodeListi, i).size() == pairAccelerationsOffset(nodeListi, i));
+          ENSURE((int)pairAccelerations(nodeListi, i).size() == pairAccelerationsOffset(nodeListi, i));
         }
       }
     }
@@ -327,10 +326,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 template<typename Dimension>
 typename ThirdMomentHourglassControl<Dimension>::TimeStepType
 ThirdMomentHourglassControl<Dimension>::
-dt(const DataBase<Dimension>& dataBase, 
-   const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const typename Dimension::Scalar currentTime) const {
+dt(const DataBase<Dimension>& /*dataBase*/, 
+   const State<Dimension>& /*state*/,
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const typename Dimension::Scalar /*currentTime*/) const {
   return TimeStepType(FLT_MAX, "No vote.");
 }
 
@@ -340,8 +339,8 @@ dt(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 ThirdMomentHourglassControl<Dimension>::
-registerState(DataBase<Dimension>& dataBase,
-              State<Dimension>& state) {
+registerState(DataBase<Dimension>& /*dataBase*/,
+              State<Dimension>& /*state*/) {
 //   REQUIRE(mThirdMoment.numFields() == dataBase.numFluidNodeLists);
 //   for (size_t i = 0; i != dataBase.numFluidNodeLists(); ++i) {
 //     derivs.registerField(*mThirdMoment[i]);
@@ -354,8 +353,8 @@ registerState(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 ThirdMomentHourglassControl<Dimension>::
-registerDerivatives(DataBase<Dimension>& dataBase,
-                    StateDerivatives<Dimension>& derivs) {
+registerDerivatives(DataBase<Dimension>& /*dataBase*/,
+                    StateDerivatives<Dimension>& /*derivs*/) {
 }
 
 }

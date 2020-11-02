@@ -39,27 +39,9 @@ set(SVPH_headers
     SVPHMassDensityPolicy.hh
     )
 
-set(SVPH_python_targets
-  SVPHHydros.py
-  )
+spheral_install_python_files(SVPHHydros.py)
 
 spheral_add_cxx_library(SVPH)
-
-install(TARGETS              Spheral_SVPH
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${SVPH_headers}
-        DESTINATION include/SVPH
-        )
-
-if(NOT ENABLE_CXXONLY)
-  install(FILES       ${SVPH_python_targets}
-          DESTINATION .
-          )
-endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SVPH)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

@@ -8,10 +8,10 @@ class FifthRankTensor:
     "Spheral fifth rank tensor (%(ndim)sx%(ndim)sx%(ndim)sx%(ndim)s) class"
 
     # Static attributes
-    nrank = PYB11readonly(static=True, doc="Rank of the tensor")
-    nDimensions = PYB11readonly(static=True, doc="Number of dimensions")
-    numElements = PYB11readonly(static=True, doc="Number of elements stored in the type")
-    zero = PYB11readonly(static=True, doc="The zero value equivalent")
+    nrank = PYB11readonly(static=True, doc="Rank of the tensor", returnpolicy="copy")
+    nDimensions = PYB11readonly(static=True, doc="Number of dimensions", returnpolicy="copy")
+    numElements = PYB11readonly(static=True, doc="Number of elements stored in the type", returnpolicy="copy")
+    zero = PYB11readonly(static=True, doc="The zero value equivalent", returnpolicy="copy")
 
     # Constructors
     def pyinit0(self):
@@ -26,7 +26,7 @@ class FifthRankTensor:
         "Construct setting the element values to a constant value."
 
     # Sequence methods
-    @PYB11implementation("[](const Dim<%(ndim)s>::FifthRankTensor& self) { return Dim<%(ndim)s>::FifthRankTensor::numElements; }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::FifthRankTensor&) { return Dim<%(ndim)s>::FifthRankTensor::numElements; }")
     def __len__(self):
         "The size (number of elements) of the FifthRankTensor."
 
@@ -77,7 +77,7 @@ class FifthRankTensor:
         return "void"
 
     @PYB11const
-    def doubledot(self, rhs="const Dim<%(ndim)s>::FifthRankTensor"):
+    def doubledot(self, rhs="const RankNTensor<%(ndim)s, 5, GeomFifthRankTensor<%(ndim)s>>& rhs"):
         return "double"
 
     @PYB11const

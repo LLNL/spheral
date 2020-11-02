@@ -526,7 +526,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
 
           // Loop over the neighbors.
+#if defined __INTEL_COMPILER
 #pragma vector always
+#endif
           for (vector<int>::const_iterator jItr = connectivity.begin();
                jItr != connectivity.end();
                ++jItr) {
@@ -761,7 +763,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         if (connectivity.size() > 0) {
           const int firstGhostNodej = nodeLists[nodeListj]->firstGhostNode();
           Field<Dimension, Scalar>& workFieldj = nodeLists[nodeListj]->work();
+#if defined __INTEL_COMPILER
 #pragma vector always
+#endif
           for (vector<int>::const_iterator jItr = connectivity.begin();
                jItr != connectivity.end();
                ++jItr) {

@@ -50,6 +50,7 @@ Integrator<Dimension>::Integrator():
   mDtCheckFrac(0.5),
   mCurrentTime(0.0),
   mCurrentCycle(0),
+  mUpdateBoundaryFrequency(1),
   mVerbose(false),
   mAllowDtCheck(false),
   mRequireConnectivity(true),
@@ -58,7 +59,6 @@ Integrator<Dimension>::Integrator():
   mDataBasePtr(0),
   mPhysicsPackages(0),
   mRigorousBoundaries(false),
-  mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
   mRestart(registerWithRestart(*this)) {
 }
@@ -77,6 +77,7 @@ Integrator(DataBase<Dimension>& dataBase):
   mDtCheckFrac(0.5),
   mCurrentTime(0.0),
   mCurrentCycle(0),
+  mUpdateBoundaryFrequency(1),
   mVerbose(false),
   mAllowDtCheck(false),
   mRequireConnectivity(true),
@@ -85,7 +86,6 @@ Integrator(DataBase<Dimension>& dataBase):
   mDataBasePtr(&dataBase),
   mPhysicsPackages(0),
   mRigorousBoundaries(false),
-  mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
   mRestart(registerWithRestart(*this)) {
 }
@@ -105,6 +105,7 @@ Integrator(DataBase<Dimension>& dataBase,
   mDtCheckFrac(0.5),
   mCurrentTime(0.0),
   mCurrentCycle(0),
+  mUpdateBoundaryFrequency(1),
   mVerbose(false),
   mAllowDtCheck(false),
   mRequireConnectivity(true),
@@ -112,7 +113,6 @@ Integrator(DataBase<Dimension>& dataBase,
   mDataBasePtr(&dataBase),
   mPhysicsPackages(physicsPackages),
   mRigorousBoundaries(false),
-  mUpdateBoundaryFrequency(1),
   mCullGhostNodes(true),
   mRestart(registerWithRestart(*this)) {
 }
@@ -552,10 +552,10 @@ Integrator<Dimension>::setGhostNodes() {
       auto nodeListi = 0;
       for (auto nodeListItr = db.nodeListBegin(); nodeListItr < db.nodeListEnd(); ++nodeListItr, ++nodeListi) {
         const auto& nodeList = **nodeListItr;
-        for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+        for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
           flags(nodeListi, i) = 1;
           const vector<vector<int> >& fullConnectivity = cm.connectivityForNode(&nodeList, i);
-          for (int nodeListj = 0; nodeListj != fullConnectivity.size(); ++nodeListj) {
+          for (auto nodeListj = 0u; nodeListj != fullConnectivity.size(); ++nodeListj) {
             const vector<int>& connectivity = fullConnectivity[nodeListj];
             for (vector<int>::const_iterator jItr = connectivity.begin();
                  jItr != connectivity.end();
@@ -572,7 +572,7 @@ Integrator<Dimension>::setGhostNodes() {
           const auto& ghostNodes = boundary.ghostNodes(nodeList);
           // CHECK(controlNodes.size() == ghostNodes.size());  // Not true if this is a DistributedBoundary!
           for (auto i: controlNodes) {
-            if (i >= firstGhostNode) flags(nodeListi, i) = 1;
+            if (i >= (int)firstGhostNode) flags(nodeListi, i) = 1;
           }
 
           // Boundary conditions are allowed to opt out of culling entirely.
@@ -587,7 +587,7 @@ Integrator<Dimension>::setGhostNodes() {
       nodeListi = 0;
       for (auto nodeListItr = db.nodeListBegin(); nodeListItr < db.nodeListEnd(); ++nodeListItr, ++nodeListi) {
         const auto numNodes = (**nodeListItr).numNodes();
-        for (int i = 0; i != numNodes; ++i) old2newIndexMap(nodeListi, i) = i;
+        for (auto i = 0u; i != numNodes; ++i) old2newIndexMap(nodeListi, i) = i;
       }
 
       // Now use these flags to cull the boundary conditions.
@@ -615,7 +615,7 @@ Integrator<Dimension>::setGhostNodes() {
       // All nodes should now be labeled as keepers.
       BEGIN_CONTRACT_SCOPE
       {
-        for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+        for (auto nodeListi = 0; nodeListi < (int)numNodeLists; ++nodeListi) {
           ENSURE(flags[nodeListi]->numElements() == 0 or
                  *min_element(flags[nodeListi]->begin(), flags[nodeListi]->end()) == 1);
         }
@@ -704,7 +704,7 @@ Integrator<Dimension>::finalizeGhostBoundaries() {
 //   const Time start = Timing::currentTime();
 
   // Get that DataBase.
-  DataBase<Dimension>& db = accessDataBase();
+  //DataBase<Dimension>& db = accessDataBase();
 
   // If we're being rigorous about boundaries, we have to reset the ghost nodes.
   const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();

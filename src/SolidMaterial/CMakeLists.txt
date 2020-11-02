@@ -17,10 +17,7 @@ set(SolidMaterial_inst
 
 set(SolidMaterial_sources )
 
-instantiate(SolidMaterial_inst SolidMaterial_sources)
-
 set(SolidMaterial_headers
-    ANEOS.hh
     CollinsStrength.hh
     ConstantStrength.hh
     Geodyn.hh
@@ -50,32 +47,30 @@ set(SolidMaterial_headers
     TillotsonEquationOfStateInline.hh
     )
 
-set(SolidMaterial_python_targets
-    MaterialPropertiesLib.py
-    SolidMaterialUnits.py
-    SolidMaterialEquationsOfState.py
-    ShadowTillotsonEquationOfState.py
-    ShadowConstantStrength.py
-    )
+spheral_install_python_files(
+  MaterialPropertiesLib.py
+  SolidMaterialUnits.py
+  SolidMaterialEquationsOfState.py
+  ShadowTillotsonEquationOfState.py
+  ShadowConstantStrength.py
+  )
 
+# ANEOS
+if (ENABLE_ANEOS)
+  message("-- ANEOS enabled")
+  list(APPEND SolidMaterial_inst      ANEOS)
+  list(APPEND SolidMaterial_headers   ANEOS.hh)
+  list(APPEND SolidMaterial_sources   ANEOS_initialize.f)
+else()
+  message("-- ANEOS disabled")
+endif()
+
+instantiate(SolidMaterial_inst SolidMaterial_sources)
+
+# Ignore -W-maybe-uninitialized warnings thrown from bisectSearch for possibly uninitialized iterators from boost multi-array.
+set_source_files_properties(ANEOSInst1d.cc ANEOSInst2d.cc ANEOSInst3d.cc PROPERTIES COMPILE_FLAGS -Wno-uninitialized)
 
 spheral_add_cxx_library(SolidMaterial)
-
-install(TARGETS              Spheral_SolidMaterial
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${SolidMaterial_headers}
-        DESTINATION include/SolidMaterial
-        )
-
-if(NOT ENABLE_CXXONLY)
-  install(FILES       ${SolidMaterial_python_targets}
-          DESTINATION .
-          )
-endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SolidMaterial)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

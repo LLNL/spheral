@@ -16,8 +16,8 @@ innerProductRK(const DataType1& x,
                const DataType2& y,
                const int offsetx,
                const int offsety) {
-  CHECK(x.size() >= offsetx + polynomialSize);
-  CHECK(y.size() >= offsety + polynomialSize);
+  CHECK((int)x.size() >= offsetx + polynomialSize);
+  CHECK((int)y.size() >= offsety + polynomialSize);
   return std::inner_product(std::begin(x) + offsetx,
                             std::begin(x) + offsetx + polynomialSize,
                             std::begin(y) + offsety,
@@ -114,7 +114,7 @@ template<>
 inline
 void
 RKUtilities<Dim<1>, RKOrder::ZerothOrder>::
-getPolynomials(const Dim<1>::Vector& x,
+getPolynomials(const Dim<1>::Vector&,
                PolyArray& p) {
   p = {1};
 }
@@ -122,7 +122,7 @@ template<>
 inline
 void
 RKUtilities<Dim<2>, RKOrder::ZerothOrder>::
-getPolynomials(const Dim<2>::Vector& x,
+getPolynomials(const Dim<2>::Vector&,
                PolyArray& p) {
   p = {1};
 }
@@ -130,7 +130,7 @@ template<>
 inline
 void
 RKUtilities<Dim<3>, RKOrder::ZerothOrder>::
-getPolynomials(const Dim<3>::Vector& x,
+getPolynomials(const Dim<3>::Vector&,
                PolyArray& p) {
   p = {1};
 }
@@ -326,7 +326,7 @@ template<>
 inline
 void
 RKUtilities<Dim<1>, RKOrder::ZerothOrder>::
-getGradPolynomials(const Dim<1>::Vector& x,
+getGradPolynomials(const Dim<1>::Vector&,
                    GradPolyArray& p) {
   p = {0};
 }
@@ -334,7 +334,7 @@ template<>
 inline
 void
 RKUtilities<Dim<2>, RKOrder::ZerothOrder>::
-getGradPolynomials(const Dim<2>::Vector& x,
+getGradPolynomials(const Dim<2>::Vector&,
                    GradPolyArray& p) {
   p = {0,0};
 }
@@ -342,7 +342,7 @@ template<>
 inline
 void
 RKUtilities<Dim<3>, RKOrder::ZerothOrder>::
-getGradPolynomials(const Dim<3>::Vector& x,
+getGradPolynomials(const Dim<3>::Vector&,
                    GradPolyArray& p) {
   p = {0,0,0};
 }
@@ -352,7 +352,7 @@ template<>
 inline
 void
 RKUtilities<Dim<1>, RKOrder::LinearOrder>::
-getGradPolynomials(const Dim<1>::Vector& x,
+getGradPolynomials(const Dim<1>::Vector&,
                    GradPolyArray& p) {
   p = {0,1};
 }
@@ -360,7 +360,7 @@ template<>
 inline
 void
 RKUtilities<Dim<2>, RKOrder::LinearOrder>::
-getGradPolynomials(const Dim<2>::Vector& x,
+getGradPolynomials(const Dim<2>::Vector&,
                    GradPolyArray& p) {
   p = {0,1,0,0,0,1};
 }
@@ -368,7 +368,7 @@ template<>
 inline
 void
 RKUtilities<Dim<3>, RKOrder::LinearOrder>::
-getGradPolynomials(const Dim<3>::Vector& x,
+getGradPolynomials(const Dim<3>::Vector&,
                    GradPolyArray& p) {
   p = {0,1,0,0,0,0,1,0,0,0,0,1};
 }
@@ -538,7 +538,7 @@ template<>
 inline
 void
 RKUtilities<Dim<1>, RKOrder::ZerothOrder>::
-getHessPolynomials(const Dim<1>::Vector& x,
+getHessPolynomials(const Dim<1>::Vector&,
                    HessPolyArray& p) {
   p = {0};
 }
@@ -546,7 +546,7 @@ template<>
 inline
 void
 RKUtilities<Dim<2>, RKOrder::ZerothOrder>::
-getHessPolynomials(const Dim<2>::Vector& x,
+getHessPolynomials(const Dim<2>::Vector&,
                    HessPolyArray& p) {
   p = {0,0,0};
 }
@@ -554,7 +554,7 @@ template<>
 inline
 void
 RKUtilities<Dim<3>, RKOrder::ZerothOrder>::
-getHessPolynomials(const Dim<3>::Vector& x,
+getHessPolynomials(const Dim<3>::Vector&,
                    HessPolyArray& p) {
   p = {0,0,0,0,0,0};
 }
@@ -564,7 +564,7 @@ template<>
 inline
 void
 RKUtilities<Dim<1>, RKOrder::LinearOrder>::
-getHessPolynomials(const Dim<1>::Vector& x,
+getHessPolynomials(const Dim<1>::Vector&,
                    HessPolyArray& p) {
   p = {0,0};
 }
@@ -572,7 +572,7 @@ template<>
 inline
 void
 RKUtilities<Dim<2>, RKOrder::LinearOrder>::
-getHessPolynomials(const Dim<2>::Vector& x,
+getHessPolynomials(const Dim<2>::Vector&,
                    HessPolyArray& p) {
   p = {0,0,0,0,0,0,0,0,0};
 }
@@ -580,7 +580,7 @@ template<>
 inline
 void
 RKUtilities<Dim<3>, RKOrder::LinearOrder>::
-getHessPolynomials(const Dim<3>::Vector& x,
+getHessPolynomials(const Dim<3>::Vector&,
                    HessPolyArray& p) {
   p = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 }
@@ -590,7 +590,7 @@ template<>
 inline
 void
 RKUtilities<Dim<1>, RKOrder::QuadraticOrder>::
-getHessPolynomials(const Dim<1>::Vector& x,
+getHessPolynomials(const Dim<1>::Vector&,
                    HessPolyArray& p) {
   p = {0,0,2};
 }
@@ -598,7 +598,7 @@ template<>
 inline
 void
 RKUtilities<Dim<2>, RKOrder::QuadraticOrder>::
-getHessPolynomials(const Dim<2>::Vector& x,
+getHessPolynomials(const Dim<2>::Vector&,
                    HessPolyArray& p) {
   p = {0,0,0,2,0,0,0,0,0,0,1,0,0,0,0,0,0,2};
 }
@@ -606,7 +606,7 @@ template<>
 inline
 void
 RKUtilities<Dim<3>, RKOrder::QuadraticOrder>::
-getHessPolynomials(const Dim<3>::Vector& x,
+getHessPolynomials(const Dim<3>::Vector&,
                    HessPolyArray& p) {
   p = {0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,2};
 }

@@ -92,7 +92,7 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
               const Field<Dimension, Scalar>& plasticStrainRate) const {
   Field<Dimension, Scalar> T("temperature", yieldStrength.nodeList());
   mEOSPtr->setTemperature(T, density, specificThermalEnergy);
-  for (auto i = 0; i != yieldStrength.numInternalElements(); ++i) {
+  for (auto i = 0u; i != yieldStrength.numInternalElements(); ++i) {
     const auto Tstar = max(0.0, T(i) - mTroom)/(mTmelt - mTroom);
     yieldStrength(i) = 
       (mA + mB*pow(plasticStrain(i), mnhard))*
@@ -105,7 +105,7 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
   if (mShearModulusScaling) {
     Field<Dimension, Scalar> mu("shear modulus", yieldStrength.nodeList());
     mShearModulusModelPtr->shearModulus(mu, density, specificThermalEnergy, pressure);
-    for (auto i = 0; i != yieldStrength.numInternalElements(); ++i) {
+    for (auto i = 0u; i != yieldStrength.numInternalElements(); ++i) {
       yieldStrength(i) *= mu(i)*safeInvVar(mmu0);
     }
   }

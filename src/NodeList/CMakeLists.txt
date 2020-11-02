@@ -33,29 +33,13 @@ set(NodeList_headers
     secondMomentUtilities.hh
     )
 
-set(NodeList_python_targets
-    FluidNodeLists.py
-    SolidNodeLists.py
-    VoidNodeLists.py
-    )
+spheral_install_python_files(
+  FluidNodeLists.py
+  SolidNodeLists.py
+  VoidNodeLists.py
+  )
 
 spheral_add_cxx_library(NodeList)
-
-install(TARGETS              Spheral_NodeList
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${NodeList_headers}
-        DESTINATION include/NodeList
-        )
-
-if(NOT ENABLE_CXXONLY)
-  install(FILES       ${NodeList_python_targets}
-          DESTINATION .
-          )
-endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_NodeList)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

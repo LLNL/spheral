@@ -52,7 +52,7 @@ swapIndicies(EigenStruct<nDim>& result,
 
 inline
 void
-sortEigenValues(EigenStruct<1>& result) {
+sortEigenValues(EigenStruct<1>& /*result*/) {
 }
   
 inline
@@ -107,8 +107,9 @@ sortByPositions(list<DomainNode<Dimension> >& domainNodes,
        ++itr1) {
     typename list<DomainNode<Dimension> >::const_iterator itr2 = itr1;
     ++itr2;
-    if (itr2 != domainNodes.end()) 
+    if (itr2 != domainNodes.end()) {
       ENSURE(itr1->position(positionIndex) <= itr2->position(positionIndex));
+    }
   }
   END_CONTRACT_SCOPE
 }
@@ -194,6 +195,7 @@ popFrontNodes(list<DomainNode<Dimension> >& sortedCandidateNodes,
       int sumNumAvailableNodes;
       MPI_Allreduce(&totalWork, &sumTotalWork, 1, MPI_DOUBLE, MPI_SUM, Communicator::communicator());
       MPI_Allreduce(&globalNumAvailableNodes, &sumNumAvailableNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+      CONTRACT_VAR(numProcs);
       ENSURE(fuzzyEqual(sumTotalWork, numProcs * totalWork, 1.0e-12));
       ENSURE(sumNumAvailableNodes == numProcs * globalNumAvailableNodes);
     }
@@ -258,6 +260,7 @@ shapeTensor(const vector<DomainNode<Dimension> >& domainNodes) const {
   {
     double x = result.eigenValues(0);
     for (int i = 1; i != Dimension::nDim; ++i) {
+      CONTRACT_VAR(x);
       ENSURE(x >= result.eigenValues(i));
       x = result.eigenValues(i);
     }
@@ -338,9 +341,9 @@ reduceDomainNodes(const std::vector<DomainNode<Dimension> >& nodes,
             node.unpack(itr);
             CHECK(itr <= buffer.end());
             result.push_back(node);
-            CHECK(result.size() <= oldNumNodes + numRecvNodes);
+            CHECK((int)result.size() <= oldNumNodes + numRecvNodes);
           }
-          CHECK(result.size() == oldNumNodes + numRecvNodes);
+          CHECK((int)result.size() == oldNumNodes + numRecvNodes);
 
         }
 
@@ -364,7 +367,7 @@ reduceDomainNodes(const std::vector<DomainNode<Dimension> >& nodes,
 
     // Now send that sucker.
     int bufferSize = buffer.size();
-    CHECK(bufferSize == nodes.size() * DomainNode<Dimension>::packSize());
+    CHECK(bufferSize == (int)nodes.size() * (int)DomainNode<Dimension>::packSize());
     MPI_Send(&bufferSize, 1, MPI_INT, targetProc, 200, Communicator::communicator());
     if (bufferSize > 0) MPI_Send(&(*buffer.begin()), bufferSize, MPI_DOUBLE, targetProc, 201, Communicator::communicator());
 
@@ -387,6 +390,7 @@ broadcastDomainNodes(const std::vector<DomainNode<Dimension> >& nodes,
   // The usual parallel IDs.
   const int procID = this->domainID();
   const int numProcs = this->numDomains();
+  CONTRACT_VAR(numProcs);
   REQUIRE(targetProc >= 0 && targetProc < numProcs);
 
   // Are we sending or receiving?
@@ -427,7 +431,7 @@ broadcastDomainNodes(const std::vector<DomainNode<Dimension> >& nodes,
   }
 
   // That's it.
-  ENSURE(result.size() == numNodes);
+  ENSURE((int)result.size() == numNodes);
   return result;
 }
 

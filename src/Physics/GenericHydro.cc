@@ -43,7 +43,7 @@ namespace {
 //------------------------------------------------------------------------------
 inline
 double
-computeShearMagnitude(const Dim<1>::Tensor& dvdx) {
+computeShearMagnitude(const Dim<1>::Tensor& /*dvdx*/) {
   return 0.0;
 }
 
@@ -66,7 +66,7 @@ template<typename Vector>
 std::string
 vec_to_string(const Vector& vec) {
   std::ostringstream oss;
-  oss << vec << std::ends;
+  oss << vec << std::endl;
   return oss.str();
 }
 
@@ -87,18 +87,18 @@ GenericHydro(ArtificialViscosity<Dimension>& Q,
   mMinMasterNeighbor(INT_MAX),
   mMaxMasterNeighbor(0),
   mSumMasterNeighbor(0),
-  mNormMasterNeighbor(0),
   mMinCoarseNeighbor(INT_MAX),
   mMaxCoarseNeighbor(0),
   mSumCoarseNeighbor(0),
-  mNormCoarseNeighbor(0),
   mMinRefineNeighbor(INT_MAX),
   mMaxRefineNeighbor(0),
   mSumRefineNeighbor(0),
-  mNormRefineNeighbor(0),
   mMinActualNeighbor(INT_MAX),
   mMaxActualNeighbor(0),
   mSumActualNeighbor(0),
+  mNormMasterNeighbor(0),
+  mNormCoarseNeighbor(0),
+  mNormRefineNeighbor(0),
   mNormActualNeighbor(0) {
 }
 
@@ -118,7 +118,7 @@ GenericHydro<Dimension>::
 dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
-   typename Dimension::Scalar currentTime) const {
+   typename Dimension::Scalar /*currentTime*/) const {
 
   const double tiny = std::numeric_limits<double>::epsilon();
 
@@ -138,10 +138,10 @@ dt(const DataBase<Dimension>& dataBase,
   const auto  numNodeLists = connectivityMap.nodeLists().size();
 
   // Stuff from the artificial viscosity
-  const auto& Q = this->artificialViscosity();
-  const auto  Cl = Q.Cl();
-  const auto  Cq = Q.Cq();
-  const auto  Qeps2 = Q.epsilon2();
+  //const auto& Q = this->artificialViscosity();
+  //const auto  Cl = Q.Cl();
+  //const auto  Cq = Q.Cq();
+  //const auto  Qeps2 = Q.epsilon2();
 
   // Check for deviatoric stress.
   const auto haveDS = state.fieldNameRegistered(SolidFieldNames::deviatoricStress);
@@ -159,19 +159,19 @@ dt(const DataBase<Dimension>& dataBase,
   // Loop over every fluid node.
   // #pragma omp declare reduction (MINPAIR : pair<double,string> : omp_out = (omp_out.first < omp_in.first ? omp_out : omp_in)) initializer(omp_priv = pair<double,string>(std::numeric_limits<double>::max(), string("null")))
   // #pragma omp parallel for reduction(MINPAIR:minDt) collapse(2)
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& fluidNodeList = **(dataBase.fluidNodeListBegin() + nodeListi);
     const auto nPerh = fluidNodeList.nodesPerSmoothingScale();
     CHECK(nPerh > 0.0);
 
     // Check if we have a longitudinal sound speed for this material.
     const bool useCsl = haveLongCs and csl.haveNodeList(fluidNodeList);
-    const Field<Dimension, Scalar>* cslptr;
+    const Field<Dimension, Scalar>* cslptr = nullptr;
     if (useCsl) cslptr = *csl.fieldForNodeList(fluidNodeList);
 
     // Check if we have a deviatoric stress for this material.
     const bool useS = haveDS and S.haveNodeList(fluidNodeList);
-    const Field<Dimension, SymTensor>* Sptr;
+    const Field<Dimension, SymTensor>* Sptr = nullptr;
     if (useS) Sptr = *S.fieldForNodeList(fluidNodeList);
 
     // Walk all the nodes in this FluidNodeList.
@@ -265,19 +265,19 @@ dt(const DataBase<Dimension>& dataBase,
           }
 
           // Maximum velocity difference limit.
-          const auto& xi = position(nodeListi, i);
+          //const auto& xi = position(nodeListi, i);
           const auto& vi = velocity(nodeListi, i);
           const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-          for (auto nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+          for (auto nodeListj = 0u; nodeListj != numNodeLists; ++nodeListj) {
             const auto& connectivity = fullConnectivity[nodeListj];
             for (auto jItr = connectivity.begin();
                  jItr != connectivity.end();
                  ++jItr) {
               const auto  j = *jItr;
-              const auto& xj = position(nodeListj, j);
+              //const auto& xj = position(nodeListj, j);
               const auto& vj = velocity(nodeListj, j);
               const auto& Hj = H(nodeListj, j);
-              const auto  rhoj = rho(nodeListj, j);
+              //const auto  rhoj = rho(nodeListj, j);
               const Scalar nodeScalej = 1.0/Hj.eigenValues().maxElement()/nPerh;
               // const Scalar vij = std::abs((vj - vi).dot((xi - xj).unitVector()));
               const auto  vij = vi - vj;

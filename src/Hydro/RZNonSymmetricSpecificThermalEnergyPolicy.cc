@@ -76,8 +76,8 @@ update(const KeyType& key,
        State<Dim<2>>& state,
        StateDerivatives<Dim<2>>& derivs,
        const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*t*/,
+       const double /*dt*/) {
 
 //   // HACK!
 //   std::cerr.setf(std::ios::scientific, std::ios::floatfield);
@@ -125,7 +125,7 @@ update(const KeyType& key,
     auto DepsDt_thread = DepsDt.threadCopy();
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       const auto i = pairs[kk].i_node;
       const auto j = pairs[kk].j_node;
       const auto nodeListi = pairs[kk].i_list;
@@ -173,10 +173,10 @@ update(const KeyType& key,
 
   // Now we can update the energy.
   auto offset = 2*npairs;
-  for (auto nodeListi = 0; nodeListi < numFields; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numFields; ++nodeListi) {
     const auto n = eps[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
 
       // Add the self-contribution if any (RZ with strength does this for instance).
       if (selfInteraction) {

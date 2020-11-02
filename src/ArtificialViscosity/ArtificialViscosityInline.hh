@@ -150,7 +150,7 @@ template<>
 inline
 Dim<1>::Scalar
 ArtificialViscosity< Dim<1> >::
-curlVelocityMagnitude(const Dim<1>::Tensor& DvDx) const {
+curlVelocityMagnitude(const Dim<1>::Tensor& /*DvDx*/) const {
   return 0.0;
 }
 
@@ -289,12 +289,12 @@ template<typename Dimension>
 inline
 typename Dimension::Tensor
 ArtificialViscosity<Dimension>::
-calculateLimiter(const Vector& vi,
-                 const Vector& vj,
-                 const Scalar ci,
-                 const Scalar cj,
-                 const Scalar hi,
-                 const Scalar hj,
+calculateLimiter(const Vector& /*vi*/,
+                 const Vector& /*vj*/,
+                 const Scalar  ci,
+                 const Scalar  /*cj*/,
+                 const Scalar  hi,
+                 const Scalar  /*hj*/,
                  const int nodeListID,
                  const int nodeID) const {
 
@@ -422,8 +422,8 @@ shockDirection(const Scalar ci,
   REQUIRE(csMultiplier() > 0.0);
   REQUIRE(negligibleSoundSpeed() > 0.0);
   REQUIRE(epsilon2() > 0.0);
-  REQUIRE(nodeListID >= 0 && nodeListID < mGradDivVelocity.size());
-  REQUIRE(nodeID >= 0 && nodeID < mGradDivVelocity[nodeListID]->nodeListPtr()->numNodes());
+  REQUIRE(nodeListID >= 0 && nodeListID < (int)mGradDivVelocity.size());
+  REQUIRE(nodeID >= 0 && nodeID < (int)mGradDivVelocity[nodeListID]->nodeListPtr()->numNodes());
 
   const Scalar csi = max(mNegligibleSoundSpeed, mCsMultiplier*ci);
   const Scalar csOverhi2 = csi/(hi*hi);
@@ -466,7 +466,7 @@ template<>
 inline
 Dim<1>::Scalar
 ArtificialViscosity< Dim<1> >::
-computeDelCrossVMagnitude(const Dim<1>::Tensor& sigma) const {
+computeDelCrossVMagnitude(const Dim<1>::Tensor& /*sigma*/) const {
   return 0.0;
 }
 
@@ -495,7 +495,7 @@ template<>
 inline
 Dim<1>::Vector
 ArtificialViscosity<Dim<1> >::
-sigmaWeighting(const Dim<1>::Vector& r) const {
+sigmaWeighting(const Dim<1>::Vector&) const {
   return Dim<1>::Vector(1.0);
 }
 

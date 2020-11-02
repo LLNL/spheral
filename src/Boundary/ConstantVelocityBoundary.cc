@@ -38,7 +38,7 @@ ConstantVelocityBoundary(const NodeList<Dimension>& nodeList,
   for (vector<int>::const_iterator itr = nodeIndices.begin();
        itr < nodeIndices.end();
        ++itr) {
-    REQUIRE(*itr >= 0.0 && *itr < nodeList.numInternalNodes());
+    REQUIRE(*itr >= 0.0 && *itr < (int)nodeList.numInternalNodes());
     mNodes(*itr) = 1;
   }
 
@@ -71,7 +71,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
-updateGhostNodes(NodeList<Dimension>& nodeList) {
+updateGhostNodes(NodeList<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
-applyGhostBoundary(FieldBase<Dimension>& field) const {
+applyGhostBoundary(FieldBase<Dimension>&) const {
 }
 
 //------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
-updateViolationNodes(NodeList<Dimension>& nodeList) {
+updateViolationNodes(NodeList<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -137,7 +137,7 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
     for (vector<int>::const_iterator itr = nodeIDs.begin();
          itr < nodeIDs.end();
          ++itr) {
-      CHECK(*itr < field.numElements());
+      CHECK(*itr < (int)field.numElements());
       field[*itr] = mVelocity[*itr];
     }
   }

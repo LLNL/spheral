@@ -21,7 +21,7 @@ inline
 py::list
 copy2py(T* carray, const size_t nvals) {
   py::list result;
-  for (auto i = 0; i < nvals; ++i) result.append(carray[i]);
+  for (auto i = 0; i < (int)nvals; ++i) result.append(carray[i]);
   return result;
 }
 
@@ -29,7 +29,7 @@ inline
 py::list
 copy2py(char** carray, const size_t nvals) {
   py::list result;
-  for (auto i = 0; i < nvals; ++i) result.append(std::string(carray[i]));
+  for (auto i = 0; i < (int)nvals; ++i) result.append(std::string(carray[i]));
   return result;
 }
 
@@ -38,14 +38,14 @@ py::list
 copy2py(void** carray, const size_t nout, const size_t nin, const int dtype) {
   if (not (dtype == DB_FLOAT or dtype == DB_DOUBLE)) throw py::value_error("Require float or double type");
   py::list result;
-  for (auto k = 0; k < nout; ++k) {
+  for (auto k = 0; k < (int)nout; ++k) {
     py::list row;
     if (dtype == DB_FLOAT) {
       auto* cvals = static_cast<float*>(carray[k]);
-      for (auto i = 0; i < nin; ++i) row.append(cvals[i]);
+      for (auto i = 0; i < (int)nin; ++i) row.append(cvals[i]);
     } else {
       auto* cvals = static_cast<double*>(carray[k]);
-      for (auto i = 0; i < nin; ++i) row.append(cvals[i]);
+      for (auto i = 0; i < (int)nin; ++i) row.append(cvals[i]);
     }
     result.append(row);
   }
@@ -60,7 +60,7 @@ copy2c(T* carray, py::list& vals) {
   if (carray != NULL) free(carray);
   const auto nvals = vals.size();
   carray = (T*) malloc(sizeof(T)*vals.size());
-  for (auto i = 0; i < nvals; ++i) carray[i] = vals[i].cast<T>();
+  for (auto i = 0; i < (int)nvals; ++i) carray[i] = vals[i].cast<T>();
 }
 
 inline
@@ -70,7 +70,7 @@ copy2c(char** carray, py::list& vals) {
   const auto nvals = vals.size();
   if (nvals > 0) {
     carray = new char*[nvals];
-    for (auto i = 0; i < nvals; ++i) {
+    for (auto i = 0; i < (int)nvals; ++i) {
       auto val = vals[i].cast<std::string>();
       carray[i] = new char[val.size() + 1];
       strcpy(carray[i], val.c_str());
@@ -83,18 +83,18 @@ void
 copy2c(void** carray, py::list& vals, const size_t nout, const size_t nin, const int dtype) {
   if (not (dtype == DB_FLOAT or dtype == DB_DOUBLE)) throw py::value_error("Require float or double type");
   if (vals.size() != nout) throw py::value_error("incorrectly sized list");
-  for (auto k = 0; k < nout; ++k) {
+  for (auto k = 0; k < (int)nout; ++k) {
     auto rowvals = vals[k].cast<py::list>();
     if (rowvals.size() != nin) throw py::value_error("incorrectly sized inner list");
     if (carray[k] != NULL) free(carray[k]);
     if (dtype == DB_FLOAT) {
       carray[k] = malloc(sizeof(float)*nin);
       auto* cvals = static_cast<float*>(carray[k]);
-      for (auto i = 0; i < nin; ++i) cvals[i] = rowvals[i].cast<float>();
+      for (auto i = 0; i < (int)nin; ++i) cvals[i] = rowvals[i].cast<float>();
     } else {
       carray[k] = malloc(sizeof(double)*nin);
       auto* cvals = static_cast<double*>(carray[k]);
-      for (auto i = 0; i < nin; ++i) cvals[i] = rowvals[i].cast<double>();
+      for (auto i = 0; i < (int)nin; ++i) cvals[i] = rowvals[i].cast<double>();
     }
   }
 }
@@ -288,7 +288,7 @@ struct DBoptlist_wrapper {
 
   // Destructor.
   ~DBoptlist_wrapper() {
-    VERIFY(DBFreeOptlist(mOptlistPtr) == 0);
+    ASSERT(DBFreeOptlist(mOptlistPtr) == 0);
   }
 
   // Generic functor definitions for adding and getting options.
@@ -427,7 +427,7 @@ DBoptlist_wrapper::AddOptionFunctor<std::string> {
     auto value = static_cast<std::vector<std::string>*>(voidValue.get());
     std::shared_ptr<void> voidChar(new char*[value->size()]);
     char** charArray = (char**) voidChar.get();
-    for (auto k = 0; k < value->size(); ++k) {
+    for (auto k = 0; k < (int)value->size(); ++k) {
       charArray[k] = new char[(*value)[k].size() + 1];
       strcpy(charArray[k], (*value)[k].c_str());
     }
@@ -454,7 +454,7 @@ DBoptlist_wrapper::GetOptionFunctor<std::string> {
     char** chararray = (char**) DBGetOption(optlist_wrapper.mOptlistPtr, option);
     std::vector<std::string> result(chararray, chararray + resultsize);
     // for (unsigned k = 0;  k != resultsize; ++k) result.push_back(std::string(chararray[k]));
-    VERIFY(result.size() == resultsize);
+    VERIFY((int)result.size() == resultsize);
     return result;
   }
 };
@@ -628,7 +628,7 @@ DBWrite_vector_of_vector(DBfile& file,
   auto ndims = var.size();
   auto dims = std::vector<int>(ndims);
   std::vector<T> varlinear;
-  for (auto i = 0; i < ndims; ++i) {
+  for (auto i = 0; i < (int)ndims; ++i) {
     dims[i] = var[i].size();
     auto istart = varlinear.size();
     varlinear.resize(varlinear.size() + dims[i]);
@@ -954,7 +954,7 @@ DBPutQuadmesh(DBfile& file,
   auto nxynodes = nxnodes*coords[1].size();
   std::vector<int> meshdims(ndims);
   auto nnodes = 1;
-  for (auto k = 0; k < ndims; ++k) {
+  for (auto k = 0; k < (int)ndims; ++k) {
     meshdims[k] = coords[k].size();
     nnodes *= coords[k].size();
   }
@@ -962,12 +962,12 @@ DBPutQuadmesh(DBfile& file,
   // We need the C-stylish pointers to the coordinates.
   // This is where we flesh out to the nnodes number of values too.
   double** coordPtrs = new double*[ndims];
-  for (auto k = 0; k < ndims; ++k) coordPtrs[k] = new double[nnodes];
+  for (auto k = 0; k < (int)ndims; ++k) coordPtrs[k] = new double[nnodes];
   for (auto inode = 0; inode < nnodes; ++inode) {
     const size_t index[3] = {inode % nxnodes,
                              (inode % nxynodes) / nxnodes,
                              inode / nxynodes};
-    for (auto k = 0; k < ndims; ++k) coordPtrs[k][inode] = coords[k][index[k]];
+    for (auto k = 0; k < (int)ndims; ++k) coordPtrs[k][inode] = coords[k][index[k]];
   }
 
   // Do the deed.
@@ -982,7 +982,7 @@ DBPutQuadmesh(DBfile& file,
                                    optlist.mOptlistPtr);             // optlist
 
   // That's it.
-  for (auto k = 0; k < ndims; ++k) delete[] coordPtrs[k];
+  for (auto k = 0; k < (int)ndims; ++k) delete[] coordPtrs[k];
   delete[] coordPtrs;
   return result;
 }
@@ -1057,7 +1057,7 @@ DBPutUcdvar(DBfile& file,
   int nels = values.size();
   int mixlen = mixValues.size();
   std::vector<char*> varnames;
-  for (i = 0; i != nvars; ++i) {
+  for (i = 0; (int)i != nvars; ++i) {
     varnames.push_back(const_cast<char*>((name + "_").c_str()));
     sprintf(varnames.back(), "%i", i);
   }
@@ -1065,12 +1065,12 @@ DBPutUcdvar(DBfile& file,
   // Build the sub-variables.
   double** vars = new double*[nvars];
   double** mixvars = new double*[nvars];
-  for (i = 0; i != nvars; ++i) {
+  for (i = 0; (int)i != nvars; ++i) {
     vars[i] = new double[nels];
     mixvars[i] = new double[mixlen];
   }
-  for (j = 0; j != nels; ++j) Spheral2Silo<T>::copyElement(values[j], vars, j);
-  for (j = 0; j != mixlen; ++j) Spheral2Silo<T>::copyElement(mixValues[j], mixvars, j);
+  for (j = 0; (int)j != nels; ++j) Spheral2Silo<T>::copyElement(values[j], vars, j);
+  for (j = 0; (int)j != mixlen; ++j) Spheral2Silo<T>::copyElement(mixValues[j], mixvars, j);
 
   const int result = DBPutUcdvar(&file,
                                  name.c_str(),
@@ -1086,7 +1086,7 @@ DBPutUcdvar(DBfile& file,
                                  optlist.mOptlistPtr);
 
   // That's it.
-  for (i = 0; i != nvars; ++i) {
+  for (i = 0; (int)i != nvars; ++i) {
     delete[] vars[i];
     delete[] mixvars[i];
   }
@@ -1192,7 +1192,7 @@ DBPutQuadvar(DBfile& file,
   auto nels = values.size();
   auto mixlen = mixValues.size();
   std::vector<char*> varnames;
-  for (auto i = 0; i != nvars; ++i) {
+  for (auto i = 0; i != (int)nvars; ++i) {
     varnames.push_back(const_cast<char*>((name + "_").c_str()));
     sprintf(varnames.back(), "%i", i);
   }
@@ -1200,12 +1200,12 @@ DBPutQuadvar(DBfile& file,
   // Build the sub-variables.
   double** vars = new double*[nvars];
   double** mixvars = new double*[nvars];
-  for (auto i = 0; i != nvars; ++i) {
+  for (auto i = 0; i != (int)nvars; ++i) {
     vars[i] = new double[nels];
     mixvars[i] = new double[mixlen];
   }
-  for (auto j = 0; j != nels; ++j) Spheral2Silo<T>::copyElement(values[j], vars, j);
-  for (auto j = 0; j != mixlen; ++j) Spheral2Silo<T>::copyElement(mixValues[j], mixvars, j);
+  for (auto j = 0; j != (int)nels; ++j) Spheral2Silo<T>::copyElement(values[j], vars, j);
+  for (auto j = 0; j != (int)mixlen; ++j) Spheral2Silo<T>::copyElement(mixValues[j], mixvars, j);
 
   const auto result = DBPutQuadvar(&file,
                                    name.c_str(),
@@ -1222,7 +1222,7 @@ DBPutQuadvar(DBfile& file,
                                    optlist.mOptlistPtr);
 
   // That's it.
-  for (auto i = 0; i != nvars; ++i) {
+  for (auto i = 0; i != (int)nvars; ++i) {
     delete[] vars[i];
     delete[] mixvars[i];
   }
@@ -1431,10 +1431,10 @@ DBPutPointvar(DBfile& file,
 
   // Build the sub-variables.
   double** vars = new double*[nvars];
-  for (i = 0; i != nvars; ++i) {
+  for (i = 0; (int)i != nvars; ++i) {
     vars[i] = new double[nels];
   }
-  for (j = 0; j != nels; ++j) Spheral2Silo<T>::copyElement(values[j], vars, j);
+  for (j = 0; (int)j != nels; ++j) Spheral2Silo<T>::copyElement(values[j], vars, j);
 
   const int result = DBPutPointvar(&file,
                                    name.c_str(),
@@ -1446,7 +1446,7 @@ DBPutPointvar(DBfile& file,
                                    optlist.mOptlistPtr);
 
   // That's it.
-  for (i = 0; i != nvars; ++i) {
+  for (i = 0; (int)i != nvars; ++i) {
     delete[] vars[i];
   }
   delete[] vars;
@@ -1489,8 +1489,8 @@ DBAddRegion(DBmrgtree_wrapper& tree,
             std::vector<int>& seg_types,
             DBoptlist_wrapper& optlist) {
   int nsegs = seg_ids.size();
-  VERIFY(seg_lens.size() == nsegs);
-  VERIFY(seg_types.size() == nsegs);
+  VERIFY((int)seg_lens.size() == nsegs);
+  VERIFY((int)seg_types.size() == nsegs);
   return DBAddRegion(tree.mDBmrgtree,
                      reg_name.c_str(),
                      info_bits,

@@ -110,7 +110,7 @@ bool
 Box1d::
 contains(const Box1d::Vector& point,
          const bool countBoundary,
-         const double tol) const {
+         const double /*tol*/) const {
   if (countBoundary) {
     return std::abs(point.x() - mCenter.x()) <= mExtent;
   } else {
@@ -295,6 +295,7 @@ inline
 double
 Box1d::
 facetArea(const unsigned facetID) const {
+  CONTRACT_VAR(facetID);
   REQUIRE(facetID < 2);
   return 1.0;
 }

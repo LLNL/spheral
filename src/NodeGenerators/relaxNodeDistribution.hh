@@ -31,7 +31,7 @@ struct WeightingFunctor {
   virtual double operator()(const Vector& pos, const FacetedVolume& boundary) const {
     return this->__call__(pos, boundary);
   }
-  virtual double __call__(const Vector& pos, const FacetedVolume& boundary) const { return 1.0; }
+  virtual double __call__(const Vector& /*pos*/, const FacetedVolume& /*boundary*/) const { return 1.0; }
 };
 
 //------------------------------------------------------------------------------

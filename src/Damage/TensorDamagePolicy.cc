@@ -71,7 +71,7 @@ abs_in_place(Dim<3>::Vector& vec) {
 //------------------------------------------------------------------------------
 inline
 void
-sortEigen(Dim<1>::SymTensor::EigenStructType& eigeni) {
+sortEigen(Dim<1>::SymTensor::EigenStructType&) {
 }
 
 inline
@@ -119,7 +119,7 @@ sortEigen(Dim<3>::SymTensor::EigenStructType& eigeni) {
 //------------------------------------------------------------------------------
 inline
 Dim<1>::Tensor
-effectiveRotation(const Dim<1>::Tensor& DvDx) {
+effectiveRotation(const Dim<1>::Tensor&) {
   return Dim<1>::Tensor::one;
 }
 
@@ -179,15 +179,15 @@ update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*t*/,
+       const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == SolidFieldNames::tensorDamage);
   Field<Dimension, SymTensor>& stateField = state.field(key, SymTensor::zero);
 
-  const double tiny = 1.0e-30;
-  const double tol = 1.0e-5;
+  //const double tiny = 1.0e-30;
+  //const double tol = 1.0e-5;
 
   // Get the state fields.
   const auto strainKey = State<Dimension>::buildFieldKey(SolidFieldNames::effectiveStrainTensor, nodeListKey);
@@ -206,10 +206,10 @@ update(const KeyType& key,
   CHECK(derivs.registered(DvDxKey));
 
   const auto& strain = state.field(strainKey, SymTensor::zero);
-  const auto& plasticStrain = state.field(psKey, 0.0);
-  const auto& pressure = state.field(PKey, 0.0);
-  const auto& cl = state.field(clKey, 0.0);
-  const auto& H = state.field(HKey, SymTensor::zero);
+  //const auto& plasticStrain = state.field(psKey, 0.0);
+  //const auto& pressure = state.field(PKey, 0.0);
+  //const auto& cl = state.field(clKey, 0.0);
+  //const auto& H = state.field(HKey, SymTensor::zero);
   const auto& DDDt = derivs.field(DdamageDtKey, 0.0);
   const auto& localDvDx = derivs.field(DvDxKey, Tensor::zero);
 
@@ -218,7 +218,7 @@ update(const KeyType& key,
   // Iterate over the internal nodes.
   const auto ni = stateField.numInternalElements();
 #pragma omp parallel for
-  for (auto i = 0; i < ni; ++i) {
+  for (auto i = 0u; i < ni; ++i) {
 
     auto& Di = stateField(i);
     CHECK(Di.eigenValues().minElement() >= 0.0 and
@@ -275,9 +275,10 @@ update(const KeyType& key,
           CHECK(D0 >= 0.0 && D0 <= 1.0);
 
           // Count how many flaws are remaining, and how many have completely failed.
-          const auto numFailedCracks = int(D0*double(totalCracks));
+          const int numFailedCracks = int(D0*double(totalCracks));
           const auto numRemainingCracks = totalCracks - numFailedCracks;
-          CHECK(numFailedCracks >=0 && numFailedCracks <= totalCracks);
+          CONTRACT_VAR(numRemainingCracks);
+          CHECK(numFailedCracks >=0 && numFailedCracks <= (int)totalCracks);
           CHECK(numRemainingCracks >= 0 && numRemainingCracks <= totalCracks);
           CHECK(numRemainingCracks + numFailedCracks == totalCracks);
 
@@ -286,12 +287,12 @@ update(const KeyType& key,
           //         if (weightedNeighborSum(i) < wSumCutoff) {
           //           numActiveCracks = numRemainingCracks;
           //         } else {
-          for (auto k = numFailedCracks; k < totalCracks; ++k) {
-            CHECK(k < flaws.size());
+          for (auto k = numFailedCracks; k < (int)totalCracks; ++k) {
+            CHECK(k < (int)flaws.size());
             if (straini >= flaws[k]) ++numActiveCracks;
           }
           //         }
-          CHECK(numActiveCracks >= 0 && numActiveCracks <= totalCracks);
+          CHECK(numActiveCracks >= 0 && numActiveCracks <= (int)totalCracks);
 
           // Choose the allowed range of D.
           double Dmin, Dmax;

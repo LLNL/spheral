@@ -90,8 +90,8 @@ haveBoundary(const Boundary<Dimension>& boundary) const {
 template<typename Dimension>
 void
 Physics<Dimension>::
-applyGhostBoundaries(State<Dimension>& state,
-                     StateDerivatives<Dimension>& derivs) {
+applyGhostBoundaries(State<Dimension>& /*state*/,
+                     StateDerivatives<Dimension>& /*derivs*/) {
 }
 
 //------------------------------------------------------------------------------
@@ -100,8 +100,8 @@ applyGhostBoundaries(State<Dimension>& state,
 template<typename Dimension>
 void
 Physics<Dimension>::
-enforceBoundaries(State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) {
+enforceBoundaries(State<Dimension>& /*state*/,
+                  StateDerivatives<Dimension>& /*derivs*/) {
 }
 
 //------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ enforceBoundaries(State<Dimension>& state,
 template<typename Dimension>
 void
 Physics<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
+initializeProblemStartup(DataBase<Dimension>& /*dataBase*/) {
 }
 
 //------------------------------------------------------------------------------
@@ -119,9 +119,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 template<typename Dimension>
 void
 Physics<Dimension>::
-preStepInitialize(const DataBase<Dimension>& dataBase, 
-                  State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) {
+preStepInitialize(const DataBase<Dimension>& /*dataBase*/, 
+                  State<Dimension>& /*state*/,
+                  StateDerivatives<Dimension>& /*derivs*/) {
 }
 
 //------------------------------------------------------------------------------
@@ -130,11 +130,11 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 Physics<Dimension>::
-initialize(const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
-           const DataBase<Dimension>& dataBase,
-           State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs) {
+initialize(const typename Dimension::Scalar /*time*/,
+           const typename Dimension::Scalar /*dt*/,
+           const DataBase<Dimension>& /*dataBase*/,
+           State<Dimension>& /*state*/,
+           StateDerivatives<Dimension>& /*derivs*/) {
 }
 
 //------------------------------------------------------------------------------
@@ -143,11 +143,11 @@ initialize(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 Physics<Dimension>::
-finalize(const typename Dimension::Scalar time,
-         const typename Dimension::Scalar dt,
-         DataBase<Dimension>& dataBase,
-         State<Dimension>& state,
-         StateDerivatives<Dimension>& derivs) {
+finalize(const typename Dimension::Scalar /*time*/,
+         const typename Dimension::Scalar /*dt*/,
+         DataBase<Dimension>& /*dataBase*/,
+         State<Dimension>& /*state*/,
+         StateDerivatives<Dimension>& /*derivs*/) {
 }
 
 //------------------------------------------------------------------------------
@@ -156,11 +156,11 @@ finalize(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 Physics<Dimension>::
-finalizeDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivs) const {
+finalizeDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
+                    const DataBase<Dimension>& /*dataBase*/,
+                    const State<Dimension>& /*state*/,
+                    StateDerivatives<Dimension>& /*derivs*/) const {
 }
 
 //------------------------------------------------------------------------------
@@ -169,11 +169,11 @@ finalizeDerivatives(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 Physics<Dimension>::
-postStateUpdate(const Scalar time, 
-                const Scalar dt,
-                const DataBase<Dimension>& dataBase, 
-                State<Dimension>& state,
-                StateDerivatives<Dimension>& derivatives) {
+postStateUpdate(const Scalar /*time*/, 
+                const Scalar /*dt*/,
+                const DataBase<Dimension>& /*dataBase*/, 
+                State<Dimension>& /*state*/,
+                StateDerivatives<Dimension>& /*derivatives*/) {
 }
 
 //------------------------------------------------------------------------------
@@ -227,6 +227,16 @@ requireReproducingKernelHessian() const {
 }
 
 //------------------------------------------------------------------------------
+// By default assume reproducing kernel correction in finalize is not needed.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+Physics<Dimension>::
+updateReproducingKernelsInFinalize() const {
+  return false;
+}
+
+//------------------------------------------------------------------------------
 // Provide a default method for the extraEnergy method, which will return 0.0
 // for classes that don't have their own energy.
 //------------------------------------------------------------------------------
@@ -254,8 +264,8 @@ extraMomentum() const {
 template<typename Dimension>
 void
 Physics<Dimension>::
-registerAdditionalVisualizationState(DataBase<Dimension>& dataBase,
-                                     State<Dimension>& state) {
+registerAdditionalVisualizationState(DataBase<Dimension>& /*dataBase*/,
+                                     State<Dimension>& /*state*/) {
 }
 
 }

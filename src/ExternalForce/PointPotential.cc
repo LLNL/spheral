@@ -46,8 +46,8 @@ PointPotential<Dimension>::
 template<typename Dimension>
 void
 PointPotential<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
@@ -88,8 +88,8 @@ typename PointPotential<Dimension>::TimeStepType
 PointPotential<Dimension>::
 dt(const DataBase<Dimension>& dataBase, 
    const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const typename Dimension::Scalar currentTime) const {
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const typename Dimension::Scalar /*currentTime*/) const {
 
   // This is a hard one to pick for this package.  We'll choose a timestep
   // such that no nodes potential should change more than a set fraction.
@@ -116,7 +116,7 @@ dt(const DataBase<Dimension>& dataBase,
   std::stringstream reasonStream;
   reasonStream << "mindt = " << mindt << " | "
                << "rsoft = " << minr << " " 
-               << "minv = " << minv << std::ends;
+               << "minv = " << minv << std::endl;
 
   return TimeStepType(mindt, reasonStream.str());
 }

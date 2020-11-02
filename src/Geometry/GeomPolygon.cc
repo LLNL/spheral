@@ -16,6 +16,7 @@
 #include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolygon.hh"
+#include "Utilities/KeyTraits.hh"
 
 #include <algorithm>
 #include <numeric>
@@ -46,18 +47,6 @@ namespace Spheral {
 // The following anonymous stuff is lifted from the convex hull method I 
 // implemented in polytope.
 namespace {
-
-struct KeyTraits {
-  // typedef uint64_t Key;
-  typedef int64_t Key;
-  static const uint32_t numbits;
-  static const uint32_t numbits1d;
-  static const Key zero;
-  static const Key one;
-  static const Key two;
-  static const Key maxKey1d;
-  static const Key maxKey;
-};
 
 namespace geometry {
 
@@ -158,7 +147,7 @@ template<typename UintType>
 struct FuzzyPoint2LessThan {
   UintType fuzz;
   FuzzyPoint2LessThan(const UintType ifuzz = 1): fuzz(ifuzz) {}
-  bool operator()(const Point2<UintType>& p1, const Point2<UintType>& p2) {
+  bool operator()(const Point2<UintType>& p1, const Point2<UintType>& p2) const {
     return (p1.x + fuzz < p2.x        ? true :
             p1.x        > p2.x + fuzz ? false :
             p1.y + fuzz < p2.y        ? true :
@@ -166,7 +155,7 @@ struct FuzzyPoint2LessThan {
             false);
   }
   bool operator()(const std::pair<Point2<UintType>, unsigned>& p1,
-                  const std::pair<Point2<UintType>, unsigned>& p2) {
+                  const std::pair<Point2<UintType>, unsigned>& p2) const {
     return operator()(p1.first, p2.first);
   }
 };
@@ -233,14 +222,14 @@ convexHull_2d(const std::vector<RealType>& points,
   
   // Start by finding a point distinct from point 0.
   j = 1;
-  while (j != n and geometry::distance<2, RealType>(&points[0], &points[2*j]) < dx) ++j;
-  if (j == n - 1) {
+  while (j != (int)n and geometry::distance<2, RealType>(&points[0], &points[2*j]) < dx) ++j;
+  if (j == (int)n - 1) {
     // There are only 2 distinct positions!
     plc.resize(1, std::vector<int>(2));
     plc[0][0] = 0;
     plc[0][1] = j;
     return plc;
-  } else if (j == n) {
+  } else if (j == (int)n) {
     // Good god, there are no distinct points!
     plc.resize(1, std::vector<int>(2));
     plc[0][0] = 0;
@@ -252,7 +241,7 @@ convexHull_2d(const std::vector<RealType>& points,
   bool collinear = true;
   CHECK(n > 2);
   i = 2;
-  while (collinear and i != n) {
+  while (collinear and i != (int)n) {
     collinear = geometry::collinear<2,RealType>(&points[0], &points[2*j], &points[2*i], dx);
     ++i;
   }
@@ -263,7 +252,7 @@ convexHull_2d(const std::vector<RealType>& points,
   const RealType& xmin = low[0];
   const RealType& ymin = low[1];
   std::set<std::pair<PointHash, unsigned>, FuzzyPoint2LessThan<CoordHash> > uniquePoints;
-  for (i = 0; i != n; ++i) {
+  for (i = 0; i != (int)n; ++i) {
     uniquePoints.insert(std::make_pair(PointHash(CoordHash((points[2*i]     - xmin)/dx + 0.5),
                                                  CoordHash((points[2*i + 1] - ymin)/dx + 0.5)),
                                        i));
@@ -283,7 +272,7 @@ convexHull_2d(const std::vector<RealType>& points,
     std::vector<int> result(2*nunique);
     
     // Build the lower hull.
-    for (i = 0, k = 0; i < nunique; i++) {
+    for (i = 0, k = 0; i < (int)nunique; i++) {
       while (k >= 2 and
              zcross_sign(sortedPoints[result[k - 2]].first, sortedPoints[result[k - 1]].first, sortedPoints[i].first) <= 0) k--;
       result[k++] = i;
@@ -312,7 +301,7 @@ convexHull_2d(const std::vector<RealType>& points,
       plc.back().push_back(sortedPoints[result[i]].second);
       plc.back().push_back(sortedPoints[result[j]].second);
     }
-    CHECK(plc.size() == k - 1);
+    CHECK((int)plc.size() == k - 1);
   }
   return plc;
 }
@@ -383,16 +372,16 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     // Start with the vertices.
     mVertices.reserve(numVertices);
     int i, j;
-    for (j = 0; j != numVertices; ++j) {
+    for (j = 0; j != (int)numVertices; ++j) {
       CHECK(plc[j].size() == 2);
       i = plc[j][0];
-      CHECK(i >= 0 and i < points.size());
+      CHECK(i >= 0 and i < (int)points.size());
       mVertices.push_back(points[i]);
     }
 
     // Now the facets.
     mFacets.reserve(numVertices);
-    for (i = 0; i != numVertices; ++i) {
+    for (i = 0; i != (int)numVertices; ++i) {
       j = (i + 1) % numVertices;
       mFacets.push_back(Facet(mVertices, i, j));
     }
@@ -411,21 +400,28 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     {
       // Ensure the facet node ordering is correct.
       CounterClockwiseComparator<Vector, vector<Vector> > nodeComparator(mVertices, this->centroid());
-      for (const Facet& facet: mFacets) ENSURE2(nodeComparator(facet.point1(), facet.point2()), *this);
+      for (const Facet& facet: mFacets) {
+        CONTRACT_VAR(facet);
+        ENSURE2(nodeComparator(facet.point1(), facet.point2()), *this);
+      }
 
       // All normals should be outward facing.
       Vector centroid;
       for (const Vector& vec: mVertices) centroid += vec;
       centroid /= mVertices.size();
-      for (const Facet& facet: mFacets) ENSURE2((0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()) >= 0.0,
+      for (const Facet& facet: mFacets) {
+        CONTRACT_VAR(facet);
+        ENSURE2((0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()) >= 0.0,
                                                 facet.point1() << " " << facet.point2() << " : "
                                                 << (0.5*(facet.point1() + facet.point2()) - centroid) << " "
                                                 << facet.normal() << " : "
                                                 << (0.5*(facet.point1() + facet.point2()) - centroid).dot(facet.normal()));
+      }
 
       // Ensure the vertices are listed in counter-clockwise order.
       for (unsigned i = 0; i != mVertices.size(); ++i) {
         const unsigned j = (i + 1) % mVertices.size();
+        CONTRACT_VAR(j);
         ENSURE(nodeComparator(i, j));
       }
 
@@ -661,7 +657,7 @@ intersect(const Vector& s0, const Vector& s1) const {
   // Check each segment of the polygon
   Vector inter1, inter2;
   const auto n = mVertices.size();
-  for (auto i = 0; i < n; ++i) {
+  for (auto i = 0; i < (int)n; ++i) {
     const auto& e0 = mVertices[i];
     const auto& e1 = mVertices[(i + 1) % n];
     const auto code = segmentSegmentIntersection(s0, s1, e0, e1, inter1, inter2);
@@ -686,7 +682,7 @@ intersections(const Vector& s0, const Vector& s1,
   // Check each segment of the polygon.
   Vector inter1, inter2;
   const auto n = mVertices.size();
-  for (auto i = 0; i < n; ++i) {
+  for (auto i = 0; i < (int)n; ++i) {
     const auto& e0 = mVertices[i];
     const auto& e1 = mVertices[(i + 1) % n];
     const auto code = segmentSegmentIntersection(s0, s1, e0, e1, inter1, inter2);
@@ -942,7 +938,7 @@ GeomPolygon::
 operator==(const GeomPolygon& rhs) const {
   bool result = (mVertices == rhs.mVertices and
                  mFacets.size() == rhs.mFacets.size());
-  int i = 0;
+  size_t i = 0;
   while (result and i != mFacets.size()) {
     result = mFacets[i] == rhs.mFacets[i];
     ++i;
@@ -1011,7 +1007,7 @@ decompose(std::vector<GeomPolygon>& subcells) const {
   const auto originalCentroid = this->centroid();
   const auto numFacets = mFacets.size();
   subcells.resize(numFacets);
-  for (auto f = 0; f < numFacets; ++f) {
+  for (auto f = 0u; f < numFacets; ++f) {
     const auto& facet = mFacets[f];
     std::vector<Vector> points = {facet.point1(), facet.point2(), originalCentroid};
     std::vector<std::vector<unsigned>> indices = {{0, 1}, {1, 2}, {2, 0}};
@@ -1024,6 +1020,8 @@ decompose(std::vector<GeomPolygon>& subcells) const {
     auto volumesum = 0.;
     for (auto& subcell : subcells) {
       const auto subvolume = subcell.volume();
+      CONTRACT_VAR(originalVolume);
+      CONTRACT_VAR(subvolume);
       CHECK(0 < subvolume and subvolume < originalVolume);
       volumesum += subcell.volume();
     }
@@ -1037,7 +1035,6 @@ decompose(std::vector<GeomPolygon>& subcells) const {
 //------------------------------------------------------------------------------
 std::ostream& operator<<(std::ostream& os, const GeomPolygon& polygon) {
   typedef GeomPolygon::Vector Vector;
-  typedef GeomPolygon::Facet Facet;
   const auto& vertices = polygon.vertices();
   const auto& facets = polygon.facets();
   if (vertices.size() > 0) {

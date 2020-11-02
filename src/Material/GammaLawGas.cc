@@ -95,11 +95,11 @@ template<typename Dimension>
 void
 GammaLawGas<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
-                const Field<Dimension, Scalar>& massDensity,
-                const Field<Dimension, Scalar>& temperature) const {
+                const Field<Dimension, Scalar>& /*massDensity*/,
+                const Field<Dimension, Scalar>& /*temperature*/) const {
   CHECK(valid());
-  const double kB = mConstants.kB();
-  const double mp = mConstants.protonMass();
+  const auto kB = mConstants.kB();
+  const auto mp = mConstants.protonMass();
   double Cv = kB/(mGamma1*mMolecularWeight*mp);
   specificHeat = Cv;
 }
@@ -114,7 +114,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  for (int i = 0; i != soundSpeed.size(); ++i) {
+  for (size_t i = 0u; i != soundSpeed.size(); ++i) {
     soundSpeed(i) = this->soundSpeed(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -126,8 +126,8 @@ template<typename Dimension>
 void
 GammaLawGas<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
-	      const Field<Dimension, Scalar>& massDensity,
-	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
+              const Field<Dimension, Scalar>& /*massDensity*/,
+              const Field<Dimension, Scalar>& /*specificThermalEnergy*/) const {
   CHECK(valid());
   gamma = mGamma;
 }
@@ -179,11 +179,11 @@ pressure(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 GammaLawGas<Dimension>::
-temperature(const Scalar massDensity,
+temperature(const Scalar /*massDensity*/,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  const double kB = mConstants.kB();
-  const double mp = mConstants.protonMass();
+  const auto kB = mConstants.kB();
+  const auto mp = mConstants.protonMass();
   return mGamma1*mMolecularWeight*mp/kB*specificThermalEnergy;
 }
 
@@ -193,11 +193,12 @@ temperature(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 GammaLawGas<Dimension>::
-specificThermalEnergy(const Scalar massDensity,
+specificThermalEnergy(const Scalar /*massDensity*/,
                       const Scalar temperature) const {
   CHECK(valid());
-  const double kB = mConstants.kB();
-  return kB/(mGamma1*mMolecularWeight)*temperature;
+  const auto kB = mConstants.kB();
+  const auto mp = mConstants.protonMass();
+  return kB/(mGamma1*mMolecularWeight*mp)*temperature;
 }
 
 //------------------------------------------------------------------------------
@@ -206,11 +207,11 @@ specificThermalEnergy(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 GammaLawGas<Dimension>::
-specificHeat(const Scalar massDensity,
-             const Scalar temperature) const {
+specificHeat(const Scalar /*massDensity*/,
+             const Scalar /*temperature*/) const {
   CHECK(valid());
-  const double kB = mConstants.kB();
-  const double mp = mConstants.protonMass();
+  const auto kB = mConstants.kB();
+  const auto mp = mConstants.protonMass();
   return kB/(mGamma1*mMolecularWeight*mp);
 }
 
@@ -220,7 +221,7 @@ specificHeat(const Scalar massDensity,
 template<typename Dimension>
 typename Dimension::Scalar
 GammaLawGas<Dimension>::
-soundSpeed(const Scalar massDensity,
+soundSpeed(const Scalar /*massDensity*/,
            const Scalar specificThermalEnergy) const {
   CHECK(valid());
   return sqrt(max(0.0, mGamma*mGamma1*specificThermalEnergy));
@@ -256,8 +257,8 @@ entropy(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-GammaLawGas<Dimension>::gamma(const Scalar massDensity,
-					 const Scalar specificThermalEnergy) const {
+GammaLawGas<Dimension>::gamma(const Scalar /*massDensity*/,
+                              const Scalar /*specificThermalEnergy*/) const {
   return mGamma;
 }
 

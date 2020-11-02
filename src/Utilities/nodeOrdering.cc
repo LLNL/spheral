@@ -62,7 +62,7 @@ nodeOrdering(const FieldList<Dimension, DataType>& criteria) {
        ++fieldItr, ++iNodeList) {
     const NodeList<Dimension>& nodeList = (**fieldItr).nodeList();
     result.appendField(Field<Dimension, int>("node indicies", nodeList, -1));
-    for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+    for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
       sortedList.push_back(std::make_tuple(iNodeList, i, (**fieldItr)(i)));
     }
   }
@@ -125,7 +125,7 @@ nodeOrdering(const FieldList<Dimension, DataType>& criteria) {
          itr != result.end();
          ++itr, ++iNodeList) {
       const NodeList<Dimension>& nodeList = (**itr).nodeList();
-      for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+      for (int i = 0; i != (int)nodeList.numInternalNodes(); ++i) {
         ENSURE((**itr)(i) >= 0 and (**itr)(i) < numGlobalNodes);
       }
     }

@@ -70,8 +70,8 @@ GeomTensor(const double a11, const double a12, const double a13,
 template<int nDim>
 inline
 GeomTensor<nDim>::
-GeomTensor(const double a11, const double a12,
-           const double a21, const double a22):
+GeomTensor(const double /*a11*/, const double /*a12*/,
+           const double /*a21*/, const double /*a22*/):
   GeomTensorBase<nDim>(0.0) {
   VERIFY2(false, "GeomTensor(a11, a12, a21, a22): wrong number of dimensions.");
 }
@@ -79,9 +79,9 @@ GeomTensor(const double a11, const double a12,
 template<int nDim>
 inline
 GeomTensor<nDim>::
-GeomTensor(const double a11, const double a12, const double a13,
-           const double a21, const double a22, const double a23,
-           const double a31, const double a32, const double a33):
+GeomTensor(const double /*a11*/, const double /*a12*/, const double /*a13*/,
+           const double /*a21*/, const double /*a22*/, const double /*a23*/,
+           const double /*a31*/, const double /*a32*/, const double /*a33*/):
   GeomTensorBase<nDim>(0.0) {
   VERIFY2(false, "GeomTensor(a11, a12, a13, a21, a22, a23, a31, a32, a33): wrong number of dimensions.");
 }
@@ -473,22 +473,22 @@ GeomTensor<nDim>::zz(double val) {
 
 //------------------------------------------------------------------------------
 // 1D dummy elements
-template<> inline void GeomTensor<1>::xy(const double val) {}
-template<> inline void GeomTensor<1>::xz(const double val) {}
-template<> inline void GeomTensor<1>::yx(const double val) {}
-template<> inline void GeomTensor<1>::yy(const double val) {}
-template<> inline void GeomTensor<1>::yz(const double val) {}
-template<> inline void GeomTensor<1>::zx(const double val) {}
-template<> inline void GeomTensor<1>::zy(const double val) {}
-template<> inline void GeomTensor<1>::zz(const double val) {}
+template<> inline void GeomTensor<1>::xy(const double /*val*/) {}
+template<> inline void GeomTensor<1>::xz(const double /*val*/) {}
+template<> inline void GeomTensor<1>::yx(const double /*val*/) {}
+template<> inline void GeomTensor<1>::yy(const double /*val*/) {}
+template<> inline void GeomTensor<1>::yz(const double /*val*/) {}
+template<> inline void GeomTensor<1>::zx(const double /*val*/) {}
+template<> inline void GeomTensor<1>::zy(const double /*val*/) {}
+template<> inline void GeomTensor<1>::zz(const double /*val*/) {}
 
 //------------------------------------------------------------------------------
 // 2D dummy elements
-template<> inline void GeomTensor<2>::xz(const double val) {}
-template<> inline void GeomTensor<2>::yz(const double val) {}
-template<> inline void GeomTensor<2>::zx(const double val) {}
-template<> inline void GeomTensor<2>::zy(const double val) {}
-template<> inline void GeomTensor<2>::zz(const double val) {}
+template<> inline void GeomTensor<2>::xz(const double /*val*/) {}
+template<> inline void GeomTensor<2>::yz(const double /*val*/) {}
+template<> inline void GeomTensor<2>::zx(const double /*val*/) {}
+template<> inline void GeomTensor<2>::zy(const double /*val*/) {}
+template<> inline void GeomTensor<2>::zz(const double /*val*/) {}
 
 //------------------------------------------------------------------------------
 // Access the individual rows of the GeomTensor.
@@ -2258,6 +2258,7 @@ inline
 void
 GeomTensor<1>::
 rotationalTransform(const GeomTensor<1>& R) {
+  CONTRACT_VAR(R);
   REQUIRE(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-8));
 }
 

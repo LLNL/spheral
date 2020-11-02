@@ -11,6 +11,7 @@
 #define __Spheral_FastMath__
 
 #include "Utilities/SpheralFunctions.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
 namespace FastMath {
@@ -63,21 +64,21 @@ nth_root(double x) {
 // Quake 3 method for computing a fast 1/sqrt.
 // Assumes IEEE floats!
 //------------------------------------------------------------------------------
-inline
-float Quake3InvSqrtf(float x) {
-  const float xhalf = 0.5f * x;
-  int i = *(int*)(&x);
-  i = 0x5f3759df - (i >> 1);
-  x = *(float*)(&i);
-  x = x*(1.5f - xhalf*x*x);
-  x = x*(1.5f - xhalf*x*x);
-  return x;
-}
-
-inline
-float Quake3Sqrtf(float x) {
-  return x*Quake3InvSqrtf(x);
-}
+//inline
+//float Quake3InvSqrtf(float x) {
+//  const float xhalf = 0.5f * x;
+//  int i = *(int*)(&x);
+//  i = 0x5f3759df - (i >> 1);
+//  x = *(float*)(&i);
+//  x = x*(1.5f - xhalf*x*x);
+//  x = x*(1.5f - xhalf*x*x);
+//  return x;
+//}
+//
+//inline
+//float Quake3Sqrtf(float x) {
+//  return x*Quake3InvSqrtf(x);
+//}
 
 //------------------------------------------------------------------------------
 // A iterative sqrt estimate.  This appears to start with a very similar trick
@@ -132,6 +133,7 @@ template<typename D>
 inline
 D
 cbrta_halley(const D a, const D R) {
+  CONTRACT_VAR(R);
 #ifdef __INTEL_COMPILER
   const D a3 = a*a*a;
   const D b = a * (a3 + R + R) / (a3 + a3 + R + tinyValue<D>());
@@ -163,6 +165,7 @@ template<typename D>
 inline
 D
 sqrta_halley(const D a, const D R) {
+  CONTRACT_VAR(R);
 #ifdef __INTEL_COMPILER
   const D a2 = a*a;
   return a*(a2 + R + R + R)/(a2 + a2 + a2 + R + tinyValue<D>());
@@ -214,6 +217,14 @@ template<typename T> inline T pow6(const T& x) { return x*x*x*x*x*x; }
 template<typename T> inline T pow7(const T& x) { return x*x*x*x*x*x*x; }
 template<typename T> inline T pow8(const T& x) { return x*x*x*x*x*x*x*x; }
 template<typename T> inline T pow9(const T& x) { return x*x*x*x*x*x*x*x*x; }
+
+//-----------------------------------------------------------------------------
+// Compile time power function
+//-----------------------------------------------------------------------------
+template<typename T>
+constexpr T calcPower(T value, unsigned power) {
+  return power == 0 ? 1 : value * calcPower(value, power - 1);
+}
 
 //------------------------------------------------------------------------------
 // The below CubeRoot method is not recommended for now -- just keeping here in 

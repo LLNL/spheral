@@ -115,7 +115,7 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaMagnit
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::f1(const double etaMagnitude) const {
+TableKernel<Dimension>::f1(const double /*etaMagnitude*/) const {
   VERIFY2(false, "TableKernel::f1 lookup only valid for 2D kernels.");
 }
 
@@ -137,7 +137,7 @@ TableKernel<Dim<2> >::f1(const double etaMagnitude) const {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::f2(const double etaMagnitude) const {
+TableKernel<Dimension>::f2(const double /*etaMagnitude*/) const {
   VERIFY2(false, "TableKernel::f2 lookup only valid for 2D kernels.");
 }
 
@@ -155,7 +155,7 @@ TableKernel<Dim<2> >::f2(const double etaMagnitude) const {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::gradf1(const double etaMagnitude) const {
+TableKernel<Dimension>::gradf1(const double /*etaMagnitude*/) const {
   VERIFY2(false, "TableKernel::gradf1 lookup only valid for 2D kernels.");
 }
 
@@ -173,7 +173,7 @@ TableKernel<Dim<2> >::gradf1(const double etaMagnitude) const {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::gradf2(const double etaMagnitude) const {
+TableKernel<Dimension>::gradf2(const double /*etaMagnitude*/) const {
   VERIFY2(false, "TableKernel::gradf2 lookup only valid for 2D kernels.");
 }
 
@@ -191,11 +191,11 @@ TableKernel<Dim<2> >::gradf2(const double etaMagnitude) const {
 template<typename Dimension>
 inline
 void
-TableKernel<Dimension>::f1Andf2(const double etaMagnitude,
-                                double& f1,
-                                double& f2,
-                                double& gradf1,
-                                double& gradf2) const {
+TableKernel<Dimension>::f1Andf2(const double /*etaMagnitude*/,
+                                double& /*f1*/,
+                                double& /*f2*/,
+                                double& /*gradf1*/,
+                                double& /*gradf2*/) const {
   VERIFY2(false, "TableKernel::f1Andf2 lookup only valid for 2D kernels.");
 }
 
@@ -280,10 +280,9 @@ TableKernel<Dimension>::parabolicInterp(const double etaMagnitude,
                                         const std::vector<double>& b,
                                         const std::vector<double>& c) const {
   REQUIRE(etaMagnitude >= 0.0);
-  REQUIRE(a.size() == mNumPoints);
-  REQUIRE(b.size() == mNumPoints);
-  REQUIRE(c.size() == mNumPoints);
-  const double etai = std::min(etaMagnitude, this->mKernelExtent);
+  REQUIRE((int)a.size() == mNumPoints);
+  REQUIRE((int)b.size() == mNumPoints);
+  REQUIRE((int)c.size() == mNumPoints);
   const int i0 = std::min(mNumPoints - 3, lowerBound(etaMagnitude));
   const int i1 = i0 + 1;
   CHECK(i1 >= 1 and i1 <= mNumPoints - 2);

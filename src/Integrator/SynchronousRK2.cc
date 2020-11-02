@@ -132,6 +132,7 @@ step(typename Dimension::Scalar maxTime,
                                       state,
                                       derivs);
     if (dtnew < this->dtCheckFrac()*dt) {
+      this->currentTime(t);
       state.assign(state0);
       return false;
     }

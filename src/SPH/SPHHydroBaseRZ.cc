@@ -175,9 +175,9 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     auto       mass = state.fields(HydroFieldNames::mass, 0.0);
     const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
     const auto numNodeLists = mass.numFields();
-    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = mass[nodeListi]->numElements();
-      for (auto i = 0; i < n; ++i) {
+      for (auto i = 0u; i < n; ++i) {
         const auto circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
         mass(nodeListi, i) /= circi;
       }
@@ -191,15 +191,14 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   // correction factor to the mass density.
   if (densityUpdate() == MassDensityType::RigorousSumDensity or
       densityUpdate() == MassDensityType::CorrectedSumDensity) {
-    const auto& W = this->kernel();
     const auto position = state.fields(HydroFieldNames::position, Vector::zero);
     const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
     auto       mass = state.fields(HydroFieldNames::mass, 0.0);
     auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     const auto numNodeLists = massDensity.numFields();
-    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = massDensity[nodeListi]->numElements();
-      for (auto i = 0; i != n; ++i) {
+      for (auto i = 0u; i != n; ++i) {
         const auto& xi = position(nodeListi, i);
         const auto  circi = 2.0*M_PI*abs(xi.y());
         mass(nodeListi, i) *= circi;
@@ -213,8 +212,8 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 void
 SPHHydroBaseRZ::
-evaluateDerivatives(const Dim<2>::Scalar time,
-                    const Dim<2>::Scalar dt,
+evaluateDerivatives(const Dim<2>::Scalar /*time*/,
+                    const Dim<2>::Scalar /*dt*/,
                     const DataBase<Dim<2> >& dataBase,
                     const State<Dim<2> >& state,
                     StateDerivatives<Dim<2> >& derivatives) const {
@@ -228,7 +227,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const auto& WQ = this->PiKernel();
 
   // A few useful constants we'll use in the following loop.
-  typedef typename Timing::Time Time;
   const double tiny = 1.0e-30;
   const Scalar W0 = W(0.0, 1.0);
 
@@ -330,7 +328,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       const auto start = Timing::currentTime();
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
@@ -528,17 +526,16 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
 
   // Finish up the derivatives for each point.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
     const auto  hmax = nodeList.hmax();
     const auto  hminratio = nodeList.hminratio();
-    const auto  maxNumNeighbors = nodeList.maxNumNeighbors();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
       const auto& posi = position(nodeListi, i);
@@ -714,7 +711,6 @@ enforceBoundaries(State<Dim<2> >& state,
   FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const unsigned n = mass[nodeListi]->numElements();
-    const Scalar nPerh = mass[nodeListi]->nodeList().nodesPerSmoothingScale();
     for (unsigned i = 0; i != n; ++i) {
       Vector& posi = pos(nodeListi, i);
       const Scalar circi = 2.0*M_PI*abs(posi.y());

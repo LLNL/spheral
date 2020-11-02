@@ -90,7 +90,7 @@ evaluateKernel(const TableKernel<Dimension>& kernel,
                const Vector& x,
                const SymTensor& H,
                const RKCoefficients<Dimension>& corrections) {
-  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+  CHECK2((int)corrections.size() == correctionsSize(false) || (int)corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
@@ -110,7 +110,7 @@ evaluateGradient(const TableKernel<Dimension>& kernel,
                  const Vector& x,
                  const SymTensor& H,
                  const RKCoefficients<Dimension>& corrections) {
-  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+  CHECK2((int)corrections.size() == correctionsSize(false) || (int)corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
@@ -140,7 +140,7 @@ evaluateHessian(const TableKernel<Dimension>& kernel,
                 const Vector& x,
                 const SymTensor& H,
                 const RKCoefficients<Dimension>& corrections) {
-  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+  CHECK2((int)corrections.size() == correctionsSize(false) || (int)corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
@@ -183,7 +183,7 @@ evaluateKernelAndGradient(const TableKernel<Dimension>& kernel,
                           const Vector& x,
                           const SymTensor& H,
                           const RKCoefficients<Dimension>& corrections) {
-  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+  CHECK2((int)corrections.size() == correctionsSize(false) || (int)corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Get kernel and polynomials
@@ -213,7 +213,7 @@ evaluateKernelAndGradients(const TableKernel<Dimension>& kernel,
                            const Vector& x,
                            const SymTensor& H,
                            const RKCoefficients<Dimension>& corrections) {
-  CHECK2(corrections.size() == correctionsSize(false) || corrections.size() == correctionsSize(true),
+  CHECK2((int)corrections.size() == correctionsSize(false) || (int)corrections.size() == correctionsSize(true),
          corrections.size() << " ! in (" <<  correctionsSize(false) << " " << correctionsSize(true) << ")");
   
   // Uncorrected base kernel
@@ -347,7 +347,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
   };
   
   // Compute corrections for each point
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto numNodes = connectivityMap.numNodes(nodeListi);
     for (auto nodei = 0; nodei < numNodes; ++nodei) {
       // Initialize polynomial matrices for point i
@@ -361,7 +361,7 @@ computeCorrections(const ConnectivityMap<Dimension>& connectivityMap,
                             
       // Add contribution from other points
       const auto& connectivity = connectivityMap.connectivityForNode(nodeListi, nodei);
-      for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
+      for (auto nodeListj = 0u; nodeListj < numNodeLists; ++nodeListj) {
         for (auto nodej : connectivity[nodeListj]) {
           addToMatrix(nodeListi, nodei, nodeListj, nodej);
         } // nodej
@@ -599,7 +599,7 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
   };
 
   // Sum up normal directions
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto numNodes = connectivityMap.numNodes(nodeListi);
     for (auto nodei = 0; nodei < numNodes; ++nodei) {
       // Zero out normal
@@ -607,7 +607,7 @@ computeNormal(const ConnectivityMap<Dimension>& connectivityMap,
       
       // Add contribution from other points
       const auto& connectivity = connectivityMap.connectivityForNode(nodeListi, nodei);
-      for (auto nodeListj = 0; nodeListj < numNodeLists; ++nodeListj) {
+      for (auto nodeListj = 0u; nodeListj < numNodeLists; ++nodeListj) {
         for (auto nodej : connectivity[nodeListj]) {
           addToNormal(nodeListi, nodei, nodeListj, nodej);
         }
@@ -644,7 +644,7 @@ getTransformationMatrix(const Tensor& T,
     const auto size = g1.size();
     CHECK(size == g2.size());
     auto val = 1.;
-    for (auto k = 0; k < size; ++k) {
+    for (auto k = 0u; k < size; ++k) {
       val *= T(g1[k], g2[k]);
     }
     return val;
@@ -709,7 +709,7 @@ RKUtilities<Dimension, correctionOrder>::
 applyTransformation(const TransformationMatrix& T,
                     RKCoefficients<Dimension>& corrections) {
   auto size = T.cols();
-  CHECK(size == corrections.size());
+  CHECK(size == (int)corrections.size());
   Eigen::Map<Eigen::VectorXd, Eigen::AlignmentType::Aligned> V(&corrections[0], size);
   V = T * V;
 }

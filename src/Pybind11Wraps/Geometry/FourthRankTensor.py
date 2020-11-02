@@ -8,10 +8,10 @@ class FourthRankTensor:
     "Spheral fourth rank tensor (%(ndim)sx%(ndim)sx%(ndim)sx%(ndim)s) class"
 
     # Static attributes
-    nrank = PYB11readonly(static=True, doc="Rank of the tensor")
-    nDimensions = PYB11readonly(static=True, doc="Number of dimensions")
-    numElements = PYB11readonly(static=True, doc="Number of elements stored in the type")
-    zero = PYB11readonly(static=True, doc="The zero value equivalent")
+    nrank = PYB11readonly(static=True, doc="Rank of the tensor", returnpolicy="copy")
+    nDimensions = PYB11readonly(static=True, doc="Number of dimensions", returnpolicy="copy")
+    numElements = PYB11readonly(static=True, doc="Number of elements stored in the type", returnpolicy="copy")
+    zero = PYB11readonly(static=True, doc="The zero value equivalent", returnpolicy="copy")
 
     # Constructors
     def pyinit0(self):
@@ -26,7 +26,7 @@ class FourthRankTensor:
         "Construct setting the element values to a constant value."
 
     # Sequence methods
-    @PYB11implementation("[](const Dim<%(ndim)s>::FourthRankTensor& self) { return Dim<%(ndim)s>::FourthRankTensor::numElements; }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::FourthRankTensor&) { return Dim<%(ndim)s>::FourthRankTensor::numElements; }")
     def __len__(self):
         "The size (number of elements) of the FourthRankTensor."
 
@@ -74,7 +74,7 @@ class FourthRankTensor:
         return "void"
 
     @PYB11const
-    def doubledot(self, rhs="const Dim<%(ndim)s>::FourthRankTensor"):
+    def doubledot(self, rhs="const RankNTensor<%(ndim)s, 4, GeomFourthRankTensor<%(ndim)s>>& rhs"):
         return "double"
 
     @PYB11const

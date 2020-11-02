@@ -104,46 +104,6 @@ segmentPlaneIntersection(const Spheral::Dim<2>::Vector& a,       // line-segment
   return (a*bsgndist - b*asgndist)/(bsgndist - asgndist);
 }
 
-//------------------------------------------------------------------------------
-// Check if two line segments intersect.
-//------------------------------------------------------------------------------
-inline
-bool
-segmentsIntersect(const Spheral::Dim<2>::Vector& a,
-                  const Spheral::Dim<2>::Vector& b,
-                  const Spheral::Dim<2>::Vector& c,
-                  const Spheral::Dim<2>::Vector& d) {
-
-  // The plane in the (c,c) orientation.
-  Plane2d cdplane;
-  cdplane.normal = Spheral::Dim<2>::Vector(-(c.y() - d.y()), c.x() - d.x()).unitVector();
-  cdplane.dist = -c.dot(cdplane.normal);
-
-  // Does the (a,b) segment straddle the plane?
-  if (compare(cdplane, a)*compare(cdplane, b) == 1) return false;
-
-  // Is the point where (a,b) intersects the plane between (c,d)?
-  const auto g = segmentPlaneIntersection(a, b, cdplane);
-  return (c - g).dot(d - g) <= 0;
-}
-
-//------------------------------------------------------------------------------
-// Check if a line segment intersects the polygon.
-//------------------------------------------------------------------------------
-inline
-bool
-intersect(const Spheral::Dim<2>::Vector& a,       // line-segment begin
-          const Spheral::Dim<2>::Vector& b,       // line-segment end
-          const Polygon& poly) {                  // Polygon
-  auto result = false;
-  const auto n = poly.size();
-  auto i = 0;
-  while (i < n and (not result)) {
-    result = segmentsIntersect(a, b, poly[i].position, poly[(i+1)%n].position);
-  }
-  return result;
-}
-
 }              // anonymous methods
 
 //------------------------------------------------------------------------------
@@ -160,7 +120,7 @@ initializePolygon(Polygon& poly,
           "PolyClipper::initializePolygon ERROR: positions and neighbors should be same size.");
 
   poly.resize(n);
-  for (auto i = 0; i < n; ++i) {
+  for (auto i = 0u; i < n; ++i) {
     VERIFY2(neighbors[i].size() == 2,
             "PolyClipper::initializePolygon ERROR: each neighbor entry should be of size 2.");
     poly[i].position = positions[i];
@@ -177,13 +137,13 @@ polygon2string(const Polygon& poly) {
 
   // Numbers of vertices.
   const auto nverts = poly.size();
-  const auto nactive = count_if(poly.begin(), poly.end(),
-                                [](const Vertex2d& x) { return x.comp >= 0; });
+  //const auto nactive = count_if(poly.begin(), poly.end(),
+  //                              [](const Vertex2d& x) { return x.comp >= 0; });
   set<int> usedVertices;
 
   // Dump the raw vertex info.
   s << "{\n";
-  for (auto i = 0; i < nverts; ++i) {
+  for (auto i = 0u; i < nverts; ++i) {
     s << "  " << i << " " << poly[i].position
       << " [" << poly[i].neighbors.first << " " << poly[i].neighbors.second << "]"
       << " clips[";
@@ -229,16 +189,16 @@ void convertToPolygon(Polygon& polygon,
   const auto& coords = Spheral_polygon.vertices();
   const auto  nverts0 = coords.size();
   polygon.resize(nverts0);
-  for (auto i = 0; i < nverts0; ++i) polygon[i].position = coords[i];
+  for (auto i = 0u; i < nverts0; ++i) polygon[i].position = coords[i];
 
   // Build the connectivity.
   const auto& facets = Spheral_polygon.facets();
-  int v1, v2, ivert1, ivert2;
+  int v1, v2;
   for (const auto& facet: facets) {
     v1 = facet.ipoint1();
     v2 = facet.ipoint2();
-    CHECK(v1 < nverts0);
-    CHECK(v2 < nverts0);
+    CHECK(v1 < (int)nverts0);
+    CHECK(v2 < (int)nverts0);
     polygon[v1].neighbors.second = v2;
     polygon[v2].neighbors.first  = v1;
   }
@@ -278,10 +238,10 @@ vector<set<int>> convertFromPolygon(Spheral::Dim<2>::FacetedVolume& Spheral_poly
     vector<vector<unsigned>> facets(nactive, vector<unsigned>(2));
     vertexPlanes.resize(nactive);
     auto k = 0, loopStart = 0;
-    while (usedVertices.size() < nactive) {
+    while ((int)usedVertices.size() < nactive) {
 
       // Look for the first active unused vertex.
-      auto vstart = 0;
+      unsigned vstart = 0;
       while (vstart < nverts and
              (polygon[vstart].comp < 0 or usedVertices.find(vstart) != usedVertices.end())) vstart++;
       CHECK(vstart < nverts);
@@ -336,7 +296,7 @@ void moments(double& zerothMoment, Spheral::Dim<2>::Vector& firstMoment,
     auto vfirst = 0;
     auto vprev = vfirst;
     auto vnext = vfirst;
-    for (auto k = 0; k < nverts; ++k) {
+    for (auto k = 0u; k < nverts; ++k) {
       vnext = polygon[vnext].neighbors.second;
       const auto triA = (polygon[vprev].position - polygon[vfirst].position).cross(polygon[vnext].position - polygon[vfirst].position).z();
       zerothMoment += triA;
@@ -374,7 +334,7 @@ void clipPolygon(Polygon& polygon,
 
   // Loop over the planes.
   TIME_PC2d_planes.start();
-  auto kplane = 0;
+  size_t kplane = 0;
   const auto nplanes = planes.size();
   while (kplane < nplanes and not polygon.empty()) {
     const auto& plane = planes[kplane++];
@@ -415,7 +375,7 @@ void clipPolygon(Polygon& polygon,
       vector<int> hangingVertices;
       int vprev, vnext, vnew;
       const auto nverts0 = polygon.size();
-      for (auto v = 0; v < nverts0; ++v) {
+      for (auto v = 0u; v < nverts0; ++v) {
         std::tie(vprev, vnext) = polygon[v].neighbors;
 
         if ((polygon[v].comp)*(polygon[vnext].comp) == -1) {
@@ -443,7 +403,7 @@ void clipPolygon(Polygon& polygon,
           // cerr << " --> Inserting new vertex @ " << polygon.back().position << endl;
 
         } else if (polygon[v].comp == 0 and 
-                   (polygon[vprev].comp == -1 xor polygon[vnext].comp == -1)) {
+                   ((polygon[vprev].comp == -1) xor (polygon[vnext].comp == -1))) {
           // This vertex is exactly in-plane, but has exactly one neighbor edge that will be entirely clipped.
           // No new vertex, but vptr will be hanging.
           hangingVertices.push_back(v);
@@ -470,7 +430,7 @@ void clipPolygon(Polygon& polygon,
 
         // Now the ordered pairs of these new vertices form the new edges.
         int v1, v2;
-        for (auto k = 0; k < hangingVertices.size(); k += 2) {
+        for (auto k = 0u; k < hangingVertices.size(); k += 2) {
           v1 = hangingVertices[k];
           v2 = hangingVertices[k + 1];
           polygon[v1].neighbors.second = v2;
@@ -483,7 +443,7 @@ void clipPolygon(Polygon& polygon,
         for (auto v: hangingVertices) {
           std::tie(vprev, vnext) = polygon[v].neighbors;
           CHECK(polygon[v].comp == 0 or polygon[v].comp == 2);
-          CHECK(polygon[vprev].comp == -1 xor polygon[vnext].comp == -1);
+          CHECK(polygon[vprev].comp == (-1 xor (polygon[vnext].comp == -1)));
 
           if (polygon[vprev].comp == -1) {
             // We have to search backwards.
@@ -529,7 +489,7 @@ void clipPolygon(Polygon& polygon,
       // Find the vertices to remove, and renumber the neighbors.
       if (nkill > 0) {
         vector<int> verts2kill;
-        for (auto k = 0; k < polygon.size(); ++k) {
+        for (auto k = 0u; k < polygon.size(); ++k) {
           if (polygon[k].comp < 0) {
             verts2kill.push_back(k);
           } else {
@@ -563,7 +523,7 @@ void collapseDegenerates(Polygon& polygon,
   if (n > 0) {
 
     // Set the initial ID's the vertices.
-    for (auto i = 0; i < n; ++i) polygon[i].ID = i;
+    for (auto i = 0u; i < n; ++i) polygon[i].ID = i;
 
     // Walk the polygon removing degenerate edges until we make a sweep without
     // removing any.
@@ -571,7 +531,7 @@ void collapseDegenerates(Polygon& polygon,
     auto active = false;
     while (not done) {
       done = true;
-      for (auto i = 0; i < n; ++i) {
+      for (auto i = 0u; i < n; ++i) {
         if (polygon[i].ID >= 0) {
           auto j = polygon[i].neighbors.second;
           CHECK(polygon[j].ID >= 0);
@@ -594,7 +554,7 @@ void collapseDegenerates(Polygon& polygon,
 
       // Renumber the nodes assuming we're going to clear out the degenerates.
       auto offset = 0;
-      for (auto i = 0; i < n; ++i) {
+      for (auto i = 0u; i < n; ++i) {
         if (polygon[i].ID == -1) {
           --offset;
         } else {
@@ -616,10 +576,10 @@ void collapseDegenerates(Polygon& polygon,
   BEGIN_CONTRACT_SCOPE
   {
     const auto n = polygon.size();
-    for (auto i = 0; i < n; ++i) {
-      ENSURE(polygon[i].ID == i);
-      ENSURE(polygon[i].neighbors.first < n);
-      ENSURE(polygon[i].neighbors.second < n);
+    for (auto i = 0u; i < n; ++i) {
+      ENSURE(polygon[i].ID == (int)i);
+      ENSURE(polygon[i].neighbors.first < (int)n);
+      ENSURE(polygon[i].neighbors.second < (int)n);
     }
   }
   END_CONTRACT_SCOPE
@@ -639,7 +599,7 @@ vector<vector<int>> splitIntoTriangles(const Polygon& poly,
   // Check if we're convex.
   const auto n0 = poly.size();
   bool convex = true;
-  auto i = 0;
+  size_t i = 0;
   while (convex and i < n0) {
     convex = ((poly[poly[i].neighbors.second].position - poly[i].position).cross((poly[poly[i].neighbors.first].position - poly[i].position)).z() >= 0.0);
     ++i;
@@ -649,11 +609,11 @@ vector<vector<int>> splitIntoTriangles(const Polygon& poly,
   if (convex) {
     const auto& v0 = poly[0].position;
     double a;
-    for (auto i = 2; i < n0; ++i) {
+    for (auto i = 2u; i < n0; ++i) {
       const auto& v1 = poly[i-1].position;
       const auto& v2 = poly[i].position;
       a = 0.5*(v1 - v0).cross(v2 - v0).z();
-      if (a > tol) result.push_back({0, i - 1, i});
+      if (a > tol) result.push_back({0, (int)i - 1, (int)i});
     }
     return result;
   }

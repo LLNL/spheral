@@ -8,10 +8,10 @@ class ThirdRankTensor:
     "Spheral third rank tensor (%(ndim)sx%(ndim)sx%(ndim)s) class"
 
     # Static attributes
-    nrank = PYB11readonly(static=True, doc="Rank of the tensor")
-    nDimensions = PYB11readonly(static=True, doc="Number of dimensions")
-    numElements = PYB11readonly(static=True, doc="Number of elements stored in the type")
-    zero = PYB11readonly(static=True, doc="The zero value equivalent")
+    nrank = PYB11readonly(static=True, doc="Rank of the tensor", returnpolicy="copy")
+    nDimensions = PYB11readonly(static=True, doc="Number of dimensions", returnpolicy="copy")
+    numElements = PYB11readonly(static=True, doc="Number of elements stored in the type", returnpolicy="copy")
+    zero = PYB11readonly(static=True, doc="The zero value equivalent", returnpolicy="copy")
 
     # Constructors
     def pyinit0(self):
@@ -26,7 +26,7 @@ class ThirdRankTensor:
         "Construct setting the element values to a constant value."
 
     # Sequence methods
-    @PYB11implementation("[](const Dim<%(ndim)s>::ThirdRankTensor& self) { return Dim<%(ndim)s>::ThirdRankTensor::numElements; }")
+    @PYB11implementation("[](const Dim<%(ndim)s>::ThirdRankTensor&) { return Dim<%(ndim)s>::ThirdRankTensor::numElements; }")
     def __len__(self):
         "The size (number of elements) of the ThirdRankTensor."
 
@@ -71,7 +71,7 @@ class ThirdRankTensor:
         return "void"
 
     @PYB11const
-    def doubledot(self, rhs="const Dim<%(ndim)s>::ThirdRankTensor"):
+    def doubledot(self, rhs="const RankNTensor<%(ndim)s, 3, GeomThirdRankTensor<%(ndim)s>>& rhs"):
         return "double"
 
     @PYB11const

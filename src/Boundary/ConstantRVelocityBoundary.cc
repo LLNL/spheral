@@ -70,14 +70,14 @@ enforceBoundary(Field<Dimension, typename Dimension::Vector>& field) const {
     for (vector<int>::const_iterator itr = nodeIDs.begin();
          itr < nodeIDs.end();
          ++itr, ++j) {
-      CHECK(*itr < field.numElements());
-      CHECK(j < mRadialVelocity.size());
+      CHECK(*itr < (int)field.numElements());
+      CHECK(j < (int)mRadialVelocity.size());
       const int i = *itr;
       const Vector runit = positions(i).unitVector();
       const Vector vperp = field[i] - field[i].dot(runit)*runit;
       field[i] = mRadialVelocity[j]*runit + vperp;
     }
-    CHECK(j == nodeIDs.size() and j == mRadialVelocity.size());
+    CHECK(j == (int)nodeIDs.size() and j == (int)mRadialVelocity.size());
   }
 }
 

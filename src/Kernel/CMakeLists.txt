@@ -41,15 +41,5 @@ set(Kernel_headers
 
 spheral_add_cxx_library(Kernel)
 
-install(TARGETS              Spheral_Kernel
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Kernel_headers}
-        DESTINATION include/Kernel
-        )
-
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Kernel)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

@@ -24,7 +24,6 @@ struct MapFacetedVolume {
     const auto& exitPlane = bc.exitPlane();
     const auto& verts0 = poly.vertices();
     const auto& facets = poly.facetVertices();
-    const auto n = verts0.size();
     vector<Vector> verts1;
     for (auto& vert: verts0) verts1.push_back(bc.mapPosition(vert, enterPlane, exitPlane));
     return FacetedVolume(verts1, facets);
@@ -102,8 +101,8 @@ applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) c
   vector<int>::const_iterator ghostItr = this->ghostBegin(nodeList);
   for (; controlItr < this->controlEnd(nodeList); ++controlItr, ++ghostItr) {
     CHECK(ghostItr < this->ghostEnd(nodeList));
-    CHECK(*controlItr >= 0 and *controlItr < nodeList.numNodes());
-    CHECK(*ghostItr >= nodeList.firstGhostNode() and *ghostItr < nodeList.numNodes());
+    CHECK(*controlItr >= 0 and *controlItr < (int)nodeList.numNodes());
+    CHECK(*ghostItr >= (int)nodeList.firstGhostNode() and *ghostItr < (int)nodeList.numNodes());
     field(*ghostItr) = MapFacetedVolume<PeriodicBoundary<Dimension>::PeriodicPlanarBoundary, Dimension>::doit(*this, field(*controlItr));
   }
 }
@@ -121,7 +120,7 @@ enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) cons
   for (auto itr = this->violationBegin(nodeList);
        itr < this->violationEnd(nodeList); 
        ++itr) {
-    CHECK(*itr >= 0 && *itr < nodeList.numInternalNodes());
+    CHECK(*itr >= 0 && *itr < (int)nodeList.numInternalNodes());
     field(*itr) = MapFacetedVolume<PeriodicBoundary<Dimension>::PeriodicPlanarBoundary, Dimension>::doit(*this, field(*itr));
   }
 }

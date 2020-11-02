@@ -423,7 +423,7 @@ FieldList<Dimension, DataType>::deleteField(const Field<Dimension, DataType>& fi
     }
     CHECK(fieldItr != mFieldCache.end());
     mFieldCache.erase(fieldItr);
-
+    [[fallthrough]];
   case FieldStorageType::ReferenceFields:
     mFieldPtrs.erase(fieldPtrItr);
     mFieldBasePtrs.erase(mFieldBasePtrs.begin() + delta);
@@ -1126,7 +1126,7 @@ FieldList<Dimension, DataType>::operator+(const FieldList<Dimension, DataType>& 
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
-  for (int i = 0; i != numFields(); ++i) 
+  for (int i = 0; i != (int)numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
@@ -1147,7 +1147,7 @@ FieldList<Dimension, DataType>::operator-(const FieldList<Dimension, DataType>& 
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
-  for (int i = 0; i != numFields(); ++i) 
+  for (int i = 0; i != (int)numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
@@ -1168,11 +1168,11 @@ FieldList<Dimension, DataType>::operator+=(const FieldList<Dimension, DataType>&
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
-  for (int i = 0; i != numFields(); ++i) 
+  for (auto i = 0u; i != numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     CHECK2((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr(), (*this)[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     *((*this)[i]) += *(rhs[i]);
   }
@@ -1190,11 +1190,11 @@ FieldList<Dimension, DataType>::operator-=(const FieldList<Dimension, DataType>&
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
-  for (int i = 0; i != numFields(); ++i) 
+  for (int i = 0; i != (int)numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     CHECK2((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr(), (*this)[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     *((*this)[i]) -= *(rhs[i]);
   }
@@ -1234,7 +1234,7 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::operator+=(const DataType& rhs) {
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     *((*this)[i]) += rhs;
   }
   return *this;
@@ -1247,7 +1247,7 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::operator-=(const DataType& rhs) {
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     *((*this)[i]) -= rhs;
   }
   return *this;
@@ -1262,7 +1262,7 @@ FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::
 operator*=(const FieldList<Dimension, typename Dimension::Scalar>& rhs) {
   REQUIRE(this->numFields() == rhs.numFields());
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     CHECK2((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr(), (*this)[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     *((*this)[i]) *= *(rhs[i]);
   }
@@ -1276,7 +1276,7 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::operator*=(const Scalar& rhs) {
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     *((*this)[i]) *= rhs;
   }
   return *this;
@@ -1320,7 +1320,7 @@ FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::
 operator/=(const FieldList<Dimension, typename Dimension::Scalar>& rhs) {
   REQUIRE(this->numFields() == rhs.numFields());
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     CHECK2((*this)[i]->nodeListPtr() == rhs[i]->nodeListPtr(), (*this)[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     *((*this)[i]) /= *(rhs[i]);
   }
@@ -1335,7 +1335,7 @@ inline
 FieldList<Dimension, DataType>&
 FieldList<Dimension, DataType>::operator/=(const typename Dimension::Scalar& rhs) {
   REQUIRE(rhs != 0.0);
-  for (int i = 0; i < numFields(); ++i) {
+  for (auto i = 0u; i < numFields(); ++i) {
     *((*this)[i]) /= rhs;
   }
   return *this;
@@ -1428,13 +1428,13 @@ operator==(const FieldList<Dimension, DataType>& rhs) const {
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
-  for (int i = 0; i != numFields(); ++i) 
+  for (int i = 0; i != (int)numFields(); ++i) 
     REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
   bool result = true;
   int i = 0;
-  while (result && i != numFields()) {
+  while (result && i != (int)numFields()) {
     result = result && (*(mFieldPtrs[i]) == *(rhs[i]));
     ++i;
   }
@@ -1535,7 +1535,7 @@ operator==(const DataType& rhs) const {
 
   bool result = true;
   int i = 0;
-  while (result && i != numFields()) {
+  while (result && i != (int)numFields()) {
     result = result && (*(mFieldPtrs[i]) == rhs);
     ++i;
   }
@@ -1564,7 +1564,7 @@ operator>(const DataType& rhs) const {
 
   bool result = true;
   int i = 0;
-  while (result && i != numFields()) {
+  while (result && i != (int)numFields()) {
     result = result && (*(mFieldPtrs[i]) > rhs);
     ++i;
   }
@@ -1582,7 +1582,7 @@ operator<(const DataType& rhs) const {
 
   bool result = true;
   int i = 0;
-  while (result && i != numFields()) {
+  while (result && i != (int)numFields()) {
     result = result && (*(mFieldPtrs[i]) < rhs);
     ++i;
   }
@@ -1811,9 +1811,9 @@ threadReduce() const {
   REQUIRE(threadMasterPtr->size() == this->size());
   if (omp_get_num_threads() > 1) {
     const auto numNL = this->size();
-    for (auto k = 0; k < numNL; ++k) {
+    for (auto k = 0u; k < numNL; ++k) {
       const auto n = mFieldPtrs[k]->numInternalElements();
-      for (auto i = 0; i < n; ++i) {
+      for (auto i = 0u; i < n; ++i) {
 
         switch (reductionType) {
 
@@ -1878,7 +1878,7 @@ operator*(const DataType& lhs,
           const FieldList<Dimension, OtherDataType>& rhs) {
   FieldList<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType> result;
   result.copyFields();
-  for (int i = 0; i < rhs.numFields(); ++i) {
+  for (auto i = 0u; i < rhs.numFields(); ++i) {
     result.appendField(lhs * (*(rhs[i])));
   }
   return result;

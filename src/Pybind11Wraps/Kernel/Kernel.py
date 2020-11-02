@@ -162,7 +162,7 @@ class Kernel:
     @PYB11const
     def grad2Value(self,
                    etaMagnitude = "double",
-                   Hdet = "const double&"):
+                   Hdet = "double"):
         "Return the value of the second derivative of the kernel"
         return "double"
 
@@ -200,6 +200,7 @@ class Kernel:
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class BSplineKernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self):
         "Default constructor"
@@ -209,6 +210,7 @@ class BSplineKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class W4SplineKernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self):
         "Default constructor"
@@ -218,6 +220,7 @@ class W4SplineKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class GaussianKernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self,
                extent = "double"):
@@ -228,6 +231,7 @@ class GaussianKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class SuperGaussianKernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self):
         "Default constructor"
@@ -237,6 +241,7 @@ class SuperGaussianKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class PiGaussianKernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self):
         "Default constructor"
@@ -252,20 +257,22 @@ class PiGaussianKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class HatKernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self,
                eta0 = "double",
                W0 = "double"):
         "Construct with (eta0, K)"
     
-    eta0 = PYB11property("double", "eta0", "eta0")
-    W0 = PYB11property("double", "W0", "W0")
+    eta0 = PYB11property("double", "eta0", doc="eta0")
+    W0 = PYB11property("double", "W0", doc="W0")
 
 #-------------------------------------------------------------------------------
 # Sinc
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class SincKernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self, extent="double"):
         "Construct with the given extent in eta"
@@ -275,6 +282,7 @@ class SincKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class NSincPolynomialKernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self, order="int"):
         "Construct with the specified sinc order"
@@ -284,6 +292,7 @@ class NSincPolynomialKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class NBSplineKernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self, order="int"):
         "Construct using the given order of b-spline"
@@ -309,6 +318,7 @@ class NBSplineKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class TableKernel(Kernel):
+    PYB11typedefs=""
 
     #...........................................................................
     # Constructors
@@ -398,11 +408,6 @@ class TableKernel(Kernel):
 
     #...........................................................................
     # Methods
-    @PYB11const
-    def kernelAndGradValues(self,
-                            etaMagnitude = "double",
-                            Hdet = "double"):
-        return "std::pair<double, double>"
 
     @PYB11pycppname("kernelAndGradValues")
     @PYB11const
@@ -462,6 +467,7 @@ class TableKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class WendlandC2Kernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self):
         "Default constructor"
@@ -471,6 +477,7 @@ class WendlandC2Kernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class WendlandC4Kernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self):
         "Default constructor"
@@ -480,6 +487,7 @@ class WendlandC4Kernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class WendlandC6Kernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self):
         "Default constructor"
@@ -489,6 +497,7 @@ class WendlandC6Kernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class QuarticSplineKernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self):
         "Default constructor"
@@ -498,6 +507,7 @@ class QuarticSplineKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class QuinticSplineKernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self):
         "Default constructor"
@@ -507,6 +517,7 @@ class QuinticSplineKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class ExpInvKernel(Kernel):
+    PYB11typedefs=""
 
     def pyinit(self):
         "Default constructor"

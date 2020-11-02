@@ -31,7 +31,7 @@ template<typename Value, typename Allocator, typename index_t>
 inline
 void
 removeElements(std::vector<Value, Allocator>& vec,
-	       const std::vector<index_t>& elements) {
+               const std::vector<index_t>& elements) {
 
   // Is there anything to do?
   if (not elements.empty()) {
@@ -43,12 +43,13 @@ removeElements(std::vector<Value, Allocator>& vec,
     {
       // We require the input IDs be sorted and unique.
       for (typename std::vector<index_t>::const_iterator itr = elements.begin();
-	   itr + 1 < elements.end();
-	   ++itr) {
-	REQUIRE(*itr < *(itr + 1));
+           itr + 1 < elements.end();
+           ++itr) {
+        REQUIRE(*itr < *(itr + 1));
       }
-      if (elements.size() > 0) 
-	REQUIRE(elements[0] >= 0 && elements.back() < originalSize);
+      if (elements.size() > 0) {
+        REQUIRE(elements[0] >= 0 && elements.back() < originalSize);
+      }
     }
     END_CONTRACT_SCOPE
 
@@ -100,8 +101,9 @@ removeElements(std::vector<Value,DataAllocator<Value>>& vec,
            ++itr) {
         REQUIRE(*itr < *(itr + 1));
       }
-      if (elements.size() > 0)
+      if (elements.size() > 0) {
         REQUIRE(elements[0] >= 0 && elements.back() < originalSize);
+      }
     }
     END_CONTRACT_SCOPE
     // Remove the elements.
@@ -129,7 +131,7 @@ removeElements(std::vector<Value,DataAllocator<Value>>& vec,
     vec.erase(vec.begin() + newSize, vec.end());
 
     // Post-conditions.
-    ENSURE(vec.size() == newSize);
+    ENSURE((int)vec.size() == (int)newSize);
   }
 }
 

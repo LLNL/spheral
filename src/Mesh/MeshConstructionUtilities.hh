@@ -58,6 +58,7 @@ hashX(const double x,
       const Int ncells,
       const Int ncoarse,
       const Int ncellsperbin) {
+  CONTRACT_VAR(x1);
   REQUIRE2((uint64_t(ncells)) % ncoarse == 0U, ncells << " " << ncoarse << " : " << (ncells % ncoarse));
   REQUIRE2(ncellsperbin == (uint64_t(ncells))/ncoarse, ncellsperbin << " " << ncells/ncoarse);
   double f = std::max(0.0, std::min(1.0 - std::numeric_limits<double>::epsilon(), 
@@ -239,7 +240,7 @@ collapseDegenerateVertices(const std::vector<Vector>& vertices,
   using std::vector;
   using std::set;
 
-  unsigned i, j, k;
+  unsigned i, j;
   const unsigned n = vertices.size();
   Key hashi;
 
@@ -330,8 +331,6 @@ exchangeTuples(const std::vector<std::tuple<T, T, T> >& localKeys,
   typedef std::tuple<T, T, T> Key;
   using std::vector;
 
-  const unsigned rank = Process::getRank();
-
   // Pack up our local keys.
   std::vector<char> localPacked;
   packElement(localKeys, localPacked);
@@ -395,8 +394,6 @@ exchangeTuples(const std::vector<std::tuple<T, T, T> >& localKeys,
   const unsigned numNeighborDomains = neighborDomains.size();
   REQUIRE(sendIndices.size() == numNeighborDomains);
   if (numNeighborDomains > 0) {
-
-    const unsigned rank = Process::getRank();
 
     // Pack up our local keys.
     std::vector<std::vector<char> > localPacked(numNeighborDomains);
@@ -482,6 +479,7 @@ Dim<2>::ConvexHull
 boundPolygonInBox(const Dim<2>::ConvexHull& polygon,
                   const std::vector<Dim<2>::Vector>& boundPoints,
                   const double xtol2) {
+  CONTRACT_VAR(xtol2);
   REQUIRE(boundPoints.size() == 4);
 
   typedef Dim<2>::Vector Vector;
@@ -605,8 +603,8 @@ append2dIntersections(const Dim<3>::Vector& a0_3d,
                       const Dim<2>::Vector& b0,
                       const Dim<2>::Vector& b1,
                       std::vector<Dim<3>::Vector>& result) {
+  CONTRACT_VAR(a1_3d);
   typedef Dim<2>::Vector Vector2d;
-  typedef Dim<3>::Vector Vector3d;
   Vector2d intersect1, intersect2;
   const char code = segmentSegmentIntersection(a0, a1, b0, b1, intersect1, intersect2);
   if (code == '1' or code == 'v') {
@@ -686,12 +684,11 @@ Dim<3>::ConvexHull
 boundPolyhedronInBox(const Dim<3>::ConvexHull& polyhedron,
                      const std::vector<Dim<3>::Vector>& boundPoints,
                      const double xtol2) {
+  CONTRACT_VAR(xtol2);
   REQUIRE(boundPoints.size() == 8);
 
   typedef Dim<3>::Vector Vector;
-  typedef Dim<2>::Vector Vector2d;
   typedef Dim<3>::ConvexHull ConvexHull;
-  typedef ConvexHull::Facet Facet;
 
   // Generate a set of flags indicating whether points are inside or outside
   // of the box.

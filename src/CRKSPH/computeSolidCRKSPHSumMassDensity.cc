@@ -42,14 +42,12 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   const auto W0 = W.kernelValue(0.0, 1.0);
 
   // Prepare to sum the correction.
   FieldList<Dimension, Scalar> m0(FieldStorageType::CopyFields);
-  for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
     m0.appendNewField("zeroth correction", position[nodeListi]->nodeList(), 0.0);
   }
   massDensity = 0.0;
@@ -63,7 +61,6 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
   {
     // Some scratch variables.
     int i, j, nodeListi, nodeListj;
-    Scalar Wi, Wj;
     Vector rij, etai, etaj;
     Vector Bi = Vector::zero, Bj = Vector::zero;
     Tensor Ci = Tensor::zero, Cj = Tensor::zero;
@@ -73,7 +70,7 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
     auto m0_thread = m0.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto k = 0; k < npairs; ++k) {
+    for (auto k = 0u; k < npairs; ++k) {
       i = pairs[k].i_node;
       j = pairs[k].j_node;
       nodeListi = pairs[k].i_list;
@@ -120,14 +117,14 @@ computeSolidCRKSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityM
   } // OMP parallel
   
   // Finish for each point.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = dynamic_cast<const FluidNodeList<Dimension>&>(massDensity[nodeListi]->nodeList());
     const auto ni = nodeList.numInternalNodes();
     const auto rhoMin = nodeList.rhoMin();
     const auto rhoMax = nodeList.rhoMax();
 
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
       const auto  mi = mass(nodeListi, i);

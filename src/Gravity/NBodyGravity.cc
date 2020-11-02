@@ -50,8 +50,8 @@ template<typename Dimension> struct GravityDimensionTraits;
 //..............................................................................
 template<>
 struct GravityDimensionTraits<Dim<1>> {
-  static double forceLaw(const double r2) { return 1.0; }
-  static double potentialLaw(const double r2) { return 1.0; }  // Not sure about this one
+  static double forceLaw(const double) { return 1.0; }
+  static double potentialLaw(const double) { return 1.0; }  // Not sure about this one
 };
 
 //..............................................................................
@@ -108,7 +108,6 @@ void
 NBodyGravity<Dimension>::
 registerState(DataBase<Dimension >& dataBase,
               State<Dimension >& state) {
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
   GenericBodyForce<Dimension >::registerState(dataBase, state);
   state.enroll(mPotential);
@@ -120,14 +119,14 @@ registerState(DataBase<Dimension >& dataBase,
 template <typename Dimension>
 void 
 NBodyGravity<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
 
   // Find the square of the Plummer softening length.
-  auto softeningLength2 = mSofteningLength * mSofteningLength;
+  //auto softeningLength2 = mSofteningLength * mSofteningLength;
 
   // Access to pertinent fields in the database.
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -144,16 +143,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   mOldMaxAcceleration = 1.0e-10;
   mOldMaxVelocity = 0.0;
 
+  // Pack up the local particle info.
+  vector<char> localBuffer, buffer;
+  this->serialize(mass, position, localBuffer);
+
+#ifdef USE_MPI
   // Get the processor information.
   const unsigned rank = Process::getRank();
   const unsigned numProcs = Process::getTotalNumberOfProcesses();
 
-  // Pack up the local particle info.
-  vector<char> localBuffer, buffer;
-  this->serialize(mass, position, localBuffer);
   unsigned localBufSize = localBuffer.size();
-
-#ifdef USE_MPI
   // Launch our sends to all other processors.  This may be a bit aggressive.... :)
   vector<MPI_Request> sendRequests;
   sendRequests.reserve(2*numProcs);
@@ -194,14 +193,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 #endif
 
   // Finalize our stuff.
-  const unsigned numNodeLists = dataBase.numNodeLists();
+  //const unsigned numNodeLists = dataBase.numNodeLists();
   unsigned ifield = 0;
   for (auto iitr = dataBase.fluidNodeListBegin();
        iitr != dataBase.fluidNodeListEnd();
        ++iitr, ++ifield) {
     const auto& nodeListi = **iitr;
     const auto n = nodeListi.numInternalNodes();
-    for (auto i = 0; i != n; ++i) {
+    for (auto i = 0u; i != n; ++i) {
 
       // Set the position derivative.
       DxDt(ifield, i) = velocity(ifield, i);
@@ -215,7 +214,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       mExtraEnergy += 0.5*mass(ifield, i)*mPotential(ifield, i);
 
       // Capture the maximum acceleration and velocity magnitudes.
-      const auto accelMagnitude = DvDt(ifield, i).magnitude();
+      //const auto accelMagnitude = DvDt(ifield, i).magnitude();
       mOldMaxAcceleration = std::max(mOldMaxAcceleration, DvDt(ifield, i).magnitude());
       mOldMaxVelocity = std::max(mOldMaxVelocity, velocity(ifield, i).magnitude());
     }
@@ -263,9 +262,9 @@ initializeProblemStartup(DataBase<Dimension>& db) {
 template <typename Dimension>
 void 
 NBodyGravity<Dimension>::
-preStepInitialize(const DataBase<Dimension>& dataBase, 
+preStepInitialize(const DataBase<Dimension>& /*dataBase*/, 
                   State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) {
+                  StateDerivatives<Dimension>& /*derivs*/) {
 
   if (mCompatibleVelocityUpdate) {
 
@@ -276,9 +275,9 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     // Take a snapshot of the starting velocity^2 (for KE0).
     const auto vel = state.fields(HydroFieldNames::velocity, Vector::zero);
     const auto numNodeLists = vel.numFields();
-    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
       const auto n = vel[nodeListi]->numInternalElements();
-      for (auto i = 0; i < n; ++i) {
+      for (auto i = 0u; i < n; ++i) {
         mVel02(nodeListi, i) = vel(nodeListi, i).magnitude2();
       }
     }
@@ -308,9 +307,9 @@ finalize(const Scalar time,
     const auto mass = state.fields(HydroFieldNames::mass, 0.0);
     auto       vel = state.fields(HydroFieldNames::velocity, Vector::zero);
     const auto numNodeLists = vel.numFields();
-    for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
       const auto n = vel[nodeListi]->numInternalElements();
-      for (auto i = 0; i < n; ++i) {
+      for (auto i = 0u; i < n; ++i) {
         const auto vi1t2 = mVel02(nodeListi, i) - 2.0*(mPotential(nodeListi, i) - mPotential0(nodeListi, i));
         CHECK(vi1t2 >= 0.0);
         const Scalar f = sqrt(vi1t2*safeInvVar(vel(nodeListi, i).magnitude2()));
@@ -329,10 +328,10 @@ finalize(const Scalar time,
 template <typename Dimension>
 typename NBodyGravity<Dimension>::TimeStepType
 NBodyGravity<Dimension>::
-dt(const DataBase<Dimension>& dataBase, 
-   const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const Scalar currentTime) const {
+dt(const DataBase<Dimension>& /*dataBase*/, 
+   const State<Dimension>& /*state*/,
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const Scalar /*currentTime*/) const {
 
   // The maximum change in our velocity for the next time cycle is given 
   // by the mMaxDeltaVelocityFactor plus the max velocity and the max 
@@ -344,7 +343,7 @@ dt(const DataBase<Dimension>& dataBase,
   reasonStream << "velocity: " << mOldMaxVelocity
                << ", acceleration: " << mOldMaxAcceleration
                << "dt = f*v/a: " << deltat
-               << std::ends;
+               << std::endl;
   return TimeStepType(deltat, reasonStream.str());
 }
 

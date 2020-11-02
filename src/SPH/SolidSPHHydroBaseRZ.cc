@@ -96,6 +96,7 @@ SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                     const double nTensile,
                     const bool damageRelieveRubble,
                     const bool negativePressureInDamage,
+                    const bool strengthInDamage,
                     const Vector& xmin,
                     const Vector& xmax):
   SolidSPHHydroBase<Dim<2> >(smoothingScaleMethod, 
@@ -119,6 +120,7 @@ SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                              nTensile,
                              damageRelieveRubble,
                              negativePressureInDamage,
+                             strengthInDamage,
                              xmin,
                              xmax) {
 }
@@ -190,9 +192,9 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     auto       mass = state.fields(HydroFieldNames::mass, 0.0);
     const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
     const auto numNodeLists = mass.numFields();
-    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = mass[nodeListi]->numElements();
-      for (auto i = 0; i < n; ++i) {
+      for (auto i = 0u; i < n; ++i) {
         const auto circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
 #ifdef WIN32
         if (circi > 0.0) mass(nodeListi, i) /= circi;
@@ -210,15 +212,14 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   // correction factor to the mass density.
   if (densityUpdate() == MassDensityType::RigorousSumDensity or
       densityUpdate() == MassDensityType::CorrectedSumDensity) {
-    const auto& W = this->kernel();
     const auto position = state.fields(HydroFieldNames::position, Vector::zero);
     const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
     auto       mass = state.fields(HydroFieldNames::mass, 0.0);
     auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
     const auto numNodeLists = massDensity.numFields();
-    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
       const auto n = massDensity[nodeListi]->numElements();
-      for (auto i = 0; i != n; ++i) {
+      for (auto i = 0u; i != n; ++i) {
         const auto& xi = position(nodeListi, i);
         const auto  circi = 2.0*M_PI*abs(xi.y());
 #ifdef WIN32
@@ -236,7 +237,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 void
 SolidSPHHydroBaseRZ::
-evaluateDerivatives(const Dim<2>::Scalar time,
+evaluateDerivatives(const Dim<2>::Scalar /*time*/,
                     const Dim<2>::Scalar dt,
                     const DataBase<Dim<2> >& dataBase,
                     const State<Dim<2> >& state,
@@ -386,7 +387,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
     auto DSDt_thread = DSDt.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       const auto start = Timing::currentTime();
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
@@ -401,16 +402,16 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto  mRZi = mi/circi;
       const auto& vi = velocity(nodeListi, i);
       const auto  rhoi = massDensity(nodeListi, i);
-      const auto  epsi = specificThermalEnergy(nodeListi, i);
+      //const auto  epsi = specificThermalEnergy(nodeListi, i);
       const auto  Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  ci = soundSpeed(nodeListi, i);
       const auto  omegai = omega(nodeListi, i);
       const auto& Si = S(nodeListi, i);
-      const auto  mui = mu(nodeListi, i);
+      //const auto  mui = mu(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  safeOmegai = safeInv(omegai, tiny);
-      const auto  fragIDi = fragIDs(nodeListi, i);
+      //const auto  fragIDi = fragIDs(nodeListi, i);
       const auto  pTypei = pTypes(nodeListi, i);
       const auto  zetai = abs((Hi*posi).y());
       CHECK(mi > 0.0);
@@ -441,16 +442,16 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto  mRZj = mj/circj;
       const auto& vj = velocity(nodeListj, j);
       const auto  rhoj = massDensity(nodeListj, j);
-      const auto  epsj = specificThermalEnergy(nodeListj, j);
+      //const auto  epsj = specificThermalEnergy(nodeListj, j);
       const auto  Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto  cj = soundSpeed(nodeListj, j);
       const auto  omegaj = omega(nodeListj, j);
       const auto& Sj = S(nodeListj, j);
-      const auto  muj = mu(nodeListj, j);
+      //const auto  muj = mu(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       const auto  safeOmegaj = safeInv(omegaj, tiny);
-      const auto  fragIDj = fragIDs(nodeListj, j);
+      //const auto  fragIDj = fragIDs(nodeListj, j);
       const auto  pTypej = pTypes(nodeListj, j);
       const auto  zetaj = abs((Hj*posj).y());
       CHECK(mj > 0.0);
@@ -549,12 +550,16 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto Peffj = (mNegativePressureInDamage or Pj > 0.0 ? Pj : fDeffij*Pj);
 
       // Compute the stress tensors.
+      sigmai = -Peffi*SymTensor::one;
+      sigmaj = -Peffj*SymTensor::one;
       if (sameMatij) {
-        sigmai = fDeffij*Si - Peffi*SymTensor::one;
-        sigmaj = fDeffij*Sj - Peffj*SymTensor::one;
-      } else {
-        sigmai = -Peffi*SymTensor::one;
-        sigmaj = -Peffj*SymTensor::one;
+        if (mStrengthInDamage) {
+          sigmai += Si;
+          sigmaj += Sj;
+        } else {
+          sigmai += fDeffij*Si;
+          sigmaj += fDeffij*Sj;
+        }
       }
 
       // Compute the tensile correction to add to the stress as described in 
@@ -630,12 +635,11 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
   // Finish up the derivatives for each point.
   auto offset = 2*npairs;
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
     const auto  hmax = nodeList.hmax();
     const auto  hminratio = nodeList.hminratio();
-    const auto  maxNumNeighbors = nodeList.maxNumNeighbors();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
     // Check if we can identify a reference density.
@@ -649,7 +653,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
       const auto& posi = position(nodeListi, i);
@@ -876,7 +880,6 @@ enforceBoundaries(State<Dim<2> >& state,
   FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const unsigned n = mass[nodeListi]->numInternalElements();
-    const Scalar nPerh = mass[nodeListi]->nodeList().nodesPerSmoothingScale();
     for (unsigned i = 0; i != n; ++i) {
       Vector& posi = pos(nodeListi, i);
       const Scalar circi = 2.0*M_PI*abs(posi.y());

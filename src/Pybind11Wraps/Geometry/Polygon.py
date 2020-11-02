@@ -117,7 +117,7 @@ indices that define the facets."""
         return "Vector"
 
     @PYB11const
-    def convex(self):
+    def convex(self, tol = "double"):
         "Test if the polygon is convex"
         return "bool"
 
@@ -173,13 +173,13 @@ indices that define the facets."""
     #...........................................................................
     # Properties
     centroid = PYB11property("Vector")
-    vertices = PYB11property("std::vector<Vector>&", returnpolicy="reference_internal")
-    facets = PYB11property("std::vector<Facet>&", returnpolicy="reference_internal")
+    vertices = PYB11property("const std::vector<Vector>&", returnpolicy="reference_internal")
+    facets = PYB11property("const std::vector<Facet>&", returnpolicy="reference_internal")
     facetVertices = PYB11property("std::vector<std::vector<unsigned> >",
                                   doc="Spit out a vector<vector<unsigned> > that encodes the facets.")
-    vertexUnitNorms = PYB11property("std::vector<Vector>&", returnpolicy="reference_internal")
-    vertexFacetConnectivity = PYB11property("std::vector<std::vector<unsigned> >&", returnpolicy="reference_internal")
-    facetFacetConnectivity = PYB11property("std::vector<std::vector<unsigned> >&", returnpolicy="reference_internal")
+    vertexUnitNorms = PYB11property("const std::vector<Vector>&", returnpolicy="reference_internal")
+    vertexFacetConnectivity = PYB11property("const std::vector<std::vector<unsigned> >&", returnpolicy="reference_internal")
+    facetFacetConnectivity = PYB11property("const std::vector<std::vector<unsigned> >&", returnpolicy="reference_internal")
     xmin = PYB11property("const Vector&", returnpolicy="reference_internal")
     xmax = PYB11property("const Vector&", returnpolicy="reference_internal")
     volume = PYB11property("double")

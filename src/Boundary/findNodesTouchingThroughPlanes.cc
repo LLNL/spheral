@@ -44,7 +44,7 @@ findNodesTouchingThroughPlanes(const NodeList<Dimension>& nodeList,
     const auto& pos = nodeList.positions();
     const auto& H = nodeList.Hfield();
     auto hmax = 0.0;
-    for (auto i = 0; i != n; ++i) {
+    for (auto i = 0u; i != n; ++i) {
       const auto& ri = pos(i);
       const auto& Hi = H(i);
       const auto  hmaxi = 1.0/Hi.eigenValues().minElement();
@@ -54,7 +54,7 @@ findNodesTouchingThroughPlanes(const NodeList<Dimension>& nodeList,
 
     // Now find all points within this range of the exit plane.
     if (hmax > 0.0) {
-      for (auto i = 0; i != n; ++i) {
+      for (auto i = 0u; i != n; ++i) {
         const auto& ri = pos(i);
         const auto  disti = exitPlane.signedDistance(ri)/hmax;
         // const GeomPlane<Dimension> exitPlanePrime(Hi*(exitPlane.point() - ri),

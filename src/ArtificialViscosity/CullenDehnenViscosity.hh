@@ -130,18 +130,11 @@ public:
     
 private:
   //--------------------------- Private Interface ---------------------------//
-  // The restart registration.
-  RestartRegistrationType mRestart;
-        
         
   CullenDehnenViscosity();
   CullenDehnenViscosity(const CullenDehnenViscosity&);
   CullenDehnenViscosity& operator=(const CullenDehnenViscosity&) const;
 
-  Scalar malphMax, malphMin, mbetaE, mbetaD, mbetaC, mfKern;
-  bool mboolHopkins;//Use Hopkins Reformulation
-  ArtificialViscosity<Dimension>& myq;
-  const TableKernel<Dimension>& mKernel;
   FieldList<Dimension, Vector>    mPrevDvDt;//Will enroll as state fields
   FieldList<Dimension, Scalar>    mPrevDivV;
   FieldList<Dimension, Scalar>    mCullAlpha;
@@ -151,6 +144,14 @@ private:
   FieldList<Dimension, Scalar>    mDalphaDt;     // Time derivative of alpha
   FieldList<Dimension, Scalar>    mAlphaLocal;   // Alpha local to be filled in derivatives
   FieldList<Dimension, Scalar>    mAlpha0;       // The Hopkins form actually evolves alpha0
+
+  Scalar malphMax, malphMin, mbetaC, mbetaD, mbetaE, mfKern;
+  bool mboolHopkins;//Use Hopkins Reformulation
+  ArtificialViscosity<Dimension>& myq;
+  const TableKernel<Dimension>& mKernel;
+
+  // The restart registration.
+  RestartRegistrationType mRestart;
 };
     
 }

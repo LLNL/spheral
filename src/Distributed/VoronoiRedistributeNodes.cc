@@ -171,7 +171,7 @@ computeCellBoundaries<Dim<2> >(const Dim<2>::Vector& xmin,
 			       const size_t nxCells,
 			       const size_t index,
 			       Dim<2>::Vector& xcellMin,
-			       Dim<2>::Vector& xcellMax) {
+			       Dim<2>::Vector& /*xcellMax*/) {
   REQUIRE(index < nxCells*nxCells);
   typedef Dim<2>::Vector Vector;
   const size_t ix = index % nxCells;
@@ -274,7 +274,6 @@ computeClosestNodePosition(const typename Dimension::Vector& targetPosition,
   // First find the local node closest to the center.
   Vector localResult;
   double minr2 = DBL_MAX;
-  const size_t n = nodes.size();
   for (typename vector<DomainNode<Dimension> >::const_iterator itr = nodes.begin();
        itr != nodes.end();
        ++itr) {
@@ -314,7 +313,7 @@ computeClosestNodePosition(const typename Dimension::Vector& targetPosition,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 VoronoiRedistributeNodes<Dimension>::
-VoronoiRedistributeNodes(double dummy,
+VoronoiRedistributeNodes(double ,
                          const bool workBalance,
                          const bool balanceGenerators,
                          const double tolerance,
@@ -350,7 +349,6 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
   // Get the global IDs.
   const FieldList<Dimension, int> globalIDs = globalNodeIDs(dataBase);
-  const size_t numNodeLists = dataBase.numNodeLists();
 
   // Compute the work and number density per node.
   const TableKernel<Dimension> W(BSplineKernel<Dimension>(), 100);
@@ -423,7 +421,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     // Everyone starts out in the same bin.
     vector<vector<size_t> > generatorsInParents(1);
     vector<pair<Vector, Vector> > parentCells;
-    for (size_t igen = 0; igen != numProcs; ++igen) generatorsInParents[0].push_back(igen);
+    for (size_t igen = 0; (int)igen != numProcs; ++igen) generatorsInParents[0].push_back(igen);
     parentCells.push_back(make_pair(xmin, xmax));
 
     // Descend until we either get each generator in an individual cell or hit the maximum number
@@ -658,7 +656,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     if (minWork == 0.0) {
       if (procID == 0) {
         cerr << "ERROR:  zero work associated with the following generators:" << endl;
-        for (size_t k = 0; k != numProcs; ++k) {
+        for (size_t k = 0; (int)k != numProcs; ++k) {
           if (generatorWork[k] == 0.0) {
             cerr << "    ----->  " << generators[k] << endl;
             generators[k] = startingGenerators[k];
@@ -702,9 +700,8 @@ computeCentroids(const vector<DomainNode<Dimension> >& nodes,
                  vector<typename Dimension::Vector>& generators) const {
 
   const int numProcs = this->numDomains();
-  const int procID = this->domainID();
   const size_t numGenerators = generators.size();
-  REQUIRE(numGenerators == numProcs);
+  REQUIRE((int)numGenerators == numProcs);
 
   // Initializations.
   const vector<Vector> generators0(generators);
@@ -731,7 +728,7 @@ computeCentroids(const vector<DomainNode<Dimension> >& nodes,
     generators[igen] = Vector::zero;
     normalization[igen] = 0.0;
   }
-  for (size_t sendProc = 0; sendProc != numProcs; ++sendProc) {
+  for (size_t sendProc = 0; (int)sendProc != numProcs; ++sendProc) {
     vector<char> buffer = localBuffer;
     MPI_Bcast(&buffer.front(), buffer.size(), MPI_CHAR, sendProc, Communicator::communicator());
     vector<char>::const_iterator itr = buffer.begin();
@@ -774,7 +771,6 @@ assignNodesToGenerators(const vector<typename Dimension::Vector>& generators,
                         unsigned& maxNodes) const {
 
   const int numProcs = this->numDomains();
-  const int procID = this->domainID();
 
   // Initializations.
   minWork = DBL_MAX;
@@ -808,7 +804,7 @@ assignNodesToGenerators(const vector<typename Dimension::Vector>& generators,
     generatorWork[igen] = 0.0;
     numNodesPerGenerator[igen] = 0;
   }
-  for (size_t sendProc = 0; sendProc != numProcs; ++sendProc) {
+  for (size_t sendProc = 0; (int)sendProc != numProcs; ++sendProc) {
     vector<char> buffer = localBuffer;
     MPI_Bcast(&buffer.front(), buffer.size(), MPI_CHAR, sendProc, Communicator::communicator());
     vector<char>::const_iterator itr = buffer.begin();
@@ -844,9 +840,6 @@ cullGeneratorNodesByWork(const vector<typename Dimension::Vector>& generators,
                          vector<int>& generatorFlags,
                          vector<DomainNode<Dimension> >& nodes) const {
 
-  const int numProcs = this->numDomains();
-  const int procID = this->domainID();
-
   // Pre-conditions.
   const size_t numGenerators = generators.size();
   REQUIRE(targetWork > 0.0);
@@ -869,7 +862,7 @@ cullGeneratorNodesByWork(const vector<typename Dimension::Vector>& generators,
       typedef pair<size_t, double> PairType;
       vector<PairType> distances;
       for (size_t i = 0; i != nodes.size(); ++i) {
-        if (nodes[i].domainID == igen) distances.push_back(make_pair(i, (nodes[i].position - generators[igen]).magnitude2()));
+        if (nodes[i].domainID == (int)igen) distances.push_back(make_pair(i, (nodes[i].position - generators[igen]).magnitude2()));
       }
       sort(distances.begin(), distances.end(), ComparePairsBySecondElement<PairType>());
 

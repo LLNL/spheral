@@ -31,7 +31,6 @@ if(ENABLE_3D)
       CylindricalBoundary.cc  
       SphericalBoundary.cc
       ConstantZVelocityBoundaryInst.cc
-      AxisBoundaryRZ.cc
       )
 endif()
 
@@ -57,16 +56,6 @@ set(Boundary_headers
     )
 
 spheral_add_cxx_library(Boundary)
-
-install(TARGETS              Spheral_Boundary
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Boundary_headers}
-        DESTINATION include/Boundary
-        )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Boundary)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

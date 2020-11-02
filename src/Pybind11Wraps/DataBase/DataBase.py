@@ -90,7 +90,7 @@ class DataBase:
         return "void"
 
     @PYB11const
-    def haveNodeList(self, nodeList="NodeList<%(Dimension)s>&"):
+    def haveNodeList(self, nodeList="const NodeList<%(Dimension)s>&"):
         "Check if a NodeList is in the DataBase"
         return "bool"
 
@@ -99,7 +99,8 @@ class DataBase:
                            position = "const Vector&",
                            H = "const SymTensor&",
                            masterLists = "std::vector<std::vector<int>>&",
-                           coarseNeighbors = "std::vector<std::vector<int>>&"):
+                           coarseNeighbors = "std::vector<std::vector<int>>&",
+                           computeGhostConnectivity = "bool"):
         "Set the master/coarse neighbor lists for all NodeLists"
         return "void"
 
@@ -108,7 +109,8 @@ class DataBase:
                                 position = "const Vector&",
                                 H = "const SymTensor&",
                                 masterLists = "std::vector<std::vector<int>>&",
-                                coarseNeighbors = "std::vector<std::vector<int>>&"):
+                                coarseNeighbors = "std::vector<std::vector<int>>&",
+                                computeGhostConnectivity = "bool"):
         "Set the master/coarse neighbor lists for all NodeLists"
         return "void"
 
@@ -559,8 +561,8 @@ will get the new value regardless of resetValues."""
 
     #...........................................................................
     # Attributes
-    nDim = PYB11readonly(static=True)
-    isRZ = PYB11readonly(static=True)
+    nDim = PYB11readonly(static=True, returnpolicy="copy")
+    isRZ = PYB11readonly(static=True, returnpolicy="copy")
 
     #...........................................................................
     # Properties

@@ -163,8 +163,8 @@ flattenOccupiedGridCells(const DataBase<Dimension>& dataBase,
        ++nodeListItr) {
     const NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*nodeListItr);
     const vector< vector< GridCellIndex<Dimension> > >& occupiedGridCells = neighbor.occupiedGridCells();
-    for (int gridLevel = 0; gridLevel != occupiedGridCells.size(); ++gridLevel) {
-      CHECK(gridLevel < numGridLevels);
+    for (auto gridLevel = 0u; gridLevel != occupiedGridCells.size(); ++gridLevel) {
+      CHECK((int)gridLevel < numGridLevels);
       numGridCells[gridLevel] += occupiedGridCells[gridLevel].size();
     }
   }
@@ -184,8 +184,8 @@ flattenOccupiedGridCells(const DataBase<Dimension>& dataBase,
     const vector< vector< GridCellIndex<Dimension> > >& occupiedGridCells = neighbor.occupiedGridCells();
 
     // Insert these grid cell indices into the (possibly redundant) set of occupied grid cells.
-    CHECK(occupiedGridCells.size() <= numGridLevels);
-    for (int gridLevel = 0; gridLevel != occupiedGridCells.size(); ++gridLevel) {
+    CHECK((int)occupiedGridCells.size() <= numGridLevels);
+    for (auto gridLevel = 0u; gridLevel != occupiedGridCells.size(); ++gridLevel) {
       CHECK(gridLevel < gridCells.size());
       CHECK(gridCells[gridLevel].capacity() >= gridCells[gridLevel].size() + occupiedGridCells[gridLevel].size());
       for (typename vector< GridCellIndex<Dimension> >::const_iterator gridCellItr = occupiedGridCells[gridLevel].begin();
@@ -215,12 +215,12 @@ packGridCellIndices(const vector< vector< GridCellIndex<Dimension> > >& gridCell
 		     vector<int>& packedGridCellIndices) const {
 
   int packedIndex = 0;
-  for (int gridLevel = 0; gridLevel != gridCellSet.size(); ++gridLevel) {
+  for (auto gridLevel = 0u; gridLevel != gridCellSet.size(); ++gridLevel) {
     for (typename vector< GridCellIndex<Dimension> >::const_iterator gridCellItr = gridCellSet[gridLevel].begin();
 	 gridCellItr != gridCellSet[gridLevel].end();
 	 ++gridCellItr) {
       for (int i = 0; i != Dimension::nDim; ++i) {
-	CHECK(packedIndex < packedGridCellIndices.size());
+	CHECK(packedIndex < (int)packedGridCellIndices.size());
 	packedGridCellIndices[packedIndex] = (*gridCellItr)(i);
 	++packedIndex;
       }
@@ -247,7 +247,7 @@ unpackGridCellIndices(const vector<int>& packedGridCellIndices,
     for (vector<int>::const_iterator itr = gridCellDimension.begin();
          itr != gridCellDimension.end();
          ++itr) checkcount = checkcount + *itr;
-    REQUIRE(checkcount*Dimension::nDim == packedGridCellIndices.size());
+    REQUIRE(checkcount*Dimension::nDim == (int)packedGridCellIndices.size());
   }
   END_CONTRACT_SCOPE
 
@@ -266,7 +266,7 @@ unpackGridCellIndices(const vector<int>& packedGridCellIndices,
 
     // Loop over the number of grid cell indices on this grid level.
     for (int gcIndex = 0; gcIndex != gridCellDimension[gridLevel]; ++gcIndex) {
-      CHECK(packedIndex + Dimension::nDim <= packedGridCellIndices.size());
+      CHECK(packedIndex + Dimension::nDim <= (int)packedGridCellIndices.size());
 
       // Build the next GridCellIndex from the packed info.
       GridCellIndex<Dimension> gc;
@@ -373,6 +373,7 @@ setAllGhostNodes(DataBase<Dimension>& dataBase) {
   // This processor's ID.
   int procID = this->domainID();
   int numProcs = this->numDomains();
+  CONTRACT_VAR(numProcs);
   CHECK(procID < numProcs);
 
   // Clear out the existing communication map for the given database.
@@ -392,7 +393,7 @@ setAllGhostNodes(DataBase<Dimension>& dataBase) {
   // Begin by creating the flattened list of occupied grid cells for this process.
   // The flattening here is across NodeLists, so we are making an amalgamated list
   // of grid cells occupied by nodes from any NodeList on this domain.
-  CHECK(mOccupiedGridCells.size() == numProcs);
+  CHECK((int)mOccupiedGridCells.size() == numProcs);
   flattenOccupiedGridCells(dataBase, mOccupiedGridCells[procID]);
 
   // Distribute the complete set of occupied grid cells for all domains to all processes.
@@ -453,7 +454,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
   CHECK(procID < numProcs);
 
   const int numGridLevels = mOccupiedGridCells[0].size();
-  CHECK(mOccupiedGridCells[procID].size() == numGridLevels);
+  CHECK((int)mOccupiedGridCells[procID].size() == numGridLevels);
 
   // Compute and distribute the min and max node extents for each domain.
   // This is used to cull the nodes we're going to send to other domains.
@@ -485,7 +486,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
       int tmp = localBuffer.size();
       int globalMinSize;
       MPI_Allreduce(&tmp, &globalMinSize, 1, MPI_INT, MPI_MIN, Communicator::communicator());
-      CHECK(globalMinSize == localBuffer.size());
+      CHECK(globalMinSize == (int)localBuffer.size());
     }
     END_CONTRACT_SCOPE
     if (localBuffer.size() > 0) {
@@ -510,7 +511,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
   FieldList<Dimension, SymTensor> Hinverse = dataBase.newGlobalFieldList(SymTensor::zero, "H inverse");
   dataBase.globalHinverse(Hinverse);
   for (int neighborProc = 0; neighborProc != numProcs; ++neighborProc) {
-    CHECK(mOccupiedGridCells[neighborProc].size() == numGridLevels);
+    CHECK((int)mOccupiedGridCells[neighborProc].size() == numGridLevels);
 
     // Don't bother if the neighbor domain is us!
     if (neighborProc != procID) {
@@ -556,7 +557,7 @@ buildSendNodes(const DataBase<Dimension>& dataBase) {
             const Field<Dimension, Vector>& extents = neighbor.nodeExtentField();
 	    const Field<Dimension, SymTensor>& Hinv = *Hinverse[nodeListi];
             vector<int> indicesToKill;
-            for (int k = 0; k != sendNodes.size(); ++k) {
+            for (auto k = 0u; k != sendNodes.size(); ++k) {
               const int i = sendNodes[k];
               const Vector& xi = positions(i);
               const Vector& extenti = extents(i);

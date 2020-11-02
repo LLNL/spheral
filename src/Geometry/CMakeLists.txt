@@ -9,15 +9,11 @@ set(Geometry_sources
     Geom3Vector.cc
     GeomFacet2d.cc
     GeomFacet3d.cc
-    GeomFifthRankTensor.cc
-    GeomFourthRankTensor.cc
     GeomPlane.cc
     GeomPolygon.cc
     GeomPolyhedron.cc
     GeomSymmetricTensor.cc
     GeomTensor.cc
-    GeomThirdRankTensor.cc
-    GeomVector.cc
     Jacobi.cc
     Jacobi2.cc
     buildEigenVector.cc
@@ -103,16 +99,6 @@ set(Geometry_headers
     )
 
 spheral_add_cxx_library(Geometry)
-
-install(TARGETS              Spheral_Geometry
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Geometry_headers}
-        DESTINATION include/Geometry
-        )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Geometry)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

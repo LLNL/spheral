@@ -59,8 +59,6 @@ weibullFlawDistributionBenzAsphaug(double volume,
   REQUIRE(mask.nodeListPtr() == &nodeList);
 
   typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::SymTensor SymTensor;
 
   // Prepare the result.
   Field<Dimension, vector<double> > flaws("Weibull flaw distribution",
@@ -81,7 +79,6 @@ weibullFlawDistributionBenzAsphaug(double volume,
 
   // Identify the rank and number of domains.
   const int procID = Process::getRank();
-  const int numProcs = Process::getTotalNumberOfProcesses();
 
   // Only proceed if there are nodes to initialize!
   if (n > 0) {
@@ -91,7 +88,7 @@ weibullFlawDistributionBenzAsphaug(double volume,
     if (volume == 0.0) {
       const Field<Dimension, Scalar>& mass = nodeList.mass();
       const Field<Dimension, Scalar>& rho = nodeList.massDensity();
-      for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+      for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
         CHECK(rho(i) > 0.0);
         volume += mass(i)/rho(i);
       }
@@ -151,14 +148,14 @@ weibullFlawDistributionBenzAsphaug(double volume,
     unsigned totalNumFlaws = 0;
     double epsMax = 0.0;
     double sumFlaws = 0.0;
-    for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+    for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
       minNumFlaws = min(minNumFlaws, unsigned(flaws(i).size()));
       maxNumFlaws = max(maxNumFlaws, unsigned(flaws(i).size()));
       totalNumFlaws += flaws(i).size();
       if (mask(i) == 1) {
         sort(flaws(i).begin(), flaws(i).end());
         epsMax = max(epsMax, flaws(i).back());
-        for (int j = 0; j != flaws(i).size(); ++j) sumFlaws += flaws(i)[j];
+        for (auto j = 0u; j != flaws(i).size(); ++j) sumFlaws += flaws(i)[j];
       }
     }
 
@@ -183,9 +180,9 @@ weibullFlawDistributionBenzAsphaug(double volume,
   // That's it.
   BEGIN_CONTRACT_SCOPE
   {
-    for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+    for (int i = 0; i != (int)nodeList.numInternalNodes(); ++i) {
       if (mask(i) == 1) {
-        ENSURE(flaws(i).size() >= minFlawsPerNode);
+        ENSURE((int)flaws(i).size() >= minFlawsPerNode);
         for (vector<double>::const_iterator itr = flaws(i).begin() + 1;
              itr != flaws(i).end();
              ++itr) ENSURE(*itr >= *(itr - 1));
@@ -218,8 +215,6 @@ weibullFlawDistributionOwen(const unsigned seed,
   REQUIRE(mask.nodeListPtr() == &nodeList);
 
   typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::SymTensor SymTensor;
   typedef KeyTraits::Key Key;
 
   // Prepare the result.
@@ -245,7 +240,6 @@ weibullFlawDistributionOwen(const unsigned seed,
 
     // Identify the rank and number of domains.
     const int procID = Process::getRank();
-    const int numProcs = Process::getTotalNumberOfProcesses();
 
     // State for this NodeList.
     const Field<Dimension, Scalar>& mass = nodeList.mass();
@@ -302,12 +296,12 @@ weibullFlawDistributionOwen(const unsigned seed,
           }
 
           // Spin the random number generator to keep in sync with other processors.
-          for (int j = numFlawsi; j != maxFlawsPerNode; ++j) double tmp = uniform01(gen);
+          for (int j = numFlawsi; j != maxFlawsPerNode; ++j) uniform01(gen);
 
         } else{
 
           // Spin the random number generator to keep in sync with other processors.
-          for (int j = 0; j != maxFlawsPerNode; ++j) double tmp = uniform01(gen);
+          for (int j = 0; j != maxFlawsPerNode; ++j) uniform01(gen);
 
         }
 
@@ -315,7 +309,7 @@ weibullFlawDistributionOwen(const unsigned seed,
 
         // Other domains just cycle the random number generator so that
         // we can be domain decomposition independent.
-        for (int j = 0; j != maxFlawsPerNode; ++j) double tmp = uniform01(gen);
+        for (int j = 0; j != maxFlawsPerNode; ++j) uniform01(gen);
 
       }
     }
@@ -327,7 +321,7 @@ weibullFlawDistributionOwen(const unsigned seed,
     double epsMin = std::numeric_limits<double>::max();
     double epsMax = std::numeric_limits<double>::min();
     double sumFlaws = 0.0;
-    for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+    for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
       minNumFlaws = min(minNumFlaws, unsigned(flaws(i).size()));
       maxNumFlaws = max(maxNumFlaws, unsigned(flaws(i).size()));
       totalNumFlaws += flaws(i).size();
@@ -335,7 +329,7 @@ weibullFlawDistributionOwen(const unsigned seed,
         sort(flaws(i).begin(), flaws(i).end());
         epsMin = min(epsMin, flaws(i).front());
         epsMax = max(epsMax, flaws(i).back());
-        for (int j = 0; j != flaws(i).size(); ++j) sumFlaws += flaws(i)[j];
+        for (auto j = 0u; j != flaws(i).size(); ++j) sumFlaws += flaws(i)[j];
       }
     }
 
@@ -362,7 +356,7 @@ weibullFlawDistributionOwen(const unsigned seed,
     // That's it.
     BEGIN_CONTRACT_SCOPE
     {
-      for (int i = 0; i != nodeList.numInternalNodes(); ++i) {
+      for (int i = 0; i != (int)nodeList.numInternalNodes(); ++i) {
         if (mask(i) == 1) {
           for (vector<double>::const_iterator itr = flaws(i).begin() + 1;
                itr != flaws(i).end();

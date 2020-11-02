@@ -126,9 +126,9 @@ ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
 update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
-       const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*multiplier*/,
+       const double /*t*/,
+       const double /*dt*/) {
 
   // Find the matching replacement field from the StateDerivatives.
   KeyType replaceKey = prefix() + key;
@@ -136,7 +136,7 @@ update(const KeyType& key,
   const Field<Dimension, ValueType>& df = derivs.field(replaceKey, ValueType());
 
   // Loop over the internal values of the field.
-  for (int i = 0; i != f.nodeList().numInternalNodes(); ++i) {
+  for (auto i = 0u; i != f.nodeList().numInternalNodes(); ++i) {
     f(i) = min(mMaxValue, max(mMinValue, df(i)));
   }
 }

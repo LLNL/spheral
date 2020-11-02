@@ -98,8 +98,8 @@ initialize(const DataBase<Dimension>& dataBase,
            const StateDerivatives<Dimension>& derivs,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
            typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-           const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
+           const typename Dimension::Scalar /*time*/,
+           const typename Dimension::Scalar /*dt*/,
            const TableKernel<Dimension>& W) {
 
   // If needed, calculate grad v and grad div v.
@@ -130,10 +130,10 @@ initialize(const DataBase<Dimension>& dataBase,
     // Calculate the shear Q suppression term for all internal fluid nodes.
     const auto& connectivityMap = dataBase.connectivityMap();
     const auto  numNodeLists = connectivityMap.nodeLists().size();
-    for (auto nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
       const auto ni = mShearCorrection[nodeListi]->numInternalElements();
 #pragma omp parallel for
-      for (auto i = 0; i < ni; ++i) {
+      for (auto i = 0u; i < ni; ++i) {
         const auto div = fabs(DvDx(nodeListi, i).Trace());
         const auto curl = curlVelocityMagnitude(DvDx(nodeListi, i));
         const auto hmaxinverse = Dimension::rootnu(H(nodeListi, i).Determinant());
@@ -204,8 +204,8 @@ sigmaij(const typename Dimension::Vector& rij,
 
   REQUIRE(fuzzyEqual(rijUnit.magnitude2(), 1.0));
   REQUIRE(distinctlyGreaterThan(hi2, 0.0));
-  REQUIRE(nodeListID >= 0 and nodeListID < mSigma.size());
-  REQUIRE(nodeID >= 0 and nodeID < mSigma[nodeListID]->nodeListPtr()->numNodes());
+  REQUIRE(nodeListID >= 0 and nodeListID < (int)mSigma.size());
+  REQUIRE(nodeID >= 0 and nodeID < (int)mSigma[nodeListID]->nodeListPtr()->numNodes());
 
   // Get the rotational transformations.
   const auto R = rotationMatrix(rijUnit);  // Gets -1
@@ -238,7 +238,7 @@ void
 ArtificialViscosity<Dimension>::
 calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
-                          const StateDerivatives<Dimension>& derivs,
+                          const StateDerivatives<Dimension>& /*derivs*/,
                           const TableKernel<Dimension>& W,
                           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
                           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd) {
@@ -269,6 +269,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto  numNodeLists = dataBase.numFluidNodeLists();
+  CONTRACT_VAR(nodeLists);
   CHECK(nodeLists.size() == numNodeLists);
 
   // The set of interacting node pairs.
@@ -289,7 +290,7 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
     auto gdvNormalization_thread = gdvNormalization.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
       nodeListi = pairs[kk].i_list;
@@ -389,10 +390,10 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
   } // OpenMP parallel region
 
   // Finish up the derivatives for each point.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto ni = mSigma[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // The derivatives for i.
       auto& sigmai = mSigma(nodeListi, i);

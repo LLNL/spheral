@@ -48,27 +48,12 @@ set(Mesh_headers
     generateMesh.hh
     )
 
-set(Mesh_python_targets
+spheral_install_python_files(
   generateMesh.py
-  siloMeshDump.py)
+  siloMeshDump.py
+  )
 
 spheral_add_cxx_library(Mesh)
-
-install(TARGETS              Spheral_Mesh
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Mesh_headers}
-        DESTINATION include/Mesh
-        )
-
-if(NOT ENABLE_CXXONLY)
-  install(FILES       ${Mesh_python_targets}
-          DESTINATION .
-          )
-endif()
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Mesh)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

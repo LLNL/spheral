@@ -112,7 +112,6 @@ template<typename Dimension>
 void
 Neighbor<Dimension>::
 nodeList(NodeList<Dimension>& nodeList) {
-  CHECK(&nodeList);
   mNodeListPtr = &nodeList;
   mNodeExtent.setNodeList(nodeList);
 }
@@ -143,7 +142,7 @@ template<typename Dimension>
 typename Dimension::Vector
 Neighbor<Dimension>::
 nodeExtent(int nodeID) const {
-  CHECK(nodeID >= 0 and nodeID < nodeList().numNodes());
+  CHECK(nodeID >= 0 and nodeID < (int)nodeList().numNodes());
   return HExtent(nodeList().Hfield()(nodeID), kernelExtent());
 }
 
@@ -154,7 +153,7 @@ template<typename Dimension>
 void
 Neighbor<Dimension>::
 setNodeExtents() {
-  for (int nodeID = 0; nodeID < nodeList().numNodes(); ++nodeID) {
+  for (auto nodeID = 0u; nodeID < nodeList().numNodes(); ++nodeID) {
     mNodeExtent(nodeID) = nodeExtent(nodeID);
   }
 }
@@ -166,7 +165,7 @@ setNodeExtents(const vector<int>& nodeIDs) {
   for (typename vector<int>::const_iterator nodeIDItr = nodeIDs.begin();
        nodeIDItr < nodeIDs.end();
        ++nodeIDItr) {
-    CHECK(*nodeIDItr >= 0 and *nodeIDItr < nodeList().numNodes());
+    CHECK(*nodeIDItr >= 0 and *nodeIDItr < (int)nodeList().numNodes());
     mNodeExtent(*nodeIDItr) = nodeExtent(*nodeIDItr);
   }
 }
@@ -175,7 +174,7 @@ template<typename Dimension>
 void
 Neighbor<Dimension>::
 setInternalNodeExtents() {
-  for (int nodeID = 0; nodeID < nodeList().numInternalNodes(); ++nodeID) {
+  for (auto nodeID = 0u; nodeID < nodeList().numInternalNodes(); ++nodeID) {
     mNodeExtent(nodeID) = nodeExtent(nodeID);
   }
 }
@@ -184,7 +183,7 @@ template<typename Dimension>
 void
 Neighbor<Dimension>::
 setGhostNodeExtents() {
-  for (int nodeID = nodeList().firstGhostNode(); nodeID < nodeList().numNodes(); ++nodeID) {
+  for (int nodeID = nodeList().firstGhostNode(); nodeID < (int)nodeList().numNodes(); ++nodeID) {
     mNodeExtent(nodeID) = nodeExtent(nodeID);
   }
 }
@@ -200,7 +199,7 @@ setMasterList(int nodeID,
               std::vector<int>& coarseNeighbors,
               const bool ghostConnectivity) const {
   CHECK(valid());
-  CHECK(nodeID >= 0 and nodeID < nodeList().numInternalNodes());
+  CHECK(nodeID >= 0 and nodeID < (int)nodeList().numInternalNodes());
   const auto& positions = nodeList().positions();
   const auto& Hfield = nodeList().Hfield();
   this->setMasterList(positions(nodeID), Hfield(nodeID), masterList, coarseNeighbors, ghostConnectivity);
@@ -216,7 +215,7 @@ setRefineNeighborList(int nodeID,
                       const std::vector<int>& coarseNeighbors,
                       std::vector<int>& refineNeighbors) const {
   CHECK(valid());
-  CHECK(nodeID >= 0 and nodeID < nodeList().numInternalNodes());
+  CHECK(nodeID >= 0 and nodeID < (int)nodeList().numInternalNodes());
   const auto& positions = nodeList().positions();
   const auto& Hfield = nodeList().Hfield();
   this->setRefineNeighborList(positions(nodeID), Hfield(nodeID), coarseNeighbors, refineNeighbors);
@@ -249,7 +248,7 @@ precullList(const Vector& minMasterPosition, const Vector& maxMasterPosition,
     // {
     //   vector<int> cullList_private;
 // #pragma omp for nowait
-      for (auto k = 0; k < n; ++k) {
+      for (auto k = 0u; k < n; ++k) {
         const auto  j = coarseList[k];
         const auto& nodePosition = positions(j);
         const auto  minNodeExtent = nodePosition - nodeExtents(j);

@@ -127,7 +127,7 @@ currentDomainDecomposition(const DataBase<Dimension>& dataBase,
     // Loop over the nodes in the NodeList, and add their info to the 
     // result.
     result.reserve(result.size() + nodeList.numInternalNodes());
-    for (int localID = 0; localID != nodeList.numInternalNodes(); ++localID) {
+    for (auto localID = 0u; localID != nodeList.numInternalNodes(); ++localID) {
       result.push_back(DomainNode<Dimension>());
       result.back().localNodeID = localID;
       result.back().uniqueLocalNodeID = localID + offset;
@@ -139,7 +139,7 @@ currentDomainDecomposition(const DataBase<Dimension>& dataBase,
     }
     offset += nodeList.numInternalNodes();
   }
-  CHECK(nodeListID == dataBase.numNodeLists());
+  CHECK(nodeListID == (int)dataBase.numNodeLists());
 
   ENSURE(validDomainDecomposition(result, dataBase));
   return result;
@@ -169,17 +169,17 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
   vector< vector<int> > numRecvNodes;
   numRecvNodes.reserve(numProcs);
   for (int i = 0; i != numProcs; ++i) numRecvNodes.push_back(vector<int>(numNodeLists, 0));
-  CHECK(numRecvNodes.size() == numProcs);
+  CHECK((int)numRecvNodes.size() == numProcs);
   vector<MPI_Request> numRecvNodeRequests;
   numRecvNodeRequests.reserve(numProcs - 1);
   for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
-    CHECK(recvProc < numRecvNodes.size());
+    CHECK(recvProc < (int)numRecvNodes.size());
     if (recvProc != proc) {
       numRecvNodeRequests.push_back(MPI_Request());
       MPI_Irecv(&(*numRecvNodes[recvProc].begin()), numNodeLists, MPI_INT, recvProc, 0, Communicator::communicator(), &(numRecvNodeRequests.back()));
     }
   }
-  CHECK(numRecvNodeRequests.size() == numProcs - 1);
+  CHECK((int)numRecvNodeRequests.size() == numProcs - 1);
 
   // Find the nodes on this domain that have to be reassigned to new domains.
   vector< vector< vector<int> > > sendNodes(numProcs); // [sendDomain][nodeList][node]
@@ -190,8 +190,8 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
     if (distItr->domainID != proc) {
       CHECK(distItr->domainID >= 0 && distItr->domainID < numProcs);
       CHECK(distItr->nodeListID < numNodeLists);
-      CHECK(distItr->domainID < sendNodes.size());
-      CHECK(distItr->nodeListID < sendNodes[distItr->domainID].size());
+      CHECK(distItr->domainID < (int)sendNodes.size());
+      CHECK(distItr->nodeListID < (int)sendNodes[distItr->domainID].size());
       sendNodes[distItr->domainID][distItr->nodeListID].push_back(distItr->localNodeID);
     }
   }
@@ -211,33 +211,33 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
         x.push_back(sendNodes[sendProc][nodeListID].size());
         totalNumSendNodes[sendProc] += x.back();
       }
-      CHECK(x.size() == numNodeLists);
+      CHECK((int)x.size() == numNodeLists);
       numSendNodeRequests.push_back(MPI_Request());
       MPI_Isend(&(*x.begin()), numNodeLists, MPI_INT, sendProc, 0, Communicator::communicator(), &(numSendNodeRequests.back()));
       if (totalNumSendNodes[sendProc] > 0) ++numSendDomains;
     }
   }
-  CHECK(numSendNodes.size() == numProcs - 1)
-  CHECK(numSendNodeRequests.size() == numProcs - 1);
+  CHECK((int)numSendNodes.size() == numProcs - 1)
+  CHECK((int)numSendNodeRequests.size() == numProcs - 1);
   CHECK(numSendDomains <= numProcs - 1);
   CHECK(totalNumSendNodes[proc] == 0);
 
   // Pack up the field info for the nodes we're sending.
   vector< vector< list< vector<char> > > > sendBuffers(numProcs);
   for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
-    CHECK(sendProc < sendBuffers.size());
+    CHECK(sendProc < (int)sendBuffers.size());
     sendBuffers[sendProc].resize(numNodeLists);
     int nodeListID = 0;
     for (NodeListIterator nodeListItr = dataBase.nodeListBegin();
          nodeListItr != dataBase.nodeListEnd();
          ++nodeListItr, ++nodeListID) {
       const NodeList<Dimension>& nodeList = **nodeListItr;
-      CHECK(sendProc < sendNodes.size());
-      CHECK(nodeListID < sendNodes[sendProc].size());
+      CHECK(sendProc < (int)sendNodes.size());
+      CHECK(nodeListID < (int)sendNodes[sendProc].size());
       const int numSendNodes = sendNodes[sendProc][nodeListID].size();
       if (numSendNodes > 0) {
-        CHECK(sendProc < sendBuffers.size());
-        CHECK(nodeListID < sendBuffers[sendProc].size());
+        CHECK(sendProc < (int)sendBuffers.size());
+        CHECK(nodeListID < (int)sendBuffers[sendProc].size());
         sendBuffers[sendProc][nodeListID] = nodeList.packNodeFieldValues(sendNodes[sendProc][nodeListID]);
       }
     }
@@ -255,9 +255,9 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
   vector<int> totalNumRecvNodes(numProcs, 0);
   for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
     if (recvProc != proc) {
-      CHECK(recvProc < totalNumRecvNodes.size());
-      CHECK(recvProc < numRecvNodes.size());
-      CHECK(numRecvNodes[recvProc].size() == numNodeLists);
+      CHECK(recvProc < (int)totalNumRecvNodes.size());
+      CHECK(recvProc < (int)numRecvNodes.size());
+      CHECK((int)numRecvNodes[recvProc].size() == numNodeLists);
       for (vector<int>::const_iterator itr = numRecvNodes[recvProc].begin();
            itr != numRecvNodes[recvProc].end();
            ++itr) totalNumRecvNodes[recvProc] += *itr;
@@ -288,12 +288,12 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
           numRecvBuffers += numFields;
         }
       }
-      CHECK(x.size() <= numNodeLists);
+      CHECK((int)x.size() <= numNodeLists);
       CHECK(nodeListID == numNodeLists);
     }
   }
-  CHECK(recvBufferSizes.size() == numRecvDomains);
-  CHECK(recvBufSizeRequests.size() <= numRecvDomains*numNodeLists);
+  CHECK((int)recvBufferSizes.size() == numRecvDomains);
+  CHECK((int)recvBufSizeRequests.size() <= numRecvDomains*numNodeLists);
   CHECK(numRecvBuffers >= numRecvDomains);
 
   // Send the sizes of the our encoded field buffers.
@@ -320,11 +320,11 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
           MPI_Isend(&(*x.back().begin()), x.back().size(), MPI_INT, sendProc, 1 + nodeListID, Communicator::communicator(), &(sendBufSizeRequests.back()));
         }
       }
-      CHECK(x.size() <= numNodeLists);
+      CHECK((int)x.size() <= numNodeLists);
     }
   }
-  CHECK(sendBufferSizes.size() == numSendDomains);
-  CHECK(sendBufSizeRequests.size() <= numSendDomains*numNodeLists);
+  CHECK((int)sendBufferSizes.size() == numSendDomains);
+  CHECK((int)sendBufSizeRequests.size() <= numSendDomains*numNodeLists);
   CHECK(numSendBuffers >= numSendDomains);
       
   // Determine the maximum number of fields defined on a NodeList.
@@ -361,9 +361,8 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
   for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
     if (totalNumRecvNodes[recvProc] > 0) {
       fieldBuffers.push_back(list< list< vector<char> > >());
-      list< list< vector<char> > >& nodeListBufs = fieldBuffers.back();
       CHECK(outerBufSizeItr != recvBufferSizes.end());
-      CHECK(outerBufSizeItr->size() <= numNodeLists);
+      CHECK((int)outerBufSizeItr->size() <= numNodeLists);
       list< vector<int> >::const_iterator bufSizeItr = outerBufSizeItr->begin();
       for (int nodeListID = 0; nodeListID != numNodeLists; ++nodeListID) {
         if (numRecvNodes[recvProc][nodeListID] > 0) {
@@ -380,24 +379,24 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
             MPI_Irecv(&(*bufs.back().begin()), *itr, MPI_CHAR, recvProc, (2 + numNodeLists) + maxNumFields*nodeListID + i, Communicator::communicator(), &(recvBufferRequests.back()));
           }
           ++bufSizeItr;
-          CHECK(i <= maxNumFields);
+          CHECK((int)i <= maxNumFields);
         }
       }
       CHECK(bufSizeItr == outerBufSizeItr->end());
       ++outerBufSizeItr;
     }
   }
-  CHECK(fieldBuffers.size() == numRecvDomains);
+  CHECK((int)fieldBuffers.size() == numRecvDomains);
   CHECK(outerBufSizeItr == recvBufferSizes.end());
-  CHECK(recvBufferRequests.size() == numRecvBuffers);
+  CHECK((int)recvBufferRequests.size() == numRecvBuffers);
 
   // Send our encoded buffers.
   vector<MPI_Request> sendBufferRequests;
   sendBufferRequests.reserve(numSendBuffers);
   for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
     if (totalNumSendNodes[sendProc] > 0) {
-      CHECK(sendProc < sendBuffers.size());
-      CHECK(sendBuffers[sendProc].size() == numNodeLists);
+      CHECK(sendProc < (int)sendBuffers.size());
+      CHECK((int)sendBuffers[sendProc].size() == numNodeLists);
       for (int nodeListID = 0; nodeListID != numNodeLists; ++nodeListID) {
         if (sendNodes[sendProc][nodeListID].size() > 0) {
           list< vector<char> >& bufs = sendBuffers[sendProc][nodeListID];
@@ -409,12 +408,12 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
             sendBufferRequests.push_back(MPI_Request());
             MPI_Isend(&(*buf.begin()), buf.size(), MPI_CHAR, sendProc, (2 + numNodeLists) + maxNumFields*nodeListID + i, Communicator::communicator(), &(sendBufferRequests.back()));
           }
-          CHECK(i <= maxNumFields);
+          CHECK((int)i <= maxNumFields);
         }
       }
     }
   }
-  CHECK(sendBufferRequests.size() == numSendBuffers);
+  CHECK((int)sendBufferRequests.size() == numSendBuffers);
 
   // Wait until we've received the packed field buffers.
   if (not recvBufferRequests.empty()) {
@@ -437,8 +436,8 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
       // NodeList, then the remaining sendNode localIDs are not valid.
       vector<int> deleteNodes;
       for (int sendProc = 0; sendProc != numProcs; ++sendProc) {
-        CHECK(sendProc < sendNodes.size());
-        CHECK(nodeListID < sendNodes[sendProc].size());
+        CHECK(sendProc < (int)sendNodes.size());
+        CHECK(nodeListID < (int)sendNodes[sendProc].size());
         deleteNodes.reserve(deleteNodes.size() + 
                             sendNodes[sendProc][nodeListID].size());
         for (vector<int>::const_iterator itr = sendNodes[sendProc][nodeListID].begin();
@@ -455,7 +454,7 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
   // Now unpack the new nodes and Field values.
   list< list< list< vector<char> > > >::const_iterator procBufItr = fieldBuffers.begin();
   for (int recvProc = 0; recvProc != numProcs; ++recvProc) {
-    CHECK(recvProc < totalNumRecvNodes.size());
+    CHECK(recvProc < (int)totalNumRecvNodes.size());
     if (totalNumRecvNodes[recvProc] > 0) {
       CHECK(procBufItr != fieldBuffers.end());
       int nodeListID = 0;
@@ -518,7 +517,7 @@ validDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistribution,
          dataBase.nodeListBegin();
        nodeListItr < dataBase.nodeListEnd();
        ++nodeListItr, ++nodeListID) {
-    CHECK(nodeListID >= 0 && nodeListID < localIDtaken.size());
+    CHECK(nodeListID >= 0 && nodeListID < (int)localIDtaken.size());
     localIDtaken[nodeListID].resize((*nodeListItr)->numInternalNodes(), false);
   }
 
@@ -545,7 +544,7 @@ validDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistribution,
 
     // Check that this local ID is not already used.
     CHECK(nodeListID >= 0 && nodeListID < numNodeLists);
-    CHECK(localNodeID >= 0 && localNodeID < localIDtaken[nodeListID].size());
+    CHECK(localNodeID >= 0 && localNodeID < (int)localIDtaken[nodeListID].size());
     if (localIDtaken[nodeListID][localNodeID] == true) {
       valid = false;
     } else {
@@ -683,7 +682,7 @@ template<typename Dimension>
 FieldList<Dimension, typename Dimension::Scalar>
 RedistributeNodes<Dimension>::
 workPerNode(const DataBase<Dimension>& dataBase,
-            const double Hextent) const {
+            const double /*Hextent*/) const {
 
   // Prepare the result.
   FieldList<Dimension, Scalar> result = dataBase.newGlobalFieldList(Scalar(), "work per node");
@@ -696,9 +695,9 @@ workPerNode(const DataBase<Dimension>& dataBase,
     dataBase.updateConnectivityMap(false, false);
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
     const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
-    for (int iNodeList = 0; iNodeList != nodeLists.size(); ++iNodeList) {
+    for (auto iNodeList = 0u; iNodeList != nodeLists.size(); ++iNodeList) {
       const NodeList<Dimension>* nodeListPtr = nodeLists[iNodeList];
-      for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {
+      for (auto i = 0u; i != nodeListPtr->numInternalNodes(); ++i) {
         result(iNodeList, i) = connectivityMap.numNeighborsForNode(nodeListPtr, i);
       }
     }
@@ -716,14 +715,14 @@ workPerNode(const DataBase<Dimension>& dataBase,
   if (globalMax == 0.0) {
     result = 1.0;
   } else {
-    for (int iNodeList = 0; iNodeList != result.size(); ++iNodeList) {
+    for (auto iNodeList = 0u; iNodeList != result.size(); ++iNodeList) {
       Field<Dimension, Scalar>& worki = *(result[iNodeList]);
       if (worki.max() == 0.0) {
         worki = globalMax;
       } else {
         if (worki.min() == 0.0) {
           double localMin = std::numeric_limits<double>::max();
-          for (int i = 0; i != worki.numInternalElements(); ++i) {
+          for (auto i = 0u; i != worki.numInternalElements(); ++i) {
             if (worki(i) > 0.0) localMin = std::min(localMin, worki(i));
           }
           double globalMin;
@@ -765,7 +764,7 @@ packDomainNodes(const vector<DomainNode<Dimension> >& domainNodes) const {
     for (int i = 0; i != Dimension::nDim; ++i)
       packElement(domainNodeItr->position(i), result);
   }
-  ENSURE(result.size() == bufsize);
+  ENSURE((int)result.size() == bufsize);
   return result;
 }
 
@@ -840,7 +839,7 @@ gatherDomainDistributionStatistics(const FieldList<Dimension, typename Dimension
          << "    (min, max, avg) work per domain : ("
          << globalMinWork << ", "
          << globalMaxWork << ", "
-         << globalAvgWork << ")" << std::ends;
+         << globalAvgWork << ")" << std::endl;
   return result.str();
 }
 

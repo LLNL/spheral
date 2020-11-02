@@ -100,11 +100,11 @@ def computeRKVolumes(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
                      boundaryConditions = "const std::vector<Boundary<%(Dimension)s>*>&",
                      volumeType = "const RKVolumeType",
                      surfacePoint = "FieldList<%(Dimension)s, int>&",
-                     deltaCentroid = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
-                     etaVoidPoints = "const FieldList<%(Dimension)s, std::vector<typename %(Dimension)s::Vector>>&",
+                     deltaCentroid = "FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
+                     etaVoidPoints = "FieldList<%(Dimension)s, std::vector<typename %(Dimension)s::Vector>>&",
                      cells = "FieldList<%(Dimension)s, typename %(Dimension)s::FacetedVolume>&",
                      cellFaceFlags = "FieldList<%(Dimension)s, std::vector<CellFaceFlag>>&",
-                     volume = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&"):
+                     volume = "FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&"):
     "Compute RK volumes"
     return "void"
 

@@ -328,7 +328,7 @@ void
 NodeList<Dimension>::
 Hinverse(Field<Dimension, typename Dimension::SymTensor>& field) const {
   REQUIRE(field.nodeListPtr() == this);
-  for (int i = 0; i < numInternalNodes(); ++i) field(i) = mH(i).Inverse();
+  for (auto i = 0u; i < numInternalNodes(); ++i) field(i) = mH(i).Inverse();
   field.name("H inverse");
 }
 
@@ -352,7 +352,6 @@ NodeList<Dimension>::registerField(FieldBase<Dimension>& field) const {
          << " with NodeList " << this << " that already has it." 
          << endl;
   } else {
-    CHECK(&field);
     CHECK(&mFieldBaseList);
     mFieldBaseList.push_back(&field);
   }
@@ -397,8 +396,8 @@ NodeList<Dimension>::haveField(const FieldBase<Dimension>& field) const {
 template<typename Dimension>
 NodeType
 NodeList<Dimension>::nodeType(int i) const {
-  CHECK(i >=0 && i < numNodes());
-  if (i < firstGhostNode()) {
+  CHECK(i >=0 && i < (int)numNodes());
+  if (i < (int)firstGhostNode()) {
     return NodeType::InternalNode;
   } else {
     return NodeType::GhostNode;
@@ -432,7 +431,6 @@ template<typename Dimension>
 void
 NodeList<Dimension>::
 registerNeighbor(Neighbor<Dimension>& neighbor) {
-  CHECK(&neighbor);
   mNeighborPtr = &neighbor;
 }
 
@@ -461,16 +459,17 @@ deleteNodes(const vector<int>& nodeIDs) {
     vector<int>::iterator uniqueEnd = unique(uniqueIDs.begin(), uniqueIDs.end());
     uniqueIDs.erase(uniqueEnd, uniqueIDs.end());
     CHECK(uniqueIDs.size() <= numNodes());
-    if (uniqueIDs.size() > 0) 
-      CHECK(uniqueIDs[0] >= 0 && uniqueIDs.back() < this->numNodes());
+    if (uniqueIDs.size() > 0) {
+      CHECK(uniqueIDs[0] >= 0 && uniqueIDs.back() < (int)this->numNodes());
+    }
 
     // Determine how many internal, ghost, and total nodes we should end with.
     vector<int>::iterator ghostDeleteItr = uniqueIDs.begin();
     while (ghostDeleteItr < uniqueIDs.end() &&
-           *ghostDeleteItr < mFirstGhostNode) ++ghostDeleteItr;
+           *ghostDeleteItr < (int)mFirstGhostNode) ++ghostDeleteItr;
     CHECK(ghostDeleteItr >= uniqueIDs.begin() && ghostDeleteItr <= uniqueIDs.end());
     const int numInternalNodesRemoved = distance(uniqueIDs.begin(), ghostDeleteItr);
-    CHECK(numInternalNodesRemoved <= numInternalNodes());
+    CHECK(numInternalNodesRemoved <= (int)numInternalNodes());
     mNumNodes -= uniqueIDs.size();
     mFirstGhostNode -= numInternalNodesRemoved;
     CHECK(mNumNodes >= 0);
@@ -512,8 +511,9 @@ packNodeFieldValues(const vector<int>& nodeIDs) const {
   vector<int>::iterator uniqueEnd = unique(uniqueIDs.begin(), uniqueIDs.end());
   uniqueIDs.erase(uniqueEnd, uniqueIDs.end());
   CHECK(uniqueIDs.size() <= numNodes());
-  if (uniqueIDs.size() > 0) 
-    CHECK(uniqueIDs[0] >= 0 && uniqueIDs.back() <= this->numNodes());
+  if (uniqueIDs.size() > 0) {
+    CHECK(uniqueIDs[0] >= 0 && uniqueIDs.back() <= (int)this->numNodes());
+  }
 
   // Iterate over all the Fields defined on this NodeList, and append it's packed 
   // field values to the stack.
@@ -545,7 +545,7 @@ appendInternalNodes(const int numNewNodes,
     // Begin by resizing this NodeList appropriately.
     const int beginInsertionIndex = numInternalNodes();
     numInternalNodes(beginInsertionIndex + numNewNodes);
-    CHECK(numInternalNodes() == beginInsertionIndex + numNewNodes);
+    CHECK((int)numInternalNodes() == beginInsertionIndex + numNewNodes);
 
     // Loop over each Field, and have them fill in the new values from the
     // packed char buffers.
@@ -578,7 +578,7 @@ reorderNodes(const vector<int>& newOrdering) {
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   {
-    REQUIRE(newOrdering.size() == n);
+    REQUIRE((int)newOrdering.size() == n);
     vector<int> tmp(newOrdering);
     sort(tmp.begin(), tmp.end());
     for (int i = 0; i != n; ++i) REQUIRE(tmp[i] == i);
@@ -607,7 +607,7 @@ reorderNodes(const vector<int>& newOrdering) {
   CHECK(bufItr == packedFieldValues.end());
 
   // Post-conditions.
-  ENSURE(this->numInternalNodes() == n);
+  ENSURE((int)this->numInternalNodes() == n);
 }
 
 //------------------------------------------------------------------------------

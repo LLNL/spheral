@@ -38,7 +38,7 @@ commandLine(nx1 = 200,
 
             yzplotbuf = 0.0,
 
-            hsmooth = 0.5,             # Optionally smooth initial discontinuity
+            hsmooth = 0.0,             # Optionally smooth initial discontinuity
             sumInitialDensity = False, # Optionally sum the initial density before setting the pressure and such
 
             nPerh = 1.25,
@@ -46,21 +46,24 @@ commandLine(nx1 = 200,
             gammaGas = 5.0/3.0,
             mu = 1.0,
             
-            SVPH = False,
-            CRKSPH = False,
-            PSPH = False,
-            ASPH = False,               # Choose the H evolution -- works with all hydro options
+            svph = False,
+            crksph = False,
+            psph = False,
+            asph = False,               # Choose the H evolution -- works with all hydro options
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             solid = False,    # If true, use the fluid limit of the solid hydro option
-            Qconstructor = MonaghanGingoldViscosity,
             boolReduceViscosity = False,
             nh = 5.0,
             aMin = 0.1,
             aMax = 2.0,
-            Cl = 1.0,
-            Cq = 1.5,
-            etaCritFrac = 1.0,
-            etaFoldFrac = 0.2,
+            Cl = None,
+            Cq = None,
+            Qlimiter = None,
+            epsilon2 = None,
+            etaCritFrac = None,
+            etaFoldFrac = None,
+            linearInExpansion = None,
+            quadraticInExpansion = None,
             boolCullenViscosity = False,
             alphMax = 2.0,
             alphMin = 0.02,
@@ -70,10 +73,6 @@ commandLine(nx1 = 200,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
             HopkinsConductivity = False,
-            linearInExpansion = False,
-            quadraticInExpansion = False,
-            Qlimiter = False,
-            epsilon2 = 1e-4,
             hmin = 1e-10,
             hmax = 1.0,
             cfl = 0.5,
@@ -82,7 +81,7 @@ commandLine(nx1 = 200,
             nTensile = 8,
             rhoMin = 0.01,
             filter = 0.00,
-            KernelConstructor = BSplineKernel,
+            KernelConstructor = NBSplineKernel,
             order = 5,
             
             bArtificialConduction = False,
@@ -122,47 +121,27 @@ commandLine(nx1 = 200,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
-if SVPH:
-    if ASPH:
-        HydroConstructor = ASVPHFacetedHydro
-    else:
-        HydroConstructor = SVPHFacetedHydro
-elif CRKSPH:
-    if solid:
-        if ASPH:
-            HydroConstructor = SolidACRKSPHHydro
-        else:
-            HydroConstructor = SolidCRKSPHHydro
-    else:
-        if ASPH:
-            HydroConstructor = ACRKSPHHydro
-        else:
-            HydroConstructor = CRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
-elif PSPH:
-    if ASPH:
-        HydroConstructor = APSPHHydro
-    else:
-        HydroConstructor = PSPHHydro
+
+if svph:
+    hydroname = "SVPH"
+elif crksph:
+    hydroname = os.path.join("CRKSPH",
+                             str(volumeType),
+                             str(correctionOrder))
+elif psph:
+    hydroname = "PSPH"
 else:
-    if solid:
-        if ASPH:
-            HydroConstructor = SolidASPHHydro
-        else:
-            HydroConstructor = SolidSPHHydro
-    else:
-        if ASPH:
-            HydroConstructor = ASPHHydro
-        else:
-            HydroConstructor = SPHHydro
+    hydroname = "SPH"
+if asph:
+    hydroname = "A" + hydroname
+if solid:
+    hydroname = "Solid" + hydroname
 
 dataDir = os.path.join(dataDirBase,
                        "rotation=%f" % initialRotation,
-                       HydroConstructor.__name__,
-                       Qconstructor.__name__,
+                       hydroname,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "correctionOrder=%s" % correctionOrder,
                        "Cullen=%s" % boolCullenViscosity,
                        "Condc=%s" % HopkinsConductivity,
                        "filter=%f" % filter,
@@ -199,10 +178,7 @@ strength = NullStrength()
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 1000)
-else:
-  WT = TableKernel(KernelConstructor(), 1000)
+WT = TableKernel(NBSplineKernel(order), 1000)
 kernelExtent = WT.kernelExtent
 output("WT")
 
@@ -310,81 +286,85 @@ output("db.numNodeLists")
 output("db.numFluidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
+# Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-try:
-    q = Qconstructor(Cl, Cq, linearInExpansion, quadraticInExpansion)
-except:
-    q = Qconstructor(Cl, Cq)
-q.limiter = Qlimiter
-q.epsilon2 = epsilon2
+if svph:
+    hydro = SVPH(dataBase = db,
+                 W = WT,
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 XSVPH = XSPH,
+                 linearConsistent = linearConsistent,
+                 generateVoid = False,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 xmin = Vector(-100.0),
+                 xmax = Vector( 100.0))
+elif crksph:
+    hydro = CRKSPH(dataBase = db,
+                   order = correctionOrder,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   XSPH = XSPH,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate)
+elif psph:
+    hydro = PSPH(dataBase = db,
+                 W = WT,
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 evolveTotalEnergy = evolveTotalEnergy,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 XSPH = XSPH,
+                 correctVelocityGradient = correctVelocityGradient,
+                 HopkinsConductivity = HopkinsConductivity)
+else:
+    hydro = SPH(dataBase = db,
+                W = WT,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                correctVelocityGradient = correctVelocityGradient,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+output("hydro")
+output("hydro.compatibleEnergyEvolution")
+packages = [hydro]
+
+#-------------------------------------------------------------------------------
+# Tweak the artificial viscosity.
+#-------------------------------------------------------------------------------
+q = hydro.Q
+if not Cl is None:
+    q.Cl = Cl
+if not Cq is None:
+    q.Cq = Cq
+if not linearInExpansion is None:
+    q.linearInExpansion = linearInExpansion
+if not quadraticInExpansion is None:
+    q.quadraticInExpansion = quadraticInExpansion
+if not Qlimiter is None:
+    q.limiter = Qlimiter
+if not epsilon2 is None:
+    q.epsilon2 = epsilon2
+if not etaCritFrac is None:
+    q.etaCritFrac = etaCritFrac
+if not etaFoldFrac is None:
+    q.etaFoldFrac = etaFoldFrac
 output("q")
 output("q.Cl")
 output("q.Cq")
 output("q.limiter")
 output("q.epsilon2")
-try:
-    output("q.linearInExpansion")
-    output("q.quadraticInExpansion")
-except:
-    pass
-
-#-------------------------------------------------------------------------------
-# Construct the hydro physics object.
-#-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             generateVoid = False,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             xmin = Vector(-100.0),
-                             xmax = Vector( 100.0))
-elif CRKSPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             correctionOrder = correctionOrder,
-                             volumeType = volumeType,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
-    q.etaCritFrac = etaCritFrac
-    q.etaFoldFrac = etaFoldFrac
-elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             correctVelocityGradient = correctVelocityGradient,
-                             HopkinsConductivity = HopkinsConductivity)
-else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             correctVelocityGradient = correctVelocityGradient,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
-output("hydro")
-
-packages = [hydro]
+output("q.linearInExpansion")
+output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
@@ -449,7 +429,9 @@ output("integrator.rigorousBoundaries")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-control = SpheralController(integrator, WT,
+control = SpheralController(integrator,
+                            kernel = WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -525,7 +507,7 @@ answer = SodSolution(nPoints=nx1 + nx2,
 
 #cs = db.newFluidScalarFieldList(0.0, "sound speed")
 #db.fluidSoundSpeed(cs)
-cs = hydro.soundSpeed()
+cs = hydro.soundSpeed
 
 # Provide a function to select the points we want to plot.
 def plotFilter(pos):
@@ -544,7 +526,7 @@ def createList(x):
 
 # Compute the simulated specific entropy.
 rho = createList(db.fluidMassDensity)
-P = createList(hydro.pressure())
+P = createList(hydro.pressure)
 A = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
 
 # The analytic solution for the simulated entropy.
@@ -560,23 +542,65 @@ Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
 csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 if graphics:
-    import Gnuplot
-    from SpheralGnuPlotUtilities import *
+    from SpheralMatplotlib import *
 
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="points", filterFunc=plotFilter)
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="rx", filterFunc=plotFilter)
     plotAnswer(answer, control.time(),
-               rhoPlot, velPlot, epsPlot, PPlot, HPlot)
+               rhoPlot = rhoPlot,
+               velPlot = velPlot,
+               epsPlot = epsPlot,
+               PPlot = PPlot,
+               HPlot = HPlot)
     pE = plotEHistory(control.conserve)
+
+    csPlot = plotFieldList(cs, winTitle="Sound speed")
+    csPlot.plot(xans, csAns, "k-",
+                label = "Analytic")
+
+    APlot = newFigure()
+    APlot.plot(xprof, A, "ro", label="Simulation")
+    APlot.plot(xans, Aans, "k-", label="Analytic")
+    plt.title("A entropy")
 
     plots = [(rhoPlot, "Sod-planar-rho.png"),
              (velPlot, "Sod-planar-vel.png"),
              (epsPlot, "Sod-planar-eps.png"),
              (PPlot, "Sod-planar-P.png"),
-             (HPlot, "Sod-planar-h.png")]
+             (HPlot, "Sod-planar-h.png"),
+             (csPlot, "Sod-planar-cs.png"),
+             (APlot, "Sod-planar-entropy.png")]
+    
+    if crksph:
+        volPlot = plotFieldList(control.RKCorrections.volume, 
+                                winTitle = "volume",
+                                colorNodeLists = False, plotGhosts = False)
+        splot = plotFieldList(control.RKCorrections.surfacePoint,
+                              winTitle = "surface point",
+                              colorNodeLists = False)
+        plots += [(volPlot, "Sod-planar-vol.png"),
+                   (splot, "Sod-planar-surfacePoint.png")]
+    
+    viscPlot = plotFieldList(hydro.maxViscousPressure,
+                             winTitle = "max($\\rho^2 \pi_{ij}$)",
+                             colorNodeLists = False)
+    plots.append((viscPlot, "Sod-planar-viscosity.png"))
+    
+    if boolCullenViscosity:
+        cullAlphaPlot = plotFieldList(q.ClMultiplier,
+                                      winTitle = "Cullen alpha")
+        cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt,
+                                       winTitle = "Cullen DalphaDt")
+        plots += [(cullAlphaPlot, "Sod-planar-Cullen-alpha.png"),
+                  (cullDalphaPlot, "Sod-planar-Cullen-DalphaDt.png")]
+
+    if boolReduceViscosity:
+        alphaPlot = plotFieldList(q.ClMultiplier,
+                                  winTitle = "rvAlpha",
+                                  colorNodeLists = False)
 
     # Make hardcopies of the plots.
     for p, filename in plots:
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
+        savefig(p, os.path.join(dataDir, filename))
 
 print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],

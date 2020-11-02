@@ -47,7 +47,7 @@ namespace Spheral {
 
 template<typename Value>
 Value
-allReduce(const Value& value, const int op, const int comm) {
+allReduce(const Value& value, const int /*op*/, const int /*comm*/) {
   return value;
 }
 

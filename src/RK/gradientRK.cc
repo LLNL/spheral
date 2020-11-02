@@ -41,9 +41,6 @@ gradientRK(const FieldList<Dimension, DataType>& fieldList,
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
   typedef typename MathTraits<Dimension, DataType>::GradientType GradientType;
 
   // Prepare the result.
@@ -68,7 +65,7 @@ gradientRK(const FieldList<Dimension, DataType>& fieldList,
     Vector gradWi, gradWj;
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
       nodeListi = pairs[kk].i_list;
@@ -115,10 +112,10 @@ gradientRK(const FieldList<Dimension, DataType>& fieldList,
   }
 
   // Add the self contribution.
-  for (auto nodeListi = 0; nodeListi < numNodeLists; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = position[nodeListi]->nodeList().numInternalNodes();
 #pragma omp parallel for
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       const auto& Hi = H(nodeListi, i);
       const auto& correctionsi = corrections(nodeListi, i);
       result(nodeListi, i) += weight(nodeListi, i)*fieldList(nodeListi, i)*WR.evaluateGradient(Vector::zero, Hi, correctionsi);

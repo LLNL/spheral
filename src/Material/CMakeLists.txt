@@ -6,12 +6,9 @@ set(Material_inst
     IsothermalEquationOfState
    )
 
-
 set(Material_sources
     PhysicalConstants.cc
     )
-
-instantiate(Material_inst Material_sources)
 
 set(Material_headers
     EquationOfState.hh
@@ -20,28 +17,24 @@ set(Material_headers
     PhysicalConstantsInline.hh
     )
 
-set(Material_python_targets
+spheral_install_python_files(
   MaterialUnits.py
   MaterialEquationsOfState.py
   )
 
-spheral_add_cxx_library(Material)
-
-install(TARGETS              Spheral_Material
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Material_headers}
-        DESTINATION include/Material
-        )
-
-if(NOT ENABLE_CXXONLY)
-  install(FILES       ${Material_python_targets}
-          DESTINATION .
-          )
+# Helmholtz
+if (ENABLE_HELMHOLTZ)
+  message("-- Helmholtz equation of state enabled")
+  list(APPEND Material_inst      HelmholtzEquationOfState)
+  list(APPEND Material_headers   HelmholtzEquationOfState.hh)
+  list(APPEND Material_sources   public_helm.f90 invert_helm.f90)
+else()
+  message("-- Helmholtz equation of state disabled")
 endif()
+
+instantiate(Material_inst Material_sources)
+
+spheral_add_cxx_library(Material)
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Material)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

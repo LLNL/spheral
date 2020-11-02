@@ -179,7 +179,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::
-updateViolationNodes(NodeList<Dimension>& nodeList) {
+updateViolationNodes(NodeList<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -192,7 +192,7 @@ InflowOutflowBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
                                                  vector<int>& numNodesRemoved) {
 
   auto& registrar = NodeListRegistrar<Dimension>::instance();
-  REQUIRE(numNodesRemoved.size() == registrar.numNodeLists());
+  REQUIRE((int)numNodesRemoved.size() == registrar.numNodeLists());
 
   // Walk the NodeLists.
   auto nodeListi = 0;
@@ -213,14 +213,14 @@ InflowOutflowBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
         // Patch up the ghost and control node indices.
         vector<int> newGhostNodes, newControlNodes;
         auto newGhostIndex = myNewFirstGhostNode;
-        for (auto k = 0; k < boundaryNodes.ghostNodes.size(); ++k) {
+        for (auto k = 0u; k < boundaryNodes.ghostNodes.size(); ++k) {
           CHECK(flags(boundaryNodes.ghostNodes[k]) == 1);
           newGhostNodes.push_back(newGhostIndex);
           old2newIndexMap(nodeListi, boundaryNodes.ghostNodes[k]) = newGhostIndex;
           ++newGhostIndex;
         }
 
-        for (auto k = 0; k < boundaryNodes.controlNodes.size(); ++k) {
+        for (auto k = 0u; k < boundaryNodes.controlNodes.size(); ++k) {
           if (flags(boundaryNodes.controlNodes[k]) == 1) {
             newControlNodes.push_back(old2newIndexMap(nodeListi, boundaryNodes.controlNodes[k]));
           }
@@ -241,7 +241,7 @@ InflowOutflowBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool final) {
+InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool /*final*/) {
 
   // Clear any existing data.
   mBufferedValues.clear();
@@ -260,7 +260,7 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool final) {
 
     // Remove any ghost nodes from other BCs.
     const auto firstGhostNode = nodeList.firstGhostNode();
-    nodeIDs.erase(std::remove_if(nodeIDs.begin(), nodeIDs.end(), [&](const int& x) { return x >= firstGhostNode; }), nodeIDs.end());
+    nodeIDs.erase(std::remove_if(nodeIDs.begin(), nodeIDs.end(), [&](const unsigned int& x) { return x >= firstGhostNode; }), nodeIDs.end());
 
     // cerr << "Node IDs: ";
     // std::copy(nodeIDs.begin(), nodeIDs.end(), std::ostream_iterator<int>(std::cerr, " "));
@@ -278,7 +278,7 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool final) {
     auto& posbuf = positr->second;
     auto posvals = extractBufferedValues<Vector>(posbuf);
     const GeomPlane<Dimension> exitPlane(mPlane.point(), -nhat);
-    for (auto k = 0; k < ni; ++k) {
+    for (auto k = 0u; k < ni; ++k) {
       const auto i = nodeIDs[k];
       posvals[k] = mapPositionThroughPlanes(pos[i], mPlane, mPlane);
       // cerr << "  Ghost position: " << i << " @ " << posvals[k] << endl;
@@ -322,11 +322,11 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool final) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::evaluateDerivatives(const Scalar time,
-                                                      const Scalar dt,
-                                                      const DataBase<Dimension>& dataBase,
-                                                      const State<Dimension>& state,
-                                                      StateDerivatives<Dimension>& derivatives) const {
+InflowOutflowBoundary<Dimension>::evaluateDerivatives(const Scalar /*time*/,
+                                                      const Scalar /*dt*/,
+                                                      const DataBase<Dimension>& /*dataBase*/,
+                                                      const State<Dimension>& /*state*/,
+                                                      StateDerivatives<Dimension>& /*derivatives*/) const {
 }
 
 //------------------------------------------------------------------------------
@@ -334,10 +334,10 @@ InflowOutflowBoundary<Dimension>::evaluateDerivatives(const Scalar time,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename InflowOutflowBoundary<Dimension>::TimeStepType
-InflowOutflowBoundary<Dimension>::dt(const DataBase<Dimension>& dataBase, 
-                                     const State<Dimension>& state,
-                                     const StateDerivatives<Dimension>& derivs,
-                                     const Scalar currentTime) const {
+InflowOutflowBoundary<Dimension>::dt(const DataBase<Dimension>&, 
+                                     const State<Dimension>&,
+                                     const StateDerivatives<Dimension>&,
+                                     const Scalar /*currentTime*/) const {
   return TimeStepType(mDT, "InflowOutflowBoundary velocity constraint");
 }
 
@@ -346,8 +346,8 @@ InflowOutflowBoundary<Dimension>::dt(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::registerState(DataBase<Dimension>& dataBase,
-                                                State<Dimension>& state) {
+InflowOutflowBoundary<Dimension>::registerState(DataBase<Dimension>&,
+                                                State<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -355,8 +355,8 @@ InflowOutflowBoundary<Dimension>::registerState(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::registerDerivatives(DataBase<Dimension>& dataBase,
-                                                      StateDerivatives<Dimension>& derivs) {
+InflowOutflowBoundary<Dimension>::registerDerivatives(DataBase<Dimension>&,
+                                                      StateDerivatives<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -366,11 +366,11 @@ InflowOutflowBoundary<Dimension>::registerDerivatives(DataBase<Dimension>& dataB
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::finalize(const Scalar time, 
-                                           const Scalar dt,
+InflowOutflowBoundary<Dimension>::finalize(const Scalar /*time*/, 
+                                           const Scalar /*dt*/,
                                            DataBase<Dimension>& dataBase, 
-                                           State<Dimension>& state,
-                                           StateDerivatives<Dimension>& derivatives) {
+                                           State<Dimension>& /*state*/,
+                                           StateDerivatives<Dimension>& /*derivatives*/) {
 
   // First check every NodeList for any inflow or outflow nodes.
   bool altered = false;
@@ -401,7 +401,7 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
 
       // Build the map of ghost IDs --> new internal IDs
       vector<int> fromIDs(numNew), toIDs(numNew);
-      for (auto k = 0; k < numNew; ++k) {
+      for (auto k = 0u; k < numNew; ++k) {
         fromIDs[k] = gNodes[0] + insideNodes[k] + numNew;
         toIDs[k] = firstID + k;
       }
@@ -417,7 +417,7 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar time,
     // Look for any internal points that have exited through the plane.
     vector<int> outsideNodes;
     const auto ni = nodeList.numInternalNodes();
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
       if (mPlane.compare(pos[i]) == 1) outsideNodes.push_back(i);
     }
 

@@ -68,8 +68,8 @@ update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*t*/,
+       const double /*dt*/) {
 
 //   // HACK!
 //   std::cerr.setf(std::ios::scientific, std::ios::floatfield);
@@ -95,7 +95,7 @@ update(const KeyType& key,
     const auto ni = vel[nodeListi]->numInternalElements();
 
     // Iterate over the internal nodes of this NodeList.
-    for (auto i = 0; i < ni; ++i) {
+    for (auto i = 0u; i < ni; ++i) {
 
       // State for node i.
       const auto  mi = mass(nodeListi, i);
@@ -108,7 +108,7 @@ update(const KeyType& key,
       // Iterate over the neighbor points.
       for (size_t nodeListj = 0; nodeListj != numFields; ++nodeListj) {
         const unsigned nj = vel[nodeListj]->numInternalElements();
-        for (auto j = 0; j < nj; ++j) {
+        for (auto j = 0u; j < nj; ++j) {
           if (nodeListi != nodeListj or i != j) { // no self-interaction
 
             // State for node j.

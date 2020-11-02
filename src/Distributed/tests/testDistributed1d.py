@@ -137,7 +137,7 @@ class TestDistributedBoundary1d:
                         masterLists = vector_of_vector_of_int()
                         coarseNeighbors = vector_of_vector_of_int()
                         refineNeighbors = vector_of_vector_of_int()
-                        self.dataBase.setMasterNodeLists(ri, Hi, masterLists, coarseNeighbors)
+                        self.dataBase.setMasterNodeLists(ri, Hi, masterLists, coarseNeighbors, False)
                         self.dataBase.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors)
                         assert len(refineNeighbors) == 3
                         refine = []

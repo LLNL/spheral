@@ -63,10 +63,8 @@ update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double t,
-       const double dt) {
-
-  typedef typename Dimension::SymTensor SymTensor;
+       const double /*t*/,
+       const double /*dt*/) {
 
 //   // HACK!
 //   std::cerr.setf(std::ios::scientific, std::ios::floatfield);
@@ -102,7 +100,7 @@ update(const KeyType& key,
     auto DepsDt_thread = DepsDt.threadCopy();
 
 #pragma omp for
-    for (auto kk = 0; kk < npairs; ++kk) {
+    for (auto kk = 0u; kk < npairs; ++kk) {
       const auto i = pairs[kk].i_node;
       const auto j = pairs[kk].j_node;
       const auto nodeListi = pairs[kk].i_list;
@@ -113,7 +111,7 @@ update(const KeyType& key,
       // const auto  si = entropy(nodeListi, i);
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
-      const auto  ui = eps0(nodeListi, i);
+      //const auto  ui = eps0(nodeListi, i);
       const auto& ai = acceleration(nodeListi, i);
       const auto  vi12 = vi + ai*hdt;
       const auto& paccij = pairAccelerations[kk];
@@ -123,7 +121,7 @@ update(const KeyType& key,
       // const auto  sj = entropy(nodeListj, j);
       const auto  mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
-      const auto  uj = eps0(nodeListj, j);
+      //const auto  uj = eps0(nodeListj, j);
       const auto& aj = acceleration(nodeListj, j);
       const auto  vj12 = vj + aj*hdt;
 
@@ -144,10 +142,10 @@ update(const KeyType& key,
   }
 
   // Now we can update the energy.
-  for (auto nodeListi = 0; nodeListi < numFields; ++nodeListi) {
+  for (auto nodeListi = 0u; nodeListi < numFields; ++nodeListi) {
     const auto n = eps[nodeListi]->numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
       eps(nodeListi, i) += DepsDt(nodeListi, i)*multiplier;
     }
   }

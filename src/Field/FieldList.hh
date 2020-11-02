@@ -278,12 +278,6 @@ public:
   // Reduce the values in the FieldList with the passed thread-local values.
   void threadReduce() const;
 
-  // A data attribute to indicate how to reduce this field across threads.
-  ThreadReduction reductionType;
-
-  // The master FieldList if this is a thread copy.
-  FieldList<Dimension, DataType>* threadMasterPtr;
-
 private:
   //--------------------------- Private Interface ---------------------------//
   typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
@@ -301,6 +295,13 @@ private:
 
   // Internal method to build the NodeListIndexMap from scratch.
   void buildNodeListIndexMap();
+public:
+  // A data attribute to indicate how to reduce this field across threads.
+  ThreadReduction reductionType;
+
+  // The master FieldList if this is a thread copy.
+  FieldList<Dimension, DataType>* threadMasterPtr;
+
 };
 
 }

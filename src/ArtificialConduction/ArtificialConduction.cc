@@ -33,8 +33,8 @@ ArtificialConduction(const TableKernel<Dimension>& W,
                      const Scalar alphaArCond, const RKOrder ACcorrectionOrder):
     Physics<Dimension>(),
     mKernel(W),
-    mACcorrectionOrder(ACcorrectionOrder),
-    mAlphaArCond(alphaArCond){
+    mAlphaArCond(alphaArCond),
+    mACcorrectionOrder(ACcorrectionOrder){
     
 }
 
@@ -83,7 +83,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 template<typename Dimension>
 void
 ArtificialConduction<Dimension>::
-registerState(DataBase<Dimension>& dataBase,
+registerState(DataBase<Dimension>&,
               State<Dimension>& state) {
     typedef typename State<Dimension>::PolicyPointer PolicyPointer;
     
@@ -101,7 +101,7 @@ registerState(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 ArtificialConduction<Dimension>::
-registerDerivatives(DataBase<Dimension>& dataBase,
+registerDerivatives(DataBase<Dimension>&,
                     StateDerivatives<Dimension>& derivs) {
     derivs.enroll(mGradP);
     derivs.enroll(mDepsDtArty);
@@ -113,8 +113,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 ArtificialConduction<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
+evaluateDerivatives(const typename Dimension::Scalar /*time*/,
+                    const typename Dimension::Scalar /*dt*/,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
@@ -145,6 +145,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
     FieldList<Dimension, Scalar> vsigMax = state.fields("Maximum Artificial Cond Signal Speed", 0.0);
+    CONTRACT_VAR(numNodeLists);
     CHECK(mass.size() == numNodeLists);
     CHECK(position.size() == numNodeLists);
     CHECK(massDensity.size() == numNodeLists);
@@ -189,11 +190,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
             const SymTensor& Hi = H(nodeListi, i);
             const Scalar hhi    = Dimension::nDim/(Hi.Trace());
             
+            CONTRACT_VAR(mi);
             CHECK(mi > 0.0);
             CHECK(rhoi > 0.0);
             
             Scalar& DepsDti = DepsDt(nodeListi, i);
-            Vector& gradPi = gradP(nodeListi, i);
+            //Vector& gradPi = gradP(nodeListi, i);
             Scalar& vsigi = vsigMax(nodeListi, i);
             
             // Get the connectivity info for this node.
@@ -208,7 +210,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                 if (connectivity.size() > 0) {
                     
                     // Loop over the neighbors.
+#if defined __INTEL_COMPILER
 #pragma vector always
+#endif
                     for (vector<int>::const_iterator jItr = connectivity.begin();
                          jItr != connectivity.end();
                          ++jItr) {
@@ -235,7 +239,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             CHECK(rhoj > 0.0);
                             
                             Scalar& DepsDtj         = DepsDt(nodeListj, j);
-                            Vector& gradPj          = gradP(nodeListj, j);
+                            //Vector& gradPj          = gradP(nodeListj, j);
                             Scalar& vsigj           = vsigMax(nodeListj, j);
                             
                             // get some differentials
@@ -248,8 +252,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                             const Scalar rhoij      = 0.5 * (rhoi + rhoj);
                             const Scalar uij        = epsi - epsj;
                             const Scalar Pij        = Pi - Pj;
-                            const Scalar DPij       = 0.5 * (gradPi.dot(rji) -
-                                                             gradPj.dot(rij));
+                            //const Scalar DPij       = 0.5 * (gradPi.dot(rji) -
+                            //                                 gradPj.dot(rij));
                             
                             // start a-calculatin' all the things
                             //const Scalar deltaPij   = min(fabs(Pij),fabs(Pij+DPij)); 
@@ -290,8 +294,8 @@ typename ArtificialConduction<Dimension>::TimeStepType
 ArtificialConduction<Dimension>::
 dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const Scalar currentTime) const {
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const Scalar /*currentTime*/) const {
     
     
     // Get some useful fluid variables from the DataBase.
@@ -303,15 +307,15 @@ dt(const DataBase<Dimension>& dataBase,
     const FieldList<Dimension, Scalar> vsigMax = state.fields("Maximum Artificial Cond Signal Speed", 0.0);
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity(),
                                                                                  this->requireOverlapConnectivity());
-    const int numNodeLists = connectivityMap.nodeLists().size();
+    //const int numNodeLists = connectivityMap.nodeLists().size();
 
     // Initialize the return value to some impossibly high value.
     Scalar minDt = FLT_MAX;
     // Set up some history variables to track what set the minimum Dt.
     Scalar lastMinDt = minDt;
-    int lastNodeID;
+    int lastNodeID = -1;
     string lastNodeListName, reason;
-    Scalar lastNodeScale, lastEps, lastVsig, lastRho;
+    Scalar lastEps, lastVsig, lastRho;
     
     // Loop over every fluid node.
     size_t nodeListi = 0;
@@ -320,6 +324,7 @@ dt(const DataBase<Dimension>& dataBase,
          ++nodeListItr, ++nodeListi) {
         const FluidNodeList<Dimension>& fluidNodeList = **nodeListItr;
         const Scalar kernelExtent = fluidNodeList.neighbor().kernelExtent();
+        CONTRACT_VAR(kernelExtent);
         CHECK(kernelExtent > 0.0);
         
         for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);
@@ -360,11 +365,10 @@ dt(const DataBase<Dimension>& dataBase,
     reasonStream << "mindt = " << minDt << std::endl
     << reason << std::endl
     << "  (nodeList, node) = (" << lastNodeListName << ", " << lastNodeID << ") | "
-    << "  h = " << lastNodeScale << std::endl
     << "  vsig = " << lastVsig << std::endl
     << "  rho = " << lastRho << std::endl
     << "  eps = " << lastEps << std::endl
-    << std::ends;
+    << std::endl;
     
     // Now build the result.
     TimeStepType result(minDt, reasonStream.str());

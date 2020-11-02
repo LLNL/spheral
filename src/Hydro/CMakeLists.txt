@@ -18,8 +18,11 @@ set(Hydro_inst
 
 set(Hydro_sources
     HydroFieldNames.cc
-    RZNonSymmetricSpecificThermalEnergyPolicy.cc
     )
+
+if (ENABLE_2D)
+  list(APPEND Hydro_sources RZNonSymmetricSpecificThermalEnergyPolicy.cc)
+endif()
 
 instantiate(Hydro_inst Hydro_sources)
 
@@ -44,16 +47,6 @@ set(Hydro_headers
     )
 
 spheral_add_cxx_library(Hydro)
-
-install(TARGETS              Spheral_Hydro
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${Hydro_headers}
-        DESTINATION include/Hydro
-        )
 
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Hydro)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

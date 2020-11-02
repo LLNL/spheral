@@ -40,12 +40,12 @@ DeviatoricStressPolicy<Dimension>::
 template<typename Dimension>
 void
 DeviatoricStressPolicy<Dimension>::
-update(const KeyType& key,
+update(const KeyType& /*key*/,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double t,
-       const double dt) {
+       const double /*t*/,
+       const double /*dt*/) {
 
   // Get the state we're advancing.
   FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);

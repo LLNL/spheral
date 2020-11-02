@@ -54,7 +54,7 @@ ConstantBoundary(DataBase<Dimension>& dataBase,
 
   // Store the ids of the nodes we're watching.
   for (auto itr = nodeIDs.begin(); itr < nodeIDs.end(); ++itr) {
-    REQUIRE(*itr >= 0.0 && *itr < nodeList.numInternalNodes());
+    REQUIRE(*itr >= 0.0 && *itr < (int)nodeList.numInternalNodes());
     mNodeFlags[*itr] = 1;
   }
 
@@ -134,7 +134,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
     const auto& pos = nodeList.positions();
     auto&       boundaryNodes = this->accessBoundaryNodes(nodeList);
     auto&       vNodes = boundaryNodes.violationNodes;
-    for (auto i = 0; i < nodeList.numInternalNodes(); ++i) {
+    for (auto i = 0u; i < nodeList.numInternalNodes(); ++i) {
       if (mDenialPlane.compare(pos(i)) == -1) vNodes.push_back(i);
       // if (mNodeFlags[i] == 1 or mDenialPlane.compare(pos(i)) == -1) vNodes.push_back(i);
     }
@@ -156,7 +156,7 @@ updateViolationNodes(NodeList<Dimension>& nodeList) {
 
     // Look for any nodes in violation of the plane and reset their positions
     // and H's.
-    for (auto i = 0; i < nodeList.numInternalNodes(); ++i) {
+    for (auto i = 0u; i < nodeList.numInternalNodes(); ++i) {
       if (mDenialPlane.compare(pos(i)) == 1) {
         pos(i) = mapPositionThroughPlanes(pos(i), mDenialPlane, mDenialPlane);
         vel(i) = mReflectOperator*vel(i);
@@ -172,7 +172,7 @@ updateViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
-enforceBoundary(FieldBase<Dimension>& field) const {
+enforceBoundary(FieldBase<Dimension>&) const {
   // resetValues(field, this->nodeIndices(), mIntValues);
 }
 
@@ -233,7 +233,7 @@ nodeIndices() const {
       std::copy(ghosts.begin(), ghosts.end(), std::back_inserter(result));
     }
   } else {
-    for (int i = 0; i != mNodeListPtr->numNodes(); ++i) {
+    for (auto i = 0u; i != mNodeListPtr->numNodes(); ++i) {
       if (mNodeFlags(i) == 1) result.push_back(i);
     }
   }

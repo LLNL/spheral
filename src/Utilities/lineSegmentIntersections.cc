@@ -211,7 +211,6 @@ segmentSegmentIntersection(const Dim<2>::Vector& a0,
                            Dim<2>::Vector& result1,
                            Dim<2>::Vector& result2,
                            const double tol) {
-  typedef Dim<2>::Vector Vector;
   const double reltol = tol*helpfulScaleFactor(a0, a1, b0, b1);
 
   // Prepare the results.
@@ -434,7 +433,6 @@ segmentPlanarSectionIntersection(const Dim<3>::Vector& s0,
   CHECK(code != 'd');
 
   // If the segment doesn't intersect the plane, we're done.
-  char code2;
   if (code == '0') {
     return code;
 

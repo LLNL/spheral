@@ -59,7 +59,7 @@ Zone(const Mesh<Dim<3> >& mesh,
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(mFaceIDs.size() > 3);
-    for (const int i: mFaceIDs) REQUIRE((i < 0 ? ~i : i) < mMeshPtr->mFaces.size());
+    for (const int i: mFaceIDs) { CONTRACT_VAR(i); REQUIRE((i < 0 ? ~i : i) < (int)mMeshPtr->mFaces.size()); }
   }
   END_CONTRACT_SCOPE
   

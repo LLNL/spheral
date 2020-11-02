@@ -41,15 +41,5 @@ set(ArtificialViscosity_headers
 
 spheral_add_cxx_library(ArtificialViscosity)
 
-install(TARGETS              Spheral_ArtificialViscosity
-        EXPORT               ${PROJECT_NAME}-targets
-        DESTINATION          lib
-        INCLUDES DESTINATION include
-        )
-
-install(FILES       ${ArtificialViscosity_headers}
-        DESTINATION include/ArtificialViscosity
-        )
-
 list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_ArtificialViscosity)
 set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

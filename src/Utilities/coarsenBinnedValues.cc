@@ -39,7 +39,6 @@ coarsenBinnedValues(vector<vector<Value> >& values,
   if (numLevels > 1) {
     for (int level = numLevels - 2; level >= 0; --level) {
       const unsigned nx = nxFine/(1 << (numLevels - level - 1));
-      const unsigned nx0 = 2*nx;
       const size_t numLevelBins = nx;
       values[level] = vector<Value>(numLevelBins, 0.0);
       for (unsigned ix = 0; ix != nx; ++ix) {
@@ -68,7 +67,6 @@ coarsenBinnedValues(vector<vector<Value> >& values,
       const unsigned nx = nxFine/(1 << (numLevels - level - 1));
       const unsigned ny = nyFine/(1 << (numLevels - level - 1));
       const unsigned nx0 = 2*nx;
-      const unsigned ny0 = 2*ny;
       const size_t numLevelBins = nx*ny;
       values[level] = vector<Value>(numLevelBins, 0.0);
       for (unsigned iy = 0; iy != ny; ++iy) {
@@ -107,7 +105,6 @@ coarsenBinnedValues(vector<vector<Value> >& values,
       const unsigned nxy = nx*ny;
       const unsigned nx0 = 2*nx;
       const unsigned ny0 = 2*ny;
-      const unsigned nz0 = 2*nz;
       const unsigned nxy0 = nx0*ny0;
       const size_t numLevelBins = nx*ny*nz;
       values[level] = vector<Value>(numLevelBins, 0.0);
@@ -134,7 +131,7 @@ coarsenBinnedValues(vector<vector<Value> >& values,
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
   {
-    for (size_t level = 1; level < numLevels; ++level) {
+    for (size_t level = 1; (int)level < numLevels; ++level) {
       const unsigned nx = nxFine/(1U << (numLevels - level - 1));
       const unsigned ny = nyFine/(1U << (numLevels - level - 1));
       const unsigned nz = nzFine/(1U << (numLevels - level - 1));
@@ -155,6 +152,7 @@ coarsenBinnedValues(vector<vector<Value> >& values,
                                values[level][(ix0 + 1) + (iy0    )*nx + (iz0 + 1)*nx*ny] +
                                values[level][(ix0    ) + (iy0 + 1)*nx + (iz0 + 1)*nx*ny] +
                                values[level][(ix0 + 1) + (iy0 + 1)*nx + (iz0 + 1)*nx*ny]);
+            CONTRACT_VAR(sum);
             ENSURE(fuzzyEqual(sum, values[level - 1][ixparent + iyparent*nxparent + izparent*nxparent*nyparent], 1.0e-10));
           }
         }

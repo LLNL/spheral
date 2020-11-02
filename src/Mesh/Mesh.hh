@@ -77,7 +77,7 @@ public:
        const std::vector<std::vector<unsigned> >& faceEdges,
        const std::vector<std::vector<int> >& zoneFaces);
   Mesh& operator=(const Mesh& rhs);
-  ~Mesh();
+  virtual ~Mesh();
 
   // Clear out any exising data in the mesh.
   void clear();
@@ -156,8 +156,8 @@ public:
   void generateParallelRind();
 
   // This version also exchanges the generators for the rind cells.
-  void generateParallelRind(std::vector<Vector>& generators,
-                            std::vector<SymTensor>& Hs);
+  void generateParallelRind(std::vector<Vector>& /*generators*/,
+                            std::vector<SymTensor>& /*Hs*/);
 
   // Compute unique global IDs for each node.
   std::vector<unsigned> globalMeshNodeIDs() const;
@@ -186,7 +186,7 @@ public:
   void boundingBox(Vector& xmin, Vector& xmax) const;
 
   // Encapsulate the ones complement for signed (oriented) IDs.
-  static int positiveID(const int id);
+  static unsigned int positiveID(const int id);
 
   // Perform basic mesh validity checks.
   virtual std::string valid() const;
@@ -194,7 +194,7 @@ public:
   // Check that the internal parallel info is consistent.
   virtual std::string validDomainInfo(const Vector& xmin,
                                       const Vector& xmax,
-                                      const bool checkUniqueSendProc) const;
+                                      const bool /*checkUniqueSendProc*/) const;
 
   //--------------------------- Private Interface ---------------------------//
 private:
@@ -241,7 +241,7 @@ private:
 };
 
 // Declare 1D specializations.
-template<> inline void Mesh<Dim<1> >::cleanEdges(const double edgeTol) {}
+template<> inline void Mesh<Dim<1> >::cleanEdges(const double /*edgeTol*/) {}
 
 }
 

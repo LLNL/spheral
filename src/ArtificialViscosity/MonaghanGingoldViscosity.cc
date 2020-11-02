@@ -59,18 +59,18 @@ pair<typename Dimension::Tensor,
 MonaghanGingoldViscosity<Dimension>::
 Piij(const unsigned nodeListi, const unsigned i, 
      const unsigned nodeListj, const unsigned j,
-     const Vector& xi,
+     const Vector& /*xi*/,
      const Vector& etai,
      const Vector& vi,
      const Scalar rhoi,
      const Scalar csi,
-     const SymTensor& Hi,
-     const Vector& xj,
+     const SymTensor& /*Hi*/,
+     const Vector& /*xj*/,
      const Vector& etaj,
      const Vector& vj,
      const Scalar rhoj,
      const Scalar csj,
-     const SymTensor& Hj) const {
+     const SymTensor& /*Hj*/) const {
 
   double Cl = this->mClinear;
   double Cq = this->mCquadratic;

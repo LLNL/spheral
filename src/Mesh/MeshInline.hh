@@ -36,8 +36,8 @@ Mesh<Dimension>::
 reconstruct(const std::vector<typename Dimension::Vector>& generators,
             const typename Dimension::Vector& xmin,
             const typename Dimension::Vector& xmax,
-            const BoundaryIterator boundaryBegin,
-            const BoundaryIterator boundaryEnd) {
+            const BoundaryIterator /*boundaryBegin*/,
+            const BoundaryIterator /*boundaryEnd*/) {
   this->clear();
 
   // Dispatch the build.
@@ -54,8 +54,8 @@ void
 Mesh<Dimension>::
 reconstruct(const std::vector<typename Dimension::Vector>& generators,
             const typename Dimension::FacetedVolume& boundary,
-            const BoundaryIterator boundaryBegin,
-            const BoundaryIterator boundaryEnd) {
+            const BoundaryIterator /*boundaryBegin*/,
+            const BoundaryIterator /*boundaryEnd*/) {
   this->clear();
 
   // Dispatch the build.
@@ -412,7 +412,7 @@ recomputeIDs(const std::vector<unsigned>& mask) const {
       ++newID;
     }
   }
-  ENSURE(std::accumulate(mask.begin(), mask.end(), 0) == newID);
+  ENSURE(std::accumulate(mask.begin(), mask.end(), 0) == (int)newID);
   return result;
 }
 
@@ -471,8 +471,8 @@ Mesh<Dimension>::
 removeUNSETIDs(std::vector<int>& ids) const {
   std::vector<unsigned> kill;
   for (size_t k = 0; k != ids.size(); ++k) {
-    if ( ids[k] ==  UNSETID or
-        ~ids[k] == ~UNSETID) kill.push_back(k);
+    if ( ids[k] ==  (int)UNSETID or
+        ~ids[k] == ~(int)UNSETID) kill.push_back(k);
   }
   removeElements(ids, kill);
 }
@@ -489,7 +489,7 @@ storeNodeListOffsets(NodeListIterator begin,
                      NodeListIterator end,
                      const std::vector<unsigned>& offsets) {
   VERIFY2(offsets.size() > 1, "offsets size:  " << offsets.size());
-  VERIFY2(std::distance(begin, end) + 1 == offsets.size(),
+  VERIFY2(std::distance(begin, end) + 1 == (int)offsets.size(),
           "Bad sizes:  " << std::distance(begin, end) << " " << offsets.size());
 //   for (typename std::vector<unsigned>::const_iterator itr = offsets.begin();
 //        itr < offsets.end() - 1;
@@ -509,10 +509,10 @@ storeNodeListOffsets(NodeListIterator begin,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned int
 Mesh<Dimension>::
 positiveID(const int id) {
-  return id < 0 ? ~id : id;
+  return id < 0 ? (unsigned)~id : (unsigned)id;
 }
 
 }

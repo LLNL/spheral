@@ -25,12 +25,12 @@ public:
   virtual ~DamageGradientPolicy() {};
   
   // Override the updateAsIncrement method to do nothing.
-  virtual void updateAsIncrement(const KeyType& key,
-                                 State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs,
-                                 const double multiplier,
-                                 const double t,
-                                 const double dt) {};
+  virtual void updateAsIncrement(const KeyType& /*key*/,
+                                 State<Dimension>& /*state*/,
+                                 StateDerivatives<Dimension>& /*derivs*/,
+                                 const double /*multiplier*/,
+                                 const double /*t*/,
+                                 const double /*dt*/) {};
 
 private:
   //--------------------------- Private Interface ---------------------------//
