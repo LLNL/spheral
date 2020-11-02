@@ -13,6 +13,7 @@ list(APPEND _packages
   ArtificialViscosity
   ArtificialConduction
   Boundary
+  CInterface
   CRKSPH
   Damage
   DataBase

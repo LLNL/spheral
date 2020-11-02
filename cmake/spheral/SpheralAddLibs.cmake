@@ -108,7 +108,7 @@ function(spheral_add_pybind11_library package_name)
                          "-Wno-delete-non-abstract-non-virtual-dtor")
 
   install(TARGETS     ${MODULE_NAME}
-          DESTINATION Spheral
+          DESTINATION
           )
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
