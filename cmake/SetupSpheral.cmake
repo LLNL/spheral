@@ -89,27 +89,15 @@ set(ENABLE_DOCS OFF CACHE BOOL "enable sphinx Spheral documentation")
 #-------------------------------------------------------------------------------
 # Install / Locate third party libraries
 #-------------------------------------------------------------------------------
-set(SPHERAL_INSTALL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
+set(SPHERAL_TPL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
 if (CMAKE_INSTALL_PREFIX)
-  if (NOT SPHERAL_INSTALL_DIR STREQUAL "")
-    message(WARNING "Only specify one of SPHERAL_INSTALL_DIR and CMAKE_INSTALL_PREFIX: setting values to ${SPHERAL_INSTALL_DIR}")
-    set(CMAKE_INSTALL_PREFIX ${SPHERAL_INSTALL_DIR})
-  else()
-    set(SPHERAL_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
-    message("-- setting SPHERAL_INSTALL_DIR ${SPHERAL_INSTALL_DIR}")
+  if (SPHERAL_TPL_DIR STREQUAL "")
+    set(SPHERAL_TPL_DIR ${CMAKE_INSTALL_PREFIX}/tpl)
+    message("-- Setting SPHERAL_TPL_DIR ${SPHERAL_TPL_DIR}")
   endif()
 endif()
 
 include(${SPHERAL_ROOT_DIR}/cmake/InstallTPLs.cmake)
-
-if(ENABLE_CXXONLY)
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/Spheral)
-  if(SPHERAL_INSTALL_DIR)
-    set(CMAKE_INSTALL_PREFIX ${SPHERAL_INSTALL_DIR})
-  endif()
-else()
-  set(CMAKE_INSTALL_PREFIX ${PYTHON_SITE_PACKAGE_DIR})
-endif()
 
 include(${SPHERAL_ROOT_DIR}/cmake/CMakeDefinitions.cmake)
 
@@ -135,13 +123,15 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 if (NOT ENABLE_CXXONLY)
   install(CODE "execute_process( \
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
-    WORKING_DIRECTORY ${SPHERAL_INSTALL_DIR})")
+    WORKING_DIRECTORY ${SPHERAL_TPL_DIR})")
 endif()
 
 #-------------------------------------------------------------------------------
 # Prepare to build the src
 #-------------------------------------------------------------------------------
 add_subdirectory(${SPHERAL_ROOT_DIR}/src)
+
+add_subdirectory(${SPHERAL_ROOT_DIR}/scripts)
 
 #-------------------------------------------------------------------------------
 # Add the documentation
