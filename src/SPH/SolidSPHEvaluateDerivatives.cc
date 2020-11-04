@@ -345,8 +345,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto deltaDvDxj = fDeffij*vij.dyad(gradWGj);
 
       // Specific thermal energy evolution.
-      DepsDti -= mj*(fDeffij*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
-      DepsDtj -= mi*(fDeffij*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
+      DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
+      DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
 
       // Velocity gradient.
       DvDxi -= mj*deltaDvDxi;
