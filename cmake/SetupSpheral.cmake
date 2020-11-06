@@ -129,7 +129,9 @@ endif()
 #-------------------------------------------------------------------------------
 # Prepare to build the src
 #-------------------------------------------------------------------------------
-add_subdirectory(${SPHERAL_ROOT_DIR}/src)
+if (NOT BUILD_TPL_ONLY)
+  add_subdirectory(${SPHERAL_ROOT_DIR}/src)
+endif()
 
 add_subdirectory(${SPHERAL_ROOT_DIR}/scripts)
 
