@@ -33,7 +33,7 @@ commandLine(
     # Geometry and initial conditions
     R0 = 1.0,
     nr = 100,
-    vr0 = 1e-2,
+    vr0 = 1e-3,
     thetaFactor = 0.5,        # one of (0.5, 1.0, 2.0) -- how much of disk geometry to generate
     constantBoundary = True,  # force constant expansion on outer boundary nodes
 
@@ -42,7 +42,7 @@ commandLine(
 
     # Hydro
     crksph = False,     # Use CRK hydro?
-    asph = True,        # Just the H tensor evolution -- applies to all hydros
+    asph = False,        # Just the H tensor evolution -- applies to all hydros
     hminratio = 0.05,
     XSPH = False,
     densityUpdate = IntegrateDensity,
@@ -71,7 +71,7 @@ commandLine(
     restartStep = 500,
     plotFlaws = False,
     clearDirectories = False,
-    dataDirBase = "dumps-TensileRod-2d",
+    dataDirBase = "dumps-TensileDisk-2d",
     outputFile = "None",
 
     # Should we restart (-1 => find most advanced available restart)
@@ -368,8 +368,8 @@ kWeibullFactor = 1.0
 mWeibullFactor = 1.0
 randomSeed = 548928513
 strainType = PseudoPlasticStrain # BenzAsphaugStrain #
-damageMethod = MinMaxDamage # SampledDamage # CopyDamage # 
-useDamageGradient = False
+damageMethod = CopyDamage # MinMaxDamage # SampledDamage # 
+useDamageGradient = True
 cullToWeakestFlaws = False
 effectiveFlawAlgorithm = FullSpectrumFlaws
 damageInCompression = False
