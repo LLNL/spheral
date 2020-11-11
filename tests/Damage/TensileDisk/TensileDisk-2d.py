@@ -39,6 +39,7 @@ commandLine(
 
     # Parameters for the time dependent strain and cracking.
     DamageModelConstructor = GradyKippTensorDamageOwen,
+    useDamage = True,
 
     # Hydro
     crksph = False,     # Use CRK hydro?
@@ -97,6 +98,7 @@ dataDir = os.path.join(dataDirBase,
                        "vr0=%g" % vr0,
                        "thetaFactor=%g" % thetaFactor,
                        hydroname,
+                       "useDamage=%s" % useDamage,
                        DamageModelConstructor.__name__,
                        "nr=%i" % nr)
 restartDir = os.path.join(dataDir, "restarts")
@@ -477,7 +479,8 @@ if cullToWeakestFlaws:
 # damageModel.excludeNodes = controlNodes
 output("damageModel")
 
-packages.append(damageModel)
+if useDamage:
+    packages.append(damageModel)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
