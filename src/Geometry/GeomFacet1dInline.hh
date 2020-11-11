@@ -1,5 +1,6 @@
 #include "GeomVector.hh"
 #include "Utilities/SpheralFunctions.hh"
+#include <array>
 
 namespace Spheral {
 
@@ -71,6 +72,7 @@ inline
 void
 GeomFacet1d::
 decompose(std::vector<std::array<Vector, 1>>& subfacets) const {
+  //subfacets[0] = std::array<Vector,1>{Vector(mPoint)};
   subfacets = {{mPoint}};
 }
 

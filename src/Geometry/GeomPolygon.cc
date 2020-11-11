@@ -16,6 +16,7 @@
 #include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/CounterClockwiseComparator.hh"
 #include "Utilities/pointInPolygon.hh"
+#include "Utilities/KeyTraits.hh"
 
 #include <algorithm>
 #include <numeric>
@@ -46,18 +47,6 @@ namespace Spheral {
 // The following anonymous stuff is lifted from the convex hull method I 
 // implemented in polytope.
 namespace {
-
-struct KeyTraits {
-  // typedef uint64_t Key;
-  typedef int64_t Key;
-  static const uint32_t numbits;
-  static const uint32_t numbits1d;
-  static const Key zero;
-  static const Key one;
-  static const Key two;
-  static const Key maxKey1d;
-  static const Key maxKey;
-};
 
 namespace geometry {
 

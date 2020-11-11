@@ -537,7 +537,7 @@ unpackElement(std::unordered_map<T1, T2, T3>& value,
 
   // Iterate over the number of elements to unpack and add them to the map
   value.clear();
-  for (int i = 0; i < size; ++i) {
+  for (int i = 0; i < (int)size; ++i) {
     T1 key;
     T2 val;
     unpackElement(key, itr, endPackedVector);

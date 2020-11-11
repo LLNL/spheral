@@ -104,46 +104,6 @@ segmentPlaneIntersection(const Spheral::Dim<2>::Vector& a,       // line-segment
   return (a*bsgndist - b*asgndist)/(bsgndist - asgndist);
 }
 
-//------------------------------------------------------------------------------
-// Check if two line segments intersect.
-//------------------------------------------------------------------------------
-inline
-bool
-segmentsIntersect(const Spheral::Dim<2>::Vector& a,
-                  const Spheral::Dim<2>::Vector& b,
-                  const Spheral::Dim<2>::Vector& c,
-                  const Spheral::Dim<2>::Vector& d) {
-
-  // The plane in the (c,c) orientation.
-  Plane2d cdplane;
-  cdplane.normal = Spheral::Dim<2>::Vector(-(c.y() - d.y()), c.x() - d.x()).unitVector();
-  cdplane.dist = -c.dot(cdplane.normal);
-
-  // Does the (a,b) segment straddle the plane?
-  if (compare(cdplane, a)*compare(cdplane, b) == 1) return false;
-
-  // Is the point where (a,b) intersects the plane between (c,d)?
-  const auto g = segmentPlaneIntersection(a, b, cdplane);
-  return (c - g).dot(d - g) <= 0;
-}
-
-//------------------------------------------------------------------------------
-// Check if a line segment intersects the polygon.
-//------------------------------------------------------------------------------
-inline
-bool
-intersect(const Spheral::Dim<2>::Vector& a,       // line-segment begin
-          const Spheral::Dim<2>::Vector& b,       // line-segment end
-          const Polygon& poly) {                  // Polygon
-  auto result = false;
-  const auto n = poly.size();
-  size_t i = 0;
-  while (i < n and (not result)) {
-    result = segmentsIntersect(a, b, poly[i].position, poly[(i+1)%n].position);
-  }
-  return result;
-}
-
 }              // anonymous methods
 
 //------------------------------------------------------------------------------
