@@ -288,7 +288,8 @@ def gradientRK(fieldList = "const FieldList<%(Dimension)s, %(DataType)s>&",
 
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "DataType")
-def gradientRK(fieldList = "const FieldList<%(Dimension)s, std::vector<%(DataType)s>>&",
+@PYB11pycppname("gradientRK")
+def gradientRK2(fieldList = "const FieldList<%(Dimension)s, std::vector<%(DataType)s>>&",
                position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
                weight = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
                H = "const FieldList<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
