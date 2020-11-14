@@ -148,6 +148,9 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 ``ENABLE_TIMER`` (*On*, Off)
   Enable timer information from Spheral.
 
+``BOOST_HEADER_ONLY`` (On, *Off*)
+  Specify that the Boost third party library will be header only, no compiled libs.
+
 ``DBC_MODE`` (None, All, Pre)
   Set the compile time design by contract (DBC) mode for Spheral.  Design by contract statements are very useful developer tools, whereby the developer can insert tests in the code as they write it.  These statements are both useful for tracking down bugs with fine-grained testing throughout the code, as well as useful documentation in the code about what sort of conditions are expected to hold.
 
