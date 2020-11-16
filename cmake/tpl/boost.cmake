@@ -13,7 +13,43 @@ set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1
 set(BOOST_MD5 "MD5=a1332494397bf48332cb152abfefcec2")
 set(BOOST_CACHE "${CACHE_DIR}/boost_1_69_0.tar.bz2")
 
-set(${lib_name}_libs libboost_filesystem.so libboost_system.so)
+# Choose which compiled libraries we're building
+set(BOOST_WITHOUT_LIBS
+  atomic
+  container
+  contract
+  coroutine
+  log
+  chrono
+  context
+  date_time
+  exception
+  fiber
+  graph
+  graph_parallel
+  iostreams
+  locale
+  math
+  mpi
+  program_options
+  python
+  random
+  regex
+  serialization
+  stacktrace
+  system
+  test
+  thread
+  timer
+  type_erasure
+  wave
+  )
+if (NOT BOOST_HEADER_ONLY)
+  set(${lib_name}_libs libboost_filesystem.so libboost_system.so)
+else()
+  LIST(APPEND BOOST_WITHOUT_LIBS filesystem)
+endif()
+string(REPLACE ";" "," BOOST_WITHOUT_LIBS_STR "${BOOST_WITHOUT_LIBS}")
 
 if(${lib_name}_BUILD)
 
@@ -28,7 +64,7 @@ if(${lib_name}_BUILD)
     DOWNLOAD_DIR ${CACHE_DIR}
     CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} CFLAGS=-fPIC CXXFLAGS=-fPIC FCFLAGS=-fPIC ${BOOST_SRC_DIR}/bootstrap.sh
     --with-toolset=${TOOLSET}
-    --without-libraries=atomic,container,coroutine,log,chrono,context,date_time,exception,fiber,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,test,thread,timer,type_erasure,wave
+    --without-libraries=${BOOST_WITHOUT_LIBS_STR}
     --prefix=${${lib_name}_DIR}
     BUILD_IN_SOURCE 1
     BUILD_COMMAND ${BOOST_SRC_DIR}/b2 install
