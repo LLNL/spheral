@@ -157,6 +157,8 @@ struct DataTypeTraits<std::vector<Value> > {
   static bool fixedSize() { return false; }
   static int numElements(const std::vector<Value>& x) { return x.size(); }
   static std::vector<Value> zero() { return std::vector<Value>(); }
+
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::INT_ID; }
 };
 
 //------------------------------------------------------------------------------
