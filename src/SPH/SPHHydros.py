@@ -118,6 +118,70 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                                           xmax)
         return
 """
+#-------------------------------------------------------------------------------
+# The generic FSISolidSPHHydro pattern.
+#-------------------------------------------------------------------------------
+FSISolidSPHHydroFactoryString = """
+class %(classname)s%(dim)s(FSISolidSPHHydroBase%(dim)s):
+
+    def __init__(self,
+                 dataBase,
+                 Q,
+                 W,
+                 WPi = None,
+                 WGrad = None,
+                 alpha = 1.0,
+                 filter = 0.0,
+                 cfl = 0.5,
+                 useVelocityMagnitudeForDt = False,
+                 compatibleEnergyEvolution = True,
+                 evolveTotalEnergy = False,
+                 gradhCorrection = False,
+                 XSPH = True,
+                 correctVelocityGradient = True,
+                 sumMassDensityOverAllNodeLists = False,
+                 densityUpdate = RigorousSumDensity,
+                 HUpdate = IdealH,
+                 epsTensile = 0.0,
+                 nTensile = 4.0,
+                 damageRelieveRubble = False,
+                 negativePressureInDamage = False,
+                 strengthInDamage = False,
+                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
+                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
+        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+        if WPi is None:
+            WPi = W
+        if WGrad is None:
+            WGrad = W
+        FSISolidSPHHydroBase%(dim)s.__init__(self,
+                                          self._smoothingScaleMethod,
+                                          dataBase,
+                                          Q,
+                                          W,
+                                          WPi,
+                                          WGrad,
+                                          alpha,
+                                          filter,
+                                          cfl,
+                                          useVelocityMagnitudeForDt,
+                                          compatibleEnergyEvolution,
+                                          evolveTotalEnergy,
+                                          gradhCorrection,
+                                          XSPH,
+                                          correctVelocityGradient,
+                                          sumMassDensityOverAllNodeLists,
+                                          densityUpdate,
+                                          HUpdate,
+                                          epsTensile,
+                                          nTensile,
+                                          damageRelieveRubble,
+                                          negativePressureInDamage,
+                                          strengthInDamage,
+                                          xmin,
+                                          xmax)
+        return
+"""
 
 #-------------------------------------------------------------------------------
 # The area-weighted SPHHydroRZ objects.
@@ -315,6 +379,13 @@ for dim in dims:
                                        "classname"            : "SolidASPHHydro",
                                        "smoothingScaleMethod" : "ASPHSmoothingScale"})
 
+    exec(FSISolidSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                       "classname"            : "FSISolidSPHHydro",
+                                       "smoothingScaleMethod" : "SPHSmoothingScale"})
+    exec(FSISolidSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                       "classname"            : "FSISolidASPHHydro",
+                                       "smoothingScaleMethod" : "ASPHSmoothingScale"})
+
 if 2 in dims:
     exec(SPHHydroRZFactoryString % {"classname"            : "SPHHydroRZ",
                                     "smoothingScaleMethod" : "SPHSmoothingScale"})
@@ -357,7 +428,8 @@ def SPH(dataBase,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
         ASPH = False,
-        RZ = False):
+        RZ = False,
+        alpha=None):
 
     # We use the provided DataBase to sniff out what sort of NodeLists are being
     # used, and based on this determine which SPH object to build.
@@ -432,6 +504,14 @@ def SPH(dataBase,
         kwargs.update({"damageRelieveRubble"      : damageRelieveRubble,
                        "negativePressureInDamage" : negativePressureInDamage,
                        "strengthInDamage"         : strengthInDamage})
+    
+    # FSI implementation only solid right now
+    if alpha is not None and nsolid>0:
+        kwargs.update({"alpha"      : alpha})
+        if ASPH:
+            Constructor = eval("FSISolidASPHHydro%id" % ndim)
+        else:
+            Constructor = eval("FSISolidSPHHydro%id" % ndim)
 
     # Build and return the thing.
     result = Constructor(**kwargs)
