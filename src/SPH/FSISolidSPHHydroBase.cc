@@ -175,6 +175,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
 
+  // for now we're going to tweak AV to
+  // remove FSI shear effects maybe 
+  // parse out later?
+  const auto Cl = Q.Cl();
+  const auto Cq = Q.Cq();
+  const auto eps2 = Q.epsilon2();
+
   // The kernels and such.
   const auto& W = this->kernel();
   const auto& WQ = this->PiKernel();
@@ -217,10 +224,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   const auto K = state.fields(SolidFieldNames::bulkModulus, 0.0);
 
-  typedef typename Dimension::Scalar Scalar; //10/14/2020
-  FieldList<Dimension, Scalar> wsum(FieldStorageType::CopyFields);  //10/14/2020
+  typedef typename Dimension::Vector Vector; //10/14/2020
+  FieldList<Dimension, Vector> rSumSame(FieldStorageType::CopyFields);  //10/14/2020
+  FieldList<Dimension, Vector> rSumDiff(FieldStorageType::CopyFields);  //10/14/2020
     for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    wsum.appendNewField("sumUnity", massDensity[nodeListi]->nodeList(), 0.0);
+    rSumSame.appendNewField("rSumSame", massDensity[nodeListi]->nodeList(), Vector::zero);
+    rSumDiff.appendNewField("rSumDiff", massDensity[nodeListi]->nodeList(), Vector::zero);
     }
     
   CHECK(mass.size() == numNodeLists);
@@ -317,6 +326,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     auto localDvDx_thread = localDvDx.threadCopy(threadStack);
     auto M_thread = M.threadCopy(threadStack);
     auto localM_thread = localM.threadCopy(threadStack);
+    auto rSumSame_thread = rSumSame.threadCopy(threadStack);
+    auto rSumDiff_thread = rSumDiff.threadCopy(threadStack);
     //auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
     //auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
     //auto rhoSumCorrection_thread = rhoSumCorrection.threadCopy(threadStack);
@@ -374,6 +385,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
       //auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
       //auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
+      auto& rSumSamei = rSumSame(nodeListi, i);
+      auto& rSumDiffi = rSumDiff(nodeListi, i);
 
       // Get the state for node j
       const auto rj = position(nodeListj, j);
@@ -402,6 +415,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& localMj = localM_thread(nodeListj, j);
       auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
+      auto& rSumSamej = rSumSame(nodeListj, j);
+      auto& rSumDiffj = rSumDiff(nodeListj, j);
 
       // Flag if this is a contiguous material pair or not.
       const auto sameMatij =  (nodeListi == nodeListj);
@@ -416,14 +431,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(etaMagj >= 0.0);
 
       // Symmetrized kernel weight and gradient.
-      //std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
+      std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
       //std::tie(WQi, gWQi) = WQ.kernelAndGradValue(etaMagi, Hdeti);
       const auto Hetai = Hi*etai.unitVector();
       //const auto gradWi = gWi*Hetai;
       //const auto gradWQi = gWQi*Hetai;
       const auto gradWGi = WG.gradValue(etaMagi, Hdeti) * Hetai;
 
-      //std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
+      std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
       //std::tie(WQj, gWQj) = WQ.kernelAndGradValue(etaMagj, Hdetj);
       const auto Hetaj = Hj*etaj.unitVector();
       //const auto gradWj = gWj*Hetaj;
@@ -432,8 +447,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
-      //const auto rhoij = 0.5*(rhoi+rhoj); //pow(rhoi*rhoj,0.5);//11/3/2020
-      //const auto cij = 0.5*(ci+cj);      //11/3/2020
+      const auto voli = mi/rhoi;
+      const auto volj = mj/rhoj;
 
       auto kappai = 1.0;
       auto kappaj = 1.0;
@@ -442,24 +457,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       if(!sameMatij){
         kappai = 1.0*(Kj)/(Ki+Kj);
         kappaj = max(0.0,min(1.0,(1.0-kappai)));
+        rSumDiffi -= volj*rij*Wi;
+        rSumDiffj += voli*rij*Wi;
       }
-      
-      const auto voli = mi/rhoi;
-      const auto volj = mj/rhoj;
-      //const auto deltaDvDxi = vij.dyad(gradWGi);
-      //const auto deltaDvDxj = vij.dyad(gradWGj);
-  
-
-      //DvDxi -= volj*deltaDvDxi;
-      //DvDxj -= voli*deltaDvDxj;
-      //if (sameMatij) {
-      //  localDvDxi -= volj*deltaDvDxi;
-      //  localDvDxj -= voli*deltaDvDxj;
-      //
-      
+    
       // Linear gradient correction term.
-      Mi -= volj*rij.dyad(gradWGi);
-      Mj -= voli*rij.dyad(gradWGj);
+      Mi -= kappai*volj*rij.dyad(gradWGi);
+      Mj -= kappaj*voli*rij.dyad(gradWGj);
       if (sameMatij) {
         localMi -= volj*rij.dyad(gradWGi);
         localMj -= voli*rij.dyad(gradWGj);
@@ -577,7 +581,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     SymTensor sigmai, sigmaj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
-    auto wsum_thread = wsum.threadCopy(threadStack);
     auto rhoSum_thread = rhoSum.threadCopy(threadStack);
     auto DvDt_thread = DvDt.threadCopy(threadStack);
     auto DepsDt_thread = DepsDt.threadCopy(threadStack);
@@ -605,6 +608,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
+      const auto rSumDiffi = rSumDiff(nodeListi,i);
       const auto& ri = position(nodeListi, i);
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
@@ -625,7 +629,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
-      auto& wsumi = wsum_thread(nodeListi, i);
       auto& DrhoDti = DrhoDt_thread(nodeListi, i);
       auto& rhoSumi = rhoSum_thread(nodeListi, i);
       auto& DvDti = DvDt_thread(nodeListi, i);
@@ -644,6 +647,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
 
       // Get the state for node j
+      const auto rSumDiffj = rSumDiff(nodeListj,j);
       const auto rj = position(nodeListj, j);
       const auto mj = mass(nodeListj, j);
       const auto vj = velocity(nodeListj, j);
@@ -663,7 +667,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
-      auto& wsumj = wsum_thread(nodeListj, j);
       auto& DrhoDtj = DrhoDt_thread(nodeListj, j);
       auto& rhoSumj = rhoSum_thread(nodeListj, j);
       auto& DvDtj = DvDt_thread(nodeListj, j);
@@ -725,10 +728,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
 
       // Contribution to the sum density (only if the same material).
-      if (nodeListi == nodeListj) {
-        rhoSumi += mj*Wi;
-        rhoSumj += mi*Wj;
-      }
+
+      rhoSumi += (sameMatij ? mj*Wi : 0.0);
+      rhoSumj += (sameMatij ? mi*Wj : 0.0);
+
 
       // Contribution to the sum density correction
       rhoSumCorrectioni += mj * WQi / rhoj ;
@@ -742,19 +745,27 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto rhoij = 0.5*(rhoi+rhoj); //pow(rhoi*rhoj,0.5);//11/3/2020
       const auto cij = 0.5*(ci+cj);      //11/3/2020
 
-      auto kappai = 1.0;
-      auto kappaj = 1.0;
-      auto kappaMax = 1.0;
+      const auto  kappai = (sameMatij ? 1.0 : 2.0*(Kj)/(Ki+Kj));
+      const auto  kappaj = (sameMatij ? 1.0 : max(0.0,min(2.0,(2.0-kappai))));
+      const auto surfaceNormali = (sameMatij? etai:rSumDiffi);
+      const auto surfaceNormalj = (sameMatij? etaj:rSumDiffj);
 
-      if(!sameMatij){
-        kappai = 2.0*(Kj)/(Ki+Kj);
-        kappaj = max(0.0,min(2.0,(2.0-kappai)));
-        kappaMax = max(kappai,kappaj);
-      }
-      
+        // Compute mu.
+      //const auto numerator = max(vij.dot(surfaceNormali));
+      const auto mui = max( vij.dot(surfaceNormali)/(surfaceNormali.magnitude()*etaMagi + eps2), 0.0);
+      const auto muj = max(-vij.dot(surfaceNormalj)/(surfaceNormalj.magnitude()*etaMagj + eps2), 0.0);
+
+      // The artificial internal energy.
+      const auto ei = Cl*cij*mui + Cq*sgn(mui)*mui*mui;
+      const auto ej = Cl*cij*muj + Cq*sgn(muj)*muj*muj;
+  
+      // Now compute the symmetrized artificial viscous pressure.
+      //std::tie(QPiij, QPiji) =  make_pair(ei/rhoij*Tensor::one,
+      //                                    ej/rhoij*Tensor::one);
+
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      ri, etai, kappaMax*vi, rhoij, cij, Hi,  
-                                      rj, etaj, kappaMax*vj, rhoij, cij, Hj); //11/3/2020
+                                      ri, etai, vi, rhoij, cij, Hi,  
+                                      rj, etaj, vj, rhoij, cij, Hj); //11/3/2020
 
       //auto Qacci = 0.5*(QPiij*gradWGi);
       //auto Qaccj = 0.5*(QPiji*gradWGj);
@@ -816,9 +827,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       }
       if (compatibleEnergy) pairAccelerations[kk] = mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
-      const auto deltaDvDxi = kappai*vij.dyad(gradWGi)*Mi;
-      const auto deltaDvDxj = kappaj*vij.dyad(gradWGj)*Mj;
-      // Velocity gradient.
+      auto deltaDvDxi = kappai*vij.dyad(gradWGi)*Mi;
+      auto deltaDvDxj = kappaj*vij.dyad(gradWGj)*Mj;
 
       DvDxi -= mj/rhoj*(deltaDvDxi);
       DvDxj -= mi/rhoi*(deltaDvDxj);
@@ -827,10 +837,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         localDvDxj -= mi/rhoi*(deltaDvDxj);
       }
 
-      //bulk modulus correction only applies to the diagonal elements
-      //omega correction invalid of we are doing the stitching this way
-      DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()));//fVoli*deltaDepsDt/mi;//*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi );//mj*deltaDepsDt;
-      DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()));//fVolj*deltaDepsDt/mj;//*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj );//
+      DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()));
+      DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()));
 
 
       // Add timing info for work
