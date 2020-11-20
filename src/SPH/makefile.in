@@ -17,6 +17,7 @@ INSTSRCTARGETS = \
 	$(srcdir)/computeSumVoronoiCellMassDensityInst.cc.py \
 	$(srcdir)/SPHHydroBaseInst.cc.py \
 	$(srcdir)/SolidSPHHydroBaseInst.cc.py \
+	$(srcdir)/FSISolidSPHHydroBaseInst.cc.py \
 	$(srcdir)/PSPHHydroBaseInst.cc.py
 
 PYTHONTARGETS = \
