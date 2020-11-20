@@ -13,6 +13,8 @@ set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1
 set(BOOST_MD5 "MD5=a1332494397bf48332cb152abfefcec2")
 set(BOOST_CACHE "${CACHE_DIR}/boost_1_69_0.tar.bz2")
 
+set(${lib_name}_libs libboost_filesystem.so libboost_system.so)
+
 if(${lib_name}_BUILD)
 
   if (EXISTS ${BOOST_CACHE})
@@ -24,9 +26,9 @@ if(${lib_name}_BUILD)
     URL ${BOOST_URL} 
     URL_HASH ${BOOST_MD5}
     DOWNLOAD_DIR ${CACHE_DIR}
-    CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${BOOST_SRC_DIR}/bootstrap.sh
+    CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} CFLAGS=-fPIC CXXFLAGS=-fPIC FCFLAGS=-fPIC ${BOOST_SRC_DIR}/bootstrap.sh
     --with-toolset=${TOOLSET}
-    --without-libraries=atomic,container,coroutine,log,chrono,context,date_time,exception,fiber,filesystem,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,system,test,thread,timer,type_erasure,wave
+    --without-libraries=atomic,container,coroutine,log,chrono,context,date_time,exception,fiber,graph,graph_parallel,iostreams,locale,math,mpi,program_options,python,random,regex,serialization,test,thread,timer,type_erasure,wave
     --prefix=${${lib_name}_DIR}
     BUILD_IN_SOURCE 1
     BUILD_COMMAND ${BOOST_SRC_DIR}/b2 install

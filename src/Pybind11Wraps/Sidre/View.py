@@ -26,10 +26,32 @@ class View:
     @PYB11implementation("""[](axom::sidre::View &self, int n) {
                                                                 int* viewData = self.getData();
                                                                 py::list result;
-                                                                for (int i; i < n; i++)
+                                                                for (int i = 0; i < n; i++)
                                                                      result.append(viewData[i]);
                                                                 return result;
                                                                }""")
     def getDataA(self, n = "int"):
+        "Return data held by view and cast it to any compatible type allowed by Conduit (return type depends on type caller assigns it to)."
+        return "py::list"
+    
+    @PYB11implementation("""[](axom::sidre::View &self, int n) {
+                                                                double* viewData = self.getData();
+                                                                py::list result;
+                                                                for (int i = 0; i < n; i++)
+                                                                     result.append(viewData[i]);
+                                                                return result;
+                                                               }""")
+    def getDataB(self, n = "int"):
+        "Return data held by view and cast it to any compatible type allowed by Conduit (return type depends on type caller assigns it to)."
+        return "py::list"
+
+    @PYB11implementation("""[](axom::sidre::View &self, int n) {
+                                                                uint64_t* viewData = self.getData();
+                                                                py::list result;
+                                                                for (int i = 0; i < n; i++)
+                                                                     result.append(viewData[i]);
+                                                                return result;
+                                                               }""")
+    def getDataC(self, n = "int"):
         "Return data held by view and cast it to any compatible type allowed by Conduit (return type depends on type caller assigns it to)."
         return "py::list"
