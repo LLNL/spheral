@@ -3,6 +3,7 @@ set(SPH_inst
     SPHHydroBase
     PSPHHydroBase
     SolidSPHHydroBase
+    FSISolidSPHHydroBase
     computeSPHOmegaGradhCorrection
     computeSPHSumMassDensity
     correctSPHSumMassDensity
