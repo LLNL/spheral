@@ -747,14 +747,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto kappaMax = 1.0;
 
       if(!sameMatij){
-        kappai = 1.0*(Kj)/(Ki+Kj);
-        kappaj = max(0.0,min(1.0,(1.0-kappai)));
-        kappaMax = 1.0*max(kappai,kappaj);
+        kappai = 2.0*(Kj)/(Ki+Kj);
+        kappaj = max(0.0,min(2.0,(2.0-kappai)));
+        kappaMax = max(kappai,kappaj);
       }
       
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      ri, etai, vi, rhoij, cij, Hi,  
-                                      rj, etaj, vj, rhoij, cij, Hj); //11/3/2020
+                                      ri, etai, kappaMax*vi, rhoij, cij, Hi,  
+                                      rj, etaj, kappaMax*vj, rhoij, cij, Hj); //11/3/2020
 
       //auto Qacci = 0.5*(QPiij*gradWGi);
       //auto Qaccj = 0.5*(QPiji*gradWGj);
@@ -770,7 +770,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       //viscousWorkj += mi*workQj;
 
       // Damage scaling of negative pressures.
-  
       auto Peffi = (negativePressureInDamage or Pi > 0.0 ? Pi : fDeffij*Pi);
       auto Peffj = (negativePressureInDamage or Pj > 0.0 ? Pj : fDeffij*Pj);
       if (!sameMatij){
@@ -804,7 +803,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(rhoj > 0.0);
       const auto voli = mi/rhoi;
       const auto volj = mj/rhoj;
-      const auto oneOverRhoiRhoj = 1.0/(rhoi*rhoj);
+      //const auto oneOverRhoiRhoj = 1.0/(rhoi*rhoj);
       const auto sigmarhoi = sigmai/(pow(rhoi,alpha)*pow(rhoj,2.0-alpha))-0.5*(QPiij);//-0.5*QPiij;
       const auto sigmarhoj = sigmaj/(pow(rhoj,alpha)*pow(rhoi,2.0-alpha))-0.5*(QPiji);//-0.5*QPiji;
       const auto deltaDvDt = safeOmegai*sigmarhoi*gradWi + safeOmegaj*sigmarhoj*gradWj;//-Qacci-Qaccj;
@@ -817,21 +816,21 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       }
       if (compatibleEnergy) pairAccelerations[kk] = mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
-      const auto deltaDvDxi = vij.dyad(gradWGi);
-      const auto deltaDvDxj = vij.dyad(gradWGj);
+      const auto deltaDvDxi = kappai*vij.dyad(gradWGi)*Mi;
+      const auto deltaDvDxj = kappaj*vij.dyad(gradWGj)*Mj;
       // Velocity gradient.
 
-      DvDxi -= kappai*mj/rhoj*(deltaDvDxi)*Mi;
-      DvDxj -= kappaj*mi/rhoi*(deltaDvDxj)*Mj;
+      DvDxi -= mj/rhoj*(deltaDvDxi);
+      DvDxj -= mi/rhoi*(deltaDvDxj);
       if (sameMatij) {
-        localDvDxi -= kappai*mj/rhoj*(deltaDvDxi)*localMi;
-        localDvDxj -= kappaj*mi/rhoi*(deltaDvDxj)*localMj;
+        localDvDxi -= mj/rhoj*(deltaDvDxi);
+        localDvDxj -= mi/rhoi*(deltaDvDxj);
       }
 
       //bulk modulus correction only applies to the diagonal elements
       //omega correction invalid of we are doing the stitching this way
-      DepsDti -= mj*(sigmarhoi.doubledot(DvDxi));//fVoli*deltaDepsDt/mi;//*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi );//mj*deltaDepsDt;
-      DepsDtj -= mi*(sigmarhoj.doubledot(DvDxj));//fVolj*deltaDepsDt/mj;//*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj );//
+      DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()));//fVoli*deltaDepsDt/mi;//*sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi );//mj*deltaDepsDt;
+      DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()));//fVolj*deltaDepsDt/mj;//*sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj );//
 
 
       // Add timing info for work
@@ -922,35 +921,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
 
-            // Finish the gradient of the velocity.
-      //CHECK(rhoi > 0.0);
-      //if (this->mCorrectVelocityGradient and
-      //    std::abs(Mi.Determinant()) > 1.0e-10 and
-      //    numNeighborsi > Dimension::pownu(2)) {
-      //  Mi = Mi.Inverse();
-      //  DvDxi = DvDxi*Mi;
-      //} //else {
-        //DvDxi /= rhoi;
-      //}
-      //if (this->mCorrectVelocityGradient and
-      //    std::abs(localMi.Determinant()) > 1.0e-10 and
-      //    numNeighborsi > Dimension::pownu(2)) {
-      //  localMi = localMi.Inverse();
-      //  localDvDxi = localDvDxi*localMi;
-      //} //else {
-        //localDvDxi /= rhoi;
-      //}
 
-      // Evaluate the continuity equation.
-      //DrhoDti = -rhoi*DvDxi.Trace();
-      // Evaluate the continuity equation.
-      //if (nodeListi==0){ 
       DrhoDti = -rhoi*DvDxi.Trace();
-      //}else{  
-      //  DrhoDti = -rhoi*localDvDxi.Trace();            
-      //  DvDxi=1.0*localDvDxi;
-      //} 
-      // Determine the position evolution, based on whether we're doing XSPH or not.
+      
       DxDti = vi;
       if (XSPH) {
         CHECK(XSPHWeightSumi >= 0.0);
