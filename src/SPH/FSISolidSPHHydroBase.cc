@@ -191,6 +191,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto damageRelieveRubble = this->damageRelieveRubble();
   const auto strengthInDamage = this->strengthInDamage();
   const auto negativePressureInDamage = this->negativePressureInDamage();
+  const auto alpha = this->alpha();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -801,7 +802,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // Acceleration.
       CHECK(rhoi > 0.0);
       CHECK(rhoj > 0.0);
-      const auto alpha = 1.1;
       const auto voli = mi/rhoi;
       const auto volj = mj/rhoj;
       const auto oneOverRhoiRhoj = 1.0/(rhoi*rhoj);
