@@ -21,6 +21,7 @@ set(Utilities_sources
     PeanoHilbertTransform.cc
     RegisterMPIDataTypes.cc
     RedistributionRegistrar.cc
+    SidreDataCollection.cc
     vectorBoundingBoxInst.cc
     lineSegmentIntersections.cc
     segmentIntersectEdges.cc
@@ -63,6 +64,7 @@ set(Utilities_headers
     RedistributionRegistrarInline.hh
     RegisterMPIDataTypes.hh
     SafeIndexMap.hh
+    SidreDataCollection.hh
     SpheralFunctions.hh
     Timer.hh
     Tree.hh

@@ -7,6 +7,7 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
+//#include "axom/sidre.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -1957,5 +1958,19 @@ operator<<(std::ostream& os, const Field<Dimension, DataType>& field) {
   return os;
 }
 
+
+
+
+//------------------------------------------------------------------------------
+// getAxomType
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+axom::sidre::DataTypeId
+Field<Dimension, DataType>::
+getAxomType() const {
+  return DataTypeTraits<DataType>::axomType();
 }
 
+
+}

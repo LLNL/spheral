@@ -4,7 +4,9 @@ set(AXOM_URL "https://github.com/LLNL/axom/releases/download/v0.3.3/${AXOM_DIST}
 set(AXOM_MD5 "MD5=f209d2f03f002f46be6eb1a7e6aedeb6")
 set(AXOM_CACHE "${CACHE_DIR}/${AXOM_DIST}")
 
-set(${lib_name}_libs )
+set(${lib_name}_libs 
+    libaxom.a 
+   )
 
 if(${lib_name}_BUILD)
 
