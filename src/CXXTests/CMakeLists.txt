@@ -19,7 +19,7 @@ foreach(test ${gtest_spheral_tests})
     blt_add_executable( NAME ${test_name}_test
                         SOURCES ${test}
                         OUTPUT_DIR ${${PROJECT_BINARY_DIR}/tests}
-                        DEPENDS_ON ${SPHERAL_PYTHON_DEPENDS} ${spheral_blt_depends} gtest
+                        DEPENDS_ON ${SPHERAL_CXX_LIBS} ${spheral_blt_depends} gtest
                         )
 
     blt_add_test( NAME ${test_name}
