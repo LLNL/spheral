@@ -19,7 +19,11 @@ foreach(test ${gtest_spheral_tests})
     blt_add_executable( NAME ${test_name}_test
                         SOURCES ${test}
                         OUTPUT_DIR ${${PROJECT_BINARY_DIR}/tests}
+<<<<<<< HEAD
                         DEPENDS_ON ${spheral_blt_depends} gtest
+=======
+                        DEPENDS_ON ${SPHERAL_CXX_LIBS} ${spheral_blt_depends} gtest
+>>>>>>> feature/python-env
                         )
 
     blt_add_test( NAME ${test_name}
