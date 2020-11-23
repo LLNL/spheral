@@ -36,6 +36,8 @@ set(Geometry_headers
     FacetedVolumeUtilities.hh
     Geom3Vector.hh
     Geom3VectorInline.hh
+    GeomFacet1d.hh
+    GeomFacet1dInline.hh
     GeomFacet2d.hh
     GeomFacet2dInline.hh
     GeomFacet3d.hh

@@ -1131,7 +1131,11 @@ void
 Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
   unsigned oldSize = this->size();
   this->setFieldBaseNodeList(nodeList);
+#ifdef WIN32
+  mDataArray.resize(nodeList.numNodes()+1);
+#else
   mDataArray.resize(nodeList.numNodes());
+#endif
   if (this->size() > oldSize) {
     for (unsigned i = oldSize; i < this->size(); ++i) {
       (*this)(i) = DataTypeTraits<DataType>::zero();
@@ -1150,7 +1154,11 @@ void
 Field<Dimension, DataType>::resizeField(unsigned size) {
   REQUIRE(size == this->nodeList().numNodes());
   unsigned oldSize = this->size();
+#ifdef WIN32
+  mDataArray.resize(size+1);
+#else
   mDataArray.resize(size);
+#endif
   if (oldSize < size) {
     std::fill(mDataArray.begin() + oldSize,
               mDataArray.end(),
@@ -1236,7 +1244,11 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
   }
 
   // Resize the field data.
+#ifdef WIN32
+  mDataArray.resize(newSize+1);
+#else
   mDataArray.resize(newSize);
+#endif
 
   // Fill in any new internal values.
   if (newSize > currentSize) {
@@ -1274,8 +1286,13 @@ Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
   REQUIRE(newSize == this->nodeList().numNodes());
 
   // Resize the field data.
+#ifdef WIN32
+  mDataArray.resize(newSize+1);
+  CHECK(this->size() == (newSize+1));
+#else
   mDataArray.resize(newSize);
-  CHECK(this->size() == newSize);
+  CHECK(this->size() == (newSize));
+#endif
 
   // Fill in any new ghost values.
   if (newSize > currentSize) {

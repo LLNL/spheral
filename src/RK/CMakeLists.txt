@@ -42,6 +42,11 @@ set(RK_headers
   HullVolumePolicy.hh
   HVolumePolicy.hh
   interpolateRK.hh
+  ReproducingKernel.hh
+  ReproducingKernelInline.hh
+  ReproducingKernelMethods.hh
+  ReproducingKernelMethodsInline.hh
+  RKCoefficients.hh
   RKCorrectionParams.hh
   RKCorrections.hh
   RKUtilities.hh
