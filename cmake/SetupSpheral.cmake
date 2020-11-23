@@ -119,23 +119,25 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}")
 # which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-#-------------------------------------------------------------------------------
-# Install symlink for spheral->python
-#-------------------------------------------------------------------------------
-if (NOT ENABLE_CXXONLY)
-  install(CODE "execute_process( \
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
-    WORKING_DIRECTORY ${SPHERAL_TPL_DIR})")
-endif()
+if (NOT BUILD_TPL_ONLY)
+  #-------------------------------------------------------------------------------
+  # Install symlink for spheral->python
+  #-------------------------------------------------------------------------------
+  if (NOT ENABLE_CXXONLY)
+    install(CODE "execute_process( \
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
+      WORKING_DIRECTORY ${SPHERAL_TPL_DIR})")
+  endif()
 
-#-------------------------------------------------------------------------------
-# Prepare to build the src
-#-------------------------------------------------------------------------------
-add_subdirectory(${SPHERAL_ROOT_DIR}/src)
+  #-------------------------------------------------------------------------------
+  # Prepare to build the src
+  #-------------------------------------------------------------------------------
+  add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 
-#-------------------------------------------------------------------------------
-# Add the documentation
-#-------------------------------------------------------------------------------
-if (NOT ENABLE_CXXONLY)
-  add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+  #-------------------------------------------------------------------------------
+  # Add the documentation
+  #-------------------------------------------------------------------------------
+  if (NOT ENABLE_CXXONLY)
+    add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+  endif()
 endif()
