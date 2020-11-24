@@ -14,7 +14,7 @@ cmake \
   -DCMAKE_BUILD_TYPE=Debug \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-8.3.1/bin/g++ \
   -DENABLE_OPENMP=On \
-  -DENABLE_MPI=Off \
+  -DENABLE_MPI=On \
   -DCMAKE_INSTALL_PREFIX=../install \
   -DSPHERAL_TPL_DIR=/usr/workspace/wsrzd/davis291/SPHERAL/toss_Spheral_gcc8/install3/tpl \
   -DBUILD_TPL=Off \

@@ -67,6 +67,8 @@ if(ENABLE_OPENMP)
   list(APPEND spheral_blt_depends openmp)
 endif()
 
+option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
+
 #-------------------------------------------------------------------------------#
 # Set a default build type if none was specified
 #-------------------------------------------------------------------------------#
@@ -130,8 +132,6 @@ endif()
 # Prepare to build the src
 #-------------------------------------------------------------------------------
 add_subdirectory(${SPHERAL_ROOT_DIR}/src)
-
-add_subdirectory(${SPHERAL_ROOT_DIR}/scripts)
 
 #-------------------------------------------------------------------------------
 # Add the documentation
