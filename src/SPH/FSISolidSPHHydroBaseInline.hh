@@ -20,4 +20,25 @@ alpha() const {
   return mAlpha;
 }
 
+
+//------------------------------------------------------------------------------
+// swtich to turn on density sum for different nodeLists
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+FSISolidSPHHydroBase<Dimension>::
+sumDensityNodeListSwitch(std::vector<int> x) {
+  mSumDensityNodeListSwitch = x;
+}
+
+
+template<typename Dimension>
+inline
+std::vector<int>
+FSISolidSPHHydroBase<Dimension>::
+sumDensityNodeListSwitch() const {
+  return mSumDensityNodeListSwitch;
+}
+
 }

@@ -8,7 +8,7 @@
 
 #include <float.h>
 #include <string>
-
+#include <vector>
 #include "SPH/SolidSPHHydroBase.hh"
 
 namespace Spheral {
@@ -42,7 +42,8 @@ public:
                     const TableKernel<Dimension>& W,
                     const TableKernel<Dimension>& WPi,
                     const TableKernel<Dimension>& WGrad,
-                    const double generalizedExponent,
+                    const double alpha,
+                    const std::vector<int> sumDensityNodeListSwitch,
                     const double filter,
                     const double cfl,
                     const bool useVelocityMagnitudeForDt,
@@ -65,6 +66,10 @@ public:
   // Destructor.
   virtual ~FSISolidSPHHydroBase();
 
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
+
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
@@ -74,8 +79,18 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
 
+  void computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
+                                   const TableKernel<Dimension>& W,
+                                   const FieldList<Dimension, typename Dimension::Vector>& position,
+                                   const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                                   const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                                   FieldList<Dimension, typename Dimension::Scalar>& massDensity);
+  
   double alpha() const;
   void alpha(double x);
+
+  std::vector<int> sumDensityNodeListSwitch() const;
+  void sumDensityNodeListSwitch(std::vector<int> x);
 
   //****************************************************************************
   // Methods required for restarting.
@@ -83,7 +98,9 @@ public:
  //****************************************************************************
 
 private:
-  double mAlpha;
+  double mAlpha;                               //generalized density exponent
+  std::vector<int> mSumDensityNodeListSwitch;  //turn on density sum subset of nodeLists
+  FieldList<Dimension, Vector> mSurfaceNormal; //estimate of interface normals
 
   // No default constructor, copying, or assignment.
   FSISolidSPHHydroBase();

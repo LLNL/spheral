@@ -25,6 +25,7 @@ class FSISolidSPHHydroBase(SolidSPHHydroBase):
                WPi = "const TableKernel<%(Dimension)s>&",
                WGrad = "const TableKernel<%(Dimension)s>&",
                alpha = "const double",
+               sumDensityNodeListSwitch="std::vector<int>",
                filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
@@ -61,8 +62,10 @@ mass density, velocity, and specific thermal energy."""
 
     #...........................................................................
     # Properties
-    alpha = PYB11property("double", "alpha", "alpha", 
+    alpha = PYB11property("double", "alpha", "alpha",
                            doc="exponent coefficient in Monaghans generalized momentum eqn.")
+    sumDensityNodeListSwitch = PYB11property("std::vector<int>", "sumDensityNodeListSwitch", "sumDensityNodeListSwitch", 
+                                              doc="control if density sum is applied to individual node lists.")
 
 #-------------------------------------------------------------------------------
 # Inject methods
