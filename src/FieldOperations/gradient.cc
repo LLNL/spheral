@@ -169,10 +169,10 @@ gradient(const FieldList<Dimension, std::vector<DataType>>& fieldList,
                            0);
   
  // Return FieldList.
-  FieldList<Dimension, GradientType> result;
+  FieldList<Dimension, std::vector<GradientType>> result;
   vector< vector<bool> > flagNodeDone(fieldList.numFields());
   result.copyFields();
-  for (typename FieldList<Dimension, DataType>::const_iterator
+  for (typename FieldList<Dimension, std::vector<DataType>>::const_iterator
          fieldItr = fieldList.begin();
        fieldItr < fieldList.end(); 
        ++fieldItr) {
@@ -208,7 +208,7 @@ gradient(const FieldList<Dimension, std::vector<DataType>>& fieldList,
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
         const Scalar& rhoi = rho(masterItr);
-        const DataType& fieldi = fieldList(masterItr);
+        const std::vector<DataType>& fieldi = fieldList(masterItr);
 
         for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin(refineNeighbors);
              neighborItr < fieldList.refineNodeEnd();
@@ -217,7 +217,7 @@ gradient(const FieldList<Dimension, std::vector<DataType>>& fieldList,
           const Vector& rj = position(neighborItr);
           const SymTensor& Hj = Hfield(neighborItr);
           const Scalar& mj = mass(neighborItr);
-          const DataType& fieldj = fieldList(neighborItr);
+          const std::vector<DataType>& fieldj = fieldList(neighborItr);
 
           const Vector rij = ri - rj;
           const Vector etai = Hi*rij;
@@ -248,7 +248,7 @@ gradient(const FieldList<Dimension, std::vector<DataType>>& fieldList,
           // Add this nodes contribution to the master value.
           for (auto m = 0u; m < vectorSize; ++m) {
             CHECK(result(masterItr).size() == vectorSize &&
-                  fieldj.size() == vectorSize **
+                  fieldj.size() == vectorSize &&
                   fieldi.size() == vectorSize);
             result(masterItr)[m] += mj*(fieldj[m] - fieldi[m])*gradWij;
           }
