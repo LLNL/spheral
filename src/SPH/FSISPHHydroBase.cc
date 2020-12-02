@@ -647,13 +647,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       
 
       // Estimate of delta v (for XSPH).
-      if (mXSPH and (sameMatij)) {
-        const auto wXSPHij = 0.5*(mi/rhoi*Wi + mj/rhoj*Wj);
-        XSPHWeightSumi += wXSPHij;
-        XSPHWeightSumj += wXSPHij;
-        XSPHDeltaVi -= wXSPHij*vij;
-        XSPHDeltaVj += wXSPHij*vij;
-      }
+      //if (mXSPH and (sameMatij)) {
+      //  const auto wXSPHij = 0.5*(mi/rhoi*Wi + mj/rhoj*Wj);
+      //  XSPHWeightSumi += wXSPHij;
+      //  XSPHWeightSumj += wXSPHij;
+      //  XSPHDeltaVi -= wXSPHij*vij;
+      //  XSPHDeltaVj += wXSPHij*vij;
+      //}
 
       // Add timing info for work
       const auto deltaTimePair = 0.5*Timing::difference(start, Timing::currentTime());
