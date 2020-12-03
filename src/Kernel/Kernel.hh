@@ -37,24 +37,24 @@ public:
 
   //======================================================================
   // Return the gradient value for a given normalized distance or position.
-  double grad(const Vector& etaMagnitude, const SymTensor& H) const;
-  double grad(const Vector& etaMagnitude, const Scalar& Hdet) const;
+  double grad(const Vector& eta, const SymTensor& H) const;
+  double grad(const Vector& eta, const Scalar& Hdet) const;
   double grad(const double& etaMagnitude, const SymTensor& H) const;
   double grad(const double& etaMagnitude, const Scalar& Hdet) const;
 
   //======================================================================
   // Return the second derivative of the kernel for a given normalized distance
   //  or position.
-  double grad2(const Vector& etaMagnitude, const SymTensor& H) const;
-  double grad2(const Vector& etaMagnitude, const Scalar& Hdet) const;
+  double grad2(const Vector& eta, const SymTensor& H) const;
+  double grad2(const Vector& eta, const Scalar& Hdet) const;
   double grad2(const double& etaMagnitude, const SymTensor& H) const;
   double grad2(const double& etaMagnitude, const Scalar& Hdet) const;
 
   //======================================================================
   // Return the gradient with respect to h for a given normalized distance
   // or position.
-  double gradh(const Vector& etaMagnitude, const SymTensor& H) const;
-  double gradh(const Vector& etaMagnitude, const Scalar& Hdet) const;
+  double gradh(const Vector& eta, const SymTensor& H) const;
+  double gradh(const Vector& eta, const Scalar& Hdet) const;
   double gradh(const double& etaMagnitude, const SymTensor& H) const;
   double gradh(const double& etaMagnitude, const Scalar& Hdet) const;
 
