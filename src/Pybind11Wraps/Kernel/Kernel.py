@@ -13,7 +13,7 @@ class Kernel:
 
     @PYB11const
     def __call__(self,
-                 etaMagnitude = "double",
+                 etaMagnitude = "const double&",
                  H = "const SymTensor&"):
         "Return the kernel value at the given normalized radius"
         return "double"
@@ -31,7 +31,7 @@ class Kernel:
     @PYB11cppname("operator()")
     @PYB11const
     def call2(self,
-              etaMagnitude = "double",
+              etaMagnitude = "const double&",
               Hdet = "const double&"):
         "Return the kernel value at the given normalized radius"
         return "double"
@@ -49,7 +49,7 @@ class Kernel:
     @PYB11pycppname("grad")
     @PYB11const
     def grad_0(self,
-               etaMagnitude = "double",
+               etaMagnitude = "const double&",
                Hdet = "const double&"):
         "Return the gradient of the kernel"
         return "double"
@@ -57,7 +57,7 @@ class Kernel:
     @PYB11pycppname("grad")
     @PYB11const
     def grad_1(self,
-               etaMagnitude = "double",
+               etaMagnitude = "const double&",
                H = "const SymTensor&"):
         "Return the gradient of the kernel"
         return "double"
@@ -82,7 +82,7 @@ class Kernel:
     @PYB11pycppname("grad2")
     @PYB11const
     def grad2_0(self,
-               etaMagnitude = "double",
+               etaMagnitude = "const double&",
                Hdet = "const double&"):
         "Return the second derivative of the kernel"
         return "double"
@@ -90,7 +90,7 @@ class Kernel:
     @PYB11pycppname("grad2")
     @PYB11const
     def grad2_1(self,
-               etaMagnitude = "double",
+               etaMagnitude = "const double&",
                H = "const SymTensor&"):
         "Return the second derivative of the kernel"
         return "double"
@@ -115,7 +115,7 @@ class Kernel:
     @PYB11pycppname("gradh")
     @PYB11const
     def gradh_0(self,
-                etaMagnitude = "double",
+                etaMagnitude = "const double&",
                 Hdet = "const double&"):
         "Return the gradient with respect to h of the kernel"
         return "double"
@@ -123,7 +123,7 @@ class Kernel:
     @PYB11pycppname("gradh")
     @PYB11const
     def gradh_1(self,
-               etaMagnitude = "double",
+               etaMagnitude = "const double&",
                H = "const SymTensor&"):
         "Return the gradient with respect to h of the kernel"
         return "double"
@@ -147,14 +147,14 @@ class Kernel:
     #...........................................................................
     @PYB11const
     def kernelValue(self,
-                    etaMagnitude = "double",
+                    etaMagnitude = "const double&",
                     Hdet = "double"):
         "Return the value of the kernel"
         return "double"
 
     @PYB11const
     def gradValue(self,
-                  etaMagnitude = "double",
+                  etaMagnitude = "const double&",
                   Hdet = "double"):
         "Return the value of the gradient of the kernel"
         return "double"

@@ -30,45 +30,33 @@ public:
 
   //======================================================================
   // Return the kernel weight for a given normalized distance or position.
-  template<typename HType>
-  double operator()(double etaMagnitude, const HType& H) const;
-  template<typename HType> 
-  double operator()(const Vector& eta, const HType& H) const;
-
-  double operator()(double etaMagnitude, const Scalar& Hdet) const;
+  double operator()(const Vector& eta, const SymTensor& H) const;
   double operator()(const Vector& eta, const Scalar& Hdet) const;
+  double operator()(const double& etaMagnitude, const SymTensor& H) const;
+  double operator()(const double& etaMagnitude, const Scalar& Hdet) const;
 
   //======================================================================
   // Return the gradient value for a given normalized distance or position.
-  template <typename HType>
-  double grad(double etaMagnitude, const HType& H) const;
-  template <typename HType> 
-  double grad(const Vector& eta, const HType& H) const;
-
-  double grad(double etaMagnitude, const Scalar& Hdet) const;
-  double grad(const Vector& eta, const Scalar& Hdet) const;
+  double grad(const Vector& etaMagnitude, const SymTensor& H) const;
+  double grad(const Vector& etaMagnitude, const Scalar& Hdet) const;
+  double grad(const double& etaMagnitude, const SymTensor& H) const;
+  double grad(const double& etaMagnitude, const Scalar& Hdet) const;
 
   //======================================================================
   // Return the second derivative of the kernel for a given normalized distance
   //  or position.
-  template <typename HType>
-  double grad2(double etaMagnitude, const HType& H) const;
-  template <typename HType> 
-  double grad2(const Vector& eta, const HType& H) const;
-
-  double grad2(double etaMagnitude, const Scalar& Hdet) const;
-  double grad2(const Vector& eta, const Scalar& Hdet) const;
+  double grad2(const Vector& etaMagnitude, const SymTensor& H) const;
+  double grad2(const Vector& etaMagnitude, const Scalar& Hdet) const;
+  double grad2(const double& etaMagnitude, const SymTensor& H) const;
+  double grad2(const double& etaMagnitude, const Scalar& Hdet) const;
 
   //======================================================================
   // Return the gradient with respect to h for a given normalized distance
   // or position.
-  template <typename HType>
-  double gradh(double etaMagnitude, const HType& H) const;
-  template <typename HType> 
-  double gradh(const Vector& eta, const HType& H) const;
-
-  double gradh(double etaMagnitude, const Scalar& Hdet) const;
-  double gradh(const Vector& eta, const Scalar& Hdet) const;
+  double gradh(const Vector& etaMagnitude, const SymTensor& H) const;
+  double gradh(const Vector& etaMagnitude, const Scalar& Hdet) const;
+  double gradh(const double& etaMagnitude, const SymTensor& H) const;
+  double gradh(const double& etaMagnitude, const Scalar& Hdet) const;
 
   //======================================================================
   // Get the volume normalization constant.

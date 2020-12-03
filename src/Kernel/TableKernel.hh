@@ -31,7 +31,7 @@ public:
               const double hmult = 1.0);
 
   // Destructor.
-  ~TableKernel();
+  virtual ~TableKernel();
 
   // Assignment.
   TableKernel& operator=(const TableKernel& rhs);
@@ -92,7 +92,7 @@ public:
   int lowerBound(double etaMagnitude) const;
 
   // Test if the kernel is currently valid.
-  virtual bool valid() const;
+  virtual bool valid() const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
