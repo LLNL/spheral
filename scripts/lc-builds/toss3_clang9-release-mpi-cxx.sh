@@ -14,10 +14,9 @@ cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-9.0.0/bin/clang++ \
   -DCMAKE_C_COMPILER=/usr/tce/packages/clang/clang-9.0.0/bin/clang \
+  -C ../../host-configs/lc-builds/toss3/clangX_tpl.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_MPI=On \
   -DCMAKE_INSTALL_PREFIX=../install \
-  -DSPHERAL_TPL_DIR=/usr/workspace/wsrzd/davis291/SPHERAL/toss_Spheral_clang9/install \
-  -DBUILD_TPL=Off \
   -DENABLE_STATIC_CXXONLY=On
   "$@" \
