@@ -62,12 +62,14 @@ set(pip-custom-modules
 set(pip-modules_DEPENDS pip-setup-modules)
 set(pip-modules_stamp_file_DEPENDS pip-setup-modules)
 
-# Run install macro for PyPi modules
-Install_PipModules(pip-setup-modules)
-Install_PipModules(pip-modules)
+if(pip_BUILD)
+  # Run install macro for PyPi modules
+  Install_PipModules(pip-setup-modules)
+  Install_PipModules(pip-modules)
 
-# Run install for custom modules with thier own .cmake file
-foreach(lib_name ${pip-custom-modules})
-  include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
-endforeach()
+  # Run install for custom modules with thier own .cmake file
+  foreach(lib_name ${pip-custom-modules})
+    include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
+  endforeach()
+endif()
 
