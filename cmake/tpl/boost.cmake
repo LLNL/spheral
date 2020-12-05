@@ -9,9 +9,9 @@ endif()
 set(BOOST_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(BOOST_SRC_DIR ${BOOST_PREFIX}/src/boost)
 set(BOOST_BUILD_DIR ${BOOST_PREFIX}/src/boost-build)
-set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.bz2")
-set(BOOST_MD5 "MD5=a1332494397bf48332cb152abfefcec2")
-set(BOOST_CACHE "${CACHE_DIR}/boost_1_69_0.tar.bz2")
+set(BOOST_URL "https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2")
+set(BOOST_MD5 "MD5=da07ca30dd1c0d1fdedbd487efee01bd")
+set(BOOST_CACHE "${CACHE_DIR}/boost_1_74_0.tar.bz2")
 
 # Choose which compiled libraries we're building
 set(BOOST_WITHOUT_LIBS

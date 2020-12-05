@@ -11,6 +11,7 @@
 #include "Geometry/Dimension.hh"
 
 #include <vector>
+#include <boost/math/interpolators/cardinal_quintic_b_spline.hpp>
 
 namespace Spheral {
 
@@ -81,15 +82,8 @@ public:
   const std::vector<double>& nperhValues() const;
   const std::vector<double>& WsumValues() const;
 
-  // Return the number of points being used in the table.
-  int numPoints() const;
-
-  // Return the table step size in eta.
-  double stepSize() const;
-  double stepSizeInv() const;
-
-  // Return the lower bound entry in the table for the given normalized radius.
-  int lowerBound(double etaMagnitude) const;
+  // Number of points in our lookup data
+  size_t numPoints() const;
 
   // Test if the kernel is currently valid.
   virtual bool valid() const override;
@@ -97,23 +91,16 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
-  std::vector<double> mAkernel, mBkernel, mCkernel;
-  std::vector<double> mAgrad, mBgrad, mCgrad;
-  std::vector<double> mAgrad2, mBgrad2, mCgrad2;
-  int mNumPoints;
-  double mStepSize;
+  typedef boost::math::interpolators::cardinal_quintic_b_spline<double> InterpolatorType;
+  InterpolatorType mInterpolator;
+  size_t mNumPoints;
 
   // Data for the nperh lookup algorithm.
-  std::vector<double> mNperhValues;
-  std::vector<double> mWsumValues;
-  double mMinNperh;
-  double mMaxNperh;
+  std::vector<double> mNperhValues, mWsumValues;
+  double mMinNperh, mMaxNperh;
 
   // Data for tabulating the RZ f1 and f2 corrections.
-  std::vector<double> mAf1, mBf1, mCf1;
-  std::vector<double> mAf2, mBf2, mCf2;
-  std::vector<double> mAgradf1, mBgradf1, mCgradf1;
-  std::vector<double> mAgradf2, mBgradf2, mCgradf2;
+  InterpolatorType mf1Interp, mf2Interp;
 
   // Initialize the tabular kernel with the given kernels data.
   template<typename KernelType>

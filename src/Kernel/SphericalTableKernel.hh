@@ -16,7 +16,7 @@
 
 namespace Spheral {
 
-class SphericalTableKernel: public TableKernel<Dim<1>> {
+class SphericalTableKernel: public Kernel<Dim<1>, SphericalTableKernel<Dim<1>>> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -26,13 +26,10 @@ public:
   typedef Dim<1>::SymTensor SymTensor;
 
   // Constructors.
-  template<typename KernelType>
-  SphericalTableKernel(const KernelType& kernel,
-                       const int numPoints = 1000,
-                       const double hmult = 1.0);
+  SphericalTableKernel(const TableKernel<Dim<3>>& kernel);
 
   // Destructor.
-  ~SphericalTableKernel();
+  virtual ~SphericalTableKernel();
 
   // Assignment.
   SphericalTableKernel& operator=(const SphericalTableKernel& rhs);
