@@ -19,6 +19,8 @@ cp -r @PYTHON_SITE_PACKAGE_DIR@/ats @CMAKE_INSTALL_PREFIX@/.venv/lib/python2.7/s
 echo "Creating spheral symlink to spheral-env script ..."
 cd @CMAKE_INSTALL_PREFIX@
 chmod u+x scripts/spheral-env.sh
+chmod u+x scripts/atstest.sh
 cp --symbolic-link scripts/spheral-env.sh spheral
+cp --symbolic-link scripts/atstest.sh atstest
 cd - > /dev/null 
 
