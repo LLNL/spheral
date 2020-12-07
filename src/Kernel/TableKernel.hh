@@ -11,6 +11,7 @@
 #include "Geometry/Dimension.hh"
 
 #include <vector>
+#include <memory>
 #include <boost/math/interpolators/cardinal_quintic_b_spline.hpp>
 
 namespace Spheral {
@@ -28,7 +29,7 @@ public:
   // Constructors.
   template<typename KernelType>
   TableKernel(const KernelType& kernel,
-              const int numPoints = 1000,
+              const unsigned numPoints = 100u,
               const double hmult = 1.0);
 
   // Destructor.
@@ -92,7 +93,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
   typedef boost::math::interpolators::cardinal_quintic_b_spline<double> InterpolatorType;
-  InterpolatorType mInterpolator;
+  std::shared_ptr<InterpolatorType> mInterpolator;
   size_t mNumPoints;
 
   // Data for the nperh lookup algorithm.
@@ -100,7 +101,7 @@ private:
   double mMinNperh, mMaxNperh;
 
   // Data for tabulating the RZ f1 and f2 corrections.
-  InterpolatorType mf1Interp, mf2Interp;
+  std::shared_ptr<InterpolatorType> mf1Interp, mf2Interp;
 
   // Initialize the tabular kernel with the given kernels data.
   template<typename KernelType>

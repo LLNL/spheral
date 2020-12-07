@@ -213,17 +213,17 @@ gradf1Integral(const KernelType& W,
 template<typename Dimension>
 template<typename KernelType>
 TableKernel<Dimension>::TableKernel(const KernelType& kernel,
-                                    const int numPoints,
+                                    const unsigned numPoints,
                                     const double hmult):
   Kernel<Dimension, TableKernel<Dimension> >(),
-  mInterpolator(),
+  mInterpolator(nullptr),
   mNumPoints(numPoints),
   mNperhValues(),
   mWsumValues(),
   mMinNperh(0.25),
   mMaxNperh(10.0),
-  mf1Interp(),
-  mf2Interp() {
+  mf1Interp(nullptr),
+  mf2Interp(nullptr) {
 
   // Pre-conditions.
   VERIFY(numPoints > 0);
@@ -249,23 +249,23 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
     CHECK(i*mStepSize >= 0.0);
     kernelValues[i] = correction*kernel(i*deta, 1.0);
   }
-  mInterpolator = InterpolatorType(kernelValues, 0.0, stepSize,
-                                   std::make_pair(correction*kernel.grad(0.0, 1.0), correction*kernel.grad2(0.0, 1.0)),
-                                   std::make_pair(correction*kernel.grad(etamax, 1.0), correction*kernel.grad2(etamax, 1.0)));
+  mInterpolator = std::make_shared<InterpolatorType>(kernelValues, 0.0, stepSize,
+                                                     std::make_pair(correction*kernel.grad(0.0, 1.0), correction*kernel.grad2(0.0, 1.0)),
+                                                     std::make_pair(correction*kernel.grad(etamax, 1.0), correction*kernel.grad2(etamax, 1.0)));
 
   // If we're a 2D kernel we set the RZ correction information.
   if (Dimension::nDim == 2) {
     std::vector<double> f1Values(numPoints), f2Values(numPoints), gradf1Values(numPoints), gradf2Values(numPoints);
-    const auto K1d = 0.5/simpsonsIntegration<volfunc<TableKernel<Dimension>>, double, double>(volfunc<TableKernel<Dimension>>(*this), 0.0, etaMax, numPoints);
+    const auto K1d = 0.5/simpsonsIntegration<volfunc<TableKernel<Dimension>>, double, double>(volfunc<TableKernel<Dimension>>(*this), 0.0, etamax, numPoints);
     for (auto i = 0u; i < numPoints; ++i) {
-      CHECK(i*mStepSize >= 0.0);
-      const double zeta = i*mStepSize;
+      CHECK(i*stepSize >= 0.0);
+      const double zeta = i*stepSize;
       f1Values[i] = f1Integral(*this, zeta, numPoints)/K1d;
       f2Values[i] = f2Integral(*this, zeta, numPoints)/K1d;
       // gradf1Values[i] = -f1Values[i]*f1Values[i]*gradf1Integral(*this, zeta, numPoints)*K1d;
     }
-    mf1Interp = InterpolatorType(f1Values, 0.0, stepSize);
-    mf2Interp = InterpolatorType(f2Values, 0.0, stepSize);
+    mf1Interp = std::make_shared<InterpolatorType>(f1Values, 0.0, stepSize);
+    mf2Interp = std::make_shared<InterpolatorType>(f2Values, 0.0, stepSize);
   }
 
   // Set the table of n per h values.
@@ -318,16 +318,17 @@ equivalentNodesPerSmoothingScale(const double Wsum) const {
   const int lb = bisectSearch(mWsumValues, Wsum);
   CHECK((lb >= -1) and (lb <= int(mWsumValues.size()) - 1));
   const int ub = lb + 1;
+  const int n = int(mNumPoints);
   CHECK((lb == -1 and Wsum <= mWsumValues[0]) ||
-        (ub == mNumPoints and Wsum >= mWsumValues[mNumPoints - 1]) ||
+        (ub == n and Wsum >= mWsumValues[n - 1]) ||
         (Wsum >= mWsumValues[lb] and Wsum <= mWsumValues[ub]));
 
   // Now interpolate for the corresponding nodes per h (within bounds);
   double result;
   if (lb == -1) {
     result = mNperhValues[0];
-  } else if (ub == mNumPoints) {
-    result = mNperhValues[mNumPoints - 1];
+  } else if (ub == n) {
+    result = mNperhValues[n - 1];
   } else {
     result = std::min(mNperhValues[ub],
                       std::max(mNperhValues[lb],
@@ -353,16 +354,17 @@ equivalentWsum(const double nPerh) const {
   const int lb = bisectSearch(mNperhValues, nPerh);
   CHECK((lb >= -1) and (lb <= int(mNperhValues.size()) - 1));
   const int ub = lb + 1;
+  const int n = int(mNumPoints);
   CHECK((lb == -1 and nPerh <= mNperhValues[0]) ||
-        (ub == mNumPoints and nPerh >= mNperhValues[mNumPoints - 1]) ||
+        (ub == n and nPerh >= mNperhValues[n - 1]) ||
         (nPerh >= mNperhValues[lb] and nPerh <= mNperhValues[ub]));
 
   // Now interpolate for the corresponding Wsum.
   double result;
   if (lb == -1) {
     result = mWsumValues[0];
-  } else if (ub == mNumPoints) {
-    result = mWsumValues[mNumPoints - 1];
+  } else if (ub == n) {
+    result = mWsumValues[n - 1];
   } else {
     result = std::min(mWsumValues[ub], 
                       std::max(mWsumValues[lb],
@@ -392,8 +394,8 @@ setNperhValues(const bool scaleTo1D) {
   mNperhValues = vector<double>(mNumPoints);
 
   // For the allowed range of n per h, sum up the kernel values.
-  const double dnperh = (mMaxNperh - mMinNperh)/(mNumPoints - 1);
-  for (int i = 0; i != mNumPoints; ++i) {
+  const double dnperh = (mMaxNperh - mMinNperh)/(mNumPoints - 1u);
+  for (auto i = 0u; i < mNumPoints; ++i) {
     const double nperh = mMinNperh + i*dnperh;
     CHECK(nperh >= mMinNperh and nperh <= mMaxNperh);
     const double deta = 1.0/nperh;
@@ -409,7 +411,7 @@ setNperhValues(const bool scaleTo1D) {
   BEGIN_CONTRACT_SCOPE
   ENSURE((int)mWsumValues.size() == mNumPoints);
   ENSURE((int)mNperhValues.size() == mNumPoints);
-  for (int i = 0; i != mNumPoints - 1; ++i) {
+  for (int i = 0; i < mNumPoints - 1; ++i) {
     ENSURE(mWsumValues[i] <= mWsumValues[i + 1]);
     ENSURE(mNperhValues[i] <= mNperhValues[i + 1]);
   }

@@ -14,7 +14,7 @@ TableKernel<Dimension>::kernelValue(const double etaMagnitude, const double Hdet
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
   if (etaMagnitude < this->mKernelExtent) {
-    return Hdet*mInterpolator(etaMagnitude);
+    return Hdet*(*mInterpolator)(etaMagnitude);
   } else {
     return 0.0;
   }
@@ -30,7 +30,7 @@ TableKernel<Dimension>::gradValue(const double etaMagnitude, const double Hdet) 
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
   if (etaMagnitude < this->mKernelExtent) {
-    return Hdet*mInterpolator.prime(etaMagnitude);
+    return Hdet*(*mInterpolator).prime(etaMagnitude);
   } else {
     return 0.0;
   }
@@ -46,7 +46,7 @@ TableKernel<Dimension>::grad2Value(const double etaMagnitude, const double Hdet)
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
   if (etaMagnitude < this->mKernelExtent) {
-    return Hdet*mInterpolator.double_prime(etaMagnitude);
+    return Hdet*(*mInterpolator).double_prime(etaMagnitude);
   } else {
     return 0.0;
   }
@@ -62,8 +62,8 @@ TableKernel<Dimension>::kernelAndGradValue(const double etaMagnitude, const doub
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
   if (etaMagnitude < this->mKernelExtent) {
-    return std::make_pair(Hdet*mInterpolator(etaMagnitude),
-                          Hdet*mInterpolator.prime(etaMagnitude));
+    return std::make_pair(Hdet*(*mInterpolator)(etaMagnitude),
+                          Hdet*(*mInterpolator).prime(etaMagnitude));
   } else {
     return std::make_pair(0.0, 0.0);
   }
@@ -97,8 +97,8 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaMagnit
 
   // Fill those suckers in.
   for (auto i = 0u; i < n; ++i) {
-    kernelValues[i] = Hdets[i]*mInterpolator(etaMagnitudes[i]);
-    gradValues[i] = Hdets[i]*mInterpolator(etaMagnitudes[i]);
+    kernelValues[i] = Hdets[i]*(*mInterpolator)(etaMagnitudes[i]);
+    gradValues[i] = Hdets[i]*(*mInterpolator)(etaMagnitudes[i]);
   }
 }
 
@@ -117,8 +117,8 @@ inline
 double
 TableKernel<Dim<2> >::f1(const double etaMagnitude) const {
   REQUIRE(etaMagnitude >= 0.0);
-  if (etaMagnitude < this->mKernelExtent - mStepSize) {
-    return mf1Interp(etaMagnitude);
+  if (etaMagnitude < this->mKernelExtent) {
+    return (*mf1Interp)(etaMagnitude);
   } else {
     return 1.0;
   }
@@ -139,7 +139,7 @@ inline
 double
 TableKernel<Dim<2> >::f2(const double etaMagnitude) const {
   REQUIRE(etaMagnitude >= 0.0);
-  return mf2Interp(etaMagnitude);
+  return (*mf2Interp)(etaMagnitude);
 }
 
 //------------------------------------------------------------------------------
@@ -157,7 +157,7 @@ inline
 double
 TableKernel<Dim<2> >::gradf1(const double etaMagnitude) const {
   REQUIRE(etaMagnitude >= 0.0);
-  return mf1Interp.prime(etaMagnitude);
+  return (*mf1Interp).prime(etaMagnitude);
 }
 
 //------------------------------------------------------------------------------
@@ -175,7 +175,7 @@ inline
 double
 TableKernel<Dim<2> >::gradf2(const double etaMagnitude) const {
   REQUIRE(etaMagnitude >= 0.0);
-  return mf2Interp.prime(etaMagnitude);
+  return (*mf2Interp).prime(etaMagnitude);
 }
 
 //------------------------------------------------------------------------------
@@ -201,11 +201,11 @@ TableKernel<Dim<2> >::f1Andf2(const double etaMagnitude,
                               double& gradf1,
                               double& gradf2) const {
   REQUIRE(etaMagnitude >= 0.0);
-  if (etaMagnitude < this->mKernelExtent - mStepSize) {
-    f1 = mf1Interp(etaMagnitude);
-    f2 = mf2Interp(etaMagnitude);
-    gradf1 = mf1Interp.prime(etaMagnitude);
-    gradf2 = mf2Interp.prime(etaMagnitude);
+  if (etaMagnitude < this->mKernelExtent) {
+    f1 = (*mf1Interp)(etaMagnitude);
+    f2 = (*mf2Interp)(etaMagnitude);
+    gradf1 = (*mf1Interp).prime(etaMagnitude);
+    gradf2 = (*mf2Interp).prime(etaMagnitude);
   } else {
     f1 = 1.0;
     f2 = 1.0;
@@ -231,6 +231,14 @@ const std::vector<double>&
 TableKernel<Dimension>::
 WsumValues() const {
   return mWsumValues;
+}
+
+template<typename Dimension>
+inline
+size_t
+TableKernel<Dimension>::
+numPoints() const {
+  return mNumPoints;
 }
 
 }
