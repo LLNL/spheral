@@ -36,7 +36,7 @@ if(${lib_name}_BUILD)
                -DENABLE_TESTS=Off
 
                -DCONDUIT_DIR=${CONDUIT_INSTALL_DIR}
-               -DHDF5_DIR=${HDF5_INSTALL_DIR}
+               -DHDF5_DIR=${hfd5_DIR}
 
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
 
