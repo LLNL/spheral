@@ -31,6 +31,7 @@ set(BOOST_WITHOUT_LIBS
   locale
   math
   mpi
+  nowide
   program_options
   python
   random
