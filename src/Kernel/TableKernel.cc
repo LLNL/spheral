@@ -217,6 +217,7 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
                                     const double hmult):
   Kernel<Dimension, TableKernel<Dimension> >(),
   mInterpolator(nullptr),
+  mGradInterpolator(nullptr),
   mNumPoints(numPoints),
   mNperhValues(),
   mWsumValues(),
@@ -242,16 +243,16 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   // Set the fitting coefficients.
   // Note that we will go ahead and fold the normalization constants in here, 
   // so we don't have to multiply by them in the value lookups.
-  std::vector<double> kernelValues(numPoints);
+  std::vector<double> kernelValues(numPoints), gradValues(numPoints);
   const double correction = 1.0/Dimension::pownu(hmult);
   const double deta = stepSize/hmult;
   for (auto i = 0u; i < numPoints; ++i) {
     CHECK(i*mStepSize >= 0.0);
     kernelValues[i] = correction*kernel(i*deta, 1.0);
+    gradValues[i] = correction*kernel.grad(i*deta, 1.0);
   }
-  mInterpolator = std::make_shared<InterpolatorType>(kernelValues, 0.0, stepSize,
-                                                     std::make_pair(correction*kernel.grad(0.0, 1.0), correction*kernel.grad2(0.0, 1.0)),
-                                                     std::make_pair(correction*kernel.grad(etamax, 1.0), correction*kernel.grad2(etamax, 1.0)));
+  mInterpolator = std::make_shared<InterpolatorType>(kernelValues.begin(), kernelValues.end(), 0.0, stepSize);
+  mGradInterpolator = std::make_shared<InterpolatorType>(gradValues.begin(), gradValues.end(), 0.0, stepSize);
 
   // If we're a 2D kernel we set the RZ correction information.
   if (Dimension::nDim == 2) {
@@ -264,8 +265,8 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
       f2Values[i] = f2Integral(*this, zeta, numPoints)/K1d;
       // gradf1Values[i] = -f1Values[i]*f1Values[i]*gradf1Integral(*this, zeta, numPoints)*K1d;
     }
-    mf1Interp = std::make_shared<InterpolatorType>(f1Values, 0.0, stepSize);
-    mf2Interp = std::make_shared<InterpolatorType>(f2Values, 0.0, stepSize);
+    mf1Interp = std::make_shared<InterpolatorType>(f1Values.begin(), f1Values.end(), 0.0, stepSize);
+    mf2Interp = std::make_shared<InterpolatorType>(f2Values.begin(), f2Values.end(), 0.0, stepSize);
   }
 
   // Set the table of n per h values.

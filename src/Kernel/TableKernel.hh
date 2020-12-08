@@ -8,11 +8,9 @@
 #define __Spheral_TableKernel_hh__
 
 #include "Kernel.hh"
-#include "Geometry/Dimension.hh"
+#include "Utilities/ParabolicInterpolator.hh"
 
 #include <vector>
-#include <memory>
-#include <boost/math/interpolators/cardinal_quintic_b_spline.hpp>
 
 namespace Spheral {
 
@@ -92,8 +90,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
-  typedef boost::math::interpolators::cardinal_quintic_b_spline<double> InterpolatorType;
-  std::shared_ptr<InterpolatorType> mInterpolator;
+  ParabolicInterpolator mInterp, mGradInterp, mGrad2Interp;
   size_t mNumPoints;
 
   // Data for the nperh lookup algorithm.
@@ -101,25 +98,7 @@ private:
   double mMinNperh, mMaxNperh;
 
   // Data for tabulating the RZ f1 and f2 corrections.
-  std::shared_ptr<InterpolatorType> mf1Interp, mf2Interp;
-
-  // Initialize the tabular kernel with the given kernels data.
-  template<typename KernelType>
-  void setTableDataForKernel(const KernelType& kernel, 
-                             const int numPoints,
-                             const bool gradientAsKernel);
-
-  // Method to initialize the delta kernel values.
-  void setParabolicCoeffs(const std::vector<double>& table,
-                          std::vector<double>& a,
-                          std::vector<double>& b,
-                          std::vector<double>& c) const;
-
-  // Generic parabolic interpolation.
-  double parabolicInterp(const double etaMagnitude,
-                         const std::vector<double>& a,
-                         const std::vector<double>& b,
-                         const std::vector<double>& c) const;
+  ParabolicInterpolator mf1Interp, mf2Interp;
 
   // Initialize the table relating Wsum to nodes per smoothing scale.
   void setNperhValues(const bool scaleTo1D = false);
