@@ -64,7 +64,7 @@ class TestParabolicInterpolator(unittest.TestCase):
     def test_dyinterp(self):
         for i in xrange(self.ntests):
             x = rangen.uniform(self.xmin, self.xmax)
-            self.failUnless(fuzzyEqual(self.yprime(x), self.F.prime(x), 1.0e-5),
+            self.failUnless(fuzzyEqual(self.yprime(x), self.F.prime(x), 1.0e-10),
                             "Error interpolating F'(x): %g != %g" % (self.F.prime(x), self.yprime(x)))
 
     #===========================================================================
@@ -73,7 +73,7 @@ class TestParabolicInterpolator(unittest.TestCase):
     def test_dy2interp(self):
         for i in xrange(self.ntests):
             x = rangen.uniform(self.xmin, self.xmax)
-            self.failUnless(fuzzyEqual(self.yprime2(x), self.F.prime2(x), 1.0e-2),
+            self.failUnless(fuzzyEqual(self.yprime2(x), self.F.prime2(x), 1.0e-10),
                             "Error interpolating F''(x): %g != %g" % (self.F.prime2(x), self.yprime2(x)))
 
 if __name__ == "__main__":
