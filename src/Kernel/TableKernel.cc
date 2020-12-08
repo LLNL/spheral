@@ -216,15 +216,16 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
                                     const unsigned numPoints,
                                     const double hmult):
   Kernel<Dimension, TableKernel<Dimension> >(),
-  mInterpolator(nullptr),
-  mGradInterpolator(nullptr),
+  mInterp(),
+  mGradInterp(),
+  mGrad2Interp(),
   mNumPoints(numPoints),
   mNperhValues(),
   mWsumValues(),
   mMinNperh(0.25),
   mMaxNperh(10.0),
-  mf1Interp(nullptr),
-  mf2Interp(nullptr) {
+  mf1Interp(),
+  mf2Interp() {
 
   // Pre-conditions.
   VERIFY(numPoints > 0);
@@ -243,20 +244,22 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   // Set the fitting coefficients.
   // Note that we will go ahead and fold the normalization constants in here, 
   // so we don't have to multiply by them in the value lookups.
-  std::vector<double> kernelValues(numPoints), gradValues(numPoints);
+  std::vector<double> kernelValues(numPoints), gradValues(numPoints), grad2Values(numPoints);
   const double correction = 1.0/Dimension::pownu(hmult);
   const double deta = stepSize/hmult;
   for (auto i = 0u; i < numPoints; ++i) {
     CHECK(i*mStepSize >= 0.0);
     kernelValues[i] = correction*kernel(i*deta, 1.0);
     gradValues[i] = correction*kernel.grad(i*deta, 1.0);
+    grad2Values[i] = correction*kernel.grad2(i*deta, 1.0);
   }
-  mInterpolator = std::make_shared<InterpolatorType>(kernelValues.begin(), kernelValues.end(), 0.0, stepSize);
-  mGradInterpolator = std::make_shared<InterpolatorType>(gradValues.begin(), gradValues.end(), 0.0, stepSize);
+  mInterp.initialize(0.0, etamax, kernelValues);
+  mGradInterp.initialize(0.0, etamax, gradValues);
+  mGrad2Interp.initialize(0.0, etamax, grad2Values);
 
   // If we're a 2D kernel we set the RZ correction information.
   if (Dimension::nDim == 2) {
-    std::vector<double> f1Values(numPoints), f2Values(numPoints), gradf1Values(numPoints), gradf2Values(numPoints);
+    std::vector<double> f1Values(numPoints), f2Values(numPoints);
     const auto K1d = 0.5/simpsonsIntegration<volfunc<TableKernel<Dimension>>, double, double>(volfunc<TableKernel<Dimension>>(*this), 0.0, etamax, numPoints);
     for (auto i = 0u; i < numPoints; ++i) {
       CHECK(i*stepSize >= 0.0);
@@ -265,8 +268,8 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
       f2Values[i] = f2Integral(*this, zeta, numPoints)/K1d;
       // gradf1Values[i] = -f1Values[i]*f1Values[i]*gradf1Integral(*this, zeta, numPoints)*K1d;
     }
-    mf1Interp = std::make_shared<InterpolatorType>(f1Values.begin(), f1Values.end(), 0.0, stepSize);
-    mf2Interp = std::make_shared<InterpolatorType>(f2Values.begin(), f2Values.end(), 0.0, stepSize);
+    mf1Interp.initialize(0.0, etamax, f1Values);
+    mf2Interp.initialize(0.0, etamax, f2Values);
   }
 
   // Set the table of n per h values.
@@ -293,7 +296,7 @@ TableKernel<Dimension>::
 operator=(const TableKernel<Dimension>& rhs) {
   if (this != &rhs) {
     Kernel<Dimension, TableKernel<Dimension> >::operator=(rhs);
-    mInterpolator = rhs.mInterpolator;
+    mInterp = rhs.mInterp;
     mNumPoints = rhs.mNumPoints;
     mNperhValues = rhs.mNperhValues;
     mWsumValues =  rhs.mWsumValues;
