@@ -8,7 +8,7 @@
 #define __Spheral_TableKernel_hh__
 
 #include "Kernel.hh"
-#include "Utilities/ParabolicInterpolator.hh"
+#include "Utilities/QuadraticInterpolator.hh"
 
 #include <vector>
 
@@ -90,7 +90,8 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
-  ParabolicInterpolator mInterp, mGradInterp, mGrad2Interp;
+  typedef QuadraticInterpolator InterpolatorType;
+  InterpolatorType mInterp, mGradInterp, mGrad2Interp;
   size_t mNumPoints;
 
   // Data for the nperh lookup algorithm.
@@ -98,7 +99,7 @@ private:
   double mMinNperh, mMaxNperh;
 
   // Data for tabulating the RZ f1 and f2 corrections.
-  ParabolicInterpolator mf1Interp, mf2Interp;
+  InterpolatorType mf1Interp, mf2Interp;
 
   // Initialize the table relating Wsum to nodes per smoothing scale.
   void setNperhValues(const bool scaleTo1D = false);

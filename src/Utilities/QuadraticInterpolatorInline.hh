@@ -7,7 +7,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 inline
 double
-ParabolicInterpolator::operator()(const double x) const {
+QuadraticInterpolator::operator()(const double x) const {
   const auto i0 = lowerBound(x);
   return mA[i0] + mB[i0]*x + mC[i0]*x*x;
 }
@@ -17,7 +17,7 @@ ParabolicInterpolator::operator()(const double x) const {
 //------------------------------------------------------------------------------
 inline
 double
-ParabolicInterpolator::prime(const double x) const {
+QuadraticInterpolator::prime(const double x) const {
   const auto i0 = lowerBound(x);
   return mB[i0] + 2.0*mC[i0]*x;
 }
@@ -28,7 +28,7 @@ ParabolicInterpolator::prime(const double x) const {
 //------------------------------------------------------------------------------
 inline
 double
-ParabolicInterpolator::prime2(const double x) const {
+QuadraticInterpolator::prime2(const double x) const {
   const auto i0 = lowerBound(x);
   return 2.0*mC[i0];
 }
@@ -38,7 +38,7 @@ ParabolicInterpolator::prime2(const double x) const {
 //------------------------------------------------------------------------------
 inline
 size_t
-ParabolicInterpolator::lowerBound(const double x) const {
+QuadraticInterpolator::lowerBound(const double x) const {
   const auto n = mA.size();
   CHECK(n > 0);
   const auto result = std::min(n - 1u, size_t(std::max(0.0, x - mXmin)/mXstep));
@@ -51,43 +51,43 @@ ParabolicInterpolator::lowerBound(const double x) const {
 //------------------------------------------------------------------------------
 inline
 size_t
-ParabolicInterpolator::size() const {
+QuadraticInterpolator::size() const {
   return mA.size();
 }
 
 inline
 double
-ParabolicInterpolator::xmin() const {
+QuadraticInterpolator::xmin() const {
   return mXmin;
 }
 
 inline
 double
-ParabolicInterpolator::xmax() const {
+QuadraticInterpolator::xmax() const {
   return mXmax;
 }
 
 inline
 double
-ParabolicInterpolator::xstep() const {
+QuadraticInterpolator::xstep() const {
   return mXstep;
 }
 
 inline
 const std::vector<double>&
-ParabolicInterpolator::a() const {
+QuadraticInterpolator::a() const {
   return mA;
 }
 
 inline
 const std::vector<double>&
-ParabolicInterpolator::b() const {
+QuadraticInterpolator::b() const {
   return mB;
 }
 
 inline
 const std::vector<double>&
-ParabolicInterpolator::c() const {
+QuadraticInterpolator::c() const {
   return mC;
 }
 

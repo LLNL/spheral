@@ -56,7 +56,7 @@ source("../src/Utilities/tests/testDistances3d.py")
 source("../src/Utilities/tests/testSegmentIntersectPolygonEdges.py")
 source("../src/Utilities/tests/testSegmentIntersectPolyhedronEdges.py")
 source("../src/Utilities/tests/testSimpsonsIntegration.py")
-source("../src/Utilities/tests/testParabolicInterpolator.py")
+source("../src/Utilities/tests/testQuadraticInterpolator.py")
 
 # Mesh tests.
 source("../src/Mesh/tests/testLineMesh.py")

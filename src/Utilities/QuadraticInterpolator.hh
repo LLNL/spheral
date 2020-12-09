@@ -1,27 +1,27 @@
 //---------------------------------Spheral++----------------------------------//
-// ParabolicInterpolator
+// QuadraticInterpolator
 //
 // Encapsulates the algorithm and data for parabolic interpolation in 1D
 // Assumes the results is interpolated as y_interp = a + b*x + c*x^2
 //
 // Created by JMO, Fri Dec  4 14:28:08 PST 2020
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_ParabolicInterpolator__
-#define __Spheral_ParabolicInterpolator__
+#ifndef __Spheral_QuadraticInterpolator__
+#define __Spheral_QuadraticInterpolator__
 
 #include <vector>
 
 namespace Spheral {
 
-class ParabolicInterpolator {
+class QuadraticInterpolator {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
-  ParabolicInterpolator(const double xmin,
+  QuadraticInterpolator(const double xmin,
                         const double xmax,
                         const std::vector<double>& yvals);
-  ParabolicInterpolator();
-  ~ParabolicInterpolator();
+  QuadraticInterpolator();
+  ~QuadraticInterpolator();
 
   // Initialize for interpolating in the given data
   void initialize(const double xmin,
@@ -54,13 +54,13 @@ private:
 
 }
 
-#include "ParabolicInterpolatorInline.hh"
+#include "QuadraticInterpolatorInline.hh"
 
 #else
 
 // Forward declaration
 namespace Spheral {
-  class ParabolicInterpolator;
+  class QuadraticInterpolator;
 }
 
 #endif

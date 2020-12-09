@@ -1,4 +1,4 @@
-#ATS:test(SELF, label="ParabolicInterpolator unit tests")
+#ATS:test(SELF, label="QuadraticInterpolator unit tests")
 
 from Spheral import *
 from SpheralTestUtilities import *
@@ -10,9 +10,9 @@ import random
 rangen = random.Random()
 
 #===============================================================================
-# TestParabolicInterpolator
+# TestQuadraticInterpolator
 #===============================================================================
-class TestParabolicInterpolator(unittest.TestCase):
+class TestQuadraticInterpolator(unittest.TestCase):
 
     #===========================================================================
     # Set up
@@ -28,7 +28,7 @@ class TestParabolicInterpolator(unittest.TestCase):
         self.C = rangen.uniform(-100.0, 100.0)
         self.xvals = [self.xmin + i*self.dx for i in xrange(self.n)]
         self.yvals = vector_of_double([self.y(self.xmin + i*self.dx) for i in xrange(self.n)])
-        self.F = ParabolicInterpolator(self.xmin, self.xmax, self.yvals)
+        self.F = QuadraticInterpolator(self.xmin, self.xmax, self.yvals)
         return
 
     #===========================================================================

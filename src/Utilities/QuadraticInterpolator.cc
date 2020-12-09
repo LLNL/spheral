@@ -1,12 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
-// ParabolicInterpolator
+// QuadraticInterpolator
 //
 // Encapsulates the algorithm and data for parabolic interpolation in 1D
 // Assumes the results is interpolated as y_interp = a + b*x + c*x^2
 //
 // Created by JMO, Fri Dec  4 14:28:08 PST 2020
 //----------------------------------------------------------------------------//
-#include "ParabolicInterpolator.hh"
+#include "QuadraticInterpolator.hh"
 
 #include <Eigen/Dense>
 
@@ -15,7 +15,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Default constructor
 //------------------------------------------------------------------------------
-ParabolicInterpolator::ParabolicInterpolator():
+QuadraticInterpolator::QuadraticInterpolator():
   mXmin(),
   mXmax(),
   mXstep(),
@@ -27,7 +27,7 @@ ParabolicInterpolator::ParabolicInterpolator():
 //------------------------------------------------------------------------------
 // Construct with tabulated data
 //------------------------------------------------------------------------------
-ParabolicInterpolator::ParabolicInterpolator(const double xmin,
+QuadraticInterpolator::QuadraticInterpolator(const double xmin,
                                              const double xmax,
                                              const std::vector<double>& yvals):
   mXmin(),
@@ -45,7 +45,7 @@ ParabolicInterpolator::ParabolicInterpolator(const double xmin,
 // than the size of the table we're fitting.
 //------------------------------------------------------------------------------
 void
-ParabolicInterpolator::initialize(const double xmin,
+QuadraticInterpolator::initialize(const double xmin,
                                   const double xmax,
                                   const std::vector<double>& yvals) {
   const auto n = yvals.size();
@@ -89,7 +89,7 @@ ParabolicInterpolator::initialize(const double xmin,
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-ParabolicInterpolator::~ParabolicInterpolator() {
+QuadraticInterpolator::~QuadraticInterpolator() {
 }
 
 }

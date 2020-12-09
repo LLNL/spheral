@@ -1,9 +1,9 @@
 #-------------------------------------------------------------------------------
-# ParabolicInterpolator
+# QuadraticInterpolator
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 
-class ParabolicInterpolator:
+class QuadraticInterpolator:
 
     """Encapsulates the algorithm and data for parabolic interpolation in 1D
 Assumes the results is interpolated as y_interp = a + b*x + c*x^2"""
