@@ -48,6 +48,7 @@ public:
 private:
   //--------------------------- Private Interface --------------------------//
   // Member data
+  size_t mN1;
   double mXmin, mXmax, mXstep;
   std::vector<double> mA, mB, mC;
 };

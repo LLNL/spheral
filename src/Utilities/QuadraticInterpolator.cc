@@ -16,6 +16,7 @@ namespace Spheral {
 // Default constructor
 //------------------------------------------------------------------------------
 QuadraticInterpolator::QuadraticInterpolator():
+  mN1(),
   mXmin(),
   mXmax(),
   mXstep(),
@@ -30,6 +31,7 @@ QuadraticInterpolator::QuadraticInterpolator():
 QuadraticInterpolator::QuadraticInterpolator(const double xmin,
                                              const double xmax,
                                              const std::vector<double>& yvals):
+  mN1(),
   mXmin(),
   mXmax(),
   mXstep(),
@@ -52,6 +54,7 @@ QuadraticInterpolator::initialize(const double xmin,
   REQUIRE(n > 2);      // Need at least 3 points to fit a parabola
   REQUIRE(xmax > xmin);
 
+  mN1 = n - 3;  // Maximum index into arrays
   mXmin = xmin;
   mXmax = xmax;
   mXstep = (xmax - xmin)/(n - 1);
