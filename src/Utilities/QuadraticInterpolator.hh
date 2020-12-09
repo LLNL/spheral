@@ -37,20 +37,18 @@ public:
   size_t lowerBound(const double x) const;
 
   // Allow read access the internal data representation
-  size_t size() const;                   // The size of the tabulated coefficient arrays
-  double xmin() const;                   // Minimum x coordinate for table
-  double xmax() const;                   // Maximum x coordinate for table
-  double xstep() const;                  // delta x between tabulated values
-  const std::vector<double>& a() const;  // a fitting coefficients
-  const std::vector<double>& b() const;  // b fitting coefficients
-  const std::vector<double>& c() const;  // c fitting coefficients
+  size_t size() const;                        // The size of the tabulated coefficient arrays
+  double xmin() const;                        // Minimum x coordinate for table              
+  double xmax() const;                        // Maximum x coordinate for table              
+  double xstep() const;                       // delta x between tabulated values            
+  const std::vector<double>& coeffs() const;  // the fitting coefficients
   
 private:
   //--------------------------- Private Interface --------------------------//
   // Member data
   size_t mN1;
   double mXmin, mXmax, mXstep;
-  std::vector<double> mA, mB, mC;
+  std::vector<double> mcoeffs;
 };
 
 }

@@ -20,9 +20,7 @@ QuadraticInterpolator::QuadraticInterpolator():
   mXmin(),
   mXmax(),
   mXstep(),
-  mA(),
-  mB(),
-  mC() {
+  mcoeffs() {
 }
 
 //------------------------------------------------------------------------------
@@ -35,9 +33,7 @@ QuadraticInterpolator::QuadraticInterpolator(const double xmin,
   mXmin(),
   mXmax(),
   mXstep(),
-  mA(),
-  mB(),
-  mC() {
+  mcoeffs() {
   this->initialize(xmin, xmax, yvals);
 }
 
@@ -58,9 +54,7 @@ QuadraticInterpolator::initialize(const double xmin,
   mXmin = xmin;
   mXmax = xmax;
   mXstep = (xmax - xmin)/(n - 1);
-  mA.resize(n - 2);
-  mB.resize(n - 2);
-  mC.resize(n - 2);
+  mcoeffs.resize(3*(n - 2));
 
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> EMatrix;
   typedef Eigen::Matrix<double, 3, 1> EVector;
@@ -83,9 +77,9 @@ QuadraticInterpolator::initialize(const double xmin,
          1.0, x2, x2*x2;
     B << yvals[i0], yvals[i1], yvals[i2];
     C = A.inverse()*B;
-    mA[i0] = C(0);
-    mB[i0] = C(1);
-    mC[i0] = C(2);
+    mcoeffs[3*i0    ] = C(0);
+    mcoeffs[3*i0 + 1] = C(1);
+    mcoeffs[3*i0 + 2] = C(2);
   }
 }
 

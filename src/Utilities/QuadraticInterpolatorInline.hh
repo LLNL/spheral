@@ -9,7 +9,7 @@ inline
 double
 QuadraticInterpolator::operator()(const double x) const {
   const auto i0 = lowerBound(x);
-  return mA[i0] + (mB[i0] + mC[i0]*x)*x;
+  return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
 }
 
 //------------------------------------------------------------------------------
@@ -19,7 +19,7 @@ inline
 double
 QuadraticInterpolator::prime(const double x) const {
   const auto i0 = lowerBound(x);
-  return mB[i0] + 2.0*mC[i0]*x;
+  return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
 }
 
 //------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ inline
 double
 QuadraticInterpolator::prime2(const double x) const {
   const auto i0 = lowerBound(x);
-  return 2.0*mC[i0];
+  return 2.0*mcoeffs[i0 + 2];
 }
 
 //------------------------------------------------------------------------------
@@ -39,8 +39,8 @@ QuadraticInterpolator::prime2(const double x) const {
 inline
 size_t
 QuadraticInterpolator::lowerBound(const double x) const {
-  const auto result = std::min(mN1, size_t(std::max(0.0, x - mXmin)/mXstep));
-  ENSURE(result >= 0 && result < n);
+  const auto result = 3u*std::min(mN1, size_t(std::max(0.0, x - mXmin)/mXstep));
+  ENSURE(result <= mN1);
   return result;
 }
 
@@ -50,7 +50,7 @@ QuadraticInterpolator::lowerBound(const double x) const {
 inline
 size_t
 QuadraticInterpolator::size() const {
-  return mA.size();
+  return mcoeffs.size();
 }
 
 inline
@@ -73,22 +73,8 @@ QuadraticInterpolator::xstep() const {
 
 inline
 const std::vector<double>&
-QuadraticInterpolator::a() const {
-  return mA;
+QuadraticInterpolator::coeffs() const {
+  return mcoeffs;
 }
-
-inline
-const std::vector<double>&
-QuadraticInterpolator::b() const {
-  return mB;
-}
-
-inline
-const std::vector<double>&
-QuadraticInterpolator::c() const {
-  return mC;
-}
-
-
 
 }

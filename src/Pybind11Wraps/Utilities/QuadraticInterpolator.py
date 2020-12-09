@@ -50,6 +50,4 @@ Assumes the results is interpolated as y_interp = a + b*x + c*x^2"""
     xmin = PYB11property(doc="Minimum x coordinate for table")
     xmax = PYB11property(doc="Maximum x coordinate for table")
     xstep = PYB11property(doc="delta x between tabulated values")
-    a = PYB11property(doc="a fitting coefficients")
-    b = PYB11property(doc="b fitting coefficients")
-    c = PYB11property(doc="c fitting coefficients")
+    coeffs = PYB11property(doc="the fitting coefficients")
