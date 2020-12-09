@@ -43,7 +43,8 @@ set(pip-modules
     cython==0.29.21
     sobol==0.9
     scipy==1.2.3
-    pipreqs==0.4.10)
+    pipreqs==0.4.10
+    virtualenv==20.2.2)
 
 # Only needed when we're allowing MPI parallelism
 if (ENABLE_MPI)
