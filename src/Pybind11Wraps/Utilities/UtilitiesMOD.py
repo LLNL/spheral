@@ -50,7 +50,8 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/NodeCoupling.hh"',
                   '"Utilities/DamagedNodeCoupling.hh"',
                   '"Utilities/DamagedNodeCouplingWithFrags.hh"',
-                  '"Utilities/QuadraticInterpolator.hh"']
+                  '"Utilities/QuadraticInterpolator.hh"',
+                  '"Utilities/BiQuadraticInterpolator.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -66,6 +67,7 @@ from Timer import *
 from DomainNode import *
 from NodeCoupling import *
 from QuadraticInterpolator import *
+from BiQuadraticInterpolator import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
