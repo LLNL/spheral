@@ -94,8 +94,9 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
     for (auto j = 0u; j < mny1; ++j) {
       x00[0] = xmin[0] + i    *mxstep[0];
       x11[0] = xmin[0] + (i + 1)*mxstep[0];
-      xmid1[0] = xmin[0] + (i + 0.3333333333)*mxstep[0];
-      xmid2[0] = xmin[0] + (i + 0.6666666666)*mxstep[0];
+      xmid1[0] = xmin[0] + (i < mnx1 - 1u ? (i + 2)*mxstep[0]
+                                          : (i - 1)*mxstep[0]);
+      xmid2[0] = x00[0];
       if (logxspace) {
         x00[0] = exp(x00[0]);
         x11[0] = exp(x11[0]);
@@ -104,8 +105,9 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
       }
       x00[1] = xmin[1] + j    *mxstep[1];
       x11[1] = xmin[1] + (j + 1)*mxstep[1];
-      xmid1[1] = xmin[1] + (j + 0.3333333333)*mxstep[1];
-      xmid2[1] = xmin[1] + (j + 0.6666666666)*mxstep[1];
+      xmid1[1] = x00[1];
+      xmid2[1] = xmin[1] + (j < mny1 - 1u ? (j + 2)*mxstep[1]
+                                          : (j - 1)*mxstep[1]);
       if (logyspace) {
         x00[1] = exp(x00[1]);
         x11[1] = exp(x11[1]);
@@ -122,18 +124,18 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
            1.0, xmid2[0], xmid2[1], xmid2[0]*xmid2[1], xmid2[0]*xmid2[0], xmid2[1]*xmid2[1];
       B << F(x00), F(x01), F(x10), F(x11), F(xmid1), F(xmid2);
       C = A.inverse()*B;
-      std::cerr << "------------------------------------------------------------------------------\n"
-                << "x00: " << x00 << "\n"
-                << "x10: " << x10 << "\n"
-                << "x01: " << x01 << "\n"
-                << "x11: " << x11 << "\n"
-                << "xmid1: " << xmid1 << "\n"
-                << "xmid2: " << xmid2 << "\n"
-                << "A:\n" << A << "\n"
-                << "B:\n" << B << "\n"
-                << "A.determinant: " << A.determinant() << "\n"
-                << "C:\n" << C << "\n";
-      auto k = 6*(i + j*mnx1);
+      // std::cerr << "------------------------------------------------------------------------------\n"
+      //           << "x00: " << x00 << "\n"
+      //           << "x10: " << x10 << "\n"
+      //           << "x01: " << x01 << "\n"
+      //           << "x11: " << x11 << "\n"
+      //           << "xmid1: " << xmid1 << "\n"
+      //           << "xmid2: " << xmid2 << "\n"
+      //           << "A:\n" << A << "\n"
+      //           << "B:\n" << B << "\n"
+      //           << "A.determinant: " << A.determinant() << "\n"
+      //           << "C:\n" << C << "\n";
+      const auto k = 6*(i + j*mnx1);
       mcoeffs[k    ] = C(0);
       mcoeffs[k + 1] = C(1);
       mcoeffs[k + 2] = C(2);
