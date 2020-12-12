@@ -248,7 +248,7 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   const double correction = 1.0/Dimension::pownu(hmult);
   const double deta = stepSize/hmult;
   for (auto i = 0u; i < numPoints; ++i) {
-    CHECK(i*mStepSize >= 0.0);
+    CHECK(i*stepSize >= 0.0);
     kernelValues[i] = correction*kernel(i*deta, 1.0);
     gradValues[i] = correction*kernel.grad(i*deta, 1.0);
     grad2Values[i] = correction*kernel.grad2(i*deta, 1.0);
@@ -413,9 +413,9 @@ setNperhValues(const bool scaleTo1D) {
 
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
-  ENSURE((int)mWsumValues.size() == mNumPoints);
-  ENSURE((int)mNperhValues.size() == mNumPoints);
-  for (int i = 0; i < mNumPoints - 1; ++i) {
+  ENSURE(mWsumValues.size() == mNumPoints);
+  ENSURE(mNperhValues.size() == mNumPoints);
+  for (auto i = 0u; i < mNumPoints - 1; ++i) {
     ENSURE(mWsumValues[i] <= mWsumValues[i + 1]);
     ENSURE(mNperhValues[i] <= mNperhValues[i + 1]);
   }

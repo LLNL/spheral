@@ -1,5 +1,6 @@
 #include "Utilities/DBC.hh"
 #include <Eigen/Dense>
+#include <iostream>
 
 namespace Spheral {
 
@@ -121,6 +122,17 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
            1.0, xmid2[0], xmid2[1], xmid2[0]*xmid2[1], xmid2[0]*xmid2[0], xmid2[1]*xmid2[1];
       B << F(x00), F(x01), F(x10), F(x11), F(xmid1), F(xmid2);
       C = A.inverse()*B;
+      std::cerr << "------------------------------------------------------------------------------\n"
+                << "x00: " << x00 << "\n"
+                << "x10: " << x10 << "\n"
+                << "x01: " << x01 << "\n"
+                << "x11: " << x11 << "\n"
+                << "xmid1: " << xmid1 << "\n"
+                << "xmid2: " << xmid2 << "\n"
+                << "A:\n" << A << "\n"
+                << "B:\n" << B << "\n"
+                << "A.determinant: " << A.determinant() << "\n"
+                << "C:\n" << C << "\n";
       auto k = 6*(i + j*mnx1);
       mcoeffs[k    ] = C(0);
       mcoeffs[k + 1] = C(1);
