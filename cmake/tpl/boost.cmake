@@ -38,7 +38,6 @@ set(BOOST_WITHOUT_LIBS
   regex
   serialization
   stacktrace
-  system
   test
   thread
   timer
@@ -48,7 +47,7 @@ set(BOOST_WITHOUT_LIBS
 if (NOT BOOST_HEADER_ONLY)
   set(${lib_name}_libs libboost_filesystem.so libboost_system.so)
 else()
-  LIST(APPEND BOOST_WITHOUT_LIBS filesystem)
+  LIST(APPEND BOOST_WITHOUT_LIBS filesystem system)
 endif()
 string(REPLACE ";" "," BOOST_WITHOUT_LIBS_STR "${BOOST_WITHOUT_LIBS}")
 
