@@ -45,9 +45,6 @@ public:
   // Interpolate for the F(x,y) value
   double operator()(const Vector& x) const;
 
-  // Return the lower bound index in the table of coefficients for the given position
-  size_t lowerBound(const Vector& x) const;
-
   // Allow read access the internal data representation
   size_t size() const;                        // The size of the tabulated coefficient arrays
   Vector xmin() const;                        // Minimum coordinate for table              
@@ -64,6 +61,9 @@ private:
   bool mxlog, mylog;
   Vector mxmin, mxmax, mxstep;
   std::vector<double> mcoeffs;
+
+  // Return the lower bound index in the table of coefficients for the given position
+  size_t lowerBound(const double x, const double y) const;
 };
 
 }

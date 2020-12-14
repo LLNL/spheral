@@ -48,11 +48,6 @@ Assumes the results is interpolated as
         "Returns the interpolated value <F>(x,y)"
         return "double"
 
-    def lowerBound(self,
-                   x = "const Vector&"):
-        "Return the lower bound index in the table for the given x coordinate"
-        return "size_t"
-
     # Attributes
     size = PYB11property(doc="The size of the tabulated coefficient arrays")
     xmin = PYB11property(doc="Minimum coordinate for table")
