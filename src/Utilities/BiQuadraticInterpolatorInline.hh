@@ -60,8 +60,8 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
                                     const Func& F) {
 
   // Size stuff up.
-  REQUIRE(nx > 1);
-  REQUIRE(ny > 1);
+  REQUIRE(nx > 2u);
+  REQUIRE(ny > 2u);
   mnx1 = nx - 2u;
   mny1 = ny - 2u;
   mxlog = logxspace;
@@ -71,16 +71,8 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
   // Figure out the sampling steps.
   mxmin = xmin;
   mxmax = xmax;
-  if (mxlog) {
-    mxmin[0] = log(mxmin[0]);
-    mxmax[0] = log(mxmax[0]);
-  }
-  if (mylog) {
-    mxmin[1] = log(mxmin[1]);
-    mxmax[1] = log(mxmax[1]);
-  }
-  mxstep = {(xmax[0] - xmin[0])/mnx1,
-            (xmax[1] - xmin[1])/mny1};
+  mxstep = {(mxlog ? log(xmax[0] - xmin[0]) : (xmax[0] - xmin[0]))/mnx1,
+            (mylog ? log(xmax[1] - xmin[1]) : (xmax[1] - xmin[1]))/mny1};
 
   // Fit the coefficients
   Vector x00, x01, x02, x10, x11, x12, x20, x21, x22;
@@ -108,19 +100,19 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
            1.0, x22[0], x22[1], x22[0]*x22[1], x22[0]*x22[0], x22[1]*x22[1];
       b << F(x00), F(x01), F(x02), F(x10), F(x11), F(x12), F(x20), F(x21), F(x22);
       c = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
-      // std::cerr << "------------------------------------------------------------------------------\n"
-      //           << "x00: " << x00 << "\n"
-      //           << "x10: " << x10 << "\n"
-      //           << "x20: " << x20 << "\n"
-      //           << "x01: " << x01 << "\n"
-      //           << "x11: " << x11 << "\n"
-      //           << "x21: " << x21 << "\n"
-      //           << "x02: " << x02 << "\n"
-      //           << "x12: " << x12 << "\n"
-      //           << "x22: " << x22 << "\n"
-      //           << "A:\n" << A << "\n"
-      //           << "b:\n" << b << "\n"
-      //           << "c:\n" << c << "\n";
+      std::cerr << "------------------------------------------------------------------------------\n"
+                << "x00: " << x00 << "\n"
+                << "x10: " << x10 << "\n"
+                << "x20: " << x20 << "\n"
+                << "x01: " << x01 << "\n"
+                << "x11: " << x11 << "\n"
+                << "x21: " << x21 << "\n"
+                << "x02: " << x02 << "\n"
+                << "x12: " << x12 << "\n"
+                << "x22: " << x22 << "\n"
+                << "A:\n" << A << "\n"
+                << "b:\n" << b << "\n"
+                << "c:\n" << c << "\n";
       const auto k = 6*(i + j*mnx1);
       mcoeffs[k    ] = c(0);
       mcoeffs[k + 1] = c(1);
