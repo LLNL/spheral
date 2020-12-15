@@ -48,9 +48,9 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
     # Interpolate a quadratic function with linear spacing (should be exact)
     #===========================================================================
     def test_interp_quadratic_linear(self):
-        for (nx, ny) in ((2, 2), (10, 10)):
+        for (nx, ny) in ((3, 3), (10, 10)):
             for itest in xrange(self.ntests):
-                F = self.BiQuadraticFunctor(rangen.uniform(-10.0, 10.0),
+                F = self.BiQuadraticFunctor(0.0, # rangen.uniform(-10.0, 10.0),
                                             rangen.uniform(-10.0, 10.0),
                                             rangen.uniform(-10.0, 10.0),
                                             rangen.uniform(-10.0, 10.0),
@@ -59,6 +59,9 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                 xmin = Vector(-100.0, -100.0)
                 xmax = Vector( 100.0,  100.0)
                 Finterp = BiQuadraticInterpolator(xmin, xmax, nx, ny, False, False, F)
+                print "--------------------------------------------------------------------------------"
+                print "Input : ", [F.c0, F.c1, F.c2, F.c3, F.c4, F.c5]
+                print "Interp: ", list(Finterp.coeffs)
                 assert fuzzyEqual(Finterp.coeffs[0], F.c0)
                 assert fuzzyEqual(Finterp.coeffs[1], F.c1)
                 assert fuzzyEqual(Finterp.coeffs[2], F.c2)

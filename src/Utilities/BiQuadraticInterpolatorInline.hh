@@ -59,9 +59,6 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
                                     const bool logyspace,
                                     const Func& F) {
 
-  typedef Eigen::Matrix<double, 6, 6, Eigen::RowMajor> EMatrix;
-  typedef Eigen::Matrix<double, 6, 1> EVector;
-
   // Size stuff up.
   REQUIRE(nx > 1);
   REQUIRE(ny > 1);
@@ -87,8 +84,8 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
 
   // Fit the coefficients
   Vector x00, x01, x02, x10, x11, x12, x20, x21, x22;
-  EMatrix A;
-  EVector b, c;
+  Eigen::MatrixXd A(9, 6);
+  Eigen::VectorXd b(9), c(9);
   for (auto i = 0u; i < mnx1; ++i) {
     for (auto j = 0u; j < mny1; ++j) {
       x00 = {xmin[0] + i      *mxstep[0], xmin[1] + j      *mxstep[1]};
@@ -97,9 +94,13 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
       x01 = {xmin[0] + i      *mxstep[0], xmin[1] + (j + 1)*mxstep[1]};
       x11 = {xmin[0] + (i + 1)*mxstep[0], xmin[1] + (j + 1)*mxstep[1]};
       x21 = {xmin[0] + (i + 2)*mxstep[0], xmin[1] + (j + 1)*mxstep[1]};
-      x01 = {xmin[0] + i      *mxstep[0], xmin[1] + (j + 1)*mxstep[1]};
-      x11 = {xmin[0] + (i + 1)*mxstep[0], xmin[1] + (j + 1)*mxstep[1]};
-      x21 = {xmin[0] + (i + 2)*mxstep[0], xmin[1] + (j + 1)*mxstep[1]};
+      x02 = {xmin[0] + i      *mxstep[0], xmin[1] + (j + 1)*mxstep[1]};
+      x12 = {xmin[0] + (i + 1)*mxstep[0], xmin[1] + (j + 1)*mxstep[1]};
+      x22 = {xmin[0] + (i + 2)*mxstep[0], xmin[1] + (j + 1)*mxstep[1]};
+  //     A << 1.0,           1.0,           1.0,           1.0,           1.0,           1.0,           1.0,           1.0,           1.0, 
+  //          x00[0],        x10[0],        x20[0],        x01[0],        x11[0],        x21[0],        x02[0],        x12[0],        x22[0],
+  //       x00[0]*x00[0], x10[0]*x10[0], x20[0]*x20[0], x01[0]*x01[0], x11[0]*x11[0], x21[0]*x21[0], x02[0]*x02[0], x12[0]*x12[0], x22[0]*x22[0],
+  //       x00[0]*x00[1]
       A << 1.0, x00[0], x00[1], x00[0]*x00[1], x00[0]*x00[0], x00[1]*x00[1],
            1.0, x01[0], x01[1], x01[0]*x01[1], x01[0]*x01[0], x01[1]*x01[1],
            1.0, x02[0], x02[1], x02[0]*x02[1], x02[0]*x02[0], x02[1]*x02[1],
@@ -123,7 +124,6 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
                 << "x22: " << x22 << "\n"
                 << "A:\n" << A << "\n"
                 << "b:\n" << b << "\n"
-                << "A.determinant: " << A.determinant() << "\n"
                 << "c:\n" << c << "\n";
       const auto k = 6*(i + j*mnx1);
       mcoeffs[k    ] = c(0);
