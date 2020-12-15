@@ -43,7 +43,7 @@ public:
                   const Func& F);
 
   // Interpolate for the F(x,y) value
-  double operator()(const Vector& x) const;
+  double operator()(const Vector& pos) const;
 
   // Allow read access the internal data representation
   size_t size() const;                        // The size of the tabulated coefficient arrays

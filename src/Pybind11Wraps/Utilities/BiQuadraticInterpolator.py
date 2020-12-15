@@ -44,7 +44,7 @@ Assumes the results is interpolated as
     initialize = PYB11TemplateMethod(initialize_, "Spheral::PythonBoundFunctors::SpheralFunctor<Vector, double>")
 
     def __call__(self,
-                 x = "const Vector&"):
+                 pos = "const Vector&"):
         "Returns the interpolated value <F>(x,y)"
         return "double"
 
