@@ -18,7 +18,7 @@ foreach(test ${gtest_spheral_tests})
     get_filename_component( test_name ${test} NAME_WE )
     blt_add_executable( NAME ${test_name}_test
                         SOURCES ${test}
-                        OUTPUT_DIR ${${PROJECT_BINARY_DIR}/tests}
+                        OUTPUT_DIR ${PROJECT_BINARY_DIR}/tests
                         DEPENDS_ON ${SPHERAL_CXX_LIBS} ${spheral_blt_depends} gtest
                         )
 
