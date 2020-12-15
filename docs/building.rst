@@ -100,7 +100,7 @@ CMake variables
 In this section we list the CMake variables that can be tweaked for a Spheral build.  Where appropriate the options are listed, with the default value in *italics*.
 
 ``CMAKE_BUILD_TYPE``   (Debug, *Release*, RelWithDebInfo, MinSizeRel)
-  Choose the type of build -- for more information see the `Cmake documentation <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>`_.
+  Choose the type of build -- for more information see the `CMake documentation <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>`_.
 
 ``CMAKE_INSTALL_PREFIX``
   The top-level path for installing Spheral include files, libraries, and any Python modules or documentation.  This is synonymous with and replaces the older ``SPHERAL_INSTALL_DIR``.
@@ -189,17 +189,45 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 ``SPHINX_THEME_DIR``
   Where to look for Sphinx themes.
 
-WSL2/Ubuntu notes
------------------
+Linux Ubuntu Notes
+------------------
 
-When building on any system a few basic utilities are assumed to be installed.  It's impossible to cover all the possible build environments, but one common case is an Ubuntu based Linux install, in this case on WSL2 for Windows 10.  In our experience we need to at least install the following packages beyond the base system default (in this example installed using ``apt install``)::
+When building on any system a few basic utilities are assumed to be installed.  It's impossible to cover all the possible build environments, but a common case is a Linux Ubuntu install.  In our experience we need at least the following packages beyond the base system default, which can be easily accomplished using ``apt install``)::
 
-  sudo apt install cmake g++ gfortran zlib1g-dev libssl-dev libbz2-dev libreadline-dev build-essential libncurses5-dev libgdbm-dev libnss3-dev libffi-dev wget tk tk-dev libsqlite3-dev texlive-latex-recommended texlive-latex-extra dvipng
+    sudo apt install cmake g++ gfortran zlib1g-dev libssl-dev libbz2-dev libreadline-dev build-essential libncurses5-dev libgdbm-dev libnss3-dev libffi-dev wget tk tk-dev libsqlite3-dev texlive-latex-recommended texlive-latex-extra dvipng
 
 Most of these requirements are for building a full-featured Python installation.  If you also want to build the MPI parallel enabled version of Spheral you need an MPI implementation such as OpenMPI or MPICH -- OpenMPI for instance can be installed by adding the Ubuntu package ``openmpi-bin`` to the above list.
 
-The build process also requires a fair amount of memory available (in particular for a few of the Python binding modules), so we recommend having at least 32GB of swap space available.  On WSL2 this is accomplished by creating a `.wslconfig` file in your Windows home directory containing at least the following::
+Checking/updating CMake version
+...............................
 
-  [wls2]
-  swap=32GB
+Unfortunately most recent versions of Ubuntu Linux (and derivatives such as Mint) come with an older version of CMake by default (typically something like CMake v3.10).  This is too out of date for a Spheral build, and therefore needs to be updated before configuring and building Spheral.  First, just to make sure you have this issue you should check the version of cmake that comes with your distribution::
+
+    cmake --version
+
+If the result is something less than version 3.18, it's worth updating before starting to configure Spheral.  How to accomplish this varies by platform, but for the common case of Ubuntu (and similar ``apt`` based distributions) something like the following should suffice.
+
+1. First, remove any existing cmake installation using apt::
+
+     sudo apt remove --purge cmake
+
+2. Follow the directions on the `Kitware site at this link <https://apt.kitware.com/>`_ to add their repository for installing packages.
+
+3. Install a current version of cmake with::
+
+     sudo apt install cmake
+
+Check the final version again to make sure you have what you expect::
+
+     cmake --version
+
+WSL2 Notes
+-----------
+
+The Windows Subsystem for Linux (WSL) is a useful method of development on Windows 10 based systems.  If going this route we recommend having at least WSL2 for best results -- the original version of WSL (WSL1) also functioned, but is `significantly` slower for jobs such as compilation.
+
+For the most part using an Ubuntu based WSL environment works just using the Ubuntu notes above.  However, one aspect of WSL2 needs to be adjusted.  The build process requires a fair amount of memory (in particular for a few of the Python binding modules), so we recommend having at least 32GB of swap space available.  On WSL2 this is accomplished by creating a `.wslconfig` file in your Windows home directory containing at least the following lines::
+
+    [wls2]
+    swap=32GB
 
