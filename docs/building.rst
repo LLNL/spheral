@@ -226,15 +226,15 @@ WSL2 Notes
 
 The Windows Subsystem for Linux (WSL) is a useful method of development on Windows 10 based systems.  If going this route we recommend having at least WSL2 for best results -- the original version of WSL (WSL1) also functioned, but is `significantly` slower for jobs such as compilation.
 
-For the most part using an Ubuntu based WSL environment works just using the Ubuntu notes above.  However, one aspect of WSL2 needs to be adjusted.  The build process requires a fair amount of memory (in particular for a few of the Python binding modules), so we recommend having at least 32GB of swap space available.  On WSL2 this is accomplished by creating a `.wslconfig` file in your Windows home directory containing at least the following lines::
+For the most part using an Ubuntu based WSL environment works just using the Ubuntu notes above.  However, one aspect of WSL2 needs to be adjusted.  The build process requires a fair amount of memory (in particular for a few of the Python binding modules), so we recommend having at least 32GB of swap space available.  On WSL2 this is accomplished by creating a ``.wslconfig`` file in your Windows home directory containing at least the following lines::
 
-    [wls2]
+    [wsl2]
     swap=32GB
 
 Build Scripts & LC Notes
 ------------------------
 
-Scripts for building on LC systems can be found in `scripts/lc-builds/`. These scripts build some of the more common configurations on LC machines. They have the added benefit of utilizing pre installed TPLs on LC. The pre-installed TPL loactions are passed using the configuration CMake files found in `host-config/`.
+Scripts for building on LC systems can be found in ``scripts/lc-builds/``. These scripts build some of the more common configurations on LC machines. They have the added benefit of utilizing pre installed TPLs on LC. The pre-installed TPL loactions are passed using the configuration CMake files found in ``host-config/``.
 
 By default the scripts are designed to be run from the spheral root directory, a full build and test looks as follows::
 
@@ -244,7 +244,7 @@ By default the scripts are designed to be run from the spheral root directory, a
     make -j install
     ../install/atstest ../../tests/integration.ats
 
-If you wish to build from another location you can use the `-d` argument to pass the source directory of Spheral::
+If you wish to build from another location you can use the ``-d`` argument to pass the source directory of Spheral::
 
     cd <Other_Directory>
     <Spheral_Root_Dir>>/scripts/lc-builds/toss3_gcc-8.3.1-release-mpi-python.sh -d <Spheral_Root_Dir>
@@ -254,7 +254,7 @@ If you wish to build from another location you can use the `-d` argument to pass
 
 When using the build scripts, additional CMake arguments can be passed. This can be useful for a variety of reasons; below are a few examples altering how the scripts find / build TPLs for Spheral with CMake arguments.
 
-To *Search* for an installed TPL somewhere else::
+To *SEARCH* for an installed TPL somewhere else::
 
     ./scripts/lc-builds/toss3_gcc8.3.1-release-mpi-python.sh -Dboost_DIR=<Full_Path_To_Boost_Install>
 
