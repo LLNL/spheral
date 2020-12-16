@@ -10,8 +10,6 @@ namespace Spheral {
 BiQuadraticInterpolator::BiQuadraticInterpolator():
   mnx1(),
   mny1(),
-  mxlog(),
-  mylog(),
   mxmin(),
   mxmax(),
   mxstep(),
@@ -26,18 +24,14 @@ BiQuadraticInterpolator::BiQuadraticInterpolator(const Vector& xmin,
                                                  const Vector& xmax,
                                                  const size_t nx,
                                                  const size_t ny,
-                                                 const bool logxspace,
-                                                 const bool logyspace,
                                                  const Func& F):
   mnx1(),
   mny1(),
-  mxlog(),
-  mylog(),
   mxmin(),
   mxmax(),
   mxstep(),
   mcoeffs() {
-  this->initialize(xmin, xmax, nx, ny, logxspace, logyspace, F);
+  this->initialize(xmin, xmax, nx, ny, F);
 }
 
 //------------------------------------------------------------------------------
@@ -55,8 +49,6 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
                                     const Vector& xmax,
                                     const size_t nx,
                                     const size_t ny,
-                                    const bool logxspace,
-                                    const bool logyspace,
                                     const Func& F) {
 
   // Size stuff up.
@@ -64,15 +56,13 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
   REQUIRE(ny > 2u);
   mnx1 = nx - 2u;
   mny1 = ny - 2u;
-  mxlog = logxspace;
-  mylog = logyspace;
   mcoeffs.resize(6*mnx1*mny1);
 
   // Figure out the sampling steps.
   mxmin = xmin;
   mxmax = xmax;
-  mxstep = {(mxlog ? log(xmax[0] - xmin[0]) : (xmax[0] - xmin[0]))/mnx1,
-            (mylog ? log(xmax[1] - xmin[1]) : (xmax[1] - xmin[1]))/mny1};
+  mxstep = {(xmax[0] - xmin[0])/mnx1,
+            (xmax[1] - xmin[1])/mny1};
 
   // Fit the coefficients
   Vector x00, x01, x02, x10, x11, x12, x20, x21, x22;
@@ -100,19 +90,19 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
            1.0, x22[0], x22[1], x22[0]*x22[1], x22[0]*x22[0], x22[1]*x22[1];
       b << F(x00), F(x01), F(x02), F(x10), F(x11), F(x12), F(x20), F(x21), F(x22);
       c = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
-      std::cerr << "------------------------------------------------------------------------------\n"
-                << "x00: " << x00 << "\n"
-                << "x10: " << x10 << "\n"
-                << "x20: " << x20 << "\n"
-                << "x01: " << x01 << "\n"
-                << "x11: " << x11 << "\n"
-                << "x21: " << x21 << "\n"
-                << "x02: " << x02 << "\n"
-                << "x12: " << x12 << "\n"
-                << "x22: " << x22 << "\n"
-                << "A:\n" << A << "\n"
-                << "b:\n" << b << "\n"
-                << "c:\n" << c << "\n";
+      // std::cerr << "------------------------------------------------------------------------------\n"
+      //           << "x00: " << x00 << "\n"
+      //           << "x10: " << x10 << "\n"
+      //           << "x20: " << x20 << "\n"
+      //           << "x01: " << x01 << "\n"
+      //           << "x11: " << x11 << "\n"
+      //           << "x21: " << x21 << "\n"
+      //           << "x02: " << x02 << "\n"
+      //           << "x12: " << x12 << "\n"
+      //           << "x22: " << x22 << "\n"
+      //           << "A:\n" << A << "\n"
+      //           << "b:\n" << b << "\n"
+      //           << "c:\n" << c << "\n";
       const auto k = 6*(i + j*mnx1);
       mcoeffs[k    ] = c(0);
       mcoeffs[k + 1] = c(1);
@@ -130,8 +120,8 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
 inline
 double
 BiQuadraticInterpolator::operator()(const Vector& pos) const {
-  const auto x = mxlog ? log(pos[0]) : pos[0];
-  const auto y = mylog ? log(pos[1]) : pos[1];
+  const auto x = pos[0];
+  const auto y = pos[1];
   const auto i0 = lowerBound(x, y);
   // std::cerr << "================================================================================\n"
   //           << "mxlog, mylog : " << mxlog << " " << mylog << "\n"
@@ -180,18 +170,6 @@ inline
 typename BiQuadraticInterpolator::Vector
 BiQuadraticInterpolator::xstep() const {
   return mxstep;
-}
-
-inline
-bool
-BiQuadraticInterpolator::xlog() const {
-  return mxlog;
-}
-
-inline
-bool
-BiQuadraticInterpolator::ylog() const {
-  return mylog;
 }
 
 inline

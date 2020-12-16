@@ -22,8 +22,6 @@ Assumes the results is interpolated as
                 xmax = "const Vector&",
                 nx = "const size_t",
                 ny = "const size_t",
-                logxspace = "const bool",
-                logyspace = "const bool",
                 F = "const Spheral::PythonBoundFunctors::SpheralFunctor<Vector, double>&"):
         "Returns an interpolator for yvals sampled in x in [xmin, xmax]"
         return
@@ -35,8 +33,6 @@ Assumes the results is interpolated as
                     xmax = "const Vector&",
                     nx = "const size_t",
                     ny = "const size_t",
-                    logxspace = "const bool",
-                    logyspace = "const bool",
                     F = "const %(Func)s&"):
         "Initializes the interpolator for interpolating the given function"
         return "void"
@@ -53,6 +49,4 @@ Assumes the results is interpolated as
     xmin = PYB11property(doc="Minimum coordinate for table")
     xmax = PYB11property(doc="Maximum coordinate for table")
     xstep = PYB11property(doc="delta x between tabulated values")
-    xlog = PYB11property(doc="Fitting in log x space?")
-    ylog = PYB11property(doc="Fitting in log y space?")
     coeffs = PYB11property(doc="the fitting coefficients")

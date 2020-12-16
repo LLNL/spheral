@@ -26,8 +26,6 @@ public:
                           const Vector& xmax,
                           const size_t nx,
                           const size_t ny,
-                          const bool logxspace,
-                          const bool logyspace,
                           const Func& F);
   BiQuadraticInterpolator();
   ~BiQuadraticInterpolator();
@@ -38,8 +36,6 @@ public:
                   const Vector& xmax,
                   const size_t nx,
                   const size_t ny,
-                  const bool logxspace,
-                  const bool logyspace,
                   const Func& F);
 
   // Interpolate for the F(x,y) value
@@ -50,15 +46,12 @@ public:
   Vector xmin() const;                        // Minimum coordinate for table              
   Vector xmax() const;                        // Maximum coordinate for table              
   Vector xstep() const;                       // Step size
-  bool xlog() const;                          // Fitted in log x space
-  bool ylog() const;                          // Fitted in log y space
   const std::vector<double>& coeffs() const;  // the fitting coefficients
   
 private:
   //--------------------------- Private Interface --------------------------//
   // Member data
   size_t mnx1, mny1;
-  bool mxlog, mylog;
   Vector mxmin, mxmax, mxstep;
   std::vector<double> mcoeffs;
 
