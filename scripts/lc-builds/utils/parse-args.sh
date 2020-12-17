@@ -40,6 +40,8 @@ done
 
 if [ ! -z "$SRC_DIR" ]; then
   printf 'Using source_dir "%s"\n' "$SRC_DIR"
+else
+  SRC_DIR=../..
 fi
 if [ ! -z "$INSTALL_DIR" ]; then
   printf 'Using install_dir "%s"\n' "$INSTALL_DIR"
