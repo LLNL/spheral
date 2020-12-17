@@ -111,7 +111,7 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                 xmin = Vector(-100.0, -100.0)
                 xmax = Vector( 100.0,  100.0)
                 Finterp = BiQuadraticInterpolator(xmin, xmax, nx, ny, F)
-                sys.stderr.write("(%i, %i): %s\n" % (nx, ny, Finterp))
+                # sys.stderr.write("(%i, %i): %s\n" % (nx, ny, Finterp))
                 
                 # # Plotting fun
                 # x = np.arange(xmin.x, 1.001*xmax.x, (xmax.x - xmin.x)/100)
