@@ -257,13 +257,13 @@ The build scripts support a couple of named arguments.
                        directory.
  ===================== ===============================================
 
-Named arguments can be used in combination with additional CMake arguments::
+An example of a scirpt build and test using these arguments is shown below::
 
     cd <Other_Directory>
-    <Script_Dir>/toss3_gcc-8.3.1-release-mpi-python.sh -s <Spheral_Root_Dir> -i <Install_Dir> -D<CMake_Args>
+    <Script_Dir>/toss3_gcc-8.3.1-release-mpi-python.sh -s <Spheral_Root_Dir> -i <Install_Dir>
     cd lc_toss3-gcc-8.3.1-rel-mpi-py/build
     make -j install
-    ../install/atstest <Spheral_Root_Dir>/tests/integration.ats
+    <Install_Dir>/atstest <Spheral_Root_Dir>/tests/integration.ats
 
 When using the build scripts, additional CMake arguments can be passed. This can be useful for a variety of reasons; below are a few examples altering how the scripts find / build TPLs for Spheral with CMake arguments.
 
