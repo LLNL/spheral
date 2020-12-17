@@ -234,8 +234,7 @@ For the most part using an Ubuntu based WSL environment works just using the Ubu
 Build Scripts & LC Notes
 ------------------------
 
-Scripts for building on LC systems can be found in ``scripts/lc-builds/``. These scripts build some of the more common configurations on LC machines. They have the added benefit of utilizing pre installed TPLs on LC. The pre-installed TPL loactions are passed using the configuration CMake files found in ``host-config/``.
-
+Scripts for building on LC systems can be found in ``scripts/lc-builds/``. These scripts build some of the more common configurations on LC machines. They have the added benefit of utilizing pre installed TPLs on LC. The pre-installed TPL loactions are passed using the configuration CMake files found in ``host-config/``.  
 By default the scripts are designed to be run from the spheral root directory, a full build and test looks as follows::
 
     cd <Spheral_Root_Dir>
@@ -244,10 +243,24 @@ By default the scripts are designed to be run from the spheral root directory, a
     make -j install
     ../install/atstest ../../tests/integration.ats
 
-If you wish to build from another location you can use the ``-d`` argument to pass the source directory of Spheral::
+The build scripts support a couple of named arguments. 
+
+ ===================== ===============================================
+ Arguments             Brief description
+ ===================== ===============================================
+ -s                    Spheral source directory. Useful when building
+                       from a directory other than Spheral's root 
+                       directory.
+ -i                    Installation directory. This overwrites the 
+                       scripts default installation directory from
+                       ``<script_name>/install`` to a user provided
+                       directory.
+ ===================== ===============================================
+
+Named arguments can be used in combination with additional CMake arguments::
 
     cd <Other_Directory>
-    <Spheral_Root_Dir>>/scripts/lc-builds/toss3_gcc-8.3.1-release-mpi-python.sh -d <Spheral_Root_Dir>
+    <Script_Dir>/toss3_gcc-8.3.1-release-mpi-python.sh -s <Spheral_Root_Dir> -i <Install_Dir> -D<CMake_Args>
     cd lc_toss3-gcc-8.3.1-rel-mpi-py/build
     make -j install
     ../install/atstest <Spheral_Root_Dir>/tests/integration.ats
