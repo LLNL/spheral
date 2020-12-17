@@ -40,7 +40,7 @@ inline
 size_t
 QuadraticInterpolator::lowerBound(const double x) const {
   const auto result = 3u*std::min(mN1, size_t(std::max(0.0, x - mXmin)/mXstep));
-  ENSURE(result <= mN1);
+  ENSURE(result <= 3u*mN1);
   return result;
 }
 
