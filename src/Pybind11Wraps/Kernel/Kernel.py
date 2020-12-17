@@ -148,21 +148,21 @@ class Kernel:
     @PYB11const
     def kernelValue(self,
                     etaMagnitude = "double",
-                    Hdet = "double"):
+                    Hdet = "const double"):
         "Return the value of the kernel"
         return "double"
 
     @PYB11const
     def gradValue(self,
                   etaMagnitude = "double",
-                  Hdet = "double"):
+                  Hdet = "const double"):
         "Return the value of the gradient of the kernel"
         return "double"
 
     @PYB11const
     def grad2Value(self,
                    etaMagnitude = "double",
-                   Hdet = "double"):
+                   Hdet = "const double"):
         "Return the value of the second derivative of the kernel"
         return "double"
 

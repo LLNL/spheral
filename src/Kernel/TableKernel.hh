@@ -41,7 +41,7 @@ public:
   // void augment(const KernelType& kernel);
 
   // Return the kernel weight for a given normalized distance or position.
-  double kernelValue(const double etaMagnitude, double Hdet) const;
+  double kernelValue(const double etaMagnitude, const double Hdet) const;
 
   // Return the gradient value for a given normalized distance or position.
   double gradValue(const double etaMagnitude, const double Hdet) const;

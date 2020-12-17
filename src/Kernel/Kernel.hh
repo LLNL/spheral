@@ -74,13 +74,13 @@ public:
   // All Kernels are required to define the "kernelValue", "gradValue",
   // and "grad2Value" methods, with the same call signatures 
   // as these functions.
-  double kernelValue(double etaMagnitude, double Hdet) const;
-  double gradValue(double etaMagnitude, double Hdet) const;
-  double grad2Value(double etaMagnitude, double Hdet) const;
+  double kernelValue(double etaMagnitude, const double Hdet) const;
+  double gradValue(double etaMagnitude, const double Hdet) const;
+  double grad2Value(double etaMagnitude, const double Hdet) const;
 
   // Compute the gradient with respect to h, which we can do in terms of
   // the already provided gradient method.
-  double gradhValue(double etaMagnitude, double Hdet) const;
+  double gradhValue(double etaMagnitude, const double Hdet) const;
 
   // Test if the Kernel is in a valid state.
   virtual bool valid() const;

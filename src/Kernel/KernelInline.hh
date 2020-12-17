@@ -220,7 +220,7 @@ Kernel<Dimension, Descendant>::gradh(const double& etaMagnitude,
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::kernelValue(double etaMagnitude, double Hdet) const {
+Kernel<Dimension, Descendant>::kernelValue(double etaMagnitude, const double Hdet) const {
   REQUIRE(valid());
   return asDescendant().kernelValue(etaMagnitude, Hdet);
 }
@@ -232,7 +232,7 @@ Kernel<Dimension, Descendant>::kernelValue(double etaMagnitude, double Hdet) con
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::gradValue(double etaMagnitude, double Hdet) const {
+Kernel<Dimension, Descendant>::gradValue(double etaMagnitude, const double Hdet) const {
   REQUIRE(valid());
   return asDescendant().gradValue(etaMagnitude, Hdet);
 }
@@ -244,7 +244,7 @@ Kernel<Dimension, Descendant>::gradValue(double etaMagnitude, double Hdet) const
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::grad2Value(double etaMagnitude, double Hdet) const {
+Kernel<Dimension, Descendant>::grad2Value(double etaMagnitude, const double Hdet) const {
   REQUIRE(valid());
   return asDescendant().grad2Value(etaMagnitude, Hdet);
 }
@@ -255,7 +255,7 @@ Kernel<Dimension, Descendant>::grad2Value(double etaMagnitude, double Hdet) cons
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::gradhValue(double etaMagnitude, double Hdet) const {
+Kernel<Dimension, Descendant>::gradhValue(double etaMagnitude, const double Hdet) const {
   REQUIRE(valid());
   return -etaMagnitude * Dimension::rootnu(Hdet) * asDescendant().gradValue(etaMagnitude, Hdet);
 }

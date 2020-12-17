@@ -13,7 +13,7 @@
 
 #include "Kernel.hh"
 #include "TableKernel.hh"
-#include "Utilities/QuadraticInterpolator.hh"
+#include "Utilities/BiQuadraticInterpolator.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
@@ -49,7 +49,7 @@ public:
   std::pair<double, double> kernelAndGradValue(const Vector& etaij, const Vector& posi, const Scalar& Hdet) const;
 
   // Return the kernel weight for a given normalized distance or position.
-  double kernelValue(const double etaMagnitude, double Hdet) const;
+  double kernelValue(const double etaMagnitude, const double Hdet) const;
 
   // Return the gradient value for a given normalized distance or position.
   double gradValue(const double etaMagnitude, const double Hdet) const;
@@ -63,7 +63,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
-  typedef QuadraticInterpolator InterpolatorType;
+  typedef BiQuadraticInterpolator InterpolatorType;
   InterpolatorType mInterp, mGradInterp, mGrad2Interp;
   const TableKernel<Dim<1>>& mKernel;
 };
