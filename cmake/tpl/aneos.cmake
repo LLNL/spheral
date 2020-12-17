@@ -33,7 +33,3 @@ if (${lib_name}_BUILD)
     )
 
 endif()
-
-install(
-  FILES ${ANEOS_SRC_DIR}/libaneos.a
-  DESTINATION ${ANEOS_DEST_DIR})

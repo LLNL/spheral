@@ -1,0 +1,3 @@
+source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate
+/usr/gapps/Spheral/bin/lcats -e @CMAKE_INSTALL_PREFIX@/.venv/bin/python2.7 "$@"
+deactivate
