@@ -326,6 +326,9 @@ void
 exchangeTuples(const std::vector<std::tuple<T, T, T> >& localKeys,
                const std::vector<unsigned>& neighborDomains,
                std::vector<std::vector<std::tuple<T, T, T> > >& neighborKeys) {
+  CONTRACT_VAR(localKeys);
+  CONTRACT_VAR(neighborDomains);
+  CONTRACT_VAR(neighborKeys);
 #ifdef USE_MPI
   using namespace boost;
   typedef std::tuple<T, T, T> Key;
@@ -387,6 +390,10 @@ exchangeTuples(const std::vector<std::tuple<T, T, T> >& localKeys,
                const std::vector<unsigned>& neighborDomains,
                const std::vector<std::vector<unsigned> >& sendIndices,
                std::vector<std::vector<std::tuple<T, T, T> > >& neighborKeys) {
+  CONTRACT_VAR(localKeys);
+  CONTRACT_VAR(neighborDomains);
+  CONTRACT_VAR(sendIndices);
+  CONTRACT_VAR(neighborKeys);
 #ifdef USE_MPI
   using namespace boost;
   typedef std::tuple<T, T, T> Key;
