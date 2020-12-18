@@ -18,7 +18,7 @@
 
 namespace Spheral {
 
-class SphericalTableKernel: public Kernel<Dim<1>, SphericalTableKernel<Dim<1>>> {
+class SphericalTableKernel: public Kernel<Dim<1>, SphericalTableKernel> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -31,6 +31,7 @@ public:
   // Takes a normal 3D TableKernel and constructs the integral form appropriate
   // for 1D spherical coordinates.
   SphericalTableKernel(const TableKernel<Dim<3>>& kernel);
+  SphericalTableKernel(const SphericalTableKernel& rhs);
 
   // Destructor.
   virtual ~SphericalTableKernel();
@@ -44,9 +45,9 @@ public:
   //  etaij : Vector normalized coordinate: etaij = H*(posi - posj)
   //  posi  : Vector coordinate of focus of interest (usualy point_i we're working on)
   //  Hdet  : Determinant of the H tensor used to compute etaij
-  double operator()(const Vector& etaij, const Vector& posi, const Scalar& Hdet) const;
-  double grad(const Vector& etaij, const Vector& posi, const Scalar& Hdet) const;
-  std::pair<double, double> kernelAndGradValue(const Vector& etaij, const Vector& posi, const Scalar& Hdet) const;
+  double operator()(const Vector& etaj, const Vector& etai) const;
+  // double grad(const Scalar rj, const Scalar ri, const Scalar Hdet) const;
+  // std::pair<double, double> kernelAndGradValue(const Scalar rj, const Scalar ri, const Scalar Hdet) const;
 
   // Return the kernel weight for a given normalized distance or position.
   double kernelValue(const double etaMagnitude, const double Hdet) const;
@@ -65,7 +66,7 @@ private:
   // Data for the kernel tabulation.
   typedef BiQuadraticInterpolator InterpolatorType;
   InterpolatorType mInterp, mGradInterp, mGrad2Interp;
-  const TableKernel<Dim<1>>& mKernel;
+  TableKernel<Dim<3>> mKernel;
 };
 
 }
