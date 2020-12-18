@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
-WT = TableKernel3d(BSplineKernel3d(), 20)
+WT = TableKernel3d(BSplineKernel3d(), 100)
 W = SphericalTableKernel(WT)
 
 # Plot the overall surface

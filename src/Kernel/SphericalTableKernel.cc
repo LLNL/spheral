@@ -45,7 +45,7 @@ struct W3S1Func {
     return simpsonsIntegration<VolFunc, double, double>(VolFunc(mW),
                                                         low,
                                                         high,
-                                                        mW.numPoints());
+                                                        std::max(size_t(1000), mW.numPoints()));
   }
 };
 
