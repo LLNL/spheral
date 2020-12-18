@@ -4,8 +4,6 @@
 from PYB11Generator import *
 from Kernel import Kernel
 
-_Kernel1d_SphericalTableKernel = PYB11TemplateClass(Kernel, template_parameters=("Dim<1>", "SphericalTableKernel"))
-
 @PYB11template()
 @PYB11template_dict({"Dimension" : "Dim<1>",
                      "Descendant" : "SphericalTableKernel"})

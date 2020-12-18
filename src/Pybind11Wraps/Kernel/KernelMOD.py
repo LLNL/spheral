@@ -40,7 +40,6 @@ PYB11namespaces = ["Spheral"]
 # Instantiate our types
 #-------------------------------------------------------------------------------
 from Kernel import *
-from SphericalTableKernel import *
 
 for ndim in dims:
     for KT in ("BSpline","W4Spline", "Gaussian", "SuperGaussian", "PiGaussian",
@@ -54,3 +53,7 @@ _Kernel%(ndim)id_%(KT)s = PYB11TemplateClass(Kernel,
                                             cppname = "%(KT)sKernel<Dim<%(ndim)i>>")
 ''' % {"ndim" : ndim,
        "KT"   : KT})
+
+# SphericalTableKernel
+_Kernel1d_SphericalTableKernel = PYB11TemplateClass(Kernel, template_parameters=("Dim<1>", "SphericalTableKernel"))
+from SphericalTableKernel import *
