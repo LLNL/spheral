@@ -39,9 +39,12 @@ struct W3S1Func {
   double operator()(const Dim<2>::Vector& etas) const {
     const auto etaj = etas[0];
     const auto etai = etas[1];
+    const auto low = std::abs(etaj - etai);
+    const auto high = std::min(metaMax, etaj + etai);
+    if (low >= high) return 0.0;
     return simpsonsIntegration<VolFunc, double, double>(VolFunc(mW),
-                                                        std::abs(etaj - etai),
-                                                        std::min(metaMax, etaj + etai),
+                                                        low,
+                                                        high,
                                                         mW.numPoints());
   }
 };

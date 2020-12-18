@@ -22,8 +22,11 @@ simpsonsIntegration(const Function& function,
                     const unsigned numBins) {
 
   // Pre-conditions.
-  VERIFY2(x0 < x1, "Require integration range ordered:  " << x0 << " !< " << x1);
+  VERIFY2(x0 <= x1, "Require integration range ordered:  " << x0 << " !< " << x1);
   VERIFY2(numBins > 1 and numBins % 2 == 0, "Require numBins a non-zero multiple of 2.");
+
+  // Possible quick answer?
+  if (x0 == x1) return 0.0;
 
   // Prepare our variables.
   unsigned i;
