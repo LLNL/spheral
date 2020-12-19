@@ -11,7 +11,10 @@ SphericalTableKernel::operator()(const Dim<1>::Vector& etaj,
   const auto ej = std::max(1e-10, etaj[0]);
   CHECK(ei > 0.0);
   CHECK(ej > 0.0);
-  return 2.0*M_PI/(ei*ej)*mInterp(Dim<2>::Vector(ej, ei));
+  const auto min_bound = std::abs(ej - ei);
+  if (min_bound > metamax) return 0.0;
+  const auto max_bound = std::min(metamax, ei + ej);
+  return 2.0*M_PI/(ei*ej)*mInterp(Dim<2>::Vector(min_bound, max_bound));
 }
 
 //------------------------------------------------------------------------------
@@ -46,8 +49,8 @@ SphericalTableKernel::kernel() const {
 
 inline
 double
-SphericalTableKernel::retamax() const {
-  return mretamax;
+SphericalTableKernel::etamax() const {
+  return metamax;
 }
 
 }

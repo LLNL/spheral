@@ -60,7 +60,7 @@ public:
 
   // Access our internal data.
   const TableKernel<Dim<3>>& kernel() const;
-  Scalar retamax() const;
+  Scalar etamax() const;
 
   // Test if the kernel is currently valid.
   virtual bool valid() const;
@@ -71,7 +71,7 @@ private:
   typedef BiQuadraticInterpolator InterpolatorType;
   InterpolatorType mInterp, mGradInterp, mGrad2Interp;
   TableKernel<Dim<3>> mKernel;
-  Scalar mretamax;
+  Scalar metamax;
 };
 
 }

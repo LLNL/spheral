@@ -36,11 +36,9 @@ struct W3S1Func {
   };
 
   // Now the lookup based on (etaj, etai) -- the (rprime/h, r/h) from the paper
-  double operator()(const Dim<2>::Vector& etas) const {
-    const auto etaj = etas[0];
-    const auto etai = etas[1];
-    const auto low = std::abs(etaj - etai);
-    const auto high = std::min(metaMax, etaj + etai);
+  double operator()(const Dim<2>::Vector& bounds) const {
+    const auto low = bounds[0];
+    const auto high = bounds[1];
     if (low >= high) return 0.0;
     return simpsonsIntegration<VolFunc, double, double>(VolFunc(mW),
                                                         low,
@@ -56,14 +54,14 @@ struct W3S1Func {
 //------------------------------------------------------------------------------
 SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
   mInterp(Dim<2>::Vector(0.0, 0.0),
-          Dim<2>::Vector(5.0*kernel.kernelExtent(), 5.0*kernel.kernelExtent()),
+          Dim<2>::Vector(kernel.kernelExtent(), kernel.kernelExtent()),
           kernel.numPoints(),
           kernel.numPoints(),
           W3S1Func(kernel)),
   mGradInterp(),
   mGrad2Interp(),
   mKernel(kernel),
-  mretamax(5.0*kernel.kernelExtent()) {
+  metamax(kernel.kernelExtent()) {
 }
 
 //------------------------------------------------------------------------------
@@ -74,7 +72,7 @@ SphericalTableKernel::SphericalTableKernel(const SphericalTableKernel& rhs):
   mGradInterp(rhs.mGradInterp),
   mGrad2Interp(rhs.mGrad2Interp),
   mKernel(rhs.mKernel),
-  mretamax(rhs.mretamax) {
+  metamax(rhs.metamax) {
 }
 
 //------------------------------------------------------------------------------
@@ -93,7 +91,7 @@ SphericalTableKernel::operator=(const SphericalTableKernel& rhs) {
     mGradInterp = rhs.mGradInterp;
     mGrad2Interp = rhs.mGrad2Interp;
     mKernel = rhs.mKernel;
-    mretamax = rhs.mretamax;
+    metamax = rhs.metamax;
   }
   return *this;
 }

@@ -31,4 +31,4 @@ class SphericalTableKernel(Kernel):
     #---------------------------------------------------------------------------
     # Attributes
     kernel = PYB11property(doc="The base 3D kernel")
-    retamax = PYB11property(doc="The maximum interpolation r/h value")
+    etamax = PYB11property(doc="The maximum kernel extent of the base 3D kernel")
