@@ -62,7 +62,8 @@ SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
           W3S1Func(kernel)),
   mGradInterp(),
   mGrad2Interp(),
-  mKernel(kernel) {
+  mKernel(kernel),
+  mretamax(5.0*kernel.kernelExtent()) {
 }
 
 //------------------------------------------------------------------------------
@@ -72,7 +73,8 @@ SphericalTableKernel::SphericalTableKernel(const SphericalTableKernel& rhs):
   mInterp(rhs.mInterp),
   mGradInterp(rhs.mGradInterp),
   mGrad2Interp(rhs.mGrad2Interp),
-  mKernel(rhs.mKernel) {
+  mKernel(rhs.mKernel),
+  mretamax(rhs.mretamax) {
 }
 
 //------------------------------------------------------------------------------
@@ -91,6 +93,7 @@ SphericalTableKernel::operator=(const SphericalTableKernel& rhs) {
     mGradInterp = rhs.mGradInterp;
     mGrad2Interp = rhs.mGrad2Interp;
     mKernel = rhs.mKernel;
+    mretamax = rhs.mretamax;
   }
   return *this;
 }

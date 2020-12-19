@@ -23,12 +23,13 @@ surf0 = ax0.plot_surface(x, y, z, cmap=cm.coolwarm,
 fig1 = plt.figure()
 ax1 = fig1.add_subplot(111)
 eta = np.arange(-2.0, 2.0, 4.0/99)
-for r in (0.5, 1.5, 2.5, 3.5):
-    rp = np.arange(max(0.1, r - 2.0), r + 2.0, 0.05)
+for r in (0.5, 1.5, 2.5, 3.5, 10.0, 20.0):
+    rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
     yvals = np.array([W(Vector1d(rpi), Vector1d(r)) for rpi in rp])
     yvals *= r
     if r == 0.5:
         yvals *= 0.5
-    ax1.plot(rp - r, yvals)
+    ax1.plot(rp - r, yvals, label = "r/h=%g" % r)
+legend = ax1.legend(loc="upper right", shadow=True)
 
 plt.show()

@@ -120,8 +120,8 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
 inline
 double
 BiQuadraticInterpolator::operator()(const Vector& pos) const {
-  const auto x = pos[0];
-  const auto y = pos[1];
+  const auto x = std::max(mxmin[0], std::min(mxmax[0], pos[0]));
+  const auto y = std::max(mxmin[1], std::min(mxmax[1], pos[1]));
   const auto i0 = lowerBound(x, y);
   // std::cerr << "================================================================================\n"
   //           << "mxlog, mylog : " << mxlog << " " << mylog << "\n"

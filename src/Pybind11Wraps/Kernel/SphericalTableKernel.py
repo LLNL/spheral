@@ -27,3 +27,8 @@ class SphericalTableKernel(Kernel):
                  etai = "const Vector&"):
         "Return the kernel value at the given (rj/h, ri/h) == (etaj, etai) pair"
         return "double"
+
+    #---------------------------------------------------------------------------
+    # Attributes
+    kernel = PYB11property(doc="The base 3D kernel")
+    retamax = PYB11property(doc="The maximum interpolation r/h value")

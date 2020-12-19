@@ -7,8 +7,8 @@ inline
 double
 SphericalTableKernel::operator()(const Dim<1>::Vector& etaj,
                                  const Dim<1>::Vector& etai) const {
-  const auto ei = etai[0];
-  const auto ej = etaj[0];
+  const auto ei = std::max(1e-10, etai[0]);
+  const auto ej = std::max(1e-10, etaj[0]);
   CHECK(ei > 0.0);
   CHECK(ej > 0.0);
   return 2.0*M_PI/(ei*ej)*mInterp(Dim<2>::Vector(ej, ei));
@@ -30,9 +30,24 @@ SphericalTableKernel::gradValue(const double etaMagnitude, const double Hdet) co
 }
 
 inline
-double 
+typename Dim<1>::Scalar
 SphericalTableKernel::grad2Value(const double etaMagnitude, const double Hdet) const {
   return mKernel.grad2Value(etaMagnitude, Hdet);
+}
+
+//------------------------------------------------------------------------------
+// Data accessors
+//------------------------------------------------------------------------------
+inline
+const TableKernel<Dim<3>>&
+SphericalTableKernel::kernel() const {
+  return mKernel;
+}
+
+inline
+double
+SphericalTableKernel::retamax() const {
+  return mretamax;
 }
 
 }

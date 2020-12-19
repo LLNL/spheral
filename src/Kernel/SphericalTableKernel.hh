@@ -58,6 +58,10 @@ public:
   // Return the second derivative value for a given normalized distance or position.
   double grad2Value(const double etaMagnitude, const double Hdet) const;
 
+  // Access our internal data.
+  const TableKernel<Dim<3>>& kernel() const;
+  Scalar retamax() const;
+
   // Test if the kernel is currently valid.
   virtual bool valid() const;
 
@@ -67,6 +71,7 @@ private:
   typedef BiQuadraticInterpolator InterpolatorType;
   InterpolatorType mInterp, mGradInterp, mGrad2Interp;
   TableKernel<Dim<3>> mKernel;
+  Scalar mretamax;
 };
 
 }
