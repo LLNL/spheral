@@ -29,7 +29,11 @@ for r in (0.5, 1.5, 2.5, 3.5, 10.0, 20.0):
     yvals *= r
     if r == 0.5:
         yvals *= 0.5
-    ax1.plot(rp - r, yvals, label = "r/h=%g" % r)
+        ax1.plot(rp - r, yvals, label = r"$r/h=%g (\times 1/2)$" % r)
+    else:
+        ax1.plot(rp - r, yvals, label = r"$r/h=%g$" % r)
+ax1.set_xlabel(r"$(r^\prime - r)/h$")
+ax1.set_ylabel(r"$rW_{3S1}(r^\prime, r, h)/h$")
 legend = ax1.legend(loc="upper right", shadow=True)
 
 plt.show()
