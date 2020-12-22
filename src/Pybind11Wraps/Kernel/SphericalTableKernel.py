@@ -2,12 +2,8 @@
 # Generic Kernel bindings.
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from Kernel import Kernel
 
-@PYB11template()
-@PYB11template_dict({"Dimension" : "Dim<1>",
-                     "Descendant" : "SphericalTableKernel"})
-class SphericalTableKernel(Kernel):
+class SphericalTableKernel:
 
     PYB11typedefs = """
     using Scalar = Dim<1>::Scalar;

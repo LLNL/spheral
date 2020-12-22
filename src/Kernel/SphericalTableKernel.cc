@@ -85,13 +85,13 @@ struct gradW3S1Func {
 SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
   mInterp(Dim<2>::Vector(0.0, 0.0),
           Dim<2>::Vector(kernel.kernelExtent(), kernel.kernelExtent()),
-          kernel.numPoints(),
-          kernel.numPoints(),
+          std::max(size_t(200), kernel.numPoints()),
+          std::max(size_t(200), kernel.numPoints()),
           W3S1Func(kernel)),
   mGradInterp(Dim<2>::Vector(0.0, 0.0),
               Dim<2>::Vector(kernel.kernelExtent(), kernel.kernelExtent()),
-              kernel.numPoints(),
-              kernel.numPoints(),
+              std::max(size_t(200), kernel.numPoints()),
+              std::max(size_t(200), kernel.numPoints()),
               gradW3S1Func(kernel)),
   mKernel(kernel),
   metamax(kernel.kernelExtent()) {

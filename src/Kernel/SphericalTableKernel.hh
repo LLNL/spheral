@@ -18,7 +18,7 @@
 
 namespace Spheral {
 
-class SphericalTableKernel: public Kernel<Dim<1>, SphericalTableKernel> {
+class SphericalTableKernel {
 
 public:
   //--------------------------- Public Interface ---------------------------//
