@@ -145,6 +145,9 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 ``ENABLE_HELMHOLTZ`` (*On*, Off)
   Compile the included Helmholtz equation of state, typically used in astrophysical calculations. See a discussion `here <http://cococubed.asu.edu/code_pages/eos.shtml>`_.
 
+``ENABLE_OPENSUBDIV`` (*On*, Off)
+  Install the Opensubdiv library along with the Spheral interface to it.  Opensubdiv is a `Pixar provided library <https://github.com/PixarAnimationStudios/OpenSubdiv>`_, which Spheral uses to implement refinement of polyhedra for some specialized problem generation capabilities.
+
 ``ENABLE_TIMER`` (*On*, Off)
   Enable timer information from Spheral.
 
