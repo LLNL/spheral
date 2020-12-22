@@ -6,7 +6,9 @@ namespace Spheral {
 inline
 double
 SphericalTableKernel::operator()(const Dim<1>::Vector& etaj,
-                                 const Dim<1>::Vector& etai) const {
+                                 const Dim<1>::Vector& etai,
+                                 const Dim<1>::Scalar  Hdeti) const {
+  REQUIRE(Hdeti >= 0.0);
   const auto ei = std::max(1e-10, etai[0]);
   const auto ej = std::max(1e-10, etaj[0]);
   CHECK(ei > 0.0);
@@ -14,7 +16,7 @@ SphericalTableKernel::operator()(const Dim<1>::Vector& etaj,
   const auto min_bound = std::abs(ej - ei);
   if (min_bound > metamax) return 0.0;
   const auto max_bound = std::min(metamax, ei + ej);
-  return 2.0*M_PI/(ei*ej)*mInterp(Dim<2>::Vector(min_bound, max_bound));
+  return 2.0*M_PI/(ei*ej)*Hdeti*mInterp(Dim<2>::Vector(min_bound, max_bound));
 }
 
 //------------------------------------------------------------------------------

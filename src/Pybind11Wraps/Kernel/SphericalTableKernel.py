@@ -10,7 +10,8 @@ from Kernel import Kernel
 class SphericalTableKernel(Kernel):
 
     PYB11typedefs = """
-    typedef typename Dim<1>::Vector Vector;
+    using Scalar = Dim<1>::Scalar;
+    using Vector = Dim<1>::Vector;
 """
 
     def pyinit(self,
@@ -24,7 +25,8 @@ class SphericalTableKernel(Kernel):
     @PYB11const
     def __call__(self,
                  etaj = "const Vector&",
-                 etai = "const Vector&"):
+                 etai = "const Vector&",
+                 Hdeti = "const Scalar"):
         "Return the kernel value at the given (rj/h, ri/h) == (etaj, etai) pair"
         return "double"
 

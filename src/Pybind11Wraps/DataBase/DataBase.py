@@ -563,6 +563,7 @@ will get the new value regardless of resetValues."""
     # Attributes
     nDim = PYB11readonly(static=True, returnpolicy="copy")
     isRZ = PYB11readonly(static=True, returnpolicy="copy")
+    isSpherical = PYB11readonly(static=True, returnpolicy="copy")
 
     #...........................................................................
     # Properties

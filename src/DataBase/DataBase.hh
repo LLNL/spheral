@@ -48,6 +48,7 @@ public:
   // dimensionality for Python.
   static int nDim;
   static bool isRZ;
+  static bool isSpherical;
 
   // Constructors.
   DataBase();

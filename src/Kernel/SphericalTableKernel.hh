@@ -45,7 +45,7 @@ public:
   //  etaij : Vector normalized coordinate: etaij = H*(posi - posj)
   //  posi  : Vector coordinate of focus of interest (usualy point_i we're working on)
   //  Hdet  : Determinant of the H tensor used to compute etaij
-  double operator()(const Vector& etaj, const Vector& etai) const;
+  double operator()(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
   // double grad(const Scalar rj, const Scalar ri, const Scalar Hdet) const;
   // std::pair<double, double> kernelAndGradValue(const Scalar rj, const Scalar ri, const Scalar Hdet) const;
 
