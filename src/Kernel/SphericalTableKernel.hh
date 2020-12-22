@@ -22,10 +22,11 @@ class SphericalTableKernel: public Kernel<Dim<1>, SphericalTableKernel> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef Dim<1>::Scalar Scalar;
-  typedef Dim<1>::Vector Vector;
-  typedef Dim<1>::Tensor Tensor;
-  typedef Dim<1>::SymTensor SymTensor;
+  using InterpolatorType = BiQuadraticInterpolator;
+  using Scalar = Dim<1>::Scalar;
+  using Vector = Dim<1>::Vector;
+  using Tensor = Dim<1>::Tensor;
+  using SymTensor = Dim<1>::SymTensor;
 
   // Constructor.
   // Takes a normal 3D TableKernel and constructs the integral form appropriate
@@ -42,12 +43,12 @@ public:
   // These methods taking a Vector eta and Vector position are the special methods
   // allowing this kernel to implement the asymmetric sampling as a function of r.
   // Arguments:
-  //  etaij : Vector normalized coordinate: etaij = H*(posi - posj)
-  //  posi  : Vector coordinate of focus of interest (usualy point_i we're working on)
-  //  Hdet  : Determinant of the H tensor used to compute etaij
+  //  etaj : Vector normalized coordinate: etaj = H*posj
+  //  etai : Vector normalized coordinate: etai = H*posi
+  //  Hdet  : Determinant of the H tensor used to compute eta
   double operator()(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
-  // double grad(const Scalar rj, const Scalar ri, const Scalar Hdet) const;
-  // std::pair<double, double> kernelAndGradValue(const Scalar rj, const Scalar ri, const Scalar Hdet) const;
+  double grad(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
+  std::pair<double, double> kernelAndGradValue(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
 
   // Return the kernel weight for a given normalized distance or position.
   double kernelValue(const double etaMagnitude, const double Hdet) const;
@@ -59,6 +60,8 @@ public:
   double grad2Value(const double etaMagnitude, const double Hdet) const;
 
   // Access our internal data.
+  const InterpolatorType& Winterpolator() const;
+  const InterpolatorType& gradWinterpolator() const;
   const TableKernel<Dim<3>>& kernel() const;
   Scalar etamax() const;
 
@@ -68,8 +71,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
-  typedef BiQuadraticInterpolator InterpolatorType;
-  InterpolatorType mInterp, mGradInterp, mGrad2Interp;
+  InterpolatorType mInterp, mGradInterp;
   TableKernel<Dim<3>> mKernel;
   Scalar metamax;
 };

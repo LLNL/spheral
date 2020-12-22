@@ -47,6 +47,36 @@ struct W3S1Func {
   }
 };
 
+//------------------------------------------------------------------------------
+// Functor for doing our volume integration of the kernel gradient
+//------------------------------------------------------------------------------
+struct gradW3S1Func {
+  const TableKernel<Dim<3>>& mW;
+  double metaMax;
+  gradW3S1Func(const TableKernel<Dim<3>>& W): mW(W), metaMax(mW.kernelExtent()) {}
+
+  // Define a local nested functor we'll use to do the volume integral for
+  // an (etaj, etai) lookup.
+  struct VolFunc {
+    const TableKernel<Dim<3>>& mW;
+    VolFunc(const TableKernel<Dim<3>>& W): mW(W) {}
+    double operator()(const double eta) const {
+      return eta * mW.gradValue(eta, 1.0) + mW(eta, 1.0);
+    }
+  };
+
+  // Now the lookup based on (etaj, etai) -- the (rprime/h, r/h) from the paper
+  double operator()(const Dim<2>::Vector& bounds) const {
+    const auto low = bounds[0];
+    const auto high = bounds[1];
+    if (low >= high) return 0.0;
+    return simpsonsIntegration<VolFunc, double, double>(VolFunc(mW),
+                                                        low,
+                                                        high,
+                                                        std::max(size_t(1000), mW.numPoints()));
+  }
+};
+
 }
 
 //------------------------------------------------------------------------------
@@ -58,8 +88,11 @@ SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
           kernel.numPoints(),
           kernel.numPoints(),
           W3S1Func(kernel)),
-  mGradInterp(),
-  mGrad2Interp(),
+  mGradInterp(Dim<2>::Vector(0.0, 0.0),
+              Dim<2>::Vector(kernel.kernelExtent(), kernel.kernelExtent()),
+              kernel.numPoints(),
+              kernel.numPoints(),
+              gradW3S1Func(kernel)),
   mKernel(kernel),
   metamax(kernel.kernelExtent()) {
 }
@@ -70,7 +103,6 @@ SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
 SphericalTableKernel::SphericalTableKernel(const SphericalTableKernel& rhs):
   mInterp(rhs.mInterp),
   mGradInterp(rhs.mGradInterp),
-  mGrad2Interp(rhs.mGrad2Interp),
   mKernel(rhs.mKernel),
   metamax(rhs.metamax) {
 }
@@ -89,7 +121,6 @@ SphericalTableKernel::operator=(const SphericalTableKernel& rhs) {
   if (this != &rhs) {
     mInterp = rhs.mInterp;
     mGradInterp = rhs.mGradInterp;
-    mGrad2Interp = rhs.mGrad2Interp;
     mKernel = rhs.mKernel;
     metamax = rhs.metamax;
   }
