@@ -29,32 +29,21 @@ simpsonsIntegration(const Function& function,
   if (x0 == x1) return 0.0;
 
   // Prepare our variables.
-  Result result = DataTypeTraits<Value>::zero();
+  unsigned i;
+  Result integrand, result = DataTypeTraits<Value>::zero();
 
   // Size of the bins.
   const Value dx = (x1 - x0)/numBins;
 
   // Walk the bins and accumulate the answer.
-#pragma omp parallel
-  {
-    unsigned i;
-    Result integrand, result_local = DataTypeTraits<Value>::zero();
-
-#pragma omp for
-    for (i = 0u; i < numBins + 1u; ++i) {
-      integrand = function(x0 + i*dx);
-      if (i == 0 or i == numBins) {
-        result_local += integrand;
-      } else if (i % 2 == 0) {
-        result_local += 2.0*integrand;
-      } else {
-        result_local += 4.0*integrand;
-      }
-    }
-
-#pragma omp critical
-    {
-      result += result_local;
+  for (i = 0u; i < numBins + 1u; ++i) {
+    integrand = function(x0 + i*dx);
+    if (i == 0 or i == numBins) {
+      result += integrand;
+    } else if (i % 2 == 0) {
+      result += 2.0*integrand;
+    } else {
+      result += 4.0*integrand;
     }
   }
     

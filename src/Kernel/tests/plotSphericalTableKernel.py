@@ -5,15 +5,23 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
+import time
+
 WT = TableKernel3d(BSplineKernel3d(), 100)
+t0 = time.time()
 W = SphericalTableKernel(WT)
+t1 = time.time()
+print("Required %0.4f sec to construct SphericalTableKernel"% (t1 - t0))
 
 # Plot the overall surface
 x = np.arange(0.1, 2.5, 2.5/99)
 y = np.arange(0.1, 2.5, 2.5/99)
 x, y = np.meshgrid(x, y)
 nx, ny = x.shape
+t0 = time.time()
 z = np.array([[W(Vector1d(x[j][i]), Vector1d(y[j][i]), 1.0) for j in xrange(ny)] for i in xrange(nx)])
+t1 = time.time()
+print("Required %0.4f sec to construct lookup kernel values" % (t1 - t0))
 fig0 = plt.figure()
 ax0 = fig0.add_subplot(111, projection='3d')
 surf0 = ax0.plot_surface(x, y, z, cmap=cm.coolwarm,
