@@ -134,6 +134,78 @@ BiQuadraticInterpolator::operator()(const Vector& pos) const {
 }
 
 //------------------------------------------------------------------------------
+// Interpolate for the gradient (x)
+//------------------------------------------------------------------------------
+inline
+double
+BiQuadraticInterpolator::prime_x(const Vector& pos) const {
+  const auto x = std::max(mxmin[0], std::min(mxmax[0], pos[0]));
+  const auto y = std::max(mxmin[1], std::min(mxmax[1], pos[1]));
+  const auto i0 = lowerBound(x, y);
+  return mcoeffs[i0 + 1] + mcoeffs[i0 + 3]*y + 2.0*mcoeffs[i0 + 4]*x;
+}
+
+//------------------------------------------------------------------------------
+// Interpolate for the gradient (y)
+//------------------------------------------------------------------------------
+inline
+double
+BiQuadraticInterpolator::prime_y(const Vector& pos) const {
+  const auto x = std::max(mxmin[0], std::min(mxmax[0], pos[0]));
+  const auto y = std::max(mxmin[1], std::min(mxmax[1], pos[1]));
+  const auto i0 = lowerBound(x, y);
+  return mcoeffs[i0 + 2] + mcoeffs[i0 + 3]*x + 2.0*mcoeffs[i0 + 5]*y;
+}
+
+//------------------------------------------------------------------------------
+// Interpolate for the gradient2 (xx)
+//------------------------------------------------------------------------------
+inline
+double
+BiQuadraticInterpolator::prime2_xx(const Vector& pos) const {
+  const auto x = std::max(mxmin[0], std::min(mxmax[0], pos[0]));
+  const auto y = std::max(mxmin[1], std::min(mxmax[1], pos[1]));
+  const auto i0 = lowerBound(x, y);
+  return 2.0*mcoeffs[i0 + 4];
+}
+
+//------------------------------------------------------------------------------
+// Interpolate for the gradient2 (xy)
+//------------------------------------------------------------------------------
+inline
+double
+BiQuadraticInterpolator::prime2_xy(const Vector& pos) const {
+  const auto x = std::max(mxmin[0], std::min(mxmax[0], pos[0]));
+  const auto y = std::max(mxmin[1], std::min(mxmax[1], pos[1]));
+  const auto i0 = lowerBound(x, y);
+  return mcoeffs[i0 + 3];
+}
+
+//------------------------------------------------------------------------------
+// Interpolate for the gradient2 (yx)
+//------------------------------------------------------------------------------
+inline
+double
+BiQuadraticInterpolator::prime2_yx(const Vector& pos) const {
+  const auto x = std::max(mxmin[0], std::min(mxmax[0], pos[0]));
+  const auto y = std::max(mxmin[1], std::min(mxmax[1], pos[1]));
+  const auto i0 = lowerBound(x, y);
+  return mcoeffs[i0 + 3];
+}
+
+//------------------------------------------------------------------------------
+// Interpolate for the gradient2 (yy)
+//------------------------------------------------------------------------------
+inline
+double
+BiQuadraticInterpolator::prime2_yy(const Vector& pos) const {
+  const auto x = std::max(mxmin[0], std::min(mxmax[0], pos[0]));
+  const auto y = std::max(mxmin[1], std::min(mxmax[1], pos[1]));
+  const auto i0 = lowerBound(x, y);
+  return 2.0*mcoeffs[i0 + 5];
+}
+
+//------------------------------------------------------------------------------
 // Return the lower bound entry in the table for the given x coordinate
 //------------------------------------------------------------------------------
 inline

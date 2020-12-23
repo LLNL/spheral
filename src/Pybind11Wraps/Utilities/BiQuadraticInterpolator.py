@@ -44,6 +44,36 @@ Assumes the results is interpolated as
         "Returns the interpolated value <F>(x,y)"
         return "double"
 
+    def prime_x(self,
+                 pos = "const Vector&"):
+        """Returns the interpolated value \\\partial_x <F>(x,y)"""
+        return "double"
+
+    def prime_y(self,
+                 pos = "const Vector&"):
+        """Returns the interpolated value \\\partial_y <F>(x,y)"""
+        return "double"
+
+    def prime2_xx(self,
+                  pos = "const Vector&"):
+        """Returns the interpolated value \\\partial_xx <F>(x,y)"""
+        return "double"
+
+    def prime2_xy(self,
+                  pos = "const Vector&"):
+        """Returns the interpolated value \\\partial_xy <F>(x,y)"""
+        return "double"
+
+    def prime2_yx(self,
+                  pos = "const Vector&"):
+        """Returns the interpolated value \\\partial_yx <F>(x,y)"""
+        return "double"
+
+    def prime2_yy(self,
+                  pos = "const Vector&"):
+        """Returns the interpolated value \\\partial_yy <F>(x,y)"""
+        return "double"
+
     # Attributes
     size = PYB11property(doc="The size of the tabulated coefficient arrays")
     xmin = PYB11property(doc="Minimum coordinate for table")

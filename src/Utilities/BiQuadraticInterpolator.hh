@@ -41,6 +41,14 @@ public:
   // Interpolate for the F(x,y) value
   double operator()(const Vector& pos) const;
 
+  // Interpolated gradient values.
+  double prime_x(const Vector& pos) const;
+  double prime_y(const Vector& pos) const;
+  double prime2_xx(const Vector& pos) const;
+  double prime2_xy(const Vector& pos) const;
+  double prime2_yx(const Vector& pos) const;
+  double prime2_yy(const Vector& pos) const;
+
   // Allow read access the internal data representation
   size_t size() const;                        // The size of the tabulated coefficient arrays
   Vector xmin() const;                        // Minimum coordinate for table              
