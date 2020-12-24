@@ -90,8 +90,9 @@ ax0 = fig0.add_subplot(111, projection='3d')
 surf = ax0.plot_surface(x, y, z, cmap=cm.coolwarm,
                         linewidth=0, antialiased=False)
 
+#-------------------------------------------------------------------------------
 # Reproduce Fig 1 from Omang, M., Borve, S., & Trulsen, J. (2006)
-# Also plot the gradients while you're at it
+#-------------------------------------------------------------------------------
 fig1 = plt.figure(tight_layout=True, figsize=(10,8))
 gs = gridspec.GridSpec(nrows = 2, ncols = 2, height_ratios = [2,1], figure=fig1)
 eta = np.arange(-2.0, 2.0, 4.0/99)
@@ -108,7 +109,7 @@ for r in (0.5, 1.5, 2.5, 3.5, 10.0, 20.0):
     else:
         ax.plot(rp - r, yvals, label = r"$r/h=%g$" % r)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
-ax.set_ylabel(r"$r W_{3S1}(r^\prime, r, h)/h$")
+ax.set_ylabel(r"$r \langle W_{3S1}(r^\prime, r, h)/h$ \rangle")
 ax.set_title("SphericalTableKernel approximation")
 legend = ax.legend(loc="upper right", shadow=True)
 
@@ -137,16 +138,42 @@ ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$|\langle W_{3S1}(r^\prime, r, h) \rangle/W_{3S1}(r^\prime, r, h) - 1|$")
 ax.set_title("Error")
 
+#-------------------------------------------------------------------------------
 # Plot the gradient
-fig10 = plt.figure()
-ax = fig10.add_subplot(111)
+#-------------------------------------------------------------------------------
+fig10 = plt.figure(tight_layout=True, figsize=(10,8))
+gs = gridspec.GridSpec(nrows = 2, ncols = 2, height_ratios = [2,1], figure=fig1)
+
+# Plot SphericalTableKernel gradient
+ax = fig10.add_subplot(gs[0,0])
 for r in (0.5, 1.5, 2.5, 3.5, 10.0, 20.0):
     rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
     gyvals = np.array([W.grad(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
     gyvals *= r**3
     ax.plot(rp - r, gyvals, label = r"$r/h=%g$" % r)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
-ax.set_ylabel(r"$r^3 \nabla W_{3S1}(r^\prime, r, h)$")
+ax.set_ylabel(r"$r^3 \langle \partial_r W_{3S1}(r^\prime, r, h) \rangle$")
 legend = ax.legend(loc="upper right", shadow=True)
+
+# Analytic kernel gradient
+ax = fig10.add_subplot(gs[0,1])
+for r in (0.5, 1.5, 2.5, 3.5, 10.0, 20.0):
+    rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+    gyvals = np.array([gradW3S1(rpi, r, 1.0) for rpi in rp])
+    yvals *= r**3
+    ax.plot(rp - r, gyvals, label = r"$r/h=%g$" % r)
+ax.set_xlabel(r"$(r^\prime - r)/h$")
+ax.set_ylabel(r"$r \partial_r W_{3S1}(r^\prime, r, h)/h$")
+ax.set_title("Analytic")
+
+# Kernel gradient error
+ax = fig10.add_subplot(gs[1,:])
+for r in (0.5, 1.5, 2.5, 3.5, 10.0, 20.0):
+    rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+    yvals = np.array([abs(W.grad(Vector1d(rpi), Vector1d(r), 1.0) - gradW3S1(rpi, r, 1.0))/max(1e-10, abs(gradW3S1(rpi, r, 1.0))) for rpi in rp])
+    ax.semilogy(rp - r, yvals, label = r"$r/h=%g$" % r)
+ax.set_xlabel(r"$(r^\prime - r)/h$")
+ax.set_ylabel(r"$|\langle \partial_r W_{3S1}(r^\prime, r, h) \rangle - \partial_r W_{3S1}(r^\prime, r, h)|/|\partial_r W_{3S1}(r^\prime, r, h)|$")
+ax.set_title("Error")
 
 plt.show()
