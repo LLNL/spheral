@@ -2,6 +2,7 @@ from Spheral import *
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -91,29 +92,61 @@ surf = ax0.plot_surface(x, y, z, cmap=cm.coolwarm,
 
 # Reproduce Fig 1 from Omang, M., Borve, S., & Trulsen, J. (2006)
 # Also plot the gradients while you're at it
-fig1 = plt.figure()
-fig2 = plt.figure()
-ax1 = fig1.add_subplot(111)
-ax2 = fig2.add_subplot(111)
+fig1 = plt.figure(tight_layout=True, figsize=(10,8))
+gs = gridspec.GridSpec(nrows = 2, ncols = 2, height_ratios = [2,1], figure=fig1)
 eta = np.arange(-2.0, 2.0, 4.0/99)
+
+# First plot the SphericalTabelKernel fit
+ax = fig1.add_subplot(gs[0,0])
 for r in (0.5, 1.5, 2.5, 3.5, 10.0, 20.0):
     rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
     yvals = np.array([W(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
     yvals *= r
-    gyvals = np.array([W.grad(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
-    gyvals *= r**3
     if r == 0.5:
         yvals *= 0.5
-        ax1.plot(rp - r, yvals, label = r"$r/h=%g (\times 1/2)$" % r)
+        ax.plot(rp - r, yvals, label = r"$r/h=%g (\times 1/2)$" % r)
     else:
-        ax1.plot(rp - r, yvals, label = r"$r/h=%g$" % r)
-    ax2.plot(rp - r, gyvals, label = r"$r/h=%g$" % r)
-ax1.set_xlabel(r"$(r^\prime - r)/h$")
-ax1.set_ylabel(r"$r W_{3S1}(r^\prime, r, h)/h$")
-legend1 = ax1.legend(loc="upper right", shadow=True)
+        ax.plot(rp - r, yvals, label = r"$r/h=%g$" % r)
+ax.set_xlabel(r"$(r^\prime - r)/h$")
+ax.set_ylabel(r"$r W_{3S1}(r^\prime, r, h)/h$")
+ax.set_title("SphericalTableKernel approximation")
+legend = ax.legend(loc="upper right", shadow=True)
 
-ax2.set_xlabel(r"$(r^\prime - r)/h$")
-ax2.set_ylabel(r"$r^3 \nabla W_{3S1}(r^\prime, r, h)$")
-legend2 = ax2.legend(loc="upper right", shadow=True)
+# Analytic kernel
+ax = fig1.add_subplot(gs[0,1])
+for r in (0.5, 1.5, 2.5, 3.5, 10.0, 20.0):
+    rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+    yvals = np.array([W3S1(rpi, r, 1.0) for rpi in rp])
+    yvals *= r
+    if r == 0.5:
+        yvals *= 0.5
+        ax.plot(rp - r, yvals, label = r"$r/h=%g (\times 1/2)$" % r)
+    else:
+        ax.plot(rp - r, yvals, label = r"$r/h=%g$" % r)
+ax.set_xlabel(r"$(r^\prime - r)/h$")
+ax.set_ylabel(r"$r W_{3S1}(r^\prime, r, h)/h$")
+ax.set_title("Analytic")
+
+# Kernel error
+ax = fig1.add_subplot(gs[1,:])
+for r in (0.5, 1.5, 2.5, 3.5, 10.0, 20.0):
+    rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+    yvals = np.array([abs(W(Vector1d(rpi), Vector1d(r), 1.0)/max(1e-10, W3S1(rpi, r, 1.0)) - 1.0) for rpi in rp])
+    ax.semilogy(rp - r, yvals, label = r"$r/h=%g$" % r)
+ax.set_xlabel(r"$(r^\prime - r)/h$")
+ax.set_ylabel(r"$|\langle W_{3S1}(r^\prime, r, h) \rangle/W_{3S1}(r^\prime, r, h) - 1|$")
+ax.set_title("Error")
+
+# Plot the gradient
+fig10 = plt.figure()
+ax = fig10.add_subplot(111)
+for r in (0.5, 1.5, 2.5, 3.5, 10.0, 20.0):
+    rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+    gyvals = np.array([W.grad(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
+    gyvals *= r**3
+    ax.plot(rp - r, gyvals, label = r"$r/h=%g$" % r)
+ax.set_xlabel(r"$(r^\prime - r)/h$")
+ax.set_ylabel(r"$r^3 \nabla W_{3S1}(r^\prime, r, h)$")
+legend = ax.legend(loc="upper right", shadow=True)
 
 plt.show()
