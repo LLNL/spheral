@@ -1,10 +1,9 @@
 #find_package(Sphinx)
 set(SPHINX_FOUND true)
-set(SPHINX_EXECUTABLE "${SPHERAL_INSTALL_DIR}/python/bin/sphinx-build")
-#set(SPHINX_EXECUTABLE "${SPHERAL_INSTALL_DIR}/python/bin/sphinx-build" CACHE STRING "Path to sphinx documentation generator")
-message("-- Sphinx ${SPHINX_EXECUTABLE}")
+set(SPHINX_EXEC "${python_DIR}/bin/sphinx-build" CACHE STRING "Path to sphinx documentation generator")
+message("-- Sphinx ${SPHINX_EXEC}")
  
-if(ENABLE_DOCS AND NOT SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
+if(ENABLE_DOCS AND NOT SPHINX_EXEC STREQUAL "SPHINX_EXEC-NOTFOUND")
   if(NOT DEFINED SPHINX_THEME)
     set(SPHINX_THEME sphinx_rtd_theme)
   endif()
@@ -27,13 +26,18 @@ if(ENABLE_DOCS AND NOT SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
     "${BINARY_BUILD_DIR}/conf.py"
     @ONLY)
 
+  set(DOC_DEPENDS ${spheral_py_depends})
+  if(pip_BUILD)
+    set(DOC_DEPENDS ${DOC_DEPENDS} pip-modules)
+  endif()
+
   add_custom_target(Spheral_docs ALL
-    ${SPHINX_EXECUTABLE}
+    ${SPHINX_EXEC}
     -q -b html
     -c "${BINARY_BUILD_DIR}"
     -d "${SPHINX_CACHE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${SPHINX_HTML_DIR}"
-    DEPENDS ${spheral_py_depends} pip-modules
+    DEPENDS ${DOC_DEPENDS}
     COMMENT "Building HTML documentation with Sphinx")
 endif()

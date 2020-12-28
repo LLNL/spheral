@@ -47,7 +47,7 @@ By default Spheral builds the libraries as shared objects.  If instead you would
 Third party libraries and Spheral
 ---------------------------------
 
-Upon first install third party libraries (TPL) tar files and source will be installed through an external network. TPLs are cached within the Spheral build directory tree for future builds off network. To completely turn off installation of TPL's use ``-DINSTALL_TPLS=Off``.
+Upon first install third party libraries (TPL) tar files and source will be installed through an external network. TPLs are cached within the Spheral build directory tree for future builds off network. To completely turn off installation of TPL's use ``-DBUILD_TPLS=Off``.
 
 For just the C++ compiled Spheral a number of TPLs are required (and automatically installed by default):
 
@@ -145,6 +145,9 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 ``ENABLE_HELMHOLTZ`` (*On*, Off)
   Compile the included Helmholtz equation of state, typically used in astrophysical calculations. See a discussion `here <http://cococubed.asu.edu/code_pages/eos.shtml>`_.
 
+``ENABLE_OPENSUBDIV`` (*On*, Off)
+  Install the Opensubdiv library along with the Spheral interface to it.  Opensubdiv is a `Pixar provided library <https://github.com/PixarAnimationStudios/OpenSubdiv>`_, which Spheral uses to implement refinement of polyhedra for some specialized problem generation capabilities.
+
 ``ENABLE_TIMER`` (*On*, Off)
   Enable timer information from Spheral.
 
@@ -226,8 +229,55 @@ WSL2 Notes
 
 The Windows Subsystem for Linux (WSL) is a useful method of development on Windows 10 based systems.  If going this route we recommend having at least WSL2 for best results -- the original version of WSL (WSL1) also functioned, but is `significantly` slower for jobs such as compilation.
 
-For the most part using an Ubuntu based WSL environment works just using the Ubuntu notes above.  However, one aspect of WSL2 needs to be adjusted.  The build process requires a fair amount of memory (in particular for a few of the Python binding modules), so we recommend having at least 32GB of swap space available.  On WSL2 this is accomplished by creating a `.wslconfig` file in your Windows home directory containing at least the following lines::
+For the most part using an Ubuntu based WSL environment works just using the Ubuntu notes above.  However, one aspect of WSL2 needs to be adjusted.  The build process requires a fair amount of memory (in particular for a few of the Python binding modules), so we recommend having at least 32GB of swap space available.  On WSL2 this is accomplished by creating a ``.wslconfig`` file in your Windows home directory containing at least the following lines::
 
-    [wls2]
+    [wsl2]
     swap=32GB
 
+Build Scripts & LC Notes
+------------------------
+
+Scripts for building on LC systems can be found in ``scripts/lc-builds/``. These scripts build some of the more common configurations on LC machines. They have the added benefit of utilizing pre installed TPLs on LC. The pre-installed TPL loactions are passed using the configuration CMake files found in ``host-config/``.  
+By default the scripts are designed to be run from the spheral root directory, a full build and test looks as follows::
+
+    cd <Spheral_Root_Dir>
+    ./scripts/lc-builds/toss3_gcc-8.3.1-release-mpi-python.sh
+    cd lc_toss3-gcc-8.3.1-rel-mpi-py/build
+    make -j install
+    ../install/atstest ../../tests/integration.ats
+
+The build scripts support a couple of named arguments. 
+
+ ===================== ===============================================
+ Arguments             Brief description
+ ===================== ===============================================
+ -s                    Spheral source directory. Useful when building
+                       from a directory other than Spheral's root 
+                       directory.
+ -i                    Installation directory. This overwrites the 
+                       scripts default installation directory from
+                       ``<script_name>/install`` to a user provided
+                       directory.
+ ===================== ===============================================
+
+An example of a scirpt build and test using these arguments is shown below::
+
+    cd <Other_Directory>
+    <Script_Dir>/toss3_gcc-8.3.1-release-mpi-python.sh -s <Spheral_Root_Dir> -i <Install_Dir>
+    cd lc_toss3-gcc-8.3.1-rel-mpi-py/build
+    make -j install
+    <Install_Dir>/atstest <Spheral_Root_Dir>/tests/integration.ats
+
+When using the build scripts, additional CMake arguments can be passed. This can be useful for a variety of reasons; below are a few examples altering how the scripts find / build TPLs for Spheral with CMake arguments.
+
+To *SEARCH* for an installed TPL somewhere else::
+
+    ./scripts/lc-builds/toss3_gcc8.3.1-release-mpi-python.sh -Dboost_DIR=<Full_Path_To_Boost_Install>
+
+To *BUILD* a local version of a TPL to the default installation location::
+
+    ./scripts/lc-builds/toss3_gcc8.3.1-release-mpi-python.sh -Dboost_BUILD=On -Dboost_DIR=""
+
+To *BUILD* a local version of a TPL to a custom installation location::
+
+    ./scripts/lc-builds/toss3_gcc8.3.1-release-mpi-python.sh -Dboost_BUILD=On -Dboost_DIR=<Local_Dir_To_Install>
