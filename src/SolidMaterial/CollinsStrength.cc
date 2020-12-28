@@ -106,7 +106,7 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
     const auto Yi = mY0 + mmui*Pi/(1.0 + mmui*Pi*YdiffInv);
     const auto Yd = std::min(Yi, mmud*Pi);
     CHECK(Yi >= 0.0 and Yd >= 0.0);
-    const auto Di = Dfield(i).Trace()/Dimension::nDim;
+    const auto Di = Dfield(i).eigenValues().maxElement();
     CHECK(Di >= 0.0 and Di <= 1.0);
     yieldStrength(i) = (1.0 - Di)*Yi + Di*Yd;
     CHECK(yieldStrength(i) >= 0.0);
