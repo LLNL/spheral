@@ -147,8 +147,8 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
                MPI_INT, 0, 12, Communicator::communicator());
     }
   }
-#endif
   CHECK((int)nodeInfo.size() == numGlobalNodes);
+#endif
 
   // Sort the node info.
   if (nodeInfo.size() > 0) {

@@ -16,12 +16,15 @@ else()
   set(OUT_PROTOCOL_PIP "-q")
 endif()
 
-# Set the build directory for TPL to default to BUILD/Spheral-tpl if SPHERAL_INSTALL_DIR
+# Set the build directory for TPL to default to BUILD/Spheral-tpl if SPHERAL_TPL_DIR
 # is not set.
-if (NOT SPHERAL_INSTALL_DIR)
-  get_filename_component(DEFAULT_TPL_LOCATION ${CMAKE_BINARY_DIR}/Spheral-tpl/ ABSOLUTE)
+if (NOT SPHERAL_TPL_DIR)
+  get_filename_component(DEFAULT_TPL_LOCATION ${CMAKE_BINARY_DIR}/Spheral/tpl ABSOLUTE)
 else()
-  set(DEFAULT_TPL_LOCATION ${SPHERAL_INSTALL_DIR})
+  if (NOT IS_ABSOLUTE ${SPHERAL_TPL_DIR})
+    set(SPHERAL_TPL_DIR ${CMAKE_BINARY_DIR}/${SPHERAL_TPL_DIR})
+  endif()
+  get_filename_component(DEFAULT_TPL_LOCATION ${SPHERAL_TPL_DIR} ABSOLUTE)
 endif()
 message("Default TPL location : ${DEFAULT_TPL_LOCATION}\n")
 
@@ -132,6 +135,7 @@ function(Spheral_Handle_TPL lib_name dep_list)
     endif()
   endif()
 
+  set(${lib_name}_DIR ${${lib_name}_DIR} PARENT_SCOPE)
   set(${dep_list} ${${dep_list}} PARENT_SCOPE)
   set(spheral_blt_depends ${spheral_blt_depends} PARENT_SCOPE)
   set(${lib_name}_build_dep ${${lib_name}_build_dep} PARENT_SCOPE)

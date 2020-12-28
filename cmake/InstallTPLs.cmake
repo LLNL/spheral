@@ -40,14 +40,16 @@ Spheral_Handle_TPL(silo spheral_depends)
 Spheral_Handle_TPL(conduit spheral_depends)
 Spheral_Handle_TPL(axom spheral_depends)
 
-# ANEOS only needed if we're supporting it
+# Some libraries are optional
 if (ENABLE_ANEOS)
   Spheral_Handle_TPL(aneos spheral_depends)
+endif()
+if (ENABLE_OPENSUBDIV)
+  Spheral_Handle_TPL(opensubdiv spheral_depends)
 endif()
 
 # Only needed when building the python interface of spheral
 if(NOT ENABLE_CXXONLY)
-  Spheral_Handle_TPL(opensubdiv spheral_depends)
   Spheral_Handle_TPL(python spheral_depends)
   Spheral_Handle_TPL(pip spheral_py_depends)
   include(${SPHERAL_ROOT_DIR}/cmake/tpl/pythonModule.cmake)
