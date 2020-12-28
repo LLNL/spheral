@@ -341,8 +341,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       if (compatibleEnergy) pairAccelerations[kk] = mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
       // Pair-wise portion of grad velocity.
-      const auto deltaDvDxi = fDeffij*vij.dyad(gradWGi);
-      const auto deltaDvDxj = fDeffij*vij.dyad(gradWGj);
+      const auto deltaDvDxi = vij.dyad(gradWGi);
+      const auto deltaDvDxj = vij.dyad(gradWGj);
 
       // Specific thermal energy evolution.
       DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
