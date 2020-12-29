@@ -287,8 +287,8 @@ registerState(DataBase<Dimension>& dataBase,
   Key maskKey = state.buildFieldKey(HydroFieldNames::timeStepMask, this->nodeList().name());
   Field<Dimension, int>& mask = state.field(maskKey, 0);
   const Field<Dimension, SymTensor>& damage = this->nodeList().damage();
-  for (auto i = 0u; i != this->nodeList().numInternalNodes(); ++i) {
-    if (damage(i).Trace() > (int)mCriticalDamageThreshold) mask(i) = 0;
+  for (auto i = 0u; i < this->nodeList().numInternalNodes(); ++i) {
+    if (damage(i).Trace() > mCriticalDamageThreshold) mask(i) = 0;
   }
 
   // // Damage some of the state variables.
