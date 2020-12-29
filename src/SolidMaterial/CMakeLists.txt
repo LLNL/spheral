@@ -53,6 +53,7 @@ spheral_install_python_files(
   SolidMaterialUnits.py
   SolidMaterialEquationsOfState.py
   ShadowTillotsonEquationOfState.py
+  ShadowGruneisenEquationOfState.py
   ShadowConstantStrength.py
   )
 
