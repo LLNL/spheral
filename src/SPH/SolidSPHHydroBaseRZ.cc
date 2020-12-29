@@ -17,6 +17,7 @@
 #include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
+#include "Strength/DeviatoricStressPolicy.hh"
 #include "Strength/RZPlasticStrainPolicy.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -158,10 +159,13 @@ registerState(DataBase<Dim<2> >& dataBase,
   SolidSPHHydroBase<Dim<2> >::registerState(dataBase, state);
 
   // Reregister the plastic strain policy to the RZ specialized version
-  // that accounts for the theta-theta component of the stress.
-  FieldList<Dimension, Scalar> ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
+  // that accounts for the theta-theta component of the stress.  Also the deviatoric stress.
+  auto ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
+  auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   PolicyPointer plasticStrainPolicy(new RZPlasticStrainPolicy());
+  PolicyPointer deviatoricStressPolicy(new DeviatoricStressPolicy<Dim<2>>(false));
   state.enroll(ps, plasticStrainPolicy);
+  state.enroll(S, deviatoricStressPolicy);
 
   // Are we using the compatible energy evolution scheme?
   // If so we need to override the ordinary energy registration with a specialized version.
