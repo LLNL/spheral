@@ -6,6 +6,7 @@ set(SolidMaterial_inst
     MurnahanEquationOfState
     TillotsonEquationOfState
     StrengthModel
+    ConstantStrength
     SteinbergGuinanStrength
     JohnsonCookStrength
     CollinsStrength

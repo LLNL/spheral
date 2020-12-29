@@ -85,11 +85,12 @@ soundSpeed(Field<Dimension, typename Dimension::Scalar>& field) const {
   FluidNodeList<Dimension>::soundSpeed(field);
 
   // Augment the sound speed with the strength model.
-  const Field<Dimension, Scalar>& rho = this->massDensity();
-  const Field<Dimension, Scalar>& u = this->specificThermalEnergy();
+  const auto& rho = this->massDensity();
+  const auto& u = this->specificThermalEnergy();
+  const auto& D = this->damage();
   Field<Dimension, Scalar> P(HydroFieldNames::pressure, *this);
   this->pressure(P);
-  mStrength.soundSpeed(field, rho, u, P, field);
+  mStrength.soundSpeed(field, rho, u, P, field, D);
 }
 
 //------------------------------------------------------------------------------
@@ -99,8 +100,8 @@ template<typename Dimension>
 void
 SolidNodeList<Dimension>::
 bulkModulus(Field<Dimension, typename Dimension::Scalar>& field) const {
-  const Field<Dimension, Scalar>& rho = this->massDensity();
-  const Field<Dimension, Scalar>& u = this->specificThermalEnergy();
+  const auto& rho = this->massDensity();
+  const auto& u = this->specificThermalEnergy();
   this->equationOfState().setBulkModulus(field, rho, u);
 }
 
@@ -111,11 +112,12 @@ template<typename Dimension>
 void
 SolidNodeList<Dimension>::
 shearModulus(Field<Dimension, typename Dimension::Scalar>& field) const {
-  const Field<Dimension, Scalar>& rho = this->massDensity();
-  const Field<Dimension, Scalar>& u = this->specificThermalEnergy();
+  const auto& rho = this->massDensity();
+  const auto& u = this->specificThermalEnergy();
+  const auto& D = this->damage();
   Field<Dimension, Scalar> P(HydroFieldNames::pressure, *this);
   this->pressure(P);
-  mStrength.shearModulus(field, rho, u, P);
+  mStrength.shearModulus(field, rho, u, P, D);
 }
 
 //------------------------------------------------------------------------------
@@ -125,11 +127,12 @@ template<typename Dimension>
 void
 SolidNodeList<Dimension>::
 yieldStrength(Field<Dimension, typename Dimension::Scalar>& field) const {
-  const Field<Dimension, Scalar>& rho = this->massDensity();
-  const Field<Dimension, Scalar>& u = this->specificThermalEnergy();
+  const auto& rho = this->massDensity();
+  const auto& u = this->specificThermalEnergy();
+  const auto& D = this->damage();
   Field<Dimension, Scalar> P(HydroFieldNames::pressure, *this);
   this->pressure(P);
-  mStrength.yieldStrength(field, rho, u, P, mPlasticStrain, mPlasticStrainRate);
+  mStrength.yieldStrength(field, rho, u, P, mPlasticStrain, mPlasticStrainRate, D);
 }
 
 //------------------------------------------------------------------------------
