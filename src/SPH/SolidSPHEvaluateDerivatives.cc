@@ -1,5 +1,32 @@
 namespace Spheral {
 
+namespace {
+//------------------------------------------------------------------------------
+// Compute one minus the SymTensor in it's principle frame
+//------------------------------------------------------------------------------
+inline Dim<1>::SymTensor oneMinusEigenvalues(const Dim<1>::SymTensor& x) {
+  return Dim<1>::SymTensor(1.0 - x[0]);
+}
+
+inline Dim<2>::SymTensor oneMinusEigenvalues(const Dim<2>::SymTensor& x) {
+  const auto eigen = x.eigenVectors();
+  Dim<2>::SymTensor result(1.0 - eigen.eigenValues[0], 0.0,
+                           0.0, 1.0 - eigen.eigenValues[1]);
+  result.rotationalTransform(eigen.eigenVectors);
+  return result;
+}
+
+inline Dim<3>::SymTensor oneMinusEigenvalues(const Dim<3>::SymTensor& x) {
+  const auto eigen = x.eigenVectors();
+  Dim<3>::SymTensor result(1.0 - eigen.eigenValues[0], 0.0, 0.0,
+                           0.0, 1.0 - eigen.eigenValues[1], 0.0,
+                           0.0, 0.0, 1.0 - eigen.eigenValues[2]);
+  result.rotationalTransform(eigen.eigenVectors);
+  return result;
+}
+
+}
+
 //------------------------------------------------------------------------------
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
@@ -174,6 +201,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       //const auto  mui = mu(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  safeOmegai = safeInv(omegai, tiny);
+      const auto  fDi = oneMinusEigenvalues(damage(nodeListi, i));
       //const auto  fragIDi = fragIDs(nodeListi, i);
       const auto  pTypei = pTypes(nodeListi, i);
       CHECK(mi > 0.0);
@@ -197,20 +225,21 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
 
       // Get the state for node j
-      const auto rj = position(nodeListj, j);
-      const auto mj = mass(nodeListj, j);
-      const auto vj = velocity(nodeListj, j);
-      const auto rhoj = massDensity(nodeListj, j);
+      const auto& rj = position(nodeListj, j);
+      const auto  mj = mass(nodeListj, j);
+      const auto& vj = velocity(nodeListj, j);
+      const auto  rhoj = massDensity(nodeListj, j);
       //const auto epsj = specificThermalEnergy(nodeListj, j);
-      const auto Pj = pressure(nodeListj, j);
-      const auto Hj = H(nodeListj, j);
-      const auto cj = soundSpeed(nodeListj, j);
-      const auto omegaj = omega(nodeListj, j);
-      const auto Sj = S(nodeListj, j);
-      const auto Hdetj = Hj.Determinant();
-      const auto safeOmegaj = safeInv(omegaj, tiny);
+      const auto  Pj = pressure(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  cj = soundSpeed(nodeListj, j);
+      const auto  omegaj = omega(nodeListj, j);
+      const auto& Sj = S(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
+      const auto  safeOmegaj = safeInv(omegaj, tiny);
+      const auto  fDj = oneMinusEigenvalues(damage(nodeListj, j));
       //const auto fragIDj = fragIDs(nodeListj, j);
-      const auto pTypej = pTypes(nodeListj, j);
+      const auto  pTypej = pTypes(nodeListj, j);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
@@ -261,8 +290,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto gradWQj = gWQj*Hetaj;
       const auto gradWGj = WG.gradValue(etaMagj, Hdetj) * Hetaj;
 
-      // Determine how we're applying damage.
-      const auto fDeffij = coupling(nodeListi, i, nodeListj, j);
+      // // Determine how we're applying damage.
+      // const auto fDeffij = coupling(nodeListi, i, nodeListj, j);
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -303,20 +332,15 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       viscousWorkj += mi*workQj;
 
       // Damage scaling of negative pressures.
-      const auto Peffi = (mNegativePressureInDamage or Pi > 0.0 ? Pi : fDeffij*Pi);
-      const auto Peffj = (mNegativePressureInDamage or Pj > 0.0 ? Pj : fDeffij*Pj);
+      // sigmai = (Pi < 0.0 ? fDi : SymTensor::one) * -Pi;
+      // sigmaj = (Pj < 0.0 ? fDj : SymTensor::one) * -Pj;
 
       // Compute the stress tensors.
-      sigmai = -Peffi*SymTensor::one;
-      sigmaj = -Peffj*SymTensor::one;
+      sigmai = -Pi*SymTensor::one;
+      sigmaj = -Pj*SymTensor::one;
       if (sameMatij) {
-        if (mStrengthInDamage) {
-          sigmai += Si;
-          sigmaj += Sj;
-        } else {
-          sigmai += fDeffij*Si;
-          sigmaj += fDeffij*Sj;
-        }
+        sigmai += Si;
+        sigmaj += Sj;
       }
 
       // Compute the tensile correction to add to the stress as described in 
@@ -333,7 +357,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(rhoj > 0.0);
       const auto sigmarhoi = safeOmegai*sigmai/(rhoi*rhoi);
       const auto sigmarhoj = safeOmegaj*sigmaj/(rhoj*rhoj);
-      const auto deltaDvDt = sigmarhoi*gradWi + sigmarhoj*gradWj - Qacci - Qaccj;
+      const auto deltaDvDt = fDi*sigmarhoi*gradWi + fDj*sigmarhoj*gradWj - Qacci - Qaccj;
       if (freeParticle) {
         DvDti += mj*deltaDvDt;
         DvDtj -= mi*deltaDvDt;
@@ -345,8 +369,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto deltaDvDxj = vij.dyad(gradWGj);
 
       // Specific thermal energy evolution.
-      DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
-      DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
+      DepsDti -= mj*((fDi*sigmarhoi).doubledot(deltaDvDxi.Symmetric()) - workQi);
+      DepsDtj -= mi*((fDj*sigmarhoj).doubledot(deltaDvDxj.Symmetric()) - workQj);
 
       // Velocity gradient.
       DvDxi -= mj*deltaDvDxi;
