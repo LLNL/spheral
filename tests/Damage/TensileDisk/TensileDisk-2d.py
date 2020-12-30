@@ -42,6 +42,7 @@ commandLine(
     useDamage = True,
 
     # Hydro
+    nPerh = 3.01,
     crksph = False,     # Use CRK hydro?
     asph = False,        # Just the H tensor evolution -- applies to all hydros
     hminratio = 0.05,
@@ -85,12 +86,8 @@ assert not (evolveTotalEnergy and compatibleEnergy), "ERROR, can only select one
 
 if crksph:
     hydroname = os.path.join("CRKSPH", str(volumeType))
-    nPerh = 1.51
-    order = 5
 else:
     hydroname = "SPH"
-    nPerh = 1.51
-    order = 5
 if asph:
     hydroname = "A" + hydroname
 
@@ -191,17 +188,11 @@ mpi.barrier()
 rho0 = 7.9
 etamin = 0.5
 etamax = 1.5
-eos = GruneisenEquationOfState(rho0,    # reference density  
-                               etamin,  # etamin             
-                               etamax,  # etamax             
-                               0.457,   # C0                 
-                               1.49,    # S1                 
-                               0.0,     # S2                 
-                               0.0,     # S3                 
-                               1.93,    # gamma0             
-                               0.5,     # b                  
-                               55.350,  # atomic weight
-                               units)
+eos = GruneisenEquationOfState("steel",
+                               etamin = etamin,
+                               etamax = etamax,
+                               units = units)
+rho0 = eos.referenceDensity
 coldFit = NinthOrderPolynomialFit(-1.06797724e-2,
                                   -2.06872020e-2,
                                    8.24893246e-1,
@@ -239,7 +230,7 @@ strengthModel = SteinbergGuinanStrength(eos,
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(order), 1000)
+WT = TableKernel(WendlandC4Kernel(), 1000)
 output("WT")
 
 #-------------------------------------------------------------------------------
