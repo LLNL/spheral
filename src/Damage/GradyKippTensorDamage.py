@@ -31,7 +31,7 @@ GradyKippTensorDamageBenzAsphaug is constructed with the following arguments:
         useDamageGradient   : (optional) defaults to "False"
         crackGrowthMultiplier : (optional) defaults to "0.4"
         flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
-        criticalDamageThreshold : (optional) defaults to 3.0
+        criticalDamageThreshold : (optional) defaults to 4.0 (inactive)
         minFlawsPerNode     : (optional) defaults to "1"
         minTotalFlaws       : (optional) defaults to "1"
         mask                : (optional) a field of flags: a node with zero implies
@@ -57,7 +57,7 @@ GradyKippTensorDamageOwen is constructed with the following arguments:
         useDamageGradient   : (optional) defaults to "False"
         crackGrowthMultiplier : (optional) defaults to "0.4"
         flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
-        criticalDamageThreshold : (optional) defaults to 3.0
+        criticalDamageThreshold : (optional) defaults to 4.0 (inactive)
         minFlawsPerNode     : (optional) defaults to "1"
         mask                : (optional) a field of flags: a node with zero implies
                               do not initialize flaws on that node.  default=None
@@ -87,7 +87,7 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,
                          "flawAlgorithm"            : FullSpectrumFlaws,
-                         "criticalDamageThreshold"  : 3.0,
+                         "criticalDamageThreshold"  : 4.0,
                          "damageInCompression"      : False}
 
         # Arguments needed to build the Weibull distribution.
@@ -235,7 +235,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,
                          "flawAlgorithm"            : FullSpectrumFlaws,
-                         "criticalDamageThreshold"  : 3.0,
+                         "criticalDamageThreshold"  : 4.0,
                          "damageInCompression"      : False}
 
         # Arguments needed to build the Weibull distribution.
