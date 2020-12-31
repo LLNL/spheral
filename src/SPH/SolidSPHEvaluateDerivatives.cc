@@ -158,7 +158,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     // Thread private  scratch variables.
     int i, j, nodeListi, nodeListj;
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
-    Tensor QPiij, QPiji;
+    Tensor QPiij, QPiji, sigmarhoi, sigmarhoj;
     SymTensor sigmai, sigmaj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
@@ -266,6 +266,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // Flag if at least one particle is free (0).
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
+      // Determine how we're applying damage.
+      const auto fDij = fDi*fDj;
+      const auto fscaleDij = std::min(fDi.eigenValues().minElement(), fDj.eigenValues().minElement());
+      // const auto fDij = std::min(fDi.eigenValues().minElement(), fDj.eigenValues().minElement())*Tensor::one;
+      // const auto fDij = coupling(nodeListi, i, nodeListj, j);
+
       // Node displacement.
       const auto rij = ri - rj;
       const auto etai = Hi*rij;
@@ -289,9 +295,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto gradWj = gWj*Hetaj;
       const auto gradWQj = gWQj*Hetaj;
       const auto gradWGj = WG.gradValue(etaMagj, Hdetj) * Hetaj;
-
-      // // Determine how we're applying damage.
-      // const auto fDeffij = coupling(nodeListi, i, nodeListj, j);
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -336,8 +339,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // sigmaj = (Pj < 0.0 ? fDj : SymTensor::one) * -Pj;
 
       // Compute the stress tensors.
-      sigmai = -Pi*SymTensor::one;
-      sigmaj = -Pj*SymTensor::one;
+      sigmai = -fscaleDij*Pi*SymTensor::one;
+      sigmaj = -fscaleDij*Pj*SymTensor::one;
       if (sameMatij) {
         sigmai += Si;
         sigmaj += Sj;
@@ -355,9 +358,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // Acceleration.
       CHECK(rhoi > 0.0);
       CHECK(rhoj > 0.0);
-      const auto sigmarhoi = safeOmegai*sigmai/(rhoi*rhoi);
-      const auto sigmarhoj = safeOmegaj*sigmaj/(rhoj*rhoj);
-      const auto deltaDvDt = fDi*sigmarhoi*gradWi + fDj*sigmarhoj*gradWj - Qacci - Qaccj;
+      sigmarhoi = fDij*(safeOmegai*sigmai/(rhoi*rhoi));
+      sigmarhoj = fDij*(safeOmegaj*sigmaj/(rhoj*rhoj));
+      const auto deltaDvDt = sigmarhoi*gradWi + sigmarhoj*gradWj - Qacci - Qaccj;
       if (freeParticle) {
         DvDti += mj*deltaDvDt;
         DvDtj -= mi*deltaDvDt;
@@ -369,8 +372,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto deltaDvDxj = vij.dyad(gradWGj);
 
       // Specific thermal energy evolution.
-      DepsDti -= mj*((fDi*sigmarhoi).doubledot(deltaDvDxi.Symmetric()) - workQi);
-      DepsDtj -= mi*((fDj*sigmarhoj).doubledot(deltaDvDxj.Symmetric()) - workQj);
+      DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
+      DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
 
       // Velocity gradient.
       DvDxi -= mj*deltaDvDxi;
@@ -534,14 +537,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                                                        i);
 
       // Optionally use damage to ramp down stress on damaged material.
-      const auto Di = (mDamageRelieveRubble ? 
-                       max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0)) :
-                       0.0);
+      const auto Di = max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0));
       // Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
       // DHDti = (1.0 - Di)*DHDti + Di*(mHfield0(nodeListi, i) - Hi)*0.25/dt;
 
       // We also adjust the density evolution in the presence of damage.
-      if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.25/dt*Di*(rhoi - rho0);
+      if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.5/dt*Di*(rhoi - rho0);
 
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
@@ -550,8 +551,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 
-      // In the presence of damage, add a term to reduce the stress on this point.
-      DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
+      // // In the presence of damage, add a term to reduce the stress on this point.
+      // DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
     }
   }
 }
