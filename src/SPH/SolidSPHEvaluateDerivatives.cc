@@ -267,7 +267,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
       // Determine how we're applying damage.
-      const auto fDij = fDi*fDj;
+      const auto fDij = 0.5*(fDi*fDj + fDj*fDi).Symmetric();
       const auto fscaleDij = std::min(fDi.eigenValues().minElement(), fDj.eigenValues().minElement());
       // const auto fDij = std::min(fDi.eigenValues().minElement(), fDj.eigenValues().minElement())*Tensor::one;
       // const auto fDij = coupling(nodeListi, i, nodeListj, j);
