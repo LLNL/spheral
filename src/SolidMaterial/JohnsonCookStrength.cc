@@ -102,8 +102,9 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
       ((mA + mB*pow(plasticStrain(i), mnhard))*
        (1.0 + mC*log(max(mEpsdotmin, plasticStrainRate(i))/mEpsdot0))*
        (1.0 - pow(Tstar, mm)) +
-       mC4*pressure(i)) *
-      std::max(0.0, 1.0 - damage(i).eigenValues().maxElement());
+       mC4*pressure(i));
+    const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
+    yieldStrength(i) = (1.0 - Di)*yieldStrength(i) + Di*mA;
   }
 
   // Optionally scale by the relative shear modulus.

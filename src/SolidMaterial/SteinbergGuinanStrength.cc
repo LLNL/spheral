@@ -125,8 +125,9 @@ shearModulus(Field<Dimension, Scalar>& shearModulus,
                                     meltAttenuation(density(i), specificThermalEnergy(i))*(1.0 + 
                                                                                            mA*pressure(i)/FastMath::CubeRootHalley2(eta) -
                                                                                            mB*T(i))));
-      shearModulus(i) *= std::max(0.0, 1.0 - damage(i).eigenValues().maxElement());
-      CHECK(shearModulus(i) >= 0.0);
+      const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
+      shearModulus(i) = (1.0 - Di)*shearModulus(i) + Di*mG0;
+      CHECK(shearModulus(i) > 0.0);
     }
   }
 }
@@ -150,21 +151,22 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
       (mB == 0.0) &&
       (mbeta == 0.0) &&
       (mnhard == 0.0)) {
-#pragma omp parallel for
-    for (auto i = 0u; i < n; ++i) {
-      yieldStrength(i) = mY0 * std::max(0.0, 1.0 - damage(i).eigenValues().maxElement());
-    }
+
+    yieldStrength = mY0;
 
   } else {
-    this->shearModulus(yieldStrength, density, specificThermalEnergy, pressure, damage);  // applies damage already
+
+    this->shearModulus(yieldStrength, density, specificThermalEnergy, pressure, damage);
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
       const auto eta = mEOSPtr->boundedEta(density(i));
       CONTRACT_VAR(eta);
       CHECK(distinctlyGreaterThan(eta, 0.0));
       const auto Yhard = min(mYmax, mY0*pow(1.0 + mbeta*(plasticStrain(i) + mgamma0), mnhard));
-      yieldStrength(i) = Yhard*yieldStrength(i)/mG0;
+      const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
+      yieldStrength(i) = (1.0 - Di)*Yhard*yieldStrength(i)/mG0 + Di*mY0;
     }
+
   }
 }
 

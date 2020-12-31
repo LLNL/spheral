@@ -46,11 +46,7 @@ shearModulus(Field<Dimension, Scalar>& shearModulus,
              const Field<Dimension, Scalar>& /*specificThermalEnergy*/,
              const Field<Dimension, Scalar>& /*pressure*/,
              const Field<Dimension, SymTensor>& damage) const {
-  const auto n = shearModulus.numInternalElements();
-#pragma omp for
-  for (auto i = 0u; i < n; ++i) {
-    shearModulus(i) = mShearModulus0 * std::max(0.0, std::min(1.0, 1.0 - damage(i).eigenValues().maxElement()));
-  }
+  shearModulus = mShearModulus0;
 }
 
 //------------------------------------------------------------------------------
@@ -70,11 +66,7 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
       density/(mEOSptr->referenceDensity()) < mEOSptr->etamin()) {
     yieldStrength = 0.0;
   } else {
-    const auto n = yieldStrength.numInternalElements();
-#pragma omp for
-    for (auto i = 0u; i < n; ++i) {
-      yieldStrength(i) = mYieldStrength0 * std::max(0.0, std::min(1.0, 1.0 - damage(i).eigenValues().maxElement()));
-    }
+    yieldStrength = mYieldStrength0;
   }
 }
 
