@@ -241,6 +241,17 @@ private:
   std::vector<std::shared_ptr<Boundary<Dimension>>> mHostCodeBoundaries;
   bool mLockBoundaries;                // Flag to prevent adding new boundaries
 
+  // node generator data
+  std::vector<double> mSphXcoord, mSphYcoord, mSphZcoord;
+  std::vector<double> mSphHxx, mSphHxy, mSphHxz;
+  std::vector<double> mSphHyy, mSphHyz, mSphHzz;
+  std::vector<double> mSphVol;
+
+  // polyhedral mesh data
+  std::vector<double> mXcoord, mYcoord, mZcoord;
+  std::vector<int> mFaceToNodes, mCellToFaces;
+  std::vector<int> mNodeCounts, mFaceCounts, mFaceFlags;
+
   // No public constructors, destructor, or assignment.
   SpheralPseudoScript();
   SpheralPseudoScript(const SpheralPseudoScript&);

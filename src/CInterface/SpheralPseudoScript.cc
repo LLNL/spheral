@@ -1298,22 +1298,14 @@ polyhedralMesh(int*           nnodes,
   nnodes[0] = numVerts;
   nfaces[0] = numFaces;
 
-  double * xcoord = new double[numVerts];
-  double * ycoord = new double[numVerts];
-  double * zcoord = new double[numVerts];
-  int * lfacetonodes = new int[numFaceToVerts];
-  int * lcelltofaces = new int[numCellToFaces];
-  int * lnodecounts = new int[numFaces];
-  int * lfacecounts = new int[numCells];
-  int * lfaceflags = new int[numFaces];
-  for (unsigned i = 0 ; i < numFaces ; ++i) {
-    lfaceflags[i] = 0;
-  }
-
-  lfacetonodes[0] = 0;
-  lcelltofaces[0] = 0;
-  lnodecounts[0] = 0;
-  lfacecounts[0] = 0;
+  me.mXcoord.resize(numVerts, 0.0);
+  me.mYcoord.resize(numVerts, 0.0);
+  me.mZcoord.resize(numVerts, 0.0);
+  me.mFaceToNodes.resize(numFaceToVerts, 0);
+  me.mCellToFaces.resize(numCellToFaces, 0);
+  me.mNodeCounts.resize(numFaces, 0);
+  me.mFaceCounts.resize(numCells, 0);
+  me.mFaceFlags.resize(numFaces, 0);
   int vertcounter = 0;
   int facecounter = 0;
   int cellcounter = 0;
@@ -1329,35 +1321,35 @@ polyhedralMesh(int*           nnodes,
       auto cellFaceFlagsi = cellFaceFlags(imat, i);
       for (unsigned j = 0; j != facetVertices.size(); ++j) {
         for (unsigned k = 0; k != facetVertices[j].size(); ++k) {
-          lfacetonodes[nodecounter] = vertcounter + facetVertices[j][k];
+          me.mFaceToNodes[nodecounter] = vertcounter + facetVertices[j][k];
           ++nodecounter;
         }
-        lcelltofaces[facecounter] = facecounter;
-        lnodecounts[facecounter] = facetVertices[j].size();
+        me.mCellToFaces[facecounter] = facecounter;
+        me.mNodeCounts[facecounter] = facetVertices[j].size();
         ++facecounter;
       }
       for (unsigned j = 0; j != vertices.size(); ++j) {
-        xcoord[vertcounter] = vertices[j].x();
-        ycoord[vertcounter] = vertices[j].y();
-        zcoord[vertcounter] = vertices[j].z();
+        me.mXcoord[vertcounter] = vertices[j].x();
+        me.mYcoord[vertcounter] = vertices[j].y();
+        me.mZcoord[vertcounter] = vertices[j].z();
         ++vertcounter;
       }
       for (unsigned j = 0; j != cellFaceFlagsi.size() ; ++j) {
-        lfaceflags[flagcounter + cellFaceFlagsi[j].cellFace] = cellFaceFlagsi[j].j;
+        me.mFaceFlags[flagcounter + cellFaceFlagsi[j].cellFace] = cellFaceFlagsi[j].j;
       }
       flagcounter += facets.size();
-      lfacecounts[cellcounter] = facets.size();
+      me.mFaceCounts[cellcounter] = facets.size();
       ++cellcounter;
     }
   }
-  coords[0] = xcoord;
-  coords[1] = ycoord;
-  coords[2] = zcoord;
-  facetonodes[0] = lfacetonodes;
-  celltofaces[0] = lcelltofaces;
-  nodecounts[0] = lnodecounts;
-  facecounts[0] = lfacecounts;
-  faceflags[0] = lfaceflags;
+  coords[0] = me.mXcoord.data();
+  coords[1] = me.mYcoord.data();
+  coords[2] = me.mZcoord.data();
+  facetonodes[0] = me.mFaceToNodes.data();
+  celltofaces[0] = me.mCellToFaces.data();
+  nodecounts[0] = me.mNodeCounts.data();
+  facecounts[0] = me.mFaceCounts.data();
+  faceflags[0] = me.mFaceFlags.data();
 }
 
 //------------------------------------------------------------------------------
@@ -1377,6 +1369,9 @@ fillVolume(const int*     nnodes,
            int*           nparticles,
            double**       sphcoords) {
 
+  // Get our instance.
+  auto& me = SpheralPseudoScript<Dimension>::instance();
+
   if (Dimension::nDim == 3) {
     std::vector< Dim<3>::Vector > nodeVec;
     std::vector< std::vector<unsigned> > faceVec;
@@ -1395,17 +1390,17 @@ fillVolume(const int*     nnodes,
     std::vector< Dim<3>::Vector > sphNodes = fillFacetedVolume2(mesh, spacing, domain, ndomains);
     volume[0] = mesh.volume();
     nparticles[0] = sphNodes.size();
-    double * sphcoordx = new double[sphNodes.size()];
-    double * sphcoordy = new double[sphNodes.size()];
-    double * sphcoordz = new double[sphNodes.size()];
+    me.mSphXcoord.resize(sphNodes.size(), 0.0);
+    me.mSphYcoord.resize(sphNodes.size(), 0.0);
+    me.mSphZcoord.resize(sphNodes.size(), 0.0);
     for (int i = 0 ; i < sphNodes.size() ; ++i) {
-      sphcoordx[i] = sphNodes[i][0] ;
-      sphcoordy[i] = sphNodes[i][1] ;
-      sphcoordz[i] = sphNodes[i][2] ;
+      me.mSphXcoord[i] = sphNodes[i][0] ;
+      me.mSphYcoord[i] = sphNodes[i][1] ;
+      me.mSphZcoord[i] = sphNodes[i][2] ;
     }
-    sphcoords[0] = sphcoordx ;
-    sphcoords[1] = sphcoordy ;
-    sphcoords[2] = sphcoordz ;
+    sphcoords[0] = me.mSphXcoord.data() ;
+    sphcoords[1] = me.mSphYcoord.data() ;
+    sphcoords[2] = me.mSphZcoord.data() ;
   }
 
 }
@@ -1425,6 +1420,9 @@ generateCylFromRZ(const int*     nnodes,
                   double**       sphcoords,
                   double**       sphhtensor,
                   double**       sphvolume) {
+
+  // Get our instance.
+  auto& me = SpheralPseudoScript<Dimension>::instance();
 
   std::vector< double > xvec, yvec, zvec, mvec;
   std::vector< Dim<3>::SymTensor > Hvec;
@@ -1453,38 +1451,38 @@ generateCylFromRZ(const int*     nnodes,
   VERIFY(yvec.size() == n3d && zvec.size() == n3d &&
          mvec.size() == n3d && Hvec.size() == n3d);
   nparticles[0] = n3d;
-  double * sphcoordx = new double[n3d];
-  double * sphcoordy = new double[n3d];
-  double * sphcoordz = new double[n3d];
-  double * sphhxx = new double[n3d];
-  double * sphhxy = new double[n3d];
-  double * sphhxz = new double[n3d];
-  double * sphhyy = new double[n3d];
-  double * sphhyz = new double[n3d];
-  double * sphhzz = new double[n3d];
-  double * sphvol = new double[n3d];
+  me.mSphXcoord.resize(n3d, 0.0);
+  me.mSphYcoord.resize(n3d, 0.0);
+  me.mSphZcoord.resize(n3d, 0.0);
+  me.mSphHxx.resize(n3d, 0.0);
+  me.mSphHxy.resize(n3d, 0.0);
+  me.mSphHxz.resize(n3d, 0.0);
+  me.mSphHyy.resize(n3d, 0.0);
+  me.mSphHyz.resize(n3d, 0.0);
+  me.mSphHzz.resize(n3d, 0.0);
+  me.mSphVol.resize(n3d, 0.0);
   for (int i = 0 ; i < n3d ; ++i) {
-    sphcoordx[i] = xvec[i] ;
-    sphcoordy[i] = yvec[i] ;
-    sphcoordz[i] = zvec[i] ;
-    sphhxx[i] = Hvec[i][0] ;
-    sphhxy[i] = Hvec[i][1] ;
-    sphhxz[i] = Hvec[i][2] ;
-    sphhyy[i] = Hvec[i][3] ;
-    sphhyz[i] = Hvec[i][4] ;
-    sphhzz[i] = Hvec[i][5] ;
-    sphvol[i] = mvec[i] ;
+    me.mSphXcoord[i] = xvec[i] ;
+    me.mSphYcoord[i] = yvec[i] ;
+    me.mSphZcoord[i] = zvec[i] ;
+    me.mSphHxx[i] = Hvec[i][0] ;
+    me.mSphHxy[i] = Hvec[i][1] ;
+    me.mSphHxz[i] = Hvec[i][2] ;
+    me.mSphHyy[i] = Hvec[i][3] ;
+    me.mSphHyz[i] = Hvec[i][4] ;
+    me.mSphHzz[i] = Hvec[i][5] ;
+    me.mSphVol[i] = mvec[i] ;
   }
-  sphcoords[0] = sphcoordx ;
-  sphcoords[1] = sphcoordy ;
-  sphcoords[2] = sphcoordz ;
-  sphhtensor[0] = sphhxx ;
-  sphhtensor[1] = sphhxy ;
-  sphhtensor[2] = sphhxz ;
-  sphhtensor[3] = sphhyy ;
-  sphhtensor[4] = sphhyz ;
-  sphhtensor[5] = sphhzz ;
-  sphvolume[0] = sphvol ;
+  sphcoords[0] = me.mSphXcoord.data() ;
+  sphcoords[1] = me.mSphYcoord.data() ;
+  sphcoords[2] = me.mSphZcoord.data() ;
+  sphhtensor[0] = me.mSphHxx.data() ;
+  sphhtensor[1] = me.mSphHxy.data() ;
+  sphhtensor[2] = me.mSphHxz.data() ;
+  sphhtensor[3] = me.mSphHyy.data() ;
+  sphhtensor[4] = me.mSphHyz.data() ;
+  sphhtensor[5] = me.mSphHzz.data() ;
+  sphvolume[0] = me.mSphVol.data() ;
 }
 
 //------------------------------------------------------------------------------
