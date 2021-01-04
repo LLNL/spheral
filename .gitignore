@@ -33,6 +33,7 @@ src/build/**
 dumps-*
 *cache*
 python
+lc_*
 
 # These are files automatically generated in our configure process.
 src/aclocal.m4
