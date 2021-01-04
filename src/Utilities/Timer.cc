@@ -228,7 +228,7 @@ double Timer::getTimeStampWC(){
 // the list of timers and make a list of parent timers.  From there i
 // can make for loops that step thru the tree and print out the
 // results.
-void Timer::TimerSummary(void) {
+void Timer::TimerSummary( const std::string& fname ) {
 
   int rank, number_procs;
 #ifdef USE_MPI
@@ -321,16 +321,16 @@ void Timer::TimerSummary(void) {
 
 
    
-  cout << " rank" << rank << " writing time.table " << endl;
+  cout << " rank" << rank << " writing " << fname << endl;
 
   FILE *OUT;
   
   if(TIMER_COUNTER == 0) {
-    OUT = fopen("time.table", "w");
+    OUT = fopen(fname.c_str(), "w");
   } else if (TIMER_COUNTER == 1) {
-    OUT = fopen("time.table1", "w");
+    OUT = fopen((fname + "1").c_str(), "w");
   } else {
-    OUT = fopen("time.table2", "w");
+    OUT = fopen((fname + "2").c_str(), "w");
   }
   if(OUT == NULL) {
     printf("problem opening output file in Timer\n");  
