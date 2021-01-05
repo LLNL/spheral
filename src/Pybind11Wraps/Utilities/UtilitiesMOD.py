@@ -446,6 +446,16 @@ def closestPointOnSegment(p = "const %(Vector)s&",
     return "%(Vector)s"
 
 @PYB11template("Vector")
+@PYB11cppname("closestPointOnSegment")
+def closestPointOnSegment1(p = "const %(Vector)s&",
+                           a0 = "const %(Vector)s&",
+                           a1 = "const %(Vector)s&",
+                           result = "%(Vector)s&"):
+    """Find the point on a line segment (a0,a1) closest to point (p).
+This version return True if the closest point on the line is bounded by the segment, and False otherwise."""
+    return "bool"
+
+@PYB11template("Vector")
 def pointPlaneDistance(point = "const %(Vector)s&",
                        origin = "const %(Vector)s&",
                        unitNormal = "const %(Vector)s&"):
@@ -469,6 +479,7 @@ Currently only works single NodeList -> single NodeList, no boundaries."""
 for ndim in (x for x in dims if x in (2, 3)):
     exec('''
 closestPointOnSegment%(ndim)id = PYB11TemplateFunction(closestPointOnSegment, template_parameters="%(Vector)s", pyname="closestPointOnSegment")
+closestPointOnSegment1%(ndim)id = PYB11TemplateFunction(closestPointOnSegment1, template_parameters="%(Vector)s", pyname="closestPointOnSegment")
 pointPlaneDistance%(ndim)id = PYB11TemplateFunction(pointPlaneDistance, template_parameters="%(Vector)s", pyname="pointPlaneDistance")
 overlayRemapFields%(ndim)id = PYB11TemplateFunction(overlayRemapFields, template_parameters="Dim<%(ndim)i>", pyname="overlayRemapFields")
 ''' % {"ndim"   : ndim,
