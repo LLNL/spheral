@@ -309,17 +309,21 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
 
   // Pre-conditions.
   const auto numNodeLists = mNodeLists.size();
-  REQUIRE(nodeListi < (int)numNodeLists and
-          nodeListj < (int)numNodeLists);
+  const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  const auto ghostConnectivity = (mBuildGhostConnectivity or
+                                  mBuildOverlapConnectivity or
+                                  domainDecompIndependent);
   const auto firstGhostNodei = mNodeLists[nodeListi]->firstGhostNode();
   const auto firstGhostNodej = mNodeLists[nodeListj]->firstGhostNode();
-  REQUIRE(i < (int)firstGhostNodei or j < (int)firstGhostNodej);
+  REQUIRE(nodeListi < (int)numNodeLists and
+          nodeListj < (int)numNodeLists);
+  REQUIRE(ghostConnectivity or i < (int)firstGhostNodei or j < (int)firstGhostNodej);
 
   // Prepare the result.
   vector<vector<int>> result(numNodeLists);
 
   // If both nodes are internal, we simply intersect their neighbor lists.
-  if (i < (int)firstGhostNodei and j < (int)firstGhostNodej) {
+  if (ghostConnectivity or (i < (int)firstGhostNodei and j < (int)firstGhostNodej)) {
     vector<vector<int>> neighborsi = this->connectivityForNode(nodeListi, i);
     vector<vector<int>> neighborsj = this->connectivityForNode(nodeListj, j);
     CHECK(neighborsi.size() == numNodeLists);
@@ -384,13 +388,18 @@ connectivityUnionForNodes(const int nodeListi, const int i,
 
   // Pre-conditions.
   const unsigned numNodeLists = mNodeLists.size();
-  REQUIRE(nodeListi < (int)numNodeLists and
-          nodeListj < (int)numNodeLists);
+  const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  const auto ghostConnectivity = (mBuildGhostConnectivity or
+                                  mBuildOverlapConnectivity or
+                                  domainDecompIndependent);
   const unsigned firstGhostNodei = mNodeLists[nodeListi]->firstGhostNode();
   const unsigned firstGhostNodej = mNodeLists[nodeListj]->firstGhostNode();
+  CONTRACT_VAR(ghostConnectivity);
   CONTRACT_VAR(firstGhostNodei);
   CONTRACT_VAR(firstGhostNodej);
-  REQUIRE(i < (int)firstGhostNodei or j < (int)firstGhostNodej);
+  REQUIRE(nodeListi < (int)numNodeLists and
+          nodeListj < (int)numNodeLists);
+  REQUIRE(ghostConnectivity or i < (int)firstGhostNodei or j < (int)firstGhostNodej);
 
   // Do the deed.
   vector<vector<int> > result(numNodeLists);
