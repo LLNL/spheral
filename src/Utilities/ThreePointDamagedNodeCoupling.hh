@@ -40,9 +40,8 @@ public:
                                 NodePairList& pairs);
 
   // The coupling operator.
-  virtual double operator()(const unsigned /*nodeListi*/, const unsigned /* i */,
-                            const unsigned /*nodeListj*/, const unsigned /* j */) const override {
-    VERIFY2(false, "Use ThreePointDamagedNodeCoupling by taking f_couple directly from NodePairIdxType");
+  virtual double operator()(const NodePairIdxType& pair) const override {
+    return pair.f_couple;
   }
 
 };

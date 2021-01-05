@@ -49,7 +49,8 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/DomainNode.hh"',
                   '"Utilities/NodeCoupling.hh"',
                   '"Utilities/DamagedNodeCoupling.hh"',
-                  '"Utilities/DamagedNodeCouplingWithFrags.hh"']
+                  '"Utilities/DamagedNodeCouplingWithFrags.hh"',
+                  '"Utilities/ThreePointDamagedNodeCoupling.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -239,6 +240,7 @@ for ndim in dims:
     exec('''
 DamagedNodeCoupling%(ndim)id = PYB11TemplateClass(DamagedNodeCoupling, template_parameters="%(Dimension)s")
 DamagedNodeCouplingWithFrags%(ndim)id = PYB11TemplateClass(DamagedNodeCouplingWithFrags, template_parameters="%(Dimension)s")
+ThreePointDamagedNodeCoupling%(ndim)id = PYB11TemplateClass(ThreePointDamagedNodeCoupling, template_parameters="%(Dimension)s")
 
 # Functors
 VectorScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "double"))

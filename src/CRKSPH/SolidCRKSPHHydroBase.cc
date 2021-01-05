@@ -495,7 +495,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       gradWSPHj = (Hj*etaj.unitVector())*gWj;
 
       // Find the damaged pair weighting scaling.
-      const auto fij = coupling(nodeListi, i, nodeListj, j);
+      const auto fij = coupling(pairs[kk]);
       CHECK(fij >= 0.0 and fij <= 1.0);
 
       // Zero'th and second moment of the node distribution -- used for the

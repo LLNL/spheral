@@ -14,10 +14,7 @@ class NodeCoupling:
     @PYB11const
     @PYB11cppname("operator()")
     def __call__(self,
-                 nodeListi = "const unsigned",
-                 i = "const unsigned",
-                 nodeListj = "const unsigned",
-                 j = "const unsigned"):
+                 pair = "const NodePairIdxType&"):
         "Functional method to override for coupling (nodeListi, i) <-> (nodeListj, j)"
         return "double"
 
@@ -43,10 +40,7 @@ class DamagedNodeCoupling(NodeCoupling):
     @PYB11const
     @PYB11cppname("operator()")
     def __call__(self,
-                 nodeListi = "const unsigned",
-                 i = "const unsigned",
-                 nodeListj = "const unsigned",
-                 j = "const unsigned"):
+                 pair = "const NodePairIdxType&"):
         "Provides a damaged coupling between nodes (nodeListi, i) <-> (nodeListj, j)"
         return "double"
 
@@ -77,9 +71,41 @@ on fragment ID as well."""
     @PYB11const
     @PYB11cppname("operator()")
     def __call__(self,
-                 nodeListi = "const unsigned",
-                 i = "const unsigned",
-                 nodeListj = "const unsigned",
-                 j = "const unsigned"):
+                 pair = "const NodePairIdxType&"):
+        "Provides a damaged coupling between nodes (nodeListi, i) <-> (nodeListj, j)"
+        return "double"
+
+#-------------------------------------------------------------------------------
+# DamagedNodeCouplingWithFrags
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+class ThreePointDamagedNodeCoupling(NodeCoupling):
+    """A functor class encapsulating how we couple solid nodes in the presence of
+multiple materials and damage.
+
+This for uses the "three point" formalism, which allows damaged points to
+cut communication between pairs that talk across them."""
+
+    PYB11typedefs = """
+  typedef typename %(Dimension)s::Scalar Scalar;
+  typedef typename %(Dimension)s::Vector Vector;
+  typedef typename %(Dimension)s::Tensor Tensor;
+  typedef typename %(Dimension)s::SymTensor SymTensor;
+"""
+
+    def pyinit(self,
+               position = "const FieldList<%(Dimension)s, Vector>&",
+               H = "const FieldList<%(Dimension)s, SymTensor>&",
+               damage = "const FieldList<%(Dimension)s, SymTensor>&",
+               W = "const TableKernel<%(Dimension)s>&",
+               connectivity = "const ConnectivityMap<%(Dimension)s>&",
+               pairs = "NodePairList&"):
+        "Constructor"
+
+    @PYB11virtual
+    @PYB11const
+    @PYB11cppname("operator()")
+    def __call__(self,
+                 pair = "const NodePairIdxType&"):
         "Provides a damaged coupling between nodes (nodeListi, i) <-> (nodeListj, j)"
         return "double"

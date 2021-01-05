@@ -8,6 +8,7 @@
 #ifndef __Spheral_NodeCoupling__
 #define __Spheral_NodeCoupling__
 
+#include "Neighbor/NodePairList.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
@@ -21,8 +22,7 @@ public:
   
 
   // The coupling operator.
-  virtual double operator()(const unsigned /*nodeListi*/, const unsigned /*i*/,
-                            const unsigned /*nodeListj*/, const unsigned /*j*/) const {
+  virtual double operator()(const NodePairIdxType& /*pair*/) const {
     return 1.0;
   }
 };
@@ -35,9 +35,8 @@ public:
   virtual ~PerNodeListNodeCoupling() {}
 
   // The coupling operator.
-  virtual double operator()(const unsigned nodeListi, const unsigned /*i*/,
-                            const unsigned nodeListj, const unsigned /*j*/) const {
-    return (nodeListi == nodeListj ? 1.0 : 0.0);
+  virtual double operator()(const NodePairIdxType& pair) const override {
+    return (pair.i_list == pair.j_list ? 1.0 : 0.0);
   }
 };
 

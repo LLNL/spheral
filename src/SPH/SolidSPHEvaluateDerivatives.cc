@@ -271,8 +271,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // const auto fDij = 0.5*(fDi*fDj + fDj*fDi).Symmetric();
       // const auto fscaleDij = std::min(fDi.eigenValues().minElement(), fDj.eigenValues().minElement());
       // const auto fDij = std::min(fDi.eigenValues().minElement(), fDj.eigenValues().minElement())*Tensor::one;
-      // const auto fDij = coupling(nodeListi, i, nodeListj, j);
-      const auto fDij = pairs[kk].f_couple;
+      const auto fDij = coupling(pairs[kk]);
 
       // Node displacement.
       const auto rij = ri - rj;

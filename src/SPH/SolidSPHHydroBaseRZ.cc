@@ -509,7 +509,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto gradWGj = WG.gradValue(etaMagj, Hdetj) * Hetaj;
 
       // Determine how we're applying damage.
-      const auto fDeffij = coupling(nodeListi, i, nodeListj, j);
+      const auto fDeffij = coupling(pairs[kk]);
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.

@@ -33,12 +33,11 @@ public:
     mFragIDs(fragIDs) {}
 
   // The coupling operator.
-  virtual double operator()(const unsigned nodeListi, const unsigned i,
-                            const unsigned nodeListj, const unsigned j) const {
-    if (mFragIDs(nodeListi, i) != mFragIDs(nodeListj, j)) {
+  virtual double operator()(const NodePairIdxType& pair) const override {
+    if (mFragIDs(pair.i_list, pair.i_node) != mFragIDs(pair.j_list, pair.j_node)) {
       return 0.0;
     } else {
-      return DamagedNodeCoupling<Dimension>::operator()(nodeListi, i, nodeListj, j);
+      return DamagedNodeCoupling<Dimension>::operator()(pair);
     }
   }
 
