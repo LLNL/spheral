@@ -16,7 +16,10 @@ class %(classname)s%(dim)s(FSISolidSPHHydroBase%(dim)s):
                  WPi = None,
                  WGrad = None,
                  alpha = 1.00,
-                 sumDensityNodeListSwitch = None,
+                 diffusionCoefficient = 0.0,        
+                 interfaceMethod = 0,         
+                 decoupledNodeLists = None,
+                 sumDensityNodeLists = None,
                  filter = 0.0,
                  cfl = 0.5,
                  useVelocityMagnitudeForDt = False,
@@ -48,7 +51,10 @@ class %(classname)s%(dim)s(FSISolidSPHHydroBase%(dim)s):
                                           WPi,
                                           WGrad,
                                           alpha,
-                                          sumDensityNodeListSwitch,
+                                          diffusionCoefficient,        
+                                          interfaceMethod,         
+                                          decoupledNodeLists,
+                                          sumDensityNodeLists,
                                           filter,
                                           cfl,
                                           useVelocityMagnitudeForDt,
@@ -92,13 +98,16 @@ def FSISPH(dataBase,
         Q = None,
         filter = 0.0,
         cfl = 0.25,
-        alpha = 1.00,
-        sumDensityNodeListSwitch=None,
+        alpha = 1.00,                 
+        diffusionCoefficient=0.0,        
+        interfaceMethod=0,         
+        decoupledNodeLists=None,
+        sumDensityNodeLists=None,
         useVelocityMagnitudeForDt = False,
         compatibleEnergyEvolution = True,
         evolveTotalEnergy = False,
-        gradhCorrection = True,
-        XSPH = True,
+        gradhCorrection = False,
+        XSPH = False,
         correctVelocityGradient = True,
         sumMassDensityOverAllNodeLists = True,
         densityUpdate = IntegrateDensity,
@@ -113,17 +122,35 @@ def FSISPH(dataBase,
         ASPH = False,
         RZ = False):
 
-    # default to integrate density
-    if sumDensityNodeListSwitch is None:
-        sumDensityNodeListSwitch = vector_of_int([0]*dataBase.numNodeLists)
-    elif isinstance(sumDensityNodeListSwitch,list):
-        if len(sumDensityNodeListSwitch) == dataBase.numFluidNodeLists:
-            assert (isinstance(sumDensityNodeListSwitch[0],bool) or isinstance(sumDensityNodeListSwitch[0],int))
-            sumDensityNodeListSwitch = vector_of_int(sumDensityNodeListSwitch)
+    # default to fully coupled interfaces 
+    if decoupledNodeLists is None:
+        decoupledNodeLists = vector_of_int([0]*dataBase.numNodeLists)
+    elif isinstance(decoupledNodeLists,list):
+        if len(decoupledNodeLists) == dataBase.numFluidNodeLists:
+            assert (isinstance(decoupledNodeLists[0],bool) or isinstance(decoupledNodeLists[0],int))
+            decoupledNodeLists = vector_of_int(decoupledNodeLists)
         else:
-            raise RuntimeError, "sumDensityNodeListSwitch - must be list of length equal to numNodeLists."
+            raise RuntimeError, "decoupledNodeLists - must be list of length equal to numNodeLists."
     elif not isinstance(sumDensityNodeList,vector_of_int):
-        raise RuntimeError, "sumDensityNodeListSwitch - must be list of int 1/0 or bool."
+        raise RuntimeError, "decoupledNodeLists - must be list of int 1/0 or bool."
+
+    # if we're using the bulk modulus interface method its going to override 
+    # and user defined decoupledNodeLists to fully coupled
+    if interfaceMethod == 0 and any(decoupledNodeLists) == 1:
+        print "interfaceMethod = 0 requires full coupling of interface nodes. decoupledNodeLists are going to be ignored."
+        decoupledNodeLists *= 0
+
+    # default to integrate density
+    if sumDensityNodeLists is None:
+        sumDensityNodeLists = vector_of_int([0]*dataBase.numNodeLists)
+    elif isinstance(sumDensityNodeLists,list):
+        if len(sumDensityNodeLists) == dataBase.numFluidNodeLists:
+            assert (isinstance(sumDensityNodeLists[0],bool) or isinstance(sumDensityNodeLists[0],int))
+            sumDensityNodeLists = vector_of_int(sumDensityNodeLists)
+        else:
+            raise RuntimeError, "sumDensityNodeLists - must be list of length equal to numNodeLists."
+    elif not isinstance(sumDensityNodeList,vector_of_int):
+        raise RuntimeError, "sumDensityNodeLists - must be list of int 1/0 or bool."
 
     # We use the provided DataBase to sniff out what sort of NodeLists are being
     # used, and based on this determine which SPH object to build.
@@ -184,7 +211,10 @@ def FSISPH(dataBase,
               "filter" : filter,
               "cfl" : cfl,
               "alpha" : alpha,
-              "sumDensityNodeListSwitch" : sumDensityNodeListSwitch,
+              "diffusionCoefficient" : diffusionCoefficient,        
+              "interfaceMethod" : interfaceMethod,         
+              "decoupledNodeLists" : decoupledNodeLists,
+              "sumDensityNodeLists" : sumDensityNodeLists,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
               "evolveTotalEnergy" : evolveTotalEnergy,
@@ -219,10 +249,13 @@ def AFSISPH(dataBase,
          filter = 0.0,
          cfl = 0.25,
          alpha=1.00,
+         diffusionCoefficient=0.0,        
+         interfaceMethod=0,         
+         decoupledNodeLists=None,
          useVelocityMagnitudeForDt = False,
          compatibleEnergyEvolution = True,
          evolveTotalEnergy = False,
-         gradhCorrection = True,
+         gradhCorrection = False,
          XSPH = True,
          correctVelocityGradient = True,
          sumMassDensityOverAllNodeLists = True,
@@ -242,6 +275,9 @@ def AFSISPH(dataBase,
                filter = filter,
                cfl = cfl,
                alpha = alpha,
+               diffusionCoefficient= diffusionCoefficient,        
+               interfaceMethod = interfaceMethod,         
+               decoupledNodeLists = decoupledNodeLists,
                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                compatibleEnergyEvolution = compatibleEnergyEvolution,
                evolveTotalEnergy = evolveTotalEnergy,
