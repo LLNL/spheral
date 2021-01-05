@@ -18,6 +18,7 @@ using std::max;
 using std::abs;
 
 #include "Timer.hh"
+#include "DBC.hh"
 
 // Must initialize the static list defined in Timer.hh
 // list<Timer*> Timer::TimerList(0); 
@@ -91,7 +92,7 @@ Timer::Timer(const string& name, Timer& parent):
 }
 
 // Diagnostic Non-root Managed Timer construction for separate table
-Timer::Timer(const string& name, Timer& parent, bool d):
+Timer::Timer(const string& name, Timer& parent, bool):
   timer_name(name),  Parent(parent) {
 
   //cout << "   Diagnostic Timer construction for = " << name << endl;
@@ -629,6 +630,9 @@ static void writeLineOfData(FILE *out,
 			    const double wc_max,
 			    const double counter1,
 			    const double counter2) {
+
+  CONTRACT_VAR(counter1);
+  CONTRACT_VAR(counter2);
 
 #ifdef PAPI
 

@@ -64,10 +64,7 @@ public:
   static std::list<Timer*> TimerList;
 
   static void TimerSummary(const std::string& fname);
-  static void TimerSummary(){ TimerSummary("time.table"); }
-  static void TimerSummary(const int, const int) {
-    TimerSummary(); // backwards compatibilty...
-  }
+  static void TimerSummary() { TimerSummary("time.table"); }
   
 private:
   
