@@ -29,7 +29,7 @@ YieldStrengthPolicy():
                                                                    HydroFieldNames::specificThermalEnergy,
                                                                    HydroFieldNames::pressure,
                                                                    SolidFieldNames::plasticStrain,
-                                                                   SolidFieldNames::tensorDamage,
+                                                                   SolidFieldNames::effectiveTensorDamage,
                                                                    IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::plasticStrain) {
 }
 
@@ -67,7 +67,7 @@ update(const KeyType& key,
   const auto P = state.fields(HydroFieldNames::pressure, 0.0);
   const auto PS = state.fields(SolidFieldNames::plasticStrain, 0.0);
   const auto PSR = derivs.fields(SolidFieldNames::plasticStrainRate, 0.0);
-  const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
+  const auto D = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
 
   // Walk the individual fields.
   for (auto k = 0u; k < numFields; ++k) {
