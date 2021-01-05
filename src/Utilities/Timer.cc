@@ -229,7 +229,7 @@ double Timer::getTimeStampWC(){
 // the list of timers and make a list of parent timers.  From there i
 // can make for loops that step thru the tree and print out the
 // results.
-void Timer::TimerSummary( const std::string& fname ) {
+void Timer::TimerSummary( const std::string fname ) {
 
   int rank, number_procs;
 #ifdef USE_MPI
