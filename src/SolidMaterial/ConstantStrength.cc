@@ -45,7 +45,7 @@ shearModulus(Field<Dimension, Scalar>& shearModulus,
              const Field<Dimension, Scalar>& /*density*/,
              const Field<Dimension, Scalar>& /*specificThermalEnergy*/,
              const Field<Dimension, Scalar>& /*pressure*/,
-             const Field<Dimension, SymTensor>& damage) const {
+             const Field<Dimension, SymTensor>& /*damage*/) const {
   shearModulus = mShearModulus0;
 }
 
@@ -61,7 +61,7 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
               const Field<Dimension, Scalar>& /*pressure*/,
               const Field<Dimension, Scalar>& /*plasticStrain*/,
               const Field<Dimension, Scalar>& /*plasticStrainRate*/,
-              const Field<Dimension, SymTensor>& damage) const {
+              const Field<Dimension, SymTensor>& /*damage*/) const {
   if (mEOSptr != 0 and
       density/(mEOSptr->referenceDensity()) < mEOSptr->etamin()) {
     yieldStrength = 0.0;
