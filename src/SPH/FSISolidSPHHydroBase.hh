@@ -43,7 +43,10 @@ public:
                     const TableKernel<Dimension>& WPi,
                     const TableKernel<Dimension>& WGrad,
                     const double alpha,
-                    const std::vector<int> sumDensityNodeListSwitch,
+                    const double diffusionCoefficient,
+                    const int interfaceMethod,
+                    const std::vector<int> sumDensityNodeLists,
+                    const std::vector<int> decoupledNodeLists,
                     const double filter,
                     const double cfl,
                     const bool useVelocityMagnitudeForDt,
@@ -83,14 +86,25 @@ public:
                                    const TableKernel<Dimension>& W,
                                    const FieldList<Dimension, typename Dimension::Vector>& position,
                                    const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                                   const FieldList<Dimension, typename Dimension::Scalar>& bulkModulus,
+                                   const FieldList<Dimension, typename Dimension::Scalar>& pressure,
                                    const FieldList<Dimension, typename Dimension::SymTensor>& H,
                                    FieldList<Dimension, typename Dimension::Scalar>& massDensity);
   
   double alpha() const;
   void alpha(double x);
 
-  std::vector<int> sumDensityNodeListSwitch() const;
-  void sumDensityNodeListSwitch(std::vector<int> x);
+  double diffusionCoefficient() const;
+  void diffusionCoefficient(double x);
+
+  int interfaceMethod() const;
+  void interfaceMethod(int x);
+
+  std::vector<int> decoupledNodeLists() const;
+  void decoupledNodeLists(std::vector<int> x);
+
+  std::vector<int> sumDensityNodeLists() const;
+  void sumDensityNodeLists(std::vector<int> x);
 
   //****************************************************************************
   // Methods required for restarting.
@@ -98,8 +112,13 @@ public:
  //****************************************************************************
 
 private:
-  double mAlpha;                               //generalized density exponent
-  std::vector<int> mSumDensityNodeListSwitch;  //turn on density sum subset of nodeLists
+  double mAlpha;                               // generalized density exponent
+  double mDiffusionCoefficient;                // controls diffusion of rho and eps
+  int mInterfaceMethod;                        // (0 or 1) switch between interface methods
+  std::vector<int> mDecoupledNodeLists ;       // decouples DrhoDt and DepsDt for specificed nodeLists
+  std::vector<int> mSumDensityNodeLists;       // turn on density sum subset of nodeLists
+  
+
   FieldList<Dimension, Vector> mSurfaceNormal; //estimate of interface normals
 
   // No default constructor, copying, or assignment.
