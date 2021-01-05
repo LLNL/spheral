@@ -50,6 +50,12 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
     auto& fij = pair.f_couple;
     fij = 1.0;
 
+    // Apply damage from (i,j) directly, since they're not included in the neighbor intersection
+    const auto& Di = damage(pair.i_list, pair.i_node);
+    const auto& Dj = damage(pair.j_list, pair.j_node);
+    fij *= std::max(0.0, std::min(1.0, 1.0 - (Di*xhatji).magnitude()));
+    fij *= std::max(0.0, std::min(1.0, 1.0 - (Dj*xhatji).magnitude()));
+
     // Find the common neighbors for this pair.
     const auto intersection_list = connectivity.connectivityIntersectionForNodes(pair.i_list, pair.i_node,
                                                                                  pair.j_list, pair.j_node);
