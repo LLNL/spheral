@@ -27,8 +27,8 @@ ThreePointDamagedNodeCoupling<Dimension>::
 ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                               const FieldList<Dimension, SymTensor>& H,
                               const FieldList<Dimension, SymTensor>& damage,
-                              const ConnectivityMap<Dimension>& connectivity,
                               const TableKernel<Dimension>& W,
+                              const ConnectivityMap<Dimension>& connectivity,
                               NodePairList& pairs) {
 
   const auto W0 = W.kernelValue(0.0, 1.0);

@@ -5,6 +5,7 @@
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 #include "Utilities/DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/ThreePointDamagedNodeCoupling.hh"
 #include "SPH/SPHHydroBase.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"

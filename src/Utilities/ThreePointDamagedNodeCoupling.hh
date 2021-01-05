@@ -35,8 +35,8 @@ public:
   ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                                 const FieldList<Dimension, SymTensor>& H,
                                 const FieldList<Dimension, SymTensor>& damage,
-                                const ConnectivityMap<Dimension>& connectivity,
                                 const TableKernel<Dimension>& W,
+                                const ConnectivityMap<Dimension>& connectivity,
                                 NodePairList& pairs);
 
   // The coupling operator.

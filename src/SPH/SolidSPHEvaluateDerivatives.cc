@@ -138,7 +138,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(DSDt.size() == numNodeLists);
 
   // The set of interacting node pairs.
-  const auto& pairs = connectivityMap.nodePairList();
+  auto&       pairs = const_cast<NodePairList&>(connectivityMap.nodePairList());
   const auto  npairs = pairs.size();
 
   // Size up the pair-wise accelerations before we start.
@@ -150,7 +150,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Build the functor we use to compute the effective coupling between nodes.
-  DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
+  // DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
+  ThreePointDamagedNodeCoupling<Dimension> coupling(position, H, damage, W, connectivityMap, pairs);
 
   // Walk all the interacting pairs.
 #pragma omp parallel
@@ -158,8 +159,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     // Thread private  scratch variables.
     int i, j, nodeListi, nodeListj;
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
-    Tensor QPiij, QPiji, sigmarhoi, sigmarhoj;
-    SymTensor sigmai, sigmaj;
+    Tensor QPiij, QPiji;
+    SymTensor sigmai, sigmaj, sigmarhoi, sigmarhoj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto rhoSum_thread = rhoSum.threadCopy(threadStack);
@@ -267,10 +268,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
       // Determine how we're applying damage.
-      const auto fDij = 0.5*(fDi*fDj + fDj*fDi).Symmetric();
-      const auto fscaleDij = std::min(fDi.eigenValues().minElement(), fDj.eigenValues().minElement());
+      // const auto fDij = 0.5*(fDi*fDj + fDj*fDi).Symmetric();
+      // const auto fscaleDij = std::min(fDi.eigenValues().minElement(), fDj.eigenValues().minElement());
       // const auto fDij = std::min(fDi.eigenValues().minElement(), fDj.eigenValues().minElement())*Tensor::one;
       // const auto fDij = coupling(nodeListi, i, nodeListj, j);
+      const auto fDij = pairs[kk].f_couple;
 
       // Node displacement.
       const auto rij = ri - rj;
@@ -335,15 +337,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       viscousWorkj += mi*workQj;
 
       // Damage scaling of negative pressures.
-      // sigmai = (Pi < 0.0 ? fDi : SymTensor::one) * -Pi;
-      // sigmaj = (Pj < 0.0 ? fDj : SymTensor::one) * -Pj;
+      sigmai = (Pi < 0.0 ? -fDij*Pi : -Pi) * SymTensor::one;
+      sigmaj = (Pj < 0.0 ? -fDij*Pj : -Pj) * SymTensor::one;
 
       // Compute the stress tensors.
-      sigmai = -fscaleDij*Pi*SymTensor::one;
-      sigmaj = -fscaleDij*Pj*SymTensor::one;
       if (sameMatij) {
-        sigmai += Si;
-        sigmaj += Sj;
+        sigmai += fDij*Si;
+        sigmaj += fDij*Sj;
       }
 
       // Compute the tensile correction to add to the stress as described in 
@@ -358,8 +358,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // Acceleration.
       CHECK(rhoi > 0.0);
       CHECK(rhoj > 0.0);
-      sigmarhoi = fDij*(safeOmegai*sigmai/(rhoi*rhoi));
-      sigmarhoj = fDij*(safeOmegaj*sigmaj/(rhoj*rhoj));
+      sigmarhoi = safeOmegai*sigmai/(rhoi*rhoi);
+      sigmarhoj = safeOmegaj*sigmaj/(rhoj*rhoj);
       const auto deltaDvDt = sigmarhoi*gradWi + sigmarhoj*gradWj - Qacci - Qaccj;
       if (freeParticle) {
         DvDti += mj*deltaDvDt;
@@ -368,8 +368,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       if (compatibleEnergy) pairAccelerations[kk] = mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
       // Pair-wise portion of grad velocity.
-      const auto deltaDvDxi = vij.dyad(gradWGi);
-      const auto deltaDvDxj = vij.dyad(gradWGj);
+      const auto deltaDvDxi = fDij * vij.dyad(gradWGi);
+      const auto deltaDvDxj = fDij * vij.dyad(gradWGj);
 
       // Specific thermal energy evolution.
       DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
