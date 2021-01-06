@@ -1199,36 +1199,6 @@ DataBase<Dimension>::solidDamage() const {
 }
 
 //------------------------------------------------------------------------------
-// Return the solid effective damage field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-FieldList<Dimension, typename Dimension::SymTensor>
-DataBase<Dimension>::solidEffectiveDamage() const {
-  REQUIRE(valid());
-  FieldList<Dimension, SymTensor> result;
-  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
-       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
-    result.appendField((*nodeListItr)->effectiveDamage());
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Return the solid damage gradient field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-FieldList<Dimension, typename Dimension::Vector>
-DataBase<Dimension>::solidDamageGradient() const {
-  REQUIRE(valid());
-  FieldList<Dimension, Vector> result;
-  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
-       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
-    result.appendField((*nodeListItr)->damageGradient());
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
 // Return the solid fragment ID field.
 //------------------------------------------------------------------------------
 template<typename Dimension>

@@ -37,7 +37,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "Utilities/DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/NodeCoupling.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 
 #include "CRKSPH/SolidCRKSPHHydroBaseRZ.hh"
@@ -313,8 +313,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   const auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
-  const auto damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
-  const auto gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
+  const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   const auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
@@ -330,7 +329,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(S.size() == numNodeLists);
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
-  CHECK(gradDamage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
   CHECK(corrections.size() == numNodeLists);
@@ -375,7 +373,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   if (compatibleEnergy) pairAccelerations.resize(2*npairs + dataBase.numInternalNodes());
 
   // Build the functor we use to compute the effective coupling between nodes.
-  const DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
+  const NodeCoupling coupling;
 
   // Walk all the interacting pairs.
 #pragma omp parallel

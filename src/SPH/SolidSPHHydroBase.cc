@@ -225,7 +225,6 @@ registerState(DataBase<Dimension>& dataBase,
   // Build the FieldList versions of our state.
   FieldList<Dimension, SymTensor> S, D;
   FieldList<Dimension, Scalar> ps;
-  FieldList<Dimension, Vector> gradD;
   FieldList<Dimension, int> fragIDs;
   FieldList<Dimension, int> pTypes;
   auto nodeListi = 0;
@@ -234,8 +233,7 @@ registerState(DataBase<Dimension>& dataBase,
        ++itr, ++nodeListi) {
     S.appendField((*itr)->deviatoricStress());
     ps.appendField((*itr)->plasticStrain());
-    D.appendField((*itr)->effectiveDamage());
-    gradD.appendField((*itr)->damageGradient());
+    D.appendField((*itr)->damage());
     fragIDs.appendField((*itr)->fragmentIDs());
     pTypes.appendField((*itr)->particleTypes());
 
@@ -262,10 +260,9 @@ registerState(DataBase<Dimension>& dataBase,
   PolicyPointer csPolicy(new StrengthSoundSpeedPolicy<Dimension>());
   state.enroll(cs, csPolicy);
 
-  // Register the effective damage and damage gradient with default no-op updates.
-  // If there are any damage models running they can override these choices.
+  // Register the damage with a default no-op update.
+  // If there are any damage models running they can override this choice.
   state.enroll(D);
-  state.enroll(gradD);
 
   // Register the fragment IDs.
   state.enroll(fragIDs);

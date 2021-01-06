@@ -67,8 +67,6 @@ public:
   // Constructors, destructor.
   TensorDamageModel(SolidNodeList<Dimension>& nodeList,
                     const TensorStrainAlgorithm strainAlgorithm,
-                    const EffectiveDamageAlgorithm effDamageAlgorithm,
-                    const bool useDamageGradient,
                     const TableKernel<Dimension>& W,
                     const double crackGrowthMultiplier,
                     const EffectiveFlawAlgorithm flawAlgorithm,
@@ -114,17 +112,9 @@ public:
   const Field<Dimension, SymTensor>& strain() const;
   const Field<Dimension, SymTensor>& effectiveStrain() const;
   const Field<Dimension, Scalar>& DdamageDt() const;
-  const Field<Dimension, SymTensor>& newEffectiveDamage() const;
-  const Field<Dimension, Vector>& newDamageGradient() const;
 
   // The algorithms being used to update the strain and effective damage.
   TensorStrainAlgorithm strainAlgorithm() const;
-  EffectiveDamageAlgorithm effectiveDamageAlgorithm() const;
-
-  // Flag to determine if we compute the gradient of the damage at the start 
-  // of a timestep.
-  bool useDamageGradient() const;
-  void useDamageGradient(bool x);
 
   // Flag to determine if damage in compression is allowed.
   bool damageInCompression() const;
@@ -146,15 +136,12 @@ protected:
   Field<Dimension, SymTensor> mStrain;
   Field<Dimension, SymTensor> mEffectiveStrain;
   Field<Dimension, Scalar> mDdamageDt;
-  Field<Dimension, SymTensor> mNewEffectiveDamage;
-  Field<Dimension, Vector> mNewDamageGradient;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   TensorStrainAlgorithm mStrainAlgorithm;
-  EffectiveDamageAlgorithm mEffDamageAlgorithm;
   double mCriticalDamageThreshold;
-  bool mUseDamageGradient, mDamageInCompression;
+  bool mDamageInCompression;
 
   // No default constructor, copying or assignment.
   TensorDamageModel();

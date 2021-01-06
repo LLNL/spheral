@@ -54,7 +54,7 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
   auto H = db.fluidHfield();
   auto mass = db.fluidMass();
   auto rhof = db.fluidMassDensity();
-  auto D = db.solidEffectiveDamage();
+  auto D = db.solidDamage();
 
   // Prepare the storage for the point-wise fields.
   auto gradRhof = db.newFluidFieldList(Vector::zero, "mass density gradient");

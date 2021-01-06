@@ -223,8 +223,6 @@ public:
   FieldList<Dimension, Scalar> solidPlasticStrain() const;
   FieldList<Dimension, Scalar> solidPlasticStrainRate() const;
   FieldList<Dimension, SymTensor> solidDamage() const;
-  FieldList<Dimension, SymTensor> solidEffectiveDamage() const;
-  FieldList<Dimension, Vector> solidDamageGradient() const;
   FieldList<Dimension, int> solidFragmentIDs() const;
   FieldList<Dimension, int> solidParticleTypes() const;
 

@@ -609,8 +609,6 @@ will get the new value regardless of resetValues."""
     solidPlasticStrain = PYB11property("FieldList<%(Dimension)s, Scalar>")
     solidPlasticStrainRate = PYB11property("FieldList<%(Dimension)s, Scalar>")
     solidDamage = PYB11property("FieldList<%(Dimension)s, SymTensor>")
-    solidEffectiveDamage = PYB11property("FieldList<%(Dimension)s, SymTensor>")
-    solidDamageGradient = PYB11property("FieldList<%(Dimension)s, Vector>")
     solidFragmentIDs = PYB11property("FieldList<%(Dimension)s, int>")
 
     globalNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")

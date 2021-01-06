@@ -27,7 +27,7 @@ StrengthSoundSpeedPolicy<Dimension>::
 StrengthSoundSpeedPolicy():
   SoundSpeedPolicy<Dimension>() {
   this->addDependency(HydroFieldNames::pressure);
-  this->addDependency(SolidFieldNames::effectiveTensorDamage);
+  this->addDependency(SolidFieldNames::tensorDamage);
 }
 
 //------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ update(const KeyType& key,
   const auto rho = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const auto P = state.fields(HydroFieldNames::pressure, 0.0);
-  const auto D = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
 
   // Walk the individual fields.
   for (auto k = 0u; k < numFields; ++k) {

@@ -74,8 +74,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
   const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   const auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
-  const auto damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
-  const auto gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
+  const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   CHECK(mass.size() == numNodeLists);
@@ -90,7 +89,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(S.size() == numNodeLists);
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
-  CHECK(gradDamage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
 

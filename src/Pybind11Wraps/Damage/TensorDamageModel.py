@@ -24,8 +24,6 @@ required of descendant classes."""
     def pyinit(self,
                nodeList = "SolidNodeList<%(Dimension)s>&",
                strainAlgorithm = "const TensorStrainAlgorithm",
-               effectiveDamageAlgorithm = "const EffectiveDamageAlgorithm",
-               useDamageGradient = "const bool",
                kernel = "const TableKernel<%(Dimension)s>&",
                crackGrowthMultiplier = "const double",
                flawAlgorithm = "const EffectiveFlawAlgorithm",
@@ -90,13 +88,8 @@ required of descendant classes."""
     strain = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
     effectiveStrain = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
     DdamageDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
-    newEffectiveDamage = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
-    newDamageGradient = PYB11property("const Field<%(Dimension)s, Vector>&", returnpolicy="reference_internal")
 
     strainAlgorithm = PYB11property("TensorStrainAlgorithm")
-    effectiveDamageAlgorithm = PYB11property("EffectiveDamageAlgorithm")
-    useDamageGradient = PYB11property("bool", "useDamageGradient", "useDamageGradient",
-                                      doc="Flag to determine if we compute the gradient of the damage at the start of a timestep.")
     damageInCompression = PYB11property("bool", "damageInCompression", "damageInCompression",
                                         doc="Flag to determine if damage in compression is allowed.")
     criticalDamageThreshold = PYB11property("double", "criticalDamageThreshold", "criticalDamageThreshold",

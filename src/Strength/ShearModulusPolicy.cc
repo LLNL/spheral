@@ -29,7 +29,7 @@ ShearModulusPolicy():
   FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::massDensity,
                                                                    HydroFieldNames::specificThermalEnergy,
                                                                    HydroFieldNames::pressure,
-                                                                   SolidFieldNames::effectiveTensorDamage) {
+                                                                   SolidFieldNames::tensorDamage) {
 }
 
 //------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ update(const KeyType& key,
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto energy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const auto P = state.fields(HydroFieldNames::pressure, 0.0);
-  const auto D = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
     
   // Walk the individual fields.
   for (auto k = 0u; k != numFields; ++k) {

@@ -27,8 +27,8 @@ GradyKippTensorDamageBenzAsphaug is constructed with the following arguments:
         kernel              : (required) the interpolation kernel to use
         seed                : (optional) random number seed for flaw generation.
         strainAlgorithm     : (optional) defaults to "BenzAsphaugStrain"
-        effectiveDamageAlgorithm : (optional) defaults to "CopyDamage".
-        useDamageGradient   : (optional) defaults to "False"
+        effectiveDamageAlgorithm : (optional) defaults to "CopyDamage".          (*** deprecated ***)
+        useDamageGradient   : (optional) defaults to "False"                     (*** deprecated ***)
         crackGrowthMultiplier : (optional) defaults to "0.4"
         flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
         criticalDamageThreshold : (optional) defaults to 4.0 (inactive)
@@ -53,8 +53,8 @@ GradyKippTensorDamageOwen is constructed with the following arguments:
         seed                : (optional) random number seed for flaw generation.
         volumeMultiplier    : (optional) Multiplies the total volume.
         strainAlgorithm     : (optional) defaults to "PsuedoPlasticStrain"
-        effectiveDamageAlgorithm : (optional) defaults to "CopyDamage".
-        useDamageGradient   : (optional) defaults to "False"
+        effectiveDamageAlgorithm : (optional) defaults to "CopyDamage".          (*** deprecated ***)
+        useDamageGradient   : (optional) defaults to "False"                     (*** deprecated ***)
         crackGrowthMultiplier : (optional) defaults to "0.4"
         flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
         criticalDamageThreshold : (optional) defaults to 4.0 (inactive)

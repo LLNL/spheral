@@ -34,7 +34,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "Utilities/DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/ThreePointDamagedNodeCoupling.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 
 #include "SolidCRKSPHHydroBase.hh"
@@ -229,12 +229,10 @@ registerState(DataBase<Dimension>& dataBase,
   PolicyPointer csPolicy(new StrengthSoundSpeedPolicy<Dimension>());
   state.enroll(cs, csPolicy);
 
-  // Register the effective damage and damage gradient with default no-op updates.
-  // If there are any damage models running they can override these choices.
-  auto D = dataBase.solidEffectiveDamage();
-  auto gradD = dataBase.solidDamageGradient();
+  // Register the damage with a default no-op update.
+  // If there are any damage models running they can override this choice.
+  auto D = dataBase.solidDamage();
   state.enroll(D);
-  state.enroll(gradD);
 
   // Register the fragment IDs.
   auto fragIDs = dataBase.solidFragmentIDs();
@@ -322,8 +320,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   const auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
-  const auto damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
-  const auto gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
+  const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   const auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
@@ -339,7 +336,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(S.size() == numNodeLists);
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
-  CHECK(gradDamage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
   CHECK(corrections.size() == numNodeLists);
@@ -382,7 +378,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   if (compatibleEnergy) pairAccelerations.resize(npairs);
 
   // Build the functor we use to compute the effective coupling between nodes.
-  const DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
+  const NodeCoupling coupling;
 
   // Walk all the interacting pairs.
 #pragma omp parallel
