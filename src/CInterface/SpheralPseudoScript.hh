@@ -202,7 +202,7 @@ private:
   static SpheralPseudoScript* mInstancePtr;
 
   // Numbers of nodes per material.
-  std::vector<unsigned> mNumInternalNodes, mNumHostGhostNodes;
+  std::vector<int> mNumTotalNodes, mNumInternalNodes, mNumHostGhostNodes;
 
   // Damage flag
   bool mDamage;

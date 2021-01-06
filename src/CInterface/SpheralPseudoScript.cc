@@ -1566,11 +1566,11 @@ getNumNodes() {
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
   const auto nmats = me.mNodeLists.size();
-  int* result = new int[nmats];
+  me.mNumTotalNodes.resize(nmats);
   for (unsigned i = 0; i != nmats; ++i) {
-    result[i] = me.mNodeLists[i]->numNodes();
+    me.mNumTotalNodes[i] = me.mNodeLists[i]->numNodes();
   }
-  return result;
+  return me.mNumTotalNodes.data();
 }
 
 //------------------------------------------------------------------------------
@@ -1585,11 +1585,11 @@ getNumInternalNodes() {
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
   const auto nmats = me.mNodeLists.size();
-  int* result = new int[nmats];
+  me.mNumInternalNodes.resize(nmats);
   for (unsigned i = 0; i != nmats; ++i) {
-    result[i] = me.mNodeLists[i]->numInternalNodes();
+    me.mNumInternalNodes[i] = me.mNodeLists[i]->numInternalNodes();
   }
-  return result;
+  return me.mNumInternalNodes.data();
 }
 
 //------------------------------------------------------------------------------
@@ -1604,11 +1604,11 @@ getNumGhostNodes() {
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
   const auto nmats = me.mNodeLists.size();
-  int* result = new int[nmats];
+  me.mNumHostGhostNodes.resize(nmats);
   for (unsigned i = 0; i != nmats; ++i) {
-    result[i] = me.mNodeLists[i]->numGhostNodes();
+    me.mNumHostGhostNodes[i] = me.mNodeLists[i]->numGhostNodes();
   }
-  return result;
+  return me.mNumHostGhostNodes.data();
 }
 
 //------------------------------------------------------------------------------
@@ -1617,6 +1617,7 @@ getNumGhostNodes() {
 template<typename Dimension>
 SpheralPseudoScript<Dimension>::
 SpheralPseudoScript():
+  mNumTotalNodes(0),
   mNumInternalNodes(0),
   mNumHostGhostNodes(0),
   mDamage(false),
