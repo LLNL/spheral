@@ -475,7 +475,6 @@ elif DamageModelConstructor is GradyKippTensorDamageOwen:
                                          useDamageGradient,
                                          0.4,
                                          effectiveFlawAlgorithm,
-                                         numFlawsPerNode,
                                          damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is JohnsonCookDamageWeibull:
@@ -515,10 +514,6 @@ elif DamageModelConstructor is JohnsonCookDamageGaussian:
                                          domainIndependent = domainIndependent)
 
 output("damageModel")
-if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
-    output("damageModel.useDamageGradient")
-    output("damageModel.effectiveDamageAlgorithm")
-    output("damageModel.effectiveFlawAlgorithm")
 
 if cullToWeakestFlaws:
     damageModel.cullToWeakestFlaws()
