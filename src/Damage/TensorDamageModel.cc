@@ -15,7 +15,6 @@
 #include "TensorDamageModel.hh"
 #include "TensorStrainPolicy.hh"
 #include "TensorDamagePolicy.hh"
-#include "EffectiveTensorDamagePolicy.hh"
 #include "DamageGradientPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
@@ -53,11 +52,10 @@ TensorDamageModel(SolidNodeList<Dimension>& nodeList,
                   const TensorStrainAlgorithm strainAlgorithm,
                   const TableKernel<Dimension>& W,
                   const double crackGrowthMultiplier,
-                  const EffectiveFlawAlgorithm flawAlgorithm,
                   const double criticalDamageThreshold,
                   const bool damageInCompression,
                   const FlawStorageType& flaws):
-  DamageModel<Dimension>(nodeList, W, crackGrowthMultiplier, flawAlgorithm, flaws),
+  DamageModel<Dimension>(nodeList, W, crackGrowthMultiplier, flaws),
   mStrain(SolidFieldNames::strainTensor, nodeList),
   mEffectiveStrain(SolidFieldNames::effectiveStrainTensor, nodeList),
   mDdamageDt(TensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::scalarDamage, nodeList),
@@ -86,8 +84,6 @@ evaluateDerivatives(const Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-
-  const double tiny = 1.0e-15;
 
   // The base class determines the scalar magnitude of the damage evolution.
   const auto* nodeListPtr = &(this->nodeList());

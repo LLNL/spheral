@@ -26,7 +26,6 @@ required of descendant classes."""
                strainAlgorithm = "const TensorStrainAlgorithm",
                kernel = "const TableKernel<%(Dimension)s>&",
                crackGrowthMultiplier = "const double",
-               flawAlgorithm = "const EffectiveFlawAlgorithm",
                criticalDamageThreshold = "const double",
                damageInCompression = "const bool",
                flaws = "const FlawStorageType&"):

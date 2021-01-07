@@ -29,7 +29,6 @@ GradyKippTensorDamageBenzAsphaug is constructed with the following arguments:
         seed                : (optional) random number seed for flaw generation.
         strainAlgorithm     : (optional) defaults to "BenzAsphaugStrain"
         crackGrowthMultiplier : (optional) defaults to "0.4"
-        flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
         criticalDamageThreshold : (optional) defaults to 4.0 (inactive)
         minFlawsPerNode     : (optional) defaults to "1"
         minTotalFlaws       : (optional) defaults to "1"
@@ -53,7 +52,6 @@ GradyKippTensorDamageOwen is constructed with the following arguments:
         volumeMultiplier    : (optional) Multiplies the total volume.
         strainAlgorithm     : (optional) defaults to "PsuedoPlasticStrain"
         crackGrowthMultiplier : (optional) defaults to "0.4"
-        flawAlgorithm       : (optional) defaults to "FullSpectrumFlaws"
         criticalDamageThreshold : (optional) defaults to 4.0 (inactive)
         minFlawsPerNode     : (optional) defaults to "1"
         mask                : (optional) a field of flags: a node with zero implies
@@ -81,7 +79,6 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
                          "strainAlgorithm"          : BenzAsphaugStrain,
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,
-                         "flawAlgorithm"            : FullSpectrumFlaws,
                          "criticalDamageThreshold"  : 4.0,
                          "damageInCompression"      : False}
 
@@ -102,7 +99,8 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
 
         # Deprecated arguments.
         deprecated_kwargs = ["effectiveDamageAlgorithm",
-                             "useDamageGradient"]
+                             "useDamageGradient",
+                             "flawAlgorithm"]
 
         # The order of all arguments in the original constructor for these classes.
         backCompatOrder = ["nodeList",
@@ -235,7 +233,6 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
                          "strainAlgorithm"          : BenzAsphaugStrain,
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,
-                         "flawAlgorithm"            : FullSpectrumFlaws,
                          "criticalDamageThreshold"  : 4.0,
                          "damageInCompression"      : False}
 
@@ -254,7 +251,8 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
 
         # Deprecated arguments.
         deprecated_kwargs = ["effectiveDamageAlgorithm",
-                             "useDamageGradient"]
+                             "useDamageGradient",
+                             "flawAlgorithm"]
 
         # The order of all arguments in the original constructor for these classes.
         backCompatOrder = ["nodeList",

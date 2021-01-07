@@ -33,11 +33,7 @@ DamageModel<Dimension>::
 flawsForNode(const size_t index) const {
   REQUIRE(index < mNodeList.numInternalNodes());
   REQUIRE(mFlaws.nodeListPtr() == &mNodeList);
-  if (mEffectiveFlawAlgorithm == EffectiveFlawAlgorithm::FullSpectrumFlaws) {
-    return mFlaws(index);
-  } else {
-    return std::vector<double>(1, mEffectiveFlaws(index));
-  }
+  return mFlaws(index);
 }
 
 //------------------------------------------------------------------------------
@@ -73,14 +69,6 @@ double
 DamageModel<Dimension>::
 crackGrowthMultiplier() const {
   return mCrackGrowthMultiplier;
-}
-
-template<typename Dimension>
-inline
-EffectiveFlawAlgorithm
-DamageModel<Dimension>::
-effectiveFlawAlgorithm() const {
-  return mEffectiveFlawAlgorithm;
 }
 
 //------------------------------------------------------------------------------
@@ -119,17 +107,6 @@ typename DamageModel<Dimension>::FlawStorageType&
 DamageModel<Dimension>::
 flaws() {
   return mFlaws;
-}
-
-//------------------------------------------------------------------------------
-// Access the computed effective flaw activation strain per node.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const Field<Dimension, typename Dimension::Scalar>&
-DamageModel<Dimension>::
-effectiveFlaws() const {
-  return mEffectiveFlaws;
 }
 
 }

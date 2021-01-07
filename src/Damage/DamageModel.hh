@@ -54,7 +54,6 @@ public:
   DamageModel(SolidNodeList<Dimension>& nodeList,
               const TableKernel<Dimension>& W,
               const double crackGrowthMultiplier,
-              const EffectiveFlawAlgorithm flawAlgorithm,
               const FlawStorageType& flaws);
   virtual ~DamageModel();
 
@@ -69,23 +68,10 @@ public:
 
   //...........................................................................
   // Provide a subset of the required physics package interface.
-  // Descendant classes must complete the set!
-  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
-                                 State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs) override;
-
   virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state) override;
 
-  virtual 
-  void postStateUpdate(const Scalar time, 
-                       const Scalar dt,
-                       const DataBase<Dimension>& dataBase, 
-                       State<Dimension>& state,
-                       StateDerivatives<Dimension>& derivatives) override;
-
   //...........................................................................
-
   // Optional method to cull the set of flaws to the single weakest one on
   // each point.
   void cullToWeakestFlaws();
@@ -102,7 +88,6 @@ public:
 
   // Important local parameters.
   double crackGrowthMultiplier() const;
-  EffectiveFlawAlgorithm effectiveFlawAlgorithm() const;
 
   // Allow the user to specify a set of nodes to be excluded from damage.
   std::vector<int> excludeNodes() const;
@@ -115,9 +100,6 @@ public:
   // Access the flaw field.
   const FlawStorageType& flaws() const;
   FlawStorageType& flaws();
-
-  // The effective flaw for each node.
-  const Field<Dimension, Scalar>& effectiveFlaws() const;
 
   // Compute a Field with the sum of the activation energies per node.
   Field<Dimension, Scalar> sumActivationEnergiesPerNode() const;
@@ -140,14 +122,12 @@ public:
 protected:
   //-------------------------- Protected Interface --------------------------//
   FlawStorageType mFlaws;
-  Field<Dimension, Scalar> mEffectiveFlaws;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   SolidNodeList<Dimension>& mNodeList;
   const TableKernel<Dimension>& mW;
   double mCrackGrowthMultiplier;
-  EffectiveFlawAlgorithm mEffectiveFlawAlgorithm;
 
   Field<Dimension, Scalar> mYoungsModulus;
   Field<Dimension, Scalar> mLongitudinalSoundSpeed;

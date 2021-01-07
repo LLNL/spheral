@@ -25,7 +25,6 @@ not fill out the complete physics package interface."""
                nodeList = "SolidNodeList<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                crackGrowthMultiplier = "const double",
-               flawAlgorithm = "const EffectiveFlawAlgorithm",
                flaws = "const FlawStorageType&"):
         "Constructor"
 
@@ -83,15 +82,12 @@ not fill out the complete physics package interface."""
     kernel = PYB11property("const TableKernel<%(Dimension)s>&", returnpolicy="reference_internal",
                            doc="Access the kernel.")
     crackGrowthMultiplier = PYB11property("double")
-    effectiveFlawAlgorithm = PYB11property("EffectiveFlawAlgorithm")
     excludeNodes = PYB11property("std::vector<int>", "excludeNodes", "excludeNodes",
                                  doc="Allow the user to specify a set of nodes to be excluded from damage.")
     youngsModulus = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     longitudinalSoundSpeed = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     flaws = PYB11property("const FlawStorageType&", returnpolicy="reference_internal",
                           doc="The raw set of flaw activation strains per point")
-    effectiveFlaws = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal",
-                                   doc="The processed flaw activation strain used per point -- depends on the choice for effectiveFlawAlgorithm")
     sumActivationEnergiesPerNode = PYB11property("Field<%(Dimension)s, Scalar>", 
                                                  doc="Compute a Field with the sum of the activation energies per node.")
     numFlawsPerNode = PYB11property("Field<%(Dimension)s, Scalar>",

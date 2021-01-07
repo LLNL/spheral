@@ -69,7 +69,6 @@ public:
                     const TensorStrainAlgorithm strainAlgorithm,
                     const TableKernel<Dimension>& W,
                     const double crackGrowthMultiplier,
-                    const EffectiveFlawAlgorithm flawAlgorithm,
                     const double criticalDamageThreshold,
                     const bool damageInCompression,
                     const FlawStorageType& flaws);
@@ -113,7 +112,7 @@ public:
   const Field<Dimension, SymTensor>& effectiveStrain() const;
   const Field<Dimension, Scalar>& DdamageDt() const;
 
-  // The algorithms being used to update the strain and effective damage.
+  // The algorithms to update the strain.
   TensorStrainAlgorithm strainAlgorithm() const;
 
   // Flag to determine if damage in compression is allowed.
