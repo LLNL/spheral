@@ -670,17 +670,17 @@ if graphics:
                   (eflawsPlot, "effective_flaws.png")]
 
     elif isinstance(damageModel, JohnsonCookDamage):
-        eps = damageModel.failureStrain()
+        eps = damageModel.failureStrain
         epsl = ScalarFieldList()
         epsl.appendField(eps)
         epsPlot = plotFieldList(epsl, winTitle="JC failure strains",
                                 plotStyle="o-")
-        D1 = damageModel.D1()
+        D1 = damageModel.D1
         D1l = ScalarFieldList()
         D1l.appendField(D1)
         D1Plot = plotFieldList(D1l, winTitle="JC D1",
                                 plotStyle="o-")
-        D2 = damageModel.D2()
+        D2 = damageModel.D2
         D2l = ScalarFieldList()
         D2l.appendField(D2)
         D2Plot = plotFieldList(D2l, winTitle="JC D2",
