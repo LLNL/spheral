@@ -50,12 +50,13 @@ template<typename Dimension>
 TensorDamageModel<Dimension>::
 TensorDamageModel(SolidNodeList<Dimension>& nodeList,
                   const TensorStrainAlgorithm strainAlgorithm,
+                  const DamageCouplingAlgorithm damageCouplingAlgorithm,
                   const TableKernel<Dimension>& W,
                   const double crackGrowthMultiplier,
                   const double criticalDamageThreshold,
                   const bool damageInCompression,
                   const FlawStorageType& flaws):
-  DamageModel<Dimension>(nodeList, W, crackGrowthMultiplier, flaws),
+  DamageModel<Dimension>(nodeList, W, crackGrowthMultiplier, damageCouplingAlgorithm, flaws),
   mStrain(SolidFieldNames::strainTensor, nodeList),
   mEffectiveStrain(SolidFieldNames::effectiveStrainTensor, nodeList),
   mDdamageDt(TensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::scalarDamage, nodeList),
@@ -85,7 +86,7 @@ evaluateDerivatives(const Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
 
-  // The base class determines the scalar magnitude of the damage evolution.
+  // Set the scalar magnitude of the damage evolution.
   const auto* nodeListPtr = &(this->nodeList());
   auto&       DDDt = derivs.field(state.buildFieldKey(TensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::scalarDamage, nodeListPtr->name()), 0.0);
   this->computeScalarDDDt(dataBase,
@@ -93,6 +94,9 @@ evaluateDerivatives(const Scalar time,
                           time,
                           dt,
                           DDDt);
+
+  // Base class stuff
+  DamageModel<Dimension>::evaluateDerivatives(time, dt, dataBase, state, derivs);
 }
 
 //------------------------------------------------------------------------------

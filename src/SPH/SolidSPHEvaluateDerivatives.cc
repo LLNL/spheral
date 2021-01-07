@@ -75,7 +75,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   const auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-  const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -89,7 +88,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(S.size() == numNodeLists);
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
-  CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
 
   // Derivative FieldLists.
@@ -147,9 +145,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
-  // Build the functor we use to compute the effective coupling between nodes.
-  // DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
-  ThreePointDamagedNodeCoupling<Dimension> coupling(position, H, damage, W, connectivityMap, pairs);
+  // Check if a NodeCoupling has been created.
+  const auto coupling = (derivatives.registered(SolidFieldNames::damageCoupling) ?
+                         derivatives.getAny(SolidFieldNames::damageCoupling, NodeCoupling()) :
+                         NodeCoupling());
 
   // Walk all the interacting pairs.
 #pragma omp parallel
@@ -201,7 +200,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto  Hdeti = Hi.Determinant();
       const auto  safeOmegai = safeInv(omegai, tiny);
       const auto  fDi = oneMinusEigenvalues(damage(nodeListi, i));
-      //const auto  fragIDi = fragIDs(nodeListi, i);
       const auto  pTypei = pTypes(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -237,7 +235,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto  Hdetj = Hj.Determinant();
       const auto  safeOmegaj = safeInv(omegaj, tiny);
       const auto  fDj = oneMinusEigenvalues(damage(nodeListj, j));
-      //const auto fragIDj = fragIDs(nodeListj, j);
       const auto  pTypej = pTypes(nodeListj, j);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);

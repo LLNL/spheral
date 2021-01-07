@@ -12,6 +12,7 @@ const std::string Spheral::SolidFieldNames::plasticStrain = "plastic strain";
 const std::string Spheral::SolidFieldNames::plasticStrainRate = "plastic strain rate";
 const std::string Spheral::SolidFieldNames::scalarDamage = "scalar damage";
 const std::string Spheral::SolidFieldNames::tensorDamage = "tensor damage";
+const std::string Spheral::SolidFieldNames::damageCoupling = "damage coupling";
 const std::string Spheral::SolidFieldNames::strain = "strain";
 const std::string Spheral::SolidFieldNames::strainTensor = "tensor strain";
 const std::string Spheral::SolidFieldNames::effectiveStrainTensor = "effective tensor strain";

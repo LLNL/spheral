@@ -9,6 +9,7 @@
 #define __Spheral_DamageModel_hh__
 
 #include "Physics/Physics.hh"
+#include "Utilities/NodeCoupling.hh"
 #include "DataOutput/registerWithRestart.hh"
 
 #include <vector>
@@ -35,6 +36,13 @@ enum class EffectiveFlawAlgorithm {
   SampledFlaws = 4,
 };
 
+enum class DamageCouplingAlgorithm {
+  NoDamage = 0,
+  DirectDamage = 1,
+  DirectDamageWithFrags = 2,
+  ThreePointDamage = 3,
+};
+
 template<typename Dimension>
 class DamageModel: public Physics<Dimension> {
 
@@ -54,6 +62,7 @@ public:
   DamageModel(SolidNodeList<Dimension>& nodeList,
               const TableKernel<Dimension>& W,
               const double crackGrowthMultiplier,
+              const DamageCouplingAlgorithm damageCouplingAlgorithm,
               const FlawStorageType& flaws);
   virtual ~DamageModel();
 
@@ -70,6 +79,15 @@ public:
   // Provide a subset of the required physics package interface.
   virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state) override;
+
+  virtual 
+  void evaluateDerivatives(const Scalar time,
+                           const Scalar dt,
+                           const DataBase<Dimension>& dataBase,
+                           const State<Dimension>& state,
+                           StateDerivatives<Dimension>& derivatives) const override;
+
+  virtual bool requireGhostConnectivity() const override;
 
   //...........................................................................
   // Optional method to cull the set of flaws to the single weakest one on
@@ -88,6 +106,8 @@ public:
 
   // Important local parameters.
   double crackGrowthMultiplier() const;
+  DamageCouplingAlgorithm damageCouplingAlgorithm() const;
+  const NodeCoupling& nodeCoupling() const;
 
   // Allow the user to specify a set of nodes to be excluded from damage.
   std::vector<int> excludeNodes() const;
@@ -127,14 +147,12 @@ private:
   //--------------------------- Private Interface ---------------------------//
   SolidNodeList<Dimension>& mNodeList;
   const TableKernel<Dimension>& mW;
-  double mCrackGrowthMultiplier;
-
+  double mCrackGrowthMultiplier, mCriticalNodesPerSmoothingScale;
+  DamageCouplingAlgorithm mDamageCouplingAlgorithm;
   Field<Dimension, Scalar> mYoungsModulus;
   Field<Dimension, Scalar> mLongitudinalSoundSpeed;
-
   Field<Dimension, int> mExcludeNode;
-
-  double mCriticalNodesPerSmoothingScale;
+  mutable NodeCoupling mNodeCoupling;                 // mutable since we change this internally during evaluateDerivatives
 
   // The restart registration.
   RestartRegistrationType mRestart;

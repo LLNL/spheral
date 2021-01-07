@@ -67,6 +67,7 @@ public:
   // Constructors, destructor.
   TensorDamageModel(SolidNodeList<Dimension>& nodeList,
                     const TensorStrainAlgorithm strainAlgorithm,
+                    const DamageCouplingAlgorithm damageCouplingAlgorithm,
                     const TableKernel<Dimension>& W,
                     const double crackGrowthMultiplier,
                     const double criticalDamageThreshold,
@@ -82,29 +83,29 @@ public:
                            const Scalar dt,
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
+                           StateDerivatives<Dimension>& derivatives) const override;
 
   // Vote on a time step.
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const;
+                          const Scalar currentTime) const override;
 
   // Register our state.
   virtual void registerState(DataBase<Dimension>& dataBase,
-                             State<Dimension>& state);
+                             State<Dimension>& state) override;
 
   // Register the derivatives/change fields for updating state.
   virtual void registerDerivatives(DataBase<Dimension>& dataBase,
-                                   StateDerivatives<Dimension>& derivs);
+                                   StateDerivatives<Dimension>& derivs) override;
 
   // Apply boundary conditions to the physics specific fields.
   virtual void applyGhostBoundaries(State<Dimension>& state,
-                                    StateDerivatives<Dimension>& derivs);
+                                    StateDerivatives<Dimension>& derivs) override;
 
   // Enforce boundary conditions for the physics specific fields.
   virtual void enforceBoundaries(State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs);
+                                 StateDerivatives<Dimension>& derivs) override;
   //...........................................................................
 
   // Provide access to the state fields we maintain.

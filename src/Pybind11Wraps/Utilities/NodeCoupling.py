@@ -31,9 +31,7 @@ class DamagedNodeCoupling(NodeCoupling):
 """
 
     def pyinit(self,
-               damage = "const FieldList<%(Dimension)s, SymTensor>&",
-               damageGradient = "const FieldList<%(Dimension)s, Vector>&",
-               H = "const FieldList<%(Dimension)s, SymTensor>&"):
+               damage = "const FieldList<%(Dimension)s, SymTensor>&"):
         "Constructor"
 
     @PYB11virtual
@@ -62,8 +60,6 @@ on fragment ID as well."""
 
     def pyinit(self,
                damage = "const FieldList<%(Dimension)s, SymTensor>&",
-               damageGradient = "const FieldList<%(Dimension)s, Vector>&",
-               H = "const FieldList<%(Dimension)s, SymTensor>&",
                fragIDs = "const FieldList<%(Dimension)s, int>&"):
         "Constructor"
 
@@ -76,7 +72,7 @@ on fragment ID as well."""
         return "double"
 
 #-------------------------------------------------------------------------------
-# DamagedNodeCouplingWithFrags
+# ThreePointDamagedNodeCoupling
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 class ThreePointDamagedNodeCoupling(NodeCoupling):

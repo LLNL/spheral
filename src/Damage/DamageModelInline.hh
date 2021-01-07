@@ -3,6 +3,17 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// Do we require ghost-ghost connectivity?
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+DamageModel<Dimension>::
+requireGhostConnectivity() const {
+  return mDamageCouplingAlgorithm == DamageCouplingAlgorithm::ThreePointDamage;
+}
+
+//------------------------------------------------------------------------------
 // The effective critical number of nodes per smoothing scale, below which we
 // assume all flaws are active on a node.
 //------------------------------------------------------------------------------
@@ -69,6 +80,22 @@ double
 DamageModel<Dimension>::
 crackGrowthMultiplier() const {
   return mCrackGrowthMultiplier;
+}
+
+template<typename Dimension>
+inline
+DamageCouplingAlgorithm
+DamageModel<Dimension>::
+damageCouplingAlgorithm() const {
+  return mDamageCouplingAlgorithm;
+}
+
+template<typename Dimension>
+inline
+const NodeCoupling&
+DamageModel<Dimension>::
+nodeCoupling() const {
+  return mNodeCoupling;
 }
 
 //------------------------------------------------------------------------------

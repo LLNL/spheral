@@ -24,6 +24,7 @@ required of descendant classes."""
     def pyinit(self,
                nodeList = "SolidNodeList<%(Dimension)s>&",
                strainAlgorithm = "const TensorStrainAlgorithm",
+               damageCouplingAlgorithm  = "const DamageCouplingAlgorithm",
                kernel = "const TableKernel<%(Dimension)s>&",
                crackGrowthMultiplier = "const double",
                criticalDamageThreshold = "const double",

@@ -20,6 +20,9 @@
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Utilities/DamagedNodeCoupling.hh"
+#include "Utilities/DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/ThreePointDamagedNodeCoupling.hh"
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/safeInv.hh"
 
@@ -48,16 +51,19 @@ DamageModel<Dimension>::
 DamageModel(SolidNodeList<Dimension>& nodeList,
             const TableKernel<Dimension>& W,
             const double crackGrowthMultiplier,
+            const DamageCouplingAlgorithm damageCouplingAlgorithm,
             const FlawStorageType& flaws):
   Physics<Dimension>(),
   mFlaws(SolidFieldNames::flaws, flaws),
   mNodeList(nodeList),
   mW(W),
   mCrackGrowthMultiplier(crackGrowthMultiplier),
+  mCriticalNodesPerSmoothingScale(0.99),
+  mDamageCouplingAlgorithm(damageCouplingAlgorithm),
   mYoungsModulus(SolidFieldNames::YoungsModulus, nodeList),
   mLongitudinalSoundSpeed(SolidFieldNames::longitudinalSoundSpeed, nodeList),
   mExcludeNode("Nodes excluded from damage", nodeList, 0),
-  mCriticalNodesPerSmoothingScale(0.99),
+  mNodeCoupling(),
   mRestart(registerWithRestart(*this)) {
 }
 
@@ -143,6 +149,58 @@ registerState(DataBase<Dimension>& dataBase,
   StateDerivatives<Dimension> derivs(dataBase, dummyPackages);
   EPolicy->update(state.key(mYoungsModulus), state, derivs, 1.0, 0.0, 0.0);
   clPolicy->update(state.key(mLongitudinalSoundSpeed), state, derivs, 1.0, 0.0, 0.0);
+}
+
+//------------------------------------------------------------------------------
+// evaluateDerivatives
+// This is where we update the damage coupling and add it to StateDerivatives.
+// We can't do this during registerDerivatives because some coupling algorithms
+// require ghost state to be updated first.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DamageModel<Dimension>::
+evaluateDerivatives(const Scalar /*time*/,
+                    const Scalar /*dt*/,
+                    const DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivs) const {
+
+  switch(mDamageCouplingAlgorithm) {
+  case DamageCouplingAlgorithm::NoDamage:
+    break;
+
+  case DamageCouplingAlgorithm::DirectDamage:
+    {
+      const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
+      mNodeCoupling = DamagedNodeCoupling<Dimension>(D);
+    }
+    break;
+
+  case DamageCouplingAlgorithm::DirectDamageWithFrags:
+    {
+      const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
+      const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+      mNodeCoupling = DamagedNodeCouplingWithFrags<Dimension>(D, fragIDs);
+    }
+    break;
+
+  case DamageCouplingAlgorithm::ThreePointDamage:
+    {
+      const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+      const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+      const auto  D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
+      const auto& connectivity = dataBase.connectivityMap();
+      auto&       pairs = const_cast<NodePairList&>(connectivity.nodePairList());  // Need non-const to fill in f_couple
+      mNodeCoupling = ThreePointDamagedNodeCoupling<Dimension>(position, H, D, mW, connectivity, pairs);
+    }
+    break;
+
+  default:
+    VERIFY2(false, "DamageModel ERROR: unhandled damage coupling algorithm case");
+  }
+
+  derivs.enrollAny(SolidFieldNames::damageCoupling, mNodeCoupling);
 }
 
 //------------------------------------------------------------------------------

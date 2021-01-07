@@ -25,6 +25,7 @@ not fill out the complete physics package interface."""
                nodeList = "SolidNodeList<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                crackGrowthMultiplier = "const double",
+               damageCouplingAlgorithm  = "const DamageCouplingAlgorithm",
                flaws = "const FlawStorageType&"):
         "Constructor"
 
@@ -42,27 +43,27 @@ not fill out the complete physics package interface."""
         return "void"
 
     @PYB11virtual
-    def preStepInitialize(self,
-                          dataBase = "const DataBase<%(Dimension)s>&",
-                          state = "State<%(Dimension)s>&",
-                          derivs = "StateDerivatives<%(Dimension)s>&"):
-        return "void"
-
-    @PYB11virtual
     def registerState(self,
                       dataBase = "DataBase<%(Dimension)s>&",
                       state = "State<%(Dimension)s>&"):
         return "void"
 
     @PYB11virtual 
-    def postStateUpdate(self,
-                        time = "const Scalar",
-                        dt = "const Scalar",
-                        dataBase = "const DataBase<%(Dimension)s>&",
-                        state = "State<%(Dimension)s>&",
-                        derivs = "StateDerivatives<%(Dimension)s>&"):
+    @PYB11const
+    def evaluateDerivatives(self,
+                            time = "const Scalar",
+                            dt = "const Scalar",
+                            dataBase = "const DataBase<%(Dimension)s>&",
+                            state = "const State<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Compute the derivatives."
         return "void"
 
+    @PYB11virtual
+    @PYB11const
+    def requireGhostConnectivity(self):
+        "Some physics algorithms require ghost connectivity to be constructed."
+        return "bool"
 
     #...........................................................................
     # Methods
@@ -82,6 +83,10 @@ not fill out the complete physics package interface."""
     kernel = PYB11property("const TableKernel<%(Dimension)s>&", returnpolicy="reference_internal",
                            doc="Access the kernel.")
     crackGrowthMultiplier = PYB11property("double")
+    damageCouplingAlgorithm = PYB11property("DamageCouplingAlgorithm", "damageCouplingAlgorithm",
+                                            doc="The choice for coupling with damaged nodes.")
+    nodeCoupling = PYB11property("const NodeCoupling&", "nodeCoupling",
+                                 doc="The NodeCoupling implementation")
     excludeNodes = PYB11property("std::vector<int>", "excludeNodes", "excludeNodes",
                                  doc="Allow the user to specify a set of nodes to be excluded from damage.")
     youngsModulus = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
