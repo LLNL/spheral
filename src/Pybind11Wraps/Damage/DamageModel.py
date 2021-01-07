@@ -49,14 +49,13 @@ not fill out the complete physics package interface."""
         return "void"
 
     @PYB11virtual 
-    @PYB11const
-    def evaluateDerivatives(self,
-                            time = "const Scalar",
-                            dt = "const Scalar",
-                            dataBase = "const DataBase<%(Dimension)s>&",
-                            state = "const State<%(Dimension)s>&",
-                            derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Compute the derivatives."
+    def initialize(self,
+                   time = "const Scalar",
+                   dt = "const Scalar",
+                   dataBase = "const DataBase<%(Dimension)s>&",
+                   state = "State<%(Dimension)s>&",
+                   derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Initialize before computing the derivatives."
         return "void"
 
     @PYB11virtual

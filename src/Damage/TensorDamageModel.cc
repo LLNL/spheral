@@ -94,9 +94,6 @@ evaluateDerivatives(const Scalar time,
                           time,
                           dt,
                           DDDt);
-
-  // Base class stuff
-  DamageModel<Dimension>::evaluateDerivatives(time, dt, dataBase, state, derivs);
 }
 
 //------------------------------------------------------------------------------

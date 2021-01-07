@@ -152,19 +152,19 @@ registerState(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// evaluateDerivatives
-// This is where we update the damage coupling and add it to StateDerivatives.
-// We can't do this during registerDerivatives because some coupling algorithms
+// initialize (before evaluateDerivatives)
+// This is where we update the damage coupling and add it to the State.
+// We can't do this during registerState because some coupling algorithms
 // require ghost state to be updated first.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 DamageModel<Dimension>::
-evaluateDerivatives(const Scalar /*time*/,
-                    const Scalar /*dt*/,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivs) const {
+initialize(const Scalar /*time*/,
+           const Scalar /*dt*/,
+           const DataBase<Dimension>& dataBase,
+           State<Dimension>& state,
+           StateDerivatives<Dimension>& /*derivs*/) {
 
   switch(mDamageCouplingAlgorithm) {
   case DamageCouplingAlgorithm::NoDamage:
@@ -200,7 +200,7 @@ evaluateDerivatives(const Scalar /*time*/,
     VERIFY2(false, "DamageModel ERROR: unhandled damage coupling algorithm case");
   }
 
-  derivs.enrollAny(SolidFieldNames::damageCoupling, mNodeCoupling);
+  state.enrollAny(SolidFieldNames::damageCoupling, mNodeCoupling);
 }
 
 //------------------------------------------------------------------------------

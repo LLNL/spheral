@@ -81,11 +81,11 @@ public:
                              State<Dimension>& state) override;
 
   virtual 
-  void evaluateDerivatives(const Scalar time,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const override;
+  void initialize(const Scalar time,
+                  const Scalar dt,
+                  const DataBase<Dimension>& dataBase,
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivatives) override;
 
   virtual bool requireGhostConnectivity() const override;
 
@@ -152,7 +152,7 @@ private:
   Field<Dimension, Scalar> mYoungsModulus;
   Field<Dimension, Scalar> mLongitudinalSoundSpeed;
   Field<Dimension, int> mExcludeNode;
-  mutable NodeCoupling mNodeCoupling;                 // mutable since we change this internally during evaluateDerivatives
+  NodeCoupling mNodeCoupling;
 
   // The restart registration.
   RestartRegistrationType mRestart;

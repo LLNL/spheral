@@ -146,8 +146,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Check if a NodeCoupling has been created.
-  const auto coupling = (derivatives.registered(SolidFieldNames::damageCoupling) ?
-                         derivatives.getAny(SolidFieldNames::damageCoupling, NodeCoupling()) :
+  const auto coupling = (state.registered(SolidFieldNames::damageCoupling) ?
+                         state.getAny(SolidFieldNames::damageCoupling, NodeCoupling()) :
                          NodeCoupling());
 
   // Walk all the interacting pairs.
