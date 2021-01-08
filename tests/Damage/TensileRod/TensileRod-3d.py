@@ -9,11 +9,10 @@
 #-------------------------------------------------------------------------------
 from SolidSpheral3d import *
 from SpheralTestUtilities import *
-from findLastRestart import *
 from SpheralVisitDump import dumpPhysicsState
 from identifyFragments import identifyFragments, fragmentProperties
 from math import *
-import shutil
+import os, shutil
 import mpi
 
 #-------------------------------------------------------------------------------
@@ -84,7 +83,6 @@ commandLine(# How much of the 2 Pi geometry are we doing?
             radius = 0.5,
             nx = 150,
             ny = 25,
-            nPerh = 1.51,
 
             rho0 = 7.9,
 
@@ -94,7 +92,8 @@ commandLine(# How much of the 2 Pi geometry are we doing?
 
             # Parameters for the time dependent strain and cracking.
             DamageModelConstructor = GradyKippTensorDamageOwen,
-            v0 = 1.0e-2,
+            numFlawsPerNode = 1,
+            v0 = 1e-2,
             kWeibullFactor = 1.0,
             mWeibullFactor = 1.0,
             randomSeed = 548928513,
@@ -102,33 +101,42 @@ commandLine(# How much of the 2 Pi geometry are we doing?
             damageMethod = CopyDamage,
             useDamageGradient = True,
             cullToWeakestFlaws = False,
-            effectiveFlawAlgorithm = SampledFlaws,
             damageInCompression = False,
+            negativePressureInDamage = False,
+
+            # Johnson-Cook choices
+            D1 = 0.0,
+            D2 = 2.0,
+            D3 = -1.5,
+            D4 = 0.0,
+            D5 = 0.0,
+            epsilondot0 = 0.01,
+            Tcrit = -2.0,
+            sigmamax = -3.0,
+            efailmin = 0.01,
+            sigmaD1 = 0.0,  # Gaussian
+            aD1 = 0.0,      # Weibull
+            bD1 = 0.0,      # Weibull
+            eps0D1 = 0.0,   # Weibull
+            sigmaD2 = 0.05, # Gaussian
+            aD2 = 0.065,    # Weibull
+            bD2 = 2.0,      # Weibull
+            eps0D2 = 0.165, # Weibull
 
             # Optionally we can initialize a break near the origin.
             initialBreakRadius = 0.0,
             
             crksph = False,
-            asph = True,     # Only for H evolution, not hydro algorithm
-            Qconstructor = MonaghanGingoldViscosity,
-            Cl = 1.0,
-            Cq = 1.0,
-            linearInExpansion = False,
-            Qlimiter = False,
-            balsaraCorrection = False,
-            epsilon2 = 1e-2,
-            negligibleSoundSpeed = 1e-5,
-            csMultiplier = 1e-4,
-            hmin = 1e-5,
-            hmax = 0.1,
+            ASPH = True,
             hminratio = 0.05,
-            cfl = 0.5,
+            cfl = 0.25,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4,
             hybridMassDensityThreshold = 0.01,
             filter = 0.0,
+            volumeType = RKSumVolume,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 200.0,
@@ -147,8 +155,9 @@ commandLine(# How much of the 2 Pi geometry are we doing?
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
             compatibleEnergy = True,
-            gradhCorrection = False,
-            domainIndependent = False,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
+            domainIndependent = True,
             dtverbose = False,
 
             restoreCycle = -1,
@@ -163,19 +172,24 @@ commandLine(# How much of the 2 Pi geometry are we doing?
 phi = pi * phiFactor
 
 if crksph:
-    hydroname = "CRKSPH"
+    hydroname = os.path.join("CRKSPH", str(volumeType))
+    nPerh = 1.51
+    order = 5
 else:
     hydroname = "SPH"
-if asph:
+    nPerh = 1.51
+    order = 5
+if ASPH:
     hydroname = "A" + hydroname
 
 #kWeibull = 8.8e4 * kWeibullFactor
+#kWeibull = 6.52e3 * kWeibullFactor
 kWeibull = 6.52e5 * kWeibullFactor
-mWeibull = 2.63  * mWeibullFactor
+mWeibull = 2.63   * mWeibullFactor
 
 dataDir = os.path.join(dataDirBase,
                        hydroname,
-                       str(DamageModelConstructor),
+                       DamageModelConstructor.__name__,
                        "nx=%i" % nx,
                        "k=%4.2f_m=%4.2f" % (kWeibull, mWeibull))
 restartDir = os.path.join(dataDir, "restarts")

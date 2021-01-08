@@ -101,7 +101,6 @@ commandLine(seed = "lattice",
             damageMethod = CopyDamage,
             useDamageGradient = True,
             cullToWeakestFlaws = False,
-            effectiveFlawAlgorithm = FullSpectrumFlaws,
             damageInCompression = False,
             negativePressureInDamage = False,
 
@@ -198,7 +197,6 @@ dataDir = os.path.join(dataDirBase,
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "TensileRod-%i" % nx)
 vizDir = os.path.join(dataDir, "visit")
-vizDirCRK = os.path.join(dataDir, "visit-CRKVoronoi")
 vizBaseName = "TensileRod-%i" % nx
 
 origin = Vector2d(-xlength, -ylength)
@@ -282,8 +280,6 @@ if mpi.rank == 0:
         os.makedirs(restartDir)
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
-    if not os.path.exists(vizDir) and crksph and volumeType == RKVoronoiVolume:
-        os.makedirs(vizDirCRK)
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
