@@ -34,7 +34,7 @@ commandLine(
     R0 = 1.0,
     nr = 100,
     vr0 = 1e-3,
-    thetaFactor = 0.5,        # one of (0.5, 1.0, 2.0) -- how much of disk geometry to generate
+    thetaFactor = 2.0,        # one of (0.5, 1.0, 2.0) -- how much of disk geometry to generate
     constantBoundary = True,  # force constant expansion on outer boundary nodes
 
     # Parameters for the time dependent strain and cracking.
@@ -361,10 +361,7 @@ kWeibullFactor = 1.0
 mWeibullFactor = 1.0
 randomSeed = 548928513
 strainType = PseudoPlasticStrain # BenzAsphaugStrain #
-damageMethod = CopyDamage # MinMaxDamage # SampledDamage # 
-useDamageGradient = True
 cullToWeakestFlaws = False
-effectiveFlawAlgorithm = FullSpectrumFlaws
 damageInCompression = False
 negativePressureInDamage = False
 volumeMultiplier = 1.0
@@ -389,32 +386,23 @@ bD2 = 2.0      # Weibull
 eps0D2 = 0.165 # Weibull
 
 if DamageModelConstructor is GradyKippTensorDamage:
-    damageModel = DamageModelConstructor(nodes,
-                                         kWeibull,
-                                         mWeibull,
-                                         volume,
-                                         1.0,
-                                         WT,
-                                         randomSeed,
-                                         strainType,
-                                         damageMethod,
-                                         useDamageGradient,
-                                         flawAlgorithm = effectiveFlawAlgorithm,
+    damageModel = DamageModelConstructor(nodeList = nodes,
+                                         kWeibull = kWeibull,
+                                         mWeibull = mWeibull,
+                                         volume = volume,
+                                         kernel = WT,
+                                         seed = randomSeed,
+                                         strainAlgorithm = strainType,
                                          damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is GradyKippTensorDamageOwen:
-    damageModel = DamageModelConstructor(nodes,
-                                         kWeibull,
-                                         mWeibull,
-                                         WT,
-                                         randomSeed,
-                                         volumeMultiplier,
-                                         strainType,
-                                         damageMethod,
-                                         useDamageGradient,
-                                         0.4,
-                                         effectiveFlawAlgorithm,
-                                         numFlawsPerNode,
+    damageModel = DamageModelConstructor(nodeList = nodes,
+                                         kWeibull = kWeibull,
+                                         mWeibull = mWeibull,
+                                         kernel = WT,
+                                         seed = randomSeed,
+                                         strainAlgorithm = strainType,
+                                         minFlawsPerNode = numFlawsPerNode,
                                          damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is JohnsonCookDamageWeibull:
@@ -458,11 +446,6 @@ if isinstance(damageModel, JohnsonCookDamage):
     vizFields += [damageModel.D1(), damageModel.D2()]
 
 output("damageModel")
-if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
-    output("damageModel.useDamageGradient")
-    output("damageModel.effectiveDamageAlgorithm")
-    output("damageModel.effectiveFlawAlgorithm")
-    output("damageModel.effectiveStrain")
 
 if cullToWeakestFlaws:
     damageModel.cullToWeakestFlaws()
