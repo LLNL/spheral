@@ -270,10 +270,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
   typedef typename Dimension::Vector Vector; //10/14/2020
   //FieldList<Dimension, Vector> rSumSame(FieldStorageType::CopyFields);  //10/14/2020
-  FieldList<Dimension, Vector> rSumDiff(FieldStorageType::CopyFields);  //10/14/2020
-    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    rSumDiff.appendNewField("rSumDiff", massDensity[nodeListi]->nodeList(), Vector::zero);
-    }
+  //FieldList<Dimension, Vector> balsaraCorrection(FieldStorageType::CopyFields);  //10/14/2020
+  //  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+  //  balsaraCorrection.appendNewField("balsaraCorrection", massDensity[nodeListi]->nodeList(), Vector::zero);
+  //  }
     
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -359,11 +359,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     int i, j, nodeListi, nodeListj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
-    //auto DvDx_thread = DvDx.threadCopy(threadStack);
+    auto DvDx_thread = DvDx.threadCopy(threadStack);
     //auto localDvDx_thread = localDvDx.threadCopy(threadStack);
     auto M_thread = M.threadCopy(threadStack);
     auto localM_thread = localM.threadCopy(threadStack);
-    auto rSumDiff_thread = rSumDiff.threadCopy(threadStack);
     //auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     //auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
 
@@ -395,7 +394,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& localMi = localM_thread(nodeListi, i);
       //auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
       //auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
-      auto& rSumDiffi = rSumDiff(nodeListi, i);
+      //auto& i = rSumDiff(nodeListi, i);
 
       // Get the state for node j
       const auto rj = position(nodeListj, j);
@@ -418,7 +417,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& localMj = localM_thread(nodeListj, j);
       //auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       //auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
-      auto& rSumDiffj = rSumDiff(nodeListj, j);
+      //auto& rSumDiffj = rSumDiff(nodeListj, j);
 
       // Flag if this is a contiguous material pair or not.
       const auto sameMatij =  (nodeListi == nodeListj);
@@ -451,7 +450,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto gradWij = 0.5*(gradWi + gradWj);
       
       // Compute the pair-wise artificial viscosity.
-      //const auto vij = vi - vj;
+      const auto vij = vi - vj;
       const auto voli = mi/rhoi;
       const auto volj = mj/rhoj;
       
@@ -459,20 +458,23 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       //const auto kappai = (sameMatij || mDecoupledNodeLists[nodeListi]==0 ? 1.0 : 0.0);
       //const auto kappaj = (sameMatij || mDecoupledNodeLists[nodeListj]==0 ? 1.0 : 0.0);
       //grad h term? for ddt or for a symmetric kernel?
+      // add in balsara correction
+
       const auto gradRi = volj*rij.dyad(gradWi);
       const auto gradRj = voli*rij.dyad(gradWj);
-      const auto deltaVi = vij.dyad(gradWi)
-      const auto deltaVj = vij.dyad(gradWj)
+
       // Linear gradient correction term.
       Mi -= gradRi;
       Mj -= gradRj;
+      //DvDxi -= vij.dyad(gradWi);
+      //DvDxj -= vij.dyad(gradWj);
       if (sameMatij) {
         localMi -= gradRi;
         localMj -= gradRj;
-      }else{
-        rSumDiffi -= rij.unitVector()*volj;
-        rSumDiffj += rij.unitVector()*voli;
-      }
+      }//else{
+        //rSumDiffi -= rij.unitVector()*volj;
+        //rSumDiffj += rij.unitVector()*voli;
+      //}
 
       // Add timing info for work
       const auto deltaTimePair = 0.5*Timing::difference(start, Timing::currentTime());
@@ -500,10 +502,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
 
       //auto& DvDxi = DvDx(nodeListi, i);
+      //auto& balsaraCorrectioni = balsaraCorrection(nodeListi,i);
       //auto& localDvDxi = localDvDx(nodeListi, i);
       auto& Mi = M(nodeListi, i);
       auto& localMi = localM(nodeListi, i);
 
+      //balsaraCorrectioni = DvDxi.Trace()/(DvDxi.Trace()+DvDxi)
       if (this->mCorrectVelocityGradient and
           std::abs(Mi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {
@@ -750,10 +754,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       sigmaj += Rj;
 
       // DvDt eqn -- generalized for user defined density exponent (Monaghan 1992)
-      const auto sigmarhoi = sigmai/(pow(rhoi,alpha)*pow(rhoj,2.0-alpha));
-      const auto sigmarhoj = sigmaj/(pow(rhoj,alpha)*pow(rhoi,2.0-alpha));
+      const auto sigmarhoi = sigmai/(pow(rhoi,alpha)*pow(rhoj,2.0-alpha))-0.5*QPiij;
+      const auto sigmarhoj = sigmaj/(pow(rhoj,alpha)*pow(rhoi,2.0-alpha))-0.5*QPiji;
  
-      const auto deltaDvDt = sigmarhoi*gradWi + sigmarhoj*gradWj-Qacci-Qaccj;
+      const auto deltaDvDt = sigmarhoi*gradWi + sigmarhoj*gradWj;
       if (freeParticle) {
         DvDti += mj*deltaDvDt;
         DvDtj -= mi*deltaDvDt;
@@ -795,7 +799,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // bulk modulus. We're assuming that the pressure increase from
       // the interaction is equal. Maybe it should be parced out to 
       // bias towards equilibrium pressure ? 
-      const auto deltaVolTotal1 = vij.dyad(gradWi+gradWj);
+      //const auto deltaVolTotal1 = vij.dyad(gradWi+gradWj);
       const auto deltaVolTotal2 = (vij.dyad(gradWi)*Mi+vij.dyad(gradWj)*Mj);
       const auto kappai1 =  (Kj*voli)/(Kj*voli+Ki*volj);
       const auto kappaj1 =  (Ki*volj)/(Kj*voli+Ki*volj);
@@ -817,16 +821,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         //const auto localDeltaDvDxi = (strengthInDamage ? deltaDvDxi 
         localDvDxi -= volj*(deltaDvDxi*localMi);
         localDvDxj -= voli*(deltaDvDxj*localMj);
-      }else{
-
-        deltaDvDxi =  kappai1 * deltaVolTotal1;//kappai*deltaDvDxi;
-        deltaDvDxj =  kappaj1 * deltaVolTotal1;//kappaj*deltaDvDxj;
       }
+      deltaDvDxi =  kappai*deltaDvDxi*Mi;// kappai1 * deltaVolTotal1;//
+      deltaDvDxj =  kappaj*deltaDvDxj*Mj;// kappaj1 * deltaVolTotal1;//
       DvDxi -= volj*deltaDvDxi;
       DvDxj -= voli*deltaDvDxj;
       
-      DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi)-workQi);
-      DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj)-workQj);
+      DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()));
+      DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()));
 
       // for density we essentially diffuse the pressure accross the boundary 
       if (mDiffusionCoefficient>tiny){
