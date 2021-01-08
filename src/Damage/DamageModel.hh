@@ -13,6 +13,7 @@
 #include "DataOutput/registerWithRestart.hh"
 
 #include <vector>
+#include <memory>
 
 // Forward declarations.
 namespace Spheral {
@@ -54,6 +55,7 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
+  typedef typename std::shared_ptr<NodeCoupling> NodeCouplingPtr;
 
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
   typedef Field<Dimension, std::vector<double> > FlawStorageType;
@@ -152,7 +154,7 @@ private:
   Field<Dimension, Scalar> mYoungsModulus;
   Field<Dimension, Scalar> mLongitudinalSoundSpeed;
   Field<Dimension, int> mExcludeNode;
-  NodeCoupling mNodeCoupling;
+  NodeCouplingPtr mNodeCouplingPtr;
 
   // The restart registration.
   RestartRegistrationType mRestart;

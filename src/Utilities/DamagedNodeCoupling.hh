@@ -24,9 +24,16 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   // Constructor.
-  DamagedNodeCoupling(const FieldList<Dimension, SymTensor>& damage):
+  DamagedNodeCoupling(const FieldList<Dimension, SymTensor>& damage,
+                      NodePairList& pairs):
     NodeCoupling(),
-    mDamage(damage) {}
+    mDamage(damage) {
+    const auto n = pairs.size();
+#pragma omp for
+    for (auto k = 0u; k < n; ++k) {
+      pairs[k].f_couple = (*this)(pairs[k]);
+    }
+  }
 
   // The coupling operator.
   virtual double operator()(const NodePairIdxType& pair) const override {

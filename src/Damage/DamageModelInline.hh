@@ -95,7 +95,7 @@ inline
 const NodeCoupling&
 DamageModel<Dimension>::
 nodeCoupling() const {
-  return mNodeCoupling;
+  return *mNodeCouplingPtr;
 }
 
 //------------------------------------------------------------------------------

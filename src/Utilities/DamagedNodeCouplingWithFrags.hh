@@ -26,8 +26,9 @@ public:
 
   // Constructor.
   DamagedNodeCouplingWithFrags(const FieldList<Dimension, SymTensor>& damage,
-                               const FieldList<Dimension, int>& fragIDs):
-    DamagedNodeCoupling<Dimension>(damage),
+                               const FieldList<Dimension, int>& fragIDs,
+                               NodePairList& pairs):
+    DamagedNodeCoupling<Dimension>(damage, pairs),
     mFragIDs(fragIDs) {}
 
   // The coupling operator.

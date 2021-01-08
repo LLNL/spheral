@@ -160,7 +160,7 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
         for iarg in xrange(len(args)):
             argname = backCompatOrder[iarg]
             if argname in deprecated_kwargs:
-                sys.stderr.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
+                sys.stdout.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
             if argname in damage_kwargs:
                 damage_kwargs[argname] = args[iarg]
             if argname in weibull_kwargs:
@@ -169,7 +169,7 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
         # Process any keyword arguments.  Note we already removed any deprecated keywords.
         for argname in kwargs:
             if argname in deprecated_kwargs:
-                sys.stderr.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
+                sys.stdout.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
             if argname in damage_kwargs:
                 damage_kwargs[argname] = kwargs[argname]
             if argname in weibull_kwargs:
@@ -279,7 +279,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
         validKeys = damage_kwargs.keys() + weibull_kwargs.keys() + convenient_kwargs.keys() + deprecated_kwargs
         for argname in kwargs:
             if argname in deprecated_kwargs:
-                sys.stderr.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
+                sys.stdout.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
             elif not argname in validKeys:
                 raise ValueError, ("ERROR: argument %%s not a valid option.\\n" %% argname +
                                    expectedUsageStringO)
@@ -313,7 +313,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
         for iarg in xrange(len(args)):
             argname = backCompatOrder[iarg]
             if argname in deprecated_kwargs:
-                sys.stderr.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
+                sys.stdout.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
             if argname in damage_kwargs:
                 damage_kwargs[argname] = args[iarg]
             if argname in weibull_kwargs:
@@ -322,7 +322,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
         # Process any keyword arguments.
         for argname in kwargs:
             if argname in deprecated_kwargs:
-                sys.stderr.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
+                sys.stdout.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
             if argname in damage_kwargs:
                 damage_kwargs[argname] = kwargs[argname]
             if argname in weibull_kwargs:

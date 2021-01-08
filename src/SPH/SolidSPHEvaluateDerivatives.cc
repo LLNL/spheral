@@ -145,11 +145,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
-  // Check if a NodeCoupling has been created.
-  const auto coupling = (state.registered(SolidFieldNames::damageCoupling) ?
-                         state.getAny(SolidFieldNames::damageCoupling, NodeCoupling()) :
-                         NodeCoupling());
-
   // Walk all the interacting pairs.
 #pragma omp parallel
   {
@@ -199,7 +194,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       //const auto  mui = mu(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  safeOmegai = safeInv(omegai, tiny);
-      const auto  fDi = oneMinusEigenvalues(damage(nodeListi, i));
       const auto  pTypei = pTypes(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -234,7 +228,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto& Sj = S(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       const auto  safeOmegaj = safeInv(omegaj, tiny);
-      const auto  fDj = oneMinusEigenvalues(damage(nodeListj, j));
       const auto  pTypej = pTypes(nodeListj, j);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
@@ -263,10 +256,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
       // Determine how we're applying damage.
-      // const auto fDij = 0.5*(fDi*fDj + fDj*fDi).Symmetric();
-      // const auto fscaleDij = std::min(fDi.eigenValues().minElement(), fDj.eigenValues().minElement());
-      // const auto fDij = std::min(fDi.eigenValues().minElement(), fDj.eigenValues().minElement())*Tensor::one;
-      const auto fDij = coupling(pairs[kk]);
+      const auto fDij = pairs[kk].f_couple;
 
       // Node displacement.
       const auto rij = ri - rj;

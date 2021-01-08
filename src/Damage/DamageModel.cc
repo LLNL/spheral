@@ -20,6 +20,7 @@
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Utilities/NodeCoupling.hh"
 #include "Utilities/DamagedNodeCoupling.hh"
 #include "Utilities/DamagedNodeCouplingWithFrags.hh"
 #include "Utilities/ThreePointDamagedNodeCoupling.hh"
@@ -63,7 +64,7 @@ DamageModel(SolidNodeList<Dimension>& nodeList,
   mYoungsModulus(SolidFieldNames::YoungsModulus, nodeList),
   mLongitudinalSoundSpeed(SolidFieldNames::longitudinalSoundSpeed, nodeList),
   mExcludeNode("Nodes excluded from damage", nodeList, 0),
-  mNodeCoupling(),
+  mNodeCouplingPtr(new NodeCoupling()),
   mRestart(registerWithRestart(*this)) {
 }
 
@@ -153,7 +154,8 @@ registerState(DataBase<Dimension>& dataBase,
 
 //------------------------------------------------------------------------------
 // initialize (before evaluateDerivatives)
-// This is where we update the damage coupling and add it to the State.
+// This is where we update the damage coupling, which is stored in the
+// connectivity pair list in f_couple.
 // We can't do this during registerState because some coupling algorithms
 // require ghost state to be updated first.
 //------------------------------------------------------------------------------
@@ -166,6 +168,9 @@ initialize(const Scalar /*time*/,
            State<Dimension>& state,
            StateDerivatives<Dimension>& /*derivs*/) {
 
+  const auto& connectivity = dataBase.connectivityMap();
+  auto&       pairs = const_cast<NodePairList&>(connectivity.nodePairList());  // Need non-const to fill in f_couple
+
   switch(mDamageCouplingAlgorithm) {
   case DamageCouplingAlgorithm::NoDamage:
     break;
@@ -173,7 +178,7 @@ initialize(const Scalar /*time*/,
   case DamageCouplingAlgorithm::DirectDamage:
     {
       const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-      mNodeCoupling = DamagedNodeCoupling<Dimension>(D);
+      mNodeCouplingPtr = std::make_shared<DamagedNodeCoupling<Dimension>>(D, pairs);
     }
     break;
 
@@ -181,7 +186,7 @@ initialize(const Scalar /*time*/,
     {
       const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
       const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
-      mNodeCoupling = DamagedNodeCouplingWithFrags<Dimension>(D, fragIDs);
+      mNodeCouplingPtr = std::make_shared<DamagedNodeCouplingWithFrags<Dimension>>(D, fragIDs, pairs);
     }
     break;
 
@@ -190,17 +195,13 @@ initialize(const Scalar /*time*/,
       const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
       const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
       const auto  D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-      const auto& connectivity = dataBase.connectivityMap();
-      auto&       pairs = const_cast<NodePairList&>(connectivity.nodePairList());  // Need non-const to fill in f_couple
-      mNodeCoupling = ThreePointDamagedNodeCoupling<Dimension>(position, H, D, mW, connectivity, pairs);
+      mNodeCouplingPtr = std::make_shared<ThreePointDamagedNodeCoupling<Dimension>>(position, H, D, mW, connectivity, pairs);
     }
     break;
 
   default:
     VERIFY2(false, "DamageModel ERROR: unhandled damage coupling algorithm case");
   }
-
-  state.enrollAny(SolidFieldNames::damageCoupling, mNodeCoupling);
 }
 
 //------------------------------------------------------------------------------

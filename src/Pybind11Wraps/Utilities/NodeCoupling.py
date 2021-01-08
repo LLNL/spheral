@@ -31,7 +31,8 @@ class DamagedNodeCoupling(NodeCoupling):
 """
 
     def pyinit(self,
-               damage = "const FieldList<%(Dimension)s, SymTensor>&"):
+               damage = "const FieldList<%(Dimension)s, SymTensor>&",
+               pairs = "NodePairList&"):
         "Constructor"
 
     @PYB11virtual
@@ -60,7 +61,8 @@ on fragment ID as well."""
 
     def pyinit(self,
                damage = "const FieldList<%(Dimension)s, SymTensor>&",
-               fragIDs = "const FieldList<%(Dimension)s, int>&"):
+               fragIDs = "const FieldList<%(Dimension)s, int>&",
+               pairs = "NodePairList&"):
         "Constructor"
 
     @PYB11virtual

@@ -477,9 +477,6 @@ if DamageModelConstructor is GradyKippTensorDamage:
                                          kernel = WT,
                                          seed = randomSeed,
                                          strainAlgorithm = strainType,
-                                         effectiveDamageAlgorithm = damageMethod,
-                                         useDamageGradient = useDamageGradient,
-                                         flawAlgorithm = effectiveFlawAlgorithm,
                                          damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is GradyKippTensorDamageOwen:
@@ -490,10 +487,7 @@ elif DamageModelConstructor is GradyKippTensorDamageOwen:
                                          seed = randomSeed,
                                          volumeMultiplier = volumeMultiplier,
                                          strainAlgorithm = strainType,
-                                         effectiveDamageAlgorithm = damageMethod,
-                                         useDamageGradient = useDamageGradient,
                                          crackGrowthMultiplier = 0.4,
-                                         flawAlgorithm = effectiveFlawAlgorithm,
                                          minFlawsPerNode = numFlawsPerNode,
                                          damageInCompression = damageInCompression)
 
@@ -538,10 +532,6 @@ if isinstance(damageModel, JohnsonCookDamage):
     vizFields += [damageModel.D1(), damageModel.D2()]
 
 output("damageModel")
-if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
-    output("damageModel.useDamageGradient")
-    output("damageModel.effectiveDamageAlgorithm")
-    output("damageModel.effectiveFlawAlgorithm")
 
 if cullToWeakestFlaws:
     damageModel.cullToWeakestFlaws()
