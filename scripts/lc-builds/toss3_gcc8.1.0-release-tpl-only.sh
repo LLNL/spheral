@@ -24,4 +24,4 @@ cmake \
   $CMAKE_ARGS \
 
 cd $BUILD_SUFFIX/build
-make -j boost
+make -j install
