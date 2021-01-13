@@ -18,7 +18,6 @@ using std::max;
 using std::abs;
 
 #include "Timer.hh"
-#include "DBC.hh"
 
 // Must initialize the static list defined in Timer.hh
 // list<Timer*> Timer::TimerList(0); 
