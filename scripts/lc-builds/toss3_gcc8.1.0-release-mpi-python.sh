@@ -11,13 +11,13 @@ mkdir -p ${BUILD_SUFFIX}/install
 mkdir -p ${BUILD_SUFFIX}/build && cd ${BUILD_SUFFIX}/build
 
 module load cmake/3.14.5
-module load gcc/8.3.1
+module load gcc/8.1.0
 
 cmake \
   ${SRC_DIR} \
-  -DCMAKE_BUILD_TYPE=Debug \
-  -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-8.3.1/bin/g++ \
-  -C ${SRC_DIR}/host-configs/lc-builds/toss3/gcc8.3.1_tpl.cmake \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-8.1.0/bin/g++ \
+  -C ${SRC_DIR}/host-configs/lc-builds/toss3/gcc8.1.0_tpl.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_MPI=On \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
