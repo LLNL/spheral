@@ -58,7 +58,7 @@ fi
 if [ ! -z "$HOST_CONFIGS_DIR" ]; then
   printf 'Using host_configs_dir "%s"\n' "$HOST_CONFIGS_DIR"
 else
-  HOST_CONFIGS_DIR=$SRC_DIR/host_configs
+  HOST_CONFIGS_DIR=$SRC_DIR/host-configs
 fi
 
 if [ ! -z "$CMAKE_ARGS" ]; then
