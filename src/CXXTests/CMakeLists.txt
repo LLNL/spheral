@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 
 set(gtest_spheral_tests
-    basic.cc
+    testSidreStorage.cc
    )
 
 

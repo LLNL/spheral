@@ -10,7 +10,7 @@ namespace Spheral
 SidreDataCollection::SidreDataCollection()
 {
    m_datastore_ptr = new sidre::DataStore();
-   sidre::Group *root = m_datastore_ptr->getRoot();
+   //sidre::Group *root = m_datastore_ptr->getRoot();
 }
 
 SidreDataCollection::~SidreDataCollection()

@@ -40,7 +40,7 @@ struct DataTypeTraits<bool> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_C_BOOL; }
 #endif
-  static axom::sidre::DataTypeId axomType() { return axom::sidre::CHAR8_STR_ID; }
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::INT8_ID; }
 };
 
 //------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ struct DataTypeTraits<char> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_CHAR; }
 #endif
-  static axom::sidre::DataTypeId axomType() { return axom::sidre::CHAR8_STR_ID; }
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::INT8_ID; }
 };
 
 //------------------------------------------------------------------------------
@@ -80,6 +80,7 @@ struct DataTypeTraits<size_t> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_UNSIGNED; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::UINT64_ID; }
 };
 #endif
 
@@ -160,7 +161,7 @@ struct DataTypeTraits<std::vector<Value> > {
   static int numElements(const std::vector<Value>& x) { return x.size(); }
   static std::vector<Value> zero() { return std::vector<Value>(); }
 
-  static axom::sidre::DataTypeId axomType() { return axom::sidre::INT_ID; }
+  static axom::sidre::DataTypeId axomType() { return DataTypeTraits<Value>::axomType(); }
 };
 
 //------------------------------------------------------------------------------

@@ -235,7 +235,7 @@ public:
   std::vector<DataType> ghostValues() const;
   std::vector<DataType> allValues() const;
 
-  // Functions to help with the construction of the Sidre datastore.
+  // Functions to help with storing the field in a Sidre datastore.
   axom::sidre::DataTypeId getAxomType() const;
 
 
