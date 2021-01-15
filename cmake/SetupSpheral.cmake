@@ -120,6 +120,11 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}")
 # which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+#-------------------------------------------------------------------------------
+# We need the set of Spheral C++ libraries globally
+#-------------------------------------------------------------------------------
+set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS)
+
 if (NOT BUILD_TPL_ONLY)
   #-------------------------------------------------------------------------------
   # Install symlink for spheral->python
