@@ -24,7 +24,7 @@ message("-- compiler warnings ${ENABLE_WARNINGS}")
 
 option(ENABLE_UNUSED_VARIABLE_WARNINGS "show unused variable compiler warnings" ON)
 if (NOT ENABLE_UNUSED_VARIABLE_WARNINGS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
 endif()
 message("-- compiler unused variable warnings ${ENABLE_UNUSED_VARIABLE_WARNINGS}")
 
