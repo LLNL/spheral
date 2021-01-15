@@ -512,6 +512,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                                                        nodeListi,
                                                        i);
 
+      // Determine the deviatoric stress evolution.
+      const auto deformation = localDvDxi.Symmetric();
+      const auto spin = localDvDxi.SkewSymmetric();
+      const auto deviatoricDeformation = deformation - (deformation.Trace()/3.0)*SymTensor::one;
+      const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
+      DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
+
       // Optionally use damage to ramp down stress on damaged material.
       const auto Di = max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0));
       // Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
@@ -519,13 +526,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // We also adjust the density evolution in the presence of damage.
       if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.5/dt*Di*(rhoi - rho0);
-
-      // Determine the deviatoric stress evolution.
-      const auto deformation = localDvDxi.Symmetric();
-      const auto spin = localDvDxi.SkewSymmetric();
-      const auto deviatoricDeformation = deformation - (deformation.Trace()/3.0)*SymTensor::one;
-      const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
-      DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 
       // // In the presence of damage, add a term to reduce the stress on this point.
       // DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;

@@ -74,5 +74,3 @@ set_source_files_properties(ANEOSInst1d.cc ANEOSInst2d.cc ANEOSInst3d.cc PROPERT
 
 spheral_add_cxx_library(SolidMaterial)
 
-list(APPEND SPHERAL_CXX_LIBS Spheral_SolidMaterial)
-set(SPHERAL_CXX_LIBS "${SPHERAL_CXX_LIBS}" PARENT_SCOPE)
