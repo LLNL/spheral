@@ -115,11 +115,8 @@ private:
   double mAlpha;                               // generalized density exponent
   double mDiffusionCoefficient;                // controls diffusion of rho and eps
   int mInterfaceMethod;                        // (0 or 1) switch between interface methods
-  std::vector<int> mDecoupledNodeLists ;       // decouples DrhoDt and DepsDt for specificed nodeLists
+  std::vector<int> mDecoupledNodeLists;        // decouples DrhoDt and DepsDt for specificed nodeLists
   std::vector<int> mSumDensityNodeLists;       // turn on density sum subset of nodeLists
-  
-
-  FieldList<Dimension, Vector> mSurfaceNormal; //estimate of interface normals
 
   // No default constructor, copying, or assignment.
   FSISolidSPHHydroBase();

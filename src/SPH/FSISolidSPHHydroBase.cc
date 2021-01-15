@@ -155,9 +155,7 @@ FSISolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDiffusionCoefficient(diffusionCoefficient),
   mInterfaceMethod(interfaceMethod),
   mDecoupledNodeLists(decoupledNodeLists),
-  mSumDensityNodeLists(sumDensityNodeLists),
-  mSurfaceNormal(FieldStorageType::CopyFields) {
-  mSurfaceNormal = dataBase.newSolidFieldList(Vector::zero,"surface_Normal_between_materials");
+  mSumDensityNodeLists(sumDensityNodeLists){
   }
 
 //------------------------------------------------------------------------------
@@ -220,13 +218,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
 
-  // for now we're going to tweak AV to
-  // remove FSI shear effects maybe 
-  // parse out later?
-  //const auto Cl = Q.Cl();
-  //const auto Cq = Q.Cq();
-  //const auto eps2 = Q.epsilon2();
-
   // The kernels and such.
   const auto& W = this->kernel();
   const auto& smoothingScaleMethod = this->smoothingScaleMethod();
@@ -241,14 +232,15 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto strengthInDamage = this->strengthInDamage();
   const auto negativePressureInDamage = this->negativePressureInDamage();
   const auto alpha = this->alpha();
-
+  const auto diffCoeff = this->diffusionCoefficient();
+  const auto useLocalVelocityGradient = this-> decoupledNodeLists();
+  
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto numNodeLists = nodeLists.size();
 
   // Get the state and derivative FieldLists.
-  // State FieldLists.
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
@@ -341,7 +333,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // Build the functor we use to compute the effective coupling between nodes.
   DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
 
-
   // Walk all the interacting pairs and calculated linear correction tensor
   // based on taylor series expansion of gradient estimate
 #pragma omp parallel
@@ -351,11 +342,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDx_thread = DvDx.threadCopy(threadStack);
-    //auto localDvDx_thread = localDvDx.threadCopy(threadStack);
     auto M_thread = M.threadCopy(threadStack);
     auto localM_thread = localM.threadCopy(threadStack);
-    //auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
-    //auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -372,20 +360,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto  rhoi = massDensity(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
-      //const auto Ki = K(nodeListi,i);
-      //const auto  Di = damage(nodeListi,i).eigenValues().maxElement();  
-      //const auto  Pi = pressure(nodeListi,i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
-      //auto& DvDxi = DvDx_thread(nodeListi, i);
-      //auto& localDvDxi = localDvDx_thread(nodeListi, i);
       auto& Mi = M_thread(nodeListi, i);
       auto& localMi = localM_thread(nodeListi, i);
-      //auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
-      //auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
-      //auto& i = rSumDiff(nodeListi, i);
 
       // Get the state for node j
       const auto rj = position(nodeListj, j);
@@ -394,9 +374,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto rhoj = massDensity(nodeListj, j);
       const auto Hj = H(nodeListj, j);
       const auto Hdetj = Hj.Determinant();
-      //const auto Kj = K(nodeListj,j);
-      //const auto  Dj = damage(nodeListj,j).eigenValues().maxElement();  
-      //const auto  Pj = pressure(nodeListj,j);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
@@ -409,11 +386,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Node displacement.
       const auto rij = ri - rj;
-      const auto Hij = 0.5*(Hi+Hj);
-      const auto etaij = Hij*rij;
-      const auto Hdetij = Hij.Determinant();
-      const auto etaMagij = etaij.magnitude();
-      CHECK(etaMagij >= 0.0);
+      //const auto Hij = 0.5*(Hi+Hj);
+      //const auto etaij = Hij*rij;
+      //const auto Hdetij = Hij.Determinant();
+      //const auto etaMagij = etaij.magnitude();
+      //CHECK(etaMagij >= 0.0);
 
       const auto etai = Hi*rij;
       const auto etaj = Hj*rij;
@@ -432,17 +409,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto Hetaj = Hj*etaj.unitVector();
       const auto gradWj = W.gradValue(etaMagj, Hdetj)*Hetaj;
 
-      const auto gradWij = 0.5*(gradWi + gradWj);
+      //const auto gradWij = 0.5*(gradWi + gradWj);
       
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
       const auto voli = mi/rhoi;
       const auto volj = mj/rhoj;
       
-      // treatment of FSI
-      //const auto kappai = (sameMatij || mDecoupledNodeLists[nodeListi]==0 ? 1.0 : 0.0);
-      //const auto kappaj = (sameMatij || mDecoupledNodeLists[nodeListj]==0 ? 1.0 : 0.0);
-
       const auto gradRi = volj*rij.dyad(gradWi);
       const auto gradRj = voli*rij.dyad(gradWj);
 
@@ -683,11 +656,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       if(sameMatij){
         sigmai = (strengthInDamage? Si: fDeffij*Si)-Peffi*SymTensor::one;
         sigmaj = (strengthInDamage? Sj: fDeffij*Sj)-Peffj*SymTensor::one;
-      }else{ // no tensile loading between different materials
+      }else{ // no tensile/shear loading between different materials
         sigmai = -max(Peffi,0.0)*SymTensor::one;
         sigmaj = -max(Peffj,0.0)*SymTensor::one;
       }
-
 
       // Compute the tensile correction to add to the stress as described in 
       // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -707,33 +679,20 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         DvDti += mj*deltaDvDt;
         DvDtj -= mi*deltaDvDt;
       }
-      if (compatibleEnergy) pairAccelerations[kk] = mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
+      if (compatibleEnergy) pairAccelerations[kk] = mj*deltaDvDt; 
       
-      // muij < 0.0 compression muij > 0.0 expansion
-      // 1) damage only affects interaction when different damage states
-      // 2) damage nodes shouldn't put undamaged nodes further into tension through drhodt update
-      // 6) damaged nodes should only communicate compression when their pressure is positive or undamaged in tension
-      // 5) vel grad should always allow undamaged material to equillibriate
-
-      // Dj-Di diode style communication that limits velocity gradient for undamaged nodes 
+      // setting up the damage weights to the velocity gradient
       const auto muij = vij.dot(rij); 
       const auto damageDecouplingi = (muij > 0.0 && Pi < 0.0) || (muij < 0.0 && Pi > 0.0 && Pj < 0.0); 
       const auto damageDecouplingj = (muij > 0.0 && Pj < 0.0) || (muij < 0.0 && Pi < 0.0 && Pj > 0.0); 
       const auto fDeffi =  (sameMatij && damageDecouplingi ? pow(1.0 - min(1.0,max(0.0,Dj-Di)),4) : 1.0); 
       const auto fDeffj =  (sameMatij && damageDecouplingj ? pow(1.0 - min(1.0,max(0.0,Di-Dj)),4) : 1.0);
 
-      //if (mInterfaceMethod == 0){
-      //  const auto surfDecouplei = (damageDecouplingi ? 0.0 : 1.0); 
-      //  const auto surfDecouplej = (damageDecouplingj ? 0.0 : 1.0); 
-      //}
-      //if (mInterfaceMethod == 1){
-      //  kappai = (sameMatij || mDecoupledNodeLists[nodeListi]==0 ? 1.0 : 0.0);
-      //  kappaj = (sameMatij || mDecoupledNodeLists[nodeListj]==0 ? 1.0 : 0.0);
-      //}
-      
+      // setting up material propertiy correction weights forthe velocity gradient
       const auto kappai = (sameMatij ? 1.0 : max(0.0, min(2.0, 2.0*(Kj)/(Ki+Kj))));
       const auto kappaj = (sameMatij ? 1.0 : max(0.0, min(2.0, 2.0-kappai)));
-      // DvDx eqn -- velocity gradient with FSI treatment
+
+      // part common to local and global vel-grad
       auto deltaDvDxi = fDeffi*vij.dyad(gradWi);
       auto deltaDvDxj = fDeffj*vij.dyad(gradWj);
 
@@ -752,33 +711,29 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       //const auto deltaDrhoj = rhoj * kappaj1 * deltaVolTotal1.Trace();
       //----------------------------------
 
-
+      // Velocity Gradient
       if (sameMatij) {
-        // damaged material shouldn't transfer shear or tensile loads
-        // through the localDvDxi on DSdt on gradient correction for DvDx though :(
-        //const auto muij = vij.dot(etaij)/(etaMagij+tiny);
-        //const auto Muij = muij*etaij/(etaMagij+tiny); 
-        //const auto fCompressedRubble = ((muij > 0.0) ? fDeffij : 1.0);
-        // need to account for strenght in damage
-        //const auto localDeltaDvDxi = fDeffi*deltaDvDxi; //+ (1.0-fDeffi)*Muij.dyad(gradWi);
-        //const auto localDeltaDvDxj = fDeffj*deltaDvDxj; //+ (1.0-fDeffj)*Muij.dyad(gradWj);
-
-        //const auto localDeltaDvDxi = (strengthInDamage ? deltaDvDxi 
         localDvDxi -= volj*(deltaDvDxi*localMi);
         localDvDxj -= voli*(deltaDvDxj*localMj);
       }
-      deltaDvDxi =  kappai*deltaDvDxi*Mi;// kappai1 * deltaVolTotal1;//
-      deltaDvDxj =  kappaj*deltaDvDxj*Mj;// kappaj1 * deltaVolTotal1;//
+      
+      deltaDvDxj =  (useLocalVelocityGradient[nodeListj] ? 
+                     kappaj*deltaDvDxj*localMj :
+                     deltaDvDxi*Mj);
+  
+      deltaDvDxi =  (useLocalVelocityGradient[nodeListi] ? 
+                     kappai*deltaDvDxi*localMi :
+                     deltaDvDxi*Mi);
+
       DvDxi -= volj*deltaDvDxi;
       DvDxj -= voli*deltaDvDxj;
       
       DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()));
       DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()));
 
-      // for density we essentially diffuse the pressure accross the boundary 
-      if (mDiffusionCoefficient>tiny){
-        const float coeffDiffusion = (true ? mDiffusionCoefficient : 0.0);
-        const auto diffusion = coeffDiffusion*cij*etaij.dot(gradWij)/(etaMagij*etaMagij+tiny);
+      // Diffusion
+      if (diffCoeff>tiny){
+        const auto diffusion = diffCoeff*cij*etaij.dot(gradWij)/(etaMagij*etaMagij+tiny);
         const auto deltaRhoi = (sameMatij ? rhoj-rhoi : (Pj-Pi)/(ci*ci+tiny));
         const auto deltaRhoj = (sameMatij ? rhoi-rhoj : (Pi-Pj)/(cj*cj+tiny));
         const auto deltaEpsi = (sameMatij ? epsj-epsi : 0.0);
@@ -838,7 +793,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
-      const auto& Pi = pressure(nodeListi,i);
+      //const auto& Pi = pressure(nodeListi,i);
       const auto& Hi = H(nodeListi, i);
       const auto& Si = S(nodeListi, i);
       const auto& mui = mu(nodeListi, i);
@@ -871,7 +826,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
 
-      DrhoDti -= rhoi*DvDxi.Trace();
+      DrhoDti -=  rhoi*DvDxi.Trace();
 
       DxDti = vi;
       if (XSPH && nodeListi>0 ) {
@@ -881,7 +836,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         //if (this->mEvolveTotalEnergy) DepsDti +=  mi*XSPHDeltaVi/X.dot(DvDti);
       }
       if (this->mEvolveTotalEnergy) DepsDti = mi*(DxDti.dot(DvDti) + DepsDti);
-      // The H tensor evolution.
 
    
       DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
@@ -950,11 +904,11 @@ computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   // Some useful variables.
   const auto W0 = W.kernelValue(0.0, 1.0);
 
-  typedef typename Dimension::Scalar Scalar;
-  FieldList<Dimension, Scalar> storeDensity(FieldStorageType::CopyFields);
-  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    storeDensity.appendNewField("storeDensity", massDensity[nodeListi]->nodeList(), 0.0);
-  }
+  //typedef typename Dimension::Scalar Scalar;
+  //FieldList<Dimension, Scalar> storeDensity(FieldStorageType::CopyFields);
+  //for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+  //  storeDensity.appendNewField("storeDensity", massDensity[nodeListi]->nodeList(), 0.0);
+  //}
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
@@ -964,7 +918,8 @@ computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 #pragma omp parallel
   {
     int i, j, nodeListi, nodeListj;
-    auto storeMassDensity_thread = storeDensity.threadCopy();
+    //auto storeMassDensity_thread = storeDensity.threadCopy();
+    auto massDensity_thread = massDensity.threadCopy();
 
 #pragma omp for
     for (auto k = 0u; k < npairs; ++k) {
@@ -977,20 +932,20 @@ computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
         // State for node i
         const auto& ri = position(nodeListi, i);
         const auto  mi = mass(nodeListi, i);
-        const auto  Pi = pressure(nodeListi, i);
-        const auto  Ki = bulkModulus(nodeListi, i);
+        //const auto  Pi = pressure(nodeListi, i);
+        //const auto  Ki = bulkModulus(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
         const auto  Hdeti = Hi.Determinant();
-        const auto rhoi = massDensity(nodeListi, i);
+        //const auto rhoi = massDensity(nodeListi, i);
       
         // State for node j
         const auto& rj = position(nodeListj, j);
         const auto  mj = mass(nodeListj, j);
-        const auto  Pj = pressure(nodeListj, j);
-        const auto  Kj = bulkModulus(nodeListj, j);
+        //const auto  Pj = pressure(nodeListj, j);
+        //const auto  Kj = bulkModulus(nodeListj, j);
         const auto& Hj = H(nodeListj, j);
         const auto  Hdetj = Hj.Determinant();
-        const auto rhoj = massDensity(nodeListj, j);
+        //const auto rhoj = massDensity(nodeListj, j);
       
         // Kernel weighting and gradient.
         const auto rij = ri - rj;
@@ -999,18 +954,18 @@ computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
         const auto Wi = W.kernelValue(etai, Hdeti);
         const auto Wj = W.kernelValue(etaj, Hdetj);
 
-        // Sum the pair-wise contributions.
-        //massDensity_thread(nodeListi, i) += (nodeListi == nodeListj ? mj : mi)*Wj ;
-        //massDensity_thread(nodeListj, j) += (nodeListi == nodeListj ? mi : mj)*Wi ;
-    
-        storeMassDensity_thread(nodeListi, i) += (mSumDensityNodeLists[nodeListi]==1 ? (nodeListi == nodeListj ? mj : mi)*Wi : 0.0);
-        storeMassDensity_thread(nodeListj, j) += (mSumDensityNodeLists[nodeListj]==1 ? (nodeListi == nodeListj ? mi : mj)*Wj : 0.0);
+        massDensity_thread(nodeListi, i) += (mSumDensityNodeLists[nodeListi]==1 ? 
+                                            (nodeListi == nodeListj ? mj : mi)*Wi : 
+                                             0.0);
+        massDensity_thread(nodeListj, j) += (mSumDensityNodeLists[nodeListj]==1 ? 
+                                            (nodeListi == nodeListj ? mi : mj)*Wj : 
+                                             0.0);
       }
     }
 
 #pragma omp critical
     {
-      storeMassDensity_thread.threadReduce();
+      massDensity_thread.threadReduce();
     }
   }
 
@@ -1023,8 +978,8 @@ computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
         const auto  mi = mass(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
         const auto  Hdeti = Hi.Determinant();
-        const auto rhoi = storeDensity(nodeListi, i);
-        massDensity(nodeListi,i) = rhoi+mi*Hdeti*W0;
+        //const auto rhoi = storeDensity(nodeListi, i);
+        massDensity(nodeListi,i) += mi*Hdeti*W0;
       }
     }
   }
