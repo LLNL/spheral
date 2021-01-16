@@ -717,13 +717,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         localDvDxj -= voli*(deltaDvDxj*localMj);
       }
       
-      deltaDvDxj =  (useLocalVelocityGradient[nodeListj] ? 
-                     kappaj*deltaDvDxj*localMj :
-                     deltaDvDxi*Mj);
+      deltaDvDxj =  (useLocalVelocityGradient[nodeListj] == 0 ? 
+                     kappaj*deltaDvDxj*Mj :
+                     deltaDvDxj*localMj);
   
-      deltaDvDxi =  (useLocalVelocityGradient[nodeListi] ? 
-                     kappai*deltaDvDxi*localMi :
-                     deltaDvDxi*Mi);
+      deltaDvDxi =  (useLocalVelocityGradient[nodeListi] == 0 ? 
+                     kappai*deltaDvDxi*Mi :
+                     deltaDvDxi*localMi);
 
       DvDxi -= volj*deltaDvDxi;
       DvDxj -= voli*deltaDvDxj;
@@ -910,6 +910,20 @@ computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   //  storeDensity.appendNewField("storeDensity", massDensity[nodeListi]->nodeList(), 0.0);
   //}
 
+    // First the self contribution.
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+    const auto n = massDensity[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0u; i < n; ++i) {
+      if (mSumDensityNodeLists[nodeListi]==1){
+        const auto  mi = mass(nodeListi, i);
+        const auto& Hi = H(nodeListi, i);
+        const auto  Hdeti = Hi.Determinant();
+        //const auto rhoi = storeDensity(nodeListi, i);
+        massDensity(nodeListi,i) = mi*Hdeti*W0;
+      }
+    }
+  }
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
@@ -966,21 +980,6 @@ computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 #pragma omp critical
     {
       massDensity_thread.threadReduce();
-    }
-  }
-
-    // First the self contribution.
-  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto n = massDensity[nodeListi]->numInternalElements();
-#pragma omp parallel for
-    for (auto i = 0u; i < n; ++i) {
-      if (mSumDensityNodeLists[nodeListi]==1){
-        const auto  mi = mass(nodeListi, i);
-        const auto& Hi = H(nodeListi, i);
-        const auto  Hdeti = Hi.Determinant();
-        //const auto rhoi = storeDensity(nodeListi, i);
-        massDensity(nodeListi,i) += mi*Hdeti*W0;
-      }
     }
   }
 
