@@ -233,7 +233,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
 
         # Arguments needed to build the damage model.
         damage_kwargs = {"nodeList"                 : None,
-                         "strainAlgorithm"          : BenzAsphaugStrain,
+                         "strainAlgorithm"          : PseudoPlasticStrain,
                          "damageCouplingAlgorithm"  : ThreePointDamage,
                          "kernel"                   : None,
                          "crackGrowthMultiplier"    : 0.4,
