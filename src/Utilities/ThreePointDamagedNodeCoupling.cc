@@ -19,6 +19,7 @@
 #include "Utilities/Timer.hh"
 
 // Declare timers
+extern Timer TIME_Damage;
 extern Timer TIME_ThreePointCoupling;
 
 namespace Spheral {
@@ -35,6 +36,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                               const ConnectivityMap<Dimension>& connectivity,
                               NodePairList& pairs) {
 
+  TIME_Damage.start();
   TIME_ThreePointCoupling.start();
   const auto W0 = W.kernelValue(0.0, 1.0);
 
@@ -81,6 +83,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
     CHECK(fij >= 0.0 and fij <= 1.0);
   }
   TIME_ThreePointCoupling.stop();
+  TIME_Damage.stop();
 }
 
 }
