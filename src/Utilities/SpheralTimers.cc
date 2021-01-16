@@ -192,6 +192,30 @@ Timer TIME_SPHevalDerivs_initial ("SPH evaluateDerivates (initial)", TIME_SPHeva
 Timer TIME_SPHevalDerivs_pairs   ("SPH evaluateDerivates (pairs)  ", TIME_SPHevalDerivs);
 Timer TIME_SPHevalDerivs_final   ("SPH evaluateDerivates (final)  ", TIME_SPHevalDerivs);
 
+//------------------------------------------------------------------------------
+// SolidSPH 
+//------------------------------------------------------------------------------
+Timer TIME_SolidSPH                   ("SolidSPH base timer                 ", TIME_Physics);
+Timer TIME_SolidSPHinitializeStartup  ("SolidSPH initializeProblemStartup   ", TIME_SolidSPH);
+Timer TIME_SolidSPHregister           ("SolidSPH register                   ", TIME_SolidSPH);
+Timer TIME_SolidSPHregisterDerivs     ("SolidSPH registerDerivatives        ", TIME_SolidSPH);
+Timer TIME_SolidSPHpreStepInitialize  ("SolidSPH preStepInitialize (step)   ", TIME_SolidSPH);
+Timer TIME_SolidSPHinitialize         ("SolidSPH initialize (evalderivs)    ", TIME_SolidSPH);
+Timer TIME_SolidSPHfinalizeDerivs     ("SolidSPH finalizeDerivatives        ", TIME_SolidSPH);
+Timer TIME_SolidSPHghostBounds        ("SolidSPH ghost boundaries           ", TIME_SolidSPH);
+Timer TIME_SolidSPHupdateVol          ("SolidSPH updateVolume               ", TIME_SolidSPH);
+Timer TIME_SolidSPHenforceBounds      ("SolidSPH enforceBoundaries          ", TIME_SolidSPH);
+Timer TIME_SolidSPHevalDerivs         ("SolidSPH evaluateDerivates          ", TIME_SolidSPH);
+Timer TIME_SolidSPHevalDerivs_initial ("SolidSPH evaluateDerivates (initial)", TIME_SolidSPHevalDerivs);
+Timer TIME_SolidSPHevalDerivs_pairs   ("SolidSPH evaluateDerivates (pairs)  ", TIME_SolidSPHevalDerivs);
+Timer TIME_SolidSPHevalDerivs_final   ("SolidSPH evaluateDerivates (final)  ", TIME_SolidSPHevalDerivs);
+
+//------------------------------------------------------------------------------
+// Damage
+//------------------------------------------------------------------------------
+Timer TIME_Damage                     ("Damage base timer                 ", TIME_Physics);
+Timer TIME_ThreePointCoupling         ("3-pt damage coupling constructor  ", TIME_Damage);
+
 // //------------------------------------------------------------------------------
 // // MASH NodeList
 // //------------------------------------------------------------------------------

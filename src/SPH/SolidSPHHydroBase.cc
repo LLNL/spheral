@@ -30,6 +30,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
+#include "Utilities/Timer.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 
 #include "SolidSPHHydroBase.hh"
@@ -50,6 +51,18 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+
+// Declare timers
+extern Timer TIME_SolidSPH;
+extern Timer TIME_SolidSPHinitializeStartup;
+extern Timer TIME_SolidSPHregister;
+extern Timer TIME_SolidSPHregisterDerivs;
+extern Timer TIME_SolidSPHghostBounds;
+extern Timer TIME_SolidSPHenforceBounds;
+extern Timer TIME_SolidSPHevalDerivs;
+extern Timer TIME_SolidSPHevalDerivs_initial;
+extern Timer TIME_SolidSPHevalDerivs_pairs;
+extern Timer TIME_SolidSPHevalDerivs_final;
 
 namespace Spheral {
 
@@ -178,6 +191,8 @@ void
 SolidSPHHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
+  TIME_SolidSPHinitializeStartup.start();
+
   // Call the ancestor.
   SPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
 
@@ -194,6 +209,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Copy the initial H field to apply to nodes as they become damaged.
   const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
   mHfield0.assignFields(H);
+
+  TIME_SolidSPHinitializeStartup.stop();
 }
 
 
@@ -205,6 +222,7 @@ void
 SolidSPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
+  TIME_SolidSPHregister.start();
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
@@ -271,6 +289,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   // And finally the intial plastic strain.
   state.enroll(mPlasticStrain0);
+  TIME_SolidSPHregister.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -281,6 +300,7 @@ void
 SolidSPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
+  TIME_SolidSPHregisterDerivs.start();
 
   // Call the ancestor method.
   SPHHydroBase<Dimension>::registerDerivatives(dataBase, derivs);
@@ -301,6 +321,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     CHECK((*itr) != 0);
     derivs.enroll((*itr)->plasticStrainRate());
   }
+  TIME_SolidSPHregisterDerivs.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -311,6 +332,7 @@ void
 SolidSPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
+  TIME_SolidSPHghostBounds.start();
 
   // Ancestor method.
   SPHHydroBase<Dimension>::applyGhostBoundaries(state, derivs);
@@ -333,6 +355,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(fragIDs);
     (*boundaryItr)->applyFieldListGhostBoundary(pTypes);
   }
+  TIME_SolidSPHghostBounds.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -343,6 +366,7 @@ void
 SolidSPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
+  TIME_SolidSPHenforceBounds.start();
 
   // Ancestor method.
   SPHHydroBase<Dimension>::enforceBoundaries(state, derivs);
@@ -365,6 +389,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(fragIDs);
     (*boundaryItr)->enforceFieldListBoundary(pTypes);
   }
+  TIME_SolidSPHenforceBounds.stop();
 }
 
 //------------------------------------------------------------------------------

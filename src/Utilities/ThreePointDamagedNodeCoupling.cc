@@ -16,6 +16,10 @@
 #include "Utilities/ThreePointDamagedNodeCoupling.hh"
 #include "Utilities/pointDistances.hh"
 #include "Utilities/DBC.hh"
+#include "Utilities/Timer.hh"
+
+// Declare timers
+extern Timer TIME_ThreePointCoupling;
 
 namespace Spheral {
 
@@ -31,6 +35,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                               const ConnectivityMap<Dimension>& connectivity,
                               NodePairList& pairs) {
 
+  TIME_ThreePointCoupling.start();
   const auto W0 = W.kernelValue(0.0, 1.0);
 
   // For each interacting pair we need to compute the effective damage shielding, expressed
@@ -75,6 +80,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
     }
     CHECK(fij >= 0.0 and fij <= 1.0);
   }
+  TIME_ThreePointCoupling.stop();
 }
 
 }
