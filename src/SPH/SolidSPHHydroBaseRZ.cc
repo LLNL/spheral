@@ -349,6 +349,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
+  const auto& coupling = connectivityMap.coupling();
 
   // Size up the pair-wise accelerations before we start.
   if (compatibleEnergy) pairAccelerations.resize(2*npairs + dataBase.numInternalNodes());
@@ -357,9 +358,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
-
-  // Build the functor we use to compute the effective coupling between nodes.
-  NodeCoupling coupling;
 
   // Walk all the interacting pairs.
 #pragma omp parallel
@@ -506,7 +504,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto gradWGj = WG.gradValue(etaMagj, Hdetj) * Hetaj;
 
       // Determine how we're applying damage.
-      const auto fDeffij = coupling(pairs[kk]);
+      const auto fDij = coupling(pairs[kk]);
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -547,20 +545,13 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       viscousWorkj += mRZi*workQj;
 
       // Damage scaling of negative pressures.
-      const auto Peffi = (mNegativePressureInDamage or Pi > 0.0 ? Pi : fDeffij*Pi);
-      const auto Peffj = (mNegativePressureInDamage or Pj > 0.0 ? Pj : fDeffij*Pj);
+      sigmai = (Pi < 0.0 ? -fDij*Pi : -Pi) * SymTensor::one;
+      sigmaj = (Pj < 0.0 ? -fDij*Pj : -Pj) * SymTensor::one;
 
       // Compute the stress tensors.
-      sigmai = -Peffi*SymTensor::one;
-      sigmaj = -Peffj*SymTensor::one;
       if (sameMatij) {
-        if (mStrengthInDamage) {
-          sigmai += Si;
-          sigmaj += Sj;
-        } else {
-          sigmai += fDeffij*Si;
-          sigmaj += fDeffij*Sj;
-        }
+        sigmai += fDij*Si;
+        sigmaj += fDij*Sj;
       }
 
       // Compute the tensile correction to add to the stress as described in 
@@ -588,8 +579,8 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       }
 
       // Pair-wise portion of grad velocity.
-      const auto deltaDvDxi = fDeffij*vij.dyad(gradWGi);
-      const auto deltaDvDxj = fDeffij*vij.dyad(gradWGj);
+      const auto deltaDvDxi = fDij * vij.dyad(gradWGi);
+      const auto deltaDvDxj = fDij * vij.dyad(gradWGj);
 
       // Specific thermal energy evolution.
       DepsDti -= mRZj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);

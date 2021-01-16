@@ -9,11 +9,13 @@
 #define _Spheral_NeighborSpace_ConnectivityMap_hh_
 
 #include "Utilities/KeyTraits.hh"
+#include "Utilities/NodeCoupling.hh"
 #include "Field/FieldList.hh"
-#include "NodePairList.hh"
+#include "Neighbor/NodePairList.hh"
 
 #include <vector>
 #include <map>
+#include <memory>
 
 namespace Spheral {
 
@@ -26,7 +28,8 @@ template<typename Dimension>
 class ConnectivityMap {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef std::vector<int>::const_iterator const_iterator;
+  using const_iterator = std::vector<int>::const_iterator;
+  using NodeCouplingPtr = std::shared_ptr<NodeCoupling>;
 
   // Constructors, destructor.
   ConnectivityMap();
@@ -65,6 +68,11 @@ public:
   // Get the set of NodeLists.
   const std::vector<const NodeList<Dimension>*>& nodeLists() const;
   const NodePairList& nodePairList() const;
+
+  // A functor to specify the coupling between nodes
+  NodeCoupling& coupling();
+  const NodeCoupling& coupling() const;
+  void coupling(NodeCouplingPtr couplingPtr);
 
   //............................................................................
   // Get the set of neighbors for the given (internal!) node in the given NodeList.
@@ -173,8 +181,11 @@ private:
   std::vector<std::vector<int>> mNodeTraversalIndices;
 
   // The set of keys we may compute for each node.
-  typedef typename KeyTraits::Key Key;
+  using Key = typename KeyTraits::Key;
   FieldList<Dimension, Key> mKeys;
+
+  // The coupling functor for coupling between points.
+  NodeCouplingPtr mCouplingPtr;
 
   // Internal method to fill in the connectivity, once the set of NodeLists 
   // is determined.

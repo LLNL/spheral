@@ -154,3 +154,5 @@ member of a pair (maintaining symmetry)."""
                               doc="The set of NodeLists we have connectivity for")
     nodePairList = PYB11property(returnpolicy="reference",
                                  doc="The connectivity as a set of (nodeListi, i, nodeListj, j)")
+    coupling = PYB11property("const NodeCoupling&", returnpolicy="reference",
+                             doc="The coupling functor for pairs of nodes")

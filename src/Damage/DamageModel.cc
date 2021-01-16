@@ -168,8 +168,8 @@ initialize(const Scalar /*time*/,
            State<Dimension>& state,
            StateDerivatives<Dimension>& /*derivs*/) {
 
-  const auto& connectivity = dataBase.connectivityMap();
-  auto&       pairs = const_cast<NodePairList&>(connectivity.nodePairList());  // Need non-const to fill in f_couple
+  auto& connectivity = state.connectivityMap();
+  auto& pairs = const_cast<NodePairList&>(connectivity.nodePairList());
 
   switch(mDamageCouplingAlgorithm) {
   case DamageCouplingAlgorithm::NoDamage:
@@ -202,6 +202,7 @@ initialize(const Scalar /*time*/,
   default:
     VERIFY2(false, "DamageModel ERROR: unhandled damage coupling algorithm case");
   }
+  connectivity.coupling(mNodeCouplingPtr);
 }
 
 //------------------------------------------------------------------------------

@@ -24,7 +24,8 @@ ConnectivityMap(const NodeListIterator& begin,
   mOffsets(),
   mConnectivity(),
   mNodeTraversalIndices(),
-  mKeys(FieldStorageType::CopyFields) {
+  mKeys(FieldStorageType::CopyFields),
+  mCouplingPtr(std::make_shared<NodeCoupling>()) {
 
   // The private method does the grunt work of filling in the connectivity once we have
   // established the set of NodeLists.
@@ -336,6 +337,30 @@ ConnectivityMap<Dimension>::
 nodeList(const int index) const {
   REQUIRE(index >= 0 and index < (int)mNodeLists.size());
   return *(mNodeLists[index]);
+}
+
+//------------------------------------------------------------------------------
+// The NodeCoupling functor
+//------------------------------------------------------------------------------
+template<typename Dimension>
+NodeCoupling&
+ConnectivityMap<Dimension>::
+coupling() {
+  return *mCouplingPtr;
+}
+
+template<typename Dimension>
+const NodeCoupling&
+ConnectivityMap<Dimension>::
+coupling() const {
+  return *mCouplingPtr;
+}
+
+template<typename Dimension>
+void
+ConnectivityMap<Dimension>::
+coupling(typename ConnectivityMap<Dimension>::NodeCouplingPtr couplingPtr) {
+  mCouplingPtr = couplingPtr;
 }
 
 }

@@ -136,7 +136,8 @@ ConnectivityMap():
   mBuildOverlapConnectivity(false),
   mConnectivity(),
   mNodeTraversalIndices(),
-  mKeys(FieldStorageType::CopyFields) {
+  mKeys(FieldStorageType::CopyFields),
+  mCouplingPtr(std::make_shared<NodeCoupling>()) {
 }
 
 //------------------------------------------------------------------------------
