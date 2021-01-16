@@ -98,8 +98,7 @@ commandLine(seed = "lattice",
             mWeibullFactor = 1.0,
             randomSeed = 548928513,
             strainType = PseudoPlasticStrain,
-            damageMethod = CopyDamage,
-            useDamageGradient = True,
+            damageCoupling = ThreePointDamage,
             cullToWeakestFlaws = False,
             damageInCompression = False,
             negativePressureInDamage = False,
@@ -473,6 +472,7 @@ if DamageModelConstructor is GradyKippTensorDamage:
                                          kernel = WT,
                                          seed = randomSeed,
                                          strainAlgorithm = strainType,
+                                         damageCouplingAlgorithm = damageCoupling,
                                          damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is GradyKippTensorDamageOwen:
@@ -482,8 +482,8 @@ elif DamageModelConstructor is GradyKippTensorDamageOwen:
                                          kernel = WT,
                                          seed = randomSeed,
                                          volumeMultiplier = volumeMultiplier,
+                                         damageCouplingAlgorithm = damageCoupling,
                                          strainAlgorithm = strainType,
-                                         crackGrowthMultiplier = 0.4,
                                          minFlawsPerNode = numFlawsPerNode,
                                          damageInCompression = damageInCompression)
 
