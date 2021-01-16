@@ -349,7 +349,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
-  const auto& coupling = connectivityMap.coupling();
+  // const auto& coupling = connectivityMap.coupling();
 
   // Size up the pair-wise accelerations before we start.
   if (compatibleEnergy) pairAccelerations.resize(2*npairs + dataBase.numInternalNodes());
@@ -504,7 +504,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto gradWGj = WG.gradValue(etaMagj, Hdetj) * Hetaj;
 
       // Determine how we're applying damage.
-      const auto fDij = coupling(pairs[kk]);
+      const auto fDij = pairs[kk].f_couple;
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.

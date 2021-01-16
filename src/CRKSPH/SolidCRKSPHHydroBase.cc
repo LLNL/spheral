@@ -377,8 +377,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // Size up the pair-wise accelerations before we start.
   if (compatibleEnergy) pairAccelerations.resize(npairs);
 
-  // Build the functor we use to compute the effective coupling between nodes.
-  const NodeCoupling coupling;
+  // // Build the functor we use to compute the effective coupling between nodes.
+  // const NodeCoupling coupling;
 
   // Walk all the interacting pairs.
 #pragma omp parallel
@@ -490,7 +490,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       gradWSPHj = (Hj*etaj.unitVector())*gWj;
 
       // Find the damaged pair weighting scaling.
-      const auto fij = coupling(pairs[kk]);
+      const auto fij = pairs[kk].f_couple;
       CHECK(fij >= 0.0 and fij <= 1.0);
 
       // Zero'th and second moment of the node distribution -- used for the

@@ -138,7 +138,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // The set of interacting node pairs.
   auto&       pairs = const_cast<NodePairList&>(connectivityMap.nodePairList());
   const auto  npairs = pairs.size();
-  const auto& coupling = connectivityMap.coupling();
+  // const auto& coupling = connectivityMap.coupling();
 
   // Size up the pair-wise accelerations before we start.
   if (compatibleEnergy) pairAccelerations.resize(npairs);
@@ -260,7 +260,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
       // Determine how we're applying damage.
-      const auto fDij = coupling(pairs[kk]);
+      const auto fDij = pairs[kk].f_couple;
 
       // Node displacement.
       const auto rij = ri - rj;
