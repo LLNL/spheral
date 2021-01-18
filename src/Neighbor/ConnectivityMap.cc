@@ -1074,8 +1074,7 @@ computeConnectivity() {
   // Are we building intersection connectivity?
   if (mBuildIntersectionConnectivity) {
     TIME_ConnectivityMap_computeIntersectionConnectivity.start();
-    const auto npairs = mNodePairList.size();
-    for (auto kpair = 0u; kpair < npairs; ++kpair) mIntersectionConnectivity[mNodePairList[kpair]] = vector<vector<int>>();
+    for (const auto& pair: mNodePairList) mIntersectionConnectivity[pair] = vector<vector<int>>(numNodeLists);  // Initialize empty entry for each pair
     for (auto kNodeList = 0u; kNodeList < numNodeLists; ++kNodeList) {
       const auto n = mNodeLists[kNodeList]->numNodes();
 #pragma omp parallel
@@ -1099,8 +1098,10 @@ computeConnectivity() {
                   const auto  rij = ri - rj;
                   const auto  eta2 = std::min((Hi*rij).magnitude2(), (Hj*rij).magnitude2());
                   if (eta2 < kernelExtent2) {  // (i,j) see each other and k, so k is in their intersection
-                    const auto itr = intersection_private.find(NodePairIdxType(iNodeList, i, jNodeList, j));
-                    CHECK(itr < intersection_private.end());
+                    const NodePairIdxType pair(i, iNodeList, j, jNodeList);
+                    CHECK2(std::find(mNodePairList.begin(), mNodePairList.end(), pair) != mNodePairList.end(), "Missing pair: " << pair << " " << eta2);
+                    const auto itr = intersection_private.find(pair);
+                    CHECK(itr != intersection_private.end());
                     auto& intersectionij = itr->second;
                     intersectionij[kNodeList].push_back(k);
                   }
