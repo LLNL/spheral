@@ -108,7 +108,7 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
 
     // Compute the new connectivity.
     std::clock_t tcm = std::clock();
-    db.updateConnectivityMap(false, false);
+    db.updateConnectivityMap(false, false, false);
     const auto& cm = db.connectivityMap();
     tcm = std::clock() - tcm;
     { // BLAGO

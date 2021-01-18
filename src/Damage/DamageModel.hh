@@ -91,6 +91,8 @@ public:
 
   virtual bool requireGhostConnectivity() const override;
 
+  virtual bool requireIntersectionConnectivity() const override;
+
   //...........................................................................
   // Optional method to cull the set of flaws to the single weakest one on
   // each point.

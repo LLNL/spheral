@@ -3,13 +3,21 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Do we require ghost-ghost connectivity?
+// Do we require ghost-ghost or intersection connectivity?
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 bool
 DamageModel<Dimension>::
 requireGhostConnectivity() const {
+  return mDamageCouplingAlgorithm == DamageCouplingAlgorithm::ThreePointDamage;
+}
+
+template<typename Dimension>
+inline
+bool
+DamageModel<Dimension>::
+requireIntersectionConnectivity() const {
   return mDamageCouplingAlgorithm == DamageCouplingAlgorithm::ThreePointDamage;
 }
 

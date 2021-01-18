@@ -164,7 +164,7 @@ void
 DamageModel<Dimension>::
 initialize(const Scalar /*time*/,
            const Scalar /*dt*/,
-           const DataBase<Dimension>& dataBase,
+           const DataBase<Dimension>& /*dataBase*/,
            State<Dimension>& state,
            StateDerivatives<Dimension>& /*derivs*/) {
 

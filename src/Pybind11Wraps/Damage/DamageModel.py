@@ -64,6 +64,12 @@ not fill out the complete physics package interface."""
         "Some physics algorithms require ghost connectivity to be constructed."
         return "bool"
 
+    @PYB11virtual
+    @PYB11const
+    def requireIntersectionConnectivity(self):
+        "Some physics algorithms require intersection connectivity to be constructed."
+        return "bool"
+
     #...........................................................................
     # Methods
     def cullToWeakestFlaws(sefl):

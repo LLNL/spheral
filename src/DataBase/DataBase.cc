@@ -522,11 +522,12 @@ template<typename Dimension>
 void
 DataBase<Dimension>::
 updateConnectivityMap(const bool computeGhostConnectivity,
-                      const bool computeOverlapConnectivity) const {
+                      const bool computeOverlapConnectivity,
+                      const bool computeIntersectionConnectivity) const {
   REQUIRE(mConnectivityMapPtr != 0 and
           mConnectivityMapPtr.get() != 0);
   mConnectivityMapPtr->rebuild(fluidNodeListBegin(), fluidNodeListEnd(),
-                               computeGhostConnectivity, computeOverlapConnectivity);
+                               computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
 }
 
 //------------------------------------------------------------------------------
@@ -1713,8 +1714,8 @@ localSamplingBoundingBoxes(vector<typename Dimension::Vector>& xminima,
   xmaxima = vector<Vector>();
 
   // We use our connectivity to make this more efficient.
-  this->updateConnectivityMap(false, false);
-  const ConnectivityMap<Dimension>& connectivityMap = this->connectivityMap(false, false);
+  this->updateConnectivityMap(false, false, false);
+  const ConnectivityMap<Dimension>& connectivityMap = this->connectivityMap(false, false, false);
   const FieldList<Dimension, Vector> positions = this->globalPosition();
   const FieldList<Dimension, Vector> extent = this->globalNodeExtent();
   const int numNodeLists = this->numNodeLists();

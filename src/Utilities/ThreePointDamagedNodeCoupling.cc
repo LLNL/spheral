@@ -64,8 +64,9 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
     fij *= std::max(0.0, std::min(1.0, 1.0 - (Dj*xhatji).magnitude()));
 
     // Find the common neighbors for this pair.
-    const auto intersection_list = connectivity.connectivityIntersectionForNodes(pair.i_list, pair.i_node,
-                                                                                 pair.j_list, pair.j_node);
+    // const auto intersection_list = connectivity.connectivityIntersectionForNodes(pair.i_list, pair.i_node,
+    //                                                                              pair.j_list, pair.j_node);
+    const auto& intersection_list = connectivity.intersectionConnectivity(pair);
     for (auto nodeListk = 0u; nodeListk < numNodeLists; ++nodeListk) {
       for (const auto k: intersection_list[nodeListk]) {
 

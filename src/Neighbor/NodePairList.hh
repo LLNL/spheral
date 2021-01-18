@@ -3,9 +3,14 @@
 
 #include <iostream>
 #include <vector>
+#include <tuple>
+#include <functional>
+#include <iostream>
+#include <boost/container_hash/hash.hpp>
 
 namespace Spheral {
 
+//------------------------------------------------------------------------------
 struct NodePairIdxType {
   NodePairIdxType(int i_n, int i_l, int j_n, int j_l,
                   double f = 1.0);
@@ -28,7 +33,7 @@ struct NodePairIdxType {
 
 };
 
-
+//------------------------------------------------------------------------------
 class NodePairList {
 public:
   typedef std::vector<NodePairIdxType> ContainerType;
@@ -70,7 +75,27 @@ private:
 };
 
 
+//------------------------------------------------------------------------------
+// Output for NodePairIdxType
+inline
+std::ostream& operator<<(std::ostream& os, const NodePairIdxType& x) {
+  os << "[(" << x.i_list << " " << x.i_node << ") (" << x.j_list << " " << x.j_node << ")]";
+  return os;
+}
+
 } //namespace Spheral
+
+//------------------------------------------------------------------------------
+// Provide a method of hashing NodePairIdxType
+namespace std {
+  template<>
+  struct hash<Spheral::NodePairIdxType> {
+    size_t operator()(const Spheral::NodePairIdxType& x) const {
+      boost::hash<std::tuple<int, int, int, int>> hasher;
+      return hasher(std::make_tuple(x.i_node, x.i_list, x.j_node, x.j_list));
+    }
+  };
+} // namespace std
 
 
 #endif // _Spheral_NeighbourSpace_NodePairList_hh_

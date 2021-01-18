@@ -79,6 +79,7 @@ Timer TIME_ConnectivityMap_cutConnectivity("ConnectivityMap::cutConnectivity", T
 Timer TIME_ConnectivityMap_valid("ConnectivityMap::valid", TIME_Spheral);
 Timer TIME_ConnectivityMap_computeConnectivity("ConnectivityMap::computeConnectivity", TIME_Spheral);
 Timer TIME_ConnectivityMap_computeOverlapConnectivity("ConnectivityMap::computeOverlapConnectivity", TIME_ConnectivityMap_computeConnectivity);
+Timer TIME_ConnectivityMap_computeIntersectionConnectivity("ConnectivityMap::computeIntersectionConnectivity", TIME_ConnectivityMap_computeConnectivity);
 
 //------------------------------------------------------------------------------
 // CRKSPH

@@ -17,10 +17,12 @@ ConnectivityMap<Dimension>::
 ConnectivityMap(const NodeListIterator& begin,
                 const NodeListIterator& end,
                 const bool buildGhostConnectivity,
-                const bool buildOverlapConnectivity):
+                const bool buildOverlapConnectivity,
+                const bool buildIntersectionConnectivity):
   mNodeLists(),
-  mBuildGhostConnectivity(buildGhostConnectivity),
+  mBuildGhostConnectivity(buildGhostConnectivity or buildIntersectionConnectivity),
   mBuildOverlapConnectivity(buildOverlapConnectivity),
+  mBuildIntersectionConnectivity(buildIntersectionConnectivity),
   mOffsets(),
   mConnectivity(),
   mNodeTraversalIndices(),
@@ -29,7 +31,7 @@ ConnectivityMap(const NodeListIterator& begin,
 
   // The private method does the grunt work of filling in the connectivity once we have
   // established the set of NodeLists.
-  this->rebuild(begin, end, buildGhostConnectivity, buildOverlapConnectivity);
+  this->rebuild(begin, end, mBuildGhostConnectivity, mBuildOverlapConnectivity, mBuildIntersectionConnectivity);
 
   // We'd better be valid after the constructor is finished!
   ENSURE(valid());
@@ -46,9 +48,11 @@ ConnectivityMap<Dimension>::
 rebuild(const NodeListIterator& begin,
         const NodeListIterator& end, 
         const bool buildGhostConnectivity,
-        const bool buildOverlapConnectivity) {
-  mBuildGhostConnectivity = buildGhostConnectivity;
+        const bool buildOverlapConnectivity,
+        const bool buildIntersectionConnectivity) {
+  mBuildGhostConnectivity = buildGhostConnectivity or buildIntersectionConnectivity;
   mBuildOverlapConnectivity = buildOverlapConnectivity;
+  mBuildIntersectionConnectivity = buildIntersectionConnectivity;
 
   // Copy the set of NodeLists in the order prescribed by the NodeListRegistrar.
   NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
@@ -361,6 +365,18 @@ void
 ConnectivityMap<Dimension>::
 coupling(typename ConnectivityMap<Dimension>::NodeCouplingPtr couplingPtr) {
   mCouplingPtr = couplingPtr;
+}
+
+//------------------------------------------------------------------------------
+// intersection connectivity, if available
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const std::vector<std::vector<int>>&
+ConnectivityMap<Dimension>::
+intersectionConnectivity(const NodePairIdxType& pair) const {
+  const auto itr = mIntersectionConnectivity.find(pair);
+  if (itr == mIntersectionConnectivity.end()) VERIFY2(false, "ERROR: attempt to lookup missing intersection connectivity for node pair " << pair);
+  return itr->second;
 }
 
 }

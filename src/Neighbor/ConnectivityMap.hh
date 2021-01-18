@@ -14,6 +14,7 @@
 #include "Neighbor/NodePairList.hh"
 
 #include <vector>
+#include <unordered_map>
 #include <map>
 #include <memory>
 
@@ -39,14 +40,16 @@ public:
   ConnectivityMap(const NodeListIterator& begin,
                   const NodeListIterator& end,
                   const bool buildGhostConnectivity,
-                  const bool buildOverlapConnectivity);
+                  const bool buildOverlapConnectivity,
+                  const bool buildIntersectionConnectivity);
 
   // Rebuild for a given set of NodeLists.
   template<typename NodeListIterator>
   void rebuild(const NodeListIterator& begin, 
                const NodeListIterator& end, 
                const bool computeGhostConnectivity,
-               const bool buildOverlapConnectivity);
+               const bool buildOverlapConnectivity,
+               const bool buildIntersectionConnectivity);
 
   // Patch the connectivity information:
   // flags   -- (0,1): 0 => node deleted, 1 => node preserved
@@ -64,6 +67,9 @@ public:
 
   // Do we compute overlap connectivity?
   bool buildOverlapConnectivity() const;
+
+  // Do we compute intersection connectivity?
+  bool buildIntersectionConnectivity() const;
 
   // Get the set of NodeLists.
   const std::vector<const NodeList<Dimension>*>& nodeLists() const;
@@ -84,6 +90,15 @@ public:
   const std::vector< std::vector<int> >&
   connectivityForNode(const int nodeListID,
                       const int nodeID) const;
+
+  //............................................................................
+  // Get the pre-computed intersection connectivity for points if it was requested.
+  // Note, this is different than what we expect for overlap connectivity: in this
+  // method the intersection points (k) are all points that points (i,j) have in
+  // common when (i,j) are ALSO neighbors.  Overlap connectivity may exist for
+  // (i,j) even if (i,j) are not neighbors, and this set will miss such points.
+  const std::vector<std::vector<int>>&
+  intersectionConnectivity(const NodePairIdxType& pair) const;
 
   //............................................................................
   // Note the following two methods return the points we have neighbors in common with,
@@ -163,11 +178,11 @@ private:
   std::vector<const NodeList<Dimension>*> mNodeLists;
 
   // Are we building ghost and/or overlap connectivity?
-  bool mBuildGhostConnectivity, mBuildOverlapConnectivity;
+  bool mBuildGhostConnectivity, mBuildOverlapConnectivity, mBuildIntersectionConnectivity;
 
   // The full connectivity map.  This might be quite large!
   // [offset[NodeList] + nodeID] [NodeListID] [neighborIndex]
-  typedef std::vector<std::vector<std::vector<int>>> ConnectivityStorageType;
+  using ConnectivityStorageType = std::vector<std::vector<std::vector<int>>>;
   std::vector<int> mOffsets;
   ConnectivityStorageType mConnectivity;
 
@@ -186,6 +201,10 @@ private:
 
   // The coupling functor for coupling between points.
   NodeCouplingPtr mCouplingPtr;
+
+  // The connectivity intersections, if we're keeping them.
+  using IntersectionConnectivityContainer = std::unordered_map<NodePairIdxType, std::vector<std::vector<int>>>;
+  IntersectionConnectivityContainer mIntersectionConnectivity;
 
   // Internal method to fill in the connectivity, once the set of NodeLists 
   // is determined.

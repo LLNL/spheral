@@ -190,8 +190,8 @@ class NeighborTestBase:
         from SpheralTestUtilities import findNeighborNodes, checkNeighbors
         import time
 
-        self.dataBase.updateConnectivityMap(False, False)
-        cm = self.dataBase.connectivityMap(False, False)
+        self.dataBase.updateConnectivityMap(False, False, False)
+        cm = self.dataBase.connectivityMap(False, False, False)
 
         # Iterate over the NodeLists.
         for iNL, inodes in enumerate(self.dataBase.nodeLists()):
@@ -228,8 +228,8 @@ class NeighborTestBase:
         from SpheralTestUtilities import findNeighborNodes, checkNeighbors
         import time
 
-        self.dataBase.updateConnectivityMap(False, False)
-        cm = self.dataBase.connectivityMap(False, False)
+        self.dataBase.updateConnectivityMap(False, False, False)
+        cm = self.dataBase.connectivityMap(False, False, False)
         numNodeLists = self.dataBase.numNodeLists
 
         # Build the answer based on the node neighbors
@@ -266,8 +266,8 @@ class NeighborTestBase:
         from SpheralTestUtilities import findNeighborNodes, findOverlapNeighbors, findOverlapRegion, checkNeighbors
         import time
 
-        self.dataBase.updateConnectivityMap(False, True)
-        cm = self.dataBase.connectivityMap(False, True)
+        self.dataBase.updateConnectivityMap(False, True, False)
+        cm = self.dataBase.connectivityMap(False, True, False)
         pos = self.dataBase.globalPosition
         H = self.dataBase.globalHfield
 
