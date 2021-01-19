@@ -1073,62 +1073,24 @@ computeConnectivity() {
   // Are we building intersection connectivity?
   if (mBuildIntersectionConnectivity) {
     TIME_ConnectivityMap_computeIntersectionConnectivity.start();
-    // Initialize the pair intersections -- note pairs always at least share one another.
-    for (const auto& pair: mNodePairList) {
-      vector<vector<int>> val(numNodeLists);
-      val[pair.i_list].push_back(pair.i_node);
-      val[pair.j_list].push_back(pair.j_node);
-      mIntersectionConnectivity[pair] = val;
-    }
-    for (auto kNodeList = 0u; kNodeList < numNodeLists; ++kNodeList) {
-      const auto n = mNodeLists[kNodeList]->numNodes();
+    const auto npairs = mNodePairList.size();
 #pragma omp parallel
-      {
-        IntersectionConnectivityContainer intersection_private = mIntersectionConnectivity;
+    {
+      IntersectionConnectivityContainer intersection_private;
 #pragma omp for
-        for (auto k = 0u; k < n; ++k) {
-          const auto& neighborsk = mConnectivity[mOffsets[kNodeList] + k];
-          for (auto iNodeList = 0u; iNodeList < numNodeLists; ++iNodeList) {
-            const auto nki = neighborsk[iNodeList].size();
-            for (auto ki = 0u; ki < nki; ++ki) {
-              const auto i = neighborsk[iNodeList][ki];
-              const auto& ri = position(iNodeList, i);
-              const auto& Hi = H(iNodeList, i);
-              for (auto jNodeList = iNodeList; jNodeList < numNodeLists; ++jNodeList) {
-                const auto nkj = neighborsk[jNodeList].size();
-                for (auto kj = (jNodeList == iNodeList ? ki + 1u : 0u); kj < nkj; ++kj) {
-                  const auto j = neighborsk[jNodeList][kj];
-                  const auto& rj = position(jNodeList, j);
-                  const auto& Hj = H(jNodeList, j);
-                  const auto  rij = ri - rj;
-                  const auto  eta2 = std::min((Hi*rij).magnitude2(), (Hj*rij).magnitude2());
-                  if (eta2 < kernelExtent2) {  // (i,j) see each other and k, so k is in their intersection
-                    const NodePairIdxType pair(i, iNodeList, j, jNodeList);
-                    CHECK2(std::find(mNodePairList.begin(), mNodePairList.end(), pair) != mNodePairList.end(), "Missing pair: " << pair << " " << eta2);
-                    const auto itr = intersection_private.find(pair);
-                    CHECK(itr != intersection_private.end());
-                    auto& intersectionij = itr->second;
-                    intersectionij[kNodeList].push_back(k);
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        // Merge to the global intersection list
+      for (auto k = 0u; k < npairs; ++k) {
+        const auto& pair = mNodePairList[k];
+        intersection_private[pair] = this->connectivityIntersectionForNodes(pair.i_list, pair.i_node,
+                                                                            pair.j_list, pair.j_node);
+      }
 #pragma omp critical
-        {
-          for (const auto& pair: mNodePairList) {
-            auto& intersection_global = mIntersectionConnectivity[pair];
-            auto& intersection_local = intersection_private[pair];
-            for (auto klist = 0u; klist < numNodeLists; ++klist) {
-              std::copy(intersection_local[klist].begin(), intersection_local[klist].end(), std::back_inserter(intersection_global[klist]));
-            }
-          }
-        } // omp critical
-      }   // omp parallel
-    }
+      {
+        for (const auto& pair: mNodePairList) {
+          const auto itr = intersection_private.find(pair);
+          if (itr != intersection_private.end()) mIntersectionConnectivity[pair] = itr->second;
+        }
+      } // omp critical
+    }   // omp parallel
     TIME_ConnectivityMap_computeIntersectionConnectivity.stop();
   }
 
