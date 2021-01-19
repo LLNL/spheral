@@ -860,7 +860,6 @@ computeConnectivity() {
 #pragma omp parallel 
           {
             NodePairList nodePairs_private;
-            IntersectionConnectivityContainer intersection_private;
 #pragma omp for schedule(dynamic)
             for (auto k = 0u; k < nmaster; ++k) {
               const auto i = masterLists[iNodeList][k];
@@ -1074,7 +1073,12 @@ computeConnectivity() {
   // Are we building intersection connectivity?
   if (mBuildIntersectionConnectivity) {
     TIME_ConnectivityMap_computeIntersectionConnectivity.start();
-    for (const auto& pair: mNodePairList) mIntersectionConnectivity[pair] = vector<vector<int>>(numNodeLists);  // Initialize empty entry for each pair
+    // Initialize the pair intersections -- note pairs always at least share one another.
+    for (const auto& pair: mNodePairList) {
+      mIntersectionConnectivity[pair] = vector<vector<int>>(numNodeLists);
+      mIntersectionConnectivity[pair][pair.i_list].push_back(pair.i_node);
+      mIntersectionConnectivity[pair][pair.j_list].push_back(pair.j_node);
+    }
     for (auto kNodeList = 0u; kNodeList < numNodeLists; ++kNodeList) {
       const auto n = mNodeLists[kNodeList]->numNodes();
 #pragma omp parallel

@@ -53,6 +53,17 @@ member of a pair (maintaining symmetry)."""
 
     @PYB11returnpolicy("reference_internal")
     @PYB11const
+    def intersectionConnectivity(self,
+                                 pair = "const NodePairIdxType&"):
+        """Get the pre-computed intersection connectivity for points if it was requested.
+Note, this is different than what we expect for overlap connectivity: in this
+method the intersection points (k) are all points that points (i,j) have in
+common when (i,j) are ALSO neighbors.  Overlap connectivity may exist for
+(i,j) even if (i,j) are not neighbors, and this set will miss such points."""
+        return "const std::vector<std::vector<int>>&"
+
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
     def overlapConnectivityForNode(self,
                                    nodeList = "const NodeListType*",
                                    nodeID = "const int"):
