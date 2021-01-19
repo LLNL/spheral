@@ -15,6 +15,7 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/mortonOrderIndices.hh"
 #include "Utilities/PairComparisons.hh"
+#include "Utilities/pointDistances.hh"
 #include "Utilities/Timer.hh"
 
 #include <algorithm>
@@ -1077,11 +1078,23 @@ computeConnectivity() {
 #pragma omp parallel
     {
       IntersectionConnectivityContainer intersection_private;
+      Vector b;
 #pragma omp for
       for (auto k = 0u; k < npairs; ++k) {
         const auto& pair = mNodePairList[k];
-        intersection_private[pair] = this->connectivityIntersectionForNodes(pair.i_list, pair.i_node,
-                                                                            pair.j_list, pair.j_node);
+        const auto& xi = position(pair.i_list, pair.i_node);
+        const auto& xj = position(pair.j_list, pair.j_node);
+        const auto intersect0 = this->connectivityIntersectionForNodes(pair.i_list, pair.i_node,
+                                                                       pair.j_list, pair.j_node);
+        // Cut down to just the intersection points between the pair.
+        vector<vector<int>> intersect1(numNodeLists);
+        for (auto kl = 0u; kl < numNodeLists; ++kl) {
+          for (auto k: intersect0[kl]) {
+            const auto& xk = position(kl, k);
+            if (closestPointOnSegment(xk, xi, xj, b)) intersect1[kl].push_back(k);
+          }
+        }
+        intersection_private[pair] = intersect1;
       }
 #pragma omp critical
       {
