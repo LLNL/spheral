@@ -166,6 +166,7 @@ commandLine(# How much of the 2 Pi geometry are we doing?
 
             clearDirectories = False,
             dataDirBase = "dumps-TensileRod-3d",
+            timerFile = "time.table",
             )
 
 phi = pi * phiFactor
@@ -518,6 +519,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
+                            timerName = timerFile,
                             SPH = not ASPH)
 output("control")
 
