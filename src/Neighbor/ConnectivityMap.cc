@@ -1085,9 +1085,8 @@ computeConnectivity() {
       }
 #pragma omp critical
       {
-        for (const auto& pair: mNodePairList) {
-          const auto itr = intersection_private.find(pair);
-          if (itr != intersection_private.end()) mIntersectionConnectivity[pair] = itr->second;
+        for (const auto& element: intersection_private) {
+          mIntersectionConnectivity[element.first] = element.second;
         }
       } // omp critical
     }   // omp parallel
