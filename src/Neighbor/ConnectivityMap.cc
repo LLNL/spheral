@@ -1075,9 +1075,10 @@ computeConnectivity() {
     TIME_ConnectivityMap_computeIntersectionConnectivity.start();
     // Initialize the pair intersections -- note pairs always at least share one another.
     for (const auto& pair: mNodePairList) {
-      mIntersectionConnectivity[pair] = vector<vector<int>>(numNodeLists);
-      mIntersectionConnectivity[pair][pair.i_list].push_back(pair.i_node);
-      mIntersectionConnectivity[pair][pair.j_list].push_back(pair.j_node);
+      vector<vector<int>> val(numNodeLists);
+      val[pair.i_list].push_back(pair.i_node);
+      val[pair.j_list].push_back(pair.j_node);
+      mIntersectionConnectivity[pair] = val;
     }
     for (auto kNodeList = 0u; kNodeList < numNodeLists; ++kNodeList) {
       const auto n = mNodeLists[kNodeList]->numNodes();
