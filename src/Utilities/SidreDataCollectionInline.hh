@@ -88,7 +88,7 @@ axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name,
 //       view_count++;
 //    }
 //    return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+// }
 
 
 
