@@ -174,6 +174,7 @@ struct DataTypeTraits<std::tuple<Value, Value, Value> > {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
 #endif
+  static axom::sidre::DataTypeId axomType() { return DataTypeTraits<Value>::axomType(); }
 };
 
 //------------------------------------------------------------------------------
@@ -186,6 +187,7 @@ struct DataTypeTraits<std::tuple<Value, Value, Value, Value> > {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
 #endif
+  static axom::sidre::DataTypeId axomType() { return DataTypeTraits<Value>::axomType(); }
 };
 
 //------------------------------------------------------------------------------
@@ -198,6 +200,7 @@ struct DataTypeTraits<std::tuple<Value, Value, Value, Value, Value> > {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
 #endif
+  static axom::sidre::DataTypeId axomType() { return DataTypeTraits<Value>::axomType(); }
 };
 
 //------------------------------------------------------------------------------

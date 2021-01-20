@@ -51,6 +51,7 @@ set(ENABLE_3D ON CACHE BOOL "enable 3d")
 set(ENABLE_INSTANTIATIONS ON CACHE BOOL "enable instantiations")
 set(ENABLE_TIMER OFF CACHE BOOL "enable timer")
 set(ENABLE_ANEOS ON CACHE BOOL "enable the ANEOS equation of state package")
+set(ENABLE_OPENSUBDIV ON CACHE BOOL "enable the Opensubdiv Pixar extension for refining polyhedra")
 set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state package")
 
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
@@ -120,22 +121,29 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 #-------------------------------------------------------------------------------
-# Install symlink for spheral->python
+# We need the set of Spheral C++ libraries globally
 #-------------------------------------------------------------------------------
-if (NOT ENABLE_CXXONLY)
-  install(CODE "execute_process( \
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
-    WORKING_DIRECTORY ${SPHERAL_TPL_DIR})")
-endif()
+set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 
-#-------------------------------------------------------------------------------
-# Prepare to build the src
-#-------------------------------------------------------------------------------
-add_subdirectory(${SPHERAL_ROOT_DIR}/src)
+if (NOT BUILD_TPL_ONLY)
+  #-------------------------------------------------------------------------------
+  # Install symlink for spheral->python
+  #-------------------------------------------------------------------------------
+  if (NOT ENABLE_CXXONLY)
+    install(CODE "execute_process( \
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
+      WORKING_DIRECTORY ${SPHERAL_TPL_DIR})")
+  endif()
 
-#-------------------------------------------------------------------------------
-# Add the documentation
-#-------------------------------------------------------------------------------
-if (NOT ENABLE_CXXONLY)
-  add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+  #-------------------------------------------------------------------------------
+  # Prepare to build the src
+  #-------------------------------------------------------------------------------
+  add_subdirectory(${SPHERAL_ROOT_DIR}/src)
+
+  #-------------------------------------------------------------------------------
+  # Add the documentation
+  #-------------------------------------------------------------------------------
+  if (NOT ENABLE_CXXONLY)
+    add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+  endif()
 endif()

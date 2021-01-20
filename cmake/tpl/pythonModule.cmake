@@ -43,7 +43,8 @@ set(pip-modules
     cython==0.29.21
     sobol==0.9
     scipy==1.2.3
-    pipreqs==0.4.10)
+    pipreqs==0.4.10
+    virtualenv==20.2.2)
 
 # Only needed when we're allowing MPI parallelism
 if (ENABLE_MPI)
@@ -62,12 +63,14 @@ set(pip-custom-modules
 set(pip-modules_DEPENDS pip-setup-modules)
 set(pip-modules_stamp_file_DEPENDS pip-setup-modules)
 
-# Run install macro for PyPi modules
-Install_PipModules(pip-setup-modules)
-Install_PipModules(pip-modules)
+if(pip_BUILD)
+  # Run install macro for PyPi modules
+  Install_PipModules(pip-setup-modules)
+  Install_PipModules(pip-modules)
 
-# Run install for custom modules with thier own .cmake file
-foreach(lib_name ${pip-custom-modules})
-  include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
-endforeach()
+  # Run install for custom modules with thier own .cmake file
+  foreach(lib_name ${pip-custom-modules})
+    include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
+  endforeach()
+endif()
 

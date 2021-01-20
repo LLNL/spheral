@@ -6,8 +6,8 @@
 #include "gtest/gtest.h"
 #include <iostream>
 
-#include <typeinfo>
-#include <vector>
+// #include <typeinfo>
+// #include <vector>
 
 template <typename T>
 class SidreDataCollectionTest : public ::testing::Test
@@ -116,7 +116,7 @@ TYPED_TEST(SidreDataCollectionTestVector, vector)
 
   this->allocRawSidreData(testField);
 
-  this->myData.printDataStore();
+  //this->myData.printDataStore();
 
   for (int i = 0; i < this->n; i++)
     EXPECT_EQ(testField[0][i], this->rawSidreData[i]);

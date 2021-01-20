@@ -2,6 +2,8 @@
 #ifndef TIMER_H
 #define TIMER_H
 
+#include "DBC.hh"
+
 #ifdef USE_MPI
 #include "mpi.h"
 #include "Distributed/Communicator.hh"
@@ -63,11 +65,7 @@ public:
 
   static std::list<Timer*> TimerList;
 
-  static void TimerSummary(const int bert, const int ernie) {
-    TimerSummary(); // backwards compatibilty...
-  }
-  
-  static void TimerSummary(void);
+  static void TimerSummary(const std::string fname = "time.table");
   
 private:
   
@@ -138,11 +136,8 @@ public:
   
   inline long int Count() {return 0;}
   
-  static void TimerSummary(const int, const int) {
-    TimerSummary(); // backwards compatibilty...
-  }
-
-  static void TimerSummary(void) {
+  static void TimerSummary(const std::string fname = "time.table") {
+    CONTRACT_VAR(fname);
     int rank;
 #ifdef USE_MPI
     MPI_Comm_rank(Spheral::Communicator::communicator(), &rank);

@@ -4,6 +4,4 @@ set(GNUPLOT_DIST gnuplot-py-1.8.tar.gz)
 set(GNUPLOT_URL http://downloads.sourceforge.net/gnuplot-py/${GNUPLOT_DIST})
 set(GNUPLOT_CACHE ${CACHE_DIR}/${GNUPLOT_DIST})
 
-if(python_BUILD)
-  Install_Python_distutils_library(gnuplot ${GNUPLOT_CACHE} ${GNUPLOT_URL} "gnuplot-py-1.8")
-endif()
+Install_Python_distutils_library(gnuplot ${GNUPLOT_CACHE} ${GNUPLOT_URL} "gnuplot-py-1.8")

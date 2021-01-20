@@ -218,6 +218,10 @@ gradientRK(const FieldList<Dimension, std::vector<DataType>>& fieldList,
         gradWi = WR.evaluateGradient(-xij, Hi, correctionsj);
 
         for (auto m = 0u; m < vectorSize; ++m) {
+          CHECK(gradFi.size() == vectorSize &&
+                gradFj.size() == vectorSize &&
+                Fj.size() == vectorSize &&
+                Fi.size() == vectorSize);
           gradFi[m] += wj*Fj[m]*gradWj;
           gradFj[m] += wi*Fi[m]*gradWi;
         }
