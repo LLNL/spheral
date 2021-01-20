@@ -341,7 +341,7 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
                                   domainDecompIndependent);
   const auto firstGhostNodei = mNodeLists[nodeListi]->firstGhostNode();
   const auto firstGhostNodej = mNodeLists[nodeListj]->firstGhostNode();
-  const bool ignorePosition = (position.numFields() == 0);
+  const bool usePosition = (position.numFields() == numNodeLists);
   REQUIRE(nodeListi < (int)numNodeLists and
           nodeListj < (int)numNodeLists);
   REQUIRE(ghostConnectivity or i < (int)firstGhostNodei or j < (int)firstGhostNodej);
@@ -356,24 +356,27 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
     const auto& neighborsj = this->connectivityForNode(nodeListj, j);
     CHECK(neighborsi.size() == numNodeLists);
     CHECK(neighborsj.size() == numNodeLists);
-    vector<int> neighborsik, neighborsjk;
+    vector<int> neighborsik, neighborsjk, neighborsijk;
     Vector posi, posj, b;
-    if (not ignorePosition) {
+    if (usePosition) {
       posi = position(nodeListi, i);
       posj = position(nodeListj, j);
     }
     for (auto klist = 0u; klist < numNodeLists; ++klist) {
-      neighborsik.clear();
-      neighborsjk.clear();
-      std::copy_if(neighborsi[klist].begin(), neighborsi[klist].end(), std::back_inserter(neighborsik),
-                   [&](int k) { return (ignorePosition or closestPointOnSegment(position(klist, k), posi, posj, b)); });
-      std::copy_if(neighborsj[klist].begin(), neighborsj[klist].end(), std::back_inserter(neighborsjk),
-                   [&](int k) { return (ignorePosition or closestPointOnSegment(position(klist, k), posi, posj, b)); });
+      neighborsik = neighborsi[klist];
+      neighborsjk = neighborsj[klist];
       std::sort(neighborsik.begin(), neighborsik.end());
       std::sort(neighborsjk.begin(), neighborsjk.end());
+      neighborsijk.clear();
       std::set_intersection(neighborsik.begin(), neighborsik.end(),
                             neighborsjk.begin(), neighborsjk.end(),
-                            std::back_inserter(result[klist]));
+                            std::back_inserter(neighborsijk));
+      if (usePosition) {
+        std::copy_if(neighborsijk.begin(), neighborsijk.end(), std::back_inserter(result[klist]),
+                     [&](int k) { return (closestPointOnSegment(position(klist, k), posi, posj, b)); });
+      } else {
+        result[klist] = neighborsijk;
+      }
     }
   } else if (i < (int)firstGhostNodei) {
     result = this->connectivityForNode(nodeListi, i);
