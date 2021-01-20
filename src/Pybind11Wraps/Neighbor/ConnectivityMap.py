@@ -84,7 +84,8 @@ common when (i,j) are ALSO neighbors.  Overlap connectivity may exist for
                                          nodeListi = "const int",
                                          i = "const int",
                                          nodeListj = "const int",
-                                         j = "const int"):
+                                         j = "const int",
+                                         position = ("const FieldList<%(Dimension)s, Vector>&", "FieldList<%(Dimension)s, Vector>()")):
         "Compute the common neighbors for a pair of nodes."
         return "std::vector< std::vector<int> >"
 

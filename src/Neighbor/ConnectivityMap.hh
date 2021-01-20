@@ -31,6 +31,7 @@ public:
   //--------------------------- Public Interface ---------------------------//
   using const_iterator = std::vector<int>::const_iterator;
   using NodeCouplingPtr = std::shared_ptr<NodeCoupling>;
+  using Vector = typename Dimension::Vector;
 
   // Constructors, destructor.
   ConnectivityMap();
@@ -119,7 +120,8 @@ public:
   // returns by value since this information is not stored by ConnectivityMap.
   std::vector< std::vector<int> >
   connectivityIntersectionForNodes(const int nodeListi, const int i,
-                                   const int nodeListj, const int j) const;
+                                   const int nodeListj, const int j,
+                                   const FieldList<Dimension, Vector>& position = FieldList<Dimension, Vector>()) const;
 
   // Compute the union of neighbors for a pair of nodes.  Note this method 
   // returns by value since this information is not stored by ConnectivityMap.

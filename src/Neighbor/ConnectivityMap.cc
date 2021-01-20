@@ -330,7 +330,8 @@ template<typename Dimension>
 vector<vector<int> >
 ConnectivityMap<Dimension>::
 connectivityIntersectionForNodes(const int nodeListi, const int i,
-                                 const int nodeListj, const int j) const {
+                                 const int nodeListj, const int j,
+                                 const FieldList<Dimension, typename Dimension::Vector>& position) const {
 
   // Pre-conditions.
   const auto numNodeLists = mNodeLists.size();
@@ -340,33 +341,47 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
                                   domainDecompIndependent);
   const auto firstGhostNodei = mNodeLists[nodeListi]->firstGhostNode();
   const auto firstGhostNodej = mNodeLists[nodeListj]->firstGhostNode();
+  const bool ignorePosition = (position.numFields() == 0);
   REQUIRE(nodeListi < (int)numNodeLists and
           nodeListj < (int)numNodeLists);
   REQUIRE(ghostConnectivity or i < (int)firstGhostNodei or j < (int)firstGhostNodej);
+  REQUIRE(position.numFields() == numNodeLists or position.numFields() == 0);
 
   // Prepare the result.
   vector<vector<int>> result(numNodeLists);
 
   // If both nodes are internal, we simply intersect their neighbor lists.
   if (ghostConnectivity or (i < (int)firstGhostNodei and j < (int)firstGhostNodej)) {
-    vector<vector<int>> neighborsi = this->connectivityForNode(nodeListi, i);
-    vector<vector<int>> neighborsj = this->connectivityForNode(nodeListj, j);
+    const auto& neighborsi = this->connectivityForNode(nodeListi, i);
+    const auto& neighborsj = this->connectivityForNode(nodeListj, j);
     CHECK(neighborsi.size() == numNodeLists);
     CHECK(neighborsj.size() == numNodeLists);
-    neighborsi[nodeListi].push_back(i);
-    neighborsj[nodeListj].push_back(j);
-    for (unsigned k = 0; k != numNodeLists; ++k) {
-      sort(neighborsi[k].begin(), neighborsi[k].end());
-      sort(neighborsj[k].begin(), neighborsj[k].end());
-      set_intersection(neighborsi[k].begin(), neighborsi[k].end(),
-                       neighborsj[k].begin(), neighborsj[k].end(),
-                       back_inserter(result[k]));
+    vector<int> neighborsik, neighborsjk;
+    Vector posi, posj, b;
+    if (not ignorePosition) {
+      posi = position(nodeListi, i);
+      posj = position(nodeListj, j);
+    }
+    for (auto klist = 0u; klist < numNodeLists; ++klist) {
+      neighborsik.clear();
+      neighborsjk.clear();
+      std::copy_if(neighborsi[klist].begin(), neighborsi[klist].end(), std::back_inserter(neighborsik),
+                   [&](int k) { return (ignorePosition or closestPointOnSegment(position(klist, k), posi, posj, b)); });
+      std::copy_if(neighborsj[klist].begin(), neighborsj[klist].end(), std::back_inserter(neighborsjk),
+                   [&](int k) { return (ignorePosition or closestPointOnSegment(position(klist, k), posi, posj, b)); });
+      std::sort(neighborsik.begin(), neighborsik.end());
+      std::sort(neighborsjk.begin(), neighborsjk.end());
+      std::set_intersection(neighborsik.begin(), neighborsik.end(),
+                            neighborsjk.begin(), neighborsjk.end(),
+                            std::back_inserter(result[klist]));
     }
   } else if (i < (int)firstGhostNodei) {
     result = this->connectivityForNode(nodeListi, i);
   } else {
     result = this->connectivityForNode(nodeListj, j);
   }
+  result[nodeListi].push_back(i);
+  result[nodeListj].push_back(j);
 
   // That's it.
   return result;
@@ -1082,19 +1097,9 @@ computeConnectivity() {
 #pragma omp for
       for (auto k = 0u; k < npairs; ++k) {
         const auto& pair = mNodePairList[k];
-        const auto& xi = position(pair.i_list, pair.i_node);
-        const auto& xj = position(pair.j_list, pair.j_node);
-        const auto intersect0 = this->connectivityIntersectionForNodes(pair.i_list, pair.i_node,
-                                                                       pair.j_list, pair.j_node);
-        // Cut down to just the intersection points between the pair.
-        vector<vector<int>> intersect1(numNodeLists);
-        for (auto kl = 0u; kl < numNodeLists; ++kl) {
-          for (auto k: intersect0[kl]) {
-            const auto& xk = position(kl, k);
-            if (closestPointOnSegment(xk, xi, xj, b)) intersect1[kl].push_back(k);
-          }
-        }
-        intersection_private[pair] = intersect1;
+        intersection_private[pair] = this->connectivityIntersectionForNodes(pair.i_list, pair.i_node,
+                                                                            pair.j_list, pair.j_node,
+                                                                            position);
       }
 #pragma omp critical
       {
