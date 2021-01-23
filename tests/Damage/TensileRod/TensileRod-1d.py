@@ -95,6 +95,7 @@ commandLine(length = 3.0,
             mWeibullFactor = 1.0,
             randomSeed = 548928513,
             strainType = PseudoPlasticStrain,
+            damageCoupling = ThreePointDamage,
             cullToWeakestFlaws = False,
             damageInCompression = False,
             negativePressureInDamage = False,
@@ -173,6 +174,11 @@ else:
     hydroname = "SPH"
     nPerh = 1.51
     order = 5
+if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
+    damageName = os.path.join(str(DamageModelConstructor.__name__), str(damageCoupling))
+else:
+    damageName = DamageModelConstructor.__name__
+                              
 
 #kWeibull = 8.8e4 * kWeibullFactor
 #kWeibull = 6.52e3 * kWeibullFactor
@@ -181,9 +187,10 @@ mWeibull = 2.63   * mWeibullFactor
 
 dataDir = os.path.join(dataDirBase,
                        hydroname,
-                       DamageModelConstructor.__name__,
+                       damageName,
                        "nx=%i" % nx,
                        "k=%4.2f_m=%4.2f" % (kWeibull, mWeibull))
+
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "TensileRod-%i" % nx)
 
@@ -454,6 +461,7 @@ if DamageModelConstructor is GradyKippTensorDamage:
                                          kernel = WT,
                                          seed = randomSeed,
                                          strainAlgorithm = strainType,
+                                         damageCouplingAlgorithm = damageCoupling,
                                          damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is GradyKippTensorDamageOwen:
@@ -464,6 +472,7 @@ elif DamageModelConstructor is GradyKippTensorDamageOwen:
                                          seed = randomSeed,
                                          volumeMultiplier = volumeMultiplier,
                                          strainAlgorithm = strainType,
+                                         damageCouplingAlgorithm = damageCoupling,
                                          damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is JohnsonCookDamageWeibull:
@@ -503,9 +512,11 @@ elif DamageModelConstructor is JohnsonCookDamageGaussian:
                                          domainIndependent = domainIndependent)
 
 output("damageModel")
-
-if cullToWeakestFlaws:
-    damageModel.cullToWeakestFlaws()
+if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
+    if cullToWeakestFlaws:
+        damageModel.cullToWeakestFlaws()
+    output("damageModel.strainAlgorithm")
+    output("damageModel.damageCouplingAlgorithm")
 
 # damageModel.excludeNodes = xNodes
 output("damageModel")
