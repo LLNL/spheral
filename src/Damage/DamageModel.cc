@@ -65,6 +65,7 @@ DamageModel(SolidNodeList<Dimension>& nodeList,
   mLongitudinalSoundSpeed(SolidFieldNames::longitudinalSoundSpeed, nodeList),
   mExcludeNode("Nodes excluded from damage", nodeList, 0),
   mNodeCouplingPtr(new NodeCoupling()),
+  mComputeIntersectConnectivity(false),
   mRestart(registerWithRestart(*this)) {
 }
 
@@ -195,7 +196,7 @@ initialize(const Scalar /*time*/,
       const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
       const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
       const auto  D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-      mNodeCouplingPtr = std::make_shared<ThreePointDamagedNodeCoupling<Dimension>>(position, H, D, mW, connectivity, pairs);
+      mNodeCouplingPtr = std::make_shared<ThreePointDamagedNodeCoupling<Dimension>>(position, H, D, mW, connectivity, mComputeIntersectConnectivity, pairs);
     }
     break;
 
@@ -203,6 +204,27 @@ initialize(const Scalar /*time*/,
     VERIFY2(false, "DamageModel ERROR: unhandled damage coupling algorithm case");
   }
   connectivity.coupling(mNodeCouplingPtr);
+}
+
+//------------------------------------------------------------------------------
+// finalize (end of physics step)
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DamageModel<Dimension>::
+finalize(const Scalar /*time*/, 
+         const Scalar /*dt*/,
+         DataBase<Dimension>& /*dataBase*/, 
+         State<Dimension>& state,
+         StateDerivatives<Dimension>& /*derivs*/) {
+
+  // For 3pt damage, check if we should switch to using full intersection data
+  // from the ConnectivityMap
+  if (mDamageCouplingAlgorithm == DamageCouplingAlgorithm::ThreePointDamage) {
+    const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
+    const auto dfrac = D.sumElements().Trace() / (std::max(1u, D.numInternalNodes()) * Dimension::nDim);
+    mComputeIntersectConnectivity = (dfrac > 0.2);  // Should tune this number...
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -292,6 +314,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mCrackGrowthMultiplier, pathName + "/crackGrowthMultiplier");
   file.write(mFlaws, pathName + "/flaws");
   file.write(mExcludeNode, pathName + "/excludeNode");
+  file.write(mComputeIntersectConnectivity, pathName + "/computeIntersectConnectivity");
 }
 
 //------------------------------------------------------------------------------
@@ -304,6 +327,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mCrackGrowthMultiplier, pathName + "/crackGrowthMultiplier");
   file.read(mFlaws, pathName + "/flaws");
   file.read(mExcludeNode, pathName + "/excludeNode");
+  file.read(mComputeIntersectConnectivity, pathName + "/computeIntersectConnectivity");
 }
 
 }

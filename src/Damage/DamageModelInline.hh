@@ -18,8 +18,7 @@ inline
 bool
 DamageModel<Dimension>::
 requireIntersectionConnectivity() const {
-  // return false;
-  return mDamageCouplingAlgorithm == DamageCouplingAlgorithm::ThreePointDamage;
+  return mComputeIntersectConnectivity;
 }
 
 //------------------------------------------------------------------------------

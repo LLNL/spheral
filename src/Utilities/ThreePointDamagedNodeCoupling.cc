@@ -34,6 +34,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                               const FieldList<Dimension, SymTensor>& damage,
                               const TableKernel<Dimension>& W,
                               const ConnectivityMap<Dimension>& connectivity,
+                              const bool useIntersectConnectivity,
                               NodePairList& pairs) {
 
   TIME_Damage.start();
@@ -55,7 +56,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
   // If a small fraction of the points are damaged it's better not to make
   // ConnectivityMap compute the neighbor intersetions for each pair, and
   // instead do the Nneigh^2 work here for the points that are damaged.
-  if (true) {
+  if (not useIntersectConnectivity) {
 
     // Walk all the points with non-negligible damage.
     Vector b;

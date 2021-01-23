@@ -89,6 +89,12 @@ public:
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivatives) override;
 
+  virtual void finalize(const Scalar time, 
+                        const Scalar dt,
+                        DataBase<Dimension>& dataBase, 
+                        State<Dimension>& state,
+                        StateDerivatives<Dimension>& derivs);
+
   virtual bool requireGhostConnectivity() const override;
 
   virtual bool requireIntersectionConnectivity() const override;
@@ -157,6 +163,7 @@ private:
   Field<Dimension, Scalar> mLongitudinalSoundSpeed;
   Field<Dimension, int> mExcludeNode;
   NodeCouplingPtr mNodeCouplingPtr;
+  bool mComputeIntersectConnectivity;
 
   // The restart registration.
   RestartRegistrationType mRestart;
