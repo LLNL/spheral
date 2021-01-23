@@ -90,7 +90,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                     // k is in the intersection of (i,j) connectivity, but is it geometrically between (i,j)?
                     if (closestPointOnSegment(xk, xi, xj, b)) {
                       // Yep!
-                      NodePairIdxType pair(i, il, j, jl);
+                      const auto pair = std::min(NodePairIdxType(i, il, j, jl), NodePairIdxType(j, jl, i, il));
                       auto itr = std::find(pairs.begin(), pairs.end(), pair);
                       if (itr != pairs.end()) {                  // Because we don't recompute connectivity during a time step
                         const auto xhatji = xji.unitVector();
