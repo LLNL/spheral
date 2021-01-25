@@ -53,6 +53,23 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/ThreePointDamagedNodeCoupling.hh"']
 
 #-------------------------------------------------------------------------------
+# Preamble
+#-------------------------------------------------------------------------------
+PYB11preamble += """
+extern Timer TIME_Spheral;
+
+namespace Spheral {
+void startRootTimer() {
+  TIME_Spheral.start();
+}
+
+void stopRootTimer() {
+  TIME_Spheral.stop();
+}
+}
+"""
+
+#-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
 PYB11namespaces = ["Spheral"]
@@ -400,6 +417,14 @@ def simpsonsIntegrationDouble(function = "const PythonBoundFunctors::SpheralFunc
                               numBins = "unsigned"):
     "Numerically integrate 'function' in the range (x0, x1) via Simpsons rule"
     return "double"
+
+def startRootTimer():
+    "Start the root Spheral Timer."
+    return "void"
+
+def stopRootTimer():
+    "Stop the root Spheral Timer."
+    return "void"
 
 #-------------------------------------------------------------------------------
 # packElement/unpackElement

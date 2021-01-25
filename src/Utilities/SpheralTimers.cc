@@ -79,7 +79,8 @@ Timer TIME_ConnectivityMap_cutConnectivity("ConnectivityMap::cutConnectivity", T
 Timer TIME_ConnectivityMap_valid("ConnectivityMap::valid", TIME_Spheral);
 Timer TIME_ConnectivityMap_computeConnectivity("ConnectivityMap::computeConnectivity", TIME_Spheral);
 Timer TIME_ConnectivityMap_computeOverlapConnectivity("ConnectivityMap::computeOverlapConnectivity", TIME_ConnectivityMap_computeConnectivity);
-Timer TIME_ConnectivityMap_computeIntersectionConnectivity("ConnectivityMap::computeIntersectionConnectivity", TIME_ConnectivityMap_computeConnectivity);
+Timer TIME_ConnectivityMap_computeIntersectionConnectivity("ConnectivityMap::intersectionConnectivity", TIME_Spheral);
+Timer TIME_ConnectivityMap_precomputeIntersectionConnectivity("ConnectivityMap::precomputeIntersectionConnectivity", TIME_ConnectivityMap_computeConnectivity);
 
 //------------------------------------------------------------------------------
 // CRKSPH
@@ -216,6 +217,8 @@ Timer TIME_SolidSPHevalDerivs_final   ("SolidSPH evaluateDerivates (final)  ", T
 //------------------------------------------------------------------------------
 Timer TIME_Damage                     ("Damage base timer                 ", TIME_Physics);
 Timer TIME_ThreePointCoupling         ("3-pt damage coupling constructor  ", TIME_Damage);
+Timer TIME_ThreePointCoupling_initial ("3-pt damage compute flags         ", TIME_Damage);
+Timer TIME_ThreePointCoupling_pairs   ("3-pt damage loop over pairs       ", TIME_Damage);
 
 // //------------------------------------------------------------------------------
 // // MASH NodeList
