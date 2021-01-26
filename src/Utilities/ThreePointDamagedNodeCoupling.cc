@@ -49,6 +49,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
   const auto npairs = pairs.size();
   const auto numNodeLists = position.numFields();
   const auto Dthreshold = 1.0e-3;
+  const auto Dfull = 0.999;
 
   // For each interacting pair we need to compute the effective damage shielding, expressed
   // as the f_couple parameter in the NodePairIdxType.
@@ -75,7 +76,11 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
             flags(jl,j) = 1u;
           }
         }
-        flags(il,i) = 1u;
+        if (damage(il,i).eigenValues().maxElement() >= Dfull) {
+          flags(il,i) = 2u;
+        } else {
+          flags(il,i) = 1u;
+        }
 #pragma omp atomic write
         workToBeDone = true;
       }
@@ -93,8 +98,11 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
 #pragma omp parallel for private(b, intersection_list)
     for (auto kk = 0u; kk < npairs; ++kk) {
       auto& pair = pairs[kk];
-      if (flags(pair.i_list, pair.i_node) == 1u or
-          flags(pair.j_list, pair.j_node) == 1u) {
+      if (flags(pair.i_list, pair.i_node) == 2u or
+          flags(pair.j_list, pair.j_node) == 2u) {
+        pair.f_couple = 0.0;
+      } else if (flags(pair.i_list, pair.i_node) == 1u or
+                 flags(pair.j_list, pair.j_node) == 1u) {
         auto& fij = pair.f_couple;
         const auto& xi = position(pair.i_list, pair.i_node);
         const auto& xj = position(pair.j_list, pair.j_node);
