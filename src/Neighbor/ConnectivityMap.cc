@@ -38,6 +38,7 @@ extern Timer TIME_ConnectivityMap_valid;
 extern Timer TIME_ConnectivityMap_computeConnectivity;
 extern Timer TIME_ConnectivityMap_computeOverlapConnectivity;
 extern Timer TIME_ConnectivityMap_computeIntersectionConnectivity;
+extern Timer TIME_ConnectivityMap_precomputeIntersectionConnectivity;
 
 namespace Spheral {
 
@@ -293,6 +294,8 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
     // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
     // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
     sortPairs(mNodePairList, mKeys);
+  } else {
+    std::sort(mNodePairList.begin(), mNodePairList.end());
   }
 
   // Patch the intersection lists if we're maintaining them
@@ -334,6 +337,7 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
                                  const FieldList<Dimension, typename Dimension::Vector>& position) const {
 
   // Pre-conditions.
+  TIME_ConnectivityMap_computeIntersectionConnectivity.start();
   const auto numNodeLists = mNodeLists.size();
   const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
   const auto ghostConnectivity = (mBuildGhostConnectivity or
@@ -356,21 +360,24 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
     const auto& neighborsj = this->connectivityForNode(nodeListj, j);
     CHECK(neighborsi.size() == numNodeLists);
     CHECK(neighborsj.size() == numNodeLists);
-    vector<int> neighborsik, neighborsjk, neighborsijk;
+    vector<int> neighborsijk;
     Vector posi, posj, b;
     if (usePosition) {
       posi = position(nodeListi, i);
       posj = position(nodeListj, j);
     }
     for (auto klist = 0u; klist < numNodeLists; ++klist) {
-      neighborsik = neighborsi[klist];
-      neighborsjk = neighborsj[klist];
-      std::sort(neighborsik.begin(), neighborsik.end());
-      std::sort(neighborsjk.begin(), neighborsjk.end());
       neighborsijk.clear();
-      std::set_intersection(neighborsik.begin(), neighborsik.end(),
-                            neighborsjk.begin(), neighborsjk.end(),
-                            std::back_inserter(neighborsijk));
+      if (domainDecompIndependent) {
+        std::set_intersection(neighborsi[klist].begin(), neighborsi[klist].end(),
+                              neighborsj[klist].begin(), neighborsj[klist].end(),
+                              std::back_inserter(neighborsijk),
+                              [&](const int a, const int b) { return mKeys(klist, a) < mKeys(klist, b); });
+      } else {
+        std::set_intersection(neighborsi[klist].begin(), neighborsi[klist].end(),
+                              neighborsj[klist].begin(), neighborsj[klist].end(),
+                              std::back_inserter(neighborsijk));
+      }
       if (usePosition) {
         std::copy_if(neighborsijk.begin(), neighborsijk.end(), std::back_inserter(result[klist]),
                      [&](int k) { return (closestPointOnSegment(position(klist, k), posi, posj, b)); });
@@ -387,6 +394,7 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
   result[nodeListj].push_back(j);
 
   // That's it.
+  TIME_ConnectivityMap_computeIntersectionConnectivity.stop();
   return result;
 }
 
@@ -1019,6 +1027,8 @@ computeConnectivity() {
     // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
     // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
     sortPairs(mNodePairList, mKeys);
+  } else {
+    std::sort(mNodePairList.begin(), mNodePairList.end());
   }
 
   // Do we need overlap connectivity?
@@ -1091,7 +1101,7 @@ computeConnectivity() {
 
   // Are we building intersection connectivity?
   if (mBuildIntersectionConnectivity) {
-    TIME_ConnectivityMap_computeIntersectionConnectivity.start();
+    TIME_ConnectivityMap_precomputeIntersectionConnectivity.start();
     const auto npairs = mNodePairList.size();
 #pragma omp parallel
     {
@@ -1111,7 +1121,7 @@ computeConnectivity() {
         }
       } // omp critical
     }   // omp parallel
-    TIME_ConnectivityMap_computeIntersectionConnectivity.stop();
+    TIME_ConnectivityMap_precomputeIntersectionConnectivity.stop();
   }
 
   // {

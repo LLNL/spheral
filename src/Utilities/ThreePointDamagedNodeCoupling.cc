@@ -18,13 +18,15 @@
 #include "Utilities/DBC.hh"
 #include "Utilities/Timer.hh"
 
-#include <set>
+#include <vector>
 
-using std::set;
+using std::vector;
 
 // Declare timers
 extern Timer TIME_Damage;
 extern Timer TIME_ThreePointCoupling;
+extern Timer TIME_ThreePointCoupling_initial;
+extern Timer TIME_ThreePointCoupling_pairs;
 
 namespace Spheral {
 
@@ -44,137 +46,99 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
   TIME_Damage.start();
   TIME_ThreePointCoupling.start();
   const auto W0 = W.kernelValue(0.0, 1.0);
-  const auto etamax2 = W.kernelExtent() * W.kernelExtent();
   const auto npairs = pairs.size();
   const auto numNodeLists = position.numFields();
+  const auto Dthreshold = 1.0e-3;
 
   // For each interacting pair we need to compute the effective damage shielding, expressed
   // as the f_couple parameter in the NodePairIdxType.
   // Everyone starts out fully coupled.
+  TIME_ThreePointCoupling_initial.start();
 #pragma omp parallel for
   for (auto i = 0u; i < npairs; ++i) {
     pairs[i].f_couple = 1.0;
   }
 
-  // This branch computes the same thing in different ways for efficiency.
-  // If a small fraction of the points are damaged it's better not to make
-  // ConnectivityMap compute the neighbor intersetions for each pair, and
-  // instead do the Nneigh^2 work here for the points that are damaged.
-  if (not useIntersectConnectivity) {
+  // Flag all points that interact with a damaged point.
+  auto workToBeDone = false;
+  FieldList<Dimension, unsigned> flags(FieldStorageType::CopyFields);
+  for (auto il = 0u; il < numNodeLists; ++il) {
+    flags.appendNewField("damage interaction", damage[il]->nodeList(), 0u);
+    const auto ni = damage[il]->numElements();
+#pragma omp parallel for
+    for (auto i = 0u; i < ni; ++i) {
+      if (damage(il,i).Trace() > Dthreshold) {
+        // std::cerr << " --> " << i << " " << damage(il,i).Trace() << std::endl;
+        const auto& connectivity_i = connectivity.connectivityForNode(il,i);
+        for (auto jl = 0u; jl < numNodeLists; ++jl) {
+          for (const auto j: connectivity_i[jl]) {
+            flags(jl,j) = 1u;
+          }
+        }
+        flags(il,i) = 1u;
+#pragma omp atomic write
+        workToBeDone = true;
+      }
+    }
+  }
+  // Parallel note: at this point workToBeDone is rank dependent, so some ranks will enter the following
+  // block and some not.
+  TIME_ThreePointCoupling_initial.stop();
 
-    // Walk all the points with non-negligible damage.
-    for (auto kl = 0u; kl < numNodeLists; ++kl) {
-      const auto nk = position[kl]->numElements();
-#pragma omp parallel
-      {
-        Vector b;
-        set<NodePairIdxType> pairs_thread;
-#pragma omp for
-        for (auto k = 0u; k < nk; ++k) {
-          const auto& Dk = damage(kl, k);
-          if (Dk.Trace() > 1e-3) {
-            std::cout << "3pt firing on (" << kl << " " << k << ") " << Dk.Trace() << " : " << connectivity.numNeighborsForNode(kl, k) << std::endl;
+  // Now apply damage to pair interactions.
+  if (workToBeDone) {
+    TIME_ThreePointCoupling_pairs.start();
+    Vector b;
+    vector<vector<int>> intersection_list;
+#pragma omp parallel for private(b, intersection_list)
+    for (auto kk = 0u; kk < npairs; ++kk) {
+      auto& pair = pairs[kk];
+      if (flags(pair.i_list, pair.i_node) == 1u or
+          flags(pair.j_list, pair.j_node) == 1u) {
+        auto& fij = pair.f_couple;
+        const auto& xi = position(pair.i_list, pair.i_node);
+        const auto& xj = position(pair.j_list, pair.j_node);
+        const auto  xji = xj - xi;
+        const auto  xhatji = xji.unitVector();
+        // std::cerr << "  3pt firing on " << pair << " : " << connectivity.numNeighborsForNode(pair.i_list, pair.i_node) << " " << connectivity.numNeighborsForNode(pair.j_list, pair.j_node) << std::endl;
 
-            // This point has damage, so damage the pair interactions for all pairs that k is in
-            // the intersection set of.
-            const auto& xk = position(kl, k);
-            const auto& Hk = H(kl, k);
-            const auto& connectivity_k = connectivity.connectivityForNode(kl, k);
-            CHECK(fullConnectivity.size() == numNodeLists);
-            for (auto il = 0u; il  < numNodeLists; ++il) {
-              const auto ni = connectivity_k[il].size();
-              for (auto ii = 0u; ii < ni; ++ii) {
-                const auto  i = connectivity_k[il][ii];
-                const auto& xi = position(il, i);
-                const auto& Hi = H(il, i);
-                for (auto jl = il; jl < numNodeLists; ++jl) {
-                  const auto nj = connectivity_k[jl].size();
-                  for (auto jj = (jl == il ? ii + 1u : 0u); jj < nj; ++jj) {
-                    const auto  j = connectivity_k[jl][jj];
-                    const auto& xj = position(jl, j);
-                    const auto& Hj = H(jl, j);
-                    const auto  xji = xj - xi;
-                    if (std::min((Hi*xji).magnitude2(), (Hj*xji).magnitude2()) < etamax2) {
-                      // k is in the intersection of (i,j) connectivity, but is it geometrically between (i,j)?
-                      if (closestPointOnSegment(xk, xi, xj, b)) {
-                        // Yep!
-                        const auto xhatji = xji.unitVector();
-                        auto pair = std::min(NodePairIdxType(i, il, j, jl, 1.0), NodePairIdxType(j, jl, i, il, 1.0));
-                        auto itr = pairs_thread.find(pair);
-                        if (itr == pairs_thread.end()) itr = pairs_thread.insert(pair);
-                        itr->f_couple *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatji).magnitude() * W.kernelValue((Hk*(b - xk)).magnitude(), 1.0)/W0));
-                          // if (k == 48) std::cerr << "      (" << i << " " << j << " " << k << ") " << Dk << " " << itr->f_couple << std::endl;
-                      }
-                    }
-  //                   // Damage (k,j)
-  //                   auto pair = std::min(NodePairIdxType(k, kl, j, jl), NodePairIdxType(j, jl, k, kl));
-  //                   auto itr = std::find(pairs.begin(), pairs.end(), pair);
-  //                   CHECK(itr != pairs.end());
-  //                   const auto xhatjk = (xk - xj).unitVector();
-  // #pragma omp atomic
-  //                   itr->f_couple *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatjk).magnitude()));
-                  }
-                }
-                // Damage (k,i)
-  //               auto pair = std::min(NodePairIdxType(k, kl, i, il), NodePairIdxType(i, il, k, kl));
-  //               auto itr = std::find(pairs.begin(), pairs.end(), pair);
-  //               CHECK(itr != pairs.end());
-  //               const auto xhatik = (xk - xi).unitVector();
-  // #pragma omp atomic
-  //               itr->f_couple *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatik).magnitude()));
-              }
+        // Find the common neighbors for this pair.
+        if (useIntersectConnectivity) {
+          intersection_list = connectivity.intersectionConnectivity(pair);
+        } else {
+          intersection_list = connectivity.connectivityIntersectionForNodes(pair.i_list, pair.i_node,
+                                                                            pair.j_list, pair.j_node,
+                                                                            position);
+        }
+        for (auto nodeListk = 0u; nodeListk < numNodeLists; ++nodeListk) {
+          // if (pair.i_node == 46) {
+          //   std::cerr << "intersection list " << pair << " : ";
+          //   std::cerr << "   [";
+          //   std::copy(intersection_list[nodeListk].begin(), intersection_list[nodeListk].end(), std::ostream_iterator<int>(std::cerr, " "));
+          //   std::cerr << "]\n";
+          // }
+          for (const auto k: intersection_list[nodeListk]) {
+
+            // State for node k
+            const auto& xk = position(nodeListk, k);
+            const auto& Hk = H(nodeListk, k);
+            const auto& Dk = damage(nodeListk, k);
+
+            // if (k == 48 and pair.i_node == 46) {
+            //   closestPointOnSegment(xk, xi, xj, b);
+            //   std::cerr << " --> " << pair << " " << xi << " " << xk << " " << xj << " " << Dk << " " << closestPointOnSegment(xk, xi, xj, b) << " " << b << std::endl;
+            // }
+
+            // We only proceed if the closest point to k on (i,j) is bounded by (i,j)
+            if (Dk.Trace() > Dthreshold and closestPointOnSegment(xk, xi, xj, b)) {
+              fij *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatji).magnitude() * W.kernelValue((Hk*(b - xk)).magnitude(), 1.0)/W0));
             }
           }
         }
+        CHECK(fij >= 0.0 and fij <= 1.0);
       }
     }
-
-  } else {
-
-    // This branch is much faster for computing the shielding when a non-negligible amount of material is damaged.
-    // The (big) downside is we have to have the ConnectivityMap compute the neighbor set intersections for use
-    // here.
-    Vector b;
-#pragma omp parallel for private(b)
-    for (auto kk = 0u; kk < npairs; ++kk) {
-      auto& pair = pairs[kk];
-      auto& fij = pair.f_couple;
-      const auto& xi = position(pair.i_list, pair.i_node);
-      const auto& xj = position(pair.j_list, pair.j_node);
-      const auto  xji = xj - xi;
-      const auto  xhatji = xji.unitVector();
-
-      // Find the common neighbors for this pair.
-      const auto intersection_list = connectivity.connectivityIntersectionForNodes(pair.i_list, pair.i_node,
-                                                                                   pair.j_list, pair.j_node);
-      // const auto& intersection_list = connectivity.intersectionConnectivity(pair);
-      for (auto nodeListk = 0u; nodeListk < numNodeLists; ++nodeListk) {
-        // if (pair.i_node == 46) {
-        //   std::cerr << "intersection list " << pair << " : ";
-        //   std::cerr << "   [";
-        //   std::copy(intersection_list[nodeListk].begin(), intersection_list[nodeListk].end(), std::ostream_iterator<int>(std::cerr, " "));
-        //   std::cerr << "]\n";
-        // }
-        for (const auto k: intersection_list[nodeListk]) {
-
-          // State for node k
-          const auto& xk = position(nodeListk, k);
-          const auto& Hk = H(nodeListk, k);
-          const auto& Dk = damage(nodeListk, k);
-
-          // if (k == 48 and pair.i_node == 46) {
-          //   closestPointOnSegment(xk, xi, xj, b);
-          //   std::cerr << " --> " << pair << " " << xi << " " << xk << " " << xj << " " << Dk << " " << closestPointOnSegment(xk, xi, xj, b) << " " << b << std::endl;
-          // }
-
-          // We only proceed if the closest point to k on (i,j) is bounded by (i,j)
-          if (Dk.Trace() > 1e-3 and closestPointOnSegment(xk, xi, xj, b)) {
-            fij *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatji).magnitude() * W.kernelValue((Hk*(b - xk)).magnitude(), 1.0)/W0));
-          }
-        }
-      }
-      CHECK(fij >= 0.0 and fij <= 1.0);
-    }
+    TIME_ThreePointCoupling_pairs.stop();
   }
   
   // std::cerr << "At the end:\n"
@@ -188,3 +152,65 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
 }
 
 }
+
+//     // Walk all the points with non-negligible damage.
+//     for (auto kl = 0u; kl < numNodeLists; ++kl) {
+//       const auto nk = position[kl]->numElements();
+// #pragma omp parallel
+//       {
+//         Vector b;
+//         set<NodePairIdxType> pairs_thread;
+// #pragma omp for
+//         for (auto k = 0u; k < nk; ++k) {
+//           const auto& Dk = damage(kl, k);
+//           if (Dk.Trace() > 1e-3) {
+//             std::cout << "3pt firing on (" << kl << " " << k << ") " << Dk.Trace() << " : " << connectivity.numNeighborsForNode(kl, k) << std::endl;
+
+//             // This point has damage, so damage the pair interactions for all pairs that k is in
+//             // the intersection set of.
+//             const auto& xk = position(kl, k);
+//             const auto& Hk = H(kl, k);
+//             const auto& connectivity_k = connectivity.connectivityForNode(kl, k);
+//             CHECK(fullConnectivity.size() == numNodeLists);
+//             for (auto il = 0u; il  < numNodeLists; ++il) {
+//               const auto ni = connectivity_k[il].size();
+//               for (auto ii = 0u; ii < ni; ++ii) {
+//                 const auto  i = connectivity_k[il][ii];
+//                 const auto& xi = position(il, i);
+//                 const auto& Hi = H(il, i);
+//                 for (auto jl = il; jl < numNodeLists; ++jl) {
+//                   const auto nj = connectivity_k[jl].size();
+//                   for (auto jj = (jl == il ? ii + 1u : 0u); jj < nj; ++jj) {
+//                     const auto  j = connectivity_k[jl][jj];
+//                     const auto& xj = position(jl, j);
+//                     const auto& Hj = H(jl, j);
+//                     const auto  xji = xj - xi;
+//                     if (std::min((Hi*xji).magnitude2(), (Hj*xji).magnitude2()) < etamax2) {
+//                       // k is in the intersection of (i,j) connectivity, but is it geometrically between (i,j)?
+//                       if (closestPointOnSegment(xk, xi, xj, b)) {
+//                         // Yep!
+//                         const auto xhatji = xji.unitVector();
+//                         auto pair = std::min(NodePairIdxType(i, il, j, jl, 1.0), NodePairIdxType(j, jl, i, il, 1.0));
+//                         auto itr = pairs_thread.find(pair);
+//                         if (itr == pairs_thread.end()) itr = pairs_thread.insert(pair);
+//                         itr->f_couple *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatji).magnitude() * W.kernelValue((Hk*(b - xk)).magnitude(), 1.0)/W0));
+//                           // if (k == 48) std::cerr << "      (" << i << " " << j << " " << k << ") " << Dk << " " << itr->f_couple << std::endl;
+//                       }
+//                     }
+//   //                   // Damage (k,j)
+//   //                   auto pair = std::min(NodePairIdxType(k, kl, j, jl), NodePairIdxType(j, jl, k, kl));
+//   //                   auto itr = std::find(pairs.begin(), pairs.end(), pair);
+//   //                   CHECK(itr != pairs.end());
+//   //                   const auto xhatjk = (xk - xj).unitVector();
+//   // #pragma omp atomic
+//   //                   itr->f_couple *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatjk).magnitude()));
+//                   }
+//                 }
+//                 // Damage (k,i)
+//   //               auto pair = std::min(NodePairIdxType(k, kl, i, il), NodePairIdxType(i, il, k, kl));
+//   //               auto itr = std::find(pairs.begin(), pairs.end(), pair);
+//   //               CHECK(itr != pairs.end());
+//   //               const auto xhatik = (xk - xi).unitVector();
+//   // #pragma omp atomic
+//   //               itr->f_couple *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatik).magnitude()));
+//               }

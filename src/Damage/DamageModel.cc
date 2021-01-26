@@ -214,7 +214,7 @@ void
 DamageModel<Dimension>::
 finalize(const Scalar /*time*/, 
          const Scalar /*dt*/,
-         DataBase<Dimension>& /*dataBase*/, 
+         DataBase<Dimension>& dataBase, 
          State<Dimension>& state,
          StateDerivatives<Dimension>& /*derivs*/) {
 
@@ -222,8 +222,28 @@ finalize(const Scalar /*time*/,
   // from the ConnectivityMap
   if (mDamageCouplingAlgorithm == DamageCouplingAlgorithm::ThreePointDamage) {
     const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-    const auto dfrac = D.sumElements().Trace() / (std::max(1u, D.numInternalNodes()) * Dimension::nDim);
+    auto nD = 0u;
+    const auto numNodeLists = D.numFields();
+#pragma omp parallel
+    {
+      auto nD_thread = 0u;
+      for (auto il = 0u; il < numNodeLists; ++il) {
+        const auto n = D[il]->numInternalElements();
+#pragma omp for
+        for (auto i = 0u; i < n; ++i) {
+          if (D(il,i).Trace() > 1.0e-3) ++nD_thread;
+        }
+      }
+#pragma omp critical
+      {
+        nD += nD_thread;
+      }
+    }
+    nD = allReduce(nD, MPI_SUM, Communicator::communicator());
+    const auto ntot = std::max(1, dataBase.globalNumInternalNodes());
+    const auto dfrac = double(nD)/double(ntot);
     mComputeIntersectConnectivity = (dfrac > 0.2);  // Should tune this number...
+    if (Process::getRank() == 0) std::cout << "DamageModel dfrac = " << nD << "/" << ntot << " = " << dfrac << " : " << mComputeIntersectConnectivity << std::endl;
   }
 }
 
