@@ -110,7 +110,8 @@ shearModulus(Field<Dimension, Scalar>& shearModulus,
       (mnhard == 0.0)) {
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
-      shearModulus(i) = mG0 * std::max(0.0, 1.0 - damage(i).eigenValues().maxElement());
+      const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
+      shearModulus(i) = (1.0 - Di)*mG0;
     }
 
   } else {
@@ -152,8 +153,12 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
       (mbeta == 0.0) &&
       (mnhard == 0.0)) {
 
-    yieldStrength = mY0;
-
+#pragma omp parallel for
+    for (auto i = 0u; i < n; ++i) {
+      const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
+      yieldStrength(i) = (1.0 - Di)*mY0;
+    }
+    
   } else {
 
     this->shearModulus(yieldStrength, density, specificThermalEnergy, pressure, damage);
@@ -166,7 +171,6 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
       const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
       yieldStrength(i) = (1.0 - Di)*Yhard*yieldStrength(i)/mG0 + Di*mY0;
     }
-
   }
 }
 

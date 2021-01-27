@@ -104,7 +104,7 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
        (1.0 - pow(Tstar, mm)) +
        mC4*pressure(i));
     const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
-    yieldStrength(i) = (1.0 - Di)*yieldStrength(i) + Di*mA;
+    yieldStrength(i) = (1.0 - Di)*yieldStrength(i);
   }
 
   // Optionally scale by the relative shear modulus.

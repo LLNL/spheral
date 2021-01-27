@@ -330,8 +330,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Compute the stress tensors.
       if (sameMatij) {
-        sigmai += fDij*Si;
-        sigmaj += fDij*Sj;
+        sigmai += Si;
+        sigmaj += Sj;
       }
 
       // Compute the tensile correction to add to the stress as described in 

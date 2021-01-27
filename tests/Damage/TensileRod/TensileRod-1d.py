@@ -418,13 +418,11 @@ bcs = [xbc0, xbc1]
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT,
                    filter = filter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
-                   volumeType = volumeType,
                    HUpdate = HUpdate)
 else:
     hydro = SPH(dataBase = db,
@@ -446,9 +444,6 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel")
-output("hydro.PiKernel")
-output("hydro.negativePressureInDamage")
 
 #-------------------------------------------------------------------------------
 # Construct a damage model.
@@ -555,6 +550,7 @@ for package in integrator.physicsPackages():
 # Build the controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
