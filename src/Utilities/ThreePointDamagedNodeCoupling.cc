@@ -49,7 +49,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
   const auto npairs = pairs.size();
   const auto numNodeLists = position.numFields();
   const auto Dthreshold = 1.0e-3;
-  const auto Dfull = 0.999;
+  // const auto Dfull = 0.999;
 
   // For each interacting pair we need to compute the effective damage shielding, expressed
   // as the f_couple parameter in the NodePairIdxType.
@@ -76,11 +76,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
             flags(jl,j) = 1u;
           }
         }
-        if (damage(il,i).eigenValues().maxElement() >= Dfull) {
-          flags(il,i) = 2u;
-        } else {
-          flags(il,i) = 1u;
-        }
+        flags(il,i) = 1u;
 #pragma omp atomic write
         workToBeDone = true;
       }
@@ -98,11 +94,8 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
 #pragma omp parallel for private(b, intersection_list)
     for (auto kk = 0u; kk < npairs; ++kk) {
       auto& pair = pairs[kk];
-      if (flags(pair.i_list, pair.i_node) == 2u or
-          flags(pair.j_list, pair.j_node) == 2u) {
-        pair.f_couple = 0.0;
-      } else if (flags(pair.i_list, pair.i_node) == 1u or
-                 flags(pair.j_list, pair.j_node) == 1u) {
+      if (flags(pair.i_list, pair.i_node) == 1u or
+          flags(pair.j_list, pair.j_node) == 1u) {
         auto& fij = pair.f_couple;
         const auto& xi = position(pair.i_list, pair.i_node);
         const auto& xj = position(pair.j_list, pair.j_node);
@@ -118,7 +111,8 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                                                                             pair.j_list, pair.j_node,
                                                                             position);
         }
-        for (auto nodeListk = 0u; nodeListk < numNodeLists; ++nodeListk) {
+        auto nodeListk = 0u;
+        while (nodeListk < numNodeLists and fij > 1e-10) {
           // if (pair.i_node == 46) {
           //   std::cerr << "intersection list " << pair << " : ";
           //   std::cerr << "   [";
@@ -141,7 +135,9 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
             if (Dk.Trace() > Dthreshold and closestPointOnSegment(xk, xi, xj, b)) {
               fij *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatji).magnitude() * W.kernelValue((Hk*(b - xk)).magnitude(), 1.0)/W0));
             }
+            if (fij < 1.0e-10) break;
           }
+          ++nodeListk;
         }
         CHECK(fij >= 0.0 and fij <= 1.0);
       }

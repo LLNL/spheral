@@ -40,6 +40,7 @@ commandLine(
     # Parameters for the time dependent strain and cracking.
     DamageModelConstructor = GradyKippTensorDamageOwen,
     useDamage = True,
+    damageCoupling = ThreePointDamage,
 
     # Hydro
     nPerh = 3.01,
@@ -97,6 +98,7 @@ dataDir = os.path.join(dataDirBase,
                        hydroname,
                        "useDamage=%s" % useDamage,
                        DamageModelConstructor.__name__,
+                       "damageCoupling=%s" % damageCoupling,
                        "nr=%i" % nr)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "TensileDisk-%i" % nr)
@@ -393,6 +395,7 @@ if DamageModelConstructor is GradyKippTensorDamage:
                                          kernel = WT,
                                          seed = randomSeed,
                                          strainAlgorithm = strainType,
+                                         damageCouplingAlgorithm = damageCoupling,
                                          damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is GradyKippTensorDamageOwen:
@@ -403,6 +406,7 @@ elif DamageModelConstructor is GradyKippTensorDamageOwen:
                                          seed = randomSeed,
                                          strainAlgorithm = strainType,
                                          minFlawsPerNode = numFlawsPerNode,
+                                         damageCouplingAlgorithm = damageCoupling,
                                          damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is JohnsonCookDamageWeibull:
