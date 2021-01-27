@@ -97,7 +97,6 @@ cut communication between pairs that talk across them."""
                damage = "const FieldList<%(Dimension)s, SymTensor>&",
                W = "const TableKernel<%(Dimension)s>&",
                connectivity = "const ConnectivityMap<%(Dimension)s>&",
-               useIntersectConnectivity = "const bool",
                pairs = "NodePairList&"):
         "Constructor"
 

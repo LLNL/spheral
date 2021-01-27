@@ -26,6 +26,7 @@
 #include "Utilities/ThreePointDamagedNodeCoupling.hh"
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/safeInv.hh"
+#include "Utilities/Timer.hh"
 
 #include "boost/shared_ptr.hpp"
 
@@ -41,6 +42,10 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+
+// Declare timers
+extern Timer TIME_Damage;
+extern Timer TIME_DamageModel_finalize;
 
 namespace Spheral {
 
@@ -196,7 +201,7 @@ initialize(const Scalar /*time*/,
       const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
       const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
       const auto  D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-      mNodeCouplingPtr = std::make_shared<ThreePointDamagedNodeCoupling<Dimension>>(position, H, D, mW, connectivity, mComputeIntersectConnectivity, pairs);
+      mNodeCouplingPtr = std::make_shared<ThreePointDamagedNodeCoupling<Dimension>>(position, H, D, mW, connectivity, pairs);
     }
     break;
 
@@ -217,6 +222,8 @@ finalize(const Scalar /*time*/,
          DataBase<Dimension>& dataBase, 
          State<Dimension>& state,
          StateDerivatives<Dimension>& /*derivs*/) {
+  TIME_Damage.start();
+  TIME_DamageModel_finalize.start();
 
   // For 3pt damage, check if we should switch to using full intersection data
   // from the ConnectivityMap
@@ -245,6 +252,9 @@ finalize(const Scalar /*time*/,
     mComputeIntersectConnectivity = (dfrac > 0.2);  // Should tune this number...
     if (Process::getRank() == 0) std::cout << "DamageModel dfrac = " << nD << "/" << ntot << " = " << dfrac << " : " << mComputeIntersectConnectivity << std::endl;
   }
+
+  TIME_DamageModel_finalize.stop();
+  TIME_Damage.stop();
 }
 
 //------------------------------------------------------------------------------

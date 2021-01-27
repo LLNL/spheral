@@ -40,7 +40,6 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                               const FieldList<Dimension, SymTensor>& damage,
                               const TableKernel<Dimension>& W,
                               const ConnectivityMap<Dimension>& connectivity,
-                              const bool useIntersectConnectivity,
                               NodePairList& pairs) {
 
   TIME_Damage.start();
@@ -49,6 +48,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
   const auto npairs = pairs.size();
   const auto numNodeLists = position.numFields();
   const auto Dthreshold = 1.0e-3;
+  const auto useIntersectConnectivity = connectivity.buildIntersectionConnectivity();
   // const auto Dfull = 0.999;
 
   // For each interacting pair we need to compute the effective damage shielding, expressed

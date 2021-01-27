@@ -37,7 +37,6 @@ public:
                                 const FieldList<Dimension, SymTensor>& damage,
                                 const TableKernel<Dimension>& W,
                                 const ConnectivityMap<Dimension>& connectivity,
-                                const bool useIntersectConnectivity,
                                 NodePairList& pairs);
 
   // The coupling operator.
