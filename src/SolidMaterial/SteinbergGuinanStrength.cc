@@ -169,7 +169,7 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
       CHECK(distinctlyGreaterThan(eta, 0.0));
       const auto Yhard = min(mYmax, mY0*pow(1.0 + mbeta*(plasticStrain(i) + mgamma0), mnhard));
       const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
-      yieldStrength(i) = (1.0 - Di)*Yhard*yieldStrength(i)/mG0 + Di*mY0;
+      yieldStrength(i) = (1.0 - Di)*Yhard*yieldStrength(i)/mG0;
     }
   }
 }
