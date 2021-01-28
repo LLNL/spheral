@@ -161,6 +161,7 @@ common when (i,j) are ALSO neighbors.  Overlap connectivity may exist for
     # Properties
     buildGhostConnectivity = PYB11property(doc="Are we building connectivity for ghost nodes?")
     buildOverlapConnectivity = PYB11property(doc="Are we building connectivity for nodes that overlap?")
+    buildIntersectionConnectivity = PYB11property(doc="Are we building the connectivity intersection for nodes that interact?")
     nodeLists = PYB11property("const std::vector<const NodeListType*>&", "nodeLists",
                               returnpolicy="reference",
                               doc="The set of NodeLists we have connectivity for")

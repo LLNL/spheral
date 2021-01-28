@@ -104,6 +104,17 @@ buildOverlapConnectivity() const {
 }
 
 //------------------------------------------------------------------------------
+// Are we computing intersection connectivity?
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+ConnectivityMap<Dimension>::
+buildIntersectionConnectivity() const {
+  return mBuildIntersectionConnectivity;
+}
+
+//------------------------------------------------------------------------------
 // Get the set of NodeLists.
 //------------------------------------------------------------------------------
 template<typename Dimension>
