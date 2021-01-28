@@ -122,6 +122,9 @@ def FSISPH(dataBase,
         ASPH = False,
         RZ = False):
 
+    if strengthInDamage and damageRelieveRubble:
+        raise RuntimeError, "strengthInDamage and damageRelieveRubble are incompatible"
+    
     # default to fully coupled interfaces 
     if decoupledNodeLists is None:
         decoupledNodeLists = vector_of_int([0]*dataBase.numNodeLists)
@@ -201,6 +204,10 @@ def FSISPH(dataBase,
         Cq = 1.0*(dataBase.maxKernelExtent/2.0)**2
         Q = eval("MonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
+    print('sumDensityNodeList')
+    print(sumDensityNodeLists[0])
+    print(sumDensityNodeLists[1])
+    print(sumDensityNodeLists[2])
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
