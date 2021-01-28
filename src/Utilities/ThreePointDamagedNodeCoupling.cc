@@ -31,6 +31,21 @@ extern Timer TIME_ThreePointCoupling_pairs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// The function we use to damage the pair coupling
+//------------------------------------------------------------------------------
+template<typename SymTensor, typename Vector, typename Kernel>
+inline
+double pairCoupling(const Vector& xk,
+                    const SymTensor& Hk,
+                    const SymTensor& Dk,
+                    const Vector& xhatji,
+                    const Vector& b,
+                    const Kernel& W,
+                    const double& W0) {
+  return std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatji).magnitude() * W.kernelValue((Hk*(b - xk)).magnitude(), 1.0)/W0));
+}
+
+//------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -131,7 +146,8 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
 
               // We only proceed if the closest point to k on (i,j) is bounded by (i,j)
               if (Dk.Trace() > Dthreshold and closestPointOnSegment(xk, xi, xj, b)) {
-                fij *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatji).magnitude() * W.kernelValue((Hk*(b - xk)).magnitude(), 1.0)/W0));
+                fij *= pairCoupling(xk, Hk, Dk, xhatji, b, W, W0);
+                // fij *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatji).magnitude() * W.kernelValue((Hk*(b - xk)).magnitude(), 1.0)/W0));
               }
               if (fij < 1.0e-10) break;
             }
@@ -184,27 +200,32 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                           auto itr = std::lower_bound(pairs.begin(), pairs.end(), pair);
                           if (itr < pairs.end() and *itr == pair) {
 #pragma omp atomic
-                            itr->f_couple *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatji).magnitude() * W.kernelValue((Hk*(b - xk)).magnitude(), 1.0)/W0));
+                            itr->f_couple *= pairCoupling(xk, Hk, Dk, xhatji, b, W, W0);
+                            // itr->f_couple *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatji).magnitude() * W.kernelValue((Hk*(b - xk)).magnitude(), 1.0)/W0));
                             // if (k == 48) std::cerr << "      (" << i << " " << j << " " << k << ") " << Dk << " " << itr->f_couple << std::endl;
                           }
                         }
                       }
                       // Damage (k,j)
-                      auto pair = std::min(NodePairIdxType(k, kl, j, jl), NodePairIdxType(j, jl, k, kl));
+                      NodePairIdxType pair(NodePairIdxType(k, kl, j, jl));
                       auto itr = std::lower_bound(pairs.begin(), pairs.end(), pair);
-                      CHECK(itr != pairs.end());
-                      const auto xhatjk = (xk - xj).unitVector();
+                      if (itr != pairs.end()) {
+                        const auto xhatjk = (xk - xj).unitVector();
 #pragma omp atomic
-                      itr->f_couple *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatjk).magnitude()));
+                        itr->f_couple *= pairCoupling(Vector::zero, Hk, Dk, xhatjk, Vector::zero, W, W0);
+                        // itr->f_couple *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatjk).magnitude()));
+                      }
                     }
                   }
                   // Damage (k,i)
-                  auto pair = std::min(NodePairIdxType(k, kl, i, il), NodePairIdxType(i, il, k, kl));
+                  NodePairIdxType pair(k, kl, i, il);
                   auto itr = std::lower_bound(pairs.begin(), pairs.end(), pair);
-                  CHECK(itr != pairs.end());
-                  const auto xhatik = (xk - xi).unitVector();
+                  if (itr != pairs.end()) {
+                    const auto xhatik = (xk - xi).unitVector();
 #pragma omp atomic
-                  itr->f_couple *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatik).magnitude()));
+                    itr->f_couple *= pairCoupling(Vector::zero, Hk, Dk, xhatik, Vector::zero, W, W0);
+                    // itr->f_couple *= std::max(0.0, std::min(1.0, 1.0 - (Dk*xhatik).magnitude()));
+                  }                   
                 }
               }
             }
