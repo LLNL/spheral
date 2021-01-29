@@ -324,14 +324,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       viscousWorki += mj*workQi;
       viscousWorkj += mi*workQj;
 
-      // Damage scaling of negative pressures.
-      sigmai = (Pi < 0.0 ? -fDij*Pi : -Pi) * SymTensor::one;
-      sigmaj = (Pj < 0.0 ? -fDij*Pj : -Pj) * SymTensor::one;
-
       // Compute the stress tensors.
       if (sameMatij) {
-        sigmai += Si;
-        sigmaj += Sj;
+        sigmai = fDij*Si - Pi * SymTensor::one;
+        sigmaj = fDij*Sj - Pj * SymTensor::one;
+      } else {
+        sigmai = -Pi * SymTensor::one;
+        sigmaj = -Pj * SymTensor::one;
       }
 
       // Compute the tensile correction to add to the stress as described in 

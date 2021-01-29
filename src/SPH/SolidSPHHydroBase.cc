@@ -22,6 +22,7 @@
 #include "DataBase/IncrementBoundedFieldList.hh"
 #include "DataBase/ReplaceFieldList.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
+#include "Damage/DamagedPressurePolicy.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -235,8 +236,9 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mYieldStrength, 0.0, SolidFieldNames::yieldStrength, false);
   dataBase.resizeFluidFieldList(mPlasticStrain0, 0.0, SolidFieldNames::plasticStrain + "0", false);
 
-  // Grab the normal Hydro's registered version of the sound speed.
+  // Grab the normal Hydro's registered version of the sound speed and pressure.
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
   CHECK(cs.numFields() == dataBase.numFluidNodeLists());
 
   // Build the FieldList versions of our state.
@@ -273,9 +275,13 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mShearModulus, shearModulusPolicy);
   state.enroll(mYieldStrength, yieldStrengthPolicy);
 
-  // Override the policy for the sound speed.
+  // Override the policies for the sound speed and pressure.
   PolicyPointer csPolicy(new StrengthSoundSpeedPolicy<Dimension>());
   state.enroll(cs, csPolicy);
+  if (not mNegativePressureInDamage) {
+    PolicyPointer Ppolicy(new DamagedPressurePolicy<Dimension>());
+    state.enroll(P, Ppolicy);
+  }
 
   // Register the damage with a default no-op update.
   // If there are any damage models running they can override this choice.
