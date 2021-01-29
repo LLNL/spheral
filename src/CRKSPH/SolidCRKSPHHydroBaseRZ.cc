@@ -382,7 +382,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
     int i, j, nodeListi, nodeListj;
     Scalar Wi, gWi, Wj, gWj;
     Tensor QPiij, QPiji;
-    Scalar Pposi, Pnegi, Pposj, Pnegj;
     Vector gradWi, gradWj, gradWSPHi, gradWSPHj;
     Vector deltagrad, forceij, forceji;
     SymTensor sigmai, sigmaj;
