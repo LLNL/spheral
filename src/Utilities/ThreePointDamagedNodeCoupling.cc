@@ -147,8 +147,8 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
               // We only proceed if the closest point to k on (i,j) is bounded by (i,j)
               if (Dk.Trace() > Dthreshold and closestPointOnSegment(xk, xi, xj, b)) {
                 fij *= pairCoupling(xk, Hk, Dk, Di, Dj, xhatji, b, W, W0);
+                // if (barf) std::cerr << "  --> " << k << " " << Dk << " " << pairCoupling(xk, Hk, Dk, Di, Dj, xhatji, b, W, W0) << " " << fij << std::endl;
               }
-              // if (barf) std::cerr << "  --> " << k << " " << Dk << " " << pairCoupling(xk, Hk, Dk, Di, Dj, xhatji, b, W, W0) << " " << fij << std::endl;
               if (fij < 1.0e-10) break;
             }
             ++nodeListk;
@@ -210,13 +210,13 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                     }
                   }
                   // Damage (k,i)
-                  const NodePairIdxType pair(k, kl, i, il);
+                  const auto pair = std::min(NodePairIdxType(k, kl, i, il), NodePairIdxType(i, il, k, kl));
                   const auto itr = std::find(pairs.begin(), pairs.end(), pair);
                   if (itr != pairs.end() and *itr == pair) {
                     const auto xhatik = (xk - xi).unitVector();
 #pragma omp atomic
-                    itr->f_couple *= pairCoupling(Vector::zero, Hk, Dk, Di, Dk, xhatik, Vector::zero, W, W0);
-                    // if (pair == NodePairIdxType(48, 0, 49, 0)) std::cerr << "  3-> " << i << " " << k << " " << k << " " << Dk << " " << pairCoupling(xk, Hk, Dk, Di, Dk, xhatik, Vector::zero, W, W0) << " " << itr->f_couple << std::endl;
+                    itr->f_couple *= pairCoupling(xk, Hk, Dk, Di, Dk, xhatik, xk, W, W0);
+                    // if (pair == NodePairIdxType(48, 0, 49, 0)) std::cerr << "  2-> " << i << " " << k << " " << k << " " << Dk << " " << pairCoupling(xk, Hk, Dk, Di, Dk, xhatik, xk, W, W0) << " " << itr->f_couple << std::endl;
                   }                   
                 }
               }
