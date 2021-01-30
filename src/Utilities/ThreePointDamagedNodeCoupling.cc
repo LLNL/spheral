@@ -130,7 +130,6 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
           const auto& Dj = damage(pair.j_list, pair.j_node);
           const auto  xji = xj - xi;
           const auto  xhatji = xji.unitVector();
-          // const bool barf = pair == NodePairIdxType(48, 0, 49, 0);
           // if (barf) std::cerr << "  3pt firing on " << pair << " : " << connectivity.numNeighborsForNode(pair.i_list, pair.i_node) << " " << connectivity.numNeighborsForNode(pair.j_list, pair.j_node) << std::endl;
 
           // Find the common neighbors for this pair.
@@ -147,7 +146,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
               // We only proceed if the closest point to k on (i,j) is bounded by (i,j)
               if (Dk.Trace() > Dthreshold and closestPointOnSegment(xk, xi, xj, b)) {
                 fij *= pairCoupling(xk, Hk, Dk, Di, Dj, xhatji, b, W, W0);
-                // if (barf) std::cerr << "  --> " << k << " " << Dk << " " << pairCoupling(xk, Hk, Dk, Di, Dj, xhatji, b, W, W0) << " " << fij << std::endl;
+                // if (k == 48) std::cerr << "  --> " << pair << " " << k << " " << Dk << " " << pairCoupling(xk, Hk, Dk, Di, Dj, xhatji, b, W, W0) << " " << fij << std::endl;
               }
               if (fij < 1.0e-10) break;
             }
@@ -203,7 +202,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                           if (itr < pairs.end() and *itr == pair) {
 #pragma omp atomic
                             itr->f_couple *= pairCoupling(xk, Hk, Dk, Di, Dj, xhatji, b, W, W0);
-                            // if (pair == NodePairIdxType(48, 0, 49, 0)) std::cerr << "  1-> " << i << " " << j << " " << k << " " << Dk << " " << pairCoupling(xk, Hk, Dk, Di, Dj, xhatji, b, W, W0) << " " << itr->f_couple << std::endl;
+                            // if (k == 48) std::cerr << "  1-> " << *itr << " " << k << " " << Dk << " " << pairCoupling(xk, Hk, Dk, Di, Dj, xhatji, b, W, W0) << " " << itr->f_couple << std::endl;
                           }
                         }
                       }
@@ -216,7 +215,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                     const auto xhatik = (xk - xi).unitVector();
 #pragma omp atomic
                     itr->f_couple *= pairCoupling(xk, Hk, Dk, Di, Dk, xhatik, xk, W, W0);
-                    // if (pair == NodePairIdxType(48, 0, 49, 0)) std::cerr << "  2-> " << i << " " << k << " " << k << " " << Dk << " " << pairCoupling(xk, Hk, Dk, Di, Dk, xhatik, xk, W, W0) << " " << itr->f_couple << std::endl;
+                    // if (k == 48) std::cerr << "  2-> " << *itr << " " << k << " " << Dk << " " << pairCoupling(xk, Hk, Dk, Di, Dk, xhatik, xk, W, W0) << " " << itr->f_couple << std::endl;
                   }                   
                 }
               }
