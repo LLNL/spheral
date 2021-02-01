@@ -179,22 +179,24 @@ initialize(const Scalar /*time*/,
 
   switch(mDamageCouplingAlgorithm) {
   case DamageCouplingAlgorithm::NoDamage:
-    break;
-
   case DamageCouplingAlgorithm::DirectDamage:
-    {
-      const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-      mNodeCouplingPtr = std::make_shared<DamagedNodeCoupling<Dimension>>(D, pairs);
-    }
+  case DamageCouplingAlgorithm::DirectDamageWithFrags:
     break;
 
-  case DamageCouplingAlgorithm::DirectDamageWithFrags:
-    {
-      const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-      const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
-      mNodeCouplingPtr = std::make_shared<DamagedNodeCouplingWithFrags<Dimension>>(D, fragIDs, pairs);
-    }
-    break;
+  // case DamageCouplingAlgorithm::DirectDamage:
+  //   {
+  //     const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
+  //     mNodeCouplingPtr = std::make_shared<DamagedNodeCoupling<Dimension>>(D, pairs);
+  //   }
+  //   break;
+
+  // case DamageCouplingAlgorithm::DirectDamageWithFrags:
+  //   {
+  //     const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
+  //     const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  //     mNodeCouplingPtr = std::make_shared<DamagedNodeCouplingWithFrags<Dimension>>(D, fragIDs, pairs);
+  //   }
+  //   break;
 
   case DamageCouplingAlgorithm::ThreePointDamage:
     {

@@ -240,6 +240,7 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Scalar> cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
   CHECK(cs.numFields() == dataBase.numFluidNodeLists());
+  CHECK(P.numFields() == dataBase.numFluidNodeLists());
 
   // Build the FieldList versions of our state.
   FieldList<Dimension, SymTensor> S, D;

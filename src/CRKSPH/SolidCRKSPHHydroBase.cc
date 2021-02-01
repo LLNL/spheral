@@ -26,6 +26,7 @@
 #include "DataBase/IncrementBoundedFieldList.hh"
 #include "DataBase/ReplaceFieldList.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
+#include "Damage/DamagedPressurePolicy.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -205,9 +206,11 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mShearModulus, 0.0, SolidFieldNames::shearModulus, false);
   dataBase.resizeFluidFieldList(mYieldStrength, 0.0, SolidFieldNames::yieldStrength, false);
 
-  // Grab the normal Hydro's registered version of the sound speed.
+  // Grab the normal Hydro's registered version of the sound speed and pressure.
   auto cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  auto P = state.fields(HydroFieldNames::pressure, 0.0);
   CHECK(cs.numFields() == dataBase.numFluidNodeLists());
+  CHECK(P.numFields() == dataBase.numFluidNodeLists());
 
   // Register the deviatoric stress and plastic strain to be evolved.
   auto ps = dataBase.solidPlasticStrain();
@@ -225,9 +228,13 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mShearModulus, shearModulusPolicy);
   state.enroll(mYieldStrength, yieldStrengthPolicy);
 
-  // Override the policy for the sound speed.
+  // Override the policies for the sound speed and pressure.
   PolicyPointer csPolicy(new StrengthSoundSpeedPolicy<Dimension>());
   state.enroll(cs, csPolicy);
+  if (not mNegativePressureInDamage) {
+    PolicyPointer Ppolicy(new DamagedPressurePolicy<Dimension>());
+    state.enroll(P, Ppolicy);
+  }
 
   // Register the damage with a default no-op update.
   // If there are any damage models running they can override this choice.
@@ -479,7 +486,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto vij = vi - vj;
 
       // Flag if this is a contiguous material pair or not.
-      const auto sameMatij = nodeListi == nodeListj; // (nodeListi == nodeListj and fragIDi == fragIDj);
+      const auto sameMatij = true; // nodeListi == nodeListj; // (nodeListi == nodeListj and fragIDi == fragIDj);
 
       // Flag if at least one particle is free (0).
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
@@ -497,7 +504,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
-      const auto fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
+      const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
       const auto rij2 = rij.magnitude2();
       const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
       weightedNeighborSumi +=     fweightij*std::abs(gWi);
@@ -525,23 +532,24 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       viscousWorkj += 0.5*weighti*weightj/mj*workQj;
 
       // Velocity gradient.
-      DvDxi -= weightj*vij.dyad(gradWj);
-      DvDxj += weighti*vij.dyad(gradWi);
-      localDvDxi -= fDij*weightj*vij.dyad(gradWj);
-      localDvDxj += fDij*weighti*vij.dyad(gradWi);
+      DvDxi -= fDij * weightj*vij.dyad(gradWj);
+      DvDxj += fDij * weighti*vij.dyad(gradWi);
+      if (sameMatij) {
+        localDvDxi -= fDij * weightj*vij.dyad(gradWj);
+        localDvDxj += fDij * weighti*vij.dyad(gradWi);
+      }
 
       // // Mass density gradient.
       // gradRhoi += weightj*(rhoj - rhoi)*gradWj;
       // gradRhoj += weighti*(rhoi - rhoj)*gradWi;
 
-      // Damage scaling of negative pressures.
-      sigmai = (Pi < 0.0 ? -fDij*Pi : -Pi) * SymTensor::one;
-      sigmaj = (Pj < 0.0 ? -fDij*Pj : -Pj) * SymTensor::one;
-
       // Compute the stress tensors.
       if (sameMatij) {
-        sigmai += Si;
-        sigmaj += Sj;
+        sigmai = fDij*Si - Pi * SymTensor::one;
+        sigmaj = fDij*Sj - Pj * SymTensor::one;
+      } else {
+        sigmai = -Pi * SymTensor::one;
+        sigmaj = -Pj * SymTensor::one;
       }
 
       // We decide between RK and CRK for the momentum and energy equations based on the surface condition.

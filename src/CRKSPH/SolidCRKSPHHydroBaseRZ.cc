@@ -481,7 +481,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto vij = vi - vj;
 
       // Flag if this is a contiguous material pair or not.
-      const auto sameMatij = nodeListi == nodeListj; // (nodeListi == nodeListj and fragIDi == fragIDj);
+      const auto sameMatij = true; // nodeListi == nodeListj; // (nodeListi == nodeListj and fragIDi == fragIDj);
 
       // Flag if at least one particle is free (0).
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
@@ -499,7 +499,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
-      const auto fweightij = nodeListi == nodeListj ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
+      const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
       const auto xij2 = xij.magnitude2();
       const auto thpt = xij.selfdyad()*safeInvVar(xij2*xij2*xij2);
       weightedNeighborSumi +=     fweightij*std::abs(gWi);
@@ -524,19 +524,20 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       viscousWorkj += 0.5*weighti*weightj/mRZj*workQj;
 
       // Velocity gradient.
-      DvDxi -= weightj*vij.dyad(gradWj);
-      DvDxj += weighti*vij.dyad(gradWi);
-      localDvDxi -= fDij*weightj*vij.dyad(gradWj);
-      localDvDxj += fDij*weighti*vij.dyad(gradWi);
-
-      // Damage scaling of negative pressures.
-      sigmai = (Pi < 0.0 ? -fDij*Pi : -Pi) * SymTensor::one;
-      sigmaj = (Pj < 0.0 ? -fDij*Pj : -Pj) * SymTensor::one;
+      DvDxi -= fDij * weightj*vij.dyad(gradWj);
+      DvDxj += fDij * weighti*vij.dyad(gradWi);
+      if (sameMatij) {
+        localDvDxi -= fDij * weightj*vij.dyad(gradWj);
+        localDvDxj += fDij * weighti*vij.dyad(gradWi);
+      }
 
       // Compute the stress tensors.
       if (sameMatij) {
-        sigmai += Si;
-        sigmaj += Sj;
+        sigmai = fDij*Si - Pi * SymTensor::one;
+        sigmaj = fDij*Sj - Pj * SymTensor::one;
+      } else {
+        sigmai = -Pi * SymTensor::one;
+        sigmaj = -Pj * SymTensor::one;
       }
 
       // We decide between RK and CRK for the momentum and energy equations based on the surface condition.
