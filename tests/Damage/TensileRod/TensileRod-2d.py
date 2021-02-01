@@ -191,6 +191,7 @@ mWeibull = 2.63   * mWeibullFactor
 dataDir = os.path.join(dataDirBase,
                        hydroname,
                        DamageModelConstructor.__name__,
+                       "damageCoupling=%s" % damageCoupling,
                        "nx=%i" % nx,
                        "k=%4.2f_m=%4.2f" % (kWeibull, mWeibull))
 restartDir = os.path.join(dataDir, "restarts")
@@ -426,13 +427,11 @@ bcs = [xbc0, xbc1]
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT,
                    filter = filter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
-                   volumeType = volumeType,
                    HUpdate = HUpdate,
                    ASPH = ASPH)
 else:
@@ -456,8 +455,6 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel")
-output("hydro.PiKernel")
 output("hydro.negativePressureInDamage")
 
 #-------------------------------------------------------------------------------
@@ -569,6 +566,7 @@ for package in integrator.physicsPackages():
 # Build the controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,

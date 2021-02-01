@@ -33,7 +33,7 @@ commandLine(
     # Geometry and initial conditions
     R0 = 1.0,
     nr = 100,
-    vr0 = 1e-3,
+    vr0 = 5e-3,
     thetaFactor = 2.0,        # one of (0.5, 1.0, 2.0) -- how much of disk geometry to generate
     constantBoundary = True,  # force constant expansion on outer boundary nodes
 
@@ -43,7 +43,7 @@ commandLine(
     damageCoupling = ThreePointDamage,
 
     # Hydro
-    nPerh = 3.01,
+    nPerh = 4.01,
     crksph = False,     # Use CRK hydro?
     asph = False,        # Just the H tensor evolution -- applies to all hydros
     hminratio = 0.05,
