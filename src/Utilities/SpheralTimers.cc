@@ -156,6 +156,23 @@ Timer TIME_CheapRK2EndStep        ("Advance to end of step  ", TIME_CheapRK2);
 Timer TIME_CheapRK2Finalize       ("postStepFinalize        ", TIME_CheapRK2);
 Timer TIME_CheapRK2EnforceBound   ("Enforce boundaries      ", TIME_CheapRK2);
 
+//------------------------------------------------------------------------------
+// Verlet (2nd order) integrator
+//------------------------------------------------------------------------------
+Timer TIME_Verlet                 ("Root Verlet Integrator  ", TIME_Spheral);
+Timer TIME_VerletPreInit          ("preStepInitialize       ", TIME_Verlet);
+Timer TIME_VerletCopyPos0         ("Copy initial position   ", TIME_Verlet);
+Timer TIME_VerletDt               ("Set dt                  ", TIME_Verlet);
+Timer TIME_VerletCopyState0       ("Copy initial state      ", TIME_Verlet);
+Timer TIME_VerletEvalDerivs1      ("Eval initial derivs     ", TIME_Verlet);
+Timer TIME_VerletPredict1         ("Predict mid-point state ", TIME_Verlet);
+Timer TIME_VerletDtCheck          ("Check timestep validity ", TIME_Verlet);
+Timer TIME_VerletMidPointCopy     ("Copy mid-point state    ", TIME_Verlet);
+Timer TIME_VerletPredict2         ("Predict final state     ", TIME_Verlet);
+Timer TIME_VerletEvalDerivs2      ("Eval final derivs       ", TIME_Verlet);
+Timer TIME_VerletUpdateState      ("Correct final state     ", TIME_Verlet);
+Timer TIME_VerletFinalize         ("postStepFinalize        ", TIME_Verlet);
+
 // //------------------------------------------------------------------------------
 // // NestedGridNeighbor
 // //------------------------------------------------------------------------------
