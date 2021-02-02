@@ -50,8 +50,10 @@ double pairCoupling(const Vector& xk,
   CHECK(dk >= 0.0 and dk <= 1.0);
   CHECK(di >= 0.0 and di <= 1.0);
   CHECK(dj >= 0.0 and dj <= 1.0);
-  if (std::max(di, dj) < 1.0e-3) return 1.0;
-  return std::max(0.0, std::min(1.0, 1.0 - dk * W.kernelValue((Hk*(b - xk)).magnitude(), 1.0)/W0));
+  // if (std::max(di, dj) < 1.0e-3) return 1.0;
+  const auto fshield = 1.0 - dk * W.kernelValue((Hk*(b - xk)).magnitude(), 1.0)/W0;
+  const auto dij = std::max(di, dj);
+  return std::max(0.0, std::min(1.0, (1.0 - dij) + dij*fshield));
 }
 
 //------------------------------------------------------------------------------

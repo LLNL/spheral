@@ -138,7 +138,7 @@ commandLine(seed = "lattice",
             volumeType = RKSumVolume,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            goalTime = 200.0,
+            goalTime = 100.0,
             steps = None,
             dt = 1e-10,
             dtMin = 1e-6,
