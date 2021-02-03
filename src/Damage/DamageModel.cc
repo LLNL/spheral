@@ -178,17 +178,9 @@ initialize(const Scalar /*time*/,
   auto& pairs = const_cast<NodePairList&>(connectivity.nodePairList());
 
   switch(mDamageCouplingAlgorithm) {
-  case DamageCouplingAlgorithm::NoDamage:
   case DamageCouplingAlgorithm::DirectDamage:
   case DamageCouplingAlgorithm::DirectDamageWithFrags:
     break;
-
-  // case DamageCouplingAlgorithm::DirectDamage:
-  //   {
-  //     const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-  //     mNodeCouplingPtr = std::make_shared<DamagedNodeCoupling<Dimension>>(D, pairs);
-  //   }
-  //   break;
 
   // case DamageCouplingAlgorithm::DirectDamageWithFrags:
   //   {
