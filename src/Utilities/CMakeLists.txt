@@ -13,6 +13,7 @@ set(Utilities_inst
     computeShepardsInterpolation
     overlayRemapFields
     ThreePointDamagedNodeCoupling
+    DamageGradientNodeCoupling
    )
 
 set(Utilities_sources
@@ -42,9 +43,8 @@ instantiate(Utilities_inst Utilities_sources)
 set(Utilities_headers
     Bessel.hh
     CounterClockwiseComparator.hh
-    DamagedNodeCoupling.hh
-    DamagedNodeCouplingWithFrags.hh
     ThreePointDamagedNodeCoupling.hh
+    DamageGradientNodeCoupling.hh
     DBC.hh
     DomainNode.hh
     DomainNodeInline.hh

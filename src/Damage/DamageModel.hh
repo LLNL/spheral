@@ -41,6 +41,7 @@ enum class DamageCouplingAlgorithm {
   DirectDamage = 1,
   DirectDamageWithFrags = 2,
   ThreePointDamage = 3,
+  DamageGradient = 4,
 };
 
 template<typename Dimension>

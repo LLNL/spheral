@@ -11,7 +11,6 @@
 // Created by JMO, Mon May  9 11:01:51 PDT 2016
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "Utilities/DamagedNodeCouplingWithFrags.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"

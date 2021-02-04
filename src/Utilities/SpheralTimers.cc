@@ -232,11 +232,14 @@ Timer TIME_SolidSPHevalDerivs_final   ("SolidSPH evaluateDerivates (final)  ", T
 //------------------------------------------------------------------------------
 // Damage
 //------------------------------------------------------------------------------
-Timer TIME_Damage                     ("Damage base timer                 ", TIME_Physics);
-Timer TIME_DamageModel_finalize       ("DamageModel::finalize             ", TIME_Damage);
-Timer TIME_ThreePointCoupling         ("3-pt damage coupling constructor  ", TIME_Damage);
-Timer TIME_ThreePointCoupling_initial ("3-pt damage compute flags         ", TIME_Damage);
-Timer TIME_ThreePointCoupling_pairs   ("3-pt damage loop over pairs       ", TIME_Damage);
+Timer TIME_Damage                       ("Damage base timer                 ", TIME_Physics);
+Timer TIME_DamageModel_finalize         ("DamageModel::finalize             ", TIME_Damage);
+Timer TIME_ThreePointCoupling           ("3-pt damage coupling constructor  ", TIME_Damage);
+Timer TIME_ThreePointCoupling_initial   ("3-pt damage compute flags         ", TIME_Damage);
+Timer TIME_ThreePointCoupling_pairs     ("3-pt damage loop over pairs       ", TIME_Damage);
+Timer TIME_DamageGradientCoupling       ("damage gradient coupling ctor     ", TIME_Damage);
+Timer TIME_DamageGradientCoupling_grad  ("damage gradient compute grad      ", TIME_Damage);
+Timer TIME_DamageGradientCoupling_pairs ("damage gradient loop over pairs   ", TIME_Damage);
 
 // //------------------------------------------------------------------------------
 // // MASH NodeList

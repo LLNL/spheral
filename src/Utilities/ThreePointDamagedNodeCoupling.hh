@@ -39,11 +39,9 @@ public:
                                 const ConnectivityMap<Dimension>& connectivity,
                                 NodePairList& pairs);
 
-  // The coupling operator.
-  virtual double operator()(const NodePairIdxType& pair) const override {
-    return pair.f_couple;
-  }
-
+private:
+  // Forbidden methods.
+  ThreePointDamagedNodeCoupling();
 };
 
 }

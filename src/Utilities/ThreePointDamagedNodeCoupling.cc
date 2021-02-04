@@ -66,7 +66,8 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
                               const FieldList<Dimension, SymTensor>& damage,
                               const TableKernel<Dimension>& W,
                               const ConnectivityMap<Dimension>& connectivity,
-                              NodePairList& pairs) {
+                              NodePairList& pairs):
+  NodeCoupling() {
 
   TIME_Damage.start();
   TIME_ThreePointCoupling.start();

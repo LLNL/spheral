@@ -21,8 +21,7 @@
 #include "Kernel/TableKernel.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/NodeCoupling.hh"
-#include "Utilities/DamagedNodeCoupling.hh"
-#include "Utilities/DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/DamageGradientNodeCoupling.hh"
 #include "Utilities/ThreePointDamagedNodeCoupling.hh"
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/safeInv.hh"
@@ -192,10 +191,16 @@ initialize(const Scalar /*time*/,
 
   case DamageCouplingAlgorithm::ThreePointDamage:
     {
-      const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-      const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-      const auto  D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
+      const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+      const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+      const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
       mNodeCouplingPtr = std::make_shared<ThreePointDamagedNodeCoupling<Dimension>>(position, H, D, mW, connectivity, pairs);
+    }
+    break;
+
+  case DamageCouplingAlgorithm::DamageGradient:
+    {
+      mNodeCouplingPtr = std::make_shared<DamageGradientNodeCoupling<Dimension>>(state, mW, this->boundaryBegin(), this->boundaryEnd(), pairs);
     }
     break;
 

@@ -19,24 +19,10 @@ public:
   // Constructor, destructor.
   NodeCoupling() {}
   virtual ~NodeCoupling() {}
-  
 
   // The coupling operator.
-  virtual double operator()(const NodePairIdxType& /*pair*/) const {
-    return 1.0;
-  }
-};
-
-// A variant where only nodes within a NodeList are coupled.
-class PerNodeListNodeCoupling : public NodeCoupling {
-public:
-  // Constructor.
-  PerNodeListNodeCoupling(): NodeCoupling() {}
-  virtual ~PerNodeListNodeCoupling() {}
-
-  // The coupling operator.
-  virtual double operator()(const NodePairIdxType& pair) const override {
-    return (pair.i_list == pair.j_list ? 1.0 : 0.0);
+  virtual double operator()(const NodePairIdxType& pair) const {
+    return pair.f_couple;
   }
 };
 

@@ -48,9 +48,8 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/Timer.hh"',
                   '"Utilities/DomainNode.hh"',
                   '"Utilities/NodeCoupling.hh"',
-                  '"Utilities/DamagedNodeCoupling.hh"',
-                  '"Utilities/DamagedNodeCouplingWithFrags.hh"',
-                  '"Utilities/ThreePointDamagedNodeCoupling.hh"']
+                  '"Utilities/ThreePointDamagedNodeCoupling.hh"',
+                  '"Utilities/DamageGradientNodeCoupling.hh"']
 
 #-------------------------------------------------------------------------------
 # Preamble
@@ -255,9 +254,8 @@ def computeShepardsInterpolation(fieldList = "const FieldList<%(Dimension)s, %(D
 # Instantiate stuff for the dimensions Spheral is building
 for ndim in dims:
     exec('''
-DamagedNodeCoupling%(ndim)id = PYB11TemplateClass(DamagedNodeCoupling, template_parameters="%(Dimension)s")
-DamagedNodeCouplingWithFrags%(ndim)id = PYB11TemplateClass(DamagedNodeCouplingWithFrags, template_parameters="%(Dimension)s")
 ThreePointDamagedNodeCoupling%(ndim)id = PYB11TemplateClass(ThreePointDamagedNodeCoupling, template_parameters="%(Dimension)s")
+DamageGradientNodeCoupling%(ndim)id = PYB11TemplateClass(DamageGradientNodeCoupling, template_parameters="%(Dimension)s")
 
 # Functors
 VectorScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "double"))
