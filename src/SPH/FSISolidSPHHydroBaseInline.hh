@@ -37,42 +37,6 @@ diffusionCoefficient() const {
 }
 
 
-template<typename Dimension>
-inline
-void
-FSISolidSPHHydroBase<Dimension>::
-interfaceMethod(int x) {
-  mInterfaceMethod = x;
-}
-
-template<typename Dimension>
-inline
-int
-FSISolidSPHHydroBase<Dimension>::
-interfaceMethod() const {
-  return mInterfaceMethod;
-}
-
-
-//------------------------------------------------------------------------------
-// swtich to decouple DrhoDt and DepsDt from other nodeLists
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-FSISolidSPHHydroBase<Dimension>::
-decoupledNodeLists(std::vector<int> x) {
-  mDecoupledNodeLists = x;
-}
-
-
-template<typename Dimension>
-inline
-std::vector<int>
-FSISolidSPHHydroBase<Dimension>::
-decoupledNodeLists() const {
-  return mDecoupledNodeLists;
-}
 
 //------------------------------------------------------------------------------
 // swtich to turn on density sum for different nodeLists

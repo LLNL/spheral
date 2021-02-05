@@ -44,9 +44,7 @@ public:
                     const TableKernel<Dimension>& WGrad,
                     const double alpha,
                     const double diffusionCoefficient,
-                    const int interfaceMethod,
                     const std::vector<int> sumDensityNodeLists,
-                    const std::vector<int> decoupledNodeLists,
                     const double filter,
                     const double cfl,
                     const bool useVelocityMagnitudeForDt,
@@ -97,12 +95,6 @@ public:
   double diffusionCoefficient() const;
   void diffusionCoefficient(double x);
 
-  int interfaceMethod() const;
-  void interfaceMethod(int x);
-
-  std::vector<int> decoupledNodeLists() const;
-  void decoupledNodeLists(std::vector<int> x);
-
   std::vector<int> sumDensityNodeLists() const;
   void sumDensityNodeLists(std::vector<int> x);
 
@@ -114,8 +106,6 @@ public:
 private:
   double mAlpha;                               // generalized density exponent
   double mDiffusionCoefficient;                // controls diffusion of rho and eps
-  int mInterfaceMethod;                        // (0 or 1) switch between interface methods
-  std::vector<int> mDecoupledNodeLists;        // decouples DrhoDt and DepsDt for specificed nodeLists
   std::vector<int> mSumDensityNodeLists;       // turn on density sum subset of nodeLists
 
   // No default constructor, copying, or assignment.

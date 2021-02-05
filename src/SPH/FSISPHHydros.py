@@ -17,8 +17,6 @@ class %(classname)s%(dim)s(FSISolidSPHHydroBase%(dim)s):
                  WGrad = None,
                  alpha = 1.00,
                  diffusionCoefficient = 0.0,        
-                 interfaceMethod = 0,         
-                 decoupledNodeLists = None,
                  sumDensityNodeLists = None,
                  filter = 0.0,
                  cfl = 0.5,
@@ -52,8 +50,6 @@ class %(classname)s%(dim)s(FSISolidSPHHydroBase%(dim)s):
                                           WGrad,
                                           alpha,
                                           diffusionCoefficient,        
-                                          interfaceMethod,         
-                                          decoupledNodeLists,
                                           sumDensityNodeLists,
                                           filter,
                                           cfl,
@@ -100,8 +96,6 @@ def FSISPH(dataBase,
         cfl = 0.25,
         alpha = 1.00,                 
         diffusionCoefficient=0.0,        
-        interfaceMethod=0,         
-        decoupledNodeLists=None,
         sumDensityNodeLists=None,
         useVelocityMagnitudeForDt = False,
         compatibleEnergyEvolution = True,
@@ -124,24 +118,6 @@ def FSISPH(dataBase,
 
     if strengthInDamage and damageRelieveRubble:
         raise RuntimeError, "strengthInDamage and damageRelieveRubble are incompatible"
-    
-    # default to fully coupled interfaces 
-    if decoupledNodeLists is None:
-        decoupledNodeLists = vector_of_int([0]*dataBase.numNodeLists)
-    elif isinstance(decoupledNodeLists,list):
-        if len(decoupledNodeLists) == dataBase.numFluidNodeLists:
-            assert (isinstance(decoupledNodeLists[0],bool) or isinstance(decoupledNodeLists[0],int))
-            decoupledNodeLists = vector_of_int(decoupledNodeLists)
-        else:
-            raise RuntimeError, "decoupledNodeLists - must be list of length equal to numNodeLists."
-    elif not isinstance(sumDensityNodeList,vector_of_int):
-        raise RuntimeError, "decoupledNodeLists - must be list of int 1/0 or bool."
-
-    # if we're using the bulk modulus interface method its going to override 
-    # and user defined decoupledNodeLists to fully coupled
-    if interfaceMethod == 0 and any(decoupledNodeLists) == 1:
-        print "interfaceMethod = 0 requires full coupling of interface nodes. decoupledNodeLists are going to be ignored."
-        decoupledNodeLists *= 0
 
     # default to integrate density
     if sumDensityNodeLists is None:
@@ -170,7 +146,7 @@ def FSISPH(dataBase,
     if RZ:
 
         print "SPH Error: RZ isn't set up for the FSI implementations yet"
-        raise RuntimeError, "FZ inavailable for FSI."
+        raise RuntimeError, "RZ unavailable for FSI."
 
         # RZ ----------------------------------------
         #if nsolid > 0:
@@ -204,10 +180,6 @@ def FSISPH(dataBase,
         Cq = 1.0*(dataBase.maxKernelExtent/2.0)**2
         Q = eval("MonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
-    print('sumDensityNodeList')
-    print(sumDensityNodeLists[0])
-    print(sumDensityNodeLists[1])
-    print(sumDensityNodeLists[2])
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
@@ -219,8 +191,6 @@ def FSISPH(dataBase,
               "cfl" : cfl,
               "alpha" : alpha,
               "diffusionCoefficient" : diffusionCoefficient,        
-              "interfaceMethod" : interfaceMethod,         
-              "decoupledNodeLists" : decoupledNodeLists,
               "sumDensityNodeLists" : sumDensityNodeLists,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
@@ -257,8 +227,6 @@ def AFSISPH(dataBase,
          cfl = 0.25,
          alpha=1.00,
          diffusionCoefficient=0.0,        
-         interfaceMethod=0,         
-         decoupledNodeLists=None,
          useVelocityMagnitudeForDt = False,
          compatibleEnergyEvolution = True,
          evolveTotalEnergy = False,
@@ -283,8 +251,6 @@ def AFSISPH(dataBase,
                cfl = cfl,
                alpha = alpha,
                diffusionCoefficient= diffusionCoefficient,        
-               interfaceMethod = interfaceMethod,         
-               decoupledNodeLists = decoupledNodeLists,
                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                compatibleEnergyEvolution = compatibleEnergyEvolution,
                evolveTotalEnergy = evolveTotalEnergy,

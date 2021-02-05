@@ -26,9 +26,7 @@ class FSISolidSPHHydroBase(SolidSPHHydroBase):
                WGrad = "const TableKernel<%(Dimension)s>&",
                alpha = "const double",
                diffusionCoefficient = "const double",
-               interfaceMethod = "const int",
                sumDensityNodeLists = "std::vector<int>",
-               decoupledNodeLists = "std::vector<int>",
                filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
@@ -71,10 +69,6 @@ mass density, velocity, and specific thermal energy."""
                                               doc="control if rigorous density sum is applied to individual node lists.")
     diffusionCoefficient = PYB11property("double", "diffusionCoefficient", "diffusionCoefficient", 
                                           doc="coefficient used to diffuse density and specific thermal energy amongst like nodes.")
-    interfaceMethod = PYB11property("int", "interfaceMethod", "interfaceMethod", 
-                                    doc="1 - bulk modulus is used to fully couple dissimilar materials, 2-user specifies which nodeLists to decouple.")
-    decoupledNodeLists = PYB11property("std::vector<int>", "decoupledNodeLists", "decoupledNodeLists", 
-                                        doc="user specifies which nodesLists won't use other materials to calc DvDx.")
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
