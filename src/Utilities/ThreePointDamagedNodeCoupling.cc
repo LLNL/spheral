@@ -17,6 +17,9 @@
 #include "Utilities/pointDistances.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/Timer.hh"
+#include "Field/FieldList.hh"
+#include "Hydro/HydroFieldNames.hh"
+#include "Strength/SolidFieldNames.hh"
 
 #include <vector>
 
@@ -61,22 +64,22 @@ double pairCoupling(const Vector& xk,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ThreePointDamagedNodeCoupling<Dimension>::
-ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
-                              const FieldList<Dimension, SymTensor>& H,
-                              const FieldList<Dimension, SymTensor>& damage,
+ThreePointDamagedNodeCoupling(const State<Dimension>& state,
                               const TableKernel<Dimension>& W,
-                              const ConnectivityMap<Dimension>& connectivity,
                               NodePairList& pairs):
   NodeCoupling() {
 
   TIME_Damage.start();
   TIME_ThreePointCoupling.start();
-  const auto W0 = W.kernelValue(0.0, 1.0);
-  const auto etamax2 = FastMath::square(W.kernelExtent());
-  const auto npairs = pairs.size();
-  const auto numNodeLists = position.numFields();
-  const auto Dthreshold = 1.0e-3;
-  const auto intersectConnectivityPrecomputed = connectivity.buildIntersectionConnectivity();
+  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto  D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
+  const auto& connectivity = state.connectivityMap();
+  const auto  W0 = W.kernelValue(0.0, 1.0);
+  const auto  npairs = pairs.size();
+  const auto  numNodeLists = position.numFields();
+  const auto  Dthreshold = 1.0e-3;
+  const auto  intersectConnectivityPrecomputed = connectivity.buildIntersectionConnectivity();
   // const auto Dfull = 0.999;
 
   // For each interacting pair we need to compute the effective damage shielding, expressed
@@ -92,11 +95,11 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
   auto workToBeDone = false;
   FieldList<Dimension, unsigned> flags(FieldStorageType::CopyFields);
   for (auto il = 0u; il < numNodeLists; ++il) {
-    flags.appendNewField("damage interaction", damage[il]->nodeList(), 0u);
-    const auto ni = damage[il]->numElements();
+    flags.appendNewField("damage interaction", D[il]->nodeList(), 0u);
+    const auto ni = D[il]->numElements();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
-      if (damage(il,i).Trace() > Dthreshold) {
+      if (D(il,i).Trace() > Dthreshold) {
         const auto& connectivity_i = connectivity.connectivityForNode(il,i);
         for (auto jl = 0u; jl < numNodeLists; ++jl) {
           for (const auto j: connectivity_i[jl]) {
@@ -128,8 +131,8 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
         auto& fij = pair.f_couple;
         const auto& xi = position(pair.i_list, pair.i_node);
         const auto& xj = position(pair.j_list, pair.j_node);
-        const auto& Di = damage(pair.i_list, pair.i_node);
-        const auto& Dj = damage(pair.j_list, pair.j_node);
+        const auto& Di = D(pair.i_list, pair.i_node);
+        const auto& Dj = D(pair.j_list, pair.j_node);
         const auto  xji = xj - xi;
         const auto  xhatji = xji.unitVector();
         // if (barf) std::cerr << "  3pt firing on " << pair << " : " << connectivity.numNeighborsForNode(pair.i_list, pair.i_node) << " " << connectivity.numNeighborsForNode(pair.j_list, pair.j_node) << std::endl;
@@ -146,7 +149,7 @@ ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
             // State for node k
             const auto& xk = position(nodeListk, k);
             const auto& Hk = H(nodeListk, k);
-            const auto& Dk = damage(nodeListk, k);
+            const auto& Dk = D(nodeListk, k);
 
             // We only proceed if the closest point to k on (i,j) is bounded by (i,j)
             if (Dk.Trace() > Dthreshold and closestPointOnSegment(xk, xi, xj, b)) {

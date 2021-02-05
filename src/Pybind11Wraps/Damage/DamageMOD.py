@@ -39,9 +39,8 @@ TensorStrainAlgorithm = PYB11enum(("BenzAsphaugStrain",
                                    "PlasticStrain",
                                    "PseudoPlasticStrain"), export_values=True)
 DamageCouplingAlgorithm = PYB11enum(("DirectDamage",
-                                     "DirectDamageWithFrags",
-                                     "ThreePointDamage",
-                                     "DamageGradient"), export_values=True)
+                                     "DamageGradient",
+                                     "ThreePointDamage"), export_values=True)
 
 # Note the following enums are deprecated
 EffectiveDamageAlgorithm = PYB11enum(("CopyDamage",

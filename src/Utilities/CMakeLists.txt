@@ -12,6 +12,7 @@ set(Utilities_inst
     medianPosition
     computeShepardsInterpolation
     overlayRemapFields
+    DamagedNodeCoupling
     ThreePointDamagedNodeCoupling
     DamageGradientNodeCoupling
    )
@@ -43,6 +44,7 @@ instantiate(Utilities_inst Utilities_sources)
 set(Utilities_headers
     Bessel.hh
     CounterClockwiseComparator.hh
+    DamagedNodeCoupling.hh
     ThreePointDamagedNodeCoupling.hh
     DamageGradientNodeCoupling.hh
     DBC.hh

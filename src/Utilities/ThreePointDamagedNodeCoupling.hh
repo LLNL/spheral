@@ -17,7 +17,7 @@
 #define __Spheral_ThreePointDamagedNodeCoupling__
 
 #include "Utilities/NodeCoupling.hh"
-#include "Field/FieldList.hh"
+#include "DataBase/State.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 
@@ -32,11 +32,8 @@ public:
   using SymTensor = typename Dimension::SymTensor;
 
   // Constructor.
-  ThreePointDamagedNodeCoupling(const FieldList<Dimension, Vector>& position,
-                                const FieldList<Dimension, SymTensor>& H,
-                                const FieldList<Dimension, SymTensor>& damage,
+  ThreePointDamagedNodeCoupling(const State<Dimension>& state,
                                 const TableKernel<Dimension>& W,
-                                const ConnectivityMap<Dimension>& connectivity,
                                 NodePairList& pairs);
 
 private:

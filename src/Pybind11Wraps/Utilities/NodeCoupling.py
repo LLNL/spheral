@@ -19,6 +19,40 @@ class NodeCoupling:
         return "double"
 
 #-------------------------------------------------------------------------------
+# DamagedNodeCoupling
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+class DamagedNodeCoupling(NodeCoupling):
+    """A functor class encapsulating how we couple solid nodes in the presence of
+multiple materials and damage.
+
+This form simply directly damages each pair based on their mutual damage."""
+
+    PYB11typedefs = """
+  typedef typename %(Dimension)s::Scalar Scalar;
+  typedef typename %(Dimension)s::Vector Vector;
+  typedef typename %(Dimension)s::Tensor Tensor;
+  typedef typename %(Dimension)s::SymTensor SymTensor;
+"""
+
+    def pyinit(self,
+               state = "const State<%(Dimension)s>&",
+               pairs = "NodePairList&"):
+        "Constructor"
+
+#-------------------------------------------------------------------------------
+# DamageGradientNodeCoupling
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+class DamageGradientNodeCoupling(NodeCoupling):
+    """A functor class encapsulating how we couple solid nodes in the presence of
+multiple materials and damage.
+
+This one attempts to mock up the shielding effect of ThreePointDamagedNodeCoupling
+by using local damage gradient to estimate when nodes are separated by
+regions of greater damage (or fractures)."""
+
+#-------------------------------------------------------------------------------
 # ThreePointDamagedNodeCoupling
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
@@ -37,22 +71,7 @@ cut communication between pairs that talk across them."""
 """
 
     def pyinit(self,
-               position = "const FieldList<%(Dimension)s, Vector>&",
-               H = "const FieldList<%(Dimension)s, SymTensor>&",
-               damage = "const FieldList<%(Dimension)s, SymTensor>&",
+               state = "const State<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
-               connectivity = "const ConnectivityMap<%(Dimension)s>&",
                pairs = "NodePairList&"):
         "Constructor"
-
-#-------------------------------------------------------------------------------
-# DamageGradientNodeCoupling
-#-------------------------------------------------------------------------------
-@PYB11template("Dimension")
-class DamageGradientNodeCoupling(NodeCoupling):
-    """A functor class encapsulating how we couple solid nodes in the presence of
-multiple materials and damage.
-
-This one attempts to mock up the shielding effect of ThreePointDamagedNodeCoupling
-by using local damage gradient to estimate when nodes are separated by
-regions of greater damage (or fractures)."""
