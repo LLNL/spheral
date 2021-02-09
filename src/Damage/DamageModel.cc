@@ -179,6 +179,9 @@ initialize(const Scalar /*time*/,
 
   switch(mDamageCouplingAlgorithm) {
   case DamageCouplingAlgorithm::DirectDamage:
+    break;
+
+  case DamageCouplingAlgorithm::PairMaxDamage:
     mNodeCouplingPtr = std::make_shared<DamagedNodeCoupling<Dimension>>(state, pairs);
     break;
 

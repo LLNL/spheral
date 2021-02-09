@@ -59,7 +59,9 @@ DamagedNodeCoupling(const State<Dimension>& state,
     auto& pair = pairs[k];
     const auto sDi = scalarDamage(D, pair.i_list, pair.i_node);
     const auto sDj = scalarDamage(D, pair.j_list, pair.j_node);
-    pair.f_couple = std::max(0.0, 1.0 - std::max(sDi, sDj));
+    const auto sDmin = std::min(sDi, sDj);
+    const auto sDmax = std::max(sDi, sDj);
+    pair.f_couple = std::max(0.0, (1.0 - sDmax)*(1.0 - sDmin) + sDmin);  // sDmin weighting to return to fully coupled for fully damaged nodes
   }
 }
 

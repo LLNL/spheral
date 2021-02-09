@@ -38,7 +38,8 @@ enum class EffectiveFlawAlgorithm {
 };
 
 enum class DamageCouplingAlgorithm {
-  DirectDamage = 1,
+  DirectDamage = 0,
+  PairMaxDamage = 1,
   DamageGradient = 2,
   ThreePointDamage = 3,
 };
