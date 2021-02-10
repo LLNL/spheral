@@ -9,6 +9,7 @@
 #include "Utilities/DamagedNodeCoupling.hh"
 #include "Utilities/DBC.hh"
 #include "Field/FieldList.hh"
+#include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 
 namespace Spheral {
@@ -22,7 +23,7 @@ template<typename FieldListType>
 inline
 double scalarDamage(const FieldListType& damage,
                     const unsigned nodeListi, const unsigned i) {
-  auto sDi = std::max(0.0, std::min(1.0, damage(nodeListi, i).eigenValues().maxElement()));
+  auto sDi = std::max(0.0, std::min(1.0, damage(nodeListi, i).Trace()/FieldListType::FieldDimension::nDim));
   if (sDi > 1.0 - 1.0e-3) sDi = 1.0;
   return sDi;
 }
@@ -53,12 +54,14 @@ DamagedNodeCoupling(const State<Dimension>& state,
                     NodePairList& pairs):
   NodeCoupling() {
   const auto n = pairs.size();
+  const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
   const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
 #pragma omp for
   for (auto k = 0u; k < n; ++k) {
     auto& pair = pairs[k];
-    const auto sDi = scalarDamage(D, pair.i_list, pair.i_node);
-    const auto sDj = scalarDamage(D, pair.j_list, pair.j_node);
+    const auto xijhat = (pos(pair.i_list, pair.i_node) - pos(pair.j_list, pair.j_node)).unitVector();
+    const auto sDi = (D(pair.i_list, pair.i_node)*xijhat).magnitude();
+    const auto sDj = (D(pair.j_list, pair.j_node)*xijhat).magnitude();
     const auto sDmin = std::min(sDi, sDj);
     const auto sDmax = std::max(sDi, sDj);
     pair.f_couple = std::max(0.0, (1.0 - sDmax)*(1.0 - sDmin) + sDmin);  // sDmin weighting to return to fully coupled for fully damaged nodes

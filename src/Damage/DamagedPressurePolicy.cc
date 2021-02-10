@@ -67,7 +67,7 @@ update(const KeyType& key,
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
       if (pressure(il,i) < 0.0) {
-        const Scalar fDi = std::max(0.0, std::min(1.0, 1.0 - D(il,i).eigenValues().maxElement()));
+        const Scalar fDi = std::max(0.0, std::min(1.0, 1.0 - D(il,i).Trace()/Dimension::nDim));
         CHECK(fDi >= 0.0 and fDi <= 1.0);
         pressure(il,i) *= fDi;
       }
