@@ -42,7 +42,7 @@
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/iterateIdealH.hh"
 #include "Utilities/globalNodeIDsInline.hh"
-#if USE_MPI
+#ifdef USE_MPI
 #include "Distributed/NestedGridDistributedBoundary.hh"
 #include "Distributed/TreeDistributedBoundary.hh"
 #endif
