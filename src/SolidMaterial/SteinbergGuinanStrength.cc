@@ -194,7 +194,7 @@ soundSpeed(Field<Dimension, Scalar>& soundSpeed,
     CHECK(density(i) > 0.0);
     const auto cs2 = fluidSoundSpeed(i)*fluidSoundSpeed(i) + std::abs(4.0/3.0 * mu(i)) / density(i);
     CHECK(cs2 > 0.0);
-    soundSpeed(i) = std::sqrt(cs2) * std::max(0.0, 1.0 - damage(i).eigenValues().maxElement());
+    soundSpeed(i) = std::sqrt(cs2); // * std::max(0.0, 1.0 - damage(i).eigenValues().maxElement());
   }
 }
 

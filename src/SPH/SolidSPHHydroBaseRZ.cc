@@ -300,7 +300,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
 
-  const auto& Hfield0 = this->Hfield0();
+  // const auto& Hfield0 = this->Hfield0();
 
   // Derivative FieldLists.
   auto  rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -763,8 +763,8 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto Di = (damageRelieveRubble ? 
                        max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0)) :
                        0.0);
-      Hideali = (1.0 - Di)*Hideali + Di*Hfield0(nodeListi, i);
-      DHDti = (1.0 - Di)*DHDti + Di*(Hfield0(nodeListi, i) - Hi)*0.25/dt;
+      // Hideali = (1.0 - Di)*Hideali + Di*Hfield0(nodeListi, i);
+      // DHDti = (1.0 - Di)*DHDti + Di*(Hfield0(nodeListi, i) - Hi)*0.25/dt;
 
       // We also adjust the density evolution in the presence of damage.
       if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.25/dt*Di*(rhoi - rho0);
