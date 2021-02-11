@@ -12,6 +12,7 @@ set(Damage_inst
     JohnsonCookDamage
     JohnsonCookFailureStrainPolicy
     JohnsonCookDamagePolicy
+    DamagedPressurePolicy
    )
 
 

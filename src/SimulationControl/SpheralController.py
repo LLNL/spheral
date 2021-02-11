@@ -64,6 +64,7 @@ class SpheralController:
         else:
             self.timerName = timerName
         self.printAllTimers = printAllTimers
+        startRootTimer()
 
         # Determine the dimensionality of this run, based on the integrator.
         self.dim = "%id" % self.integrator.dataBase.nDim
@@ -119,6 +120,12 @@ class SpheralController:
             self.loadRestartFile(restoreCycle)
         
         return
+
+    #--------------------------------------------------------------------------
+    # Destructor
+    #--------------------------------------------------------------------------
+    def __del__(self):
+        stopRootTimer()
 
     #--------------------------------------------------------------------------
     # (Re)initialize the current problem (and controller state).
