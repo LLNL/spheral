@@ -100,5 +100,3 @@ set(Geometry_headers
 
 spheral_add_cxx_library(Geometry)
 
-list(APPEND SPHERAL_CXX_LIBS Spheral_Geometry)
-set(SPHERAL_CXX_LIBS "${SPHERAL_CXX_LIBS}" PARENT_SCOPE)

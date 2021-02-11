@@ -68,4 +68,3 @@ endforeach()
 #add_subdirectory(CXXTests)
 
 install(EXPORT ${PROJECT_NAME}-targets DESTINATION Spheral/lib/cmake)
-set(SPHERAL_CXX_LIBS ${SPHERAL_CXX_LIBS} PARENT_SCOPE)
