@@ -899,7 +899,7 @@ updateState(const unsigned* nintpermat,
   auto K = me.mStatePtr->fields(SolidFieldNames::bulkModulus, 0.0);
   auto mu = me.mStatePtr->fields(SolidFieldNames::shearModulus, 0.0);
   auto Y = me.mStatePtr->fields(SolidFieldNames::yieldStrength, 0.0);
-  auto D = me.mStatePtr->fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  auto D = me.mStatePtr->fields(SolidFieldNames::tensorDamage, SymTensor::zero);
 
   // Fill in the material properties.
   if (mass != NULL)                  copyArrayToScalarFieldList(mass, m);
@@ -945,7 +945,7 @@ initializeBoundariesAndPhysics() {
   // Create initial ghost nodes
   me.mDataBasePtr->reinitializeNeighbors();
   me.mIntegratorPtr->setGhostNodes();
-  me.mDataBasePtr->updateConnectivityMap(false, false);
+  me.mDataBasePtr->updateConnectivityMap(false, false, false);
 
   // Inititalize physics packages
   if (me.mCRK) me.mRKptr->initializeProblemStartup(*me.mDataBasePtr);
@@ -954,7 +954,7 @@ initializeBoundariesAndPhysics() {
   // One more whack at reinitializing boundaries, in case they needed initial
   // physics package state
   me.mIntegratorPtr->setGhostNodes();
-  me.mDataBasePtr->updateConnectivityMap(false, false);
+  me.mDataBasePtr->updateConnectivityMap(false, false, false);
   for (auto& bc: me.mHostCodeBoundaries) bc->initializeProblemStartup(true);
 
   // Reset the state object
@@ -977,7 +977,7 @@ initializeBoundariesAndPhysics() {
   me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, SolidFieldNames::bulkModulus);
   me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, SolidFieldNames::shearModulus);
   me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, SolidFieldNames::yieldStrength);
-  me.mStatePtr->template assignFields<typename Dimension::SymTensor>(state0, SolidFieldNames::effectiveTensorDamage);
+  me.mStatePtr->template assignFields<typename Dimension::SymTensor>(state0, SolidFieldNames::tensorDamage);
   if (me.mCRK) me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, HydroFieldNames::volume);
 }
 
@@ -1156,7 +1156,7 @@ computeFragmentID(double* damage,
 
   // Copy damage values from the array to the field list.
   auto rho = me.mStatePtr->fields(HydroFieldNames::massDensity, 0.0);
-  auto D = me.mStatePtr->fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  auto D = me.mStatePtr->fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   auto fragIDs = me.mStatePtr->fields(SolidFieldNames::fragmentIDs, int(1));
   if (damage != NULL) copyArrayToSymTensorFieldList(damage, D);
 
@@ -1254,7 +1254,7 @@ polyhedralMesh(int*           nnodes,
   auto position = me.mStatePtr->fields(HydroFieldNames::position, Vector::zero);
   auto H = me.mStatePtr->fields(HydroFieldNames::H, SymTensor::zero);
   const auto& connectivityMap = me.mDataBasePtr->connectivityMap();
-  auto damage = me.mStatePtr->fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
+  auto damage = me.mStatePtr->fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   auto surfacePoint = me.mDataBasePtr->newFluidFieldList(0, HydroFieldNames::surfacePoint);
   auto vol = me.mDataBasePtr->newFluidFieldList(0.0, HydroFieldNames::volume);
   auto deltaCentroid = me.mDataBasePtr->newFluidFieldList(Vector::zero, "delta centroid");
