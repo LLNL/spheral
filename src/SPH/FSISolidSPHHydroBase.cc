@@ -654,18 +654,16 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       //effViscousPressurej += mi*Qj*WQj/rhoi;
       //viscousWorki += mj*workQi;
       //viscousWorkj += mi*workQj;
-
       // Damage scaling of negative pressures.
       auto Peffi = (negativePressureInDamage or Pi > 0.0 ? Pi : fDeffij*Pi);
       auto Peffj = (negativePressureInDamage or Pj > 0.0 ? Pj : fDeffij*Pj);
-
-      // Compute the stress tensors.
+      const auto Pstar = (Peffi*rhoj+Peffj*rhoi)/(rhoi+rhoj);
       if(sameMatij){
         sigmai = (strengthInDamage? Si: fDeffij*Si)-Peffi*SymTensor::one;
         sigmaj = (strengthInDamage? Sj: fDeffij*Sj)-Peffj*SymTensor::one;
-      }else{ // no tensile/shear loading between different materials
-        sigmai = -max(Peffi,0.0)*SymTensor::one;
-        sigmaj = -max(Peffj,0.0)*SymTensor::one;
+      }else{
+        sigmai = -max(Pstar,0.0)*SymTensor::one;
+        sigmaj = -max(Pstar,0.0)*SymTensor::one;
       }
 
       // Compute the tensile correction to add to the stress as described in 
@@ -679,7 +677,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Force Calc
       //=====================================================
-      // (Monaghan 2002) - interface force
+      // (Monaghan 2013) - interface force
       const auto sf = (sameMatij ? 1.0 : 1.0 + alpha*abs((rhoi-rhoj)/(rhoi+rhoj+tiny)));
       // DvDt eqn -- generalized for user defined density exponent (Monaghan 1992)
       //const auto sigmarhoi = sigmai/(pow(rhoi,alpha)*pow(rhoj,2.0-alpha))-0.5*QPiij;
@@ -710,8 +708,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       //   material prop effects on v-grad
       //   -----------------------
-      auto yi =  1.0 + (Pj-Pi)/(2.0*Ki);
-      auto yj =  1.0 + (Pi-Pj)/(2.0*Kj);
+      auto yi =  1.0 + (Pstar-Pi)/(Ki);
+      auto yj =  1.0 + (Pstar-Pj)/(Kj);
       if (muij > 0.0){
         const auto tempVar = yi;
         yi=yj;
