@@ -116,6 +116,7 @@ except:
 # Import our shadow layers for augmenting C++ types.
 # ------------------------------------------------------------------------------
 for shadowedthing in ("TillotsonEquationOfState",
+                      "GruneisenEquationOfState",
                       "ConstantStrength"):
     for dim in dims:
         exec("from Shadow%(thing)s import %(thing)s%(dim)sd" % {"thing" : shadowedthing,

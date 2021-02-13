@@ -12,6 +12,7 @@ set(Damage_inst
     JohnsonCookDamage
     JohnsonCookFailureStrainPolicy
     JohnsonCookDamagePolicy
+    DamagedPressurePolicy
    )
 
 
@@ -53,5 +54,3 @@ spheral_install_python_files(
 
 spheral_add_cxx_library(Damage)
 
-list(APPEND SPHERAL_CXX_LIBS Spheral_Damage)
-set(SPHERAL_CXX_LIBS "${SPHERAL_CXX_LIBS}" PARENT_SCOPE)
