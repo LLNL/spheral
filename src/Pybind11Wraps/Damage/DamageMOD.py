@@ -21,7 +21,8 @@ PYB11includes += ['"NodeList/SolidNodeList.hh"',
                   '"Damage/DamageModel.hh"',
                   '"Damage/TensorDamageModel.hh"',
                   '"Damage/JohnsonCookDamage.hh"',
-                  '"Damage/weibullFlawDistribution.hh"',
+                  '"Damage/weibullFlawDistributionBenzAsphaug.hh"',
+                  '"Damage/weibullFlawDistributionOwen.hh"',
                   '"Damage/computeFragmentField.hh"',
                   '"FileIO/FileIO.hh"']
 
