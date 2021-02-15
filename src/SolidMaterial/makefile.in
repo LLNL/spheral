@@ -35,7 +35,8 @@ PYTHONTARGETS = \
 	$(srcdir)/SolidMaterialUnits.py \
 	$(srcdir)/SolidMaterialEquationsOfState.py \
 	$(srcdir)/ShadowTillotsonEquationOfState.py \
-	$(srcdir)/ShadowConstantStrength.py
+	$(srcdir)/ShadowConstantStrength.py \
+	$(srcdir)/ShadowGruneisenEquationOfState.py
 
 #-------------------------------------------------------------------------------
 include $(BUILDTOP)/helpers/makefile_master
