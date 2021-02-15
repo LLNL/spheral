@@ -4,7 +4,7 @@
 // Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "Utilities/DamagedNodeCouplingWithFrags.hh"
+#include "Utilities/DamagedNodeCoupling.hh"
 #include "SPH/SPHHydroBase.hh"
 #include "SPH/SolidSPHHydroBase.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -251,8 +251,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
   const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   const auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
-  const auto damage = state.fields(SolidFieldNames::effectiveTensorDamage, SymTensor::zero);
-  const auto gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
+  const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
+  //const auto gradDamage = state.fields(SolidFieldNames::damageGradient, Vector::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   const auto K = state.fields(SolidFieldNames::bulkModulus, 0.0);
@@ -269,7 +269,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(S.size() == numNodeLists);
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
-  CHECK(gradDamage.size() == numNodeLists);
+  //CHECK(gradDamage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
   CHECK(K.size() == numNodeLists);
@@ -338,7 +338,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Build the functor we use to compute the effective coupling between nodes.
-  DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
+  //DamagedNodeCouplingWithFrags<Dimension> coupling(damage, gradDamage, H, fragIDs);
 
   // Walk all the interacting pairs and calculated linear correction tensor
   // based on taylor series expansion of gradient estimate
@@ -615,7 +615,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto gradWj = gWj*Hetaj;
       
       // Determine how we're applying damage.
-      const auto fDeffij = coupling(nodeListi, i, nodeListj, j);
+      const auto fDij = pairs[kk].f_couple;
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -654,18 +654,17 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       //effViscousPressurej += mi*Qj*WQj/rhoi;
       //viscousWorki += mj*workQi;
       //viscousWorkj += mi*workQj;
-      // Damage scaling of negative pressures.
-      auto Peffi = (negativePressureInDamage or Pi > 0.0 ? Pi : fDeffij*Pi);
-      auto Peffj = (negativePressureInDamage or Pj > 0.0 ? Pj : fDeffij*Pj);
-      const auto Pstar = (Peffi*rhoj+Peffj*rhoi)/(rhoi+rhoj);
-      if(sameMatij){
-        sigmai = (strengthInDamage? Si: fDeffij*Si)-Peffi*SymTensor::one;
-        sigmaj = (strengthInDamage? Sj: fDeffij*Sj)-Peffj*SymTensor::one;
-      }else{
+
+      // material interface pressure.
+      const auto Pstar = (Pi*rhoj+Pj*rhoi)/(rhoi+rhoj);
+      if (sameMatij) {
+        sigmai = fDij*Si - Pi * SymTensor::one;
+        sigmaj = fDij*Sj - Pj * SymTensor::one;
+      } else {
         sigmai = -max(Pstar,0.0)*SymTensor::one;
         sigmaj = -max(Pstar,0.0)*SymTensor::one;
       }
-
+        
       // Compute the tensile correction to add to the stress as described in 
       // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
       const auto fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
@@ -688,7 +687,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       if (freeParticle) {
         DvDti += mj*deltaDvDt;
         DvDtj -= mi*deltaDvDt;
-      }
+      } 
       if (compatibleEnergy) pairAccelerations[kk] = mj*deltaDvDt; 
       
      // dhdt correction
