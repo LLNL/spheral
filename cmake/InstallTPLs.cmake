@@ -25,6 +25,7 @@ set(opensubdiv_BUILD ON CACHE BOOL "Option to build Opensubdiv")
 set(aneos_BUILD ON CACHE BOOL "Option to build ANEOS third party lib")
 set(conduit_BUILD ON CACHE BOOL "Option to build Conduit")
 set(axom_BUILD ON CACHE BOOL "Option to build Axom")
+set(PolyClipper_BUILD ON CACHE BOOL "Option to build PolyClipper")
 
 set(pybind11_BUILD ON CACHE BOOL "Option to build pybind11")
 set(python_BUILD ON CACHE BOOL "Option to build python")
@@ -57,6 +58,7 @@ if(NOT ENABLE_CXXONLY)
 endif()
 
 Spheral_Handle_TPL(polytope spheral_depends)
+Spheral_Handle_TPL(PolyClipper spheral_depends)
 
 if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})
   include(${EXTERNAL_SPHERAL_TPL_CMAKE})
