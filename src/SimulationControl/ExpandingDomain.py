@@ -3,7 +3,7 @@
 # and later added to the simulation based on some user defined activation function
 # The method expand 
 #-------------------------------------------------------------------------------
-import Spheral
+from Spheral import *
 import math
 import mpi
 
@@ -222,6 +222,7 @@ class ExpandingDomain:
             # some packages that have fields which definitely need to be
             # tracked if they're in use
             for package in integrator.physicsPackages():
+                
                 if ('Damage' in package.label()):
                     if hasattr(package, 'flaws'):
                         allFields.append(package.flaws)
@@ -301,6 +302,10 @@ class ExpandingDomain:
 
             # stow things and set up the const bc
             #------------------------------------------------------------------
+            packages = integrator.physicsPackages()
+            for package in packages:
+                package.initializeProblemStartup(self.activeDatabase)
+
             self.initializeInactiveNodeLists()
             self.redistribute()
             self.setConstantBoundary(0,0.0,0.0)
@@ -312,18 +317,11 @@ class ExpandingDomain:
         #---------------------------------------------------------------
       
             if self.expansionRequired()==1 and not self.expansionCompleted:
-                #activeNodeLists = self.activeDatabase.fluidNodeLists()
-                #Ni = mpi.allreduce(activeNodeLists[0].numInternalNodes,mpi.SUM)
-                #Ng = mpi.allreduce(activeNodeLists[0].numGhostNodes,mpi.SUM)
-                #N = mpi.allreduce(activeNodeLists[0].numNodes,mpi.SUM)
-                #NconstBC = mpi.allreduce(self.constBC[0].numGhostNodes,mpi.SUM)
                 NstoreLocal = 0
                 for i in range(len(self.inactiveFields)):
                     NstoreLocal += len(self.inactiveFields[i][0])
                 Nstore = mpi.allreduce(NstoreLocal,mpi.SUM)
 
-                print('expanding')
-                #print([Ni,Ng,N,Nstore,NconstBC,Ni+Nstore,Ni+Nstore+NconstBC])
                 if Nstore == 0:
                     self.expansionCompleted = True
                 
@@ -517,9 +515,8 @@ class ExpandingDomain:
             #self.setConstantNodeDensity() # if the denisty off we'll correct it before calculating the pressure/sound speed
             packages = self.integrator.physicsPackages()
             #for package in packages:
-            #    if package is not type(StrainPorosity2d) or package is not type(StrainPorosity3d)
-            #    package.initializeProblemStartup(self.activeDatabase)
-            
+            #    if package is not type(StrainPorosity2d) or package is not type(StrainPorosity3d):
+            #        package.initializeProblemStartup(self.activeDatabase)
             # this will avoid the density drop off at the edge of the domain
             state = eval("State%sd(self.activeDatabase, packages)" % (self.dim)) # redefine in constructor
             derivs = eval("StateDerivatives%sd(self.activeDatabase, packages)" % (self.dim)) # redefine in constructor
@@ -553,7 +550,6 @@ class ExpandingDomain:
         # to prevent the drop off at the edge of the domain.
         #---------------------------------------------------------------
             if self.rho_func:
-
                 activeNodeLists = self.activeDatabase.nodeLists()
                 for j in range(self.activeDatabase.numNodeLists):
                     rho_funcj = self.rho_func[j]
@@ -588,6 +584,8 @@ class ExpandingDomain:
                 for j in range(numFieldsi):
                     self.constBC[i].applyGhostBoundary(self.activeFields[i][j])
 
+                self.setConstantNodeDensity()
+
                 # alloc room for new internal nodes
                 activeNodeLists[i].numInternalNodes = activeNodeLists[i].numNodes 
                 Ng = activeNodeLists[i].numGhostNodes
@@ -611,7 +609,7 @@ class ExpandingDomain:
         #---------------------------------------------------------------------
         def dumpState(self, file, path):
 
-            file.writeObject(self.inactiveFields,path+"/inactiveFields")
+            #file.writeObject(self.inactiveFields,path+"/inactiveFields")
             file.writeObject(self.activeZoneEllipse.abc, path + "/activeZone_abc")
             file.writeObject(self.constBCEllipse.abc, path + "/constBC_abc")
             file.writeObject(self.testZoneEllipse.abc, path + "/testZone_abc")
@@ -646,10 +644,10 @@ class ExpandingDomain:
                 numFieldsi = len(self.activeFields[i])
                 indices_del = [k for k in range(numInactiveNodesi) if self.activeZoneEllipse.isInside(self.inactiveFields[i][0][k])]
                 indices_del = sorted(indices_del, reverse=True)
-                for j in range(numFieldsi)
+                for j in range(numFieldsi):
                     for index in indices_del:
                         del self.inactiveFields[i][j][index]
-                 
+                
             return
 
 
