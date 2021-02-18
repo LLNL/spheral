@@ -558,7 +558,7 @@ class ExpandingDomain:
             
                     for i in self.constBC[j].nodeIndices:
                         rho[i] = rho_funcj(pos[i])
-                
+
         def applyAuxillaryFunctions(self):  
         #---------------------------------------------------------------
         # this is a bandaid to for classes which have data which 
@@ -583,8 +583,15 @@ class ExpandingDomain:
                 self.constBC[i].setGhostNodes(activeNodeLists[i])
                 for j in range(numFieldsi):
                     self.constBC[i].applyGhostBoundary(self.activeFields[i][j])
+                
+                mass = activeNodeLists[i].mass()
+                pos  = activeNodeLists[i].positions()
+                if self.activeDatabase.isRZ:
+                    for k in self.constBC[i].nodeIndices:
+                        mass[k] *= 2.0*math.pi*pos[k].y
 
                 self.setConstantNodeDensity()
+                
 
                 # alloc room for new internal nodes
                 activeNodeLists[i].numInternalNodes = activeNodeLists[i].numNodes 
