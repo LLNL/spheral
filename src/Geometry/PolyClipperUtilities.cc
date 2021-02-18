@@ -22,8 +22,8 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Spheral::GeomPolygon -> PolyClipper::Polygon.
 //------------------------------------------------------------------------------
-void convertToPolygon(PolyClipper::Polygon& polygon,
-                      const Dim<2>::FacetedVolume& Spheral_polygon) {
+void convertToPolyClipper(PolyClipperPolygon& polygon,
+                          const Dim<2>::FacetedVolume& Spheral_polygon) {
   TIME_PC2d_convertto.start();
 
   // Construct the vertices without connectivity first.
@@ -52,8 +52,8 @@ void convertToPolygon(PolyClipper::Polygon& polygon,
 // PolyClipper::Polygon -> Spheral::GeomPolygon.
 // The return value is the set of plane IDs responsible for each vertex.
 //------------------------------------------------------------------------------
-vector<set<int>> convertFromPolygon(Dim<2>::FacetedVolume& Spheral_polygon,
-                                    const PolyClipper::Polygon& polygon) {
+vector<set<int>> convertFromPolyClipper(Dim<2>::FacetedVolume& Spheral_polygon,
+                                        const PolyClipperPolygon& polygon) {
   TIME_PC2d_convertfrom.start();
 
   // Useful types.
@@ -71,7 +71,7 @@ vector<set<int>> convertFromPolygon(Dim<2>::FacetedVolume& Spheral_polygon,
     // Numbers of vertices.
     const auto nverts = polygon.size();
     const auto nactive = count_if(polygon.begin(), polygon.end(),
-                                  [](const Vertex2d& x) { return x.comp >= 0; });
+                                  [](const PolyClipperVertex2d& x) { return x.comp >= 0; });
     set<int> usedVertices;
 
     // Go until we hit all the active vertices.
@@ -120,8 +120,8 @@ vector<set<int>> convertFromPolygon(Dim<2>::FacetedVolume& Spheral_polygon,
 //------------------------------------------------------------------------------
 // Spheral::GeomPolyhedron -> PolyClipper::Polyhedron.
 //------------------------------------------------------------------------------
-void convertToPolyhedron(PolyClipper::Polyhedron& polyhedron,
-                         const Dim<3>::FacetedVolume& Spheral_polyhedron) {
+void convertToPolyClipper(PolyClipperPolyhedron& polyhedron,
+                          const Dim<3>::FacetedVolume& Spheral_polyhedron) {
   TIME_PC3d_convertto.start();
 
   const auto& vertPositions = Spheral_polyhedron.vertices();
@@ -131,7 +131,7 @@ void convertToPolyhedron(PolyClipper::Polyhedron& polyhedron,
   // Build the PolyClipper Vertex3d's, but without connectivity yet.
   polyhedron.resize(nverts);
   for (auto k = 0u; k < nverts; ++k) {
-    polyhedron[k] = PolyClipper::Vertex3d(vertPositions[k], 1);
+    polyhedron[k] = PolyClipperVertex3d(vertPositions[k], 1);
   }
 
   // Note all the edges associated with each vertex.
@@ -175,8 +175,8 @@ void convertToPolyhedron(PolyClipper::Polyhedron& polyhedron,
 //------------------------------------------------------------------------------
 // PolyClipper::Polyhedron -> Spheral::GeomPolyhedron.
 //------------------------------------------------------------------------------
-vector<set<int>> convertFromPolyhedron(Dim<3>::FacetedVolume& Spheral_polyhedron,
-                                       const PolyClipper::Polyhedron& polyhedron) {
+vector<set<int>> convertFromPolyClipper(Dim<3>::FacetedVolume& Spheral_polyhedron,
+                                        const PolyClipperPolyhedron& polyhedron) {
   TIME_PC3d_convertfrom.start();
 
   // Useful types.
