@@ -230,6 +230,7 @@ private:
   std::shared_ptr<ArtificialViscosity<Dimension>> mQptr;
   std::shared_ptr<Physics<Dimension>> mRKptr;
   std::shared_ptr<Physics<Dimension>> mHydroPtr;
+  std::shared_ptr<Physics<Dimension>> mDamagePtr;
 
   // Integrator and state.
   std::shared_ptr<CheapSynchronousRK2<Dimension>> mIntegratorPtr;

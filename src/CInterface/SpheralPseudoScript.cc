@@ -36,6 +36,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Damage/computeFragmentField.hh"
+#include "Damage/TensorDamageModel.hh"
 #include "DataBase/ReplaceFieldList.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
@@ -795,6 +796,20 @@ initialize(const bool     RZ,
   // Add the physics packages to the integrator.
   if (CRK) me.mIntegratorPtr->appendPhysicsPackage(*me.mRKptr);
   me.mIntegratorPtr->appendPhysicsPackage(*me.mHydroPtr);
+
+  if (damage) {
+    Field<Dimension, std::vector<double> > flaws("flaws", *me.mNodeLists[0]);
+    double dimFactor = double(Dimension::nDim);
+    me.mDamagePtr.reset(new TensorDamageModel<Dimension>(*me.mNodeLists[0],
+                                                         TensorStrainAlgorithm::PlasticStrain,
+                                                         DamageCouplingAlgorithm::DamageGradient,
+                                                         *me.mKernelPtr,
+                                                         0.4,
+                                                         dimFactor,
+                                                         false,
+                                                         flaws));
+    me.mIntegratorPtr->appendPhysicsPackage(*me.mDamagePtr);
+  }
 
   // // First whack physics initialization.
   // auto& pkgs = me.mIntegratorPtr->physicsPackages();
