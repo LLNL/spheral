@@ -101,7 +101,7 @@ from SpheralOptionParser import commandLine
 # ------------------------------------------------------------------------------
 # Import PolyClipper
 # ------------------------------------------------------------------------------
-import SpheralPolyClipper as PolyClipper
+import PolyClipper
 
 # ------------------------------------------------------------------------------
 # See if we can import the polytope bindings.
