@@ -5,7 +5,7 @@ set(POLYCLIPPER_URL "https://github.com/LLNL/PolyClipper/archive/v1.01.tar.gz")
 set(POLYCLIPPER_MD5 "MD5=85b6b9e0dc47ed6fa4720f07cb1a7ff7")
 set(POLYCLIPPER_DEST_DIR "${${lib_name}_DIR}/lib")
 
-set(${lib_name}_libs libpolyclipper.a)
+set(${lib_name}_libs libPolyClipper.a)
 
 if(ENABLE_CXXONLY)
   set(POLYCLIPPER_ENABLE_CXXONLY On)

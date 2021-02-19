@@ -48,13 +48,14 @@ struct GeomVectorAdapter {
   static VECTOR  sub(const VECTOR& a, const VECTOR& b)       { return a - b; }
   static VECTOR  neg(const VECTOR& a)                        { return -a; }
   static VECTOR  unitVector(const VECTOR& a)                 { return a.unitVector(); }
+  static std::string str(const VECTOR& a)                    { std::ostringstream os; os << a; return os.str(); }
 };
 
 //------------------------------------------------------------------------------
 // Polygons
 //------------------------------------------------------------------------------
-using PolyClipperVertex2d = PolyClipper::Vertex2d<Dim<2>::Vector, GeomVectorAdapter<2>>;
-using PolyClipperPlane2d = PolyClipper::Plane<Dim<2>::Vector, GeomVectorAdapter<2>>;
+using PolyClipperVertex2d = PolyClipper::Vertex2d<GeomVectorAdapter<2>>;
+using PolyClipperPlane2d = PolyClipper::Plane<GeomVectorAdapter<2>>;
 using PolyClipperPolygon = std::vector<PolyClipperVertex2d>;
 
 void convertToPolyClipper(PolyClipperPolygon& polygon,
@@ -66,8 +67,8 @@ std::vector<std::set<int>> convertFromPolyClipper(Dim<2>::FacetedVolume& Spheral
 //------------------------------------------------------------------------------
 // Polyhedra
 //------------------------------------------------------------------------------
-using PolyClipperVertex3d = PolyClipper::Vertex3d<Dim<3>::Vector, GeomVectorAdapter<3>>;
-using PolyClipperPlane3d = PolyClipper::Plane<Dim<3>::Vector, GeomVectorAdapter<3>>;
+using PolyClipperVertex3d = PolyClipper::Vertex3d<GeomVectorAdapter<3>>;
+using PolyClipperPlane3d = PolyClipper::Plane<GeomVectorAdapter<3>>;
 using PolyClipperPolyhedron = std::vector<PolyClipperVertex3d>;
 
 void convertToPolyClipper(PolyClipperPolyhedron& polyhedron,

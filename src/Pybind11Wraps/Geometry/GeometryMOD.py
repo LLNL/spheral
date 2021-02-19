@@ -139,6 +139,33 @@ computeEigenValues3 = PYB11TemplateFunction(computeEigenValues,
                                             pyname = "computeEigenValues")
 
 #-------------------------------------------------------------------------------
+# PolyClipper utility methods
+#-------------------------------------------------------------------------------
+def convertToPolyClipper(polygon = "PolyClipperPolygon&",
+                         Spheral_polygon = "const Dim<2>::FacetedVolume&"):
+    "Convert a Spheral::Polygon --> PolyClipper::Polygon"
+    return "void"
+
+def convertFromPolyClipper(Spheral_polygon = "Dim<2>::FacetedVolume&",
+                           polygon = "const PolyClipperPolygon&"):
+    """Convert a PolyClipper::Polygon --> Spheral::Polygon
+Returns the set of planes responsible for clipping each Vertex"""
+    return "std::vector<std::set<int>>"
+
+@PYB11pycppname("convertToPolyClipper")
+def convertToPolyClipper3d(polyhedron = "PolyClipperPolyhedron&",
+                           Spheral_polyhedron = "const Dim<3>::FacetedVolume&"):
+    "Convert a Spheral::Polyhedron --> PolyClipper::Polyhedron"
+    return "void"
+
+@PYB11pycppname("convertFromPolyClipper")
+def convertFromPolyClipper3d(Spheral_polyhedron = "Dim<3>::FacetedVolume&",
+                             polyhedron = "const PolyClipperPolyhedron&"):
+    """Convert a PolyClipper::Polyhedron --> Spheral::Polyhedron
+Returns the set of planes responsible for clipping each Vertex"""
+    return "std::vector<std::set<int>>"
+
+#-------------------------------------------------------------------------------
 # Inner product (with a double)
 #-------------------------------------------------------------------------------
 @PYB11template("ValueType")
