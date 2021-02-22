@@ -89,8 +89,10 @@ update(const KeyType& key,
     const double barf = (1.0 + nu)*(1.0 - 2.0*nu) + 1.0e-10;
     CHECK(distinctlyGreaterThan(barf, 0.0));
     CHECK(distinctlyGreaterThan(rho(i), 0.0));
-    stateField(i) = sqrt(abs(E(i)*(1.0 - nu)/(rho(i)*barf)));
-    CHECK(stateField(i) >= 0.0);
+    if (rho(i) > 0.0) {
+      stateField(i) = sqrt(abs(E(i)*(1.0 - nu)/(rho(i)*barf)));
+      CHECK(stateField(i) >= 0.0);
+    }
   }
 
 }
