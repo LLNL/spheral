@@ -114,6 +114,7 @@ set(Utilities_headers
     safeInv.hh
     segmentIntersectEdges.hh
     simpsonsIntegration.hh
+    size_t_bits.hh
     sort_permutation.hh
     SurfaceNodeCoupling.hh
     testBoxIntersection.hh
