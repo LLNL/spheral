@@ -45,7 +45,7 @@ TYPED_TEST(SidreDataCollectionTest, scalar)
 
   this->allocRawSidreData(testField);
   
-  this->myData.printDataStore();
+  //this->myData.printDataStore();
 
   // std::cout << "Result: ";
   // for (int i = 0; i < this->n; i++)
@@ -58,10 +58,26 @@ TYPED_TEST(SidreDataCollectionTest, scalar)
 
 
 
+TEST(SidreDataCollectionTestString, string)
+{
+  Spheral::SidreDataCollection myData;
+  int n = 10;
 
+  Spheral::NodeList<Spheral::Dim<1>> makeNodeList("test bed", n, 0);
+  Spheral::Field<Spheral::Dim<1>, std::string> testField("test field", makeNodeList);
+  for (int i = 0; i < n; i++)
+    testField[i] = "This is a test string: " + std::to_string(i) + "\n";
 
+  // for (int i = 0; i < n; i++)
+  //   std::cout << testField[i];
+  
+  char *rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
 
+  // myData.printDataStore();
 
+  for (int i = 0; i < n; i++)
+    EXPECT_EQ(testField[0][i], rawSidreData[i]);
+}
 
 
 
@@ -89,30 +105,18 @@ class SidreDataCollectionTestVector : public ::testing::Test
     }
 };
 
-//using MyTypes = ::testing::Types<char, int, size_t, uint32_t, uint64_t, float, double>;
 TYPED_TEST_SUITE(SidreDataCollectionTestVector, MyTypes);
 
 TYPED_TEST(SidreDataCollectionTestVector, vector)
 {
-//   // Spheral::SidreDataCollection myData;
-//   // int n = 10;
-
-//   // Spheral::NodeList<Spheral::Dim<1>> makeNodeList("test bed", n, 0);
-//   // Spheral::Field<Spheral::Dim<1>, std::vector<int>> testField("test field", makeNodeList);
-//   // for (int i = 0; i < n; i++)
-//   //   for (int j = 0; j < n; j++)
-//   //     testField[i].emplace_back(i);
-
   auto testField = this->makeField();
 
-//   // for (int i = 0; i < n; i++)
-//   // {
-//   //   for (int j = 0; j < n; j++)
-//   //     std::cout << testField[i][j] << " ";
-//   //   std::cout << std::endl;
-//   // }
-  
-//   //int *rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
+  // for (int i = 0; i < n; i++)
+  // {
+  //   for (int j = 0; j < n; j++)
+  //     std::cout << testField[i][j] << " ";
+  //   std::cout << std::endl;
+  // }
 
   this->allocRawSidreData(testField);
 
@@ -122,6 +126,49 @@ TYPED_TEST(SidreDataCollectionTestVector, vector)
     EXPECT_EQ(testField[0][i], this->rawSidreData[i]);
 }
 
+
+
+template <typename T>
+class SidreDataCollectionTestTupleThree : public ::testing::Test
+{
+  public:
+    Spheral::SidreDataCollection myData;
+    int n = 5;
+    T* rawSidreData;
+
+    Spheral::Field<Spheral::Dim<1>, std::tuple<T, T, T>> makeField()
+    {
+      Spheral::NodeList<Spheral::Dim<1>> makeNodeList("test bed", n, 0);
+      Spheral::Field<Spheral::Dim<1>, std::tuple<T, T, T>> testField("test field", makeNodeList);
+      for (int i = 0; i < n; i++)
+        testField[i] = std::make_tuple(i, i, i);
+      return testField;
+    }
+
+    void allocRawSidreData(const Spheral::Field<Spheral::Dim<1>, std::tuple<T, T, T>>& testField)
+    {
+      rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
+    }
+};
+
+TYPED_TEST_SUITE(SidreDataCollectionTestTupleThree, MyTypes);
+
+TYPED_TEST(SidreDataCollectionTestTupleThree, tuple)
+{
+  auto testField = this->makeField();
+
+  // for (int i = 0; i < this->n; i++)
+  //   std::cout << testField[i] << " ";
+  // std::cout << std::endl;
+
+  this->allocRawSidreData(testField);
+
+  // this->myData.printDataStore();
+
+  EXPECT_EQ(std::get<0>(testField[0]), this->rawSidreData[0]);
+  EXPECT_EQ(std::get<1>(testField[0]), this->rawSidreData[1]);
+  EXPECT_EQ(std::get<2>(testField[0]), this->rawSidreData[2]);
+}
 
 int main(int argc, char** argv)
 {

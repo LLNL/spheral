@@ -151,6 +151,8 @@ struct DataTypeTraits<std::string> {
   static bool fixedSize() { return false; }
   static int numElements(const ElementType& x) { return x.size(); }
   static ElementType zero() { return ""; }
+
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::INT8_ID; }
 };
 
 //------------------------------------------------------------------------------

@@ -16,12 +16,21 @@ public:
     template<typename Dimension, typename DataType>
     axom::sidre::View *alloc_view(const std::string &view_name,
                                   const Spheral::Field<Dimension, DataType> &field);
+    template<typename Dimension>
+    axom::sidre::View *alloc_view(const std::string &view_name,
+                                  const Spheral::Field<Dimension, std::string> &field);
     template<typename Dimension, typename DataType>
     axom::sidre::View *alloc_view(const std::string &view_name,
                                   const Spheral::Field<Dimension, std::vector<DataType>> &field);
     template<typename Dimension, typename DataType>
     axom::sidre::View *alloc_view(const std::string &view_name,
                                   const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType>> &field);
+    template<typename Dimension, typename DataType>
+    axom::sidre::View *alloc_view(const std::string &view_name,
+                                  const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType, DataType>> &field);
+    template<typename Dimension, typename DataType>
+    axom::sidre::View *alloc_view(const std::string &view_name,
+                                  const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType, DataType, DataType>> &field);
     
     void printDataStore() {m_datastore_ptr->getRoot()->print();};
 private:
