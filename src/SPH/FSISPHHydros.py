@@ -4,7 +4,7 @@ from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
 #-------------------------------------------------------------------------------
-# The generic SolidFSISPHHydro pattern.
+# The generic FSISPHHydro pattern.
 #-------------------------------------------------------------------------------
 FSISPHHydroFactoryString = """
 class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
@@ -63,6 +63,141 @@ class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
         return
 """
 
+#-------------------------------------------------------------------------------
+# The generic FSISPHHydro RZ pattern.
+#-------------------------------------------------------------------------------
+FSISPHHydroRZFactoryString = """
+class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
+
+    def __init__(self,
+                 dataBase,
+                 Q,
+                 W,
+                 WPi = None,
+                 alpha = 1.00,
+                 diffusionCoefficient = 0.0,        
+                 sumDensityNodeLists = None,
+                 filter = 0.0,
+                 cfl = 0.5,
+                 useVelocityMagnitudeForDt = False,
+                 compatibleEnergyEvolution = True,
+                 evolveTotalEnergy = False,
+                 gradhCorrection = False,
+                 XSPH = True,
+                 correctVelocityGradient = True,
+                 sumMassDensityOverAllNodeLists = False,
+                 densityUpdate = RigorousSumDensity,
+                 HUpdate = IdealH,
+                 epsTensile = 0.0,
+                 nTensile = 4.0,
+                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
+                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
+        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+        
+        WPi = W
+
+        FSISPHHydroBase%(dim)s.__init__(self,
+                                          self._smoothingScaleMethod,
+                                          dataBase,
+                                          Q,
+                                          W,
+                                          WPi,
+                                          alpha,
+                                          diffusionCoefficient,        
+                                          sumDensityNodeLists,
+                                          filter,
+                                          cfl,
+                                          useVelocityMagnitudeForDt,
+                                          compatibleEnergyEvolution,
+                                          evolveTotalEnergy,
+                                          gradhCorrection,
+                                          XSPH,
+                                          correctVelocityGradient,
+                                          sumMassDensityOverAllNodeLists,
+                                          densityUpdate,
+                                          HUpdate,
+                                          epsTensile,
+                                          nTensile,
+                                          xmin,
+                                          xmax)
+        self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
+        self.appendBoundary(self.zaxisBC)
+        return
+"""
+#-------------------------------------------------------------------------------
+# The generic FSISPHHydro RZ pattern.
+#-------------------------------------------------------------------------------
+SolidFSISPHHydroRZFactoryString = """
+class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
+
+    def __init__(self,
+                 dataBase,
+                 Q,
+                 W,
+                 WPi = None,
+                 WGrad = None,
+                 alpha = 1.00,
+                 diffusionCoefficient = 0.0,        
+                 sumDensityNodeLists = None,
+                 filter = 0.0,
+                 cfl = 0.5,
+                 useVelocityMagnitudeForDt = False,
+                 compatibleEnergyEvolution = True,
+                 evolveTotalEnergy = False,
+                 gradhCorrection = False,
+                 XSPH = True,
+                 correctVelocityGradient = True,
+                 sumMassDensityOverAllNodeLists = False,
+                 densityUpdate = RigorousSumDensity,
+                 HUpdate = IdealH,
+                 epsTensile = 0.0,
+                 nTensile = 4.0,
+                 damageRelieveRubble = False,
+                 negativePressureInDamage = False,
+                 strengthInDamage = False,
+                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
+                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
+        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+        
+        WPi = W
+        WGrad = W
+
+        SolidFSISPHHydroBase%(dim)s.__init__(self,
+                                          self._smoothingScaleMethod,
+                                          dataBase,
+                                          Q,
+                                          W,
+                                          WPi,
+                                          WGrad,
+                                          alpha,
+                                          diffusionCoefficient,        
+                                          sumDensityNodeLists,
+                                          filter,
+                                          cfl,
+                                          useVelocityMagnitudeForDt,
+                                          compatibleEnergyEvolution,
+                                          evolveTotalEnergy,
+                                          gradhCorrection,
+                                          XSPH,
+                                          correctVelocityGradient,
+                                          sumMassDensityOverAllNodeLists,
+                                          densityUpdate,
+                                          HUpdate,
+                                          epsTensile,
+                                          nTensile,
+                                          damageRelieveRubble = False,
+                                          negativePressureInDamage = False,
+                                          strengthInDamage = False,
+                                          xmin,
+                                          xmax)
+        self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
+        self.appendBoundary(self.zaxisBC)
+        return
+"""
+
+#-------------------------------------------------------------------------------
+# The generic solidFSISPHHydro pattern.
+#-------------------------------------------------------------------------------
 SolidFSISPHHydroFactoryString = """
 class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
 
@@ -134,16 +269,25 @@ for dim in dims:
                                      "classname"            : "FSISPHHydro",
                                      "smoothingScaleMethod" : "SPHSmoothingScale"})
     exec(FSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                     "classname"            : "FSIASPHHydro",
+                                     "classname"            : "AFSISPHHydro",
                                      "smoothingScaleMethod" : "ASPHSmoothingScale"})
     
     exec(SolidFSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
                                        "classname"            : "SolidFSISPHHydro",
                                        "smoothingScaleMethod" : "SPHSmoothingScale"})
     exec(SolidFSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                       "classname"            : "SolidFSIASPHHydro",
+                                       "classname"            : "SolidASISPHHydro",
                                        "smoothingScaleMethod" : "ASPHSmoothingScale"})
+    if 2 in dims:
+        exec(SolidSPHHydroRZFactoryString % {"classname"            : "SolidFSISPHHydroRZ",
+                                             "smoothingScaleMethod" : "SPHSmoothingScale"})
+        exec(SolidSPHHydroRZFactoryString % {"classname"            : "SolidAFSISPHHydroRZ",
+                                            "smoothingScaleMethod" : "ASPHSmoothingScale"})
 
+        exec(SPHHydroRZFactoryString % {"classname"            : "FSISPHHydroRZ",
+                                        "smoothingScaleMethod" : "SPHSmoothingScale"})
+        exec(SPHHydroRZFactoryString % {"classname"            : "AFSISPHHydroRZ",
+                                        "smoothingScaleMethod" : "ASPHSmoothingScale"})
 
 def FSISPH(dataBase,
         W,
@@ -202,32 +346,29 @@ def FSISPH(dataBase,
     # Decide on the hydro object.
     if RZ:
 
-        print "SPH Error: RZ isn't set up for the FSI implementations yet"
-        raise RuntimeError, "RZ unavailable for FSI."
-
         # RZ ----------------------------------------
-        #if nsolid > 0:
-        #    if ASPH:
-        #        Constructor = SolidASPHHydroRZ
-        #    else:
-        #        Constructor = SolidSPHHydroRZ
-        #else:
-        #    if ASPH:
-        #        Constructor = ASPHHydroRZ
-        #    else:
-        #        Constructor = SPHHydroRZ
+        if nsolid > 0:
+            if ASPH:
+                Constructor = SolidAFSISPHHydroRZ
+            else:
+                Constructor = SolidFSISPHHydroRZ
+        else:
+            if ASPH:
+                Constructor = AFSISPHHydroRZ
+            else:
+                Constructor = FSISPHHydroRZ
 
     else:
         # Cartesian ---------------------------------
         if nsolid > 0:
             if ASPH:
-                Constructor = eval("SolidFSIASPHHydro%id" % ndim)
+                Constructor = eval("SolidAFSISPHHydro%id" % ndim)
             else:
                 Constructor = eval("SolidFSISPHHydro%id" % ndim)
         else:
             #raise RuntimeError, "fluid version not available."
             if ASPH:
-                Constructor = eval("FSIASPHHydro%id" % ndim)
+                Constructor = eval("AFSISPHHydro%id" % ndim)
             else:
                 Constructor = eval("FSISPHHydro%id" % ndim)
 

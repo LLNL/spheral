@@ -228,11 +228,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
   const auto XSPH = this->XSPH();
   const auto damageRelieveRubble = this->damageRelieveRubble();
-  const auto strengthInDamage = this->strengthInDamage();
-  const auto negativePressureInDamage = this->negativePressureInDamage();
+  //const auto strengthInDamage = this->strengthInDamage();
+  //const auto negativePressureInDamage = this->negativePressureInDamage();
   const auto alpha = this->alpha();
   const auto diffCoeff = this->diffusionCoefficient();
-  const auto HUpdatePolicy = this-> HEvolution();
+  //const auto HUpdatePolicy = this-> HEvolution();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -844,8 +844,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
-      massSecondMomenti /= Hdeti*Hdeti; 
-
+      massSecondMomenti /= Hdeti*Hdeti;
       
       DrhoDti -=  rhoi*DvDxi.Trace();
 
@@ -880,15 +879,15 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                                                        nodeListi,
                                                        i);
 
-      //const auto Di = (damageRelieveRubble ? 
-      //                 max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0)) :
-      //                 0.0);
+      const auto Di = (damageRelieveRubble ? 
+                       max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0)) :
+                       0.0);
 
       if (std::abs(localMi.Determinant()) > 1.0e-10 and
         numNeighborsi > Dimension::pownu(2)) {
         localMi = localMi.Inverse();
         localDvDxi = localDvDxi*localMi;
-      } 
+      }
 
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
@@ -898,7 +897,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 
       // In the presence of damage, add a term to reduce the stress on this point.
-      //DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
+      DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
     }
   }
 }

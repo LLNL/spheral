@@ -20,6 +20,8 @@ if(ENABLE_2D)
        SPHHydroBaseGSRZ.cc
        SPHHydroBaseRZ.cc
        SolidSPHHydroBaseRZ.cc
+       FSISPHHydroBaseRZ.cc
+       SolidFSISPHHydroBaseRZ.cc
       )
 endif()
 
@@ -38,7 +40,9 @@ set(SPH_headers
     SPHHydroBaseInline.hh
     SPHHydroBaseRZ.hh
     SolidFSISPHHydroBase.hh
+    SolidFSISPHHydroBaseRZ.hh
     FSISPHHydroBase.hh
+    FSISPHHydroBaseRZ.hh
     SolidSPHHydroBase.hh
     SolidSPHHydroBaseInline.hh
     SolidSPHHydroBaseRZ.hh
