@@ -797,12 +797,27 @@ initialize(const bool     RZ,
   if (CRK) me.mIntegratorPtr->appendPhysicsPackage(*me.mRKptr);
   me.mIntegratorPtr->appendPhysicsPackage(*me.mHydroPtr);
 
-  if (damage) {
+  if (damage > 0) {
     Field<Dimension, std::vector<double> > flaws("flaws", *me.mNodeLists[0]);
     double dimFactor = double(Dimension::nDim);
+    DamageCouplingAlgorithm damageMode;
+    switch(damage) {
+      case 1:
+        damageMode = DamageCouplingAlgorithm::PairMaxDamage;
+        break;
+      case 2:
+        damageMode = DamageCouplingAlgorithm::DamageGradient;
+        break;
+      case 3:
+        damageMode = DamageCouplingAlgorithm::ThreePointDamage;
+        break;
+      default:
+        VERIFY2(false, "SpheralPseudoScript::initialize: invalid DamageCouplingAlgorithm " << damage);
+    }
+
     me.mDamagePtr.reset(new TensorDamageModel<Dimension>(*me.mNodeLists[0],
                                                          TensorStrainAlgorithm::PlasticStrain,
-                                                         DamageCouplingAlgorithm::DamageGradient,
+                                                         damageMode,
                                                          *me.mKernelPtr,
                                                          0.4,
                                                          dimFactor,
