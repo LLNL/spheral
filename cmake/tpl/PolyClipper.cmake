@@ -1,11 +1,11 @@
 set(POLYCLIPPER_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
-set(POLYCLIPPER_DIST "PolyClipper-1.01.zip")
+set(POLYCLIPPER_DIST "PolyClipper-v1.1.zip")
 set(POLYCLIPPER_CACHE "${CACHE_DIR}/${POLYCLIPPER_DIST}")
-set(POLYCLIPPER_URL "https://github.com/LLNL/PolyClipper/archive/v1.01.tar.gz")
-set(POLYCLIPPER_MD5 "MD5=85b6b9e0dc47ed6fa4720f07cb1a7ff7")
+set(POLYCLIPPER_URL "https://github.com/LLNL/PolyClipper/archive/PolyClipper-v1.1.zip")
+set(POLYCLIPPER_MD5 "MD5=46b554a2b3ca8a45847750b0a82c3931")
 set(POLYCLIPPER_DEST_DIR "${${lib_name}_DIR}/lib")
 
-set(${lib_name}_libs libPolyClipper.a)
+set(${lib_name}_libs )
 
 if(ENABLE_CXXONLY)
   set(POLYCLIPPER_ENABLE_CXXONLY On)
@@ -40,12 +40,5 @@ if(${lib_name}_BUILD)
     LOG_BUILD ${OUT_PROTOCOL_EP}
     LOG_INSTALL ${OUT_PROTOCOL_EP}
   )
-
-  # if(NOT ENABLE_CXXONLY AND NOT ENABLE_STATIC_CXXONLY)
-  #   install(
-  #     FILES ${${lib_name}_DIR}/lib/python2.7/site-packages/polyclipper/polyclipper.so
-  #     DESTINATION ${PYTHON_SITE_PACKAGE_DIR}
-  #     )
-  # endif()
 endif()
 
