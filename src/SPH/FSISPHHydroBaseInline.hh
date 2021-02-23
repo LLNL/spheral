@@ -6,7 +6,7 @@ namespace Spheral {
 template<typename Dimension>
 inline
 void
-FSISolidSPHHydroBase<Dimension>::
+FSISPHHydroBase<Dimension>::
 alpha(double x) {
   mAlpha = x;
 }
@@ -15,7 +15,7 @@ alpha(double x) {
 template<typename Dimension>
 inline
 double
-FSISolidSPHHydroBase<Dimension>::
+FSISPHHydroBase<Dimension>::
 alpha() const {
   return mAlpha;
 }
@@ -23,7 +23,7 @@ alpha() const {
 template<typename Dimension>
 inline
 void
-FSISolidSPHHydroBase<Dimension>::
+FSISPHHydroBase<Dimension>::
 diffusionCoefficient(double x) {
   mDiffusionCoefficient = x;
 }
@@ -31,7 +31,7 @@ diffusionCoefficient(double x) {
 template<typename Dimension>
 inline
 double
-FSISolidSPHHydroBase<Dimension>::
+FSISPHHydroBase<Dimension>::
 diffusionCoefficient() const {
   return mDiffusionCoefficient;
 }
@@ -44,7 +44,7 @@ diffusionCoefficient() const {
 template<typename Dimension>
 inline
 void
-FSISolidSPHHydroBase<Dimension>::
+FSISPHHydroBase<Dimension>::
 sumDensityNodeLists(std::vector<int> x) {
   mSumDensityNodeLists = x;
 }
@@ -53,7 +53,7 @@ sumDensityNodeLists(std::vector<int> x) {
 template<typename Dimension>
 inline
 std::vector<int>
-FSISolidSPHHydroBase<Dimension>::
+FSISPHHydroBase<Dimension>::
 sumDensityNodeLists() const {
   return mSumDensityNodeLists;
 }

@@ -1,10 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
-// FSISolidSPHHydroBase -- 
+// SolidFSISPHHydroBase -- 
 //
 // Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_FSISolidSPHHydroBase_hh__
-#define __Spheral_FSISolidSPHHydroBase_hh__
+#ifndef __Spheral_SolidFSISPHHydroBase_hh__
+#define __Spheral_SolidFSISPHHydroBase_hh__
 
 #include <float.h>
 #include <string>
@@ -24,7 +24,7 @@ template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
 template<typename Dimension>
-class FSISolidSPHHydroBase: public SolidSPHHydroBase<Dimension> {
+class SolidFSISPHHydroBase: public SolidSPHHydroBase<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -36,7 +36,7 @@ public:
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  FSISolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+  SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                     DataBase<Dimension>& dataBase,
                     ArtificialViscosity<Dimension>& Q,
                     const TableKernel<Dimension>& W,
@@ -65,7 +65,7 @@ public:
                     const Vector& xmax);
 
   // Destructor.
-  virtual ~FSISolidSPHHydroBase();
+  virtual ~SolidFSISPHHydroBase();
 
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
@@ -100,7 +100,7 @@ public:
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "FSISolidSPHHydroBase"; }
+  virtual std::string label() const override { return "SolidFSISPHHydroBase"; }
  //****************************************************************************
 
 private:
@@ -109,21 +109,21 @@ private:
   std::vector<int> mSumDensityNodeLists;       // turn on density sum subset of nodeLists
 
   // No default constructor, copying, or assignment.
-  FSISolidSPHHydroBase();
-  FSISolidSPHHydroBase(const FSISolidSPHHydroBase&);
-  FSISolidSPHHydroBase& operator=(const FSISolidSPHHydroBase&);
+  SolidFSISPHHydroBase();
+  SolidFSISPHHydroBase(const SolidFSISPHHydroBase&);
+  SolidFSISPHHydroBase& operator=(const SolidFSISPHHydroBase&);
 };
 
 }
 
 
-#include "FSISolidSPHHydroBaseInline.hh"
+#include "SolidFSISPHHydroBaseInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class FSISolidSPHHydroBase;
+  template<typename Dimension> class SolidFSISPHHydroBase;
 }
 
 #endif

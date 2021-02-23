@@ -12,8 +12,8 @@ dims = spheralDimensions()
 from SPHHydroBase import *
 from PSPHHydroBase import *
 from SolidSPHHydroBase import *
-from FSISolidSPHHydroBase import *
-
+from SolidFSISPHHydroBase import *
+from FSISPHHydroBase import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
@@ -24,8 +24,9 @@ PYB11includes += ['"SPH/SPHHydroBase.hh"',
                   '"SPH/SPHHydroBaseRZ.hh"',
                   '"SPH/SPHHydroBaseGSRZ.hh"',
                   '"SPH/SolidSPHHydroBase.hh"',
-                  '"SPH/FSISolidSPHHydroBase.hh"',
                   '"SPH/SolidSPHHydroBaseRZ.hh"',
+                  '"SPH/SolidFSISPHHydroBase.hh"',
+                  '"SPH/FSISPHHydroBase.hh"',
                   '"FileIO/FileIO.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"']
 
@@ -65,7 +66,8 @@ for ndim in dims:
 SPHHydroBase%(ndim)id = PYB11TemplateClass(SPHHydroBase, template_parameters="%(Dimension)s")
 PSPHHydroBase%(ndim)id = PYB11TemplateClass(PSPHHydroBase, template_parameters="%(Dimension)s")
 SolidSPHHydroBase%(ndim)id = PYB11TemplateClass(SolidSPHHydroBase, template_parameters="%(Dimension)s")
-FSISolidSPHHydroBase%(ndim)id = PYB11TemplateClass(FSISolidSPHHydroBase, template_parameters="%(Dimension)s")
+SolidFSISPHHydroBase%(ndim)id = PYB11TemplateClass(SolidFSISPHHydroBase, template_parameters="%(Dimension)s")
+FSISPHHydroBase%(ndim)id = PYB11TemplateClass(FSISPHHydroBase, template_parameters="%(Dimension)s")
 
 computeSPHSumMassDensity%(ndim)id = PYB11TemplateFunction(computeSPHSumMassDensity, template_parameters="%(Dimension)s")
 computeSPHOmegaGradhCorrection%(ndim)id = PYB11TemplateFunction(computeSPHOmegaGradhCorrection, template_parameters="%(Dimension)s")

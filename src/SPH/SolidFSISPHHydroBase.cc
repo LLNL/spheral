@@ -33,7 +33,7 @@
 #include "Utilities/safeInv.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 
-#include "FSISolidSPHHydroBase.hh"
+#include "SolidFSISPHHydroBase.hh"
 
 #include <limits.h>
 #include <float.h>
@@ -97,8 +97,8 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FSISolidSPHHydroBase<Dimension>::
-FSISolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+SolidFSISPHHydroBase<Dimension>::
+SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   DataBase<Dimension>& dataBase,
                   ArtificialViscosity<Dimension>& Q,
                   const TableKernel<Dimension>& W,
@@ -158,8 +158,8 @@ FSISolidSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
 // Destructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FSISolidSPHHydroBase<Dimension>::
-~FSISolidSPHHydroBase() {
+SolidFSISPHHydroBase<Dimension>::
+~SolidFSISPHHydroBase() {
 }
 
 
@@ -168,7 +168,7 @@ FSISolidSPHHydroBase<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-FSISolidSPHHydroBase<Dimension>::
+SolidFSISPHHydroBase<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
@@ -206,7 +206,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-FSISolidSPHHydroBase<Dimension>::
+SolidFSISPHHydroBase<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
@@ -627,7 +627,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       massSecondMomentj += gradWj.magnitude2()*thpt;
 
       // averaged things.
-      const auto vij = vi - vj;
+      auto vij = vi - vj;
       const auto rhoij = 0.5*(rhoi+rhoj); 
       const auto cij = 0.5*(ci+cj);  
       const auto Wij = 0.5*(Wi+Wj); 
@@ -730,7 +730,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         localDvDxi -= volj*(deltaDvDxi);
         localDvDxj -= voli*(deltaDvDxj);
         
-      }
+      }//else{
+      //  vij = muij/rij2*rij;
+      //  deltaDvDxi = kappai*vij.dyad(gradWi);
+      //  deltaDvDxj = kappaj*vij.dyad(gradWj);
+      //}
       if (this->mCorrectVelocityGradient){
         deltaDvDxi = deltaDvDxi*Mi;
         deltaDvDxj = deltaDvDxj*Mj;
@@ -846,7 +850,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       DrhoDti -=  rhoi*DvDxi.Trace();
 
       DxDti = vi;
-      if (XSPH && nodeListi>0 ) {
+      if (XSPH) {
         CHECK(XSPHWeightSumi >= 0.0);
         XSPHWeightSumi += Hdeti*mi/rhoi*W0 + 1.0e-30;
         DxDti += XSPHDeltaVi/XSPHWeightSumi;
@@ -876,12 +880,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                                                        nodeListi,
                                                        i);
 
-      const auto Di = (damageRelieveRubble ? 
-                       max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0)) :
-                       0.0);
+      //const auto Di = (damageRelieveRubble ? 
+      //                 max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0)) :
+      //                 0.0);
 
       if (std::abs(localMi.Determinant()) > 1.0e-10 and
-          numNeighborsi > Dimension::pownu(2)) {
+        numNeighborsi > Dimension::pownu(2)) {
         localMi = localMi.Inverse();
         localDvDxi = localDvDxi*localMi;
       } 
@@ -894,7 +898,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 
       // In the presence of damage, add a term to reduce the stress on this point.
-      DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
+      //DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
     }
   }
 }
@@ -905,7 +909,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 //===================================================================================
 template<typename Dimension>
 void
-FSISolidSPHHydroBase<Dimension>::
+SolidFSISPHHydroBase<Dimension>::
 computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                             const TableKernel<Dimension>& W,
                             const FieldList<Dimension, typename Dimension::Vector>& position,

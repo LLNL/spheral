@@ -3,7 +3,8 @@ set(SPH_inst
     SPHHydroBase
     PSPHHydroBase
     SolidSPHHydroBase
-    FSISolidSPHHydroBase
+    SolidFSISPHHydroBase
+    FSISPHHydroBase
     computeSPHOmegaGradhCorrection
     computeSPHSumMassDensity
     correctSPHSumMassDensity
@@ -36,6 +37,8 @@ set(SPH_headers
     SPHHydroBaseGSRZ.hh
     SPHHydroBaseInline.hh
     SPHHydroBaseRZ.hh
+    SolidFSISPHHydroBase.hh
+    FSISPHHydroBase.hh
     SolidSPHHydroBase.hh
     SolidSPHHydroBaseInline.hh
     SolidSPHHydroBaseRZ.hh
