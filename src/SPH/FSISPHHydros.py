@@ -67,7 +67,7 @@ class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
 # The generic FSISPHHydro RZ pattern.
 #-------------------------------------------------------------------------------
 FSISPHHydroRZFactoryString = """
-class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
+class %(classname)s(FSISPHHydroBaseRZ):
 
     def __init__(self,
                  dataBase,
@@ -90,36 +90,37 @@ class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
                  HUpdate = IdealH,
                  epsTensile = 0.0,
                  nTensile = 4.0,
-                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
-                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
-        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+                 xmin = Vector2d(-1e100, -1e100),
+                 xmax = Vector2d( 1e100,  1e100),
+                 etaMinAxis = 0.1):
+        self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         
         WPi = W
 
-        FSISPHHydroBase%(dim)s.__init__(self,
-                                          self._smoothingScaleMethod,
-                                          dataBase,
-                                          Q,
-                                          W,
-                                          WPi,
-                                          alpha,
-                                          diffusionCoefficient,        
-                                          sumDensityNodeLists,
-                                          filter,
-                                          cfl,
-                                          useVelocityMagnitudeForDt,
-                                          compatibleEnergyEvolution,
-                                          evolveTotalEnergy,
-                                          gradhCorrection,
-                                          XSPH,
-                                          correctVelocityGradient,
-                                          sumMassDensityOverAllNodeLists,
-                                          densityUpdate,
-                                          HUpdate,
-                                          epsTensile,
-                                          nTensile,
-                                          xmin,
-                                          xmax)
+        FSISPHHydroBaseRZ.__init__(self,
+                                   self._smoothingScaleMethod,
+                                   dataBase,
+                                    Q,
+                                    W,
+                                    WPi,
+                                    alpha,
+                                    diffusionCoefficient,        
+                                    sumDensityNodeLists,
+                                    filter,
+                                    cfl,
+                                    useVelocityMagnitudeForDt,
+                                    compatibleEnergyEvolution,
+                                    evolveTotalEnergy,
+                                    gradhCorrection,
+                                    XSPH,
+                                    correctVelocityGradient,
+                                    sumMassDensityOverAllNodeLists,
+                                    densityUpdate,
+                                    HUpdate,
+                                    epsTensile,
+                                    nTensile,
+                                    xmin,
+                                    xmax)
         self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
         self.appendBoundary(self.zaxisBC)
         return
@@ -128,7 +129,7 @@ class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
 # The generic FSISPHHydro RZ pattern.
 #-------------------------------------------------------------------------------
 SolidFSISPHHydroRZFactoryString = """
-class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
+class %(classname)s(SolidFSISPHHydroBaseRZ):
 
     def __init__(self,
                  dataBase,
@@ -155,41 +156,42 @@ class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
                  damageRelieveRubble = False,
                  negativePressureInDamage = False,
                  strengthInDamage = False,
-                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
-                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
-        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+                 xmin = Vector2d(-1e100, -1e100),
+                 xmax = Vector2d( 1e100,  1e100),
+                 etaMinAxis = 0.1):
+        self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         
         WPi = W
         WGrad = W
 
-        SolidFSISPHHydroBase%(dim)s.__init__(self,
-                                          self._smoothingScaleMethod,
-                                          dataBase,
-                                          Q,
-                                          W,
-                                          WPi,
-                                          WGrad,
-                                          alpha,
-                                          diffusionCoefficient,        
-                                          sumDensityNodeLists,
-                                          filter,
-                                          cfl,
-                                          useVelocityMagnitudeForDt,
-                                          compatibleEnergyEvolution,
-                                          evolveTotalEnergy,
-                                          gradhCorrection,
-                                          XSPH,
-                                          correctVelocityGradient,
-                                          sumMassDensityOverAllNodeLists,
-                                          densityUpdate,
-                                          HUpdate,
-                                          epsTensile,
-                                          nTensile,
-                                          damageRelieveRubble = False,
-                                          negativePressureInDamage = False,
-                                          strengthInDamage = False,
-                                          xmin,
-                                          xmax)
+        SolidFSISPHHydroBaseRZ.__init__(self,
+                                        self._smoothingScaleMethod,
+                                        dataBase,
+                                        Q,
+                                        W,
+                                        WPi,
+                                        WGrad,
+                                        alpha,
+                                        diffusionCoefficient,        
+                                        sumDensityNodeLists,
+                                        filter,
+                                        cfl,
+                                        useVelocityMagnitudeForDt,
+                                        compatibleEnergyEvolution,
+                                        evolveTotalEnergy,
+                                        gradhCorrection,
+                                        XSPH,
+                                        correctVelocityGradient,
+                                        sumMassDensityOverAllNodeLists,
+                                        densityUpdate,
+                                        HUpdate,
+                                        epsTensile,
+                                        nTensile,
+                                        damageRelieveRubble,
+                                        negativePressureInDamage,
+                                        strengthInDamage,
+                                        xmin,
+                                        xmax)
         self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
         self.appendBoundary(self.zaxisBC)
         return
@@ -278,15 +280,17 @@ for dim in dims:
     exec(SolidFSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
                                        "classname"            : "SolidASISPHHydro",
                                        "smoothingScaleMethod" : "ASPHSmoothingScale"})
-    if 2 in dims:
-        exec(SolidSPHHydroRZFactoryString % {"classname"            : "SolidFSISPHHydroRZ",
+if 2 in dims:
+    exec(SolidFSISPHHydroRZFactoryString % {"classname"            : "SolidFSISPHHydroRZ",
                                              "smoothingScaleMethod" : "SPHSmoothingScale"})
-        exec(SolidSPHHydroRZFactoryString % {"classname"            : "SolidAFSISPHHydroRZ",
+
+    exec(SolidFSISPHHydroRZFactoryString % {"classname"            : "SolidAFSISPHHydroRZ",
                                             "smoothingScaleMethod" : "ASPHSmoothingScale"})
 
-        exec(SPHHydroRZFactoryString % {"classname"            : "FSISPHHydroRZ",
+    exec(FSISPHHydroRZFactoryString % {"classname"            : "FSISPHHydroRZ",
                                         "smoothingScaleMethod" : "SPHSmoothingScale"})
-        exec(SPHHydroRZFactoryString % {"classname"            : "AFSISPHHydroRZ",
+
+    exec(FSISPHHydroRZFactoryString % {"classname"            : "AFSISPHHydroRZ",
                                         "smoothingScaleMethod" : "ASPHSmoothingScale"})
 
 def FSISPH(dataBase,

@@ -61,7 +61,11 @@ public:
 
   // Destructor.
   virtual ~FSISPHHydroBase();
-                       
+
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;    
+                                                 
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
@@ -71,6 +75,14 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
 
+  void computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
+                                   const TableKernel<Dimension>& W,
+                                   const FieldList<Dimension, typename Dimension::Vector>& position,
+                                   const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                                   const FieldList<Dimension, typename Dimension::Scalar>& pressure,
+                                   const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                                   FieldList<Dimension, typename Dimension::Scalar>& massDensity);
+  
   double alpha() const;
   void alpha(double x);
 

@@ -144,6 +144,41 @@ FSISPHHydroBase<Dimension>::
 ~FSISPHHydroBase() {
 }
 
+//------------------------------------------------------------------------------
+// FSI specialized density summmation
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+FSISPHHydroBase<Dimension>::
+preStepInitialize(const DataBase<Dimension>& dataBase, 
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+
+  SPHHydroBase<Dimension>::preStepInitialize(dataBase,state,derivs);
+
+  // test to see if any of the nodeLists require their own density sum
+  bool applySelectDensitySum = false;
+  auto numNodeLists = dataBase.numNodeLists();
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+    if (mSumDensityNodeLists[nodeListi]==1){
+      applySelectDensitySum = true;
+    }
+  }
+  //std::cout << applySelectDensitySum;
+  if (applySelectDensitySum){
+      const auto& connectivityMap = dataBase.connectivityMap();
+      const auto& position = state.fields(HydroFieldNames::position, Vector::zero);
+      const auto& mass = state.fields(HydroFieldNames::mass, 0.0);
+      const auto& p = state.fields(HydroFieldNames::pressure, 0.0);
+      const auto& H = state.fields(HydroFieldNames::H, SymTensor::zero);
+      const auto& W = this->kernel();
+      auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+      this->computeFSISPHSumMassDensity(connectivityMap, W, position, mass, p, H, massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  }
+
+}
 
 //------------------------------------------------------------------------------
 // Determine the principle derivatives.
@@ -619,6 +654,106 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   }
   TIME_SPHevalDerivs_final.stop();
   TIME_SPHevalDerivs.stop();
+}
+
+
+
+//===================================================================================
+// Allows density sum to only be applied to some nodeLists
+//===================================================================================
+template<typename Dimension>
+void
+FSISPHHydroBase<Dimension>::
+computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
+                            const TableKernel<Dimension>& W,
+                            const FieldList<Dimension, typename Dimension::Vector>& position,
+                            const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                            const FieldList<Dimension, typename Dimension::Scalar>& pressure,
+                            const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                            FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
+
+  // Pre-conditions.
+  const auto numNodeLists = massDensity.size();
+  REQUIRE(position.size() == numNodeLists);
+  REQUIRE(mass.size() == numNodeLists);
+  REQUIRE(H.size() == numNodeLists);
+
+  // Some useful variables.
+  const auto W0 = W.kernelValue(0.0, 1.0);
+
+  //typedef typename Dimension::Scalar Scalar;
+  //FieldList<Dimension, Scalar> storeDensity(FieldStorageType::CopyFields);
+  //for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+  //  storeDensity.appendNewField("storeDensity", massDensity[nodeListi]->nodeList(), 0.0);
+  //}
+
+    // First the self contribution.
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+    const auto n = massDensity[nodeListi]->numInternalElements();
+    if (mSumDensityNodeLists[nodeListi]==1){
+#pragma omp parallel for
+      for (auto i = 0u; i < n; ++i) {
+        const auto  mi = mass(nodeListi, i);
+        const auto& Hi = H(nodeListi, i);
+        const auto  Hdeti = Hi.Determinant();
+        //const auto rhoi = storeDensity(nodeListi, i);
+        massDensity(nodeListi,i) = mi*Hdeti*W0;
+      }
+    }
+  }
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
+  // Now the pair contributions.
+#pragma omp parallel
+  {
+    int i, j, nodeListi, nodeListj;
+    //auto storeMassDensity_thread = storeDensity.threadCopy();
+    auto massDensity_thread = massDensity.threadCopy();
+
+#pragma omp for
+    for (auto k = 0u; k < npairs; ++k) {
+      i = pairs[k].i_node;
+      j = pairs[k].j_node;
+      nodeListi = pairs[k].i_list;
+      nodeListj = pairs[k].j_list;
+
+      if(mSumDensityNodeLists[nodeListi]==1 || mSumDensityNodeLists[nodeListj]==1){
+        // State for node i
+        const auto& ri = position(nodeListi, i);
+        const auto  mi = mass(nodeListi, i);
+        const auto& Hi = H(nodeListi, i);
+        const auto  Hdeti = Hi.Determinant();
+      
+        // State for node j
+        const auto& rj = position(nodeListj, j);
+        const auto  mj = mass(nodeListj, j);
+        const auto& Hj = H(nodeListj, j);
+        const auto  Hdetj = Hj.Determinant();
+      
+        // Kernel weighting and gradient.
+        const auto rij = ri - rj;
+        const auto etai = (Hi*rij).magnitude();
+        const auto etaj = (Hj*rij).magnitude();
+        const auto Wi = W.kernelValue(etai, Hdeti);
+        const auto Wj = W.kernelValue(etaj, Hdetj);
+
+        massDensity_thread(nodeListi, i) += (mSumDensityNodeLists[nodeListi]==1 ? 
+                                            (nodeListi == nodeListj ? mj : mi)*Wi : 
+                                             0.0);
+        massDensity_thread(nodeListj, j) += (mSumDensityNodeLists[nodeListj]==1 ? 
+                                            (nodeListi == nodeListj ? mi : mj)*Wj : 
+                                             0.0);
+      }
+    }
+
+#pragma omp critical
+    {
+      massDensity_thread.threadReduce();
+    }
+  }
+
 }
 
 }
