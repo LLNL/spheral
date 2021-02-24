@@ -419,16 +419,6 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar /*time*/,
         toIDs[k] = firstID + k;
       }
 
-      //if(mDataBase.isRZ){
-      //  for (auto i:fromIDs){
-      //    auto& mass = nodeList.mass();
-      //    auto& pos  = nodeList.positions();
-      //    const auto circi = 2.0*M_PI*abs(pos[i].y());
-      //    mass[i]*=circi;
-      //  }
-      //}
-
-
       // Copy all field values from ghosts to the new internal nodes.
       copyFieldValues(nodeList, fromIDs, toIDs);
 
