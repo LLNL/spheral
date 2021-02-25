@@ -108,6 +108,24 @@
     <ClCompile Include="..\..\src\Utilities\SpheralTimersAlternate.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Utilities\DamagedNodeCouplingInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Utilities\DamagedNodeCouplingInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Utilities\DamageGradientNodeCouplingInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Utilities\DamageGradientNodeCouplingInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Utilities\ThreePointDamagedNodeCouplingInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Utilities\ThreePointDamagedNodeCouplingInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\Utilities\allReduce.hh">
@@ -319,6 +337,9 @@
     <CustomBuild Include="..\..\src\Utilities\peanoHilbertOrderIndicesInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\src\Utilities\DamagedNodeCouplingInst.cc.py" />
+    <CustomBuild Include="..\..\src\Utilities\DamageGradientNodeCouplingInst.cc.py" />
+    <CustomBuild Include="..\..\src\Utilities\ThreePointDamagedNodeCouplingInst.cc.py" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Utilities\DomainNode.hh">
@@ -328,6 +349,21 @@
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Utilities\OpenMP_wrapper.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\DamagedNodeCoupling.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\DamageGradientNodeCoupling.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\MaxDamageNodeCoupling.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\size_t_bits.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\ThreePointDamagedNodeCoupling.hh">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
