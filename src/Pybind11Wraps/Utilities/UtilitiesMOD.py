@@ -49,7 +49,6 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/DomainNode.hh"',
                   '"Utilities/NodeCoupling.hh"',
                   '"Utilities/DamagedNodeCoupling.hh"',
-                  '"Utilities/DamagedNodeCouplingWithFrags.hh"',
                   '"Utilities/SidreDataCollection.hh"',
                   '"Utilities/ThreePointDamagedNodeCoupling.hh"',
                   '"Utilities/DamageGradientNodeCoupling.hh"']
