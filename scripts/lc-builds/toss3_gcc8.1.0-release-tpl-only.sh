@@ -11,16 +11,22 @@ mkdir -p ${BUILD_SUFFIX}/install
 mkdir -p ${BUILD_SUFFIX}/build && cd ${BUILD_SUFFIX}/build
 
 module load cmake/3.14.5
-module load clang/9.0.0
+module load gcc/8.1.0
 
 cmake \
   ${SRC_DIR} \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-9.0.0/bin/clang++ \
-  -DCMAKE_C_COMPILER=/usr/tce/packages/clang/clang-9.0.0/bin/clang \
-  -C ${HOST_CONFIGS_DIR}/lc-builds/toss3/clangX_tpl.cmake \
+  -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-8.1.0/bin/g++ \
   -DENABLE_OPENMP=On \
   -DENABLE_MPI=On \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-  -DENABLE_STATIC_CXXONLY=On \
+  -DBUILD_TPL_ONLY=On \
   $CMAKE_ARGS \
+
+cd $BUILD_SUFFIX/build
+make -j install
+
+cd -
+find ${INSTALL_DIR}/ -type d -exec chmod g+rx {} \;
+find ${INSTALL_DIR}/ -type f -exec chmod g+rx {} \;
+find ${INSTALL_DIR}/ -name "Python*egg-info" -exec chgrp wciuser {} \;

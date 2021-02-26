@@ -41,35 +41,12 @@ Timer   TIME_Polyhedron_BB_R2          ("Polyhedron::setBoundingBox - Rinterior2
 Timer TIME_Polyhedron_convex           ("Polyhedron::convex", TIME_Spheral);
 
 //------------------------------------------------------------------------------
-// PolyClipper2d timers
+// PolyClipper timers
 //------------------------------------------------------------------------------
 Timer TIME_PC2d_convertto           ("Spheral::Polygon -> PolyClipper::Polygon", TIME_Spheral);
 Timer TIME_PC2d_convertfrom         ("PolyClipper::Polygon -> Spheral::Polygon", TIME_Spheral);
-Timer TIME_PC2d_copy                ("Copy PolyClipper::Polygon", TIME_Spheral);
-Timer TIME_PC2d_moments             ("Compute polygon moments", TIME_Spheral);
-Timer TIME_PC2d_clip                ("clipPolygon", TIME_Spheral);
-Timer   TIME_PC2d_planes            ("Apply clip planes (clipPolygon)", TIME_PC2d_clip);
-Timer   TIME_PC2d_checkverts        ("Clip vertices", TIME_PC2d_planes);
-Timer   TIME_PC2d_insertverts       ("Insert new vertices", TIME_PC2d_planes);
-Timer   TIME_PC2d_hanging           ("Link hanging vertices", TIME_PC2d_planes);
-Timer   TIME_PC2d_compress          ("Compress to active vertices", TIME_PC2d_planes);
-Timer TIME_PC2d_collapseDegenerates ("Remove degenerate edges/vertices", TIME_Spheral);
-
-//------------------------------------------------------------------------------
-// PolyClipper3d timers
-//------------------------------------------------------------------------------
 Timer TIME_PC3d_convertto("Spheral::Polyhedron -> PolyClipper::Polyhedron", TIME_Spheral);
 Timer TIME_PC3d_convertfrom("PolyClipper::Polyhedron -> Spheral::Polyhedron", TIME_Spheral);
-Timer TIME_PC3d_copy("Copy PolyClipper::Polyhedron", TIME_Spheral);
-Timer TIME_PC3d_moments("Compute polyhedron moments", TIME_Spheral);
-Timer TIME_PC3d_clip("clipPolyhedron", TIME_Spheral);
-Timer   TIME_PC3d_planes("Apply clip planes (clipPolyhedron)", TIME_PC3d_clip);
-Timer   TIME_PC3d_checkverts("Clip vertices", TIME_PC3d_planes);
-Timer   TIME_PC3d_insertverts("Insert new vertices", TIME_PC3d_planes);
-Timer   TIME_PC3d_planeverts("Relink in-plane vertices", TIME_PC3d_planes);
-Timer   TIME_PC3d_linknew("Link hanging vertices", TIME_PC3d_planes);
-Timer   TIME_PC3d_compress("Compress to active vertices", TIME_PC3d_planes);
-Timer TIME_PC3d_collapseDegenerates ("Remove degenerate edges/vertices", TIME_Spheral);
 
 //------------------------------------------------------------------------------
 // ConnectivityMap
