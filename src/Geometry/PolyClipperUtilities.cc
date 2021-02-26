@@ -207,7 +207,7 @@ vector<set<int>> convertFromPolyClipper(Dim<3>::FacetedVolume& Spheral_polyhedro
       }
     }
     CHECK((int)coords.size() == count_if(polyhedron.begin(), polyhedron.end(),
-                                    [](const Vertex3d& x) { return x.comp >= 0; }));
+                                         [](const PolyClipperVertex3d& x) { return x.comp >= 0; }));
 
     // Extract the faces as integer vertex index loops.
     vector<vector<unsigned>> facets(faces.size());
