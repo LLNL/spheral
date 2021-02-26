@@ -7,11 +7,13 @@ set(Damage_inst
     TensorDamagePolicy
     YoungsModulusPolicy
     LongitudinalSoundSpeedPolicy
-    weibullFlawDistribution
+    weibullFlawDistributionBenzAsphaug
+    weibullFlawDistributionOwen
     computeFragmentField
     JohnsonCookDamage
     JohnsonCookFailureStrainPolicy
     JohnsonCookDamagePolicy
+    DamagedPressurePolicy
    )
 
 
@@ -40,7 +42,8 @@ set(Damage_headers
     TensorDamageModelInline.hh
     TensorDamagePolicy.hh
     TensorStrainPolicy.hh
-    weibullFlawDistribution.hh
+    weibullFlawDistributionBenzAsphaug.hh
+    weibullFlawDistributionOwen.hh
     YoungsModulusPolicy.hh
     )
 
