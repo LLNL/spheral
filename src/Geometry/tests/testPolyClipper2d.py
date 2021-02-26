@@ -119,7 +119,7 @@ class TestPolyClipper2d(unittest.TestCase):
     #---------------------------------------------------------------------------
     # Spheral::Polygon --> PolyClipper::Polygon
     #---------------------------------------------------------------------------
-    def testConvertToPolygon(self):
+    def testConvertToPolyClipper(self):
         for points in self.pointSets:
             poly = Polygon(points, facets(points))
             PCpoly = convertToPolyClipper(poly)
@@ -134,7 +134,7 @@ class TestPolyClipper2d(unittest.TestCase):
     #---------------------------------------------------------------------------
     # PolyClipper::Polygon --> Spheral::Polygon
     #---------------------------------------------------------------------------
-    def testConvertFromPolygon(self):
+    def testConvertFromPolyClipper(self):
         for points in self.pointSets:
             PCpoly = PolyClipperPolygon()
             initializePolygon(PCpoly, points, vertexNeighbors(points))
