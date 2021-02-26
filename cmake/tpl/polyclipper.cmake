@@ -11,7 +11,7 @@ if(ENABLE_CXXONLY)
   set(POLYCLIPPER_ENABLE_CXXONLY On)
 else()
   set(POLYCLIPPER_ENABLE_CXXONLY Off)
-  list(APPEND POLYCLIPPER_DEPENDS python-install pip-modules ${spheral_py_depends})
+  list(APPEND POLYCLIPPER_DEPENDS python-install ${spheral_py_depends})
 endif()
 
 if(${lib_name}_BUILD)
@@ -32,7 +32,7 @@ if(${lib_name}_BUILD)
                -DENABLE_CXXONLY=${POLYCLIPPER_ENABLE_CXXONLY}
                -DPYTHON_EXE=${PYTHON_EXE}
                -DLOOKUP_PYBIND11_INCLUDE_PATH=On
-               -DPOLYCLIPPER_PYTHON_INSTALL=${PYTHON_SITE_PACKAGE_DIR}
+               -DPOLYCLIPPER_PYTHON_INSTALL=${${lib_name}_DIR}
                -DENABLE_DOCS=Off
                DEPENDS ${POLYCLIPPER_DEPENDS}
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
