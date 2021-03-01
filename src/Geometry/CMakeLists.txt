@@ -18,9 +18,8 @@ set(Geometry_sources
     Jacobi2.cc
     buildEigenVector.cc
     computeEigenValues.cc
+    PolyClipperUtilities.cc
     fakemain.cc
-    polyclipper2d.cc
-    polyclipper3d.cc
    )
 
 instantiate(Geometry_inst Geometry_sources)
@@ -34,6 +33,7 @@ set(Geometry_headers
     EigenStructInline.hh
     EigenStruct_fwd.hh
     FacetedVolumeUtilities.hh
+    PolyClipperUtilities.hh
     Geom3Vector.hh
     Geom3VectorInline.hh
     GeomFacet1d.hh
@@ -94,8 +94,6 @@ set(Geometry_headers
     innerProduct.hh
     invertRankNTensor.hh
     outerProduct.hh
-    polyclipper.hh
-    polyclipper_utilities.hh
     )
 
 spheral_add_cxx_library(Geometry)
