@@ -73,7 +73,6 @@ spheral_install_python_files(
   resampleNodeList.py
   overlayNodeList.py
   writeSiloQuadMesh.py
-  ExpandingDomain.py
   ${CMAKE_CURRENT_BINARY_DIR}/Spheral_banner.py
   ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py
   )
