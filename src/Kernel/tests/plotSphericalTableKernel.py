@@ -47,7 +47,7 @@ for eta in etavals:
     rp = rprange(r, h)
     yvals = np.array([W(Vector1d(rpi/h), Vector1d(r/h), 1.0/h) for rpi in rp])
     yvals *= r*r
-    ax.plot((rp - r)/h, yvals, label = r"$r/h=%g$" % r)
+    ax.plot((rp - r)/h, yvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$r^2 \langle W_{3S1}(r^\prime, r, h)/h$ \rangle")
 ax.set_title("SphericalTableKernel approximation")
@@ -60,7 +60,7 @@ for eta in etavals:
     rp = rprange(r, h)
     yvals = np.array([W3S1(rpi, r, h) for rpi in rp])
     yvals *= r*r
-    ax.plot((rp - r)/h, yvals, label = r"$r/h=%g$" % r)
+    ax.plot((rp - r)/h, yvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$r^2 W_{3S1}(r^\prime, r, h)/h$")
 ax.set_title("Analytic")
@@ -71,7 +71,7 @@ for eta in etavals:
     r = h*eta
     rp = rprange(r, h)
     yvals = np.array([error(W3S1(rpi, r, h), W(Vector1d(rpi/h), Vector1d(r/h), 1.0/h))for rpi in rp])
-    ax.semilogy((rp - r)/h, yvals, label = r"$r/h=%g$" % r)
+    ax.semilogy((rp - r)/h, yvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$|\langle W_{3S1}(r^\prime, r, h) \rangle/W_{3S1}(r^\prime, r, h) - 1|$")
 ax.set_title("Error")
@@ -89,7 +89,7 @@ for eta in etavals:
     rp = rprange(r, h)
     gyvals = np.array([W.grad(Vector1d(rpi/h), Vector1d(r/h), 1.0/h) for rpi in rp])
     gyvals *= r*r
-    ax.plot((rp - r)/h, gyvals, label = r"$r/h=%g$" % r)
+    ax.plot((rp - r)/h, gyvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$r^2 \; \langle \partial_r W_{3S1}(r^\prime, r, h) \rangle$")
 ax.set_title("SphericalTableKernel gradient approximation")
@@ -103,7 +103,7 @@ for eta in etavals:
     yvals = np.array([W3S1(rpi, r, h) for rpi in rp])
     gyvals = np.gradient(yvals, rp)
     gyvals *= r*r
-    ax.plot((rp - r)/h, gyvals, label = r"$r/h=%g$" % r)
+    ax.plot((rp - r)/h, gyvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$r^2 \; \partial_r W_{3S1}(r^\prime, r, h)/h$")
 ax.set_title("Numpy gradient")
@@ -118,7 +118,7 @@ for eta in etavals:
     yvals0 = np.array([W3S1(rpi, r, h) for rpi in rpfine])
     gyvals0 = np.gradient(yvals0, rpfine)
     errvals = np.array([error(gyvals0[50*i], gyvals[i]) for i in xrange(len(gyvals))])
-    ax.semilogy((rp - r)/h, errvals, label = r"$r/h=%g$" % r)
+    ax.semilogy((rp - r)/h, errvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$|\langle \partial_r W_{3S1}(r^\prime, r, h) \rangle - \partial_r W_{3S1}(r^\prime, r, h)|/|\partial_r W_{3S1}(r^\prime, r, h)|$")
 ax.set_title("gradient Error")

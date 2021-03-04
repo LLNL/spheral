@@ -103,11 +103,24 @@ def Wtol(etai, etaj, etamax):
     else:
         return 0.1
 
+def gradWtol(etai, etaj, etamax):
+    delta = abs(etai - etaj)/etamax
+    delta_min = min(etai, etaj)/etamax
+    assert delta_min >= 0.0
+    if delta_min < 0.1:
+        return 2.0
+    elif delta < 0.5:
+        return 5e-5
+    if delta < 0.75:
+        return 1e-3
+    else:
+        return 0.1
+
 #-------------------------------------------------------------------------------
 # Error estimator
 #-------------------------------------------------------------------------------
 def error(val0, val1, fuzz=1.0e-8):
-    return abs(val1 - val0)/max(fuzz, abs(val0))
+    return min(abs(val1 - val0), abs(val1 - val0)/max(fuzz, abs(val0)))
 
 #-------------------------------------------------------------------------------
 # Unit tests for the SphericalKernel class using an ordinary bicubic spline base
@@ -121,10 +134,38 @@ class TestSphericalKernel(unittest.TestCase):
                 ri = hi*etai
                 for rj in rprange(ri, hi):
                     W0 = W3S1(rj, ri, hi)
-                    Wij = W(Vector(ri/hi), Vector(rj/hi), 1.0/hi)
-                    self.failUnless(error(W0, Wij) < Wtol(ri/hi, rj/hi, etamax),
-                                    "Kernel value outside tolerance @ (%g, %g, %g): %g != %g, %g !<= %g" % (ri, rj, hi, W0, Wij, error(W0, Wij), Wtol(ri/hi, rj/hi, etamax)))
+                    Wij = W(Vector(rj/hi), Vector(ri/hi), 1.0/hi)
+                    self.failUnless(error(W0, Wij) < Wtol(rj/hi, ri/hi, etamax),
+                                    "Kernel value outside tolerance @ (%g, %g, %g): %g != %g, %g !<= %g" % (rj, ri, hi, W0, Wij, error(W0, Wij), Wtol(rj/hi, ri/hi, etamax)))
 
+    def test_kernel_grad_vals(self):
+        for hi in hvals_i:
+            for etai in etavals_i:
+                ri = hi*etai
+                rjfine = rprange(ri, hi, etastep=0.001)
+                W3S1fine = np.array([W3S1(rj, ri, hi) for rj in rjfine])
+                gradW3S1fine = np.gradient(W3S1fine, rjfine)
+                for j, rj in enumerate(rprange(ri, hi, etastep=0.05)):
+                    gradWij = W.grad(Vector(rj/hi), Vector(ri/hi), 1.0/hi)
+                    gradW0 = gradW3S1fine[50*j]
+                    self.failUnless(error(gradW0, gradWij) < gradWtol(rj/hi, ri/hi, etamax),
+                                    "Kernel gradient value outside tolerance @ (%g, %g, %g): %g != %g, %g !<= %g" % (rj, ri, hi, gradW0, gradWij, error(gradW0, gradWij), gradWtol(rj/hi, ri/hi, etamax)))
+
+    def test_simultaneous_kernel_grad_vals(self):
+        self_tol = 1.0e-8
+        def self_error(X0, X1, fuzz):
+            return abs(X0 - X1)/max(fuzz, max(X1, X1))
+        for hi in hvals_i:
+            for etai in etavals_i:
+                ri = hi*etai
+                for rj in rprange(ri, hi, etastep=0.05):
+                    Wij0 = W(Vector(rj/hi), Vector(ri/hi), 1.0/hi)
+                    gradWij0 = W.grad(Vector(rj/hi), Vector(ri/hi), 1.0/hi)
+                    Wij1, gradWij1 = W.kernelAndGradValue(Vector(rj/hi), Vector(ri/hi), 1.0/hi)
+                    self.failUnless(self_error(Wij0, Wij1, self_tol) < self_tol,
+                                    "Kernel value lookup inconsistent @ (%g, %g, %g): %g != %g, %g !<= %g" % (rj, ri, hi, Wij0, Wij1, self_error(Wij0, Wij1, self_tol), self_tol))
+                    self.failUnless(self_error(gradWij0, gradWij1, self_tol) < self_tol,
+                                    "Kernel gradient value lookup inconsistent @ (%g, %g, %g): %g != %g, %g !<= %g" % (rj, ri, hi, gradWij0, gradWij1, self_error(gradWij0, gradWij1, self_tol), self_tol))
 
 if __name__ == "__main__":
     unittest.main()
