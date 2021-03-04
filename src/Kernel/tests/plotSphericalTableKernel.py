@@ -101,6 +101,12 @@ print("Required %0.4f sec to construct SphericalTableKernel"% (t1 - t0))
 #                         linewidth=0, antialiased=False)
 
 #-------------------------------------------------------------------------------
+# Return a useful r_j range for a given r_i
+#-------------------------------------------------------------------------------
+def rprange(r):
+    return np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+
+#-------------------------------------------------------------------------------
 # Reproduce Fig 1 from Omang, M., Borve, S., & Trulsen, J. (2006)
 #-------------------------------------------------------------------------------
 fig1 = plt.figure(tight_layout=True, figsize=(10,8))
@@ -110,7 +116,7 @@ eta = np.arange(-2.0, 2.0, 4.0/99)
 # First plot the SphericalTabelKernel fit
 ax = fig1.add_subplot(gs[0,0])
 for r in rvals:
-    rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+    rp = rprange(r)
     yvals = np.array([W(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
     yvals *= r
     if r == 0.5:
@@ -126,7 +132,7 @@ legend = ax.legend(loc="upper right", shadow=True)
 # Analytic kernel
 ax = fig1.add_subplot(gs[0,1])
 for r in rvals:
-    rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+    rp = rprange(r)
     yvals = np.array([W3S1(rpi, r, 1.0) for rpi in rp])
     yvals *= r
     if r == 0.5:
@@ -141,7 +147,7 @@ ax.set_title("Analytic")
 # Kernel error
 ax = fig1.add_subplot(gs[1,:])
 for r in rvals:
-    rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+    rp = rprange(r)
     yvals = np.array([abs(W(Vector1d(rpi), Vector1d(r), 1.0)/max(1e-5, W3S1(rpi, r, 1.0)) - 1.0) for rpi in rp])
     ax.semilogy(rp - r, yvals, label = r"$r/h=%g$" % r)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
@@ -157,7 +163,7 @@ ax.set_title("Error")
 # # Plot SphericalTableKernel gradient
 # ax = fig10.add_subplot(gs[0,0])
 # for r in rvals:
-#     rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+#     rp = rprange(r)
 #     gyvals = np.array([W.grad(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
 #     #gyvals *= r**3
 #     ax.plot(rp - r, gyvals, label = r"$r/h=%g$" % r)
@@ -169,7 +175,7 @@ ax.set_title("Error")
 # # Analytic kernel gradient
 # ax = fig10.add_subplot(gs[0,1])
 # for r in rvals:
-#     rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+#     rp = rprange(r)
 #     gyvals = np.array([gradW3S1(rpi, r, 1.0) for rpi in rp])
 #     #gyvals *= r**3
 #     ax.plot(rp - r, gyvals, label = r"$r/h=%g$" % r)
@@ -180,7 +186,7 @@ ax.set_title("Error")
 # # Kernel gradient error
 # ax = fig10.add_subplot(gs[1,:])
 # for r in rvals:
-#     rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+#     rp = rprange(r)
 #     yvals = np.array([abs(W.grad(Vector1d(rpi), Vector1d(r), 1.0) - gradW3S1(rpi, r, 1.0))/max(1e-5, abs(gradW3S1(rpi, r, 1.0))) for rpi in rp])
 #     ax.semilogy(rp - r, yvals, label = r"$r/h=%g$" % r)
 # ax.set_xlabel(r"$(r^\prime - r)/h$")
@@ -196,7 +202,7 @@ gs = gridspec.GridSpec(nrows = 2, ncols = 2, height_ratios = [2,1], figure=fig1)
 # Plot SphericalTableKernel gradient
 ax = fig20.add_subplot(gs[0,0])
 for r in rvals:
-    rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+    rp = rprange(r)
     gyvals = np.array([W.grad(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
     #gyvals *= r**3
     ax.plot(rp - r, gyvals, label = r"$r/h=%g$" % r)
@@ -208,7 +214,7 @@ legend = ax.legend(loc="lower right", shadow=True)
 # Numpy gradient estimate
 ax = fig20.add_subplot(gs[0,1])
 for r in rvals:
-    rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+    rp = rprange(r)
     yvals = np.array([W(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
     gyvals = np.gradient(yvals, rp)
     #gyvals *= r**3
@@ -220,7 +226,7 @@ ax.set_title("Numpy gradient")
 # Kernel gradient error
 ax = fig20.add_subplot(gs[1,:])
 for r in rvals:
-    rp = np.arange(max(0.01, r - 2.0), r + 2.0, 0.05)
+    rp = rprange(r)
     yvals = np.array([W(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
     gyvals = np.array([W.grad(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
     gyvals0 = np.gradient(yvals, rp)

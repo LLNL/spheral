@@ -135,43 +135,4 @@ SphericalTableKernel::valid() const {
   return true;
 }
 
-//------------------------------------------------------------------------------
-// Lookup the grad kernel for (rj/h, ri/h) = (etaj, etai)
-//------------------------------------------------------------------------------
-double
-SphericalTableKernel::grad(const Dim<1>::Vector& etaj,
-                           const Dim<1>::Vector& etai,
-                           const Dim<1>::Scalar  Hdeti) const {
-  REQUIRE(Hdeti >= 0.0);
-  const auto ei = std::max(1e-10, etai[0]);
-  const auto ej = std::max(1e-10, etaj[0]);
-  CHECK(ei > 0.0);
-  CHECK(ej > 0.0);
-  const auto min_bound = std::abs(ej - ei);
-  if (min_bound > metamax) return 0.0;
-  const auto max_bound = std::min(metamax, ei + ej);
-  const auto etahat = sgn(ei - ej);
-  const auto A = (ei + ej >= metamax ?
-                  0.0 :
-                  max_bound*mKernel.kernelValue(max_bound, Hdeti));
-  const auto B = min_bound*mKernel.kernelValue(min_bound, Hdeti)*etahat;
-  return 2.0*M_PI/(ei*ej)*Hdeti*(A + B - Hdeti/ei*mInterp(Dim<2>::Vector(min_bound, max_bound)));
-
-  // const auto A = (ei + ej < metamax ?
-  //                 Hdeti*(max_bound*mKernel.gradValue(max_bound, Hdeti) + mKernel.kernelValue(max_bound, Hdeti)) :
-  //                 0.0);
-  // const auto B = Hdeti*(ei - ej)/std::max(1.0e-10, min_bound)*(min_bound*mKernel.gradValue(min_bound, Hdeti) + mKernel.kernelValue(min_bound, Hdeti));
-  // // const auto B = Hdeti*(ei - ej)/std::max(1.0e-10, min_bound)*(min_bound*mKernel.gradValue(min_bound, Hdeti) + mKernel.kernelValue(min_bound, Hdeti));
-  // // const auto B = (min_bound*Hdeti*mKernel.gradValue(min_bound, Hdeti) + Hdeti*mKernel.kernelValue(min_bound, Hdeti) * (ei >= ej ? 1.0 : -1.0);
-  // return 2.0*M_PI/(ei*ej)*Hdeti*((A - B) - Hdeti*mInterp(Dim<2>::Vector(min_bound, max_bound)/ei));
-
-  // // const auto grad_min_bound = ej > ei ?           1.0 : -1.0;
-  // // const auto grad_max_bound = ei + ej < metamax ? 1.0 :  0.0;
-  // // return 2.0*M_PI/(ei*ej)*Hdeti*(-mInterp(Dim<2>::Vector(min_bound, max_bound))*Hdeti/ej +
-  // //                                Hdeti*((max_bound*mKernel.gradValue(max_bound, Hdeti) + mKernel.kernelValue(max_bound, Hdeti))*grad_max_bound -
-  // //                                       (min_bound*mKernel.gradValue(min_bound, Hdeti) + mKernel.kernelValue(min_bound, Hdeti))*grad_min_bound));
-  // // return 2.0*M_PI*Hdeti*Hdeti*(mGradInterp(Dim<2>::Vector(min_bound, max_bound))/(ei*ej)*sgn(ei - ej) -
-  // //                              mInterp(Dim<2>::Vector(min_bound, max_bound))*Hdeti/(ei*ej*ej));
-}
-
 }
