@@ -6,77 +6,13 @@ import matplotlib.gridspec as gridspec
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
+from testBicubicSphericalKernel import W3S1, rprange, error
+
 import time
 
 # The set of r/h values from the origin we'll test
 etavals = (0.5, 1.5, 2.5, 3.5, 10.0, 20.0)
 h = 0.1
-
-#-------------------------------------------------------------------------------
-# The analytic form of the quadratic bi-cubic spline from Omang et al.
-#-------------------------------------------------------------------------------
-def W3S1(rj, ri, h):
-    def C(q):
-        return q*q - 0.75*q**4 + 0.3*q**5
-    def D(q):
-        return 2.0*(q*q - q**3) + 0.75*q**4 - 0.1*q**5
-    sigj = rj/h
-    sigi = ri/h
-    sigdiff = abs(sigj - sigi)
-    sigplus = sigj + sigi
-    result = 0.0
-    if sigplus <= 1.0:
-        result = C(sigplus) - C(sigdiff)
-    elif sigplus <= 2.0:
-        if sigdiff < 1.0:
-            result = -0.1 + D(sigplus) - C(sigdiff)
-        elif sigdiff < 2.0:
-            result = D(sigplus) - D(sigdiff)
-    else:
-        if sigdiff < 1.0:
-            result = 0.7 - C(sigdiff)
-        elif sigdiff < 2.0:
-            result = 0.8 - D(sigdiff)
-    return result/(h*rj*ri)
-
-#-------------------------------------------------------------------------------
-# The analytic gradient of the quadratic bi-cubic spline from Omang et al.
-#-------------------------------------------------------------------------------
-def gradW3S1(rj, ri, h):
-    def C(q):
-        return q*q - 0.75*q**4 + 0.3*q**5
-    def D(q):
-        return 2.0*(q*q - q**3) + 0.75*q**4 - 0.1*q**5
-    def gradC(q):
-        return 2.0*q - 3.0*q**3 + 1.5*q**4
-    def gradD(q):
-        return 4.0*q - 6.0*q**2 + 3.0*q**3 - 0.5*q**4
-    sigj = rj/h
-    sigi = ri/h
-    sigdiff = abs(sigj - sigi)
-    sigplus = sigj + sigi
-
-    # \partial_rj
-    if sigj > sigi:
-        sgnfac = -1.0
-    else:
-        sgnfac = 1.0
-    #sgnfac = 1.0
-
-    if sigplus <= 1.0:
-        return -W3S1(rj, ri, h)/rj + (gradC(sigplus) - sgnfac*gradC(sigdiff))/(h*h*ri*rj)
-
-    elif sigplus <= 2.0:
-        if sigdiff < 1.0:
-            return -W3S1(rj, ri, h)/rj + (gradD(sigplus) - sgnfac*gradC(sigdiff))/(h*h*ri*rj)
-        else:
-            return -W3S1(rj, ri, h)/rj + (gradD(sigplus) - sgnfac*gradD(sigdiff))/(h*h*ri*rj)
-
-    else:
-        if sigdiff < 1.0:
-            return -W3S1(rj, ri, h)/rj - sgnfac*gradC(sigdiff)/(h*h*ri*rj)
-        else:
-            return -W3S1(rj, ri, h)/rj - sgnfac*gradD(sigdiff)/(h*h*ri*rj)
 
 WT = TableKernel3d(BSplineKernel3d(), 500)
 t0 = time.time()
@@ -97,12 +33,6 @@ print("Required %0.4f sec to construct SphericalTableKernel"% (t1 - t0))
 # ax0 = fig0.add_subplot(111, projection='3d')
 # surf = ax0.plot_surface(x, y, z, cmap=cm.coolwarm,
 #                         linewidth=0, antialiased=False)
-
-#-------------------------------------------------------------------------------
-# Return a useful r_j range for a given r_i
-#-------------------------------------------------------------------------------
-def rprange(r, h, etastep=0.05):
-    return h*np.arange(max(0.01, r/h - 2.0), r/h + 2.0, etastep)
 
 #-------------------------------------------------------------------------------
 # Reproduce Fig 1 from Omang, M., Borve, S., & Trulsen, J. (2006)
@@ -140,8 +70,8 @@ ax = fig1.add_subplot(gs[1,:])
 for eta in etavals:
     r = h*eta
     rp = rprange(r, h)
-    yvals = np.array([abs(W(Vector1d(rpi/h), Vector1d(r/h), 1.0/h)/max(1e-5, W3S1(rpi, r, h)) - 1.0) for rpi in rp])
-    ax.semilogy(rp - r, yvals, label = r"$r/h=%g$" % r)
+    yvals = np.array([error(W3S1(rpi, r, h), W(Vector1d(rpi/h), Vector1d(r/h), 1.0/h))for rpi in rp])
+    ax.semilogy((rp - r)/h, yvals, label = r"$r/h=%g$" % r)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$|\langle W_{3S1}(r^\prime, r, h) \rangle/W_{3S1}(r^\prime, r, h) - 1|$")
 ax.set_title("Error")
@@ -173,7 +103,7 @@ for eta in etavals:
     yvals = np.array([W3S1(rpi, r, h) for rpi in rp])
     gyvals = np.gradient(yvals, rp)
     gyvals *= r*r
-    ax.plot(rp - r, gyvals, label = r"$r/h=%g$" % r)
+    ax.plot((rp - r)/h, gyvals, label = r"$r/h=%g$" % r)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$r^2 \; \partial_r W_{3S1}(r^\prime, r, h)/h$")
 ax.set_title("Numpy gradient")
@@ -187,8 +117,8 @@ for eta in etavals:
     gyvals = np.array([W.grad(Vector1d(rpi/h), Vector1d(r/h), 1.0/h) for rpi in rp])
     yvals0 = np.array([W3S1(rpi, r, h) for rpi in rpfine])
     gyvals0 = np.gradient(yvals0, rpfine)
-    errvals = np.array([abs(gyvals[i] - gyvals0[50*i])/max(1e-5, abs(gyvals0[50*i])) for i in xrange(len(gyvals))])
-    ax.semilogy(rp - r, errvals, label = r"$r/h=%g$" % r)
+    errvals = np.array([error(gyvals0[50*i], gyvals[i]) for i in xrange(len(gyvals))])
+    ax.semilogy((rp - r)/h, errvals, label = r"$r/h=%g$" % r)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$|\langle \partial_r W_{3S1}(r^\prime, r, h) \rangle - \partial_r W_{3S1}(r^\prime, r, h)|/|\partial_r W_{3S1}(r^\prime, r, h)|$")
 ax.set_title("gradient Error")
