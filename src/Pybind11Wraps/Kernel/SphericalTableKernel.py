@@ -45,6 +45,5 @@ class SphericalTableKernel:
     #---------------------------------------------------------------------------
     # Attributes
     Winterpolator = PYB11property(doc="Interpolator for the kernel value")
-    gradWinterpolator = PYB11property(doc="Interpolator for the kernel gradient value")
     kernel = PYB11property(doc="The base 3D kernel")
     etamax = PYB11property(doc="The maximum kernel extent of the base 3D kernel")

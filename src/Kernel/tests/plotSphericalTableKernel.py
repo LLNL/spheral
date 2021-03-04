@@ -118,14 +118,14 @@ ax = fig1.add_subplot(gs[0,0])
 for r in rvals:
     rp = rprange(r)
     yvals = np.array([W(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
-    yvals *= r
-    if r == 0.5:
-        yvals *= 0.5
-        ax.plot(rp - r, yvals, label = r"$r/h=%g (\times 1/2)$" % r)
-    else:
-        ax.plot(rp - r, yvals, label = r"$r/h=%g$" % r)
+    yvals *= r*r
+    # if r == 0.5:
+    #     yvals *= 0.5
+    #     ax.plot(rp - r, yvals, label = r"$r/h=%g (\times 1/2)$" % r)
+    # else:
+    ax.plot(rp - r, yvals, label = r"$r/h=%g$" % r)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
-ax.set_ylabel(r"$r \langle W_{3S1}(r^\prime, r, h)/h$ \rangle")
+ax.set_ylabel(r"$r^2 \langle W_{3S1}(r^\prime, r, h)/h$ \rangle")
 ax.set_title("SphericalTableKernel approximation")
 legend = ax.legend(loc="upper right", shadow=True)
 
@@ -134,14 +134,14 @@ ax = fig1.add_subplot(gs[0,1])
 for r in rvals:
     rp = rprange(r)
     yvals = np.array([W3S1(rpi, r, 1.0) for rpi in rp])
-    yvals *= r
-    if r == 0.5:
-        yvals *= 0.5
-        ax.plot(rp - r, yvals, label = r"$r/h=%g (\times 1/2)$" % r)
-    else:
-        ax.plot(rp - r, yvals, label = r"$r/h=%g$" % r)
+    yvals *= r*r
+    # if r == 0.5:
+    #     yvals *= 0.5
+    #     ax.plot(rp - r, yvals, label = r"$r/h=%g (\times 1/2)$" % r)
+    # else:
+    ax.plot(rp - r, yvals, label = r"$r/h=%g$" % r)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
-ax.set_ylabel(r"$r W_{3S1}(r^\prime, r, h)/h$")
+ax.set_ylabel(r"$r^2 W_{3S1}(r^\prime, r, h)/h$")
 ax.set_title("Analytic")
 
 # Kernel error
@@ -154,45 +154,6 @@ ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$|\langle W_{3S1}(r^\prime, r, h) \rangle/W_{3S1}(r^\prime, r, h) - 1|$")
 ax.set_title("Error")
 
-# #-------------------------------------------------------------------------------
-# # Plot the gradient
-# #-------------------------------------------------------------------------------
-# fig10 = plt.figure(tight_layout=True, figsize=(10,8))
-# gs = gridspec.GridSpec(nrows = 2, ncols = 2, height_ratios = [2,1], figure=fig1)
-
-# # Plot SphericalTableKernel gradient
-# ax = fig10.add_subplot(gs[0,0])
-# for r in rvals:
-#     rp = rprange(r)
-#     gyvals = np.array([W.grad(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
-#     #gyvals *= r**3
-#     ax.plot(rp - r, gyvals, label = r"$r/h=%g$" % r)
-# ax.set_xlabel(r"$(r^\prime - r)/h$")
-# ax.set_ylabel(r"$r^3 \langle \partial_r W_{3S1}(r^\prime, r, h) \rangle$")
-# ax.set_title("SphericalTableKernel gradient approximation")
-# legend = ax.legend(loc="lower right", shadow=True)
-
-# # Analytic kernel gradient
-# ax = fig10.add_subplot(gs[0,1])
-# for r in rvals:
-#     rp = rprange(r)
-#     gyvals = np.array([gradW3S1(rpi, r, 1.0) for rpi in rp])
-#     #gyvals *= r**3
-#     ax.plot(rp - r, gyvals, label = r"$r/h=%g$" % r)
-# ax.set_xlabel(r"$(r^\prime - r)/h$")
-# ax.set_ylabel(r"$r^3 \partial_r W_{3S1}(r^\prime, r, h)/h$")
-# ax.set_title("Analytic gradient")
-
-# # Kernel gradient error
-# ax = fig10.add_subplot(gs[1,:])
-# for r in rvals:
-#     rp = rprange(r)
-#     yvals = np.array([abs(W.grad(Vector1d(rpi), Vector1d(r), 1.0) - gradW3S1(rpi, r, 1.0))/max(1e-5, abs(gradW3S1(rpi, r, 1.0))) for rpi in rp])
-#     ax.semilogy(rp - r, yvals, label = r"$r/h=%g$" % r)
-# ax.set_xlabel(r"$(r^\prime - r)/h$")
-# ax.set_ylabel(r"$|\langle \partial_r W_{3S1}(r^\prime, r, h) \rangle - \partial_r W_{3S1}(r^\prime, r, h)|/|\partial_r W_{3S1}(r^\prime, r, h)|$")
-# ax.set_title("gradient Error")
-
 #-------------------------------------------------------------------------------
 # Plot the gradient compared with the numpy gradient estimator
 #-------------------------------------------------------------------------------
@@ -204,23 +165,31 @@ ax = fig20.add_subplot(gs[0,0])
 for r in rvals:
     rp = rprange(r)
     gyvals = np.array([W.grad(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
-    #gyvals *= r**3
+    gyvals *= r*r
+    # if r == 0.5:
+    #     gyvals *= 0.5
+    #     ax.plot(rp - r, gyvals, label = r"$r/h=%g (\times 1/2)$" % r)
+    # else:
     ax.plot(rp - r, gyvals, label = r"$r/h=%g$" % r)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
-ax.set_ylabel(r"$r^3 \langle \partial_r W_{3S1}(r^\prime, r, h) \rangle$")
+ax.set_ylabel(r"$r^2 \; \langle \partial_r W_{3S1}(r^\prime, r, h) \rangle$")
 ax.set_title("SphericalTableKernel gradient approximation")
-legend = ax.legend(loc="lower right", shadow=True)
+legend = ax.legend(loc="upper right", shadow=True)
 
 # Numpy gradient estimate
 ax = fig20.add_subplot(gs[0,1])
 for r in rvals:
     rp = rprange(r)
-    yvals = np.array([W(Vector1d(rpi), Vector1d(r), 1.0) for rpi in rp])
+    yvals = np.array([W3S1(rpi, r, 1.0) for rpi in rp])
     gyvals = np.gradient(yvals, rp)
-    #gyvals *= r**3
+    gyvals *= r*r
+    # if r == 0.5:
+    #     gyvals *= 0.5
+    #     ax.plot(rp - r, gyvals, label = r"$r/h=%g (\times 1/2)$" % r)
+    # else:
     ax.plot(rp - r, gyvals, label = r"$r/h=%g$" % r)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
-ax.set_ylabel(r"$r^3 \partial_r W_{3S1}(r^\prime, r, h)/h$")
+ax.set_ylabel(r"$r^2 \; \partial_r W_{3S1}(r^\prime, r, h)/h$")
 ax.set_title("Numpy gradient")
 
 # Kernel gradient error

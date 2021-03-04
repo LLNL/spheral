@@ -61,7 +61,6 @@ public:
 
   // Access our internal data.
   const InterpolatorType& Winterpolator() const;
-  const InterpolatorType& gradWinterpolator() const;
   const TableKernel<Dim<3>>& kernel() const;
   Scalar etamax() const;
 
@@ -71,7 +70,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
-  InterpolatorType mInterp, mGradInterp;
+  InterpolatorType mInterp;
   TableKernel<Dim<3>> mKernel;
   Scalar metamax;
 };

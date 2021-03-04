@@ -103,12 +103,6 @@ SphericalTableKernel::Winterpolator() const {
 }
 
 inline
-const typename SphericalTableKernel::InterpolatorType&
-SphericalTableKernel::gradWinterpolator() const {
-  return mGradInterp;
-}
-
-inline
 const TableKernel<Dim<3>>&
 SphericalTableKernel::kernel() const {
   return mKernel;

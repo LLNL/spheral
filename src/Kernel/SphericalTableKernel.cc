@@ -88,11 +88,6 @@ SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
           std::max(size_t(200), kernel.numPoints()),
           std::max(size_t(200), kernel.numPoints()),
           W3S1Func(kernel)),
-  // mGradInterp(Dim<2>::Vector(0.0, 0.0),
-  //             Dim<2>::Vector(kernel.kernelExtent(), kernel.kernelExtent()),
-  //             std::max(size_t(200), kernel.numPoints()),
-  //             std::max(size_t(200), kernel.numPoints()),
-  //             gradW3S1Func(kernel)),
   mKernel(kernel),
   metamax(kernel.kernelExtent()) {
 }
@@ -102,7 +97,6 @@ SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
 //------------------------------------------------------------------------------
 SphericalTableKernel::SphericalTableKernel(const SphericalTableKernel& rhs):
   mInterp(rhs.mInterp),
-  mGradInterp(rhs.mGradInterp),
   mKernel(rhs.mKernel),
   metamax(rhs.metamax) {
 }
@@ -120,7 +114,6 @@ SphericalTableKernel&
 SphericalTableKernel::operator=(const SphericalTableKernel& rhs) {
   if (this != &rhs) {
     mInterp = rhs.mInterp;
-    mGradInterp = rhs.mGradInterp;
     mKernel = rhs.mKernel;
     metamax = rhs.metamax;
   }
