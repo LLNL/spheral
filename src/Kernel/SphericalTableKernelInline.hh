@@ -1,4 +1,5 @@
 #include "Utilities/SpheralFunctions.hh"  // sgn
+#include "Utilities/FastMath.hh"
 
 namespace Spheral {
 
@@ -18,7 +19,7 @@ SphericalTableKernel::operator()(const Dim<1>::Vector& etaj,
   const auto min_bound = std::abs(ej - ei);
   if (min_bound > metamax) return 0.0;
   const auto max_bound = std::min(metamax, ei + ej);
-  return 2.0*M_PI/(ei*ej)*Hdeti*mInterp(Dim<2>::Vector(min_bound, max_bound));
+  return 2.0*M_PI/(ei*ej)*FastMath::cube(Hdeti)*mInterp(Dim<2>::Vector(min_bound, max_bound));
 }
 
 //------------------------------------------------------------------------------
@@ -42,7 +43,7 @@ SphericalTableKernel::grad(const Dim<1>::Vector& etaj,
                   0.0 :
                   max_bound*mKernel.kernelValue(max_bound, Hdeti));
   const auto B = min_bound*mKernel.kernelValue(min_bound, Hdeti)*etahat;
-  return 2.0*M_PI/(ei*ej)*Hdeti*(A + B - Hdeti/ej*mInterp(Dim<2>::Vector(min_bound, max_bound)));
+  return 2.0*M_PI/(ei*ej)*FastMath::cube(Hdeti)*(A + B - Hdeti/ej*mInterp(Dim<2>::Vector(min_bound, max_bound)));
 }
 
 //------------------------------------------------------------------------------
@@ -67,8 +68,9 @@ SphericalTableKernel::kernelAndGradValue(const Dim<1>::Vector& etaj,
                   max_bound*mKernel.kernelValue(max_bound, Hdeti));
   const auto B = min_bound*mKernel.kernelValue(min_bound, Hdeti)*etahat;
   const auto interpVal = mInterp(Dim<2>::Vector(min_bound, max_bound));
-  const auto Wval = 2.0*M_PI/(ei*ej)*Hdeti*interpVal;
-  const auto gradWval = 2.0*M_PI/(ei*ej)*Hdeti*(A + B - Hdeti/ej*interpVal);
+  const auto pre = 2.0*M_PI/(ei*ej)*FastMath::cube(Hdeti);
+  const auto Wval = pre*interpVal;
+  const auto gradWval = pre*(A + B - Hdeti/ej*interpVal);
   return std::make_pair(Wval, gradWval);
 }
 
