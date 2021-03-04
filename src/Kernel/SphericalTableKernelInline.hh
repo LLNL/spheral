@@ -22,26 +22,6 @@ SphericalTableKernel::operator()(const Dim<1>::Vector& etaj,
 }
 
 //------------------------------------------------------------------------------
-// Lookup the grad kernel for (rj/h, ri/h) = (etaj, etai)
-//------------------------------------------------------------------------------
-inline
-double
-SphericalTableKernel::grad(const Dim<1>::Vector& etaj,
-                           const Dim<1>::Vector& etai,
-                           const Dim<1>::Scalar  Hdeti) const {
-  REQUIRE(Hdeti >= 0.0);
-  const auto ei = std::max(1e-10, etai[0]);
-  const auto ej = std::max(1e-10, etaj[0]);
-  CHECK(ei > 0.0);
-  CHECK(ej > 0.0);
-  const auto min_bound = std::abs(ej - ei);
-  if (min_bound > metamax) return 0.0;
-  const auto max_bound = std::min(metamax, ei + ej);
-  return 2.0*M_PI*Hdeti*Hdeti*(mGradInterp(Dim<2>::Vector(min_bound, max_bound))/(ei*ej)*sgn(ei - ej) -
-                               mInterp(Dim<2>::Vector(min_bound, max_bound))*Hdeti/(ei*ej*ej));
-}
-
-//------------------------------------------------------------------------------
 // Simultaneously lookup (W,  grad W) for (rj/h, ri/h) = (etaj, etai)
 //------------------------------------------------------------------------------
 inline
