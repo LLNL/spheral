@@ -6,7 +6,7 @@ import matplotlib.gridspec as gridspec
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
-from testBicubicSphericalKernel import W3S1, rprange, error
+from testBicubicSphericalKernel import W3S1, rprange, error, W
 
 import time
 
@@ -14,11 +14,11 @@ import time
 etavals = (0.5, 1.5, 2.5, 3.5, 10.0, 20.0)
 h = 0.1
 
-WT = TableKernel3d(BSplineKernel3d(), 500)
-t0 = time.time()
-W = SphericalTableKernel(WT)
-t1 = time.time()
-print("Required %0.4f sec to construct SphericalTableKernel"% (t1 - t0))
+# WT = TableKernel3d(BSplineKernel3d(), 500)
+# t0 = time.time()
+# W = SphericalTableKernel(WT)
+# t1 = time.time()
+# print("Required %0.4f sec to construct SphericalTableKernel"% (t1 - t0))
 
 # # Plot the overall W surface
 # x = np.arange(0.1, 2.5, 2.5/99)
