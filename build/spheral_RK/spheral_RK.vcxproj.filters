@@ -87,6 +87,14 @@
     <ClCompile Include="..\..\src\RK\RKFieldNames.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\RK\gradientRKInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\gradientRKInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\hessianRKInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\hessianRKInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\ReproducingKernelInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\ReproducingKernelInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\ReproducingKernelMethodsInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\ReproducingKernelMethodsInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\RK\computeHullVolumes.hh">
@@ -170,5 +178,9 @@
     <CustomBuild Include="..\..\src\RK\interpolateRKInst.cc.py" />
     <CustomBuild Include="..\..\src\RK\RKCorrectionsInst.cc.py" />
     <CustomBuild Include="..\..\src\RK\RKUtilitiesInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\gradientRKInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\hessianRKInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\ReproducingKernelInst.cc.py" />
+    <CustomBuild Include="..\..\src\RK\ReproducingKernelMethodsInst.cc.py" />
   </ItemGroup>
 </Project>

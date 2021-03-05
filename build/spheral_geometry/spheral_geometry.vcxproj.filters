@@ -78,10 +78,7 @@
     <ClCompile Include="..\..\src\Geometry\clipFacetedVolumeByPlanes3d.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Geometry\polyclipper2d.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Geometry\polyclipper3d.cc">
+    <ClCompile Include="..\..\src\Geometry\PolyClipperUtilities.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
