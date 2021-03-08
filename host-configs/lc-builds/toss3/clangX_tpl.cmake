@@ -1,4 +1,4 @@
-set(LC_TPL_DIR "/usr/gapps/Spheral/tpl/lc_toss3-clang-9.0.0-rel-tpl/install/tpl" CACHE STRING "")
+set(LC_TPL_DIR "/usr/gapps/Spheral/tpl/lc_toss3_clang9-release-tpl-only/install/tpl" CACHE STRING "")
 
 set(zlib_BUILD OFF CACHE BOOL "Option to build zlib")
 set(boost_BUILD OFF CACHE BOOL "Option to build boost")
