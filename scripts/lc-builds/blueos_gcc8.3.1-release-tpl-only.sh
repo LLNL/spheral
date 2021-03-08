@@ -26,6 +26,6 @@ cd $BUILD_SUFFIX/build
 make -j install
 
 cd -
-find ${INSTALL_DIR}/ -type d -exec chmod g+rx {} \;
-find ${INSTALL_DIR}/ -type f -exec chmod g+rx {} \;
-find ${INSTALL_DIR}/ -name "Python*egg-info" -exec chgrp wciuser {} \;
+find ${BUILD_SUFFIX}/ -type d -exec chmod g+rx {} \;
+find ${BUILD_SUFFIX}/ -type f -exec chmod g+rx {} \;
+find ${BUILD_SUFFIX}/ -name "*egg-info" -exec chgrp wciuser {} \;
