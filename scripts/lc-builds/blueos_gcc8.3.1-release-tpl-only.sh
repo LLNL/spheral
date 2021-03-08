@@ -18,7 +18,6 @@ cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-8.3.1/bin/g++ \
   -DENABLE_OPENMP=On \
-  -DENABLE_MPI=On \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
   -DBUILD_TPL_ONLY=On \
   $CMAKE_ARGS \
@@ -29,4 +28,4 @@ make -j install
 cd -
 find ${INSTALL_DIR}/ -type d -exec chmod g+rx {} \;
 find ${INSTALL_DIR}/ -type f -exec chmod g+rx {} \;
-find ${INSTALL_DIR}/ -name "*egg-info" -exec chgrp wciuser {} \;
+find ${INSTALL_DIR}/ -name "Python*egg-info" -exec chgrp wciuser {} \;

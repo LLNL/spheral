@@ -29,4 +29,4 @@ make -j install
 cd -
 find ${INSTALL_DIR}/ -type d -exec chmod g+rx {} \;
 find ${INSTALL_DIR}/ -type f -exec chmod g+rx {} \;
-find ${INSTALL_DIR}/ -name "Python*egg-info" -exec chgrp wciuser {} \;
+find ${INSTALL_DIR}/ -name "*egg-info" -exec chgrp wciuser {} \;
