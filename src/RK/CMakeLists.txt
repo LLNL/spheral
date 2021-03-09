@@ -8,7 +8,12 @@ set(RK_inst
   ContinuityVolumePolicy
   computeRKVolumes
   RKCorrections
-  RKUtilities
+  RKUtilities012
+  RKUtilities3
+  RKUtilities4
+  RKUtilities5
+  RKUtilities6
+  RKUtilities7
   ReproducingKernelMethods
   ReproducingKernel
   interpolateRK
