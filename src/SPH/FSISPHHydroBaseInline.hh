@@ -1,5 +1,4 @@
 namespace Spheral {
-
 //------------------------------------------------------------------------------
 // set/get the generalized density exponent (Monaghan 1992)
 //------------------------------------------------------------------------------
@@ -7,8 +6,8 @@ template<typename Dimension>
 inline
 void
 FSISPHHydroBase<Dimension>::
-alpha(double x) {
-  mAlpha = x;
+surfaceForceCoefficient(double x) {
+  mSurfaceForceCoefficient = x;
 }
 
 
@@ -16,28 +15,57 @@ template<typename Dimension>
 inline
 double
 FSISPHHydroBase<Dimension>::
-alpha() const {
-  return mAlpha;
+surfaceForceCoefficient() const {
+  return mSurfaceForceCoefficient;
 }
 
 template<typename Dimension>
 inline
 void
 FSISPHHydroBase<Dimension>::
-diffusionCoefficient(double x) {
-  mDiffusionCoefficient = x;
+densityStabilizationCoefficient(double x) {
+  mDensityStabilizationCoefficient = x;
 }
 
 template<typename Dimension>
 inline
 double
 FSISPHHydroBase<Dimension>::
-diffusionCoefficient() const {
-  return mDiffusionCoefficient;
+densityStabilizationCoefficient() const {
+  return mDensityStabilizationCoefficient;
 }
 
+template<typename Dimension>
+inline
+void
+FSISPHHydroBase<Dimension>::
+densityDiffusionCoefficient(double x) {
+  mDensityDiffusionCoefficient = x;
+}
 
+template<typename Dimension>
+inline
+double
+FSISPHHydroBase<Dimension>::
+densityDiffusionCoefficient() const {
+  return mDensityDiffusionCoefficient;
+}
 
+template<typename Dimension>
+inline
+void
+FSISPHHydroBase<Dimension>::
+specificThermalEnergyDiffusionCoefficient(double x) {
+  mSpecificThermalEnergyDiffusionCoefficient = x;
+}
+
+template<typename Dimension>
+inline
+double
+FSISPHHydroBase<Dimension>::
+specificThermalEnergyDiffusionCoefficient() const {
+  return mSpecificThermalEnergyDiffusionCoefficient;
+}
 //------------------------------------------------------------------------------
 // swtich to turn on density sum for different nodeLists
 //------------------------------------------------------------------------------

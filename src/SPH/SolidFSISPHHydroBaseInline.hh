@@ -7,8 +7,8 @@ template<typename Dimension>
 inline
 void
 SolidFSISPHHydroBase<Dimension>::
-alpha(double x) {
-  mAlpha = x;
+surfaceForceCoefficient(double x) {
+  mSurfaceForceCoefficient = x;
 }
 
 
@@ -16,27 +16,57 @@ template<typename Dimension>
 inline
 double
 SolidFSISPHHydroBase<Dimension>::
-alpha() const {
-  return mAlpha;
+surfaceForceCoefficient() const {
+  return mSurfaceForceCoefficient;
 }
 
 template<typename Dimension>
 inline
 void
 SolidFSISPHHydroBase<Dimension>::
-diffusionCoefficient(double x) {
-  mDiffusionCoefficient = x;
+densityStabilizationCoefficient(double x) {
+  mDensityStabilizationCoefficient = x;
 }
 
 template<typename Dimension>
 inline
 double
 SolidFSISPHHydroBase<Dimension>::
-diffusionCoefficient() const {
-  return mDiffusionCoefficient;
+densityStabilizationCoefficient() const {
+  return mDensityStabilizationCoefficient;
 }
 
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+densityDiffusionCoefficient(double x) {
+  mDensityDiffusionCoefficient = x;
+}
 
+template<typename Dimension>
+inline
+double
+SolidFSISPHHydroBase<Dimension>::
+densityDiffusionCoefficient() const {
+  return mDensityDiffusionCoefficient;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+specificThermalEnergyDiffusionCoefficient(double x) {
+  mSpecificThermalEnergyDiffusionCoefficient = x;
+}
+
+template<typename Dimension>
+inline
+double
+SolidFSISPHHydroBase<Dimension>::
+specificThermalEnergyDiffusionCoefficient() const {
+  return mSpecificThermalEnergyDiffusionCoefficient;
+}
 
 //------------------------------------------------------------------------------
 // swtich to turn on density sum for different nodeLists

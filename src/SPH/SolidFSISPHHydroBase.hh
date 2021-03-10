@@ -40,20 +40,19 @@ public:
                     DataBase<Dimension>& dataBase,
                     ArtificialViscosity<Dimension>& Q,
                     const TableKernel<Dimension>& W,
-                    const TableKernel<Dimension>& WPi,
-                    const TableKernel<Dimension>& WGrad,
-                    const double alpha,
-                    const double diffusionCoefficient,
-                    const std::vector<int> sumDensityNodeLists,
                     const double filter,
                     const double cfl,
+                    const double surfaceForceCoefficient,
+                    const double densityStabilizationCoefficient,
+                    const double densityDiffusionCoefficient,
+                    const double specificThermalEnergyDiffusionCoefficient,
+                    const std::vector<int> sumDensityNodeLists,
                     const bool useVelocityMagnitudeForDt,
                     const bool compatibleEnergyEvolution,
                     const bool evolveTotalEnergy,
                     const bool gradhCorrection,
                     const bool XSPH,
                     const bool correctVelocityGradient,
-                    const bool sumMassDensityOverAllNodeLists,
                     const MassDensityType densityUpdate,
                     const HEvolutionType HUpdate,
                     const double epsTensile,
@@ -88,12 +87,18 @@ public:
                                    const FieldList<Dimension, typename Dimension::Scalar>& pressure,
                                    const FieldList<Dimension, typename Dimension::SymTensor>& H,
                                    FieldList<Dimension, typename Dimension::Scalar>& massDensity);
-  
-  double alpha() const;
-  void alpha(double x);
 
-  double diffusionCoefficient() const;
-  void diffusionCoefficient(double x);
+  double surfaceForceCoefficient() const;
+  void surfaceForceCoefficient(double x);
+
+  double densityStabilizationCoefficient() const;
+  void densityStabilizationCoefficient(double x);
+
+  double densityDiffusionCoefficient() const;
+  void densityDiffusionCoefficient(double x);
+
+  double specificThermalEnergyDiffusionCoefficient() const;
+  void specificThermalEnergyDiffusionCoefficient(double x);
 
   std::vector<int> sumDensityNodeLists() const;
   void sumDensityNodeLists(std::vector<int> x);
@@ -104,9 +109,11 @@ public:
  //****************************************************************************
 
 private:
-  double mAlpha;                               // generalized density exponent
-  double mDiffusionCoefficient;                // controls diffusion of rho and eps
-  std::vector<int> mSumDensityNodeLists;       // turn on density sum subset of nodeLists
+  double mSurfaceForceCoefficient;                    // Monaghan 2013 force increase @ interface
+  double mDensityStabilizationCoefficient;            // adjusts DvDx to stabilize rho
+  double mDensityDiffusionCoefficient;                // controls diffusion of rho
+  double mSpecificThermalEnergyDiffusionCoefficient;  // controls diffusion of eps
+  std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
 
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();
