@@ -16,6 +16,7 @@ module load intel/18.0.2
 cmake \
   ${SRC_DIR} \
   -DCMAKE_BUILD_TYPE=Release \
+  -C ${HOST_CONFIGS_DIR}/lc-builds/toss3/intel18.0.2_tpl.cmake \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/intel/intel-18.0.2/bin/icpc \
   -DCMAKE_C_COMPILER=/usr/tce/packages/intel/intel-18.0.2/bin/icc \
   -DICC_LOCATION=/usr/tce/packages/intel/intel-18.0.2/ \
@@ -23,7 +24,6 @@ cmake \
   -DENABLE_MPI=On \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
   $CMAKE_ARGS \
-  #-C ${HOST_CONFIGS_DIR}/lc-builds/toss3/gcc8.1.0_tpl.cmake \
 
 make -j 16
 make install
