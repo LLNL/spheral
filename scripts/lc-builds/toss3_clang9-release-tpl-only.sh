@@ -23,3 +23,11 @@ cmake \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
   -DBUILD_TPL_ONLY=On \
   $CMAKE_ARGS \
+
+cd $BUILD_SUFFIX/build
+make -j install
+
+cd -
+find ${BUILD_SUFFIX}/ -type d -exec chmod g+rx {} \;
+find ${BUILD_SUFFIX}/ -type f -exec chmod g+rx {} \;
+find ${BUILD_SUFFIX}/ -name "*egg-info" -exec chgrp wciuser {} \;

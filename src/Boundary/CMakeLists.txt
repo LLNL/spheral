@@ -55,5 +55,7 @@ set(Boundary_headers
     mapPositionThroughPlanes.hh
     )
 
+spheral_install_python_files(ExpandingDomain.py)
+
 spheral_add_cxx_library(Boundary)
 

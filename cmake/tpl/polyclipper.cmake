@@ -1,8 +1,8 @@
 set(POLYCLIPPER_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(POLYCLIPPER_DIST "PolyClipper-v1.1.zip")
 set(POLYCLIPPER_CACHE "${CACHE_DIR}/${POLYCLIPPER_DIST}")
-set(POLYCLIPPER_URL "https://github.com/LLNL/PolyClipper/archive/PolyClipper-v1.1.zip")
-set(POLYCLIPPER_MD5 "MD5=46b554a2b3ca8a45847750b0a82c3931")
+set(POLYCLIPPER_URL "https://github.com/LLNL/PolyClipper/archive/PolyClipper-v1.12.zip")
+set(POLYCLIPPER_MD5 "MD5=9f36a17a6b84b7466c94b0f1a20570e4")
 set(POLYCLIPPER_DEST_DIR "${${lib_name}_DIR}/lib")
 
 set(${lib_name}_libs )
@@ -28,7 +28,7 @@ if(${lib_name}_BUILD)
     CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
-               -DPOLYCLIPPER_BLT_DIR=${CMAKE_SOURCE_DIR}/cmake/blt
+               -DPOLYCLIPPER_BLT_DIR=${SPHERAL_BLT_DIR}
                -DENABLE_CXXONLY=${POLYCLIPPER_ENABLE_CXXONLY}
                -DPYTHON_EXE=${PYTHON_EXE}
                -DLOOKUP_PYBIND11_INCLUDE_PATH=On
