@@ -46,5 +46,3 @@ install(FILES       ${MHD_headers}
         DESTINATION include/MHD
         )
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_MHD)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

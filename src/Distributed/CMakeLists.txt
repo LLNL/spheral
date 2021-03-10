@@ -52,5 +52,3 @@ set(Distributed_headers
 
 spheral_add_cxx_library(Distributed)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Distributed)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

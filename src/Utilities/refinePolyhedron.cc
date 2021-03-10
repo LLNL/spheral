@@ -13,7 +13,7 @@
 #include "Geometry/Dimension.hh"
 
 // We use Pixar's opensubdiv package to do the refinement.
-#ifdef HAVE_OPENSUBDIV
+#ifdef ENABLE_OPENSUBDIV
 #include "opensubdiv/far/topologyDescriptor.h"
 #include "opensubdiv/far/primvarRefiner.h"
 #endif
@@ -90,7 +90,7 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   CONTRACT_VAR(poly0);
   CONTRACT_VAR(numLevels);
 
-#ifndef HAVE_OPENSUBDIV
+#ifndef ENABLE_OPENSUBDIV
   VERIFY2(false, "ERROR: attempt to call refinePolyhedron, but OpenSubdiv has not been compiled into Spheral.");
   return GeomPolyhedron();
 
@@ -107,15 +107,15 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   const vector<vector<unsigned> >& facetVerts0 = poly0.facetVertices();
   const unsigned numVertices0 = verts0.size();
   const unsigned numFaces0 = facetVerts0.size();
-  float g_verts[numVertices0][3];
+  // float g_verts[numVertices0][3];
   int g_vertsperface[numFaces0];
   unsigned vertsPerFaceSum = 0;
   {
-    for (unsigned i = 0; i != numVertices0; ++i) {
-      g_verts[i][0] = verts0[i][0];
-      g_verts[i][1] = verts0[i][1];
-      g_verts[i][2] = verts0[i][2];
-    }
+    // for (unsigned i = 0; i != numVertices0; ++i) {
+    //   g_verts[i][0] = verts0[i][0];
+    //   g_verts[i][1] = verts0[i][1];
+    //   g_verts[i][2] = verts0[i][2];
+    // }
     for (unsigned i = 0; i != numFaces0; ++i) {
       g_vertsperface[i] = facetVerts0[i].size();
       vertsPerFaceSum += facetVerts0[i].size();

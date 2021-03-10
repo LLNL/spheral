@@ -41,7 +41,10 @@ set(Boundary_headers
     AxisBoundaryRZ.hh
     Boundary.hh
     BoundaryInline.hh
+    ConstantBoundaryUtilities.hh
     CRKSPHVoidBoundary.hh
+    PeriodicBoundary.hh
+    PeriodicPlanarBoundary.hh
     PlanarBoundary.hh
     PlanarBoundaryInline.hh
     PlanarSymmetryBoundary.hh
@@ -52,7 +55,7 @@ set(Boundary_headers
     mapPositionThroughPlanes.hh
     )
 
+spheral_install_python_files(ExpandingDomain.py)
+
 spheral_add_cxx_library(Boundary)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Boundary)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

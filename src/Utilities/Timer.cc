@@ -91,7 +91,7 @@ Timer::Timer(const string& name, Timer& parent):
 }
 
 // Diagnostic Non-root Managed Timer construction for separate table
-Timer::Timer(const string& name, Timer& parent, bool d):
+Timer::Timer(const string& name, Timer& parent, bool):
   timer_name(name),  Parent(parent) {
 
   //cout << "   Diagnostic Timer construction for = " << name << endl;
@@ -228,7 +228,8 @@ double Timer::getTimeStampWC(){
 // the list of timers and make a list of parent timers.  From there i
 // can make for loops that step thru the tree and print out the
 // results.
-void Timer::TimerSummary(void) {
+void Timer::TimerSummary( const std::string fname,
+                          const bool printAllTimers ) {
 
   int rank, number_procs;
 #ifdef USE_MPI
@@ -321,16 +322,16 @@ void Timer::TimerSummary(void) {
 
 
    
-  cout << " rank" << rank << " writing time.table " << endl;
+  cout << " rank" << rank << " writing " << fname << endl;
 
   FILE *OUT;
   
   if(TIMER_COUNTER == 0) {
-    OUT = fopen("time.table", "w");
+    OUT = fopen(fname.c_str(), "w");
   } else if (TIMER_COUNTER == 1) {
-    OUT = fopen("time.table1", "w");
+    OUT = fopen((fname + "1").c_str(), "w");
   } else {
-    OUT = fopen("time.table2", "w");
+    OUT = fopen((fname + "2").c_str(), "w");
   }
   if(OUT == NULL) {
     printf("problem opening output file in Timer\n");  
@@ -347,74 +348,75 @@ void Timer::TimerSummary(void) {
   //time_unit_factor = 60.0; // for seconds;
   
   for(pti=ParentList.begin() ; pti != ParentList.end() ; pti++) {
+    if ((*pti)->Count() > 0 or printAllTimers) {
     
-    fprintf(OUT, "\n");
+      fprintf(OUT, "\n");
 
-    writeTableHeader(OUT);
-      
-    double table_avg_sum     = 0.0;
-    double table_min_sum     = 0.0;
-    double table_max_sum     = 0.0;
-    double table_percent;
+      writeTableHeader(OUT);
 
-    double wc_avg = (*pti)->avgWC*time_unit_factor;
-    double wc_min = (*pti)->minWC*time_unit_factor;
-    double wc_max = (*pti)->maxWC*time_unit_factor;
+      double table_avg_sum     = 0.0;
+      double table_min_sum     = 0.0;
+      double table_max_sum     = 0.0;
+      double table_percent;
 
-    double parent_avg = wc_avg;
+      double wc_avg = (*pti)->avgWC*time_unit_factor;
+      double wc_min = (*pti)->minWC*time_unit_factor;
+      double wc_max = (*pti)->maxWC*time_unit_factor;
 
-    // Parent for each table
-#ifdef PAPI
-    writeLineOfData(OUT, (*pti)->Name().c_str(), (*pti)->Count(), -1, 
-		    wc_avg, wc_min, wc_max,
-		    (double)(*pti)->papi_counter1(), 
-		    (double)(*pti)->papi_counter2());
-#else
-    writeLineOfData(OUT, (*pti)->Name().c_str(), (*pti)->Count(), -1,
-		    wc_avg, wc_min, wc_max, 0, 0);
-#endif
+      double parent_avg = wc_avg;
 
-    writeSingleLineSeparator(OUT);
+      // Parent for each table
+  #ifdef PAPI
+      writeLineOfData(OUT, (*pti)->Name().c_str(), (*pti)->Count(), -1, 
+                      wc_avg, wc_min, wc_max,
+                      (double)(*pti)->papi_counter1(), 
+                      (double)(*pti)->papi_counter2());
+  #else
+      writeLineOfData(OUT, (*pti)->Name().c_str(), (*pti)->Count(), -1,
+                      wc_avg, wc_min, wc_max, 0, 0);
+  #endif
 
-    for(tli=TimerList.begin() ; tli != TimerList.end() ; tli++) {
-      
-      if ((*tli)->diagnostic) continue;
-      
-      if( &((*tli)->Parent) == *pti && *tli != &((*tli)->Parent) ) {
+      writeSingleLineSeparator(OUT);
 
-  	wc_avg = (*tli)->avgWC*time_unit_factor;
-  	wc_min = (*tli)->minWC*time_unit_factor;
-  	wc_max = (*tli)->maxWC*time_unit_factor;
-	
- 	if(parent_avg  > 0.) {
- 	  table_percent  = wc_avg/parent_avg*100.0;
- 	} else {
- 	  table_percent = 0.;
-	}
+      for(tli=TimerList.begin() ; tli != TimerList.end() ; tli++) {
 
-  	table_avg_sum  += wc_avg;	
-  	table_min_sum  += wc_min;	
-  	table_max_sum  += wc_max;	
+        if ((*tli)->diagnostic) continue;
 
-	// Children
-#ifdef PAPI
-	writeLineOfData(OUT, (*tli)->Name().c_str(), (*tli)->Count(), 
-			table_percent, wc_avg, wc_min, wc_max,
-			(double)(*tli)->papi_counter1(), 
-			(double)(*tli)->papi_counter2());	
-#else
-	writeLineOfData(OUT, (*tli)->Name().c_str(), (*tli)->Count(), 
-			table_percent, wc_avg, wc_min, wc_max, 0, 0);
-#endif
-      }
-      
-    } // end of table loop for this parent
+        if( &((*tli)->Parent) == *pti && *tli != &((*tli)->Parent) ) {
 
-    writeTableTotals(OUT, parent_avg, table_avg_sum, 
-		     table_min_sum,  table_max_sum);
-    
-    
-    fprintf(OUT,"\n\n");
+          wc_avg = (*tli)->avgWC*time_unit_factor;
+          wc_min = (*tli)->minWC*time_unit_factor;
+          wc_max = (*tli)->maxWC*time_unit_factor;
+
+          if(parent_avg  > 0.) {
+            table_percent  = wc_avg/parent_avg*100.0;
+          } else {
+            table_percent = 0.;
+          }
+
+          table_avg_sum  += wc_avg;	
+          table_min_sum  += wc_min;	
+          table_max_sum  += wc_max;	
+
+          // Children
+  #ifdef PAPI
+          writeLineOfData(OUT, (*tli)->Name().c_str(), (*tli)->Count(), 
+                          table_percent, wc_avg, wc_min, wc_max,
+                          (double)(*tli)->papi_counter1(), 
+                          (double)(*tli)->papi_counter2());	
+  #else
+          writeLineOfData(OUT, (*tli)->Name().c_str(), (*tli)->Count(), 
+                          table_percent, wc_avg, wc_min, wc_max, 0, 0);
+  #endif
+        }
+      } // end of table loop for this parent
+
+      writeTableTotals(OUT, parent_avg, table_avg_sum, 
+                       table_min_sum,  table_max_sum);
+
+
+      fprintf(OUT,"\n\n");
+    }
   } // end of parent loop
 
 
@@ -629,6 +631,9 @@ static void writeLineOfData(FILE *out,
 			    const double wc_max,
 			    const double counter1,
 			    const double counter2) {
+
+  CONTRACT_VAR(counter1);
+  CONTRACT_VAR(counter2);
 
 #ifdef PAPI
 

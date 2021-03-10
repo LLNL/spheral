@@ -35,5 +35,3 @@ set(FieldOperations_headers
 
 spheral_add_cxx_library(FieldOperations)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_FieldOperations)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

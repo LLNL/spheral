@@ -36,6 +36,7 @@ set(Hydro_headers
     NonSymmetricSpecificThermalEnergyPolicy.hh
     PositionPolicy.hh
     PressurePolicy.hh
+    RZNonSymmetricSpecificThermalEnergyPolicy.hh
     SoundSpeedPolicy.hh
     SpecificFromTotalThermalEnergyPolicy.hh
     SpecificThermalEnergyPolicy.hh
@@ -47,5 +48,3 @@ set(Hydro_headers
 
 spheral_add_cxx_library(Hydro)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Hydro)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

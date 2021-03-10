@@ -32,5 +32,3 @@ set(Neighbor_headers
 
 spheral_add_cxx_library(Neighbor)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Neighbor)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

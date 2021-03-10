@@ -12,6 +12,9 @@ set(Utilities_inst
     medianPosition
     computeShepardsInterpolation
     overlayRemapFields
+    DamagedNodeCoupling
+    ThreePointDamagedNodeCoupling
+    DamageGradientNodeCoupling
    )
 
 set(Utilities_sources
@@ -42,7 +45,8 @@ set(Utilities_headers
     Bessel.hh
     CounterClockwiseComparator.hh
     DamagedNodeCoupling.hh
-    DamagedNodeCouplingWithFrags.hh
+    ThreePointDamagedNodeCoupling.hh
+    DamageGradientNodeCoupling.hh
     DBC.hh
     DomainNode.hh
     DomainNodeInline.hh
@@ -52,6 +56,7 @@ set(Utilities_headers
     Functors.hh
     GeometricUtilities.hh
     KeyTraits.hh
+    NodeCoupling.hh
     NodeListHashMap.hh
     OpenMP_wrapper.hh
     PairComparisons.hh
@@ -64,6 +69,7 @@ set(Utilities_headers
     RegisterMPIDataTypes.hh
     SafeIndexMap.hh
     SpheralFunctions.hh
+    SurfaceNodeCoupling.hh
     Timer.hh
     Tree.hh
     TreeInline.hh
@@ -118,5 +124,3 @@ spheral_install_python_files(fitspline.py)
 
 spheral_add_cxx_library(Utilities)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Utilities)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

@@ -55,5 +55,3 @@ spheral_install_python_files(
 
 spheral_add_cxx_library(SPH)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SPH)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

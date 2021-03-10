@@ -151,12 +151,18 @@ public:
   // Some physics algorithms require overlap connectivity.
   virtual bool requireOverlapConnectivity() const;
 
+  // Some physics algorithms require intersection connectivity
+  virtual bool requireIntersectionConnectivity() const;
+
   // Does this package require reproducing kernel functions?
   virtual std::set<RKOrder> requireReproducingKernels() const;
 
   // If using reproducing kernels, do we need the second derivative?
   virtual bool requireReproducingKernelHessian() const;
 
+  // Does this package need an update of reproducing kernels during finalize?
+  virtual bool updateReproducingKernelsInFinalize() const;
+  
   // Many physics packages will have their own representations of energy in the
   // system (gravitational potential energy, radiative losses, etc.)
   virtual Scalar extraEnergy() const;

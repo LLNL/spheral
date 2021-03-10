@@ -41,5 +41,3 @@ set(Kernel_headers
 
 spheral_add_cxx_library(Kernel)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Kernel)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

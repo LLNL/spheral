@@ -36,5 +36,3 @@ instantiate(Material_inst Material_sources)
 
 spheral_add_cxx_library(Material)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Material)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

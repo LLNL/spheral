@@ -47,7 +47,9 @@ class SpheralController:
                  numHIterationsBetweenCycles = 0,
                  reinitializeNeighborsStep = 10,
                  volumeType = RKVolumeType.RKVoronoiVolume,
-                 facetedBoundaries = None):
+                 facetedBoundaries = None,
+                 timerName = "",
+                 printAllTimers = False):
         self.restart = RestartableObject(self)
         self.integrator = integrator
         self.kernel = kernel
@@ -56,6 +58,13 @@ class SpheralController:
         self.SPH = SPH
         self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
         self._break = False
+
+        if timerName == "":
+            self.timerName = "time.table"
+        else:
+            self.timerName = timerName
+        self.printAllTimers = printAllTimers
+        startRootTimer()
 
         # Determine the dimensionality of this run, based on the integrator.
         self.dim = "%id" % self.integrator.dataBase.nDim
@@ -111,6 +120,12 @@ class SpheralController:
             self.loadRestartFile(restoreCycle)
         
         return
+
+    #--------------------------------------------------------------------------
+    # Destructor
+    #--------------------------------------------------------------------------
+    def __del__(self):
+        stopRootTimer()
 
     #--------------------------------------------------------------------------
     # (Re)initialize the current problem (and controller state).
@@ -358,7 +373,7 @@ class SpheralController:
         self.stepTimer.printStatus()
 
         # Output any timer info
-        Timer.TimerSummary()
+        Timer.TimerSummary(self.timerName, self.printAllTimers)
 
         return
 
@@ -627,11 +642,13 @@ class SpheralController:
         rkorders = set()
         rkbcs = []
         needHessian = False
+        rkUpdateInFinalize = False
         index = -1
         for (ipack, package) in enumerate(packages):
             ords = package.requireReproducingKernels()
             rkorders = rkorders.union(ords)
             needHessian |= package.requireReproducingKernelHessian()
+            rkUpdateInFinalize |= package.updateReproducingKernelsInFinalize()
             if ords:
                 pbcs = package.boundaryConditions()
                 rkbcs += [bc for bc in pbcs if not bc in rkbcs]
@@ -644,7 +661,8 @@ class SpheralController:
                                                dataBase = db,
                                                W = W,
                                                volumeType = volumeType,
-                                               needHessian = needHessian)
+                                               needHessian = needHessian,
+                                               updateInFinalize = rkUpdateInFinalize)
             for bc in rkbcs:
                 self.RKCorrections.appendBoundary(bc)
             if facetedBoundaries is not None:

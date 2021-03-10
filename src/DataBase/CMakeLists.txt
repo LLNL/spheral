@@ -56,5 +56,3 @@ set(DataBase_headers
 
 spheral_add_cxx_library(DataBase)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_DataBase)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

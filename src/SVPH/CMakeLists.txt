@@ -43,5 +43,3 @@ spheral_install_python_files(SVPHHydros.py)
 
 spheral_add_cxx_library(SVPH)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SVPH)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
