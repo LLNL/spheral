@@ -32,7 +32,7 @@ class SphericalTableKernel:
              etai = "const Vector&",
              Hdeti = "const Scalar"):
         "Return the kernel gradient value at the given (rj/h, ri/h) == (etaj, etai) pair"
-        return "double"
+        return "Vector"
 
     @PYB11const
     def kernelAndGradValue(self,
@@ -40,7 +40,7 @@ class SphericalTableKernel:
                            etai = "const Vector&",
                            Hdeti = "const Scalar"):
         "Return the (kernel value, kernel gradient value) at the given (rj/h, ri/h) == (etaj, etai) pair"
-        return "std::pair<double, double>"
+        return "std::pair<double, Vector>"
 
     #---------------------------------------------------------------------------
     # Attributes

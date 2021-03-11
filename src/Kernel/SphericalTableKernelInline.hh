@@ -26,7 +26,7 @@ SphericalTableKernel::operator()(const Dim<1>::Vector& etaj,
 // Lookup the grad kernel for (rj/h, ri/h) = (etaj, etai)
 //------------------------------------------------------------------------------
 inline
-double
+Dim<1>::Vector
 SphericalTableKernel::grad(const Dim<1>::Vector& etaj,
                            const Dim<1>::Vector& etai,
                            const Dim<1>::Scalar  Hdeti) const {
@@ -42,14 +42,14 @@ SphericalTableKernel::grad(const Dim<1>::Vector& etaj,
                   0.0 :
                   max_bound*mKernel.kernelValue(max_bound, Hdeti));
   const auto B = (ej - ei)*mKernel.kernelValue(min_bound, Hdeti);
-  return 2.0*M_PI/(ei*ej)*FastMath::cube(Hdeti)*(A - B - Hdeti/ej*mInterp(Dim<2>::Vector(min_bound, max_bound)));
+  return Vector(2.0*M_PI/(ei*ej)*FastMath::cube(Hdeti)*(A - B - Hdeti/ej*mInterp(Dim<2>::Vector(min_bound, max_bound))));
 }
 
 //------------------------------------------------------------------------------
 // Simultaneously lookup (W,  grad W) for (rj/h, ri/h) = (etaj, etai)
 //------------------------------------------------------------------------------
 inline
-std::pair<double, double>
+std::pair<double, Dim<1>::Vector>
 SphericalTableKernel::kernelAndGradValue(const Dim<1>::Vector& etaj,
                                          const Dim<1>::Vector& etai,
                                          const Dim<1>::Scalar  Hdeti) const {
@@ -69,7 +69,7 @@ SphericalTableKernel::kernelAndGradValue(const Dim<1>::Vector& etaj,
   const auto pre = 2.0*M_PI/(ei*ej)*FastMath::cube(Hdeti);
   const auto Wval = pre*interpVal;
   const auto gradWval = pre*(A - B - Hdeti/ej*interpVal);
-  return std::make_pair(Wval, gradWval);
+  return std::make_pair(Wval, Vector(gradWval));
 }
 
 //------------------------------------------------------------------------------

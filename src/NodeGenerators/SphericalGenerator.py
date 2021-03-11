@@ -8,6 +8,6 @@ def SphericalGenerator(generator):
     for i in xrange(n):
         ri = generator.localPosition(i).x
         assert ri > 0.0
-        generator.m[i] *= 4.0*pi*ri*ri
+        generator.m[i] *= ri*ri
 
     return generator

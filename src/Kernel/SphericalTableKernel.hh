@@ -47,8 +47,8 @@ public:
   //  etai : Vector normalized coordinate: etai = H*posi
   //  Hdet  : Determinant of the H tensor used to compute eta
   double operator()(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
-  double grad(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
-  std::pair<double, double> kernelAndGradValue(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
+  Vector grad(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
+  std::pair<double, Vector> kernelAndGradValue(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
 
   // Return the kernel weight for a given normalized distance or position.
   double kernelValue(const double etaMagnitude, const double Hdet) const;
