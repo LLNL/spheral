@@ -433,7 +433,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
-      const auto fweightij = sameMatij ? 1.0 : mRj*rhoi/(mRi*rhoj);
+      const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
       const auto xij2 = xij.magnitude2();
       const auto thpt = xij.selfdyad()*safeInvVar(xij2*xij2*xij2);
       weightedNeighborSumi +=     fweightij*abs(gradWi.x());
@@ -448,8 +448,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       }
 
       // Contribution to the sum density correction
-      rhoSumCorrectioni += mj * Wi / rhoj ;
-      rhoSumCorrectionj += mi * Wj / rhoi ;
+      rhoSumCorrectioni += mj * WQi / rhoj ;
+      rhoSumCorrectionj += mi * WQj / rhoi ;
 
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
@@ -464,10 +464,10 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
       maxViscousPressurei = max(maxViscousPressurei, Qi);
       maxViscousPressurej = max(maxViscousPressurej, Qj);
-      effViscousPressurei += mRj*Qi*WQi/rhoj;
-      effViscousPressurej += mRi*Qj*WQj/rhoi;
-      viscousWorki += mRj*workQi;
-      viscousWorkj += mRi*workQj;
+      effViscousPressurei += mj*Qi*WQi/rhoj;
+      effViscousPressurej += mi*Qj*WQj/rhoi;
+      viscousWorki += mj*workQi;
+      viscousWorkj += mi*workQj;
 
       // Compute the stress tensors.
       if (sameMatij) {
@@ -507,8 +507,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       const auto deltaDvDxj = fDij * vij.dyad(gradWGj);
 
       // Specific thermal energy evolution.
-      DepsDti -= mRj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
-      DepsDtj -= mRi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
+      DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi.Symmetric()) - workQi);
+      DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj.Symmetric()) - workQj);
 
       // Velocity gradient.
       DvDxi -= mj*deltaDvDxi;
@@ -566,22 +566,17 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 
       // Get the state for node i.
       const auto& posi = position(nodeListi, i);
-      const auto  ri = abs(posi.y());
-      const auto  circi = 2.0*M_PI*ri;
       const auto  mi = mass(nodeListi, i);
-      const auto  mRi = mi/circi;
       const auto& vi = velocity(nodeListi, i);
       const auto  rhoi = massDensity(nodeListi, i);
       const auto  Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto& Si = S(nodeListi, i);
-      const auto  STTi = -Si.Trace();
       const auto  mui = mu(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
+      const auto  riInv = safeInv(posi.x());
       const auto  zetai = abs((Hi*posi).y());
-      const auto  hri = ri*safeInv(zetai);
-      const auto  riInv = safeInv(ri, 0.25*hri);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -606,19 +601,17 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       auto& DSDti = DSDt(nodeListi, i);
 
       // Add the self-contribution to density sum.
-      rhoSumi += mRi*W0*Hdeti;
-      rhoSumi /= circi;
+      rhoSumi += mi*W0*Hdeti;
 
       // Add the self-contribution to density sum correction.
-      rhoSumCorrectioni += mRi*WQ0*Hdeti/rhoi ;
+      rhoSumCorrectioni += mi*WQ0*Hdeti/rhoi ;
 
       // Correct the effective viscous pressure.
-      effViscousPressurei /= rhoSumCorrectioni ;
+      effViscousPressurei /= rhoSumCorrectioni;
 
       // Finish the acceleration -- self hoop strain.
-      const Vector deltaDvDti(Si(1,0)/rhoi*riInv,
-                              (Si(1,1) - STTi)/rhoi*riInv);
-      DvDti += deltaDvDti;
+      const Vector deltaDvDti(3.0*Si(0,0)/rhoi*rInv);
+      DvDti[0] += deltaDvDti;
       if (compatibleEnergy) pairAccelerations[offset + i] = deltaDvDti;
 
       // Finish the gradient of the velocity.
@@ -641,14 +634,14 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       }
 
       // Evaluate the continuity equation.
-      XSPHWeightSumi += Hdeti*mRi/rhoi*W0;
+      XSPHWeightSumi += Hdeti*mi/rhoi*W0;
       CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
       XSPHDeltaVi /= XSPHWeightSumi;
-      const auto vri = vi.y(); // + XSPHDeltaVi.y();
-      DrhoDti = -rhoi*(DvDxi.Trace() + vri*riInv);
+      const auto vri = vi.x();
+      DrhoDti = -rhoi*(DvDxi.x() + 2.0*vri*riInv);
 
       // Finish the specific thermal energy evolution.
-      DepsDti += (STTi - Pi)/rhoi*vri*riInv;
+      DepsDti += (Si.xx() - 2.0*Pi)/rhoi*2.0*vri*riInv;
 
       // If needed finish the total energy derivative.
       if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);

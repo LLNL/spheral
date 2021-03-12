@@ -42,22 +42,6 @@ computeJ2(const typename Dimension::SymTensor& x) {
   return 0.5*x.doubledot(x);
 }
 
-// template<>
-// inline
-// double
-// computeJ2< Dim<1> >(const Dim<1>::SymTensor& x) {
-//   const double x22_33 = 0.5*(x.xx());
-//   return 0.5*(x.doubledot(x) + 2.0*x22_33*x22_33);
-// }
-
-// template<>
-// inline
-// double
-// computeJ2< Dim<2> >(const Dim<2>::SymTensor& x) {
-//   const double x33 = x.Trace();
-//   return 0.5*(x.doubledot(x) + x33*x33);
-// }
-
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
