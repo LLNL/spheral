@@ -79,7 +79,6 @@ public:
                                    const TableKernel<Dimension>& W,
                                    const FieldList<Dimension, typename Dimension::Vector>& position,
                                    const FieldList<Dimension, typename Dimension::Scalar>& mass,
-                                   const FieldList<Dimension, typename Dimension::Scalar>& pressure,
                                    const FieldList<Dimension, typename Dimension::SymTensor>& H,
                                    FieldList<Dimension, typename Dimension::Scalar>& massDensity);
   

@@ -171,16 +171,58 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto& connectivityMap = dataBase.connectivityMap();
       const auto& position = state.fields(HydroFieldNames::position, Vector::zero);
       const auto& mass = state.fields(HydroFieldNames::mass, 0.0);
-      const auto& p = state.fields(HydroFieldNames::pressure, 0.0);
       const auto& H = state.fields(HydroFieldNames::H, SymTensor::zero);
       const auto& W = this->kernel();
       auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-      this->computeFSISPHSumMassDensity(connectivityMap, W, position, mass, p, H, massDensity);
+      this->computeFSISPHSumMassDensity(connectivityMap, W, position, mass, H, massDensity);
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
 
 }
+
+//------------------------------------------------------------------------------
+// Initialize Our AV grad-h moved to eval derivs method
+//------------------------------------------------------------------------------
+// template<typename Dimension>
+// void
+// SPHHydroBase<Dimension>::
+// initialize(const typename Dimension::Scalar time,
+//            const typename Dimension::Scalar dt,
+//            const DataBase<Dimension>& dataBase,
+//            State<Dimension>& state,
+//            StateDerivatives<Dimension>& derivs) {
+//   TIME_SPHinitialize.start();
+
+//   // Initialize the grad h corrrections if needed.
+//   //const TableKernel<Dimension>& W = this->kernel();
+//   const TableKernel<Dimension>& WPi = this->PiKernel();
+
+//   if (mGradhCorrection) {
+//     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
+//     const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
+//     const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+//     FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
+//     computeSPHOmegaGradhCorrection(connectivityMap, this->kernel(), position, H, omega);
+//     for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+//          boundItr != this->boundaryEnd();
+//          ++boundItr) (*boundItr)->applyFieldListGhostBoundary(omega);
+//   }
+
+//   // Get the artificial viscosity and initialize it.
+//   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
+//   Q.initialize(dataBase, 
+//                state,
+//                derivs,
+//                this->boundaryBegin(),
+//                this->boundaryEnd(),
+//                time, 
+//                dt,
+//                WPi);
+
+//   // We depend on the caller knowing to finalize the ghost boundaries!
+//   TIME_SPHinitialize.stop();
+// }
 
 //------------------------------------------------------------------------------
 // Determine the principle derivatives.
@@ -537,8 +579,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
           yj=tempVar;
         }
 
-        const auto surfaceDecouplingi = (isExpanding && Peffi < 0.0);
-        const auto surfaceDecouplingj = (isExpanding && Peffj < 0.0);
+        const auto surfaceDecouplingi = (isExpanding && Pi < 0.0);
+        const auto surfaceDecouplingj = (isExpanding && Pj < 0.0);
         const auto kappai = max(0.0, min(2.0, 2.0*(Kj*voli*yi*gWj)/(Ki*volj*yj*gWi+Kj*voli*yi*gWj)));
         const auto kappaj = max(0.0, min(2.0, 2.0-kappai));
 
@@ -556,8 +598,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // Finish up Velocity Gradient
       if (rhoStabilizeCoeff>tiny){
         const auto diffusion = rhoStabilizeCoeff*cij*etaij.dot(gradWij)/(etaMagij*etaMagij+tiny);
-        const auto deltaRhoi = (sameMatij ? rhoj-rhoi : (Peffj-Peffi)/(ci*ci+tiny) );
-        const auto deltaRhoj = (sameMatij ? rhoi-rhoj : (Peffi-Peffj)/(cj*cj+tiny) );
+        const auto deltaRhoi = (sameMatij ? rhoj-rhoi : (Pj-Pi)/(ci*ci+tiny) );
+        const auto deltaRhoj = (sameMatij ? rhoi-rhoj : (Pi-Pj)/(cj*cj+tiny) );
         deltaDvDxi -= (deltaRhoi)*diffusion/(3.0*rhoi)*Tensor::one;
         deltaDvDxj -= (deltaRhoj)*diffusion/(3.0*rhoj)*Tensor::one;
       }
@@ -702,7 +744,6 @@ computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                             const TableKernel<Dimension>& W,
                             const FieldList<Dimension, typename Dimension::Vector>& position,
                             const FieldList<Dimension, typename Dimension::Scalar>& mass,
-                            const FieldList<Dimension, typename Dimension::Scalar>& pressure,
                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
                             FieldList<Dimension, typename Dimension::Scalar>& massDensity) {
 
