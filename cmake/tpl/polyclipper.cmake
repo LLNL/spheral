@@ -1,8 +1,8 @@
 set(POLYCLIPPER_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
-set(POLYCLIPPER_DIST "PolyClipper-v1.1.zip")
+set(POLYCLIPPER_DIST "PolyClipper-v1.2.0.zip")
 set(POLYCLIPPER_CACHE "${CACHE_DIR}/${POLYCLIPPER_DIST}")
-set(POLYCLIPPER_URL "https://github.com/LLNL/PolyClipper/archive/PolyClipper-v1.12.zip")
-set(POLYCLIPPER_MD5 "MD5=9f36a17a6b84b7466c94b0f1a20570e4")
+set(POLYCLIPPER_URL "https://github.com/LLNL/PolyClipper/archive/PolyClipper-v1.2.0.zip")
+set(POLYCLIPPER_MD5 "MD5=718d7d5fe603238965e58db0ef6137f9")
 set(POLYCLIPPER_DEST_DIR "${${lib_name}_DIR}/lib")
 
 set(${lib_name}_libs )
