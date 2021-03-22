@@ -387,8 +387,18 @@
     <ClCompile Include="..\..\src\RK\RKCorrectionsInst.cc.2.cc" />
     <ClCompile Include="..\..\src\RK\RKCorrectionsInst.cc.3.cc" />
     <ClCompile Include="..\..\src\RK\RKFieldNames.cc" />
-    <ClCompile Include="..\..\src\RK\RKUtilitiesInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\RK\RKUtilitiesInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilities012Inst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilities012Inst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilities3Inst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilities3Inst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilities4Inst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilities4Inst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilities5Inst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilities5Inst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilities6Inst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilities6Inst.cc.3.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilities7Inst.cc.2.cc" />
+    <ClCompile Include="..\..\src\RK\RKUtilities7Inst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\RK\computeHullVolumesInst.cc.py">
@@ -495,7 +505,47 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\RK\RKUtilitiesInst.cc.py">
+    <CustomBuild Include="..\..\src\RK\RKUtilities012Inst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\RKUtilities3Inst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\RKUtilities4Inst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\RKUtilities5Inst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\RKUtilities6Inst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\RK\RKUtilities7Inst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
