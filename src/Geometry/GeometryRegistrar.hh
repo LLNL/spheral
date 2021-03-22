@@ -11,20 +11,23 @@
 
 namespace Spheral {
 
+// Enum to capture cartesian vs. curvilinear coordinates
+enum class CoordinateType {
+  Cartesian = 0,
+  Spherical = 1,
+  RZ = 2,
+};
+
 class GeometryRegistrar {
 public:
   //--------------------------- Public Interface ---------------------------//
-  enum class CoordinateType {
-    Cartesian = 0,
-    Spherical = 1,
-    RZ = 2,
-  };
-
   // Get the instance.
   static GeometryRegistrar& instance();
 
   // The attribute we hang onto defining the local coordinate system.
-  static CoordinateType coords;
+  static CoordinateType mCoords;
+  static CoordinateType coords()             { return mCoords; }
+  static void coords(const CoordinateType x) { mCoords = x; }
 
 private:
   //--------------------------- Private Interface --------------------------//
