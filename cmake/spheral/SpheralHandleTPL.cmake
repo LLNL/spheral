@@ -55,13 +55,24 @@ message("Default TPL location : ${DEFAULT_TPL_LOCATION}\n")
 #----------------------------------------------------------------------------------------
 
 function(Spheral_Handle_TPL lib_name dep_list)
+
+  string(TOUPPER ${lib_name} LIB_NAME)
+
+  # Include tpl cmake file just to get some variables.
+  set(TEMP_BUILD_OPTION ${${lib_name}_BUILD})
+  set(${lib_name}_BUILD OFF)
+  include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
+  set(${lib_name}_BUILD ${TEMP_BUILD_OPTION})
+
+  # Get the pure MD5 HASH string.
+  string(REPLACE "MD5=" "" HASH ${${LIB_NAME}_MD5})
                                                        
   # If we are not building the TPL ...
   if(NOT BUILD_TPL OR NOT ${lib_name}_BUILD)
 
     # If no location to search is sepcified, search default dir
     if (NOT ${lib_name}_DIR)
-      set(${lib_name}_DIR ${DEFAULT_TPL_LOCATION}/${lib_name})
+      set(${lib_name}_DIR ${DEFAULT_TPL_LOCATION}/${lib_name}/${HASH})
       message("${lib_name}_DIR not set.")
       message("Setting ${lib_name} search to default location : ${${lib_name}_DIR}")
     # else search the given dir
@@ -84,7 +95,7 @@ function(Spheral_Handle_TPL lib_name dep_list)
 
     # If no location to search is sepcified, install in default dir
     if (NOT ${lib_name}_DIR)
-      set(${lib_name}_DIR ${DEFAULT_TPL_LOCATION}/${lib_name})
+      set(${lib_name}_DIR ${DEFAULT_TPL_LOCATION}/${lib_name}/${HASH})
       message("${lib_name}_DIR not set. Installing ${lib_name} to default location : ${${lib_name}_DIR}")
     # else install in the given dir
     else()
@@ -100,6 +111,7 @@ function(Spheral_Handle_TPL lib_name dep_list)
   set(${lib_name}_ADD_BLT_TARGET ON)
 
   # Include the actual <tpl>.cmake file
+  set(${lib_name}_SETUP ON)
   include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
 
   list(APPEND ${lib_name}_INCLUDES $<BUILD_INTERFACE:${${lib_name}_DIR}/include>)

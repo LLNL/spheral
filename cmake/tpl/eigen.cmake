@@ -3,6 +3,7 @@ set(EIGEN_CACHE "${CACHE_DIR}/3.3.7.tar.gz")
 set(EIGEN_URL "https://github.com/eigenteam/eigen-git-mirror/archive/3.3.7.tar.gz")
 set(EIGEN_MD5 "MD5=77a2c934eaf35943c43ee600a83b72df")
 
+set(${lib_name}_libs )
 if(${lib_name}_BUILD)
 
   if (EXISTS ${EIGEN_CACHE})

@@ -1,3 +1,4 @@
+set(PYTHON_MD5 "MD5=38c84292658ed4456157195f1c9bcbe1")
 set(PYTHON_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(PYTHON_VERSION "2.7.18")
 set(PYTHON_CACHE "${CACHE_DIR}/Python-${PYTHON_VERSION}.tgz")
@@ -5,7 +6,6 @@ set(PYTHON_SRC_DIR ${PYTHON_PREFIX}/src/python)
 set(PYTHON_INSTALL_DIR ${${lib_name}_DIR})
 set(PYTHON_EXE ${PYTHON_INSTALL_DIR}/bin/python)
 set(PYTHON_URL "http://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz")
-set(PYTHON_MD5 "MD5=38c84292658ed4456157195f1c9bcbe1")
 set(PYTHON_SITE_PACKAGE_DIR ${PYTHON_INSTALL_DIR}/lib/python2.7/site-packages)
 
 set(${lib_name}_libs libpython2.7.so)
@@ -63,6 +63,7 @@ if(${lib_name}_BUILD)
 
 endif()
 
+if(${lib_name}_SETUP)
 add_custom_target(
   ${lib_name}-install
   COMMAND ${PYTHON_EXE} -V &> python-version.log
@@ -77,3 +78,4 @@ set(${lib_name}_BUILD ${${lib_name}_BUILD} PARENT_SCOPE)
 set(PYTHON_EXE ${PYTHON_EXE} PARENT_SCOPE)
 set(PYTHON_INSTALL_DIR ${PYTHON_INSTALL_DIR} PARENT_SCOPE)
 set(PYTHON_SITE_PACKAGE_DIR ${PYTHON_SITE_PACKAGE_DIR} PARENT_SCOPE)
+endif()

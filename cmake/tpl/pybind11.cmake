@@ -3,6 +3,7 @@ set(PYBIND11_CACHE "${CACHE_DIR}/v2.4.3.tar.gz")
 set(PYBIND11_URL "https://github.com/pybind/pybind11/archive/v2.4.3.tar.gz")
 set(PYBIND11_MD5 "MD5=62254c40f89925bb894be421fe4cdef2")
 
+set(${lib_name}_libs )
 if(${lib_name}_BUILD)
 
   if (EXISTS ${PYBIND11_CACHE})
