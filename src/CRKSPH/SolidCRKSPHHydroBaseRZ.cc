@@ -17,7 +17,6 @@
 #include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
-#include "Strength/RZPlasticStrainPolicy.hh"
 #include "Strength/BulkModulusPolicy.hh"
 #include "Strength/ShearModulusPolicy.hh"
 #include "Strength/YieldStrengthPolicy.hh"
@@ -201,11 +200,11 @@ registerState(DataBase<Dim<2>>& dataBase,
   // Call the ancestor.
   SolidCRKSPHHydroBase<Dimension>::registerState(dataBase, state);
 
-  // Reregister the deviatoric stress and plastic strain policies to the RZ specialized versions
-  // that account for the theta-theta component of the stress.
-  auto ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
-  PolicyPointer plasticStrainPolicy(new RZPlasticStrainPolicy());
-  state.enroll(ps, plasticStrainPolicy);
+  // // Reregister the deviatoric stress and plastic strain policies to the RZ specialized versions
+  // // that account for the theta-theta component of the stress.
+  // auto ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
+  // PolicyPointer plasticStrainPolicy(new RZPlasticStrainPolicy());
+  // state.enroll(ps, plasticStrainPolicy);
 
   // Reregister the volume update
   PolicyPointer volumePolicy(new ContinuityVolumePolicyRZ());

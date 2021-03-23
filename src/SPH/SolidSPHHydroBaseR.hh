@@ -21,7 +21,7 @@
 
 #include "SolidSPHHydroBase.hh"
 #include "Geometry/Dimension.hh"
-#include "Kernel/SphericalKernel.hh"
+#include "Kernel/SphericalTableKernel.hh"
 
 namespace Spheral {
 
@@ -50,9 +50,9 @@ public:
   SolidSPHHydroBaseR(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      DataBase<Dimension>& dataBase,
                      ArtificialViscosity<Dimension>& Q,
-                     const SphericalKernel& W,
-                     const SphericalKernel& WPi,
-                     const SphericalKernel& WGrad,
+                     const SphericalTableKernel& W,
+                     const SphericalTableKernel& WPi,
+                     const SphericalTableKernel& WGrad,
                      const double filter,
                      const double cfl,
                      const bool useVelocityMagnitudeForDt,

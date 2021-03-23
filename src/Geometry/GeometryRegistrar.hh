@@ -25,13 +25,13 @@ public:
   static GeometryRegistrar& instance();
 
   // The attribute we hang onto defining the local coordinate system.
-  static CoordinateType mCoords;
   static CoordinateType coords()             { return mCoords; }
   static void coords(const CoordinateType x) { mCoords = x; }
 
 private:
   //--------------------------- Private Interface --------------------------//
   static GeometryRegistrar* mInstancePtr;
+  static CoordinateType mCoords;
 
   // No public constructors, destructor, or assignment.
   GeometryRegistrar();

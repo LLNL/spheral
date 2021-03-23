@@ -19,8 +19,6 @@
 // #include "Hydro/RNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
-#include "Strength/DeviatoricStressPolicy.hh"
-#include "Strength/RPlasticStrainPolicy.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementFieldList.hh"
@@ -155,15 +153,14 @@ registerState(DataBase<Dim<1>>& dataBase,
   // Call the ancestor.
   SolidSPHHydroBase<Dim<1>>::registerState(dataBase, state);
 
-  // Reregister the plastic strain policy to the R specialized version
-  // that accounts for the non-R components of the stress.  Also reregister
-  // the deviatoric stress to not zero out the trace.
-  auto ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
-  auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  PolicyPointer plasticStrainPolicy(new SphericalPlasticStrainPolicy());
-  PolicyPointer deviatoricStressPolicy(new DeviatoricStressPolicy<Dim<1>>(false));
-  state.enroll(ps, plasticStrainPolicy);
-  state.enroll(S, deviatoricStressPolicy);
+  // // Reregister the plastic strain policy to the R specialized version
+  // // that accounts for the non-R components of the stress.  Also reregister
+  // // the deviatoric stress to not zero out the trace.
+  // auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
+  // PolicyPointer plasticStrainPolicy(new SphericalPlasticStrainPolicy());
+  // PolicyPointer deviatoricStressPolicy(new DeviatoricStressPolicy<Dim<1>>(false));
+  // state.enroll(ps, plasticStrainPolicy);
+  // state.enroll(S, deviatoricStressPolicy);
 
   // Are we using the compatible energy evolution scheme?
   // If so we need to override the ordinary energy registration with a specialized version.
