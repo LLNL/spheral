@@ -37,17 +37,15 @@ namespace {
 //------------------------------------------------------------------------------
 // Helper method to compute the J2 constant from the deviatoric stress.
 //------------------------------------------------------------------------------
-template<typename SymTensor>
 inline
 double
-computeJ2(const SymTensor& S) {
+computeJ2(const Dim<3>::SymTensor& S) {
   return 0.5*S.doubledot(S);
 }
 
-template<>
 inline
 double
-computeJ2<Dim<1>::SymTensor>(const Dim<1>::SymTensor& S) {
+computeJ2(const Dim<1>::SymTensor& S) {
   if (GeometryRegistrar::coords() == CoordinateType::Spherical) {
     const auto STT = 0.5*(S.Trace());  // S_theta_theta == S_phi_phi = -S_rr/2
     return 0.5*(S.doubledot(S) + 2.0*STT*STT);
@@ -56,10 +54,9 @@ computeJ2<Dim<1>::SymTensor>(const Dim<1>::SymTensor& S) {
   }
 }
 
-template<>
 inline
 double
-computeJ2<Dim<2>::SymTensor>(const Dim<2>::SymTensor& S) {
+computeJ2(const Dim<2>::SymTensor& S) {
   if (GeometryRegistrar::coords() == CoordinateType::RZ) {
     const auto STT = S.Trace();    // S_theta_theta = -(S_rr + S_zz)
     return 0.5*(S.doubledot(S) + STT*STT);

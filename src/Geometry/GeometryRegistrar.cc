@@ -52,5 +52,6 @@ GeometryRegistrar::~GeometryRegistrar() {
 //------------------------------------------------------------------------------
 // Initializations
 //------------------------------------------------------------------------------
+GeometryRegistrar* GeometryRegistrar::mInstancePtr = 0;
 CoordinateType GeometryRegistrar::mCoords = CoordinateType::Cartesian;
 }
