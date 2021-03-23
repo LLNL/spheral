@@ -10,6 +10,7 @@ set(NodeList_inst
     generateVoidNodes
     FixedSmoothingScale
     nthNodalMoment
+    DEMNodeList
    )
 
 set(NodeList_sources )
@@ -31,12 +32,15 @@ set(NodeList_headers
     SolidNodeListInline.hh
     generateVoidNodes.hh
     secondMomentUtilities.hh
+    DEMNodeList.hh
+    DEMNodeListInline.hh
     )
 
 spheral_install_python_files(
   FluidNodeLists.py
   SolidNodeLists.py
   VoidNodeLists.py
+  DEMNodeLists.py
   )
 
 spheral_add_cxx_library(NodeList)
