@@ -77,10 +77,10 @@ class DEMNodeList(NodeList):
 
     #...........................................................................
     # Properties
-    rhoMin = PYB11property("Scalar", "rhoMin", "rhoMin", doc="The minimum allowed mass density.")
-    rhoMax = PYB11property("Scalar", "rhoMax", "rhoMax", doc="The maximum allowed mass density.")
+    #rhoMin = PYB11property("Scalar", "rhoMin", "rhoMin", doc="The minimum allowed mass density.")
+    #rhoMax = PYB11property("Scalar", "rhoMax", "rhoMax", doc="The maximum allowed mass density.")
 
 #-------------------------------------------------------------------------------
 # Inject the restart methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, FluidNodeList)
+PYB11inject(RestartMethods, DEMNodeList)

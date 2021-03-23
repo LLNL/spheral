@@ -9,7 +9,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-Field<Dimension, typename Dimension::Scalar>&
+Field<Dimension, typename Dimension::Vector>&
 DEMNodeList<Dimension>::angularVelocity() {
   REQUIRE(mAngularVelocity.nodeListPtr() == this);
   return mAngularVelocity;
@@ -17,7 +17,7 @@ DEMNodeList<Dimension>::angularVelocity() {
 
 template<typename Dimension>
 inline
-const Field<Dimension, typename Dimension::Scalar>&
+const Field<Dimension, typename Dimension::Vector>&
 DEMNodeList<Dimension>::angularVelocity() const {
   REQUIRE(mAngularVelocity.nodeListPtr() == this);
   return mAngularVelocity;

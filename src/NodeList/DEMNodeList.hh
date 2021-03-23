@@ -57,7 +57,7 @@ public:
   // Access the fluid state variables.
   Field<Dimension, Vector>& angularVelocity();
   const Field<Dimension, Vector>& angularVelocity() const;
-  void angularVelocity(const Field<Dimension, Scalar>& angularVelocity);
+  void angularVelocity(const Field<Dimension, Vector>& angularVelocity);
 
   // These are quantities which are not stored, but can be computed.
 //   virtual void volume(Field<Dimension, Scalar>& field) const;
@@ -77,7 +77,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
 #ifndef __GCCXML__
   // Fields that define the fluid's current state.
-  Field<Dimension, Scalar> mAngularVelocity;
+  Field<Dimension, Vector> mAngularVelocity;
 #endif
 
   // No default constructor or copying.

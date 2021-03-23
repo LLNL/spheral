@@ -42,7 +42,7 @@ DEMNodeList(string name,
               const Scalar rhoMin,
               const Scalar rhoMax):
   NodeList<Dimension>(name, numInternal, numGhost, hmin, hmax, hminratio, nPerh, maxNumNeighbors),
-  mAngularVelocity(HydroFieldNames::angularVelocity, *this){
+  mAngularVelocity("angularVelocity", *this){
 }
 
 //------------------------------------------------------------------------------
@@ -59,9 +59,9 @@ DEMNodeList<Dimension>::
 template<typename Dimension>
 void
 DEMNodeList<Dimension>::
-angularVelocity(const Field<Dimension, typename Dimension::Scalar>& omega) {
+angularVelocity(const Field<Dimension, typename Dimension::Vector>& omega) {
   mAngularVelocity = omega;
-  mAngularVelocity.name(HydroFieldNames::angularVelocity);
+  mAngularVelocity.name("angularVelocity");
 }
 
 
