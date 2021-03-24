@@ -145,24 +145,26 @@ DEMBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   TIME_DEMregister.start();
+  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
   
-  
-  //FieldList<Dimension, Vector> position = dataBase.DEMPosition();
-  //FieldList<Dimension, Vector> velocity = dataBase.DEMVelocity();
-  //FieldList<Dimension, Vector> angularVelocity = dataBase.DEMAngularVelocity();
-  //FieldList<Dimension, Scalar> mass = dataBase.DEMMass();
+  FieldList<Dimension, Vector> position = dataBase.DEMPosition();
+  FieldList<Dimension, Vector> velocity = dataBase.DEMVelocity();
+  FieldList<Dimension, Vector> angularVelocity = dataBase.DEMAngularVelocity();
+  FieldList<Dimension, Scalar> mass = dataBase.DEMMass();
+  FieldList<Dimension, SymTensor> Hfield = dataBase.DEMHfield();
 
-  //PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
-  //PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,true));
-  //PolicyPointer angularVelocityPolicy(new IncrementFieldList<Dimension, Vector>());
+  PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
+  PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,true));
+  PolicyPointer angularVelocityPolicy(new IncrementFieldList<Dimension, Vector>());
 
-  //state.enroll(mass);
-  //state.enroll(position, positionPolicy);
-  //state.enroll(velocity, velocityPolicy);
-  //state.enroll(angularVelocity, angularVelocityPolicy);
-  //state.enroll(mTimeStepMask);
+  state.enroll(mass);
+  state.enroll(Hfield);
+  state.enroll(position, positionPolicy);
+  state.enroll(velocity, velocityPolicy);
+  state.enroll(angularVelocity, angularVelocityPolicy);
+  state.enroll(mTimeStepMask);
 
   TIME_DEMregister.stop();
 }
@@ -234,6 +236,107 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   TIME_DEMevalDerivs.start();
   TIME_DEMevalDerivs_initial.start();
 
+  // A few useful constants we'll use in the following loop.
+  const double tiny = 1.0e-30;
+
+  // The connectivity.
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto& nodeLists = connectivityMap.nodeLists();
+  const auto numNodeLists = nodeLists.size();
+
+  // Get the state and derivative FieldLists.
+  // State FieldLists.
+  const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
+  CHECK(mass.size() == numNodeLists);
+  CHECK(position.size() == numNodeLists);
+  CHECK(velocity.size() == numNodeLists);
+  CHECK(H.size() == numNodeLists);
+  CHECK(omega.size() == numNodeLists);
+
+  // Derivative FieldLists.
+  auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  CHECK(DxDt.size() == numNodeLists);
+  CHECK(DvDt.size() == numNodeLists);
+
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
+  TIME_DEMevalDerivs_initial.stop();
+
+  // Walk all the interacting pairs.
+  TIME_DEMevalDerivs_pairs.start();
+#pragma omp parallel
+  {
+    // Thread private scratch variables
+    int i, j, nodeListi, nodeListj;
+
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto DvDt_thread = DvDt.threadCopy(threadStack);
+
+#pragma omp for
+    for (auto kk = 0u; kk < npairs; ++kk) {
+      i = pairs[kk].i_node;
+      j = pairs[kk].j_node;
+      nodeListi = pairs[kk].i_list;
+      nodeListj = pairs[kk].j_list;
+
+      // Get the state for node i.
+      const auto& ri = position(nodeListi, i);
+      const auto& mi = mass(nodeListi, i);
+      const auto& vi = velocity(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      
+      auto& DvDti = DvDt_thread(nodeListi, i);
+
+      // Get the state for node j
+      const auto& rj = position(nodeListj, j);
+      const auto& mj = mass(nodeListj, j);
+      const auto& vj = velocity(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
+
+      auto& DvDtj = DvDt_thread(nodeListj, j);
+
+      CHECK(mi > 0.0);
+      CHECK(Hdeti > 0.0);
+      CHECK(mj > 0.0);
+      CHECK(Hdetj > 0.0);
+
+
+      /// evaluate the pair things
+
+    } // loop over pairs
+
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
+  }   // OpenMP parallel region
+  TIME_DEMevalDerivs_pairs.stop();
+
+  // Finish up the derivatives for each point.
+  TIME_DEMevalDerivs_final.start();
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+    const auto& nodeList = mass[nodeListi]->nodeList();
+    const auto  hmin = nodeList.hmin();
+    const auto  hmax = nodeList.hmax();
+    const auto  hminratio = nodeList.hminratio();
+    const auto  nPerh = nodeList.nodesPerSmoothingScale();
+
+    const auto ni = nodeList.numInternalNodes();
+#pragma omp parallel for
+    for (auto i = 0u; i < ni; ++i) {
+
+        //evaluate the node things
+
+    }
+  }
   TIME_DEMevalDerivs_final.stop();
   TIME_DEMevalDerivs.stop();
 }
@@ -288,7 +391,9 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
-  //file.write(mTimeStepMask, pathName + "/timeStepMask");
+  file.write(mTimeStepMask, pathName + "/timeStepMask");
+  //file.write(mDxDt, pathName + "/DxDt");
+  //file.write(mDvDt, pathName + "/DvDt");
 }
 
 //------------------------------------------------------------------------------
@@ -299,7 +404,9 @@ void
 DEMBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
  
-  //file.read(mTimeStepMask, pathName + "/timeStepMask");
+  file.read(mTimeStepMask, pathName + "/timeStepMask");
+  //file.read(mDxDt, pathName + "/DxDt");
+  //file.read(mDvDt, pathName + "/DvDt");
 }
 
 }
