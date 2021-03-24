@@ -3,18 +3,18 @@
 //                  fluids.
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "SmoothingScaleBase.hh"
-#include "Material/EquationOfState.hh"
+//#include "SmoothingScaleBase.hh"
+//#include "Material/EquationOfState.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/DataBase.hh"
-#include "DataBase/IncrementState.hh"
-#include "DataBase/ReplaceState.hh"
-#include "Kernel/TableKernel.hh"
+//#include "DataBase/IncrementState.hh"
+//#include "DataBase/ReplaceState.hh"
+//#include "Kernel/TableKernel.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Neighbor/ConnectivityMap.hh"
-#include "Utilities/safeInv.hh"
+//#include "Neighbor/ConnectivityMap.hh"
+//#include "Utilities/safeInv.hh"
 #include "DEMNodeList.hh"
 
 using std::vector;
@@ -38,9 +38,7 @@ DEMNodeList(string name,
               const Scalar hmax,
               const Scalar hminratio,
               const Scalar nPerh,
-              const int maxNumNeighbors,
-              const Scalar rhoMin,
-              const Scalar rhoMax):
+              const int maxNumNeighbors):
   NodeList<Dimension>(name, numInternal, numGhost, hmin, hmax, hminratio, nPerh, maxNumNeighbors),
   mAngularVelocity("angularVelocity", *this){
 }

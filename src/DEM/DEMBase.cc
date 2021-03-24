@@ -97,8 +97,9 @@ DEMBase(DataBase<Dimension>& dataBase,
   mxmin(xmin),
   mRestart(registerWithRestart(*this)){
     mTimeStepMask = dataBase.newFluidFieldList(int(0), "timeStepMask");
-    mDxDt = dataBase.newFluidFieldList(Vector::zero, "DEM_position");
-    mDvDt = dataBase.newFluidFieldList(Vector::zero, "DEM_acceleration");
+    mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position);
+    mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
+    mDomegaDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "DEM angular velocity");
 }
 
 //------------------------------------------------------------------------------
@@ -119,8 +120,7 @@ DEMBase<Dimension>::
 dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
-   typename Dimension::Scalar /*currentTime*/) const {
-    
+   typename Dimension::Scalar /*currentTime*/) const {   
 }
 
 //------------------------------------------------------------------------------
@@ -146,6 +146,24 @@ registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   TIME_DEMregister.start();
 
+  dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
+  
+  
+  //FieldList<Dimension, Vector> position = dataBase.DEMPosition();
+  //FieldList<Dimension, Vector> velocity = dataBase.DEMVelocity();
+  //FieldList<Dimension, Vector> angularVelocity = dataBase.DEMAngularVelocity();
+  //FieldList<Dimension, Scalar> mass = dataBase.DEMMass();
+
+  //PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
+  //PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,true));
+  //PolicyPointer angularVelocityPolicy(new IncrementFieldList<Dimension, Vector>());
+
+  //state.enroll(mass);
+  //state.enroll(position, positionPolicy);
+  //state.enroll(velocity, velocityPolicy);
+  //state.enroll(angularVelocity, angularVelocityPolicy);
+  //state.enroll(mTimeStepMask);
+
   TIME_DEMregister.stop();
 }
 
@@ -159,6 +177,12 @@ registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   TIME_DEMregisterDerivs.start();
 
+  dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position, false);
+  dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
+  dataBase.resizeFluidFieldList(mDomegaDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "DEM angular velocity" , false);
+  derivs.enroll(mDxDt);
+  derivs.enroll(mDvDt);
+  derivs.enroll(mDomegaDt);
 
   TIME_DEMregisterDerivs.stop();
 }

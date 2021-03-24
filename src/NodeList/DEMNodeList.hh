@@ -47,9 +47,7 @@ public:
                 const Scalar hmax,
                 const Scalar hminratio,
                 const Scalar nPerh,
-                const int maxNumNeighbors,
-                const Scalar rhoMin,
-                const Scalar rhoMax);
+                const int maxNumNeighbors);
 
   // Destructor
   virtual ~DEMNodeList();

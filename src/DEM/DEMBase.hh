@@ -119,6 +119,7 @@ public:
   const FieldList<Dimension, int>&       timeStepMask() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    DvDt() const;
+  const FieldList<Dimension, Vector>&    DomegaDt() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -139,9 +140,8 @@ protected:
   FieldList<Dimension, int>       mTimeStepMask;
   FieldList<Dimension, Vector>    mDxDt;
   FieldList<Dimension, Vector>    mDvDt;
+  FieldList<Dimension, Vector>    mDomegaDt;
 
-protected:
-  //--------------------------- Protected Interface ---------------------------//
   // The restart registration.
   RestartRegistrationType mRestart;
 

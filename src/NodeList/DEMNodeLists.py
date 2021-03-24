@@ -16,8 +16,6 @@ def makeDEMNodeList%(dim)s(name,
                            hminratio = 0.1,
                            nPerh = 2.01,
                            maxNumNeighbors = 500,
-                           rhoMin = 1.0e-10,
-                           rhoMax = 1e10,
 
                            # Neighboring stuff
                            NeighborType = TreeNeighbor%(dim)s,
@@ -35,8 +33,7 @@ def makeDEMNodeList%(dim)s(name,
                            xmax = Vector%(dim)s.one *  10.0):
     result = DEMNodeList%(dim)s(name, numInternal, numGhost, 
                                   hmin, hmax, hminratio, 
-                                  nPerh, maxNumNeighbors,
-                                  rhoMin, rhoMax)
+                                  nPerh, maxNumNeighbors)
 
     if NeighborType == NestedGridNeighbor%(dim)s:
         print "makeSolidNodeList Deprecation Warning: NestedGridNeighbor is deprecated: suggest using TreeNeighbor."

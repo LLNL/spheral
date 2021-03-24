@@ -30,16 +30,14 @@ class DEMNodeList(NodeList):
                hmax = ("double", "1e20"),
                hminratio = ("double", "0.1"),
                nPerh = ("double", "2.01"),
-               maxNumNeighbors = ("int", "500"),
-               rhoMin = ("double", "1e-10"),
-               rhoMax = ("double", "1e100")):
+               maxNumNeighbors = ("int", "500")):
         "Constructor for a DEMNodeList class."
         return
 
     @PYB11const
     @PYB11returnpolicy("reference_internal")
     def angularVelocity(self):
-        "The mass density field"
+        "The angular velocity field"
         return "const VectorField&"
 
 
