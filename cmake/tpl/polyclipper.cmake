@@ -2,7 +2,6 @@ set(POLYCLIPPER_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(POLYCLIPPER_DIST "PolyClipper-v1.2.0.zip")
 set(POLYCLIPPER_CACHE "${CACHE_DIR}/${POLYCLIPPER_DIST}")
 set(POLYCLIPPER_URL "https://github.com/LLNL/PolyClipper/archive/PolyClipper-v1.2.0.zip")
-set(POLYCLIPPER_MD5 "MD5=718d7d5fe603238965e58db0ef6137f9")
 set(POLYCLIPPER_DEST_DIR "${${lib_name}_DIR}/lib")
 
 set(${lib_name}_libs )
@@ -23,7 +22,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${POLYCLIPPER_PREFIX}
     URL ${POLYCLIPPER_URL}
-    URL_HASH ${POLYCLIPPER_MD5}
+    URL_HASH "MD5=${POLYCLIPPER_MD5}"
     DOWNLOAD_DIR ${CACHE_DIR}
     CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}

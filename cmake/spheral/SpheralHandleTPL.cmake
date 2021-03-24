@@ -58,14 +58,8 @@ function(Spheral_Handle_TPL lib_name dep_list)
 
   string(TOUPPER ${lib_name} LIB_NAME)
 
-  # Include tpl cmake file just to get some variables.
-  set(TEMP_BUILD_OPTION ${${lib_name}_BUILD})
-  set(${lib_name}_BUILD OFF)
-  include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
-  set(${lib_name}_BUILD ${TEMP_BUILD_OPTION})
-
   # Get the pure MD5 HASH string.
-  string(REPLACE "MD5=" "" HASH ${${LIB_NAME}_MD5})
+  set(HASH ${${LIB_NAME}_MD5})
                                                        
   # If we are not building the TPL ...
   if(NOT BUILD_TPL OR NOT ${lib_name}_BUILD)
@@ -111,7 +105,6 @@ function(Spheral_Handle_TPL lib_name dep_list)
   set(${lib_name}_ADD_BLT_TARGET ON)
 
   # Include the actual <tpl>.cmake file
-  set(${lib_name}_SETUP ON)
   include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
 
   list(APPEND ${lib_name}_INCLUDES $<BUILD_INTERFACE:${${lib_name}_DIR}/include>)

@@ -1,4 +1,3 @@
-set(PYTHON_MD5 "MD5=38c84292658ed4456157195f1c9bcbe1")
 set(PYTHON_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(PYTHON_VERSION "2.7.18")
 set(PYTHON_CACHE "${CACHE_DIR}/Python-${PYTHON_VERSION}.tgz")
@@ -38,7 +37,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${PYTHON_PREFIX}
     URL ${PYTHON_URL} 
-    URL_HASH ${PYTHON_MD5}
+    URL_HASH "MD5=${PYTHON_MD5}"
     DOWNLOAD_DIR ${CACHE_DIR}
     CONFIGURE_COMMAND env CC=${PYTHON_C_COMPILER}
                           CXX=${PYTHON_CXX_COMPILER}
@@ -63,7 +62,6 @@ if(${lib_name}_BUILD)
 
 endif()
 
-if(${lib_name}_SETUP)
 add_custom_target(
   ${lib_name}-install
   COMMAND ${PYTHON_EXE} -V &> python-version.log
@@ -78,4 +76,3 @@ set(${lib_name}_BUILD ${${lib_name}_BUILD} PARENT_SCOPE)
 set(PYTHON_EXE ${PYTHON_EXE} PARENT_SCOPE)
 set(PYTHON_INSTALL_DIR ${PYTHON_INSTALL_DIR} PARENT_SCOPE)
 set(PYTHON_SITE_PACKAGE_DIR ${PYTHON_SITE_PACKAGE_DIR} PARENT_SCOPE)
-endif()
