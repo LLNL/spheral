@@ -148,7 +148,7 @@ SolidSPHHydroBaseR::
 registerState(DataBase<Dim<1>>& dataBase,
               State<Dim<1>>& state) {
 
-  typedef State<Dimension>::PolicyPointer PolicyPointer;
+  // typedef State<Dimension>::PolicyPointer PolicyPointer;
 
   // Call the ancestor.
   SolidSPHHydroBase<Dim<1>>::registerState(dataBase, state);
@@ -190,12 +190,12 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   auto& Q = this->artificialViscosity();
 
   // The kernels and such.
-  const auto& W = this->kernel();
-  const auto& WQ = this->PiKernel();
-  const auto& WG = this->GradKernel();
+  const auto& W = *mKernelPtr;
+  const auto& WQ = *mQKernelPtr;
+  const auto& WG = *mGKernelPtr;
   const auto& smoothingScaleMethod = this->smoothingScaleMethod();
-  const auto  uniqueWQ = (WQ != W);
-  const auto  uniqueWG = (WG != W);
+  const auto  uniqueWQ = (mQKernelPtr != mKernelPtr);
+  const auto  uniqueWG = (mGKernelPtr != mKernelPtr);
 
   // A few useful constants we'll use in the following loop.
   const auto tiny = 1.0e-30;
@@ -771,6 +771,30 @@ enforceBoundaries(State<Dim<1>>& state,
       mass(nodeListi, i) *= ri*ri;
     }
   }
+}
+
+//------------------------------------------------------------------------------
+// Access teh spherical kernels.
+//------------------------------------------------------------------------------
+const SphericalTableKernel&
+SolidSPHHydroBaseR::
+sphericalKernel() const {
+  CHECK(mKernelPtr != nullptr);
+  return *mKernelPtr;
+}
+
+const SphericalTableKernel&
+SolidSPHHydroBaseR::
+sphericalPiKernel() const {
+  CHECK(mPiKernelPtr != nullptr);
+  return *mPiKernelPtr;
+}
+
+const SphericalTableKernel&
+SolidSPHHydroBaseR::
+sphericalGradKernel() const {
+  CHECK(mGradKernelPtr != nullptr);
+  return *mGradKernelPtr;
 }
 
 }

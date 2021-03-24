@@ -103,12 +103,20 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
+  // Access the spherical kernels.
+  const SphericalTableKernel& sphericalKernel() const;
+  const SphericalTableKernel& sphericalPiKernel() const;
+  const SphericalTableKernel& sphericalGradKernel() const;
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "SolidSPHHydroBaseR"; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  // The special spherical kernel(s).
+  const SphericalTableKernel *mKernelPtr, *mQKernelPtr, *mGKernelPtr;
+
   // No default constructor, copying, or assignment.
   SolidSPHHydroBaseR();
   SolidSPHHydroBaseR(const SolidSPHHydroBaseR&);
