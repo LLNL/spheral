@@ -532,6 +532,9 @@ updateConnectivityMap(const bool computeGhostConnectivity,
           mConnectivityMapPtr.get() != 0);
   mConnectivityMapPtr->rebuild(fluidNodeListBegin(), fluidNodeListEnd(),
                                computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
+  // for now hit the DEM node separately
+  mConnectivityMapPtr->rebuild(DEMNodeListAsNodeListBegin(), DEMNodeListAsNodeListEnd(),
+                               computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
 }
 
 //------------------------------------------------------------------------------
