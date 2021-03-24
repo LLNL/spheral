@@ -99,7 +99,7 @@ DEMBase(DataBase<Dimension>& dataBase,
     mTimeStepMask = dataBase.newFluidFieldList(int(0), "timeStepMask");
     mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position);
     mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
-    mDomegaDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "DEM angular velocity");
+    mDomegaDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "angularVelocity");
 }
 
 //------------------------------------------------------------------------------
@@ -180,8 +180,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   TIME_DEMregisterDerivs.start();
 
   dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position, false);
-  dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
-  dataBase.resizeFluidFieldList(mDomegaDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "DEM angular velocity" , false);
+  dataBase.resizeFluidFieldList(mDvDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, false);
+  dataBase.resizeFluidFieldList(mDomegaDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "angularVelocity" , false);
+  
   derivs.enroll(mDxDt);
   derivs.enroll(mDvDt);
   derivs.enroll(mDomegaDt);
@@ -238,6 +239,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
+  const auto c1 = 1.0;
+  const auto c2 = 1.0;
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -259,7 +262,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
   // Derivative FieldLists.
   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  auto  DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
 
@@ -309,8 +312,23 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(mj > 0.0);
       CHECK(Hdetj > 0.0);
 
+      const auto vij = vi-vj;
+      const auto rij = ri-rj;
+      const auto rhatij = rij.unitVector();
+      const auto rij2 = sqrt(rij.dot(rij));
 
-      /// evaluate the pair things
+      const auto Ri = 1.0/Hdeti;
+      const auto Rj = 1.0/Hdetj;
+      const auto Rij2 = (Ri+Rj);
+
+      const auto delta = rij2-Rij2;  // negative will get ya a force
+
+      if (delta < 0.0){
+        const auto vn = vij.dot(rhatij);
+        const auto f = -(c1*delta - c2*vn);
+        DvDti += f/mi*rhatij;
+        DvDtj -= f/mj*rhatij;
+      }
 
     } // loop over pairs
 

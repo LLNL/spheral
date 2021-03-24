@@ -530,10 +530,12 @@ updateConnectivityMap(const bool computeGhostConnectivity,
                       const bool computeIntersectionConnectivity) const {
   REQUIRE(mConnectivityMapPtr != 0 and
           mConnectivityMapPtr.get() != 0);
+          
   mConnectivityMapPtr->rebuild(fluidNodeListBegin(), fluidNodeListEnd(),
                                computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
-  // for now hit the DEM node separately
-  mConnectivityMapPtr->rebuild(DEMNodeListAsNodeListBegin(), DEMNodeListAsNodeListEnd(),
+  
+  // for now hit the DEM nodes separately
+  mConnectivityMapPtr->rebuild(DEMNodeListBegin(), DEMNodeListEnd(),
                                computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
 }
 

@@ -12,21 +12,21 @@
 
 namespace Spheral {
 
-template<typename Dimension> class NodeIteratorBase;
-template<typename Dimension> class AllNodeIterator;
-template<typename Dimension> class InternalNodeIterator;
-template<typename Dimension> class GhostNodeIterator;
-template<typename Dimension> class MasterNodeIterator;
-template<typename Dimension> class CoarseNodeIterator;
-template<typename Dimension> class RefineNodeIterator;
-template<typename Dimension> class State;
-template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class Neighbor;
-template<typename Dimension> class ConnectivityMap;
+//template<typename Dimension> class NodeIteratorBase;
+//template<typename Dimension> class AllNodeIterator;
+//template<typename Dimension> class InternalNodeIterator;
+//template<typename Dimension> class GhostNodeIterator;
+//template<typename Dimension> class MasterNodeIterator;
+//template<typename Dimension> class CoarseNodeIterator;
+//template<typename Dimension> class RefineNodeIterator;
+//template<typename Dimension> class State;
+//template<typename Dimension> class StateDerivatives;
+//template<typename Dimension> class Neighbor;
+//template<typename Dimension> class ConnectivityMap;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
-template<typename Dimension> class TableKernel;
-template<typename Dimension> class DataBase;
+//template<typename Dimension> class TableKernel;
+//template<typename Dimension> class DataBase;
 class FileIO;
 
 template<typename Dimension>
@@ -36,8 +36,8 @@ public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  //typedef typename Dimension::Tensor Tensor;
+  //typedef typename Dimension::SymTensor SymTensor;
 
   // Constructors.
   DEMNodeList(std::string name,
