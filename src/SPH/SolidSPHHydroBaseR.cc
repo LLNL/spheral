@@ -34,6 +34,7 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
+#include "Geometry/GeometryRegistrar.hh"
 
 #include "SolidSPHHydroBaseR.hh"
 
@@ -134,10 +135,8 @@ SolidSPHHydroBaseR::
 void
 SolidSPHHydroBaseR::
 initializeProblemStartup(DataBase<Dim<1>>& dataBase) {
-
-  // Call the ancestor.
+  GeometryRegistrar::coords(CoordinateType::Spherical);
   SolidSPHHydroBase<Dim<1>>::initializeProblemStartup(dataBase);
-  dataBase.isSpherical = true;
 }
 
 //------------------------------------------------------------------------------
@@ -191,16 +190,14 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 
   // The kernels and such.
   const auto& W = *mKernelPtr;
-  const auto& WQ = *mQKernelPtr;
+  const auto& WQ = *mPiKernelPtr;
   const auto& WG = *mGKernelPtr;
   const auto& smoothingScaleMethod = this->smoothingScaleMethod();
-  const auto  uniqueWQ = (mQKernelPtr != mKernelPtr);
+  const auto  uniqueWQ = (mPiKernelPtr != mKernelPtr);
   const auto  uniqueWG = (mGKernelPtr != mKernelPtr);
 
   // A few useful constants we'll use in the following loop.
   const auto tiny = 1.0e-30;
-  const auto W0 = W(0.0, 1.0);
-  const auto WQ0 = WQ(0.0, 1.0);
   const auto epsTensile = this->epsilonTensile();
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
   const auto XSPH = this->XSPH();
@@ -298,14 +295,14 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
-  const auto  WnPerh = W(1.0/nPerh, 1.0);
+  const auto  WnPerh = W.kernelValue(1.0/nPerh, 1.0);
 
   // Walk all the interacting pairs.
 #pragma omp parallel
   {
     // Thread private  scratch variables.
     int i, j, nodeListi, nodeListj;
-    Scalar Wi;
+    Scalar Wi, Wj, WQi, WQj;
     Vector gradWi, gradWj, gradWQi, gradWQj, gradWGi, gradWGj;
     Tensor QPiij, QPiji;
     SymTensor sigmai, sigmaj;
@@ -383,7 +380,6 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       const auto  safeOmegaj = safeInv(omegaj, tiny);
       //const auto  fragIDj = fragIDs(nodeListj, j);
       const auto  pTypej = pTypes(nodeListj, j);
-      const auto  zetaj = abs((Hj*posj).y());
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
@@ -420,8 +416,15 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       const auto etajJ = Hj*posj;
       std::tie(Wi, gradWi) = W.kernelAndGradValue(etajI, etaiI, Hdeti);
       std::tie(Wj, gradWj) = W.kernelAndGradValue(etajJ, etaiJ, Hdetj);
-      gradWQi = uniqueWQ ? WQ.grad(etajI, etaiI, Hdeti) : gradWi;
-      gradWQj = uniqueWQ ? WQ.grad(etajJ, etaiJ, Hdetj) : gradWj;
+      if (uniqueWQ) {
+        std::tie(WQi, gradWQi) = W.kernelAndGradValue(etajI, etaiI, Hdeti);
+        std::tie(WQj, gradWQj) = W.kernelAndGradValue(etajJ, etaiJ, Hdetj);
+      } else {
+        WQi = Wi;
+        WQj = Wj;
+        gradWQi = gradWi;
+        gradWQj = gradWj;
+      }
       gradWGi = uniqueWG ? WG.grad(etajI, etaiI, Hdeti) : gradWi;
       gradWGj = uniqueWG ? WG.grad(etajJ, etaiJ, Hdetj) : gradWj;
 
@@ -573,7 +576,6 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       const auto  Hdeti = Hi.Determinant();
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       const auto  riInv = safeInv(posi.x());
-      const auto  zetai = abs((Hi*posi).y());
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -598,16 +600,18 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       auto& DSDti = DSDt(nodeListi, i);
 
       // Add the self-contribution to density sum.
+      const auto W0 = W(Vector::zero, Vector::zero, Hdeti);
       rhoSumi += mi*W0*Hdeti;
 
       // Add the self-contribution to density sum correction.
+      const auto WQ0 = uniqueWQ ? WQ(Vector::zero, Vector::zero, Hdeti) : W0;
       rhoSumCorrectioni += mi*WQ0*Hdeti/rhoi ;
 
       // Correct the effective viscous pressure.
       effViscousPressurei /= rhoSumCorrectioni;
 
       // Finish the acceleration -- self hoop strain.
-      const Vector deltaDvDti(3.0*Si(0,0)/rhoi*rInv);
+      const auto deltaDvDti = 3.0*Si(0,0)/rhoi*riInv;
       DvDti[0] += deltaDvDti;
       if (compatibleEnergy) pairAccelerations[offset + i] = deltaDvDti;
 
@@ -635,7 +639,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
       XSPHDeltaVi /= XSPHWeightSumi;
       const auto vri = vi.x();
-      DrhoDti = -rhoi*(DvDxi.x() + 2.0*vri*riInv);
+      DrhoDti = -rhoi*(DvDxi[0] + 2.0*vri*riInv);
 
       // Finish the specific thermal energy evolution.
       DepsDti += (Si.xx() - 2.0*Pi)/rhoi*2.0*vri*riInv;
@@ -793,8 +797,8 @@ sphericalPiKernel() const {
 const SphericalTableKernel&
 SolidSPHHydroBaseR::
 sphericalGradKernel() const {
-  CHECK(mGradKernelPtr != nullptr);
-  return *mGradKernelPtr;
+  CHECK(mGKernelPtr != nullptr);
+  return *mGKernelPtr;
 }
 
 }

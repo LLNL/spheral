@@ -32,6 +32,7 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
+#include "Geometry/GeometryRegistrar.hh"
 
 #include "SolidSPHHydroBaseRZ.hh"
 
@@ -137,10 +138,8 @@ SolidSPHHydroBaseRZ::
 void
 SolidSPHHydroBaseRZ::
 initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
-
-  // Call the ancestor.
+  GeometryRegistrar::coords(CoordinateType::RZ);
   SolidSPHHydroBase<Dim<2> >::initializeProblemStartup(dataBase);
-  dataBase.isRZ = true;
 }
 
 //------------------------------------------------------------------------------

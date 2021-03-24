@@ -47,8 +47,6 @@ public:
   // It is convenient to be able to query the DataBase for the problem
   // dimensionality for Python.
   static int nDim;
-  static bool isRZ;
-  static bool isSpherical;
 
   // Constructors.
   DataBase();

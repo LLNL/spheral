@@ -38,6 +38,7 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/NodeCoupling.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
+#include "Geometry/GeometryRegistrar.hh"
 
 #include "CRKSPH/SolidCRKSPHHydroBaseRZ.hh"
 
@@ -152,7 +153,7 @@ void
 SolidCRKSPHHydroBaseRZ::
 initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
 
-  dataBase.isRZ = true;
+  GeometryRegistrar::coords(CoordinateType::RZ);
 
   // Correct the mass to mass/r.
   auto mass = dataBase.fluidMass();

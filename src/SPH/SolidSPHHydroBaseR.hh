@@ -115,7 +115,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // The special spherical kernel(s).
-  const SphericalTableKernel *mKernelPtr, *mQKernelPtr, *mGKernelPtr;
+  const SphericalTableKernel *mKernelPtr, *mPiKernelPtr, *mGKernelPtr;
 
   // No default constructor, copying, or assignment.
   SolidSPHHydroBaseR();
