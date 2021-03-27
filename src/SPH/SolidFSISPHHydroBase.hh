@@ -66,6 +66,11 @@ public:
   // Destructor.
   virtual ~SolidFSISPHHydroBase();
 
+  // Register the derivatives/change fields for updating state.
+  virtual
+  void registerDerivatives(DataBase<Dimension>& dataBase,
+                           StateDerivatives<Dimension>& derivs) override;
+
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
@@ -115,6 +120,8 @@ private:
   double mSpecificThermalEnergyDiffusionCoefficient;  // controls diffusion of eps
   std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
 
+  FieldList<Dimension, Tensor> mTensorDepsDt;         // temp storage for DepsDt components to allow for M correction
+  
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();
   SolidFSISPHHydroBase(const SolidFSISPHHydroBase&);
