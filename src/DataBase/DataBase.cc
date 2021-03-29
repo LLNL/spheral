@@ -1368,6 +1368,21 @@ DataBase<Dimension>::DEMAngularVelocity() const {
   return result;
 }
 
+//------------------------------------------------------------------------------
+// Return the DEM HField.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::SymTensor>
+DataBase<Dimension>::DEMHfield() const {
+  REQUIRE(valid());
+  FieldList<Dimension, SymTensor> result;
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->Hfield());
+  }
+  return result;
+}
+
 
 //------------------------------------------------------------------------------
 // Return the node extent for each NodeList.
