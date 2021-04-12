@@ -120,7 +120,41 @@ DEMBase<Dimension>::
 dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
-   typename Dimension::Scalar /*currentTime*/) const {   
+   typename Dimension::Scalar /*currentTime*/) const { 
+
+//   const auto& mask = state.fields(HydroFieldNames::timeStepMask, 1);
+//   const auto& mass = state.fields(HydroFieldNames::mass, 0.0); 
+//   const auto& position = state.fields(HydroFieldNames::position, Vector::zero);
+//   const auto& velocity = state.fields(HydroFieldNames::velocity, Vector::zero);  
+//   const auto& angularVelocity = state.fields("angularVelocity", Vector::zero);  
+
+//   const auto& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity(),
+//                                                          this->requireOverlapConnectivity());
+
+//   const float pi = 3.14159;
+//   const float c1 = 1.0;
+//   const float c2 = 1.0;
+
+//   #pragma omp parallel
+//   {
+
+//     int i, j, nodeListi, nodeListj;
+
+// #pragma omp for
+//     for (auto kk = 0u; kk < npairs; ++kk) {
+
+//       const auto mi = mass(nodeListi,i);
+//       const auto mj = mass(nodeListj,j);
+//       const auto mij = (mi*mj)/(mi+mj);
+
+//       const auto stiffness = c1/mij;
+//       const auto dissipation = c2/(2.0*mij);
+//       const auto contactFrequency = std::sqrt(c1/mij - );
+//       const auto contactTime = pi/contactFrequency;
+
+
+//     }
+//   }
 }
 
 //------------------------------------------------------------------------------
@@ -383,7 +417,17 @@ DEMBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& /*derivs*/) {
   TIME_DEMghostBounds.start();
+  FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  FieldList<Dimension, Vector> angularVelocity = state.fields("angularVelocity", Vector::zero);
 
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->applyFieldListGhostBoundary(mass);
+    (*boundaryItr)->applyFieldListGhostBoundary(velocity);
+    (*boundaryItr)->applyFieldListGhostBoundary(angularVelocity);
+  }
   
   TIME_DEMghostBounds.stop();
 }
@@ -397,7 +441,17 @@ DEMBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
   TIME_DEMenforceBounds.start();
+  FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
+  FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  FieldList<Dimension, Vector> angularVelocity = state.fields("angularVelocity", Vector::zero);
 
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->enforceFieldListBoundary(mass);
+    (*boundaryItr)->enforceFieldListBoundary(velocity);
+    (*boundaryItr)->enforceFieldListBoundary(angularVelocity);
+  }
  
   TIME_DEMenforceBounds.stop();
 }
