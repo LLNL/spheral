@@ -5,15 +5,13 @@
 #define __Spheral_DEMBase_hh__
 
 #include <string>
-
 #include "Physics/Physics.hh"
+//#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class SmoothingScaleBase;
-template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
@@ -48,7 +46,7 @@ public:
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const override;
+                          const Scalar currentTime) const;
 
   // Tasks we do once on problem startup.
   virtual
@@ -112,14 +110,17 @@ public:
   void xmin(const Vector& x);
   void xmax(const Vector& x);
 
+  Scalar cfl() const;
+  void   cfl(Scalar x);
+
   // Access the stored interpolation kernels.
   const TableKernel<Dimension>& kernel() const;
 
   // The state field lists we're maintaining.
-  const FieldList<Dimension, int>&       timeStepMask() const;
-  const FieldList<Dimension, Vector>&    DxDt() const;
-  const FieldList<Dimension, Vector>&    DvDt() const;
-  const FieldList<Dimension, Vector>&    DomegaDt() const;
+  const FieldList<Dimension, int>&    timeStepMask() const;
+  const FieldList<Dimension, Vector>& DxDt() const;
+  const FieldList<Dimension, Vector>& DvDt() const;
+  const FieldList<Dimension, Vector>& DomegaDt() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -132,6 +133,8 @@ protected:
   //---------------------------  Protected Interface ---------------------------//
   // The interpolation kernels.
   const TableKernel<Dimension>& mKernel;
+
+  Scalar mCfl;
 
   // Optional bounding box for generating the mesh.
   Vector mxmin, mxmax;

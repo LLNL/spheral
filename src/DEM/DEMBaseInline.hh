@@ -38,6 +38,26 @@ xmax(const typename Dimension::Vector& x) {
 //------------------------------------------------------------------------------
 // Access the main kernel used for (A)SPH field estimates.
 //------------------------------------------------------------------------------
+
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+DEMBase<Dimension>::
+cfl() const {
+  return mCfl;
+}
+
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+cfl(typename Dimension::Scalar x) {
+  mCfl = x;
+}
+
+//------------------------------------------------------------------------------
+// Access the main kernel used for (A)SPH field estimates.
+//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const TableKernel<Dimension>&
@@ -71,6 +91,14 @@ const FieldList<Dimension, typename Dimension::Vector>&
 DEMBase<Dimension>::
 DvDt() const {
   return mDvDt;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Vector>&
+DEMBase<Dimension>::
+DomegaDt() const {
+  return mDomegaDt;
 }
 
 }
