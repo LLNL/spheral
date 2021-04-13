@@ -21,10 +21,6 @@ public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  //typedef typename Dimension::Tensor Tensor;
-  //typedef typename Dimension::SymTensor SymTensor;
-
-  //typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   // Constructors.
   ContactModelBase();
@@ -34,26 +30,19 @@ public:
 
   //***************************************************************************
   // Required methods from contact model
-  virtual Scalar timeStep(const State<Dimension>& state,
-                          const StateDerivatives<Dimension>& derivs) const = 0;
 
-  virtual void force(const State<Dimension>& state,
-                     StateDerivatives<Dimension>& derivs) const;
+  virtual Scalar timeStep( ) const = 0;
 
-  virtual void torque(const State<Dimension>& state,
-                      StateDerivatives<Dimension>& derivs) const;
-  //****************************************************************************
+  virtual Vector force(const Scalar mi, const Scalar mj,
+                       const Vector ri, const Vector rj,
+                       const Vector vi, const Vector vj,
+                       const Scalar hi, const Scalar hj) const;
+  
+  virtual Vector torque(const Scalar mi, const Scalar mj,
+                        const Vector ri, const Vector rj,
+                        const Vector vi, const Vector vj,
+                        const Scalar hi, const Scalar hj) const;
 
-//protected:
-  // The restart registration.
-  //RestartRegistrationType mRestart;
-
-//private:
-  //--------------------------- Private Interface ---------------------------//
-  // No default constructor, copying, or assignment.
-  //ContactModelBase();
-  //ContactModelBase(const ContactModelBase&);
-  //ContactModelBase& operator=(const ContactModelBase&);
 };
 
 }
