@@ -24,6 +24,7 @@ set (_python_packages
   SPH
   CRKSPH
   SVPH
+  DEM
   ArtificialViscosity
   Mesh
   Damage
