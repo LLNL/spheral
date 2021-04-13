@@ -53,6 +53,7 @@ from PSPHHydros import *
 #from SVPHHydros import *
 from CRKSPHHydros import *
 #from TaylorSPHHydros import *
+from DEM import *
 from SPHUtilities import *
 
 # ------------------------------------------------------------------------------
