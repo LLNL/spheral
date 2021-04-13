@@ -43,6 +43,7 @@ from MaterialEquationsOfState import *
 from FluidNodeLists import *
 from SolidNodeLists import *
 from VoidNodeLists import *
+from DEMNodeLists import *
 
 # ------------------------------------------------------------------------------
 # Import SPH, SVPH, and CRKSPH
