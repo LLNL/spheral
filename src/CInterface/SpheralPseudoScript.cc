@@ -74,8 +74,9 @@ copyArrayToScalarFieldList(const double* array,
                            FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
   const unsigned nfields = fieldList.numFields();
   unsigned k = 0;
+  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements();
+    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
     if (n > 0) {
       std::copy(&array[k], &array[k] + n, &(*fieldList[i]->begin()));
       k += n;
@@ -90,8 +91,9 @@ copyArrayToIntFieldList(const int* array,
                         FieldList<Dimension, int>& fieldList) {
   const unsigned nfields = fieldList.numFields();
   unsigned k = 0;
+  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements();
+    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
     if (n > 0) {
       std::copy(&array[k], &array[k] + n, &(*fieldList[i]->begin()));
       k += n;
@@ -115,8 +117,9 @@ copyArrayToVectorFieldList(const double** arrays,
                            FieldList<Dimension, typename Dimension::Vector>& fieldList) {
   const unsigned nfields = fieldList.numFields();
   unsigned offset = 0;
+  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements();
+    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
     for (unsigned j = 0; j != n; ++j) {
       for (unsigned k = 0; k != Dimension::nDim; ++k) {
         fieldList(i,j)[k] = arrays[k][offset + j];
@@ -150,8 +153,9 @@ copyArrayToTensorFieldList(const double** arrays,
   const unsigned nelems = Dimension::nDim*Dimension::nDim;
   const unsigned nfields = fieldList.numFields();
   unsigned offset = 0;
+  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements();
+    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
     for (unsigned j = 0; j != n; ++j) {
       for (unsigned k = 0; k != nelems; ++k) {
         fieldList(i,j)[k] = arrays[k][offset + j];
@@ -182,8 +186,9 @@ copyArrayToSymTensorFieldList(const double** arrays,
   const unsigned nelems = (Dimension::nDim == 2 ? 3 : 6);
   const unsigned nfields = fieldList.numFields();
   unsigned offset = 0;
+  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements();
+    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
     for (unsigned j = 0; j != n; ++j) {
       for (unsigned k = 0; k != nelems; ++k) {
         fieldList(i,j)[k] = arrays[k][offset + j];
@@ -209,8 +214,9 @@ copyArrayToSymTensorFieldList(const double* diag_array,
   typedef typename Dimension::SymTensor SymTensor;
   const unsigned nfields = fieldList.numFields();
   unsigned offset = 0;
+  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements();
+    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
     for (unsigned j = 0; j != n; ++j) {
       fieldList(i,j) = SymTensor::one * diag_array[offset + j];
     }
@@ -228,8 +234,9 @@ copyScalarFieldListToArray(const FieldList<Dimension, typename Dimension::Scalar
                            double* array) {
   const unsigned nfields = fieldList.numFields();
   unsigned k = 0;
+  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements();
+    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
     std::copy(fieldList[i]->begin(), fieldList[i]->begin() + n, &array[k]);
     k += n;
   }
@@ -242,8 +249,9 @@ copyIntFieldListToArray(const FieldList<Dimension, int>& fieldList,
                         int* array) {
   const unsigned nfields = fieldList.numFields();
   unsigned k = 0;
+  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements();
+    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
     std::copy(fieldList[i]->begin(), fieldList[i]->begin() + n, &array[k]);
     k += n;
   }
@@ -265,8 +273,9 @@ copyVectorFieldListToArray(const FieldList<Dimension, typename Dimension::Vector
                            double** arrays) {
   const unsigned nfields = fieldList.numFields();
   unsigned offset = 0;
+  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements();
+    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
     for (unsigned j = 0; j != n; ++j) {
       for (unsigned k = 0; k != Dimension::nDim; ++k) {
         arrays[k][offset + j] = fieldList(i,j)[k];
@@ -300,8 +309,9 @@ copyTensorFieldListToArray(const FieldList<Dimension, typename Dimension::Tensor
   const unsigned nelems = Dimension::nDim*Dimension::nDim;
   const unsigned nfields = fieldList.numFields();
   unsigned offset = 0;
+  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements();
+    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
     for (unsigned j = 0; j != n; ++j) {
       for (unsigned k = 0; k != nelems; ++k) {
         arrays[k][offset + j] = fieldList(i,j)[k];
@@ -332,8 +342,9 @@ copySymTensorFieldListToArray(const FieldList<Dimension, typename Dimension::Sym
   const unsigned nelems = (Dimension::nDim == 2 ? 3 : 6);
   const unsigned nfields = fieldList.numFields();
   unsigned offset = 0;
+  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements();
+    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
     for (unsigned j = 0; j != n; ++j) {
       for (unsigned k = 0; k != nelems; ++k) {
         arrays[k][offset + j] = fieldList(i,j)[k];

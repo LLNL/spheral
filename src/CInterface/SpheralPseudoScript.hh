@@ -196,13 +196,13 @@ public:
   static int* getNumInternalNodes();
   static int* getNumGhostNodes();
 
+  // Numbers of nodes per material.
+  std::vector<int> mNumTotalNodes, mNumInternalNodes, mNumHostGhostNodes;
+
 private:
   //------------------------===== Private Interface =====----------------------//
   // The one and only instance.
   static SpheralPseudoScript* mInstancePtr;
-
-  // Numbers of nodes per material.
-  std::vector<int> mNumTotalNodes, mNumInternalNodes, mNumHostGhostNodes;
 
   // Damage flag
   bool mDamage;
