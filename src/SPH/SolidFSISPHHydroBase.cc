@@ -359,8 +359,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
-  // Walk all the interacting pairs and calculated linear correction tensor
-  // based on taylor series expansion of gradient estimate
+  //Walk all the interacting pairs and calculated linear correction tensor
+  //based on taylor series expansion of gradient estimate
 //   if (this->mCorrectVelocityGradient){
         
 // #pragma omp parallel
@@ -458,7 +458,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 //   }
   
   
-//   } // if statement for vel grad correction
+//    } // if statement for vel grad correction
 
 
 // Now we calculate  the hydro deriviatives
@@ -507,8 +507,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto& pTypei = pTypes(nodeListi, i);
       //const auto fragIDi = fragIDs(nodeListi, i);
       const auto& mui = mu(nodeListi,i);
-      const auto Ki = max(0.0,rhoi*ci*ci)+4/3*mui;
+      const auto Ki = max(tiny,rhoi*ci*ci)+4/3*mui;
       CHECK(mi > 0.0);
+      CHECK(ci > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
@@ -538,8 +539,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       //const auto fragIDj = fragIDs(nodeListj, j);
       const auto& pTypej = pTypes(nodeListj, j);
       const auto& muj = mu(nodeListj,j);
-      const auto Kj = max(0.0,rhoj*cj*cj)+4/3*muj; // P - wave modulus
+      const auto Kj = max(tiny,rhoj*cj*cj)+4/3*muj; // P - wave modulus
       CHECK(mj > 0.0);
+      CHECK(cj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
@@ -609,82 +611,21 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
                                       ri, etaij, vi, rhoij, cij, Hij,  
-                                      rj, etaij, vj, rhoij, cij, Hij); 
-
-     // dwdhi = -(Dimension::nDim*Wi + etaMagi*gWi)*Dimension::rootnu(Hdeti);
-     // dwdhj = -(Dimension::nDim*Wj + etaMagj*gWj)*Dimension::rootnu(Hdetj);
-
-      // Velocity Gradients
-      //-------------------------------------
-      const auto vij = (sameMatij ? vi-vj : (vi-vj).dot(rij) * rij / rij2);
-      const auto isCompressing = (vij).dot(rij) <= 0.0;
-      const auto isExpanding = !isCompressing;
-
-      // vanilla velocity gradient 
-      auto deltaDvDxi = vij.dyad(gradWi);
-      auto deltaDvDxj = vij.dyad(gradWj);
-
-      // adjust for damage
-      if(sameMatij and fDij<0.98){
-        const auto damageDecouplingi = (isExpanding && Pi < 0.0) || (isCompressing && Pi > 0.0 && Pj < 0.0); 
-        const auto damageDecouplingj = (isExpanding && Pj < 0.0) || (isCompressing && Pi < 0.0 && Pj > 0.0); 
-        fDeffi =  (damageDecouplingi ? pow(1.0 - min(1.0,max(0.0,Dj-Di)),4) : 1.0); 
-        fDeffj =  (damageDecouplingj ? pow(1.0 - min(1.0,max(0.0,Di-Dj)),4) : 1.0); 
-        deltaDvDxi *= fDeffi;
-        deltaDvDxj *= fDeffj;
-      }
-      // adjust for material properties
-      if(!sameMatij){
-        const auto surfaceDecouplingi = (isExpanding && Pi < 0.0);
-        const auto surfaceDecouplingj = (isExpanding && Pj < 0.0);
-        //const auto kappai = max(0.0, min(2.0, 2.0*(Kj*voli*yi*gWj)/(Ki*volj*yj*gWi+Kj*voli*yi*gWj)));
-        const auto kappai = max(0.0, min(2.0, 2.0*(Kj*voli*gWj)/(Ki*volj*gWi + Kj*voli*gWj)));
-        const auto kappaj = max(0.0, min(2.0, 2.0-kappai));
-        deltaDvDxi *= (surfaceDecouplingi ? 0.0 : kappai);
-        deltaDvDxj *= (surfaceDecouplingj ? 0.0 : kappaj);
-      }
-
-      // finish up the velocity gradient -- diffusion stabilization
-      if (rhoStabilizeCoeff>tiny){ 
-        const auto diffusion = rhoStabilizeCoeff*cij*etaij.dot(gradWij)/(etaMagij*etaMagij+tiny)*Tensor::one;
-        const auto deltaRhoi = (sameMatij ? rhoj-rhoi : (Pj-Pi)/(ci*ci+tiny) );
-        const auto deltaRhoj = (sameMatij ? rhoi-rhoj : (Pi-Pj)/(cj*cj+tiny) );
-        deltaDvDxi -= (deltaRhoi/rhoi)*diffusion;
-        deltaDvDxj -= (deltaRhoj/rhoj)*diffusion;
-      }
-
-      // we'll also need th local version
-      if (sameMatij){
-        localMi -= volj*rij.dyad(gradWi);
-        localMj -= voli*rij.dyad(gradWj);
-        localDvDxi -= volj*(deltaDvDxi);
-        localDvDxj -= voli*(deltaDvDxj);
-      }
-
-      if (this->mCorrectVelocityGradient){
-        Mi -=  volj*rij.dyad(gradWi);
-        Mj -=  voli*rij.dyad(gradWj);
-      }
-      DvDxi -= volj*deltaDvDxi;
-      DvDxj -= voli*deltaDvDxj;
-
-      // Conservation of Momentum
-      //-------------------------
-      if (sameMatij){
+                                      rj, etaij, vj, rhoij, cij, Hij);      
+            
+      // material interface pressure.
+      if (sameMatij) {
         sigmai = fDij*Si - Pi * SymTensor::one;
         sigmaj = fDij*Sj - Pj * SymTensor::one;
-      }else{
-        // interface stress state
+      }else {
         const auto PSi = rij.dot(Si.dot(rij))/rij2;
         const auto PSj = rij.dot(Sj.dot(rij))/rij2;
-        const auto Pstar = ((Pi-PSi)*rhoj+(Pj-PSj)*rhoi)/(rhoi+rhoj);
-
-        // (Monaghan 2013) - interface force
-        const auto sf = 1.0 + surfaceForceCoeff*abs((rhoi-rhoj)/(rhoi+rhoj+tiny));
-
-        sigmai = -sf*max(Pstar,0.0)*SymTensor::one;
-        sigmaj = -sf*max(Pstar,0.0)*SymTensor::one;
+        const auto Pstar = ((Pi)*rhoj+(Pj)*rhoi)/(rhoi+rhoj);
+        //const auto Pstar = (Pi+Pj)*0.5;
+        sigmai = -max(Pstar,0.0)*SymTensor::one;
+        sigmaj = -max(Pstar,0.0)*SymTensor::one;
       }
+      //const auto sigmaij = 0.5*(sigmai + sigmaj)
       // Compute the tensile correction to add to the stress as described in 
       // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
       const auto fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
@@ -693,23 +634,128 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto Rj = fj*tensileStressCorrection(sigmaj);
       sigmai += Ri;
       sigmaj += Rj;
-      const auto sigmarhoi = sigmai/(rhoi*rhoj)-0.5*QPiij;
-      const auto sigmarhoj = sigmaj/(rhoj*rhoi)-0.5*QPiji;
+
+      
+      // Force Calc
+      //=====================================================
+      // (Monaghan 2013) - interface force
+      const auto sf = (sameMatij ? 1.0 : 1.0 + surfaceForceCoeff*abs((rhoi-rhoj)/(rhoi+rhoj+tiny)));
+      const auto sigmarhoi = sf*sigmai/(rhoi*rhoj)-0.5*QPiij;
+      const auto sigmarhoj = sf*sigmaj/(rhoj*rhoi)-0.5*QPiji;
       const auto deltaDvDt = sigmarhoi*gradWi + sigmarhoj*gradWj;
       if (freeParticle) {
         DvDti += mj*deltaDvDt;
         DvDtj -= mi*deltaDvDt;
       } 
-      if (compatibleEnergy) pairAccelerations[kk] = mj*deltaDvDt; 
+      if(compatibleEnergy) pairAccelerations[kk] = mj*deltaDvDt; 
       
+
+     // dwdhi = -(Dimension::nDim*Wi + etaMagi*gWi)*Dimension::rootnu(Hdeti);
+     // dwdhj = -(Dimension::nDim*Wj + etaMagj*gWj)*Dimension::rootnu(Hdetj);
+      const auto rhatij = rij.unitVector();
+      const auto ui = vi.dot(rhatij);
+      const auto uj = vj.dot(rhatij);
+      const auto umax = max(ui,uj);
+      const auto umin = min(ui,uj);
+      const auto uij = ui-uj;
       
+      //const auto wi = vi-ui*rhatij;
+      //const auto wj = vi-ui*rhatij;
+      //const auto isExpanding   = uij>0.0;
+      //const auto isCompressing = uij<0.0;
+      // if (sameMatij){ 
+      //   const auto ustarStabilizer =  (rhoj-rhoi) * safeInv(max(tiny,max(rhoi,rhoj)*etaMagij));
+      //   const auto deltaUstar = rhoStabilizeCoeff * min(0.1,max(-0.1, ustarStabilizer)) * cij
+      //   const auto ustar =  max(umin, min(umax, 0.5*(ui+uj) + deltaUstar));
+      //   auto vstari = (ustar - 0.5*(ui+uj))*rhatij + 0.5*(vi+vj);
+      //   auto vstarj = (ustar - 0.5*(ui+uj))*rhatij + 0.5*(vi+vj);
+      // }else{
+      //   // adjust velocity gradient for diff compressibilities
+      
+
+      // //auto wstar =  (sameMatij    ?
+      // //               0.5*(wi+wj)  :
+      // //              (mui*volj*gWi*wi + muj*voli*gWj*wj)/
+      // //              (mui*volj*gWi    + muj*voli*gWj));
+
+      // // put our diffusion stabilizer here
+      //   const auto denom = safeInv(max(tiny,max(rhoi*ci*ci,rhoj*cj*cj)*etaMagij));
+
+      //   const auto ustarStabilizer =  (Pj-Pi) * safeInv( max(tiny, max(rhoi*ci*ci,rhoj*cj*cj) *etaMagij ) );
+      
+      //   auto ustar =  (Ki*volj*gWi*ui + Kj*voli*gWj*uj)/
+      //                 (Ki*volj*gWi    + Kj*voli*gWj);
+
+      //   ustar += rhoStabilizeCoeff * min(0.1, max(-0.1, ustarStabilizer)) * cij;
+      
+      //   ustar = max(umin, min(umax, ustar) );
+     
+      //   vstari =  (true               ?
+      //             (ustar - ui)*rhatij + vi :
+      //             (ustar - 0.5*(ui+uj))*rhatij + 0.5*(vi+vj));
+
+      //   vstarj = (true                ?
+      //                     (ustar - uj)*rhatij + vj  :
+      //                     (ustar - 0.5*(ui+uj))*rhatij + 0.5*(vi+vj));
+      // }
+      // adjust velocity gradient for diff compressibilities
+
+      auto ustar =  (sameMatij    ?
+                     0.5*(ui+uj)  :
+                    (Ki*volj*gWi*ui + Kj*voli*gWj*uj)/
+                    (Ki*volj*gWi    + Kj*voli*gWj));
+
+      // put our diffusion stabilizer here
+      const auto denom = (sameMatij                                   ?
+                          safeInv(max(tiny,max(rhoi,rhoj)*etaMagij))  :
+                          safeInv(max(tiny,max(rhoi*ci*ci,rhoj*cj*cj)*etaMagij)) );
+
+      const auto ustarStabilizer =  (sameMatij  ?
+                                    (rhoj-rhoi) :
+                                    (Pj-Pi)     ) *denom;
+
+      ustar += rhoStabilizeCoeff * min(0.1, max(-0.1, ustarStabilizer)) * cij;
+      ustar =  max(umin, min(umax, ustar) );
+     
+      const auto vstari =  (!sameMatij               ?
+                           (ustar - ui)*rhatij + vi :
+                           (ustar - 0.5*(ui+uj))*rhatij + 0.5*(vi+vj));
+
+      const auto vstarj = (!sameMatij                ?
+                          (ustar - uj)*rhatij + vj  :
+                          (ustar - 0.5*(ui+uj))*rhatij + 0.5*(vi+vj));
+
+      //const auto kappai = (sameMatij ?
+      //                     0.5       :
+      //                     max(0.0, min(1.0, Kj*voli*gWj/(Ki*volj*gWi + Kj*voli*gWj)))
+      //                     );
+
+      //const auto kappaj = max(0.0, min(1.0, 1.0-kappai));
+      //const auto vij = vi-vj;
+      //const auto deltaEps = mi*mj*deltaDvDt.dot(vij);
+      //auto deltaDvDxi = 2.0*kappai*(vij).dyad(gradWi);
+      //auto deltaDvDxj = 2.0*kappaj*(vij).dyad(gradWj);
+
+      auto deltaDvDxi = 2.0*(vi-vstari).dyad(gradWi);
+      auto deltaDvDxj = 2.0*(vstarj-vj).dyad(gradWj);
+      if (sameMatij) {
+        localMi -= volj*rij.dyad(gradWi);
+        localMj -= voli*rij.dyad(gradWj);
+        localDvDxi -= volj*(deltaDvDxi);
+        localDvDxj -= voli*(deltaDvDxj); 
+      }
+      if (this->mCorrectVelocityGradient){
+        Mi -=  volj*rij.dyad(gradWi);
+        Mj -=  voli*rij.dyad(gradWj);
+      }
+      DvDxi -= volj*deltaDvDxi;
+      DvDxj -= voli*deltaDvDxj;
+
       // Conservation of Energy
-      //-------------------------
-      //DepsDti -= mj*(sigmarhoi.doubledot(deltaDvDxi));
-      //DepsDtj -= mi*(sigmarhoj.doubledot(deltaDvDxj));
+      //--------------------------
       tensorDepsDti -= mj*(deltaDvDxi.Transpose()*sigmarhoi);
       tensorDepsDtj -= mi*(deltaDvDxj.Transpose()*sigmarhoj);
-      
+
       // Dissipation
       //-------------------------
       if (sameMatij and rhoDiffusionCoeff>tiny){
@@ -799,9 +845,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
           numNeighborsi > Dimension::pownu(2)) {
         Mi = Mi.Inverse();
         DvDxi=DvDxi*Mi;
-        DepsDti = tensorDepsDti.doubledot(Mi);
+        DepsDti += tensorDepsDti.doubledot(Mi);
       } else { 
-        DepsDti = tensorDepsDti.Trace(); 
+        DepsDti += tensorDepsDti.Trace(); 
       } 
 
       DrhoDti -=  rhoi*DvDxi.Trace();
@@ -897,7 +943,7 @@ computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   {
     int i, j, nodeListi, nodeListj;
     auto storeMassDensity_thread = storeDensity.threadCopy();
-    auto massDensity_thread = massDensity.threadCopy();
+    //auto massDensity_thread = massDensity.threadCopy();
 
 #pragma omp for
     for (auto k = 0u; k < npairs; ++k) {
@@ -914,7 +960,7 @@ computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
         //const auto  Ki = bulkModulus(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
         const auto  Hdeti = Hi.Determinant();
-        const auto rhoi = massDensity(nodeListi, i);
+        //const auto rhoi = massDensity(nodeListi, i);
       
         // State for node j
         const auto& rj = position(nodeListj, j);
@@ -923,7 +969,7 @@ computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
         //const auto  Kj = bulkModulus(nodeListj, j);
         const auto& Hj = H(nodeListj, j);
         const auto  Hdetj = Hj.Determinant();
-        const auto rhoj = massDensity(nodeListj, j);
+        //const auto rhoj = massDensity(nodeListj, j);
       
         // Kernel weighting and gradient.
         const auto rij = ri - rj;
@@ -933,17 +979,17 @@ computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
         const auto Wj = W.kernelValue(etaj, Hdetj);
 
         storeMassDensity_thread(nodeListi, i) += (mSumDensityNodeLists[nodeListi]==1 ? 
-                                            (nodeListi == nodeListj ? mj : mj/rhoj*rhoi)*Wi : 
+                                            (nodeListi == nodeListj ? mj : mi)*Wi : 
                                              0.0);
         storeMassDensity_thread(nodeListj, j) += (mSumDensityNodeLists[nodeListj]==1 ? 
-                                            (nodeListi == nodeListj ? mi : mi/rhoi*rhoj)*Wj : 
+                                            (nodeListi == nodeListj ? mi : mj)*Wj : 
                                              0.0);
       }
     }
 
 #pragma omp critical
     {
-      massDensity_thread.threadReduce();
+      storeMassDensity_thread.threadReduce();
     }
   }
 
