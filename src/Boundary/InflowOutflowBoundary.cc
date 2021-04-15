@@ -54,6 +54,9 @@ InflowOutflowBoundary(DataBase<Dimension>& dataBase,
                       const bool empty):
   Boundary<Dimension>(),
   Physics<Dimension>(),
+  mBeamAnchor(Vector::zero),
+  mBeamNormal(Vector::zero),
+  mBeamRadius(0.0),
   mDataBase(dataBase),
   mPlane(plane),
   mBoundaryCount(dataBase.numNodeLists()),
@@ -375,7 +378,7 @@ InflowOutflowBoundary<Dimension>::registerDerivatives(DataBase<Dimension>&,
 //------------------------------------------------------------------------------
 // Physics::finalize
 // At the end of a step, any ghost points that have wandered inside the entrance
-// plane become internal points.
+// plane become internal points. **If they are within the user spec. window**
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -393,12 +396,14 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar /*time*/,
     // cerr << "--------------------------------------------------------------------------------" << endl
     //      << nodeList.name() << endl;
 
-    // Find any ghost points that are inside the entrance plane now.  These are inflow.
+    // Find any ghost points that are inside the entrance plane and within our particle beam
     const auto& gNodes = this->ghostNodes(nodeList);
     auto& pos = nodeList.positions();
     vector<int> insideNodes;
     for (auto i: gNodes) {
-      if (mPlane.compare(pos[i]) == -1) insideNodes.push_back(i - gNodes[0]);
+      const Scalar Ri = ((pos[i] - mBeamAnchor) - (pos[i] - mBeamAnchor).dot(mBeamNormal)*mBeamNormal).magnitude();
+      const bool addNode = (mPlane.compare(pos[i]) == -1) and (Ri < mBeamRadius);
+      if (addNode) insideNodes.push_back(i - gNodes[0]);
     }
     const auto numNew = insideNodes.size();
     if (numNew > 0) {
