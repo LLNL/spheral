@@ -71,18 +71,23 @@ public:
   void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs) override;
 
-  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
-                                 State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs) override;
+  virtual 
+  void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                               State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivs) override;
+  virtual
+  void initialize(const typename Dimension::Scalar time,
+                  const typename Dimension::Scalar dt,
+                  const DataBase<Dimension>& dataBase,
+                        State<Dimension>& state,
+                        StateDerivatives<Dimension>& derivs) override;
 
-  // Evaluate the derivatives for the principle hydro variables:
-  // mass density, velocity, and specific thermal energy.
   virtual
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const override;
+                                 StateDerivatives<Dimension>& derivatives) const override;
 
   void computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
                                    const TableKernel<Dimension>& W,
@@ -91,8 +96,17 @@ public:
                                    const FieldList<Dimension, typename Dimension::Scalar>& bulkModulus,
                                    const FieldList<Dimension, typename Dimension::Scalar>& pressure,
                                    const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                                   FieldList<Dimension, typename Dimension::Scalar>& massDensity);
+                                         FieldList<Dimension, typename Dimension::Scalar>& massDensity);
 
+  void computeSurfaceNormals(const ConnectivityMap<Dimension>& connectivityMap,
+                             const TableKernel<Dimension>& W,
+                             const FieldList<Dimension, typename Dimension::Vector>& position,
+                             const FieldList<Dimension, typename Dimension::Scalar>& mass,
+                             const FieldList<Dimension, typename Dimension::Scalar>& massDensity,
+                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
+                                   FieldList<Dimension, typename Dimension::Vector>& interfaceNormals);
+  
+  
   double surfaceForceCoefficient() const;
   void surfaceForceCoefficient(double x);
 
@@ -108,6 +122,8 @@ public:
   std::vector<int> sumDensityNodeLists() const;
   void sumDensityNodeLists(std::vector<int> x);
 
+  const FieldList<Dimension,  typename Dimension::Vector>& surfaceNormals() const;
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "SolidFSISPHHydroBase"; }
@@ -118,9 +134,10 @@ private:
   double mDensityStabilizationCoefficient;            // adjusts DvDx to stabilize rho
   double mDensityDiffusionCoefficient;                // controls diffusion of rho
   double mSpecificThermalEnergyDiffusionCoefficient;  // controls diffusion of eps
+  
   std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
-
-  FieldList<Dimension, Tensor> mTensorDepsDt;         // temp storage for DepsDt components to allow for M correction
+  
+  FieldList<Dimension, Vector> mSurfaceNormals;       // outward facing normals for interface nodes
   
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();

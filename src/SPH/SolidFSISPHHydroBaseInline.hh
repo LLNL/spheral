@@ -1,7 +1,7 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// set/get the generalized density exponent (Monaghan 1992)
+// set/get 
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -10,8 +10,6 @@ SolidFSISPHHydroBase<Dimension>::
 surfaceForceCoefficient(double x) {
   mSurfaceForceCoefficient = x;
 }
-
-
 template<typename Dimension>
 inline
 double
@@ -27,7 +25,6 @@ SolidFSISPHHydroBase<Dimension>::
 densityStabilizationCoefficient(double x) {
   mDensityStabilizationCoefficient = x;
 }
-
 template<typename Dimension>
 inline
 double
@@ -43,7 +40,6 @@ SolidFSISPHHydroBase<Dimension>::
 densityDiffusionCoefficient(double x) {
   mDensityDiffusionCoefficient = x;
 }
-
 template<typename Dimension>
 inline
 double
@@ -59,13 +55,23 @@ SolidFSISPHHydroBase<Dimension>::
 specificThermalEnergyDiffusionCoefficient(double x) {
   mSpecificThermalEnergyDiffusionCoefficient = x;
 }
-
 template<typename Dimension>
 inline
 double
 SolidFSISPHHydroBase<Dimension>::
 specificThermalEnergyDiffusionCoefficient() const {
   return mSpecificThermalEnergyDiffusionCoefficient;
+}
+
+//------------------------------------------------------------------------------
+// Return the surface normal field list ref
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+surfaceNormals() const {
+  return mSurfaceNormals;
 }
 
 //------------------------------------------------------------------------------
@@ -78,8 +84,6 @@ SolidFSISPHHydroBase<Dimension>::
 sumDensityNodeLists(std::vector<int> x) {
   mSumDensityNodeLists = x;
 }
-
-
 template<typename Dimension>
 inline
 std::vector<int>
