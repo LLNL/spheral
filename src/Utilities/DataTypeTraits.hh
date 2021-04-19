@@ -243,6 +243,7 @@ struct DataTypeTraits<Dim<1>::Vector> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Vector1d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -254,6 +255,7 @@ struct DataTypeTraits<Dim<1>::Vector3d> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Vector3d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -265,6 +267,7 @@ struct DataTypeTraits<Dim<1>::Tensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Tensor1d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -276,6 +279,7 @@ struct DataTypeTraits<Dim<1>::SymTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_SymTensor1d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -287,6 +291,7 @@ struct DataTypeTraits<Dim<1>::ThirdRankTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_ThirdRankTensor1d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -298,6 +303,7 @@ struct DataTypeTraits<Dim<1>::FourthRankTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_FourthRankTensor1d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -309,6 +315,7 @@ struct DataTypeTraits<Dim<1>::FifthRankTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_FifthRankTensor1d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -317,6 +324,8 @@ struct DataTypeTraits<Dim<1>::FacetedVolume> {
   static bool fixedSize() { return false; }
   static int numElements(const Dim<1>::FacetedVolume) { return 0; }
   static Dim<1>::FacetedVolume zero() { return Dim<1>::FacetedVolume(); }
+
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 //------------------------------------------------------------------------------
@@ -329,6 +338,7 @@ struct DataTypeTraits<Dim<2>::Vector> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Vector2d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -340,6 +350,7 @@ struct DataTypeTraits<Dim<2>::Tensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Tensor2d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -351,6 +362,7 @@ struct DataTypeTraits<Dim<2>::SymTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_SymTensor2d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -362,6 +374,7 @@ struct DataTypeTraits<Dim<2>::ThirdRankTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_ThirdRankTensor2d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -373,6 +386,7 @@ struct DataTypeTraits<Dim<2>::FourthRankTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_FourthRankTensor2d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -384,6 +398,7 @@ struct DataTypeTraits<Dim<2>::FifthRankTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_FifthRankTensor2d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -404,6 +419,7 @@ struct DataTypeTraits<Dim<3>::Vector> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Vector3d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -415,6 +431,7 @@ struct DataTypeTraits<Dim<3>::Tensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_Tensor3d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -426,6 +443,7 @@ struct DataTypeTraits<Dim<3>::SymTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_SymTensor3d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -437,6 +455,7 @@ struct DataTypeTraits<Dim<3>::ThirdRankTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_ThirdRankTensor3d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -448,6 +467,7 @@ struct DataTypeTraits<Dim<3>::FourthRankTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_FourthRankTensor3d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
@@ -459,6 +479,7 @@ struct DataTypeTraits<Dim<3>::FifthRankTensor> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return RegisterMPIDataTypes::instance().MPI_FifthRankTensor3d; }
 #endif
+  static axom::sidre::DataTypeId axomType() { return axom::sidre::DOUBLE_ID; }
 };
 
 template<>
