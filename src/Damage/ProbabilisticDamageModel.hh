@@ -11,7 +11,7 @@
 #ifndef __Spheral_ProbabilisticDamageModel_hh__
 #define __Spheral_ProbabilisticDamageModel_hh__
 
-#include "DamageModel.hh"
+#include "TensorDamageModel.hh"  // For now, so we pick up the enums
 
 template<typename Dimension>
 class ProbabilisticDamageModel: public DamageModel<Dimension> {
