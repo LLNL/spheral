@@ -32,7 +32,8 @@ if(${lib_name}_BUILD)
                -DENABLE_OPENMP=${ENABLE_OPENMP}
                -DENABLE_MPI=${ENABLE_MPI}
                -DPYTHON_EXE=${PYTHON_EXE}
-               -DLOOKUP_PYBIND11_INCLUDE_PATH=On
+               -DPYBIND11_INCLUDE_DIRS=${PYBIND11_INSTALL_DIR}/include
+               #-DLOOKUP_PYBIND11_INCLUDE_PATH=On
                -DPOLYCLIPPER_PYTHON_INSTALL=${${lib_name}_DIR}
                -DENABLE_DOCS=Off
                DEPENDS ${POLYCLIPPER_DEPENDS}
