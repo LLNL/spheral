@@ -68,6 +68,10 @@ public:
 
   // Register the derivatives/change fields for updating state.
   virtual
+  void registerState(DataBase<Dimension>& dataBase,
+                     State<Dimension>& state) override;
+
+  virtual
   void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs) override;
 

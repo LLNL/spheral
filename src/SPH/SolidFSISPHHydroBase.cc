@@ -9,20 +9,24 @@
 #include "SPH/SolidSPHHydroBase.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Hydro/PressurePolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
-#include "Strength/DeviatoricStressPolicy.hh"
-#include "Strength/BulkModulusPolicy.hh"
-#include "Strength/PlasticStrainPolicy.hh"
-#include "Strength/ShearModulusPolicy.hh"
-#include "Strength/YieldStrengthPolicy.hh"
-#include "Strength/StrengthSoundSpeedPolicy.hh"
+//#include "Strength/DeviatoricStressPolicy.hh"
+//#include "Strength/BulkModulusPolicy.hh"
+//#include "Strength/PlasticStrainPolicy.hh"
+//#include "Strength/ShearModulusPolicy.hh"
+//#include "Strength/YieldStrengthPolicy.hh"
+//#include "Strength/StrengthSoundSpeedPolicy.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementFieldList.hh"
-#include "DataBase/IncrementBoundedFieldList.hh"
-#include "DataBase/ReplaceFieldList.hh"
+//#include "DataBase/IncrementBoundedState.hh"
+//#include "DataBase/IncrementBoundedFieldList.hh"
+//#include "DataBase/ReplaceFieldList.hh"
+//#include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
+//#include "DataBase/CompositeFieldListPolicy.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -55,6 +59,7 @@ using std::max;
 using std::abs;
 
 extern Timer TIME_SolidFSISPHregisterDerivs;
+extern Timer TIME_SolidFSISPHregisterState;
 
 namespace Spheral {
 
@@ -166,6 +171,30 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
 template<typename Dimension>
 SolidFSISPHHydroBase<Dimension>::
 ~SolidFSISPHHydroBase() {
+}
+
+
+//------------------------------------------------------------------------------
+// Register states
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidFSISPHHydroBase<Dimension>::
+registerState(DataBase<Dimension>& dataBase,
+              State<Dimension>& state) {
+  TIME_SolidFSISPHregisterState.start();
+
+  SolidSPHHydroBase<Dimension>::registerState(dataBase,state);
+  
+  // Override the damaged presssure policy
+  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+  FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
+  CHECK(P.numFields() == dataBase.numFluidNodeLists());
+  PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
+  state.enroll(P, pressurePolicy);
+  
+
+  TIME_SolidFSISPHregisterState.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -426,9 +455,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
-    //auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
-    //auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
-    //auto viscousWork_thread = viscousWork.threadCopy(threadStack);
+    auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
+    auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
+    auto viscousWork_thread = viscousWork.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -458,9 +487,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& DvDti = DvDt_thread(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
-      //auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
-      //auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
-      //auto& viscousWorki = viscousWork_thread(nodeListi, i);
+      auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
+      auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
+      auto& viscousWorki = viscousWork_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& normj = interfaceNormals(nodeListj,j);
@@ -482,9 +511,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& DvDtj = DvDt_thread(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
-      //auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
-      //auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
-      //auto& viscousWorkj = viscousWork_thread(nodeListj, j);
+      auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
+      auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
+      auto& viscousWorkj = viscousWork_thread(nodeListj, j);
 
       // Flag if this is a contiguous material pair or not.
       const auto sameMatij =  (nodeListi == nodeListj);// and fragIDi == fragIDj); 
@@ -553,34 +582,43 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                                       ri, etaij, vi, rhoij, cij, Hij,  
                                       rj, etaij, vj, rhoij, cij, Hij); 
 
+      
+      const auto Qacci = 0.5*(QPiij*gradWi);
+      const auto Qaccj = 0.5*(QPiji*gradWj);
+      const auto workQi = vij.dot(Qacci);
+      const auto workQj = vij.dot(Qaccj);
+      auto Qi = rhoi*rhoj*(QPiij.diagonalElements().maxAbsElement());
+      auto Qj = rhoi*rhoj*(QPiji.diagonalElements().maxAbsElement());
+      maxViscousPressurei += Qi*Wij;
+      maxViscousPressurej += Qj*Wij;
       if (!sameMatij){
+        //const auto avInterfaceReduceri =  abs((normi-normj).unitVector().dot(vij.unitVector()));
+        //const auto avInterfaceReducerj =  abs((normi-normj).unitVector().dot(vij.unitVector()));
         const auto avInterfaceReduceri =  max((normi).unitVector().dot(vij.unitVector()),0.0);
         const auto avInterfaceReducerj = -min((normj).unitVector().dot(vij.unitVector()),0.0);
         QPiij *= avInterfaceReduceri*avInterfaceReducerj;
         QPiji *= avInterfaceReduceri*avInterfaceReducerj;
+        Qi*= avInterfaceReduceri*avInterfaceReducerj;
+        Qj*= avInterfaceReduceri*avInterfaceReducerj;
       }
-      //const auto Qacci = 0.5*(QPiij*gradWi);
-      //const auto Qaccj = 0.5*(QPiji*gradWj);
-      //const auto workQi = vij.dot(Qacci);
-      //const auto workQj = vij.dot(Qaccj);
-      //const auto Qi = rhoi*rhoj*(QPiij.diagonalElements().maxAbsElement());
-      //const auto Qj = rhoi*rhoj*(QPiji.diagonalElements().maxAbsElement());
-      //maxViscousPressurei += Qi*Wij;
-      //maxViscousPressurej += Qj*Wij;
-      //effViscousPressurei += Qi*Wij;
-      //effViscousPressurej += Qj*Wij;
-      //viscousWorki += mj*workQi;
-      //viscousWorkj += mi*workQj;
+      effViscousPressurei += Qi*Wij;
+      effViscousPressurej += Qj*Wij;
+      viscousWorki += mj*workQi;
+      viscousWorkj += mi*workQj;
 
       // stresses for interacting pairs.
       if (sameMatij) {
-        sigmai = fDij*Si - Pi * SymTensor::one;
-        sigmaj = fDij*Sj - Pj * SymTensor::one;
+        const auto Peffi = (Pi < 0.0 ? fDij*Pi : Pi);
+        const auto Peffj = (Pj < 0.0 ? fDij*Pj : Pj);
+        sigmai = fDij*Si - Peffi * SymTensor::one;
+        sigmaj = fDij*Sj - Peffj * SymTensor::one;
       }else {
         //const auto PSi = rij.dot(Si.dot(rij))/rij2;
         //const auto PSj = rij.dot(Sj.dot(rij))/rij2;
         //const auto Pstar = ((Pi-PSi)*rhoj+(Pj-PSj)*rhoi)/(rhoi+rhoj);
-        const auto Pstar = ((Pi)*rhoj+(Pj)*rhoi)/(rhoi+rhoj);
+        const auto Peffi = max(Pi,0.0);
+        const auto Peffj = max(Pj,0.0);
+        const auto Pstar = ((Peffi)*rhoj+(Peffj)*rhoi)/(rhoi+rhoj);
         sigmai = -Pstar*SymTensor::one;
         sigmaj = -Pstar*SymTensor::one;
       }
@@ -654,6 +692,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
     auto DrhoDt_thread = DrhoDt.threadCopy(threadStack);
+    auto DSDt_thread = DSDt.threadCopy(threadStack);
 
     #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -664,6 +703,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
+      const auto& Si = S(nodeListi, i);
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
@@ -682,6 +722,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
+      auto& DSDti = DSDt_thread(nodeListi, i);
       const auto& DvDti = DvDt(nodeListi, i);
       auto& Mi = M_thread(nodeListi, i);
       auto& localMi = localM_thread(nodeListi, i);
@@ -693,6 +734,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
 
       // Get the state for node j
+      const auto& Sj = S(nodeListj, j);
       const auto& rj = position(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
@@ -711,6 +753,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
+      auto& DSDtj = DSDt_thread(nodeListj, j);
       const auto& DvDtj = DvDt(nodeListj, j);
       auto& Mj = M_thread(nodeListj, j);
       auto& localMj = localM_thread(nodeListj, j);
@@ -727,7 +770,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // Flag if at least one particle is free (0).
       //const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
-      //const auto fDij = pairs[kk].f_couple;
+      const auto fDij = pairs[kk].f_couple;
 
       // Kernels
       //--------------------------------------
@@ -781,6 +824,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // construct our interface velocity
       //-----------------------------------------------------------
+      const auto isExpanding = vij.dot(rij) > 0.0;
+      const auto damageDecouple = isExpanding and (Pi<tiny or Pj<tiny);
+
+      // deconstruct into parallel and perpendicular
       const auto rhatij = rij.unitVector();
       const auto ui = vi12.dot(rhatij);
       const auto uj = vj12.dot(rhatij);
@@ -790,10 +837,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto wi = vi12 - ui*rhatij;
       const auto wj = vj12 - uj*rhatij;
 
+      // same mat defaults to avg
       Scalar ustar = 0.5*(ui+uj);
       Vector wstar = 0.5*(wi+wj);
 
-      // and weight by mat-properties for interfaces
+      // diff mat is weighted by moduli
       if(!sameMatij){
         const auto Ci = Ki*volj*gWi;
         const auto Cj = Kj*voli*gWj;
@@ -805,6 +853,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         wstar = weightWi*wi + weightWj*wj; 
       }
 
+      // additional stabilization 
       if (rhoStabilizeCoeff>tiny){
           const auto denom = safeInv(max(tiny,(sameMatij      ?
                                                max(rhoi,rhoj) :
@@ -817,8 +866,26 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
           ustar += rhoStabilizeCoeff * min(0.1, max(-0.1, ustarStabilizer)) * cij*etaMagij;
       }
 
+      //bound it 
       ustar = min(max(ustar,umin),umax);
-      const auto vstar = ustar*rhatij + wstar;
+
+      //damage implementation
+      const auto wstari = fDij*wstar + (1.0-fDij)*wi;
+      const auto wstarj = fDij*wstar + (1.0-fDij)*wj;
+
+      const auto ustari = (damageDecouple             ? 
+                           fDij*ustar + (1.0-fDij)*ui :
+                           ustar);
+      const auto ustarj = (damageDecouple             ? 
+                           fDij*ustar + (1.0-fDij)*uj :
+                           ustar);
+
+      //const auto vstar = ustar*rhatij + wstar;
+      // reassemble our vector
+      const auto vstari = ustari*rhatij + wstari;
+      const auto vstarj = ustarj*rhatij + wstarj;
+
+      //const auto vstar = ustar*rhatij + wstar;
 
       // energy conservation
       // ----------------------------------------------------------
@@ -826,8 +893,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto sigmarhoj = pairAccelerations[2*kk+1];
       const auto paccij = vij.dot(sigmarhoi+sigmarhoj);
 
-      const auto weighti = max(abs(sigmarhoi.dot(vi12-vstar)),tiny);
-      const auto weightj = max(abs(sigmarhoj.dot(vstar-vj12)),tiny);
+      const auto weighti = max(abs(sigmarhoi.dot(vi12-vstari)),tiny);
+      const auto weightj = max(abs(sigmarhoj.dot(vstarj-vj12)),tiny);
       const auto weight = weighti/(weightj+weighti);
 
       DepsDti -= mj*weight*paccij;
@@ -835,8 +902,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // velocity gradient --> continuity
       //-----------------------------------------------------------
-      auto deltaDvDxi = 2.0*(vi12-vstar).dyad(gradWi);
-      auto deltaDvDxj = 2.0*(vstar-vj12).dyad(gradWj);
+      auto deltaDvDxi = 2.0*(vi12-vstari).dyad(gradWi);
+      auto deltaDvDxj = 2.0*(vstarj-vj12).dyad(gradWj);
 
       DvDxi -= volj*deltaDvDxi;
       DvDxj -= voli*deltaDvDxj;
@@ -853,7 +920,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         Mj -=  voli* rij.dyad(gradWj);
       }
 
-      // scalar diffusion
+      // diffusions
       //-----------------------------------------------------------
       if (sameMatij and rhoDiffusionCoeff>tiny){
         const auto diffusion =  rhoDiffusionCoeff*(rhoi-rhoj)*cij*etaij.dot(gradWij)/(etaMagij*etaMagij+tiny);
@@ -867,12 +934,21 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
        DepsDtj -= mi*diffusion;
       }
 
+      //if (sameMatij){
+      const auto diffusion = (Si-Sj)*cij*etaij.dot(gradWij)/(etaMagij*etaMagij+tiny);
+      DSDti += volj*diffusion;
+      DSDtj -= voli*diffusion;
+      //}else{
+       //const auto diffusion =  cij*etaij.dot(gradWij)/(etaMagij*etaMagij+tiny);
+       //DSDti += volj*Si*diffusion;
+       //DSDtj += voli*Sj*diffusion; 
+      //}
+
       // XSPH
       //-----------------------------------------------------------
       if (XSPH and sameMatij) {
-        //const auto wXSPHij = 0.5*(voli*Wi + volj*Wj);
-        XSPHWeightSumi += volj*Wi;//wXSPHij;
-        XSPHWeightSumj += voli*Wj;//wXSPHij;
+        XSPHWeightSumi += volj*Wi;
+        XSPHWeightSumj += voli*Wj;
         XSPHDeltaVi -= volj*Wi*vij;
         XSPHDeltaVj += voli*Wj*vij;
       }
@@ -901,15 +977,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     const auto  hmax = nodeList.hmax();
     const auto  hminratio = nodeList.hminratio();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
-
-    // Check if we can identify a reference density.
-    //auto rho0 = 0.0;
-    //try {
-    //  rho0 = dynamic_cast<const SolidEquationOfState<Dimension>&>(dynamic_cast<const FluidNodeList<Dimension>&>(nodeList).equationOfState()).referenceDensity();
-      // cerr << "Setting reference density to " << rho0 << endl;
-    //} catch(...) {
-      // cerr << "BLAGO!" << endl;
-    //}
 
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
@@ -960,7 +1027,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
        if (XSPH) {
         CHECK(XSPHWeightSumi >= 0.0);
         XSPHWeightSumi += Hdeti*mi/rhoi*W0 + tiny;
-        DxDti += XSPHDeltaVi/XSPHWeightSumi;
+        DxDti += 0.25*XSPHDeltaVi/XSPHWeightSumi;
       }
       
       DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
@@ -999,7 +1066,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto spin = localDvDxi.SkewSymmetric();
       const auto deviatoricDeformation = deformation - (deformation.Trace()/3.0)*SymTensor::one;
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
-      DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
+      DSDti += spinCorrection + (2.0*mui)*deviatoricDeformation;
 
       // In the presence of damage, add a term to reduce the stress on this point.
       DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
