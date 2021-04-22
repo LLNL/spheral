@@ -296,7 +296,7 @@ def FSISPH(dataBase,
         evolveTotalEnergy = False,
         gradhCorrection = False,
         XSPH = False,
-        correctVelocityGradient = True,
+        correctVelocityGradient = False,    # will break consistency between DrhoDt and DepsDt
         densityUpdate = IntegrateDensity,
         HUpdate = IdealH,
         epsTensile = 0.0,
@@ -309,11 +309,20 @@ def FSISPH(dataBase,
         ASPH = False,
         RZ = False):
 
+    if densityDiffusionCoefficient > 1e-30 or specificThermalEnergyDiffusionCoefficient > 1e-30:
+        print("**********************************************************************")
+        print(" FSISPH WARNING : compatibility issue w/ StrainPorosity when running:")
+        print("                  densityDiffusionCoefficient > 0.0 or")
+        print("                  specificThermalEnergyDiffusionCoefficient > 0.0.")
+        print("                  ")
+        print("                  densityStabilizationCoefficient > 0.0 is safe")
+        print("**********************************************************************")
+
     if gradhCorrection:
         raise RuntimeError, "gradhCorrection not implemented yet"
 
-    if XSPH  and dataBase.numNodeLists>1:
-        raise RuntimeError, "XSPH is not set up for multiple nodeLists"
+    #if XSPH  and dataBase.numNodeLists>1:
+    #    raise RuntimeError, "XSPH is not set up for multiple nodeLists"
 
     if strengthInDamage and damageRelieveRubble:
         raise RuntimeError, "strengthInDamage and damageRelieveRubble are incompatible"
