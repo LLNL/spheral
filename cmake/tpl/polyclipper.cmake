@@ -24,6 +24,7 @@ if(${lib_name}_BUILD)
     URL ${POLYCLIPPER_URL}
     URL_HASH "MD5=${POLYCLIPPER_MD5}"
     DOWNLOAD_DIR ${CACHE_DIR}
+    DEPENDS ${pybind11_build_dep} ${pip-modules_build_dep}
     CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
@@ -32,8 +33,9 @@ if(${lib_name}_BUILD)
                -DENABLE_OPENMP=${ENABLE_OPENMP}
                -DENABLE_MPI=${ENABLE_MPI}
                -DPYTHON_EXE=${PYTHON_EXE}
-               -DPYBIND11_INCLUDE_DIRS=${PYBIND11_INSTALL_DIR}/include
-               #-DLOOKUP_PYBIND11_INCLUDE_PATH=On
+               -DPYBIND11_INCLUDE_PATH=${PYBIND11_INSTALL_DIR}/include
+               #-DPYB11GEN_PATH=${PYTHON_SITE_PACKAGE_DIR}
+               -DLOOKUP_PYBIND11_INCLUDE_PATH=On
                -DPOLYCLIPPER_PYTHON_INSTALL=${${lib_name}_DIR}
                -DENABLE_DOCS=Off
                DEPENDS ${POLYCLIPPER_DEPENDS}
