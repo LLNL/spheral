@@ -81,6 +81,21 @@ template<typename Dimension>
 inline
 void
 SolidFSISPHHydroBase<Dimension>::
+applySelectSumDensity(bool x) {
+  mApplySelectDensitySum = x;
+}
+template<typename Dimension>
+inline
+bool
+SolidFSISPHHydroBase<Dimension>::
+applySelectSumDensity() const {
+  return mApplySelectDensitySum;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
 sumDensityNodeLists(std::vector<int> x) {
   mSumDensityNodeLists = x;
 }

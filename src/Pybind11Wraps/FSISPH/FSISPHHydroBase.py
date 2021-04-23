@@ -1,13 +1,14 @@
 #-------------------------------------------------------------------------------
-# SPHHydroBaseRZ
+# FSISPHHydroBase
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from SolidFSISPHHydroBase import *
+from SPHHydroBase import *
+from RestartMethods import *
 
-@PYB11template()            # Override the fact SPHHydroBase is templated
-@PYB11template_dict({"Dimension" : "Dim<2>"})
-@PYB11module("SpheralSPH")
-class SolidFSISPHHydroBaseRZ(SolidFSISPHHydroBase):
+@PYB11template("Dimension")
+@PYB11module("SpheralFSISPH")
+class FSISPHHydroBase(SPHHydroBase):
+    "FSISPHHydroBase -- SPHHydro modified for large density discontinuities"
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -38,34 +39,13 @@ class SolidFSISPHHydroBaseRZ(SolidFSISPHHydroBase):
                HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
-               damageRelieveRubble = "const bool",
-               negativePressureInDamage = "const bool",
-               strengthInDamage = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "SolidFSISPHHydroBaseRZ constructor"
+        "FSISPHHydroBase constructor"
 
+               
     #...........................................................................
     # Virtual methods
-    @PYB11virtual
-    def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
-        "Tasks we do once on problem startup."
-        return "void"
-
-    @PYB11virtual 
-    def registerState(dataBase = "DataBase<%(Dimension)s>&",
-                      state = "State<%(Dimension)s>&"):
-        "Register the state Hydro expects to use and evolve."
-        return "void"
-
-    @PYB11virtual
-    def preStepInitialize(self,
-                          dataBase = "const DataBase<%(Dimension)s>&", 
-                          state = "State<%(Dimension)s>&",
-                          derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Optional hook to be called at the beginning of a time step."
-        return "void"
-
     @PYB11virtual
     @PYB11const
     def evaluateDerivatives(time = "const Scalar",
@@ -77,23 +57,25 @@ class SolidFSISPHHydroBaseRZ(SolidFSISPHHydroBase):
 mass density, velocity, and specific thermal energy."""
         return "void"
 
-    @PYB11virtual
-    def applyGhostBoundaries(state = "State<%(Dimension)s>&",
-                             derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Apply boundary conditions to the physics specific fields."
-        return "void"
 
-    @PYB11virtual
-    def enforceBoundaries(state = "State<%(Dimension)s>&",
-                          derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Enforce boundary conditions for the physics specific fields."
-        return "void"
-
-    @PYB11virtual
-    @PYB11const
-    def label(self):
-        return "std::string"
+    #...........................................................................
+    # Properties
+    surfaceForceCoefficient = PYB11property("double", "surfaceForceCoefficient", "surfaceForceCoefficient",
+                           doc="additional force between different materials ala Monaghan 2013.")
+    
+    densityStabilizationCoefficient = PYB11property("double", "densityStabilizationCoefficient", "densityStabilizationCoefficient", 
+                                          doc="coefficient used to adjust velocity gradient to prevent unstable rho.")
+    
+    densityDiffusionCoefficient = PYB11property("double", "densityDiffusionCoefficient", "densityDiffusionCoefficient", 
+                                          doc="coefficient used to diffuse density amongst like nodes.")
+    
+    specificThermalEnergyDiffusionCoefficient = PYB11property("double", "specificThermalEnergyDiffusionCoefficient", "specificThermalEnergyDiffusionCoefficient", 
+                                          doc="coefficient used to diffuse specificThermalEnergy amongst like nodes.")
+    
+    sumDensityNodeLists = PYB11property("std::vector<int>", "sumDensityNodeLists", "sumDensityNodeLists", 
+                                              doc="control if rigorous density sum is applied to individual node lists.")
+    
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, SolidFSISPHHydroBaseRZ)
+PYB11inject(RestartMethods, FSISPHHydroBase)

@@ -93,22 +93,6 @@ public:
                            const State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivatives) const override;
 
-  void computeFSISPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
-                                   const TableKernel<Dimension>& W,
-                                   const FieldList<Dimension, typename Dimension::Vector>& position,
-                                   const FieldList<Dimension, typename Dimension::Scalar>& mass,
-                                   const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                                         FieldList<Dimension, typename Dimension::Scalar>& massDensity);
-
-  void computeSurfaceNormals(const ConnectivityMap<Dimension>& connectivityMap,
-                             const TableKernel<Dimension>& W,
-                             const FieldList<Dimension, typename Dimension::Vector>& position,
-                             const FieldList<Dimension, typename Dimension::Scalar>& mass,
-                             const FieldList<Dimension, typename Dimension::Scalar>& massDensity,
-                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                                   FieldList<Dimension, typename Dimension::Vector>& interfaceNormals);
-  
-
   double surfaceForceCoefficient() const;
   void surfaceForceCoefficient(double x);
 
@@ -120,6 +104,9 @@ public:
 
   double specificThermalEnergyDiffusionCoefficient() const;
   void specificThermalEnergyDiffusionCoefficient(double x);
+
+  bool applySelectSumDensity() const;
+  void applySelectSumDensity(bool x);
 
   std::vector<int> sumDensityNodeLists() const;
   void sumDensityNodeLists(std::vector<int> x);
@@ -137,6 +124,7 @@ private:
   double mDensityDiffusionCoefficient;                // controls diffusion of rho
   double mSpecificThermalEnergyDiffusionCoefficient;  // controls diffusion of eps
   
+  bool   mApplySelectDensitySum;                      // switch for density sum
   std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
   
   FieldList<Dimension, Vector> mSurfaceNormals;       // outward facing normals for interface nodes

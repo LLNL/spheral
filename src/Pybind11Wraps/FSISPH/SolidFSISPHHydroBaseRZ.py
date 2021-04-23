@@ -2,12 +2,12 @@
 # SPHHydroBaseRZ
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from FSISPHHydroBase import *
+from SolidFSISPHHydroBase import *
 
 @PYB11template()            # Override the fact SPHHydroBase is templated
 @PYB11template_dict({"Dimension" : "Dim<2>"})
-@PYB11module("SpheralSPH")
-class FSISPHHydroBaseRZ(FSISPHHydroBase):
+@PYB11module("SpheralFSISPH")
+class SolidFSISPHHydroBaseRZ(SolidFSISPHHydroBase):
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -38,9 +38,12 @@ class FSISPHHydroBaseRZ(FSISPHHydroBase):
                HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
+               damageRelieveRubble = "const bool",
+               negativePressureInDamage = "const bool",
+               strengthInDamage = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "FSISPHHydroBaseRZ constructor"
+        "SolidFSISPHHydroBaseRZ constructor"
 
     #...........................................................................
     # Virtual methods
@@ -93,4 +96,4 @@ mass density, velocity, and specific thermal energy."""
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, FSISPHHydroBaseRZ)
+PYB11inject(RestartMethods, SolidFSISPHHydroBaseRZ)

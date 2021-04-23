@@ -15,7 +15,7 @@
 
 #include <string>
 
-#include "SPH/FSISPHHydroBase.hh"
+#include "FSISPH/FSISPHHydroBase.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

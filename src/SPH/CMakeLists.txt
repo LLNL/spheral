@@ -3,8 +3,6 @@ set(SPH_inst
     SPHHydroBase
     PSPHHydroBase
     SolidSPHHydroBase
-    SolidFSISPHHydroBase
-    FSISPHHydroBase
     computeSPHOmegaGradhCorrection
     computeSPHSumMassDensity
     correctSPHSumMassDensity
@@ -20,8 +18,6 @@ if(ENABLE_2D)
        SPHHydroBaseGSRZ.cc
        SPHHydroBaseRZ.cc
        SolidSPHHydroBaseRZ.cc
-       FSISPHHydroBaseRZ.cc
-       SolidFSISPHHydroBaseRZ.cc
       )
 endif()
 
@@ -41,10 +37,6 @@ set(SPH_headers
     SPHHydroBaseGSRZ.hh
     SPHHydroBaseInline.hh
     SPHHydroBaseRZ.hh
-    SolidFSISPHHydroBase.hh
-    SolidFSISPHHydroBaseRZ.hh
-    FSISPHHydroBase.hh
-    FSISPHHydroBaseRZ.hh
     SolidSPHHydroBase.hh
     SolidSPHHydroBaseInline.hh
     SolidSPHHydroBaseRZ.hh
@@ -59,7 +51,6 @@ set(SPH_headers
 spheral_install_python_files(
   SPHHydros.py
   PSPHHydros.py
-  FSISPHHydros.py
   SPHUtilities.py
   FacetedSurfaceASPHHydro.py
   )

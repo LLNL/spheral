@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-#include "SPH/SolidFSISPHHydroBase.hh"
+#include "FSISPH/SolidFSISPHHydroBase.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

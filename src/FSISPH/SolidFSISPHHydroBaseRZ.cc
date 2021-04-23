@@ -34,7 +34,7 @@
 #include "Utilities/safeInv.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 
-#include "SPH/SolidFSISPHHydroBaseRZ.hh"
+#include "FSISPH/SolidFSISPHHydroBaseRZ.hh"
 
 #include <limits.h>
 #include <float.h>

@@ -1,14 +1,14 @@
 #-------------------------------------------------------------------------------
-# FSISPHHydroBase
+# SolidFSISPHHydroBase
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from SPHHydroBase import *
+from SolidSPHHydroBase import *
 from RestartMethods import *
 
 @PYB11template("Dimension")
-@PYB11module("SpheralSPH")
-class FSISPHHydroBase(SPHHydroBase):
-    "FSISPHHydroBase -- SPHHydro modified for large density discontinuities"
+@PYB11module("SpheralFSISPH")
+class SolidFSISPHHydroBase(SolidSPHHydroBase):
+    "SolidFSISPHHydroBase -- SolidSPHHydro modified for large density discontinuities"
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -39,11 +39,13 @@ class FSISPHHydroBase(SPHHydroBase):
                HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
+               damageRelieveRubble = "const bool",
+               negativePressureInDamage = "const bool",
+               strengthInDamage = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "FSISPHHydroBase constructor"
+        "SolidFSISPHHydroBase constructor"
 
-               
     #...........................................................................
     # Virtual methods
     @PYB11virtual
@@ -60,6 +62,7 @@ mass density, velocity, and specific thermal energy."""
 
     #...........................................................................
     # Properties
+    surfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "surfaceNormals", returnpolicy="reference_internal")
     surfaceForceCoefficient = PYB11property("double", "surfaceForceCoefficient", "surfaceForceCoefficient",
                            doc="additional force between different materials ala Monaghan 2013.")
     
@@ -78,4 +81,4 @@ mass density, velocity, and specific thermal energy."""
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, FSISPHHydroBase)
+PYB11inject(RestartMethods, SolidFSISPHHydroBase)
