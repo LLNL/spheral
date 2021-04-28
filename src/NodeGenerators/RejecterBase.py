@@ -26,9 +26,9 @@ class RejecterBase:
         
         # Extract the actual arguments
         if threeD:
-            x0, y0, z0, m0, H0 = *args
+            x0, y0, z0, m0, H0 = args
         else:
-            x0, y0, m0, H0 = *args
+            x0, y0, m0, H0 = args
 
         # Check if we've been handed serial info (same on all processors), or if
         # the points are already unique per process
