@@ -49,8 +49,8 @@ class RejecterBase:
         # up the containment testing.  The following algorithm is borrowed 
         # from NodeGeneratorBase to divvy up the ID range.
         if serial:
-            ndomain0 = n/mpi.procs
-            remainder = n % mpi.procs
+            ndomain0 = n0/mpi.procs
+            remainder = n0 % mpi.procs
             assert remainder < mpi.procs
             ndomain = ndomain0
             if mpi.rank < remainder:
