@@ -41,7 +41,6 @@
 #include "FSISPH/SolidFSISPHHydroBase.hh"
 #include "FSISPH/computeSurfaceNormals.hh"
 #include "FSISPH/computeFSISPHSumMassDensity.hh"
-#include "FSISPH/InteractionBase.hh"
 
 #include <limits.h>
 #include <float.h>
