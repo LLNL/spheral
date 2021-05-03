@@ -1,5 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
 // ProbabilisticDamageModel
+//
 // A damage model based on Weibull statistics that uses volume based
 // probabilities per node to decide when damage starts to accrue.  Should
 // generate similar results to the classic Benz-Asphaug (Grady-Kipp) model
@@ -68,13 +69,18 @@ public:
   const Field<Dimension, unsigned>& numFlaws() const;
   const Field<Dimension, unsigned>& numFlawsActivated() const;
   const Field<Dimension, Scalar>& currentFlaw() const;
+  const Field<Dimension, Scalar>& youngsModulus() const;
+  const Field<Dimension, Scalar>& longitudinalSoundSpeed() const;
+  const Field<Dimension, SymTensor>& strain() const;
+  const Field<Dimension, Scalar>& DdamageDt() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   TensorStrainAlgorithm mStrainAlgorithm;
   bool mDamageInCompression;
   Field<Dimension, unsigned> mNumFlaws, mNumFlawsActivated;
-  Field<Dimension, Scalar> mCurrentFlaw;
+  Field<Dimension, Scalar> mCurrentFlaw, mYoungsModulus, mLongitudinalSoundSpeed, mDdamageDt;
+  Field<Dimension, SymTensor> mStrain, mEffectiveStrain;
 
   // No default constructor, copying or assignment.
   ProbabilisticDamageModel();
