@@ -26,6 +26,7 @@ set(NodeGenerators_headers
 
 spheral_install_python_files(
   NodeGeneratorBase.py
+  RejecterBase.py
   GenerateNodeDistribution2d.py
   GenerateNodeDistribution3d.py
   CompositeNodeDistribution.py
