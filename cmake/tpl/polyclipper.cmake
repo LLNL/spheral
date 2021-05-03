@@ -34,8 +34,8 @@ if(${lib_name}_BUILD)
                -DENABLE_MPI=${ENABLE_MPI}
                -DPYTHON_EXE=${PYTHON_EXE}
                -DPYBIND11_INCLUDE_PATH=${PYBIND11_INSTALL_DIR}/include
-               #-DPYB11GEN_PATH=${PYTHON_SITE_PACKAGE_DIR}
-               -DLOOKUP_PYBIND11_INCLUDE_PATH=On
+               -DPYB11GEN_PATH=${PYTHON_SITE_PACKAGE_DIR}
+               #-DLOOKUP_PYBIND11_INCLUDE_PATH=On
                -DPOLYCLIPPER_PYTHON_INSTALL=${${lib_name}_DIR}
                -DENABLE_DOCS=Off
                DEPENDS ${POLYCLIPPER_DEPENDS}
