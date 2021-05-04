@@ -391,7 +391,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  //auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
@@ -413,7 +413,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(DepsDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
-  CHECK(M.size() == numNodeLists);
+  //CHECK(M.size() == numNodeLists);
   CHECK(localM.size() == numNodeLists);
   CHECK(DHDt.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
@@ -450,7 +450,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     SymTensor sigmai, sigmaj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
-    auto M_thread = M.threadCopy(threadStack);
+    //auto M_thread = M.threadCopy(threadStack);
     auto DvDt_thread = DvDt.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
@@ -483,7 +483,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
-      auto& Mi = M_thread(nodeListi,i);
+      //auto& Mi = M_thread(nodeListi,i);
       auto& DvDti = DvDt_thread(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
@@ -508,7 +508,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
-      auto& Mj = M_thread(nodeListj,j);
+      //auto& Mj = M_thread(nodeListj,j);
       auto& DvDtj = DvDt_thread(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
@@ -667,10 +667,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // linear velocity gradient correction
       //---------------------------------------------------------------
-      if(this->mCorrectVelocityGradient){
-        Mi -=  mj/rhoj * rij.dyad(gradWi);
-        Mj -=  mi/rhoi * rij.dyad(gradWj);
-      }
+      //if(this->mCorrectVelocityGradient){
+      //  Mi -=  mj/rhoj * rij.dyad(gradWi);
+      //  Mj -=  mi/rhoi * rij.dyad(gradWj);
+      //}
 
       // Add timing info for work
       //---------------------------------------------------------------
@@ -689,24 +689,24 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
   // correct the acceleration and implicitly DepsDt
   //-----------------------------------------------------
-  if(this->mCorrectVelocityGradient){
+//   if(this->mCorrectVelocityGradient){
    
-    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-      const auto& nodeList = mass[nodeListi]->nodeList();
-      const auto ni = nodeList.numInternalNodes();
-#pragma omp parallel for
-      for (auto i = 0u; i < ni; ++i) {
+//     for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+//       const auto& nodeList = mass[nodeListi]->nodeList();
+//       const auto ni = nodeList.numInternalNodes();
+// #pragma omp parallel for
+//       for (auto i = 0u; i < ni; ++i) {
 
-        const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
-        auto& Mi = M(nodeListi, i);
-        auto& DvDti = DvDt(nodeListi, i);
+//         const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
+//         auto& Mi = M(nodeListi, i);
+//         auto& DvDti = DvDt(nodeListi, i);
 
-        const auto goodM = std::abs(Mi.Determinant()) > 1.0e-10 and numNeighborsi > Dimension::pownu(2);
-        Mi =  (goodM? Mi.Inverse(): Tensor::one);
-        DvDti = Mi.Determinant()*DvDti;
-      } 
-    }
-  }
+//         const auto goodM = std::abs(Mi.Determinant()) > 1.0e-10 and numNeighborsi > Dimension::pownu(2);
+//         Mi =  (goodM? Mi.Inverse(): Tensor::one);
+//         DvDti = Mi.Determinant()*DvDti;
+//       } 
+//     }
+//   }
 
   // apply boundary conditions
   //-----------------------------------------------------
@@ -730,7 +730,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     auto DepsDt_thread = DepsDt.threadCopy(threadStack);
     auto DvDx_thread = DvDx.threadCopy(threadStack);
     auto localDvDx_thread = localDvDx.threadCopy(threadStack);
-    auto M_thread = M.threadCopy(threadStack);
+    //auto M_thread = M.threadCopy(threadStack);
     auto localM_thread = localM.threadCopy(threadStack);
     auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
@@ -1027,7 +1027,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& DrhoDti = DrhoDt(nodeListi, i);
       auto& DvDxi = DvDx(nodeListi, i);
       auto& localDvDxi = localDvDx(nodeListi, i);
-      auto& Mi = M(nodeListi, i);
+      //auto& Mi = M(nodeListi, i);
       auto& localMi = localM(nodeListi, i);
       auto& DHDti = DHDt(nodeListi, i);
       auto& Hideali = Hideal(nodeListi, i);
@@ -1041,11 +1041,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
       
-      if (this->mCorrectVelocityGradient and 
-          std::abs(Mi.Determinant()) > 1.0e-10 and
-          numNeighborsi > Dimension::pownu(2)) {
-        DvDxi=DvDxi*Mi;
-      } 
+      //if (this->mCorrectVelocityGradient and 
+      //    std::abs(Mi.Determinant()) > 1.0e-10 and
+      //    numNeighborsi > Dimension::pownu(2)) {
+      //  DvDxi=DvDxi*Mi;
+      //} 
 
       DrhoDti -=  rhoi*DvDxi.Trace();
 
