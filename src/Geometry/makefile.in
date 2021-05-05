@@ -24,7 +24,6 @@ SRCTARGETS = \
 	$(srcdir)/buildEigenVector.cc \
 	$(srcdir)/EigenStruct.cc \
 	$(srcdir)/computeEigenValues.cc \
-	$(srcdir)/fakemain.cc \
 	$(srcdir)/GeomFacet2d.cc \
 	$(srcdir)/GeomFacet3d.cc \
 	$(srcdir)/GeomPolygon.cc \
