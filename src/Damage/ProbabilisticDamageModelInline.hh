@@ -43,4 +43,41 @@ currentFlaw() const {
   return mCurrentFlaw;
 }
 
+template<typename Dimension>
+inline
+const Field<Dimension, typename Dimension::Scalar>&
+ProbabilisticDamageModel<Dimension>::
+youngsModulus() const {
+  return mYoungsModulus;
+}
+
+template<typename Dimension>
+inline
+const Field<Dimension, typename Dimension::Scalar>&
+ProbabilisticDamageModel<Dimension>::
+longitudinalSoundSpeed() const {
+  return mLongitudinalSoundSpeed;
+}
+
+template<typename Dimension>
+const Field<Dimension, typename Dimension::SymTensor>&
+ProbabilisticDamageModel<Dimension>::
+strain() const {
+  return mStrain;
+}
+
+template<typename Dimension>
+const Field<Dimension, typename Dimension::SymTensor>&
+ProbabilisticDamageModel<Dimension>::
+effectiveStrain() const {
+  return mEffectiveStrain;
+}
+
+template<typename Dimension>
+const Field<Dimension, typename Dimension::Scalar>&
+ProbabilisticDamageModel<Dimension>::
+DdamageDt() const {
+  return mDdamageDt;
+}
+
 }

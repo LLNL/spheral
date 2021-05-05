@@ -61,9 +61,9 @@ ProbabilisticDamageModel(SolidNodeList<Dimension>& nodeList,
   mCurrentFlaw(SolidFieldNames::currentFlaw, nodeList),
   mYoungsModulus(SolidFieldNames::YoungsModulus, nodeList),
   mLongitudinalSoundSpeed(SolidFieldNames::longitudinalSoundSpeed, nodeList),
-  mStrain(SolidFieldNames::strainTensor, nodeList),
   mDdamageDt(ProbabilisticDamagePolicy<Dimension>::prefix() + SolidFieldNames::scalarDamage, nodeList),
-  mStrainAlgorithm(strainAlgorithm) {
+  mStrain(SolidFieldNames::strainTensor, nodeList),
+  mEffectiveStrain(SolidFieldNames::effectiveStrainTensor, nodeList) {
 }
 
 //------------------------------------------------------------------------------
@@ -76,7 +76,10 @@ ProbabilisticDamageModel<Dimension>::
 
 //------------------------------------------------------------------------------
 // Evaluate derivatives.
-// For this model we evaluate the derivative of the tensor damage field.
+//
+// In this model we compute the scalar damage derivative assuming unresolved
+// crack growth for every point. However, that is not applied in the tensor
+// damage update policy unless the flaws are actually activated.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -161,14 +164,6 @@ registerState(DataBase<Dimension>& dataBase,
   // as originally registered by the SolidSPHHydroBase class.
   PolicyPointer damagePolicy(new ProbabilisticDamagePolicy<Dimension>(*this));
   state.enroll(this->nodeList().damage(), damagePolicy);
-
-  // Mask out nodes beyond the critical damage threshold from setting the timestep.
-  Key maskKey = state.buildFieldKey(HydroFieldNames::timeStepMask, this->nodeList().name());
-  Field<Dimension, int>& mask = state.field(maskKey, 0);
-  const Field<Dimension, SymTensor>& damage = this->nodeList().damage();
-  for (auto i = 0u; i < this->nodeList().numInternalNodes(); ++i) {
-    if (damage(i).Trace() > mCriticalDamageThreshold) mask(i) = 0;
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -196,11 +191,11 @@ applyGhostBoundaries(State<Dimension>& state,
   const Key nodeListName = this->nodeList().name();
   const Key DKey = state.buildFieldKey(SolidFieldNames::tensorDamage, nodeListName);
   CHECK(state.registered(DKey));
-  Field<Dimension, SymTensor>& D = state.field(DKey, SymTensor::zero);
+  auto& D = state.field(DKey, SymTensor::zero);
 
   // Apply ghost boundaries to the damage.
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-       boundaryItr != this->boundaryEnd();
+  for (auto boundaryItr = this->boundaryBegin();
+       boundaryItr < this->boundaryEnd();
        ++boundaryItr) {
     (*boundaryItr)->applyGhostBoundary(D);
   }
@@ -220,69 +215,14 @@ enforceBoundaries(State<Dimension>& state,
   const Key nodeListName = this->nodeList().name();
   const Key DKey = state.buildFieldKey(SolidFieldNames::tensorDamage, nodeListName);
   CHECK(state.registered(DKey));
-  Field<Dimension, SymTensor>& D = state.field(DKey, SymTensor::zero);
+  auto& D = state.field(DKey, SymTensor::zero);
 
   // Enforce!
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
+  for (auto boundaryItr = this->boundaryBegin(); 
+       boundaryItr < this->boundaryEnd();
        ++boundaryItr) {
     (*boundaryItr)->enforceBoundary(D);
   }
-}
-
-//------------------------------------------------------------------------------
-// Cull the flaws on each node to the single weakest one.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-ProbabilisticDamageModel<Dimension>::
-cullToWeakestFlaws() {
-  const auto n = mFlaws.numInternalElements();
-#pragma omp parallel for
-  for (auto i = 0u; i < n; ++i) {
-    auto& flaws = mFlaws[i];
-    if (flaws.size() > 0) {
-      const auto maxVal = *max_element(flaws.begin(), flaws.end());
-      flaws = vector<double>(maxVal);
-    }
-  }
-}
-
-//------------------------------------------------------------------------------
-// Compute a Field with the sum of the activation energies per node.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-ProbabilisticDamageModel<Dimension>::
-sumActivationEnergiesPerNode() const {
-  auto& nodeList = this->nodeList();
-  const auto n = mFlaws.numInternalElements();
-  Field<Dimension, Scalar> result("Sum activation energies", nodeList);
-#pragma omp parallel for
-  for (auto i = 0u; i < n; ++i) {
-    const auto& flaws = mFlaws(i);
-    for (const auto fij: flaws) {
-      result(i) += fij;
-    }
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Compute a Field with the number of flaws per node.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-ProbabilisticDamageModel<Dimension>::
-numFlawsPerNode() const {
-  auto& nodeList = this->nodeList();
-  const auto n = mFlaws.numInternalElements();
-  Field<Dimension, Scalar> result("num flaws", nodeList);
-#pragma omp parallel for
-  for (auto i = 0u; i < n; ++i) {
-    result(i) = flawsForNode(i).size();
-  }
-  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -293,7 +233,9 @@ void
 ProbabilisticDamageModel<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   DamageModel<Dimension>::dumpState(file, pathName);
-  file.write(mFlaws, pathName + "/flaws");
+  file.write(mNumFlaws, pathName + "/numFlaws");
+  file.write(mNumFlawsActivated, pathName + "/numFlawsActivated");
+  file.write(mCurrentFlaw, pathName + "/currentFlaw");
   file.write(mStrain, pathName + "/strain");
   file.write(mEffectiveStrain, pathName + "/effectiveStrain");
   file.write(mDdamageDt, pathName + "/DdamageDt");
@@ -307,7 +249,9 @@ void
 ProbabilisticDamageModel<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   DamageModel<Dimension>::restoreState(file, pathName);
-  file.read(mFlaws, pathName + "/flaws");
+  file.read(mNumFlaws, pathName + "/numFlaws");
+  file.read(mNumFlawsActivated, pathName + "/numFlawsActivated");
+  file.read(mCurrentFlaw, pathName + "/currentFlaw");
   file.read(mStrain, pathName + "/strain");
   file.read(mEffectiveStrain, pathName + "/effectiveStrain");
   file.read(mDdamageDt, pathName + "/DdamageDt");

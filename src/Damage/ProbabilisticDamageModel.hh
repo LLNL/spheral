@@ -62,6 +62,14 @@ public:
   virtual void registerDerivatives(DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs) override;
 
+  // Apply boundary conditions to the physics specific fields.
+  virtual void applyGhostBoundaries(State<Dimension>& state,
+                                    StateDerivatives<Dimension>& derivs) override;
+
+  // Enforce boundary conditions for the physics specific fields.
+  virtual void enforceBoundaries(State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
+
   //............................................................................
   // Accessors for state
   TensorStrainAlgorithm strainAlgorithm() const;
@@ -72,7 +80,14 @@ public:
   const Field<Dimension, Scalar>& youngsModulus() const;
   const Field<Dimension, Scalar>& longitudinalSoundSpeed() const;
   const Field<Dimension, SymTensor>& strain() const;
+  const Field<Dimension, SymTensor>& effectiveStrain() const;
   const Field<Dimension, Scalar>& DdamageDt() const;
+
+  //............................................................................
+  // Restart methods.
+  virtual std::string label() const { return "ProbabilisticDamageModel"; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
 
 private:
   //--------------------------- Private Interface ---------------------------//

@@ -2,9 +2,11 @@ include_directories(.)
 set(Damage_inst
     DamageModel
     TensorDamageModel
+    ProbabilisticDamageModel
     StrainPolicy
     TensorStrainPolicy
     TensorDamagePolicy
+    ProbabalisticDamagePolicy
     YoungsModulusPolicy
     LongitudinalSoundSpeedPolicy
     weibullFlawDistributionBenzAsphaug
@@ -39,7 +41,10 @@ set(Damage_headers
     StrainPolicy.hh
     TensorDamageModel.hh
     TensorDamageModelInline.hh
+    ProbabilisticDamageModel.hh
+    ProbabilisticDamageModelInline.hh
     TensorDamagePolicy.hh
+    ProbabilisticDamagePolicy.hh
     TensorStrainPolicy.hh
     YoungsModulusPolicy.hh
     computeFragmentField.hh
