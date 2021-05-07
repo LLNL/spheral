@@ -4,7 +4,7 @@ from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
 #-------------------------------------------------------------------------------
-# The generic RSPHHydro pattern.
+# The generic SPHHydro pattern.
 #-------------------------------------------------------------------------------
 RSPHHydroFactoryString = """
 class %(classname)s%(dim)s(RSPHHydroBase%(dim)s):
@@ -13,57 +13,86 @@ class %(classname)s%(dim)s(RSPHHydroBase%(dim)s):
                  dataBase,
                  Q,
                  W,
+                 WPi = None,
+                 filter = 0.0,
                  cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
+                 compatibleEnergyEvolution = True,
+                 evolveTotalEnergy = False,
+                 gradhCorrection = True,
                  XSPH = True,
                  correctVelocityGradient = True,
+                 sumMassDensityOverAllNodeLists = True,
+                 densityUpdate = RigorousSumDensity,
                  HUpdate = IdealH,
                  epsTensile = 0.0,
                  nTensile = 4.0,
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
+        if WPi is None:
+            WPi = W
         RSPHHydroBase%(dim)s.__init__(self,
-                                      self._smoothingScaleMethod,
-                                      dataBase,
-                                      Q,
-                                      W,
-                                      cfl,
-                                      useVelocityMagnitudeForDt,
-                                      XSPH,
-                                      correctVelocityGradient,
-                                      HUpdate,
-                                      epsTensile,
-                                      nTensile,
-                                      xmin,
-                                      xmax)
+                                     self._smoothingScaleMethod,
+                                     dataBase,
+                                     Q,
+                                     W,
+                                     WPi,
+                                     filter,
+                                     cfl,
+                                     useVelocityMagnitudeForDt,
+                                     compatibleEnergyEvolution,
+                                     evolveTotalEnergy,
+                                     gradhCorrection,
+                                     XSPH,
+                                     correctVelocityGradient,
+                                     sumMassDensityOverAllNodeLists,
+                                     densityUpdate,
+                                     HUpdate,
+                                     epsTensile,
+                                     nTensile,
+                                     xmin,
+                                     xmax)
         return
 """
+
 
 #-------------------------------------------------------------------------------
 # Make 'em.
 #-------------------------------------------------------------------------------
 for dim in dims:
     exec(RSPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                   "classname"            : "RSPHHydro",
-                                   "smoothingScaleMethod" : "SPHSmoothingScale"})
-    
+                                  "classname"            : "RSPHHydro",
+                                  "smoothingScaleMethod" : "SPHSmoothingScale"})
+
+
 #-------------------------------------------------------------------------------
 # Provide a factory function to return the appropriate SPH hydro.
 #-------------------------------------------------------------------------------
 def RSPH(dataBase,
-         W,
-         cfl = 0.25,
-         useVelocityMagnitudeForDt = False,
-         XSPH = True,
-         correctVelocityGradient = True,
-         HUpdate = IdealH,
-         epsTensile = 0.0,
-         nTensile = 4.0,
-         xmin = (-1e100, -1e100, -1e100),
-         xmax = ( 1e100,  1e100,  1e100),
-         ASPH = False,
-         RZ = False):
+        W,
+        WPi = None,
+        Q = None,
+        filter = 0.0,
+        cfl = 0.25,
+        useVelocityMagnitudeForDt = False,
+        compatibleEnergyEvolution = True,
+        evolveTotalEnergy = False,
+        gradhCorrection = True,
+        XSPH = True,
+        correctVelocityGradient = True,
+        sumMassDensityOverAllNodeLists = True,
+        densityUpdate = RigorousSumDensity,
+        HUpdate = IdealH,
+        epsTensile = 0.0,
+        nTensile = 4.0,
+        damageRelieveRubble = False,
+        negativePressureInDamage = False,
+        strengthInDamage = False,
+        xmin = (-1e100, -1e100, -1e100),
+        xmax = ( 1e100,  1e100,  1e100),
+        ASPH = False,
+        RZ = False):
 
     # We use the provided DataBase to sniff out what sort of NodeLists are being
     # used, and based on this determine which SPH object to build.
@@ -76,36 +105,39 @@ def RSPH(dataBase,
         print "           which will result in fluid behaviour for those nodes."
         raise RuntimeError, "Cannot mix solid and fluid NodeLists."
 
-    # Decide on the hydro object.
     Constructor = eval("RSPHHydro%id" % ndim)
 
-    # Dummy Artificial viscosity for now
-    Cl = 1.0*(dataBase.maxKernelExtent/2.0)
-    Cq = 1.0*(dataBase.maxKernelExtent/2.0)**2
-    Q = eval("MonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
+    # Artificial viscosity.
+    if not Q:
+        Cl = 1.0*(dataBase.maxKernelExtent/2.0)
+        Cq = 1.0*(dataBase.maxKernelExtent/2.0)**2
+        Q = eval("MonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
     kwargs = {"W" : W,
+              "WPi" : WPi,
               "dataBase" : dataBase,
+              "Q" : Q,
+              "filter" : filter,
               "cfl" : cfl,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
+              "compatibleEnergyEvolution" : compatibleEnergyEvolution,
+              "evolveTotalEnergy" : evolveTotalEnergy,
+              "gradhCorrection" : gradhCorrection,
               "XSPH" : XSPH,
               "correctVelocityGradient" : correctVelocityGradient,
+              "sumMassDensityOverAllNodeLists" : sumMassDensityOverAllNodeLists,
+              "densityUpdate" : densityUpdate,
               "HUpdate" : HUpdate,
               "epsTensile" : epsTensile,
               "nTensile" : nTensile,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
 
-    #if nsolid > 0:
-    #    kwargs.update({"damageRelieveRubble"      : damageRelieveRubble,
-    #                   "negativePressureInDamage" : negativePressureInDamage,
-    #                   "strengthInDamage"         : strengthInDamage})
 
     # Build and return the thing.
     result = Constructor(**kwargs)
     result.Q = Q
     return result
-

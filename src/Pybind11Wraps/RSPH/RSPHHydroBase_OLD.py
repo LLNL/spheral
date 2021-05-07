@@ -21,23 +21,16 @@ class RSPHHydroBase(GenericHydro):
                dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
-               WPi = "const TableKernel<%(Dimension)s>&",
-               filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
-               compatibleEnergyEvolution = "const bool",
-               evolveTotalEnergy = "const bool",
-               gradhCorrection = "const bool",
                XSPH = "const bool",
                correctVelocityGradient = "const bool",
-               sumMassDensityOverAllNodeLists = "const bool",
-               densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "RSPHHydroBase constructor"
+        "SPHHydroBase constructor"
 
     #...........................................................................
     # Virtual methods
@@ -108,36 +101,20 @@ mass density, velocity, and specific thermal energy."""
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
-    #...........................................................................
-    # Methods
-    @PYB11const
-    def updateVolume(state = "State<%(Dimension)s>&",
-                     boundaries = "const bool"):
-        """A method to fill in the volume in the State, optionally enforcing
-boundary conditions."""
-        return "void"
 
     #...........................................................................
     # Properties
     kernel = PYB11property("const TableKernel<%(Dimension)s>&", "kernel", doc="The interpolation kernel")
-    PiKernel = PYB11property("const TableKernel<%(Dimension)s>&", "PiKernel", doc="The interpolation kernel for the artificial viscosity")
-    densityUpdate = PYB11property("MassDensityType", "densityUpdate", "densityUpdate",
-                                  doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
     HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution",
                                doc="Flag to select how we want to evolve the H tensor")
-    compatibleEnergyEvolution = PYB11property("bool", "compatibleEnergyEvolution", "compatibleEnergyEvolution",
-                                              doc="Flag to determine if we're using the total energy conserving compatible energy evolution scheme.")
-    evolveTotalEnergy = PYB11property("bool", "evolveTotalEnergy", "evolveTotalEnergy",
-                                      doc="Flag controlling if we evolve total or specific energy.")
-    gradhCorrection = PYB11property("bool", "gradhCorrection", "gradhCorrection",
-                                    doc="Flag to determine if we're using the grad h correction.")
+    #compatibleEnergyEvolution = PYB11property("bool", "compatibleEnergyEvolution", "compatibleEnergyEvolution",
+    #                                          doc="Flag to determine if we're using the total energy conserving compatible energy evolution scheme.")
+    #evolveTotalEnergy = PYB11property("bool", "evolveTotalEnergy", "evolveTotalEnergy",
+    #                                  doc="Flag controlling if we evolve total or specific energy.")
     XSPH = PYB11property("bool", "XSPH", "XSPH",
                          doc="Flag to determine if we're using the XSPH algorithm.")
     correctVelocityGradient = PYB11property("bool", "correctVelocityGradient", "correctVelocityGradient",
                                             doc="Flag to determine if we're applying the linear correction for the velocity gradient.")
-    sumMassDensityOverAllNodeLists = PYB11property("bool", "sumMassDensityOverAllNodeLists", "sumMassDensityOverAllNodeLists",
-                                                   doc="Flag to determine if the sum density definition extends over neighbor NodeLists.")
-    filter = PYB11property("double", "filter", "filter", doc="Fraction of position filtering to apply.")
     epsilonTensile = PYB11property("double", "epsilonTensile", "epsilonTensile",
                                    doc="Parameters for the tensile correction force at small scales.")
     nTensile = PYB11property("double", "nTensile", "nTensile",
@@ -155,17 +132,17 @@ boundary conditions."""
     timeStepMask =                 PYB11property("const FieldList<%(Dimension)s, int>&",      "timeStepMask",         returnpolicy="reference_internal")
     pressure =                     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "pressure",             returnpolicy="reference_internal")
     soundSpeed =                   PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "soundSpeed",           returnpolicy="reference_internal")
-    volume =                       PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "volume",               returnpolicy="reference_internal")
-    omegaGradh =                   PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "omegaGradh",           returnpolicy="reference_internal")
-    specificThermalEnergy0 =       PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "specificThermalEnergy0",returnpolicy="reference_internal")
-    entropy =                      PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "entropy",              returnpolicy="reference_internal")
+    #volume =                       PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "volume",               returnpolicy="reference_internal")
+    #omegaGradh =                   PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "omegaGradh",           returnpolicy="reference_internal")
+    #specificThermalEnergy0 =       PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "specificThermalEnergy0",returnpolicy="reference_internal")
+    #entropy =                      PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "entropy",              returnpolicy="reference_internal")
     Hideal =                       PYB11property("const FieldList<%(Dimension)s, SymTensor>&","Hideal",               returnpolicy="reference_internal")
-    maxViscousPressure =           PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "maxViscousPressure",   returnpolicy="reference_internal")
-    effectiveViscousPressure =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "effectiveViscousPressure", returnpolicy="reference_internal")
-    massDensityCorrection =        PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "massDensityCorrection",returnpolicy="reference_internal")
-    viscousWork =                  PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "viscousWork",          returnpolicy="reference_internal")
-    massDensitySum =               PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "massDensitySum",       returnpolicy="reference_internal")
-    normalization =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "normalization",        returnpolicy="reference_internal")
+    #maxViscousPressure =           PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "maxViscousPressure",   returnpolicy="reference_internal")
+    #effectiveViscousPressure =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "effectiveViscousPressure", returnpolicy="reference_internal")
+    #massDensityCorrection =        PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "massDensityCorrection",returnpolicy="reference_internal")
+    #viscousWork =                  PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "viscousWork",          returnpolicy="reference_internal")
+    #massDensitySum =               PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "massDensitySum",       returnpolicy="reference_internal")
+    #normalization =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "normalization",        returnpolicy="reference_internal")
     weightedNeighborSum =          PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "weightedNeighborSum",  returnpolicy="reference_internal")
     massSecondMoment =             PYB11property("const FieldList<%(Dimension)s, SymTensor>&","massSecondMoment",     returnpolicy="reference_internal")
     XSPHWeightSum =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "XSPHWeightSum",        returnpolicy="reference_internal")

@@ -1,25 +1,6 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Choose whether we want to sum for mass density, or integrate the continuity
-// equation.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-MassDensityType
-RSPHHydroBase<Dimension>::densityUpdate() const {
-  return mDensityUpdate;
-}
-
-template<typename Dimension>
-inline
-void
-RSPHHydroBase<Dimension>::
-densityUpdate(MassDensityType type) {
-  mDensityUpdate = type;
-}
-
-//------------------------------------------------------------------------------
 // Choose how we want to update the H tensor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -37,60 +18,9 @@ HEvolution(HEvolutionType type) {
   mHEvolution = type;
 }
 
-//------------------------------------------------------------------------------
-// Access the flag determining if we're using the compatible energy evolution 
-// algorithm.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-RSPHHydroBase<Dimension>::compatibleEnergyEvolution() const {
-  return mCompatibleEnergyEvolution;
-}
-
-template<typename Dimension>
-inline
-void
-RSPHHydroBase<Dimension>::compatibleEnergyEvolution(bool val) {
-  mCompatibleEnergyEvolution = val;
-}
 
 //------------------------------------------------------------------------------
-// Access the flag determining if we're evolving total or specific energy
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-RSPHHydroBase<Dimension>::evolveTotalEnergy() const {
-  return mEvolveTotalEnergy;
-}
-
-template<typename Dimension>
-inline
-void
-RSPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
-  mEvolveTotalEnergy = val;
-}
-
-//------------------------------------------------------------------------------
-// Access the flag determining if we're using the grad h correction.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-RSPHHydroBase<Dimension>::gradhCorrection() const {
-  return mGradhCorrection;
-}
-
-template<typename Dimension>
-inline
-void
-RSPHHydroBase<Dimension>::gradhCorrection(bool val) {
-  mGradhCorrection = val;
-}
-
-//------------------------------------------------------------------------------
-// Access the flag determining if we're using the XSPH algorithm.
+// Access the flag determining if we're using the XRSPH algorithm.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -106,9 +36,7 @@ RSPHHydroBase<Dimension>::XSPH(bool val) {
   mXSPH = val;
 }
 
-//------------------------------------------------------------------------------
-// Access the flag controlling linear correct velocity gradient.
-//------------------------------------------------------------------------------
+
 template<typename Dimension>
 inline
 bool
@@ -123,41 +51,6 @@ RSPHHydroBase<Dimension>::correctVelocityGradient(bool val) {
   mCorrectVelocityGradient = val;
 }
 
-//------------------------------------------------------------------------------
-// Access the flag determining if the sum mass density definition goes over
-// neighbor NodeLists.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-RSPHHydroBase<Dimension>::sumMassDensityOverAllNodeLists() const {
-  return mSumMassDensityOverAllNodeLists;
-}
-
-template<typename Dimension>
-inline
-void
-RSPHHydroBase<Dimension>::sumMassDensityOverAllNodeLists(bool val) {
-  mSumMassDensityOverAllNodeLists = val;
-}
-
-//------------------------------------------------------------------------------
-// Fraction of the centroidal filtering to apply.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-RSPHHydroBase<Dimension>::filter() const {
-  return mfilter;
-}
-
-template<typename Dimension>
-inline
-void
-RSPHHydroBase<Dimension>::filter(double val) {
-  VERIFY(val >= 0.0 and val <= 1.0);
-  mfilter = val;
-}
 
 //------------------------------------------------------------------------------
 // Parameter to determine the magnitude of the tensile small scale correction.
@@ -232,7 +125,7 @@ xmax(const typename Dimension::Vector& x) {
 }
 
 //------------------------------------------------------------------------------
-// Access the main kernel used for (A)SPH field estimates.
+// Access the main kernel used for (A)RSPH field estimates.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -240,17 +133,6 @@ const TableKernel<Dimension>&
 RSPHHydroBase<Dimension>::
 kernel() const {
   return mKernel;
-}
-
-//------------------------------------------------------------------------------
-// Access the kernel used for artificial viscosity gradients.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const TableKernel<Dimension>&
-RSPHHydroBase<Dimension>::
-PiKernel() const {
-  return mPiKernel;
 }
 
 //------------------------------------------------------------------------------
@@ -291,29 +173,6 @@ soundSpeed() const {
   return mSoundSpeed;
 }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-volume() const {
-  return mVolume;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-omegaGradh() const {
-  return mOmegaGradh;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-specificThermalEnergy0() const {
-  return mSpecificThermalEnergy0;
-}
 
 template<typename Dimension>
 inline
@@ -323,6 +182,8 @@ entropy() const {
   return mEntropy;
 }
 
+
+
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::SymTensor>&
@@ -331,53 +192,6 @@ Hideal() const {
   return mHideal;
 }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-maxViscousPressure() const {
-  return mMaxViscousPressure;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-effectiveViscousPressure() const {
-  return mEffViscousPressure;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-massDensityCorrection() const {
-  return mMassDensityCorrection;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-viscousWork() const {
-  return mViscousWork;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-massDensitySum() const {
-  return mMassDensitySum;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-normalization() const {
-  return mNormalization;
-}
 
 template<typename Dimension>
 inline
