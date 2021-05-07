@@ -1,62 +1,48 @@
 //---------------------------------Spheral++----------------------------------//
-// MurnahanEquationOfState
+// StiffenedGas -- The gamma law gas equation of state.
 //
-//   P(rho) = K/(n) * (eta^n - 1) + P0
-//   eta = rho/rho0
-//
-// Created by JMO, Mon Jun  6 13:53:50 PDT 2005
+// Created by JMO, Mon Dec  6 21:36:45 PST 1999
 //----------------------------------------------------------------------------//
-#include "MurnahanEquationOfState.hh"
+#include "StiffenedGas.hh"
+#include "PhysicalConstants.hh"
 #include "Field/Field.hh"
-#include "Utilities/SpheralFunctions.hh"
 
-namespace Spheral {
-
+#include <cmath>
+using std::cout;
+using std::cerr;
+using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+using std::pow;
+
+namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Construct with the given coefficients.
+// Construct with the given gamma and mu.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-MurnahanEquationOfState<Dimension>::
-MurnahanEquationOfState(const double referenceDensity,
-                        const double etamin,
-                        const double etamax,
-                        const double n,
-                        const double K,
-                        const double atomicWeight,
-                        const PhysicalConstants& constants,
-                        const double externalPressure,
-                        const double minimumPressure,
-                        const double maximumPressure,
-                        const MaterialPressureMinType minPressureType):
-  SolidEquationOfState<Dimension>(referenceDensity,
-                                  etamin,
-                                  etamax,
-                                  constants,
-                                  minimumPressure,
-                                  maximumPressure,
-                                  minPressureType),
-  mn(n),
-  mK(K),
-  mAtomicWeight(atomicWeight),
-  mExternalPressure(externalPressure),
-  mCv(3.0 * constants.molarGasConstant() / atomicWeight),
-  mnKi(K/n) {
-  REQUIRE(distinctlyGreaterThan(n, 0.0));
-  REQUIRE(distinctlyGreaterThan(K, 0.0));
-  REQUIRE(distinctlyGreaterThan(mAtomicWeight, 0.0));
-  ENSURE(valid());
+StiffenedGas<Dimension>::
+StiffenedGas(const double gamma,
+            const double P0,
+            const double Cv,
+            const PhysicalConstants& constants,
+            const double minimumPressure,
+            const double maximumPressure,
+            const MaterialPressureMinType minPressureType):
+  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
+  mGamma(gamma),
+  mP0(P0),
+  mCv(Cv) {
+  mGamma1 = mGamma - 1.0;
 }
 
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-MurnahanEquationOfState<Dimension>::
-~MurnahanEquationOfState() {
+StiffenedGas<Dimension>::
+~StiffenedGas() {
 }
 
 //------------------------------------------------------------------------------
@@ -64,13 +50,13 @@ MurnahanEquationOfState<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  REQUIRE(valid());
-  for (auto i = 0u; i != Pressure.size(); ++i) {
-    Pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
+  CHECK(valid());
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+    Pressure(i) = pressure(massDensity(i), specificThermalEnergy(i));
   }
 }
 
@@ -79,12 +65,12 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  REQUIRE(valid());
-  for (auto i = 0u; i != temperature.size(); ++i) {
+  CHECK(valid());
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
     temperature(i) = this->temperature(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -94,12 +80,12 @@ setTemperature(Field<Dimension, Scalar>& temperature,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
-  REQUIRE(valid());
-  for (auto i = 0u; i != specificThermalEnergy.size(); ++i) {
+  CHECK(valid());
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
     specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), temperature(i));
   }
 }
@@ -109,11 +95,11 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& /*massDensity*/,
                 const Field<Dimension, Scalar>& /*temperature*/) const {
-  REQUIRE(valid());
+  CHECK(valid());
   specificHeat = mCv;
 }
 
@@ -122,12 +108,12 @@ setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  for (auto i = 0u; i != soundSpeed.size(); ++i) {
+  for (size_t i = 0u; i != soundSpeed.size(); ++i) {
     soundSpeed(i) = this->soundSpeed(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -137,29 +123,26 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
-	      const Field<Dimension, Scalar>& massDensity,
-	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  REQUIRE(valid());
-  for (auto i = 0u; i != gamma.size(); ++i) {
-    gamma(i) = this->gamma(massDensity(i), specificThermalEnergy(i));
-  }
+              const Field<Dimension, Scalar>& /*massDensity*/,
+              const Field<Dimension, Scalar>& /*specificThermalEnergy*/) const {
+  CHECK(valid());
+  gamma = mGamma;
 }
 
 //------------------------------------------------------------------------------
-// Set the bulk modulus (rho DP/Drho).
+// Set the bulk modulus (rho DP/Drho).  This is just the pressure for a gamma
+// law gas.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  REQUIRE(valid());
-  for (auto i = 0u; i != bulkModulus.size(); ++i) {
-    bulkModulus(i)=this->bulkModulus(massDensity(i), specificThermalEnergy(i));
-  }
+  CHECK(valid());
+  setPressure(bulkModulus, massDensity, specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------
@@ -167,13 +150,13 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 setEntropy(Field<Dimension, Scalar>& entropy,
            const Field<Dimension, Scalar>& massDensity,
            const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
   for (size_t i = 0; i != massDensity.numElements(); ++i) {
-    entropy(i) = pressure(massDensity(i), specificThermalEnergy(i))*safeInvVar(pow(massDensity(i), gamma(massDensity(i), specificThermalEnergy(i))));
+    entropy(i) = (mGamma*mP0+pressure(massDensity(i), specificThermalEnergy(i)))*safeInvVar(pow(massDensity(i), mGamma));
   }
 }
 
@@ -182,28 +165,23 @@ setEntropy(Field<Dimension, Scalar>& entropy,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 pressure(const Scalar massDensity,
-         const Scalar /*specificThermalEnergy*/) const {
-  REQUIRE(valid());
-  const double eta = this->boundedEta(massDensity);
-  if (fuzzyEqual(eta, this->etamin())) return 0.0;
-  CHECK(distinctlyGreaterThan(eta, 0.0));
-  return this->applyPressureLimits(mnKi*(pow(eta, mn) - 1.0)+mExternalPressure);
+         const Scalar specificThermalEnergy) const {
+  CHECK(valid());
+  return this->applyPressureLimits(mGamma1*massDensity*specificThermalEnergy-mGamma*mP0);
 }
 
 //------------------------------------------------------------------------------
 // Calculate an individual temperature.
-// This is a *hokey* definition -- have to do better if we ever really care
-// about the temperature.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 temperature(const Scalar /*massDensity*/,
             const Scalar specificThermalEnergy) const {
-  REQUIRE(valid());
-  return specificThermalEnergy/mCv + 300;
+  CHECK(valid());
+  return 1.0/mCv*specificThermalEnergy;
 }
 
 //------------------------------------------------------------------------------
@@ -211,11 +189,11 @@ temperature(const Scalar /*massDensity*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 specificThermalEnergy(const Scalar /*massDensity*/,
                       const Scalar temperature) const {
-  REQUIRE(valid());
-  return (temperature - 300.0)*mCv;
+  CHECK(valid());
+  return mCv*temperature;
 }
 
 //------------------------------------------------------------------------------
@@ -223,10 +201,10 @@ specificThermalEnergy(const Scalar /*massDensity*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 specificHeat(const Scalar /*massDensity*/,
              const Scalar /*temperature*/) const {
-  REQUIRE(valid());
+  CHECK(valid());
   return mCv;
 }
 
@@ -235,13 +213,35 @@ specificHeat(const Scalar /*massDensity*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+StiffenedGas<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
-  REQUIRE(valid());
-  const double c2 = computeDPDrho(massDensity, specificThermalEnergy);
-  ENSURE(c2 >= 0.0);
-  return sqrt(c2);
+  CHECK(valid());
+  return sqrt(max(0.0, mGamma*mGamma1*(specificThermalEnergy+mP0/massDensity)));
+}
+
+//------------------------------------------------------------------------------
+// isentropic bulk modulus (rho*c^2)
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+StiffenedGas<Dimension>::
+bulkModulus(const Scalar massDensity,
+            const Scalar specificThermalEnergy) const {
+  CHECK(valid());
+  return massDensity*max(0.0, mGamma*mGamma1*(specificThermalEnergy+mP0/massDensity));
+}
+
+//------------------------------------------------------------------------------
+// Calculate an entropy. This should be double checked
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+StiffenedGas<Dimension>::
+entropy(const Scalar massDensity,
+        const Scalar specificThermalEnergy) const {
+  CHECK(valid());
+  return (mGamma*mP0+this->pressure(massDensity, specificThermalEnergy))*safeInvVar(pow(massDensity, mGamma));
 }
 
 //------------------------------------------------------------------------------
@@ -249,56 +249,56 @@ soundSpeed(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
-gamma(const Scalar massDensity,
-      const Scalar /*specificThermalEnergy*/) const {
-  const double eta = this->boundedEta(massDensity),
-               rho0 = this->referenceDensity(),
-               rho = rho0*eta,
-               nDen = rho/mAtomicWeight;
-  CHECK(mCv > 0.0);
-  return 1.0 + mConstants.molarGasConstant()*nDen/mCv;
+StiffenedGas<Dimension>::gamma(const Scalar /*massDensity*/,
+                              const Scalar /*specificThermalEnergy*/) const {
+  return mGamma;
 }
 
 //------------------------------------------------------------------------------
-// Calculate the individual bulk modulus.  
+// Get and set gamma.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
-bulkModulus(const Scalar massDensity,
-            const Scalar specificThermalEnergy) const {
-  REQUIRE(valid());
-  return massDensity * computeDPDrho(massDensity, specificThermalEnergy);
+StiffenedGas<Dimension>::gamma() const {
+  return mGamma;
+}
+
+template<typename Dimension>
+void
+StiffenedGas<Dimension>::gamma(typename Dimension::Scalar gam) {
+  mGamma = gam;
+  mGamma1 = mGamma - 1.0;
 }
 
 //------------------------------------------------------------------------------
-// Calculate an entropy.
+// Get and set the specific Heat.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
-entropy(const Scalar massDensity,
-        const Scalar specificThermalEnergy) const {
-  CHECK(valid());
-  return this->pressure(massDensity, specificThermalEnergy)*safeInvVar(pow(massDensity, gamma(massDensity, specificThermalEnergy)));
+StiffenedGas<Dimension>::specificHeat() const {
+  return mCv;
 }
 
+template<typename Dimension>
+void
+StiffenedGas<Dimension>::specificHeat(typename Dimension::Scalar Cv) {
+  mCv = Cv;
+}
+
+
 //------------------------------------------------------------------------------
-// Compute (\partial P)/(\partial rho).
+// Get / Set referencePressure
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
-MurnahanEquationOfState<Dimension>::
-computeDPDrho(const Scalar massDensity,
-              const Scalar /*specificThermalEnergy*/) const {
-  REQUIRE(valid());
-  const double eta = this->boundedEta(massDensity);
-  if (fuzzyEqual(eta, this->etamin()) || 
-      fuzzyEqual(eta, this->etamax())) return 0.0;
-  const double result = std::max(0.0, pow(eta, mn - 1)*(mK/this->referenceDensity()));
-  ENSURE(result >= 0.0);
-  return result;
+typename Dimension::Scalar
+StiffenedGas<Dimension>::referencePressure() const {
+  return mP0;
+}
+
+template<typename Dimension>
+void
+StiffenedGas<Dimension>::referencePressure(typename Dimension::Scalar P0) {
+  mP0 = P0;
 }
 
 //------------------------------------------------------------------------------
@@ -306,12 +306,9 @@ computeDPDrho(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 bool
-MurnahanEquationOfState<Dimension>::valid() const {
-  return (SolidEquationOfState<Dimension>::valid() && 
-          mn > 0.0 &&
-          mK > 0.0 &&
-          mAtomicWeight > 0.0 &&
-          mCv > 0.0);
+StiffenedGas<Dimension>::valid() const {
+  return (mGamma > 0.0 &&
+          mGamma1 == mGamma - 1.0);
 }
 
 }
