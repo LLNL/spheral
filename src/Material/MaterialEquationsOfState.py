@@ -71,6 +71,27 @@ class IsothermalEquationOfState%(units)s%(dim)id(IsothermalEquationOfState%(dim)
         return
 
 """
+"""
+class StiffenedGas%(units)s%(dim)id(IsothermalEquationOfState%(dim)id):
+    def __init__(self, 
+                 gamma,
+                 mu,
+                 P0,
+                 Cv,
+                 minimumPressure = -1e200,
+                 maximumPressure =  1e200):
+        self._units = %(units)s()
+        StiffenedGas%(dim)id.__init__(self,
+                                      gamma,
+                                      mu, 
+                                      P0,
+                                      Cv,
+                                      self._units,
+                                                   minimumPressure,
+                                                   maximumPressure)
+        return
+
+"""
 
 #-------------------------------------------------------------------------------
 # Create the different instantiations.

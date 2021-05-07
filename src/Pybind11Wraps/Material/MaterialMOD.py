@@ -17,6 +17,7 @@ PYB11includes += ['"Material/PhysicalConstants.hh"',
                   '"Material/GammaLawGas.hh"',
                   '"Material/PolytropicEquationOfState.hh"',
                   '"Material/IsothermalEquationOfState.hh"',
+                  '"Material/SiffenedGas"'
                   '"Field/Field.hh"']
 
 #-------------------------------------------------------------------------------
@@ -38,11 +39,12 @@ from EquationOfState import *
 from GammaLawGas import *
 from PolytropicEquationOfState import *
 from IsothermalEquationOfState import *
-
+from StiffenedGas import *
 for ndim in dims:
     exec('''
 EquationOfState%(ndim)id = PYB11TemplateClass(EquationOfState, template_parameters="Dim<%(ndim)i>")
 GammaLawGas%(ndim)id = PYB11TemplateClass(GammaLawGas, template_parameters="Dim<%(ndim)i>")
 PolytropicEquationOfState%(ndim)id = PYB11TemplateClass(PolytropicEquationOfState, template_parameters="Dim<%(ndim)i>")
 IsothermalEquationOfState%(ndim)id = PYB11TemplateClass(IsothermalEquationOfState, template_parameters="Dim<%(ndim)i>")
+StiffenedGas%(ndim)id = PYB11TemplateClass(StiffenedGas, template_parameters="Dim<%(ndim)i>")
 ''' % {"ndim" : ndim})
