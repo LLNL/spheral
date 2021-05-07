@@ -17,7 +17,7 @@ PYB11includes += ['"Material/PhysicalConstants.hh"',
                   '"Material/GammaLawGas.hh"',
                   '"Material/PolytropicEquationOfState.hh"',
                   '"Material/IsothermalEquationOfState.hh"',
-                  '"Material/SiffenedGas"'
+                  '"Material/StiffenedGas.hh"',
                   '"Field/Field.hh"']
 
 #-------------------------------------------------------------------------------

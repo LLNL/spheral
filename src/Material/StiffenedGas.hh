@@ -22,7 +22,6 @@ public:
 
   // Constructors, destructors.
   StiffenedGas(const double gamma,
-               const double mu,
                const double P0, 
                const double Cv,
                const PhysicalConstants& constants,
@@ -93,10 +92,10 @@ public:
   Scalar gamma() const;
   void gamma(Scalar gamma);
 
-  virtual Scalar speicifcHeat() const override;
+  Scalar specificHeat() const;
   void specificHeat(Scalar Cv);
 
-  virtual Scalar referencePressure() const override;
+  Scalar referencePressure() const;
   void referencePressure(Scalar P0);
   
   virtual bool valid() const override;
@@ -105,7 +104,6 @@ private:
   //--------------------------- Private Interface ---------------------------//
   double mGamma;
   double mGamma1;
-  double mMolecularWeight;
   double mP0;
   double mCv;
 

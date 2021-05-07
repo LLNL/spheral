@@ -17,7 +17,6 @@ class StiffenedGas(EquationOfState):
     # Constructors
     def pyinit(self,
                gamma = "const double",
-               mu = "const double",
                P0 = "const double",
                Cv = "const double",
                constants = "const PhysicalConstants&",
@@ -77,18 +76,12 @@ class StiffenedGas(EquationOfState):
                 specificThermalEnergy = "const Scalar"):
         return "Scalar"
 
-    @PYB11virtual
-    @PYB11const
-    def molecularWeight(self):
-        "Optionally provide a molecular weight for an equation of state"
-        return "Scalar"
 
     #...........................................................................
     # Properties
     gamma = PYB11property("double", "gamma", "gamma", doc="gamma: ratio of specific heats")
-    mu = PYB11property("double", "molecularWeight", "molecularWeight", doc="mean molecular weight")
-    P0 = PYB11property("double", "P0", "P0", doc="reference Pressure")
-    Cv = PYB11property("double", "Cv", "Cv", doc="specific Heat")
+    P0 = PYB11property("double", "referencePressure", "referencePressure", doc="reference Pressure")
+    Cv = PYB11property("double", "specificHeat", "specificHeat", doc="specific Heat")
 #-------------------------------------------------------------------------------
 # Add the virtual interface
 #-------------------------------------------------------------------------------

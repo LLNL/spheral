@@ -24,7 +24,6 @@ namespace Spheral {
 template<typename Dimension>
 StiffenedGas<Dimension>::
 StiffenedGas(const double gamma,
-            const double mu,
             const double P0,
             const double Cv,
             const PhysicalConstants& constants,
@@ -33,7 +32,6 @@ StiffenedGas(const double gamma,
             const MaterialPressureMinType minPressureType):
   EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
   mGamma(gamma),
-  mMolecularWeight(mu),
   mP0(P0),
   mCv(Cv) {
   mGamma1 = mGamma - 1.0;
