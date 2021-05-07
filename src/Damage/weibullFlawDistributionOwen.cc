@@ -2,22 +2,23 @@
 // Construct a flaw distribution for a set of nodes according to a Weibull 
 // (power-law) distribution.
 //------------------------------------------------------------------------------
-#include <set>
-#include <algorithm>
-#include <limits>
-#include <unordered_map>
-#include <random>
-
 #include "weibullFlawDistributionOwen.hh"
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/mortonOrderIndices.hh"
-#include "Utilities/nodeOrdering.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/allReduce.hh"
+
+#include <boost/functional/hash.hpp>  // hash_combine
+
+#include <set>
+#include <algorithm>
+#include <limits>
+#include <unordered_map>
+#include <random>
 
 using std::unordered_map;
 using std::vector;
@@ -60,38 +61,38 @@ weibullFlawDistributionOwen(const unsigned seed,
   Field<Dimension, vector<double> > flaws("Weibull flaw distribution",
                                           nodeList);
 
-  // Assign a unique ordering to the nodes so we can step through them
-  // in a domain independent manner.
+  // Find the unique ordering to the nodes.
   DataBase<Dimension> db;
   db.appendNodeList(const_cast<FluidNodeList<Dimension>&>(nodeList));
   FieldList<Dimension, Key> keyList = mortonOrderIndices(db);
-  FieldList<Dimension, int> orderingList = nodeOrdering(keyList);
-  CHECK(orderingList.numFields() == 1);
-  Field<Dimension, int>& ordering = *orderingList[0];
-  const int n = std::max(0, ordering.max());
+  const auto nglobal = db.globalNumInternalNodes();
 
   // Is there anything to do?
-  if (n > 0) {
-
-    // Reverse lookup in the ordering.
-    unordered_map<unsigned, unsigned> order2local;
-    for (unsigned i = 0; i != nodeList.numInternalNodes(); ++i) order2local[ordering[i]] = i;
+  if (nglobal > 0) {
+    const auto nlocal = nodeList.numInternalNodes();
 
     // Identify the rank and number of domains.
-    const int procID = Process::getRank();
+    const auto procID = Process::getRank();
 
     // State for this NodeList.
     const Field<Dimension, Scalar>& mass = nodeList.mass();
     const Field<Dimension, Scalar>& rho = nodeList.massDensity();
 
-    // Construct a random number generator.
-    std::mt19937 gen(seed);
-    std::uniform_real_distribution<double> uniform01(0.0, 1.0);
+    // Construct a random number generator for each point.
+    // Note we hash with the ordering key to generate a unique but reproducible sequence for each point.
+    vector<std::mt19937> gens(nlocal);
+#pragma omp parallel for
+    for (auto i = 0u; i < nlocal; ++i) {
+      Key seedi = seed;
+      boost::hash_combine(seedi, keyList(0,i));
+      gens[i].seed(seedi);
+    }
+    vector<std::uniform_real_distribution<double>> uniform01(nlocal, std::uniform_real_distribution<double>(0.0, 1.0));
 
     // Find the minimum and maximum node volumes.
     double Vmin = std::numeric_limits<double>::max(), 
-      Vmax = std::numeric_limits<double>::min();
-    for (unsigned i = 0; i != nodeList.numInternalNodes(); ++i) {
+           Vmax = std::numeric_limits<double>::min();
+    for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
       const double Vi = mass(i)/rho(i);
       Vmin = min(Vmin, Vi);
       Vmax = max(Vmax, Vi);
@@ -106,75 +107,45 @@ weibullFlawDistributionOwen(const unsigned seed,
 
     // Based on this compute the maximum number of flaws any node will have.  We'll use this to
     // spin the random number generator without extra communiction.
-    const int maxFlawsPerNode = std::max(1, int(kWeibull*Vmax*epsMax2m + 0.5));
+    const auto maxFlawsPerNode = std::max(1u, unsigned(kWeibull*Vmax*epsMax2m + 0.5));
 
-    // Iterate over the nodes.
+    // Generate the flaws on each node indepedently.
     const double mInv = 1.0/mWeibull;
-    for (int iorder = 0; iorder != n + 1; ++iorder) {
-
-      // Is this one of our nodes?
-      typename unordered_map<unsigned, unsigned>::const_iterator itr = order2local.find(iorder);
-      if (itr != order2local.end()) {
-
-        // We have the node!
-        const unsigned i = itr->second;
-        CHECK(i < nodeList.numInternalNodes());
-        CHECK(rho(i) > 0.0);
-        const double Vi = mass(i)/rho(i) * volumeMultiplier;
-        CHECK(Vi > 0.0);
-        const int numFlawsi = std::max(1, std::min(maxFlawsPerNode, int(kWeibull*Vi*epsMax2m + 0.5)));
-        const double Ai = numFlawsi/(kWeibull*Vi);
-        CHECK(Ai > 0.0);
-
-        // Are we actually doing this node?
-        if (mask(i) == 1) {
-
-          // Seed flaws on the node.
-          for (int j = 0; j != numFlawsi; ++j) {
-            flaws(i).push_back(pow(Ai * uniform01(gen), mInv));
-          }
-
-          // Spin the random number generator to keep in sync with other processors.
-          for (int j = numFlawsi; j != maxFlawsPerNode; ++j) uniform01(gen);
-
-        } else{
-
-          // Spin the random number generator to keep in sync with other processors.
-          for (int j = 0; j != maxFlawsPerNode; ++j) uniform01(gen);
-
-        }
-
-      } else {
-
-        // Other domains just cycle the random number generator so that
-        // we can be domain decomposition independent.
-        for (int j = 0; j != maxFlawsPerNode; ++j) uniform01(gen);
-
-      }
-    }
-
-    // Sort the flaws on each node by energy.
     unsigned minNumFlaws = std::numeric_limits<int>::max();
     unsigned maxNumFlaws = 0;
     unsigned totalNumFlaws = 0;
     double epsMin = std::numeric_limits<double>::max();
     double epsMax = std::numeric_limits<double>::min();
     double sumFlaws = 0.0;
-    for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
-      minNumFlaws = min(minNumFlaws, unsigned(flaws(i).size()));
-      maxNumFlaws = max(maxNumFlaws, unsigned(flaws(i).size()));
-      totalNumFlaws += flaws(i).size();
+#pragma omp parallel for
+    for (auto i = 0u; i < nlocal; ++i) {
       if (mask(i) == 1) {
+        CHECK(rho(i) > 0.0);
+        const auto Vi = mass(i)/rho(i) * volumeMultiplier;
+        CHECK(Vi > 0.0);
+        const auto numFlawsi = std::max(1u, std::min(maxFlawsPerNode, unsigned(kWeibull*Vi*epsMax2m + 0.5)));
+        const auto Ai = numFlawsi/(kWeibull*Vi);
+        CHECK(Ai > 0.0);
+        for (auto j = 0u; j < numFlawsi; ++j) {
+          flaws(i).push_back(pow(Ai * uniform01[i](gens[i]), mInv));
+        }
+        // Sort the flaws on each node by energy.
         sort(flaws(i).begin(), flaws(i).end());
-        epsMin = min(epsMin, flaws(i).front());
-        epsMax = max(epsMax, flaws(i).back());
-        for (auto j = 0u; j != flaws(i).size(); ++j) sumFlaws += flaws(i)[j];
+#pragma omp critical
+        {
+          minNumFlaws = min(minNumFlaws, unsigned(flaws(i).size()));
+          maxNumFlaws = max(maxNumFlaws, unsigned(flaws(i).size()));
+          totalNumFlaws += flaws(i).size();
+          epsMin = min(epsMin, flaws(i).front());
+          epsMax = max(epsMax, flaws(i).back());
+          for (auto j = 0u; j < flaws(i).size(); ++j) sumFlaws += flaws(i)[j];
+        }
       }
     }
 
-    // Prepare some diagnostic output.
+    // Some diagnostic output.
     const auto nused = mask.sumElements();
-    if (n > 0) {
+    if (nglobal > 0) {
       minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
       maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
       totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
