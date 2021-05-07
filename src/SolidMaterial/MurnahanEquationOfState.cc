@@ -1,7 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
 // MurnahanEquationOfState
 //
-//   P(rho) = 1/(nK) * (eta^n - 1)
+//   P(rho) = K/(n) * (eta^n - 1) + P0
 //   eta = rho/rho0
 //
 // Created by JMO, Mon Jun  6 13:53:50 PDT 2005
@@ -44,7 +44,7 @@ MurnahanEquationOfState(const double referenceDensity,
   mAtomicWeight(atomicWeight),
   mExternalPressure(externalPressure),
   mCv(3.0 * constants.molarGasConstant() / atomicWeight),
-  mnKi(1.0/(n*K)) {
+  mnKi(K/n) {
   REQUIRE(distinctlyGreaterThan(n, 0.0));
   REQUIRE(distinctlyGreaterThan(K, 0.0));
   REQUIRE(distinctlyGreaterThan(mAtomicWeight, 0.0));
@@ -189,7 +189,7 @@ pressure(const Scalar massDensity,
   const double eta = this->boundedEta(massDensity);
   if (fuzzyEqual(eta, this->etamin())) return 0.0;
   CHECK(distinctlyGreaterThan(eta, 0.0));
-  return this->applyPressureLimits(mnKi*(pow(eta, mn) - 1.0));
+  return this->applyPressureLimits(mnKi*(pow(eta, mn) - 1.0)+mExternalPressure);
 }
 
 //------------------------------------------------------------------------------
@@ -296,7 +296,7 @@ computeDPDrho(const Scalar massDensity,
   const double eta = this->boundedEta(massDensity);
   if (fuzzyEqual(eta, this->etamin()) || 
       fuzzyEqual(eta, this->etamax())) return 0.0;
-  const double result = std::max(0.0, pow(eta, mn - 1)/(mK*this->referenceDensity()));
+  const double result = std::max(0.0, pow(eta, mn - 1)*(mK/this->referenceDensity()));
   ENSURE(result >= 0.0);
   return result;
 }
