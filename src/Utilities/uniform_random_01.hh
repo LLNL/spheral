@@ -39,7 +39,7 @@ public:
 
   // Methods for serializing our state to/from vector<char> buffers.
   void serialize(std::vector<char>& buffer) const;
-  void deserialize(std::vector<char>::const_iterator itr,
+  void deserialize(std::vector<char>::const_iterator& itr,
                    const std::vector<char>::const_iterator endItr);
 
 private:

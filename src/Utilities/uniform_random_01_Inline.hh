@@ -6,6 +6,7 @@ namespace Spheral {
 inline
 double
 uniform_random_01::operator()() {
+  ++mNumCalls;
   return mRan(mGen);
 }
 

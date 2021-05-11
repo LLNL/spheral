@@ -14,6 +14,9 @@ class uniform_random_01:
     def pyinit1(self, seed="const size_t"):
         "Construct with a seed value"
 
+    def pyinit2(self, rhs="const uniform_random_01&"):
+        "Copy constructor"
+
     #...........................................................................
     # Methods
     def __call__(self):
@@ -28,18 +31,18 @@ class uniform_random_01:
         "Advance the state of the generator as though called n times"
         return "void"
 
-    def serialize(self, buffer="std::vector<char>"):
+    def serialize(self, buffer="std::vector<char>&"):
         "Serialize to a buffer of bytes"
         return "void"
 
     @PYB11implementation("""
-    [](uniform_random_01& self, std::vector<char>& buffer, size_t pos) {
+    [](uniform_random_01& self, const std::vector<char>& buffer, size_t pos) -> size_t {
       auto itr = buffer.begin() + pos;
       self.deserialize(itr, buffer.end());
       return std::distance(buffer.begin(), itr);
     }""")
     def deserialize(self,
-                    buffer = "std::vector<char>",
+                    buffer = "const std::vector<char>&",
                     pos = "size_t"):
         "Deserialize from a buffer of bytes, starting at the given position.  Returns the new position in the buffer."
         return "size_t"

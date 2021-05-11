@@ -70,7 +70,8 @@ uniform_random_01::seed(const size_t val) {
 //------------------------------------------------------------------------------
 void
 uniform_random_01::advance(const size_t n) {
-  mGen.discard(n);
+  // mGen.discard(n * mGen.state_size);
+  for (auto i = 0u; i < n; ++i) (*this)();
 }
 
 //------------------------------------------------------------------------------
@@ -86,7 +87,7 @@ uniform_random_01::serialize(std::vector<char>& buffer) const {
 // Deserialize from a buffer
 //------------------------------------------------------------------------------
 void
-uniform_random_01::deserialize(std::vector<char>::const_iterator itr,
+uniform_random_01::deserialize(std::vector<char>::const_iterator& itr,
                                const std::vector<char>::const_iterator endItr) {
   unpackElement(mSeed, itr, endItr);
   unpackElement(mNumCalls, itr, endItr);
