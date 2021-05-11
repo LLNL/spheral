@@ -2,11 +2,11 @@ include_directories(.)
 set(Damage_inst
     DamageModel
     TensorDamageModel
-    ProbabilisticDamageModel
+    #ProbabilisticDamageModel
+    #ProbabalisticDamagePolicy
     StrainPolicy
     TensorStrainPolicy
     TensorDamagePolicy
-    ProbabalisticDamagePolicy
     YoungsModulusPolicy
     LongitudinalSoundSpeedPolicy
     weibullFlawDistributionBenzAsphaug

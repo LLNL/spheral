@@ -154,7 +154,7 @@ registerState(DataBase<Dimension>& dataBase,
   EPolicy->update(state.key(mYoungsModulus), state, derivs, 1.0, 0.0, 0.0);
   clPolicy->update(state.key(mLongitudinalSoundSpeed), state, derivs, 1.0, 0.0, 0.0);
 
-  // Register the strain and effective strain.
+  // Register the strain, effective strain, and stuff needed by the damage update policy.
   PolicyPointer effectiveStrainPolicy(new TensorStrainPolicy<Dimension>(mStrainAlgorithm));
   state.enroll(mStrain);
   state.enroll(mEffectiveStrain, effectiveStrainPolicy);
@@ -162,7 +162,7 @@ registerState(DataBase<Dimension>& dataBase,
   // Register the damage.
   // Note we are overriding the default no-op policy for the damage
   // as originally registered by the SolidSPHHydroBase class.
-  PolicyPointer damagePolicy(new ProbabilisticDamagePolicy<Dimension>(*this));
+  PolicyPointer damagePolicy(new ProbabilisticDamagePolicy<Dimension>(mDamageInCompression));
   state.enroll(this->nodeList().damage(), damagePolicy);
 }
 
