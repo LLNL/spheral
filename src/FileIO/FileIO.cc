@@ -157,6 +157,27 @@ FileIO::read(GeomPlane<Dim<3> >& value, const string pathName) const {
 }
 
 //------------------------------------------------------------------------------
+// Write uniform_random_01
+//------------------------------------------------------------------------------
+void
+FileIO::write(const uniform_random_01& value, const string pathName) {
+  write((unsigned) value.seed(), pathName + "/seed");
+  write((unsigned) value.numCalls(), pathName + "/numCalls");
+}
+
+//------------------------------------------------------------------------------
+// Read uniform_random_01
+//------------------------------------------------------------------------------
+void
+FileIO::read(uniform_random_01& value, const string pathName) const {
+  unsigned seed, numCalls;
+  read(seed, pathName + "/seed");
+  read(numCalls, pathName + "/numCalls");
+  value.seed(seed);
+  value.advance(numCalls);
+}
+
+//------------------------------------------------------------------------------
 // Provide access to the string write method with char*
 //------------------------------------------------------------------------------
 void

@@ -30,6 +30,8 @@ public:
   double operator()();
 
   // Poke the internal state.
+  size_t seed() const;
+  size_t numCalls() const;
   void seed(const size_t val);   // Set the seed value
   void advance(const size_t n);  // Advance n times in random sequence
 

@@ -8,6 +8,7 @@
 
 #include "Geometry/Dimension.hh"
 #include "Utilities/DataTypeTraits.hh"
+#include "Utilities/uniform_random_01.hh"
 #include "Utilities/packElement.hh"
 
 #include <vector>
@@ -349,6 +350,10 @@ public:
   // methods provided by descendents.
   void write(const char* value, const std::string pathName);
   void read(char* value, const std::string pathName) const;
+
+  // Read/write uniform_random_01
+  void write(const uniform_random_01& value, const std::string pathName);
+  void read(uniform_random_01& value, const std::string pathName) const;
 
   // Write/read a vector<DataType> if DataType is a primitive we already know about.
   template<typename DataType> void write(const std::vector<DataType>& x, const std::string pathName);

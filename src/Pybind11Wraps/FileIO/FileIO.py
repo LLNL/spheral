@@ -228,6 +228,21 @@ def readPlane%(ndim)i(self,
     return "void"
 ''' % {"ndim" : ndim})
 
+    @PYB11pycppname("write")
+    def write_uniform_random_01(self,
+                                value = "const uniform_random_01&",
+                                pathName = "const std::string"):
+        "Write random number generator uniform_random_01"
+        return "void"
+
+    @PYB11pycppname("read")
+    @PYB11const
+    def read_uniform_random_01(self,
+                               value = "uniform_random_01&",
+                               pathName = "const std::string"):
+        "Read random number generator uniform_random_01"
+        return "void"
+
     @PYB11const
     def splitPathComponents(self, pathName="const std::string"):
         "A helper function to split a string up into substrings delimited by '/'."

@@ -57,10 +57,27 @@ uniform_random_01::~uniform_random_01() {
 
 
 //------------------------------------------------------------------------------
+// seed
+//------------------------------------------------------------------------------
+size_t
+uniform_random_01::seed() const {
+  return mSeed;
+}
+
+//------------------------------------------------------------------------------
+// numCalls
+//------------------------------------------------------------------------------
+size_t
+uniform_random_01::numCalls() const {
+  return mNumCalls;
+}
+
+//------------------------------------------------------------------------------
 // Set the seed
 //------------------------------------------------------------------------------
 void
 uniform_random_01::seed(const size_t val) {
+  mSeed = val;
   mGen.seed(val);
 }
 
@@ -71,6 +88,7 @@ uniform_random_01::seed(const size_t val) {
 void
 uniform_random_01::advance(const size_t n) {
   // mGen.discard(n * mGen.state_size);
+  // mNumCalls += n;
   for (auto i = 0u; i < n; ++i) (*this)();
 }
 
