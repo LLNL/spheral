@@ -27,6 +27,7 @@
 #include "NodeList/SmoothingScaleBase.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "Physics/Physics.hh"
+#include "Boundary/HostCodeBoundary.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -51,6 +52,7 @@ public:
   static void initialize(const bool     RZ,
                          const bool     CRK,
                          const bool     ASPH,
+                         const bool     BoundSPH,
                          const bool     XSPH,
                          const bool     compatibleEnergy,
                          const bool     totalEnergy,
@@ -210,6 +212,9 @@ private:
   // CRK flag
   bool mCRK;
 
+  // bound SPH flag
+  bool mBoundSPH;
+
   // Flag as to whether we're doing the DistributedBoundary or not.
   int mDistributedBoundary;
 
@@ -240,6 +245,7 @@ private:
 
   // A container to hold the host code values.
   std::vector<std::shared_ptr<Boundary<Dimension>>> mHostCodeBoundaries;
+  std::shared_ptr<HostCodeBoundary<Dimension>> mHostCodeBoundary;
   bool mLockBoundaries;                // Flag to prevent adding new boundaries
 
   // node generator data

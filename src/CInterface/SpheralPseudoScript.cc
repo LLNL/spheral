@@ -50,6 +50,7 @@
 #include "Boundary/PeriodicBoundary.hh"
 #include "Boundary/ReflectingBoundary.hh"
 #include "Boundary/AxisBoundaryRZ.hh"
+#include "Boundary/HostCodeBoundary.hh"
 #include "Field/Field.hh"
 #include "Field/FieldListSet.hh"
 #include "FieldOperations/sampleMultipleFields2Lattice.hh"
@@ -593,6 +594,7 @@ SpheralPseudoScript<Dimension>::
 initialize(const bool     RZ,
            const bool     CRK,
            const bool     ASPH,
+           const bool     BoundSPH,
            const bool     XSPH,
            const bool     compatibleEnergy,
            const bool     totalEnergy,
@@ -841,12 +843,24 @@ initialize(const bool     RZ,
   // auto& pkgs = me.mIntegratorPtr->physicsPackages();
   // for (auto p: pkgs) p->initializeProblemStartup(*me.mDataBasePtr);
 
+  // Add the host code boundary if using bound SPH.
+  me.mBoundSPH = BoundSPH;
+  if (BoundSPH) {
+    std::vector<int> nodeIDs(0);
+    me.mHostCodeBoundary.reset(new HostCodeBoundary<Dimension>(*me.mDataBasePtr,
+                                                               *me.mNodeLists[0],
+                                                               nodeIDs));
+  }
+
   // Add the axis reflecting boundary in RZ.
   HydroConstructor<Dimension>::addBoundaries(RZ, me.mHostCodeBoundaries);
 
   // Add the boundary conditions to the physics packages
   auto& pkgs = me.mIntegratorPtr->physicsPackages();
   for (auto p: pkgs) {
+    if (BoundSPH) {
+      p->appendBoundary(*me.mHostCodeBoundary);
+    }
     for (auto& bc: me.mHostCodeBoundaries) {
       p->appendBoundary(*bc);
     }
@@ -918,6 +932,16 @@ updateState(const unsigned* nintpermat,
     me.mNumHostGhostNodes[imat] = npermat[imat] - nintpermat[imat];
     me.mNodeLists[imat]->numInternalNodes(me.mNumInternalNodes[imat]);
     me.mNodeLists[imat]->numGhostNodes(me.mNumHostGhostNodes[imat]);
+  }
+
+  if (me.mBoundSPH) {
+    std::vector<int> nodeIDs(0);
+    for (int i = 0; i < me.mNumInternalNodes[0] + me.mNumHostGhostNodes[0]; ++i) {
+      if (particleType[i] == 1) {
+        nodeIDs.push_back(i);
+      }
+    }
+    me.mHostCodeBoundary->updateNodeIDs(nodeIDs);
   }
 
   // If necesary allocate a new State object
