@@ -524,9 +524,9 @@ struct DataTypeTraits<RKCoefficients<Dim<ndim>>> {
 //------------------------------------------------------------------------------
 template<>
 struct DataTypeTraits<uniform_random_01> {
-  typedef size_t ElementType;
+  typedef char ElementType;
   static bool fixedSize() { return true; }
-  static int numElements(const uniform_random_01&) { return 2; }
+  static int numElements(const uniform_random_01&) { return 2*sizeof(size_t); }
   static uniform_random_01 zero() { return uniform_random_01(); }
 };
 

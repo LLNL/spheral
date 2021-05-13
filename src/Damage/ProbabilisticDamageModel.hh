@@ -12,7 +12,11 @@
 #ifndef __Spheral_ProbabilisticDamageModel_hh__
 #define __Spheral_ProbabilisticDamageModel_hh__
 
-#include "TensorDamageModel.hh"  // For now, so we pick up the enums
+#include "DamageModel.hh"
+#include "TensorDamageModel.hh"             // For now, so we pick up the enums
+#include "Utilities/uniform_random_01.hh"
+
+namespace Spheral {
 
 template<typename Dimension>
 class ProbabilisticDamageModel: public DamageModel<Dimension> {
@@ -27,11 +31,14 @@ public:
 
   using TimeStepType = typename Physics<Dimension>::TimeStepType;
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
-  using FlawStorageType = Field<Dimension, std::vector<double> >;
 
   // Constructors, destructor.
   ProbabilisticDamageModel(SolidNodeList<Dimension>& nodeList,
                            const TableKernel<Dimension>& W,
+                           const double kWeibull,
+                           const double mWeibull,
+                           const size_t seed,
+                           const size_t minFlawsPerNode,
                            const double crackGrowthMultiplier,
                            const DamageCouplingAlgorithm damageCouplingAlgorithm,
                            const TensorStrainAlgorithm strainAlgorithm,
@@ -40,6 +47,9 @@ public:
 
   //............................................................................
   // Override the Physics package interface.
+
+  // Initialize once when the problem is starting up.
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
 
   // Compute the derivatives.
   virtual void evaluateDerivatives(const Scalar time,
@@ -74,14 +84,22 @@ public:
   // Accessors for state
   TensorStrainAlgorithm strainAlgorithm() const;
   bool damageInCompression() const;
+  double kWeibull() const;
+  double mWeibull() const;
+  double Vmin() const;
+  double Vmax() const;
+  size_t seed() const;
+  size_t minFlawsPerNode() const;
   const Field<Dimension, unsigned>& numFlaws() const;
   const Field<Dimension, unsigned>& numFlawsActivated() const;
+  const Field<Dimension, Scalar>& initialVolume() const;
   const Field<Dimension, Scalar>& currentFlaw() const;
   const Field<Dimension, Scalar>& youngsModulus() const;
   const Field<Dimension, Scalar>& longitudinalSoundSpeed() const;
   const Field<Dimension, SymTensor>& strain() const;
   const Field<Dimension, SymTensor>& effectiveStrain() const;
   const Field<Dimension, Scalar>& DdamageDt() const;
+  const Field<Dimension, uniform_random_01>& randomGenerators() const;
 
   //............................................................................
   // Restart methods.
@@ -93,9 +111,12 @@ private:
   //--------------------------- Private Interface ---------------------------//
   TensorStrainAlgorithm mStrainAlgorithm;
   bool mDamageInCompression;
+  double mkWeibull, mmWeibull, mVmin, mVmax;
+  size_t mSeed, mMinFlawsPerNode;
   Field<Dimension, unsigned> mNumFlaws, mNumFlawsActivated;
-  Field<Dimension, Scalar> mCurrentFlaw, mYoungsModulus, mLongitudinalSoundSpeed, mDdamageDt;
+  Field<Dimension, Scalar> mCurrentFlaw, mInitialVolume, mYoungsModulus, mLongitudinalSoundSpeed, mDdamageDt;
   Field<Dimension, SymTensor> mStrain, mEffectiveStrain;
+  Field<Dimension, uniform_random_01> mRandomGenerators;
 
   // No default constructor, copying or assignment.
   ProbabilisticDamageModel();

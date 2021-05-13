@@ -65,6 +65,7 @@ FieldListSet%(ndim)sd = PYB11TemplateClass(FieldListSet, template_parameters="Di
     #...........................................................................
     # arithmetic fields
     for (value, label) in (("int",                              "Int"),
+                           ("unsigned",                         "Unsigned"),
                            ("uint64_t",                         "ULL"),
                            ("Dim<%i>::Vector" % ndim,           "Vector"),
                            ("Dim<%i>::Tensor" % ndim,           "Tensor"),

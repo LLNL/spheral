@@ -40,6 +40,7 @@ public:
   // All FileIO objects had better be able to read and write the primitive 
   // DataTypes.
   virtual void write(const unsigned& value, const std::string pathName) override;
+  virtual void write(const size_t& value, const std::string pathName) override;
   virtual void write(const int& value, const std::string pathName) override;
   virtual void write(const bool& value, const std::string pathName) override;
   virtual void write(const double& value, const std::string pathName) override;
@@ -64,6 +65,7 @@ public:
   virtual void write(const Dim<3>::ThirdRankTensor& value, const std::string pathName) override;
 
   virtual void read(unsigned& value, const std::string pathName) const override;
+  virtual void read(size_t& value, const std::string pathName) const override;
   virtual void read(int& value, const std::string pathName) const override;
   virtual void read(bool& value, const std::string pathName) const override;
   virtual void read(double& value, const std::string pathName) const override;
@@ -96,6 +98,7 @@ public:
   virtual void write(const Field<Dim<1>, Dim<1>::SymTensor>& field, const std::string pathName) override;
   virtual void write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& field, const std::string pathName) override;
   virtual void write(const Field<Dim<1>, int>& field, const std::string pathName) override;
+  virtual void write(const Field<Dim<1>, unsigned>& field, const std::string pathName) override;
 
   virtual void read(Field<Dim<1>, Dim<1>::Scalar>& field, const std::string pathName) const override;
   virtual void read(Field<Dim<1>, Dim<1>::Vector>& field, const std::string pathName) const override;
@@ -103,6 +106,7 @@ public:
   virtual void read(Field<Dim<1>, Dim<1>::SymTensor>& field, const std::string pathName) const override;
   virtual void read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& field, const std::string pathName) const override;
   virtual void read(Field<Dim<1>, int>& field, const std::string pathName) const override;
+  virtual void read(Field<Dim<1>, unsigned>& field, const std::string pathName) const override;
 #endif
 
 #ifdef SPHERAL2D
@@ -112,6 +116,7 @@ public:
   virtual void write(const Field<Dim<2>, Dim<2>::SymTensor>& field, const std::string pathName) override;
   virtual void write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& field, const std::string pathName) override;
   virtual void write(const Field<Dim<2>, int>& field, const std::string pathName) override;
+  virtual void write(const Field<Dim<2>, unsigned>& field, const std::string pathName) override;
 
   virtual void read(Field<Dim<2>, Dim<2>::Scalar>& field, const std::string pathName) const override;
   virtual void read(Field<Dim<2>, Dim<2>::Vector>& field, const std::string pathName) const override;
@@ -119,6 +124,7 @@ public:
   virtual void read(Field<Dim<2>, Dim<2>::SymTensor>& field, const std::string pathName) const override;
   virtual void read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& field, const std::string pathName) const override;
   virtual void read(Field<Dim<2>, int>& field, const std::string pathName) const override;
+  virtual void read(Field<Dim<2>, unsigned>& field, const std::string pathName) const override;
 #endif
 
 #ifdef SPHERAL3D
@@ -128,6 +134,7 @@ public:
   virtual void write(const Field<Dim<3>, Dim<3>::SymTensor>& field, const std::string pathName) override;
   virtual void write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& field, const std::string pathName) override;
   virtual void write(const Field<Dim<3>, int>& field, const std::string pathName) override;
+  virtual void write(const Field<Dim<3>, unsigned>& field, const std::string pathName) override;
 
   virtual void read(Field<Dim<3>, Dim<3>::Scalar>& field, const std::string pathName) const override;
   virtual void read(Field<Dim<3>, Dim<3>::Vector>& field, const std::string pathName) const override;
@@ -135,6 +142,7 @@ public:
   virtual void read(Field<Dim<3>, Dim<3>::SymTensor>& field, const std::string pathName) const override;
   virtual void read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field, const std::string pathName) const override;
   virtual void read(Field<Dim<3>, int>& field, const std::string pathName) const override;
+  virtual void read(Field<Dim<3>, unsigned>& field, const std::string pathName) const override;
 #endif
   //******************************************************************************
 

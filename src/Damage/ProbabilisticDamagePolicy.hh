@@ -39,7 +39,12 @@ public:
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
-  explicit ProbabilisticDamagePolicy(const ProbabilisticDamageModel<Dimension>& damageModel);
+  explicit ProbabilisticDamagePolicy(const bool damageInCompression,  // allow damage in compression
+                                     const double kWeibull,           // coefficient in Weibull power-law
+                                     const double mWeibull,           // exponenent in Weibull power-law
+                                     const size_t minFlawsPerNode,    // minimum number of flaws to seed on any node
+                                     const double Vmin,               // minimum (initial) node volume
+                                     const double Vmax);              // maximum (initial) node volume
   virtual ~ProbabilisticDamagePolicy();
   
   // Overload the methods describing how to update Fields.
@@ -57,7 +62,9 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const ProbabilisticDamageModel<Dimension>* mDamageModelPtr;
+  bool mDamageInCompression;
+  size_t mMinFlawsPerNode;
+  double mkWeibull, mmWeibull, mVmin, mVmax;
 
   ProbabilisticDamagePolicy();
   ProbabilisticDamagePolicy(const ProbabilisticDamagePolicy& rhs);

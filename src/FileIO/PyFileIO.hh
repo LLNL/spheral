@@ -33,6 +33,7 @@ public:
 
   // Descendent python objects should provide these write methods.
   virtual void write_unsigned_int(const unsigned, const std::string)              override { VERIFY2(false, "write_unsigned_int not overridden"); }
+  virtual void write_size_t(const size_t, const std::string)                      override { VERIFY2(false, "write_size_t not overridden"); }
   virtual void write_int(const int, const std::string)                            override { VERIFY2(false, "write_int not overridden"); }
   virtual void write_bool(const bool, const std::string)                          override { VERIFY2(false, "write_bool not overridden"); }
   virtual void write_double(const double, const std::string)                      override { VERIFY2(false, "write_double not overridden"); }
@@ -63,6 +64,7 @@ public:
   virtual void write_SymTensorField1d(const Field<Dim<1>, Dim<1>::SymTensor>& field, const std::string pathName) = 0;
   virtual void write_ThirdRankTensorField1d(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& field, const std::string pathName) = 0;
   virtual void write_IntField1d(const Field<Dim<1>, int>& field, const std::string pathName) = 0;
+  virtual void write_UnsignedField1d(const Field<Dim<1>, unsigned>& field, const std::string pathName) = 0;
 #endif
 
 #ifdef SPHERAL2D
@@ -72,6 +74,7 @@ public:
   virtual void write_SymTensorField2d(const Field<Dim<2>, Dim<2>::SymTensor>& field, const std::string pathName) = 0;
   virtual void write_ThirdRankTensorField2d(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& field, const std::string pathName) = 0;
   virtual void write_IntField2d(const Field<Dim<2>, int>& field, const std::string pathName) = 0;
+  virtual void write_UnsignedField2d(const Field<Dim<2>, unsigned>& field, const std::string pathName) = 0;
 #endif
 
 #ifdef SPHERAL3D
@@ -81,10 +84,12 @@ public:
   virtual void write_SymTensorField3d(const Field<Dim<3>, Dim<3>::SymTensor>& field, const std::string pathName) = 0;
   virtual void write_ThirdRankTensorField3d(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& field, const std::string pathName) = 0;
   virtual void write_IntField3d(const Field<Dim<3>, int>& field, const std::string pathName) = 0;
+  virtual void write_UnsignedField3d(const Field<Dim<3>, unsigned>& field, const std::string pathName) = 0;
 #endif
 
   // Descendent python objects should provide these read methods.
   virtual unsigned read_unsigned_int(const std::string)                          const override { VERIFY2(false, "read_unsigned_int not overridden"); }
+  virtual size_t read_size_t(const std::string)                                  const override { VERIFY2(false, "read_size_t not overridden"); }
   virtual int read_int(const std::string)                                        const override { VERIFY2(false, "read_int not overridden"); }
   virtual bool read_bool(const std::string)                                      const override { VERIFY2(false, "read_bool not overridden"); }
   virtual double read_double(const std::string)                                  const override { VERIFY2(false, "read_double not overridden"); }
@@ -115,6 +120,7 @@ public:
   virtual void read_SymTensorField1d(Field<Dim<1>, Dim<1>::SymTensor>* field, const std::string pathName) const = 0;
   virtual void read_ThirdRankTensorField1d(Field<Dim<1>, Dim<1>::ThirdRankTensor>* field, const std::string pathName) const = 0;
   virtual void read_IntField1d(Field<Dim<1>, int>* field, const std::string pathName) const = 0;
+  virtual void read_UnsignedField1d(Field<Dim<1>, unsigned>* field, const std::string pathName) const = 0;
 #endif
 
 #ifdef SPHERAL2D
@@ -124,6 +130,7 @@ public:
   virtual void read_SymTensorField2d(Field<Dim<2>, Dim<2>::SymTensor>* field, const std::string pathName) const = 0;
   virtual void read_ThirdRankTensorField2d(Field<Dim<2>, Dim<2>::ThirdRankTensor>* field, const std::string pathName) const = 0;
   virtual void read_IntField2d(Field<Dim<2>, int>* field, const std::string pathName) const = 0;
+  virtual void read_UnsignedField2d(Field<Dim<2>, unsigned>* field, const std::string pathName) const = 0;
 #endif
 
 #ifdef SPHERAL3D
@@ -133,12 +140,14 @@ public:
   virtual void read_SymTensorField3d(Field<Dim<3>, Dim<3>::SymTensor>* field, const std::string pathName) const = 0;
   virtual void read_ThirdRankTensorField3d(Field<Dim<3>, Dim<3>::ThirdRankTensor>* field, const std::string pathName) const = 0;
   virtual void read_IntField3d(Field<Dim<3>, int>* field, const std::string pathName) const = 0;
+  virtual void read_UnsignedField3d(Field<Dim<3>, unsigned>* field, const std::string pathName) const = 0;
 #endif
 
   //***************************************************************************
   // Override the base FileIO read methods to use the above pure virtual methods.
   // Write methods.
   virtual void write(const unsigned& value, const std::string pathName) override                 { write_unsigned_int(value, pathName); }
+  virtual void write(const size_t& value, const std::string pathName) override                   { write_size_t(value, pathName); }
   virtual void write(const int& value, const std::string pathName) override                      { write_int(value, pathName); }
   virtual void write(const bool& value, const std::string pathName) override                     { write_bool(value, pathName); }
   virtual void write(const double& value, const std::string pathName) override                   { write_double(value, pathName); }
@@ -169,6 +178,7 @@ public:
   virtual void write(const Field<Dim<1>, Dim<1>::SymTensor>& value, const std::string pathName) override { write_SymTensorField1d(value, pathName); }
   virtual void write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std::string pathName) override { write_ThirdRankTensorField1d(value, pathName); }
   virtual void write(const Field<Dim<1>, int>& value, const std::string pathName) override { write_IntField1d(value, pathName); }
+  virtual void write(const Field<Dim<1>, unsigned>& value, const std::string pathName) override { write_UnsignedField1d(value, pathName); }
 #endif
 
 #ifdef SPHERAL2D
@@ -178,6 +188,7 @@ public:
   virtual void write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const std::string pathName) override { write_SymTensorField2d(value, pathName); }
   virtual void write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const std::string pathName) override { write_ThirdRankTensorField2d(value, pathName); }
   virtual void write(const Field<Dim<2>, int>& value, const std::string pathName) override { write_IntField2d(value, pathName); }
+  virtual void write(const Field<Dim<2>, unsigned>& value, const std::string pathName) override { write_UnsignedField2d(value, pathName); }
 #endif
 
 #ifdef SPHERAL3D
@@ -187,10 +198,12 @@ public:
   virtual void write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const std::string pathName) override { write_SymTensorField3d(value, pathName); }
   virtual void write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const std::string pathName) override { write_ThirdRankTensorField3d(value, pathName); }
   virtual void write(const Field<Dim<3>, int>& value, const std::string pathName) override { write_IntField3d(value, pathName); }
+  virtual void write(const Field<Dim<3>, unsigned>& value, const std::string pathName) override { write_UnsignedField3d(value, pathName); }
 #endif
 
   // Read methods.
   virtual void read(unsigned& value, const std::string pathName) const override                 { value = read_unsigned_int(pathName); }
+  virtual void read(size_t& value, const std::string pathName) const override                   { value = read_size_t(pathName); }
   virtual void read(int& value, const std::string pathName) const override                      { value = read_int(pathName); }
   virtual void read(bool& value, const std::string pathName) const override                     { value = read_bool(pathName); }
   virtual void read(double& value, const std::string pathName) const override                   { value = read_double(pathName); }
@@ -221,6 +234,7 @@ public:
   virtual void read(Field<Dim<1>, Dim<1>::SymTensor>& value, const std::string pathName) const override { read_SymTensorField1d(&value, pathName); }
   virtual void read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std::string pathName) const override { read_ThirdRankTensorField1d(&value, pathName); }
   virtual void read(Field<Dim<1>, int>& value, const std::string pathName) const override { read_IntField1d(&value, pathName); }
+  virtual void read(Field<Dim<1>, unsigned>& value, const std::string pathName) const override { read_UnsignedField1d(&value, pathName); }
 #endif
 
 #ifdef SPHERAL2D
@@ -230,6 +244,7 @@ public:
   virtual void read(Field<Dim<2>, Dim<2>::SymTensor>& value, const std::string pathName) const override { read_SymTensorField2d(&value, pathName); }
   virtual void read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const std::string pathName) const override { read_ThirdRankTensorField2d(&value, pathName); }
   virtual void read(Field<Dim<2>, int>& value, const std::string pathName) const override { read_IntField2d(&value, pathName); }
+  virtual void read(Field<Dim<2>, unsigned>& value, const std::string pathName) const override { read_UnsignedField2d(&value, pathName); }
 #endif
 
 #ifdef SPHERAL3D
@@ -239,6 +254,7 @@ public:
   virtual void read(Field<Dim<3>, Dim<3>::SymTensor>& value, const std::string pathName) const override { read_SymTensorField3d(&value, pathName); }
   virtual void read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const std::string pathName) const override { read_ThirdRankTensorField3d(&value, pathName); }
   virtual void read(Field<Dim<3>, int>& value, const std::string pathName) const override { read_IntField3d(&value, pathName); }
+  virtual void read(Field<Dim<3>, unsigned>& value, const std::string pathName) const override { read_UnsignedField3d(&value, pathName); }
 #endif
   //***************************************************************************
 

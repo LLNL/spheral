@@ -47,6 +47,14 @@ class FileIO:
 
     @PYB11virtual
     @PYB11noconvert
+    def write_size_t(self,
+                     value = "const size_t",
+                     pathName = "const std::string"):
+        "Write a size_t"
+        return "void"
+
+    @PYB11virtual
+    @PYB11noconvert
     def write_int(self,
                   value = "const int",
                   pathName = "const std::string"):
@@ -84,6 +92,14 @@ class FileIO:
                           pathName = "const std::string"):
         "Read an unsigned int"
         return "unsigned int"
+
+    @PYB11virtual
+    @PYB11const
+    @PYB11noconvert
+    def read_size_t(self,
+                    pathName = "const std::string"):
+        "Read a size_t"
+        return "size_t"
 
     @PYB11virtual
     @PYB11const
@@ -185,6 +201,25 @@ def readintFL%(ndim)i(self,
                             value = "FieldList<Dim<%(ndim)i>, int>&",
                             pathName = "const std::string"):
     "Read FieldList<Dim<%(ndim)i, int>"
+    return "void"
+
+@PYB11pycppname("write")
+@PYB11virtual
+@PYB11noconvert
+def writeunsignedFL%(ndim)i(self,
+                             value = "const FieldList<Dim<%(ndim)i>, unsigned>&",
+                             pathName = "const std::string"):
+    "Write FieldList<Dim<%(ndim)i, unsigned>"
+    return "void"
+
+@PYB11pycppname("read")
+@PYB11virtual
+@PYB11const
+@PYB11noconvert
+def readunsignedFL%(ndim)i(self,
+                            value = "FieldList<Dim<%(ndim)i>, unsigned>&",
+                            pathName = "const std::string"):
+    "Read FieldList<Dim<%(ndim)i, unsigned>"
     return "void"
 
 @PYB11pycppname("write")
