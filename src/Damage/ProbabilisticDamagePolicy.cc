@@ -218,8 +218,8 @@ update(const KeyType& key,
   const auto& strain = state.field(strainKey, SymTensor::zero);
   const auto& DDDt = derivs.field(DdamageDtKey, 0.0);
   const auto& localDvDx = derivs.field(DvDxKey, Tensor::zero);
-  const auto& numFlaws = state.field(numFlawsKey, size_t());
-  auto&       numFlawsActivated = state.field(numFlawsActivatedKey, size_t());
+  const auto& numFlaws = state.field(numFlawsKey, 0u);
+  auto&       numFlawsActivated = state.field(numFlawsActivatedKey, 0u);
   auto&       currentFlaw = state.field(currentFlawKey, 0.0);
   const auto& initialVolume = state.field(initialVolumeKey, 0.0);
   auto&       randomGenerators = state.field(randomGeneratorsKey, uniform_random_01());
@@ -299,7 +299,7 @@ update(const KeyType& key,
 
       // Choose the allowed range of D.
       double Dmin, Dmax;
-      const double numFlawsInv = 1.0/double(std::max(size_t(1u), numFlaws(i)));
+      const double numFlawsInv = 1.0/double(std::max(1u, numFlaws(i)));
       if (multiplier >= 0.0) {
         Dmin = D0;
         Dmax = std::max(D0, double(numFlawsActivated(i))*numFlawsInv);

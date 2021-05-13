@@ -37,6 +37,22 @@ mWeibull() const {
 
 template<typename Dimension>
 inline
+double
+ProbabilisticDamageModel<Dimension>::
+Vmin() const {
+  return mVmin;
+}
+
+template<typename Dimension>
+inline
+double
+ProbabilisticDamageModel<Dimension>::
+Vmax() const {
+  return mVmax;
+}
+
+template<typename Dimension>
+inline
 size_t
 ProbabilisticDamageModel<Dimension>::
 seed() const {

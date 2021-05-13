@@ -95,7 +95,7 @@ commandLine(length = 3.0,
             mWeibullFactor = 1.0,
             randomSeed = 548928513,
             strainType = PseudoPlasticStrain,
-            damageCoupling = ThreePointDamage,
+            damageCoupling = PairMaxDamage,
             cullToWeakestFlaws = False,
             damageInCompression = False,
             negativePressureInDamage = False,
@@ -506,6 +506,16 @@ elif DamageModelConstructor is JohnsonCookDamageGaussian:
                                          seed = randomSeed,
                                          domainIndependent = domainIndependent)
 
+elif DamageModelConstructor is ProbabilisticDamageModel:
+    damageModel = DamageModelConstructor(nodeList = nodes,
+                                         kernel = WT,
+                                         kWeibull = kWeibull,
+                                         mWeibull = mWeibull,
+                                         seed = randomSeed,
+                                         strainAlgorithm = strainType,
+                                         damageCouplingAlgorithm = damageCoupling,
+                                         damageInCompression = damageInCompression)
+
 output("damageModel")
 if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
     if cullToWeakestFlaws:
@@ -674,6 +684,35 @@ if graphics:
         plots += [(epsPlot, "JC_flaw.png"),
                   (D1Plot, "D1.png"),
                   (D2Plot, "D2.png")]
+
+    elif isinstance(damageModel, ProbabilisticDamageModel):
+        ts = damageModel.strain
+        s = ScalarField("strain", nodes)
+        for i in xrange(nodes.numInternalNodes):
+            s[i] = ts[i].xx
+        sl = ScalarFieldList()
+        sl.appendField(s)
+        sPlot = plotFieldList(sl, winTitle="strain @ %g %i" % (control.time(), mpi.procs),
+                              plotStyle="o-")
+        eps = damageModel.currentFlaw
+        nflaws = damageModel.numFlaws
+        nactive = damageModel.numFlawsActivated
+        epsl = ScalarFieldList()
+        epsl.appendField(eps)
+        epsPlot = plotFieldList(epsl, winTitle="Current flaw activation strains",
+                                plotStyle="o-")
+        nflawsl = UnsignedFieldList()
+        nflawsl.appendField(nflaws)
+        nflawsPlot = plotFieldList(nflawsl, winTitle="Number of flaws",
+                                   plotStyle="o-")
+        nactivel = UnsignedFieldList()
+        nactivel.appendField(nactive)
+        nactivePlot = plotFieldList(nactivel, winTitle="Number of flaws active",
+                                    plotStyle="o-")
+        plots += [(sPlot, "strain.png"),
+                  (epsPlot, "flaws.png"),
+                  (nflawsPlot, "numflaws.png"),
+                  (nactivePlot, "numFlawsActive.png")]
 
     fragPlot = plotFieldList(state.intFields(SolidFieldNames.fragmentIDs),
                              plotStyle = "o-",
