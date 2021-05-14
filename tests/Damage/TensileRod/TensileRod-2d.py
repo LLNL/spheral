@@ -98,7 +98,7 @@ commandLine(seed = "lattice",
             mWeibullFactor = 1.0,
             randomSeed = 548928513,
             strainType = PseudoPlasticStrain,
-            damageCoupling = ThreePointDamage,
+            damageCoupling = PairMaxDamage,
             cullToWeakestFlaws = False,
             damageInCompression = False,
             negativePressureInDamage = False,
@@ -520,6 +520,16 @@ elif DamageModelConstructor is JohnsonCookDamageGaussian:
                                          seed = randomSeed,
                                          domainIndependent = domainIndependent)
 
+elif DamageModelConstructor is ProbabilisticDamageModel:
+    damageModel = DamageModelConstructor(nodeList = nodes,
+                                         kernel = WT,
+                                         kWeibull = kWeibull,
+                                         mWeibull = mWeibull,
+                                         seed = randomSeed,
+                                         strainAlgorithm = strainType,
+                                         damageCouplingAlgorithm = damageCoupling,
+                                         damageInCompression = damageInCompression)
+
 vizFields = []
 if isinstance(damageModel, JohnsonCookDamage):
     vizFields += [damageModel.D1(), damageModel.D2()]
@@ -582,9 +592,9 @@ output("control")
 #-------------------------------------------------------------------------------
 # Monitor the evolution of the mass averaged strain.
 #-------------------------------------------------------------------------------
-if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
+if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen, ProbabilisticDamageModel):
     strainHistory = AverageStrain(damageModel,
-                                      dataDir + "/strainhistory.txt")
+                                  dataDir + "/strainhistory.txt")
     control.appendPeriodicWork(strainHistory.sample, 1)
 
 #-------------------------------------------------------------------------------
