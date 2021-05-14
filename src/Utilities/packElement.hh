@@ -12,7 +12,7 @@
 #include "Geometry/PolyClipperUtilities.hh"
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/DomainNode.hh"
-#include "Utilities/uniform_random_01.hh"
+#include "Utilities/uniform_random.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/RKCoefficients.hh"
 
@@ -295,10 +295,10 @@ packElement(const RKCoefficients<Dimension>& value,
   packElement(value.coeffs, buffer);
 }
 
-// uniform_random_01
+// uniform_random
 inline
 void
-packElement(const uniform_random_01& value,
+packElement(const uniform_random& value,
             std::vector<char>& buffer) {
   value.serialize(buffer);
 }
@@ -626,10 +626,10 @@ unpackElement(RKCoefficients<Dimension>& value,
   ENSURE(itr <= endPackedVector);
 }
 
-// uniform_random_01
+// uniform_random
 inline
 void
-unpackElement(uniform_random_01& value,
+unpackElement(uniform_random& value,
               std::vector<char>::const_iterator& itr,
               const std::vector<char>::const_iterator& endPackedVector) {
   value.deserialize(itr, endPackedVector);

@@ -77,10 +77,18 @@ numFlaws() const {
 
 template<typename Dimension>
 inline
-const Field<Dimension, unsigned>&
+const Field<Dimension, typename Dimension::Scalar>&
 ProbabilisticDamageModel<Dimension>::
-numFlawsActivated() const {
-  return mNumFlawsActivated;
+minFlaw() const {
+  return mMinFlaw;
+}
+
+template<typename Dimension>
+inline
+const Field<Dimension, typename Dimension::Scalar>&
+ProbabilisticDamageModel<Dimension>::
+maxFlaw() const {
+  return mMaxFlaw;
 }
 
 template<typename Dimension>
@@ -89,14 +97,6 @@ const Field<Dimension, typename Dimension::Scalar>&
 ProbabilisticDamageModel<Dimension>::
 initialVolume() const {
   return mInitialVolume;
-}
-
-template<typename Dimension>
-inline
-const Field<Dimension, typename Dimension::Scalar>&
-ProbabilisticDamageModel<Dimension>::
-currentFlaw() const {
-  return mCurrentFlaw;
 }
 
 template<typename Dimension>
@@ -137,10 +137,10 @@ DdamageDt() const {
 }
 
 template<typename Dimension>
-const Field<Dimension, uniform_random_01>&
+const Field<Dimension, uniform_random>&
 ProbabilisticDamageModel<Dimension>::
-randomGenerators() const {
-  return mRandomGenerators;
+randomGenerator() const {
+  return mRandomGenerator;
 }
 
 }

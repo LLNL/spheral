@@ -264,18 +264,18 @@ def readPlane%(ndim)i(self,
 ''' % {"ndim" : ndim})
 
     @PYB11pycppname("write")
-    def write_uniform_random_01(self,
-                                value = "const uniform_random_01&",
-                                pathName = "const std::string"):
-        "Write random number generator uniform_random_01"
+    def write_uniform_random(self,
+                             value = "const uniform_random&",
+                             pathName = "const std::string"):
+        "Write random number generator uniform_random"
         return "void"
 
     @PYB11pycppname("read")
     @PYB11const
-    def read_uniform_random_01(self,
-                               value = "uniform_random_01&",
-                               pathName = "const std::string"):
-        "Read random number generator uniform_random_01"
+    def read_uniform_random(self,
+                            value = "uniform_random&",
+                            pathName = "const std::string"):
+        "Read random number generator uniform_random"
         return "void"
 
     @PYB11const

@@ -28,10 +28,10 @@ struct SolidFieldNames {
   static const std::string yieldStrength;
   static const std::string flaws;
   static const std::string numFlaws;
-  static const std::string numFlawsActivated;
-  static const std::string currentFlaw;
+  static const std::string minFlaw;
+  static const std::string maxFlaw;
   static const std::string initialVolume;
-  static const std::string randomGenerators;
+  static const std::string randomGenerator;
   static const std::string porosityAlpha;
   static const std::string porosityStrain;
   static const std::string porosityAlpha0;

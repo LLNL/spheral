@@ -24,7 +24,6 @@ template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class FluidNodeList;
 template<typename Dimension, typename DataType> class Field;
-template<typename Dimension> class ProbabilisticDamageModel;
 
 template<typename Dimension>
 class ProbabilisticDamagePolicy: 

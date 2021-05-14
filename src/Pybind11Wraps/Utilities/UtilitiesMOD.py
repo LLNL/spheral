@@ -51,7 +51,7 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/DamagedNodeCoupling.hh"',
                   '"Utilities/ThreePointDamagedNodeCoupling.hh"',
                   '"Utilities/DamageGradientNodeCoupling.hh"',
-                  '"Utilities/uniform_random_01.hh"',
+                  '"Utilities/uniform_random.hh"',
                   '<algorithm>']
 
 #-------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ from KeyTraits import *
 from Timer import *
 from DomainNode import *
 from NodeCoupling import *
-from uniform_random_01 import *
+from uniform_random import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))

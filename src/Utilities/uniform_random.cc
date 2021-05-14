@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// uniform_random_01
+// uniform_random
 //
 // Encapsulate a random number generator to generate numbers in [0,1).
 //
@@ -9,7 +9,7 @@
 // Created by JMO, Mon May 10 16:02:11 PDT 2021
 //----------------------------------------------------------------------------//
 
-#include "uniform_random_01.hh"
+#include "uniform_random.hh"
 #include "Utilities/packElement.hh"
 
 namespace Spheral {
@@ -17,34 +17,35 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Constructors
 //------------------------------------------------------------------------------
-uniform_random_01::uniform_random_01():
-  mGen(0u),
-  mRan(0.0, 1.0),
-  mSeed(0u),
-  mNumCalls(0u) {
-}
-
-uniform_random_01::uniform_random_01(const size_t seed):
+uniform_random::uniform_random(const size_t seed,
+                               const double minValue,
+                               const double maxValue):
   mGen(seed),
-  mRan(0.0, 1.0),
+  mRan(minValue, maxValue),
   mSeed(seed),
-  mNumCalls(0u) {
+  mNumCalls(0u),
+  mMin(minValue),
+  mMax(maxValue) {
 }
 
-uniform_random_01::uniform_random_01(const uniform_random_01& rhs):
+uniform_random::uniform_random(const uniform_random& rhs):
   mGen(rhs.mGen),
   mRan(rhs.mRan),
   mSeed(rhs.mSeed),
-  mNumCalls(rhs.mNumCalls) {
+  mNumCalls(rhs.mNumCalls),
+  mMin(rhs.mMin),
+  mMax(rhs.mMax) {
 }
 
-uniform_random_01&
-uniform_random_01::operator=(const uniform_random_01& rhs) {
+uniform_random&
+uniform_random::operator=(const uniform_random& rhs) {
   if (this != &rhs) {
     mGen = rhs.mGen;
     mRan = rhs.mRan;
     mSeed = rhs.mSeed;
     mNumCalls = rhs.mNumCalls;
+    mMin = rhs.mMin;
+    mMax = rhs.mMax;
   }
   return *this;
 }
@@ -52,7 +53,7 @@ uniform_random_01::operator=(const uniform_random_01& rhs) {
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-uniform_random_01::~uniform_random_01() {
+uniform_random::~uniform_random() {
 }
 
 
@@ -60,7 +61,7 @@ uniform_random_01::~uniform_random_01() {
 // seed
 //------------------------------------------------------------------------------
 size_t
-uniform_random_01::seed() const {
+uniform_random::seed() const {
   return mSeed;
 }
 
@@ -68,7 +69,7 @@ uniform_random_01::seed() const {
 // numCalls
 //------------------------------------------------------------------------------
 size_t
-uniform_random_01::numCalls() const {
+uniform_random::numCalls() const {
   return mNumCalls;
 }
 
@@ -76,9 +77,18 @@ uniform_random_01::numCalls() const {
 // Set the seed
 //------------------------------------------------------------------------------
 void
-uniform_random_01::seed(const size_t val) {
+uniform_random::seed(const size_t val) {
   mSeed = val;
   mGen.seed(val);
+}
+
+
+//------------------------------------------------------------------------------
+// Set the range
+//------------------------------------------------------------------------------
+void
+uniform_random::range(const double a, const double b) {
+  mRan = std::uniform_real_distribution<double>(a, b);
 }
 
 //------------------------------------------------------------------------------
@@ -86,7 +96,7 @@ uniform_random_01::seed(const size_t val) {
 // values.
 //------------------------------------------------------------------------------
 void
-uniform_random_01::advance(const size_t n) {
+uniform_random::advance(const size_t n) {
   // mGen.discard(n * mGen.state_size);
   // mNumCalls += n;
   for (auto i = 0u; i < n; ++i) (*this)();
@@ -96,20 +106,25 @@ uniform_random_01::advance(const size_t n) {
 // Serialize to a buffer
 //------------------------------------------------------------------------------
 void
-uniform_random_01::serialize(std::vector<char>& buffer) const {
+uniform_random::serialize(std::vector<char>& buffer) const {
   packElement(mSeed, buffer);
   packElement(mNumCalls, buffer);
+  packElement(mMin, buffer);
+  packElement(mMax, buffer);
 }
 
 //------------------------------------------------------------------------------
 // Deserialize from a buffer
 //------------------------------------------------------------------------------
 void
-uniform_random_01::deserialize(std::vector<char>::const_iterator& itr,
-                               const std::vector<char>::const_iterator endItr) {
+uniform_random::deserialize(std::vector<char>::const_iterator& itr,
+                            const std::vector<char>::const_iterator endItr) {
   unpackElement(mSeed, itr, endItr);
   unpackElement(mNumCalls, itr, endItr);
+  unpackElement(mMin, itr, endItr);
+  unpackElement(mMax, itr, endItr);
   this->seed(mSeed);
+  this->range(mMin, mMax);
   this->advance(mNumCalls);
 }
 

@@ -5,7 +5,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 inline
 double
-uniform_random_01::operator()() {
+uniform_random::operator()() {
   ++mNumCalls;
   return mRan(mGen);
 }
@@ -15,7 +15,7 @@ uniform_random_01::operator()() {
 //------------------------------------------------------------------------------
 inline
 bool
-uniform_random_01::operator==(const uniform_random_01& rhs) const {
+uniform_random::operator==(const uniform_random& rhs) const {
   return (mGen == rhs.mGen) && (mRan == rhs.mRan);
 }
 
@@ -24,7 +24,7 @@ uniform_random_01::operator==(const uniform_random_01& rhs) const {
 //------------------------------------------------------------------------------
 inline
 bool
-uniform_random_01::operator!=(const uniform_random_01& rhs) const {
+uniform_random::operator!=(const uniform_random& rhs) const {
   return (mGen != rhs.mGen) || (mRan == rhs.mRan);
 }
 

@@ -115,15 +115,15 @@ resolution materials."""
     numFlaws = PYB11property("const Field<%(Dimension)s, unsigned>&", "numFlaws",
                              returnpolicy="reference_internal",
                              doc="The total number of flaws that will be established on each point")
-    numFlawsActivated = PYB11property("const Field<%(Dimension)s, unsigned>&", "numFlawsActivated",
-                                      returnpolicy="reference_internal",
-                                      doc="The number of flaws activated (failed) so far on each point")
+    minFlaw = PYB11property("const Field<%(Dimension)s, Scalar>&", "minFlaw",
+                            returnpolicy="reference_internal",
+                            doc="The minimum flaw activation strain on each point")
+    maxnFlaw = PYB11property("const Field<%(Dimension)s, Scalar>&", "minFlaw",
+                            returnpolicy="reference_internal",
+                            doc="The maximum flaw activation strain on each point")
     initialVolume = PYB11property("const Field<%(Dimension)s, Scalar>&", "initialVolume",
                                   returnpolicy="reference_internal",
                                   doc="The starting volume for each point")
-    currentFlaw = PYB11property("const Field<%(Dimension)s, Scalar>&", "currentFlaw",
-                                returnpolicy="reference_internal",
-                                doc="The current minimum flaw activation strain")
     youngsModulus = PYB11property("const Field<%(Dimension)s, Scalar>&",
                                   returnpolicy="reference_internal")
     longitudinalSoundSpeed = PYB11property("const Field<%(Dimension)s, Scalar>&",
@@ -131,7 +131,7 @@ resolution materials."""
     strain = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
     effectiveStrain = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
     DdamageDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
-    randomGenerators = PYB11property("const Field<%(Dimension)s, uniform_random_01>&", returnpolicy="reference_internal")
+    randomGenerator = PYB11property("const Field<%(Dimension)s, uniform_random>&", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Add the restart methods

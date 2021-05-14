@@ -71,15 +71,15 @@ ProbabilisticDamageModel(SolidNodeList<Dimension>& nodeList,
   mSeed(seed),
   mMinFlawsPerNode(minFlawsPerNode),
   mNumFlaws(SolidFieldNames::numFlaws, nodeList),
-  mNumFlawsActivated(SolidFieldNames::numFlawsActivated, nodeList),
-  mCurrentFlaw(SolidFieldNames::currentFlaw, nodeList, std::numeric_limits<double>::max()),
+  mMinFlaw(SolidFieldNames::minFlaw, nodeList),
+  mMaxFlaw(SolidFieldNames::maxFlaw, nodeList),
   mInitialVolume(SolidFieldNames::initialVolume, nodeList),
   mYoungsModulus(SolidFieldNames::YoungsModulus, nodeList),
   mLongitudinalSoundSpeed(SolidFieldNames::longitudinalSoundSpeed, nodeList),
   mDdamageDt(ProbabilisticDamagePolicy<Dimension>::prefix() + SolidFieldNames::scalarDamage, nodeList),
   mStrain(SolidFieldNames::strainTensor, nodeList),
   mEffectiveStrain(SolidFieldNames::effectiveStrainTensor, nodeList),
-  mRandomGenerators(SolidFieldNames::randomGenerators, nodeList) {
+  mRandomGenerator(SolidFieldNames::randomGenerator, nodeList) {
 }
 
 //------------------------------------------------------------------------------
@@ -122,8 +122,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     mInitialVolume(i) = mass(i)/rho(i);
     Key seedi = mSeed;
     boost::hash_combine(seedi, keys(i));
-    mRandomGenerators(i).seed(seedi);
-    mRandomGenerators(i)();                // Recommended to discard first value in sequence
+    mRandomGenerator(i).seed(seedi);      // starting out generating in [0,1)
+    mRandomGenerator(i)();                // Recommended to discard first value in sequence
   }
 
   // Find the minimum and maximum node volumes.
@@ -139,7 +139,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // spin the random number generator without extra communiction.
   const auto maxFlawsPerNode = mMinFlawsPerNode*std::max(1u, unsigned(mkWeibull*mVmax*epsMax2m + 0.5));
 
-  // Now find the minimum actiavation strain flaw each point will start with.
+  // Generate initial realizations of the flaw population for each point, of which we capture the min/max range
+  // for each point.
   const auto mInv = 1.0/mmWeibull;
 #pragma omp parallel for
   for (auto i = 0u; i < nlocal; ++i) {
@@ -147,8 +148,16 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     const auto Ai = mNumFlaws(i)/(mkWeibull*mInitialVolume(i));
     CHECK(Ai > 0.0);
     for (auto j = 0u; j < mNumFlaws(i); ++j) {
-      mCurrentFlaw(i) = std::min(mCurrentFlaw(i), pow(Ai * mRandomGenerators(i)(), mInv));
+      const auto flaw = pow(Ai * mRandomGenerator(i)(), mInv);
+      mMinFlaw(i) = std::min(mMinFlaw(i), flaw);
+      mMaxFlaw(i) = std::max(mMinFlaw(i), flaw);
     }
+
+    // Now reset the random number generator so we'll only generate flaws in the allowed range
+    // for this point.
+    mRandomGenerator(i).range(pow(mMinFlaw(i), mmWeibull)/Ai, pow(mMaxFlaw(i), mmWeibull)/Ai);
+    CHECK(mRandomGenerator(i).min() >= 0.0);
+    CHECK(mRandomGenerator(i).max() <= 1.0);
   }
 }
 
@@ -247,10 +256,10 @@ registerState(DataBase<Dimension>& dataBase,
                                                                       mVmax));
   state.enroll(this->nodeList().damage(), damagePolicy);
   state.enroll(mNumFlaws);
-  state.enroll(mNumFlawsActivated);
-  state.enroll(mCurrentFlaw);
+  state.enroll(mMinFlaw);
+  state.enroll(mMaxFlaw);
   state.enroll(mInitialVolume);
-  state.enroll(mRandomGenerators);
+  state.enroll(mRandomGenerator);
 }
 
 //------------------------------------------------------------------------------
@@ -321,8 +330,8 @@ ProbabilisticDamageModel<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   DamageModel<Dimension>::dumpState(file, pathName);
   file.write(mNumFlaws, pathName + "/numFlaws");
-  file.write(mNumFlawsActivated, pathName + "/numFlawsActivated");
-  file.write(mCurrentFlaw, pathName + "/currentFlaw");
+  file.write(mMinFlaw, pathName + "/minFlaw");
+  file.write(mMaxFlaw, pathName + "/maxFlaw");
   file.write(mStrain, pathName + "/strain");
   file.write(mEffectiveStrain, pathName + "/effectiveStrain");
   file.write(mDdamageDt, pathName + "/DdamageDt");
@@ -337,8 +346,8 @@ ProbabilisticDamageModel<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   DamageModel<Dimension>::restoreState(file, pathName);
   file.read(mNumFlaws, pathName + "/numFlaws");
-  file.read(mNumFlawsActivated, pathName + "/numFlawsActivated");
-  file.read(mCurrentFlaw, pathName + "/currentFlaw");
+  file.read(mMinFlaw, pathName + "/minFlaw");
+  file.read(mMaxFlaw, pathName + "/maxFlaw");
   file.read(mStrain, pathName + "/strain");
   file.read(mEffectiveStrain, pathName + "/effectiveStrain");
   file.read(mDdamageDt, pathName + "/DdamageDt");

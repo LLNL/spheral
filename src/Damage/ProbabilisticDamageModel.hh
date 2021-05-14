@@ -14,7 +14,7 @@
 
 #include "DamageModel.hh"
 #include "TensorDamageModel.hh"             // For now, so we pick up the enums
-#include "Utilities/uniform_random_01.hh"
+#include "Utilities/uniform_random.hh"
 
 namespace Spheral {
 
@@ -91,15 +91,15 @@ public:
   size_t seed() const;
   size_t minFlawsPerNode() const;
   const Field<Dimension, unsigned>& numFlaws() const;
-  const Field<Dimension, unsigned>& numFlawsActivated() const;
+  const Field<Dimension, Scalar>& minFlaw() const;
+  const Field<Dimension, Scalar>& maxFlaw() const;
   const Field<Dimension, Scalar>& initialVolume() const;
-  const Field<Dimension, Scalar>& currentFlaw() const;
   const Field<Dimension, Scalar>& youngsModulus() const;
   const Field<Dimension, Scalar>& longitudinalSoundSpeed() const;
   const Field<Dimension, SymTensor>& strain() const;
   const Field<Dimension, SymTensor>& effectiveStrain() const;
   const Field<Dimension, Scalar>& DdamageDt() const;
-  const Field<Dimension, uniform_random_01>& randomGenerators() const;
+  const Field<Dimension, uniform_random>& randomGenerator() const;
 
   //............................................................................
   // Restart methods.
@@ -113,10 +113,10 @@ private:
   bool mDamageInCompression;
   double mkWeibull, mmWeibull, mVmin, mVmax;
   size_t mSeed, mMinFlawsPerNode;
-  Field<Dimension, unsigned> mNumFlaws, mNumFlawsActivated;
-  Field<Dimension, Scalar> mCurrentFlaw, mInitialVolume, mYoungsModulus, mLongitudinalSoundSpeed, mDdamageDt;
+  Field<Dimension, unsigned> mNumFlaws;
+  Field<Dimension, Scalar> mMinFlaw, mMaxFlaw, mInitialVolume, mYoungsModulus, mLongitudinalSoundSpeed, mDdamageDt;
   Field<Dimension, SymTensor> mStrain, mEffectiveStrain;
-  Field<Dimension, uniform_random_01> mRandomGenerators;
+  Field<Dimension, uniform_random> mRandomGenerator;
 
   // No default constructor, copying or assignment.
   ProbabilisticDamageModel();
