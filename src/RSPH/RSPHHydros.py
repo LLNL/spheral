@@ -11,14 +11,11 @@ class %(classname)s%(dim)s(RSPHHydroBase%(dim)s):
 
     def __init__(self,
                  dataBase,
-                 Q,
                  W,
-                 filter = 0.0,
                  cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
                  evolveTotalEnergy = False,
-                 gradhCorrection = True,
                  XSPH = True,
                  correctVelocityGradient = True,
                  HUpdate = IdealH,
@@ -27,19 +24,14 @@ class %(classname)s%(dim)s(RSPHHydroBase%(dim)s):
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-        if WPi is None:
-            WPi = W
         RSPHHydroBase%(dim)s.__init__(self,
                                      self._smoothingScaleMethod,
                                      dataBase,
-                                     Q,
                                      W,
-                                     filter,
                                      cfl,
                                      useVelocityMagnitudeForDt,
                                      compatibleEnergyEvolution,
                                      evolveTotalEnergy,
-                                     gradhCorrection,
                                      XSPH,
                                      correctVelocityGradient,
                                      HUpdate,
@@ -65,13 +57,10 @@ for dim in dims:
 #-------------------------------------------------------------------------------
 def RSPH(dataBase,
         W,
-        Q = None,
-        filter = 0.0,
         cfl = 0.25,
         useVelocityMagnitudeForDt = False,
         compatibleEnergyEvolution = True,
         evolveTotalEnergy = False,
-        gradhCorrection = True,
         XSPH = True,
         correctVelocityGradient = True,
         HUpdate = IdealH,
@@ -91,31 +80,22 @@ def RSPH(dataBase,
     nfluid = dataBase.numFluidNodeLists
     nsolid = dataBase.numSolidNodeLists
     if nsolid > 0 and nsolid != nfluid:
-        print "SPH Error: you have provided both solid and fluid NodeLists, which is currently not supported."
-        print "           If you want some fluids active, provide SolidNodeList without a strength option specfied,"
-        print "           which will result in fluid behaviour for those nodes."
+        print "RSPH Error: you have provided both solid and fluid NodeLists, which is currently not supported."
+        print "            If you want some fluids active, provide SolidNodeList without a strength option specfied,"
+        print "            which will result in fluid behaviour for those nodes."
         raise RuntimeError, "Cannot mix solid and fluid NodeLists."
 
     Constructor = eval("RSPHHydro%id" % ndim)
-
-    # Artificial viscosity.
-    if not Q:
-        Cl = 1.0*(dataBase.maxKernelExtent/2.0)
-        Cq = 1.0*(dataBase.maxKernelExtent/2.0)**2
-        Q = eval("MonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
     kwargs = {"W" : W,
               "dataBase" : dataBase,
-              "Q" : Q,
-              "filter" : filter,
               "cfl" : cfl,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
               "evolveTotalEnergy" : evolveTotalEnergy,
-              "gradhCorrection" : gradhCorrection,
               "XSPH" : XSPH,
               "correctVelocityGradient" : correctVelocityGradient,
               "HUpdate" : HUpdate,
@@ -127,5 +107,4 @@ def RSPH(dataBase,
 
     # Build and return the thing.
     result = Constructor(**kwargs)
-    result.Q = Q
     return result

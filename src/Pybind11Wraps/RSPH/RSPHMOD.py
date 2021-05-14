@@ -1,7 +1,7 @@
 """
-Spheral SPH module.
+Spheral RSPH module.
 
-Provides implementations of SPH, PSPH, and ASPH 
+Provides implementations of Riemann SPH
 """
 
 from PYB11Generator import *
@@ -15,8 +15,7 @@ from RSPHHydroBase import *
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"RSPH/RSPHHydroBase.hh"',
-                  '"FileIO/FileIO.hh"',
-                  '"ArtificialViscosity/ArtificialViscosity.hh"']
+                  '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

@@ -8,8 +8,8 @@
 
 #include <string>
 
+#include "Physics/Physics.hh"
 #include "Physics/GenericHydro.hh"
-
 namespace Spheral {
 
 template<typename Dimension> class State;
@@ -23,7 +23,7 @@ template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
 template<typename Dimension>
-class RSPHHydroBase: public GenericHydro<Dimension> {
+class RSPHHydroBase: public Physics<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -32,19 +32,17 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
+  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
   RSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                DataBase<Dimension>& dataBase,
-               ArtificialViscosity<Dimension>& Q,
                const TableKernel<Dimension>& W,
-               const double filter,
                const double cfl,
                const bool useVelocityMagnitudeForDt,
                const bool compatibleEnergyEvolution,
                const bool evolveTotalEnergy,
-               const bool gradhCorrection,
                const bool XSPH,
                const bool correctVelocityGradient,
                const HEvolutionType HUpdate,
@@ -55,6 +53,13 @@ public:
 
   // Destructor.
   virtual ~RSPHHydroBase();
+
+    // We require all Physics packages to provide a method returning their vote
+  // for the next time step.
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
+                          const State<Dimension>& state,
+                          const StateDerivatives<Dimension>& derivs,
+                          const Scalar currentTime) const;
 
   // Tasks we do once on problem startup.
   virtual
@@ -70,6 +75,7 @@ public:
   void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs) override;
 
+  
   // This method is called once at the beginning of a timestep, after all state registration.
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
@@ -110,10 +116,32 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
-  // A method to fill in the volume in the State, optionally enforcing
-  // boundary conditions.
-  void updateVolume(State<Dimension>& state,
-                    const bool boundaries) const;
+
+  // Also allow access to the CFL timestep safety criteria.
+  Scalar cfl() const;
+  void cfl(Scalar cfl);
+
+  // Attribute to determine if the absolute magnitude of the velocity should
+  // be used in determining the timestep.
+  bool useVelocityMagnitudeForDt() const;
+  void useVelocityMagnitudeForDt(bool x);
+
+  // Return the cumulative neighboring statistics.
+  int minMasterNeighbor() const;
+  int maxMasterNeighbor() const;
+  double averageMasterNeighbor() const;
+
+  int minCoarseNeighbor() const;
+  int maxCoarseNeighbor() const;
+  double averageCoarseNeighbor() const;
+
+  int minRefineNeighbor() const;
+  int maxRefineNeighbor() const;
+  double averageRefineNeighbor() const;
+
+  int minActualNeighbor() const;
+  int maxActualNeighbor() const;
+  double averageActualNeighbor() const;
 
   // Flag to select how we want to evolve the H tensor.
   // the continuity equation.
@@ -129,10 +157,6 @@ public:
   bool evolveTotalEnergy() const;
   void evolveTotalEnergy(bool val);
 
-  // Flag to determine if we're using the grad h correction.
-  bool gradhCorrection() const;
-  void gradhCorrection(bool val);
-
   // Flag to determine if we're using the XSPH algorithm.
   bool XSPH() const;
   void XSPH(bool val);
@@ -140,10 +164,6 @@ public:
   // Flag to determine if we're applying the linear correction for the velocity gradient.
   bool correctVelocityGradient() const;
   void correctVelocityGradient(bool val);
-
-  // Fraction of position filtering to apply.
-  double filter() const;
-  void filter(double val);
 
   // Parameters for the tensile correction force at small scales.
   Scalar epsilonTensile() const;
@@ -169,16 +189,7 @@ public:
   const FieldList<Dimension, int>&       timeStepMask() const;
   const FieldList<Dimension, Scalar>&    pressure() const;
   const FieldList<Dimension, Scalar>&    soundSpeed() const;
-  const FieldList<Dimension, Scalar>&    volume() const;
-  const FieldList<Dimension, Scalar>&    omegaGradh() const;
-  const FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
-  const FieldList<Dimension, Scalar>&    entropy() const;
   const FieldList<Dimension, SymTensor>& Hideal() const;
-  const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
-  const FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
-  const FieldList<Dimension, Scalar>&    massDensityCorrection() const;
-  const FieldList<Dimension, Scalar>&    viscousWork() const;
-  const FieldList<Dimension, Scalar>&    massDensitySum() const;
   const FieldList<Dimension, Scalar>&    normalization() const;
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldList<Dimension, SymTensor>& massSecondMoment() const;
@@ -203,7 +214,13 @@ public:
   //****************************************************************************
 
 protected:
-  //---------------------------  Protected Interface ---------------------------//
+  //-------------------------- Protected Interface --------------------------//
+  void updateMasterNeighborStats(int numMaster) const;
+  void updateCoarseNeighborStats(int numNeighbor) const;
+  void updateRefineNeighborStats(int numNeighbor) const;
+  void updateActualNeighborStats(int numNeighbor) const;
+
+
   // The interpolation kernels.
   const TableKernel<Dimension>& mKernel;
 
@@ -212,10 +229,7 @@ protected:
 
   // A bunch of switches.
   HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
-
-  // Magnitude of the hourglass/parasitic mode filter.
-  double mfilter;
+  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy,  mXSPH, mCorrectVelocityGradient;
 
   // Tensile correction.
   Scalar mEpsTensile, mnTensile;
@@ -227,16 +241,8 @@ protected:
   FieldList<Dimension, int>       mTimeStepMask;
   FieldList<Dimension, Scalar>    mPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
-  FieldList<Dimension, Scalar>    mOmegaGradh;
-  FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
-  FieldList<Dimension, Scalar>    mEntropy;
 
   FieldList<Dimension, SymTensor> mHideal;
-  FieldList<Dimension, Scalar>    mMaxViscousPressure;
-  FieldList<Dimension, Scalar>    mEffViscousPressure;
-  FieldList<Dimension, Scalar>    mMassDensityCorrection;
-  FieldList<Dimension, Scalar>    mViscousWork;
-  FieldList<Dimension, Scalar>    mMassDensitySum;
   FieldList<Dimension, Scalar>    mNormalization;
 
   FieldList<Dimension, Scalar>    mWeightedNeighborSum;
@@ -255,8 +261,6 @@ protected:
   FieldList<Dimension, Tensor>    mM;
   FieldList<Dimension, Tensor>    mLocalM;
 
-  FieldList<Dimension, Scalar>    mVolume;
-
   std::vector<Vector>             mPairAccelerations;
 
 protected:
@@ -265,6 +269,18 @@ protected:
   RestartRegistrationType mRestart;
 
 private:
+
+  Scalar mCfl;
+  bool mUseVelocityMagnitudeForDt;
+
+  mutable int mMinMasterNeighbor, mMaxMasterNeighbor, mSumMasterNeighbor;
+  mutable int mMinCoarseNeighbor, mMaxCoarseNeighbor, mSumCoarseNeighbor;
+  mutable int mMinRefineNeighbor, mMaxRefineNeighbor, mSumRefineNeighbor;
+  mutable int mMinActualNeighbor, mMaxActualNeighbor, mSumActualNeighbor;
+  mutable int mNormMasterNeighbor;
+  mutable int mNormCoarseNeighbor;
+  mutable int mNormRefineNeighbor;
+  mutable int mNormActualNeighbor;
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
   RSPHHydroBase();

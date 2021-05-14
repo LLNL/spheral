@@ -1,7 +1,217 @@
 namespace Spheral {
 
+////////////////////////////////////////////////////////////////////////////////
+// Generic Hydro Methods
+////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
+// Access the CFL safety criteria.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+RSPHHydroBase<Dimension>::cfl() const {
+  return mCfl;
+}
+
+template<typename Dimension>
+inline
+void
+RSPHHydroBase<Dimension>::
+cfl(typename Dimension::Scalar cfl) {
+  mCfl = cfl;
+}
+
+//------------------------------------------------------------------------------
+// Flag to set whether or not to use the magnitude of the velocity to set the
+// timestep.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+RSPHHydroBase<Dimension>::useVelocityMagnitudeForDt() const {
+  return mUseVelocityMagnitudeForDt;
+}
+
+template<typename Dimension>
+inline
+void
+RSPHHydroBase<Dimension>::
+useVelocityMagnitudeForDt(bool x) {
+  mUseVelocityMagnitudeForDt = x;
+}
+
+//------------------------------------------------------------------------------
+// Return the master neighboring statistics.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+RSPHHydroBase<Dimension>::minMasterNeighbor() const {
+  return mMinMasterNeighbor;
+}
+
+template<typename Dimension>
+inline
+int
+RSPHHydroBase<Dimension>::maxMasterNeighbor() const {
+  return mMaxMasterNeighbor;
+}
+
+template<typename Dimension>
+inline
+double
+RSPHHydroBase<Dimension>::averageMasterNeighbor() const {
+  return double(mSumMasterNeighbor)/(mNormMasterNeighbor + FLT_MIN);
+}
+
+//------------------------------------------------------------------------------
+// Return the coarse neighboring statistics.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+RSPHHydroBase<Dimension>::minCoarseNeighbor() const {
+  return mMinCoarseNeighbor;
+}
+
+template<typename Dimension>
+inline
+int
+RSPHHydroBase<Dimension>::maxCoarseNeighbor() const {
+  return mMaxCoarseNeighbor;
+}
+
+template<typename Dimension>
+inline
+double
+RSPHHydroBase<Dimension>::averageCoarseNeighbor() const {
+  return double(mSumCoarseNeighbor)/(mNormCoarseNeighbor + FLT_MIN);
+}
+
+//------------------------------------------------------------------------------
+// Return the refine neighboring statistics.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+RSPHHydroBase<Dimension>::minRefineNeighbor() const {
+  return mMinRefineNeighbor;
+}
+
+template<typename Dimension>
+inline
+int
+RSPHHydroBase<Dimension>::maxRefineNeighbor() const {
+  return mMaxRefineNeighbor;
+}
+
+template<typename Dimension>
+inline
+double
+RSPHHydroBase<Dimension>::averageRefineNeighbor() const {
+  return double(mSumRefineNeighbor)/(mNormRefineNeighbor + FLT_MIN);
+}
+
+//------------------------------------------------------------------------------
+// Return the actual neighboring statistics.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+RSPHHydroBase<Dimension>::minActualNeighbor() const {
+  return mMinActualNeighbor;
+}
+
+template<typename Dimension>
+inline
+int
+RSPHHydroBase<Dimension>::maxActualNeighbor() const {
+  return mMaxActualNeighbor;
+}
+
+template<typename Dimension>
+inline
+double
+RSPHHydroBase<Dimension>::averageActualNeighbor() const {
+  return double(mSumActualNeighbor)/(mNormActualNeighbor + FLT_MIN);
+}
+
+//------------------------------------------------------------------------------
+// Update the master neighboring statistics.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+RSPHHydroBase<Dimension>::
+updateMasterNeighborStats(int numMaster) const {
+  if (numMaster > 0) {
+    mMinMasterNeighbor = std::min(mMinMasterNeighbor, numMaster);
+    mMaxMasterNeighbor = std::max(mMaxMasterNeighbor, numMaster);
+    mSumMasterNeighbor += numMaster;
+    mNormMasterNeighbor++;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Update the coarse neighboring statistics.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+RSPHHydroBase<Dimension>::
+updateCoarseNeighborStats(int numNeighbor) const {
+  if (numNeighbor > 0) {
+    mMinCoarseNeighbor = std::min(mMinCoarseNeighbor, numNeighbor);
+    mMaxCoarseNeighbor = std::max(mMaxCoarseNeighbor, numNeighbor);
+    mSumCoarseNeighbor += numNeighbor;
+    mNormCoarseNeighbor++;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Update the refine neighboring statistics.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+RSPHHydroBase<Dimension>::
+updateRefineNeighborStats(int numNeighbor) const {
+  if (numNeighbor > 0) {
+    mMinRefineNeighbor = std::min(mMinRefineNeighbor, numNeighbor);
+    mMaxRefineNeighbor = std::max(mMaxRefineNeighbor, numNeighbor);
+    mSumRefineNeighbor += numNeighbor;
+    mNormRefineNeighbor++;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Update the actual neighboring statistics.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+RSPHHydroBase<Dimension>::
+updateActualNeighborStats(int numNeighbor) const {
+  if (numNeighbor > 0) {
+    mMinActualNeighbor = std::min(mMinActualNeighbor, numNeighbor);
+    mMaxActualNeighbor = std::max(mMaxActualNeighbor, numNeighbor);
+    mSumActualNeighbor += numNeighbor;
+    mNormActualNeighbor++;
+  }
+}
 
 
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// SPH Hydro Methods
+////////////////////////////////////////////////////////////////////////////////
 //------------------------------------------------------------------------------
 // Choose how we want to update the H tensor.
 //------------------------------------------------------------------------------
@@ -55,22 +265,6 @@ RSPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
   mEvolveTotalEnergy = val;
 }
 
-//------------------------------------------------------------------------------
-// Access the flag determining if we're using the grad h correction.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-RSPHHydroBase<Dimension>::gradhCorrection() const {
-  return mGradhCorrection;
-}
-
-template<typename Dimension>
-inline
-void
-RSPHHydroBase<Dimension>::gradhCorrection(bool val) {
-  mGradhCorrection = val;
-}
 
 //------------------------------------------------------------------------------
 // Access the flag determining if we're using the XSPH algorithm.
@@ -106,24 +300,6 @@ RSPHHydroBase<Dimension>::correctVelocityGradient(bool val) {
   mCorrectVelocityGradient = val;
 }
 
-
-//------------------------------------------------------------------------------
-// Fraction of the centroidal filtering to apply.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-RSPHHydroBase<Dimension>::filter() const {
-  return mfilter;
-}
-
-template<typename Dimension>
-inline
-void
-RSPHHydroBase<Dimension>::filter(double val) {
-  VERIFY(val >= 0.0 and val <= 1.0);
-  mfilter = val;
-}
 
 //------------------------------------------------------------------------------
 // Parameter to determine the magnitude of the tensile small scale correction.
@@ -247,37 +423,6 @@ soundSpeed() const {
   return mSoundSpeed;
 }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-volume() const {
-  return mVolume;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-omegaGradh() const {
-  return mOmegaGradh;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-specificThermalEnergy0() const {
-  return mSpecificThermalEnergy0;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-entropy() const {
-  return mEntropy;
-}
 
 template<typename Dimension>
 inline
@@ -287,45 +432,6 @@ Hideal() const {
   return mHideal;
 }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-maxViscousPressure() const {
-  return mMaxViscousPressure;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-effectiveViscousPressure() const {
-  return mEffViscousPressure;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-massDensityCorrection() const {
-  return mMassDensityCorrection;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-viscousWork() const {
-  return mViscousWork;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
-massDensitySum() const {
-  return mMassDensitySum;
-}
 
 template<typename Dimension>
 inline
