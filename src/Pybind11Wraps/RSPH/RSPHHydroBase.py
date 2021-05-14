@@ -21,7 +21,6 @@ class RSPHHydroBase(GenericHydro):
                dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
-               WPi = "const TableKernel<%(Dimension)s>&",
                filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
@@ -30,8 +29,6 @@ class RSPHHydroBase(GenericHydro):
                gradhCorrection = "const bool",
                XSPH = "const bool",
                correctVelocityGradient = "const bool",
-               sumMassDensityOverAllNodeLists = "const bool",
-               densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
@@ -120,9 +117,6 @@ boundary conditions."""
     #...........................................................................
     # Properties
     kernel = PYB11property("const TableKernel<%(Dimension)s>&", "kernel", doc="The interpolation kernel")
-    PiKernel = PYB11property("const TableKernel<%(Dimension)s>&", "PiKernel", doc="The interpolation kernel for the artificial viscosity")
-    densityUpdate = PYB11property("MassDensityType", "densityUpdate", "densityUpdate",
-                                  doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
     HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution",
                                doc="Flag to select how we want to evolve the H tensor")
     compatibleEnergyEvolution = PYB11property("bool", "compatibleEnergyEvolution", "compatibleEnergyEvolution",
@@ -135,8 +129,6 @@ boundary conditions."""
                          doc="Flag to determine if we're using the XSPH algorithm.")
     correctVelocityGradient = PYB11property("bool", "correctVelocityGradient", "correctVelocityGradient",
                                             doc="Flag to determine if we're applying the linear correction for the velocity gradient.")
-    sumMassDensityOverAllNodeLists = PYB11property("bool", "sumMassDensityOverAllNodeLists", "sumMassDensityOverAllNodeLists",
-                                                   doc="Flag to determine if the sum density definition extends over neighbor NodeLists.")
     filter = PYB11property("double", "filter", "filter", doc="Fraction of position filtering to apply.")
     epsilonTensile = PYB11property("double", "epsilonTensile", "epsilonTensile",
                                    doc="Parameters for the tensile correction force at small scales.")

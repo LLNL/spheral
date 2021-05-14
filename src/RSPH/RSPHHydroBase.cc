@@ -91,7 +91,6 @@ RSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              DataBase<Dimension>& dataBase,
              ArtificialViscosity<Dimension>& Q,
              const TableKernel<Dimension>& W,
-             const TableKernel<Dimension>& WPi,
              const double filter,
              const double cfl,
              const bool useVelocityMagnitudeForDt,
@@ -100,8 +99,6 @@ RSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              const bool gradhCorrection,
              const bool XSPH,
              const bool correctVelocityGradient,
-             const bool sumMassDensityOverAllNodeLists,
-             const MassDensityType densityUpdate,
              const HEvolutionType HUpdate,
              const double epsTensile,
              const double nTensile,
@@ -109,16 +106,13 @@ RSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              const Vector& xmax):
   GenericHydro<Dimension>(Q, cfl, useVelocityMagnitudeForDt),
   mKernel(W),
-  mPiKernel(WPi),
   mSmoothingScaleMethod(smoothingScaleMethod),
-  mDensityUpdate(densityUpdate),
   mHEvolution(HUpdate),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mEvolveTotalEnergy(evolveTotalEnergy),
   mGradhCorrection(gradhCorrection),
   mXSPH(XSPH),
   mCorrectVelocityGradient(correctVelocityGradient),
-  mSumMassDensityOverAllNodeLists(sumMassDensityOverAllNodeLists),
   mfilter(filter),
   mEpsTensile(epsTensile),
   mnTensile(nTensile),
@@ -201,43 +195,10 @@ RSPHHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   TIME_RSPHinitializeStartup.start();
-  // Initialize the pressure and sound speed.
+
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
-  // dataBase.fluidEntropy(mEntropy);
-
-  // // In some cases we need the volume per node as well.
-  // const bool updateVolume = (this->densityUpdate() == VoronoiCellDensity or
-  //                            this->densityUpdate() == SumVoronoiCellDensity);
-  // if (updateVolume) {
-  //   Mesh<Dimension> mesh;
-  //   NodeList<Dimension> voidNodes("void", 0, 0);
-  //   vector<const NodeList<Dimension>*> nodeLists(dataBase.nodeListBegin(), dataBase.nodeListEnd());
-  //   nodeLists.push_back(&voidNodes);
-  //   sort(nodeLists.begin(), nodeLists.end(), typename NodeListRegistrar<Dimension>::NodeListComparator());
-  //   Vector xmin, xmax;
-  //   boundingBox(dataBase.fluidPosition(), xmin, xmax);
-  //   generateMesh<Dimension, 
-  //                           typename vector<const NodeList<Dimension>*>::iterator,
-  //                           ConstBoundaryIterator>(nodeLists.begin(), nodeLists.end(),
-  //                                                  this->boundaryBegin(), this->boundaryEnd(),
-  //                                                  xmin, xmax, 
-  //                                                  true,           // generateVoid
-  //                                                  false,          // generateParallelConnectivity
-  //                                                  false,          // remove boundary zones
-  //                                                  2.0,            // voidThreshold
-  //                                                  mesh,
-  //                                                  voidNodes);
-
-  //   mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
-  //   for (unsigned nodeListi = 0; nodeListi != dataBase.numFluidNodeLists(); ++nodeListi) {
-  //     const unsigned n = mVolume[nodeListi]->numInternalElements();
-  //     const unsigned offset = mesh.offset(nodeListi);
-  //     for (unsigned i = 0; i != n; ++i) {
-  //       mVolume(nodeListi, i) = mesh.zone(offset + i).volume();
-  //     }
-  //   }
-  // }
+  
   TIME_RSPHinitializeStartup.stop();
 }
 
@@ -254,16 +215,8 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Create the local storage for time step mask, pressure, sound speed, and position weight.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
-  // dataBase.fluidPressure(mPressure);
-  // dataBase.fluidSoundSpeed(mSoundSpeed);
   dataBase.resizeFluidFieldList(mOmegaGradh, 1.0, HydroFieldNames::omegaGradh);
 
-  // We may need the volume per node as well.
-  const bool updateVolume = (this->densityUpdate() == MassDensityType::VoronoiCellDensity or
-                             this->densityUpdate() == MassDensityType::SumVoronoiCellDensity);
-  if (updateVolume) {
-    dataBase.resizeFluidFieldList(mVolume, 0.0, HydroFieldNames::volume, false);
-  }
 
   // We have to choose either compatible or total energy evolution.
   VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
@@ -311,8 +264,6 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(massDensity, rhoPolicy);
   state.enroll(Hfield, Hpolicy);
 
-  // Volume.
-  if (updateVolume) state.enroll(mVolume);
 
   // Register the position update.
   FieldList<Dimension, Vector> position = dataBase.fluidPosition();
@@ -465,32 +416,6 @@ initialize(const typename Dimension::Scalar time,
            StateDerivatives<Dimension>& derivs) {
   TIME_RSPHinitialize.start();
 
-    // Initialize the grad h corrrections if needed.
-  //const TableKernel<Dimension>& W = this->kernel();
-  const TableKernel<Dimension>& WPi = this->PiKernel();
-
-  if (mGradhCorrection) {
-    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
-    computeSPHOmegaGradhCorrection(connectivityMap, this->kernel(), position, H, omega);
-    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-         boundItr != this->boundaryEnd();
-         ++boundItr) (*boundItr)->applyFieldListGhostBoundary(omega);
-  }
-
-  // Get the artificial viscosity and initialize it.
-  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
-  Q.initialize(dataBase, 
-               state,
-               derivs,
-               this->boundaryBegin(),
-               this->boundaryEnd(),
-               time, 
-               dt,
-               WPi);
-
  
   TIME_RSPHinitialize.stop();
 }
@@ -516,7 +441,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
   // The kernels and such.
   const auto& W = this->kernel();
-  const auto& WQ = this->PiKernel();
+  const auto& WQ = this->kernel();
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
@@ -981,13 +906,6 @@ applyGhostBoundaries(State<Dimension>& state,
     specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
   }
 
-  // FieldList<Dimension, Scalar> volume;
-  // const bool updateVolume = (this->densityUpdate() == MassDensityType::VoronoiCellDensity or
-  //                            this->densityUpdate() == MassDensityType::SumVoronoiCellDensity);
-  // if (updateVolume) {
-  //   CHECK(state.fieldNameRegistered(HydroFieldNames::volume));
-  //   volume = state.fields(HydroFieldNames::volume, 0.0);
-  // }
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1002,7 +920,6 @@ applyGhostBoundaries(State<Dimension>& state,
     if (compatibleEnergyEvolution()) {
       (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
     }
-    // if (updateVolume) (*boundaryItr)->applyFieldListGhostBoundary(volume);
   }
   TIME_RSPHghostBounds.stop();
 }
@@ -1031,13 +948,6 @@ enforceBoundaries(State<Dimension>& state,
     specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
   }
 
-  // FieldList<Dimension, Scalar> volume;
-  // const bool updateVolume = (this->densityUpdate() == MassDensityType::VoronoiCellDensity or
-  //                            this->densityUpdate() == MassDensityType::SumVoronoiCellDensity);
-  // if (updateVolume) {
-  //   CHECK(state.fieldNameRegistered(HydroFieldNames::volume));
-  //   volume = state.fields(HydroFieldNames::volume, 0.0);
-  // }
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1052,7 +962,6 @@ enforceBoundaries(State<Dimension>& state,
     if (compatibleEnergyEvolution()) {
       (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
     }
-    // if (updateVolume) (*boundaryItr)->enforceFieldListBoundary(volume);
   }
   TIME_RSPHenforceBounds.stop();
 }

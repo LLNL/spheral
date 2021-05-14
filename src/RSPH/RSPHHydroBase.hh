@@ -39,7 +39,6 @@ public:
                DataBase<Dimension>& dataBase,
                ArtificialViscosity<Dimension>& Q,
                const TableKernel<Dimension>& W,
-               const TableKernel<Dimension>& WPi,
                const double filter,
                const double cfl,
                const bool useVelocityMagnitudeForDt,
@@ -48,8 +47,6 @@ public:
                const bool gradhCorrection,
                const bool XSPH,
                const bool correctVelocityGradient,
-               const bool sumMassDensityOverAllNodeLists,
-               const MassDensityType densityUpdate,
                const HEvolutionType HUpdate,
                const double epsTensile,
                const double nTensile,
@@ -118,11 +115,6 @@ public:
   void updateVolume(State<Dimension>& state,
                     const bool boundaries) const;
 
-  // Flag to choose whether we want to sum for density, or integrate
-  // the continuity equation.
-  MassDensityType densityUpdate() const;
-  void densityUpdate(MassDensityType type);
-
   // Flag to select how we want to evolve the H tensor.
   // the continuity equation.
   HEvolutionType HEvolution() const;
@@ -149,10 +141,6 @@ public:
   bool correctVelocityGradient() const;
   void correctVelocityGradient(bool val);
 
-  // Flag to determine if the sum density definition extends over neighbor NodeLists.
-  bool sumMassDensityOverAllNodeLists() const;
-  void sumMassDensityOverAllNodeLists(bool val);
-
   // Fraction of position filtering to apply.
   double filter() const;
   void filter(double val);
@@ -173,7 +161,6 @@ public:
 
   // Access the stored interpolation kernels.
   const TableKernel<Dimension>& kernel() const;
-  const TableKernel<Dimension>& PiKernel() const;
 
   // The object defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
@@ -219,13 +206,11 @@ protected:
   //---------------------------  Protected Interface ---------------------------//
   // The interpolation kernels.
   const TableKernel<Dimension>& mKernel;
-  const TableKernel<Dimension>& mPiKernel;
 
   // The method defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
 
   // A bunch of switches.
-  MassDensityType mDensityUpdate;
   HEvolutionType mHEvolution;
   bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
 

@@ -1,23 +1,6 @@
 namespace Spheral {
 
-//------------------------------------------------------------------------------
-// Choose whether we want to sum for mass density, or integrate the continuity
-// equation.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-MassDensityType
-RSPHHydroBase<Dimension>::densityUpdate() const {
-  return mDensityUpdate;
-}
 
-template<typename Dimension>
-inline
-void
-RSPHHydroBase<Dimension>::
-densityUpdate(MassDensityType type) {
-  mDensityUpdate = type;
-}
 
 //------------------------------------------------------------------------------
 // Choose how we want to update the H tensor.
@@ -123,23 +106,6 @@ RSPHHydroBase<Dimension>::correctVelocityGradient(bool val) {
   mCorrectVelocityGradient = val;
 }
 
-//------------------------------------------------------------------------------
-// Access the flag determining if the sum mass density definition goes over
-// neighbor NodeLists.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-RSPHHydroBase<Dimension>::sumMassDensityOverAllNodeLists() const {
-  return mSumMassDensityOverAllNodeLists;
-}
-
-template<typename Dimension>
-inline
-void
-RSPHHydroBase<Dimension>::sumMassDensityOverAllNodeLists(bool val) {
-  mSumMassDensityOverAllNodeLists = val;
-}
 
 //------------------------------------------------------------------------------
 // Fraction of the centroidal filtering to apply.
@@ -242,16 +208,6 @@ kernel() const {
   return mKernel;
 }
 
-//------------------------------------------------------------------------------
-// Access the kernel used for artificial viscosity gradients.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const TableKernel<Dimension>&
-RSPHHydroBase<Dimension>::
-PiKernel() const {
-  return mPiKernel;
-}
 
 //------------------------------------------------------------------------------
 // The object defining how smoothing scales are evolved.
