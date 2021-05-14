@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
 // RSPHHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
-//
+//                   
 // Created by JMO, Mon Jul 19 21:52:29 PDT 2010
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_RSPHHydroBase_hh__
@@ -10,6 +10,7 @@
 
 #include "Physics/Physics.hh"
 #include "Physics/GenericHydro.hh"
+
 namespace Spheral {
 
 template<typename Dimension> class State;

@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from Physics import *
-#from RestartMethods import *
+from RestartMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralRSPH")
@@ -203,4 +203,4 @@ mass density, velocity, and specific thermal energy."""
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-#PYB11inject(RestartMethods, RSPHHydroBase)
+PYB11inject(RestartMethods, RSPHHydroBase)
