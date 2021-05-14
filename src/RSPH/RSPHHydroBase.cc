@@ -425,6 +425,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const auto oldDvDx = state.fields("velocityGradientLastTimeStep",Tensor::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -432,6 +433,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
+  CHECK(oldDvDx.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto  normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
@@ -448,6 +450,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
+  const auto DpDx = derivatives.fields("pressureGradient",Vector::zero);
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -461,6 +464,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
+  CHECK(DpDx.size() == numNodeLists);
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
@@ -481,7 +485,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   {
     // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
-    Scalar Wi, gWi, Wj, gWj;
+    Scalar Wi, gWi, Wj, gWj, Pstar;
+    Vector vstar;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto normalization_thread = normalization.threadCopy(threadStack);
@@ -509,6 +514,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
+      const auto& DpDxi = DpDx(nodeListi,i);
+      const auto& oldDvDxi = oldDvDx(nodeListi,i);
       const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -532,6 +539,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto& cj = soundSpeed(nodeListj, j);
+      const auto& DpDxj = DpDx(nodeListj,j);
+      const auto& oldDvDxj = oldDvDx(nodeListj,j);
       const auto  Hdetj = Hj.Determinant();
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
@@ -587,38 +596,54 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto Peffi = Pi + Ri;
       const auto Peffj = Pj + Rj;
 
+
+      // averaged things.
+      const auto rhoij = 0.5*(rhoi+rhoj); 
+      const auto cij = 0.5*(ci+cj);  
+      const auto Wij = 0.5*(Wi+Wj); 
+      const auto gWij = 0.5*(gWi+gWj);
+      const auto gradWij = 0.5*(gradWi+gradWj);
+
       // Acceleration.
       CHECK(rhoi > 0.0);
       CHECK(rhoj > 0.0);
-      const auto Prhoi = Peffi/(rhoi*rhoi);
-      const auto Prhoj = Peffj/(rhoj*rhoj);
-      const auto deltaDvDt = Prhoi*gradWi + Prhoj*gradWj;
+      CHECK(ci > 0.0);
+      CHECK(cj > 0.0);
+
+      const auto  voli = mi/rhoi;
+      const auto  volj = mj/rhoj;
+
+      const auto isExpanding = vij.dot(rij) > 0.0;
+
+      if (isExpanding){
+        vstar = 0.5*(vi+vj);
+        Pstar = 0.5*(Pi+Pj);
+      }else{
+        computeHLLCstate( rij, 
+                        nodeListi, nodeListj, i, j,
+                        Peffi, Peffj, rhoi, rhoj, vi, vj, ci, cj,
+                        DpDxi, DpDxj, oldDvDxi, oldDvDxj,
+                        vstar, Pstar);
+      }
+
+      const auto Prho = Pstar/(rhoi*rhoj)*(gradWij);
+      const auto deltaDvDt = 2*Prho;
       DvDti -= mj*deltaDvDt;
       DvDtj += mi*deltaDvDt;
       if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
-      // Specific thermal energy evolution.
-      // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
-      DepsDti += mj*(Prhoi*vij.dot(gradWi));
-      DepsDtj += mi*(Prhoj*vij.dot(gradWj));
+      DepsDti += mj*(Prho.dot(vi-vstar));
+      DepsDtj += mi*(Prho.dot(vstar-vj));
+
 
       // Velocity gradient.
-      const auto deltaDvDxi = mj*vij.dyad(gradWi);
-      const auto deltaDvDxj = mi*vij.dyad(gradWj);
+      const auto deltaDvDxi = volj*(vi-vstar).dyad(gradWij);
+      const auto deltaDvDxj = voli*(vstar-vj).dyad(gradWij);
       DvDxi -= deltaDvDxi; 
       DvDxj -= deltaDvDxj;
       if (sameMatij) {
         localDvDxi -= deltaDvDxi; 
         localDvDxj -= deltaDvDxj;
-      }
-
-      // Estimate of delta v (for XSPH).
-      if (mXSPH and (sameMatij)) {
-        const auto wXSPHij = 0.5*(mi/rhoi*Wi + mj/rhoj*Wj);
-        XSPHWeightSumi += wXSPHij;
-        XSPHWeightSumj += wXSPHij;
-        XSPHDeltaVi -= wXSPHij*vij;
-        XSPHDeltaVj += wXSPHij*vij;
       }
 
     } // loop over pairs
@@ -683,11 +708,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       DxDti = vi;
-      if (mXSPH) {
-        XSPHWeightSumi += Hdeti*mi/rhoi*W0;
-        CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
-        DxDti += XSPHDeltaVi/max(tiny, XSPHWeightSumi);
-      } 
+      //if (mXSPH) {
+      //  XSPHWeightSumi += Hdeti*mi/rhoi*W0;
+      //  CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
+      //  DxDti += XSPHDeltaVi/max(tiny, XSPHWeightSumi);
+      //} 
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
@@ -1043,5 +1068,134 @@ restoreState(const FileIO& file, const string& pathName) {
   for (auto DvDtPtr: mDvDt) DvDtPtr->name(HydroFieldNames::hydroAcceleration);
 
 }
+
+
+
+
+template<typename Dimension>
+void
+RSPHHydroBase<Dimension>::
+computeHLLCstate( const typename Dimension::Vector& rij,
+                  int nodeListi,
+                  int nodeListj,
+                  int i,
+                  int j,
+                  const typename Dimension::Scalar& Pi,
+                  const typename Dimension::Scalar& Pj,
+                  const typename Dimension::Scalar& rhoi, 
+                  const typename Dimension::Scalar& rhoj,
+                  const typename Dimension::Vector& vi,   
+                  const typename Dimension::Vector& vj,
+                  const typename Dimension::Scalar& ci,   
+                  const typename Dimension::Scalar& cj,
+                  const typename Dimension::Vector& DpDxi,
+                  const typename Dimension::Vector& DpDxj,
+                  const typename Dimension::Tensor& DvDxi,
+                  const typename Dimension::Tensor& DvDxj,
+                  typename Dimension::Vector& vstar,     
+                  typename Dimension::Scalar& Pstar) const {
+
+
+
+  // normal component
+  const auto rhatij = rij.unitVector();
+  //const auto isExpanding = (vi-vj).dot(rij) > 0.0;
+
+  // perpendicular component 
+  //const auto wij = vi+vj-(ui+uj)*rhatij;                      
+  //const auto wi = vi-ui*rhatij;
+  //const auto wj = vj-ui*rhatij;
+  
+  // dumb 1D wave speed 
+  //const auto Si = ui + ci;
+  //const auto Sj = uj - cj;
+
+  // accoustic impedance
+  //const auto Ci = rhoi*(Si-ui);
+  //const auto Cj = rhoj*(Sj-uj);
+
+  // get our vanLeer limiter 
+  const auto xij = rij/2.0;
+
+  //auto gradi = DrhoDxi.dot(xij);
+  //auto gradj = DrhoDxj.dot(xij);
+  //auto ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
+  //auto rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
+  //auto x = min(ri,rj);
+
+  //auto phi = ( x>0.0 ? 
+  //             2.0/(1.0 + x)*2.0*x/(1.0 + x) : 
+  //             0.0
+  //           );
+  
+  // project linear soln
+  //const auto rhoR = rhoi - phi*DrhoDxi.dot(xij);
+  //const auto rhoL = rhoj + phi*DrhoDxj.dot(xij);
+
+  //gradi = DcDxi.dot(xij);
+  //gradj = DcDxj.dot(xij);
+  //ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
+  //rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
+  //x = min(ri,rj);
+
+  //phi = ( x>0.0 ? 
+  //        2.0/(1.0 + x)*2.0*x/(1.0 + x) : 
+  //        0.0
+  //      );
+  
+  // project linear soln
+  //const auto cR = ci - phi*DcDxi.dot(xij);
+  //const auto cL = cj + phi*DcDxj.dot(xij);
+
+  //gradi = DpDxi.dot(xij);
+  //gradj = DpDxj.dot(xij);
+  //ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
+  //rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
+  //x = min(ri,rj);
+
+  //phi = ( x>0.0 ? 
+  //        2.0/(1.0 + x)*2.0*x/(1.0 + x) : 
+  //        0.0
+  //      );
+  
+  // project linear soln
+  //const auto pR = Pi - phi*DpDxi.dot(xij);
+  //const auto pL = Pj + phi*DpDxj.dot(xij);
+
+
+  const auto gradi = (DvDxi.dot(xij)).dot(xij);
+  const auto gradj = (DvDxj.dot(xij)).dot(xij);
+  const auto ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
+  const auto rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
+  const auto x = min(ri,rj);
+
+  const auto phi = ( x>0.0 ? 
+                     2.0/(1.0 + x)*2.0*x/(1.0 + x) : 
+                     0.0
+                   );
+  
+  // project linear soln
+  const auto vi1 = vi - phi*DvDxi*xij;
+  const auto vj1 = vj + phi*DvDxj*xij;
+  const auto ui = vi1.dot(rhatij);
+  const auto uj = vj1.dot(rhatij);
+
+    // dont go out of bounds
+  //const auto ui = vi.dot(rhatij);
+  //const auto uj = vj.dot(rhatij);
+  const auto umin = min(ui,uj);
+  const auto umax = max(ui,uj);
+
+  // 1D interface velocity 
+  const auto ustar = ((ci > 0.0 and cj>0.0) ?
+                      min(max((rhoi*ci*ui + rhoj*cj*uj - Pi + Pj )/max((rhoi*ci + rhoj*cj),1e-30),umin),umax) :
+                      (ui+uj)/2.0);
+
+  vstar = ustar*rhatij + ((vi+vj) - (ui+uj)*rhatij)/2.0;
+
+  Pstar = rhoj*cj * (uj - ustar) + Pj;
+
+  // that'll do it hopefully my dumb wave speed isn't too dumb
+  }
 
 }

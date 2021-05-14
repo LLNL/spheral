@@ -126,6 +126,26 @@ public:
                          StateDerivatives<Dimension>& derivs) override;
 
 
+  void computeHLLCstate( const Vector& rij,
+                         int nodeListi,
+                         int nodeListj,
+                         int i,
+                         int j,
+                         const Scalar& Pi,  
+                         const Scalar& Pj,
+                         const Scalar& rhoi, 
+                         const Scalar& rhoj,
+                         const Vector& vi,   
+                         const Vector& vj,
+                         const Scalar& ci,   
+                         const Scalar& cj, 
+                         const Vector& DpDxi,
+                         const Vector& DpDxj,
+                         const Tensor& DvDxi,
+                         const Tensor& DvDxj,
+                         Vector& vstar,
+                         Scalar& Pstar) const;
+
   // Also allow access to the CFL timestep safety criteria.
   Scalar cfl() const;
   void cfl(Scalar cfl);
@@ -274,7 +294,7 @@ protected:
 
   FieldList<Dimension, Vector> mDpDx;
   FieldList<Dimension, Tensor> mLastDvDx;
-  
+
 protected:
   //--------------------------- Protected Interface ---------------------------//
   // The restart registration.
