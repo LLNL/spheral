@@ -98,6 +98,15 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
 
+
+  //Evaluate Derivatives sub--routines
+  void
+  evaluateSpatialGradients(const typename Dimension::Scalar time,
+                         const typename Dimension::Scalar dt,
+                         const DataBase<Dimension>& dataBase,
+                         const State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivatives) const;
+
   // Finalize the derivatives.
   virtual
   void finalizeDerivatives(const Scalar time,
@@ -263,6 +272,9 @@ protected:
 
   std::vector<Vector>             mPairAccelerations;
 
+  FieldList<Dimension, Vector> mDpDx;
+  FieldList<Dimension, Tensor> mLastDvDx;
+  
 protected:
   //--------------------------- Protected Interface ---------------------------//
   // The restart registration.

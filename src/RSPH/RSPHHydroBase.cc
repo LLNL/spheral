@@ -148,6 +148,8 @@ RSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mM(FieldStorageType::CopyFields),
   mLocalM(FieldStorageType::CopyFields),
   mPairAccelerations(),
+  mDpDx(FieldStorageType::CopyFields),
+  mLastDvDx(FieldStorageType::CopyFields),
   mRestart(registerWithRestart(*this)) {
 
   // Create storage for our internal state.
@@ -170,6 +172,8 @@ RSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mPairAccelerations.clear();
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
   mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection);
+  mDpDx = dataBase.newFluidFieldList(Vector::zero, "pressureGradient");
+  mLastDvDx = dataBase.newFluidFieldList(Tensor::zero, "velocityGradientLastTimeStep");
 }
 
 //------------------------------------------------------------------------------
@@ -212,6 +216,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Create the local storage for time step mask, pressure, sound speed, and position weight.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
+  dataBase.resizeFluidFieldList(mLastDvDx, Tensor::zero, "velocityGradientLastTimeStep" ,false);
 
   FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
   FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
@@ -241,11 +246,12 @@ registerState(DataBase<Dimension>& dataBase,
   PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
   PolicyPointer csPolicy(new SoundSpeedPolicy<Dimension>());
   
+  state.enroll(mTimeStepMask);
   state.enroll(mass);
+  state.enroll(mLastDvDx);
   state.enroll(massDensity, rhoPolicy);
   state.enroll(Hfield, Hpolicy);
   state.enroll(position, positionPolicy);
-  state.enroll(mTimeStepMask);
   state.enroll(mPressure, pressurePolicy);
   state.enroll(mSoundSpeed, csPolicy);
 
@@ -284,6 +290,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // Create the scratch fields.
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
   // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
+  dataBase.resizeFluidFieldList(mDpDx, Vector::zero,"pressureGradient", false);
   dataBase.resizeFluidFieldList(mHideal, SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
@@ -306,6 +313,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   }
   // Check that no-one else is trying to control the hydro vote for DvDt.
   CHECK(not derivs.registered(mDvDt));
+  derivs.enroll(mDpDx);
   derivs.enroll(mDvDt);
   derivs.enroll(mHideal);
   derivs.enroll(mNormalization);
@@ -359,10 +367,22 @@ RSPHHydroBase<Dimension>::
 initialize(const typename Dimension::Scalar /*time*/,
            const typename Dimension::Scalar /*dt*/,
            const DataBase<Dimension>& /*dataBase*/,
-           State<Dimension>& /*state*/,
-           StateDerivatives<Dimension>& /*derivs*/) {
+           State<Dimension>& state,
+           StateDerivatives<Dimension>& derivs) {
   TIME_RSPHinitialize.start();
 
+  // store DvDx for use in HLLC reconstruction
+  const auto DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  auto DvDx0 = state.fields("velocityGradientLastTimeStep",Tensor::zero);
+  DvDx0.copyFields();
+
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+         boundItr != this->boundaryEnd();
+         ++boundItr)(*boundItr)->applyFieldListGhostBoundary(DvDx0);
+  
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
  
   TIME_RSPHinitialize.stop();
 }
@@ -374,13 +394,15 @@ initialize(const typename Dimension::Scalar /*time*/,
 template<typename Dimension>
 void
 RSPHHydroBase<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar /*time*/,
-                    const typename Dimension::Scalar /*dt*/,
+evaluateDerivatives(const typename Dimension::Scalar time,
+                    const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
   TIME_RSPHevalDerivs.start();
   TIME_RSPHevalDerivs_initial.start();
+
+  this->evaluateSpatialGradients(time,dt,dataBase,state,derivatives);
 
   // The kernels and such.
   const auto& W = this->kernel();
@@ -419,8 +441,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
@@ -435,8 +455,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(DepsDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
-  CHECK(M.size() == numNodeLists);
-  CHECK(localM.size() == numNodeLists);
   CHECK(DHDt.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
@@ -471,8 +489,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     auto DepsDt_thread = DepsDt.threadCopy(threadStack);
     auto DvDx_thread = DvDx.threadCopy(threadStack);
     auto localDvDx_thread = localDvDx.threadCopy(threadStack);
-    auto M_thread = M.threadCopy(threadStack);
-    auto localM_thread = localM.threadCopy(threadStack);
     auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
@@ -503,8 +519,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& DepsDti = DepsDt_thread(nodeListi, i);
       auto& DvDxi = DvDx_thread(nodeListi, i);
       auto& localDvDxi = localDvDx_thread(nodeListi, i);
-      auto& Mi = M_thread(nodeListi, i);
-      auto& localMi = localM_thread(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
@@ -528,8 +542,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& DepsDtj = DepsDt_thread(nodeListj, j);
       auto& DvDxj = DvDx_thread(nodeListj, j);
       auto& localDvDxj = localDvDx_thread(nodeListj, j);
-      auto& Mj = M_thread(nodeListj, j);
-      auto& localMj = localM_thread(nodeListj, j);
       auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
@@ -609,14 +621,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         XSPHDeltaVj += wXSPHij*vij;
       }
 
-      // Linear gradient correction term.
-      Mi -= mj*rij.dyad(gradWi);
-      Mj -= mi*rij.dyad(gradWj);
-      if (sameMatij) {
-        localMi -= mj*rij.dyad(gradWi);
-        localMj -= mi*rij.dyad(gradWj);
-      }
-
     } // loop over pairs
 
     // Reduce the thread values to the master.
@@ -657,8 +661,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& DepsDti = DepsDt(nodeListi, i);
       auto& DvDxi = DvDx(nodeListi, i);
       auto& localDvDxi = localDvDx(nodeListi, i);
-      auto& Mi = M(nodeListi, i);
-      auto& localMi = localM(nodeListi, i);
       auto& DHDti = DHDt(nodeListi, i);
       auto& Hideali = Hideal(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
@@ -668,25 +670,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Add the self-contribution to density sum.
       normi += mi/rhoi*W0*Hdeti;
-
-      // Finish the gradient of the velocity.
-      CHECK(rhoi > 0.0);
-      if (this->mCorrectVelocityGradient and
-          std::abs(Mi.Determinant()) > 1.0e-10 and
-          numNeighborsi > Dimension::pownu(2)) {
-        Mi = Mi.Inverse();
-        DvDxi = DvDxi*Mi;
-      } else {
-        DvDxi /= rhoi;
-      }
-      if (this->mCorrectVelocityGradient and
-          std::abs(localMi.Determinant()) > 1.0e-10 and
-          numNeighborsi > Dimension::pownu(2)) {
-        localMi = localMi.Inverse();
-        localDvDxi = localDvDxi*localMi;
-      } else {
-        localDvDxi /= rhoi;
-      }
 
       // Evaluate the continuity equation.
       DrhoDti = -rhoi*DvDxi.Trace();
@@ -732,6 +715,190 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   TIME_RSPHevalDerivs.stop();
 }
 
+
+//------------------------------------------------------------------------------
+// EvalDerivs subroutine for spatial derivs
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+RSPHHydroBase<Dimension>::
+evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
+                         const typename Dimension::Scalar /*dt*/,
+                         const DataBase<Dimension>& dataBase,
+                         const State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivatives) const {
+
+
+  // The kernels and such.
+  const auto& W = this->kernel();
+
+  // A few useful constants we'll use in the following loop.
+  const double tiny = 1.0e-30;
+  const Scalar W0 = W(0.0, 1.0);
+
+  // The connectivity.
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto& nodeLists = connectivityMap.nodeLists();
+  const auto numNodeLists = nodeLists.size();
+
+  // Get the state and derivative FieldLists.
+  // State FieldLists.
+  const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
+  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+
+  CHECK(mass.size() == numNodeLists);
+  CHECK(position.size() == numNodeLists);
+  CHECK(massDensity.size() == numNodeLists);
+  CHECK(H.size() == numNodeLists);
+
+  // Derivative FieldLists.
+  auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto DpDx = derivatives.fields("pressureGradient", Vector::zero)
+
+  CHECK(M.size() == numNodeLists);
+  CHECK(DpDx.size() == numNodeLists);
+
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
+  // The scale for the tensile correction.
+  const auto& nodeList = mass[0]->nodeList();
+  const auto  nPerh = nodeList.nodesPerSmoothingScale();
+  const auto  WnPerh = W(1.0/nPerh, 1.0);
+  TIME_RSPHevalDerivs_initial.stop();
+
+  // Walk all the interacting pairs.
+  TIME_RSPHevalDerivs_pairs.start();
+#pragma omp parallel
+  {
+    // Thread private scratch variables
+    int i, j, nodeListi, nodeListj;
+
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+
+    auto M_thread = M.threadCopy(threadStack);
+    auto DpDx_thread = DpDx.threadCopy(threadStack);
+
+#pragma omp for
+    for (auto kk = 0u; kk < npairs; ++kk) {
+      i = pairs[kk].i_node;
+      j = pairs[kk].j_node;
+      nodeListi = pairs[kk].i_list;
+      nodeListj = pairs[kk].j_list;
+
+      // Get the state for node i.
+      const auto& ri = position(nodeListi, i);
+      const auto& mi = mass(nodeListi, i);
+      const auto& rhoi = massDensity(nodeListi, i);
+      const auto& Pi = pressure(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      CHECK(mi > 0.0);
+      CHECK(rhoi > 0.0);
+      CHECK(Hdeti > 0.0);
+
+      auto& Mi = M_thread(nodeListi, i);
+      auto& DpDxi = DpDx_thread(nodeListi,i);
+
+      // Get the state for node j
+      const auto& rj = position(nodeListj, j);
+      const auto& mj = mass(nodeListj, j);
+      const auto& rhoj = massDensity(nodeListj, j);
+      const auto& Pj = pressure(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
+      CHECK(mj > 0.0);
+      CHECK(rhoj > 0.0);
+      CHECK(Hdetj > 0.0);
+
+      auto& Mj = M_thread(nodeListj, j);
+      auto& DpDxj = DpDx_thread(nodeListj,j);
+
+      // Flag if this is a contiguous material pair or not.
+      const bool sameMatij =  (nodeListi == nodeListj);
+
+      // Node displacement.
+      const auto rij = ri - rj;
+
+      const auto etai = Hi*rij;
+      const auto etaj = Hj*rij;
+      const auto etaMagi = etai.magnitude();
+      const auto etaMagj = etaj.magnitude();
+      CHECK(etaMagi >= 0.0);
+      CHECK(etaMagj >= 0.0);
+
+      // Symmetrized kernel weight and gradient.
+      const auto gWi = W.gradValue(etaMagi, Hdeti);
+      const auto Hetai = Hi*etai.unitVector();
+      const auto gradWi = gWi*Hetai;
+
+      const auto gWj = W.gradValue(etaMagj, Hdetj);
+      const auto Hetaj = Hj*etaj.unitVector();
+      const auto gradWj = gWj*Hetaj;
+
+      // averaged things.
+      const auto gradWij = 0.5*(gradWi+gradWj);
+      
+      // volumes
+      const auto voli = mi/rhoi;
+      const auto volj = mj/rhoj;
+
+      const Vector DpDxij = (Pi-Pj) * gradWij;
+
+      DpDxi -= volj * DpDxij;
+      DpDxj -= voli * DpDxij;
+
+      // Linear gradient correction term.
+      if(this->mCorrectVelocityGradient){
+        const auto Mij = rij.dyad(gradWij);
+        Mi -= volj*Mij;
+        Mj -= voli*Mij;
+      }
+
+    } // loop over pairs
+
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
+  }   // OpenMP parallel region
+
+  // Finish up the spatial gradient calculation
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+    const auto& nodeList = mass[nodeListi]->nodeList();
+    const auto ni = nodeList.numInternalNodes();
+#pragma omp parallel for
+    for (auto i = 0u; i < ni; ++i) {
+      if (this->mCorrectVelocityGradient){
+        const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
+        auto& Mi = M(nodeListi, i);
+        auto& DpDxi = DpDx(nodeListi, i);
+        const auto goodM =  (this->mCorrectVelocityGradient and
+                             std::abs(Mi.Determinant()) > 1.0e-10 and
+                             numNeighborsi > Dimension::pownu(2));
+        Mi = (goodM? Mi.Inverse() : Tensor::one);
+        DpDxi = Mi.Transpose()*DpDxi;
+      }
+
+    }
+  }
+
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+         boundItr != this->boundaryEnd();
+         ++boundItr){
+    (*boundItr)->applyFieldListGhostBoundary(DpDx);
+    if(this->mCorrectVelocityGradient)(*boundItr)->applyFieldListGhostBoundary(M);
+  }
+  
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+ 
+
+}
 //------------------------------------------------------------------------------
 // Finalize the derivatives.
 //------------------------------------------------------------------------------
