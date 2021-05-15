@@ -147,6 +147,22 @@ public:
                          Vector& vstar,
                          Scalar& Pstar) const;
 
+  void vanLeerLimiter( const Vector& rij,
+                const Scalar& vi,   
+                const Scalar& vj,
+                const Vector& DvDxi,
+                const Vector& DvDxj,
+                      Scalar& vstari,   
+                      Scalar& vstarj) const;
+
+  void vanLeerLimiter( const Vector& rij,
+                const Vector& vi,   
+                const Vector& vj,
+                const Tensor& DvDxi,
+                const Tensor& DvDxj,
+                      Vector& vstari,   
+                      Vector& vstarj) const;
+
   // Also allow access to the CFL timestep safety criteria.
   Scalar cfl() const;
   void cfl(Scalar cfl);
@@ -219,6 +235,7 @@ public:
   const FieldList<Dimension, int>&       timeStepMask() const;
   const FieldList<Dimension, Scalar>&    pressure() const;
   const FieldList<Dimension, Scalar>&    soundSpeed() const;
+  const FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldList<Dimension, Scalar>&    normalization() const;
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
@@ -271,6 +288,7 @@ protected:
   FieldList<Dimension, int>       mTimeStepMask;
   FieldList<Dimension, Scalar>    mPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
+  FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
 
   FieldList<Dimension, SymTensor> mHideal;
   FieldList<Dimension, Scalar>    mNormalization;

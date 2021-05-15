@@ -423,6 +423,13 @@ soundSpeed() const {
   return mSoundSpeed;
 }
 
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+RSPHHydroBase<Dimension>::
+specificThermalEnergy0() const {
+  return mSpecificThermalEnergy0;
+}
 
 template<typename Dimension>
 inline
