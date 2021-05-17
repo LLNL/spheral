@@ -115,7 +115,7 @@ resolution materials."""
                          doc="The seed value for the per-node random number generators")
     minFlawsPerNode = PYB11property("size_t", "minFlawsPerNode",
                                     doc="The minimum number of flaws any node will have seeded")
-    numFlaws = PYB11property("const Field<%(Dimension)s, unsigned>&", "numFlaws",
+    numFlaws = PYB11property("const Field<%(Dimension)s, int>&", "numFlaws",
                              returnpolicy="reference_internal",
                              doc="The total number of flaws that will be established on each point")
     minFlaw = PYB11property("const Field<%(Dimension)s, Scalar>&", "minFlaw",

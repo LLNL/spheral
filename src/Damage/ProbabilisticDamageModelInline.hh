@@ -77,7 +77,7 @@ minFlawsPerNode() const {
 
 template<typename Dimension>
 inline
-const Field<Dimension, unsigned>&
+const Field<Dimension, int>&
 ProbabilisticDamageModel<Dimension>::
 numFlaws() const {
   return mNumFlaws;

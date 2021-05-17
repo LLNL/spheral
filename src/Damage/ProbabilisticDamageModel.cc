@@ -74,6 +74,7 @@ ProbabilisticDamageModel(SolidNodeList<Dimension>& nodeList,
   mSeed(seed),
   mMinFlawsPerNode(minFlawsPerNode),
   mNumFlaws(SolidFieldNames::numFlaws, nodeList),
+  mMask("Damage mask", nodeList, 1),
   mMinFlaw(SolidFieldNames::minFlaw, nodeList),
   mMaxFlaw(SolidFieldNames::maxFlaw, nodeList),
   mInitialVolume(SolidFieldNames::initialVolume, nodeList),
@@ -82,8 +83,7 @@ ProbabilisticDamageModel(SolidNodeList<Dimension>& nodeList,
   mDdamageDt(ProbabilisticDamagePolicy<Dimension>::prefix() + SolidFieldNames::scalarDamage, nodeList),
   mStrain(SolidFieldNames::strainTensor, nodeList),
   mEffectiveStrain(SolidFieldNames::effectiveStrainTensor, nodeList),
-  mRandomGenerator(SolidFieldNames::randomGenerator, nodeList),
-  mMask("Damage mask", nodeList, 1) {
+  mRandomGenerator(SolidFieldNames::randomGenerator, nodeList) {
 }
 
 //------------------------------------------------------------------------------
@@ -145,14 +145,14 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // Based on this compute the maximum number of flaws any node will have.  We'll use this to
   // spin the random number generator without extra communiction.
-  const auto maxFlawsPerNode = mMinFlawsPerNode*std::max(1u, unsigned(mkWeibull*mVmax*epsMax2m + 0.5));
+  const auto maxFlawsPerNode = int(mMinFlawsPerNode*std::max(1, int(mkWeibull*mVmax*epsMax2m + 0.5)));
 
   // Generate initial realizations of the flaw population for each point, of which we capture the min/max range
   // for each point.
   const auto mInv = 1.0/mmWeibull;
-  auto minNumFlaws = std::numeric_limits<unsigned>::max();
-  auto maxNumFlaws = 0u;
-  auto totalNumFlaws = 0u;
+  auto minNumFlaws = std::numeric_limits<int>::max();
+  auto maxNumFlaws = 0;
+  auto totalNumFlaws = 0;
   auto epsMin = std::numeric_limits<double>::max();
   auto epsMax = std::numeric_limits<double>::min();
   auto sumFlaws = 0.0;
@@ -160,11 +160,11 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   for (auto i = 0u; i < nlocal; ++i) {
     if (mMask(i) == 1) {
       mMinFlaw(i) = std::numeric_limits<double>::max();
-      mNumFlaws(i) = std::max(size_t(1), std::min(maxFlawsPerNode, size_t(mkWeibull*mInitialVolume(i)*epsMax2m + 0.5)));
+      mNumFlaws(i) = std::max(1, std::min(maxFlawsPerNode, int(mkWeibull*mInitialVolume(i)*epsMax2m + 0.5)));
       const auto Ai = mNumFlaws(i)/(mkWeibull*mInitialVolume(i));
       CHECK(Ai > 0.0);
       auto sumFlawsi = 0.0;
-      for (auto j = 0u; j < mNumFlaws(i); ++j) {
+      for (auto j = 0; j < mNumFlaws(i); ++j) {
         const auto flaw = pow(Ai * mRandomGenerator(i)(), mInv);
         mMinFlaw(i) = std::min(mMinFlaw(i), flaw);
         mMaxFlaw(i) = std::max(mMinFlaw(i), flaw);

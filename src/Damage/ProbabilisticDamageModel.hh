@@ -92,7 +92,7 @@ public:
   double Vmax() const;
   size_t seed() const;
   size_t minFlawsPerNode() const;
-  const Field<Dimension, unsigned>& numFlaws() const;
+  const Field<Dimension, int>& numFlaws() const;
   const Field<Dimension, Scalar>& minFlaw() const;
   const Field<Dimension, Scalar>& maxFlaw() const;
   const Field<Dimension, Scalar>& initialVolume() const;
@@ -119,11 +119,10 @@ private:
   bool mDamageInCompression;
   double mkWeibull, mmWeibull, mVolumeMultiplier, mVmin, mVmax;
   size_t mSeed, mMinFlawsPerNode;
-  Field<Dimension, unsigned> mNumFlaws;
+  Field<Dimension, int> mNumFlaws, mMask;
   Field<Dimension, Scalar> mMinFlaw, mMaxFlaw, mInitialVolume, mYoungsModulus, mLongitudinalSoundSpeed, mDdamageDt;
   Field<Dimension, SymTensor> mStrain, mEffectiveStrain;
   Field<Dimension, uniform_random> mRandomGenerator;
-  Field<Dimension, int> mMask;
 
   // No default constructor, copying or assignment.
   ProbabilisticDamageModel();

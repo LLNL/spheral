@@ -218,7 +218,7 @@ update(const KeyType& key,
   const auto& strain = state.field(strainKey, SymTensor::zero);
   const auto& DDDt = derivs.field(DdamageDtKey, 0.0);
   const auto& localDvDx = derivs.field(DvDxKey, Tensor::zero);
-  const auto& numFlaws = state.field(numFlawsKey, 0u);
+  const auto& numFlaws = state.field(numFlawsKey, 0);
   const auto& minFlaw = state.field(minFlawKey, 0.0);
   const auto& maxFlaw = state.field(maxFlawKey, 0.0);
   const auto& initialVolume = state.field(initialVolumeKey, 0.0);
@@ -234,7 +234,7 @@ update(const KeyType& key,
           fuzzyLessThanOrEqual(Di.eigenValues().maxElement(), 1.0, 1.0e-5));
     
     // Are we damaging this point?
-    if (numFlaws(i) > 0u) {
+    if (numFlaws(i) > 0) {
 
       // First apply the rotational term to the current damage.
       const auto spin = localDvDx(i).SkewSymmetric();
@@ -263,7 +263,7 @@ update(const KeyType& key,
         // Yes. Fill out a representation of the full flaws on this point.
         vector<double> flaws(numFlaws(i));
         const auto Ai = numFlaws(i)/(mkWeibull*initialVolume(i));
-        for (auto j = 0u; j < numFlaws(i); ++j) {
+        for (auto j = 0; j < numFlaws(i); ++j) {
           const auto flawj = std::max(minFlaw(i), std::min(maxFlaw(i), pow(Ai * randomGenerator(i)(), mInv)));
           CHECK2(flawj >= minFlaw(i) and flawj <= maxFlaw(i),
                  flawj << " not in [" << minFlaw(i) << " " << maxFlaw(i) << "[\n");
