@@ -4,7 +4,9 @@
 namespace Spheral
 {
 
-template<typename Dimension, typename DataType>
+template <typename Dimension, typename DataType,
+         typename std::enable_if<std::is_arithmetic<DataType>::value,
+                                 DataType>::type* = nullptr>
 inline
 axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
                                                    const Spheral::Field<Dimension, DataType> &field)
@@ -158,14 +160,15 @@ axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name,
 //    return m_datastore_ptr->getRoot()->getView(view_name + "0");
 // }
 
-//------------------------------------------------------------------------------
-template<typename Dimension>
+template <typename Dimension, typename DataType,
+         typename std::enable_if<!std::is_arithmetic<DataType>::value,
+                                 DataType>::type* = nullptr>
 inline
 axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<1>::Vector> &field)
+                                                   const Spheral::Field<Dimension, DataType> &field)
 {
    axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 1;
+   axom::IndexType num_elements = DataTypeTraits<DataType>::numElements(field[0]);
    int view_count = 0;
    for (u_int i = 0; i < field.size(); i++)
    {
@@ -177,355 +180,417 @@ axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name,
    return m_datastore_ptr->getRoot()->getView(view_name + "0");
 }
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<1>::Vector3d> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 3;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<1>::Vector> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 10;//field.numElements();//1;
+//    int view_count = 0;
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<1>::Tensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 1;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+//    std::cout << "field contains:";
+//    for (auto it = field.begin() ; it != field.end(); ++it)
+//       std::cout << ' ' << *it;
+//    std::cout << '\n';
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<1>::SymTensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 1;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+//    auto *data = &(*field.begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<1>::ThirdRankTensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 1;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+//    // for (u_int i = 0; i < field.size(); i++)
+//    // {
+//    //    auto *data = &(*field[i].begin());
+//    //    m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//    //                                                       num_elements, (void*)data);
+//    //    view_count++;
+//    // }
+//    std::cout << " numElements:" << field.numElements() << " size:" << field.size()
+//              << " datatypeNumElements:" << DataTypeTraits<Dim<1>::Vector>::numElements(field[0]) << std::endl;
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<1>::FourthRankTensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 1;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
-
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<1>::FifthRankTensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 1;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+//    m_datastore_ptr->print();
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
 
 // template<typename Dimension>
 // inline
 // axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-//                                                    const Spheral::Field<Dimension, Dim<1>::FacetedVolume> &field)
+//                                                    const Spheral::Field<Dimension, Dim<1>::Vector3d> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 3;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
+
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<1>::Tensor> &field)
 // {
 //    axom::sidre::DataTypeId dtype = field.getAxomType();
 //    axom::IndexType num_elements = 1;
 //    int view_count = 0;
 //    for (u_int i = 0; i < field.size(); i++)
 //    {
-//       std::vector<Spheral::Dim<1>::Vector> data = field[i].vertices();
-//       std::cout << data.size() << std::endl;
-//       for (u_int j = 0; j < data.size(); j++)
-//       {
-//          auto *data2 = &(*data[i].begin());
-//          m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-//                                                          num_elements, (void*)data2);
-//       }
-      
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
 //       view_count++;
 //    }
 //    return m_datastore_ptr->getRoot()->getView(view_name + "0");
 // }
 
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<2>::Vector> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 2;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<1>::SymTensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 1;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<2>::Tensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 4;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<1>::ThirdRankTensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 1;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<2>::SymTensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 2;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<1>::FourthRankTensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 1;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<2>::ThirdRankTensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 1;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<1>::FifthRankTensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 1;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<2>::FourthRankTensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 1;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+// // template<typename Dimension>
+// // inline
+// // axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+// //                                                    const Spheral::Field<Dimension, Dim<1>::FacetedVolume> &field)
+// // {
+// //    axom::sidre::DataTypeId dtype = field.getAxomType();
+// //    axom::IndexType num_elements = 1;
+// //    int view_count = 0;
+// //    for (u_int i = 0; i < field.size(); i++)
+// //    {
+// //       std::vector<Spheral::Dim<1>::Vector> data = field[i].vertices();
+// //       std::cout << data.size() << std::endl;
+// //       for (u_int j = 0; j < data.size(); j++)
+// //       {
+// //          auto *data2 = &(*data[i].begin());
+// //          m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+// //                                                          num_elements, (void*)data2);
+// //       }
+      
+// //       view_count++;
+// //    }
+// //    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// // }
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<2>::FifthRankTensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 1;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<2>::Vector> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 30;
+//    int view_count = 0;
 
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<3>::Vector> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 3;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+//    std::cout << "field contains:";
+//    for (auto it = field.begin() ; it != field.end(); ++it)
+//       std::cout << ' ' << *it;
+//    std::cout << '\n';
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<3>::Tensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 9;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+//    auto *data = &(*field.begin());
+//    m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<3>::SymTensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 3;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+//    // for (u_int i = 0; i < field.size(); i++)
+//    // {
+//    //    auto *data = &(*field[i].begin());
+//    //    m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//    //                                                       num_elements, (void*)data);
+//    //    view_count++;
+//    // }
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<3>::ThirdRankTensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 1;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+//    std::cout << " numElements:" << field.numElements() << " size:" << field.size() 
+//              << " datatypeNumElements:" << DataTypeTraits<Dim<2>::Vector>::numElements(field[0]) << std::endl;
+//    m_datastore_ptr->print();
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<3>::FourthRankTensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 1;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
 
-template<typename Dimension>
-inline
-axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<3>::FifthRankTensor> &field)
-{
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = 1;
-   int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
-   {
-      auto *data = &(*field[i].begin());
-      m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
-                                                         num_elements, (void*)data);
-      view_count++;
-   }
-   return m_datastore_ptr->getRoot()->getView(view_name + "0");
-}
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<2>::Tensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 4;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
+
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<2>::SymTensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 2;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
+
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<2>::ThirdRankTensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 1;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
+
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<2>::FourthRankTensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 1;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
+
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<2>::FifthRankTensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 1;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
+
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<3>::Vector> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 30;
+//    int view_count = 0;
+
+//    std::cout << "field contains:";
+//    for (auto it = field.begin() ; it != field.end(); ++it)
+//       std::cout << ' ' << *it;
+//    std::cout << '\n';
+
+//    auto *data = &(*field.begin());
+//    m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+
+//    // for (u_int i = 0; i < field.size(); i++)
+//    // {
+//    //    auto *data = &(*field[i].begin());
+//    //    m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//    //                                                       num_elements, (void*)data);
+//    //    view_count++;
+//    // }
+
+//    std::cout << " numElements:" << field.numElements() << " size:" << field.size() 
+//              << " datatypeNumElements:" << DataTypeTraits<Dim<3>::Vector>::numElements(field[0]) << std::endl;
+//    m_datastore_ptr->print();
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
+
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<3>::Tensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 9;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
+
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<3>::SymTensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 3;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
+
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<3>::ThirdRankTensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 1;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
+
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<3>::FourthRankTensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 1;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
+
+// template<typename Dimension>
+// inline
+// axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+//                                                    const Spheral::Field<Dimension, Dim<3>::FifthRankTensor> &field)
+// {
+//    axom::sidre::DataTypeId dtype = field.getAxomType();
+//    axom::IndexType num_elements = 1;
+//    int view_count = 0;
+//    for (u_int i = 0; i < field.size(); i++)
+//    {
+//       auto *data = &(*field[i].begin());
+//       m_datastore_ptr->getRoot()->createView(view_name + std::to_string(view_count), dtype, 
+//                                                          num_elements, (void*)data);
+//       view_count++;
+//    }
+//    return m_datastore_ptr->getRoot()->getView(view_name + "0");
+// }
 
 
 }
