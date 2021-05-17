@@ -264,8 +264,9 @@ update(const KeyType& key,
         vector<double> flaws(numFlaws(i));
         const auto Ai = numFlaws(i)/(mkWeibull*initialVolume(i));
         for (auto j = 0u; j < numFlaws(i); ++j) {
-          const auto flawj = pow(Ai * randomGenerator(i)(), mInv);
-          CHECK(flawj >= minFlaw(i) and flawj < maxFlaw(i));
+          const auto flawj = std::max(minFlaw(i), std::min(maxFlaw(i), pow(Ai * randomGenerator(i)(), mInv)));
+          CHECK2(flawj >= minFlaw(i) and flawj <= maxFlaw(i),
+                 flawj << " not in [" << minFlaw(i) << " " << maxFlaw(i) << "[\n");
           flaws[j] = flawj;
         }
         std::sort(flaws.begin(), flaws.end());

@@ -118,7 +118,7 @@ resolution materials."""
     minFlaw = PYB11property("const Field<%(Dimension)s, Scalar>&", "minFlaw",
                             returnpolicy="reference_internal",
                             doc="The minimum flaw activation strain on each point")
-    maxnFlaw = PYB11property("const Field<%(Dimension)s, Scalar>&", "minFlaw",
+    maxFlaw = PYB11property("const Field<%(Dimension)s, Scalar>&", "minFlaw",
                             returnpolicy="reference_internal",
                             doc="The maximum flaw activation strain on each point")
     initialVolume = PYB11property("const Field<%(Dimension)s, Scalar>&", "initialVolume",
@@ -132,6 +132,7 @@ resolution materials."""
     effectiveStrain = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
     DdamageDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     randomGenerator = PYB11property("const Field<%(Dimension)s, uniform_random>&", returnpolicy="reference_internal")
+    mask = PYB11property("const Field<%(Dimension)s, int>&", "mask", "mask", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Add the restart methods

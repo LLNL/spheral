@@ -26,6 +26,7 @@
 #include "Boundary/Boundary.hh"
 #include "Neighbor/Neighbor.hh"
 #include "Utilities/mortonOrderIndices.hh"
+#include "Utilities/allReduce.hh"
 
 #include <boost/functional/hash.hpp>  // hash_combine
 
@@ -66,8 +67,8 @@ ProbabilisticDamageModel(SolidNodeList<Dimension>& nodeList,
   mDamageInCompression(damageInCompression),
   mkWeibull(kWeibull),
   mmWeibull(mWeibull),
-  mVmin(0.0),
-  mVmax(0.0),
+  mVmin(std::numeric_limits<double>::max()),
+  mVmax(std::numeric_limits<double>::min()),
   mSeed(seed),
   mMinFlawsPerNode(minFlawsPerNode),
   mNumFlaws(SolidFieldNames::numFlaws, nodeList),
@@ -79,7 +80,8 @@ ProbabilisticDamageModel(SolidNodeList<Dimension>& nodeList,
   mDdamageDt(ProbabilisticDamagePolicy<Dimension>::prefix() + SolidFieldNames::scalarDamage, nodeList),
   mStrain(SolidFieldNames::strainTensor, nodeList),
   mEffectiveStrain(SolidFieldNames::effectiveStrainTensor, nodeList),
-  mRandomGenerator(SolidFieldNames::randomGenerator, nodeList) {
+  mRandomGenerator(SolidFieldNames::randomGenerator, nodeList),
+  mMask("Damage mask", nodeList, 1) {
 }
 
 //------------------------------------------------------------------------------
@@ -102,6 +104,10 @@ void
 ProbabilisticDamageModel<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
+  // How many points are actually being damaged?
+  const auto nused_local = mMask.sumElements();
+  const auto nused_global = allReduce(nused_local, MPI_SUM, Communicator::communicator());
+
   // Compute the Morton-ordering for hashing with the global seed to seed each
   // point-wise random number generator.
   typedef KeyTraits::Key Key;
@@ -115,22 +121,22 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // but reproducible seeds for each points random number generator.
   const auto& mass = nodes.mass();
   const auto& rho = nodes.massDensity();
-  const auto nlocal = nodes.numInternalNodes();
+  const auto  nlocal = nodes.numInternalNodes();
 #pragma omp parallel for
   for (auto i = 0u; i < nlocal; ++i) {
-    CHECK(mass(i) > 0.0 and rho(i) > 0.0);
-    mInitialVolume(i) = mass(i)/rho(i);
-    Key seedi = mSeed;
-    boost::hash_combine(seedi, keys(i));
-    mRandomGenerator(i).seed(seedi);      // starting out generating in [0,1)
-    mRandomGenerator(i)();                // Recommended to discard first value in sequence
+    if (mMask(i) == 1) {
+      CHECK(mass(i) > 0.0 and rho(i) > 0.0);
+      mInitialVolume(i) = mass(i)/rho(i);
+      mVmin = std::min(mVmin, mInitialVolume(i));
+      mVmax = std::max(mVmax, mInitialVolume(i));
+      Key seedi = mSeed;
+      boost::hash_combine(seedi, keys(i));
+      mRandomGenerator(i).seed(seedi);      // starting out generating in [0,1)
+      mRandomGenerator(i)();                // Recommended to discard first value in sequence
+    }
   }
-
-  // Find the minimum and maximum node volumes.
-  mVmin = mInitialVolume.min();
-  mVmax = mInitialVolume.max();
-  CHECK(mVmin > 0.0);
-  CHECK(mVmax >= mVmin);
+  mVmin = allReduce(mVmin, MPI_MIN, Communicator::communicator());
+  mVmax = allReduce(mVmin, MPI_MAX, Communicator::communicator());
 
   // Compute the maximum strain we expect for the minimum volume.
   const auto epsMax2m = mMinFlawsPerNode/(mkWeibull*mVmin);  // epsmax ** m
@@ -142,22 +148,64 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Generate initial realizations of the flaw population for each point, of which we capture the min/max range
   // for each point.
   const auto mInv = 1.0/mmWeibull;
+  auto minNumFlaws = std::numeric_limits<unsigned>::max();
+  auto maxNumFlaws = 0u;
+  auto totalNumFlaws = 0u;
+  auto epsMin = std::numeric_limits<double>::max();
+  auto epsMax = std::numeric_limits<double>::min();
+  auto sumFlaws = 0.0;
 #pragma omp parallel for
   for (auto i = 0u; i < nlocal; ++i) {
-    mNumFlaws(i) = std::max(size_t(1), std::min(maxFlawsPerNode, size_t(mkWeibull*mInitialVolume(i)*epsMax2m + 0.5)));
-    const auto Ai = mNumFlaws(i)/(mkWeibull*mInitialVolume(i));
-    CHECK(Ai > 0.0);
-    for (auto j = 0u; j < mNumFlaws(i); ++j) {
-      const auto flaw = pow(Ai * mRandomGenerator(i)(), mInv);
-      mMinFlaw(i) = std::min(mMinFlaw(i), flaw);
-      mMaxFlaw(i) = std::max(mMinFlaw(i), flaw);
-    }
+    if (mMask(i) == 1) {
+      mMinFlaw(i) = std::numeric_limits<double>::max();
+      mNumFlaws(i) = std::max(size_t(1), std::min(maxFlawsPerNode, size_t(mkWeibull*mInitialVolume(i)*epsMax2m + 0.5)));
+      const auto Ai = mNumFlaws(i)/(mkWeibull*mInitialVolume(i));
+      CHECK(Ai > 0.0);
+      auto sumFlawsi = 0.0;
+      for (auto j = 0u; j < mNumFlaws(i); ++j) {
+        const auto flaw = pow(Ai * mRandomGenerator(i)(), mInv);
+        mMinFlaw(i) = std::min(mMinFlaw(i), flaw);
+        mMaxFlaw(i) = std::max(mMinFlaw(i), flaw);
+        sumFlawsi += flaw;
+      }
 
-    // Now reset the random number generator so we'll only generate flaws in the allowed range
-    // for this point.
-    mRandomGenerator(i).range(pow(mMinFlaw(i), mmWeibull)/Ai, pow(mMaxFlaw(i), mmWeibull)/Ai);
-    CHECK(mRandomGenerator(i).min() >= 0.0);
-    CHECK(mRandomGenerator(i).max() <= 1.0);
+      // Now reset the random number generator so we'll only generate flaws in the allowed range
+      // for this point.
+      mRandomGenerator(i).range(pow(mMinFlaw(i), mmWeibull)/Ai, pow(mMaxFlaw(i), mmWeibull)/Ai);
+      CHECK(mRandomGenerator(i).min() >= 0.0);
+      CHECK(mRandomGenerator(i).max() <= 1.0);
+
+      // Gather statistics
+#pragma omp critical
+      {
+        minNumFlaws = min(minNumFlaws, mNumFlaws(i));
+        maxNumFlaws = max(maxNumFlaws, mNumFlaws(i));
+        totalNumFlaws += mNumFlaws(i);
+        epsMin = std::min(epsMin, mMinFlaw(i));
+        epsMax = std::max(epsMax, mMaxFlaw(i));
+        sumFlaws += sumFlawsi;
+      }
+    }
+  }
+
+  // Some diagnostic output.
+  if (nused_global > 0) {
+    minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
+    maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
+    totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
+    epsMin = allReduce(epsMin, MPI_MIN, Communicator::communicator());
+    epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
+    sumFlaws = allReduce(sumFlaws, MPI_SUM, Communicator::communicator());
+  }
+  if (Process::getRank() == 0) {
+    cerr << "ProbabilisticDamageModel for " << nodes.name() << ":" << endl
+         << "    Min num flaws per node: " << minNumFlaws << endl
+         << "    Max num flaws per node: " << maxNumFlaws << endl
+         << "    Total num flaws       : " << totalNumFlaws << endl
+         << "    Avg flaws per node    : " << totalNumFlaws / std::max(1, nused_global) << endl
+         << "    Min flaw strain       : " << epsMin << endl
+         << "    Max flaw strain       : " << epsMax << endl
+         << "    Avg node failure      : " << sumFlaws / std::max(1, nused_global) << endl;
   }
 }
 
@@ -335,6 +383,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mStrain, pathName + "/strain");
   file.write(mEffectiveStrain, pathName + "/effectiveStrain");
   file.write(mDdamageDt, pathName + "/DdamageDt");
+  file.write(mMask, pathName + "/mask");
 }
 
 //------------------------------------------------------------------------------
@@ -351,6 +400,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mStrain, pathName + "/strain");
   file.read(mEffectiveStrain, pathName + "/effectiveStrain");
   file.read(mDdamageDt, pathName + "/DdamageDt");
+  file.read(mMask, pathName + "/mask");
 }
 
 }

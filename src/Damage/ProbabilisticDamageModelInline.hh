@@ -143,4 +143,18 @@ randomGenerator() const {
   return mRandomGenerator;
 }
 
+template<typename Dimension>
+const Field<Dimension, int>&
+ProbabilisticDamageModel<Dimension>::
+mask() const {
+  return mMask;
+}
+
+template<typename Dimension>
+void
+ProbabilisticDamageModel<Dimension>::
+mask(const Field<Dimension, int>& val) {
+  mMask = val;
+}
+
 }

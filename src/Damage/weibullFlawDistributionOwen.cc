@@ -144,7 +144,7 @@ weibullFlawDistributionOwen(const unsigned seed,
     }
 
     // Some diagnostic output.
-    const auto nused = mask.sumElements();
+    const auto nused = std::max(1, mask.sumElements());
     if (nglobal > 0) {
       minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
       maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());

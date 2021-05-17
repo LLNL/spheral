@@ -101,6 +101,10 @@ public:
   const Field<Dimension, Scalar>& DdamageDt() const;
   const Field<Dimension, uniform_random>& randomGenerator() const;
 
+  // Optionally the user can provide a mask to prevent damage modeling on some points.
+  const Field<Dimension, int>& mask() const;
+  void mask(const Field<Dimension, int>& val);
+
   //............................................................................
   // Restart methods.
   virtual std::string label() const { return "ProbabilisticDamageModel"; }
@@ -117,6 +121,7 @@ private:
   Field<Dimension, Scalar> mMinFlaw, mMaxFlaw, mInitialVolume, mYoungsModulus, mLongitudinalSoundSpeed, mDdamageDt;
   Field<Dimension, SymTensor> mStrain, mEffectiveStrain;
   Field<Dimension, uniform_random> mRandomGenerator;
+  Field<Dimension, int> mMask;
 
   // No default constructor, copying or assignment.
   ProbabilisticDamageModel();
