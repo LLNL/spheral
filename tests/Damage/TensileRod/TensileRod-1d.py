@@ -694,25 +694,19 @@ if graphics:
         sl.appendField(s)
         sPlot = plotFieldList(sl, winTitle="strain @ %g %i" % (control.time(), mpi.procs),
                               plotStyle="o-")
-        eps = damageModel.currentFlaw
+        epsMin = damageModel.minFlaw
         nflaws = damageModel.numFlaws
-        nactive = damageModel.numFlawsActivated
         epsl = ScalarFieldList()
-        epsl.appendField(eps)
-        epsPlot = plotFieldList(epsl, winTitle="Current flaw activation strains",
+        epsl.appendField(epsMin)
+        epsPlot = plotFieldList(epsl, winTitle="Min flaw activation strains",
                                 plotStyle="o-")
         nflawsl = UnsignedFieldList()
         nflawsl.appendField(nflaws)
         nflawsPlot = plotFieldList(nflawsl, winTitle="Number of flaws",
                                    plotStyle="o-")
-        nactivel = UnsignedFieldList()
-        nactivel.appendField(nactive)
-        nactivePlot = plotFieldList(nactivel, winTitle="Number of flaws active",
-                                    plotStyle="o-")
         plots += [(sPlot, "strain.png"),
                   (epsPlot, "flaws.png"),
-                  (nflawsPlot, "numflaws.png"),
-                  (nactivePlot, "numFlawsActive.png")]
+                  (nflawsPlot, "numflaws.png")]
 
     fragPlot = plotFieldList(state.intFields(SolidFieldNames.fragmentIDs),
                              plotStyle = "o-",
