@@ -312,6 +312,11 @@ protected:
   std::vector<Vector>             mPairAccelerations;
 
   FieldList<Dimension, Vector> mDpDx;
+  FieldList<Dimension, Vector> mDcDx;
+  FieldList<Dimension, Vector> mDrhoDx;
+  FieldList<Dimension, Vector> mLastDpDx;
+  FieldList<Dimension, Vector> mLastDcDx;
+  FieldList<Dimension, Vector> mLastDrhoDx;
   FieldList<Dimension, Tensor> mLastDvDx;
 
 protected:
