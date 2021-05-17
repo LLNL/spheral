@@ -59,6 +59,7 @@ ProbabilisticDamageModel(SolidNodeList<Dimension>& nodeList,
                          const size_t seed,
                          const size_t minFlawsPerNode,
                          const double crackGrowthMultiplier,
+                         const double volumeMultiplier,
                          const DamageCouplingAlgorithm damageCouplingAlgorithm,
                          const TensorStrainAlgorithm strainAlgorithm,
                          const bool damageInCompression):
@@ -67,6 +68,7 @@ ProbabilisticDamageModel(SolidNodeList<Dimension>& nodeList,
   mDamageInCompression(damageInCompression),
   mkWeibull(kWeibull),
   mmWeibull(mWeibull),
+  mVolumeMultiplier(volumeMultiplier),
   mVmin(std::numeric_limits<double>::max()),
   mVmax(std::numeric_limits<double>::min()),
   mSeed(seed),
@@ -126,13 +128,14 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   for (auto i = 0u; i < nlocal; ++i) {
     if (mMask(i) == 1) {
       CHECK(mass(i) > 0.0 and rho(i) > 0.0);
-      mInitialVolume(i) = mass(i)/rho(i);
+      mInitialVolume(i) = mass(i)/rho(i) * mVolumeMultiplier;
       mVmin = std::min(mVmin, mInitialVolume(i));
       mVmax = std::max(mVmax, mInitialVolume(i));
       Key seedi = mSeed;
       boost::hash_combine(seedi, keys(i));
       mRandomGenerator(i).seed(seedi);      // starting out generating in [0,1)
       mRandomGenerator(i)();                // Recommended to discard first value in sequence
+      cerr << " --> " << mass(i) << " " << rho(i) << " " << mInitialVolume(i) << endl;
     }
   }
   mVmin = allReduce(mVmin, MPI_MIN, Communicator::communicator());
@@ -161,6 +164,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
       mNumFlaws(i) = std::max(size_t(1), std::min(maxFlawsPerNode, size_t(mkWeibull*mInitialVolume(i)*epsMax2m + 0.5)));
       const auto Ai = mNumFlaws(i)/(mkWeibull*mInitialVolume(i));
       CHECK(Ai > 0.0);
+      cerr << " --> " << Ai << " " << mInv << " " << mkWeibull << " " << mInitialVolume(i) << endl;
       auto sumFlawsi = 0.0;
       for (auto j = 0u; j < mNumFlaws(i); ++j) {
         const auto flaw = pow(Ai * mRandomGenerator(i)(), mInv);

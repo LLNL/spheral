@@ -526,6 +526,7 @@ elif DamageModelConstructor is ProbabilisticDamageModel:
                                          kWeibull = kWeibull,
                                          mWeibull = mWeibull,
                                          seed = randomSeed,
+                                         volumeMultiplier = volumeMultiplier,
                                          strainAlgorithm = strainType,
                                          damageCouplingAlgorithm = damageCoupling,
                                          damageInCompression = damageInCompression)

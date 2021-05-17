@@ -93,9 +93,11 @@ weibullFlawDistributionOwen(const unsigned seed,
     double Vmin = std::numeric_limits<double>::max(), 
            Vmax = std::numeric_limits<double>::min();
     for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
-      const double Vi = mass(i)/rho(i);
-      Vmin = min(Vmin, Vi);
-      Vmax = max(Vmax, Vi);
+      if (mask(i) == 1) {
+        const double Vi = mass(i)/rho(i);
+        Vmin = min(Vmin, Vi);
+        Vmax = max(Vmax, Vi);
+      }
     }
     Vmin = allReduce(Vmin*volumeMultiplier, MPI_MIN, Communicator::communicator());
     Vmax = allReduce(Vmax*volumeMultiplier, MPI_MAX, Communicator::communicator());
@@ -107,7 +109,7 @@ weibullFlawDistributionOwen(const unsigned seed,
 
     // Based on this compute the maximum number of flaws any node will have.  We'll use this to
     // spin the random number generator without extra communiction.
-    const auto maxFlawsPerNode = std::max(1u, unsigned(kWeibull*Vmax*epsMax2m + 0.5));
+    const auto maxFlawsPerNode = minFlawsPerNode*std::max(1u, unsigned(kWeibull*Vmax*epsMax2m + 0.5));
 
     // Generate the flaws on each node indepedently.
     const double mInv = 1.0/mWeibull;

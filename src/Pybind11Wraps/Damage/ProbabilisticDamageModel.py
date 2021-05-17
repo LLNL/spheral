@@ -32,6 +32,7 @@ resolution materials."""
                seed = "const size_t",
                minFlawsPerNode = ("const size_t", "1u"),
                crackGrowthMultiplier = ("const double", "0.4"),
+               volumeMultiplier = ("const double", "1.0"),
                damageCouplingAlgorithm  = ("const DamageCouplingAlgorithm", "DamageCouplingAlgorithm::PairMaxDamage"),
                strainAlgorithm = ("const TensorStrainAlgorithm", "TensorStrainAlgorithm::PseudoPlasticStrain"),
                damageInCompression = ("const bool", "false")):
@@ -104,6 +105,8 @@ resolution materials."""
                              doc="The coefficient of the Weibull power-law for expected flaw strains")
     mWeibull = PYB11property("double", "mWeibull",
                              doc="The exponent of the Weibull power-law for expected flaw strains")
+    volumeMultiplier = PYB11property("double", "volumeMultiplier",
+                                     doc="A constant multiplier for the initial node volumes -- meant to mock up higher dimension results in 1 or 2D models.")
     Vmin = PYB11property("double", "Vmin",
                          doc="The minimum initial node volume found")
     Vmax = PYB11property("double", "Vmin",

@@ -40,6 +40,7 @@ public:
                            const size_t seed,
                            const size_t minFlawsPerNode,
                            const double crackGrowthMultiplier,
+                           const double volumeMultiplier,
                            const DamageCouplingAlgorithm damageCouplingAlgorithm,
                            const TensorStrainAlgorithm strainAlgorithm,
                            const bool damageInCompression);
@@ -86,6 +87,7 @@ public:
   bool damageInCompression() const;
   double kWeibull() const;
   double mWeibull() const;
+  double volumeMultiplier() const;
   double Vmin() const;
   double Vmax() const;
   size_t seed() const;
@@ -115,7 +117,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   TensorStrainAlgorithm mStrainAlgorithm;
   bool mDamageInCompression;
-  double mkWeibull, mmWeibull, mVmin, mVmax;
+  double mkWeibull, mmWeibull, mVolumeMultiplier, mVmin, mVmax;
   size_t mSeed, mMinFlawsPerNode;
   Field<Dimension, unsigned> mNumFlaws;
   Field<Dimension, Scalar> mMinFlaw, mMaxFlaw, mInitialVolume, mYoungsModulus, mLongitudinalSoundSpeed, mDdamageDt;

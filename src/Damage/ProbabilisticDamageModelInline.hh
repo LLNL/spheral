@@ -39,6 +39,14 @@ template<typename Dimension>
 inline
 double
 ProbabilisticDamageModel<Dimension>::
+volumeMultiplier() const {
+  return mVolumeMultiplier;
+}
+
+template<typename Dimension>
+inline
+double
+ProbabilisticDamageModel<Dimension>::
 Vmin() const {
   return mVmin;
 }
