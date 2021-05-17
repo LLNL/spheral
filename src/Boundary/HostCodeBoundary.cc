@@ -178,7 +178,6 @@ HostCodeBoundary<Dimension>::initializeProblemStartup(const bool final) {
 
   // Remove the origial internal nodes.
   //if (final) {
-  //  VERIFY2(not mActive, "HostCodeBoundary::initializeProblemStartup ERROR -- called with final=True more than once");
   //  mNodeListPtr->deleteNodes(nodeIDs);
   //  mActive = true;
   //}

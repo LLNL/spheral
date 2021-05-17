@@ -934,16 +934,6 @@ updateState(const unsigned* nintpermat,
     me.mNodeLists[imat]->numGhostNodes(me.mNumHostGhostNodes[imat]);
   }
 
-  if (me.mBoundSPH) {
-    std::vector<int> nodeIDs(0);
-    for (int i = 0; i < me.mNumInternalNodes[0] + me.mNumHostGhostNodes[0]; ++i) {
-      if (particleType[i] == 1) {
-        nodeIDs.push_back(i);
-      }
-    }
-    me.mHostCodeBoundary->updateNodeIDs(nodeIDs);
-  }
-
   // If necesary allocate a new State object
   if (me.mStatePtr.get() == nullptr) me.mStatePtr.reset(new State<Dimension>(*me.mDataBasePtr,
                                                                              me.mIntegratorPtr->physicsPackagesBegin(), 
@@ -983,6 +973,25 @@ updateState(const unsigned* nintpermat,
   if (particleType != NULL)          copyArrayToIntFieldList(particleType, pType);
   if (me.mDamage) {
     if (scalarDamage != NULL)        copyArrayToSymTensorFieldList(scalarDamage, D);
+  }
+
+  if (me.mBoundSPH) {
+    int numSphFree = 0;
+    std::vector<int> nodeIDs(0);
+    // Flag each particle of type 1 (bound) to add it to the boundary condition.
+    for (int i = 0; i < me.mNumInternalNodes[0] + me.mNumHostGhostNodes[0]; ++i) {
+      if (particleType[i] == 1) {
+        nodeIDs.push_back(i);
+      }
+      else {
+        ++numSphFree;
+      }
+    }
+    // Keep one particle out of the boundary condition list
+    //if (numSphFree == 0) {
+    //  nodeIDs.erase(nodeIDs.begin(), nodeIDs.begin()+1);
+    //}
+    me.mHostCodeBoundary->updateNodeIDs(nodeIDs);
   }
 }
 
