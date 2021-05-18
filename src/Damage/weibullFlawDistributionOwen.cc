@@ -109,7 +109,7 @@ weibullFlawDistributionOwen(const unsigned seed,
 
     // Based on this compute the maximum number of flaws any node will have.  We'll use this to
     // spin the random number generator without extra communiction.
-    const auto maxFlawsPerNode = minFlawsPerNode*std::max(1u, unsigned(kWeibull*Vmax*epsMax2m + 0.5));
+    const auto maxFlawsPerNode = std::max(1u, unsigned(kWeibull*Vmax*epsMax2m + 0.5));
 
     // Generate the flaws on each node indepedently.
     const double mInv = 1.0/mWeibull;

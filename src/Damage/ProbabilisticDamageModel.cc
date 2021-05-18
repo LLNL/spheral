@@ -140,21 +140,21 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     }
   }
   mVmin = allReduce(mVmin, MPI_MIN, Communicator::communicator());
-  mVmax = allReduce(mVmin, MPI_MAX, Communicator::communicator());
+  mVmax = allReduce(mVmax, MPI_MAX, Communicator::communicator());
 
   // Compute the maximum strain we expect for the minimum volume.
   const auto epsMax2m = mMinFlawsPerNode/(mkWeibull*mVmin);  // epsmax ** m
 
   // Based on this compute the maximum number of flaws any node will have.  We'll use this to
   // spin the random number generator without extra communiction.
-  const auto maxFlawsPerNode = int(mMinFlawsPerNode*std::max(1, int(mkWeibull*mVmax*epsMax2m + 0.5)));
+  const auto maxFlawsPerNode = int(std::max(1, int(mkWeibull*mVmax*epsMax2m + 0.5)));
 
   // Generate initial realizations of the flaw population for each point, of which we capture the min/max range
   // for each point.
   const auto mInv = 1.0/mmWeibull;
-  auto minNumFlaws = std::numeric_limits<int>::max();
-  auto maxNumFlaws = 0;
-  auto totalNumFlaws = 0;
+  size_t minNumFlaws = std::numeric_limits<size_t>::max();
+  size_t maxNumFlaws = 0u;
+  size_t totalNumFlaws = 0u;
   auto epsMin = std::numeric_limits<double>::max();
   auto epsMax = std::numeric_limits<double>::min();
   auto sumFlaws = 0.0;
@@ -182,9 +182,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
       // Gather statistics
 #pragma omp critical
       {
-        minNumFlaws = min(minNumFlaws, mNumFlaws(i));
-        maxNumFlaws = max(maxNumFlaws, mNumFlaws(i));
-        totalNumFlaws += mNumFlaws(i);
+        minNumFlaws = min(minNumFlaws, size_t(mNumFlaws(i)));
+        maxNumFlaws = max(maxNumFlaws, size_t(mNumFlaws(i)));
+        totalNumFlaws += size_t(mNumFlaws(i));
         epsMin = std::min(epsMin, mMinFlaw(i));
         epsMax = std::max(epsMax, mMaxFlaw(i));
         sumFlaws += sumFlawsi;
@@ -200,16 +200,17 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     epsMin = allReduce(epsMin, MPI_MIN, Communicator::communicator());
     epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
     sumFlaws = allReduce(sumFlaws, MPI_SUM, Communicator::communicator());
-  }
-  if (Process::getRank() == 0) {
-    cerr << "ProbabilisticDamageModel for " << nodes.name() << ":" << endl
-         << "    Min num flaws per node: " << minNumFlaws << endl
-         << "    Max num flaws per node: " << maxNumFlaws << endl
-         << "    Total num flaws       : " << totalNumFlaws << endl
-         << "    Avg flaws per node    : " << totalNumFlaws / std::max(1, nused_global) << endl
-         << "    Min flaw strain       : " << epsMin << endl
-         << "    Max flaw strain       : " << epsMax << endl
-         << "    Avg node failure      : " << sumFlaws / std::max(1, nused_global) << endl;
+    if (Process::getRank() == 0) {
+      cerr << "ProbabilisticDamageModel for " << nodes.name() << ":" << endl
+           << " Min, max, max/min volumes: " << mVmin << " " << mVmax << " " << mVmax*safeInv(mVmin) << endl
+           << "    Min num flaws per node: " << minNumFlaws << endl
+           << "    Max num flaws per node: " << maxNumFlaws << endl
+           << "    Total num flaws       : " << totalNumFlaws << endl
+           << "    Avg flaws per node    : " << totalNumFlaws / std::max(1, nused_global) << endl
+           << "    Min flaw strain       : " << epsMin << endl
+           << "    Max flaw strain       : " << epsMax << endl
+           << "    Avg node failure      : " << sumFlaws / std::max(1, nused_global) << endl;
+    }
   }
 }
 
