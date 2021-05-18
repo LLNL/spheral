@@ -58,6 +58,7 @@ spheral_install_python_files(
   WeibullDamage.py
   GradyKippTensorDamage.py
   JohnsonCookDamageFactories.py
+  ShadowProbabilisticDamageModel.py
   )
 
 spheral_add_cxx_library(Damage)
