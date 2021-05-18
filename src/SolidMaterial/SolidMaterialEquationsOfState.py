@@ -16,7 +16,7 @@ for dim in dims:
     exec("""
 from SpheralCompiledPackages import (LinearPolynomialEquationOfState%(dim)sd,
                                      GruneisenEquationOfState%(dim)sd,
-                                     MurnahanEquationOfState%(dim)sd,
+                                     MurnaghanEquationOfState%(dim)sd,
                                      TillotsonEquationOfState%(dim)sd,
                                      SteinbergGuinanStrength%(dim)sd)
 """ % {"dim" : dim})
@@ -97,9 +97,9 @@ class GruneisenEquationOfState%(units)s%(dim)id(GruneisenEquationOfState%(dim)id
         return
 
 #-------------------------------------------------------------------------------
-# MurnahanEquationOfState
+# MurnaghanEquationOfState
 #-------------------------------------------------------------------------------
-class MurnahanEquationOfState%(units)s%(dim)id(MurnahanEquationOfState%(dim)id):
+class MurnaghanEquationOfState%(units)s%(dim)id(MurnaghanEquationOfState%(dim)id):
     def __init__(self, 
                  referenceDensity,
                  etamin,
@@ -111,7 +111,7 @@ class MurnahanEquationOfState%(units)s%(dim)id(MurnahanEquationOfState%(dim)id):
                  minimumPressure = -1e200,
                  maximumPressure =  1e200):
         self._units = %(units)s()
-        MurnahanEquationOfState%(dim)id.__init__(self,
+        MurnaghanEquationOfState%(dim)id.__init__(self,
                                                  referenceDensity,
                                                  etamin,
                                                  etamax,

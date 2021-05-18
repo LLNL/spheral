@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# MurnahanEquationOfState
+# MurnaghanEquationOfState
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from SolidEquationOfState import *
@@ -7,8 +7,8 @@ from EOSAbstractMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralSolidMaterial")
-class MurnahanEquationOfState(SolidEquationOfState):
-    """MurnahanEquationOfState -- Murnahan  equation of state.
+class MurnaghanEquationOfState(SolidEquationOfState):
+    """MurnaghanEquationOfState -- Murnaghan  equation of state.
 
   P(rho) = 1/(nK) * (eta^n - 1)
   eta = rho/rho0"""
@@ -32,7 +32,7 @@ class MurnahanEquationOfState(SolidEquationOfState):
                minimumPressure = ("const double", "std::numeric_limits<double>::lowest()"),
                maximumPressure = ("const double", "std::numeric_limits<double>::max()"),
                minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor")):
-        "Murnahan EOS"
+        "Murnaghan EOS"
 
     #...........................................................................
     # Methods
@@ -102,4 +102,4 @@ class MurnahanEquationOfState(SolidEquationOfState):
 #-------------------------------------------------------------------------------
 # Inject EOS interface
 #-------------------------------------------------------------------------------
-PYB11inject(EOSAbstractMethods, MurnahanEquationOfState, virtual=True, pure_virtual=False)
+PYB11inject(EOSAbstractMethods, MurnaghanEquationOfState, virtual=True, pure_virtual=False)

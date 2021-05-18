@@ -7,7 +7,7 @@
 #include "SolidMaterial/GruneisenEquationOfState.hh"
 #include "SolidMaterial/OsborneEquationOfState.hh"
 #include "SolidMaterial/TillotsonEquationOfState.hh"
-#include "SolidMaterial/MurnahanEquationOfState.hh"
+#include "SolidMaterial/MurnaghanEquationOfState.hh"
 #include "SolidMaterial/StrengthModel.hh"
 #include "SolidMaterial/ConstantStrength.hh"
 #include "SolidMaterial/NullStrength.hh"
@@ -54,9 +54,9 @@ typedef TillotsonEquationOfState<Dim<1> > TillotsonEquationOfState1d;
 typedef TillotsonEquationOfState<Dim<2> > TillotsonEquationOfState2d;
 typedef TillotsonEquationOfState<Dim<3> > TillotsonEquationOfState3d;
 
-typedef MurnahanEquationOfState<Dim<1> > MurnahanEquationOfState1d;
-typedef MurnahanEquationOfState<Dim<2> > MurnahanEquationOfState2d;
-typedef MurnahanEquationOfState<Dim<3> > MurnahanEquationOfState3d;
+typedef MurnaghanEquationOfState<Dim<1> > MurnaghanEquationOfState1d;
+typedef MurnaghanEquationOfState<Dim<2> > MurnaghanEquationOfState2d;
+typedef MurnaghanEquationOfState<Dim<3> > MurnaghanEquationOfState3d;
 
 typedef StrengthModel<Dim<1> > StrengthModel1d;
 typedef StrengthModel<Dim<2> > StrengthModel2d;
