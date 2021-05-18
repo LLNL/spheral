@@ -391,7 +391,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  //auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
@@ -413,7 +413,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(DepsDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
-  //CHECK(M.size() == numNodeLists);
+  CHECK(M.size() == numNodeLists);
   CHECK(localM.size() == numNodeLists);
   CHECK(DHDt.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
@@ -439,6 +439,136 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
+
+
+
+//M corr needs to be calculated beforehand 
+//to be consistently applied to the acceleration
+//and the time derivative of internal energy
+if(this->correctVelocityGradient()){
+
+
+#pragma omp parallel
+  {
+    // Thread private  scratch variables.
+    int i, j, nodeListi, nodeListj;
+    //Scalar Wi, gWi, Wj, gWj;
+
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto M_thread = M.threadCopy(threadStack);
+
+#pragma omp for
+    for (auto kk = 0u; kk < npairs; ++kk) {
+      //const auto start = Timing::currentTime();
+      i = pairs[kk].i_node;
+      j = pairs[kk].j_node;
+      nodeListi = pairs[kk].i_list;
+      nodeListj = pairs[kk].j_list;
+
+      // Get the state for node i.
+      const auto& ri = position(nodeListi, i);
+      const auto& mi = mass(nodeListi, i);
+      const auto& rhoi = massDensity(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+            auto  Hdeti = Hi.Determinant();
+      CHECK(mi > 0.0);
+      CHECK(rhoi > 0.0);
+      CHECK(Hdeti > 0.0);
+
+      // Get the state for node j
+      const auto& rj = position(nodeListj, j);
+      const auto& mj = mass(nodeListj, j);
+      const auto& rhoj = massDensity(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+            auto  Hdetj = Hj.Determinant();
+      CHECK(mj > 0.0);
+      CHECK(rhoj > 0.0);
+      CHECK(Hdetj > 0.0);
+
+      auto& Mi = M_thread(nodeListi,i);
+      auto& Mj = M_thread(nodeListj,j);
+
+
+      // Kernels
+      //--------------------------------------
+      const auto rij = ri - rj;
+      //const auto Hij = 0.5*(Hi+Hj);
+      //const auto etaij = Hij*rij;
+      //const auto Hdetij = Hij.Determinant();
+
+      const auto etai = Hi*rij;
+      const auto etaj = Hj*rij;
+      const auto etaMagi = etai.magnitude();
+      const auto etaMagj = etaj.magnitude();
+      CHECK(etaMagi >= 0.0);
+      CHECK(etaMagj >= 0.0);
+
+      // Symmetrized kernel weight and gradient.
+      const auto gWi = W.gradValue(etaMagi, Hdeti);
+      const auto gWj = W.gradValue(etaMagj, Hdetj);
+      const auto Hetai = Hi*etai.unitVector();
+      const auto Hetaj = Hj*etaj.unitVector();
+      auto gradWi = gWi*Hetai;
+      auto gradWj = gWj*Hetaj;
+
+     // averaged things.
+      //const auto Wij = 0.5*(Wi+Wj); 
+     // const auto gWij = 0.5*(gWi+gWj);
+      
+
+      //Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
+      if (!(nodeListi==nodeListj)){
+        const auto gradWij = 0.5*(gradWi+gradWj);
+        //Hdeti =  1.0*Hdetij;
+        //Hdetj = 1.0*Hdetij;
+       // Wi = 1.0*Wij;
+        //Wj = 1.0*Wij;
+        //gWi = 1.0*gWij;
+        //gWj = 1.0*gWij;
+       gradWi = 1.0*gradWij;
+       gradWj = 1.0*gradWij;
+      }
+
+      // linear velocity gradient correction
+      //---------------------------------------------------------------
+      Mi -=  mj/rhoj * rij.dyad(gradWi);
+      Mj -=  mi/rhoi * rij.dyad(gradWj);
+
+    } // loop over pairs
+      // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+  }   // OpenMP parallel region
+
+   
+    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+      const auto& nodeList = mass[nodeListi]->nodeList();
+      const auto ni = nodeList.numInternalNodes();
+#pragma omp parallel for
+      for (auto i = 0u; i < ni; ++i) {
+
+        const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
+        auto& Mi = M(nodeListi, i);
+
+        const auto goodM = std::abs(Mi.Determinant()) > 1.0e-10 and numNeighborsi > Dimension::pownu(2);
+        Mi =  (goodM? Mi.Inverse(): Tensor::one);
+      } 
+    }
+
+
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+      (*boundaryItr)->applyFieldListGhostBoundary(M);
+    }
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+
+} // if correct velocity gradient
+
+
+
+
 // Now we calculate  the hydro deriviatives
 // Walk all the interacting pairs.
 #pragma omp parallel
@@ -448,9 +578,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     Scalar Wi, gWi, Wj, gWj;
     Tensor QPiij, QPiji;
     SymTensor sigmai, sigmaj;
+    Vector sigmarhoi, sigmarhoj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
-    //auto M_thread = M.threadCopy(threadStack);
+    auto M_thread = M.threadCopy(threadStack);
     auto DvDt_thread = DvDt.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
@@ -460,7 +591,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
-      const auto start = Timing::currentTime();
+      //const auto start = Timing::currentTime();
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
       nodeListi = pairs[kk].i_list;
@@ -483,7 +614,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
-      //auto& Mi = M_thread(nodeListi,i);
+      const auto& Mi = M_thread(nodeListi,i);
       auto& DvDti = DvDt_thread(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
@@ -508,7 +639,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
-      //auto& Mj = M_thread(nodeListj,j);
+      const auto& Mj = M_thread(nodeListj,j);
       auto& DvDtj = DvDt_thread(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
@@ -529,7 +660,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto rij = ri - rj;
       const auto Hij = 0.5*(Hi+Hj);
       const auto etaij = Hij*rij;
-      const auto Hdetij = Hij.Determinant();
 
       const auto etai = Hi*rij;
       const auto etaj = Hj*rij;
@@ -546,13 +676,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto gradWi = gWi*Hetai;
       auto gradWj = gWj*Hetaj;
 
-      // averaged things.
-      const auto Wij = 0.5*(Wi+Wj); 
-      const auto gWij = 0.5*(gWi+gWj);
-      const auto gradWij = 0.5*(gradWi+gradWj);
-
       // Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
       if (!sameMatij){
+        const auto Hdetij = Hij.Determinant();
+        const auto Wij = 0.5*(Wi+Wj); 
+        const auto gWij = 0.5*(gWi+gWj);
+        const auto gradWij = 0.5*(gradWi+gradWj);
+
         Hdeti =  1.0*Hdetij;
         Hdetj = 1.0*Hdetij;
         Wi = 1.0*Wij;
@@ -578,46 +708,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto rhoij = 0.5*(rhoi+rhoj); 
       const auto cij = 0.5*(ci+cj); 
       const auto vij = vi - vj;
-      //const auto normavg = 0.5*(normi-normj);
-      //const auto vni = (sameMatij ? vi : vi.dot(normavg)*normavg);
-      //const auto vni = (sameMatij ? vj : vj.dot(normavg)*normavg);
-      //if(sameMatij){
+
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
                                       ri, etaij, vi, rhoij, cij, Hij,  
                                       rj, etaij, vj, rhoij, cij, Hij); 
-      //}else{
-        
-        //const auto rni = ri.dot(normavg)*normavg;
-        //const auto rnj = rj.dot(normavg)*normavg;
-        //const auto vni = vi.dot(normavg)*normavg;
-        //const auto vnj = vj.dot(normavg)*normavg;
-        //const auto etanij = etaij.dot(normavg)*normavg;
-        //std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-        //                                rni, etanij, vni, rhoij, cij, Hij,  
-        //                                rnj, etanij, vnj, rhoij, cij, Hij); 
-      //}
-      
-      //const auto Qacci = 0.5*(QPiij*gradWi);
-      //const auto Qaccj = 0.5*(QPiji*gradWj);
-      //const auto workQi = vij.dot(Qacci);
-      //const auto workQj = vij.dot(Qaccj);
-      //auto Qi = rhoi*rhoj*(QPiij.diagonalElements().maxAbsElement());
-      //auto Qj = rhoi*rhoj*(QPiji.diagonalElements().maxAbsElement());
-      //maxViscousPressurei += mj/rhoj*Qi*Wi;
-      //maxViscousPressurej += mi/rhoi*Qj*Wj;
-      //if (!sameMatij){
-        //const auto avInterfaceReduceri =  abs((normi-normj).unitVector().dot(vij.unitVector()));
-        
-        //const auto avInterfaceReduceri  =  max((normi).unitVector().dot(vij.unitVector()),0.0);
-        //const auto avInterfaceReducerj  = -min((normj).unitVector().dot(vij.unitVector()),0.0);
-       
-        //Qi *= avInterfaceReduceri*avInterfaceReducerj;
-        //Qj *= avInterfaceReduceri*avInterfaceReducerj;
-      //}
-      //effViscousPressurei += mj/rhoj*Qi*Wi;
-      //effViscousPressurej += mi/rhoi*Qj*Wj;
-      //viscousWorki += max(2.00*Qi/max(Pi+Pj,1e-30),viscousWorki);// mj*workQi;
-      //viscousWorkj += max(2.00*Qj/max(Pi+Pj,1e-30),viscousWorkj);// mi*workQj;
 
       // stresses for interacting pairs.
       if (sameMatij) {
@@ -649,12 +743,19 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       sigmai += Ri;
       sigmaj += Rj;
 
-      
       // accelerations
       //---------------------------------------------------------------
+      const auto rhoirhoj = 1.0/(rhoi*rhoj);
       const auto sf = (sameMatij ? 1.0 : 1.0 + surfaceForceCoeff*abs((rhoi-rhoj)/(rhoi+rhoj+tiny)));
-      const auto sigmarhoi = ((sf*sigmai/(rhoi*rhoj)-0.5*QPiij))*gradWi;
-      const auto sigmarhoj = ((sf*sigmaj/(rhoj*rhoi)-0.5*QPiji))*gradWj;
+
+      if(this->correctVelocityGradient()){
+        //const auto Mij = 0.5*(Mi.Determinant()+Mj.Determinant());
+        sigmarhoi = sf*((rhoirhoj*sigmai-0.5*QPiij)*Mi.Transpose())*gradWi;
+        sigmarhoj = sf*((rhoirhoj*sigmaj-0.5*QPiji)*Mj.Transpose())*gradWj;
+      }else{
+        sigmarhoi = sf*((rhoirhoj*sigmai-0.5*QPiij))*gradWi;
+        sigmarhoj = sf*((rhoirhoj*sigmaj-0.5*QPiji))*gradWj;
+      }
       const auto deltaDvDt = sigmarhoi+sigmarhoj;
 
       if (freeParticle) {
@@ -665,48 +766,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       pairAccelerations[2*kk]   = sigmarhoi; 
       pairAccelerations[2*kk+1] = sigmarhoj;
 
-      // linear velocity gradient correction
-      //---------------------------------------------------------------
-      //if(this->mCorrectVelocityGradient){
-      //  Mi -=  mj/rhoj * rij.dyad(gradWi);
-      //  Mj -=  mi/rhoi * rij.dyad(gradWj);
-      //}
-
-      // Add timing info for work
-      //---------------------------------------------------------------
-      const auto deltaTimePair = 0.5*Timing::difference(start, Timing::currentTime());
-#pragma omp atomic
-      nodeLists[nodeListi]->work()(i) += deltaTimePair;
-#pragma omp atomic
-      nodeLists[nodeListj]->work()(j) += deltaTimePair;
 
     } // loop over pairs
-
       // Reduce the thread values to the master.
     threadReduceFieldLists<Dimension>(threadStack);
-
   }   // OpenMP parallel region
 
-  // correct the acceleration and implicitly DepsDt
-  //-----------------------------------------------------
-//   if(this->mCorrectVelocityGradient){
-   
-//     for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-//       const auto& nodeList = mass[nodeListi]->nodeList();
-//       const auto ni = nodeList.numInternalNodes();
-// #pragma omp parallel for
-//       for (auto i = 0u; i < ni; ++i) {
 
-//         const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
-//         auto& Mi = M(nodeListi, i);
-//         auto& DvDti = DvDt(nodeListi, i);
-
-//         const auto goodM = std::abs(Mi.Determinant()) > 1.0e-10 and numNeighborsi > Dimension::pownu(2);
-//         Mi =  (goodM? Mi.Inverse(): Tensor::one);
-//         DvDti = Mi.Determinant()*DvDti;
-//       } 
-//     }
-//   }
 
   // apply boundary conditions
   //-----------------------------------------------------
@@ -739,7 +805,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
     #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
-      const auto start = Timing::currentTime();
+      //const auto start = Timing::currentTime();
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
       nodeListi = pairs[kk].i_list;
@@ -812,7 +878,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Flag if at least one particle is free (0).
       //const auto freeParticle = (pTypei == 0 or pTypej == 0);
-
       const auto fDij = pairs[kk].f_couple;
 
       // Kernels
@@ -820,7 +885,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto rij = ri - rj;
       const auto Hij = 0.5*(Hi+Hj);
       const auto etaij = Hij*rij;
-      const auto Hdetij = Hij.Determinant();
       const auto etaMagij = etaij.magnitude();
       CHECK(etaMagij >= 0.0);
 
@@ -839,12 +903,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto gradWj = gWj*Hetaj;
       
       // W-star for interface
-      const auto Wij = 0.5*(Wi+Wj); 
-      const auto gWij = 0.5*(gWi+gWj);
       const auto gradWij = 0.5*(gradWi+gradWj);
 
       // better consisency between DrhoDt and DepsDt
       if (!sameMatij){
+        const auto Hdetij = Hij.Determinant();
+        const auto Wij = 0.5*(Wi+Wj); 
+        const auto gWij = 0.5*(gWi+gWj);
+
         Hdeti =  1.0*Hdetij;
         Hdetj = 1.0*Hdetij;
         Wi = 1.0*Wij;
@@ -896,9 +962,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         ustar = weightUi*ui + weightUj*uj;
         wstar = weightWi*wi + weightWj*wj; 
       }
-      if(sameMatij and fDij<0.999){
-        const auto wstarDamaged = weightWi*wi + weightWj*wj; 
+      if(sameMatij and fDij<0.999){ 
         const auto ustarDamaged = weightUi*ui + weightUj*uj;
+        const auto wstarDamaged = weightWi*wi + weightWj*wj;
         wstar = fDij*wstar + (1.0-fDij)*wstarDamaged;
         ustar = fDij*ustar + (1.0-fDij)*ustarDamaged;
       }
@@ -980,20 +1046,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         XSPHDeltaVi -= volj*Wi*vij;
         XSPHDeltaVj += voli*Wj*vij;
       }
-      
-      // Add timing info for work
-      const auto deltaTimePair = 0.5*Timing::difference(start, Timing::currentTime());
-#pragma omp atomic
-      nodeLists[nodeListi]->work()(i) += deltaTimePair;
-#pragma omp atomic
-      nodeLists[nodeListj]->work()(j) += deltaTimePair;
 
     } // loop over pairs
-
-
     // Reduce the thread values to the master.
     threadReduceFieldLists<Dimension>(threadStack);
-
   }   // OpenMP parallel region
 
 
@@ -1027,7 +1083,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& DrhoDti = DrhoDt(nodeListi, i);
       auto& DvDxi = DvDx(nodeListi, i);
       auto& localDvDxi = localDvDx(nodeListi, i);
-      //auto& Mi = M(nodeListi, i);
+      auto& Mi = M(nodeListi, i);
       auto& localMi = localM(nodeListi, i);
       auto& DHDti = DHDt(nodeListi, i);
       auto& Hideali = Hideal(nodeListi, i);
@@ -1041,11 +1097,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
       
-      //if (this->mCorrectVelocityGradient and 
-      //    std::abs(Mi.Determinant()) > 1.0e-10 and
-      //    numNeighborsi > Dimension::pownu(2)) {
-      //  DvDxi=DvDxi*Mi;
-      //} 
+      if (this->correctVelocityGradient() and 
+           std::abs(Mi.Determinant()) > 1.0e-10 and
+           numNeighborsi > Dimension::pownu(2)) {
+         DvDxi=DvDxi*Mi;
+      } 
 
       DrhoDti -=  rhoi*DvDxi.Trace();
 
@@ -1055,7 +1111,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         XSPHWeightSumi += Hdeti*mi/rhoi*W0 + tiny;
         DxDti += 0.25*XSPHDeltaVi/XSPHWeightSumi;
       }
-      
+
+    
       DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
                                                             ri,
                                                             DvDxi,

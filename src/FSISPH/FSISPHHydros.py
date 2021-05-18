@@ -309,6 +309,13 @@ def FSISPH(dataBase,
         ASPH = False,
         RZ = False):
 
+    print("**********************************************************************")
+    print(" FSISPH WARNING : strongly reccomended to use SyncronousRK1Integrator:")
+    print("                  only integrator that is garenteed to conserve energy")
+    print("                  only integrator that is garenteed to conserve energy")
+    print("**********************************************************************")
+    print(" ")
+    
     if densityDiffusionCoefficient > 1e-30 or specificThermalEnergyDiffusionCoefficient > 1e-30:
         print("**********************************************************************")
         print(" FSISPH WARNING : compatibility issue w/ StrainPorosity when running:")
