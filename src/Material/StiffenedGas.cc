@@ -256,53 +256,6 @@ StiffenedGas<Dimension>::gamma(const Scalar /*massDensity*/,
 }
 
 //------------------------------------------------------------------------------
-// Get and set gamma.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Dimension::Scalar
-StiffenedGas<Dimension>::gamma() const {
-  return mGamma;
-}
-
-template<typename Dimension>
-void
-StiffenedGas<Dimension>::gamma(typename Dimension::Scalar gam) {
-  mGamma = gam;
-  mGamma1 = mGamma - 1.0;
-}
-
-//------------------------------------------------------------------------------
-// Get and set the specific Heat.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Dimension::Scalar
-StiffenedGas<Dimension>::specificHeat() const {
-  return mCv;
-}
-
-template<typename Dimension>
-void
-StiffenedGas<Dimension>::specificHeat(typename Dimension::Scalar Cv) {
-  mCv = Cv;
-}
-
-
-//------------------------------------------------------------------------------
-// Get / Set referencePressure
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Dimension::Scalar
-StiffenedGas<Dimension>::referencePressure() const {
-  return mP0;
-}
-
-template<typename Dimension>
-void
-StiffenedGas<Dimension>::referencePressure(typename Dimension::Scalar P0) {
-  mP0 = P0;
-}
-
-//------------------------------------------------------------------------------
 // Determine if the EOS is in a valid state.
 //------------------------------------------------------------------------------
 template<typename Dimension>

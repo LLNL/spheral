@@ -117,6 +117,8 @@ private:
 
 }
 
+#include "StiffenedGasInline.hh"
+
 #else
 
 // Forward declaration.
