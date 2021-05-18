@@ -35,7 +35,8 @@ resolution materials."""
                volumeMultiplier = ("const double", "1.0"),
                damageCouplingAlgorithm  = ("const DamageCouplingAlgorithm", "DamageCouplingAlgorithm::PairMaxDamage"),
                strainAlgorithm = ("const TensorStrainAlgorithm", "TensorStrainAlgorithm::PseudoPlasticStrain"),
-               damageInCompression = ("const bool", "false")):
+               damageInCompression = ("const bool", "false"),
+               criticalDamageThreshold = ("const double", "3.0")):
         "Constructor"
 
     #...........................................................................
@@ -136,6 +137,8 @@ resolution materials."""
     DdamageDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     randomGenerator = PYB11property("const Field<%(Dimension)s, uniform_random>&", returnpolicy="reference_internal")
     mask = PYB11property("const Field<%(Dimension)s, int>&", "mask", "mask", returnpolicy="reference_internal")
+    criticalDamageThreshold = PYB11property("double", "criticalDamageThreshold", "criticalDamageThreshold",
+                                            doc="Optional damage threshold, beyond which points do not vote on a timestep")
 
 #-------------------------------------------------------------------------------
 # Add the restart methods

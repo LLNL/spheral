@@ -701,7 +701,7 @@ if graphics:
         epsl.appendField(epsMin)
         epsPlot = plotFieldList(epsl, winTitle="Min flaw activation strains",
                                 plotStyle="o-")
-        nflawsl = UnsignedFieldList()
+        nflawsl = IntFieldList()
         nflawsl.appendField(nflaws)
         nflawsPlot = plotFieldList(nflawsl, winTitle="Number of flaws",
                                    plotStyle="o-")

@@ -165,4 +165,18 @@ mask(const Field<Dimension, int>& val) {
   mMask = val;
 }
 
+template<typename Dimension>
+double
+ProbabilisticDamageModel<Dimension>::
+criticalDamageThreshold() const {
+  return mCriticalDamageThreshold;
+}
+
+template<typename Dimension>
+void
+ProbabilisticDamageModel<Dimension>::
+criticalDamageThreshold(const double val) {
+  mCriticalDamageThreshold = val;
+}
+
 }

@@ -43,7 +43,8 @@ public:
                            const double volumeMultiplier,
                            const DamageCouplingAlgorithm damageCouplingAlgorithm,
                            const TensorStrainAlgorithm strainAlgorithm,
-                           const bool damageInCompression);
+                           const bool damageInCompression,
+                           const double criticalDamageThreshold);
   virtual ~ProbabilisticDamageModel();
 
   //............................................................................
@@ -107,6 +108,10 @@ public:
   const Field<Dimension, int>& mask() const;
   void mask(const Field<Dimension, int>& val);
 
+  // Optionally ignore timestep votes for material beyond a damage threshold
+  double criticalDamageThreshold() const;
+  void criticalDamageThreshold(const double val);
+
   //............................................................................
   // Restart methods.
   virtual std::string label() const { return "ProbabilisticDamageModel"; }
@@ -117,7 +122,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   TensorStrainAlgorithm mStrainAlgorithm;
   bool mDamageInCompression;
-  double mkWeibull, mmWeibull, mVolumeMultiplier, mVmin, mVmax;
+  double mkWeibull, mmWeibull, mVolumeMultiplier, mVmin, mVmax, mCriticalDamageThreshold;
   size_t mSeed, mMinFlawsPerNode;
   Field<Dimension, int> mNumFlaws, mMask;
   Field<Dimension, Scalar> mMinFlaw, mMaxFlaw, mInitialVolume, mYoungsModulus, mLongitudinalSoundSpeed, mDdamageDt;

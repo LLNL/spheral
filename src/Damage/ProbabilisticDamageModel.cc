@@ -62,7 +62,8 @@ ProbabilisticDamageModel(SolidNodeList<Dimension>& nodeList,
                          const double volumeMultiplier,
                          const DamageCouplingAlgorithm damageCouplingAlgorithm,
                          const TensorStrainAlgorithm strainAlgorithm,
-                         const bool damageInCompression):
+                         const bool damageInCompression,
+                         const double criticalDamageThreshold):
   DamageModel<Dimension>(nodeList, W, crackGrowthMultiplier, damageCouplingAlgorithm),
   mStrainAlgorithm(strainAlgorithm),
   mDamageInCompression(damageInCompression),
@@ -71,6 +72,7 @@ ProbabilisticDamageModel(SolidNodeList<Dimension>& nodeList,
   mVolumeMultiplier(volumeMultiplier),
   mVmin(std::numeric_limits<double>::max()),
   mVmax(std::numeric_limits<double>::min()),
+  mCriticalDamageThreshold(criticalDamageThreshold),
   mSeed(seed),
   mMinFlawsPerNode(minFlawsPerNode),
   mNumFlaws(SolidFieldNames::numFlaws, nodeList),
@@ -298,18 +300,28 @@ registerState(DataBase<Dimension>& dataBase,
   // Register the damage and state it requires.
   // Note we are overriding the default no-op policy for the damage
   // as originally registered by the SolidSPHHydroBase class.
+  auto& damage = this->nodeList().damage();
   PolicyPointer damagePolicy(new ProbabilisticDamagePolicy<Dimension>(mDamageInCompression,
                                                                       mkWeibull,
                                                                       mmWeibull,
                                                                       mMinFlawsPerNode,
                                                                       mVmin,
                                                                       mVmax));
-  state.enroll(this->nodeList().damage(), damagePolicy);
+  state.enroll(damage, damagePolicy);
   state.enroll(mNumFlaws);
   state.enroll(mMinFlaw);
   state.enroll(mMaxFlaw);
   state.enroll(mInitialVolume);
   state.enroll(mRandomGenerator);
+
+  // Mask out nodes beyond the critical damage threshold from setting the timestep.
+  auto maskKey = state.buildFieldKey(HydroFieldNames::timeStepMask, this->nodeList().name());
+  auto& mask = state.field(maskKey, 0);
+  const auto nlocal = this->nodeList().numInternalNodes();
+#pragma omp parallel for
+  for (auto i = 0u; i < nlocal; ++i) {
+    if (damage(i).Trace() > mCriticalDamageThreshold) mask(i) = 0;
+  }
 }
 
 //------------------------------------------------------------------------------
