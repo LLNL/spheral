@@ -269,7 +269,7 @@ registerState(DataBase<Dimension>& dataBase,
   
   state.enroll(mTimeStepMask);
   state.enroll(mass);
-  state.enroll(mLastDvDx);
+  //state.enroll(mLastDvDx);
   state.enroll(massDensity, rhoPolicy);
   state.enroll(Hfield, Hpolicy);
   state.enroll(position, positionPolicy);
@@ -754,30 +754,30 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Symmetrized kernel weight and gradient.
       std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
       const auto Hetai = Hi*etai.unitVector();
-      const auto gradWi = gWi*Hetai;
+      auto gradWi = gWi*Hetai;
 
       std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
       const auto Hetaj = Hj*etaj.unitVector();
-      const auto gradWj = gWj*Hetaj;
+      auto gradWj = gWj*Hetaj;
 
-      const auto Hdetij = (0.5*(Hi+Hj)).Determinant();
-      const auto Wij = 0.5*(Wi+Wj);
-      const auto gWij = 0.5*(gWi+gWj);
-      const auto gradWij = 0.5*(gradWi+gradWj);
+      //const auto Hdetij = (0.5*(Hi+Hj)).Determinant();
+      //const auto Wij = 0.5*(Wi+Wj);
+      //const auto gWij = 0.5*(gWi+gWj);
+      //const auto gradWij = 0.5*(gradWi+gradWj);
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
       const auto rij2 = rij.magnitude2();
       const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
-      weightedNeighborSumi += std::abs(gWij);
-      weightedNeighborSumj += std::abs(gWij);
-      massSecondMomenti += gradWij.magnitude2()*thpt;
-      massSecondMomentj += gradWij.magnitude2()*thpt;
+      weightedNeighborSumi += std::abs(gWi);
+      weightedNeighborSumj += std::abs(gWj);
+      massSecondMomenti += gradWi.magnitude2()*thpt;
+      massSecondMomentj += gradWj.magnitude2()*thpt;
 
 
       // Determine an effective pressure including a term to fight the tensile instability.
       //const auto fij = epsTensile*pow(Wi/(Hdeti*WnPerh), nTensile);
-      const auto fij = mEpsTensile*FastMath::pow4(Wij/(Hdetij*WnPerh));
+      const auto fij = mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
       const auto Ri = fij*(Pi < 0.0 ? -Pi : 0.0);
       const auto Rj = fij*(Pj < 0.0 ? -Pj : 0.0);
       const auto Peffi = Pi + Ri;
@@ -791,24 +791,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto voli = mi/rhoi;
       const auto volj = mj/rhoj;
 
-      const auto isExpanding = vij.dot(rij) > 0.0;
+      //const auto isExpanding = vij.dot(rij) > 0.0;
 
-      if (isExpanding){
-        vstar = 0.5*(vi+vj);
-        Pstar = 0.5*(Pi+Pj);
-      }else{
-        computeHLLCstate( rij, 
+      computeHLLCstate( rij, 
                         nodeListi, nodeListj, i, j,
                         Peffi, Peffj, rhoi, rhoj, vi, vj, ci, cj,
                         DpDxi, DpDxj, oldDvDxi, oldDvDxj,
                         vstar, Pstar);
-      }
       
       
       // acceleration
       //------------------------------------------------------
-      const auto Prho = Pstar/(rhoi*rhoj);
-      const auto deltaDvDt = 2.0*Prho*gradWij;//Prho*(+gradWij);
+      if (mCorrectVelocityGradient){
+        gradWi = Mi.Transpose()*gradWi;
+        gradWj = Mj.Transpose()*gradWj;
+      }
+      const auto Prhoi = Pstar/(rhoi*rhoj)*gradWi;
+      const auto Prhoj = Pstar/(rhoi*rhoj)*gradWj;
+      const auto deltaDvDt = Prhoi+Prhoj;//Prho*(+gradWij);
       DvDti -= mj*deltaDvDt;
       DvDtj += mi*deltaDvDt;
 
@@ -816,12 +816,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // velocity gradient -> continuity
       //------------------------------------------------------
-      auto deltaDvDxi = (2.0*(vi-vstar).dyad(gradWij));
-      auto deltaDvDxj = (2.0*(vstar-vj).dyad(gradWij));
-      if (mCorrectVelocityGradient){
-        deltaDvDxi = deltaDvDxi*Mi;
-        deltaDvDxj = deltaDvDxj*Mj;
-      }
+      const auto deltaDvDxi = (2.0*(vi-vstar).dyad(gradWi));
+      const auto deltaDvDxj = (2.0*(vstar-vj).dyad(gradWj));
 
       DvDxi -= volj*deltaDvDxi; 
       DvDxj -= voli*deltaDvDxj;
@@ -832,11 +828,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
     // Specific thermal energy evolution.
     //--------------------------------------------------------
-     // DepsDti += mj*(deltaDvDt.dot(vi-vstar));
-     // DepsDtj += mi*(deltaDvDt.dot(vstar-vj));
+      DepsDti += mj*(deltaDvDt.dot(vi-vstar));
+      DepsDtj += mi*(deltaDvDt.dot(vstar-vj));
 
-      DepsDti += mj*(Prho*deltaDvDxi.Trace());
-      DepsDtj += mi*(Prho*deltaDvDxj.Trace());
+     // DepsDti += mj*(Prho*deltaDvDxi.Trace());
+     // DepsDtj += mi*(Prho*deltaDvDxj.Trace());
     } // loop over pairs
     threadReduceFieldLists<Dimension>(threadStack);
   } // OpenMP parallel region
@@ -881,7 +877,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
-      auto& Mi = M(nodeListi,i);
+      //auto& Mi = M(nodeListi,i);
       // Add the self-contribution to density sum.
       //normi += mi/rhoi*W0*Hdeti;
 
@@ -1064,20 +1060,20 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       const auto gradWj = gWj*Hetaj;
 
       // averaged things.
-      const auto gradWij = 0.5*(gradWi+gradWj);
+      //const auto gradWij = 0.5*(gradWi+gradWj);
       
       // volumes
       const auto voli = mi/rhoi;
       const auto volj = mj/rhoj;
 
-      DpDxi -= volj * (Pi-Pj) * gradWij;
-      DpDxj -= voli * (Pi-Pj) * gradWij;
+      DpDxi -= volj * (Pi-Pj) * gradWi;
+      DpDxj -= voli * (Pi-Pj) * gradWj;
 
       // Linear gradient correction term.
       if(this->mCorrectVelocityGradient){
         //const auto Mij = ;
-        Mi -= volj*rij.dyad(gradWij);
-        Mj -= voli*rij.dyad(gradWij);
+        Mi -= volj*rij.dyad(gradWi);
+        Mj -= voli*rij.dyad(gradWj);
       }
 
     } // loop over pairs
