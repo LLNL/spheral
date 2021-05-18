@@ -124,6 +124,9 @@ class MurnaghanEquationOfState%(units)s%(dim)id(MurnaghanEquationOfState%(dim)id
                                                  maximumPressure)
         return
 
+# backwards compatibility 
+MurnahanEquationOfState%(units)s%(dim)id = MurnaghanEquationOfState%(units)s%(dim)id 
+
 #-------------------------------------------------------------------------------
 # TillotsonEquationOfState
 #-------------------------------------------------------------------------------

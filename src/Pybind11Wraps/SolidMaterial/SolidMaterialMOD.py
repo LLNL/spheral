@@ -95,6 +95,7 @@ GruneisenEquationOfState%(ndim)id = PYB11TemplateClass(GruneisenEquationOfState,
 OsborneEquationOfState%(ndim)id = PYB11TemplateClass(OsborneEquationOfState, template_parameters="%(Dimension)s")
 TillotsonEquationOfState%(ndim)id = PYB11TemplateClass(TillotsonEquationOfState, template_parameters="%(Dimension)s")
 MurnaghanEquationOfState%(ndim)id = PYB11TemplateClass(MurnaghanEquationOfState, template_parameters="%(Dimension)s")
+MurnahanEquationOfState%(ndim)id = PYB11TemplateClass(MurnaghanEquationOfState, template_parameters="%(Dimension)s")
 
 NullStrength%(ndim)id = PYB11TemplateClass(NullStrength, template_parameters="%(Dimension)s")
 ConstantStrength%(ndim)id = PYB11TemplateClass(ConstantStrength, template_parameters="%(Dimension)s")
