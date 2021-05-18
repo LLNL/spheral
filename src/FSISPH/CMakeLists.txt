@@ -4,6 +4,7 @@ set(FSISPH_inst
     FSISPHHydroBase
     computeSurfaceNormals
     computeFSISPHSumMassDensity
+    FSISpecificThermalEnergyPolicy
     )
 
 
@@ -26,6 +27,7 @@ set(FSISPH_headers
     FSISPHHydroBaseRZ.hh
     computeSurfaceNormals.hh
     computeFSISPHSumMassDensity.hh
+    FSISpecificThermalEnergyPolicy.hh
     )
 
 spheral_install_python_files(

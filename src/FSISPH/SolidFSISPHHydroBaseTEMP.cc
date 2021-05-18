@@ -38,7 +38,6 @@
 #include "SolidMaterial/SolidEquationOfState.hh"
 #include "Utilities/Timer.hh"
 
-#include "FSISPH/FSISpecificThermalEnergyPolicy.hh"
 #include "FSISPH/SolidFSISPHHydroBase.hh"
 #include "FSISPH/computeSurfaceNormals.hh"
 #include "FSISPH/computeFSISPHSumMassDensity.hh"
@@ -201,12 +200,12 @@ registerState(DataBase<Dimension>& dataBase,
 
   SolidSPHHydroBase<Dimension>::registerState(dataBase,state);
   
-  // Override the specific thermal energy policy
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-  FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  CHECK(eps.numFields() == dataBase.numFluidNodeLists());
-  PolicyPointer epsPolicy(new FSISpecificThermalEnergyPolicy<Dimension>(dataBase));
-  state.enroll(eps, epsPolicy);
+  // Override the damaged presssure policy
+  //typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+  //FieldList<Dimension, Scalar> P = state.fields(HydroFieldNames::pressure, 0.0);
+  //CHECK(P.numFields() == dataBase.numFluidNodeLists());
+  //PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
+  //state.enroll(P, pressurePolicy);
   
 
   TIME_SolidFSISPHregisterState.stop();
@@ -569,6 +568,7 @@ if(this->correctVelocityGradient()){
 
 
 
+
 // Now we calculate  the hydro deriviatives
 // Walk all the interacting pairs.
 #pragma omp parallel
@@ -581,15 +581,8 @@ if(this->correctVelocityGradient()){
     Vector sigmarhoi, sigmarhoj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto M_thread = M.threadCopy(threadStack);
     auto DvDt_thread = DvDt.threadCopy(threadStack);
-    auto DepsDt_thread = DepsDt.threadCopy(threadStack);
-    auto DrhoDt_thread = DrhoDt.threadCopy(threadStack);
-    auto DSDt_thread = DSDt.threadCopy(threadStack);
-    auto DvDx_thread = DvDx.threadCopy(threadStack);
-    auto localDvDx_thread = localDvDx.threadCopy(threadStack);
-    auto localM_thread = localM.threadCopy(threadStack);
-    auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
-    auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
     //auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
@@ -605,72 +598,54 @@ if(this->correctVelocityGradient()){
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
+      const auto& normi = interfaceNormals(nodeListi,i);
       const auto& ri = position(nodeListi, i);
-      const auto& vi = velocity(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
+      const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
-      const auto& epsi = specificThermalEnergy(nodeListi,i);
       const auto& Pi = pressure(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
       const auto& Si = S(nodeListi, i);
-      const auto& normi = interfaceNormals(nodeListi,i);
       const auto& pTypei = pTypes(nodeListi, i);
-      const auto  voli = mi/rhoi;
-      const auto  mui = max(mu(nodeListi,i),tiny);
-      const auto  Ki = max(tiny,rhoi*ci*ci)+4.0/3.0*mui;
-      auto  Hdeti = Hi.Determinant();
-       //const auto fragIDi = fragIDs(nodeListi, i);
+            auto  Hdeti = Hi.Determinant();
+      //const auto  fragIDi = fragIDs(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
+      const auto& Mi = M_thread(nodeListi,i);
       auto& DvDti = DvDt_thread(nodeListi, i);
-      auto& DrhoDti = DrhoDt_thread(nodeListi, i);
-      auto& DepsDti = DepsDt_thread(nodeListi, i);
-      auto& DSDti = DSDt_thread(nodeListi, i);
-      auto& DvDxi = DvDx_thread(nodeListi, i);
-      auto& localDvDxi = localDvDx_thread(nodeListi, i);
-      const auto& Mi = M(nodeListi, i);
-      auto& localMi = localM_thread(nodeListi, i);
-      auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
-      auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
+      //auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
+      //auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
+      //auto& viscousWorki = viscousWork_thread(nodeListi, i);
 
       // Get the state for node j
+      const auto& normj = interfaceNormals(nodeListj,j);
       const auto& rj = position(nodeListj, j);
-      const auto& vj = velocity(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
-      const auto& Hj = H(nodeListj, j);
+      const auto& vj = velocity(nodeListj, j);
       const auto& rhoj = massDensity(nodeListj, j);
-      const auto& epsj = specificThermalEnergy(nodeListj,j);
       const auto& Pj = pressure(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
       const auto& cj = soundSpeed(nodeListj, j);
       const auto& Sj = S(nodeListj, j);
       const auto& pTypej = pTypes(nodeListj, j);
-      const auto& normj = interfaceNormals(nodeListj,j);
-      const auto  volj = mj/rhoj;
-      const auto  muj = max(mu(nodeListj,j),tiny);
-      const auto  Kj = max(tiny,rhoj*cj*cj)+4.0/3.0*muj;
             auto  Hdetj = Hj.Determinant();
       //const auto fragIDj = fragIDs(nodeListj, j);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
+      const auto& Mj = M_thread(nodeListj,j);
       auto& DvDtj = DvDt_thread(nodeListj, j);
-      auto& DrhoDtj = DrhoDt_thread(nodeListj, j);
-      auto& DepsDtj = DepsDt_thread(nodeListj, j);
-      auto& DSDtj = DSDt_thread(nodeListj, j);
-      auto& DvDxj = DvDx_thread(nodeListj, j);
-      auto& localDvDxj = localDvDx_thread(nodeListj, j);
-      const auto& Mj = M(nodeListj,j);
-      auto& localMj = localM_thread(nodeListj, j);
-      auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
-      auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
+      //auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
+      //auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
+      //auto& viscousWorkj = viscousWork_thread(nodeListj, j);
 
       // Flag if this is a contiguous material pair or not.
       const auto sameMatij =  (nodeListi == nodeListj);// and fragIDi == fragIDj); 
@@ -685,12 +660,11 @@ if(this->correctVelocityGradient()){
       const auto rij = ri - rj;
       const auto Hij = 0.5*(Hi+Hj);
       const auto etaij = Hij*rij;
+
       const auto etai = Hi*rij;
       const auto etaj = Hj*rij;
-      const auto etaMagij = etaij.magnitude();
       const auto etaMagi = etai.magnitude();
       const auto etaMagj = etaj.magnitude();
-      CHECK(etaMagij >= 0.0);
       CHECK(etaMagi >= 0.0);
       CHECK(etaMagj >= 0.0);
 
@@ -701,13 +675,13 @@ if(this->correctVelocityGradient()){
       const auto Hetaj = Hj*etaj.unitVector();
       auto gradWi = gWi*Hetai;
       auto gradWj = gWj*Hetaj;
-      const auto gradWij = 0.5*(gradWi+gradWj);
 
       // Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
       if (!sameMatij){
         const auto Hdetij = Hij.Determinant();
         const auto Wij = 0.5*(Wi+Wj); 
         const auto gWij = 0.5*(gWi+gWj);
+        const auto gradWij = 0.5*(gradWi+gradWj);
 
         Hdeti =  1.0*Hdetij;
         Hdetj = 1.0*Hdetij;
@@ -717,12 +691,6 @@ if(this->correctVelocityGradient()){
         gWj = 1.0*gWij;
         gradWi = 1.0*gradWij;
         gradWj = 1.0*gradWij;
-      }
-
-      //frame as a kernel correction
-      if(this->correctVelocityGradient()){
-        gradWi = Mi.Transpose()*gradWi;
-        gradWj = Mj.Transpose()*gradWj;
       }
 
       // Zero'th and second moment of the node distribution -- used for the
@@ -779,26 +747,201 @@ if(this->correctVelocityGradient()){
       //---------------------------------------------------------------
       const auto rhoirhoj = 1.0/(rhoi*rhoj);
       const auto sf = (sameMatij ? 1.0 : 1.0 + surfaceForceCoeff*abs((rhoi-rhoj)/(rhoi+rhoj+tiny)));
-      
-      sigmarhoi = sf*((rhoirhoj*sigmai-0.5*QPiij))*gradWi;
-      sigmarhoj = sf*((rhoirhoj*sigmaj-0.5*QPiji))*gradWj;
-      
+
+      if(this->correctVelocityGradient()){
+        //const auto Mij = 0.5*(Mi.Determinant()+Mj.Determinant());
+        sigmarhoi = sf*((rhoirhoj*sigmai-0.5*QPiij)*Mi.Transpose())*gradWi;
+        sigmarhoj = sf*((rhoirhoj*sigmaj-0.5*QPiji)*Mj.Transpose())*gradWj;
+      }else{
+        sigmarhoi = sf*((rhoirhoj*sigmai-0.5*QPiij))*gradWi;
+        sigmarhoj = sf*((rhoirhoj*sigmaj-0.5*QPiji))*gradWj;
+      }
       const auto deltaDvDt = sigmarhoi+sigmarhoj;
-      pairAccelerations[2*kk+1] = deltaDvDt;
 
       if (freeParticle) {
         DvDti += mj*deltaDvDt;
         DvDtj -= mi*deltaDvDt;
       } 
       
+      pairAccelerations[2*kk]   = sigmarhoi; 
+      pairAccelerations[2*kk+1] = sigmarhoj;
+
+
+    } // loop over pairs
+      // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+  }   // OpenMP parallel region
+
+
+
+  // apply boundary conditions
+  //-----------------------------------------------------
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+      (*boundaryItr)->applyFieldListGhostBoundary(DvDt);
+    }
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  
+
+  #pragma omp parallel
+  {
+    // Thread private  scratch variables.
+    int i, j, nodeListi, nodeListj;
+    Scalar Wi, gWi, Wj, gWj;
+
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto DepsDt_thread = DepsDt.threadCopy(threadStack);
+    auto DvDx_thread = DvDx.threadCopy(threadStack);
+    auto localDvDx_thread = localDvDx.threadCopy(threadStack);
+    //auto M_thread = M.threadCopy(threadStack);
+    auto localM_thread = localM.threadCopy(threadStack);
+    auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
+    auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
+    auto DrhoDt_thread = DrhoDt.threadCopy(threadStack);
+    auto DSDt_thread = DSDt.threadCopy(threadStack);
+
+    #pragma omp for
+    for (auto kk = 0u; kk < npairs; ++kk) {
+      //const auto start = Timing::currentTime();
+      i = pairs[kk].i_node;
+      j = pairs[kk].j_node;
+      nodeListi = pairs[kk].i_list;
+      nodeListj = pairs[kk].j_list;
+
+      // Get the state for node i.
+      const auto& Si = S(nodeListi, i);
+      const auto& ri = position(nodeListi, i);
+      const auto& mi = mass(nodeListi, i);
+      const auto& vi = velocity(nodeListi, i);
+      const auto& rhoi = massDensity(nodeListi, i);
+      const auto& Pi = pressure(nodeListi, i);
+      const auto& epsi = specificThermalEnergy(nodeListi,i);
+      const auto& Hi = H(nodeListi, i);
+      const auto& ci = soundSpeed(nodeListi, i);
+      //const auto& pTypei = pTypes(nodeListi, i);
+      const auto  voli = mi/rhoi;
+      const auto  mui = max(mu(nodeListi,i),tiny);
+      const auto  Ki = max(tiny,rhoi*ci*ci)+4.0/3.0*mui;
+            auto  Hdeti = Hi.Determinant();
+      //const auto  fragIDi = fragIDs(nodeListi, i);
+      CHECK(mi > 0.0);
+      CHECK(rhoi > 0.0);
+      CHECK(Hdeti > 0.0);
+
+      auto& DSDti = DSDt_thread(nodeListi, i);
+      const auto& DvDti = DvDt(nodeListi, i);
+      //auto& Mi = M_thread(nodeListi, i);
+      auto& localMi = localM_thread(nodeListi, i);
+      auto& DrhoDti = DrhoDt_thread(nodeListi, i);
+      auto& DepsDti = DepsDt_thread(nodeListi, i);
+      auto& DvDxi = DvDx_thread(nodeListi, i);
+      auto& localDvDxi = localDvDx_thread(nodeListi, i);
+      auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
+      auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
+
+      // Get the state for node j
+      const auto& Sj = S(nodeListj, j);
+      const auto& rj = position(nodeListj, j);
+      const auto& mj = mass(nodeListj, j);
+      const auto& vj = velocity(nodeListj, j);
+      const auto& rhoj = massDensity(nodeListj, j);
+      const auto& Pj = pressure(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto& cj = soundSpeed(nodeListj, j);
+      const auto& epsj = specificThermalEnergy(nodeListj,j);
+      //const auto& pTypej = pTypes(nodeListj, j);
+      const auto  volj = mj/rhoj;
+      const auto  muj = max(mu(nodeListj,j),tiny);
+      const auto  Kj =  max(tiny,rhoj*cj*cj)+4.0/3.0*muj;
+            auto  Hdetj = Hj.Determinant();
+      //const auto fragIDj = fragIDs(nodeListj, j);
+      CHECK(mj > 0.0);
+      CHECK(rhoj > 0.0);
+      CHECK(Hdetj > 0.0);
+
+      auto& DSDtj = DSDt_thread(nodeListj, j);
+      const auto& DvDtj = DvDt(nodeListj, j);
+      //auto& Mj = M_thread(nodeListj, j);
+      auto& localMj = localM_thread(nodeListj, j);
+      auto& DrhoDtj = DrhoDt_thread(nodeListj, j);
+      auto& DepsDtj = DepsDt_thread(nodeListj, j);
+      auto& DvDxj = DvDx_thread(nodeListj, j);
+      auto& localDvDxj = localDvDx_thread(nodeListj, j);
+      auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
+      auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
+
+      // Flag if this is a contiguous material pair or not.
+      const auto sameMatij =  (nodeListi == nodeListj);// and fragIDi == fragIDj);  //11/05/2020
+
+      // Flag if at least one particle is free (0).
+      //const auto freeParticle = (pTypei == 0 or pTypej == 0);
+      const auto fDij = pairs[kk].f_couple;
+
+      // Kernels
+      //--------------------------------------
+      const auto rij = ri - rj;
+      const auto Hij = 0.5*(Hi+Hj);
+      const auto etaij = Hij*rij;
+      const auto etaMagij = etaij.magnitude();
+      CHECK(etaMagij >= 0.0);
+
+      const auto etai = Hi*rij;
+      const auto etaj = Hj*rij;
+      const auto etaMagi = etai.magnitude();
+      const auto etaMagj = etaj.magnitude();
+      CHECK(etaMagi >= 0.0);
+      CHECK(etaMagj >= 0.0);
+      
+      std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
+      std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
+      const auto Hetai = Hi*etai.unitVector();
+      const auto Hetaj = Hj*etaj.unitVector();
+      auto gradWi = gWi*Hetai;
+      auto gradWj = gWj*Hetaj;
+      
+      // W-star for interface
+      const auto gradWij = 0.5*(gradWi+gradWj);
+
+      // better consisency between DrhoDt and DepsDt
+      if (!sameMatij){
+        const auto Hdetij = Hij.Determinant();
+        const auto Wij = 0.5*(Wi+Wj); 
+        const auto gWij = 0.5*(gWi+gWj);
+
+        Hdeti =  1.0*Hdetij;
+        Hdetj = 1.0*Hdetij;
+        Wi = 1.0*Wij;
+        Wj = 1.0*Wij;
+        gWi = 1.0*gWij;
+        gWj = 1.0*gWij;
+        gradWi = 1.0*gradWij;
+        gradWj = 1.0*gradWij;
+      }
+
+      // Couple of vars we'll need
+      //-----------------------------------------------------------
+      //convenient avg quanities
+      const auto rhoij = 0.5*(rhoi+rhoj); 
+      const auto cij = 0.5*(ci+cj); 
+
+      // half step velocities
+      const auto vi12 = vi + DvDti * dt*0.5;
+      const auto vj12 = vj + DvDtj * dt*0.5;
+      const auto vij = vi12-vj12;
+
+
       // construct our interface velocity
       //-----------------------------------------------------------
+      
       // deconstruct into parallel and perpendicular
       const auto rhatij = rij.unitVector();
-      const auto ui = vi.dot(rhatij);
-      const auto uj = vj.dot(rhatij);
-      const auto wi = vi - ui*rhatij;
-      const auto wj = vj - uj*rhatij;
+      const auto ui = vi12.dot(rhatij);
+      const auto uj = vj12.dot(rhatij);
+      const auto wi = vi12 - ui*rhatij;
+      const auto wj = vj12 - uj*rhatij;
       const auto umin = min(ui,uj);
       const auto umax = max(ui,uj);
 
@@ -814,8 +957,7 @@ if(this->correctVelocityGradient()){
       Scalar ustar = 0.5*(ui+uj);
       Vector wstar = 0.5*(wi+wj);
 
-      // diff materials use mat properties to weight things
-      // for damaged/undamaged treat as two diff materials
+      // diff mat is weighted by moduli (damaged -> diff mat)
       if(!sameMatij){
         ustar = weightUi*ui + weightUj*uj;
         wstar = weightWi*wi + weightWj*wj; 
@@ -848,15 +990,21 @@ if(this->correctVelocityGradient()){
 
       // energy conservation
       // ----------------------------------------------------------
-      DepsDti -= 2.0*mj*sigmarhoi.dot(vi-vstar);
-      DepsDtj -= 2.0*mi*sigmarhoj.dot(vstar-vj);
-      pairAccelerations[2*kk][0] = -2.0*mj*sigmarhoi.dot(vi-vstar); 
-      pairAccelerations[2*kk][1] = -2.0*mi*sigmarhoj.dot(vstar-vj);
+      const auto sigmarhoi = pairAccelerations[2*kk];
+      const auto sigmarhoj = pairAccelerations[2*kk+1];
+      const auto paccij = vij.dot(sigmarhoi+sigmarhoj);
+
+      const auto weighti = max(abs(sigmarhoi.dot(vi12-vstar)),tiny);
+      const auto weightj = max(abs(sigmarhoj.dot(vstar-vj12)),tiny);
+      const auto weight = weighti/(weightj+weighti);
+
+      DepsDti -= mj*weight*paccij;
+      DepsDtj -= mi*(1.0-weight)*paccij;
 
       // velocity gradient --> continuity
       //-----------------------------------------------------------
-      auto deltaDvDxi = 2.0*(vi-vstar).dyad(gradWi);
-      auto deltaDvDxj = 2.0*(vstar-vj).dyad(gradWj);
+      auto deltaDvDxi = 2.0*(vi12-vstar).dyad(gradWi);
+      auto deltaDvDxj = 2.0*(vstar-vj12).dyad(gradWj);
 
       DvDxi -= volj*deltaDvDxi;
       DvDxj -= voli*deltaDvDxj;
@@ -881,8 +1029,6 @@ if(this->correctVelocityGradient()){
        const auto diffusion =  epsDiffusionCoeff*(epsi-epsj)*cij*etaij.dot(gradWij)/(rhoij*etaMagij*etaMagij+tiny);
        DepsDti += mj*diffusion;
        DepsDtj -= mi*diffusion;
-       pairAccelerations[2*kk][0] += mj*diffusion; 
-       pairAccelerations[2*kk][1] -= mi*diffusion;
       }
 
       // rigorous enforcement of single-valued stress-state at interface
@@ -900,8 +1046,6 @@ if(this->correctVelocityGradient()){
         XSPHDeltaVi -= volj*Wi*vij;
         XSPHDeltaVj += voli*Wj*vij;
       }
-
-
 
     } // loop over pairs
     // Reduce the thread values to the master.
@@ -939,7 +1083,7 @@ if(this->correctVelocityGradient()){
       auto& DrhoDti = DrhoDt(nodeListi, i);
       auto& DvDxi = DvDx(nodeListi, i);
       auto& localDvDxi = localDvDx(nodeListi, i);
-     // auto& Mi = M(nodeListi, i);
+      auto& Mi = M(nodeListi, i);
       auto& localMi = localM(nodeListi, i);
       auto& DHDti = DHDt(nodeListi, i);
       auto& Hideali = Hideal(nodeListi, i);
@@ -952,6 +1096,12 @@ if(this->correctVelocityGradient()){
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
+      
+      if (this->correctVelocityGradient() and 
+           std::abs(Mi.Determinant()) > 1.0e-10 and
+           numNeighborsi > Dimension::pownu(2)) {
+         DvDxi=DvDxi*Mi;
+      } 
 
       DrhoDti -=  rhoi*DvDxi.Trace();
 
