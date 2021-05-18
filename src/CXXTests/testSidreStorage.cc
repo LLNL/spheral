@@ -150,10 +150,8 @@ TEST(SidreDataCollectionTestDim1Vector, Dim1Vector)
   
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
 
-  myData.printDataStore();
-
   //for (int i = 0; i < n; i++)
-    EXPECT_EQ(testField[0].x(), rawSidreData[1]);
+    EXPECT_EQ(testField[0].x(), rawSidreData[0]);
 }
 
 TEST(SidreDataCollectionTestDim1Vector3d, Dim1Vector3d)
@@ -265,13 +263,8 @@ TEST(SidreDataCollectionTestDim2Vector, Dim2Vector)
   Spheral::Field<Spheral::Dim<2>, Spheral::Dim<2>::Vector> testField("test field", makeNodeList);
   for (int i = 0; i < n; i++)
     testField[i] = Spheral::Dim<2>::Vector(i, i + 1);
-
-  // std::cout << testField[0].x()
-  //           << testField[0].y() << std::endl;
   
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  //myData.printDataStore();
 
   //for (int i = 0; i < n; i++)
   {
@@ -290,14 +283,7 @@ TEST(SidreDataCollectionTestDim2Tensor, Dim2Tensor)
   for (int i = 0; i < n; i++)
     testField[i] = Spheral::Dim<2>::Tensor(i, i + 1, i + 2, i + 3);
 
-  // std::cout << testField[0].xx()
-  //           << testField[0].xy() << std::endl
-  //           << testField[0].yx()
-  //           << testField[0].yy() << std::endl;
-  
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  //myData.printDataStore();
 
   //for (int i = 0; i < n; i++)
   {
@@ -317,15 +303,8 @@ TEST(SidreDataCollectionTestDim2SymTensor, SymTensor)
   Spheral::Field<Spheral::Dim<2>, Spheral::Dim<2>::SymTensor> testField("test field", makeNodeList);
   for (int i = 0; i < n; i++)
     testField[i] = Spheral::Dim<2>::SymTensor(i, i + 1, i + 1, i);
-
-  // std::cout << testField[0].xx()
-  //           << testField[0].xy() << std::endl
-  //           << testField[0].yx()
-  //           << testField[0].yy() << std::endl;
   
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  //myData.printDataStore();
 
   EXPECT_EQ(testField[0].xx(), rawSidreData[0]);
   EXPECT_EQ(testField[0].xy(), rawSidreData[1]);
@@ -341,11 +320,7 @@ TEST(SidreDataCollectionTestDim2ThirdRankTensor, ThirdRankTensor)
   for (int i = 0; i < n; i++)
     testField[i] = Spheral::Dim<2>::ThirdRankTensor(i);
 
-  //std::cout << testField[0](0, 0, 0) << std::endl;
-  
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  //myData.printDataStore();
 
   //for (int i = 0; i < n; i++)
     EXPECT_EQ(testField[0](0,0,0), rawSidreData[0]);
@@ -361,11 +336,7 @@ TEST(SidreDataCollectionTestDim2FourthRankTensor, FourthRankTensor)
   for (int i = 0; i < n; i++)
     testField[i] = Spheral::Dim<2>::FourthRankTensor(i);
 
-  //std::cout << testField[0](0, 0, 0, 0) << std::endl;
-  
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  //myData.printDataStore();
 
   //for (int i = 0; i < n; i++)
     EXPECT_EQ(testField[0](0, 0, 0, 0), rawSidreData[0]);
@@ -381,11 +352,7 @@ TEST(SidreDataCollectionTestDim2FifthRankTensor, FifthRankTensor)
   for (int i = 0; i < n; i++)
     testField[i] = Spheral::Dim<2>::FifthRankTensor(i);
 
-  //std::cout << testField[0](0, 0, 0, 0, 0) << std::endl;
-  
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  //myData.printDataStore();
 
   //for (int i = 0; i < n; i++)
     EXPECT_EQ(testField[0](0, 0, 0, 0, 0), rawSidreData[0]);
@@ -400,13 +367,8 @@ TEST(SidreDataCollectionTestDim3Vector, Dim3Vector)
   Spheral::Field<Spheral::Dim<3>, Spheral::Dim<3>::Vector> testField("test field", makeNodeList);
   for (int i = 0; i < n; i++)
     testField[i] = Spheral::Dim<3>::Vector(i, i + 1, i + 2);
-
-  // std::cout << testField[0].x()
-  //           << testField[0].y() << std::endl;
   
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  //myData.printDataStore();
 
   //for (int i = 0; i < n; i++)
   {
@@ -427,15 +389,8 @@ TEST(SidreDataCollectionTestDim3Tensor, Dim3Tensor)
     testField[i] = Spheral::Dim<3>::Tensor(i, i + 1, i + 2,
                                            i, i + 1, i + 2,
                                            i, i + 1, i + 2);
-
-  // std::cout << testField[0].xx()
-  //           << testField[0].xy() << std::endl
-  //           << testField[0].yx()
-  //           << testField[0].yy() << std::endl;
   
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  //myData.printDataStore();
 
   //for (int i = 0; i < n; i++)
   {
@@ -463,19 +418,7 @@ TEST(SidreDataCollectionTestDim3SymTensor, SymTensor)
                                               i + 1, i, i + 1,
                                               i + 2, i + 1, i);
 
-  // std::cout << testField[0].xx()
-  //           << testField[0].xy()
-  //           << testField[0].xz() << std::endl
-  //           << testField[0].yx()
-  //           << testField[0].yy()
-  //           << testField[0].yz() << std::endl
-  //           << testField[0].zx()
-  //           << testField[0].zy()
-  //           << testField[0].zz() << std::endl;
-
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  //myData.printDataStore();
 
   EXPECT_EQ(testField[0].xx(), rawSidreData[0]);
   EXPECT_EQ(testField[0].xy(), rawSidreData[1]);
@@ -491,12 +434,8 @@ TEST(SidreDataCollectionTestDim3ThirdRankTensor, ThirdRankTensor)
   Spheral::Field<Spheral::Dim<3>, Spheral::Dim<3>::ThirdRankTensor> testField("test field", makeNodeList);
   for (int i = 0; i < n; i++)
     testField[i] = Spheral::Dim<3>::ThirdRankTensor(i);
-
-  //std::cout << testField[0](0, 0, 0) << std::endl;
   
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  //myData.printDataStore();
 
   //for (int i = 0; i < n; i++)
     EXPECT_EQ(testField[0](0,0,0), rawSidreData[0]);
@@ -512,11 +451,7 @@ TEST(SidreDataCollectionTestDim3FourthRankTensor, FourthRankTensor)
   for (int i = 0; i < n; i++)
     testField[i] = Spheral::Dim<3>::FourthRankTensor(i);
 
-  //std::cout << testField[0](0, 0, 0, 0) << std::endl;
-  
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  //myData.printDataStore();
 
   //for (int i = 0; i < n; i++)
     EXPECT_EQ(testField[0](0, 0, 0, 0), rawSidreData[0]);
@@ -531,31 +466,10 @@ TEST(SidreDataCollectionTestDim3FifthRankTensor, FifthRankTensor)
   Spheral::Field<Spheral::Dim<3>, Spheral::Dim<3>::FifthRankTensor> testField("test field", makeNodeList);
   for (int i = 0; i < n; i++)
     testField[i] = Spheral::Dim<3>::FifthRankTensor(i);
-
-  //std::cout << testField[0](0, 0, 0, 0, 0) << std::endl;
   
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  //myData.printDataStore();
 
   //for (int i = 0; i < n; i++)
     EXPECT_EQ(testField[0](0, 0, 0, 0, 0), rawSidreData[0]);
 }
-
-
-// int main(int argc, char** argv)
-// {
-// // #ifdef AXOM_USE_MPI
-// //   MPI_Init(&argc, &argv);
-// // #endif
-//   ::testing::InitGoogleTest(&argc, argv);
-
-//   int result = RUN_ALL_TESTS();
-
-// // #ifdef AXOM_USE_MPI
-// //   MPI_Finalize();
-// // #endif
-
-//   return result;
-// }
 

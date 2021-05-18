@@ -7,7 +7,6 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
-//#include "axom/sidre.hpp"
 
 #include <cmath>
 #include <iostream>
