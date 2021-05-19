@@ -80,8 +80,8 @@ public:
                                State<Dimension>& state,
                                StateDerivatives<Dimension>& derivs) override;
   virtual
-  void initialize(const typename Dimension::Scalar time,
-                  const typename Dimension::Scalar dt,
+  void initialize(const Scalar time,
+                  const Scalar dt,
                   const DataBase<Dimension>& dataBase,
                         State<Dimension>& state,
                         StateDerivatives<Dimension>& derivs) override;
@@ -111,7 +111,8 @@ public:
   std::vector<int> sumDensityNodeLists() const;
   void sumDensityNodeLists(std::vector<int> x);
 
-  const FieldList<Dimension,  typename Dimension::Vector>& surfaceNormals() const;
+  const FieldList<Dimension, Vector>& surfaceNormals() const;
+  const std::vector<Scalar>& pairDepsDt() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -128,7 +129,8 @@ private:
   std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
   
   FieldList<Dimension, Vector> mSurfaceNormals;       // outward facing normals for interface nodes
-  
+  std::vector<Scalar> mPairDepsDt;                    // store pairwise contribution to DepsDt for compatible
+ 
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();
   SolidFSISPHHydroBase(const SolidFSISPHHydroBase&);

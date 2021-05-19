@@ -167,9 +167,10 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mSpecificThermalEnergyDiffusionCoefficient(specificThermalEnergyDiffusionCoefficient),
   mApplySelectDensitySum(false),
   mSumDensityNodeLists(sumDensityNodeLists),
-  mSurfaceNormals(FieldStorageType::CopyFields){
-     mSurfaceNormals = dataBase.newSolidFieldList(Vector::zero,  "FSISurfaceNormals");
-
+  mSurfaceNormals(FieldStorageType::CopyFields),
+  mPairDepsDt(){
+    mSurfaceNormals = dataBase.newSolidFieldList(Vector::zero,  "FSISurfaceNormals");
+    mPairDepsDt.clear();
     // see if we're summing density for any nodelist
     auto numNodeLists = dataBase.numNodeLists();
     for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
@@ -177,6 +178,8 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
         mApplySelectDensitySum = true;
       } 
     }
+
+    
     
   }
 
@@ -223,9 +226,11 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   TIME_SolidFSISPHregisterDerivs.start();
 
   // Call the ancestor method.
-  SolidSPHHydroBase<Dimension>::registerDerivatives(dataBase, derivs);
-
-
+  SolidSPHHydroBase<Dimension>::registerDerivatives(dataBase, derivs);  
+  
+  // enroll for our compatible energy formulation
+  const std::string pairDepsDtKey = "pairDepsDt";
+  derivs.enrollAny(pairDepsDtKey,  mPairDepsDt);
   TIME_SolidFSISPHregisterDerivs.stop();
 }
 //------------------------------------------------------------------------------
@@ -401,6 +406,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   //auto  rhoSumCorrection = derivatives.fields(HydroFieldNames::massDensityCorrection, 0.0);
   //auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairDepsDt = derivatives.getAny("pairDepsDt", vector<Scalar>());
   auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
@@ -433,15 +439,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  npairs = pairs.size();
 
   // Size up the pair-wise accelerations before we start.
-  pairAccelerations.resize(2*npairs);
+  pairAccelerations.resize(npairs);
+  pairDepsDt.resize(2*npairs);
 
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
-
-
-
 
 //M corr needs to be calculated beforehand 
 //to be consistently applied to the acceleration
@@ -512,20 +516,9 @@ if(this->correctVelocityGradient()){
       auto gradWi = gWi*Hetai;
       auto gradWj = gWj*Hetaj;
 
-     // averaged things.
-      //const auto Wij = 0.5*(Wi+Wj); 
-     // const auto gWij = 0.5*(gWi+gWj);
-      
-
       //Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
       if (!(nodeListi==nodeListj)){
         const auto gradWij = 0.5*(gradWi+gradWj);
-        //Hdeti =  1.0*Hdetij;
-        //Hdetj = 1.0*Hdetij;
-       // Wi = 1.0*Wij;
-        //Wj = 1.0*Wij;
-        //gWi = 1.0*gWij;
-        //gWj = 1.0*gWij;
        gradWi = 1.0*gradWij;
        gradWj = 1.0*gradWij;
       }
@@ -565,7 +558,7 @@ if(this->correctVelocityGradient()){
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
-} // if correct velocity gradient
+} // if correctVelocityGradient
 
 
 
@@ -784,7 +777,7 @@ if(this->correctVelocityGradient()){
       sigmarhoj = sf*((rhoirhoj*sigmaj-0.5*QPiji))*gradWj;
       
       const auto deltaDvDt = sigmarhoi+sigmarhoj;
-      pairAccelerations[2*kk+1] = deltaDvDt;
+      pairAccelerations[kk] = deltaDvDt;
 
       if (freeParticle) {
         DvDti += mj*deltaDvDt;
@@ -850,8 +843,8 @@ if(this->correctVelocityGradient()){
       // ----------------------------------------------------------
       DepsDti -= 2.0*mj*sigmarhoi.dot(vi-vstar);
       DepsDtj -= 2.0*mi*sigmarhoj.dot(vstar-vj);
-      pairAccelerations[2*kk][0] = -2.0*mj*sigmarhoi.dot(vi-vstar); 
-      pairAccelerations[2*kk][1] = -2.0*mi*sigmarhoj.dot(vstar-vj);
+      pairDepsDt[2*kk] = -2.0*mj*sigmarhoi.dot(vi-vstar); 
+      pairDepsDt[2*kk+1] = -2.0*mi*sigmarhoj.dot(vstar-vj);
 
       // velocity gradient --> continuity
       //-----------------------------------------------------------
@@ -881,8 +874,8 @@ if(this->correctVelocityGradient()){
        const auto diffusion =  epsDiffusionCoeff*(epsi-epsj)*cij*etaij.dot(gradWij)/(rhoij*etaMagij*etaMagij+tiny);
        DepsDti += mj*diffusion;
        DepsDtj -= mi*diffusion;
-       pairAccelerations[2*kk][0] += mj*diffusion; 
-       pairAccelerations[2*kk][1] -= mi*diffusion;
+       pairDepsDt[2*kk]   += mj*diffusion; 
+       pairDepsDt[2*kk+1] -= mi*diffusion;
       }
 
       // rigorous enforcement of single-valued stress-state at interface

@@ -81,6 +81,7 @@ update(const KeyType& key,
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  const auto& pairDepsDt = derivs.getAny("pairDepsDt", vector<Scalar>());
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
@@ -103,9 +104,9 @@ update(const KeyType& key,
       const auto nodeListi = pairs[kk].i_list;
       const auto nodeListj = pairs[kk].j_list;
 
-      const auto& paccij = pairAccelerations[2*kk+1];
-      const auto& DepsDt0i = pairAccelerations[2*kk].x();
-      const auto& DepsDt0j = pairAccelerations[2*kk].y();
+      const auto& paccij = pairAccelerations[kk];
+      const auto& DepsDt0i = pairDepsDt[2*kk];
+      const auto& DepsDt0j = pairDepsDt[2*kk+1];
 
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);

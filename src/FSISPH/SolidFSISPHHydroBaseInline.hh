@@ -107,4 +107,13 @@ sumDensityNodeLists() const {
   return mSumDensityNodeLists;
 }
 
+
+template<typename Dimension>
+inline
+const std::vector<typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+pairDepsDt() const {
+  return mPairDepsDt;
+}
+
 }
