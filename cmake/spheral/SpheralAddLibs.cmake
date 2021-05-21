@@ -26,7 +26,7 @@ function(spheral_add_cxx_library package_name)
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  -Wl,--start-group ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} -Wl,--end-group
+                    DEPENDS_ON  -Wl,--start-group ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS} -Wl,--end-group
                     SHARED      FALSE
                     )
   else()
@@ -34,7 +34,7 @@ function(spheral_add_cxx_library package_name)
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  -Wl,--start-group ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} -Wl,--end-group
+                    DEPENDS_ON  -Wl,--start-group ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS} -Wl,--end-group
                     SHARED      TRUE
                     )
   endif()
