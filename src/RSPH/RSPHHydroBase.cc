@@ -237,6 +237,7 @@ registerState(DataBase<Dimension>& dataBase,
   // Create the local storage for time step mask, pressure, sound speed, and position weight.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
   dataBase.resizeFluidFieldList(mLastDvDx, Tensor::zero, "velocityGradientLastTimeStep");
+  dataBase.resizeFluidFieldList(mLastDpDx, Vector::zero, "pressureGradientLastTimeStep");
   dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
 
   FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
@@ -544,22 +545,27 @@ void
 RSPHHydroBase<Dimension>::
 initialize(const typename Dimension::Scalar /*time*/,
            const typename Dimension::Scalar /*dt*/,
-           const DataBase<Dimension>& /*dataBase*/,
+           const DataBase<Dimension>& dataBase,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
   TIME_RSPHinitialize.start();
 
   // store DvDx for use in HLLC reconstruction
   const auto DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  const auto DpDx = derivs.fields("pressureGradient", Vector::zero);
+  //const auto DpDx = derivs.fields("pressureGradient", Vector::zero);
+  const auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  const auto  rho = state.fields(HydroFieldNames::massDensity, 0.0);
   //auto DvDx0 = state.fields("velocityGradientLastTimeStep",Tensor::zero);
   //DvDx0.copyFields(DvDx);
   //DvDx0 = DvDx;
   //DvDx0.copyFields();
   mLastDvDx = DvDx;
   mLastDvDx.copyFields();
-  mLastDpDx = DpDx;
+
+  mLastDpDx = DvDt;
   mLastDpDx.copyFields();
+  mLastDpDx *= rho;
+  mLastDpDx *= -1.0;
 
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
@@ -591,7 +597,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   TIME_RSPHevalDerivs.start();
   TIME_RSPHevalDerivs_initial.start();
 
-  this->evaluateSpatialGradients(time,dt,dataBase,state,derivatives);
+  if (this->correctVelocityGradient()){
+    this->evaluateSpatialGradients(time,dt,dataBase,state,derivatives);
+  }
 
   // The kernels and such.
   const auto& W = this->kernel();
@@ -791,14 +799,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto voli = mi/rhoi;
       const auto volj = mj/rhoj;
 
-      //const auto isExpanding = vij.dot(rij) > 0.0;
-
       computeHLLCstate( rij, 
                         nodeListi, nodeListj, i, j,
                         Peffi, Peffj, rhoi, rhoj, vi, vj, ci, cj,
                         DpDxi, DpDxj, oldDvDxi, oldDvDxj,
                         vstar, Pstar);
-      
       
       // acceleration
       //------------------------------------------------------
@@ -965,7 +970,6 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
 
   CHECK(mass.size() == numNodeLists);
@@ -975,10 +979,8 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
 
   // Derivative FieldLists.
   auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto DpDx = derivatives.fields("pressureGradient", Vector::zero)
 
   CHECK(M.size() == numNodeLists);
-  CHECK(DpDx.size() == numNodeLists);
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
@@ -1000,7 +1002,6 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
 
     auto M_thread = M.threadCopy(threadStack);
-    auto DpDx_thread = DpDx.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -1013,7 +1014,6 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
-      const auto& Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
@@ -1021,13 +1021,12 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       CHECK(Hdeti > 0.0);
 
       auto& Mi = M_thread(nodeListi, i);
-      auto& DpDxi = DpDx_thread(nodeListi,i);
+      //auto& DpDxi = DpDx_thread(nodeListi,i);
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
       const auto& rhoj = massDensity(nodeListj, j);
-      const auto& Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       CHECK(mj > 0.0);
@@ -1035,7 +1034,6 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       CHECK(Hdetj > 0.0);
 
       auto& Mj = M_thread(nodeListj, j);
-      auto& DpDxj = DpDx_thread(nodeListj,j);
 
       // Flag if this is a contiguous material pair or not.
       const bool sameMatij =  (nodeListi == nodeListj);
@@ -1066,15 +1064,12 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       const auto voli = mi/rhoi;
       const auto volj = mj/rhoj;
 
-      DpDxi -= volj * (Pi-Pj) * gradWi;
-      DpDxj -= voli * (Pi-Pj) * gradWj;
-
       // Linear gradient correction term.
-      if(this->mCorrectVelocityGradient){
+ 
         //const auto Mij = ;
         Mi -= volj*rij.dyad(gradWi);
         Mj -= voli*rij.dyad(gradWj);
-      }
+    
 
     } // loop over pairs
 
@@ -1089,32 +1084,22 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
-      if (this->mCorrectVelocityGradient){
         const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
         auto& Mi = M(nodeListi, i);
-        auto& DpDxi = DpDx(nodeListi, i);
-        const auto goodM =  (this->mCorrectVelocityGradient and
-                             std::abs(Mi.Determinant()) > 1.0e-10 and
+        const auto goodM =  (std::abs(Mi.Determinant()) > 1.0e-10 and
                              numNeighborsi > Dimension::pownu(2));
         Mi = (goodM? Mi.Inverse() : Tensor::one);
-        DpDxi = Mi.Transpose()*DpDxi;
       }
-
-    }
   }
 
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
          boundItr != this->boundaryEnd();
-         ++boundItr){
-    (*boundItr)->applyFieldListGhostBoundary(DpDx);
-    if(this->mCorrectVelocityGradient)(*boundItr)->applyFieldListGhostBoundary(M);
-  }
+         ++boundItr)(*boundItr)->applyFieldListGhostBoundary(M);
   
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
  
-
 }
 //------------------------------------------------------------------------------
 // Finalize the derivatives.
@@ -1376,8 +1361,8 @@ computeHLLCstate( const typename Dimension::Vector& rij,
 
   const auto DvDxi = mLastDvDx(nodeListi,i);
   const auto DvDxj = mLastDvDx(nodeListj,j);
-  const auto DpDxi = mLastDpDx(nodeListi,i);
-  const auto DpDxj = mLastDpDx(nodeListj,j);
+  const auto DpDxi = Vector::zero;//mLastDpDx(nodeListi,i);
+  const auto DpDxj = Vector::zero;//mLastDpDx(nodeListj,j);
   // perpendicular component 
   //const auto wij = vi+vj-(ui+uj)*rhatij;                      
   //const auto wi = vi-ui*rhatij;
@@ -1406,16 +1391,27 @@ computeHLLCstate( const typename Dimension::Vector& rij,
     // dont go out of bounds
   const auto ui = vstari.dot(rhatij);
   const auto uj = vstarj.dot(rhatij);
-  const auto umin = min(ui,uj);
-  const auto umax = max(ui,uj);
+  // if (ARSType == Acoustic){
+  //const auto umin = min(ui,uj);
+  //const auto umax = max(ui,uj);
 
   const auto ustar = ((ci > 0.0 and cj>0.0) ?
                       (rhoi*ci*ui + rhoj*cj*uj - pstari + pstarj )/max((rhoi*ci + rhoj*cj),1e-30) :
                       (ui+uj)/2.0);
+  Pstar = rhoj*cj * (uj - ustar) + pstarj;
+  //}
+  //
+  //Davis / Einfeldt 1988
+  //const auto Si = min(uj+cj,ui+ci);
+  //const auto Sj = max(uj-cj,ui-ci);
+  //const auto ustar = ((ci > 0.0 and cj>0.0) ?
+  //                    (rhoj*(Sj-uj)*uj - rhoi*(Si-ui)*ui + pstari - pstarj )/max(rhoj*(Sj-uj)*uj - rhoi*(Si-ui)*ui,1e-30) :
+  //                    (ui+uj)/2.0);
+
+  //Pstar = rhoj* (Sj-uj) * (ustar-uj) + pstarj;
+
 
   vstar = ustar*rhatij + ((vstari+vstarj) - (ui+uj)*rhatij)/2.0;
-
-  Pstar = rhoj*cj * (uj - ustar) + pstarj;
 
   // that'll do it hopefully my dumb wave speed isn't too dumb
   }
