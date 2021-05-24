@@ -127,13 +127,8 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
             else:
                 raise ValueError, (("ERROR : unknown kwarg %%s.\\n" %% argname) + expectedUsageString)
 
-        # Mask is not actually a constructor argument, so treat it specially.
-        mask = damage_kwargs["mask"]
-        del damage_kwargs["mask"]
-
         # Build the damage model.
         CXXProbabilisticDamageModel%(dim)s.__init__(self, **damage_kwargs)
-        self.mask(mask)
         return
 
 """

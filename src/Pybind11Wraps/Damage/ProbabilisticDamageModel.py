@@ -30,13 +30,14 @@ resolution materials."""
                kWeibull = "const double",
                mWeibull = "const double",
                seed = "const size_t",
-               minFlawsPerNode = ("const size_t", "1u"),
-               crackGrowthMultiplier = ("const double", "0.4"),
-               volumeMultiplier = ("const double", "1.0"),
-               damageCouplingAlgorithm  = ("const DamageCouplingAlgorithm", "DamageCouplingAlgorithm::PairMaxDamage"),
-               strainAlgorithm = ("const TensorStrainAlgorithm", "TensorStrainAlgorithm::PseudoPlasticStrain"),
-               damageInCompression = ("const bool", "false"),
-               criticalDamageThreshold = ("const double", "3.0")):
+               minFlawsPerNode = "const size_t",
+               crackGrowthMultiplier = "const double",
+               volumeMultiplier = "const double",
+               damageCouplingAlgorithm  = "const DamageCouplingAlgorithm",
+               strainAlgorithm = "const TensorStrainAlgorithm",
+               damageInCompression = "const bool",
+               criticalDamageThreshold = "const double",
+               mask = "const Field<%(Dimension)s, int>&"):
         "Constructor"
 
     #...........................................................................

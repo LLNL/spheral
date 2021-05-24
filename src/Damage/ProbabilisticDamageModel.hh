@@ -44,7 +44,8 @@ public:
                            const DamageCouplingAlgorithm damageCouplingAlgorithm,
                            const TensorStrainAlgorithm strainAlgorithm,
                            const bool damageInCompression,
-                           const double criticalDamageThreshold);
+                           const double criticalDamageThreshold,
+                           const Field<Dimension, int>& mask);
   virtual ~ProbabilisticDamageModel();
 
   //............................................................................
