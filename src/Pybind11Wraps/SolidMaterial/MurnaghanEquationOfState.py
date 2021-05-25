@@ -10,7 +10,7 @@ from EOSAbstractMethods import *
 class MurnaghanEquationOfState(SolidEquationOfState):
     """MurnaghanEquationOfState -- Murnaghan  equation of state.
 
-  P(rho) = 1/(nK) * (eta^n - 1)
+  P(rho) = K/(n) * (eta^n - 1)
   eta = rho/rho0"""
 
     PYB11typedefs = """
