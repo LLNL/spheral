@@ -2,10 +2,10 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "SolidMaterial/MurnahanEquationOfState.cc"
+#include "Material/StiffenedGas.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class MurnahanEquationOfState<Dim< %(ndim)s > >;
+  template class StiffenedGas< Dim< %(ndim)s >  >;
 }
 """

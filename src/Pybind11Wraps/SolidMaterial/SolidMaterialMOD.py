@@ -16,7 +16,7 @@ from LinearPolynomialEquationOfState import *
 from GruneisenEquationOfState import *
 from OsborneEquationOfState import *
 from TillotsonEquationOfState import *
-from MurnahanEquationOfState import *
+from MurnaghanEquationOfState import *
 
 from StrengthModel import *
 from NullStrength import *
@@ -38,7 +38,7 @@ PYB11includes += ['"SolidMaterial/SolidEquationOfState.hh"',
                   '"SolidMaterial/GruneisenEquationOfState.hh"',
                   '"SolidMaterial/OsborneEquationOfState.hh"',
                   '"SolidMaterial/TillotsonEquationOfState.hh"',
-                  '"SolidMaterial/MurnahanEquationOfState.hh"',
+                  '"SolidMaterial/MurnaghanEquationOfState.hh"',
                   '"SolidMaterial/StrengthModel.hh"',
                   '"SolidMaterial/ConstantStrength.hh"',
                   '"SolidMaterial/NullStrength.hh"',
@@ -94,7 +94,7 @@ LinearPolynomialEquationOfState%(ndim)id = PYB11TemplateClass(LinearPolynomialEq
 GruneisenEquationOfState%(ndim)id = PYB11TemplateClass(GruneisenEquationOfState, template_parameters="%(Dimension)s")
 OsborneEquationOfState%(ndim)id = PYB11TemplateClass(OsborneEquationOfState, template_parameters="%(Dimension)s")
 TillotsonEquationOfState%(ndim)id = PYB11TemplateClass(TillotsonEquationOfState, template_parameters="%(Dimension)s")
-MurnahanEquationOfState%(ndim)id = PYB11TemplateClass(MurnahanEquationOfState, template_parameters="%(Dimension)s")
+MurnaghanEquationOfState%(ndim)id = PYB11TemplateClass(MurnaghanEquationOfState, template_parameters="%(Dimension)s")
 
 NullStrength%(ndim)id = PYB11TemplateClass(NullStrength, template_parameters="%(Dimension)s")
 ConstantStrength%(ndim)id = PYB11TemplateClass(ConstantStrength, template_parameters="%(Dimension)s")
