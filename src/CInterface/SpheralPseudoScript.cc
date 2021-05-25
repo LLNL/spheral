@@ -26,6 +26,7 @@
 #include "NodeList/ASPHSmoothingScale.hh"
 #include "SPH/SolidSPHHydroBase.hh"
 #include "SPH/SolidSPHHydroBaseRZ.hh"
+#include "SPH/computeSPHOmegaGradhCorrection.hh"
 #include "RK/computeVoronoiVolume.hh"
 #include "RK/RKCorrections.hh"
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
@@ -50,7 +51,7 @@
 #include "Boundary/PeriodicBoundary.hh"
 #include "Boundary/ReflectingBoundary.hh"
 #include "Boundary/AxisBoundaryRZ.hh"
-#include "Boundary/HostCodeBoundary.hh"
+#include "Boundary/ConstantBoundary.hh"
 #include "Field/Field.hh"
 #include "Field/FieldListSet.hh"
 #include "FieldOperations/sampleMultipleFields2Lattice.hh"
@@ -75,9 +76,8 @@ copyArrayToScalarFieldList(const double* array,
                            FieldList<Dimension, typename Dimension::Scalar>& fieldList) {
   const unsigned nfields = fieldList.numFields();
   unsigned k = 0;
-  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
+    const unsigned n = fieldList[i]->numInternalElements();
     if (n > 0) {
       std::copy(&array[k], &array[k] + n, &(*fieldList[i]->begin()));
       k += n;
@@ -92,9 +92,8 @@ copyArrayToIntFieldList(const int* array,
                         FieldList<Dimension, int>& fieldList) {
   const unsigned nfields = fieldList.numFields();
   unsigned k = 0;
-  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
+    const unsigned n = fieldList[i]->numInternalElements();
     if (n > 0) {
       std::copy(&array[k], &array[k] + n, &(*fieldList[i]->begin()));
       k += n;
@@ -118,9 +117,8 @@ copyArrayToVectorFieldList(const double** arrays,
                            FieldList<Dimension, typename Dimension::Vector>& fieldList) {
   const unsigned nfields = fieldList.numFields();
   unsigned offset = 0;
-  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
+    const unsigned n = fieldList[i]->numInternalElements();
     for (unsigned j = 0; j != n; ++j) {
       for (unsigned k = 0; k != Dimension::nDim; ++k) {
         fieldList(i,j)[k] = arrays[k][offset + j];
@@ -154,9 +152,8 @@ copyArrayToTensorFieldList(const double** arrays,
   const unsigned nelems = Dimension::nDim*Dimension::nDim;
   const unsigned nfields = fieldList.numFields();
   unsigned offset = 0;
-  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
+    const unsigned n = fieldList[i]->numInternalElements();
     for (unsigned j = 0; j != n; ++j) {
       for (unsigned k = 0; k != nelems; ++k) {
         fieldList(i,j)[k] = arrays[k][offset + j];
@@ -187,9 +184,8 @@ copyArrayToSymTensorFieldList(const double** arrays,
   const unsigned nelems = (Dimension::nDim == 2 ? 3 : 6);
   const unsigned nfields = fieldList.numFields();
   unsigned offset = 0;
-  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
+    const unsigned n = fieldList[i]->numInternalElements();
     for (unsigned j = 0; j != n; ++j) {
       for (unsigned k = 0; k != nelems; ++k) {
         fieldList(i,j)[k] = arrays[k][offset + j];
@@ -215,9 +211,8 @@ copyArrayToSymTensorFieldList(const double* diag_array,
   typedef typename Dimension::SymTensor SymTensor;
   const unsigned nfields = fieldList.numFields();
   unsigned offset = 0;
-  auto& me = SpheralPseudoScript<Dimension>::instance();
   for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
+    const unsigned n = fieldList[i]->numInternalElements();
     for (unsigned j = 0; j != n; ++j) {
       fieldList(i,j) = SymTensor::one * diag_array[offset + j];
     }
@@ -226,35 +221,45 @@ copyArrayToSymTensorFieldList(const double* diag_array,
 }
 
 //------------------------------------------------------------------------------
-// Copy a FieldList to a set of C arrays.  In this case we only copy internal
-// values back to the C arrays.
+// Copy a scalar FieldList to a set of C arrays.
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename Value>
 void
-copyScalarFieldListToArray(const FieldList<Dimension, typename Dimension::Scalar>& fieldList,
-                           double* array) {
+copyScalarFieldListToArray(const FieldList<Dimension, Value>& fieldList,
+                           const vector<vector<int>>& particleType,
+                           const std::vector<std::vector<int>>& ghostNodes,
+                           Value* array) {
+  REQUIRE(particleType.empty() or particleType.size() == fieldList.numFields());
+  REQUIRE(ghostNodes.size() == particleType.size());
   const unsigned nfields = fieldList.numFields();
-  unsigned k = 0;
-  auto& me = SpheralPseudoScript<Dimension>::instance();
-  for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
-    std::copy(fieldList[i]->begin(), fieldList[i]->begin() + n, &array[k]);
-    k += n;
-  }
-}
+  if (particleType.empty()) {
 
-// Same as above for ints.
-template<typename Dimension>
-void
-copyIntFieldListToArray(const FieldList<Dimension, int>& fieldList,
-                        int* array) {
-  const unsigned nfields = fieldList.numFields();
-  unsigned k = 0;
-  auto& me = SpheralPseudoScript<Dimension>::instance();
-  for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
-    std::copy(fieldList[i]->begin(), fieldList[i]->begin() + n, &array[k]);
-    k += n;
+    // No ghost (host boundary) nodes to deal with
+    unsigned k = 0;
+    for (unsigned imat = 0; imat < nfields; ++imat) {
+      const unsigned n = fieldList[imat]->numInternalElements();
+      std::copy(fieldList[imat]->begin(), fieldList[imat]->begin() + n, &array[k]);
+      k += n;
+    }
+
+  } else {
+
+    // Gotta alternately read internal and host ghost points back
+    unsigned k = 0;
+    for (unsigned imat = 0; imat < nfields; ++imat) {
+      const unsigned n = particleType[imat].size();
+      const vector<int>& ghosts = ghostNodes[imat];
+      CHECK(fieldList[imat].numInternalElements() + ghosts.size() == n);
+      unsigned jint = 0u, jghost = 0u;
+      for (auto i = 0u; i < n; ++i) {
+        array[k++] = (particleType[imat][i] == 0 ?
+                      fieldList(imat, jint++) :
+                      fieldList(imat, ghosts[jghost++]));
+      }
+      CHECK(jint == fieldList[imat].numInternalElements());
+      CHECK(jghost == ghosts.size());
+    }
+
   }
 }
 
@@ -262,7 +267,7 @@ copyIntFieldListToArray(const FieldList<Dimension, int>& fieldList,
 // Copy a VectorFieldList to a set of C arrays.  Assume all elements are doubles, and
 // the sizing between the array and the number of elements in the FieldList is
 // correct.
-// The argument passed in should be a vector<double*>, with each double* array
+// The argument passed in should be a double**, with each double* array
 // arranged as
 //      arrays[0] = x_array
 //      arrays[1] = y_array
@@ -271,18 +276,53 @@ copyIntFieldListToArray(const FieldList<Dimension, int>& fieldList,
 template<typename Dimension>
 void
 copyVectorFieldListToArray(const FieldList<Dimension, typename Dimension::Vector>& fieldList,
+                           const vector<vector<int>>& particleType,
+                           const std::vector<std::vector<int>>& ghostNodes,
                            double** arrays) {
+  REQUIRE(particleType.empty() or particleType.size() == fieldList.numFields());
+  REQUIRE(ghostNodes.size() == particleType.size());
   const unsigned nfields = fieldList.numFields();
-  unsigned offset = 0;
-  auto& me = SpheralPseudoScript<Dimension>::instance();
-  for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
-    for (unsigned j = 0; j != n; ++j) {
-      for (unsigned k = 0; k != Dimension::nDim; ++k) {
-        arrays[k][offset + j] = fieldList(i,j)[k];
+  if (particleType.empty()) {
+
+    // No ghost (host boundary) nodes to deal with
+    unsigned offset = 0;
+    for (unsigned imat = 0; imat < nfields; ++imat) {
+      const unsigned n = fieldList[imat]->numInternalElements();
+      for (unsigned i = 0; i < n; ++i) {
+        for (unsigned k = 0; k < Dimension::nDim; ++k) {
+          arrays[k][offset + i] = fieldList(imat,i)[k];
+        }
       }
+      offset += n;
     }
-    offset += n;
+    
+  } else {
+
+    // Gotta alternately read internal and host ghost points back
+    unsigned offset = 0;
+    for (unsigned imat = 0; imat < nfields; ++imat) {
+      const unsigned n = particleType[imat].size();
+      const vector<int>& ghosts = ghostNodes[imat];
+      CHECK(fieldList[imat].numInternalElements() + ghosts.size() == n);
+      unsigned jint = 0u, jghost = 0u;
+      for (auto i = 0u; i < n; ++i) {
+        if (particleType[imat][i] == 0) {
+          for (unsigned k = 0; k < Dimension::nDim; ++k) {
+            arrays[k][offset] = fieldList(imat, jint)[k];
+          }
+          ++jint;
+        } else {
+          for (unsigned k = 0; k < Dimension::nDim; ++k) {
+            arrays[k][offset] = fieldList(imat, ghosts[jghost])[k];
+          }
+          ++jghost;
+        }
+        ++offset;
+      }
+      CHECK(jint == fieldList[imat].numInternalElements());
+      CHECK(jghost == ghosts.size());
+    }
+
   }
 }
 
@@ -290,9 +330,9 @@ copyVectorFieldListToArray(const FieldList<Dimension, typename Dimension::Vector
 // Copy a TensorFieldList to a set of C arrays.  Assume all elements are doubles, and
 // the sizing between the array and the number of elements in the FieldList is
 // correct.
-// The argument passed in should be a vector<double*>, with each double* array
+// The argument passed in should be a double**, with each double* array
 // arranged as
-//                2D                        3D
+//        2D (full tensor)          3D (full tensor)
 //      arrays[0] = xx_array      arrays[0] = xx_array
 //      arrays[1] = xy_array      arrays[1] = xy_array
 //      arrays[2] = yx_array      arrays[2] = xz_array
@@ -302,33 +342,8 @@ copyVectorFieldListToArray(const FieldList<Dimension, typename Dimension::Vector
 //                                arrays[6] = zx_array
 //                                arrays[7] = zy_array
 //                                arrays[8] = zz_array
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-copyTensorFieldListToArray(const FieldList<Dimension, typename Dimension::Tensor>& fieldList,
-                           double** arrays) {
-  const unsigned nelems = Dimension::nDim*Dimension::nDim;
-  const unsigned nfields = fieldList.numFields();
-  unsigned offset = 0;
-  auto& me = SpheralPseudoScript<Dimension>::instance();
-  for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
-    for (unsigned j = 0; j != n; ++j) {
-      for (unsigned k = 0; k != nelems; ++k) {
-        arrays[k][offset + j] = fieldList(i,j)[k];
-      }
-    }
-    offset += n;
-  }
-}
-
-//------------------------------------------------------------------------------
-// Copy a SymTensorFieldList to a set of C arrays.  Assume all elements are doubles, and
-// the sizing between the array and the number of elements in the FieldList is
-// correct.
-// The argument passed in should be a vector<double*>, with each double* array
-// arranged as
-//                2D                        3D
+//
+//        2D (sym tensor)           3D (sym tensor)
 //      arrays[0] = xx_array      arrays[0] = xx_array
 //      arrays[1] = xy_array      arrays[1] = xy_array
 //      arrays[2] = yy_array      arrays[2] = xz_array
@@ -336,22 +351,58 @@ copyTensorFieldListToArray(const FieldList<Dimension, typename Dimension::Tensor
 //                                arrays[4] = yz_array
 //                                arrays[5] = zz_array
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename TensorType>
 void
-copySymTensorFieldListToArray(const FieldList<Dimension, typename Dimension::SymTensor>& fieldList,
-                              double** arrays) {
-  const unsigned nelems = (Dimension::nDim == 2 ? 3 : 6);
+copyTensorFieldListToArray(const FieldList<Dimension, TensorType>& fieldList,
+                           const vector<vector<int>>& particleType,
+                           const vector<vector<int>>& ghostNodes,
+                           double** arrays) {
+  REQUIRE(particleType.empty() or particleType.size() == fieldList.numFields());
+  REQUIRE(ghostNodes.size() == particleType.size());
+  const unsigned nelems = TensorType::numElements;
   const unsigned nfields = fieldList.numFields();
-  unsigned offset = 0;
-  auto& me = SpheralPseudoScript<Dimension>::instance();
-  for (unsigned i = 0; i != nfields; ++i) {
-    const unsigned n = fieldList[i]->numInternalElements() + me.mNumHostGhostNodes[0];
-    for (unsigned j = 0; j != n; ++j) {
-      for (unsigned k = 0; k != nelems; ++k) {
-        arrays[k][offset + j] = fieldList(i,j)[k];
+
+  if (particleType.empty()) {
+
+    // No ghost (host boundary) nodes to deal with
+    unsigned offset = 0;
+    for (unsigned imat = 0; imat < nfields; ++imat) {
+      const unsigned n = fieldList[imat]->numInternalElements();
+      for (unsigned i = 0; i < n; ++i) {
+        for (unsigned k = 0; k < nelems; ++k) {
+          arrays[k][offset + i] = fieldList(imat,i)[k];
+        }
       }
+      offset += n;
     }
-    offset += n;
+
+  } else {
+
+    // Gotta alternately read internal and host ghost points back
+    unsigned offset = 0;
+    for (unsigned imat = 0; imat < nfields; ++imat) {
+      const unsigned n = particleType[imat].size();
+      const vector<int>& ghosts = ghostNodes[imat];
+      CHECK(fieldList[imat].numInternalElements() + ghosts.size() == n);
+      unsigned jint = 0u, jghost = 0u;
+      for (auto i = 0u; i < n; ++i) {
+        if (particleType[imat][i] == 0) {
+          for (unsigned k = 0; k < nelems; ++k) {
+            arrays[k][offset] = fieldList(imat, jint)[k];
+          }
+          ++jint;
+        } else {
+          for (unsigned k = 0; k < nelems; ++k) {
+            arrays[k][offset] = fieldList(imat, ghosts[jghost])[k];
+          }
+          ++jghost;
+        }
+        ++offset;
+      }
+      CHECK(jint == fieldList[imat].numInternalElements());
+      CHECK(jghost == ghosts.size());
+    }
+
   }
 }
 
@@ -571,6 +622,35 @@ template<> struct HydroConstructor<Dim<2>> {
 
 };
 
+//------------------------------------------------------------------------------
+// Add the boundaries to a physics package
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void setPhysicsBoundaries(Physics<Dimension>& pkg,
+                          std::vector<std::shared_ptr<ConstantBoundary<Dimension>>>& constantBounds,
+                          std::vector<std::shared_ptr<Boundary<Dimension>>>& bounds,
+                          const int distributedBoundary) {
+  pkg.clearBoundaries();
+  for (auto& bc: constantBounds) pkg.appendBoundary(*bc);
+  for (auto& bc: bounds) pkg.appendBoundary(*bc);
+
+#ifdef USE_MPI
+  // Add the distributed boundary, as appropriate.
+  if (Process::getTotalNumberOfProcesses() > 1) {
+    switch(distributedBoundary) {
+    case 2:
+      pkg.appendBoundary(TreeDistributedBoundary<Dimension>::instance());
+      break;
+    case 1:
+      pkg.appendBoundary(NestedGridDistributedBoundary<Dimension>::instance());
+      break;
+    default:
+      VERIFY2(false, "addBoundariesToPhysics: invalid distributedBoundary " << distributedBoundary);
+    }
+  }
+#endif
+}
+
 }
 
 //------------------------------------------------------------------------------
@@ -594,7 +674,6 @@ SpheralPseudoScript<Dimension>::
 initialize(const bool     RZ,
            const bool     CRK,
            const bool     ASPH,
-           const bool     BoundSPH,
            const bool     XSPH,
            const bool     compatibleEnergy,
            const bool     totalEnergy,
@@ -843,44 +922,15 @@ initialize(const bool     RZ,
   // auto& pkgs = me.mIntegratorPtr->physicsPackages();
   // for (auto p: pkgs) p->initializeProblemStartup(*me.mDataBasePtr);
 
-  // Add the host code boundary if using bound SPH.
-  me.mBoundSPH = BoundSPH;
-  if (BoundSPH) {
-    std::vector<int> nodeIDs(0);
-    me.mHostCodeBoundary.reset(new HostCodeBoundary<Dimension>(*me.mDataBasePtr,
-                                                               *me.mNodeLists[0],
-                                                               nodeIDs));
-  }
-
   // Add the axis reflecting boundary in RZ.
   HydroConstructor<Dimension>::addBoundaries(RZ, me.mHostCodeBoundaries);
 
   // Add the boundary conditions to the physics packages
   auto& pkgs = me.mIntegratorPtr->physicsPackages();
-  for (auto p: pkgs) {
-    if (BoundSPH) {
-      p->appendBoundary(*me.mHostCodeBoundary);
-    }
-    for (auto& bc: me.mHostCodeBoundaries) {
-      p->appendBoundary(*bc);
-    }
-
-#ifdef USE_MPI
-    // Add the distributed boundary, as appropriate.
-    if (Process::getTotalNumberOfProcesses() > 1) {
-      switch(distributedBoundary) {
-      case 2:
-        p->appendBoundary(TreeDistributedBoundary<Dimension>::instance());
-        break;
-      case 1:
-        p->appendBoundary(NestedGridDistributedBoundary<Dimension>::instance());
-        break;
-      default:
-        VERIFY2(false, "SpheralPseudoScript::initialize: invalid distributedBoundary " << distributedBoundary);
-      }
-    }
-#endif
-  }
+  for (auto p: pkgs) setPhysicsBoundaries(*p,
+                                          me.mConstantBoundaries,
+                                          me.mHostCodeBoundaries,
+                                          distributedBoundary);
 
   // Lock any further boundary changes.
   me.mLockBoundaries = true;
@@ -890,6 +940,9 @@ initialize(const bool     RZ,
 
   // Are we doing CRK
   me.mCRK = CRK;
+
+  // Are we using the grad h correction
+  me.mhGradCorrection = hGradCorrection;
 
   // Remember the distributed boundary type.
   me.mDistributedBoundary = distributedBoundary;
@@ -923,15 +976,50 @@ updateState(const unsigned* nintpermat,
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
   // Check the input and set numbers of nodes.
+  // Note, if the host code is sending in ghost node values, we initally allocate those as internal here.
+  // When we build the ConstantBoundary below, it will copy those values and delete those ghost nodes.
   const auto nmats = me.mNodeLists.size();
   me.mNumInternalNodes.resize(nmats);
   me.mNumHostGhostNodes.resize(nmats);
+  auto ntot = 0;
   for (auto imat = 0; imat < nmats; ++imat) {
     VERIFY(nintpermat[imat] <= npermat[imat]);
-    me.mNumInternalNodes[imat] = nintpermat[imat];
+    me.mNumInternalNodes[imat] = npermat[imat];
     me.mNumHostGhostNodes[imat] = npermat[imat] - nintpermat[imat];
-    me.mNodeLists[imat]->numInternalNodes(me.mNumInternalNodes[imat]);
-    me.mNodeLists[imat]->numGhostNodes(me.mNumHostGhostNodes[imat]);
+    me.mNodeLists[imat]->numInternalNodes(npermat[imat]);
+    ntot += npermat[imat];
+  }
+
+  // We need to set some fields before building a state object.
+  auto m = me.mDataBasePtr->solidMass();
+  auto pos = me.mDataBasePtr->solidPosition();
+  auto vel = me.mDataBasePtr->solidVelocity();
+  auto rho = me.mDataBasePtr->solidMassDensity();
+  auto eps = me.mDataBasePtr->solidSpecificThermalEnergy();
+  auto H = me.mDataBasePtr->solidHfield();
+  auto S = me.mDataBasePtr->solidDeviatoricStress();
+  auto ps = me.mDataBasePtr->solidPlasticStrain();
+  auto D = me.mDataBasePtr->solidDamage();
+  CHECK(mass != NULL);
+  CHECK(position[0] != NULL);
+  CHECK(velocity[0] != NULL);
+  CHECK(massDensity != NULL);
+  CHECK(specificThermalEnergy != NULL);
+  CHECK(Hfield[0] != NULL);
+  CHECK(deviatoricStress != NULL);
+  CHECK(plasticStrain != NULL);
+  CHECK((not me.mDamage) or scalarDamage != NULL);
+  copyArrayToScalarFieldList(mass, m);
+  copyArrayToVectorFieldList(position, pos);
+  copyArrayToVectorFieldList(velocity, vel);
+  copyArrayToScalarFieldList(massDensity, rho);
+  copyArrayToScalarFieldList(specificThermalEnergy, eps);
+  copyArrayToSymTensorFieldList(Hfield, H);
+  copyArrayToSymTensorFieldList(deviatoricStress, S);
+  copyArrayToScalarFieldList(plasticStrain, ps);
+  if (me.mDamage) {
+    CHECK(scalarDamage != NULL);
+    copyArrayToSymTensorFieldList(scalarDamage, D);
   }
 
   // If necesary allocate a new State object
@@ -939,59 +1027,61 @@ updateState(const unsigned* nintpermat,
                                                                              me.mIntegratorPtr->physicsPackagesBegin(), 
                                                                              me.mIntegratorPtr->physicsPackagesEnd()));
 
-  // Pull the state fields.
-  auto m = me.mStatePtr->fields(HydroFieldNames::mass, 0.0);
-  auto pos = me.mStatePtr->fields(HydroFieldNames::position, Vector::zero);
-  auto vel = me.mStatePtr->fields(HydroFieldNames::velocity, Vector::zero);
-  auto rho = me.mStatePtr->fields(HydroFieldNames::massDensity, 0.0);
-  auto eps = me.mStatePtr->fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  auto H = me.mStatePtr->fields(HydroFieldNames::H, SymTensor::zero);
+  // Pull the remaining state fields.
+  auto pType = me.mStatePtr->fields(SolidFieldNames::particleTypes, 0);
   auto P = me.mStatePtr->fields(HydroFieldNames::pressure, 0.0);
   auto cs = me.mStatePtr->fields(HydroFieldNames::soundSpeed, 0.0);
-  auto S = me.mStatePtr->fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  auto ps = me.mStatePtr->fields(SolidFieldNames::plasticStrain, 0.0);
-  auto pType = me.mStatePtr->fields(SolidFieldNames::particleTypes, 0);
   auto K = me.mStatePtr->fields(SolidFieldNames::bulkModulus, 0.0);
   auto mu = me.mStatePtr->fields(SolidFieldNames::shearModulus, 0.0);
   auto Y = me.mStatePtr->fields(SolidFieldNames::yieldStrength, 0.0);
-  auto D = me.mStatePtr->fields(SolidFieldNames::tensorDamage, SymTensor::zero);
 
   // Fill in the material properties.
-  if (mass != NULL)                  copyArrayToScalarFieldList(mass, m);
-  if (position[0] != NULL)           copyArrayToVectorFieldList(position, pos);
-  if (velocity[0] != NULL)           copyArrayToVectorFieldList(velocity, vel);
-  if (massDensity != NULL)           copyArrayToScalarFieldList(massDensity, rho);
-  if (specificThermalEnergy != NULL) copyArrayToScalarFieldList(specificThermalEnergy, eps);
-  if (Hfield[0] != NULL)             copyArrayToSymTensorFieldList(Hfield, H);
   if (pressure != NULL)              copyArrayToScalarFieldList(pressure, P);
-  if (deviatoricStress[0] != NULL)   copyArrayToSymTensorFieldList(deviatoricStress, S);
   if (soundSpeed != NULL)            copyArrayToScalarFieldList(soundSpeed, cs);
   if (bulkModulus != NULL)           copyArrayToScalarFieldList(bulkModulus, K);
   if (shearModulus != NULL)          copyArrayToScalarFieldList(shearModulus, mu);
   if (yieldStrength != NULL)         copyArrayToScalarFieldList(yieldStrength, Y);
-  if (plasticStrain != NULL)         copyArrayToScalarFieldList(plasticStrain, ps);
-  if (particleType != NULL)          copyArrayToIntFieldList(particleType, pType);
-  if (me.mDamage) {
-    if (scalarDamage != NULL)        copyArrayToSymTensorFieldList(scalarDamage, D);
-  }
 
-  if (me.mBoundSPH) {
-    int numSphFree = 0;
-    std::vector<int> nodeIDs(0);
-    // Flag each particle of type 1 (bound) to add it to the boundary condition.
-    for (int i = 0; i < me.mNumInternalNodes[0] + me.mNumHostGhostNodes[0]; ++i) {
-      if (particleType[i] == 1) {
-        nodeIDs.push_back(i);
-      }
-      else {
-        ++numSphFree;
+  // We assume if the user provided particle type, they are flagging some as non-active:
+  //   0 => active
+  //   1 => non-active, convert to ghost
+  me.mParticleType.clear();
+  me.mConstantBoundaries.clear();
+  if (particleType != NULL) {
+    me.mParticleType.resize(nmats);
+
+    // Copy the particle type flags
+    copyArrayToIntFieldList(particleType, pType);   // Won't be necessary eventually
+    auto offset = 0;
+    for (auto imat = 0; imat < nmats; ++imat) {
+      if (npermat[imat] > 0) {
+        me.mParticleType[imat].resize(npermat[imat]);
+        std::copy(particleType + offset, particleType + offset + npermat[imat], &me.mParticleType[imat].front());
+        offset += npermat[imat];
       }
     }
-    // Keep one particle out of the boundary condition list
-    //if (numSphFree == 0) {
-    //  nodeIDs.erase(nodeIDs.begin(), nodeIDs.begin()+1);
-    //}
-    me.mHostCodeBoundary->updateNodeIDs(nodeIDs);
+    CHECK(offset == ntot);
+
+    // If we're using host code provided ghost points (bound SPH), prepare ConstantBoundaries.
+    // We need a no-op denial plane, since we're not using the denial plane part of ConstantBoundary
+    const GeomPlane<Dimension> denialPlane(Vector(std::numeric_limits<double>::lowest(), 0.0, 0.0),
+                                           Vector(1.0, 0.0, 0.0));
+    for (auto imat = 0; imat < nmats; ++imat) {
+      std::vector<int> nodeIDs;
+      nodeIDs.reserve(me.mNumHostGhostNodes[imat]);
+      for (auto i = 0; i < npermat[imat]; ++i) {
+        if (me.mParticleType[imat][i] == 1) nodeIDs.emplace_back(i);
+      }
+      me.mConstantBoundaries.emplace_back(std::make_shared<ConstantBoundary<Dimension>>(*me.mDataBasePtr,
+                                                                                        *me.mNodeLists[imat],
+                                                                                        nodeIDs,
+                                                                                        denialPlane));
+    }
+
+  } else {
+    // The user is not specifying particle type, so set all values to 0.  This will go away
+    // when we remove particle type from Spheral.
+    pType = 0;
   }
 }
 
@@ -1014,7 +1104,15 @@ initializeBoundariesAndPhysics() {
   state0.copyState();
 
   // Initialize boundaries
+  for (auto& bc: me.mConstantBoundaries) bc->initializeProblemStartup(false);
   for (auto& bc: me.mHostCodeBoundaries) bc->initializeProblemStartup(false);
+
+  // Reset the boundaries on physics packages
+  auto& pkgs = me.mIntegratorPtr->physicsPackages();
+  for (auto p: pkgs) setPhysicsBoundaries(*p,
+                                          me.mConstantBoundaries,
+                                          me.mHostCodeBoundaries,
+                                          me.mDistributedBoundary);
 
   // Create initial ghost nodes
   me.mDataBasePtr->reinitializeNeighbors();
@@ -1024,12 +1122,34 @@ initializeBoundariesAndPhysics() {
   // Inititalize physics packages
   if (me.mCRK) me.mRKptr->initializeProblemStartup(*me.mDataBasePtr);
   me.mHydroPtr->initializeProblemStartup(*me.mDataBasePtr);
+  // me.mDataBasePtr->reinitializeNeighbors();
+  // me.mIntegratorPtr->setGhostNodes();
+  // me.mDataBasePtr->updateConnectivityMap(false, false, false);
+  // SpheralPseudoScript::initializeStep();
+  // me.mIntegratorPtr->preStepInitialize(*me.mStatePtr, *me.mDerivsPtr);
+  // me.mDataBasePtr->reinitializeNeighbors();
+  // me.mIntegratorPtr->setGhostNodes();
+  // me.mDataBasePtr->updateConnectivityMap(false, false, false);
+  // for (auto& bc: me.mConstantBoundaries) bc->initializeProblemStartup(false);
+  // for (auto& bc: me.mHostCodeBoundaries) bc->initializeProblemStartup(false);
+  // me.mDerivsPtr.reset(new StateDerivatives<Dimension>(*me.mDataBasePtr,
+  //                                                     me.mIntegratorPtr->physicsPackagesBegin(), 
+  //                                                     me.mIntegratorPtr->physicsPackagesEnd()));
+  // me.mIntegratorPtr->preStepInitialize(*me.mStatePtr, *me.mDerivsPtr);
+  // me.mIntegratorPtr->initializeDerivatives(0.0, 1.0, *me.mStatePtr, *me.mDerivsPtr);
+  // me.mIntegratorPtr->evaluateDerivatives(0.0, 1.0, *me.mDataBasePtr, *me.mStatePtr, *me.mDerivsPtr);
+  // me.mIntegratorPtr->finalizeDerivatives(0.0, 1.0, *me.mDataBasePtr, *me.mStatePtr, *me.mDerivsPtr);
+  // // me.mDataBasePtr->reinitializeNeighbors();
+  // // me.mIntegratorPtr->setGhostNodes();
+  // // me.mDataBasePtr->updateConnectivityMap(false, false, false);
+  // // me.mIntegratorPtr->applyGhostBoundaries(*me.mStatePtr, *me.mDerivsPtr);
 
-  // One more whack at reinitializing boundaries, in case they needed initial
-  // physics package state
-  me.mIntegratorPtr->setGhostNodes();
-  me.mDataBasePtr->updateConnectivityMap(false, false, false);
-  for (auto& bc: me.mHostCodeBoundaries) bc->initializeProblemStartup(true);
+  // // One more whack at reinitializing boundaries, in case they needed initial
+  // // physics package state
+  // for (auto& bc: me.mConstantBoundaries) bc->initializeProblemStartup(false);   // Removes any internal nodes that are actually bound SPH
+  // for (auto& bc: me.mHostCodeBoundaries) bc->initializeProblemStartup(false);
+  // me.mIntegratorPtr->setGhostNodes();
+  // me.mDataBasePtr->updateConnectivityMap(false, false, false);
 
   // Reset the state object
   me.mStatePtr.reset(new State<Dimension>(*me.mDataBasePtr,
@@ -1058,8 +1178,6 @@ initializeBoundariesAndPhysics() {
 //------------------------------------------------------------------------------
 // initializeStep -- to be called once at the beginning of a cycle.
 // Returns:    the time step vote
-// Arguments:  nintpermat : array indicating the number of internal nodes per material
-//             npermat : array indicating the total number of nodes per material
 //------------------------------------------------------------------------------
 template<typename Dimension>
 double
@@ -1080,6 +1198,30 @@ initializeStep() {
 
   // pre-step initialize
   me.mIntegratorPtr->preStepInitialize(*me.mStatePtr, *me.mDerivsPtr);
+
+  // If we're using constant boundaries to represent non-computational nodes from the host code,
+  // this is where we take a snapshot of the Fields and convert to ghost nodes.
+  if (not me.mConstantBoundaries.empty()) {
+
+    // If we're doing the SPH grad h correction, we need the correct value on the host code bound
+    // nodes before taking our snapshot.
+    if (me.mhGradCorrection) {
+      me.mIntegratorPtr->setGhostNodes();
+      me.mDataBasePtr->updateConnectivityMap(false, false, false);
+      const auto& connectivityMap = me.mDataBasePtr->connectivityMap();
+      const auto  position = me.mStatePtr->fields(HydroFieldNames::position, Vector::zero);
+      const auto  H = me.mStatePtr->fields(HydroFieldNames::H, SymTensor::zero);
+      auto        omega = me.mStatePtr->fields(HydroFieldNames::omegaGradh, 0.0);
+      computeSPHOmegaGradhCorrection(connectivityMap, *me.mKernelPtr, position, H, omega);
+    }
+    
+    // Finalize the boundaries
+    for (auto& bc: me.mConstantBoundaries) bc->initializeProblemStartup(true);   // Removes any internal nodes that are actually bound SPH
+    for (auto& bc: me.mHostCodeBoundaries) bc->initializeProblemStartup(true);
+    me.mIntegratorPtr->setGhostNodes();
+    me.mDataBasePtr->updateConnectivityMap(false, false, false);
+    me.mIntegratorPtr->applyGhostBoundaries(*me.mStatePtr, *me.mDerivsPtr);
+  }
 
   // Vote on a time step and return it.
   me.mIntegratorPtr->lastDt(1e10);
@@ -1108,8 +1250,10 @@ evaluateDerivatives(double*  massDensitySum,
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
-  // Zero out the stored derivatives.
+  // Initialize for computing derivatives
   me.mIntegratorPtr->initializeDerivatives(0.0, 1.0, *me.mStatePtr, *me.mDerivsPtr);
+
+  // Zero out the stored derivatives.
   me.mDerivsPtr->Zero();
 
   // Have Spheral evaluate the fluid derivatives.
@@ -1129,18 +1273,31 @@ evaluateDerivatives(double*  massDensitySum,
   auto effViscousPressure = me.mDerivsPtr->fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto viscousWork = me.mDerivsPtr->fields(HydroFieldNames::viscousWork, 0.0);
 
+  // If we're using particleType to build host ghost nodes, we need the indices of those ghosts
+  vector<vector<int>> ghostNodes;
+  if (not me.mParticleType.empty()) {
+    const auto nmats = DvDt.numFields();
+    CHECK(me.mConstantBoundaries.size() == nmats);
+    ghostNodes.resize(nmats);
+    for (auto imat = 0u; imat < nmats; ++imat) {
+      const auto& nodes = DvDt[imat]->nodeList();
+      const auto& boundaryNodes = me.mConstantBoundaries[imat]->accessBoundaryNodes(const_cast<NodeList<Dimension>&>(nodes));
+      ghostNodes[imat] = boundaryNodes.ghostNodes;
+    }
+  }
+
   // Copy the fluid derivative state to the arguments.
-  copyScalarFieldListToArray(rhoSum, massDensitySum);
-  copyScalarFieldListToArray(DrhoDt, DmassDensityDt);
-  copyVectorFieldListToArray(DvDt, DvelocityDt);
-  copyVectorFieldListToArray(DposDt, DxDt);
-  copyScalarFieldListToArray(DepsDt, DspecificThermalEnergyDt);
-  copyTensorFieldListToArray(DvDx, DvelocityDx);
-  copySymTensorFieldListToArray(DHDt, DHfieldDt);
-  copySymTensorFieldListToArray(Hideal, HfieldIdeal);
-  copySymTensorFieldListToArray(DSDt, DdeviatoricStressDt);
-  copyScalarFieldListToArray(effViscousPressure, qpressure);
-  copyScalarFieldListToArray(viscousWork, qwork);
+  copyScalarFieldListToArray(rhoSum, me.mParticleType, ghostNodes, massDensitySum);
+  copyScalarFieldListToArray(DrhoDt, me.mParticleType, ghostNodes, DmassDensityDt);
+  copyVectorFieldListToArray(DvDt, me.mParticleType, ghostNodes, DvelocityDt);
+  copyVectorFieldListToArray(DposDt, me.mParticleType, ghostNodes, DxDt);
+  copyScalarFieldListToArray(DepsDt, me.mParticleType, ghostNodes, DspecificThermalEnergyDt);
+  copyTensorFieldListToArray(DvDx, me.mParticleType, ghostNodes, DvelocityDx);
+  copyTensorFieldListToArray(DHDt, me.mParticleType, ghostNodes, DHfieldDt);
+  copyTensorFieldListToArray(Hideal, me.mParticleType, ghostNodes, HfieldIdeal);
+  copyTensorFieldListToArray(DSDt, me.mParticleType, ghostNodes, DdeviatoricStressDt);
+  copyScalarFieldListToArray(effViscousPressure, me.mParticleType, ghostNodes, qpressure);
+  copyScalarFieldListToArray(viscousWork, me.mParticleType, ghostNodes, qwork);
 }
 
 //------------------------------------------------------------------------------
@@ -1203,7 +1360,8 @@ iterateHfield(double**     Hfield,
                 maxIterations, tolerance);
 
   // Copy the internal H field back to the output.
-  copySymTensorFieldListToArray(H, Hfield);
+  // We assume there are no host code bound SPH shenanigans to account for here.
+  copyTensorFieldListToArray(H, vector<vector<int>>(), vector<vector<int>>(), Hfield);
 }
 
 //------------------------------------------------------------------------------
@@ -1243,7 +1401,8 @@ computeFragmentID(double* damage,
   }
 
   // Copy back to the array.
-  copyIntFieldListToArray(fragIDs,fragments) ;
+  // We assume there are no host code bound SPH shenanigans to account for here.
+  copyScalarFieldListToArray(fragIDs, vector<vector<int>>(), vector<vector<int>>(), fragments) ;
 
   // Zero out fields
   D.Zero();

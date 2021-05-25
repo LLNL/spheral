@@ -139,7 +139,6 @@ SPHERALDLL_API
                           const int      axisym,
                           const int      CRK,
                           const int      ASPH,
-                          const int      BoundSPH,
                           const int      XSPH,
                           const int      compatibleEnergy,
                           const int      totalEnergy,
