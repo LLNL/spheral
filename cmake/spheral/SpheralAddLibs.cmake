@@ -35,9 +35,12 @@ function(spheral_add_cxx_library package_name)
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
                     DEPENDS_ON  -Wl,--start-group ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS} -Wl,--end-group
-                    SHARED      TRUE
+                    SHARED      FALSE
                     )
   endif()
+
+  # This is needed for linking cuda device compiled code
+  set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
   # Only add target depends if the list exists, can throw an error otherwise
   if(spheral_depends)

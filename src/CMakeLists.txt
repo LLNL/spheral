@@ -17,6 +17,7 @@ list(APPEND _packages
   Damage
   DataBase
   DataOutput
+  DeviceTestLib
   Distributed
   ExternalForce
   Field
