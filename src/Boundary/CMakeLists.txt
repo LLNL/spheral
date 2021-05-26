@@ -12,7 +12,6 @@ set(Boundary_inst
     ConstantRVelocityBoundary
     ConstantBoundary
     findNodesTouchingThroughPlanes
-    HostCodeBoundary
     InflowOutflowBoundary
    )
 
@@ -55,8 +54,6 @@ set(Boundary_headers
     CylindricalBoundaryInline.hh
     FacetedVolumeBoundary.hh
     FacetedVolumeBoundaryInline.hh
-    HostCodeBoundary.hh
-    HostCodeBoundaryInline.hh
     InflowOutflowBoundary.hh
     InflowOutflowBoundaryInline.hh
     PeriodicBoundary.hh
