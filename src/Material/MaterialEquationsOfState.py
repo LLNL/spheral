@@ -70,8 +70,10 @@ class IsothermalEquationOfState%(units)s%(dim)id(IsothermalEquationOfState%(dim)
                                                    maximumPressure)
         return
 
-"""
-"""
+
+#-------------------------------------------------------------------------------
+# Stiffened Gas EOS
+#-------------------------------------------------------------------------------
 class StiffenedGas%(units)s%(dim)id(IsothermalEquationOfState%(dim)id):
     def __init__(self, 
                  gamma,
