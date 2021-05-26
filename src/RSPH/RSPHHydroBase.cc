@@ -773,12 +773,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto Wij = 0.5*(Wi+Wj);
       const auto gWij = 0.5*(gWi+gWj);
       const auto gradWij = 0.5*(gradWi+gradWj);
-      gradWi = gradWij;
-      gradWj = gradWij;
-      gWi = gWij;
-      gWj = gWij;
-      Wi = Wij;
-      Wj = Wij;
+      //gradWi = gradWij;
+      //gradWj = gradWij;
+      //gWi = gWij;
+      //gWj = gWij;
+      //Wi = Wij;
+      //Wj = Wij;
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -1069,7 +1069,7 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       const auto gradWj = gWj*Hetaj;
 
       // averaged things.
-      const auto gradWij = 0.5*(gradWi+gradWj);
+      //const auto gradWij = 0.5*(gradWi+gradWj);
       
       // volumes
       const auto voli = mi/rhoi;
@@ -1078,8 +1078,8 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       // Linear gradient correction term.
  
         //const auto Mij = ;
-        Mi -= volj*rij.dyad(gradWij);
-        Mj -= voli*rij.dyad(gradWij);
+        Mi -= volj*rij.dyad(gradWi);
+        Mj -= voli*rij.dyad(gradWj);
     
 
     } // loop over pairs
