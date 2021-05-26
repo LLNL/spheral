@@ -110,8 +110,13 @@ ProbabilisticDamageModel<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // How many points are actually being damaged?
-  const auto nused_local = mMask.sumElements();
-  const auto nused_global = allReduce(nused_local, MPI_SUM, Communicator::communicator());
+  // We have to be careful to use an unsigned size_t here due to overflow
+  // problems with large numbers of points.
+  size_t nused_local = 0u;
+  for (auto i = 0u; i < mMask.numInternalElements(); ++i) {
+    if (mMask[i] == 1) ++nused_local;
+  }
+  const size_t nused_global = allReduce(nused_local, MPI_SUM, Communicator::communicator());
 
   // Compute the Morton-ordering for hashing with the global seed to seed each
   // point-wise random number generator.
@@ -207,10 +212,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
            << "    Min num flaws per node: " << minNumFlaws << endl
            << "    Max num flaws per node: " << maxNumFlaws << endl
            << "    Total num flaws       : " << totalNumFlaws << endl
-           << "    Avg flaws per node    : " << totalNumFlaws / std::max(1, nused_global) << endl
+           << "    Avg flaws per node    : " << totalNumFlaws / std::max(size_t(1), nused_global) << endl
            << "    Min flaw strain       : " << epsMin << endl
            << "    Max flaw strain       : " << epsMax << endl
-           << "    Avg node failure      : " << sumFlaws / std::max(1, nused_global) << endl;
+           << "    Avg node failure      : " << sumFlaws / std::max(size_t(1), nused_global) << endl;
     }
   }
 }

@@ -1,4 +1,6 @@
 import sys
+import mpi
+from math import *
 from io import BytesIO as StringIO
 from SpheralCompiledPackages import *
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
@@ -25,7 +27,7 @@ default values listed in parens):
         mWeibull                : the "m" Weibull constant -- can be looked up from 
                                   materialName or provided
         seed                    : (48927592) random number seed for flaw generation
-        minFlawsPerNode         : (1) the minimum number of flaws to seed on a point
+        minFlawsPerNode         : (10) the minimum number of flaws to seed on a point
         crackGrowthMultiplier   : (0.4) crack growth rate in units of longitudinal
                                   sound speed
         volumeMultiplier        : (1.0) Multiplies per node volume, useful for 
@@ -64,7 +66,7 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
                          "kWeibull"                 : None,
                          "mWeibull"                 : None,
                          "seed"                     : 48927592,
-                         "minFlawsPerNode"          : 1,
+                         "minFlawsPerNode"          : 10,
                          "crackGrowthMultiplier"    : 0.4,
                          "volumeMultiplier"         : 1.0,
                          "damageCouplingAlgorithm"  : PairMaxDamage,
@@ -126,6 +128,14 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
                 damage_kwargs[argname] = kwargs[argname]
             else:
                 raise ValueError, (("ERROR : unknown kwarg %%s.\\n" %% argname) + expectedUsageString)
+
+        # If no mask was provided, deafult to all points active
+        if damage_kwargs["mask"] is None:
+            damage_kwargs["mask"] = IntField%(dim)s("damage mask", damage_kwargs["nodeList"], 1)
+
+        # # If no minFlawsPerNode was specified, set it to a fraction of log(N_points)
+        # if damage_kwargs["minFlawsPerNode"] is None:
+        #     damage_kwargs["minFlawsPerNode"] = max(1, int(log(mpi.allreduce(damage_kwargs["nodeList"].numInternalNodes, mpi.SUM))))
 
         # Build the damage model.
         CXXProbabilisticDamageModel%(dim)s.__init__(self, **damage_kwargs)

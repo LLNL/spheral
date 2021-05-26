@@ -259,19 +259,7 @@ update(const KeyType& key,
 
       // Is this node under enough strain to cause damage?
       if (eigeni.eigenValues(0) > minFlaw(i)) {
-
-        // Yes. Fill out a representation of the full flaws on this point.
-        vector<double> flaws(numFlaws(i));
-        const auto Ai = numFlaws(i)/(mkWeibull*initialVolume(i));
-        for (auto j = 0; j < numFlaws(i); ++j) {
-          const auto flawj = std::max(minFlaw(i), std::min(maxFlaw(i), pow(Ai * randomGenerator(i)(), mInv)));
-          CHECK2(flawj >= minFlaw(i) and flawj <= maxFlaw(i),
-                 flawj << " not in [" << minFlaw(i) << " " << maxFlaw(i) << "[\n");
-          flaws[j] = flawj;
-        }
-        std::sort(flaws.begin(), flaws.end());
-        flaws[0] = minFlaw(i);
-        flaws.back() = maxFlaw(i);
+        vector<double> flaws;
 
         // Iterate over the eigenvalues of the strain and accumulate damage in the direction
         // of the eigenvectors.
@@ -280,37 +268,63 @@ update(const KeyType& key,
 
           // How many of the flaws are activated in this direction?
           if (strainj > minFlaw(i)) {
-            const auto itr = std::lower_bound(flaws.begin(), flaws.end(), strainj);
-            const auto numFlawsActivated = std::distance(flaws.begin(), itr);
-            CHECK(numFlawsActivated <= numFlaws(i));
 
             // The direction of the strain, and projected current (starting) damage.
             const auto strainDirection = eigeni.eigenVectors.getColumn(jdim);
             CHECK(fuzzyEqual(strainDirection.magnitude2(), 1.0, 1.0e-10));
             const auto D0 = max(0.0, min(1.0, (Di * strainDirection).magnitude()));
             CHECK(D0 >= 0.0 && D0 <= 1.0);
+            if (D0 < 1.0) {
 
-            // Choose the allowed range of D.
-            double Dmin, Dmax;
-            const double numFlawsInv = 1.0/double(numFlaws(i));
-            if (multiplier >= 0.0) {
-              Dmin = D0;
-              Dmax = std::max(D0, double(numFlawsActivated)*numFlawsInv);
-            } else {
-              Dmin = 0.0;
-              Dmax = D0;
+              // Find how many flaws are activated in this direction
+              size_t numFlawsActivated;
+              if (strainj >= maxFlaw(i)) {
+                numFlawsActivated = numFlaws(i);
+
+              } else {
+                // If necessary, create a representation of the flaws on this point
+                if (flaws.empty()) {
+                  flaws.resize(numFlaws(i));
+                  const auto Ai = numFlaws(i)/(mkWeibull*initialVolume(i));
+                  for (auto j = 0; j < numFlaws(i); ++j) {
+                    const auto flawj = std::max(minFlaw(i), std::min(maxFlaw(i), pow(Ai * randomGenerator(i)(), mInv)));
+                    CHECK2(flawj >= minFlaw(i) and flawj <= maxFlaw(i),
+                           flawj << " not in [" << minFlaw(i) << " " << maxFlaw(i) << "[\n");
+                    flaws[j] = flawj;
+                  }
+                  std::sort(flaws.begin(), flaws.end());
+                  flaws[0] = minFlaw(i);
+                  flaws.back() = maxFlaw(i);
+                }
+
+                // Now count how many are active
+                const auto itr = std::lower_bound(flaws.begin(), flaws.end(), strainj);
+                numFlawsActivated = std::distance(flaws.begin(), itr);
+                CHECK(numFlawsActivated <= numFlaws(i));
+              }
+
+              // Choose the allowed range of D.
+              double Dmin, Dmax;
+              const double numFlawsInv = 1.0/double(numFlaws(i));
+              if (multiplier >= 0.0) {
+                Dmin = D0;
+                Dmax = std::max(D0, double(numFlawsActivated)*numFlawsInv);
+              } else {
+                Dmin = 0.0;
+                Dmax = D0;
+              }
+              CHECK(Dmax >= Dmin);
+              CHECK(Dmin >= 0.0 && Dmax <= 1.0);
+
+              // Increment the damage.
+              const auto D013 = FastMath::CubeRootHalley2(D0);
+              const auto D113 = D013 + multiplier*double(numFlawsActivated)*numFlawsInv*DDDt(i);
+              const auto D1 = max(Dmin, min(Dmax, FastMath::cube(D113)));
+              CHECK((D1 - D0)*multiplier >= 0.0);
+
+              // Increment the damage tensor.
+              Di += (D1 - D0)*strainDirection.selfdyad();
             }
-            CHECK(Dmax >= Dmin);
-            CHECK(Dmin >= 0.0 && Dmax <= 1.0);
-
-            // Increment the damage.
-            const auto D013 = FastMath::CubeRootHalley2(D0);
-            const auto D113 = D013 + multiplier*double(numFlawsActivated)*numFlawsInv*DDDt(i);
-            const auto D1 = max(Dmin, min(Dmax, FastMath::cube(D113)));
-            CHECK((D1 - D0)*multiplier >= 0.0);
-
-            // Increment the damage tensor.
-            Di += (D1 - D0)*strainDirection.selfdyad();
           }
         }
 
