@@ -58,8 +58,8 @@ ConstantBoundary(DataBase<Dimension>& dataBase,
     mNodeFlags[*itr] = 1;
   }
 
-  // Issue a big old warning!
-  if (Process::getRank() == 0) cerr << "WARNING: ConstantBoundary is currently not compatible with redistributing nodes!\nMake sure you don't allow redistribution with this Boundary condition." << endl;
+  // // Issue a big old warning!
+  // if (Process::getRank() == 0) cerr << "WARNING: ConstantBoundary is currently not compatible with redistributing nodes!\nMake sure you don't allow redistribution with this Boundary condition." << endl;
 }
 
 //------------------------------------------------------------------------------
