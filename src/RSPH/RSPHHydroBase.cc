@@ -20,8 +20,8 @@
 //#include "Hydro/VolumePolicy.hh"
 //#include "Hydro/VoronoiMassDensityPolicy.hh"
 //#include "Hydro/SumVoronoiMassDensityPolicy.hh"
-#include "Hydro/SpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
+#include "Hydro/SpecificThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
@@ -40,6 +40,7 @@
 //#include "Mesh/Mesh.hh"
 //#include "CRKSPH/volumeSpacing.hh"
 
+#include "FSISpecificThermalEnergyPolicy.hh"
 #include "RSPHHydroBase.hh"
 
 #ifdef _OPENMP
@@ -238,7 +239,7 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
   dataBase.resizeFluidFieldList(mLastDvDx, Tensor::zero, "velocityGradientLastTimeStep");
   dataBase.resizeFluidFieldList(mLastDpDx, Vector::zero, "pressureGradientLastTimeStep");
-  dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
+  //dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
 
   FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
   FieldList<Dimension, Scalar> massDensity = dataBase.fluidMassDensity();
@@ -280,20 +281,14 @@ registerState(DataBase<Dimension>& dataBase,
 
   // conditional for energy method
   if (mCompatibleEnergyEvolution) {
-    size_t nodeListi = 0;
-    for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-         itr != dataBase.fluidNodeListEnd();
-         ++itr, ++nodeListi) {
-      *mSpecificThermalEnergy0[nodeListi] = (*itr)->specificThermalEnergy();
-      (*mSpecificThermalEnergy0[nodeListi]).name(HydroFieldNames::specificThermalEnergy + "0");
-    }
-    PolicyPointer thermalEnergyPolicy(new SpecificThermalEnergyPolicy<Dimension>(dataBase));
+    
+    PolicyPointer thermalEnergyPolicy(new FSISpecificThermalEnergyPolicy<Dimension>(dataBase));
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
                                                                            HydroFieldNames::specificThermalEnergy,
                                                                            true));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
-    state.enroll(mSpecificThermalEnergy0);
+    //state.enroll(mSpecificThermalEnergy0);
 
 
   }else if (mEvolveTotalEnergy) {
@@ -313,6 +308,11 @@ registerState(DataBase<Dimension>& dataBase,
   }
 
  
+  // Override the specific thermal energy policy
+  //typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+  //FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+ // CHECK(eps.numFields() == dataBase.numFluidNodeLists());
+  
   TIME_RSPHregister.stop();
 }
 
@@ -669,7 +669,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto  npairs = pairs.size();
 
   // Size up the pair-wise accelerations before we start.
-  if (mCompatibleEnergyEvolution) pairAccelerations.resize(npairs);
+  //if (mCompatibleEnergyEvolution) pairAccelerations.resize(npairs);
+  pairAccelerations.resize(2*npairs);
 
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();
@@ -768,10 +769,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto Hetaj = Hj*etaj.unitVector();
       auto gradWj = gWj*Hetaj;
 
-      //const auto Hdetij = (0.5*(Hi+Hj)).Determinant();
-      //const auto Wij = 0.5*(Wi+Wj);
-      //const auto gWij = 0.5*(gWi+gWj);
-      //const auto gradWij = 0.5*(gradWi+gradWj);
+      const auto Hdetij = (0.5*(Hi+Hj)).Determinant();
+      const auto Wij = 0.5*(Wi+Wj);
+      const auto gWij = 0.5*(gWi+gWj);
+      const auto gradWij = 0.5*(gradWi+gradWj);
+      gradWi = gradWij;
+      gradWj = gradWij;
+      gWi = gWij;
+      gWj = gWij;
+      Wi = Wij;
+      Wj = Wij;
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -817,7 +824,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DvDti -= mj*deltaDvDt;
       DvDtj += mi*deltaDvDt;
 
-      if (mCompatibleEnergyEvolution) pairAccelerations[kk] = - mj*deltaDvDt; 
+      //if (mCompatibleEnergyEvolution) pairAccelerations[kk] = - mj*deltaDvDt; 
+
+      pairAccelerations[2*kk] = -deltaDvDt; 
 
       // velocity gradient -> continuity
       //------------------------------------------------------
@@ -835,6 +844,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     //--------------------------------------------------------
       DepsDti += mj*(deltaDvDt.dot(vi-vstar));
       DepsDtj += mi*(deltaDvDt.dot(vstar-vj));
+      pairAccelerations[2*kk+1].x(2.0*Prhoi.dot(vi-vstar)); 
+      pairAccelerations[2*kk+1].y(2.0*Prhoj.dot(vstar-vj)); 
 
      // DepsDti += mj*(Prho*deltaDvDxi.Trace());
      // DepsDtj += mi*(Prho*deltaDvDxj.Trace());
@@ -1058,7 +1069,7 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       const auto gradWj = gWj*Hetaj;
 
       // averaged things.
-      //const auto gradWij = 0.5*(gradWi+gradWj);
+      const auto gradWij = 0.5*(gradWi+gradWj);
       
       // volumes
       const auto voli = mi/rhoi;
@@ -1067,8 +1078,8 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       // Linear gradient correction term.
  
         //const auto Mij = ;
-        Mi -= volj*rij.dyad(gradWi);
-        Mj -= voli*rij.dyad(gradWj);
+        Mi -= volj*rij.dyad(gradWij);
+        Mj -= voli*rij.dyad(gradWij);
     
 
     } // loop over pairs
@@ -1117,13 +1128,10 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
   // boundary conditions on the accelerations.
   if (compatibleEnergyEvolution()) {
     auto accelerations = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-    auto DepsDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
          boundaryItr != this->boundaryEnd();
-         ++boundaryItr) {
-      (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
-      (*boundaryItr)->applyFieldListGhostBoundary(DepsDt);
-    }
+         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
+    
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
@@ -1148,11 +1156,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
-  if (compatibleEnergyEvolution()) {
-    CHECK(state.fieldNameRegistered(HydroFieldNames::specificThermalEnergy + "0"));
-    specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
-  }
+  
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1163,9 +1167,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(velocity);
     (*boundaryItr)->applyFieldListGhostBoundary(pressure);
     (*boundaryItr)->applyFieldListGhostBoundary(soundSpeed);
-    if (compatibleEnergyEvolution()) {
-      (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
-    }
+  
   }
   TIME_RSPHghostBounds.stop();
 }
@@ -1187,11 +1189,6 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
-  if (compatibleEnergyEvolution()) {
-    specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
-  }
-
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1202,9 +1199,6 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(velocity);
     (*boundaryItr)->enforceFieldListBoundary(pressure);
     (*boundaryItr)->enforceFieldListBoundary(soundSpeed);
-    if (compatibleEnergyEvolution()) {
-      (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
-    }
   }
   TIME_RSPHenforceBounds.stop();
 }
@@ -1301,7 +1295,7 @@ vanLeerLimiter( const typename Dimension::Vector& rij,
   // project linear soln
   vstari = vi - phi*DvDxi*xij;
   vstarj = vj + phi*DvDxj*xij;
-  }
+}
 
 template<typename Dimension>
 void
@@ -1328,7 +1322,7 @@ vanLeerLimiter( const typename Dimension::Vector& rij,
   // project linear soln
   vstari = vi - phi*DvDxi.dot(xij);
   vstarj = vj + phi*DvDxj.dot(xij);
-  }
+}
 
 template<typename Dimension>
 void
@@ -1353,67 +1347,70 @@ computeHLLCstate( const typename Dimension::Vector& rij,
                   typename Dimension::Vector& vstar,     
                   typename Dimension::Scalar& Pstar) const {
 
+  // default to average values for bad sound speed
+  vstar = (vi+vj)/2.0;
+  Pstar = (Pi+Pj)/2.0;
 
+  const auto goodC = ( ci > 0.0 and cj > 0.0);
 
-  // normal component
-  const auto rhatij = rij.unitVector();
-  //const auto isExpanding = (vi-vj).dot(rij) > 0.0;
+  if (goodC){
+    // linear interpolate R and L state
+    const auto DvDxi = mLastDvDx(nodeListi,i);
+    const auto DvDxj = mLastDvDx(nodeListj,j);
+    const auto DpDxi = mLastDpDx(nodeListi,i);
+    const auto DpDxj = mLastDpDx(nodeListj,j);
 
-  const auto DvDxi = mLastDvDx(nodeListi,i);
-  const auto DvDxj = mLastDvDx(nodeListj,j);
-  const auto DpDxi = Vector::zero;//mLastDpDx(nodeListi,i);
-  const auto DpDxj = Vector::zero;//mLastDpDx(nodeListj,j);
-  // perpendicular component 
-  //const auto wij = vi+vj-(ui+uj)*rhatij;                      
-  //const auto wi = vi-ui*rhatij;
-  //const auto wj = vj-ui*rhatij;
-  
-  // dumb 1D wave speed 
-  //const auto Si = ui + ci;
-  //const auto Sj = uj - cj;
+    Vector vstari, vstarj;
+    Scalar pstari, pstarj;
 
-  // accoustic impedance
-  //const auto Ci = rhoi*(Si-ui);
-  //const auto Cj = rhoj*(Sj-uj);
+    this->vanLeerLimiter( rij, vi, vj, DvDxi, DvDxj,
+                          vstari, vstarj);
 
-  // get our vanLeer limiter 
-  //const auto xij = rij/2.0;
+    this->vanLeerLimiter( rij, Pi, Pj, DpDxi, DpDxj,
+                          pstari, pstarj);
 
-  Vector vstari, vstarj;
-  Scalar pstari, pstarj;
+    // get our components
+    const auto rhatij = rij.unitVector();
 
-  this->vanLeerLimiter( rij, vi, vj, DvDxi, DvDxj,
-                        vstari, vstarj);
+    const auto ui = vstari.dot(rhatij);
+    const auto uj = vstarj.dot(rhatij);
+    const auto wi = vstari - ui*rhatij;
+    const auto wj = vstarj - uj*rhatij;
 
-  this->vanLeerLimiter( rij, Pi, Pj, DpDxi, DpDxj,
-                        pstari, pstarj);
+    // get our wave speed (default acoustic)
+    auto Si =   rhoi*ci;
+    auto Sj = - rhoj*cj;
+    if (true){ // Davis Einfeldt 1988 min/max treatment
+      Si = rhoi*(max(uj+cj,ui+ci)-ui);
+      Sj = rhoj*(min(uj-cj,ui-ci)-uj);
+    }else if(false){ // HLLE Roe avg +- wavespeed estimate
+      const auto sRhoi = sqrt(rhoi);
+      const auto sRhoj = sqrt(rhoj);
+      const auto denom = safeInv(sRhoi+sRhoj);
+      const auto eta = 0.5*sRhoi*sRhoj*denom*denom;
+      const auto d2 = (sRhoi * ci*ci + sRhoj * cj*cj)*denom + eta * (ui-uj)*(ui-uj);
+      const auto d = sqrt(d2);
 
-    // dont go out of bounds
-  const auto ui = vstari.dot(rhatij);
-  const auto uj = vstarj.dot(rhatij);
-  // if (ARSType == Acoustic){
-  //const auto umin = min(ui,uj);
-  //const auto umax = max(ui,uj);
+      const auto utilde = (sRhoi * ui + sRhoj * uj)*denom;
 
-  const auto ustar = ((ci > 0.0 and cj>0.0) ?
-                      (rhoi*ci*ui + rhoj*cj*uj - pstari + pstarj )/max((rhoi*ci + rhoj*cj),1e-30) :
-                      (ui+uj)/2.0);
-  Pstar = rhoj*cj * (uj - ustar) + pstarj;
-  //}
-  //
-  //Davis / Einfeldt 1988
-  //const auto Si = min(uj+cj,ui+ci);
-  //const auto Sj = max(uj-cj,ui-ci);
-  //const auto ustar = ((ci > 0.0 and cj>0.0) ?
-  //                    (rhoj*(Sj-uj)*uj - rhoi*(Si-ui)*ui + pstari - pstarj )/max(rhoj*(Sj-uj)*uj - rhoi*(Si-ui)*ui,1e-30) :
-  //                    (ui+uj)/2.0);
-
-  //Pstar = rhoj* (Sj-uj) * (ustar-uj) + pstarj;
-
-
-  vstar = ustar*rhatij + ((vstari+vstarj) - (ui+uj)*rhatij)/2.0;
-
-  // that'll do it hopefully my dumb wave speed isn't too dumb
+      Si = rhoi*((utilde + d)-ui);
+      Sj = rhoj*((utilde - d)-uj);
+    }
+      //Davis / Einfeldt 1988
+     /*if (false){
+    
+      const auto denom = safeInv(max((Si + Sj),1e-30));
+      ustar = (Sj*uj - Si*ui + pstari - pstarj )*denom;
+      wstar = (Sj*wj - Si*wi)*denom;
+      Pstar = Sj * (ustar-uj) + pstarj;
+    }*/
+    // construct our ARS
+    const auto denom = safeInv(Si - Sj);
+    const auto ustar = (Si*ui - Sj*uj - pstari + pstarj )*denom;
+    const auto wstar = (Si*wi - Sj*wj)*denom;
+    Pstar = Sj * (ustar-uj) + pstarj;
+    vstar = ustar*rhatij + wstar;
   }
+}
 
 }
