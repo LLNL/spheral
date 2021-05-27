@@ -27,6 +27,7 @@
 #include "Neighbor/Neighbor.hh"
 #include "Utilities/mortonOrderIndices.hh"
 #include "Utilities/allReduce.hh"
+#include "Utilities/uniform_random.hh"
 
 #include <boost/functional/hash.hpp>  // hash_combine
 
@@ -85,8 +86,7 @@ ProbabilisticDamageModel(SolidNodeList<Dimension>& nodeList,
   mLongitudinalSoundSpeed(SolidFieldNames::longitudinalSoundSpeed, nodeList),
   mDdamageDt(ProbabilisticDamagePolicy<Dimension>::prefix() + SolidFieldNames::scalarDamage, nodeList),
   mStrain(SolidFieldNames::strainTensor, nodeList),
-  mEffectiveStrain(SolidFieldNames::effectiveStrainTensor, nodeList),
-  mRandomGenerator(SolidFieldNames::randomGenerator, nodeList) {
+  mEffectiveStrain(SolidFieldNames::effectiveStrainTensor, nodeList) {
 }
 
 //------------------------------------------------------------------------------
@@ -132,6 +132,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const auto& mass = nodes.mass();
   const auto& rho = nodes.massDensity();
   const auto  nlocal = nodes.numInternalNodes();
+  vector<uniform_random> randomGenerators(nlocal);
 #pragma omp parallel for
   for (auto i = 0u; i < nlocal; ++i) {
     if (mMask(i) == 1) {
@@ -141,8 +142,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
       mVmax = std::max(mVmax, mInitialVolume(i));
       Key seedi = mSeed;
       boost::hash_combine(seedi, keys(i));
-      mRandomGenerator(i).seed(seedi);      // starting out generating in [0,1)
-      mRandomGenerator(i)();                // Recommended to discard first value in sequence
+      randomGenerators[i].seed(seedi);      // starting out generating in [0,1)
+      randomGenerators[i]();                // Recommended to discard first value in sequence
     }
   }
   mVmin = allReduce(mVmin, MPI_MIN, Communicator::communicator());
@@ -151,8 +152,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Compute the maximum strain we expect for the minimum volume.
   const auto epsMax2m = mMinFlawsPerNode/(mkWeibull*mVmin);  // epsmax ** m
 
-  // Based on this compute the maximum number of flaws any node will have.  We'll use this to
-  // spin the random number generator without extra communiction.
+  // Based on this compute the maximum number of flaws any node will have.
   const auto maxFlawsPerNode = int(std::max(1, int(mkWeibull*mVmax*epsMax2m + 0.5)));
 
   // Generate initial realizations of the flaw population for each point, of which we capture the min/max range
@@ -173,17 +173,11 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
       CHECK(Ai > 0.0);
       auto sumFlawsi = 0.0;
       for (auto j = 0; j < mNumFlaws(i); ++j) {
-        const auto flaw = pow(Ai * mRandomGenerator(i)(), mInv);
+        const auto flaw = pow(Ai * randomGenerators[i](), mInv);
         mMinFlaw(i) = std::min(mMinFlaw(i), flaw);
         mMaxFlaw(i) = std::max(mMinFlaw(i), flaw);
         sumFlawsi += flaw;
       }
-
-      // Now reset the random number generator so we'll only generate flaws in the allowed range
-      // for this point.
-      mRandomGenerator(i).range(pow(mMinFlaw(i), mmWeibull)/Ai, pow(mMaxFlaw(i), mmWeibull)/Ai);
-      CHECK(mRandomGenerator(i).min() >= 0.0);
-      CHECK(mRandomGenerator(i).max() <= 1.0);
 
       // Gather statistics
 #pragma omp critical
@@ -319,7 +313,6 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mMinFlaw);
   state.enroll(mMaxFlaw);
   state.enroll(mInitialVolume);
-  state.enroll(mRandomGenerator);
 
   // Mask out nodes beyond the critical damage threshold from setting the timestep.
   auto maskKey = state.buildFieldKey(HydroFieldNames::timeStepMask, this->nodeList().name());

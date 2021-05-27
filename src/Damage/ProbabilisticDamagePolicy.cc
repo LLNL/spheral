@@ -271,7 +271,14 @@ update(const KeyType& key,
 
               // Find how many flaws are activated in this direction
               CHECK(maxFlaw(i) > 0.0);
-              const double fractionFlawsActive = std::min(1.0, pow(strainj/maxFlaw(i), mmWeibull));
+              double fractionFlawsActive = 1.0;
+              if (numFlaws(i) > 1 and strainj < maxFlaw(i)) {
+                CHECK(maxFlaw(i) > minFlaw(i));
+                const auto Nmini = pow(minFlaw(i), mmWeibull);  // Missing factors of k*Vi, but those cancel below
+                fractionFlawsActive = ((pow(strainj, mmWeibull) - Nmini)/
+                                       (pow(maxFlaw(i), mmWeibull) - Nmini));
+              }
+              CHECK(fractionFlawsActive >= 0.0 and fractionFlawsActive <= 1.0);
 
               // Choose the allowed range of D.
               double Dmin, Dmax;

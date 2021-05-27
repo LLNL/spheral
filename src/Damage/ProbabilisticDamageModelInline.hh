@@ -145,13 +145,6 @@ DdamageDt() const {
 }
 
 template<typename Dimension>
-const Field<Dimension, uniform_random>&
-ProbabilisticDamageModel<Dimension>::
-randomGenerator() const {
-  return mRandomGenerator;
-}
-
-template<typename Dimension>
 const Field<Dimension, int>&
 ProbabilisticDamageModel<Dimension>::
 mask() const {

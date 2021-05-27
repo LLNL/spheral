@@ -14,7 +14,6 @@
 
 #include "DamageModel.hh"
 #include "TensorDamageModel.hh"             // For now, so we pick up the enums
-#include "Utilities/uniform_random.hh"
 
 namespace Spheral {
 
@@ -103,7 +102,6 @@ public:
   const Field<Dimension, SymTensor>& strain() const;
   const Field<Dimension, SymTensor>& effectiveStrain() const;
   const Field<Dimension, Scalar>& DdamageDt() const;
-  const Field<Dimension, uniform_random>& randomGenerator() const;
 
   // Optionally the user can provide a mask to prevent damage modeling on some points.
   const Field<Dimension, int>& mask() const;
@@ -128,7 +126,6 @@ private:
   Field<Dimension, int> mNumFlaws, mMask;
   Field<Dimension, Scalar> mMinFlaw, mMaxFlaw, mInitialVolume, mYoungsModulus, mLongitudinalSoundSpeed, mDdamageDt;
   Field<Dimension, SymTensor> mStrain, mEffectiveStrain;
-  Field<Dimension, uniform_random> mRandomGenerator;
 
   // No default constructor, copying or assignment.
   ProbabilisticDamageModel();
