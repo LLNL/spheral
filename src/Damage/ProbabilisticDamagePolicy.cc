@@ -205,28 +205,21 @@ update(const KeyType& key,
   const auto numFlawsKey = State<Dimension>::buildFieldKey(SolidFieldNames::numFlaws, nodeListKey);
   const auto minFlawKey = State<Dimension>::buildFieldKey(SolidFieldNames::minFlaw, nodeListKey);
   const auto maxFlawKey = State<Dimension>::buildFieldKey(SolidFieldNames::maxFlaw, nodeListKey);
-  const auto initialVolumeKey = State<Dimension>::buildFieldKey(SolidFieldNames::initialVolume, nodeListKey);
-  const auto randomGeneratorKey = State<Dimension>::buildFieldKey(SolidFieldNames::randomGenerator, nodeListKey);
   CHECK(state.registered(strainKey));
   CHECK(derivs.registered(DdamageDtKey));
   CHECK(derivs.registered(DvDxKey));
   CHECK(state.registered(numFlawsKey));
   CHECK(state.registered(minFlawKey));
   CHECK(state.registered(maxFlawKey));
-  CHECK(state.registered(initialVolumeKey));
-  CHECK(state.registered(randomGeneratorKey));
   const auto& strain = state.field(strainKey, SymTensor::zero);
   const auto& DDDt = derivs.field(DdamageDtKey, 0.0);
   const auto& localDvDx = derivs.field(DvDxKey, Tensor::zero);
   const auto& numFlaws = state.field(numFlawsKey, 0);
   const auto& minFlaw = state.field(minFlawKey, 0.0);
   const auto& maxFlaw = state.field(maxFlawKey, 0.0);
-  const auto& initialVolume = state.field(initialVolumeKey, 0.0);
-  auto&       randomGenerator = state.field(randomGeneratorKey, uniform_random());
 
   // Iterate over the internal nodes.
   const auto ni = stateField.numInternalElements();
-  const auto mInv = 1.0/mmWeibull;
 #pragma omp parallel for
   for (auto i = 0u; i < ni; ++i) {
     auto& Di = stateField(i);
@@ -277,38 +270,14 @@ update(const KeyType& key,
             if (D0 < 1.0) {
 
               // Find how many flaws are activated in this direction
-              size_t numFlawsActivated;
-              if (strainj >= maxFlaw(i)) {
-                numFlawsActivated = numFlaws(i);
-
-              } else {
-                // If necessary, create a representation of the flaws on this point
-                if (flaws.empty()) {
-                  flaws.resize(numFlaws(i));
-                  const auto Ai = numFlaws(i)/(mkWeibull*initialVolume(i));
-                  for (auto j = 0; j < numFlaws(i); ++j) {
-                    const auto flawj = std::max(minFlaw(i), std::min(maxFlaw(i), pow(Ai * randomGenerator(i)(), mInv)));
-                    CHECK2(flawj >= minFlaw(i) and flawj <= maxFlaw(i),
-                           flawj << " not in [" << minFlaw(i) << " " << maxFlaw(i) << "[\n");
-                    flaws[j] = flawj;
-                  }
-                  std::sort(flaws.begin(), flaws.end());
-                  flaws[0] = minFlaw(i);
-                  flaws.back() = maxFlaw(i);
-                }
-
-                // Now count how many are active
-                const auto itr = std::lower_bound(flaws.begin(), flaws.end(), strainj);
-                numFlawsActivated = std::distance(flaws.begin(), itr);
-                CHECK(numFlawsActivated <= numFlaws(i));
-              }
+              CHECK(maxFlaw(i) > 0.0);
+              const double fractionFlawsActive = std::min(1.0, pow(strainj/maxFlaw(i), mmWeibull));
 
               // Choose the allowed range of D.
               double Dmin, Dmax;
-              const double numFlawsInv = 1.0/double(numFlaws(i));
               if (multiplier >= 0.0) {
                 Dmin = D0;
-                Dmax = std::max(D0, double(numFlawsActivated)*numFlawsInv);
+                Dmax = std::max(D0, fractionFlawsActive);
               } else {
                 Dmin = 0.0;
                 Dmax = D0;
@@ -318,7 +287,7 @@ update(const KeyType& key,
 
               // Increment the damage.
               const auto D013 = FastMath::CubeRootHalley2(D0);
-              const auto D113 = D013 + multiplier*double(numFlawsActivated)*numFlawsInv*DDDt(i);
+              const auto D113 = D013 + multiplier*fractionFlawsActive*DDDt(i);
               const auto D1 = max(Dmin, min(Dmax, FastMath::cube(D113)));
               CHECK((D1 - D0)*multiplier >= 0.0);
 
