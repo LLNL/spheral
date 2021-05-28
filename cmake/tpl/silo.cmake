@@ -4,7 +4,7 @@ set(SILO_URL "https://wci.llnl.gov/sites/wci/files/2021-01/silo-4.10.2-bsd.tgz")
 set(SILO_SRC_DIR ${SILO_PREFIX}/src/silo)
 
 #set(${lib_name}_INCLUDES silo.h)
-set(${lib_name}_libs libsiloh5.a)
+set(${lib_name}_libs libsiloh5.so)
 
 if(${lib_name}_BUILD)
 
@@ -20,7 +20,7 @@ if(${lib_name}_BUILD)
     PATCH_COMMAND patch -t ${SILO_SRC_DIR}/config/config.guess ${PATCH_DIR}/config.guess-silo-4.10.2-bsd.patch &&
                   patch -t ${SILO_SRC_DIR}/config/config.sub   ${PATCH_DIR}/config.sub-silo-4.10.2-bsd.patch
     CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${SILO_SRC_DIR}/configure
-                      --enable-shared=no
+                      --enable-shared=yes
                       --enable-fortran=no
                       --with-hdf5=${HDF5_INSTALL_DIR}/include,${HDF5_INSTALL_DIR}/lib
                       --prefix=${${lib_name}_DIR}
