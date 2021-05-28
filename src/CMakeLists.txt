@@ -18,6 +18,7 @@ list(APPEND _packages
   #DataBase
   #DataOutput
   DeviceTestLib
+  DeviceTestLib2
   #Distributed
   #ExternalForce
   #Field
