@@ -249,14 +249,14 @@ copyScalarFieldListToArray(const FieldList<Dimension, Value>& fieldList,
     for (unsigned imat = 0; imat < nfields; ++imat) {
       const unsigned n = particleType[imat].size();
       const vector<int>& ghosts = ghostNodes[imat];
-      CHECK(fieldList[imat].numInternalElements() + ghosts.size() == n);
+      CHECK(fieldList[imat]->numInternalElements() + ghosts.size() == n);
       unsigned jint = 0u, jghost = 0u;
       for (auto i = 0u; i < n; ++i) {
         array[k++] = (particleType[imat][i] == 0 ?
                       fieldList(imat, jint++) :
                       fieldList(imat, ghosts[jghost++]));
       }
-      CHECK(jint == fieldList[imat].numInternalElements());
+      CHECK(jint == fieldList[imat]->numInternalElements());
       CHECK(jghost == ghosts.size());
     }
 
@@ -303,7 +303,7 @@ copyVectorFieldListToArray(const FieldList<Dimension, typename Dimension::Vector
     for (unsigned imat = 0; imat < nfields; ++imat) {
       const unsigned n = particleType[imat].size();
       const vector<int>& ghosts = ghostNodes[imat];
-      CHECK(fieldList[imat].numInternalElements() + ghosts.size() == n);
+      CHECK(fieldList[imat]->numInternalElements() + ghosts.size() == n);
       unsigned jint = 0u, jghost = 0u;
       for (auto i = 0u; i < n; ++i) {
         if (particleType[imat][i] == 0) {
@@ -319,7 +319,7 @@ copyVectorFieldListToArray(const FieldList<Dimension, typename Dimension::Vector
         }
         ++offset;
       }
-      CHECK(jint == fieldList[imat].numInternalElements());
+      CHECK(jint == fieldList[imat]->numInternalElements());
       CHECK(jghost == ghosts.size());
     }
 
@@ -383,7 +383,7 @@ copyTensorFieldListToArray(const FieldList<Dimension, TensorType>& fieldList,
     for (unsigned imat = 0; imat < nfields; ++imat) {
       const unsigned n = particleType[imat].size();
       const vector<int>& ghosts = ghostNodes[imat];
-      CHECK(fieldList[imat].numInternalElements() + ghosts.size() == n);
+      CHECK(fieldList[imat]->numInternalElements() + ghosts.size() == n);
       unsigned jint = 0u, jghost = 0u;
       for (auto i = 0u; i < n; ++i) {
         if (particleType[imat][i] == 0) {
@@ -399,7 +399,7 @@ copyTensorFieldListToArray(const FieldList<Dimension, TensorType>& fieldList,
         }
         ++offset;
       }
-      CHECK(jint == fieldList[imat].numInternalElements());
+      CHECK(jint == fieldList[imat]->numInternalElements());
       CHECK(jghost == ghosts.size());
     }
 
@@ -1000,26 +1000,16 @@ updateState(const unsigned* nintpermat,
   auto S = me.mDataBasePtr->solidDeviatoricStress();
   auto ps = me.mDataBasePtr->solidPlasticStrain();
   auto D = me.mDataBasePtr->solidDamage();
-  CHECK(mass != NULL);
-  CHECK(position[0] != NULL);
-  CHECK(velocity[0] != NULL);
-  CHECK(massDensity != NULL);
-  CHECK(specificThermalEnergy != NULL);
-  CHECK(Hfield[0] != NULL);
-  CHECK(deviatoricStress != NULL);
-  CHECK(plasticStrain != NULL);
-  CHECK((not me.mDamage) or scalarDamage != NULL);
-  copyArrayToScalarFieldList(mass, m);
-  copyArrayToVectorFieldList(position, pos);
-  copyArrayToVectorFieldList(velocity, vel);
-  copyArrayToScalarFieldList(massDensity, rho);
-  copyArrayToScalarFieldList(specificThermalEnergy, eps);
-  copyArrayToSymTensorFieldList(Hfield, H);
-  copyArrayToSymTensorFieldList(deviatoricStress, S);
-  copyArrayToScalarFieldList(plasticStrain, ps);
+  if (mass != NULL)                  copyArrayToScalarFieldList(mass, m);
+  if (position[0] != NULL)           copyArrayToVectorFieldList(position, pos);
+  if (velocity[0] != NULL)           copyArrayToVectorFieldList(velocity, vel);
+  if (massDensity != NULL)           copyArrayToScalarFieldList(massDensity, rho);
+  if (specificThermalEnergy != NULL) copyArrayToScalarFieldList(specificThermalEnergy, eps);
+  if (Hfield[0] != NULL)             copyArrayToSymTensorFieldList(Hfield, H);
+  if (deviatoricStress[0] != NULL)   copyArrayToSymTensorFieldList(deviatoricStress, S);
+  if (plasticStrain != NULL)         copyArrayToScalarFieldList(plasticStrain, ps);
   if (me.mDamage) {
-    CHECK(scalarDamage != NULL);
-    copyArrayToSymTensorFieldList(scalarDamage, D);
+    if (scalarDamage != NULL)        copyArrayToSymTensorFieldList(scalarDamage, D);
   }
 
   // If necesary allocate a new State object
@@ -1076,6 +1066,13 @@ updateState(const unsigned* nintpermat,
                                                                                         *me.mNodeLists[imat],
                                                                                         nodeIDs,
                                                                                         denialPlane));
+
+      // Since we changed some boundaries, gotta reset them in the physics packages.
+      auto& pkgs = me.mIntegratorPtr->physicsPackages();
+      for (auto p: pkgs) setPhysicsBoundaries(*p,
+                                              me.mConstantBoundaries,
+                                              me.mHostCodeBoundaries,
+                                              me.mDistributedBoundary);
     }
 
   } else {
