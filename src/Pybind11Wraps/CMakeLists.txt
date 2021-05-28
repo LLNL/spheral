@@ -1,52 +1,53 @@
 set (_python_packages
-  CXXTypes
-  Geometry
-  Silo
-  DataOutput
-  NodeList
-  Field
-  FieldList
-  Kernel
-  Neighbor
-  Material
-  FileIO
-  Utilities
-  RK
-  DataBase
-  Boundary
-  Physics
-  Hydro
-  ExternalForce
-  Gravity
-  Integrator
-  NodeGenerators
-  FieldOperations
-  SPH
-  CRKSPH
-  SVPH
-  ArtificialViscosity
-  Mesh
-  Damage
-  SolidMaterial
-  Strength
-  ArtificialConduction
-  polytope
-  Distributed
-  OpenMP
+  #CXXTypes
+  #Geometry
+  #Silo
+  #DataOutput
+  DeviceTestLib
+  #NodeList
+  #Field
+  #FieldList
+  #Kernel
+  #Neighbor
+  #Material
+  #FileIO
+  #Utilities
+  #RK
+  #DataBase
+  #Boundary
+  #Physics
+  #Hydro
+  #ExternalForce
+  #Gravity
+  #Integrator
+  #NodeGenerators
+  #FieldOperations
+  #SPH
+  #CRKSPH
+  #SVPH
+  #ArtificialViscosity
+  #Mesh
+  #Damage
+  #SolidMaterial
+  #Strength
+  #ArtificialConduction
+  #polytope
+  #Distributed
+  #OpenMP
   )
 
-if (ENABLE_ANEOS)
-  list(APPEND _python_packages ANEOS)
-endif()
-if (ENABLE_HELMHOLTZ)
-  list(APPEND _python_packages Helmholtz)
-endif()
-
-if(NOT ENABLE_MPI)
-  list(REMOVE_ITEM _python_packages
-    Distributed
-    )
-endif()
+#if (ENABLE_ANEOS)
+#  list(APPEND _python_packages ANEOS)
+#endif()
+#if (ENABLE_HELMHOLTZ)
+#  list(APPEND _python_packages Helmholtz)
+#endif()
+#
+#if(NOT ENABLE_MPI)
+#  list(REMOVE_ITEM _python_packages
+#    Distributed
+#    )
+#endif()
 
 foreach(_python_package ${_python_packages})
   add_subdirectory(${_python_package})

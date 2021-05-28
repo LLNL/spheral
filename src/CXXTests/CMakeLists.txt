@@ -35,7 +35,7 @@ endforeach()
 
 blt_add_executable( NAME spheral_cuda_test
                     SOURCES Spheral_CUDA_Test.cc
-                    DEPENDS_ON Spheral_DeviceTestLib ${spheral_blt_depends} ${SPHERAL_CXX_DEPENDS})
-                  #DEPENDS_ON ${SPHERAL_CXX_LIBS} ${spheral_blt_depends} ${SPHERAL_CXX_DEPENDS})
+                    #DEPENDS_ON Spheral_DeviceTestLib ${spheral_blt_depends} ${SPHERAL_CXX_DEPENDS})
+                    DEPENDS_ON ${SPHERAL_CXX_LIBS} ${spheral_blt_depends} ${SPHERAL_CXX_DEPENDS})
 
 set_property(TARGET spheral_cuda_test PROPERTY CUDA_SEPARABLE_COMPILATION On)

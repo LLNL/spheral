@@ -10,36 +10,36 @@ include_directories(.)
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
 list(APPEND _packages 
-  ArtificialViscosity
-  ArtificialConduction
-  Boundary
-  CRKSPH
-  Damage
-  DataBase
-  DataOutput
+  #ArtificialViscosity
+  #ArtificialConduction
+  #Boundary
+  #CRKSPH
+  #Damage
+  #DataBase
+  #DataOutput
   DeviceTestLib
-  Distributed
-  ExternalForce
-  Field
-  FieldOperations
-  FileIO
-  Geometry
-  Gravity
-  Hydro
-  Integrator
-  Kernel
-  Material
-  Mesh
-  Neighbor
-  NodeGenerators
-  NodeList
-  Physics
-  RK
-  SolidMaterial
-  SPH
-  Strength
-  SVPH
-  Utilities
+  #Distributed
+  #ExternalForce
+  #Field
+  #FieldOperations
+  #FileIO
+  #Geometry
+  #Gravity
+  #Hydro
+  #Integrator
+  #Kernel
+  #Material
+  #Mesh
+  #Neighbor
+  #NodeGenerators
+  #NodeList
+  #Physics
+  #RK
+  #SolidMaterial
+  #SPH
+  #Strength
+  #SVPH
+  #Utilities
   )
 
 if(NOT ENABLE_CXXONLY)
@@ -65,6 +65,6 @@ foreach(e_package ${extra_packages})
   add_subdirectory(${extra_packages_DIR}/${e_package} ${CMAKE_CURRENT_BINARY_DIR}/${e_package})
 endforeach()
 
-add_subdirectory(CXXTests)
+#add_subdirectory(CXXTests)
 
 install(EXPORT ${PROJECT_NAME}-targets DESTINATION Spheral/lib/cmake)
