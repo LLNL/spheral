@@ -48,6 +48,12 @@ public:
     template<typename Dimension, typename DataType>
     axom::sidre::View *alloc_view(const std::string &view_name,
                                   const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType, DataType, DataType>> &field);
+
+    // template<typename Dimension>
+    // axom::sidre::View *alloc_view(const std::string &view_name,
+    //                               const Spheral::Field<Dimension, Dim<1>::ThirdRankTensor> &field);
+
+    void printData() {m_datastore_ptr->getRoot()->print();};
         
 private:
     axom::sidre::DataStore *m_datastore_ptr;
