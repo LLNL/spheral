@@ -290,6 +290,8 @@ class SpheralVoronoiSiloDump:
 
         # Figure out how many of each type of field we're dumping.
         intFields = [x for x in self._fields if isinstance(x, eval("IntField%s" % self.dimension))]
+                     #[x for x in self._fields if isinstance(x, eval("UnsignedField%s" % self.dimension))] +
+                     #[x for x in self._fields if isinstance(x, eval("ULLField%s" % self.dimension))])
         scalarFields = [x for x in self._fields if isinstance(x, eval("ScalarField%s" % self.dimension))]
         vectorFields = [x for x in self._fields if isinstance(x, eval("VectorField%s" % self.dimension))]
         tensorFields = [x for x in self._fields if isinstance(x, eval("TensorField%s" % self.dimension))]
@@ -454,6 +456,8 @@ def dumpPhysicsState(stateThingy,
 
     # Build up the list of fields in the state object.
     fields += [x for x in state.allIntFields()]
+    # fields += [x for x in state.allUnsignedFields()]
+    # fields += [x for x in state.allULLFields()]
     fields += [x for x in state.allScalarFields()]
     fields += [x for x in state.allVectorFields()]
     fields += [x for x in state.allTensorFields()]
@@ -462,6 +466,8 @@ def dumpPhysicsState(stateThingy,
     # Are we also dumping the derivative fields?
     if not derivs is None:
         fields += [x for x in state.allIntFields()]
+        # fields += [x for x in state.allUnsignedFields()]
+        # fields += [x for x in state.allULLFields()]
         fields += [x for x in derivs.allScalarFields()]
         fields += [x for x in derivs.allVectorFields()]
         fields += [x for x in derivs.allTensorFields()]

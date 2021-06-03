@@ -18,6 +18,7 @@ class FileIOAbstractMethods:
 
     # These types require specially mangled names to avoid bad casts
     for T, Tmangle in [("unsigned", "unsigned_int"),
+                       ("size_t", "size_t"),
                        ("int", "int"),
                        ("bool", "bool"),
                        ("double", "double"),
@@ -78,6 +79,7 @@ def read%(Tmangle)s(self,
     # Abstract interface (Field<primitives>)
     for ndim in dims:
         types = ["int",
+                 "unsigned",
                  "Dim<%i>::Scalar" % ndim,
                  "Dim<%i>::Vector" % ndim,
                  "Dim<%i>::Tensor" % ndim,
