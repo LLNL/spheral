@@ -335,7 +335,7 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
   const ProbabilisticDamagePolicy<Dimension>* rhsPtr = dynamic_cast<const ProbabilisticDamagePolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
+  if (rhsPtr == nullptr) {
     return false;
   } else {
     return true;
