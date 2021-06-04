@@ -245,8 +245,8 @@ TEST(SidreDataCollectionTestDim1ThirdRankTensor, ThirdRankTensor)
 
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
 
-  //for (int i = 0; i < n; i++)
-    EXPECT_EQ(testField[0], rawSidreData[0]);
+  for (int i = 0; i < n; i++)
+    EXPECT_EQ(testField[i], rawSidreData[i]);
 }
 
 // TEST(SidreDataCollectionTestDim1FourthRankTensor, FourthRankTensor)
