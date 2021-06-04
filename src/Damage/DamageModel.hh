@@ -64,8 +64,7 @@ public:
   DamageModel(SolidNodeList<Dimension>& nodeList,
               const TableKernel<Dimension>& W,
               const double crackGrowthMultiplier,
-              const DamageCouplingAlgorithm damageCouplingAlgorithm,
-              const FlawStorageType& flaws);
+              const DamageCouplingAlgorithm damageCouplingAlgorithm);
   virtual ~DamageModel();
 
   // Compute the generic Grady-Kipp (ala Benz-Asphaug) scalar damage time 
@@ -79,15 +78,11 @@ public:
 
   //...........................................................................
   // Provide a subset of the required physics package interface.
-  virtual void registerState(DataBase<Dimension>& dataBase,
-                             State<Dimension>& state) override;
-
-  virtual 
-  void initialize(const Scalar time,
-                  const Scalar dt,
-                  const DataBase<Dimension>& dataBase,
-                  State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivatives) override;
+  virtual void initialize(const Scalar time,
+                          const Scalar dt,
+                          const DataBase<Dimension>& dataBase,
+                          State<Dimension>& state,
+                          StateDerivatives<Dimension>& derivatives) override;
 
   virtual void finalize(const Scalar time, 
                         const Scalar dt,
@@ -96,17 +91,9 @@ public:
                         StateDerivatives<Dimension>& derivs);
 
   virtual bool requireGhostConnectivity() const override;
-
   virtual bool requireIntersectionConnectivity() const override;
 
   //...........................................................................
-  // Optional method to cull the set of flaws to the single weakest one on
-  // each point.
-  void cullToWeakestFlaws();
-
-  // Get the set of flaw activation energies for the given node index.
-  const std::vector<double> flawsForNode(const size_t index) const;
-
   // Access the SolidNodeList we're damaging.
   SolidNodeList<Dimension>& nodeList();
   const SolidNodeList<Dimension>& nodeList() const;
@@ -123,25 +110,6 @@ public:
   std::vector<int> excludeNodes() const;
   void excludeNodes(std::vector<int> ids);
 
-  // Provide access to the state fields we maintain.
-  const Field<Dimension, Scalar>& youngsModulus() const;
-  const Field<Dimension, Scalar>& longitudinalSoundSpeed() const;
-
-  // Access the flaw field.
-  const FlawStorageType& flaws() const;
-  FlawStorageType& flaws();
-
-  // Compute a Field with the sum of the activation energies per node.
-  Field<Dimension, Scalar> sumActivationEnergiesPerNode() const;
-
-  // Compute a Field with the number of flaws per node.
-  Field<Dimension, Scalar> numFlawsPerNode() const;
-
-  // The effective critical number of nodes per smoothing scale, below which we
-  // assume all flaws are active on a node.
-  double criticalNodesPerSmoothingScale() const;
-  void criticalNodesPerSmoothingScale(double x);
-
   //**************************************************************************
   // Restart methods.
   virtual std::string label() const override { return "DamageModel"; }
@@ -149,18 +117,12 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //**************************************************************************
 
-protected:
-  //-------------------------- Protected Interface --------------------------//
-  FlawStorageType mFlaws;
-
 private:
   //--------------------------- Private Interface ---------------------------//
   SolidNodeList<Dimension>& mNodeList;
   const TableKernel<Dimension>& mW;
-  double mCrackGrowthMultiplier, mCriticalNodesPerSmoothingScale;
+  double mCrackGrowthMultiplier;
   DamageCouplingAlgorithm mDamageCouplingAlgorithm;
-  Field<Dimension, Scalar> mYoungsModulus;
-  Field<Dimension, Scalar> mLongitudinalSoundSpeed;
   Field<Dimension, int> mExcludeNode;
   NodeCouplingPtr mNodeCouplingPtr;
   bool mComputeIntersectConnectivity;

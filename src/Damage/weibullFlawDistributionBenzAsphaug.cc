@@ -160,7 +160,7 @@ weibullFlawDistributionBenzAsphaug(double volume,
     }
 
     // Prepare some diagnostic output.
-    const auto nused = mask.sumElements();
+    const auto nused = std::max(1, mask.sumElements());
     minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
     maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
     totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());

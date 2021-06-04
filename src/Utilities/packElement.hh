@@ -12,6 +12,7 @@
 #include "Geometry/PolyClipperUtilities.hh"
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/DomainNode.hh"
+#include "Utilities/uniform_random.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/RKCoefficients.hh"
 
@@ -305,6 +306,14 @@ packElement(const RKCoefficients<Dimension>& value,
             std::vector<char>& buffer) {
   packElement(value.correctionOrder, buffer);
   packElement(value.coeffs, buffer);
+}
+
+// uniform_random
+inline
+void
+packElement(const uniform_random& value,
+            std::vector<char>& buffer) {
+  value.serialize(buffer);
 }
 
 //------------------------------------------------------------------------------
@@ -645,6 +654,15 @@ unpackElement(RKCoefficients<Dimension>& value,
   unpackElement(value.correctionOrder, itr, endPackedVector);
   unpackElement(value.coeffs, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
+}
+
+// uniform_random
+inline
+void
+unpackElement(uniform_random& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  value.deserialize(itr, endPackedVector);
 }
 
 //------------------------------------------------------------------------------

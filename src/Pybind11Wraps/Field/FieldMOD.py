@@ -69,6 +69,7 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
     #...........................................................................
     # arithmetic fields
     for (value, label) in (("int",                              "Int"),
+                           ("unsigned",                         "Unsigned"),
                            ("uint64_t",                         "ULL"),
                            ("Dim<%i>::Vector" % ndim,           "Vector"),
                            ("Dim<%i>::Tensor" % ndim,           "Tensor"),

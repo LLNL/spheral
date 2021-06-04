@@ -2,6 +2,8 @@ include_directories(.)
 set(Damage_inst
     DamageModel
     TensorDamageModel
+    ProbabilisticDamageModel
+    ProbabilisticDamagePolicy
     StrainPolicy
     TensorStrainPolicy
     TensorDamagePolicy
@@ -39,7 +41,10 @@ set(Damage_headers
     StrainPolicy.hh
     TensorDamageModel.hh
     TensorDamageModelInline.hh
+    ProbabilisticDamageModel.hh
+    ProbabilisticDamageModelInline.hh
     TensorDamagePolicy.hh
+    ProbabilisticDamagePolicy.hh
     TensorStrainPolicy.hh
     YoungsModulusPolicy.hh
     computeFragmentField.hh
@@ -53,6 +58,7 @@ spheral_install_python_files(
   WeibullDamage.py
   GradyKippTensorDamage.py
   JohnsonCookDamageFactories.py
+  ShadowProbabilisticDamageModel.py
   )
 
 spheral_add_cxx_library(Damage)
