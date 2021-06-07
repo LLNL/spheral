@@ -116,21 +116,23 @@ update(const KeyType& key,
       const auto& vj = velocity(nodeListj, j);
       const auto& aj = acceleration(nodeListj, j);
 
-      // State for node i.
-      const auto  weighti = abs(DepsDt0i) + numeric_limits<Scalar>::epsilon();
-      const auto  weightj = abs(DepsDt0j) + numeric_limits<Scalar>::epsilon();
-
-      const auto  vi12 = vi + ai*hdt;
-      const auto  vj12 = vj + aj*hdt;
-      
+      // half-step velocity
+      const auto vi12 = vi + ai*hdt;
+      const auto vj12 = vj + aj*hdt;
       const auto vij = vi12 - vj12;
-      const auto duij = vij.dot(paccij);
-      const auto wi = weighti/(weighti + weightj);         // Du/Dt weighting
-      // const Scalar wi = entropyWeighting(si, sj, duij);   // entropy weighting
+
+      // difference between assessed derivs and conserative ones
+      const auto delta_duij = vij.dot(paccij)-(DepsDt0i+DepsDt0j);
+      const auto wi = abs(DepsDt0i)/(abs(DepsDt0i) + abs(DepsDt0j) + numeric_limits<Scalar>::epsilon());
+
       CHECK(wi >= 0.0 and wi <= 1.0);
 
-      DepsDt_thread(nodeListi, i) -= mj*wi*duij;
-      DepsDt_thread(nodeListj, j) -= mi*(1.0 - wi)*duij;
+      // make conservative
+      DepsDt_thread(nodeListi, i) += mj*(DepsDt0i + wi*delta_duij);
+      DepsDt_thread(nodeListj, j) += mi*(DepsDt0j + (1.0-wi)*delta_duij);
+      
+
+
     }
 
 #pragma omp critical
