@@ -159,7 +159,7 @@ class StateBase:
     #...........................................................................
     # Template methods for getting Fields
     @PYB11template("Value")
-    @PYB11returnpolicy("reference_internal")
+    @PYB11returnpolicy("reference")
     @PYB11const
     def field(self,
               key = "const KeyType&",
@@ -182,6 +182,8 @@ class StateBase:
         "Return a set of all the %(Value)s Fields in the StateBase"
         return "std::vector<Field<%(Dimension)s, %(Value)s>*>"
 
+    # unsignedField = PYB11TemplateMethod(field, "unsigned")
+    # ULLField = PYB11TemplateMethod(field, "uint64_t")
     intField = PYB11TemplateMethod(field, "int")
     scalarField = PYB11TemplateMethod(field, "double")
     vectorField = PYB11TemplateMethod(field, "Vector")
@@ -195,6 +197,8 @@ class StateBase:
     vector_of_doubleField = PYB11TemplateMethod(field, "std::vector<double>")
     RKCoefficientsField = PYB11TemplateMethod(field, "RKCoefficients<%(Dimension)s>")
 
+    # unsignedFields = PYB11TemplateMethod(fields, "unsigned")
+    # ULLFields = PYB11TemplateMethod(fields, "uint64_t")
     intFields = PYB11TemplateMethod(fields, "int")
     scalarFields = PYB11TemplateMethod(fields, "double")
     vectorFields = PYB11TemplateMethod(fields, "Vector")
@@ -208,6 +212,8 @@ class StateBase:
     vector_of_doubleFields = PYB11TemplateMethod(fields, "std::vector<double>")
     RKCoefficientsFields = PYB11TemplateMethod(fields, "RKCoefficients<%(Dimension)s>")
 
+    # allUnsignedFields = PYB11TemplateMethod(allFields, "unsigned")
+    # allULLFields = PYB11TemplateMethod(allFields, "uint64_t")
     allIntFields = PYB11TemplateMethod(allFields, "int")
     allScalarFields = PYB11TemplateMethod(allFields, "double")
     allVectorFields = PYB11TemplateMethod(allFields, "Vector")

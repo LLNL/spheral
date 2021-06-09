@@ -1,8 +1,35 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// Return the set of flaw activation energies for the given node.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const std::vector<double>
+TensorDamageModel<Dimension>::
+flawsForNode(const size_t index) const {
+  return mFlaws(index);
+}
+
+//------------------------------------------------------------------------------
 // Access the state fields.
 //------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const Field<Dimension, typename Dimension::Scalar>&
+TensorDamageModel<Dimension>::
+youngsModulus() const {
+  return mYoungsModulus;
+}
+
+template<typename Dimension>
+inline
+const Field<Dimension, typename Dimension::Scalar>&
+TensorDamageModel<Dimension>::
+longitudinalSoundSpeed() const {
+  return mLongitudinalSoundSpeed;
+}
+
 template<typename Dimension>
 const Field<Dimension, typename Dimension::SymTensor>&
 TensorDamageModel<Dimension>::
@@ -22,6 +49,22 @@ const Field<Dimension, typename Dimension::Scalar>&
 TensorDamageModel<Dimension>::
 DdamageDt() const {
   return mDdamageDt;
+}
+
+template<typename Dimension>
+inline
+const typename TensorDamageModel<Dimension>::FlawStorageType&
+TensorDamageModel<Dimension>::
+flaws() const {
+  return mFlaws;
+}
+
+template<typename Dimension>
+inline
+typename TensorDamageModel<Dimension>::FlawStorageType&
+TensorDamageModel<Dimension>::
+flaws() {
+  return mFlaws;
 }
 
 //------------------------------------------------------------------------------

@@ -84,7 +84,26 @@ required of descendant classes."""
         return "void"
 
     #...........................................................................
+    # Methods
+    def cullToWeakestFlaws(sefl):
+        "Optional method to cull the set of flaws to the single weakest one on each point."
+        return "void"
+
+    @PYB11const
+    def flawsForNode(self, index="const size_t"):
+        "Get the set of flaw activation energies for the given node index."
+        return "const std::vector<double>"
+
+    #...........................................................................
     # Properties
+    youngsModulus = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    longitudinalSoundSpeed = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    flaws = PYB11property("const FlawStorageType&", returnpolicy="reference_internal",
+                          doc="The raw set of flaw activation strains per point")
+    sumActivationEnergiesPerNode = PYB11property("Field<%(Dimension)s, Scalar>", 
+                                                 doc="Compute a Field with the sum of the activation energies per node.")
+    numFlawsPerNode = PYB11property("Field<%(Dimension)s, Scalar>",
+                                    doc="Compute a Field with the number of flaws per node.")
     strain = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
     effectiveStrain = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
     DdamageDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")

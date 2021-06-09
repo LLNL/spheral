@@ -47,6 +47,14 @@ class FileIO:
 
     @PYB11virtual
     @PYB11noconvert
+    def write_size_t(self,
+                     value = "const size_t",
+                     pathName = "const std::string"):
+        "Write a size_t"
+        return "void"
+
+    @PYB11virtual
+    @PYB11noconvert
     def write_int(self,
                   value = "const int",
                   pathName = "const std::string"):
@@ -84,6 +92,14 @@ class FileIO:
                           pathName = "const std::string"):
         "Read an unsigned int"
         return "unsigned int"
+
+    @PYB11virtual
+    @PYB11const
+    @PYB11noconvert
+    def read_size_t(self,
+                    pathName = "const std::string"):
+        "Read a size_t"
+        return "size_t"
 
     @PYB11virtual
     @PYB11const
@@ -190,6 +206,25 @@ def readintFL%(ndim)i(self,
 @PYB11pycppname("write")
 @PYB11virtual
 @PYB11noconvert
+def writeunsignedFL%(ndim)i(self,
+                             value = "const FieldList<Dim<%(ndim)i>, unsigned>&",
+                             pathName = "const std::string"):
+    "Write FieldList<Dim<%(ndim)i, unsigned>"
+    return "void"
+
+@PYB11pycppname("read")
+@PYB11virtual
+@PYB11const
+@PYB11noconvert
+def readunsignedFL%(ndim)i(self,
+                            value = "FieldList<Dim<%(ndim)i>, unsigned>&",
+                            pathName = "const std::string"):
+    "Read FieldList<Dim<%(ndim)i, unsigned>"
+    return "void"
+
+@PYB11pycppname("write")
+@PYB11virtual
+@PYB11noconvert
 def writeintFV%(ndim)i(self,
                              value = "const Field<Dim<%(ndim)i>, std::vector<int>>&",
                              pathName = "const std::string"):
@@ -227,6 +262,21 @@ def readPlane%(ndim)i(self,
     "Read a Plane%(ndim)id"
     return "void"
 ''' % {"ndim" : ndim})
+
+    @PYB11pycppname("write")
+    def write_uniform_random(self,
+                             value = "const uniform_random&",
+                             pathName = "const std::string"):
+        "Write random number generator uniform_random"
+        return "void"
+
+    @PYB11pycppname("read")
+    @PYB11const
+    def read_uniform_random(self,
+                            value = "uniform_random&",
+                            pathName = "const std::string"):
+        "Read random number generator uniform_random"
+        return "void"
 
     @PYB11const
     def splitPathComponents(self, pathName="const std::string"):

@@ -8,6 +8,7 @@
 
 #include "Geometry/Dimension.hh"
 #include "Utilities/DataTypeTraits.hh"
+#include "Utilities/uniform_random.hh"
 #include "Utilities/packElement.hh"
 
 #include <vector>
@@ -61,6 +62,7 @@ public:
   // All FileIO objects had better be able to read and write the primitive 
   // DataTypes.
   virtual void write(const unsigned& value, const std::string pathName) = 0;
+  virtual void write(const size_t& value, const std::string pathName) = 0;
   virtual void write(const int& value, const std::string pathName) = 0;
   virtual void write(const bool& value, const std::string pathName) = 0;
   virtual void write(const double& value, const std::string pathName) = 0;
@@ -85,6 +87,7 @@ public:
   virtual void write(const Dim<3>::ThirdRankTensor& value, const std::string pathName) = 0;
 
   virtual void read(unsigned& value, const std::string pathName) const = 0;
+  virtual void read(size_t& value, const std::string pathName) const = 0;
   virtual void read(int& value, const std::string pathName) const = 0;
   virtual void read(bool& value, const std::string pathName) const = 0;
   virtual void read(double& value, const std::string pathName) const = 0;
@@ -118,6 +121,7 @@ public:
   virtual void write(const Field<Dim<1>, Dim<1>::SymTensor>& field, const std::string pathName) = 0;
   virtual void write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& field, const std::string pathName) = 0;
   virtual void write(const Field<Dim<1>, int>& field, const std::string pathName) = 0;
+  virtual void write(const Field<Dim<1>, unsigned>& field, const std::string pathName) = 0;
 
   virtual void read(Field<Dim<1>, Dim<1>::Scalar>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<1>, Dim<1>::Vector>& field, const std::string pathName) const = 0;
@@ -125,6 +129,7 @@ public:
   virtual void read(Field<Dim<1>, Dim<1>::SymTensor>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<1>, int>& field, const std::string pathName) const = 0;
+  virtual void read(Field<Dim<1>, unsigned>& field, const std::string pathName) const = 0;
 #endif
 
 #ifdef SPHERAL2D
@@ -135,6 +140,7 @@ public:
   virtual void write(const Field<Dim<2>, Dim<2>::SymTensor>& field, const std::string pathName) = 0;
   virtual void write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& field, const std::string pathName) = 0;
   virtual void write(const Field<Dim<2>, int>& field, const std::string pathName) = 0;
+  virtual void write(const Field<Dim<2>, unsigned>& field, const std::string pathName) = 0;
 
   virtual void read(Field<Dim<2>, Dim<2>::Scalar>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<2>, Dim<2>::Vector>& field, const std::string pathName) const = 0;
@@ -142,6 +148,7 @@ public:
   virtual void read(Field<Dim<2>, Dim<2>::SymTensor>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<2>, int>& field, const std::string pathName) const = 0;
+  virtual void read(Field<Dim<2>, unsigned>& field, const std::string pathName) const = 0;
 #endif
 
 #ifdef SPHERAL3D
@@ -152,6 +159,7 @@ public:
   virtual void write(const Field<Dim<3>, Dim<3>::SymTensor>& field, const std::string pathName) = 0;
   virtual void write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& field, const std::string pathName) = 0;
   virtual void write(const Field<Dim<3>, int>& field, const std::string pathName) = 0;
+  virtual void write(const Field<Dim<3>, unsigned>& field, const std::string pathName) = 0;
 
   virtual void read(Field<Dim<3>, Dim<3>::Scalar>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<3>, Dim<3>::Vector>& field, const std::string pathName) const = 0;
@@ -159,6 +167,7 @@ public:
   virtual void read(Field<Dim<3>, Dim<3>::SymTensor>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& field, const std::string pathName) const = 0;
   virtual void read(Field<Dim<3>, int>& field, const std::string pathName) const = 0;
+  virtual void read(Field<Dim<3>, unsigned>& field, const std::string pathName) const = 0;
 #endif
 
   //******************************************************************************
@@ -166,12 +175,14 @@ public:
   // These methods are useful for the primitive types that are problematic
   // to return by reference from python.
   virtual void write_unsigned_int(const unsigned value, const std::string pathName) { this->write(value, pathName); }
+  virtual void write_size_t(const size_t value, const std::string pathName)         { this->write(value, pathName); }
   virtual void write_int(const int value, const std::string pathName)               { this->write(value, pathName); }
   virtual void write_bool(const bool value, const std::string pathName)             { this->write(value, pathName); }
   virtual void write_double(const double value, const std::string pathName)         { this->write(value, pathName); }
   virtual void write_string(const std::string value, const std::string pathName)    { this->write(value, pathName); }
 
   virtual unsigned read_unsigned_int(const std::string pathName) const { unsigned result;    this->read(result, pathName); return result; }
+  virtual size_t read_size_t(const std::string pathName) const         { size_t result;      this->read(result, pathName); return result; }
   virtual int read_int(const std::string pathName) const               { int result;         this->read(result, pathName); return result; }
   virtual bool read_bool(const std::string pathName) const             { bool result;        this->read(result, pathName); return result; }
   virtual double read_double(const std::string pathName) const         { double result;      this->read(result, pathName); return result; }
@@ -189,6 +200,7 @@ public:
   virtual void write(const FieldList<Dim<1>, Dim<1>::SymTensor>& value, const std::string pathName)       { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std::string pathName) { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<1>, int>& value, const std::string pathName)                     { this->writeFieldList(value, pathName); }
+  virtual void write(const FieldList<Dim<1>, unsigned>& value, const std::string pathName)                { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<1>, RKCoefficients<Dim<1>>>& value, const std::string pathName)  { this->writeFieldList(value, pathName); }
 
   virtual void read(FieldList<Dim<1>, Dim<1>::Scalar>& value, const std::string pathName) const           { this->readFieldList(value, pathName); }
@@ -197,6 +209,7 @@ public:
   virtual void read(FieldList<Dim<1>, Dim<1>::SymTensor>& value, const std::string pathName) const        { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std::string pathName) const  { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<1>, int>& value, const std::string pathName) const                      { this->readFieldList(value, pathName); }
+  virtual void read(FieldList<Dim<1>, unsigned>& value, const std::string pathName) const                 { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<1>, RKCoefficients<Dim<1>>>& value, const std::string pathName) const   { this->readFieldList(value, pathName); }
 
   // Fields of vectors
@@ -242,6 +255,7 @@ public:
   virtual void write(const FieldList<Dim<2>, Dim<2>::SymTensor>& value, const std::string pathName)       { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<2>, Dim<2>::ThirdRankTensor>& value, const std::string pathName) { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<2>, int>& value, const std::string pathName)                     { this->writeFieldList(value, pathName); }
+  virtual void write(const FieldList<Dim<2>, unsigned>& value, const std::string pathName)                { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<2>, RKCoefficients<Dim<2>>>& value, const std::string pathName)  { this->writeFieldList(value, pathName); }
 
   virtual void read(FieldList<Dim<2>, Dim<2>::Scalar>& value, const std::string pathName) const           { this->readFieldList(value, pathName); }
@@ -250,6 +264,7 @@ public:
   virtual void read(FieldList<Dim<2>, Dim<2>::SymTensor>& value, const std::string pathName) const        { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<2>, Dim<2>::ThirdRankTensor>& value, const std::string pathName) const  { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<2>, int>& value, const std::string pathName) const                      { this->readFieldList(value, pathName); }
+  virtual void read(FieldList<Dim<2>, unsigned>& value, const std::string pathName) const                 { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<2>, RKCoefficients<Dim<2>>>& value, const std::string pathName) const   { this->readFieldList(value, pathName); }
 
   // Fields of vectors
@@ -295,6 +310,7 @@ public:
   virtual void write(const FieldList<Dim<3>, Dim<3>::SymTensor>& value, const std::string pathName)       { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<3>, Dim<3>::ThirdRankTensor>& value, const std::string pathName) { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<3>, int>& value, const std::string pathName)                     { this->writeFieldList(value, pathName); }
+  virtual void write(const FieldList<Dim<3>, unsigned>& value, const std::string pathName)                { this->writeFieldList(value, pathName); }
   virtual void write(const FieldList<Dim<3>, RKCoefficients<Dim<3>>>& value, const std::string pathName)  { this->writeFieldList(value, pathName); }
 
   virtual void read(FieldList<Dim<3>, Dim<3>::Scalar>& value, const std::string pathName) const           { this->readFieldList(value, pathName); }
@@ -303,6 +319,7 @@ public:
   virtual void read(FieldList<Dim<3>, Dim<3>::SymTensor>& value, const std::string pathName) const        { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<3>, Dim<3>::ThirdRankTensor>& value, const std::string pathName) const  { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<3>, int>& value, const std::string pathName) const                      { this->readFieldList(value, pathName); }
+  virtual void read(FieldList<Dim<3>, unsigned>& value, const std::string pathName) const                 { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<3>, RKCoefficients<Dim<3>>>& value, const std::string pathName) const   { this->readFieldList(value, pathName); }
 
   // Fields of vectors
@@ -349,6 +366,10 @@ public:
   // methods provided by descendents.
   void write(const char* value, const std::string pathName);
   void read(char* value, const std::string pathName) const;
+
+  // Read/write uniform_random
+  void write(const uniform_random& value, const std::string pathName);
+  void read(uniform_random& value, const std::string pathName) const;
 
   // Write/read a vector<DataType> if DataType is a primitive we already know about.
   template<typename DataType> void write(const std::vector<DataType>& x, const std::string pathName);
