@@ -37,6 +37,7 @@ set(Utilities_sources
     SpheralTimers.cc
     #SpheralTimersAlternate.cc
     Timer.cc
+    uniform_random.cc
     )
 
 instantiate(Utilities_inst Utilities_sources)
@@ -125,6 +126,8 @@ set(Utilities_headers
     sort_permutation.hh
     testBoxIntersection.hh
     timingUtilities.hh
+    uniform_random.hh
+    uniform_random_Inline.hh
     )
 
 spheral_install_python_files(fitspline.py)
