@@ -147,22 +147,23 @@ public:
                          Vector& vstar,
                          Scalar& Pstar) const;
 
-  void vanLeerLimiter( const Vector& rij,
-                const Scalar& vi,   
-                const Scalar& vj,
+  const Scalar vanLeerLimiter( const Vector& rij,
                 const Vector& DvDxi,
-                const Vector& DvDxj,
-                      Scalar& vstari,   
-                      Scalar& vstarj) const;
+                const Vector& DvDxj) const;
 
-  void vanLeerLimiter( const Vector& rij,
+  const Scalar vanLeerLimiter( const Vector& rij,
+                const Tensor& DvDxi,
+                const Tensor& DvDxj) const;
+
+  void pearlLimiter( const Scalar& Si,
+                     const Scalar& Sj,
+                     const Vector& rij,
                 const Vector& vi,   
                 const Vector& vj,
                 const Tensor& DvDxi,
                 const Tensor& DvDxj,
                       Vector& vstari,   
                       Vector& vstarj) const;
-
   // Also allow access to the CFL timestep safety criteria.
   Scalar cfl() const;
   void cfl(Scalar cfl);
@@ -318,6 +319,7 @@ protected:
   FieldList<Dimension, Vector> mLastDcDx;
   FieldList<Dimension, Vector> mLastDrhoDx;
   FieldList<Dimension, Tensor> mLastDvDx;
+  FieldList<Dimension, Tensor> mLastInternalDvDx;
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
