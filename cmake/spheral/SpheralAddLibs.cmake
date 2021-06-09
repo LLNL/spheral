@@ -118,6 +118,10 @@ function(spheral_add_pybind11_library package_name)
                            "-Wno-self-assign-overloaded"
                            "-Wno-overloaded-virtual"
                            "-Wno-delete-non-abstract-non-virtual-dtor")
+  else()
+    target_compile_options(${MODULE_NAME} PRIVATE
+      $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe --diag_suppress=partial_override>) 
+    #partial_override (611) overloaded virtual function %no1 is only partially overridden in %n2.
   endif()
 
   install(TARGETS     ${MODULE_NAME}
