@@ -96,6 +96,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
   Scalar xbound0 = -std::numeric_limits<Scalar>::max();
   Scalar xbound1 =  std::numeric_limits<Scalar>::max();
 
+  CONTRACT_VAR(H1);
+  CONTRACT_VAR(H2);
+
   // Now walk our sorted point and set the volumes and surface flags.
   const auto& nodeListPtrs = position.nodeListPtrs();
   const auto ntot = coords.size();
@@ -245,9 +248,6 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
     //      << endl;
 
   }
-
-  CONTRACT_VAR(H1);
-  CONTRACT_VAR(H2);
   
   } // End of omp parallel region.
     

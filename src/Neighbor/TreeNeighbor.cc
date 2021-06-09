@@ -804,7 +804,7 @@ setTreeMasterList(const typename TreeNeighbor<Dimension>::LevelKey levelID,
                   std::vector<int>& masterList,
                   std::vector<int>& coarseNeighbors,
                   const bool ghostConnectivity) const {
-  REQUIRE(levelID >= 0 and levelID < num1dbits);
+  REQUIRE(levelID < num1dbits);
 
   // Get the per dimension cell indices.
   CellKey ix_master, iy_master, iz_master;
@@ -981,7 +981,7 @@ setTreeMasterList(const typename Dimension::Vector& position,
   CellKey masterKey, ix_master, iy_master, iz_master;
   const LevelKey masterLevel = this->gridLevel(h);
   buildCellKey(masterLevel, position, masterKey, ix_master, iy_master, iz_master);
-  CHECK(masterLevel >= 0 and masterLevel < num1dbits);
+  CHECK(masterLevel < num1dbits);
 
   // We can just use the method based on IDs at this point.
   this->setTreeMasterList(masterLevel, masterKey, masterList, coarseNeighbors, ghostConnectivity);

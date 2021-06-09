@@ -251,7 +251,7 @@ Field<Dimension, DataType>::operator==(const FieldBase<Dimension>& rhs) const {
   if (this->nodeListPtr() != rhs.nodeListPtr()) return false;
   try {
     const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
-    if (rhsPtr == 0) return false;
+    if (rhsPtr == nullptr) return false;
     return CrappyFieldCompareMethod<DataType>::compare(mDataArray, rhsPtr->mDataArray);
   } catch (const std::bad_cast &) {
     return false;
@@ -1015,8 +1015,7 @@ template<typename Dimension, typename DataType>
 inline
 typename Field<Dimension, DataType>::iterator
 Field<Dimension, DataType>::internalEnd() {
-  CHECK(this->nodeList().firstGhostNode() >= 0 &&
-         this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
+  CHECK(this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
   return mDataArray.begin() + this->nodeList().firstGhostNode();
 }
 
@@ -1077,8 +1076,7 @@ template<typename Dimension, typename DataType>
 inline
 typename Field<Dimension, DataType>::const_iterator
 Field<Dimension, DataType>::internalEnd() const {
-  REQUIRE(this->nodeList().firstGhostNode() >= 0 &&
-          this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
+  REQUIRE(this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
   return mDataArray.begin() + this->nodeList().firstGhostNode();
 }
 
@@ -1280,7 +1278,6 @@ Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
   const unsigned currentSize = this->size();
   const unsigned numInternalNodes = this->nodeList().numInternalNodes();
   const unsigned currentNumGhostNodes = currentSize - numInternalNodes;
-  REQUIRE(currentNumGhostNodes >= 0);
   const unsigned newSize = numInternalNodes + size;
   REQUIRE(newSize == this->nodeList().numNodes());
 

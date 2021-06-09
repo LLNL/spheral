@@ -14,9 +14,6 @@ namespace Spheral {
 template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
-using Spheral::FieldList;
-using Spheral::FileIO;
-
 template<typename Dimension>
 class VonNeumanViscosity: public ArtificialViscosity<Dimension> {
 public:

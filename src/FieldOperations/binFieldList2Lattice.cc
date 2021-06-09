@@ -64,7 +64,7 @@ incrementCellValues(vector<Value>& values,
     if (ix > 0 and ix < (int)nsample[0]) {
       const double etaMag = (Hi*Vector(idx*xstep)).magnitude();
       const unsigned icell = ix;
-      CHECK(icell >= 0 and icell < nsample[0]);
+      CHECK(icell < nsample[0]);
       values[icell] += value*W(etaMag, Hdeti)*Hdeti;
     }
   }
@@ -101,7 +101,7 @@ incrementCellValues(vector<Value>& values,
           const double etaMag = (Hi*Vector(idx*xstep, idy*ystep)).magnitude();
           const unsigned icell = ix + iyoff;
           CONTRACT_VAR(ncells);
-          CHECK(icell >= 0 and icell < ncells);
+          CHECK(icell < ncells);
           values[icell] += value*W(etaMag, Hdeti)*Hdeti;
         }
       }
@@ -147,7 +147,7 @@ incrementCellValues(vector<Value>& values,
               const double etaMag = (Hi*Vector(idx*xstep, idy*ystep)).magnitude();
               const unsigned icell = ix + iyoff + izoff;
               CONTRACT_VAR(ncells);
-              CHECK(icell >= 0 and icell < ncells);
+              CHECK(icell < ncells);
               values[icell] += value*W(etaMag, Hdeti)*Hdeti;
             }
           }

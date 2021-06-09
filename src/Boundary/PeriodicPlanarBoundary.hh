@@ -34,6 +34,9 @@ public:
   // Enforce the boundary condition on the violation nodes in the given Field.
   virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
+  using Boundary<Dimension>::applyGhostBoundary;
+  using Boundary<Dimension>::enforceBoundary;
+
   // Valid test.
   virtual bool valid() const override;
 

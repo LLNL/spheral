@@ -276,7 +276,7 @@ update(const KeyType& key,
 
           // Count how many flaws are remaining, and how many have completely failed.
           const int numFailedCracks = int(D0*double(totalCracks));
-          const auto numRemainingCracks = totalCracks - numFailedCracks;
+          const int  numRemainingCracks = totalCracks - numFailedCracks;
           CONTRACT_VAR(numRemainingCracks);
           CHECK(numFailedCracks >=0 && numFailedCracks <= (int)totalCracks);
           CHECK(numRemainingCracks >= 0 && numRemainingCracks <= totalCracks);

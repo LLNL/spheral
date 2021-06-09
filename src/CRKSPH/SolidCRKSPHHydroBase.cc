@@ -594,9 +594,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
     // Check if we can identify a reference density.
     auto rho0 = 0.0;
+    CONTRACT_VAR(rho0);
     try {
       rho0 = dynamic_cast<const SolidEquationOfState<Dimension>&>(dynamic_cast<const SolidNodeList<Dimension>&>(nodeList).equationOfState()).referenceDensity();
-      CONTRACT_VAR(rho0);
       // cerr << "Setting reference density to " << rho0 << endl;
     } catch(...) {
       // cerr << "BLAGO!" << endl;
