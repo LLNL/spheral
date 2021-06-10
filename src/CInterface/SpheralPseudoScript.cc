@@ -651,7 +651,74 @@ void setPhysicsBoundaries(Physics<Dimension>& pkg,
 #endif
 }
 
+//------------------------------------------------------------------------------
+// pack the send values for a set of node IDs
+//------------------------------------------------------------------------------
+// Define the end case with no more Fields
+void
+packSendValues(vector<char>& buffer,
+               const vector<int>& nodeIDs) {
 }
+
+template<typename FieldType, typename... FieldTypes>
+void
+packSendValues(vector<char>& buffer,
+               const vector<int>& nodeIDs,
+               FieldType* fieldPtr,
+               FieldTypes... fields) {
+  const auto buf = fieldPtr->packValues(nodeIDs);
+  std::copy(buf.begin(), buf.end(), std::back_inserter(buffer));
+  packSendValues(buffer, nodeIDs, fields...);
+}
+
+//------------------------------------------------------------------------------
+// Resize the receive buffer to hold the expected field values
+//------------------------------------------------------------------------------
+// Define the end case with no more Fields
+void
+resizeRecvBuffer(vector<char>& buffer,
+                 const vector<int>& nodeIDs) {
+}
+
+template<typename FieldType, typename... FieldTypes>
+void
+resizeRecvBuffer(vector<char>& buffer,
+                 const vector<int>& nodeIDs,
+                 const FieldType* fieldPtr,
+                 FieldTypes... fields) {
+  REQUIRE(DataTypeTraits<typename FieldType::value_type>::fixedSize());
+  const auto bufSize = fieldPtr->computeCommBufferSize(nodeIDs, 0, 0);  // We can dummy the send/recv procs since these are fixed size types
+  buffer.resize(buffer.size() + bufSize);
+  resizeRecvBuffer(buffer, nodeIDs, fields...);
+}
+
+//------------------------------------------------------------------------------
+// Increment Fields by the received values
+//------------------------------------------------------------------------------
+// Define the end case with no more Fields
+void
+incrementByRecvValues(vector<char>::const_iterator bufItr,
+                      const vector<char>::const_iterator endItr,
+                      const vector<int>& nodeIDs) {
+}
+
+template<typename FieldType, typename... FieldTypes>
+void
+incrementByRecvValues(vector<char>::const_iterator& bufItr,
+                      const vector<char>::const_iterator& bufEnd,
+                      const vector<int>& nodeIDs,
+                      FieldType* fieldPtr,
+                      FieldTypes... fields) {
+  typename FieldType::value_type val;
+  for (const auto i: nodeIDs) {
+    unpackElement(val, bufItr, bufEnd);
+    (*fieldPtr)(i) += val;
+  }
+  CHECK(bufItr <= bufEnd);
+  incrementByRecvValues(bufItr, bufEnd, nodeIDs, fields...);
+}
+
+}  // anonymous
 
 //------------------------------------------------------------------------------
 // Get the instance.
@@ -1271,6 +1338,10 @@ evaluateDerivatives(double*  massDensitySum,
   auto viscousWork = me.mDerivsPtr->fields(HydroFieldNames::viscousWork, 0.0);
 
   // If we're using particleType to build host ghost nodes, we need the indices of those ghosts
+  const auto nprocs = Process::getTotalNumberOfProcesses();
+  const auto rank = Process::getRank();
+  vector<vector<char>> sendBufs(nprocs), recvBufs(nprocs);
+  vector<MPI_Request> sendRequests, recvRequests;
   vector<vector<int>> ghostNodes;
   if (not me.mParticleType.empty()) {
     const auto nmats = DvDt.numFields();
@@ -1281,10 +1352,186 @@ evaluateDerivatives(double*  massDensitySum,
       const auto& boundaryNodes = me.mConstantBoundaries[imat]->accessBoundaryNodes(const_cast<NodeList<Dimension>&>(nodes));
       ghostNodes[imat] = boundaryNodes.ghostNodes;
     }
+
+    // In parallel we need to do reductions for the quantities on the constant boundary nodes
+    // Note in the following we're reversing the communication pattern normally used for Distributed points: send becomes receive, and
+    // vice versa.  This also means there are multiple sends to the same receive point, so it becomes a reduction.
+    if (nprocs > 1) {
+      const DistributedBoundary<Dimension>* distBoundPtr;
+      switch (me.mDistributedBoundary) {
+      case 2:
+        distBoundPtr = TreeDistributedBoundary<Dimension>::instancePtr();
+        break;
+      case 1:
+        distBoundPtr = NestedGridDistributedBoundary<Dimension>::instancePtr();
+        break;
+      default:
+        VERIFY2(false, "invalid distributedBoundary " << me.mDistributedBoundary);
+      };
+
+      // We know which send nodes on our processor are also host code boundary points, so find those as the
+      // set we'll be receiving from others.
+      // Prepare flags to exchange so we know which receive nodes came from host code boundaries on other domains.
+      auto sendNodeFlags = me.mDataBasePtr->newFluidFieldList(0, "send node flags");
+      vector<vector<vector<int>>> sendNodes(nmats, vector<vector<int>>(nprocs)), recvNodes(nmats, vector<vector<int>>(nprocs));
+      for (auto imat = 0u; imat < nmats; ++imat) {
+        const auto& nodes = DvDt[imat]->nodeList();
+        if (distBoundPtr->communicatedNodeList(nodes)) {
+          const auto& domainNodeMap = distBoundPtr->domainBoundaryNodeMap(nodes);
+          for (const auto& stuff: domainNodeMap) {
+            const auto  iproc = stuff.first;
+            const auto& domainNodes = stuff.second;
+            CHECK(std::is_sorted(ghostNodes[imat].begin(), ghostNodes[imat].end()));
+            CHECK(std::is_sorted(domainNodes.sendNodes.begin(), domainNodes.sendNodes.end()));
+            std::set_intersection(ghostNodes[imat].begin(), ghostNodes[imat].end(),
+                                  domainNodes.sendNodes.begin(), domainNodes.sendNodes.end(),
+                                  std::back_inserter(recvNodes[imat][iproc]));
+            for (const auto i: recvNodes[imat][iproc]) sendNodeFlags(imat,i) = 1;
+          }
+        }
+      }
+      distBoundPtr->applyFieldListGhostBoundary(sendNodeFlags);
+      distBoundPtr->finalizeGhostBoundary();
+
+      // Now we can find any of our normal receive points are other domains host code boundary points, which
+      // become our send for the all reduce.
+      for (auto imat = 0u; imat < nmats; ++imat) {
+        const auto& nodes = DvDt[imat]->nodeList();
+        if (distBoundPtr->communicatedNodeList(nodes)) {
+          const auto& domainNodeMap = distBoundPtr->domainBoundaryNodeMap(nodes);
+          for (const auto& stuff: domainNodeMap) {
+            const auto  iproc = stuff.first;
+            const auto& domainNodes = stuff.second;
+            CHECK(std::is_sorted(ghostNodes[imat].begin(), ghostNodes[imat].end()));
+            CHECK(std::is_sorted(domainNodes.receiveNodes.begin(), domainNodes.receiveNodes.end()));
+            vector<int> otherHostCodeNodes;
+            for (const auto i: domainNodes.receiveNodes) {
+              if (sendNodeFlags(imat,i) == 1) otherHostCodeNodes.push_back(i);
+            }
+            CHECK(std::is_sorted(otherHostCodeNodes.begin(), otherHostCodeNodes.end()));
+            CHECK(std::is_sorted(domainNodes.receiveNodes.begin(), domainNodes.receiveNodes.end()));
+            std::set_intersection(otherHostCodeNodes.begin(), otherHostCodeNodes.end(),
+                                  domainNodes.receiveNodes.begin(), domainNodes.receiveNodes.end(),
+                                  std::back_inserter(sendNodes[imat][iproc]));
+            // cerr << "[" << imat << " " << rank << " <--> " << iproc << "]: " << sendNodes[imat][iproc].size() << " " << recvNodes[imat][iproc].size() << endl;
+
+            if (me.mCRK) {
+              packSendValues(sendBufs[iproc], sendNodes[imat][iproc], 
+                             DrhoDt[imat],
+                             DvDt[imat],
+                             DposDt[imat],
+                             DepsDt[imat],
+                             DvDx[imat],
+                             DHDt[imat],
+                             Hideal[imat],
+                             DSDt[imat],
+                             effViscousPressure[imat],
+                             viscousWork[imat]);
+              resizeRecvBuffer(recvBufs[iproc], recvNodes[imat][iproc],
+                               DrhoDt[imat],
+                               DvDt[imat],
+                               DposDt[imat],
+                               DepsDt[imat],
+                               DvDx[imat],
+                               DHDt[imat],
+                               Hideal[imat],
+                               DSDt[imat],
+                               effViscousPressure[imat],
+                               viscousWork[imat]);
+            } else {
+              packSendValues(sendBufs[iproc], sendNodes[imat][iproc], 
+                             rhoSum[imat],
+                             DrhoDt[imat],
+                             DvDt[imat],
+                             DposDt[imat],
+                             DepsDt[imat],
+                             DvDx[imat],
+                             DHDt[imat],
+                             Hideal[imat],
+                             DSDt[imat],
+                             effViscousPressure[imat],
+                             viscousWork[imat]);
+              resizeRecvBuffer(recvBufs[iproc], recvNodes[imat][iproc],
+                               rhoSum[imat],
+                               DrhoDt[imat],
+                               DvDt[imat],
+                               DposDt[imat],
+                               DepsDt[imat],
+                               DvDx[imat],
+                               DHDt[imat],
+                               Hideal[imat],
+                               DSDt[imat],
+                               effViscousPressure[imat],
+                               viscousWork[imat]);
+            }
+          }
+        }
+      }
+
+      // Post our receives
+      recvRequests.reserve(nprocs);
+      for (auto iproc = 0; iproc < nprocs; ++iproc) {
+        if (not recvBufs[iproc].empty()) {
+          recvRequests.push_back(MPI_Request());
+          MPI_Irecv(&recvBufs[iproc].front(), recvBufs[iproc].size(), MPI_CHAR, iproc, 0, Communicator::communicator(), &recvRequests.back());
+        }
+      }
+      CHECK(recvRequests.size() <= nprocs);
+
+      // Post sends
+      sendRequests.reserve(nprocs);
+      for (auto iproc = 0; iproc < nprocs; ++iproc) {
+        if (not sendBufs[iproc].empty()) {
+          sendRequests.push_back(MPI_Request());
+          MPI_Isend(&sendBufs[iproc].front(), sendBufs[iproc].size(), MPI_CHAR, iproc, 0, Communicator::communicator(), &sendRequests.back());
+        }
+      }
+      CHECK(sendRequests.size() <= nprocs);
+     
+      // Get all our receives
+      if (not recvRequests.empty()) {
+        vector<MPI_Status> recvStatus(recvRequests.size());
+        MPI_Waitall(recvRequests.size(), &recvRequests.front(), &recvStatus.front());
+
+        // Unpack each Field and add its values
+        vector<vector<char>::const_iterator> recvBufBegin(nprocs);
+        for (auto iproc = 0; iproc < nprocs; ++iproc) recvBufBegin[iproc] = recvBufs[iproc].begin();
+        for (auto imat = 0u; imat < nmats; ++imat) {
+          for (auto iproc = 0; iproc < nprocs; ++iproc) {
+            if (me.mCRK) {
+              incrementByRecvValues(recvBufBegin[iproc], recvBufs[iproc].end(), recvNodes[imat][iproc],
+                                    DrhoDt[imat],
+                                    DvDt[imat],
+                                    DposDt[imat],
+                                    DepsDt[imat],
+                                    DvDx[imat],
+                                    DHDt[imat],
+                                    Hideal[imat],
+                                    DSDt[imat],
+                                    effViscousPressure[imat],
+                                    viscousWork[imat]);
+            } else {
+              incrementByRecvValues(recvBufBegin[iproc], recvBufs[iproc].end(), recvNodes[imat][iproc],
+                                    rhoSum[imat],
+                                    DrhoDt[imat],
+                                    DvDt[imat],
+                                    DposDt[imat],
+                                    DepsDt[imat],
+                                    DvDx[imat],
+                                    DHDt[imat],
+                                    Hideal[imat],
+                                    DSDt[imat],
+                                    effViscousPressure[imat],
+                                    viscousWork[imat]);
+            }
+          }
+        }
+      }
+    }
   }
 
   // Copy the fluid derivative state to the arguments.
-  copyScalarFieldListToArray(rhoSum, me.mParticleType, ghostNodes, massDensitySum);
+  if (not me.mCRK) copyScalarFieldListToArray(rhoSum, me.mParticleType, ghostNodes, massDensitySum);
   copyScalarFieldListToArray(DrhoDt, me.mParticleType, ghostNodes, DmassDensityDt);
   copyVectorFieldListToArray(DvDt, me.mParticleType, ghostNodes, DvelocityDt);
   copyVectorFieldListToArray(DposDt, me.mParticleType, ghostNodes, DxDt);
@@ -1295,6 +1542,12 @@ evaluateDerivatives(double*  massDensitySum,
   copyTensorFieldListToArray(DSDt, me.mParticleType, ghostNodes, DdeviatoricStressDt);
   copyScalarFieldListToArray(effViscousPressure, me.mParticleType, ghostNodes, qpressure);
   copyScalarFieldListToArray(viscousWork, me.mParticleType, ghostNodes, qwork);
+
+  // Wait until any outstanding sends are completed
+  if (not sendRequests.empty()) {
+    vector<MPI_Status> sendStatus(sendRequests.size());
+    MPI_Waitall(sendRequests.size(), &sendRequests.front(), &sendStatus.front());
+  }
 }
 
 //------------------------------------------------------------------------------
