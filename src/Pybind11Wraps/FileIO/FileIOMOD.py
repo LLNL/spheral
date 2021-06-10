@@ -141,14 +141,10 @@ AccessType = PYB11enum(("Undefined",
                         "ReadWrite"), export_values=True,
                        doc="How are we opening/accessing a file")
 
-#FlatFileFormat = PYB11enum(("ascii", "binary"), export_values=True,
-#                           doc="Format of ascii file")
-
 #-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
 from FileIO import *
-#from FlatFileIO import *
 from SiloFileIO import *
 from PyFileIO import *
 
