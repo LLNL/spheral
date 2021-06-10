@@ -19,6 +19,7 @@
 #include "Utilities/DomainNode.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/RKCoefficients.hh"
+#include "Utilities/uniform_random.hh"
 
 #ifdef USE_MPI
 extern "C" {
@@ -518,6 +519,15 @@ struct DataTypeTraits<RKCoefficients<Dim<ndim>>> {
   static bool fixedSize() { return false; }
   static int numElements(const RKCoefficients<Dim<ndim>>& x) { return x.size() + 1; }
   static RKCoefficients<Dim<ndim>> zero() { return RKCoefficients<Dim<ndim>>(); }
+};
+
+//------------------------------------------------------------------------------
+template<>
+struct DataTypeTraits<uniform_random> {
+  typedef char ElementType;
+  static bool fixedSize() { return true; }
+  static int numElements(const uniform_random&) { return 2*sizeof(size_t) + 2*sizeof(double); }
+  static uniform_random zero() { return uniform_random(); }
 };
 
 }
