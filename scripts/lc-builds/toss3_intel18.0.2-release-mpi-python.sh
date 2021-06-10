@@ -24,6 +24,3 @@ cmake \
   -DENABLE_MPI=On \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
   $CMAKE_ARGS \
-
-make -j 16
-make install
