@@ -4,6 +4,7 @@ set(Material_inst
     GammaLawGas
     PolytropicEquationOfState
     IsothermalEquationOfState
+    StiffenedGas
    )
 
 set(Material_sources
@@ -14,6 +15,7 @@ set(Material_headers
     EquationOfState.hh
     EquationOfStateInline.hh
     GammaLawGas.hh
+    StiffenedGas.hh
     HelmholtzEquationOfState.hh
     IsothermalEquationOfState.hh
     IsothermalEquationOfStateInline.hh
