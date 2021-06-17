@@ -61,10 +61,10 @@ commandLine(nx1     = 50,
             
             nPerh   = 1.51,
             
-            SVPH    = False,
-            CRKSPH  = False,
-            ASPH    = False,
-            SPH     = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            svph    = False,
+            crksph  = False,
+            asph    = False,
+            sph     = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             filter  = 0.0,   # CRKSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
@@ -111,6 +111,8 @@ commandLine(nx1     = 50,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
+            correctVelocityGradient = True,
+            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
             
             useVoronoiOutput = False,
             clearDirectories = False,
@@ -141,33 +143,12 @@ zdot    = sqrt(freq*atwood*abs(g0))
 
 print "\n\n\nzdot = exp({0:3.3e}*t)  <-<-<-<-<-<-<-<-<-<------\n\n\n".format(zdot)
 
-
-
-# Decide on our hydro algorithm.
-if SVPH:
-    if ASPH:
-        HydroConstructor = ASVPHFacetedHydro
-    else:
-        HydroConstructor = SVPHFacetedHydro
-elif CRKSPH:
-    if ASPH:
-        HydroConstructor = ACRKSPHHydro
-    else:
-        HydroConstructor = CRKSPHHydro
-else:
-    if ASPH:
-        HydroConstructor = ASPHHydro
-    else:
-        HydroConstructor = SPHHydro
+description = 'sph'
+if crksph: description = 'crksph'
+if svph: description = 'svph'
 
 dataDir = os.path.join(dataDir,
-                       "S=%g" % (S),
-                       "CRKSPH=%s" % CRKSPH,
-                       str(HydroConstructor).split("'")[1].split(".")[-1],
-                       "densityUpdate=%s" % (densityUpdate),
-                       "XSPH=%s" % XSPH,
-                       "filter=%s" % filter,
-                       "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
+                       "%s" % (description),
                        "%ix%i" % (nx1, ny1 + ny2),
                        "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
 restartDir = os.path.join(dataDir, "restarts")
@@ -323,47 +304,52 @@ output("q.quadraticInExpansion")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             densityUpdate = densityUpdate,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             generateVoid = False,
-                             HUpdate = HUpdate,
-                             fcentroidal = fcentroidal,
-                             fcellPressure = fcellPressure,
-                             xmin = Vector(-2.0, -2.0),
-                             xmax = Vector(3.0, 3.0))
-# xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
-# xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
-elif CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             WPi = WTPi,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
+if svph:
+    hydro = SVPH(dataBase = db,
+                 W = WT, 
+                 cfl = cfl,
+                 useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 densityUpdate = densityUpdate,
+                 XSVPH = XSPH,
+                 linearConsistent = linearConsistent,
+                 generateVoid = False,
+                 HUpdate = HUpdate,
+                 fcentroidal = fcentroidal,
+                 fcellPressure = fcellPressure,
+                 xmin = Vector(-2.0, -2.0),
+                 xmax = Vector(3.0, 3.0),
+                 ASPH = asph)
+    # xmin = Vector(x0 - 0.5*(x2 - x0), y0 - 0.5*(y2 - y0)),
+    # xmax = Vector(x2 + 0.5*(x2 - x0), y2 + 0.5*(y2 - y0)))
+elif crksph:
+    hydro = CRKSPH(dataBase = db,
+                   order = correctionOrder,
+                   filter = filter,
+                   cfl = cfl,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   XSPH = XSPH,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   ASPH = asph)
 else:
-    hydro = HydroConstructor(W = WT,
-                             WPi = WTPi,
-                             Q = q,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                cfl = cfl,
+                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                XSPH = XSPH,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile,
+                ASPH = asph)
+
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")

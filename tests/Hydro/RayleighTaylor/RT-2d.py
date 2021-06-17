@@ -1,8 +1,11 @@
 #-------------------------------------------------------------------------------
-# This is the basic Rayleigh-Taylor Problem
+# This is the basic Rayleigh-Taylor Problem.
+# Updated to more modern Spheral interface in 2021 by Doug Miller
 #-------------------------------------------------------------------------------
 import shutil
 from math import *
+import mpi
+
 from Spheral2d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
@@ -11,7 +14,6 @@ from GenerateNodeDistribution2d import *
 from CompositeNodeDistribution import *
 from CentroidalVoronoiRelaxation import *
 
-import mpi
 import DistributeNodes
 
 title("Rayleigh-Taylor test problem in 2D")
@@ -61,8 +63,8 @@ commandLine(nx1 = 100,
             
             SVPH = False,
             CRKSPH = False,
-            ASPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            asph = False,
+            sph = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             filter = 0.0,   # CRKSPH filtering
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
@@ -109,6 +111,8 @@ commandLine(nx1 = 100,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
             gradhCorrection = False,
+            correctVelocityGradient = True,
+            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
             
             useVoronoiOutput = False,
             clearDirectories = False,
@@ -128,17 +132,17 @@ commandLine(nx1 = 100,
 
 # Decide on our hydro algorithm.
 if SVPH:
-    if ASPH:
+    if asph:
         HydroConstructor = ASVPHFacetedHydro
     else:
         HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
-    if ASPH:
+    if asph:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
 else:
-    if ASPH:
+    if asph:
         HydroConstructor = ASPHHydro
     else:
         HydroConstructor = SPHHydro
@@ -229,7 +233,7 @@ if restoreCycle is None:
                                             xmax = (x1,y1),
 
                                             nNodePerh = nPerh,
-                                            SPH = SPH)
+                                            SPH = sph)
     generator2 = GenerateNodeDistribution2d(nx2, ny2,
                                             rho = ExponentialDensity(y1,
                                                                      rho0,
@@ -238,7 +242,7 @@ if restoreCycle is None:
                                             xmin = (x0,y1),
                                             xmax = (x1,y2),
                                             nNodePerh = nPerh,
-                                            SPH = SPH)
+                                            SPH = sph)
 
     if mpi.procs > 1:
         from VoronoiDistributeNodes import distributeNodes2d
@@ -319,17 +323,21 @@ elif CRKSPH:
                              densityUpdate = densityUpdate,
                              HUpdate = HUpdate)
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                cfl = cfl,
+                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                XSPH = XSPH,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile,
+                ASPH = asph)
+
 output("hydro")
 output("hydro.kernel()")
 output("hydro.PiKernel()")
@@ -446,7 +454,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = SPH)
+                            SPH = sph)
 output("control")
 
 #-------------------------------------------------------------------------------
