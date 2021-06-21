@@ -16,6 +16,9 @@ set(Damage_inst
     JohnsonCookFailureStrainPolicy
     JohnsonCookDamagePolicy
     DamagedPressurePolicy
+    DamagedNodeCoupling
+    ThreePointDamagedNodeCoupling
+    DamageGradientNodeCoupling
    )
 
 
@@ -51,6 +54,10 @@ set(Damage_headers
     oneMinusDamage.hh
     weibullFlawDistributionBenzAsphaug.hh
     weibullFlawDistributionOwen.hh
+    DamageGradientNodeCoupling.hh
+    DamagedNodeCoupling.hh
+    MaxDamageNodeCoupling.hh
+    ThreePointDamagedNodeCoupling.hh
     )
 
 spheral_install_python_files(

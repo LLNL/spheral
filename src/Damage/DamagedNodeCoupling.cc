@@ -6,7 +6,7 @@
 //
 // Created by JMO, Fri Jul 31 14:46:25 PDT 2015
 //----------------------------------------------------------------------------//
-#include "Utilities/DamagedNodeCoupling.hh"
+#include "Damage/DamagedNodeCoupling.hh"
 #include "Utilities/DBC.hh"
 #include "Field/FieldList.hh"
 #include "Hydro/HydroFieldNames.hh"
