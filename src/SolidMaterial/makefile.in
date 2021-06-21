@@ -14,7 +14,7 @@ INSTSRCTARGETS = \
 	$(srcdir)/LinearPolynomialEquationOfStateInst.cc.py \
 	$(srcdir)/GruneisenEquationOfStateInst.cc.py \
 	$(srcdir)/OsborneEquationOfStateInst.cc.py \
-	$(srcdir)/MurnahanEquationOfStateInst.cc.py \
+	$(srcdir)/MurnaghanEquationOfStateInst.cc.py \
 	$(srcdir)/TillotsonEquationOfStateInst.cc.py \
 	$(srcdir)/StrengthModelInst.cc.py \
 	$(srcdir)/SteinbergGuinanStrengthInst.cc.py \

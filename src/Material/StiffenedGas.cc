@@ -132,8 +132,7 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 }
 
 //------------------------------------------------------------------------------
-// Set the bulk modulus (rho DP/Drho).  This is just the pressure for a gamma
-// law gas.
+// Set the bulk modulus (isentropic) rho*c^2
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -142,7 +141,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  setPressure(bulkModulus, massDensity, specificThermalEnergy);
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+    bulkModulus(i) = this->bulkModulus(massDensity(i),specificThermalEnergy(i));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -252,53 +253,6 @@ typename Dimension::Scalar
 StiffenedGas<Dimension>::gamma(const Scalar /*massDensity*/,
                               const Scalar /*specificThermalEnergy*/) const {
   return mGamma;
-}
-
-//------------------------------------------------------------------------------
-// Get and set gamma.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Dimension::Scalar
-StiffenedGas<Dimension>::gamma() const {
-  return mGamma;
-}
-
-template<typename Dimension>
-void
-StiffenedGas<Dimension>::gamma(typename Dimension::Scalar gam) {
-  mGamma = gam;
-  mGamma1 = mGamma - 1.0;
-}
-
-//------------------------------------------------------------------------------
-// Get and set the specific Heat.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Dimension::Scalar
-StiffenedGas<Dimension>::specificHeat() const {
-  return mCv;
-}
-
-template<typename Dimension>
-void
-StiffenedGas<Dimension>::specificHeat(typename Dimension::Scalar Cv) {
-  mCv = Cv;
-}
-
-
-//------------------------------------------------------------------------------
-// Get / Set referencePressure
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Dimension::Scalar
-StiffenedGas<Dimension>::referencePressure() const {
-  return mP0;
-}
-
-template<typename Dimension>
-void
-StiffenedGas<Dimension>::referencePressure(typename Dimension::Scalar P0) {
-  mP0 = P0;
 }
 
 //------------------------------------------------------------------------------

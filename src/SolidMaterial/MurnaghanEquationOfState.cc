@@ -1,12 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
-// MurnahanEquationOfState
+// MurnaghanEquationOfState
 //
 //   P(rho) = K/(n) * (eta^n - 1) + P0
 //   eta = rho/rho0
 //
 // Created by JMO, Mon Jun  6 13:53:50 PDT 2005
 //----------------------------------------------------------------------------//
-#include "MurnahanEquationOfState.hh"
+#include "MurnaghanEquationOfState.hh"
 #include "Field/Field.hh"
 #include "Utilities/SpheralFunctions.hh"
 
@@ -20,8 +20,8 @@ using std::abs;
 // Construct with the given coefficients.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-MurnahanEquationOfState<Dimension>::
-MurnahanEquationOfState(const double referenceDensity,
+MurnaghanEquationOfState<Dimension>::
+MurnaghanEquationOfState(const double referenceDensity,
                         const double etamin,
                         const double etamax,
                         const double n,
@@ -55,8 +55,8 @@ MurnahanEquationOfState(const double referenceDensity,
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-MurnahanEquationOfState<Dimension>::
-~MurnahanEquationOfState() {
+MurnaghanEquationOfState<Dimension>::
+~MurnaghanEquationOfState() {
 }
 
 //------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ MurnahanEquationOfState<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 setPressure(Field<Dimension, Scalar>& Pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -79,7 +79,7 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -94,7 +94,7 @@ setTemperature(Field<Dimension, Scalar>& temperature,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
@@ -109,7 +109,7 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& /*massDensity*/,
                 const Field<Dimension, Scalar>& /*temperature*/) const {
@@ -122,7 +122,7 @@ setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -137,7 +137,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -152,7 +152,7 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -167,7 +167,7 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 setEntropy(Field<Dimension, Scalar>& entropy,
            const Field<Dimension, Scalar>& massDensity,
            const Field<Dimension, Scalar>& specificThermalEnergy) const {
@@ -182,7 +182,7 @@ setEntropy(Field<Dimension, Scalar>& entropy,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar /*specificThermalEnergy*/) const {
   REQUIRE(valid());
@@ -199,7 +199,7 @@ pressure(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 temperature(const Scalar /*massDensity*/,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -211,7 +211,7 @@ temperature(const Scalar /*massDensity*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 specificThermalEnergy(const Scalar /*massDensity*/,
                       const Scalar temperature) const {
   REQUIRE(valid());
@@ -223,7 +223,7 @@ specificThermalEnergy(const Scalar /*massDensity*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 specificHeat(const Scalar /*massDensity*/,
              const Scalar /*temperature*/) const {
   REQUIRE(valid());
@@ -235,7 +235,7 @@ specificHeat(const Scalar /*massDensity*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -249,7 +249,7 @@ soundSpeed(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar /*specificThermalEnergy*/) const {
   const double eta = this->boundedEta(massDensity),
@@ -265,7 +265,7 @@ gamma(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
@@ -277,7 +277,7 @@ bulkModulus(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 entropy(const Scalar massDensity,
         const Scalar specificThermalEnergy) const {
   CHECK(valid());
@@ -289,7 +289,7 @@ entropy(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 double
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 computeDPDrho(const Scalar massDensity,
               const Scalar /*specificThermalEnergy*/) const {
   REQUIRE(valid());
@@ -306,7 +306,7 @@ computeDPDrho(const Scalar massDensity,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 bool
-MurnahanEquationOfState<Dimension>::valid() const {
+MurnaghanEquationOfState<Dimension>::valid() const {
   return (SolidEquationOfState<Dimension>::valid() && 
           mn > 0.0 &&
           mK > 0.0 &&

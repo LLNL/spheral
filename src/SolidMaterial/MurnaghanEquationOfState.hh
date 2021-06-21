@@ -1,13 +1,13 @@
 //---------------------------------Spheral++----------------------------------//
-// MurnahanEquationOfState
+// MurnaghanEquationOfState
 //
-//   P(rho) = 1/(nK) * (eta^n - 1)
+//   P(rho) = K/(n) * (eta^n - 1) + P0
 //   eta = rho/rho0
 //
 // Created by JMO, Mon Jun  6 13:53:50 PDT 2005
 //----------------------------------------------------------------------------//
-#ifndef MurnahanEquationOfState_HH
-#define MurnahanEquationOfState_HH
+#ifndef MurnaghanEquationOfState_HH
+#define MurnaghanEquationOfState_HH
 
 #include <float.h>
 #include "SolidEquationOfState.hh"
@@ -15,7 +15,7 @@
 namespace Spheral {
 
 template<typename Dimension>
-class MurnahanEquationOfState: public SolidEquationOfState<Dimension> {
+class MurnaghanEquationOfState: public SolidEquationOfState<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -25,7 +25,7 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   // Constructors, destructors.
-  MurnahanEquationOfState(const double referenceDensity,
+  MurnaghanEquationOfState(const double referenceDensity,
                           const double etamin,
                           const double etamax,
                           const double n,
@@ -36,7 +36,7 @@ public:
                           const double minimumPressure,
                           const double maximumPressure,
                           const MaterialPressureMinType minPressureType);
-  ~MurnahanEquationOfState();
+  ~MurnaghanEquationOfState();
 
   // We require any equation of state to define the following properties.
   virtual void setPressure(Field<Dimension, Scalar>& Pressure,
@@ -125,20 +125,20 @@ private:
   double mnKi;
 
   // Disallow default constructor
-  MurnahanEquationOfState();
+  MurnaghanEquationOfState();
 
   using EquationOfState<Dimension>::mConstants;
 };
 
 }
 
-#include "MurnahanEquationOfStateInline.hh"
+#include "MurnaghanEquationOfStateInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class MurnahanEquationOfState;
+  template<typename Dimension> class MurnaghanEquationOfState;
 }
 
 #endif

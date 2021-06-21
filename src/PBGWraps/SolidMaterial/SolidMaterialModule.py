@@ -38,7 +38,7 @@ self.LinearPolynomialEquationOfState%(dim)id = addObject(space, "LinearPolynomia
 self.GruneisenEquationOfState%(dim)id = addObject(space, "GruneisenEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.OsborneEquationOfState%(dim)id = addObject(space, "OsborneEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 self.TillotsonEquationOfState%(dim)id = addObject(space, "TillotsonEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
-self.MurnahanEquationOfState%(dim)id = addObject(space, "MurnahanEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
+self.MurnaghanEquationOfState%(dim)id = addObject(space, "MurnaghanEquationOfState%(dim)id", parent=self.SolidEquationOfState%(dim)id, allow_subclassing=True)
 
 self.StrengthModel%(dim)id = addObject(space, "StrengthModel%(dim)id", allow_subclassing=True)
 self.ConstantStrength%(dim)id = addObject(space, "ConstantStrength%(dim)id", parent=self.StrengthModel%(dim)id, allow_subclassing=True)
@@ -71,7 +71,7 @@ generateLinearPolynomialEquationOfStateBindings(self.LinearPolynomialEquationOfS
 generateGruneisenEquationOfStateBindings(self.GruneisenEquationOfState%(dim)id, %(dim)i)
 generateOsborneEquationOfStateBindings(self.OsborneEquationOfState%(dim)id, %(dim)i)
 generateTillotsonEquationOfStateBindings(self.TillotsonEquationOfState%(dim)id, %(dim)i)
-generateMurnahanEquationOfStateBindings(self.MurnahanEquationOfState%(dim)id, %(dim)i)
+generateMurnaghanEquationOfStateBindings(self.MurnaghanEquationOfState%(dim)id, %(dim)i)
 
 generateStrengthModelBindings(self.StrengthModel%(dim)id, %(dim)i)
 generateConstantStrengthBindings(self.ConstantStrength%(dim)id, %(dim)i)
@@ -416,9 +416,9 @@ def generateTillotsonEquationOfStateBindings(x, ndim):
     return
 
 #---------------------------------------------------------------------------
-# MurnahanEquationOfState
+# MurnaghanEquationOfState
 #---------------------------------------------------------------------------
-def generateMurnahanEquationOfStateBindings(x, ndim):
+def generateMurnaghanEquationOfStateBindings(x, ndim):
 
     # Constructors.
     x.add_constructor([param("double", "referenceDensity"),
