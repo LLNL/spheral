@@ -10,6 +10,7 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class DataBase;
 //template<typename Dimension, typename DataType> class Field;
 //template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
@@ -31,7 +32,10 @@ public:
   //***************************************************************************
   // Required methods from contact model
 
-  virtual Scalar timeStep( ) const = 0;
+  virtual Scalar timeStep(const DataBase<Dimension>& dataBase,
+                          const State<Dimension>& state,
+                          const StateDerivatives<Dimension>& derivs,
+                                typename Dimension::Scalar /*currentTime*/) const = 0;
 
   virtual Vector force(const Scalar mi, const Scalar mj,
                        const Vector ri, const Vector rj,
