@@ -1,11 +1,11 @@
 #-------------------------------------------------------------------------------
-# DamagedNodeCoupling
+# PairMaxDamageNodeCoupling
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 import NodeCoupling
 
 @PYB11template("Dimension")
-class DamagedNodeCoupling(NodeCoupling.NodeCoupling):
+class PairMaxDamageNodeCoupling(NodeCoupling.NodeCoupling):
     """A functor class encapsulating how we couple solid nodes in the presence of
 multiple materials and damage.
 

@@ -16,7 +16,7 @@ set(Damage_inst
     JohnsonCookFailureStrainPolicy
     JohnsonCookDamagePolicy
     DamagedPressurePolicy
-    DamagedNodeCoupling
+    PairMaxDamageNodeCoupling
     ThreePointDamagedNodeCoupling
     DamageGradientNodeCoupling
    )
@@ -55,7 +55,7 @@ set(Damage_headers
     weibullFlawDistributionBenzAsphaug.hh
     weibullFlawDistributionOwen.hh
     DamageGradientNodeCoupling.hh
-    DamagedNodeCoupling.hh
+    PairMaxDamageNodeCoupling.hh
     MaxDamageNodeCoupling.hh
     ThreePointDamagedNodeCoupling.hh
     )

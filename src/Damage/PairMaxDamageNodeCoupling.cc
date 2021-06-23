@@ -1,12 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
-// DamagedNodeCoupling
+// PairMaxDamageNodeCoupling
 //
 // A functor class encapsulating how we couple solid nodes in the presence of
 // multiple materials and damage.
 //
 // Created by JMO, Fri Jul 31 14:46:25 PDT 2015
 //----------------------------------------------------------------------------//
-#include "Damage/DamagedNodeCoupling.hh"
+#include "Damage/PairMaxDamageNodeCoupling.hh"
 #include "Utilities/DBC.hh"
 #include "Field/FieldList.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -49,8 +49,8 @@ double scalarDamage(const FieldListType& damage,
 // Constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-DamagedNodeCoupling<Dimension>::
-DamagedNodeCoupling(const State<Dimension>& state,
+PairMaxDamageNodeCoupling<Dimension>::
+PairMaxDamageNodeCoupling(const State<Dimension>& state,
                     NodePairList& pairs):
   NodeCoupling() {
   const auto n = pairs.size();

@@ -21,7 +21,7 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/Timer.hh"
 #include "Utilities/NodeCoupling.hh"
-#include "Damage/DamagedNodeCoupling.hh"
+#include "Damage/PairMaxDamageNodeCoupling.hh"
 #include "Damage/DamageGradientNodeCoupling.hh"
 #include "Damage/ThreePointDamagedNodeCoupling.hh"
 
@@ -150,7 +150,7 @@ initialize(const Scalar /*time*/,
     break;
 
   case DamageCouplingAlgorithm::PairMaxDamage:
-    mNodeCouplingPtr = std::make_shared<DamagedNodeCoupling<Dimension>>(state, pairs);
+    mNodeCouplingPtr = std::make_shared<PairMaxDamageNodeCoupling<Dimension>>(state, pairs);
     break;
 
   case DamageCouplingAlgorithm::DamageGradient:

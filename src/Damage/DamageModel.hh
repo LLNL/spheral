@@ -42,6 +42,7 @@ enum class DamageCouplingAlgorithm {
   PairMaxDamage = 1,
   DamageGradient = 2,
   ThreePointDamage = 3,
+  TensorPairMaxDamage = 4,
 };
 
 template<typename Dimension>
