@@ -931,7 +931,7 @@ if(this->correctVelocityGradient()){
       }
 
       // rigorous enforcement of single-valued stress-state at interface
-      if (!sameMatij){
+      if (!sameMatij and false){
         const auto diffusion = (Si-Sj)*cij*etaij.dot(gradWij)/(etaMagij*etaMagij+tiny);
         DSDti += volj*diffusion;
         DSDtj -= voli*diffusion;
@@ -942,8 +942,8 @@ if(this->correctVelocityGradient()){
       if (XSPH and sameMatij) {
         XSPHWeightSumi += volj*Wi;
         XSPHWeightSumj += voli*Wj;
-        XSPHDeltaVi -= volj*Wi*vij;
-        XSPHDeltaVj += voli*Wj*vij;
+        XSPHDeltaVi -= volj*Wi*(vi-vstar);
+        XSPHDeltaVj -= voli*Wj*(vj-vstar);
       }
 
       } // if damageDecouple 
