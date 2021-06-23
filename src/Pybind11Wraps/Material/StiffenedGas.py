@@ -1,17 +1,12 @@
 #-------------------------------------------------------------------------------
-# MurnahanEquationOfState
+# GammaLawGas
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from SolidEquationOfState import *
+from EquationOfState import *
 from EOSAbstractMethods import *
 
 @PYB11template("Dimension")
-@PYB11module("SpheralSolidMaterial")
-class MurnahanEquationOfState(SolidEquationOfState):
-    """MurnahanEquationOfState -- Murnahan  equation of state.
-
-  P(rho) = 1/(nK) * (eta^n - 1)
-  eta = rho/rho0"""
+class StiffenedGas(EquationOfState):
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
@@ -21,18 +16,14 @@ class MurnahanEquationOfState(SolidEquationOfState):
     #...........................................................................
     # Constructors
     def pyinit(self,
-               referenceDensity = "const double",
-               etamin = "const double",
-               etamax = "const double",
-               n = "const double",
-               K = "const double",
-               atomicWeight = "const double",
+               gamma = "const double",
+               P0 = "const double",
+               Cv = "const double",
                constants = "const PhysicalConstants&",
-               externalPressure = ("const double", "0.0"),
-               minimumPressure = ("const double", "std::numeric_limits<double>::lowest()"),
-               maximumPressure = ("const double", "std::numeric_limits<double>::max()"),
+               minimumPressure = ("const double", "-std::numeric_limits<double>::max()"),
+               maximumPressure = ("const double",  "std::numeric_limits<double>::max()"),
                minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor")):
-        "Murnahan EOS"
+        "Gamma law gas constructor: gamma=ratio of specific heats, mu=mean molecular weight"
 
     #...........................................................................
     # Methods
@@ -67,9 +58,10 @@ class MurnahanEquationOfState(SolidEquationOfState):
         return "Scalar"
 
     @PYB11const
-    def gamma(self,
-              massDensity = "const Scalar",
-              specificThermalEnergy = "const Scalar"):
+    @PYB11pycppname("gamma")
+    def gamma1(self,
+               massDensity = "const Scalar",
+               specificThermalEnergy = "const Scalar"):
         return "Scalar"
 
     @PYB11const
@@ -84,22 +76,13 @@ class MurnahanEquationOfState(SolidEquationOfState):
                 specificThermalEnergy = "const Scalar"):
         return "Scalar"
 
-    @PYB11const
-    def computeDPDrho(self,
-                      massDensity = "const Scalar",
-                      specificThermalEnergy = "const Scalar"):
-        "Compute the derivative of the pressure with respect to the density."
-        return "double"
 
     #...........................................................................
     # Properties
-    n = PYB11property("double", "n", "n")
-    K = PYB11property("double", "K", "K")
-
-    atomicWeight = PYB11property("double", "atomicWeight", "atomicWeight")
-    externalPressure = PYB11property("double", "externalPressure", "externalPressure")
-
+    gamma = PYB11property("double", "gamma", "gamma", doc="gamma: ratio of specific heats")
+    P0 = PYB11property("double", "referencePressure", "referencePressure", doc="reference Pressure")
+    Cv = PYB11property("double", "specificHeat", "specificHeat", doc="specific Heat")
 #-------------------------------------------------------------------------------
-# Inject EOS interface
+# Add the virtual interface
 #-------------------------------------------------------------------------------
-PYB11inject(EOSAbstractMethods, MurnahanEquationOfState, virtual=True, pure_virtual=False)
+PYB11inject(EOSAbstractMethods, StiffenedGas, virtual=True)

@@ -1,11 +1,11 @@
 text = """
 //------------------------------------------------------------------------------
-// Explicit instantiation.
+// Instantiations.
 //------------------------------------------------------------------------------
-#include "SolidMaterial/MurnahanEquationOfState.cc"
+#include "Damage/ProbabilisticDamageModel.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class MurnahanEquationOfState<Dim< %(ndim)s > >;
+  template class ProbabilisticDamageModel<Dim< %(ndim)s > >;
 }
 """

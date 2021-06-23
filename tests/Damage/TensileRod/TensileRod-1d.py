@@ -1,7 +1,15 @@
+# Grady-Kipp-Owen damage 
 #ATS:t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
 #ATS:t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
 #ATS:t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
 #ATS:t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
+#
+# Probabilistic damage
+#ATS:t20 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20210527.txt'", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RUN")
+#ATS:t21 = testif(t20, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20210527.txt'", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RUN")
+#ATS:t22 = testif(t20, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20210527.txt' --restoreCycle 500", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RESTART RUN")
+#ATS:t23 = testif(t21, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20210527.txt' --restoreCycle 500", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RESTART RUN")
+
 #-------------------------------------------------------------------------------
 # A rod of stainless steel undergoing tensile strain.  This is intended as a
 # test of the cracking/failure models.
@@ -95,7 +103,7 @@ commandLine(length = 3.0,
             mWeibullFactor = 1.0,
             randomSeed = 548928513,
             strainType = PseudoPlasticStrain,
-            damageCoupling = ThreePointDamage,
+            damageCoupling = PairMaxDamage,
             cullToWeakestFlaws = False,
             damageInCompression = False,
             negativePressureInDamage = False,
@@ -174,7 +182,7 @@ else:
     hydroname = "SPH"
     nPerh = 1.51
     order = 5
-if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
+if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen, ProbabilisticDamageModel):
     damageName = os.path.join(str(DamageModelConstructor.__name__), str(damageCoupling))
 else:
     damageName = DamageModelConstructor.__name__
@@ -506,6 +514,17 @@ elif DamageModelConstructor is JohnsonCookDamageGaussian:
                                          seed = randomSeed,
                                          domainIndependent = domainIndependent)
 
+elif DamageModelConstructor is ProbabilisticDamageModel:
+    damageModel = DamageModelConstructor(nodeList = nodes,
+                                         kernel = WT,
+                                         kWeibull = kWeibull,
+                                         mWeibull = mWeibull,
+                                         seed = randomSeed,
+                                         volumeMultiplier = volumeMultiplier,
+                                         strainAlgorithm = strainType,
+                                         damageCouplingAlgorithm = damageCoupling,
+                                         damageInCompression = damageInCompression)
+
 output("damageModel")
 if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
     if cullToWeakestFlaws:
@@ -674,6 +693,29 @@ if graphics:
         plots += [(epsPlot, "JC_flaw.png"),
                   (D1Plot, "D1.png"),
                   (D2Plot, "D2.png")]
+
+    elif isinstance(damageModel, ProbabilisticDamageModel):
+        ts = damageModel.strain
+        s = ScalarField("strain", nodes)
+        for i in xrange(nodes.numInternalNodes):
+            s[i] = ts[i].xx
+        sl = ScalarFieldList()
+        sl.appendField(s)
+        sPlot = plotFieldList(sl, winTitle="strain @ %g %i" % (control.time(), mpi.procs),
+                              plotStyle="o-")
+        epsMin = damageModel.minFlaw
+        nflaws = damageModel.numFlaws
+        epsl = ScalarFieldList()
+        epsl.appendField(epsMin)
+        epsPlot = plotFieldList(epsl, winTitle="Min flaw activation strains",
+                                plotStyle="o-")
+        nflawsl = IntFieldList()
+        nflawsl.appendField(nflaws)
+        nflawsPlot = plotFieldList(nflawsl, winTitle="Number of flaws",
+                                   plotStyle="o-")
+        plots += [(sPlot, "strain.png"),
+                  (epsPlot, "flaws.png"),
+                  (nflawsPlot, "numflaws.png")]
 
     fragPlot = plotFieldList(state.intFields(SolidFieldNames.fragmentIDs),
                              plotStyle = "o-",
