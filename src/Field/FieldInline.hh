@@ -1984,9 +1984,9 @@ template<typename Dimension, typename DataType>
 inline
 axom::sidre::DataTypeId
 Field<Dimension, DataType>::
-getAxomType() const {
-  return DataTypeTraits<DataType>::axomType();
+getAxomTypeID() const {
+  return DataTypeTraits<DataType>::axomTypeID();
 }
 
 
-}
+} // namespace Spheral

@@ -1,20 +1,20 @@
-#include "SidreDataCollection.hh"
+// #include "SidreDataCollection.hh"
 
 
-namespace sidre = axom::sidre;
+// namespace sidre = axom::sidre;
 
 
-namespace Spheral 
-{
+// namespace Spheral 
+// {
 
-SidreDataCollection::SidreDataCollection()
-{
-   m_datastore_ptr = new sidre::DataStore();
-}
+// SidreDataCollection::SidreDataCollection()
+// {
+//    m_datastore_ptr = new sidre::DataStore();
+// }
 
-SidreDataCollection::~SidreDataCollection()
-{
-   delete m_datastore_ptr;
-}
+// SidreDataCollection::~SidreDataCollection()
+// {
+//    delete m_datastore_ptr;
+// }
 
-}
+// }

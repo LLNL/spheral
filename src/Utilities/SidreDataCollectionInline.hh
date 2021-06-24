@@ -11,7 +11,7 @@ inline
 axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
                                                    const Spheral::Field<Dimension, DataType> &field)
 {
-   axom::sidre::DataTypeId dtype = field.getAxomType();
+   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
    axom::IndexType num_elements = field.numElements();
    const DataType *data = &(*field.begin());
    axom::sidre::View *v = m_datastore_ptr->getRoot()->createView(view_name, dtype,
@@ -25,9 +25,9 @@ inline
 axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
                                                    const Spheral::Field<Dimension, std::string> &field)
 {
-   axom::sidre::DataTypeId dtype = field.getAxomType();
+   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
    int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
+   for (u_int i = 0; i < field.size(); ++i)
    {
       axom::IndexType num_elements = field[i].size();
       const char *data = &(*field[i].begin());
@@ -44,9 +44,9 @@ inline
 axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
                                                    const Spheral::Field<Dimension, std::vector<DataType>> &field)
 {
-   axom::sidre::DataTypeId dtype = field.getAxomType();
+   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
    int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
+   for (u_int i = 0; i < field.size(); ++i)
    {
       axom::IndexType num_elements = field[i].size();
       const DataType *data = &(*field[i].begin());
@@ -63,11 +63,11 @@ inline
 axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name,
                               const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType>> &field)
 {
-   axom::sidre::DataTypeId dtype = field.getAxomType();
+   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
    axom::IndexType num_elements = 3;
    int view_count = 0;
 
-   for (u_int i = 0; i < field.size(); i++)
+   for (u_int i = 0; i < field.size(); ++i)
    {
       DataType data [] = {std::get<0>(field[i]), std::get<1>(field[i]), std::get<2>(field[i])};
       axom::sidre::Buffer* buff = m_datastore_ptr->createBuffer()->allocate(dtype, num_elements)
@@ -85,10 +85,10 @@ inline
 axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name,
                               const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType, DataType>> &field)
 {
-   axom::sidre::DataTypeId dtype = field.getAxomType();
+   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
    axom::IndexType num_elements = 4;
    int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
+   for (u_int i = 0; i < field.size(); ++i)
    {
       DataType data [] = {std::get<0>(field[i]), std::get<1>(field[i]), std::get<2>(field[i]), std::get<3>(field[i])};
       axom::sidre::Buffer* buff = m_datastore_ptr->createBuffer()->allocate(dtype, num_elements)
@@ -106,10 +106,10 @@ inline
 axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name,
                               const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType, DataType, DataType>> &field)
 {
-   axom::sidre::DataTypeId dtype = field.getAxomType();
+   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
    axom::IndexType num_elements = 5;
    int view_count = 0;
-   for (u_int i = 0; i < field.size(); i++)
+   for (u_int i = 0; i < field.size(); ++i)
    {
       DataType data [] = {std::get<0>(field[i]), std::get<1>(field[i]), std::get<2>(field[i]), std::get<3>(field[i]), std::get<4>(field[i])};
       axom::sidre::Buffer* buff = m_datastore_ptr->createBuffer()->allocate(dtype, num_elements)
@@ -121,14 +121,15 @@ axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name,
    return m_datastore_ptr->getRoot()->getView(view_name + "0");
 }
 
+//------------------------------------------------------------------------------
 template <typename Dimension, typename DataType,
-         typename std::enable_if<!std::is_arithmetic<DataType>::value,
+         typename std::enable_if<!is_rank_n_tensor<DataType>::value && !std::is_arithmetic<DataType>::value,
                                  DataType>::type* = nullptr>
 inline
 axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
                                                    const Spheral::Field<Dimension, DataType> &field)
 {
-   axom::sidre::DataTypeId dtype = field.getAxomType();
+   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
    axom::IndexType num_elements = field.size() * DataTypeTraits<DataType>::numElements(field[0]);
 
    auto *data = &(*field.begin());
@@ -139,31 +140,32 @@ axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name,
    return m_datastore_ptr->getRoot()->getView(view_name);
 }
 
-
-
-template<typename Dimension>
+template <typename Dimension, typename DataType,
+         typename std::enable_if<is_rank_n_tensor<DataType>::value && !std::is_arithmetic<DataType>::value,
+                                 DataType>::type* = nullptr>
 inline
 axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
-                                                   const Spheral::Field<Dimension, Dim<1>::ThirdRankTensor> &field)
+                                                   const Spheral::Field<Dimension, DataType> &field)
 {
-   axom::sidre::DataTypeId dtype = field.getAxomType();
-   axom::IndexType num_elements = field.size() * DataTypeTraits<Dim<1>::ThirdRankTensor>::numElements(field[0]);
+   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
+   axom::IndexType num_elements = field.size() * DataTypeTraits<DataType>::numElements(field[0]);
 
+   int anyVar = 0;
+   double data [num_elements];
    for (u_int i = 0; i < field.size(); ++i)
-      std::cout << *field[i].begin() << " ";
-   std::cout << std::endl;
-
-   double data [field.size()];
-   for (u_int i = 0; i < field.size(); ++i)
-      data[i] = *field[i].begin();
+      for (auto it = field[i].begin(); it != field[i].end(); ++it)
+      {
+         data[anyVar] = *it;
+         anyVar++;
+      }
    
    axom::sidre::Buffer* buff = m_datastore_ptr->createBuffer()->allocate(dtype, num_elements)
                                               ->copyBytesIntoBuffer(data, sizeof(double) * num_elements);
    m_datastore_ptr->getRoot()->createView(view_name, dtype, num_elements, buff);
 
-   printData();
+   //printData();
 
    return m_datastore_ptr->getRoot()->getView(view_name);
 }
 
-}
+} // namespace Spheral

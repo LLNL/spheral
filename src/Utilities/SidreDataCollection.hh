@@ -17,8 +17,8 @@ namespace Spheral
 class SidreDataCollection
 {
 public:
-    SidreDataCollection();
-    ~SidreDataCollection();
+    SidreDataCollection() {};
+    ~SidreDataCollection() {};
 
     template <typename Dimension, typename DataType,
               typename std::enable_if<std::is_arithmetic<DataType>::value,
@@ -27,10 +27,18 @@ public:
                                   const Spheral::Field<Dimension, DataType> &field);
 
     template <typename Dimension, typename DataType,
-              typename std::enable_if<!std::is_arithmetic<DataType>::value,
+              typename std::enable_if<is_rank_n_tensor<DataType>::value && !std::is_arithmetic<DataType>::value,
                                       DataType>::type* = nullptr>
     axom::sidre::View *alloc_view(const std::string &view_name,
                                   const Spheral::Field<Dimension, DataType> &field);
+
+    template <typename Dimension, typename DataType,
+              typename std::enable_if<!is_rank_n_tensor<DataType>::value  && !std::is_arithmetic<DataType>::value,
+                                      DataType>::type* = nullptr>
+    axom::sidre::View *alloc_view(const std::string &view_name,
+                                  const Spheral::Field<Dimension, DataType> &field);
+
+    
 
     
     template<typename Dimension>
@@ -49,17 +57,13 @@ public:
     axom::sidre::View *alloc_view(const std::string &view_name,
                                   const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType, DataType, DataType>> &field);
 
-    template<typename Dimension>
-    axom::sidre::View *alloc_view(const std::string &view_name,
-                                  const Spheral::Field<Dimension, Dim<1>::ThirdRankTensor> &field);
-
     void printData() {m_datastore_ptr->getRoot()->print();};
         
 private:
-    axom::sidre::DataStore *m_datastore_ptr;
+    std::shared_ptr<axom::sidre::DataStore> m_datastore_ptr = std::make_shared<axom::sidre::DataStore>();
 };
 
-}
+} // namespace Spheral
 
 #include "Utilities/SidreDataCollectionInline.hh"
 

@@ -237,7 +237,7 @@ public:
   std::vector<DataType> allValues() const;
 
   // Functions to help with storing the field in a Sidre datastore.
-  axom::sidre::DataTypeId getAxomType() const;
+  axom::sidre::DataTypeId getAxomTypeID() const;
 
 
 private:
@@ -251,7 +251,7 @@ private:
   Field();
 };
 
-}
+} // namespace Spheral
 
 #include "FieldInline.hh"
 
@@ -260,6 +260,6 @@ private:
 // Forward declare the Field class.
 namespace Spheral {
   template<typename Dimension, typename DataType> class Field;
-}
+} // namespace Spheral
 
 #endif
