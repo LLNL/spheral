@@ -19,10 +19,6 @@ using std::abs;
 
 #include "Timer.hh"
 
-// Must initialize the static list defined in Timer.hh
-// list<Timer*> Timer::TimerList(0); 
-
-
 static int ID_counter = 0;
 
 #ifdef PAPI
@@ -74,7 +70,7 @@ Timer::Timer(const string& name):
   //cout << " Root Timer construction for = " << name << endl;
 
   // Make a list of pointers of all Managed Timers.
-  TimerList.push_back(this);
+  TimerRegistrar::timerList().push_back(this);
   
   setup();
 }
@@ -85,7 +81,7 @@ Timer::Timer(const string& name, Timer& parent):
 
   //cout << "   Timer construction for = " << name << endl;
 
-  TimerList.push_back(this);
+  TimerRegistrar::timerList().push_back(this);
 
   setup();
 }
@@ -96,7 +92,7 @@ Timer::Timer(const string& name, Timer& parent, bool):
 
   //cout << "   Diagnostic Timer construction for = " << name << endl;
 
-  TimerList.push_back(this);
+  TimerRegistrar::timerList().push_back(this);
 
   setup();
   diagnostic = true;
@@ -240,7 +236,7 @@ void Timer::TimerSummary( const std::string fname,
   number_procs=1;
 #endif
 
-  // printf("Rank %d, Procs %d, num timers %d\n", rank, number_procs, TimerList.size());
+  // printf("Rank %d, Procs %d, num timers %d\n", rank, number_procs, TimerRegistrar::timerList().size());
 
   list<Timer*>::iterator tli;  
   
@@ -248,7 +244,7 @@ void Timer::TimerSummary( const std::string fname,
 
   // go thru all Timers in static list and obtain the avg/min/max of
   // all processors onto rank0 -- obviously trivial for serial runs.
-  for(tli=TimerList.begin() ; tli != TimerList.end() ; ++tli) {
+  for(tli=TimerRegistrar::timerList().begin() ; tli != TimerRegistrar::timerList().end() ; ++tli) {
       
     // printf(" Timer: %-16s Parent: %-16s diagnostic = %d\n",
     //    (*tli)->Name().c_str(), (*tli)->Parent.Name().c_str(), 
@@ -290,10 +286,10 @@ void Timer::TimerSummary( const std::string fname,
   list<Timer*> ParentList;
   list<Timer*>::iterator pti; 
 
-  //cout << " size of TimerList = " << TimerList.size() << endl;
+  //cout << " size of TimerList = " << TimerRegistrar::timerList().size() << endl;
 
   // for each timer in entire Timer List
-  for(tli=TimerList.begin() ; tli != TimerList.end() ; tli++) {
+  for(tli=TimerRegistrar::timerList().begin() ; tli != TimerRegistrar::timerList().end() ; tli++) {
 
     //printf(" Timer #%3d: %-16s Parent: %-16s diagnostic = %d\n",
     //   (*tli)->ID,
@@ -378,7 +374,7 @@ void Timer::TimerSummary( const std::string fname,
 
       writeSingleLineSeparator(OUT);
 
-      for(tli=TimerList.begin() ; tli != TimerList.end() ; tli++) {
+      for(tli=TimerRegistrar::timerList().begin() ; tli != TimerRegistrar::timerList().end() ; tli++) {
 
         if ((*tli)->diagnostic) continue;
 
@@ -425,7 +421,7 @@ void Timer::TimerSummary( const std::string fname,
   double largestTime = -1.0;
   Timer *DiagnosticParent=NULL;
     
-  for(tli=TimerList.begin() ; tli != TimerList.end() ; tli++) {    
+  for(tli=TimerRegistrar::timerList().begin() ; tli != TimerRegistrar::timerList().end() ; tli++) {    
     if ((*tli)->diagnostic == true) Ndiag++;
     if ((*tli)->avgWC > largestTime) {
       DiagnosticParent = *tli;
@@ -466,7 +462,7 @@ void Timer::TimerSummary( const std::string fname,
     
     writeSingleLineSeparator(OUT);  
     
-    for(tli=TimerList.begin() ; tli != TimerList.end() ; tli++) {
+    for(tli=TimerRegistrar::timerList().begin() ; tli != TimerRegistrar::timerList().end() ; tli++) {
 
       if ((*tli)->diagnostic == false) continue;
 
@@ -824,9 +820,9 @@ static void PAPI_cleanup(int *i) {
 
 #endif // on PAPI
 
-#else
-//#include "Timer.H"
-// Must initialize the static list defined in Timer.hh
-//list<Timer*> Timer::TimerList(0); 
-
 #endif  // TIMER
+
+//------------------------------------------------------------------------------
+// Static initializations
+//------------------------------------------------------------------------------
+std::list<Timer*>* TimerRegistrar::mTimerListPtr = nullptr;

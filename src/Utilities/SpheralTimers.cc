@@ -7,10 +7,10 @@
 #include "Timer.hh"
 #include <list>
 
-// Must initialize the static list defined in Timer.hh
-#ifdef TIMER
-std::list<Timer*> Timer::TimerList(0); 
-#endif
+// // Must initialize the static list defined in Timer.hh
+// #ifdef TIMER
+// std::list<Timer*> Timer::TimerList(0); 
+// #endif
 
 //------------------------------------------------------------------------------
 // Root Timers

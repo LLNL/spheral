@@ -12,6 +12,23 @@
 #include <list>
 #include <string>
 
+//------------------------------------------------------------------------------
+// A registrar to hold onto the static list of Timers
+//------------------------------------------------------------------------------
+class Timer;
+class TimerRegistrar {
+public:
+  static std::list<Timer*>& timerList() {
+    if (mTimerListPtr == nullptr) mTimerListPtr = new std::list<Timer*>;
+    return *mTimerListPtr;
+  }
+private:
+  static std::list<Timer*>* mTimerListPtr;
+};
+
+//------------------------------------------------------------------------------
+// Timer
+//------------------------------------------------------------------------------
 // if TIMER is not defined, then we just have a stub class.
 #ifdef TIMER
 
@@ -63,8 +80,6 @@ public:
   
   long int Count() { return count; }
 
-  static std::list<Timer*> TimerList;
-
   static void TimerSummary(const std::string fname = "time.table",
                            const bool printAllTimers = false);
   
@@ -101,6 +116,9 @@ private:
 #else
 
 
+//------------------------------------------------------------------------------
+// Timer (stub)
+//------------------------------------------------------------------------------
 // stub Timer class
 #include <string>
 #include <iostream>
@@ -117,8 +135,6 @@ public:
   Timer(const std::string&, Timer&) {}
   Timer(const std::string&, Timer&, bool) {}
   ~Timer() {}
-
-  static std::list<Timer*> TimerList;
 
   inline void setup(){}
   inline void start(){}
