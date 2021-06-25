@@ -216,7 +216,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>MinSpace</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>

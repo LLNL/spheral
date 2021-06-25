@@ -246,7 +246,6 @@
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -256,6 +255,7 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <InterproceduralOptimization>SingleFile</InterproceduralOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -336,6 +336,7 @@
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <InterproceduralOptimization>SingleFile</InterproceduralOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
