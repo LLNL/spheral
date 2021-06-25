@@ -44,6 +44,7 @@
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/iterateIdealH.hh"
 #include "Utilities/globalNodeIDsInline.hh"
+#include "Utilities/Timer.hh"
 #ifdef USE_MPI
 #include "Distributed/NestedGridDistributedBoundary.hh"
 #include "Distributed/TreeDistributedBoundary.hh"
@@ -55,6 +56,18 @@
 #include "Field/Field.hh"
 #include "Field/FieldListSet.hh"
 #include "FieldOperations/sampleMultipleFields2Lattice.hh"
+
+// Declare timers
+extern Timer TIME_SpheralC;
+extern Timer TIME_SpheralC_initialize;
+extern Timer TIME_SpheralC_updateState;
+extern Timer TIME_SpheralC_initializeBoundariesAndPhysics;
+extern Timer TIME_SpheralC_initializeStep;
+extern Timer TIME_SpheralC_evaluateDerivatives;
+extern Timer TIME_SpheralC_iterateHfield;
+extern Timer TIME_SpheralC_computeFragmentID;
+extern Timer TIME_SpheralC_sampleLatticeMesh;
+extern Timer TIME_SpheralC_polyhedralMesh;
 
 namespace Spheral {
 
@@ -769,6 +782,8 @@ initialize(const bool     RZ,
            const Vector&  xmin,
            const Vector&  xmax) {
 
+  TIME_SpheralC_initialize.start();
+
   // Pre-conditions.
   VERIFY2(not RZ or Dimension::nDim == 2,
           "SpheralPseudoScript::initialize: Axisymmetric coordinates (RZ) can only be requested in the 2D instantiation of Spheral.");
@@ -1013,6 +1028,8 @@ initialize(const bool     RZ,
 
   // Remember the distributed boundary type.
   me.mDistributedBoundary = distributedBoundary;
+
+  TIME_SpheralC_initialize.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -1038,6 +1055,8 @@ updateState(const unsigned* nintpermat,
             const double*  plasticStrain,
             const double*  scalarDamage,
             const int*     particleType) {
+
+  TIME_SpheralC_updateState.start();
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -1147,6 +1166,8 @@ updateState(const unsigned* nintpermat,
     // when we remove particle type from Spheral.
     pType = 0;
   }
+
+  TIME_SpheralC_updateState.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -1161,6 +1182,8 @@ template<typename Dimension>
 void
 SpheralPseudoScript<Dimension>::
 initializeBoundariesAndPhysics() {
+
+  TIME_SpheralC_initializeBoundariesAndPhysics.start();
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
   // Copy the state
@@ -1237,6 +1260,8 @@ initializeBoundariesAndPhysics() {
   me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, SolidFieldNames::yieldStrength);
   me.mStatePtr->template assignFields<typename Dimension::SymTensor>(state0, SolidFieldNames::tensorDamage);
   if (me.mCRK) me.mStatePtr->template assignFields<typename Dimension::Scalar>(state0, HydroFieldNames::volume);
+
+  TIME_SpheralC_initializeBoundariesAndPhysics.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -1247,6 +1272,8 @@ template<typename Dimension>
 double
 SpheralPseudoScript<Dimension>::
 initializeStep() {
+
+  TIME_SpheralC_initializeStep.start();
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -1291,6 +1318,8 @@ initializeStep() {
   me.mIntegratorPtr->lastDt(1e10);
   const double dt = me.mIntegratorPtr->selectDt(1e-100, 1e100, *me.mStatePtr, *me.mDerivsPtr);
   return dt;
+
+  TIME_SpheralC_initializeStep.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -1311,11 +1340,16 @@ evaluateDerivatives(double*  massDensitySum,
                     double*  qpressure,
                     double*  qwork) {
 
+  TIME_SpheralC_evaluateDerivatives.start();
+
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
   // Initialize for computing derivatives
+  const bool toggleOmegaFlag = me.mhGradCorrection and (not me.mConstantBoundaries.empty()) and (not me.mCRK);
+  if (toggleOmegaFlag) dynamic_cast<SolidSPHHydroBase<Dimension>*>(me.mHydroPtr.get())->gradhCorrection(false);
   me.mIntegratorPtr->initializeDerivatives(0.0, 1.0, *me.mStatePtr, *me.mDerivsPtr);
+  if (toggleOmegaFlag) dynamic_cast<SolidSPHHydroBase<Dimension>*>(me.mHydroPtr.get())->gradhCorrection(true);
 
   // Zero out the stored derivatives.
   me.mDerivsPtr->Zero();
@@ -1548,6 +1582,8 @@ evaluateDerivatives(double*  massDensitySum,
     vector<MPI_Status> sendStatus(sendRequests.size());
     MPI_Waitall(sendRequests.size(), &sendRequests.front(), &sendStatus.front());
   }
+
+  TIME_SpheralC_evaluateDerivatives.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -1597,6 +1633,8 @@ iterateHfield(double**     Hfield,
               const int    maxIterations,
               const double tolerance) {
 
+  TIME_SpheralC_iterateHfield.start();
+
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
 
@@ -1612,6 +1650,8 @@ iterateHfield(double**     Hfield,
   // Copy the internal H field back to the output.
   // We assume there are no host code bound SPH shenanigans to account for here.
   copyTensorFieldListToArray(H, vector<vector<int>>(), vector<vector<int>>(), Hfield);
+
+  TIME_SpheralC_iterateHfield.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -1625,6 +1665,8 @@ computeFragmentID(double* damage,
                   double  fragDensity,
                   double  fragDamage,
                   int*    fragments) {
+
+  TIME_SpheralC_computeFragmentID.start();
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -1657,6 +1699,8 @@ computeFragmentID(double* damage,
   // Zero out fields
   D.Zero();
   fragIDs.Zero();
+
+  TIME_SpheralC_computeFragmentID.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -1670,6 +1714,8 @@ sampleLatticeMesh(const Vector&  xmin,
                   const int*     nsamples,
                   double*        latticeDensity,
                   double**       latticeVelocity) {
+
+  TIME_SpheralC_sampleLatticeMesh.start();
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -1713,6 +1759,8 @@ sampleLatticeMesh(const Vector&  xmin,
       latticeVelocity[2][i] = vectorValues[0][i][2] ;
     }
   }
+
+  TIME_SpheralC_sampleLatticeMesh.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -1730,6 +1778,8 @@ polyhedralMesh(int*           nnodes,
                int**          celltofaces,
                int**          facecounts,
                int**          faceflags) {
+
+  TIME_SpheralC_polyhedralMesh.start();
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -1833,6 +1883,8 @@ polyhedralMesh(int*           nnodes,
   nodecounts[0] = me.mNodeCounts.data();
   facecounts[0] = me.mFaceCounts.data();
   faceflags[0] = me.mFaceFlags.data();
+
+  TIME_SpheralC_polyhedralMesh.stop();
 }
 
 //------------------------------------------------------------------------------
