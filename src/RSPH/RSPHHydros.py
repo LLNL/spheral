@@ -50,6 +50,9 @@ for dim in dims:
     exec(RSPHHydroFactoryString % {"dim"                  : "%id" % dim,
                                   "classname"            : "RSPHHydro",
                                   "smoothingScaleMethod" : "SPHSmoothingScale"})
+    exec(RSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                  "classname"            : "ARSPHHydro",
+                                  "smoothingScaleMethod" : "ASPHSmoothingScale"})
 
 
 #-------------------------------------------------------------------------------
@@ -85,7 +88,10 @@ def RSPH(dataBase,
         print "            which will result in fluid behaviour for those nodes."
         raise RuntimeError, "Cannot mix solid and fluid NodeLists."
 
-    Constructor = eval("RSPHHydro%id" % ndim)
+    if ASPH:
+        Constructor = eval("ARSPHHydro%id" % ndim)
+    else:
+        Constructor = eval("RSPHHydro%id" % ndim)
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin
