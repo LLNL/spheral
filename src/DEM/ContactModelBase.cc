@@ -2,13 +2,13 @@
 // Physics -- root abstract class for all DEM contact models in Spheral++
 //----------------------------------------------------------------------------//
 #include "ContactModelBase.hh"
-#include "DataBase/State.hh"
-#include "DataBase/StateDerivatives.hh"
-#include "DataBase/DataBase.hh"
-#include "Field/FieldList.hh"
-#include "Field/NodeIterators.hh"
-#include "Boundary/Boundary.hh"
-#include "Neighbor/ConnectivityMap.hh"
+//#include "DataBase/State.hh"
+//#include "DataBase/StateDerivatives.hh"
+//#include "DataBase/DataBase.hh"
+//#include "Field/FieldList.hh"
+//#include "Field/NodeIterators.hh"
+//#include "Boundary/Boundary.hh"
+//#include "Neighbor/ConnectivityMap.hh"
 
 namespace Spheral {
 
@@ -24,8 +24,9 @@ ContactModelBase(){}
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ContactModelBase<Dimension>::
-~ContactModelBase() {}
+~ContactModelBase()  {}
 
+/*
 template<typename Dimension>
 typename Dimension::Vector
 ContactModelBase<Dimension>::
@@ -54,6 +55,6 @@ torque(const typename Dimension::Scalar mi,
 
 }
 
-
+*/
 
 }

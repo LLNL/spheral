@@ -37,15 +37,11 @@ public:
                           const StateDerivatives<Dimension>& derivs,
                                 typename Dimension::Scalar /*currentTime*/) const = 0;
 
-  virtual Vector force(const Scalar mi, const Scalar mj,
-                       const Vector ri, const Vector rj,
-                       const Vector vi, const Vector vj,
-                       const Scalar hi, const Scalar hj) const;
-  
-  virtual Vector torque(const Scalar mi, const Scalar mj,
-                        const Vector ri, const Vector rj,
-                        const Vector vi, const Vector vj,
-                        const Scalar hi, const Scalar hj) const;
+  virtual void   evaluateDerivatives(const Scalar time,
+                                     const Scalar dt,
+                                     const DataBase<Dimension>& dataBase,
+                                     const State<Dimension>& state,
+                                           StateDerivatives<Dimension>& derivs) const = 0;
 
 };
 
