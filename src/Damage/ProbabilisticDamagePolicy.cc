@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// TensorDamagePolicy -- An implementation of UpdatePolicyBase specialized
+// ProbabilisticDamagePolicy -- An implementation of UpdatePolicyBase specialized
 // for the updating the dependent scalar damage state.
 //
 // References:
@@ -10,8 +10,8 @@
 //
 // Created by JMO, Sun Sep 26 16:15:17 PDT 2004
 //----------------------------------------------------------------------------//
-#include "TensorDamagePolicy.hh"
-#include "TensorDamageModel.hh"
+#include "ProbabilisticDamagePolicy.hh"
+#include "ProbabilisticDamageModel.hh"
 #include "oneMinusDamage.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -154,18 +154,28 @@ effectiveRotation(const Dim<3>::Tensor& DvDx) {
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-TensorDamagePolicy<Dimension>::
-TensorDamagePolicy(const TensorDamageModel<Dimension>& damageModel):
+ProbabilisticDamagePolicy<Dimension>::
+ProbabilisticDamagePolicy(const bool damageInCompression,  // allow damage in compression
+                          const double kWeibull,           // coefficient in Weibull power-law
+                          const double mWeibull,           // exponenent in Weibull power-law
+                          const size_t minFlawsPerNode,    // minimum number of flaws to seed on any node
+                          const double Vmin,               // minimum (initial) node volume
+                          const double Vmax):              // maximum (initial) node volume
   UpdatePolicyBase<Dimension>(SolidFieldNames::strain),
-  mDamageModelPtr(&damageModel) {
+  mDamageInCompression(damageInCompression),
+  mMinFlawsPerNode(minFlawsPerNode),
+  mkWeibull(kWeibull),
+  mmWeibull(mWeibull),
+  mVmin(Vmin),
+  mVmax(Vmax) {
 }
 
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-TensorDamagePolicy<Dimension>::
-~TensorDamagePolicy() {
+ProbabilisticDamagePolicy<Dimension>::
+~ProbabilisticDamagePolicy() {
 }
 
 //------------------------------------------------------------------------------
@@ -173,7 +183,7 @@ TensorDamagePolicy<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-TensorDamagePolicy<Dimension>::
+ProbabilisticDamagePolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
@@ -183,160 +193,136 @@ update(const KeyType& key,
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == SolidFieldNames::tensorDamage);
-  Field<Dimension, SymTensor>& stateField = state.field(key, SymTensor::zero);
+  auto& stateField = state.field(key, SymTensor::zero);
 
   //const double tiny = 1.0e-30;
   //const double tol = 1.0e-5;
 
   // Get the state fields.
   const auto strainKey = State<Dimension>::buildFieldKey(SolidFieldNames::effectiveStrainTensor, nodeListKey);
-  const auto psKey = State<Dimension>::buildFieldKey(SolidFieldNames::plasticStrain, nodeListKey);
-  const auto PKey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey);
-  const auto clKey = State<Dimension>::buildFieldKey(SolidFieldNames::longitudinalSoundSpeed, nodeListKey);
-  const auto HKey = State<Dimension>::buildFieldKey(HydroFieldNames::H, nodeListKey);
   const auto DdamageDtKey = State<Dimension>::buildFieldKey(this->prefix() + SolidFieldNames::scalarDamage, nodeListKey);
   const auto DvDxKey = State<Dimension>::buildFieldKey(HydroFieldNames::internalVelocityGradient, nodeListKey);
+  const auto numFlawsKey = State<Dimension>::buildFieldKey(SolidFieldNames::numFlaws, nodeListKey);
+  const auto minFlawKey = State<Dimension>::buildFieldKey(SolidFieldNames::minFlaw, nodeListKey);
+  const auto maxFlawKey = State<Dimension>::buildFieldKey(SolidFieldNames::maxFlaw, nodeListKey);
   CHECK(state.registered(strainKey));
-  CHECK(state.registered(psKey));
-  CHECK(state.registered(PKey));
-  CHECK(state.registered(clKey));
-  CHECK(state.registered(HKey));
   CHECK(derivs.registered(DdamageDtKey));
   CHECK(derivs.registered(DvDxKey));
-
+  CHECK(state.registered(numFlawsKey));
+  CHECK(state.registered(minFlawKey));
+  CHECK(state.registered(maxFlawKey));
   const auto& strain = state.field(strainKey, SymTensor::zero);
-  //const auto& plasticStrain = state.field(psKey, 0.0);
-  //const auto& pressure = state.field(PKey, 0.0);
-  //const auto& cl = state.field(clKey, 0.0);
-  //const auto& H = state.field(HKey, SymTensor::zero);
   const auto& DDDt = derivs.field(DdamageDtKey, 0.0);
   const auto& localDvDx = derivs.field(DvDxKey, Tensor::zero);
-
-  const bool damageInCompression = mDamageModelPtr->damageInCompression();
+  const auto& numFlaws = state.field(numFlawsKey, 0);
+  const auto& minFlaw = state.field(minFlawKey, 0.0);
+  const auto& maxFlaw = state.field(maxFlawKey, 0.0);
 
   // Iterate over the internal nodes.
   const auto ni = stateField.numInternalElements();
 #pragma omp parallel for
   for (auto i = 0u; i < ni; ++i) {
-
     auto& Di = stateField(i);
     CHECK(Di.eigenValues().minElement() >= 0.0 and
           fuzzyLessThanOrEqual(Di.eigenValues().maxElement(), 1.0, 1.0e-5));
     
-    // First apply the rotational term to the current damage.
-    const auto spin = localDvDx(i).SkewSymmetric();
-    const auto spinCorrection = (spin*Di - Di*spin).Symmetric();
-    Di += multiplier*spinCorrection;
-    Di = max(1.0e-5, min(1.0 - 2.0e-5, Di));
-    {
-      const auto maxValue = Di.eigenValues().maxElement();
-      if (maxValue > 1.0) Di /= maxValue;
-    }
-    CHECK(Di.eigenValues().minElement() >= 0.0 and
-          fuzzyLessThanOrEqual(Di.eigenValues().maxElement(), 1.0, 1.0e-5));
+    // Are we damaging this point?
+    if (numFlaws(i) > 0) {
 
-    // The flaw population for this node.
-    const auto flaws = mDamageModelPtr->flawsForNode(i);
-    const auto totalCracks = flaws.size();
-    if (totalCracks > 0) {
+      // First apply the rotational term to the current damage.
+      const auto spin = localDvDx(i).SkewSymmetric();
+      const auto spinCorrection = (spin*Di - Di*spin).Symmetric();
+      Di += multiplier*spinCorrection;
+      Di = max(1.0e-5, min(1.0 - 2.0e-5, Di));
+      {
+        const auto maxValue = Di.eigenValues().maxElement();
+        if (maxValue > 1.0) Di /= maxValue;
+      }
+      CHECK(Di.eigenValues().minElement() >= 0.0 and
+            fuzzyLessThanOrEqual(Di.eigenValues().maxElement(), 1.0, 1.0e-5));
 
       // The tensor strain on this node.
       auto eigeni = strain(i).eigenVectors();
 
-      // Boost the effective strain by the damage.
-//       const Scalar fDi = max(0.0, 1.0 - Di.eigenValues().maxElement());
-//       CHECK(fDi >= 0.0 and fDi <= 1.0);
-//       eigeni.eigenValues *= fDi/(fDi*fDi + 1.0e-10);
-    
       // If we're allowing damage in compression, force all strains to be abs value.
-      if (damageInCompression) abs_in_place(eigeni.eigenValues);
+      if (mDamageInCompression) abs_in_place(eigeni.eigenValues);
 
       // We want to go over these from max to min.
       sortEigen(eigeni);
 
-      // Iterate over the eigen values/vectors of the strain.
-      for (int j = 0; j < Dimension::nDim; ++j) {
+      // Is this node under enough strain to cause damage?
+      if (eigeni.eigenValues(0) > minFlaw(i)) {
+        vector<double> flaws;
 
-        // Only increment the damage in this direction if there is a positive strain.
-        const auto straini = (eigeni.eigenValues(j)); //   + plasticStrain(i))/(fDi*fDi + 1.0e-20);
-        if (straini > 0.0) {
+        // Iterate over the eigenvalues of the strain and accumulate damage in the direction
+        // of the eigenvectors.
+        for (auto jdim = 0; jdim < Dimension::nDim; ++jdim) {
+          const auto strainj = eigeni.eigenValues(jdim); //   + plasticStrain(i))/(fDi*fDi + 1.0e-20);
 
-          //         // The total damage on this node thus far.
-          //         CHECK(fuzzyGreaterThanOrEqual(Di.Trace(), 0.0) &&
-          //               fuzzyLessThanOrEqual(Di.Trace(), 1.0));
-          //         const Scalar D0max = max(0.0, min(1.0, Di.Trace()));
-          //         CHECK(D0max >= 0.0 && D0max <= 1.0);
+          // How many of the flaws are activated in this direction?
+          if (strainj > minFlaw(i)) {
 
-          // The direction of this strain, and projected damage.
-          const auto strainDirection = eigeni.eigenVectors.getColumn(j);
-          CHECK(fuzzyEqual(strainDirection.magnitude2(), 1.0, 1.0e-10));
-          const auto D0 = max(0.0, min(1.0, (Di * strainDirection).magnitude()));
-          CHECK(D0 >= 0.0 && D0 <= 1.0);
+            // The direction of the strain, and projected current (starting) damage.
+            const auto strainDirection = eigeni.eigenVectors.getColumn(jdim);
+            CHECK(fuzzyEqual(strainDirection.magnitude2(), 1.0, 1.0e-10));
+            const auto D0 = max(0.0, min(1.0, (Di * strainDirection).magnitude()));
+            CHECK(D0 >= 0.0 && D0 <= 1.0);
+            if (D0 < 1.0) {
 
-          // Count how many flaws are remaining, and how many have completely failed.
-          const int numFailedCracks = int(D0*double(totalCracks));
-          const auto numRemainingCracks = totalCracks - numFailedCracks;
-          CONTRACT_VAR(numRemainingCracks);
-          CHECK(numFailedCracks >=0 && numFailedCracks <= (int)totalCracks);
-          CHECK(numRemainingCracks >= 0 && numRemainingCracks <= totalCracks);
-          CHECK(numRemainingCracks + numFailedCracks == totalCracks);
+              // Find how many flaws are activated in this direction
+              CHECK(maxFlaw(i) > 0.0);
+              double fractionFlawsActive = 1.0;
+              if (numFlaws(i) > 1 and strainj < maxFlaw(i)) {
+                CHECK(maxFlaw(i) > minFlaw(i));
+                const auto Nmini = pow(minFlaw(i), mmWeibull);  // Missing factors of k*Vi, but those cancel below
+                fractionFlawsActive = ((pow(strainj, mmWeibull) - Nmini)/
+                                       (pow(maxFlaw(i), mmWeibull) - Nmini));
+              }
+              CHECK(fractionFlawsActive >= 0.0 and fractionFlawsActive <= 1.0);
 
-          // Count how many cracks are currently active.
-          auto numActiveCracks = 0;
-          //         if (weightedNeighborSum(i) < wSumCutoff) {
-          //           numActiveCracks = numRemainingCracks;
-          //         } else {
-          for (auto k = numFailedCracks; k < (int)totalCracks; ++k) {
-            CHECK(k < (int)flaws.size());
-            if (straini >= flaws[k]) ++numActiveCracks;
+              // Choose the allowed range of D.
+              double Dmin, Dmax;
+              if (multiplier >= 0.0) {
+                Dmin = D0;
+                Dmax = std::max(D0, fractionFlawsActive);
+              } else {
+                Dmin = 0.0;
+                Dmax = D0;
+              }
+              CHECK(Dmax >= Dmin);
+              CHECK(Dmin >= 0.0 && Dmax <= 1.0);
+
+              // Increment the damage.
+              const auto D013 = FastMath::CubeRootHalley2(D0);
+              const auto D113 = D013 + multiplier*fractionFlawsActive*DDDt(i);
+              const auto D1 = max(Dmin, min(Dmax, FastMath::cube(D113)));
+              CHECK((D1 - D0)*multiplier >= 0.0);
+
+              // Increment the damage tensor.
+              Di += (D1 - D0)*strainDirection.selfdyad();
+            }
           }
-          //         }
-          CHECK(numActiveCracks >= 0 && numActiveCracks <= (int)totalCracks);
-
-          // Choose the allowed range of D.
-          double Dmin, Dmax;
-          if (multiplier >= 0.0) {
-            Dmin = D0;
-            Dmax = max(D0, double(numFailedCracks + numActiveCracks)/double(totalCracks));
-          } else {
-            Dmin = 0.0;
-            Dmax = D0;
-          }
-          CHECK(Dmax >= Dmin);
-          CHECK(Dmin >= 0.0 && Dmax <= 1.0);
-
-          // Increment the damage.
-          const auto D013 = FastMath::CubeRootHalley2(D0);
-          const auto D113 = D013 + multiplier*double(numActiveCracks + numFailedCracks)/double(totalCracks)*DDDt(i);
-          const auto D1 = max(Dmin, min(Dmax, D113*D113*D113));
-          CHECK((D1 - D0)*multiplier >= 0.0);
-
-          // Increment the damage tensor.
-          Di += (D1 - D0)*strainDirection.selfdyad();
-
         }
+
+        // Enforce bounds on the damage.
+        const auto Dvals = Di.eigenValues();
+        if (Dvals.minElement() < 0.0 or
+            Dvals.maxElement() > 1.0) {
+          const auto Deigen = Di.eigenVectors();
+          Di = constructSymTensorWithBoundedDiagonal(Deigen.eigenValues,
+                                                     1.0e-5,
+                                                     1.0);
+          Di.rotationalTransform(Deigen.eigenVectors);
+        }
+        ENSURE(Di.eigenValues().minElement() >= 0.0 and
+               fuzzyLessThanOrEqual(Di.eigenValues().maxElement(), 1.0, 1.0e-5));
+        //     ENSURE(fuzzyGreaterThanOrEqual(Di.eigenValues().minElement(), 0.0, 1.0e-5) &&
+        //            fuzzyLessThanOrEqual(Di.eigenValues().maxElement(), 1.0, 1.0e-5));
+        //     ENSURE(fuzzyGreaterThanOrEqual(Di.eigenValues().minElement(), 0.0) &&
+        //            fuzzyLessThanOrEqual(Di.Trace(), 1.0));
       }
     }
-
-    // Enforce bounds on the damage.
-    const auto Dvals = Di.eigenValues();
-    if (Dvals.minElement() < 0.0 or
-        Dvals.maxElement() > 1.0) {
-      const auto Deigen = Di.eigenVectors();
-      Di = constructSymTensorWithBoundedDiagonal(Deigen.eigenValues,
-                                                 1.0e-5,
-                                                 1.0);
-      Di.rotationalTransform(Deigen.eigenVectors);
-    }
-    ENSURE(Di.eigenValues().minElement() >= 0.0 and
-           fuzzyLessThanOrEqual(Di.eigenValues().maxElement(), 1.0, 1.0e-5));
-    //     ENSURE(fuzzyGreaterThanOrEqual(Di.eigenValues().minElement(), 0.0, 1.0e-5) &&
-    //            fuzzyLessThanOrEqual(Di.eigenValues().maxElement(), 1.0, 1.0e-5));
-    //     ENSURE(fuzzyGreaterThanOrEqual(Di.eigenValues().minElement(), 0.0) &&
-    //            fuzzyLessThanOrEqual(Di.Trace(), 1.0));
-
   }
-
 }
 
 //------------------------------------------------------------------------------
@@ -344,12 +330,12 @@ update(const KeyType& key,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 bool
-TensorDamagePolicy<Dimension>::
+ProbabilisticDamagePolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const TensorDamagePolicy<Dimension>* rhsPtr = dynamic_cast<const TensorDamagePolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
+  const ProbabilisticDamagePolicy<Dimension>* rhsPtr = dynamic_cast<const ProbabilisticDamagePolicy<Dimension>*>(&rhs);
+  if (rhsPtr == nullptr) {
     return false;
   } else {
     return true;

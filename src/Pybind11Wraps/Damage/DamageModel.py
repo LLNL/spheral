@@ -25,8 +25,7 @@ not fill out the complete physics package interface."""
                nodeList = "SolidNodeList<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                crackGrowthMultiplier = "const double",
-               damageCouplingAlgorithm  = "const DamageCouplingAlgorithm",
-               flaws = "const FlawStorageType&"):
+               damageCouplingAlgorithm  = "const DamageCouplingAlgorithm"):
         "Constructor"
 
     #...........................................................................
@@ -40,12 +39,6 @@ not fill out the complete physics package interface."""
                           dt = "const Scalar",
                           DDDt = "Field<%(Dimension)s, Scalar>&"):
         "Compute the generic Grady-Kipp (ala Benz-Asphaug) scalar damage time derivative."
-        return "void"
-
-    @PYB11virtual
-    def registerState(self,
-                      dataBase = "DataBase<%(Dimension)s>&",
-                      state = "State<%(Dimension)s>&"):
         return "void"
 
     @PYB11virtual 
@@ -81,17 +74,6 @@ not fill out the complete physics package interface."""
         return "bool"
 
     #...........................................................................
-    # Methods
-    def cullToWeakestFlaws(sefl):
-        "Optional method to cull the set of flaws to the single weakest one on each point."
-        return "void"
-
-    @PYB11const
-    def flawsForNode(self, index="const size_t"):
-        "Get the set of flaw activation energies for the given node index."
-        return "const std::vector<double>"
-
-    #...........................................................................
     # Properties
     nodeList = PYB11property("const SolidNodeList<%(Dimension)s>&", returnpolicy="reference_internal",
                              doc="Access the SolidNodeList we're damaging.")
@@ -104,16 +86,6 @@ not fill out the complete physics package interface."""
                                  doc="The NodeCoupling implementation")
     excludeNodes = PYB11property("std::vector<int>", "excludeNodes", "excludeNodes",
                                  doc="Allow the user to specify a set of nodes to be excluded from damage.")
-    youngsModulus = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
-    longitudinalSoundSpeed = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
-    flaws = PYB11property("const FlawStorageType&", returnpolicy="reference_internal",
-                          doc="The raw set of flaw activation strains per point")
-    sumActivationEnergiesPerNode = PYB11property("Field<%(Dimension)s, Scalar>", 
-                                                 doc="Compute a Field with the sum of the activation energies per node.")
-    numFlawsPerNode = PYB11property("Field<%(Dimension)s, Scalar>",
-                                    doc="Compute a Field with the number of flaws per node.")
-    criticalNodesPerSmoothingScale = PYB11property("double", "criticalNodesPerSmoothingScale", "criticalNodesPerSmoothingScale",
-                                                   doc="The effective critical number of nodes per smoothing scale, below which we assume all flaws are active on a node.")
 
 #-------------------------------------------------------------------------------
 # Add the restart methods

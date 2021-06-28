@@ -11,6 +11,7 @@ dims = spheralDimensions()
 
 from DamageModel import *
 from TensorDamageModel import *
+from ProbabilisticDamageModel import *
 from JohnsonCookDamage import *
 
 #-------------------------------------------------------------------------------
@@ -21,6 +22,7 @@ PYB11includes += ['"NodeList/SolidNodeList.hh"',
                   '"Damage/DamageModel.hh"',
                   '"Damage/TensorDamageModel.hh"',
                   '"Damage/JohnsonCookDamage.hh"',
+                  '"Damage/ProbabilisticDamageModel.hh"',
                   '"Damage/weibullFlawDistributionBenzAsphaug.hh"',
                   '"Damage/weibullFlawDistributionOwen.hh"',
                   '"Damage/computeFragmentField.hh"',
@@ -102,6 +104,7 @@ for ndim in dims:
     exec('''
 DamageModel%(ndim)id = PYB11TemplateClass(DamageModel, template_parameters="%(Dimension)s")
 TensorDamageModel%(ndim)id = PYB11TemplateClass(TensorDamageModel, template_parameters="%(Dimension)s")
+ProbabilisticDamageModel%(ndim)id = PYB11TemplateClass(ProbabilisticDamageModel, template_parameters="%(Dimension)s")
 JohnsonCookDamage%(ndim)id = PYB11TemplateClass(JohnsonCookDamage, template_parameters="%(Dimension)s")
 
 weibullFlawDistributionBenzAsphaug%(ndim)id = PYB11TemplateFunction(weibullFlawDistributionBenzAsphaug, template_parameters="%(Dimension)s")
