@@ -145,7 +145,9 @@ public:
                          const Tensor& DvDxi,
                          const Tensor& DvDxj,
                          Vector& vstar,
-                         Scalar& Pstar) const;
+                         Scalar& Pstar,
+                         Scalar& rhostariOut,
+                         Scalar& rhostarjOut) const;
 
   const Scalar vanLeerLimiter( const Vector& rij,
                 const Vector& DvDxi,
