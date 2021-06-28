@@ -2,9 +2,9 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "Utilities/DamagedNodeCoupling.cc"
+#include "Damage/DamageGradientNodeCoupling.cc"
 
 namespace Spheral {
-  template class DamagedNodeCoupling< Dim< %(ndim)s > >;
+  template class DamageGradientNodeCoupling< Dim< %(ndim)s > >;
 }
 """

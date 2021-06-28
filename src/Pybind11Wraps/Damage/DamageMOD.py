@@ -13,6 +13,9 @@ from DamageModel import *
 from TensorDamageModel import *
 from ProbabilisticDamageModel import *
 from JohnsonCookDamage import *
+from PairMaxDamageNodeCoupling import *
+from DamageGradientNodeCoupling import *
+from ThreePointDamagedNodeCoupling import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -26,6 +29,9 @@ PYB11includes += ['"NodeList/SolidNodeList.hh"',
                   '"Damage/weibullFlawDistributionBenzAsphaug.hh"',
                   '"Damage/weibullFlawDistributionOwen.hh"',
                   '"Damage/computeFragmentField.hh"',
+                  '"Damage/PairMaxDamageNodeCoupling.hh"',
+                  '"Damage/ThreePointDamagedNodeCoupling.hh"',
+                  '"Damage/DamageGradientNodeCoupling.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
@@ -44,7 +50,8 @@ TensorStrainAlgorithm = PYB11enum(("BenzAsphaugStrain",
 DamageCouplingAlgorithm = PYB11enum(("DirectDamage",
                                      "PairMaxDamage",
                                      "DamageGradient",
-                                     "ThreePointDamage"), export_values=True)
+                                     "ThreePointDamage",
+                                     "TensorPairMaxDamage"), export_values=True)
 
 # Note the following enums are deprecated
 EffectiveDamageAlgorithm = PYB11enum(("CopyDamage",
@@ -106,6 +113,10 @@ DamageModel%(ndim)id = PYB11TemplateClass(DamageModel, template_parameters="%(Di
 TensorDamageModel%(ndim)id = PYB11TemplateClass(TensorDamageModel, template_parameters="%(Dimension)s")
 ProbabilisticDamageModel%(ndim)id = PYB11TemplateClass(ProbabilisticDamageModel, template_parameters="%(Dimension)s")
 JohnsonCookDamage%(ndim)id = PYB11TemplateClass(JohnsonCookDamage, template_parameters="%(Dimension)s")
+
+PairMaxDamageNodeCoupling%(ndim)id = PYB11TemplateClass(PairMaxDamageNodeCoupling, template_parameters="%(Dimension)s")
+ThreePointDamagedNodeCoupling%(ndim)id = PYB11TemplateClass(ThreePointDamagedNodeCoupling, template_parameters="%(Dimension)s")
+DamageGradientNodeCoupling%(ndim)id = PYB11TemplateClass(DamageGradientNodeCoupling, template_parameters="%(Dimension)s")
 
 weibullFlawDistributionBenzAsphaug%(ndim)id = PYB11TemplateFunction(weibullFlawDistributionBenzAsphaug, template_parameters="%(Dimension)s")
 weibullFlawDistributionOwen%(ndim)id = PYB11TemplateFunction(weibullFlawDistributionOwen, template_parameters="%(Dimension)s")
