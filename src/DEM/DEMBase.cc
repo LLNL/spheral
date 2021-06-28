@@ -27,6 +27,7 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/Timer.hh"
 
+#include "DEM/ContactModelBase.hh"
 #include "DEM/DEMBase.hh"
 #include "DEM/computeParticleRadius.hh"
 
@@ -116,9 +117,18 @@ DEMBase<Dimension>::
 dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
-   typename Dimension::Scalar /*currentTime*/) const {
-
-    auto minDt = make_pair(1.0,("catPoop"));
+   typename Dimension::Scalar time) const {
+  
+  
+  // verbosify minDt.second in the future
+  Scalar DtVote = 1e30; 
+  for (typename DEMBase<Dimension>::ConstContactModelIterator contactItr = contactModelsBegin();
+       contactItr != contactModelsEnd();
+       ++contactItr) {
+    Scalar DtVotei = (*contactItr)->timeStep(dataBase, state, derivs, time);
+    DtVote = min(DtVotei,DtVote);
+  }
+    auto minDt = make_pair(DtVote,("DEM vote or time step"));
     minDt.first*=this->mCfl;
     return minDt;
 //   const auto& mask = state.fields(HydroFieldNames::timeStepMask, 1);
@@ -267,13 +277,19 @@ initialize(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 DEMBase<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar /*time*/,
-                    const typename Dimension::Scalar /*dt*/,
+evaluateDerivatives(const typename Dimension::Scalar time,
+                    const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivatives) const {
+                    StateDerivatives<Dimension>& derivs) const {
   TIME_DEMevalDerivs.start();
 
+  // punt to the contact models
+  for (typename DEMBase<Dimension>::ConstContactModelIterator contactItr = contactModelsBegin();
+       contactItr != contactModelsEnd();
+       ++contactItr) {
+    (*contactItr)->evaluateDerivatives(time, dt, dataBase, state, derivs);
+  }
 
 //   TIME_DEMevalDerivs_initial.start();
 
