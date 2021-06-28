@@ -32,6 +32,9 @@ public:
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
+  typedef typename std::vector<ContactModelBase<Dimension>*>::iterator ContactModelIterator;
+  typedef typename std::vector<ContactModelBase<Dimension>*>::const_iterator ConstContactModelIterator;
+  
   // Constructors.
   DEMBase(DataBase<Dimension>& dataBase,
           const TableKernel<Dimension>& W,
@@ -102,7 +105,22 @@ public:
   virtual
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
-                         
+  
+    // Add a Physics package.
+  void appendContactModel(ContactModelBase<Dimension>& contactModels);
+  void resetContactModels(std::vector<ContactModelBase<Dimension>*>& contactModels);
+  bool haveContactModel(const ContactModelBase<Dimension>& package) const;
+
+    // Access the list of physics packages.
+  const std::vector<ContactModelBase<Dimension>*>& contactModels() const;
+
+  // Provide standard iterator methods over the physics package list.
+  ContactModelIterator contactModelsBegin();
+  ContactModelIterator contactModelsEnd();
+
+  ConstContactModelIterator contactModelsBegin() const;
+  ConstContactModelIterator contactModelsEnd() const;
+
 
   // Optionally we can provide a bounding box for use generating the mesh
   // for the Voronoi mass density update.
@@ -123,7 +141,7 @@ public:
   const FieldList<Dimension, Vector>& DvDt() const;
   const FieldList<Dimension, Vector>& DomegaDt() const;
   const FieldList<Dimension, Scalar>& particleRadius() const;
-  
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "DEMBase" ; }

@@ -81,6 +81,7 @@ DEMBase(DataBase<Dimension>& dataBase,
         const Vector& xmax):
   Physics<Dimension>(),
   mKernel(W),
+  mContactModels(0),
   mCfl(cfl),
   mxmin(xmin),
   mxmax(xmax),
@@ -272,6 +273,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
   TIME_DEMevalDerivs.start();
+
+
 //   TIME_DEMevalDerivs_initial.start();
 
 //   // A few useful constants we'll use in the following loop.
@@ -458,6 +461,44 @@ enforceBoundaries(State<Dimension>& state,
  
   TIME_DEMenforceBounds.stop();
 }
+
+
+
+//------------------------------------------------------------------------------
+// Add a contact model
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DEMBase<Dimension>::
+appendContactModel(ContactModelBase<Dimension>& contactModel) {
+  if (!haveContactModel(contactModel)) {
+    mContactModels.push_back(&contactModel);
+  } else {
+    cerr << "Warning: attempt to append contact model " << &contactModel
+         << "to DEM package " << this << " which already has it." << endl;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Reset the contact models to a new set
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DEMBase<Dimension>::
+resetContactModels(std::vector<ContactModelBase<Dimension>*>& contactModels) {
+  mContactModels = contactModels;
+}
+
+//------------------------------------------------------------------------------
+// Test if the given contact model is listed in the DEMBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+DEMBase<Dimension>::
+haveContactModel(const ContactModelBase<Dimension>& contactModel) const {
+  return count(mContactModels.begin(), mContactModels.end(), &contactModel) > 0;
+}
+
 
 //------------------------------------------------------------------------------
 // Dump the current state to the given file.

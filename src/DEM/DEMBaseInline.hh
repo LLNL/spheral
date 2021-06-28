@@ -109,4 +109,49 @@ particleRadius() const {
   return mParticleRadius;
 }
 
+
+//------------------------------------------------------------------------------
+// Access the physics packages.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const std::vector<ContactModelBase<Dimension>*>&
+DEMBase<Dimension>::contactModels() const {
+  return mContactModels;
+}
+
+//------------------------------------------------------------------------------
+// Provide iterators over over the physics packages.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename std::vector<ContactModelBase<Dimension>*>::iterator
+DEMBase<Dimension>::contactModelsBegin() {
+  return mContactModels.begin();
+}
+
+template<typename Dimension>
+inline
+typename std::vector<ContactModelBase<Dimension>*>::iterator
+DEMBase<Dimension>::contactModelsEnd() {
+  return mContactModels.end();
+}
+
+//------------------------------------------------------------------------------
+// Provide const iterators over over the physics packages.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename std::vector<ContactModelBase<Dimension>*>::const_iterator
+DEMBase<Dimension>::contactModelsBegin() const {
+  return mContactModels.begin();
+}
+
+template<typename Dimension>
+inline
+typename std::vector<ContactModelBase<Dimension>*>::const_iterator
+DEMBase<Dimension>::contactModelsEnd() const {
+  return mContactModels.end();
+}
+
 }

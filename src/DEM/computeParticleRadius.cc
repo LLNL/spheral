@@ -4,10 +4,7 @@
 
 #include "DEM/computeParticleRadius.hh"
 #include "Field/FieldList.hh"
-//#include "Neighbor/ConnectivityMap.hh"
-//#include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
-//#include "Hydro/HydroFieldNames.hh"
 
 namespace Spheral {
 
