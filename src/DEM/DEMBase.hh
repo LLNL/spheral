@@ -14,6 +14,7 @@ template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
+template<typename Dimension> class ContactModelBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
@@ -121,7 +122,8 @@ public:
   const FieldList<Dimension, Vector>& DxDt() const;
   const FieldList<Dimension, Vector>& DvDt() const;
   const FieldList<Dimension, Vector>& DomegaDt() const;
-
+  const FieldList<Dimension, Scalar>& particleRadius() const;
+  
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "DEMBase" ; }
@@ -133,6 +135,7 @@ protected:
   //---------------------------  Protected Interface ---------------------------//
   // The interpolation kernels.
   const TableKernel<Dimension>& mKernel;
+  std::vector<ContactModelBase<Dimension>*>  mContactModels;
 
   Scalar mCfl;
 
@@ -144,6 +147,8 @@ protected:
   FieldList<Dimension, Vector>    mDxDt;
   FieldList<Dimension, Vector>    mDvDt;
   FieldList<Dimension, Vector>    mDomegaDt;
+  FieldList<Dimension, Scalar>    mParticleRadius;
+  
 
   // The restart registration.
   RestartRegistrationType mRestart;

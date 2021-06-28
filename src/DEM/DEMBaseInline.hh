@@ -101,4 +101,12 @@ DomegaDt() const {
   return mDomegaDt;
 }
 
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+DEMBase<Dimension>::
+particleRadius() const {
+  return mParticleRadius;
+}
+
 }

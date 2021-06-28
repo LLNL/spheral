@@ -28,6 +28,7 @@
 #include "Utilities/Timer.hh"
 
 #include "DEM/DEMBase.hh"
+#include "DEM/computeParticleRadius.hh"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -87,11 +88,13 @@ DEMBase(DataBase<Dimension>& dataBase,
   mDxDt(FieldStorageType::CopyFields),
   mDvDt(FieldStorageType::CopyFields),
   mDomegaDt(FieldStorageType::CopyFields),
+  mParticleRadius(FieldStorageType::CopyFields),
   mRestart(registerWithRestart(*this)){
     mTimeStepMask = dataBase.newFluidFieldList(int(0), "timeStepMask");
     mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position);
     mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
     mDomegaDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "angularVelocity");
+    mParticleRadius = dataBase.newFluidFieldList( 0.0 , "particleRadius");
 }
 
 //------------------------------------------------------------------------------
@@ -162,6 +165,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   TIME_DEMinitializeStartup.start();
 
+  const auto H = dataBase.DEMHfield();
+  auto particleRadius = this->particleRadius();
+  computeParticleRadius(H,particleRadius);
+
   TIME_DEMinitializeStartup.stop();
 }
 
@@ -183,6 +190,7 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, Vector> angularVelocity = dataBase.DEMAngularVelocity();
   FieldList<Dimension, Scalar> mass = dataBase.DEMMass();
   FieldList<Dimension, SymTensor> Hfield = dataBase.DEMHfield();
+  FieldList<Dimension, Scalar> particleRadius = this->particleRadius();
 
   PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
   PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,true));
