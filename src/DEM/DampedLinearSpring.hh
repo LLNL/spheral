@@ -37,17 +37,17 @@ public:
   //***************************************************************************
   // Required methods from contact model
 
-  virtual Scalar timeStep() const  override;
+  virtual Scalar timeStep(const DataBase<Dimension>& dataBase,
+                          const State<Dimension>& state,
+                          const StateDerivatives<Dimension>& derivs,
+                                typename Dimension::Scalar time) const override;
 
-  virtual Vector force(const Scalar mi, const Scalar mj,
-                       const Vector ri, const Vector rj,
-                       const Vector vi, const Vector vj,
-                       const Scalar hi, const Scalar hj) const override;
+  virtual void   evaluateDerivatives(const Scalar time,
+                                     const Scalar dt,
+                                     const DataBase<Dimension>& dataBase,
+                                     const State<Dimension>& state,
+                                           StateDerivatives<Dimension>& derivs) const override;
   
-  virtual Vector torque(const Scalar mi, const Scalar mj,
-                        const Vector ri, const Vector rj,
-                        const Vector vi, const Vector vj,
-                        const Scalar hi, const Scalar hj) const override;
 
   //****************************************************************************
 

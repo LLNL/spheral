@@ -3,6 +3,7 @@ include_directories(.)
 set(DEM_inst 
     DEMBase
     ContactModelBase
+    DampedLinearSpring
     computeParticleRadius)
 
 set(DEM_sources)
@@ -12,6 +13,7 @@ instantiate(DEM_inst DEM_sources)
 set(DEM_headers 
     DEMBase.hh
     ContactModelBase.hh
+    DampedLinearSpring.hh
     computeParticleRadius.hh)
 
 spheral_install_python_files(DEM.py)
