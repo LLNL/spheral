@@ -4,6 +4,8 @@ set(Damage_inst
     TensorDamageModel
     ProbabilisticDamageModel
     ProbabilisticDamagePolicy
+    IvanoviSALEDamageModel
+    IvanoviSALEDamagePolicy
     StrainPolicy
     TensorStrainPolicy
     TensorDamagePolicy
@@ -20,7 +22,6 @@ set(Damage_inst
     ThreePointDamagedNodeCoupling
     DamageGradientNodeCoupling
    )
-
 
 set(Damage_sources )
 
@@ -46,8 +47,11 @@ set(Damage_headers
     TensorDamageModelInline.hh
     ProbabilisticDamageModel.hh
     ProbabilisticDamageModelInline.hh
+    IvanoviSALEDamageModel.hh
+    IvanoviSALEDamageModelInline.hh
     TensorDamagePolicy.hh
     ProbabilisticDamagePolicy.hh
+    IvanoviSALEDamagePolicy.hh
     TensorStrainPolicy.hh
     YoungsModulusPolicy.hh
     computeFragmentField.hh

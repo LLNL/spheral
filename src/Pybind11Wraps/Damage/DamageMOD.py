@@ -12,6 +12,7 @@ dims = spheralDimensions()
 from DamageModel import *
 from TensorDamageModel import *
 from ProbabilisticDamageModel import *
+from IvanoviSALEDamageModel import *
 from JohnsonCookDamage import *
 from PairMaxDamageNodeCoupling import *
 from DamageGradientNodeCoupling import *
@@ -26,6 +27,7 @@ PYB11includes += ['"NodeList/SolidNodeList.hh"',
                   '"Damage/TensorDamageModel.hh"',
                   '"Damage/JohnsonCookDamage.hh"',
                   '"Damage/ProbabilisticDamageModel.hh"',
+                  '"Damage/IvanoviSALEDamageModel.hh"',
                   '"Damage/weibullFlawDistributionBenzAsphaug.hh"',
                   '"Damage/weibullFlawDistributionOwen.hh"',
                   '"Damage/computeFragmentField.hh"',
@@ -112,6 +114,7 @@ for ndim in dims:
 DamageModel%(ndim)id = PYB11TemplateClass(DamageModel, template_parameters="%(Dimension)s")
 TensorDamageModel%(ndim)id = PYB11TemplateClass(TensorDamageModel, template_parameters="%(Dimension)s")
 ProbabilisticDamageModel%(ndim)id = PYB11TemplateClass(ProbabilisticDamageModel, template_parameters="%(Dimension)s")
+IvanoviSALEDamageModel%(ndim)id = PYB11TemplateClass(IvanoviSALEDamageModel, template_parameters="%(Dimension)s")
 JohnsonCookDamage%(ndim)id = PYB11TemplateClass(JohnsonCookDamage, template_parameters="%(Dimension)s")
 
 PairMaxDamageNodeCoupling%(ndim)id = PYB11TemplateClass(PairMaxDamageNodeCoupling, template_parameters="%(Dimension)s")
