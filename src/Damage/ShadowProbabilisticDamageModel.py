@@ -84,7 +84,7 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
         for argname in kwargs:
             if not argname in validKeys:
                 raise ValueError, ("ERROR: argument %%s not a valid option.\\n" %% argname +
-                                   expectedUsageStringBA)
+                                   expectedUsageString)
 
         # Did the user try any convenient constructor operations?
         if ((len(args) > 0 and type(args[0]) == str) or
@@ -97,7 +97,7 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
                 del kwargs["materialName"]
             if not materialName in SpheralMaterialPropertiesLib:
                 raise ValueError, (("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
-                                   expectedUsageStringBA)
+                                   expectedUsageString)
             matprops = SpheralMaterialPropertiesLib[materialName]
             if not ("kWeibull" in matprops and "mWeibull" in matprops):
                 raise ValueError, (("ERROR : material %%s does not provide the required values for kWeibull and mWeibull.\\n" %% materialName) + 
