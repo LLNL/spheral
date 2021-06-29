@@ -161,15 +161,13 @@ effectiveRotation(const Dim<3>::Tensor& DvDx) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 IvanoviSALEDamagePolicy<Dimension>::
-IvanoviSALEDamagePolicy(const bool damageInCompression,             // allow damage in compression
-                        const double minPlasticFailure,             // minimum plastic strain for failure
+IvanoviSALEDamagePolicy(const double minPlasticFailure,             // minimum plastic strain for failure
                         const double plasticFailurePressureSlope,   // slope for critical plastic strain
                         const double plasticFailurePressureOffset,  // intercept for critical plastic strain
                         const double tensileFailureStress):         // threshold for tensile failure
   UpdatePolicyBase<Dimension>(SolidFieldNames::strain,
                               SolidFieldNames::deviatoricStress,
                               HydroFieldNames::pressure),
-  mDamageInCompression(damageInCompression),
   mEpsPfb(minPlasticFailure),
   mB(plasticFailurePressureSlope),
   mPc(plasticFailurePressureOffset),
@@ -268,7 +266,6 @@ update(const KeyType& key,
     // Now apply any tensile damage.
     const auto stressi = S(i) - P(i)*SymTensor::one;
     auto tensile_eigeni = stressi.eigenVectors();
-    if (mDamageInCompression) abs_in_place(tensile_eigeni.eigenValues);
     sortEigen(tensile_eigeni);
 
     // Apply the tensile failure.

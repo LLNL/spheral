@@ -61,8 +61,7 @@ public:
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
-  explicit IvanoviSALEDamagePolicy(const bool damageInCompression,             // allow damage in compression
-                                   const double minPlasticFailure,             // minimum plastic strain for failure
+  explicit IvanoviSALEDamagePolicy(const double minPlasticFailure,             // minimum plastic strain for failure
                                    const double plasticFailurePressureSlope,   // slope for critical plastic strain
                                    const double plasticFailurePressureOffset,  // intercept for critical plastic strain
                                    const double tensileFailureStress);         // threshold for tensile failure
@@ -83,7 +82,6 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  bool mDamageInCompression;
   double mEpsPfb, mB, mPc, mTensileFailureStress;
 
   IvanoviSALEDamagePolicy();

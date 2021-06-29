@@ -70,11 +70,9 @@ IvanoviSALEDamageModel(SolidNodeList<Dimension>& nodeList,
                        const double tensileFailureStress,
                        const double crackGrowthMultiplier,
                        const DamageCouplingAlgorithm damageCouplingAlgorithm,
-                       const bool damageInCompression,
                        const double criticalDamageThreshold,
                        const Field<Dimension, int>& mask):
   DamageModel<Dimension>(nodeList, W, crackGrowthMultiplier, damageCouplingAlgorithm),
-  mDamageInCompression(damageInCompression),
   mEpsPfb(minPlasticFailure),
   mB(plasticFailurePressureSlope),
   mPc(plasticFailurePressureOffset),
@@ -184,8 +182,7 @@ registerState(DataBase<Dimension>& dataBase,
   // Note we are overriding the default no-op policy for the damage
   // as originally registered by the SolidSPHHydroBase class.
   auto& damage = this->nodeList().damage();
-  PolicyPointer damagePolicy(new IvanoviSALEDamagePolicy<Dimension>(mDamageInCompression,
-                                                                    mEpsPfb,
+  PolicyPointer damagePolicy(new IvanoviSALEDamagePolicy<Dimension>(mEpsPfb,
                                                                     mB,
                                                                     mPc,
                                                                     mTensileFailureStress));

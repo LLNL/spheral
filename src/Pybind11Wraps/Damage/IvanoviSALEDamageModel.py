@@ -13,13 +13,13 @@ This damage model is most appropriate for rocky materials.
 Refs:
 
 Collins, G. S., Melosh, H. J., & Ivanov, B. A. (2004). Modeling damage and deformation in impact simulations.
-  Meteoritics & Planetary Science, 39(2), 217–231. http://doi.wiley.com/10.1111/j.1945-5100.2004.tb00337.x
+  Meteoritics & Planetary Science, 39(2), 217. http://doi.wiley.com/10.1111/j.1945-5100.2004.tb00337.x
 
 Raducan, S. D., Davison, T. M., Luther, R., & Collins, G. S. (2019). The role of asteroid strength, porosity and
   internal friction in impact momentum transfer. Icarus. https://doi.org/10.1016/J.ICARUS.2019.03.040
 
 Lundborg, N. (1967). The strength-size relation of granite. International Journal of Rock Mechanics and
-  Mining Sciences & Geomechanics Abstracts, 4(3):269–272.f
+  Mining Sciences & Geomechanics Abstracts, 4(3):269
 """
 
     PYB11typedefs = """
@@ -40,7 +40,6 @@ Lundborg, N. (1967). The strength-size relation of granite. International Journa
                tensileFailureStress = "const double",
                crackGrowthMultiplier = "const double",
                damageCouplingAlgorithm  = "const DamageCouplingAlgorithm",
-               damageInCompression = "const bool",
                criticalDamageThreshold = "const double",
                mask = "const Field<%(Dimension)s, int>&"):
         "Constructor"
@@ -98,8 +97,6 @@ Lundborg, N. (1967). The strength-size relation of granite. International Journa
 
     #...........................................................................
     # Properties
-    damageInCompression = PYB11property("bool", "damageInCompression",
-                                        doc="Flag to determine if damage in compression is allowed")
     minPlasticFailure = PYB11property("double", "minPlasticFailure",
                                       doc="Minimum plastic strain for shear failure")
     plasticFailurePressureSlope = PYB11property("double", "plasticFailurePressureSlope",

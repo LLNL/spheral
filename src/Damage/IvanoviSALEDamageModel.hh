@@ -7,13 +7,13 @@
 // Refs:
 // 
 // Collins, G. S., Melosh, H. J., & Ivanov, B. A. (2004). Modeling damage and deformation in impact simulations.
-//   Meteoritics & Planetary Science, 39(2), 217–231. http://doi.wiley.com/10.1111/j.1945-5100.2004.tb00337.x
+//   Meteoritics & Planetary Science, 39(2), 217. http://doi.wiley.com/10.1111/j.1945-5100.2004.tb00337.x
 //
 // Raducan, S. D., Davison, T. M., Luther, R., & Collins, G. S. (2019). The role of asteroid strength, porosity and
 //   internal friction in impact momentum transfer. Icarus. https://doi.org/10.1016/J.ICARUS.2019.03.040
 //
 // Lundborg, N. (1967). The strength-size relation of granite. International Journal of Rock Mechanics and
-//   Mining Sciences & Geomechanics Abstracts, 4(3):269–272.f
+//   Mining Sciences & Geomechanics Abstracts, 4(3):269
 //
 // Created by JMO, Sat Jun 26 11:35:44 PDT 2021
 //----------------------------------------------------------------------------//
@@ -48,7 +48,6 @@ public:
                          const double tensileFailureStress,
                          const double crackGrowthMultiplier,
                          const DamageCouplingAlgorithm damageCouplingAlgorithm,
-                         const bool damageInCompression,
                          const double criticalDamageThreshold,
                          const Field<Dimension, int>& mask);
   virtual ~IvanoviSALEDamageModel();
@@ -86,7 +85,6 @@ public:
 
   //............................................................................
   // Accessors for state
-  bool damageInCompression() const;
   double minPlasticFailure() const;
   double plasticFailurePressureSlope() const;
   double plasticFailurePressureOffset() const;
@@ -113,7 +111,6 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  bool mDamageInCompression;
   double mEpsPfb, mB, mPc, mTensileFailureStress, mCriticalDamageThreshold;
   Field<Dimension, int> mMask;
   Field<Dimension, Scalar> mYoungsModulus, mLongitudinalSoundSpeed, mDdamageDt;

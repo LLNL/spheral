@@ -5,14 +5,6 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-bool
-IvanoviSALEDamageModel<Dimension>::
-damageInCompression() const {
-  return mDamageInCompression;
-}
-
-template<typename Dimension>
-inline
 double
 IvanoviSALEDamageModel<Dimension>::
 minPlasticFailure() const {
