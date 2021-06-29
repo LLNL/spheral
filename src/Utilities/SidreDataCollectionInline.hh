@@ -27,6 +27,7 @@ axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name,
 {
    axom::sidre::DataTypeId dtype = field.getAxomTypeID();
    int view_count = 0;
+   
    for (u_int i = 0; i < field.size(); ++i)
    {
       axom::IndexType num_elements = field[i].size();
@@ -135,8 +136,6 @@ axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name,
    auto *data = &(*field.begin());
    m_datastore_ptr->getRoot()->createView(view_name, dtype, num_elements, (void*)data);
 
-   printData();
-
    return m_datastore_ptr->getRoot()->getView(view_name);
 }
 
@@ -150,20 +149,43 @@ axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name,
    axom::sidre::DataTypeId dtype = field.getAxomTypeID();
    axom::IndexType num_elements = field.size() * DataTypeTraits<DataType>::numElements(field[0]);
 
-   int anyVar = 0;
+   int index = 0;
    double data [num_elements];
    for (u_int i = 0; i < field.size(); ++i)
       for (auto it = field[i].begin(); it != field[i].end(); ++it)
       {
-         data[anyVar] = *it;
-         anyVar++;
+         data[index] = *it;
+         index++;
       }
    
    axom::sidre::Buffer* buff = m_datastore_ptr->createBuffer()->allocate(dtype, num_elements)
                                               ->copyBytesIntoBuffer(data, sizeof(double) * num_elements);
    m_datastore_ptr->getRoot()->createView(view_name, dtype, num_elements, buff);
 
-   //printData();
+   return m_datastore_ptr->getRoot()->getView(view_name);
+}
+
+
+template<typename Dimension>
+inline
+axom::sidre::View *SidreDataCollection::alloc_view(const std::string &view_name, 
+                                                   const Spheral::Field<Dimension, Dim<2>::Vector> &field)
+{
+   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
+   axom::IndexType num_elements = field.size() * DataTypeTraits<Dim<2>::Vector>::numElements(field[0]);
+
+   int index = 0;
+   double data [num_elements];
+   for (u_int i = 0; i < field.size(); ++i)
+      for (auto it = field[i].begin(); it != field[i].end(); ++it)
+      {
+         data[index] = *it;
+         index++;
+      }
+   
+   axom::sidre::Buffer* buff = m_datastore_ptr->createBuffer()->allocate(dtype, num_elements)
+                                              ->copyBytesIntoBuffer(data, sizeof(double) * num_elements);
+   m_datastore_ptr->getRoot()->createView(view_name, dtype, num_elements, buff);
 
    return m_datastore_ptr->getRoot()->getView(view_name);
 }

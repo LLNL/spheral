@@ -58,12 +58,6 @@ TEST(SidreDataCollectionTestDim1Vector, Dim1Vector)
   Spheral::Field<Spheral::Dim<1>, Spheral::Dim<1>::Vector> testField("test field", makeNodeList);
   for (int i = 0; i < n; ++i)
     testField[i] = Spheral::Dim<1>::Vector(i);
-
-  for (auto it = testField.begin(); it != testField.end(); ++it)
-  {
-    std::cout << *it << " ";
-  }
-  std::cout << std::endl;
   
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
 
@@ -182,12 +176,6 @@ TEST(SidreDataCollectionTestDim2Vector, Dim2Vector)
   Spheral::Field<Spheral::Dim<2>, Spheral::Dim<2>::Vector> testField("test field", makeNodeList);
   for (int i = 0; i < n; ++i)
     testField[i] = Spheral::Dim<2>::Vector(i, i);
-
-  for (auto it = testField.begin(); it != testField.end(); ++it)
-  {
-    std::cout << *it << " ";
-  }
-  std::cout << std::endl;
   
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
 
@@ -301,12 +289,6 @@ TEST(SidreDataCollectionTestDim3Vector, Dim3Vector)
   Spheral::Field<Spheral::Dim<3>, Spheral::Dim<3>::Vector> testField("test field", makeNodeList);
   for (int i = 0; i < n; ++i)
     testField[i] = Spheral::Dim<3>::Vector(i, i, i);
-
-  for (auto it = testField.begin(); it != testField.end(); ++it)
-  {
-    std::cout << *it << " ";
-  }
-  std::cout << std::endl;
   
   double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
 

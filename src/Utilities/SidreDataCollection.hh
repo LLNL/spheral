@@ -39,8 +39,6 @@ public:
                                   const Spheral::Field<Dimension, DataType> &field);
 
     
-
-    
     template<typename Dimension>
     axom::sidre::View *alloc_view(const std::string &view_name,
                                   const Spheral::Field<Dimension, std::string> &field);
@@ -56,9 +54,10 @@ public:
     template<typename Dimension, typename DataType>
     axom::sidre::View *alloc_view(const std::string &view_name,
                                   const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType, DataType, DataType>> &field);
-
-    void printData() {m_datastore_ptr->getRoot()->print();};
-        
+    template<typename Dimension>
+    axom::sidre::View *alloc_view(const std::string &view_name,
+                                  const Spheral::Field<Dimension, Dim<2>::Vector> &field);
+    
 private:
     std::shared_ptr<axom::sidre::DataStore> m_datastore_ptr = std::make_shared<axom::sidre::DataStore>();
 };

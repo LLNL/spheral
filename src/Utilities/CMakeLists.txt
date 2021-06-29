@@ -24,7 +24,6 @@ set(Utilities_sources
     PeanoHilbertTransform.cc
     RegisterMPIDataTypes.cc
     RedistributionRegistrar.cc
-    SidreDataCollection.cc
     vectorBoundingBoxInst.cc
     lineSegmentIntersections.cc
     segmentIntersectEdges.cc
