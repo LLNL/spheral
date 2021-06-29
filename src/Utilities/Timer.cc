@@ -821,8 +821,3 @@ static void PAPI_cleanup(int *i) {
 #endif // on PAPI
 
 #endif  // TIMER
-
-//------------------------------------------------------------------------------
-// Static initializations
-//------------------------------------------------------------------------------
-std::list<Timer*>* TimerRegistrar::mTimerListPtr = nullptr;
