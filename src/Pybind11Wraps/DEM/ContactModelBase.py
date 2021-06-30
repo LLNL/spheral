@@ -3,7 +3,6 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from ContactModelBaseAbstractMethods import *
-#from RestartMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralDEM")
@@ -25,4 +24,3 @@ class ContactModelBase:
 # Inject abstract interface
 #-------------------------------------------------------------------------------
 PYB11inject(ContactModelBaseAbstractMethods, ContactModelBase, pure_virtual=True)
-#PYB11inject(RestartMethods, ContactModel)

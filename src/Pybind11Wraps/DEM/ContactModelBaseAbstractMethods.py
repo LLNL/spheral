@@ -21,7 +21,7 @@ class ContactModelBaseAbstractMethods:
                  dataBase = "const DataBase<%(Dimension)s>&",
                  state    = "const State<%(Dimension)s>&",
                  derivs   = "const StateDerivatives<%(Dimension)s>&",
-                 time     = "Scalar"):
+                 time     = "const Scalar"):
         "All constact models must specify how time-step is calculated."
         return "Scalar"
 
