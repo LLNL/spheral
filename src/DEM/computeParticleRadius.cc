@@ -22,7 +22,7 @@ computeParticleRadius(const FieldList<Dimension, typename Dimension::SymTensor>&
     const auto n = particleRadius[nodeListi]->numInternalElements();
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
-      particleRadius(nodeListi, i) =  Dimension::rootnu(std::max(0.0,H(nodeListi, i).Determinant()));
+      particleRadius(nodeListi, i) =  2.0/Dimension::rootnu(std::max(0.0,H(nodeListi, i).Determinant()));
     }
   }
 
