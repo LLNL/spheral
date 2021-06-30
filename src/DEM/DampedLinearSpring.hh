@@ -11,6 +11,7 @@
 
 namespace Spheral {
 
+template<typename Dimension> class DataBase;
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 //template<typename Dimension, typename DataType> class Field;
@@ -24,8 +25,6 @@ public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-  //typedef typename Dimension::Tensor Tensor;
-  //typedef typename Dimension::SymTensor SymTensor;
 
   // Constructors.
   DampedLinearSpring(Scalar YoungsModulus,
@@ -36,7 +35,6 @@ public:
 
   //***************************************************************************
   // Required methods from contact model
-
   virtual Scalar timeStep(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
@@ -50,10 +48,14 @@ public:
   
 
   //****************************************************************************
+  Scalar YoungsModulus() const;
+  void   YoungsModulus(Scalar x);
 
-//protected:
-  // The restart registration.
-  //RestartRegistrationType mRestart;
+  Scalar restitutionCoefficient() const;
+  void   restitutionCoefficient(Scalar x);
+
+  Scalar beta() const;
+  void   beta(Scalar x);
 
 private:
   //--------------------------- Private Interface ---------------------------//

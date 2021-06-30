@@ -11,8 +11,12 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Hydro/HydroFieldNames.hh"
 
-#include <cmath>
+#ifdef _OPENMP
+#include "omp.h"
+#endif
 
+#include <cmath>
+#include <limits>
 namespace Spheral {
 
 //------------------------------------------------------------------------------
@@ -35,53 +39,47 @@ DampedLinearSpring<Dimension>::
 ~DampedLinearSpring() {}
 
 
-
+//------------------------------------------------------------------------------
+// time step 
+//------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
 DampedLinearSpring<Dimension>::
 timeStep(const DataBase<Dimension>& dataBase,
          const State<Dimension>& state,
          const StateDerivatives<Dimension>& /*derivs*/,
-               typename Dimension::Scalar /*currentTime*/) const{
-  const auto& mask = state.fields(HydroFieldNames::timeStepMask, 1);
+         const typename Dimension::Scalar /*currentTime*/) const{
+  
   const auto& mass = state.fields(HydroFieldNames::mass, 0.0); 
-  const auto& position = state.fields(HydroFieldNames::position, Vector::zero);
-  const auto& velocity = state.fields(HydroFieldNames::velocity, Vector::zero);  
-  const auto& angularVelocity = state.fields("angularVelocity", Vector::zero);  
   const auto& radius = state.fields("particleRadius",0.0);
 
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
+  const auto numNodeLists = dataBase.numNodeLists();
 
-  auto minContactTime = 1e30;
-  const auto pi = 3.1415;
+  const auto pi = 3.14159265358979323846;
+  auto minContactTime = std::numeric_limits<double>::max();
+
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+  const auto& nodeList = mass[nodeListi]->nodeList();
+  const auto ni = nodeList.numInternalNodes();
+
   #pragma omp parallel
   {
+    auto minContactTime_thread = std::numeric_limits<double>::max();
+    #pragma omp parallel for
+      for (auto i = 0u; i < ni; ++i) {
+          const auto mi = mass(nodeListi,i);
+          const auto Ri = radius(nodeListi,i);
+          const auto k = 4.0/3.0*mYoungsModulus*std::sqrt(Ri);
+          minContactTime_thread = min(minContactTime_thread,k/mi);
+      }
 
-    int i, j, nodeListi, nodeListj;
+    #pragma omp critical
+    if (minContactTime_thread < minContactTime) minContactTime = minContactTime_thread;
 
-  #pragma omp for
-    for (auto kk = 0u; kk < npairs; ++kk) {
-
-      const auto mi = mass(nodeListi,i);
-      const auto mj = mass(nodeListj,j);
-      const auto Ri = radius(nodeListi,i);
-      const auto Rj = radius(nodeListj,j);
-
-      const auto mij = (mi*mj)/(mi+mj);
-      const auto Rij = (Ri+Rj)/(Ri+Rj);
-
-      const auto c1 = 4.0/3.0*mYoungsModulus*std::sqrt(Rij);
-      const auto c2 = std::sqrt(4.0*mij*c1/(1+mBeta*mBeta));
-
-      const auto stiffness = c1/mij;
-      const auto dissipation = c2/(2.0*mij);
-      const auto contactFrequency = std::sqrt(stiffness - dissipation*dissipation);
-      const auto contactTime = pi/contactFrequency;
-      minContactTime = min(contactTime,minContactTime);
     }
   }
+
+  minContactTime = pi*std::sqrt(minContactTime);
   return minContactTime;
 };
 
@@ -99,6 +97,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
+  //auto minContactTime = std::numeric_limits<double>::max();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -114,20 +113,17 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   //const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   //const auto omega = state.fields(Hydro, Vector::zero);
-  const auto radius = state.fields("particleRadius",0.0);
+  const auto radius = state.fields("particleRadius",1.0);
+
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
-  //CHECK(H.size() == numNodeLists);
+  CHECK(radius.size() == numNodeLists);
   //CHECK(omega.size() == numNodeLists);
 
-  // Derivative FieldLists.
+  //auto  T    = derivatives.getany("minContactTime",0.0);
   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
-  CHECK(DxDt.size() == numNodeLists);
-  CHECK(DvDt.size() == numNodeLists);
-
-  // The set of interacting node pairs.
+  auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
 
 #pragma omp parallel
   {
@@ -136,14 +132,16 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
+    //auto minContactTimekk = std::numeric_limits<double>::max();
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
+
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
       nodeListi = pairs[kk].i_list;
       nodeListj = pairs[kk].j_list;
-
+      
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
@@ -159,12 +157,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto& Rj = radius(nodeListj, j);
 
       auto& DvDtj = DvDt_thread(nodeListj, j);
-
+      
       CHECK(mi > 0.0);
       CHECK(Hdeti > 0.0);
+      CHECK(Ri > 0.0);
       CHECK(mj > 0.0);
       CHECK(Hdetj > 0.0);
-
+      CHECK(Rj > 0.0);
+      
       const auto mij = (mi*mj)/(mi+mj);
       const auto Rij = (Ri*Rj)/(Ri+Rj);
 
@@ -173,31 +173,30 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto rhatij = rij.unitVector();
 
       const auto delta = std::sqrt(rij.dot(rij))-(Ri+Rj);  // negative will get ya a force
-
-      // herzian for now
+      
       const auto c1 = 4.0/3.0*mYoungsModulus*std::sqrt(Rij);
-      const auto c2 = std::sqrt(4.0*mij*c1/(1+mBeta*mBeta));
+      const auto c2 = std::sqrt(4.0*mij*c1/(1.0+mBeta*mBeta));
+      
       if (delta < 0.0){
-        const auto vn = vij.dot(rhatij);
-        const auto f = -(c1*delta - c2*vn);
-        DvDti += f/mi*rhatij;
-        DvDtj -= f/mj*rhatij;
+         const auto vn = vij.dot(rhatij);
+         const auto f = -(c1*delta - c2*vn);
+         DvDti += f/mi*rhatij;
+         DvDtj -= f/mj*rhatij;
       }
 
+      //minContactTimekk = min(c1/mij,minContactTimekk);
+      
     } // loop over pairs
 
     // Reduce the thread values to the master.
     threadReduceFieldLists<Dimension>(threadStack);
-
+    //#pragma omp critical
+    //  if (minContactTimekk < minContactTime) minContactTime = minContactTimekk;
   }   // OpenMP parallel region
 
-
+  
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
-    const auto  hmin = nodeList.hmin();
-    const auto  hmax = nodeList.hmax();
-    const auto  hminratio = nodeList.hminratio();
-    const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
