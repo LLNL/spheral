@@ -30,7 +30,7 @@ default values listed in parens):
         tensileFailureStress    : threshold stress for tensile failure to start
         crackGrowthMultiplier   : (0.4) crack growth rate in units of longitudinal
                                   sound speed
-        damageCouplingAlgorithm : (PairMaxDamage) how should damaged points couple
+        damageCouplingAlgorithm : (DirectDamage) how should damaged points couple
         criticalDamageThreshold : (4.0) prevent any nodes where Trace(D_i) exceeds 
                                   criticalDamageThreshold from setting timestep
         mask                    : (1 on all points) a field of flags: a node with 
@@ -63,7 +63,7 @@ class IvanoviSALEDamageModel%(dim)s(CXXIvanoviSALEDamageModel%(dim)s):
                          "plasticFailurePressureOffset" : None,
                          "tensileFailureStress"         : None,
                          "crackGrowthMultiplier"        : 0.4,
-                         "damageCouplingAlgorithm"      : PairMaxDamage,
+                         "damageCouplingAlgorithm"      : DirectDamage,
                          "criticalDamageThreshold"      : 4.0,
                          "mask"                         : None}
 
