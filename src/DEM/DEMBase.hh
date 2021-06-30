@@ -155,7 +155,7 @@ protected:
   const TableKernel<Dimension>& mKernel;
   std::vector<ContactModelBase<Dimension>*>  mContactModels;
 
-  Scalar mCfl;
+  Scalar mCfl;               // ratio of time step to min contact time
 
   // Optional bounding box for generating the mesh.
   Vector mxmin, mxmax;

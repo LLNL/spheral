@@ -41,6 +41,7 @@
 #include <fstream>
 #include <map>
 #include <vector>
+
 using std::vector;
 using std::string;
 using std::pair;
@@ -92,11 +93,11 @@ DEMBase(DataBase<Dimension>& dataBase,
   mDomegaDt(FieldStorageType::CopyFields),
   mParticleRadius(FieldStorageType::CopyFields),
   mRestart(registerWithRestart(*this)){
-    mTimeStepMask = dataBase.newFluidFieldList(int(0), "timeStepMask");
-    mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position);
-    mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
-    mDomegaDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "angularVelocity");
-    mParticleRadius = dataBase.newFluidFieldList( 0.0 , "particleRadius");
+    mTimeStepMask = dataBase.newDEMFieldList(int(0), "timeStepMask");
+    mDxDt = dataBase.newDEMFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position);
+    mDvDt = dataBase.newDEMFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
+    mDomegaDt = dataBase.newDEMFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "angularVelocity");
+    mParticleRadius = dataBase.newDEMFieldList( 0.0 , "particleRadius");
 }
 
 //------------------------------------------------------------------------------
@@ -117,53 +118,18 @@ DEMBase<Dimension>::
 dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
-   typename Dimension::Scalar time) const {
-  
-  
-  // verbosify minDt.second in the future
-  Scalar DtVote = 1e30; 
+   const typename Dimension::Scalar time) const {
+   
+  auto DtVote = std::numeric_limits<double>::max();
   for (typename DEMBase<Dimension>::ConstContactModelIterator contactItr = contactModelsBegin();
        contactItr != contactModelsEnd();
        ++contactItr) {
     Scalar DtVotei = (*contactItr)->timeStep(dataBase, state, derivs, time);
-    DtVote = min(DtVotei,DtVote);
+    DtVote = min(DtVotei, DtVote);
   }
-    auto minDt = make_pair(DtVote,("DEM vote or time step"));
-    minDt.first*=this->mCfl;
-    return minDt;
-//   const auto& mask = state.fields(HydroFieldNames::timeStepMask, 1);
-//   const auto& mass = state.fields(HydroFieldNames::mass, 0.0); 
-//   const auto& position = state.fields(HydroFieldNames::position, Vector::zero);
-//   const auto& velocity = state.fields(HydroFieldNames::velocity, Vector::zero);  
-//   const auto& angularVelocity = state.fields("angularVelocity", Vector::zero);  
-
-//   const auto& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity(),
-//                                                          this->requireOverlapConnectivity());
-
-//   const float pi = 3.14159;
-//   const float c1 = 1.0;
-//   const float c2 = 1.0;
-
-//   #pragma omp parallel
-//   {
-
-//     int i, j, nodeListi, nodeListj;
-
-// #pragma omp for
-//     for (auto kk = 0u; kk < npairs; ++kk) {
-
-//       const auto mi = mass(nodeListi,i);
-//       const auto mj = mass(nodeListj,j);
-//       const auto mij = (mi*mj)/(mi+mj);
-
-//       const auto stiffness = c1/mij;
-//       const auto dissipation = c2/(2.0*mij);
-//       const auto contactFrequency = std::sqrt(c1/mij - );
-//       const auto contactTime = pi/contactFrequency;
-
-
-//     }
-//   }
+  auto minDt = make_pair(DtVote,("DEM vote or time step"));
+  minDt.first*=this->mCfl;
+  return minDt;
 }
 
 //------------------------------------------------------------------------------
@@ -176,11 +142,12 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   TIME_DEMinitializeStartup.start();
 
-  const auto H = dataBase.DEMHfield();
-  auto particleRadius = this->particleRadius();
-  computeParticleRadius(H,particleRadius);
+  dataBase.resizeDEMFieldList(mParticleRadius, 1.0, "particleRadius");
+  const auto& H = dataBase.DEMHfield();
+  computeParticleRadius(H,mParticleRadius);
 
   TIME_DEMinitializeStartup.stop();
+
 }
 
 //------------------------------------------------------------------------------
@@ -194,20 +161,21 @@ registerState(DataBase<Dimension>& dataBase,
   TIME_DEMregister.start();
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
-  dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
+  dataBase.resizeDEMFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
+  dataBase.resizeDEMFieldList(mParticleRadius, 1.0, "particleRadius");
   
   FieldList<Dimension, Vector> position = dataBase.DEMPosition();
   FieldList<Dimension, Vector> velocity = dataBase.DEMVelocity();
   FieldList<Dimension, Vector> angularVelocity = dataBase.DEMAngularVelocity();
   FieldList<Dimension, Scalar> mass = dataBase.DEMMass();
   FieldList<Dimension, SymTensor> Hfield = dataBase.DEMHfield();
-  FieldList<Dimension, Scalar> particleRadius = this->particleRadius();
 
   PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
   PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,true));
   PolicyPointer angularVelocityPolicy(new IncrementFieldList<Dimension, Vector>());
 
   state.enroll(mass);
+  state.enroll(mParticleRadius);
   state.enroll(Hfield);
   state.enroll(position, positionPolicy);
   state.enroll(velocity, velocityPolicy);
@@ -227,9 +195,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   TIME_DEMregisterDerivs.start();
 
-  dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position, false);
-  dataBase.resizeFluidFieldList(mDvDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, false);
-  dataBase.resizeFluidFieldList(mDomegaDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "angularVelocity" , false);
+  dataBase.resizeDEMFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position, false);
+  dataBase.resizeDEMFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
+  dataBase.resizeDEMFieldList(mDomegaDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "angularVelocity" , false);
   
   derivs.enroll(mDxDt);
   derivs.enroll(mDvDt);
@@ -249,7 +217,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   StateDerivatives<Dimension>& derivs) {
   TIME_DEMpreStepInitialize.start();
 
-
   TIME_DEMpreStepInitialize.stop();
 }
 
@@ -266,8 +233,6 @@ initialize(const typename Dimension::Scalar time,
            StateDerivatives<Dimension>& derivs) {
   TIME_DEMinitialize.start();
 
-
-  // We depend on the caller knowing to finalize the ghost boundaries!
   TIME_DEMinitialize.stop();
 }
 
@@ -283,135 +248,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
   TIME_DEMevalDerivs.start();
-
-  // punt to the contact models
-  for (typename DEMBase<Dimension>::ConstContactModelIterator contactItr = contactModelsBegin();
-       contactItr != contactModelsEnd();
-       ++contactItr) {
+  for (auto contactItr = contactModelsBegin(); contactItr != contactModelsEnd(); ++contactItr) {
     (*contactItr)->evaluateDerivatives(time, dt, dataBase, state, derivs);
   }
-
-//   TIME_DEMevalDerivs_initial.start();
-
-//   // A few useful constants we'll use in the following loop.
-//   const double tiny = 1.0e-30;
-//   const auto c1 = 1.0;
-//   const auto c2 = 1.0;
-
-//   // The connectivity.
-//   const auto& connectivityMap = dataBase.connectivityMap();
-//   const auto& nodeLists = connectivityMap.nodeLists();
-//   const auto numNodeLists = nodeLists.size();
-
-//   // Get the state and derivative FieldLists.
-//   // State FieldLists.
-//   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
-//   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
-//   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-//   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-//   const auto omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
-//   CHECK(mass.size() == numNodeLists);
-//   CHECK(position.size() == numNodeLists);
-//   CHECK(velocity.size() == numNodeLists);
-//   CHECK(H.size() == numNodeLists);
-//   CHECK(omega.size() == numNodeLists);
-
-//   // Derivative FieldLists.
-//   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-//   auto  DvDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
-//   CHECK(DxDt.size() == numNodeLists);
-//   CHECK(DvDt.size() == numNodeLists);
-
-//   // The set of interacting node pairs.
-//   const auto& pairs = connectivityMap.nodePairList();
-//   const auto  npairs = pairs.size();
-
-//   TIME_DEMevalDerivs_initial.stop();
-
-//   // Walk all the interacting pairs.
-//   TIME_DEMevalDerivs_pairs.start();
-// #pragma omp parallel
-//   {
-//     // Thread private scratch variables
-//     int i, j, nodeListi, nodeListj;
-
-//     typename SpheralThreads<Dimension>::FieldListStack threadStack;
-//     auto DvDt_thread = DvDt.threadCopy(threadStack);
-
-// #pragma omp for
-//     for (auto kk = 0u; kk < npairs; ++kk) {
-//       i = pairs[kk].i_node;
-//       j = pairs[kk].j_node;
-//       nodeListi = pairs[kk].i_list;
-//       nodeListj = pairs[kk].j_list;
-
-//       // Get the state for node i.
-//       const auto& ri = position(nodeListi, i);
-//       const auto& mi = mass(nodeListi, i);
-//       const auto& vi = velocity(nodeListi, i);
-//       const auto& Hi = H(nodeListi, i);
-//       const auto  Hdeti = Hi.Determinant();
-      
-//       auto& DvDti = DvDt_thread(nodeListi, i);
-
-//       // Get the state for node j
-//       const auto& rj = position(nodeListj, j);
-//       const auto& mj = mass(nodeListj, j);
-//       const auto& vj = velocity(nodeListj, j);
-//       const auto& Hj = H(nodeListj, j);
-//       const auto  Hdetj = Hj.Determinant();
-
-//       auto& DvDtj = DvDt_thread(nodeListj, j);
-
-//       CHECK(mi > 0.0);
-//       CHECK(Hdeti > 0.0);
-//       CHECK(mj > 0.0);
-//       CHECK(Hdetj > 0.0);
-
-//       const auto vij = vi-vj;
-//       const auto rij = ri-rj;
-//       const auto rhatij = rij.unitVector();
-//       const auto rij2 = sqrt(rij.dot(rij));
-
-//       const auto Ri = 1.0/Hdeti;
-//       const auto Rj = 1.0/Hdetj;
-//       const auto Rij2 = (Ri+Rj);
-
-//       const auto delta = rij2-Rij2;  // negative will get ya a force
-
-//       if (delta < 0.0){
-//         const auto vn = vij.dot(rhatij);
-//         const auto f = -(c1*delta - c2*vn);
-//         DvDti += f/mi*rhatij;
-//         DvDtj -= f/mj*rhatij;
-//       }
-
-//     } // loop over pairs
-
-//     // Reduce the thread values to the master.
-//     threadReduceFieldLists<Dimension>(threadStack);
-
-//   }   // OpenMP parallel region
-//   TIME_DEMevalDerivs_pairs.stop();
-
-//   // Finish up the derivatives for each point.
-//   TIME_DEMevalDerivs_final.start();
-//   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-//     const auto& nodeList = mass[nodeListi]->nodeList();
-//     const auto  hmin = nodeList.hmin();
-//     const auto  hmax = nodeList.hmax();
-//     const auto  hminratio = nodeList.hminratio();
-//     const auto  nPerh = nodeList.nodesPerSmoothingScale();
-
-//     const auto ni = nodeList.numInternalNodes();
-// #pragma omp parallel for
-//     for (auto i = 0u; i < ni; ++i) {
-
-//         //evaluate the node things
-
-//     }
-//   }
-  //TIME_DEMevalDerivs_final.stop();
   TIME_DEMevalDerivs.stop();
 }
 //------------------------------------------------------------------------------
@@ -442,6 +281,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Vector> angularVelocity = state.fields("angularVelocity", Vector::zero);
+  FieldList<Dimension, Scalar> radius = state.fields("particleRadius", 0.0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -449,8 +289,8 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(mass);
     (*boundaryItr)->applyFieldListGhostBoundary(velocity);
     (*boundaryItr)->applyFieldListGhostBoundary(angularVelocity);
+    (*boundaryItr)->applyFieldListGhostBoundary(radius);
   }
-  
   TIME_DEMghostBounds.stop();
 }
 
@@ -463,9 +303,11 @@ DEMBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
   TIME_DEMenforceBounds.start();
+
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Vector> angularVelocity = state.fields("angularVelocity", Vector::zero);
+  FieldList<Dimension, Scalar> radius = state.fields("particleRadius", 0.0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -473,8 +315,8 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(mass);
     (*boundaryItr)->enforceFieldListBoundary(velocity);
     (*boundaryItr)->enforceFieldListBoundary(angularVelocity);
+    (*boundaryItr)->enforceFieldListBoundary(radius);
   }
- 
   TIME_DEMenforceBounds.stop();
 }
 
@@ -523,9 +365,9 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
-  file.write(mTimeStepMask, pathName + "/timeStepMask");
-  //file.write(mDxDt, pathName + "/DxDt");
-  //file.write(mDvDt, pathName + "/DvDt");
+  file.write(mTimeStepMask,   pathName + "/timeStepMask");
+  file.write(mParticleRadius, pathName + "/particleRadius");
+
 }
 
 //------------------------------------------------------------------------------
@@ -535,10 +377,8 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
- 
-  file.read(mTimeStepMask, pathName + "/timeStepMask");
-  //file.read(mDxDt, pathName + "/DxDt");
-  //file.read(mDvDt, pathName + "/DvDt");
+  file.read(mTimeStepMask,   pathName + "/timeStepMask");
+  file.read(mParticleRadius, pathName + "/particleRadius");
 }
 
 }

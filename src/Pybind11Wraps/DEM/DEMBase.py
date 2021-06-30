@@ -101,6 +101,24 @@ class DEMBase(Physics):
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
+    def appendContactModel(self, package="ContactModelBase<%(Dimension)s>&"):
+        "Add a Physics contact model."
+        return "void"
+
+    def resetContactModels(self, packages="std::vector<ContactModelBase<%(Dimension)s>*>&"):
+        "Reset the list of contact models."
+        return "void"
+
+    @PYB11const
+    def haveContactModel(self, package="const ContactModelBase<%(Dimension)s>&"):
+        "Test if the given contact model is listed in the integrator."
+        return "bool"
+
+    @PYB11const
+    @PYB11returnpolicy("reference_internal")
+    def contactModels(self):
+        "The set of contact models registered with the DEM package"
+        return "const std::vector<ContactModelBase<%(Dimension)s>*>&"
     #...........................................................................
     # Properties
     xmin = PYB11property("const Vector&", "xmin", "xmin",
@@ -112,10 +130,11 @@ class DEMBase(Physics):
     
     cfl = PYB11property("Scalar", "cfl", "cfl", doc="The Courant-Friedrichs-Lewy timestep limit multiplier")
     
-    timeStepMask = PYB11property("const FieldList<%(Dimension)s, int>&",      "timeStepMask", returnpolicy="reference_internal")
-    DxDt =         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DxDt",         returnpolicy="reference_internal")
-    DvDt =         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DvDt",         returnpolicy="reference_internal")
-    DomegaDt =     PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DomegaDt",     returnpolicy="reference_internal")
+    timeStepMask =   PYB11property("const FieldList<%(Dimension)s, int>&",      "timeStepMask",   returnpolicy="reference_internal")
+    DxDt =           PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DxDt",           returnpolicy="reference_internal")
+    DvDt =           PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DvDt",           returnpolicy="reference_internal")
+    DomegaDt =       PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DomegaDt",       returnpolicy="reference_internal")
+    particleRadius = PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "particleRadius", returnpolicy="reference_internal")
     
 #-------------------------------------------------------------------------------
 # Inject methods

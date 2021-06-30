@@ -36,7 +36,7 @@ xmax(const typename Dimension::Vector& x) {
 }
 
 //------------------------------------------------------------------------------
-// Access the main kernel used for (A)SPH field estimates.
+// CFL number (ratio to estimated contact duration)
 //------------------------------------------------------------------------------
 
 template<typename Dimension>
