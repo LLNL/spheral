@@ -35,7 +35,7 @@ public:
   virtual Scalar timeStep(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                                typename Dimension::Scalar /*currentTime*/) const = 0;
+                          const typename Dimension::Scalar time) const = 0;
 
   virtual void   evaluateDerivatives(const Scalar time,
                                      const Scalar dt,
