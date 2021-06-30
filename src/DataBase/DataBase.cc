@@ -1388,7 +1388,7 @@ DataBase<Dimension>::DEMVelocity() const {
 }
 
 //------------------------------------------------------------------------------
-// Return the DEM velocity field.
+// Return the DEM angular velocity field.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 FieldList<Dimension, typename Dimension::Vector>
