@@ -134,7 +134,6 @@ class DEMBase(Physics):
     DxDt =           PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DxDt",           returnpolicy="reference_internal")
     DvDt =           PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DvDt",           returnpolicy="reference_internal")
     DomegaDt =       PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DomegaDt",       returnpolicy="reference_internal")
-    particleRadius = PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "particleRadius", returnpolicy="reference_internal")
     
 #-------------------------------------------------------------------------------
 # Inject methods

@@ -140,7 +140,6 @@ public:
   const FieldList<Dimension, Vector>& DxDt() const;
   const FieldList<Dimension, Vector>& DvDt() const;
   const FieldList<Dimension, Vector>& DomegaDt() const;
-  const FieldList<Dimension, Scalar>& particleRadius() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -165,8 +164,6 @@ protected:
   FieldList<Dimension, Vector>    mDxDt;
   FieldList<Dimension, Vector>    mDvDt;
   FieldList<Dimension, Vector>    mDomegaDt;
-  FieldList<Dimension, Scalar>    mParticleRadius;
-  
 
   // The restart registration.
   RestartRegistrationType mRestart;

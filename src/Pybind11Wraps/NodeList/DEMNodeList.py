@@ -42,8 +42,20 @@ class DEMNodeList(NodeList):
 
 
     @PYB11pycppname("angularVelocity")
-    def setangularVelocity(self, val="const VectorField&"):
+    def angularVelocity(self, val="const VectorField&"):
         "Set the angular velocity"
+        return "void"
+
+    @PYB11const
+    @PYB11returnpolicy("reference_internal")
+    def particleRadius(self):
+        "The particle radius field"
+        return "const ScalarField&"
+
+
+    @PYB11pycppname("particleRadius")
+    def particleRadius(self, val="const ScalarField&"):
+        "Set the particle radii"
         return "void"
 
     #@PYB11virtual

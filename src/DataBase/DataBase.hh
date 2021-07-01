@@ -263,6 +263,7 @@ public:
   FieldList<Dimension, Vector> DEMVelocity() const;
   FieldList<Dimension, Vector> DEMAngularVelocity() const;
   FieldList<Dimension, SymTensor> DEMHfield() const;
+  FieldList<Dimension, Scalar> DEMParticleRadius() const;
 
   // We can also return the node extent Fields stored in the Neighbor objects.
   FieldList<Dimension, Vector> globalNodeExtent() const;

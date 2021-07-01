@@ -30,6 +30,7 @@
 #include "DEM/ContactModelBase.hh"
 #include "DEM/DEMBase.hh"
 #include "DEM/computeParticleRadius.hh"
+#include "DEM/DEMFieldNames.hh"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -91,13 +92,11 @@ DEMBase(DataBase<Dimension>& dataBase,
   mDxDt(FieldStorageType::CopyFields),
   mDvDt(FieldStorageType::CopyFields),
   mDomegaDt(FieldStorageType::CopyFields),
-  mParticleRadius(FieldStorageType::CopyFields),
   mRestart(registerWithRestart(*this)){
     mTimeStepMask = dataBase.newDEMFieldList(int(0), "timeStepMask");
     mDxDt = dataBase.newDEMFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position);
     mDvDt = dataBase.newDEMFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
-    mDomegaDt = dataBase.newDEMFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "angularVelocity");
-    mParticleRadius = dataBase.newDEMFieldList( 0.0 , "particleRadius");
+    mDomegaDt = dataBase.newDEMFieldList(Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity);
 }
 
 //------------------------------------------------------------------------------
@@ -127,7 +126,6 @@ dt(const DataBase<Dimension>& dataBase,
     Scalar DtVotei = (*contactItr)->timeStep(dataBase, state, derivs, time);
     DtVote = min(DtVotei, DtVote);
   }
-  //std::cout << DtVote << std::endl;
   auto minDt = make_pair(DtVote,("DEM vote or time step"));
   minDt.first*=this->mCfl;
   return minDt;
@@ -142,9 +140,9 @@ DEMBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   TIME_DEMinitializeStartup.start();
-  dataBase.resizeDEMFieldList(mParticleRadius, 1.0, "particleRadius");
-  const auto& H = dataBase.DEMHfield();
-  computeParticleRadius(H,mParticleRadius);
+  auto radius = dataBase.DEMParticleRadius();
+  const auto H = dataBase.DEMHfield();
+  computeParticleRadius(H,radius);
   TIME_DEMinitializeStartup.stop();
 
 }
@@ -161,20 +159,20 @@ registerState(DataBase<Dimension>& dataBase,
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
   dataBase.resizeDEMFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
-  //dataBase.resizeDEMFieldList(mParticleRadius, 1.0, "particleRadius");
-  
+
   FieldList<Dimension, Vector> position = dataBase.DEMPosition();
   FieldList<Dimension, Vector> velocity = dataBase.DEMVelocity();
   FieldList<Dimension, Vector> angularVelocity = dataBase.DEMAngularVelocity();
   FieldList<Dimension, Scalar> mass = dataBase.DEMMass();
   FieldList<Dimension, SymTensor> Hfield = dataBase.DEMHfield();
+  FieldList<Dimension, Scalar>  radius = dataBase.DEMParticleRadius();
 
   PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
   PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,true));
   PolicyPointer angularVelocityPolicy(new IncrementFieldList<Dimension, Vector>());
 
   state.enroll(mass);
-  state.enroll(mParticleRadius);
+  state.enroll(radius);
   state.enroll(Hfield);
   state.enroll(position, positionPolicy);
   state.enroll(velocity, velocityPolicy);
@@ -196,7 +194,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 
   dataBase.resizeDEMFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position, false);
   dataBase.resizeDEMFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
-  dataBase.resizeDEMFieldList(mDomegaDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + "angularVelocity" , false);
+  dataBase.resizeDEMFieldList(mDomegaDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity , false);
   
   derivs.enroll(mDxDt);
   derivs.enroll(mDvDt);
@@ -215,9 +213,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   TIME_DEMpreStepInitialize.start();
-  dataBase.resizeDEMFieldList(mParticleRadius, 1.0, "particleRadius");
-  const auto& H = dataBase.DEMHfield();
-  computeParticleRadius(H,mParticleRadius);
+
   TIME_DEMpreStepInitialize.stop();
 }
 
@@ -281,8 +277,8 @@ applyGhostBoundaries(State<Dimension>& state,
   TIME_DEMghostBounds.start();
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  FieldList<Dimension, Vector> angularVelocity = state.fields("angularVelocity", Vector::zero);
-  FieldList<Dimension, Scalar> radius = state.fields("particleRadius", 0.0);
+  FieldList<Dimension, Vector> angularVelocity = state.fields(DEMFieldNames::angularVelocity, Vector::zero);
+  FieldList<Dimension, Scalar> radius = state.fields(DEMFieldNames::particleRadius, 0.0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -307,8 +303,8 @@ enforceBoundaries(State<Dimension>& state,
 
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
   FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  FieldList<Dimension, Vector> angularVelocity = state.fields("angularVelocity", Vector::zero);
-  FieldList<Dimension, Scalar> radius = state.fields("particleRadius", 0.0);
+  FieldList<Dimension, Vector> angularVelocity = state.fields(DEMFieldNames::angularVelocity, Vector::zero);
+  FieldList<Dimension, Scalar> radius = state.fields(DEMFieldNames::particleRadius, 0.0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -366,8 +362,6 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
-  file.write(mTimeStepMask,   pathName + "/timeStepMask");
-  file.write(mParticleRadius, pathName + "/particleRadius");
 
 }
 
@@ -378,8 +372,7 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
-  file.read(mTimeStepMask,   pathName + "/timeStepMask");
-  file.read(mParticleRadius, pathName + "/particleRadius");
+
 }
 
 }

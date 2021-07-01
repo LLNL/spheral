@@ -10,6 +10,7 @@
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "DEM/DEMFieldNames.hh"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -51,7 +52,7 @@ timeStep(const DataBase<Dimension>& dataBase,
          const typename Dimension::Scalar /*currentTime*/) const{
   
   const auto& mass = state.fields(HydroFieldNames::mass, 0.0); 
-  const auto& radius = state.fields("particleRadius",0.0);
+  const auto& radius = state.fields(DEMFieldNames::particleRadius,0.0);
 
   const auto numNodeLists = dataBase.numNodeLists();
 
@@ -96,7 +97,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     StateDerivatives<Dimension>& derivatives) const{
 
   // A few useful constants we'll use in the following loop.
-  const double tiny = 1.0e-30;
+  const double tiny = std::numeric_limits<double>::epsilon();
   //auto minContactTime = std::numeric_limits<double>::max();
 
   // The connectivity.
@@ -112,8 +113,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   //const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  //const auto omega = state.fields(Hydro, Vector::zero);
-  const auto radius = state.fields("particleRadius",1.0);
+  //const auto omega = state.fields(DEMFieldNames::angularVelocity, Vector::zero);
+  const auto radius = state.fields(DEMFieldNames::particleRadius, .0);
 
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -124,6 +125,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   //auto  T    = derivatives.getany("minContactTime",0.0);
   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  //auto  DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + DEMFieldNames::angularVelocity, Vector::zero);
+
+  CHECK(DxDt.size() == numNodeLists);
+  CHECK(DvDt.size() == numNodeLists);
+  //CHECK(DomegaDt.size() == numNodeLists);
+
 
 #pragma omp parallel
   {

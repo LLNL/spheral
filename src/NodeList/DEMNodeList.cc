@@ -6,6 +6,7 @@
 //#include "SmoothingScaleBase.hh"
 //#include "Material/EquationOfState.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "DEM/DEMFieldNames.hh"
 #include "DataBase/DataBase.hh"
 //#include "DataBase/IncrementState.hh"
 //#include "DataBase/ReplaceState.hh"
@@ -40,7 +41,8 @@ DEMNodeList(string name,
               const Scalar nPerh,
               const int maxNumNeighbors):
   NodeList<Dimension>(name, numInternal, numGhost, hmin, hmax, hminratio, nPerh, maxNumNeighbors),
-  mAngularVelocity("angularVelocity", *this){
+  mAngularVelocity(DEMFieldNames::angularVelocity, *this),
+  mParticleRadius(DEMFieldNames::particleRadius, *this){
 }
 
 //------------------------------------------------------------------------------
@@ -59,7 +61,19 @@ void
 DEMNodeList<Dimension>::
 angularVelocity(const Field<Dimension, typename Dimension::Vector>& omega) {
   mAngularVelocity = omega;
-  mAngularVelocity.name("angularVelocity");
+  mAngularVelocity.name(DEMFieldNames::angularVelocity);
+}
+
+
+//------------------------------------------------------------------------------
+// Set the particle radii
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DEMNodeList<Dimension>::
+particleRadius(const Field<Dimension, typename Dimension::Scalar>& radii) {
+  mParticleRadius = radii;
+  mParticleRadius.name(DEMFieldNames::particleRadius);
 }
 
 
@@ -120,6 +134,7 @@ dumpState(FileIO& file, const string& pathName) const {
 
   // Dump each of the internal fields of the DEMNodeList.
   file.write(mAngularVelocity, pathName + "/angularVelocity");
+  file.write(mParticleRadius, pathName + "/particleRadius");
 }
 
 //------------------------------------------------------------------------------
@@ -135,6 +150,7 @@ restoreState(const FileIO& file, const string& pathName) {
 
   // Restore each of the internal fields of the DEMNodeList.
   file.read(mAngularVelocity, pathName + "/angularVelocity");
+  file.read(mParticleRadius, pathName + "/particleRadius");
 }  
 
 }
