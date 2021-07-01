@@ -70,7 +70,7 @@ timeStep(const DataBase<Dimension>& dataBase,
           const auto mi = mass(nodeListi,i);
           const auto Ri = radius(nodeListi,i);
           const auto k = 4.0/3.0*mYoungsModulus*std::sqrt(Ri);
-          minContactTime_thread = min(minContactTime_thread,k/mi);
+          minContactTime_thread = min(minContactTime_thread,mi/k);
       }
 
     #pragma omp critical
@@ -172,14 +172,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto rij = ri-rj;
       const auto rhatij = rij.unitVector();
 
-      const auto delta = std::sqrt(rij.dot(rij))-(Ri+Rj);  // negative will get ya a force
+      const auto delta = (Ri+Rj) - std::sqrt(rij.dot(rij));  // negative will get ya a force
       
       const auto c1 = 4.0/3.0*mYoungsModulus*std::sqrt(Rij);
       const auto c2 = std::sqrt(4.0*mij*c1/(1.0+mBeta*mBeta));
       
-      if (delta < 0.0){
+      if (delta > 0.0){
          const auto vn = vij.dot(rhatij);
-         const auto f = -(c1*delta - c2*vn);
+         const auto f = c1*delta - c2*vn;
          DvDti += f/mi*rhatij;
          DvDtj -= f/mj*rhatij;
       }

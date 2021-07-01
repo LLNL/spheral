@@ -127,6 +127,7 @@ dt(const DataBase<Dimension>& dataBase,
     Scalar DtVotei = (*contactItr)->timeStep(dataBase, state, derivs, time);
     DtVote = min(DtVotei, DtVote);
   }
+  //std::cout << DtVote << std::endl;
   auto minDt = make_pair(DtVote,("DEM vote or time step"));
   minDt.first*=this->mCfl;
   return minDt;
@@ -141,11 +142,9 @@ DEMBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   TIME_DEMinitializeStartup.start();
-
   dataBase.resizeDEMFieldList(mParticleRadius, 1.0, "particleRadius");
   const auto& H = dataBase.DEMHfield();
   computeParticleRadius(H,mParticleRadius);
-
   TIME_DEMinitializeStartup.stop();
 
 }
@@ -162,7 +161,7 @@ registerState(DataBase<Dimension>& dataBase,
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
   dataBase.resizeDEMFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
-  dataBase.resizeDEMFieldList(mParticleRadius, 1.0, "particleRadius");
+  //dataBase.resizeDEMFieldList(mParticleRadius, 1.0, "particleRadius");
   
   FieldList<Dimension, Vector> position = dataBase.DEMPosition();
   FieldList<Dimension, Vector> velocity = dataBase.DEMVelocity();
@@ -216,7 +215,9 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   TIME_DEMpreStepInitialize.start();
-
+  dataBase.resizeDEMFieldList(mParticleRadius, 1.0, "particleRadius");
+  const auto& H = dataBase.DEMHfield();
+  computeParticleRadius(H,mParticleRadius);
   TIME_DEMpreStepInitialize.stop();
 }
 
