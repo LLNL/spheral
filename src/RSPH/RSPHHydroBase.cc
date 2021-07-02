@@ -237,8 +237,9 @@ RSPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   TIME_RSPHregister.start();
+
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-  // We have to choose either compatible or total energy evolution.
+
   VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
           "SPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
 
@@ -300,8 +301,6 @@ registerState(DataBase<Dimension>& dataBase,
                                                                            true));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
-    //state.enroll(mSpecificThermalEnergy0);
-
 
   }else if (mEvolveTotalEnergy) {
     PolicyPointer thermalEnergyPolicy(new SpecificFromTotalThermalEnergyPolicy<Dimension>());
@@ -318,12 +317,6 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
   }
-
- 
-  // Override the specific thermal energy policy
-  //typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-  //FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
- // CHECK(eps.numFields() == dataBase.numFluidNodeLists());
   
   TIME_RSPHregister.stop();
 }
@@ -1077,6 +1070,8 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(massDensity.size() == numNodeLists);
+  CHECK(pressure.size() == numNodeLists);
+  CHECK(velocity.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
 
   // Derivative FieldLists.
@@ -1084,8 +1079,11 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
   auto  DpDx = derivatives.fields("pressureGradient",Vector::zero);
   auto  DrhoDx = derivatives.fields("densityGradient",Vector::zero);
   auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-
+  auto  localM = derivatives.fields("local"+HydroFieldNames::M_SPHCorrection, Tensor::zero);
   CHECK(M.size() == numNodeLists);
+  CHECK(localM.size() == numNodeLists);
+  CHECK(DpDx.size() == numNodeLists);
+  CHECK(DrhoDx.size() == numNodeLists);
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
@@ -1109,6 +1107,7 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
     auto DrhoDx_thread = DrhoDx.threadCopy(threadStack);
     auto localDvDx_thread = localDvDx.threadCopy(threadStack);
     auto M_thread = M.threadCopy(threadStack);
+    auto localM_thread = localM.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -1133,7 +1132,7 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       auto& DpDxi = DpDx_thread(nodeListi,i);
       auto& DrhoDxi = DrhoDx_thread(nodeListi,i);
       auto& Mi = M_thread(nodeListi, i);
-      //auto& DpDxi = DpDx_thread(nodeListi,i);
+      auto& localMi = localM_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
@@ -1151,6 +1150,7 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       auto& DpDxj = DpDx_thread(nodeListj,j);
       auto& DrhoDxj = DrhoDx_thread(nodeListj,j);
       auto& Mj = M_thread(nodeListj, j);
+      auto& localMj = localM_thread(nodeListj, j);
 
       // Flag if this is a contiguous material pair or not.
       const bool sameMatij =  (nodeListi == nodeListj);
@@ -1180,20 +1180,22 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       // volumes
       const auto voli = mi/rhoi;
       const auto volj = mj/rhoj;
-
-      DrhoDxi -= volj*(rhoi-rhoj)*gradWi;
-      DrhoDxj -= voli*(rhoi-rhoj)*gradWj;
+      
       DpDxi -= volj*(Pi-Pj)*gradWi;
       DpDxj -= voli*(Pi-Pj)*gradWj;
       localDvDxi -= volj*(vi-vj).dyad(gradWi); 
       localDvDxj -= voli*(vi-vj).dyad(gradWj);
 
       // Linear gradient correction term.
- 
-        //const auto Mij = ;
       Mi -= volj*rij.dyad(gradWi);
       Mj -= voli*rij.dyad(gradWj);
     
+      if (sameMatij){
+        DrhoDxi -= volj*(rhoi-rhoj)*gradWi;
+        DrhoDxj -= voli*(rhoi-rhoj)*gradWj;
+        localMi -= volj*rij.dyad(gradWi);
+        localMj -= voli*rij.dyad(gradWj);
+      }
 
     } // loop over pairs
 
@@ -1210,22 +1212,29 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
     for (auto i = 0u; i < ni; ++i) {
         const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
         auto& Mi = M(nodeListi, i);
+        auto& localMi = localM(nodeListi, i);
         auto& localDvDxi = localDvDx(nodeListi,i);
         auto& DpDxi = DpDx(nodeListi,i);
         auto& DrhoDxi = DrhoDx(nodeListi,i);
 
         const auto Mdeti = std::abs(Mi.Determinant());
-        const auto goodM =  (std::abs(Mi.Determinant()) > 0.05 and
-                             numNeighborsi > Dimension::pownu(2));
+        const auto localMdeti = std::abs(localMi.Determinant());
+
+        const auto enoughNeighbors =  numNeighborsi > Dimension::pownu(2);
+        const auto goodM =  (Mdeti > 0.05 and enoughNeighbors);                   
+        const auto goodLocalM =  (localMdeti > enoughNeighbors);
 
         // interp var to blend out M when it gets ill conditioned detM>0.5 away from 1.0
         const auto x = min(1.0, max(0.0, 1.0-2.0*Mdeti));
+        const auto localx = min(1.0, max(0.0, 1.0-2.0*localMdeti));
 
         Mi = (goodM? (1.0-x)*Mi.Inverse() + x*Tensor::one : Tensor::one);
+        localMi = (goodLocalM? (1.0-localx)*localMi.Inverse() + localx*Tensor::one : Tensor::one);
+        
         if(mCorrectVelocityGradient){
           localDvDxi = localDvDxi*Mi;
           DpDxi = Mi.Transpose()*DpDxi;
-          DrhoDxi = Mi.Transpose()*DrhoDxi;
+          DrhoDxi = localMi.Transpose()*DrhoDxi;
         }
       }
   }
@@ -1233,6 +1242,7 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
          boundItr != this->boundaryEnd();
          ++boundItr){
+           (*boundItr)->applyFieldListGhostBoundary(localM);
            (*boundItr)->applyFieldListGhostBoundary(M);
            (*boundItr)->applyFieldListGhostBoundary(DpDx);
            (*boundItr)->applyFieldListGhostBoundary(DrhoDx);
