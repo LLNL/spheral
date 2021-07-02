@@ -11,7 +11,7 @@ from spheralDimensions import spheralDimensions
 
 dims = spheralDimensions()
 for dim in dims:
-    exec("from SpheralCompiledPackages import GammaLawGas%(dim)id, PolytropicEquationOfState%(dim)id, IsothermalEquationOfState%(dim)id" % {"dim" : dim})
+    exec("from SpheralCompiledPackages import StiffenedGas%(dim)id, GammaLawGas%(dim)id, PolytropicEquationOfState%(dim)id, IsothermalEquationOfState%(dim)id" % {"dim" : dim})
 
 EOSFactoryString = """
 #-------------------------------------------------------------------------------
@@ -66,6 +66,27 @@ class IsothermalEquationOfState%(units)s%(dim)id(IsothermalEquationOfState%(dim)
                                                    K,
                                                    mu, 
                                                    self._units,
+                                                   minimumPressure,
+                                                   maximumPressure)
+        return
+
+
+#-------------------------------------------------------------------------------
+# Stiffened Gas EOS
+#-------------------------------------------------------------------------------
+class StiffenedGas%(units)s%(dim)id(StiffenedGas%(dim)id):
+    def __init__(self, 
+                 gamma,
+                 P0,
+                 Cv,
+                 minimumPressure = -1e200,
+                 maximumPressure =  1e200):
+        self._units = %(units)s()
+        StiffenedGas%(dim)id.__init__(self,
+                                      gamma,
+                                      P0,
+                                      Cv,
+                                      self._units,
                                                    minimumPressure,
                                                    maximumPressure)
         return

@@ -10,7 +10,7 @@
 //
 // Created by JMO, Fri Jul 31 14:46:25 PDT 2015
 //----------------------------------------------------------------------------//
-#include "Utilities/DamageGradientNodeCoupling.hh"
+#include "Damage/DamageGradientNodeCoupling.hh"
 #include "Utilities/pointDistances.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/Timer.hh"

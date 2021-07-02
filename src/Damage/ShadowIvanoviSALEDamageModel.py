@@ -12,7 +12,7 @@ dims = spheralDimensions()
 # Define help strings for our constructors.
 #-------------------------------------------------------------------------------
 expectedUsageString = """
-ProbabilisticDamageModel is constructed with the following arguments (any 
+IvanoviSALEDamageModel is constructed with the following arguments (any 
 default values listed in parens):
 
         materialName            : (optional) label for the material in data base to
@@ -22,20 +22,15 @@ default values listed in parens):
         nodeList                : (required) the FluidNodeList this model should be 
                                   applied to
         kernel                  : (required) the interpolation kernel to use
-        kWeibull                : the "k" Weibull constant -- can be looked up from 
-                                  materialName or provided
-        mWeibull                : the "m" Weibull constant -- can be looked up from 
-                                  materialName or provided
-        seed                    : (48927592) random number seed for flaw generation
-        minFlawsPerNode         : (10) the minimum number of flaws to seed on a point
+        minPlasticFailure       : min plastic strain for shearing plastic failure to 
+                                  start
+        plasticFailurePressureSlope  : slope for plastic strain shearing failure law
+        plasticFailurePressureOffset : intercept for plastic strain shearing failure 
+                                       law
+        tensileFailureStress    : threshold stress for tensile failure to start
         crackGrowthMultiplier   : (0.4) crack growth rate in units of longitudinal
                                   sound speed
-        volumeMultiplier        : (1.0) Multiplies per node volume, useful for 
-                                  reduced dimensional (1D or 2D) problems.
-        damageCouplingAlgorithm : (PairMaxDamage) how should damaged points couple
-        strainAlgorithm         : (PseudoPlasticStrain) how to define the strain
-        damageInCompression     : (False) optionally damage in compression as well 
-                                  as tension
+        damageCouplingAlgorithm : (DirectDamage) how should damaged points couple
         criticalDamageThreshold : (4.0) prevent any nodes where Trace(D_i) exceeds 
                                   criticalDamageThreshold from setting timestep
         mask                    : (1 on all points) a field of flags: a node with 
@@ -44,10 +39,10 @@ default values listed in parens):
 """
 
 #-------------------------------------------------------------------------------
-# ProbabilisticDamageModel
+# IvanoviSALEDamageModel
 #-------------------------------------------------------------------------------
-ProbabilisticDamageModelGenString = """
-class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
+IvanoviSALEDamageModelGenString = """
+class IvanoviSALEDamageModel%(dim)s(CXXIvanoviSALEDamageModel%(dim)s):
     '''%(help)s'''
 
     def __init__(self, *args_in, **kwargs):
@@ -61,23 +56,20 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
                                 1.0)    # unit time in sec
 
         # Arguments needed to build the damage model.
-        damage_kwargs = {"nodeList"                 : None,
-                         "kernel"                   : None,
-                         "kWeibull"                 : None,
-                         "mWeibull"                 : None,
-                         "seed"                     : 48927592,
-                         "minFlawsPerNode"          : 10,
-                         "crackGrowthMultiplier"    : 0.4,
-                         "volumeMultiplier"         : 1.0,
-                         "damageCouplingAlgorithm"  : PairMaxDamage,
-                         "strainAlgorithm"          : PseudoPlasticStrain,
-                         "damageInCompression"      : False,
-                         "criticalDamageThreshold"  : 4.0,
-                         "mask"                     : None}
+        damage_kwargs = {"nodeList"                     : None,
+                         "kernel"                       : None,
+                         "minPlasticFailure"            : None,
+                         "plasticFailurePressureSlope"  : None,
+                         "plasticFailurePressureOffset" : None,
+                         "tensileFailureStress"         : None,
+                         "crackGrowthMultiplier"        : 0.4,
+                         "damageCouplingAlgorithm"      : DirectDamage,
+                         "criticalDamageThreshold"      : 4.0,
+                         "mask"                         : None}
 
         # Extra arguments for our convenient constructor.
-        convenient_kwargs = {"materialName"          : None,
-                             "units"                 : None}
+        convenient_kwargs = {"materialName"             : None,
+                             "units"                    : None}
 
         # Check the input arguments.
         validKeys = damage_kwargs.keys() + convenient_kwargs.keys()
@@ -99,26 +91,43 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
                 raise ValueError, (("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
                                    expectedUsageString)
             matprops = SpheralMaterialPropertiesLib[materialName]
-            if not ("kWeibull" in matprops and "mWeibull" in matprops):
-                raise ValueError, (("ERROR : material %%s does not provide the required values for kWeibull and mWeibull.\\n" %% materialName) + 
+            if not ("IvanovDamageModel" in matprops):
+                raise ValueError, (("ERROR : material %%s does not provide the required values for the Ivanov damage model.\\n" %% materialName) + 
                                    expectedUsageString)
-            damage_kwargs["kWeibull"] = matprops["kWeibull"]
-            damage_kwargs["mWeibull"] = matprops["mWeibull"]
+            damage_kwargs["minPlasticFailure"] = matprops["IvanovDamageModel"]["epsfb"]
+            damage_kwargs["plasticFailurePressureSlope"] = matprops["IvanovDamageModel"]["B"]
+            damage_kwargs["plasticFailurePressureOffset"] = matprops["IvanovDamageModel"]["Pc"]
+            damage_kwargs["tensileFailureStress"] = matprops["IvanovDamageModel"]["Yt"]
 
             # Any attempt to specify units?
+            units = None
             if "units" in kwargs:
                 units = kwargs["units"]
-                damage_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
                 del kwargs["units"]
             elif len(args) > 1 and isinstance(args[1], PhysicalConstants):
                 units = args[1]
-                damage_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
                 del args[1]
+            if units:
+                  lconv = cgs.unitLengthMeters / units.unitLengthMeters
+                  mconv = cgs.unitMassKg / units.unitMassKg
+                  tconv = cgs.unitTimeSec / units.unitTimeSec
+                  Pconv = mconv/(lconv*tconv*tconv)
+                  damage_kwargs["plasticFailurePressureSlope"] /= Pconv
+                  damage_kwargs["plasticFailurePressureOffset"] *= Pconv
+                  damage_kwargs["tensileFailureStress"] *= Pconv
 
         # Process remaining user arguments.
-        kwarg_order = ["nodeList", "kernel", "kWeibull", "mWeibull", "seed", "minFlawsPerNode", "crackGrowthMultiplier",
-                       "volumeMultiplier", "damageCouplingAlgorithm", "strainAlgorithm", "damageInCompression",
-                       "criticalDamageThreshold", "mask"]
+        kwarg_order = ["nodeList",
+                       "kernel",
+                       "minPlasticFailure",
+                       "plasticFailurePressureSlope",
+                       "plasticFailurePressureOffset",
+                       "tensileFailureStress",
+                       "crackGrowthMultiplier",
+                       "damageCouplingAlgorithm",
+                       "damageInCompression",
+                       "criticalDamageThreshold",
+                       "mask"]
         for iarg, argval in enumerate(args):
             damage_kwargs[kward_order[iarg]] = argval
 
@@ -133,12 +142,8 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
         if damage_kwargs["mask"] is None:
             damage_kwargs["mask"] = IntField%(dim)s("damage mask", damage_kwargs["nodeList"], 1)
 
-        # # If no minFlawsPerNode was specified, set it to a fraction of log(N_points)
-        # if damage_kwargs["minFlawsPerNode"] is None:
-        #     damage_kwargs["minFlawsPerNode"] = max(1, int(log(mpi.allreduce(damage_kwargs["nodeList"].numInternalNodes, mpi.SUM))))
-
         # Build the damage model.
-        CXXProbabilisticDamageModel%(dim)s.__init__(self, **damage_kwargs)
+        CXXIvanoviSALEDamageModel%(dim)s.__init__(self, **damage_kwargs)
         return
 
 """
@@ -147,16 +152,16 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
 # Make 'em
 #-------------------------------------------------------------------------------
 for dim in dims:
-    exec("from SpheralCompiledPackages import ProbabilisticDamageModel%id as CXXProbabilisticDamageModel%id" % (dim, dim))
+    exec("from SpheralCompiledPackages import IvanoviSALEDamageModel%id as CXXIvanoviSALEDamageModel%id" % (dim, dim))
 
     # Capture the full class help string
     save_stdout = sys.stdout
     ss = StringIO()
     sys.stdout = ss
-    eval("help(CXXProbabilisticDamageModel%id)" % dim)
+    eval("help(CXXIvanoviSALEDamageModel%id)" % dim)
     sys.stdout = save_stdout
     ss.seek(0)
     class_help = ss.read()
 
-    exec(ProbabilisticDamageModelGenString % {"dim": "%id" % dim,
-                                              "help": (expectedUsageString + "\n\n Class help:\n\n" + class_help)})
+    exec(IvanoviSALEDamageModelGenString % {"dim": "%id" % dim,
+                                            "help": (expectedUsageString + "\n\n Class help:\n\n" + class_help)})
