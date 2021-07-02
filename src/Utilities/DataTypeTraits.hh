@@ -33,17 +33,9 @@ namespace Spheral {
 template<typename DataType> struct DataTypeTraits;
 
 template <typename T> struct is_rank_n_tensor : std::false_type {};
-template <> struct is_rank_n_tensor<Dim<1>::ThirdRankTensor> : std::true_type {};
-template <> struct is_rank_n_tensor<Dim<2>::ThirdRankTensor> : std::true_type {};
-template <> struct is_rank_n_tensor<Dim<3>::ThirdRankTensor> : std::true_type {};
-
-template <> struct is_rank_n_tensor<Dim<1>::FourthRankTensor> : std::true_type {};
-template <> struct is_rank_n_tensor<Dim<2>::FourthRankTensor> : std::true_type {};
-template <> struct is_rank_n_tensor<Dim<3>::FourthRankTensor> : std::true_type {};
-
-template <> struct is_rank_n_tensor<Dim<1>::FifthRankTensor> : std::true_type {};
-template <> struct is_rank_n_tensor<Dim<2>::FifthRankTensor> : std::true_type {};
-template <> struct is_rank_n_tensor<Dim<3>::FifthRankTensor> : std::true_type {};
+template <int U> struct is_rank_n_tensor<GeomThirdRankTensor<U>> : std::true_type {};
+template <int U> struct is_rank_n_tensor<GeomFourthRankTensor<U>> : std::true_type {};
+template <int U> struct is_rank_n_tensor<GeomFifthRankTensor<U>> : std::true_type {};
 
 //------------------------------------------------------------------------------
 template<>
