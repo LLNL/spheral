@@ -1,10 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidSPHHydroBase -- SolidSPHHydro modified for large density discontinuities
-//
-// Created by JMO, Fri Jul 30 11:07:33 PDT 2010
+// SolidFSISPHHydroBase -- SolidSPHHydro modified for large density discontinuities
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "Utilities/DamagedNodeCoupling.hh"
+
 #include "SPH/SPHHydroBase.hh"
 #include "SPH/SolidSPHHydroBase.hh"
 #include "NodeList/SmoothingScaleBase.hh"
