@@ -110,6 +110,26 @@ SpheralMaterialPropertiesLib = {
         "Y0" : 3.50e10,             # dyne/cm^2
         "kWeibull" : 5.00e24,       # cm^-3
         "mWeibull" : 9.0,           # dimensionless
+        "IvanovDamageModel" : {
+            "epsfb" : 1e-4,         # dimensionless
+            "B"     : 1e-12,        # 1/P (cm^2/dyne)
+            "Pc"    : 3e9,          # dyne/cm^2
+            "Yt"    : 10e7,         # dyne/cm^2, tensile failure stress
+        },
+        # "JohnsonCookStrength" : {
+        #     "A"         : 244e7,    # dyne/cm^2
+        #     "B"         : 488e7,    # dyne/cm^2
+        #     "C"         : 0.02,     # dimensionless
+        #     "C4"        : 0.0,      # dimensionless
+        #     "m"         : 1.7,      # dimensionless
+        #     "nhard"     : 0.5,      # dimensionless
+        #     "epsdot0"   : 1.0,
+        #     "epsdotmin" : 0.0,
+        #     "Tmelt"     : 0.0,
+        #     "Troom"     : 0.0,
+        #     "mu0"       : 0.0,
+        #     "shearModulusScaling" : False,
+        # },
     },
 
 # 3 ----------------------------------------------------------------------------
