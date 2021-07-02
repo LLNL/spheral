@@ -1,10 +1,11 @@
 text = """
 //------------------------------------------------------------------------------
-// Explicit instantiation.
+// Instantiations.
 //------------------------------------------------------------------------------
-#include "Utilities/DamageGradientNodeCoupling.cc"
+#include "Damage/IvanoviSALEDamageModel.cc"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class DamageGradientNodeCoupling< Dim< %(ndim)s > >;
+  template class IvanoviSALEDamageModel<Dim< %(ndim)s > >;
 }
 """
