@@ -1,22 +1,19 @@
 namespace Spheral {
 
-////////////////////////////////////////////////////////////////////////////////
-// Generic Hydro Methods
-////////////////////////////////////////////////////////////////////////////////
 //------------------------------------------------------------------------------
 // Access the CFL safety criteria.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-RSPHHydroBase<Dimension>::cfl() const {
+GSPHHydroBase<Dimension>::cfl() const {
   return mCfl;
 }
 
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 cfl(typename Dimension::Scalar cfl) {
   mCfl = cfl;
 }
@@ -28,14 +25,14 @@ cfl(typename Dimension::Scalar cfl) {
 template<typename Dimension>
 inline
 bool
-RSPHHydroBase<Dimension>::useVelocityMagnitudeForDt() const {
+GSPHHydroBase<Dimension>::useVelocityMagnitudeForDt() const {
   return mUseVelocityMagnitudeForDt;
 }
 
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 useVelocityMagnitudeForDt(bool x) {
   mUseVelocityMagnitudeForDt = x;
 }
@@ -46,21 +43,21 @@ useVelocityMagnitudeForDt(bool x) {
 template<typename Dimension>
 inline
 int
-RSPHHydroBase<Dimension>::minMasterNeighbor() const {
+GSPHHydroBase<Dimension>::minMasterNeighbor() const {
   return mMinMasterNeighbor;
 }
 
 template<typename Dimension>
 inline
 int
-RSPHHydroBase<Dimension>::maxMasterNeighbor() const {
+GSPHHydroBase<Dimension>::maxMasterNeighbor() const {
   return mMaxMasterNeighbor;
 }
 
 template<typename Dimension>
 inline
 double
-RSPHHydroBase<Dimension>::averageMasterNeighbor() const {
+GSPHHydroBase<Dimension>::averageMasterNeighbor() const {
   return double(mSumMasterNeighbor)/(mNormMasterNeighbor + FLT_MIN);
 }
 
@@ -70,21 +67,21 @@ RSPHHydroBase<Dimension>::averageMasterNeighbor() const {
 template<typename Dimension>
 inline
 int
-RSPHHydroBase<Dimension>::minCoarseNeighbor() const {
+GSPHHydroBase<Dimension>::minCoarseNeighbor() const {
   return mMinCoarseNeighbor;
 }
 
 template<typename Dimension>
 inline
 int
-RSPHHydroBase<Dimension>::maxCoarseNeighbor() const {
+GSPHHydroBase<Dimension>::maxCoarseNeighbor() const {
   return mMaxCoarseNeighbor;
 }
 
 template<typename Dimension>
 inline
 double
-RSPHHydroBase<Dimension>::averageCoarseNeighbor() const {
+GSPHHydroBase<Dimension>::averageCoarseNeighbor() const {
   return double(mSumCoarseNeighbor)/(mNormCoarseNeighbor + FLT_MIN);
 }
 
@@ -94,21 +91,21 @@ RSPHHydroBase<Dimension>::averageCoarseNeighbor() const {
 template<typename Dimension>
 inline
 int
-RSPHHydroBase<Dimension>::minRefineNeighbor() const {
+GSPHHydroBase<Dimension>::minRefineNeighbor() const {
   return mMinRefineNeighbor;
 }
 
 template<typename Dimension>
 inline
 int
-RSPHHydroBase<Dimension>::maxRefineNeighbor() const {
+GSPHHydroBase<Dimension>::maxRefineNeighbor() const {
   return mMaxRefineNeighbor;
 }
 
 template<typename Dimension>
 inline
 double
-RSPHHydroBase<Dimension>::averageRefineNeighbor() const {
+GSPHHydroBase<Dimension>::averageRefineNeighbor() const {
   return double(mSumRefineNeighbor)/(mNormRefineNeighbor + FLT_MIN);
 }
 
@@ -118,21 +115,21 @@ RSPHHydroBase<Dimension>::averageRefineNeighbor() const {
 template<typename Dimension>
 inline
 int
-RSPHHydroBase<Dimension>::minActualNeighbor() const {
+GSPHHydroBase<Dimension>::minActualNeighbor() const {
   return mMinActualNeighbor;
 }
 
 template<typename Dimension>
 inline
 int
-RSPHHydroBase<Dimension>::maxActualNeighbor() const {
+GSPHHydroBase<Dimension>::maxActualNeighbor() const {
   return mMaxActualNeighbor;
 }
 
 template<typename Dimension>
 inline
 double
-RSPHHydroBase<Dimension>::averageActualNeighbor() const {
+GSPHHydroBase<Dimension>::averageActualNeighbor() const {
   return double(mSumActualNeighbor)/(mNormActualNeighbor + FLT_MIN);
 }
 
@@ -142,7 +139,7 @@ RSPHHydroBase<Dimension>::averageActualNeighbor() const {
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 updateMasterNeighborStats(int numMaster) const {
   if (numMaster > 0) {
     mMinMasterNeighbor = std::min(mMinMasterNeighbor, numMaster);
@@ -158,7 +155,7 @@ updateMasterNeighborStats(int numMaster) const {
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 updateCoarseNeighborStats(int numNeighbor) const {
   if (numNeighbor > 0) {
     mMinCoarseNeighbor = std::min(mMinCoarseNeighbor, numNeighbor);
@@ -174,7 +171,7 @@ updateCoarseNeighborStats(int numNeighbor) const {
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 updateRefineNeighborStats(int numNeighbor) const {
   if (numNeighbor > 0) {
     mMinRefineNeighbor = std::min(mMinRefineNeighbor, numNeighbor);
@@ -190,7 +187,7 @@ updateRefineNeighborStats(int numNeighbor) const {
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 updateActualNeighborStats(int numNeighbor) const {
   if (numNeighbor > 0) {
     mMinActualNeighbor = std::min(mMinActualNeighbor, numNeighbor);
@@ -218,14 +215,14 @@ updateActualNeighborStats(int numNeighbor) const {
 template<typename Dimension>
 inline
 HEvolutionType
-RSPHHydroBase<Dimension>::HEvolution() const {
+GSPHHydroBase<Dimension>::HEvolution() const {
   return mHEvolution;
 }
 
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 HEvolution(HEvolutionType type) {
   mHEvolution = type;
 }
@@ -237,14 +234,14 @@ HEvolution(HEvolutionType type) {
 template<typename Dimension>
 inline
 bool
-RSPHHydroBase<Dimension>::compatibleEnergyEvolution() const {
+GSPHHydroBase<Dimension>::compatibleEnergyEvolution() const {
   return mCompatibleEnergyEvolution;
 }
 
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::compatibleEnergyEvolution(bool val) {
+GSPHHydroBase<Dimension>::compatibleEnergyEvolution(bool val) {
   mCompatibleEnergyEvolution = val;
 }
 
@@ -254,14 +251,14 @@ RSPHHydroBase<Dimension>::compatibleEnergyEvolution(bool val) {
 template<typename Dimension>
 inline
 bool
-RSPHHydroBase<Dimension>::evolveTotalEnergy() const {
+GSPHHydroBase<Dimension>::evolveTotalEnergy() const {
   return mEvolveTotalEnergy;
 }
 
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
+GSPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
   mEvolveTotalEnergy = val;
 }
 
@@ -272,14 +269,14 @@ RSPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
 template<typename Dimension>
 inline
 bool
-RSPHHydroBase<Dimension>::XSPH() const {
+GSPHHydroBase<Dimension>::XSPH() const {
   return mXSPH;
 }
 
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::XSPH(bool val) {
+GSPHHydroBase<Dimension>::XSPH(bool val) {
   mXSPH = val;
 }
 
@@ -289,14 +286,14 @@ RSPHHydroBase<Dimension>::XSPH(bool val) {
 template<typename Dimension>
 inline
 bool
-RSPHHydroBase<Dimension>::correctVelocityGradient() const {
+GSPHHydroBase<Dimension>::correctVelocityGradient() const {
   return mCorrectVelocityGradient;
 }
 
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::correctVelocityGradient(bool val) {
+GSPHHydroBase<Dimension>::correctVelocityGradient(bool val) {
   mCorrectVelocityGradient = val;
 }
 
@@ -307,14 +304,14 @@ RSPHHydroBase<Dimension>::correctVelocityGradient(bool val) {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 epsilonTensile() const {
   return mEpsTensile;
 }
 
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 epsilonTensile(typename Dimension::Scalar val) {
   mEpsTensile = val;
 }
@@ -325,7 +322,7 @@ epsilonTensile(typename Dimension::Scalar val) {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 nTensile() const {
   return mnTensile;
 }
@@ -333,7 +330,7 @@ nTensile() const {
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 nTensile(typename Dimension::Scalar val) {
   mnTensile = val;
 }
@@ -344,7 +341,7 @@ nTensile(typename Dimension::Scalar val) {
 template<typename Dimension>
 inline
 const typename Dimension::Vector&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 xmin() const {
   return mxmin;
 }
@@ -352,7 +349,7 @@ xmin() const {
 template<typename Dimension>
 inline
 const typename Dimension::Vector&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 xmax() const {
   return mxmax;
 }
@@ -360,7 +357,7 @@ xmax() const {
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 xmin(const typename Dimension::Vector& x) {
   mxmin = x;
 }
@@ -368,7 +365,7 @@ xmin(const typename Dimension::Vector& x) {
 template<typename Dimension>
 inline
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 xmax(const typename Dimension::Vector& x) {
   mxmax = x;
 }
@@ -379,7 +376,7 @@ xmax(const typename Dimension::Vector& x) {
 template<typename Dimension>
 inline
 const TableKernel<Dimension>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 kernel() const {
   return mKernel;
 }
@@ -391,7 +388,7 @@ kernel() const {
 template<typename Dimension>
 inline
 const SmoothingScaleBase<Dimension>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 smoothingScaleMethod() const {
   return mSmoothingScaleMethod;
 }
@@ -402,7 +399,7 @@ smoothingScaleMethod() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, int>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 timeStepMask() const {
   return mTimeStepMask;
 }
@@ -410,7 +407,7 @@ timeStepMask() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 pressure() const {
   return mPressure;
 }
@@ -418,7 +415,7 @@ pressure() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 soundSpeed() const {
   return mSoundSpeed;
 }
@@ -426,7 +423,7 @@ soundSpeed() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 specificThermalEnergy0() const {
   return mSpecificThermalEnergy0;
 }
@@ -434,7 +431,7 @@ specificThermalEnergy0() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::SymTensor>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 Hideal() const {
   return mHideal;
 }
@@ -443,7 +440,7 @@ Hideal() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 normalization() const {
   return mNormalization;
 }
@@ -451,7 +448,7 @@ normalization() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 weightedNeighborSum() const {
   return mWeightedNeighborSum;
 }
@@ -459,7 +456,7 @@ weightedNeighborSum() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::SymTensor>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 massSecondMoment() const {
   return mMassSecondMoment;
 }
@@ -467,7 +464,7 @@ massSecondMoment() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 XSPHWeightSum() const {
   return mXSPHWeightSum;
 }
@@ -475,7 +472,7 @@ XSPHWeightSum() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Vector>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 XSPHDeltaV() const {
   return mXSPHDeltaV;
 }
@@ -483,7 +480,7 @@ XSPHDeltaV() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Tensor>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 M() const {
   return mM;
 }
@@ -491,7 +488,7 @@ M() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Tensor>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 localM() const {
   return mLocalM;
 }
@@ -499,7 +496,7 @@ localM() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Vector>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 DxDt() const {
   return mDxDt;
 }
@@ -507,7 +504,7 @@ DxDt() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Vector>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 DvDt() const {
   return mDvDt;
 }
@@ -515,7 +512,7 @@ DvDt() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 DmassDensityDt() const {
   return mDmassDensityDt;
 }
@@ -523,7 +520,7 @@ DmassDensityDt() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 DspecificThermalEnergyDt() const {
   return mDspecificThermalEnergyDt;
 }
@@ -531,7 +528,7 @@ DspecificThermalEnergyDt() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::SymTensor>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 DHDt() const {
   return mDHDt;
 }
@@ -539,7 +536,7 @@ DHDt() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Tensor>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 DvDx() const {
   return mDvDx;
 }
@@ -547,7 +544,7 @@ DvDx() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Tensor>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 internalDvDx() const {
   return mInternalDvDx;
 }
@@ -555,7 +552,7 @@ internalDvDx() const {
 template<typename Dimension>
 inline
 const std::vector<typename Dimension::Vector>&
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;
 }

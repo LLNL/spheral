@@ -1,13 +1,13 @@
 #-------------------------------------------------------------------------------
-# RSPHHydroBase
+# GSPHHydroBase
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from GenericHydro import *
+from Physics import *
 from RestartMethods import *
 
 @PYB11template("Dimension")
-@PYB11module("SpheralRSPH")
-class RSPHHydroBase(GenericHydro):
+@PYB11module("SpheralGSPH")
+class GSPHHydroBase(Physics):
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -19,10 +19,11 @@ class RSPHHydroBase(GenericHydro):
     
     def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
                dataBase = "DataBase<%(Dimension)s>&",
-               Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
+               compatibleEnergyEvolution = "const bool",
+               evolveTotalEnergy = "const bool",
                XSPH = "const bool",
                correctVelocityGradient = "const bool",
                HUpdate = "const HEvolutionType",
@@ -30,10 +31,20 @@ class RSPHHydroBase(GenericHydro):
                nTensile = "const double",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "SPHHydroBase constructor"
+        "GSPHHydroBase constructor"
 
     #...........................................................................
     # Virtual methods
+
+    @PYB11virtual
+    @PYB11const
+    def dt(dataBase = "const DataBase<%(Dimension)s>&", 
+           state = "const State<%(Dimension)s>&",
+           derivs = "const StateDerivatives<%(Dimension)s>&",
+           currentTime = "const Scalar"):
+        "Vote on a time step."
+        return "TimeStepType"
+
     @PYB11virtual
     def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
         "Tasks we do once on problem startup."
@@ -103,14 +114,37 @@ mass density, velocity, and specific thermal energy."""
 
 
     #...........................................................................
+    # Protected methods from GenericHydro
+    @PYB11protected
+    @PYB11const
+    def updateMasterNeighborStats(self, numMaster="int"):
+        return "void"
+
+    @PYB11protected
+    @PYB11const
+    def updateCoarseNeighborStats(self, numCoarse="int"):
+        return "void"
+
+    @PYB11protected
+    @PYB11const
+    def updateRefineNeighborStats(self, numRefine="int"):
+        return "void"
+
+    @PYB11protected
+    @PYB11const
+    def updateActualNeighborStats(self, numActual="int"):
+        return "void"
+
+
+    #...........................................................................
     # Properties
     kernel = PYB11property("const TableKernel<%(Dimension)s>&", "kernel", doc="The interpolation kernel")
     HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution",
                                doc="Flag to select how we want to evolve the H tensor")
-    #compatibleEnergyEvolution = PYB11property("bool", "compatibleEnergyEvolution", "compatibleEnergyEvolution",
-    #                                          doc="Flag to determine if we're using the total energy conserving compatible energy evolution scheme.")
-    #evolveTotalEnergy = PYB11property("bool", "evolveTotalEnergy", "evolveTotalEnergy",
-    #                                  doc="Flag controlling if we evolve total or specific energy.")
+    compatibleEnergyEvolution = PYB11property("bool", "compatibleEnergyEvolution", "compatibleEnergyEvolution",
+                                              doc="Flag to determine if we're using the total energy conserving compatible energy evolution scheme.")
+    evolveTotalEnergy = PYB11property("bool", "evolveTotalEnergy", "evolveTotalEnergy",
+                                      doc="Flag controlling if we evolve total or specific energy.")
     XSPH = PYB11property("bool", "XSPH", "XSPH",
                          doc="Flag to determine if we're using the XSPH algorithm.")
     correctVelocityGradient = PYB11property("bool", "correctVelocityGradient", "correctVelocityGradient",
@@ -132,17 +166,8 @@ mass density, velocity, and specific thermal energy."""
     timeStepMask =                 PYB11property("const FieldList<%(Dimension)s, int>&",      "timeStepMask",         returnpolicy="reference_internal")
     pressure =                     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "pressure",             returnpolicy="reference_internal")
     soundSpeed =                   PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "soundSpeed",           returnpolicy="reference_internal")
-    #volume =                       PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "volume",               returnpolicy="reference_internal")
-    #omegaGradh =                   PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "omegaGradh",           returnpolicy="reference_internal")
-    #specificThermalEnergy0 =       PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "specificThermalEnergy0",returnpolicy="reference_internal")
-    #entropy =                      PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "entropy",              returnpolicy="reference_internal")
     Hideal =                       PYB11property("const FieldList<%(Dimension)s, SymTensor>&","Hideal",               returnpolicy="reference_internal")
-    #maxViscousPressure =           PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "maxViscousPressure",   returnpolicy="reference_internal")
-    #effectiveViscousPressure =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "effectiveViscousPressure", returnpolicy="reference_internal")
-    #massDensityCorrection =        PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "massDensityCorrection",returnpolicy="reference_internal")
-    #viscousWork =                  PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "viscousWork",          returnpolicy="reference_internal")
-    #massDensitySum =               PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "massDensitySum",       returnpolicy="reference_internal")
-    #normalization =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "normalization",        returnpolicy="reference_internal")
+    normalization =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "normalization",        returnpolicy="reference_internal")
     weightedNeighborSum =          PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "weightedNeighborSum",  returnpolicy="reference_internal")
     massSecondMoment =             PYB11property("const FieldList<%(Dimension)s, SymTensor>&","massSecondMoment",     returnpolicy="reference_internal")
     XSPHWeightSum =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "XSPHWeightSum",        returnpolicy="reference_internal")
@@ -158,7 +183,24 @@ mass density, velocity, and specific thermal energy."""
     internalDvDx =                 PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "internalDvDx",         returnpolicy="reference_internal")
     pairAccelerations =            PYB11property("const std::vector<Vector>&", "pairAccelerations", returnpolicy="reference_internal")
 
+    #...........................................................................
+    # Attributes -- Generic Hydro
+    cfl = PYB11property("Scalar", "cfl", "cfl", doc="The Courant-Friedrichs-Lewy timestep limit multiplier")
+    useVelocityMagnitudeForDt = PYB11property("bool", "useVelocityMagnitudeForDt", "useVelocityMagnitudeForDt", doc="Should the pointwise velocity magnitude be used to limit the timestep?")
+    minMasterNeighbor = PYB11property("int", "minMasterNeighbor", doc="minimum number of master neighbors found")
+    maxMasterNeighbor = PYB11property("int", "maxMasterNeighbor", doc="maximum number of master neighbors found")
+    averageMasterNeighbor = PYB11property("double", "averageMasterNeighbor", doc="average number of master neighbors found")
+    minCoarseNeighbor = PYB11property("int", "minCoarseNeighbor", doc="minimum number of coarse neighbors found")
+    maxCoarseNeighbor = PYB11property("int", "maxCoarseNeighbor", doc="maximum number of coarse neighbors found")
+    averageCoarseNeighbor = PYB11property("double", "averageCoarseNeighbor", doc="average number of coarse neighbors found")
+    minRefineNeighbor = PYB11property("int", "minRefineNeighbor", doc="minimum number of refine neighbors found")
+    maxRefineNeighbor = PYB11property("int", "maxRefineNeighbor", doc="maximum number of refine neighbors found")
+    averageRefineNeighbor = PYB11property("double", "averageRefineNeighbor", doc="average number of refine neighbors found")
+    minActualNeighbor = PYB11property("int", "minActualNeighbor", doc="minimum number of actual neighbors found")
+    maxActualNeighbor = PYB11property("int", "maxActualNeighbor", doc="maximum number of actual neighbors found")
+    averageActualNeighbor = PYB11property("double", "averageActualNeighbor", doc="average number of actual neighbors found")
+
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, RSPHHydroBase)
+PYB11inject(RestartMethods, GSPHHydroBase)

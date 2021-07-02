@@ -1,11 +1,11 @@
 text = """
 //------------------------------------------------------------------------------
-// Explicit instantiation.
+// Explict instantiation.
 //------------------------------------------------------------------------------
+#include "GSPH/GSPHHydroBase.cc"
 #include "Geometry/Dimension.hh"
-#include "RSPH/FSISpecificThermalEnergyPolicy.cc"
 
 namespace Spheral {
-  template class FSISpecificThermalEnergyPolicy<Dim< %(ndim)s > >;
+  template class GSPHHydroBase< Dim< %(ndim)s > >;
 }
 """

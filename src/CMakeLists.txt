@@ -34,7 +34,7 @@ list(APPEND _packages
   NodeList
   Physics
   RK
-  RSPH
+  GSPH
   SolidMaterial
   SPH
   Strength

@@ -1,15 +1,13 @@
 //---------------------------------Spheral++----------------------------------//
-// FSISpecificThermalEnergyPolicy -- An implementation of UpdatePolicyBase specialized
+// GSPHSpecificThermalEnergyPolicy -- An implementation of UpdatePolicyBase specialized
 // for the updating the specific thermal energy as a dependent quantity.
 // 
 // This version is specialized for the compatible energy discretization 
 // method.
-//
-// Created by JMO, Tue Sep 14 22:27:08 2004
 //----------------------------------------------------------------------------//
 
-#ifndef __Spheral_FSISpecificThermalEnergyPolicy_hh__
-#define __Spheral_FSISpecificThermalEnergyPolicy_hh__
+#ifndef __Spheral_GSPHSpecificThermalEnergyPolicy_hh__
+#define __Spheral_GSPHSpecificThermalEnergyPolicy_hh__
 
 #include "DataBase/IncrementFieldList.hh"
 
@@ -25,7 +23,7 @@ template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class DataBase;
 
 template<typename Dimension>
-class FSISpecificThermalEnergyPolicy: 
+class GSPHSpecificThermalEnergyPolicy: 
     public IncrementFieldList<Dimension, typename Dimension::Scalar> {
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -35,8 +33,8 @@ public:
   typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
-  FSISpecificThermalEnergyPolicy(const DataBase<Dimension>& db);
-  virtual ~FSISpecificThermalEnergyPolicy();
+  GSPHSpecificThermalEnergyPolicy(const DataBase<Dimension>& db);
+  virtual ~GSPHSpecificThermalEnergyPolicy();
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,
@@ -69,8 +67,8 @@ private:
   //--------------------------- Private Interface ---------------------------//
   const DataBase<Dimension>* mDataBasePtr;
 
-  FSISpecificThermalEnergyPolicy(const FSISpecificThermalEnergyPolicy& rhs);
-  FSISpecificThermalEnergyPolicy& operator=(const FSISpecificThermalEnergyPolicy& rhs);
+  GSPHSpecificThermalEnergyPolicy(const GSPHSpecificThermalEnergyPolicy& rhs);
+  GSPHSpecificThermalEnergyPolicy& operator=(const GSPHSpecificThermalEnergyPolicy& rhs);
 };
 
 }
@@ -79,7 +77,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class FSISpecificThermalEnergyPolicy;
+  template<typename Dimension> class GSPHSpecificThermalEnergyPolicy;
 }
 
 #endif

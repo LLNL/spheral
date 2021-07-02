@@ -1,5 +1,5 @@
 """
-Spheral RSPH module.
+Spheral GSPH module.
 
 Provides implementations of Riemann SPH
 """
@@ -9,12 +9,12 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-from RSPHHydroBase import *
+from GSPHHydroBase import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-PYB11includes += ['"RSPH/RSPHHydroBase.hh"',
+PYB11includes += ['"GSPH/GSPHHydroBase.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ PYB11namespaces = ["Spheral"]
 #-------------------------------------------------------------------------------
 for ndim in dims:
     exec('''
-RSPHHydroBase%(ndim)id = PYB11TemplateClass(RSPHHydroBase, template_parameters="%(Dimension)s")
+GSPHHydroBase%(ndim)id = PYB11TemplateClass(GSPHHydroBase, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 

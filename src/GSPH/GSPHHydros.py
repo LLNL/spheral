@@ -6,8 +6,8 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # The generic SPHHydro pattern.
 #-------------------------------------------------------------------------------
-RSPHHydroFactoryString = """
-class %(classname)s%(dim)s(RSPHHydroBase%(dim)s):
+GSPHHydroFactoryString = """
+class %(classname)s%(dim)s(GSPHHydroBase%(dim)s):
 
     def __init__(self,
                  dataBase,
@@ -24,7 +24,7 @@ class %(classname)s%(dim)s(RSPHHydroBase%(dim)s):
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
         self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-        RSPHHydroBase%(dim)s.__init__(self,
+        GSPHHydroBase%(dim)s.__init__(self,
                                      self._smoothingScaleMethod,
                                      dataBase,
                                      W,
@@ -47,18 +47,18 @@ class %(classname)s%(dim)s(RSPHHydroBase%(dim)s):
 # Make 'em.
 #-------------------------------------------------------------------------------
 for dim in dims:
-    exec(RSPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                  "classname"            : "RSPHHydro",
+    exec(GSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                  "classname"            : "GSPHHydro",
                                   "smoothingScaleMethod" : "SPHSmoothingScale"})
-    exec(RSPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                  "classname"            : "ARSPHHydro",
+    exec(GSPHHydroFactoryString % {"dim"                  : "%id" % dim,
+                                  "classname"            : "AGSPHHydro",
                                   "smoothingScaleMethod" : "ASPHSmoothingScale"})
 
 
 #-------------------------------------------------------------------------------
 # Provide a factory function to return the appropriate SPH hydro.
 #-------------------------------------------------------------------------------
-def RSPH(dataBase,
+def GSPH(dataBase,
         W,
         cfl = 0.25,
         useVelocityMagnitudeForDt = False,
@@ -83,15 +83,15 @@ def RSPH(dataBase,
     nfluid = dataBase.numFluidNodeLists
     nsolid = dataBase.numSolidNodeLists
     if nsolid > 0 and nsolid != nfluid:
-        print "RSPH Error: you have provided both solid and fluid NodeLists, which is currently not supported."
+        print "GSPH Error: you have provided both solid and fluid NodeLists, which is currently not supported."
         print "            If you want some fluids active, provide SolidNodeList without a strength option specfied,"
         print "            which will result in fluid behaviour for those nodes."
         raise RuntimeError, "Cannot mix solid and fluid NodeLists."
 
     if ASPH:
-        Constructor = eval("ARSPHHydro%id" % ndim)
+        Constructor = eval("AGSPHHydro%id" % ndim)
     else:
-        Constructor = eval("RSPHHydro%id" % ndim)
+        Constructor = eval("GSPHHydro%id" % ndim)
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin

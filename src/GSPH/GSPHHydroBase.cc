@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// RSPHHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
+// GSPHHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
 //
 // Created by JMO, Mon Jul 19 22:11:09 PDT 2010
 //----------------------------------------------------------------------------//
@@ -41,8 +41,8 @@
 //#include "Mesh/Mesh.hh"
 //#include "CRKSPH/volumeSpacing.hh"
 
-#include "FSISpecificThermalEnergyPolicy.hh"
-#include "RSPHHydroBase.hh"
+#include "GSPHSpecificThermalEnergyPolicy.hh"
+#include "GSPHHydroBase.hh"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -69,20 +69,20 @@ using std::max;
 using std::abs;
 
 // Declare timers
-extern Timer TIME_RSPH;
-extern Timer TIME_RSPHinitializeStartup;
-extern Timer TIME_RSPHregister;
-extern Timer TIME_RSPHregisterDerivs;
-extern Timer TIME_RSPHpreStepInitialize;
-extern Timer TIME_RSPHinitialize;
-extern Timer TIME_RSPHfinalizeDerivs;
-extern Timer TIME_RSPHghostBounds;
-extern Timer TIME_RSPHupdateVol;
-extern Timer TIME_RSPHenforceBounds;
-extern Timer TIME_RSPHevalDerivs;
-extern Timer TIME_RSPHevalDerivs_initial;
-extern Timer TIME_RSPHevalDerivs_pairs;
-extern Timer TIME_RSPHevalDerivs_final;
+extern Timer TIME_GSPH;
+extern Timer TIME_GSPHinitializeStartup;
+extern Timer TIME_GSPHregister;
+extern Timer TIME_GSPHregisterDerivs;
+extern Timer TIME_GSPHpreStepInitialize;
+extern Timer TIME_GSPHinitialize;
+extern Timer TIME_GSPHfinalizeDerivs;
+extern Timer TIME_GSPHghostBounds;
+extern Timer TIME_GSPHupdateVol;
+extern Timer TIME_GSPHenforceBounds;
+extern Timer TIME_GSPHevalDerivs;
+extern Timer TIME_GSPHevalDerivs_initial;
+extern Timer TIME_GSPHevalDerivs_pairs;
+extern Timer TIME_GSPHevalDerivs_final;
 
 
 namespace {
@@ -102,8 +102,8 @@ namespace Spheral {
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-RSPHHydroBase<Dimension>::
-RSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+GSPHHydroBase<Dimension>::
+GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              DataBase<Dimension>& dataBase,
              const TableKernel<Dimension>& W,
              const double cfl,
@@ -208,8 +208,8 @@ RSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
 // Destructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-RSPHHydroBase<Dimension>::
-~RSPHHydroBase() {
+GSPHHydroBase<Dimension>::
+~GSPHHydroBase() {
 }
 
 //------------------------------------------------------------------------------
@@ -217,15 +217,15 @@ RSPHHydroBase<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
-  TIME_RSPHinitializeStartup.start();
+  TIME_GSPHinitializeStartup.start();
 
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
   
-  TIME_RSPHinitializeStartup.stop();
+  TIME_GSPHinitializeStartup.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -233,10 +233,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-  TIME_RSPHregister.start();
+  TIME_GSPHregister.start();
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
@@ -295,7 +295,7 @@ registerState(DataBase<Dimension>& dataBase,
   // conditional for energy method
   if (mCompatibleEnergyEvolution) {
     
-    PolicyPointer thermalEnergyPolicy(new FSISpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer thermalEnergyPolicy(new GSPHSpecificThermalEnergyPolicy<Dimension>(dataBase));
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
                                                                            HydroFieldNames::specificThermalEnergy,
                                                                            true));
@@ -318,7 +318,7 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(velocity, velocityPolicy);
   }
   
-  TIME_RSPHregister.stop();
+  TIME_GSPHregister.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -326,10 +326,10 @@ registerState(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
-  TIME_RSPHregisterDerivs.start();
+  TIME_GSPHregisterDerivs.start();
 
   // Create the scratch fields.
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
@@ -375,15 +375,15 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mM);
   derivs.enroll(mLocalM);
   derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
-  TIME_RSPHregisterDerivs.stop();
+  TIME_GSPHregisterDerivs.stop();
 }
 
 //------------------------------------------------------------------------------
-// RSPH Time step
+// GSPH Time step
 //------------------------------------------------------------------------------
 template<typename Dimension>
-typename RSPHHydroBase<Dimension>::TimeStepType
-RSPHHydroBase<Dimension>::
+typename GSPHHydroBase<Dimension>::TimeStepType
+GSPHHydroBase<Dimension>::
 dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
@@ -535,11 +535,11 @@ dt(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
-  TIME_RSPHpreStepInitialize.start();
+  TIME_GSPHpreStepInitialize.start();
   
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -550,7 +550,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
   for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   
-  TIME_RSPHpreStepInitialize.stop();
+  TIME_GSPHpreStepInitialize.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -558,13 +558,13 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 initialize(const typename Dimension::Scalar /*time*/,
            const typename Dimension::Scalar /*dt*/,
            const DataBase<Dimension>& dataBase,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
-  TIME_RSPHinitialize.start();
+  TIME_GSPHinitialize.start();
 
   // store DvDx for use in HLLC reconstruction
   const auto DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
@@ -602,7 +602,7 @@ initialize(const typename Dimension::Scalar /*time*/,
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
  
-  TIME_RSPHinitialize.stop();
+  TIME_GSPHinitialize.stop();
 }
 
 
@@ -611,14 +611,14 @@ initialize(const typename Dimension::Scalar /*time*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar time,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
-  TIME_RSPHevalDerivs.start();
-  TIME_RSPHevalDerivs_initial.start();
+  TIME_GSPHevalDerivs.start();
+  TIME_GSPHevalDerivs_initial.start();
 
   if (this->correctVelocityGradient()){
     this->evaluateSpatialGradients(time,dt,dataBase,state,derivatives);
@@ -702,10 +702,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
-  TIME_RSPHevalDerivs_initial.stop();
+  TIME_GSPHevalDerivs_initial.stop();
 
   // Walk all the interacting pairs.
-  TIME_RSPHevalDerivs_pairs.start();
+  TIME_GSPHevalDerivs_pairs.start();
 #pragma omp parallel
   {
     // Thread private scratch variables
@@ -935,11 +935,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     } // loop over pairs
     threadReduceFieldLists<Dimension>(threadStack);
   } // OpenMP parallel region
-  TIME_RSPHevalDerivs_pairs.stop();
+  TIME_GSPHevalDerivs_pairs.stop();
 
 
   // Finish up the derivatives for each point.
-  TIME_RSPHevalDerivs_final.start();
+  TIME_GSPHevalDerivs_final.start();
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
@@ -1029,8 +1029,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         i);
     }
   }
-  TIME_RSPHevalDerivs_final.stop();
-  TIME_RSPHevalDerivs.stop();
+  TIME_GSPHevalDerivs_final.stop();
+  TIME_GSPHevalDerivs.stop();
 }
 
 
@@ -1039,7 +1039,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
                          const typename Dimension::Scalar /*dt*/,
                          const DataBase<Dimension>& dataBase,
@@ -1093,10 +1093,10 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
-  TIME_RSPHevalDerivs_initial.stop();
+  TIME_GSPHevalDerivs_initial.stop();
 
   // Walk all the interacting pairs.
-  TIME_RSPHevalDerivs_pairs.start();
+  TIME_GSPHevalDerivs_pairs.start();
 #pragma omp parallel
   {
     // Thread private scratch variables
@@ -1259,13 +1259,13 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 finalizeDerivatives(const typename Dimension::Scalar /*time*/,
                     const typename Dimension::Scalar /*dt*/,
                     const DataBase<Dimension>& /*dataBase*/,
                     const State<Dimension>& /*state*/,
                     StateDerivatives<Dimension>& derivs) const {
-  TIME_RSPHfinalizeDerivs.start();
+  TIME_GSPHfinalizeDerivs.start();
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
   if (compatibleEnergyEvolution()) {
@@ -1278,7 +1278,7 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
-  TIME_RSPHfinalizeDerivs.stop();
+  TIME_GSPHfinalizeDerivs.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -1286,10 +1286,10 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& /*derivs*/) {
-  TIME_RSPHghostBounds.start();
+  TIME_GSPHghostBounds.start();
 
   // Apply boundary conditions to the basic fluid state Fields.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -1311,7 +1311,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(soundSpeed);
   
   }
-  TIME_RSPHghostBounds.stop();
+  TIME_GSPHghostBounds.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -1319,10 +1319,10 @@ applyGhostBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
-  TIME_RSPHenforceBounds.start();
+  TIME_GSPHenforceBounds.start();
 
   // Enforce boundary conditions on the fluid state Fields.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -1342,7 +1342,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(pressure);
     (*boundaryItr)->enforceFieldListBoundary(soundSpeed);
   }
-  TIME_RSPHenforceBounds.stop();
+  TIME_GSPHenforceBounds.stop();
 }
 
 
@@ -1351,7 +1351,7 @@ enforceBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mPressure, pathName + "/pressure");
@@ -1383,7 +1383,7 @@ dumpState(FileIO& file, const string& pathName) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
  
   file.read(mTimeStepMask, pathName + "/timeStepMask");
@@ -1413,7 +1413,7 @@ restoreState(const FileIO& file, const string& pathName) {
 
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 pearlLimiter( const typename Dimension::Scalar& Ci,
               const typename Dimension::Scalar& Cj,
               const typename Dimension::Vector& rij,
@@ -1442,7 +1442,7 @@ pearlLimiter( const typename Dimension::Scalar& Ci,
 
 template<typename Dimension>
 const typename Dimension::Scalar
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 vanLeerLimiter( const typename Dimension::Vector& xij,
                 //const typename Dimension::Vector& vi,   
                 //const typename Dimension::Vector& vj,
@@ -1468,7 +1468,7 @@ vanLeerLimiter( const typename Dimension::Vector& xij,
 
 template<typename Dimension>
 const typename Dimension::Scalar 
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 vanLeerLimiter( const typename Dimension::Vector& xij,
                 //const typename Dimension::Scalar& vi,   
                 //const typename Dimension::Scalar& vj,
@@ -1494,7 +1494,7 @@ vanLeerLimiter( const typename Dimension::Vector& xij,
 
 template<typename Dimension>
 void
-RSPHHydroBase<Dimension>::
+GSPHHydroBase<Dimension>::
 computeHLLCstate( const typename Dimension::Vector& rij,
                   int nodeListi,
                   int nodeListj,
@@ -1594,8 +1594,8 @@ computeHLLCstate( const typename Dimension::Vector& rij,
 }
 
 
-// Trying out RSPH to reduce the number of neighbors required to resolve a sedov problem. 
+// Trying out GSPH to reduce the number of neighbors required to resolve a sedov problem. 
 // gets negative STE when zero pressure. slightly greater than one good to go.
-// XSPH might help sedov w/ ARSPH ? 
+// XSPH might help sedov w/ AGSPH ? 
 // different limiters? 
 // other wave speed estimates? HLLE min max type deal

@@ -1,13 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// FSISpecificThermalEnergyPolicy -- An implementation of UpdatePolicyBase specialized
+// GSPHSpecificThermalEnergyPolicy -- An implementation of UpdatePolicyBase specialized
 // for the updating the specific thermal energy as a dependent quantity.
 // 
 // This version is specialized for the compatible energy discretization 
 // method.
-//
-// Created by JMO, Tue Sep 14 22:27:08 2004
 //----------------------------------------------------------------------------//
-#include "FSISpecificThermalEnergyPolicy.hh"
+#include "GSPHSpecificThermalEnergyPolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
@@ -38,8 +36,8 @@ namespace Spheral {
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FSISpecificThermalEnergyPolicy<Dimension>::
-FSISpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
+GSPHSpecificThermalEnergyPolicy<Dimension>::
+GSPHSpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
   IncrementFieldList<Dimension, typename Dimension::Scalar>(),
   mDataBasePtr(&dataBase) {
 }
@@ -48,8 +46,8 @@ FSISpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FSISpecificThermalEnergyPolicy<Dimension>::
-~FSISpecificThermalEnergyPolicy() {
+GSPHSpecificThermalEnergyPolicy<Dimension>::
+~GSPHSpecificThermalEnergyPolicy() {
 }
 
 //------------------------------------------------------------------------------
@@ -57,7 +55,7 @@ FSISpecificThermalEnergyPolicy<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-FSISpecificThermalEnergyPolicy<Dimension>::
+GSPHSpecificThermalEnergyPolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
@@ -154,11 +152,11 @@ update(const KeyType& key,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 bool
-FSISpecificThermalEnergyPolicy<Dimension>::
+GSPHSpecificThermalEnergyPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const FSISpecificThermalEnergyPolicy<Dimension>* rhsPtr = dynamic_cast<const FSISpecificThermalEnergyPolicy<Dimension>*>(&rhs);
+  const GSPHSpecificThermalEnergyPolicy<Dimension>* rhsPtr = dynamic_cast<const GSPHSpecificThermalEnergyPolicy<Dimension>*>(&rhs);
   if (rhsPtr == 0) {
     return false;
   } else {

@@ -1,10 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
-// RSPHHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
+// GSPHHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
 //                   
 // Created by JMO, Mon Jul 19 21:52:29 PDT 2010
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_RSPHHydroBase_hh__
-#define __Spheral_RSPHHydroBase_hh__
+#ifndef __Spheral_GSPHHydroBase_hh__
+#define __Spheral_GSPHHydroBase_hh__
 
 #include <string>
 
@@ -24,7 +24,7 @@ template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
 template<typename Dimension>
-class RSPHHydroBase: public Physics<Dimension> {
+class GSPHHydroBase: public Physics<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -37,7 +37,7 @@ public:
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  RSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+  GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                DataBase<Dimension>& dataBase,
                const TableKernel<Dimension>& W,
                const double cfl,
@@ -53,7 +53,7 @@ public:
                const Vector& xmax);
 
   // Destructor.
-  virtual ~RSPHHydroBase();
+  virtual ~GSPHHydroBase();
 
     // We require all Physics packages to provide a method returning their vote
   // for the next time step.
@@ -258,7 +258,7 @@ public:
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "RSPHHydroBase" ; }
+  virtual std::string label() const override { return "GSPHHydroBase" ; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
@@ -343,20 +343,20 @@ private:
   mutable int mNormActualNeighbor;
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
-  RSPHHydroBase();
-  RSPHHydroBase(const RSPHHydroBase&);
-  RSPHHydroBase& operator=(const RSPHHydroBase&);
+  GSPHHydroBase();
+  GSPHHydroBase(const GSPHHydroBase&);
+  GSPHHydroBase& operator=(const GSPHHydroBase&);
 };
 
 }
 
-#include "RSPHHydroBaseInline.hh"
+#include "GSPHHydroBaseInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class RSPHHydroBase;
+  template<typename Dimension> class GSPHHydroBase;
 }
 
 #endif
