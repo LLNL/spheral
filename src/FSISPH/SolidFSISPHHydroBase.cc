@@ -291,7 +291,7 @@ initialize(const typename Dimension::Scalar time,
                W);
 
   // put some trigger for this in Slip interface bc?
-  if (false){  
+  if (true){  
     const auto& connectivityMap = dataBase.connectivityMap();
     const auto& position = state.fields(HydroFieldNames::position, Vector::zero);
     const auto& mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -352,6 +352,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto rhoStabilizeCoeff = this->densityStabilizationCoefficient();
   const auto surfaceForceCoeff = this->surfaceForceCoefficient();
   const auto XSPH = this->XSPH();
+  const auto conserveRotationalMomentum = false;
 
   // the surface normals 
   const auto& interfaceNormals = this -> mSurfaceNormals;
@@ -719,6 +720,7 @@ if(this->correctVelocityGradient()){
       // Kernels
       //--------------------------------------
       const auto rij = ri - rj;
+      const auto rhatij = rij.unitVector();
       const auto Hij = 0.5*(Hi+Hj);
       const auto etaij = Hij*rij;
       const auto etai = Hi*rij;
@@ -763,6 +765,10 @@ if(this->correctVelocityGradient()){
        gradWj = Mj.Transpose()*gradWj;
       }
 
+      //if(conserveRotationalMomentum){
+      //  gradWi = gradWi.dot(rhatij)*rhatij;
+      //  gradWj = gradWj.dot(rhatij)*rhatij;
+      //}
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
       //---------------------------------------------------------------
@@ -794,10 +800,10 @@ if(this->correctVelocityGradient()){
         //const auto PSj = rij.dot(Sj.dot(rij))/rij2;
         //const auto Pstar = ((Pi-PSi)*rhoj+(Pj-PSj)*rhoi)/(rhoi+rhoj);
         // if slip 
-        //const auto avInterfaceReduceri =  abs((normi).unitVector().dot(vij.unitVector()));
-        //const auto avInterfaceReducerj =  abs((normj).unitVector().dot(vij.unitVector()));
-        //QPiij *= avInterfaceReduceri*avInterfaceReducerj;
-        //QPiji *= avInterfaceReduceri*avInterfaceReducerj;
+        const auto avInterfaceReduceri =  abs((normi).unitVector().dot(vij.unitVector()));
+        const auto avInterfaceReducerj =  abs((normj).unitVector().dot(vij.unitVector()));
+        QPiij *= avInterfaceReduceri*avInterfaceReducerj;
+        QPiji *= avInterfaceReduceri*avInterfaceReducerj;
 
         const auto Peffi = max(Pi,0.0);
         const auto Peffj = max(Pj,0.0);
@@ -833,7 +839,6 @@ if(this->correctVelocityGradient()){
       // construct our interface velocity
       //-----------------------------------------------------------
       // deconstruct into parallel and perpendicular
-      const auto rhatij = rij.unitVector();
       const auto ui = vi.dot(rhatij);
       const auto uj = vj.dot(rhatij);
       const auto wi = vi - ui*rhatij;
@@ -866,7 +871,21 @@ if(this->correctVelocityGradient()){
         ustar = fDij*ustar + (1.0-fDij)*ustarDamaged;
       }
   
+      // additional stabilization 
+      if (rhoStabilizeCoeff>tiny){
+          const auto denom = safeInv(max(tiny,(sameMatij      ?
+                                               max(rhoi,rhoj) :
+                                               max(rhoi*ci*ci,rhoj*cj*cj))));
 
+          const auto ustarStabilizer =  (sameMatij  ?
+                                        (rhoj-rhoi) :
+                                        (Pj-Pi)     )*denom;
+
+          ustar += rhoStabilizeCoeff * min(0.1, max(-0.1, ustarStabilizer)) * cij*etaMagij;
+      }
+
+      //bound it 
+      ustar = min(max(ustar,umin),umax);
       //const auto Ci = Ki*volj*gWi;
       //const auto Cj = Kj*voli*gWj;
       //const auto weightUi = (sameMatij ? 1.0 : max(0.0, min(2.0, 2.0*Ci/(Ci+Cj))));
@@ -880,19 +899,19 @@ if(this->correctVelocityGradient()){
       auto deltaDvDxi = 2.0*(vi-vstar).dyad(gradWi);
       auto deltaDvDxj = 2.0*(vstar-vj).dyad(gradWj);
 
-      // additional stabilization 
-      if (rhoStabilizeCoeff>tiny){
-          const auto denom = safeInv(max(tiny,(sameMatij      ?
-                                               max(rhoi,rhoj) :
-                                               max(rhoi*ci*ci,rhoj*cj*cj))));
-          const auto rhoStabilizer =  (sameMatij  ?
-                                      (rhoj-rhoi) :
-                                      (Pj-Pi)     )*denom;
+      // // additional stabilization 
+      // if (rhoStabilizeCoeff>tiny){
+      //     const auto denom = safeInv(max(tiny,(sameMatij      ?
+      //                                          max(rhoi,rhoj) :
+      //                                          max(rhoi*ci*ci,rhoj*cj*cj))));
+      //     const auto rhoStabilizer =  (sameMatij  ?
+      //                                 (rhoj-rhoi) :
+      //                                 (Pj-Pi)     )*denom;
           
-          const auto diffusion = min(0.1, max(-0.1, rhoStabilizer)) * cij * etaij.dot(gradWij)/(etaMagij*etaMagij+tiny)*Tensor::one;
-          deltaDvDxi -= rhoStabilizeCoeff * diffusion;
-          deltaDvDxj += rhoStabilizeCoeff * diffusion;
-      }
+      //     const auto diffusion = min(0.1, max(-0.1, rhoStabilizer)) * cij * etaij.dot(gradWij)/(etaMagij*etaMagij+tiny)*Tensor::one;
+      //     deltaDvDxi -= rhoStabilizeCoeff * diffusion;
+      //     deltaDvDxj += rhoStabilizeCoeff * diffusion;
+      // }
 
       // energy conservation
       // ----------------------------------------------------------
@@ -931,7 +950,7 @@ if(this->correctVelocityGradient()){
       }
 
       // rigorous enforcement of single-valued stress-state at interface
-      if (!sameMatij and false){
+      if (!sameMatij ){
         const auto diffusion = (Si-Sj)*cij*etaij.dot(gradWij)/(etaMagij*etaMagij+tiny);
         DSDti += volj*diffusion;
         DSDtj -= voli*diffusion;
