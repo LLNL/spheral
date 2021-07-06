@@ -11,7 +11,7 @@ TYPED_TEST(SidreDataCollectionTestNew, SidreAllocViewTest)
 
   initField<TypeParam>(testField, n);
 
-  double *rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
+  auto rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
 
   testSidreData<TypeParam>(n, testField, rawSidreData);
 }

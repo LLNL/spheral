@@ -106,55 +106,95 @@ using SpheralTestField = Spheral::Field<typename T_DATA::DIM_T, typename T_DATA:
 template<typename T_DATA>
 using SpheralTestNodeList = Spheral::NodeList<typename T_DATA::DIM_T> ;
 
-#define INIT_FIELD( _dim, _type)                              \
-template<typename T_DATA,                                     \
-         typename std::enable_if<                             \
-           std::is_same<                                      \
-             T_DATA,                                          \
-             SpheralTypeInfo<_dim, Spheral::Dim<_dim>::_type> \
-           >::value                                           \
-         >::type* = nullptr>                                  \
+#define INIT_FIELD( _dim, _type)          \
+template<typename T_DATA,                 \
+         typename std::enable_if<         \
+           std::is_same<                  \
+             T_DATA,                      \
+             SpheralTypeInfo<_dim, _type> \
+           >::value                       \
+         >::type* = nullptr>              \
 void initField(SpheralTestField<T_DATA>& testField, size_t n)
 
-#define TEST_RAW_DATA( _dim, _type)                           \
-template<typename T_DATA, typename T,                         \
-         typename std::enable_if<                             \
-           std::is_same<                                      \
-             T_DATA,                                          \
-             SpheralTypeInfo<_dim, Spheral::Dim<_dim>::_type> \
-           >::value                                           \
-         >::type* = nullptr>                                  \
-void testSidreData(size_t n,                                  \
-                   SpheralTestField<T_DATA>& testField,       \
-                   T* rawSidreData)
+#define TEST_RAW_DATA( _dim, _type)                     \
+template<typename T_DATA,                               \
+         typename std::enable_if<                       \
+           std::is_same<                                \
+             T_DATA,                                    \
+             SpheralTypeInfo<_dim, _type>               \
+           >::value                                     \
+         >::type* = nullptr>                            \
+void testSidreData(size_t n,                            \
+                   SpheralTestField<T_DATA>& testField, \
+                   typename Spheral::DataTypeTraits<_type>::AxomType* rawSidreData)
 
+#define INIT_VECTOR_FIELD( _dim) \
+template<typename T_DATA,        \
+         typename T>             \
+void initField(Spheral::Field<typename T_DATA::DIM_T, std::vector<T> >& testField, size_t n)
+
+#define TEST_VECTOR_RAW_DATA( _dim)                                                    \
+template<typename T_DATA, typename T>                                                  \
+void testSidreData(size_t n,                                                           \
+                   Spheral::Field<typename T_DATA::DIM_T, std::vector<T> >& testField, \
+                   typename Spheral::DataTypeTraits<T>::AxomType* rawSidreData)
+
+// ------------------------------------------------------------
+// Dim 1 : std::vector<T>
+// ------------------------------------------------------------
+INIT_VECTOR_FIELD(1)
+{
+  for (size_t i = 0; i < n; ++i)
+    for (size_t j = 0; j < n; j++)
+      testField[i].emplace_back((T)i);
+}
+
+TEST_VECTOR_RAW_DATA(1)
+{
+  for (size_t i = 0; i < n; ++i)
+    EXPECT_EQ(testField[0][i], rawSidreData[i]);
+}
+
+// ------------------------------------------------------------
+// Dim 1 : String
+// ------------------------------------------------------------
+INIT_FIELD(1, std::string)
+{
+  for (size_t i = 0; i < n; ++i)
+    testField[i] = "This is a test string: " + std::to_string(i) + "\n";
+}
+
+TEST_RAW_DATA(1, std::string)
+{
+  for (size_t i = 0; i < n; ++i)
+    EXPECT_EQ(testField[0][i], rawSidreData[i]);
+}
 
 // ------------------------------------------------------------
 // Dim 1 : Vector
 // ------------------------------------------------------------
-INIT_FIELD(1, Vector)
+INIT_FIELD(1, Spheral::Dim<1>::Vector)
 {
   for (size_t i = 0; i < n; ++i)
     testField[i] = Spheral::Dim<1>::Vector(i);
 }
 
-TEST_RAW_DATA(1, Vector)
+TEST_RAW_DATA(1, Spheral::Dim<1>::Vector)
 {
   for (size_t i = 0; i < n; ++i)
     EXPECT_EQ(testField[i].x(), rawSidreData[i]);
 }
 
-
 // ------------------------------------------------------------
 // Dim 1 : Vector3d
 // ------------------------------------------------------------
-INIT_FIELD(1, Vector3d)
+INIT_FIELD(1, Spheral::Dim<1>::Vector3d)
 {
   for (size_t i = 0; i < n; ++i)
     testField[i] = Spheral::Dim<1>::Vector3d(i, i + 1, i + 2);
 }
 
-TEST_RAW_DATA(1, Vector3d)
+TEST_RAW_DATA(1, Spheral::Dim<1>::Vector3d)
 {
   for (size_t i = 0; i < n; ++i)
   {
@@ -164,9 +204,13 @@ TEST_RAW_DATA(1, Vector3d)
   }
 }
 
-
 using SpheralTypes = ::testing::Types<
-  //SpheralTypeInfo<1, std::string>,
+  SpheralTypeInfo<1, std::string>,
+  SpheralTypeInfo<1, std::vector<char>>,
+  SpheralTypeInfo<1, std::vector<double>>,
+  SpheralTypeInfo<1, std::vector<int>>,
+  SpheralTypeInfo<1, std::vector<size_t>>,
+  SpheralTypeInfo<1, std::vector<uint32_t>>,
   SpheralTypeInfo<1, Spheral::Dim<1>::Vector>,
   SpheralTypeInfo<1, Spheral::Dim<1>::Vector3d>//,
   //SpheralTypeInfo<1, Spheral::Dim<1>::Tensor>,
@@ -180,4 +224,3 @@ using SpheralTypes = ::testing::Types<
 template <typename T>
 class SidreDataCollectionTestNew : public ::testing::Test {};
 TYPED_TEST_SUITE(SidreDataCollectionTestNew, SpheralTypes);
-
