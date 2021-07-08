@@ -1,5 +1,22 @@
 #include "testSidreStorage.hh"
 
+// Should only need this single test
+TYPED_TEST(SidreDataCollectionTestNew, SidreAllocViewTest)
+{
+  Spheral::SidreDataCollection myData;
+  size_t n = 10;
+
+  SpheralTestNodeList<TypeParam> makeNodeList("test bed", n, 0);
+  SpheralTestField<TypeParam> testField("test field", makeNodeList);
+
+  initField<TypeParam>(testField, n);
+
+  auto rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
+
+  testSidreData<TypeParam>(n, testField, rawSidreData);
+}
+
+
 TYPED_TEST(SidreDataCollectionTest, scalar)
 {
   auto testField = this->makeField();
@@ -10,7 +27,7 @@ TYPED_TEST(SidreDataCollectionTest, scalar)
     EXPECT_EQ(testField[i], this->rawSidreData[i]);
 }
 
-TEST(SidreDataCollectionTestString, string)
+TEST(SidreDataCollectionTestDim1, string)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -49,43 +66,43 @@ TYPED_TEST(SidreDataCollectionTestTupleThree, tuple)
 
 //--------------------------------------------------------------
 
-TEST(SidreDataCollectionTestDim1Vector, Dim1Vector)
-{
-  Spheral::SidreDataCollection myData;
-  int n = 10;
+//TEST(SidreDataCollectionTest, Dim1Vector)
+//{
+//  Spheral::SidreDataCollection myData;
+//  int n = 10;
+//
+//  Spheral::NodeList<Spheral::Dim<1>> makeNodeList("test bed", n, 0);
+//  Spheral::Field<Spheral::Dim<1>, Spheral::Dim<1>::Vector> testField("test field", makeNodeList);
+//  for (int i = 0; i < n; ++i)
+//    testField[i] = Spheral::Dim<1>::Vector(i);
+//  
+//  double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
+//
+//  for (int i = 0; i < n; ++i)
+//    EXPECT_EQ(testField[i].x(), rawSidreData[i]);
+//}
 
-  Spheral::NodeList<Spheral::Dim<1>> makeNodeList("test bed", n, 0);
-  Spheral::Field<Spheral::Dim<1>, Spheral::Dim<1>::Vector> testField("test field", makeNodeList);
-  for (int i = 0; i < n; ++i)
-    testField[i] = Spheral::Dim<1>::Vector(i);
-  
-  double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
+//TEST(SidreDataCollectionTest, Dim1Vector3d)
+//{
+//  Spheral::SidreDataCollection myData;
+//  int n = 10;
+//
+//  Spheral::NodeList<Spheral::Dim<1>> makeNodeList("test bed", n, 0);
+//  Spheral::Field<Spheral::Dim<1>, Spheral::Dim<1>::Vector3d> testField("test field", makeNodeList);
+//  for (int i = 0; i < n; ++i)
+//    testField[i] = Spheral::Dim<1>::Vector3d(i, i + 1, i + 2);
+//
+//  double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
+//
+//  for (int i = 0; i < n; ++i)
+//  {
+//    EXPECT_EQ(testField[i].x(), rawSidreData[i * 3 + 0]);
+//    EXPECT_EQ(testField[i].y(), rawSidreData[i * 3 + 1]);
+//    EXPECT_EQ(testField[i].z(), rawSidreData[i * 3 + 2]);
+//  }
+//}
 
-  for (int i = 0; i < n; ++i)
-    EXPECT_EQ(testField[i].x(), rawSidreData[i]);
-}
-
-TEST(SidreDataCollectionTestDim1Vector3d, Dim1Vector3d)
-{
-  Spheral::SidreDataCollection myData;
-  int n = 10;
-
-  Spheral::NodeList<Spheral::Dim<1>> makeNodeList("test bed", n, 0);
-  Spheral::Field<Spheral::Dim<1>, Spheral::Dim<1>::Vector3d> testField("test field", makeNodeList);
-  for (int i = 0; i < n; ++i)
-    testField[i] = Spheral::Dim<1>::Vector3d(i, i + 1, i + 2);
-
-  double* rawSidreData = myData.alloc_view("SidreTest", testField)->getData();
-
-  for (int i = 0; i < n; ++i)
-  {
-    EXPECT_EQ(testField[i].x(), rawSidreData[i * 3 + 0]);
-    EXPECT_EQ(testField[i].y(), rawSidreData[i * 3 + 1]);
-    EXPECT_EQ(testField[i].z(), rawSidreData[i * 3 + 2]);
-  }
-}
-
-TEST(SidreDataCollectionTestDim1Tensor, Tensor)
+TEST(SidreDataCollectionTest, Dim1Tensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -101,7 +118,7 @@ TEST(SidreDataCollectionTestDim1Tensor, Tensor)
     EXPECT_EQ(testField[i].xx(), rawSidreData[i]);
 }
 
-TEST(SidreDataCollectionTestDim1SymTensor, SymTensor)
+TEST(SidreDataCollectionTest, Dim1SymTensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -117,7 +134,7 @@ TEST(SidreDataCollectionTestDim1SymTensor, SymTensor)
     EXPECT_EQ(testField[i].xx(), rawSidreData[i]);
 }
 
-TEST(SidreDataCollectionTestDim1ThirdRankTensor, ThirdRankTensor)
+TEST(SidreDataCollectionTest, Dim1ThirdRankTensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -133,7 +150,7 @@ TEST(SidreDataCollectionTestDim1ThirdRankTensor, ThirdRankTensor)
     EXPECT_EQ(testField[i], rawSidreData[i]);
 }
 
-TEST(SidreDataCollectionTestDim1FourthRankTensor, FourthRankTensor)
+TEST(SidreDataCollectionTest, Dim1FourthRankTensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -149,7 +166,7 @@ TEST(SidreDataCollectionTestDim1FourthRankTensor, FourthRankTensor)
     EXPECT_EQ(testField[i], rawSidreData[i]);
 }
 
-TEST(SidreDataCollectionTestDim1FifthRankTensor, FifthRankTensor)
+TEST(SidreDataCollectionTest, Dim1FifthRankTensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -167,7 +184,7 @@ TEST(SidreDataCollectionTestDim1FifthRankTensor, FifthRankTensor)
 
 //--------------------------------------------------------------
 
-TEST(SidreDataCollectionTestDim2Vector, Dim2Vector)
+TEST(SidreDataCollectionTest, Dim2Vector)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -186,7 +203,7 @@ TEST(SidreDataCollectionTestDim2Vector, Dim2Vector)
   }
 }
 
-TEST(SidreDataCollectionTestDim2Tensor, Dim2Tensor)
+TEST(SidreDataCollectionTest, Dim2Tensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -207,7 +224,7 @@ TEST(SidreDataCollectionTestDim2Tensor, Dim2Tensor)
   }
 }
 
-TEST(SidreDataCollectionTestDim2SymTensor, SymTensor)
+TEST(SidreDataCollectionTest, Dim2SymTensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -227,7 +244,7 @@ TEST(SidreDataCollectionTestDim2SymTensor, SymTensor)
   }
 }
 
-TEST(SidreDataCollectionTestDim2ThirdRankTensor, ThirdRankTensor)
+TEST(SidreDataCollectionTest, Dim2ThirdRankTensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -244,7 +261,7 @@ TEST(SidreDataCollectionTestDim2ThirdRankTensor, ThirdRankTensor)
       EXPECT_EQ(testField[i][j], rawSidreData[(i * Spheral::DataTypeTraits<Spheral::Dim<2>::ThirdRankTensor>::numElements(testField[0])) + j]);
 }
 
-TEST(SidreDataCollectionTestDim2FourthRankTensor, FourthRankTensor)
+TEST(SidreDataCollectionTest, Dim2FourthRankTensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -261,7 +278,7 @@ TEST(SidreDataCollectionTestDim2FourthRankTensor, FourthRankTensor)
       EXPECT_EQ(testField[i][j], rawSidreData[(i * Spheral::DataTypeTraits<Spheral::Dim<2>::FourthRankTensor>::numElements(testField[0])) + j]);
 }
 
-TEST(SidreDataCollectionTestDim2FifthRankTensor, FifthRankTensor)
+TEST(SidreDataCollectionTest, Dim2FifthRankTensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -280,7 +297,7 @@ TEST(SidreDataCollectionTestDim2FifthRankTensor, FifthRankTensor)
 
 //--------------------------------------------------------------
 
-TEST(SidreDataCollectionTestDim3Vector, Dim3Vector)
+TEST(SidreDataCollectionTest, Dim3Vector)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -300,7 +317,7 @@ TEST(SidreDataCollectionTestDim3Vector, Dim3Vector)
   }
 }
 
-TEST(SidreDataCollectionTestDim3Tensor, Dim3Tensor)
+TEST(SidreDataCollectionTest, Dim3Tensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -328,7 +345,7 @@ TEST(SidreDataCollectionTestDim3Tensor, Dim3Tensor)
   }
 }
 
-TEST(SidreDataCollectionTestDim3SymTensor, SymTensor)
+TEST(SidreDataCollectionTest, Dim3SymTensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -353,7 +370,7 @@ TEST(SidreDataCollectionTestDim3SymTensor, SymTensor)
   }
 }
 
-TEST(SidreDataCollectionTestDim3ThirdRankTensor, ThirdRankTensor)
+TEST(SidreDataCollectionTest, Dim3ThirdRankTensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -370,7 +387,7 @@ TEST(SidreDataCollectionTestDim3ThirdRankTensor, ThirdRankTensor)
       EXPECT_EQ(testField[i][j], rawSidreData[(i * Spheral::DataTypeTraits<Spheral::Dim<3>::ThirdRankTensor>::numElements(testField[0])) + j]);
 }
 
-TEST(SidreDataCollectionTestDim3FourthRankTensor, FourthRankTensor)
+TEST(SidreDataCollectionTest, Dim3FourthRankTensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
@@ -387,7 +404,7 @@ TEST(SidreDataCollectionTestDim3FourthRankTensor, FourthRankTensor)
       EXPECT_EQ(testField[i][j], rawSidreData[(i * Spheral::DataTypeTraits<Spheral::Dim<3>::FourthRankTensor>::numElements(testField[0])) + j]);
 }
 
-TEST(SidreDataCollectionTestDim3FifthRankTensor, FifthRankTensor)
+TEST(SidreDataCollectionTest, Dim3FifthRankTensor)
 {
   Spheral::SidreDataCollection myData;
   int n = 10;
