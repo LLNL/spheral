@@ -110,6 +110,36 @@ DataBase<Dimension>::globalNumNodes() const {
 }
 
 //------------------------------------------------------------------------------
+// Global numbers of fluid nodes in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+int
+DataBase<Dimension>::globalNumFluidInternalNodes() const {
+  int localResult = numFluidInternalNodes();
+  int result = localResult;
+  result = allReduce(result, MPI_SUM, Communicator::communicator());
+  return result;
+}
+
+template<typename Dimension>
+int
+DataBase<Dimension>::globalNumFluidGhostNodes() const {
+  int localResult = numFluidGhostNodes();
+  int result = localResult;
+  result = allReduce(result, MPI_SUM, Communicator::communicator());
+  return result;
+}
+
+template<typename Dimension>
+int
+DataBase<Dimension>::globalNumFluidNodes() const {
+  int localResult = numFluidNodes();
+  int result = localResult;
+  result = allReduce(result, MPI_SUM, Communicator::communicator());
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Node iterators for all node IDs.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -522,11 +552,12 @@ template<typename Dimension>
 void
 DataBase<Dimension>::
 updateConnectivityMap(const bool computeGhostConnectivity,
-                      const bool computeOverlapConnectivity) const {
+                      const bool computeOverlapConnectivity,
+                      const bool computeIntersectionConnectivity) const {
   REQUIRE(mConnectivityMapPtr != 0 and
           mConnectivityMapPtr.get() != 0);
   mConnectivityMapPtr->rebuild(fluidNodeListBegin(), fluidNodeListEnd(),
-                               computeGhostConnectivity, computeOverlapConnectivity);
+                               computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
 }
 
 //------------------------------------------------------------------------------
@@ -1199,36 +1230,6 @@ DataBase<Dimension>::solidDamage() const {
 }
 
 //------------------------------------------------------------------------------
-// Return the solid effective damage field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-FieldList<Dimension, typename Dimension::SymTensor>
-DataBase<Dimension>::solidEffectiveDamage() const {
-  REQUIRE(valid());
-  FieldList<Dimension, SymTensor> result;
-  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
-       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
-    result.appendField((*nodeListItr)->effectiveDamage());
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Return the solid damage gradient field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-FieldList<Dimension, typename Dimension::Vector>
-DataBase<Dimension>::solidDamageGradient() const {
-  REQUIRE(valid());
-  FieldList<Dimension, Vector> result;
-  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
-       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
-    result.appendField((*nodeListItr)->damageGradient());
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
 // Return the solid fragment ID field.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -1743,8 +1744,8 @@ localSamplingBoundingBoxes(vector<typename Dimension::Vector>& xminima,
   xmaxima = vector<Vector>();
 
   // We use our connectivity to make this more efficient.
-  this->updateConnectivityMap(false, false);
-  const ConnectivityMap<Dimension>& connectivityMap = this->connectivityMap(false, false);
+  this->updateConnectivityMap(false, false, false);
+  const ConnectivityMap<Dimension>& connectivityMap = this->connectivityMap(false, false, false);
   const FieldList<Dimension, Vector> positions = this->globalPosition();
   const FieldList<Dimension, Vector> extent = this->globalNodeExtent();
   const int numNodeLists = this->numNodeLists();

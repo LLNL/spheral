@@ -30,16 +30,25 @@ set(ArtificialViscosity_headers
     ArtificialViscosityList.hh
     CRKSPHMonaghanGingoldViscosity.hh
     CRKSPHMonaghanGingoldViscosityRZ.hh
+    CheapVonNeumanViscosity.hh
     CullenDehnenViscosity.hh
     FiniteVolumeViscosity.hh
+    GradPressureViscosity.hh
+    IncrementCullenMultipliers.hh
+    MASHVonNeumanViscosity.hh
+    MonaghanGingoldKurapatenkoViscosity.hh
+    MonaghanGingoldSumViscosity.hh
     MonaghanGingoldViscosity.hh
     MonaghanGingoldViscosityGSRZ.hh
     MonaghanGingoldViscosityRZ.hh
+    MorrisMonaghanReducingViscosity.hh
+    NohViscosity.hh
+    RadialViscosity.hh
     TensorCRKSPHViscosity.hh
     TensorMonaghanGingoldViscosity.hh
+    TensorSVPHViscosity.hh
+    VonNeumanViscosity.hh
     )
 
 spheral_add_cxx_library(ArtificialViscosity)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_ArtificialViscosity)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

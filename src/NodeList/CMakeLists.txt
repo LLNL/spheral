@@ -18,6 +18,7 @@ instantiate(NodeList_inst NodeList_sources)
 
 set(NodeList_headers
     ASPHSmoothingScale.hh
+    FixedSmoothingScale.hh
     FluidNodeList.hh
     FluidNodeListInline.hh
     FluidNodeTraits.hh
@@ -30,6 +31,7 @@ set(NodeList_headers
     SolidNodeList.hh
     SolidNodeListInline.hh
     generateVoidNodes.hh
+    nthNodalMoment.hh
     secondMomentUtilities.hh
     )
 
@@ -41,5 +43,3 @@ spheral_install_python_files(
 
 spheral_add_cxx_library(NodeList)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_NodeList)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

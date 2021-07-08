@@ -4,6 +4,7 @@ set(Material_inst
     GammaLawGas
     PolytropicEquationOfState
     IsothermalEquationOfState
+    StiffenedGas
    )
 
 set(Material_sources
@@ -13,8 +14,15 @@ set(Material_sources
 set(Material_headers
     EquationOfState.hh
     EquationOfStateInline.hh
+    GammaLawGas.hh
+    StiffenedGas.hh
+    HelmholtzEquationOfState.hh
+    IsothermalEquationOfState.hh
+    IsothermalEquationOfStateInline.hh
     PhysicalConstants.hh
     PhysicalConstantsInline.hh
+    PolytropicEquationOfState.hh
+    PolytropicEquationOfStateInline.hh
     )
 
 spheral_install_python_files(
@@ -36,5 +44,3 @@ instantiate(Material_inst Material_sources)
 
 spheral_add_cxx_library(Material)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Material)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

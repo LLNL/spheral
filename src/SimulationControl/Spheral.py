@@ -99,11 +99,6 @@ from SpheralController import *
 from SpheralOptionParser import commandLine
 
 # ------------------------------------------------------------------------------
-# Import PolyClipper
-# ------------------------------------------------------------------------------
-import SpheralPolyClipper as PolyClipper
-
-# ------------------------------------------------------------------------------
 # See if we can import the polytope bindings.
 # ------------------------------------------------------------------------------
 try:
@@ -115,7 +110,10 @@ except:
 # Import our shadow layers for augmenting C++ types.
 # ------------------------------------------------------------------------------
 for shadowedthing in ("TillotsonEquationOfState",
-                      "ConstantStrength"):
+                      "GruneisenEquationOfState",
+                      "ConstantStrength",
+                      "ProbabilisticDamageModel",
+                      "IvanoviSALEDamageModel"):
     for dim in dims:
         exec("from Shadow%(thing)s import %(thing)s%(dim)sd" % {"thing" : shadowedthing,
                                                                 "dim"   : dim})

@@ -69,6 +69,42 @@ DataBase<Dimension>::numNodes() const {
 }
 
 //------------------------------------------------------------------------------
+// Numbers of fluid nodes in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+DataBase<Dimension>::numFluidInternalNodes() const {
+  int result = 0;
+  for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
+       nodeListItr != fluidNodeListEnd();
+       ++nodeListItr) result += (*nodeListItr)->numInternalNodes();
+  return result;
+}
+
+template<typename Dimension>
+inline
+int
+DataBase<Dimension>::numFluidGhostNodes() const {
+  int result = 0;
+  for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
+       nodeListItr != fluidNodeListEnd();
+       ++nodeListItr) result += (*nodeListItr)->numGhostNodes();
+  return result;
+}
+
+template<typename Dimension>
+inline
+int
+DataBase<Dimension>::numFluidNodes() const {
+  int result = 0;
+  for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
+       nodeListItr != fluidNodeListEnd();
+       ++nodeListItr) result += (*nodeListItr)->numNodes();
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Standard STL like iterators for NodeLists.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -243,8 +279,9 @@ inline
 const ConnectivityMap<Dimension>&
 DataBase<Dimension>::
 connectivityMap(const bool computeGhostConnectivity,
-                const bool computeOverlapConnectivity) const {
-  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(computeGhostConnectivity, computeOverlapConnectivity);
+                const bool computeOverlapConnectivity,
+                const bool computeIntersectionConnectivity) const {
+  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
   return *mConnectivityMapPtr;
 }
 
@@ -253,8 +290,9 @@ inline
 typename DataBase<Dimension>::ConnectivityMapPtr
 DataBase<Dimension>::
 connectivityMapPtr(const bool computeGhostConnectivity,
-                   const bool computeOverlapConnectivity) const {
-  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(computeGhostConnectivity, computeOverlapConnectivity);
+                   const bool computeOverlapConnectivity,
+                   const bool computeIntersectionConnectivity) const {
+  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
   return mConnectivityMapPtr;
 }
 

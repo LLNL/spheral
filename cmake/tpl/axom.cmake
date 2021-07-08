@@ -1,7 +1,6 @@
 set(AXOM_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(AXOM_DIST "Axom-v0.3.3.tar.gz")
 set(AXOM_URL "https://github.com/LLNL/axom/releases/download/v0.3.3/${AXOM_DIST}")
-set(AXOM_MD5 "MD5=f209d2f03f002f46be6eb1a7e6aedeb6")
 set(AXOM_CACHE "${CACHE_DIR}/${AXOM_DIST}")
 
 set(${lib_name}_libs )
@@ -15,10 +14,10 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${AXOM_PREFIX}
     URL ${AXOM_URL}
-    URL_HASH ${AXOM_MD5}
+    URL_HASH "MD5=${AXOM_MD5}"
     DOWNLOAD_DIR ${CACHE_DIR}
-    CMAKE_ARGS ../axom/src/
-               -DCMAKE_BUILD_TYPE=Release
+    SOURCE_SUBDIR src/
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                -DCMAKE_C_FLAGS=-fPIC
@@ -36,7 +35,7 @@ if(${lib_name}_BUILD)
                -DENABLE_TESTS=Off
 
                -DCONDUIT_DIR=${CONDUIT_INSTALL_DIR}
-               -DHDF5_DIR=${HDF5_INSTALL_DIR}
+               -DHDF5_DIR=${hdf5_DIR}
 
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
 

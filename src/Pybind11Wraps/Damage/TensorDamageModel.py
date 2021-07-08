@@ -24,11 +24,9 @@ required of descendant classes."""
     def pyinit(self,
                nodeList = "SolidNodeList<%(Dimension)s>&",
                strainAlgorithm = "const TensorStrainAlgorithm",
-               effectiveDamageAlgorithm = "const EffectiveDamageAlgorithm",
-               useDamageGradient = "const bool",
+               damageCouplingAlgorithm  = "const DamageCouplingAlgorithm",
                kernel = "const TableKernel<%(Dimension)s>&",
                crackGrowthMultiplier = "const double",
-               flawAlgorithm = "const EffectiveFlawAlgorithm",
                criticalDamageThreshold = "const double",
                damageInCompression = "const bool",
                flaws = "const FlawStorageType&"):
@@ -86,17 +84,31 @@ required of descendant classes."""
         return "void"
 
     #...........................................................................
+    # Methods
+    def cullToWeakestFlaws(sefl):
+        "Optional method to cull the set of flaws to the single weakest one on each point."
+        return "void"
+
+    @PYB11const
+    def flawsForNode(self, index="const size_t"):
+        "Get the set of flaw activation energies for the given node index."
+        return "const std::vector<double>"
+
+    #...........................................................................
     # Properties
+    youngsModulus = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    longitudinalSoundSpeed = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    flaws = PYB11property("const FlawStorageType&", returnpolicy="reference_internal",
+                          doc="The raw set of flaw activation strains per point")
+    sumActivationEnergiesPerNode = PYB11property("Field<%(Dimension)s, Scalar>", 
+                                                 doc="Compute a Field with the sum of the activation energies per node.")
+    numFlawsPerNode = PYB11property("Field<%(Dimension)s, Scalar>",
+                                    doc="Compute a Field with the number of flaws per node.")
     strain = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
     effectiveStrain = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
     DdamageDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
-    newEffectiveDamage = PYB11property("const Field<%(Dimension)s, SymTensor>&", returnpolicy="reference_internal")
-    newDamageGradient = PYB11property("const Field<%(Dimension)s, Vector>&", returnpolicy="reference_internal")
 
     strainAlgorithm = PYB11property("TensorStrainAlgorithm")
-    effectiveDamageAlgorithm = PYB11property("EffectiveDamageAlgorithm")
-    useDamageGradient = PYB11property("bool", "useDamageGradient", "useDamageGradient",
-                                      doc="Flag to determine if we compute the gradient of the damage at the start of a timestep.")
     damageInCompression = PYB11property("bool", "damageInCompression", "damageInCompression",
                                         doc="Flag to determine if damage in compression is allowed.")
     criticalDamageThreshold = PYB11property("double", "criticalDamageThreshold", "criticalDamageThreshold",

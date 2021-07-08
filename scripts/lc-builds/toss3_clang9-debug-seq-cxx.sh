@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-BUILD_SUFFIX=lc_toss3-clang-9.0.0-debug-seq-cxx
+SCRIPT_PATH=${0%/*}
+. "$SCRIPT_PATH/utils/parse-args.sh"
+
+# Inherit build directory name from script name
+BUILD_SUFFIX="lc_$(TMP=${BASH_SOURCE##*/}; echo ${TMP%.*})"
 
 rm -rf ${BUILD_SUFFIX} 2>/dev/null
 mkdir -p ${BUILD_SUFFIX}/install
@@ -10,14 +14,13 @@ module load cmake/3.14.5
 module load clang/9.0.0
 
 cmake \
-  ../.. \
+  ${SRC_DIR} \
   -DCMAKE_BUILD_TYPE=Debug \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-9.0.0/bin/clang++ \
   -DCMAKE_C_COMPILER=/usr/tce/packages/clang/clang-9.0.0/bin/clang \
+  -C ${HOST_CONFIGS_DIR}/lc-builds/toss3/clangX_tpl.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_MPI=Off \
-  -DCMAKE_INSTALL_PREFIX=../install \
-  -DSPHERAL_TPL_DIR=/usr/workspace/wsrzd/davis291/SPHERAL/toss_Spheral_clang9/install \
-  -DBUILD_TPL=Off \
-  -DENABLE_STATIC_CXXONLY=On
-  "$@" \
+  -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+  -DENABLE_STATIC_CXXONLY=On \
+  $CMAKE_ARGS \

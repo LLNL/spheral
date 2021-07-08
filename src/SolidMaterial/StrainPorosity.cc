@@ -147,7 +147,7 @@ evaluateDerivatives(const Scalar /*time*/,
                     StateDerivatives<Dimension>& derivs) const {
 
   // Get the state fields.
-  const auto  gradvKey = State<Dimension>::buildFieldKey(HydroFieldNames::internalVelocityGradient, mNodeList.name());
+  const auto  gradvKey = State<Dimension>::buildFieldKey(HydroFieldNames::velocityGradient, mNodeList.name());
   const auto  strainKey = State<Dimension>::buildFieldKey(SolidFieldNames::porosityStrain, mNodeList.name());
   const auto  alphaKey = State<Dimension>::buildFieldKey(SolidFieldNames::porosityAlpha, mNodeList.name());
   const auto  DalphaDtKey = State<Dimension>::buildFieldKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, mNodeList.name());
@@ -249,6 +249,7 @@ template<typename Dimension>
 void
 StrainPorosity<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
+  file.write(mc0, pathName + "/c0");
   file.write(mAlpha0, pathName + "/alpha0");
   file.write(mAlpha, pathName + "/alpha");
   file.write(mDalphaDt, pathName + "/DalphaDt");
@@ -263,11 +264,8 @@ template<typename Dimension>
 void
 StrainPorosity<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
-  if (file.pathExists(pathName + "/alpha0")) {
-    file.read(mAlpha0, pathName + "/alpha0");
-  } else {
-    if (Process::getRank() == 0) cerr << "StrainPorosity WARNING: using backwards compatible restoreState without alpha0 path.\n";
-  }
+  file.read(mc0, pathName + "/c0");
+  file.read(mAlpha0, pathName + "/alpha0");
   file.read(mAlpha, pathName + "/alpha");
   file.read(mDalphaDt, pathName + "/DalphaDt");
   file.read(mStrain, pathName + "/strain");

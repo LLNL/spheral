@@ -67,11 +67,9 @@ public:
   // Constructors, destructor.
   TensorDamageModel(SolidNodeList<Dimension>& nodeList,
                     const TensorStrainAlgorithm strainAlgorithm,
-                    const EffectiveDamageAlgorithm effDamageAlgorithm,
-                    const bool useDamageGradient,
+                    const DamageCouplingAlgorithm damageCouplingAlgorithm,
                     const TableKernel<Dimension>& W,
                     const double crackGrowthMultiplier,
-                    const EffectiveFlawAlgorithm flawAlgorithm,
                     const double criticalDamageThreshold,
                     const bool damageInCompression,
                     const FlawStorageType& flaws);
@@ -80,51 +78,58 @@ public:
   //...........................................................................
   // Provide the required physics package interface.
   // Compute the derivatives.
-  virtual 
-  void evaluateDerivatives(const Scalar time,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
+  virtual void evaluateDerivatives(const Scalar time,
+                                   const Scalar dt,
+                                   const DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivatives) const override;
 
   // Vote on a time step.
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const;
+                          const Scalar currentTime) const override;
 
   // Register our state.
   virtual void registerState(DataBase<Dimension>& dataBase,
-                             State<Dimension>& state);
+                             State<Dimension>& state) override;
 
   // Register the derivatives/change fields for updating state.
   virtual void registerDerivatives(DataBase<Dimension>& dataBase,
-                                   StateDerivatives<Dimension>& derivs);
+                                   StateDerivatives<Dimension>& derivs) override;
 
   // Apply boundary conditions to the physics specific fields.
   virtual void applyGhostBoundaries(State<Dimension>& state,
-                                    StateDerivatives<Dimension>& derivs);
+                                    StateDerivatives<Dimension>& derivs) override;
 
   // Enforce boundary conditions for the physics specific fields.
   virtual void enforceBoundaries(State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs);
+                                 StateDerivatives<Dimension>& derivs) override;
   //...........................................................................
+  // Optional method to cull the set of flaws to the single weakest one on
+  // each point.
+  void cullToWeakestFlaws();
+
+  // Get the set of flaw activation energies for the given node index.
+  const std::vector<double> flawsForNode(const size_t index) const;
+
+  // Compute a Field with the sum of the activation energies per node.
+  Field<Dimension, Scalar> sumActivationEnergiesPerNode() const;
+
+  // Compute a Field with the number of flaws per node.
+  Field<Dimension, Scalar> numFlawsPerNode() const;
 
   // Provide access to the state fields we maintain.
+  const Field<Dimension, Scalar>& youngsModulus() const;
+  const Field<Dimension, Scalar>& longitudinalSoundSpeed() const;
   const Field<Dimension, SymTensor>& strain() const;
   const Field<Dimension, SymTensor>& effectiveStrain() const;
   const Field<Dimension, Scalar>& DdamageDt() const;
-  const Field<Dimension, SymTensor>& newEffectiveDamage() const;
-  const Field<Dimension, Vector>& newDamageGradient() const;
+  const FlawStorageType& flaws() const;
+  FlawStorageType& flaws();
 
-  // The algorithms being used to update the strain and effective damage.
+  // The algorithms to update the strain.
   TensorStrainAlgorithm strainAlgorithm() const;
-  EffectiveDamageAlgorithm effectiveDamageAlgorithm() const;
-
-  // Flag to determine if we compute the gradient of the damage at the start 
-  // of a timestep.
-  bool useDamageGradient() const;
-  void useDamageGradient(bool x);
 
   // Flag to determine if damage in compression is allowed.
   bool damageInCompression() const;
@@ -143,18 +148,18 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
+  FlawStorageType mFlaws;
+  Field<Dimension, Scalar> mYoungsModulus;
+  Field<Dimension, Scalar> mLongitudinalSoundSpeed;
   Field<Dimension, SymTensor> mStrain;
   Field<Dimension, SymTensor> mEffectiveStrain;
   Field<Dimension, Scalar> mDdamageDt;
-  Field<Dimension, SymTensor> mNewEffectiveDamage;
-  Field<Dimension, Vector> mNewDamageGradient;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   TensorStrainAlgorithm mStrainAlgorithm;
-  EffectiveDamageAlgorithm mEffDamageAlgorithm;
-  double mCriticalDamageThreshold;
-  bool mUseDamageGradient, mDamageInCompression;
+  double mCriticalDamageThreshold, mCriticalNodesPerSmoothingScale;
+  bool mDamageInCompression;
 
   // No default constructor, copying or assignment.
   TensorDamageModel();

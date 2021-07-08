@@ -44,6 +44,7 @@ set(Mesh_headers
     ZoneInline.hh
     computeElementOwner.hh
     computeGenerators.hh
+    copy2polytope.hh
     findMatchingVertex.hh
     generateMesh.hh
     )
@@ -55,5 +56,3 @@ spheral_install_python_files(
 
 spheral_add_cxx_library(Mesh)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Mesh)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

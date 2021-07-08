@@ -30,10 +30,15 @@ set(FieldOperations_sources )
 instantiate(FieldOperations_inst FieldOperations_sources)
 
 set(FieldOperations_headers
+    FieldListFunctions.hh
+    FieldListFunctionsMash.hh
+    FieldListSecondDerivatives.hh
+    PairWiseFieldListFunctions.hh
+    binFieldList2Lattice.hh
+    incrementPairWiseDelta.hh
+    monotonicallyLimitedGradient.hh
     sampleMultipleFields2Lattice.hh
     )
 
 spheral_add_cxx_library(FieldOperations)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_FieldOperations)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

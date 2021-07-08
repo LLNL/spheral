@@ -1,7 +1,15 @@
+# Grady-Kipp-Owen damage 
 #ATS:t10 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=1, label="Tensile rod domain independence test SERIAL RUN")
 #ATS:t11 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=4, label="Tensile rod domain independence test 4 DOMAIN RUN")
 #ATS:t12 = testif(t10, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=1, label="Tensile rod domain independence test SERIAL RESTART RUN")
 #ATS:t13 = testif(t11, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=4, label="Tensile rod domain independence test 4 DOMAIN RESTART RUN")
+#
+# Probabilistic damage
+#ATS:t20 = test(SELF, "--graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20210527.txt'", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RUN")
+#ATS:t21 = testif(t20, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20210527.txt'", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RUN")
+#ATS:t22 = testif(t20, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20210527.txt' --restoreCycle 500", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RESTART RUN")
+#ATS:t23 = testif(t21, SELF, "--graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20210527.txt' --restoreCycle 500", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RESTART RUN")
+
 #-------------------------------------------------------------------------------
 # A rod of stainless steel undergoing tensile strain.  This is intended as a
 # test of the cracking/failure models.
@@ -95,10 +103,8 @@ commandLine(length = 3.0,
             mWeibullFactor = 1.0,
             randomSeed = 548928513,
             strainType = PseudoPlasticStrain,
-            damageMethod = CopyDamage,
-            useDamageGradient = True,
+            damageCoupling = PairMaxDamage,
             cullToWeakestFlaws = False,
-            effectiveFlawAlgorithm = SampledFlaws,
             damageInCompression = False,
             negativePressureInDamage = False,
 
@@ -162,7 +168,7 @@ commandLine(length = 3.0,
 
             testtol = 1.0e-4,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20200115.txt",
+            referenceFile = "Reference/TensileRod-GradyKipp-1d-1proc-reproducing-20210201.txt",
             dataDirBase = "dumps-TensileRod-1d",
             outputFile = "None",
             comparisonFile = "None",
@@ -176,6 +182,11 @@ else:
     hydroname = "SPH"
     nPerh = 1.51
     order = 5
+if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen, ProbabilisticDamageModel):
+    damageName = os.path.join(str(DamageModelConstructor.__name__), str(damageCoupling))
+else:
+    damageName = DamageModelConstructor.__name__
+                              
 
 #kWeibull = 8.8e4 * kWeibullFactor
 #kWeibull = 6.52e3 * kWeibullFactor
@@ -184,9 +195,10 @@ mWeibull = 2.63   * mWeibullFactor
 
 dataDir = os.path.join(dataDirBase,
                        hydroname,
-                       DamageModelConstructor.__name__,
+                       damageName,
                        "nx=%i" % nx,
                        "k=%4.2f_m=%4.2f" % (kWeibull, mWeibull))
+
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "TensileRod-%i" % nx)
 
@@ -414,13 +426,11 @@ bcs = [xbc0, xbc1]
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT,
                    filter = filter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
-                   volumeType = volumeType,
                    HUpdate = HUpdate)
 else:
     hydro = SPH(dataBase = db,
@@ -442,40 +452,30 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel")
-output("hydro.PiKernel")
-output("hydro.negativePressureInDamage")
 
 #-------------------------------------------------------------------------------
 # Construct a damage model.
 #-------------------------------------------------------------------------------
 if DamageModelConstructor is GradyKippTensorDamage:
-    damageModel = DamageModelConstructor(nodes,
-                                         kWeibull,
-                                         mWeibull,
-                                         volume,
-                                         1.0,
-                                         WT,
-                                         randomSeed,
-                                         strainType,
-                                         damageMethod,
-                                         useDamageGradient,
-                                         flawAlgorithm = effectiveFlawAlgorithm,
+    damageModel = DamageModelConstructor(nodeList = nodes,
+                                         kWeibull = kWeibull,
+                                         mWeibull = mWeibull,
+                                         volume = volume,
+                                         kernel = WT,
+                                         seed = randomSeed,
+                                         strainAlgorithm = strainType,
+                                         damageCouplingAlgorithm = damageCoupling,
                                          damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is GradyKippTensorDamageOwen:
-    damageModel = DamageModelConstructor(nodes,
-                                         kWeibull,
-                                         mWeibull,
-                                         WT,
-                                         randomSeed,
-                                         volumeMultiplier,
-                                         strainType,
-                                         damageMethod,
-                                         useDamageGradient,
-                                         0.4,
-                                         effectiveFlawAlgorithm,
-                                         numFlawsPerNode,
+    damageModel = DamageModelConstructor(nodeList = nodes,
+                                         kWeibull = kWeibull,
+                                         mWeibull = mWeibull,
+                                         kernel = WT,
+                                         seed = randomSeed,
+                                         volumeMultiplier = volumeMultiplier,
+                                         strainAlgorithm = strainType,
+                                         damageCouplingAlgorithm = damageCoupling,
                                          damageInCompression = damageInCompression)
 
 elif DamageModelConstructor is JohnsonCookDamageWeibull:
@@ -514,14 +514,23 @@ elif DamageModelConstructor is JohnsonCookDamageGaussian:
                                          seed = randomSeed,
                                          domainIndependent = domainIndependent)
 
-output("damageModel")
-if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
-    output("damageModel.useDamageGradient")
-    output("damageModel.effectiveDamageAlgorithm")
-    output("damageModel.effectiveFlawAlgorithm")
+elif DamageModelConstructor is ProbabilisticDamageModel:
+    damageModel = DamageModelConstructor(nodeList = nodes,
+                                         kernel = WT,
+                                         kWeibull = kWeibull,
+                                         mWeibull = mWeibull,
+                                         seed = randomSeed,
+                                         volumeMultiplier = volumeMultiplier,
+                                         strainAlgorithm = strainType,
+                                         damageCouplingAlgorithm = damageCoupling,
+                                         damageInCompression = damageInCompression)
 
-if cullToWeakestFlaws:
-    damageModel.cullToWeakestFlaws()
+output("damageModel")
+if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
+    if cullToWeakestFlaws:
+        damageModel.cullToWeakestFlaws()
+    output("damageModel.strainAlgorithm")
+    output("damageModel.damageCouplingAlgorithm")
 
 # damageModel.excludeNodes = xNodes
 output("damageModel")
@@ -560,6 +569,7 @@ for package in integrator.physicsPackages():
 # Build the controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
+                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -633,11 +643,6 @@ if graphics:
                           yFunction = "%s.xx",
                           winTitle="damage @ %g %i" % (control.time(), mpi.procs),
                           plotStyle="o-")
-    ed = state.symTensorFields("effective tensor damage")
-    edPlot = plotFieldList(ed,
-                           yFunction = "%s.xx",
-                           winTitle="Effective damage @ %g %i" % (control.time(), mpi.procs),
-                           plotStyle="o-")
     plots = [(rhoPlot, "rho.png"),
              (velPlot, "vel.png"),
              (mPlot, "mass.png"),
@@ -645,8 +650,7 @@ if graphics:
              (SPlot, "devstress.png"),
              (uPlot, "u.png"),
              (hPlot, "h.png"),
-             (dPlot, "damage.png"),
-             (edPlot, "effdamage.png")]
+             (dPlot, "damage.png")]
 
     if isinstance(damageModel, GradyKippTensorDamageBenzAsphaug) or isinstance(damageModel, GradyKippTensorDamageOwen):
         ts = damageModel.strain
@@ -667,25 +671,21 @@ if graphics:
         epsPlot = plotFieldList(epsl, winTitle="Flaw activation strains",
                                 plotStyle="o-")
       
-        eflawsPlot = plotFieldList(state.scalarFields("effective flaws"),
-                                   plotStyle = "o-",
-                                   winTitle = "Effective Flaws @ %g %i" % (control.time(), mpi.procs))
         plots += [(sPlot, "strain.png"),
-                  (epsPlot, "flaws.png"),
-                  (eflawsPlot, "effective_flaws.png")]
+                  (epsPlot, "flaws.png")]
 
     elif isinstance(damageModel, JohnsonCookDamage):
-        eps = damageModel.failureStrain()
+        eps = damageModel.failureStrain
         epsl = ScalarFieldList()
         epsl.appendField(eps)
         epsPlot = plotFieldList(epsl, winTitle="JC failure strains",
                                 plotStyle="o-")
-        D1 = damageModel.D1()
+        D1 = damageModel.D1
         D1l = ScalarFieldList()
         D1l.appendField(D1)
         D1Plot = plotFieldList(D1l, winTitle="JC D1",
                                 plotStyle="o-")
-        D2 = damageModel.D2()
+        D2 = damageModel.D2
         D2l = ScalarFieldList()
         D2l.appendField(D2)
         D2Plot = plotFieldList(D2l, winTitle="JC D2",
@@ -693,6 +693,29 @@ if graphics:
         plots += [(epsPlot, "JC_flaw.png"),
                   (D1Plot, "D1.png"),
                   (D2Plot, "D2.png")]
+
+    elif isinstance(damageModel, ProbabilisticDamageModel):
+        ts = damageModel.strain
+        s = ScalarField("strain", nodes)
+        for i in xrange(nodes.numInternalNodes):
+            s[i] = ts[i].xx
+        sl = ScalarFieldList()
+        sl.appendField(s)
+        sPlot = plotFieldList(sl, winTitle="strain @ %g %i" % (control.time(), mpi.procs),
+                              plotStyle="o-")
+        epsMin = damageModel.minFlaw
+        nflaws = damageModel.numFlaws
+        epsl = ScalarFieldList()
+        epsl.appendField(epsMin)
+        epsPlot = plotFieldList(epsl, winTitle="Min flaw activation strains",
+                                plotStyle="o-")
+        nflawsl = IntFieldList()
+        nflawsl.appendField(nflaws)
+        nflawsPlot = plotFieldList(nflawsl, winTitle="Number of flaws",
+                                   plotStyle="o-")
+        plots += [(sPlot, "strain.png"),
+                  (epsPlot, "flaws.png"),
+                  (nflawsPlot, "numflaws.png")]
 
     fragPlot = plotFieldList(state.intFields(SolidFieldNames.fragmentIDs),
                              plotStyle = "o-",
@@ -717,7 +740,7 @@ if outputFile != "None":
     eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
     Hfield = state.symTensorFields(HydroFieldNames.H)
     S = state.symTensorFields(SolidFieldNames.deviatoricStress)
-    D = state.symTensorFields(SolidFieldNames.effectiveTensorDamage)
+    D = state.symTensorFields(SolidFieldNames.tensorDamage)
     xprof = mpi.reduce([x.x for x in internalValues(pos)], mpi.SUM)
     rhoprof = mpi.reduce(internalValues(rho), mpi.SUM)
     Pprof = mpi.reduce(internalValues(P), mpi.SUM)

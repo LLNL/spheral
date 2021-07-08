@@ -3,9 +3,10 @@ set(SolidMaterial_inst
     LinearPolynomialEquationOfState
     GruneisenEquationOfState
     OsborneEquationOfState
-    MurnahanEquationOfState
+    MurnaghanEquationOfState
     TillotsonEquationOfState
     StrengthModel
+    ConstantStrength
     SteinbergGuinanStrength
     JohnsonCookStrength
     CollinsStrength
@@ -13,11 +14,12 @@ set(SolidMaterial_inst
     PorousStrengthModel
     StrainPorosity
     PhysicsEvolvingMaterialLibrary
-   )
+    )
 
 set(SolidMaterial_sources )
 
 set(SolidMaterial_headers
+    ANEOS.hh
     CollinsStrength.hh
     ConstantStrength.hh
     Geodyn.hh
@@ -26,8 +28,8 @@ set(SolidMaterial_headers
     JohnsonCookStrength.hh
     LinearPolynomialEquationOfState.hh
     LinearPolynomialEquationOfStateInline.hh
-    MurnahanEquationOfState.hh
-    MurnahanEquationOfStateInline.hh
+    MurnaghanEquationOfState.hh
+    MurnaghanEquationOfStateInline.hh
     NullStrength.hh
     OsborneEquationOfState.hh
     OsborneEquationOfStateInline.hh
@@ -48,12 +50,13 @@ set(SolidMaterial_headers
     )
 
 spheral_install_python_files(
-  MaterialPropertiesLib.py
-  SolidMaterialUnits.py
-  SolidMaterialEquationsOfState.py
-  ShadowTillotsonEquationOfState.py
-  ShadowConstantStrength.py
-  )
+    MaterialPropertiesLib.py
+    SolidMaterialUnits.py
+    SolidMaterialEquationsOfState.py
+    ShadowTillotsonEquationOfState.py
+    ShadowGruneisenEquationOfState.py
+    ShadowConstantStrength.py
+    )
 
 # ANEOS
 if (ENABLE_ANEOS)
@@ -72,5 +75,3 @@ set_source_files_properties(ANEOSInst1d.cc ANEOSInst2d.cc ANEOSInst3d.cc PROPERT
 
 spheral_add_cxx_library(SolidMaterial)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_SolidMaterial)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

@@ -60,6 +60,12 @@ function(spheral_add_cxx_library package_name)
   set_target_properties(Spheral_${package_name} PROPERTIES
                         INSTALL_RPATH           ${CMAKE_INSTALL_PREFIX}/lib
                         )
+
+  # Add this to the SPHERAL_CXX_LIBS list
+  get_property(SPHERAL_CXX_LIBS GLOBAL PROPERTY SPHERAL_CXX_LIBS)
+  list(APPEND SPHERAL_CXX_LIBS Spheral_${package_name})
+  set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS "${SPHERAL_CXX_LIBS}")
+
 endfunction()
 
 
@@ -74,7 +80,7 @@ endfunction()
 #         - List of addition includes needed by a given package
 #     <package_name>_ADDITIONAL_SOURCE
 #         - List of additional sources to build library with
-#     SPHERAL_PYTHON_DEPENDS
+#     SPHERAL_CXX_LIBS
 #         - List of items that are required to build the python portion of spheral
 #     spheral_depends
 #         - List of targets the library depends on
@@ -86,6 +92,8 @@ endfunction()
 function(spheral_add_pybind11_library package_name)
   include(${CMAKE_MODULE_PATH}/spheral/PYB11Generator.cmake)
 
+  get_property(SPHERAL_CXX_LIBS GLOBAL PROPERTY SPHERAL_CXX_LIBS)
+
   # Generate the pybind11 C++ source file
   PYB11_GENERATE_BINDINGS(${package_name})
 
@@ -94,7 +102,7 @@ function(spheral_add_pybind11_library package_name)
   set(MODULE_NAME Spheral${package_name})
   blt_add_library(NAME         ${MODULE_NAME}
                   SOURCES      ${PYB11_GENERATED_SOURCE} ${${package_name}_ADDITIONAL_SOURCES}
-                  DEPENDS_ON   -Wl,--start-group ${SPHERAL_PYTHON_DEPENDS} ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} -Wl,--end-group
+                  DEPENDS_ON   -Wl,--start-group ${SPHERAL_CXX_LIBS} ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} -Wl,--end-group
                   INCLUDES     ${${package_name}_ADDITIONAL_INCLUDES}
                   OUTPUT_NAME  ${MODULE_NAME}
                   CLEAR_PREFIX TRUE
@@ -113,7 +121,7 @@ function(spheral_add_pybind11_library package_name)
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(${MODULE_NAME} PROPERTIES
-                        INSTALL_RPATH  ${CMAKE_INSTALL_PREFIX}/lib
+                        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${boost_DIR}/lib;${python_DIR}/lib"
                         )
 
 endfunction()

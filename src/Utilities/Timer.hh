@@ -2,6 +2,8 @@
 #ifndef TIMER_H
 #define TIMER_H
 
+#include "DBC.hh"
+
 #ifdef USE_MPI
 #include "mpi.h"
 #include "Distributed/Communicator.hh"
@@ -10,6 +12,23 @@
 #include <list>
 #include <string>
 
+//------------------------------------------------------------------------------
+// A registrar to hold onto the static list of Timers
+//------------------------------------------------------------------------------
+class Timer;
+class TimerRegistrar {
+public:
+  static std::list<Timer*>& timerList() {
+    if (mTimerListPtr == nullptr) mTimerListPtr = new std::list<Timer*>;
+    return *mTimerListPtr;
+  }
+private:
+  static std::list<Timer*>* mTimerListPtr;
+};
+
+//------------------------------------------------------------------------------
+// Timer
+//------------------------------------------------------------------------------
 // if TIMER is not defined, then we just have a stub class.
 #ifdef TIMER
 
@@ -61,13 +80,8 @@ public:
   
   long int Count() { return count; }
 
-  static std::list<Timer*> TimerList;
-
-  static void TimerSummary(const int bert, const int ernie) {
-    TimerSummary(); // backwards compatibilty...
-  }
-  
-  static void TimerSummary(void);
+  static void TimerSummary(const std::string fname = "time.table",
+                           const bool printAllTimers = false);
   
 private:
   
@@ -102,6 +116,9 @@ private:
 #else
 
 
+//------------------------------------------------------------------------------
+// Timer (stub)
+//------------------------------------------------------------------------------
 // stub Timer class
 #include <string>
 #include <iostream>
@@ -118,8 +135,6 @@ public:
   Timer(const std::string&, Timer&) {}
   Timer(const std::string&, Timer&, bool) {}
   ~Timer() {}
-
-  static std::list<Timer*> TimerList;
 
   inline void setup(){}
   inline void start(){}
@@ -138,11 +153,10 @@ public:
   
   inline long int Count() {return 0;}
   
-  static void TimerSummary(const int, const int) {
-    TimerSummary(); // backwards compatibilty...
-  }
-
-  static void TimerSummary(void) {
+  static void TimerSummary(const std::string fname = "time.table",
+                           const bool printAllTimers = false) {
+    CONTRACT_VAR(fname);
+    CONTRACT_VAR(printAllTimers);
     int rank;
 #ifdef USE_MPI
     MPI_Comm_rank(Spheral::Communicator::communicator(), &rank);

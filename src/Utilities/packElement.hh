@@ -9,15 +9,17 @@
 #define __Spheral_packElement__
 
 #include "Geometry/Dimension.hh"
-#include "Geometry/polyclipper.hh"
+#include "Geometry/PolyClipperUtilities.hh"
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/DomainNode.hh"
+#include "Utilities/uniform_random.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/RKCoefficients.hh"
 
 #include <stdint.h>
 #include <vector>
 #include <map>
+#include <set>
 #include <iterator>
 #include <string>
 #include <tuple>
@@ -258,6 +260,22 @@ packElement(const std::unordered_map<T1, T2, T3>& value,
   }
 }
 
+// Specialize for a std::set<DataType>.
+// Assumes the elements of the vector<> are of a type we already know how to pack.
+template<typename DataType>
+inline
+void
+packElement(const std::set<DataType>& value, 
+            std::vector<char>& buffer) {
+
+  // First push the size of the set onto the buffer.
+  const unsigned size = value.size();
+  packElement(size, buffer);
+
+  // Now push each of the elements on.
+  for (const auto& x: value) packElement(x, buffer);
+}
+
 // RKOrder
 template<>
 inline
@@ -275,6 +293,14 @@ packElement(const RKCoefficients<Dimension>& value,
             std::vector<char>& buffer) {
   packElement(value.correctionOrder, buffer);
   packElement(value.coeffs, buffer);
+}
+
+// uniform_random
+inline
+void
+packElement(const uniform_random& value,
+            std::vector<char>& buffer) {
+  value.serialize(buffer);
 }
 
 //------------------------------------------------------------------------------
@@ -375,8 +401,8 @@ template<>
 inline
 void
 unpackElement<uint32_t>(uint32_t& value,
-                             std::vector<char>::const_iterator& itr,
-                             const std::vector<char>::const_iterator& endPackedVector) {
+                        std::vector<char>::const_iterator& itr,
+                        const std::vector<char>::const_iterator& endPackedVector) {
   CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(uint32_t);
   char* data = reinterpret_cast<char*>(&value);
@@ -392,8 +418,8 @@ template<>
 inline
 void
 unpackElement<uint64_t>(uint64_t& value,
-                                  std::vector<char>::const_iterator& itr,
-                                  const std::vector<char>::const_iterator& endPackedVector) {
+                        std::vector<char>::const_iterator& itr,
+                        const std::vector<char>::const_iterator& endPackedVector) {
   CONTRACT_VAR(endPackedVector);
   const int packSize = sizeof(uint64_t);
   char* data = reinterpret_cast<char*>(&value);
@@ -548,6 +574,33 @@ unpackElement(std::unordered_map<T1, T2, T3>& value,
   ENSURE(itr <= endPackedVector);
 }
 
+// Handle the set<DataType> case, so long as DataType is one of the types
+// we know how to unpack.
+template<typename DataType>
+inline
+void
+unpackElement(std::set<DataType>& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+
+  // Read the size of the vector.
+  unsigned int size;
+  unpackElement(size, itr, endPackedVector);
+  CHECK2(size <= std::distance(itr, endPackedVector),
+         "Crazy buffer size:  " << size << " " << std::distance(itr, endPackedVector));
+
+  // Now iterate over the number of elements we will unpack, and push them onto
+  // the value.
+  value.clear();
+  for (unsigned int i = 0; i != size; ++i) {
+    DataType element;
+    unpackElement(element, itr, endPackedVector);
+    value.insert(element);
+  }
+
+  ENSURE(itr <= endPackedVector);
+}
+
 // RKOrder
 template<>
 inline
@@ -571,6 +624,15 @@ unpackElement(RKCoefficients<Dimension>& value,
   unpackElement(value.correctionOrder, itr, endPackedVector);
   unpackElement(value.coeffs, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
+}
+
+// uniform_random
+inline
+void
+unpackElement(uniform_random& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  value.deserialize(itr, endPackedVector);
 }
 
 //------------------------------------------------------------------------------
@@ -808,24 +870,26 @@ unpackElement(std::map<Key, Value>& mapvalue,
 template<>
 inline
 void
-packElement<PolyClipper::Vertex2d>(const PolyClipper::Vertex2d& value, 
-                                   std::vector<char>& buffer) {
+packElement<PolyClipperVertex2d>(const PolyClipperVertex2d& value, 
+                                 std::vector<char>& buffer) {
   packElement(value.position, buffer);
   packElement(value.neighbors, buffer);
   packElement(value.comp, buffer);
   packElement(value.ID, buffer);
+  packElement(value.clips, buffer);
 }
 
 template<>
 inline
 void
-unpackElement<PolyClipper::Vertex2d>(PolyClipper::Vertex2d& value, 
-                                     std::vector<char>::const_iterator& itr,
-                                     const std::vector<char>::const_iterator& endPackedVector) {
+unpackElement<PolyClipperVertex2d>(PolyClipperVertex2d& value, 
+                                   std::vector<char>::const_iterator& itr,
+                                   const std::vector<char>::const_iterator& endPackedVector) {
   unpackElement(value.position, itr, endPackedVector);
   unpackElement(value.neighbors, itr, endPackedVector);
   unpackElement(value.comp, itr, endPackedVector);
   unpackElement(value.ID, itr, endPackedVector);
+  unpackElement(value.clips, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
 }
 
@@ -834,24 +898,26 @@ unpackElement<PolyClipper::Vertex2d>(PolyClipper::Vertex2d& value,
 template<>
 inline
 void
-packElement<PolyClipper::Vertex3d>(const PolyClipper::Vertex3d& value, 
-                                   std::vector<char>& buffer) {
+packElement<PolyClipperVertex3d>(const PolyClipperVertex3d& value, 
+                                 std::vector<char>& buffer) {
   packElement(value.position, buffer);
   packElement(value.neighbors, buffer);
   packElement(value.comp, buffer);
   packElement(value.ID, buffer);
+  packElement(value.clips, buffer);
 }
 
 template<>
 inline
 void
-unpackElement<PolyClipper::Vertex3d>(PolyClipper::Vertex3d& value, 
-                                     std::vector<char>::const_iterator& itr,
-                                     const std::vector<char>::const_iterator& endPackedVector) {
+unpackElement<PolyClipperVertex3d>(PolyClipperVertex3d& value, 
+                                   std::vector<char>::const_iterator& itr,
+                                   const std::vector<char>::const_iterator& endPackedVector) {
   unpackElement(value.position, itr, endPackedVector);
   unpackElement(value.neighbors, itr, endPackedVector);
   unpackElement(value.comp, itr, endPackedVector);
   unpackElement(value.ID, itr, endPackedVector);
+  unpackElement(value.clips, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
 }
 
@@ -860,21 +926,21 @@ unpackElement<PolyClipper::Vertex3d>(PolyClipper::Vertex3d& value,
 template<>
 inline
 void
-packElement<PolyClipper::Plane2d>(const PolyClipper::Plane2d& value, 
-                                  std::vector<char>& buffer) {
-  packElement(value.normal, buffer);
+packElement<PolyClipperPlane2d>(const PolyClipperPlane2d& value, 
+                                std::vector<char>& buffer) {
   packElement(value.dist, buffer);
+  packElement(value.normal, buffer);
   packElement(value.ID, buffer);
 }
 
 template<>
 inline
 void
-unpackElement<PolyClipper::Plane2d>(PolyClipper::Plane2d& value, 
-                                    std::vector<char>::const_iterator& itr,
-                                    const std::vector<char>::const_iterator& endPackedVector) {
-  unpackElement(value.normal, itr, endPackedVector);
+unpackElement<PolyClipperPlane2d>(PolyClipperPlane2d& value, 
+                                  std::vector<char>::const_iterator& itr,
+                                  const std::vector<char>::const_iterator& endPackedVector) {
   unpackElement(value.dist, itr, endPackedVector);
+  unpackElement(value.normal, itr, endPackedVector);
   unpackElement(value.ID, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
 }
@@ -884,21 +950,21 @@ unpackElement<PolyClipper::Plane2d>(PolyClipper::Plane2d& value,
 template<>
 inline
 void
-packElement<PolyClipper::Plane3d>(const PolyClipper::Plane3d& value, 
-                                  std::vector<char>& buffer) {
-  packElement(value.normal, buffer);
+packElement<PolyClipperPlane3d>(const PolyClipperPlane3d& value, 
+                                std::vector<char>& buffer) {
   packElement(value.dist, buffer);
+  packElement(value.normal, buffer);
   packElement(value.ID, buffer);
 }
 
 template<>
 inline
 void
-unpackElement<PolyClipper::Plane3d>(PolyClipper::Plane3d& value, 
-                                    std::vector<char>::const_iterator& itr,
-                                    const std::vector<char>::const_iterator& endPackedVector) {
-  unpackElement(value.normal, itr, endPackedVector);
+unpackElement<PolyClipperPlane3d>(PolyClipperPlane3d& value, 
+                                  std::vector<char>::const_iterator& itr,
+                                  const std::vector<char>::const_iterator& endPackedVector) {
   unpackElement(value.dist, itr, endPackedVector);
+  unpackElement(value.normal, itr, endPackedVector);
   unpackElement(value.ID, itr, endPackedVector);
   ENSURE(itr <= endPackedVector);
 }

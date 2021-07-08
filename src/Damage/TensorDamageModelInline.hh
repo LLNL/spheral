@@ -1,8 +1,35 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// Return the set of flaw activation energies for the given node.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const std::vector<double>
+TensorDamageModel<Dimension>::
+flawsForNode(const size_t index) const {
+  return mFlaws(index);
+}
+
+//------------------------------------------------------------------------------
 // Access the state fields.
 //------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const Field<Dimension, typename Dimension::Scalar>&
+TensorDamageModel<Dimension>::
+youngsModulus() const {
+  return mYoungsModulus;
+}
+
+template<typename Dimension>
+inline
+const Field<Dimension, typename Dimension::Scalar>&
+TensorDamageModel<Dimension>::
+longitudinalSoundSpeed() const {
+  return mLongitudinalSoundSpeed;
+}
+
 template<typename Dimension>
 const Field<Dimension, typename Dimension::SymTensor>&
 TensorDamageModel<Dimension>::
@@ -26,18 +53,18 @@ DdamageDt() const {
 
 template<typename Dimension>
 inline
-const Field<Dimension, typename Dimension::SymTensor>&
+const typename TensorDamageModel<Dimension>::FlawStorageType&
 TensorDamageModel<Dimension>::
-newEffectiveDamage() const {
-  return mNewEffectiveDamage;
+flaws() const {
+  return mFlaws;
 }
 
 template<typename Dimension>
 inline
-const Field<Dimension, typename Dimension::Vector>&
+typename TensorDamageModel<Dimension>::FlawStorageType&
 TensorDamageModel<Dimension>::
-newDamageGradient() const {
-  return mNewDamageGradient;
+flaws() {
+  return mFlaws;
 }
 
 //------------------------------------------------------------------------------
@@ -49,37 +76,6 @@ TensorStrainAlgorithm
 TensorDamageModel<Dimension>::
 strainAlgorithm() const {
   return mStrainAlgorithm;
-}
-
-//------------------------------------------------------------------------------
-// The effective damage update algorithm.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-EffectiveDamageAlgorithm
-TensorDamageModel<Dimension>::
-effectiveDamageAlgorithm() const {
-  return mEffDamageAlgorithm;
-}
-
-//------------------------------------------------------------------------------
-// Flag to determine if we compute the gradient of the damage at the start 
-// of a timestep.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-TensorDamageModel<Dimension>::
-useDamageGradient() const {
-  return mUseDamageGradient;
-}
-
-template<typename Dimension>
-inline
-void
-TensorDamageModel<Dimension>::
-useDamageGradient(bool x) {
-  mUseDamageGradient = x;
 }
 
 //------------------------------------------------------------------------------

@@ -27,7 +27,6 @@ set(Strength_headers
     DeviatoricStressPolicy.hh
     MeltEnergyPolicy.hh
     PlasticStrainPolicy.hh
-    #RZDeviatoricStressPolicy.hh
     RZPlasticStrainPolicy.hh
     ShearModulusPolicy.hh
     SolidFieldNames.hh
@@ -38,5 +37,3 @@ set(Strength_headers
 
 spheral_add_cxx_library(Strength)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Strength)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

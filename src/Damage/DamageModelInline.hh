@@ -3,41 +3,22 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// The effective critical number of nodes per smoothing scale, below which we
-// assume all flaws are active on a node.
+// Do we require ghost-ghost or intersection connectivity?
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
+bool
 DamageModel<Dimension>::
-criticalNodesPerSmoothingScale() const {
-  return mCriticalNodesPerSmoothingScale;
+requireGhostConnectivity() const {
+  return mDamageCouplingAlgorithm == DamageCouplingAlgorithm::ThreePointDamage;
 }
 
 template<typename Dimension>
 inline
-void
+bool
 DamageModel<Dimension>::
-criticalNodesPerSmoothingScale(double x) {
-  VERIFY(x >= 0.0);
-  mCriticalNodesPerSmoothingScale = x;
-}
-
-//------------------------------------------------------------------------------
-// Return the set of flaw activation energies for the given node.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const std::vector<double>
-DamageModel<Dimension>::
-flawsForNode(const size_t index) const {
-  REQUIRE(index < mNodeList.numInternalNodes());
-  REQUIRE(mFlaws.nodeListPtr() == &mNodeList);
-  if (mEffectiveFlawAlgorithm == EffectiveFlawAlgorithm::FullSpectrumFlaws) {
-    return mFlaws(index);
-  } else {
-    return std::vector<double>(1, mEffectiveFlaws(index));
-  }
+requireIntersectionConnectivity() const {
+  return mComputeIntersectConnectivity;
 }
 
 //------------------------------------------------------------------------------
@@ -77,59 +58,18 @@ crackGrowthMultiplier() const {
 
 template<typename Dimension>
 inline
-EffectiveFlawAlgorithm
+DamageCouplingAlgorithm
 DamageModel<Dimension>::
-effectiveFlawAlgorithm() const {
-  return mEffectiveFlawAlgorithm;
-}
-
-//------------------------------------------------------------------------------
-// Access the state fields.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const Field<Dimension, typename Dimension::Scalar>&
-DamageModel<Dimension>::
-youngsModulus() const {
-  return mYoungsModulus;
+damageCouplingAlgorithm() const {
+  return mDamageCouplingAlgorithm;
 }
 
 template<typename Dimension>
 inline
-const Field<Dimension, typename Dimension::Scalar>&
+const NodeCoupling&
 DamageModel<Dimension>::
-longitudinalSoundSpeed() const {
-  return mLongitudinalSoundSpeed;
-}
-
-//------------------------------------------------------------------------------
-// Access the flaw activation strains.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const typename DamageModel<Dimension>::FlawStorageType&
-DamageModel<Dimension>::
-flaws() const {
-  return mFlaws;
-}
-
-template<typename Dimension>
-inline
-typename DamageModel<Dimension>::FlawStorageType&
-DamageModel<Dimension>::
-flaws() {
-  return mFlaws;
-}
-
-//------------------------------------------------------------------------------
-// Access the computed effective flaw activation strain per node.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const Field<Dimension, typename Dimension::Scalar>&
-DamageModel<Dimension>::
-effectiveFlaws() const {
-  return mEffectiveFlaws;
+nodeCoupling() const {
+  return *mNodeCouplingPtr;
 }
 
 }

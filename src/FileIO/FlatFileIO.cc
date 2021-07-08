@@ -137,6 +137,14 @@ FlatFileIO::write(const unsigned& value, const string pathName) {
 }
 
 //------------------------------------------------------------------------------
+// Write a size_t to the file.
+//------------------------------------------------------------------------------
+void
+FlatFileIO::write(const size_t& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
+//------------------------------------------------------------------------------
 // Write an int to the file.
 //------------------------------------------------------------------------------
 void
@@ -295,6 +303,14 @@ write(const std::vector<string>& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 FlatFileIO::read(unsigned& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+//------------------------------------------------------------------------------
+// Read a size_t from the file.
+//------------------------------------------------------------------------------
+void
+FlatFileIO::read(size_t& value, const string pathName) const {
   readGenericType(value, pathName);
 }
 
@@ -504,6 +520,13 @@ write(const Field<Dim<1>, int>& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
+// unsigned
+void
+FlatFileIO::
+write(const Field<Dim<1>, unsigned>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
 //------------------------------------------------------------------------------
 // 1d fields (read).
 //------------------------------------------------------------------------------
@@ -546,6 +569,13 @@ read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const string pathName) const
 void
 FlatFileIO::
 read(Field<Dim<1>, int>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// int
+void
+FlatFileIO::
+read(Field<Dim<1>, unsigned>& value, const string pathName) const {
   readGenericType(value, pathName);
 }
 #endif
@@ -596,6 +626,13 @@ write(const Field<Dim<2>, int>& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
+// unsigned
+void
+FlatFileIO::
+write(const Field<Dim<2>, unsigned>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
 //------------------------------------------------------------------------------
 // 2d fields (read).
 //------------------------------------------------------------------------------
@@ -638,6 +675,13 @@ read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const string pathName) const
 void
 FlatFileIO::
 read(Field<Dim<2>, int>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// unsigned
+void
+FlatFileIO::
+read(Field<Dim<2>, unsigned>& value, const string pathName) const {
   readGenericType(value, pathName);
 }
 #endif
@@ -688,6 +732,13 @@ write(const Field<Dim<3>, int>& value, const string pathName) {
   writeGenericType(value, pathName);
 }
 
+// unsigned
+void
+FlatFileIO::
+write(const Field<Dim<3>, unsigned>& value, const string pathName) {
+  writeGenericType(value, pathName);
+}
+
 //------------------------------------------------------------------------------
 // 3d fields (read).
 //------------------------------------------------------------------------------
@@ -730,6 +781,13 @@ read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const string pathName) const
 void
 FlatFileIO::
 read(Field<Dim<3>, int>& value, const string pathName) const {
+  readGenericType(value, pathName);
+}
+
+// unsigned
+void
+FlatFileIO::
+read(Field<Dim<3>, unsigned>& value, const string pathName) const {
   readGenericType(value, pathName);
 }
 #endif

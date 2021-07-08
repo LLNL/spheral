@@ -18,9 +18,8 @@ set(Geometry_sources
     Jacobi2.cc
     buildEigenVector.cc
     computeEigenValues.cc
+    PolyClipperUtilities.cc
     fakemain.cc
-    polyclipper2d.cc
-    polyclipper3d.cc
    )
 
 instantiate(Geometry_inst Geometry_sources)
@@ -36,6 +35,8 @@ set(Geometry_headers
     FacetedVolumeUtilities.hh
     Geom3Vector.hh
     Geom3VectorInline.hh
+    GeomFacet1d.hh
+    GeomFacet1dInline.hh
     GeomFacet2d.hh
     GeomFacet2dInline.hh
     GeomFacet3d.hh
@@ -81,22 +82,21 @@ set(Geometry_headers
     Jacobi.hh
     Jacobi2.hh
     MathTraits.hh
+    PolyClipperUtilities.hh
     RankNTensor.hh
     RankNTensorInline.hh
     TensorType.hh
     aggregateFacetedVolumes.hh
     buildEigenVector.hh
+    clipConvexFacetedVolumeByPlanes.hh
+    clipFacetedVolumeByPlanes.hh
     computeEigenValues.hh
     findEigenValues3.hh
     innerDoubleProduct.hh
     innerProduct.hh
     invertRankNTensor.hh
     outerProduct.hh
-    polyclipper.hh
-    polyclipper_utilities.hh
     )
 
 spheral_add_cxx_library(Geometry)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Geometry)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)

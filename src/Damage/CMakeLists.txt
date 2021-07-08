@@ -2,29 +2,37 @@ include_directories(.)
 set(Damage_inst
     DamageModel
     TensorDamageModel
+    ProbabilisticDamageModel
+    ProbabilisticDamagePolicy
+    IvanoviSALEDamageModel
+    IvanoviSALEDamagePolicy
     StrainPolicy
     TensorStrainPolicy
     TensorDamagePolicy
     YoungsModulusPolicy
     LongitudinalSoundSpeedPolicy
-    weibullFlawDistribution
+    weibullFlawDistributionBenzAsphaug
+    weibullFlawDistributionOwen
     computeFragmentField
     JohnsonCookDamage
     JohnsonCookFailureStrainPolicy
     JohnsonCookDamagePolicy
+    DamagedPressurePolicy
+    PairMaxDamageNodeCoupling
+    ThreePointDamagedNodeCoupling
+    DamageGradientNodeCoupling
    )
-
 
 set(Damage_sources )
 
 instantiate(Damage_inst Damage_sources)
 
 set(Damage_headers
-    computeFragmentField.hh
-    DamagedSoundSpeedPolicy.hh
     DamageGradientPolicy.hh
     DamageModel.hh
     DamageModelInline.hh
+    DamagedPressurePolicy.hh
+    DamagedSoundSpeedPolicy.hh
     EffectiveTensorDamagePolicy.hh
     GradyKippScalarDamage.hh
     JohnsonCookDamage.hh
@@ -32,16 +40,28 @@ set(Damage_headers
     JohnsonCookDamagePolicy.hh
     JohnsonCookFailureStrainPolicy.hh
     LongitudinalSoundSpeedPolicy.hh
-    oneMinusDamage.hh
     ScalarDamageModel.hh
     ScalarDamagePolicy.hh
     StrainPolicy.hh
     TensorDamageModel.hh
     TensorDamageModelInline.hh
+    ProbabilisticDamageModel.hh
+    ProbabilisticDamageModelInline.hh
+    IvanoviSALEDamageModel.hh
+    IvanoviSALEDamageModelInline.hh
     TensorDamagePolicy.hh
+    ProbabilisticDamagePolicy.hh
+    IvanoviSALEDamagePolicy.hh
     TensorStrainPolicy.hh
-    weibullFlawDistribution.hh
     YoungsModulusPolicy.hh
+    computeFragmentField.hh
+    oneMinusDamage.hh
+    weibullFlawDistributionBenzAsphaug.hh
+    weibullFlawDistributionOwen.hh
+    DamageGradientNodeCoupling.hh
+    PairMaxDamageNodeCoupling.hh
+    MaxDamageNodeCoupling.hh
+    ThreePointDamagedNodeCoupling.hh
     )
 
 spheral_install_python_files(
@@ -49,9 +69,9 @@ spheral_install_python_files(
   WeibullDamage.py
   GradyKippTensorDamage.py
   JohnsonCookDamageFactories.py
+  ShadowProbabilisticDamageModel.py
+  ShadowIvanoviSALEDamageModel.py
   )
 
 spheral_add_cxx_library(Damage)
 
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_Damage)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
