@@ -21,6 +21,7 @@ class SolidFSISPHHydroBase(SolidSPHHydroBase):
     def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
                dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
+               slides = "SlideSurface<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                filter = "const double",
                cfl = "const double",
@@ -62,7 +63,8 @@ mass density, velocity, and specific thermal energy."""
 
     #...........................................................................
     # Properties
-    surfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "surfaceNormals", returnpolicy="reference_internal")
+    slideSurfaces = PYB11property("SlideSurface<%(Dimension)s>&", "slideSurface", doc="The slide surface object")
+    #surfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "surfaceNormals", returnpolicy="reference_internal")
     surfaceForceCoefficient = PYB11property("double", "surfaceForceCoefficient", "surfaceForceCoefficient",
                            doc="additional force between different materials ala Monaghan 2013.")
     

@@ -1,7 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
 // SolidFSISPHHydroBase -- 
-//
-// Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_SolidFSISPHHydroBase_hh__
 #define __Spheral_SolidFSISPHHydroBase_hh__
@@ -17,6 +15,7 @@ template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class SlideSurface;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
@@ -39,6 +38,7 @@ public:
   SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                     DataBase<Dimension>& dataBase,
                     ArtificialViscosity<Dimension>& Q,
+                    SlideSurface<Dimension>& slide,
                     const TableKernel<Dimension>& W,
                     const double filter,
                     const double cfl,
@@ -111,8 +111,9 @@ public:
   std::vector<int> sumDensityNodeLists() const;
   void sumDensityNodeLists(std::vector<int> x);
 
-  const FieldList<Dimension, Vector>& surfaceNormals() const;
+  //const FieldList<Dimension, Vector>& surfaceNormals() const;
   const std::vector<Scalar>& pairDepsDt() const;
+  SlideSurface<Dimension>& slideSurface() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -120,6 +121,7 @@ public:
  //****************************************************************************
 
 private:
+  SlideSurface<Dimension>& mSlideSurface;             // ref to the obj tracking slideSurfs between nodelists
   double mSurfaceForceCoefficient;                    // Monaghan 2013 force increase @ interface
   double mDensityStabilizationCoefficient;            // adjusts DvDx to stabilize rho
   double mDensityDiffusionCoefficient;                // controls diffusion of rho
@@ -128,7 +130,7 @@ private:
   bool   mApplySelectDensitySum;                      // switch for density sum
   std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
   
-  FieldList<Dimension, Vector> mSurfaceNormals;       // outward facing normals for interface nodes
+  //FieldList<Dimension, Vector> mSurfaceNormals;       // outward facing normals for interface nodes
   std::vector<Scalar> mPairDepsDt;                    // store pairwise contribution to DepsDt for compatible
  
   // No default constructor, copying, or assignment.
