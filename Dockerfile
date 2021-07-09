@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-FROM davis291/spheral:gcc8-tpl AS gcc-8
+FROM davis291/spheral:gcc8-tpl AS gcc8
 COPY --chown=axom:axom . /home/axom/workspace
 WORKDIR /home/axom/workspace
 
