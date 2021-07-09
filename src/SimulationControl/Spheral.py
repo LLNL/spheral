@@ -112,7 +112,8 @@ except:
 for shadowedthing in ("TillotsonEquationOfState",
                       "GruneisenEquationOfState",
                       "ConstantStrength",
-                      "ProbabilisticDamageModel"):
+                      "ProbabilisticDamageModel",
+                      "IvanoviSALEDamageModel"):
     for dim in dims:
         exec("from Shadow%(thing)s import %(thing)s%(dim)sd" % {"thing" : shadowedthing,
                                                                 "dim"   : dim})

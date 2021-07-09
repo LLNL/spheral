@@ -1,7 +1,7 @@
 set(POLYCLIPPER_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
-set(POLYCLIPPER_DIST "PolyClipper-v.1.2.1.zip")
+set(POLYCLIPPER_DIST "PolyClipper-v.1.2.2.zip")
 set(POLYCLIPPER_CACHE "${CACHE_DIR}/${POLYCLIPPER_DIST}")
-set(POLYCLIPPER_URL "https://github.com/LLNL/PolyClipper/archive/refs/tags/PolyClipper-v.1.2.1.zip")
+set(POLYCLIPPER_URL "https://github.com/LLNL/PolyClipper/archive/refs/tags/v1.2.2.zip")
 set(POLYCLIPPER_DEST_DIR "${${lib_name}_DIR}/lib")
 
 set(${lib_name}_libs )
@@ -36,7 +36,7 @@ if(${lib_name}_BUILD)
                -DPOLYCLIPPER_BLT_DIR=${SPHERAL_BLT_DIR}
                -DENABLE_CXXONLY=${POLYCLIPPER_ENABLE_CXXONLY}
                -DENABLE_OPENMP=${ENABLE_OPENMP}
-               -DENABLE_MPI=${ENABLE_MPI}
+               -DENABLE_MPI=Off
                -DPYTHON_EXE=${PYTHON_EXE}
                #-DLOOKUP_PYBIND11_INCLUDE_PATH=On
                -DPYBIND11_INCLUDE_PATH=${PYBIND11_INCLUDE_PATH}

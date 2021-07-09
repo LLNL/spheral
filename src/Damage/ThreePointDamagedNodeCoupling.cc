@@ -13,7 +13,7 @@
 //
 // Created by JMO, Fri Jan  1 15:18:38 PST 2021
 //----------------------------------------------------------------------------//
-#include "Utilities/ThreePointDamagedNodeCoupling.hh"
+#include "Damage/ThreePointDamagedNodeCoupling.hh"
 #include "Utilities/pointDistances.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/Timer.hh"
