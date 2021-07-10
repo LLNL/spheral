@@ -11,9 +11,21 @@ def makeSlideSurfaces%(dim)s(W,
                              slideSurfaces=None):
 
         contactTypes = [0]*(dataBase.numNodeLists**2)
-        for slide in slideSurfaces:
-            contactTypes[dataBase.numNodeLists*slide[0]+slide[1]]=1
-            contactTypes[slide[0]+dataBase.numNodeLists*slide[1]]=1
+        
+        if slideSurfaces:
+            
+            # create the map nodelist --> index
+            nodeLists = dataBase.nodeLists()
+            nodeListMap = {}
+            for i in range(dataBase.numNodeLists):        
+                nodeListMap[nodeLists[i]]=i
+
+            # dumb table this should be fixed laters
+            for slide in slideSurfaces:
+                nodeListi = nodeListMap[slide[0]]
+                nodeListj = nodeListMap[slide[1]]
+                contactTypes[dataBase.numNodeLists*nodeListi+nodeListj]=1
+                contactTypes[nodeListi+dataBase.numNodeLists*nodeListj]=1
 
         result = SlideSurface%(dim)s(W, vector_of_int(contactTypes))
 

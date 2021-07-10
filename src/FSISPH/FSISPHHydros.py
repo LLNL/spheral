@@ -12,6 +12,7 @@ class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
     def __init__(self,
                  dataBase,
                  Q,
+                 slides,
                  W,
                  filter = 0.0,
                  cfl = 0.5,
@@ -38,6 +39,7 @@ class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
                                           self._smoothingScaleMethod,
                                           dataBase,
                                           Q,
+                                          slides,
                                           W,
                                           filter,
                                           cfl,
@@ -70,6 +72,7 @@ class %(classname)s(FSISPHHydroBaseRZ):
     def __init__(self,
                  dataBase,
                  Q,
+                 slides,
                  W,
                  filter = 0.0,
                  cfl = 0.5,
@@ -99,6 +102,7 @@ class %(classname)s(FSISPHHydroBaseRZ):
                                    self._smoothingScaleMethod,
                                    dataBase,
                                     Q,
+                                    slides,
                                     W,
                                     filter,
                                     cfl,
@@ -132,6 +136,7 @@ class %(classname)s(SolidFSISPHHydroBaseRZ):
     def __init__(self,
                  dataBase,
                  Q,
+                 slides,
                  W,
                  filter = 0.0,
                  cfl = 0.5,
@@ -162,6 +167,7 @@ class %(classname)s(SolidFSISPHHydroBaseRZ):
                                         self._smoothingScaleMethod,
                                         dataBase,
                                         Q,
+                                        slides,
                                         W,
                                         filter,
                                         cfl,
@@ -199,6 +205,7 @@ class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
     def __init__(self,
                  dataBase,
                  Q,
+                 slides,
                  W,
                  filter = 0.0,
                  cfl = 0.5,
@@ -228,6 +235,7 @@ class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
                                           self._smoothingScaleMethod,
                                           dataBase,
                                           Q,
+                                          slides,
                                           W,
                                           filter,
                                           cfl,
@@ -255,19 +263,21 @@ class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
 """
 
 for dim in dims:
+    '''
     exec(FSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
                                      "classname"            : "FSISPHHydro",
                                      "smoothingScaleMethod" : "SPHSmoothingScale"})
     exec(FSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
                                      "classname"            : "AFSISPHHydro",
                                      "smoothingScaleMethod" : "ASPHSmoothingScale"})
-    
+    '''
     exec(SolidFSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
                                        "classname"            : "SolidFSISPHHydro",
                                        "smoothingScaleMethod" : "SPHSmoothingScale"})
     exec(SolidFSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
                                        "classname"            : "SolidASISPHHydro",
                                        "smoothingScaleMethod" : "ASPHSmoothingScale"})
+'''
 if 2 in dims:
     exec(SolidFSISPHHydroRZFactoryString % {"classname"            : "SolidFSISPHHydroRZ",
                                              "smoothingScaleMethod" : "SPHSmoothingScale"})
@@ -280,17 +290,18 @@ if 2 in dims:
 
     exec(FSISPHHydroRZFactoryString % {"classname"            : "AFSISPHHydroRZ",
                                         "smoothingScaleMethod" : "ASPHSmoothingScale"})
-
+'''
 def FSISPH(dataBase,
         W,
         Q = None,
+        slides=None,
         filter = 0.0,
         cfl = 0.25,
         surfaceForceCoefficient=0.0,
         densityStabilizationCoefficient=0.0, 
         densityDiffusionCoefficient=0.0,      
         specificThermalEnergyDiffusionCoefficient=0.0,        
-        sumDensityNodeLists=None,
+        sumDensityNodeLists=[],
         useVelocityMagnitudeForDt = False,
         compatibleEnergyEvolution = False,
         evolveTotalEnergy = False,
@@ -309,12 +320,6 @@ def FSISPH(dataBase,
         ASPH = False,
         RZ = False):
 
-    print("**********************************************************************")
-    print(" FSISPH WARNING : strongly reccomended to use SyncronousRK1Integrator:")
-    print("                  only integrator that is garenteed to conserve energy")
-    print("                  only integrator that is garenteed to conserve energy")
-    print("**********************************************************************")
-    print(" ")
     
     if densityDiffusionCoefficient > 1e-30 or specificThermalEnergyDiffusionCoefficient > 1e-30:
         print("**********************************************************************")
@@ -334,18 +339,19 @@ def FSISPH(dataBase,
     if strengthInDamage and damageRelieveRubble:
         raise RuntimeError, "strengthInDamage and damageRelieveRubble are incompatible"
 
-    # default to integrate density
-    if sumDensityNodeLists is None:
-        sumDensityNodeLists = vector_of_int([0]*dataBase.numNodeLists)
-    elif isinstance(sumDensityNodeLists,list):
-        if len(sumDensityNodeLists) == dataBase.numFluidNodeLists:
-            assert (isinstance(sumDensityNodeLists[0],bool) or isinstance(sumDensityNodeLists[0],int))
-            sumDensityNodeLists = vector_of_int(sumDensityNodeLists)
-        else:
-            raise RuntimeError, "sumDensityNodeLists - must be list of length equal to numNodeLists."
-    elif not isinstance(sumDensityNodeList,vector_of_int):
-        raise RuntimeError, "sumDensityNodeLists - must be list of int 1/0 or bool."
+    # create the map nodelist --> index
+    nodeLists = dataBase.nodeLists()
+    nodeListMap = {}
+    for i in range(dataBase.numNodeLists):          
+        nodeListMap[nodeLists[i]]=i
 
+    # for now use int 1/0 to indicate sum density or not
+    sumDensitySwitch = [0]*dataBase.numNodeLists
+    for nodeList in sumDensityNodeLists:
+        i = nodeListMap[nodeList]
+        sumDensitySwitch[i]=1
+    sumDensitySwitch = vector_of_int(sumDensitySwitch)
+            
     # We use the provided DataBase to sniff out what sort of NodeLists are being
     # used, and based on this determine which SPH object to build.
     ndim = dataBase.nDim
@@ -391,19 +397,25 @@ def FSISPH(dataBase,
         Cq = 1.0*(dataBase.maxKernelExtent/2.0)**2
         Q = eval("MonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
+    # slide surfaces.
+    if not slides:
+        contactTypes = vector_of_int([0]*(dataBase.numNodeLists**2))
+        slides = eval("SlideSurface%id(W,contactTypes)" % (ndim))
+
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
     kwargs = {"dataBase" : dataBase,
-              "W" : W,
               "Q" : Q,
+              "slides" : slides,
+              "W" : W,
               "filter" : filter,
               "cfl" : cfl,
               "surfaceForceCoefficient" : surfaceForceCoefficient,
               "densityStabilizationCoefficient" : densityStabilizationCoefficient,
               "densityDiffusionCoefficient" : densityDiffusionCoefficient,        
               "specificThermalEnergyDiffusionCoefficient" : specificThermalEnergyDiffusionCoefficient,        
-              "sumDensityNodeLists" : sumDensityNodeLists,
+              "sumDensityNodeLists" : sumDensitySwitch,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
               "evolveTotalEnergy" : evolveTotalEnergy,
@@ -425,6 +437,8 @@ def FSISPH(dataBase,
     # Build and return the thing.
     result = Constructor(**kwargs)
     result.Q = Q
+    result.slides = slides
+    
     return result
 
 #-------------------------------------------------------------------------------
@@ -433,6 +447,7 @@ def FSISPH(dataBase,
 def AFSISPH(dataBase,
          W,
          Q = None,
+         slides=None,
          filter = 0.0,
          cfl = 0.25,
          surfaceForceCoefficient = 0.0,
@@ -458,6 +473,7 @@ def AFSISPH(dataBase,
     return FSISPH(dataBase = dataBase,
                W = W,
                Q = Q,
+               slides=None,
                filter = filter,
                cfl = cfl,
                surfaceForceCoefficient = 0.0,
