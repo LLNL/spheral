@@ -17,13 +17,13 @@
 //------------------------------------------------------------------------------
 class Timer;
 class TimerRegistrar {
-private:
-  static std::list<Timer*>* mTimerListPtr;
 public:
   static std::list<Timer*>& timerList() {
     if (mTimerListPtr == nullptr) mTimerListPtr = new std::list<Timer*>;
     return *mTimerListPtr;
   }
+private:
+  static std::list<Timer*>* mTimerListPtr;
 };
 
 //------------------------------------------------------------------------------
