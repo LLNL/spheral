@@ -32,6 +32,7 @@ set(Utilities_sources
     coarsenBinnedValuesInst.cc
     clipFacetedVolume.cc
     SpheralTimers.cc
+    SpheralCTimers.cc
     #SpheralTimersAlternate.cc
     Timer.cc
     uniform_random.cc
