@@ -93,6 +93,13 @@ public:
                            const State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivatives) const override;
 
+  virtual 
+  void finalize(const Scalar time, 
+                const Scalar dt,
+                      DataBase<Dimension>& dataBase, 
+                      State<Dimension>& state,
+                      StateDerivatives<Dimension>& derivs) override;
+
   double surfaceForceCoefficient() const;
   void surfaceForceCoefficient(double x);
 
