@@ -743,10 +743,6 @@ if(this->correctVelocityGradient()){
          gradWj = Mj.Transpose()*gradWj;
         }
 
-        //if(conserveRotationalMomentum){
-        //  gradWi = gradWi.dot(rhatij)*rhatij;
-        //  gradWj = gradWj.dot(rhatij)*rhatij;
-        //}
         // Zero'th and second moment of the node distribution -- used for the
         // ideal H calculation.
         //---------------------------------------------------------------
@@ -860,9 +856,12 @@ if(this->correctVelocityGradient()){
           ustar =  fDij*ustar + (1.0-fDij)*ustarDamaged;
         }
   
+        // intact material
+
         // additional stabilization 
         const auto vMagij = ui-uj;
         const auto cijEff = max(min(cij + vMagij, cij),0.0);
+
         if (rhoStabilizeCoeff>tiny){
 
           const auto denom = safeInv(max(tiny,(sameMatij      ?
@@ -876,27 +875,11 @@ if(this->correctVelocityGradient()){
           ustar += rhoStabilizeCoeff * min(0.1, max(-0.1, ustarStabilizer)) * cijEff *etaMagij;
         }
 
-        //bound it 
-        //ustar = min(max(ustar,umin),umax);
         const auto vstari = ustar * rhatij + wstari;
         const auto vstarj = ustar * rhatij + wstarj;
         auto deltaDvDxi = 2.0*(vi-vstari).dyad(gradWi);
         auto deltaDvDxj = 2.0*(vstarj-vj).dyad(gradWj);
-
-        // // additional stabilization 
-        // if (rhoStabilizeCoeff>tiny){
-        //     const auto denom = safeInv(max(tiny,(sameMatij      ?
-        //                                          max(rhoi,rhoj) :
-        //                                          max(rhoi*ci*ci,rhoj*cj*cj))));
-        //     const auto rhoStabilizer =  (sameMatij  ?
-        //                                 (rhoj-rhoi) :
-        //                                 (Pj-Pi)     )*denom;
-          
-        //     const auto diffusion = min(0.1, max(-0.1, rhoStabilizer)) * cij * etaij.dot(gradWij)/(etaMagij*etaMagij+tiny)*Tensor::one;
-        //     deltaDvDxi -= rhoStabilizeCoeff * diffusion;
-        //     deltaDvDxj += rhoStabilizeCoeff * diffusion;
-        // }
-
+        
         // energy conservation
         // ----------------------------------------------------------
         DepsDti -= mj*sigmarhoi.doubledot(deltaDvDxi);
@@ -909,14 +892,13 @@ if(this->correctVelocityGradient()){
         DvDxi -= volj*deltaDvDxi;
         DvDxj -= voli*deltaDvDxj;
 
-        // intact material
         if (sameMatij) {
           localMi -= fDij*volj*rij.dyad(gradWi);
           localMj -= fDij*voli*rij.dyad(gradWj);
           localDvDxi -= fDij*volj*(deltaDvDxi);
           localDvDxj -= fDij*voli*(deltaDvDxj); 
         }
-
+        
       // diffusions
       //-----------------------------------------------------------
         if (sameMatij and rhoDiffusionCoeff>tiny){
@@ -928,8 +910,6 @@ if(this->correctVelocityGradient()){
         if (sameMatij and epsDiffusionCoeff>tiny){
           // this is a Kludgley trick to get porosity to play nicely (should be in finalize)
           const auto diffusion =  epsDiffusionCoeff*(epsi-epsj)*cijEff*etaij.dot(gradWij)/(rhoij*etaMagij*etaMagij+tiny);
-          //DepsDti += mj*diffusion;
-          //DepsDtj -= mi*diffusion;
           pairDepsDt[2*kk]   += diffusion; 
           pairDepsDt[2*kk+1] -= diffusion;
         }
