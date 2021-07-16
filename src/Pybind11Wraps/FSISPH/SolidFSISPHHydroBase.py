@@ -64,7 +64,7 @@ mass density, velocity, and specific thermal energy."""
     #...........................................................................
     # Properties
     slideSurfaces = PYB11property("SlideSurface<%(Dimension)s>&", "slideSurface", doc="The slide surface object")
-    #surfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "surfaceNormals", returnpolicy="reference_internal")
+    
     surfaceForceCoefficient = PYB11property("double", "surfaceForceCoefficient", "surfaceForceCoefficient",
                            doc="additional force between different materials ala Monaghan 2013.")
     

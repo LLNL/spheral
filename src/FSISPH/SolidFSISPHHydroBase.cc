@@ -908,18 +908,17 @@ if(this->correctVelocityGradient()){
         }
 
         if (sameMatij and epsDiffusionCoeff>tiny){
-          // this is a Kludgley trick to get porosity to play nicely (should be in finalize)
           const auto diffusion =  epsDiffusionCoeff*(epsi-epsj)*cijEff*etaij.dot(gradWij)/(rhoij*etaMagij*etaMagij+tiny);
           pairDepsDt[2*kk]   += diffusion; 
           pairDepsDt[2*kk+1] -= diffusion;
         }
 
         // rigorous enforcement of single-valued stress-state at interface
-        if (!sameMatij and false ){
-          const auto diffusion = (Si-Sj)*cijEff*etaij.dot(gradWij)/(etaMagij*etaMagij+tiny);
-          DSDti += volj*diffusion;
-          DSDtj -= voli*diffusion;
-        }
+        //if (!sameMatij and false ){
+        //  const auto diffusion = (Si-Sj)*cijEff*etaij.dot(gradWij)/(etaMagij*etaMagij+tiny);
+        //  DSDti += volj*diffusion;
+        //  DSDtj -= voli*diffusion;
+        //}
 
         // XSPH
         //-----------------------------------------------------------

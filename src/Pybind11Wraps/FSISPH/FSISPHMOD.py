@@ -8,7 +8,7 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-#from FSISPHHydroBase import *
+
 from SolidFSISPHHydroBase import *
 from SlideSurface import *
 
@@ -35,6 +35,3 @@ SolidFSISPHHydroBase%(ndim)id = PYB11TemplateClass(SolidFSISPHHydroBase, templat
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
-#if 2 in dims:
-#    from FSISPHHydroBaseRZ import *
-#    from SolidFSISPHHydroBaseRZ import *

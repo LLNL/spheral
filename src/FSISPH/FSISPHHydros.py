@@ -305,10 +305,8 @@ def FSISPH(dataBase,
         useVelocityMagnitudeForDt = False,
         compatibleEnergyEvolution = False,
         evolveTotalEnergy = False,
-        gradhCorrection = False,
         XSPH = False,
         correctVelocityGradient = False,    # will break consistency between DrhoDt and DepsDt
-        densityUpdate = IntegrateDensity,
         HUpdate = IdealH,
         epsTensile = 0.0,
         nTensile = 4.0,
@@ -320,7 +318,9 @@ def FSISPH(dataBase,
         ASPH = False,
         RZ = False):
 
-    
+    gradhCorrection = False
+    densityUpdate = IntegrateDensity
+
     if densityDiffusionCoefficient > 1e-30 or specificThermalEnergyDiffusionCoefficient > 1e-30:
         print("**********************************************************************")
         print(" FSISPH WARNING : compatibility issue w/ StrainPorosity when running:")
