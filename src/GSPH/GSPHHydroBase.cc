@@ -631,7 +631,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto tiny = 1.0e-30;
   const auto W0 = W(0.0, 1.0);
   const auto XSPH = this->XSPH();
-  
+
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
@@ -724,8 +724,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto DpDx_thread = DpDx.threadCopy(threadStack);
     auto DrhoDx_thread = DrhoDx.threadCopy(threadStack);
     auto localDvDx_thread = localDvDx.threadCopy(threadStack);
-    auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(theadStack);
-    auto XSPHDeltaV_thread =  XSPHDeltaV.threadCopy(theadStack);
+    auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
+    auto XSPHDeltaV_thread =  XSPHDeltaV.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
