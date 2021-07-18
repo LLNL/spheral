@@ -388,7 +388,8 @@ dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const{
-     const double tiny = std::numeric_limits<double>::epsilon();
+  
+  const double tiny = std::numeric_limits<double>::epsilon();
 
   // Get some useful fluid variables from the DataBase.
   const auto  mask = state.fields(HydroFieldNames::timeStepMask, 1);
@@ -524,7 +525,6 @@ dt(const DataBase<Dimension>& dataBase,
       if (minDt_local.first < minDt.first) minDt = minDt_local;
     }
   }
-
   // Scale by the cfl safety factor.
   minDt.first *= cfl();
   return minDt;
@@ -540,16 +540,16 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
   TIME_GSPHpreStepInitialize.start();
-  
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  computeSPHSumMassDensity(connectivityMap, this->kernel(), true, position, mass, H, massDensity);
-  for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-  for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  
+  if(false){
+    const auto& connectivityMap = dataBase.connectivityMap();
+    const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+    const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+    const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+    computeSPHSumMassDensity(connectivityMap, this->kernel(), true, position, mass, H, massDensity);
+    for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+    for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  }
   TIME_GSPHpreStepInitialize.stop();
 }
 
@@ -628,9 +628,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& W = this->kernel();
 
   // A few useful constants we'll use in the following loop.
-  const double tiny = 1.0e-30;
-  const Scalar W0 = W(0.0, 1.0);
-
+  const auto tiny = 1.0e-30;
+  const auto W0 = W(0.0, 1.0);
+  const auto XSPH = this->XSPH();
+  
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
@@ -723,6 +724,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto DpDx_thread = DpDx.threadCopy(threadStack);
     auto DrhoDx_thread = DrhoDx.threadCopy(threadStack);
     auto localDvDx_thread = localDvDx.threadCopy(threadStack);
+    auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(theadStack);
+    auto XSPHDeltaV_thread =  XSPHDeltaV.threadCopy(theadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -755,7 +758,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
       auto& DvDxi = DvDx_thread(nodeListi, i);
       auto& localDvDxi = localDvDx_thread(nodeListi, i);
+      auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi,i);
+      auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi,i);
       const auto& Mi = M(nodeListi,i);
+
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
@@ -781,6 +787,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& DepsDtj = DepsDt_thread(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
+      auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj,j);
+      auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj,j);
       const auto& Mj = M(nodeListj,j);
 
       // Flag if this is a contiguous material pair or not.
@@ -917,20 +925,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       if (sameMatij){
         const auto epsDiffusionCoeff=0.00;
         const auto diffusion =  epsDiffusionCoeff*(epsi-epsj)*cij*etaij.dot(gradWij)/(rhoij*etaMagij*etaMagij+tiny);
-        DepsDti += mj*diffusion;
-        DepsDtj -= mi*diffusion;
+        //DepsDti += mj*diffusion;
+        //DepsDtj -= mi*diffusion;
         pairAccelerations[2*kk+1][0] += mj*diffusion; 
         pairAccelerations[2*kk+1][1] -= mi*diffusion;
       }
 
       // XSPH
       //-----------------------------------------------------------
-      //if (XSPH and sameMatij) {
-      //  XSPHWeightSumi += volj*Wi;
-      //  XSPHWeightSumj += voli*Wj;
-      //  XSPHDeltaVi -= volj*Wi*vij;
-      //  XSPHDeltaVj += voli*Wj*vij;
-      //}
+      if (XSPH) {
+        XSPHWeightSumi += volj*Wi;
+        XSPHWeightSumj += voli*Wj;
+        XSPHDeltaVi -= volj*Wi*(vi-vstar);
+        XSPHDeltaVj -= voli*Wj*(vj-vstar);
+      }
 
     } // loop over pairs
     threadReduceFieldLists<Dimension>(threadStack);
@@ -1084,6 +1092,7 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
   CHECK(localM.size() == numNodeLists);
   CHECK(DpDx.size() == numNodeLists);
   CHECK(DrhoDx.size() == numNodeLists);
+  CHECK(localDvDx.size() == numNodeLists);
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
@@ -1093,10 +1102,7 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
-  TIME_GSPHevalDerivs_initial.stop();
 
-  // Walk all the interacting pairs.
-  TIME_GSPHevalDerivs_pairs.start();
 #pragma omp parallel
   {
     // Thread private scratch variables
