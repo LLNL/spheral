@@ -834,7 +834,7 @@ if(this->correctVelocityGradient()){
         const auto weightWi = max(0.0, min(1.0, mui/(mui+muj)));
         const auto weightWj = max(0.0, min(1.0, 1.0 - weightWi));
 
-        // same mat no damage defaults to avg
+        // same mat and no damage defaults to avg
         auto ustar = 0.5*(ui+uj);
         auto wstari = 0.5*(wi+wj);
         auto wstarj = 0.5*(wi+wj);
@@ -856,14 +856,12 @@ if(this->correctVelocityGradient()){
           ustar =  fDij*ustar + (1.0-fDij)*ustarDamaged;
         }
   
-        // intact material
-
         // additional stabilization 
         const auto vMagij = ui-uj;
         const auto cijEff = max(min(cij + vMagij, cij),0.0);
 
         if (rhoStabilizeCoeff>tiny){
-
+          // pressure version might be good w/ cijEff
           const auto denom = safeInv(max(tiny,(sameMatij      ?
                                                max(rhoi,rhoj) :
                                                max(rhoi*ci*ci,rhoj*cj*cj))));
@@ -893,6 +891,8 @@ if(this->correctVelocityGradient()){
         DvDxj -= voli*deltaDvDxj;
 
         if (sameMatij) {
+          // might want to try removing fDij here
+          // mat props should take care of this
           localMi -= fDij*volj*rij.dyad(gradWi);
           localMj -= fDij*voli*rij.dyad(gradWj);
           localDvDxi -= fDij*volj*(deltaDvDxi);
