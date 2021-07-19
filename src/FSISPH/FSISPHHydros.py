@@ -303,7 +303,7 @@ def FSISPH(dataBase,
         specificThermalEnergyDiffusionCoefficient=0.0,        
         sumDensityNodeLists=[],
         useVelocityMagnitudeForDt = False,
-        compatibleEnergyEvolution = False,
+        compatibleEnergyEvolution = True,
         evolveTotalEnergy = False,
         XSPH = False,
         correctVelocityGradient = False,    # will break consistency between DrhoDt and DepsDt
@@ -321,13 +321,16 @@ def FSISPH(dataBase,
     gradhCorrection = False
     densityUpdate = IntegrateDensity
 
+    if compatibleEnergyEvolution and evolveTotalEnergy:
+        raise RuntimeError, "compatibleEnergyEvolution and evolveTotalEnergy are incompatible"
+    
     if densityDiffusionCoefficient > 1e-30 or specificThermalEnergyDiffusionCoefficient > 1e-30:
         print("**********************************************************************")
         print(" FSISPH WARNING : compatibility issue w/ StrainPorosity when running:")
-        print("                  densityDiffusionCoefficient > 0.0 or")
-        print("                  specificThermalEnergyDiffusionCoefficient > 0.0.")
+        print("                  densityDiffusionCoefficient > 0.0")
         print("                  ")
         print("                  densityStabilizationCoefficient > 0.0 is safe")
+        print("                  specificThermalEnergyDiffusionCoefficient > 0.0 is safe")
         print("**********************************************************************")
 
     if gradhCorrection:
@@ -365,8 +368,9 @@ def FSISPH(dataBase,
 
     # Decide on the hydro object.
     if RZ:
-
+        raise RuntimeError, "RZ is not implemented yet"
         # RZ ----------------------------------------
+        '''
         if nsolid > 0:
             if ASPH:
                 Constructor = SolidAFSISPHHydroRZ
@@ -377,8 +381,9 @@ def FSISPH(dataBase,
                 Constructor = AFSISPHHydroRZ
             else:
                 Constructor = FSISPHHydroRZ
-
+        '''
     else:
+    
         # Cartesian ---------------------------------
         if nsolid > 0:
             if ASPH:
@@ -386,10 +391,13 @@ def FSISPH(dataBase,
             else:
                 Constructor = eval("SolidFSISPHHydro%id" % ndim)
         else:
+            raise RuntimeError, "currently only implemented for solid nodelists"
+            '''
             if ASPH:
                 Constructor = eval("AFSISPHHydro%id" % ndim)
             else:
                 Constructor = eval("FSISPHHydro%id" % ndim)
+            '''
 
     # Artificial viscosity.
     if not Q:
