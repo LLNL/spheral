@@ -332,7 +332,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto rhoStabilizeCoeff = this->densityStabilizationCoefficient();
   const auto surfaceForceCoeff = this->surfaceForceCoefficient();
   const auto XSPH = this->XSPH();
-  const auto conserveRotationalMomentum = false;
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -449,8 +448,6 @@ if(this->correctVelocityGradient()){
 
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
-      const auto& vi = velocity(nodeListi, i);
-      const auto& Pi = pressure(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
@@ -461,8 +458,6 @@ if(this->correctVelocityGradient()){
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
-      const auto& vj = velocity(nodeListj, j);
-      const auto& Pj = pressure(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
       const auto& rhoj = massDensity(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
@@ -598,7 +593,7 @@ if(this->correctVelocityGradient()){
       auto& DvDti = DvDt_thread(nodeListi, i);
       auto& DrhoDti = DrhoDt_thread(nodeListi, i);
       auto& DepsDti = DepsDt_thread(nodeListi, i);
-      auto& DSDti = DSDt_thread(nodeListi, i);
+      //auto& DSDti = DSDt_thread(nodeListi, i);
       auto& DvDxi = DvDx_thread(nodeListi, i);
       auto& localDvDxi = localDvDx_thread(nodeListi, i);
       auto& localMi = localM_thread(nodeListi, i);
@@ -634,7 +629,7 @@ if(this->correctVelocityGradient()){
       auto& DvDtj = DvDt_thread(nodeListj, j);
       auto& DrhoDtj = DrhoDt_thread(nodeListj, j);
       auto& DepsDtj = DepsDt_thread(nodeListj, j);
-      auto& DSDtj = DSDt_thread(nodeListj, j);
+      //auto& DSDtj = DSDt_thread(nodeListj, j);
       auto& DvDxj = DvDx_thread(nodeListj, j);
       auto& localDvDxj = localDvDx_thread(nodeListj, j);
       const auto& Mj = M(nodeListj,j);
@@ -796,8 +791,6 @@ if(this->correctVelocityGradient()){
         const auto uj = vj.dot(rhatij);
         const auto wi = vi - ui*rhatij;
         const auto wj = vj - uj*rhatij;
-        const auto umin = min(ui,uj);
-        const auto umax = max(ui,uj);
 
         // material property avg weights
         const auto Ci = Ki*volj*gWi;
@@ -934,11 +927,12 @@ if(this->correctVelocityGradient()){
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
+      const auto& DvDti = DvDt(nodeListi,i);
+      auto& DepsDti = DepsDt(nodeListi,i);
       auto& DxDti = DxDt(nodeListi, i);
       auto& DrhoDti = DrhoDt(nodeListi, i);
       auto& DvDxi = DvDx(nodeListi, i);
       auto& localDvDxi = localDvDx(nodeListi, i);
-      auto& Mi = M(nodeListi, i);
       auto& localMi = localM(nodeListi, i);
       auto& DHDti = DHDt(nodeListi, i);
       auto& Hideali = Hideal(nodeListi, i);
@@ -1014,12 +1008,12 @@ template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
 finalize(const Scalar time, 
-         const Scalar dt,
-               DataBase<Dimension>& dataBase, 
+         const Scalar  dt,
+               DataBase<Dimension>&  dataBase, 
                State<Dimension>& state,
-               StateDerivatives<Dimension>& derivs){
-
-} // finalize method
+               StateDerivatives<Dimension>&  derivs){
+  SPHHydroBase<Dimension>::finalizeDerivatives(time,dt,dataBase,state,derivs);
+} 
 
 }
 
