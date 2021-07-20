@@ -673,19 +673,19 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
 
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
-  //if (compatibleEnergyEvolution()) {
+  if (compatibleEnergyEvolution()) {
     auto accelerations = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-    //auto DepsDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+    auto DepsDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) {
       (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
-      //(*boundaryItr)->applyFieldListGhostBoundary(DepsDt);
+      (*boundaryItr)->applyFieldListGhostBoundary(DepsDt);
     }
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  //}
+  }
   TIME_SPHfinalizeDerivs.stop();
 }
 

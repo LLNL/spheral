@@ -49,11 +49,11 @@ set(SPH_headers
     )
 
 spheral_install_python_files(
-  SPHHydros.py
-  PSPHHydros.py
-  SPHUtilities.py
-  FacetedSurfaceASPHHydro.py
-  )
+    SPHHydros.py
+    PSPHHydros.py
+    SPHUtilities.py
+    FacetedSurfaceASPHHydro.py
+    )
 
 spheral_add_cxx_library(SPH)
 

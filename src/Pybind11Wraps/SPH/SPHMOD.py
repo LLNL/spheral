@@ -13,7 +13,6 @@ from SPHHydroBase import *
 from PSPHHydroBase import *
 from SolidSPHHydroBase import *
 
-
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
