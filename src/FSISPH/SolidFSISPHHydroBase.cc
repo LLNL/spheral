@@ -203,17 +203,13 @@ registerState(DataBase<Dimension>& dataBase,
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
   
   // Override the specific thermal energy policy if compatible
-  auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-  auto velocity = dataBase.fluidVelocity();
-  CHECK(specificThermalEnergy.numFields() == dataBase.numFluidNodeLists());
-  CHECK(velocity.numFields() == dataBase.numFluidNodeLists());
-  PolicyPointer epsPolicy(new FSISpecificThermalEnergyPolicy<Dimension>(dataBase));
-  PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
-                                                                           HydroFieldNames::specificThermalEnergy,
-                                                                           true));
-  state.enroll(specificThermalEnergy, epsPolicy);
-  state.enroll(velocity, velocityPolicy);
-
+  if(this->compatibleEnergyEvolution()){
+    auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+    CHECK(specificThermalEnergy.numFields() == dataBase.numFluidNodeLists());
+    PolicyPointer epsPolicy(new FSISpecificThermalEnergyPolicy<Dimension>(dataBase));
+    state.enroll(specificThermalEnergy, epsPolicy);
+  }
+  
   // override our pressure policy we need neg pressure to decouple
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   CHECK(pressure.numFields() == dataBase.numFluidNodeLists());
@@ -323,8 +319,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto tiny = 1.0e-30;
   const auto W0 = W(0.0, 1.0);
   const auto epsTensile = this->epsilonTensile();
-  //const auto compatibleEnergy = this->compatibleEnergyEvolution();
-  //const auto totalEnergy = this->evolveTotalEnergy();
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto totalEnergy = this->evolveTotalEnergy();
   const auto damageRelieveRubble = this->damageRelieveRubble();
   const auto rhoDiffusionCoeff = this->densityDiffusionCoefficient();
   const auto epsDiffusionCoeff = this->specificThermalEnergyDiffusionCoefficient();
@@ -412,10 +408,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  npairs = pairs.size();
 
   // Size up the pair-wise accelerations before we start.
-  //if(compatibleEnergy){
-  pairAccelerations.resize(npairs);
-  pairDepsDt.resize(2*npairs);
-  //}
+  if(compatibleEnergy){
+    pairAccelerations.resize(npairs);
+    pairDepsDt.resize(2*npairs);
+  }
 
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();
@@ -776,7 +772,6 @@ if(this->correctVelocityGradient()){
         sigmarhoj = sf*((rhoirhoj*sigmaj-0.5*QPiji));
       
         const auto deltaDvDt = sigmarhoi*gradWi+sigmarhoj*gradWj;
-        pairAccelerations[kk] = -deltaDvDt;
 
         if (freeParticle) {
           DvDti += mj*deltaDvDt;
@@ -790,15 +785,13 @@ if(this->correctVelocityGradient()){
         const auto uj = vj.dot(rhatij);
         const auto wi = vi - ui*rhatij;
         const auto wj = vj - uj*rhatij;
-        const auto umin = min(ui,uj);
-        const auto umax = max(ui,uj);
 
         // material property avg weights
-        const auto Ci = Ki*volj*gWi;
-        const auto Cj = Kj*voli*gWj;
-        const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
+        const auto Ci = abs(Ki*volj*gWi);
+        const auto Cj = abs(Kj*voli*gWj);
+        const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj+tiny)));
         const auto weightUj = max(0.0, min(1.0, 1.0 - weightUi));
-        const auto weightWi = max(0.0, min(1.0, mui/(mui+muj)));
+        const auto weightWi = max(0.0, min(1.0, mui/(abs(mui)+abs(muj)+tiny)));
         const auto weightWj = max(0.0, min(1.0, 1.0 - weightWi));
 
         // same mat and no damage defaults to avg
@@ -839,8 +832,7 @@ if(this->correctVelocityGradient()){
 
           ustar += rhoStabilizeCoeff * min(0.1, max(-0.1, ustarStabilizer)) * cijEff *etaMagij;
         }
-        
-        ustar = min(max(ustar,umin),umax);
+
         const auto vstari = ustar * rhatij + wstari;
         const auto vstarj = ustar * rhatij + wstarj;
         auto deltaDvDxi = 2.0*(vi-vstari).dyad(gradWi);
@@ -850,9 +842,13 @@ if(this->correctVelocityGradient()){
         // ----------------------------------------------------------
         DepsDti -= mj*sigmarhoi.doubledot(deltaDvDxi);
         DepsDtj -= mi*sigmarhoj.doubledot(deltaDvDxj);
-        pairDepsDt[2*kk] = -sigmarhoi.doubledot(deltaDvDxi); 
-        pairDepsDt[2*kk+1] = -sigmarhoj.doubledot(deltaDvDxj);
 
+        if(compatibleEnergy){
+          pairAccelerations[kk] = -deltaDvDt;
+          pairDepsDt[2*kk]   = -sigmarhoi.doubledot(deltaDvDxi); 
+          pairDepsDt[2*kk+1] = -sigmarhoj.doubledot(deltaDvDxj);
+        }
+        
         // velocity gradient --> continuity
         //-----------------------------------------------------------
         DvDxi -= volj*deltaDvDxi;
@@ -877,8 +873,8 @@ if(this->correctVelocityGradient()){
 
         if (sameMatij and epsDiffusionCoeff>tiny){
           const auto diffusion =  epsDiffusionCoeff*(epsi-epsj)*cijEff*etaij.dot(gradWij)/(rhoij*etaMagij*etaMagij+tiny);
-          pairDepsDt[2*kk]   += diffusion; 
-          pairDepsDt[2*kk+1] -= diffusion;
+          if(compatibleEnergy) pairDepsDt[2*kk]   += diffusion; 
+          if(compatibleEnergy) pairDepsDt[2*kk+1] -= diffusion;
         }
 
         // rigorous enforcement of single-valued stress-state at interface
@@ -948,7 +944,7 @@ if(this->correctVelocityGradient()){
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
  
-      //if (totalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
+      if (totalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       DrhoDti -=  rhoi*DvDxi.Trace();
 
@@ -1015,16 +1011,18 @@ finalizeDerivatives(const Scalar /*time*/,
                     const State<Dimension>& /*state*/,
                           StateDerivatives<Dimension>&  derivs) const {
                             
-  //if (this->compatibleEnergyEvolution()) {
+  if (this->compatibleEnergyEvolution()) {
     auto accelerations = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
          boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
+         ++boundaryItr) {
+           (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
+    }
     
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  //}
+  }
 
 } // finalize
 

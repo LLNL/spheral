@@ -118,7 +118,6 @@ public:
   std::vector<int> sumDensityNodeLists() const;
   void sumDensityNodeLists(std::vector<int> x);
 
-  //const FieldList<Dimension, Vector>& surfaceNormals() const;
   const std::vector<Scalar>& pairDepsDt() const;
   SlideSurface<Dimension>& slideSurface() const;
 
@@ -137,8 +136,7 @@ private:
   bool   mApplySelectDensitySum;                      // switch for density sum
   std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
   
-  //FieldList<Dimension, Vector> mSurfaceNormals;       // outward facing normals for interface nodes
-  std::vector<Scalar> mPairDepsDt;                    // store pairwise contribution to DepsDt for compatible
+  std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
  
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();

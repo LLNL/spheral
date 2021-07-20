@@ -63,18 +63,7 @@ specificThermalEnergyDiffusionCoefficient() const {
   return mSpecificThermalEnergyDiffusionCoefficient;
 }
 
-//------------------------------------------------------------------------------
-// Return the surface normal field list ref
-//------------------------------------------------------------------------------
-/*
-template<typename Dimension>
-inline
-const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
-surfaceNormals() const {
-  return mSurfaceNormals;
-}
-*/
+
 //------------------------------------------------------------------------------
 // swtich to turn on density sum for different nodeLists
 //------------------------------------------------------------------------------
