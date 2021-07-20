@@ -35,7 +35,6 @@ PYTHONTARGETS = \
 	$(srcdir)/SolidMaterialUnits.py \
 	$(srcdir)/SolidMaterialEquationsOfState.py \
 	$(srcdir)/ShadowTillotsonEquationOfState.py \
-	$(srcdir)/ShadowGruneisenEquationOfState.py \
 	$(srcdir)/ShadowConstantStrength.py
 
 #-------------------------------------------------------------------------------

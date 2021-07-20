@@ -49,6 +49,7 @@ class SolidFSISPHHydroBase(SolidSPHHydroBase):
 
     #...........................................................................
     # Virtual methods
+    
     @PYB11virtual
     @PYB11const
     def evaluateDerivatives(time = "const Scalar",
@@ -59,6 +60,36 @@ class SolidFSISPHHydroBase(SolidSPHHydroBase):
         """Evaluate the derivatives for the principle hydro 
 mass density, velocity, and specific thermal energy."""
         return "void"
+
+    @PYB11virtual
+    def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
+        "register the surface normals w/ the database"
+        return "void"
+
+
+    @PYB11virtual
+    def initialize(time = "const Scalar",
+                   dt = "const Scalar",
+                   dataBase = "const DataBase<%(Dimension)s>&",
+                   state = "State<%(Dimension)s>&",
+                   derivs = "StateDerivatives<%(Dimension)s>&"):
+        "calculates surface normals"
+        return "void"
+
+    
+    @PYB11virtual
+    def registerState(dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
+        "register the surface normals"
+        return "void"
+
+
+    @PYB11virtual
+    def registerDerivatives(dataBase = "DataBase<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
+        "non-op place filler"
+        return "void"
+
 
 
     #...........................................................................
