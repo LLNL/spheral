@@ -54,9 +54,7 @@ InflowOutflowBoundary(DataBase<Dimension>& dataBase,
                       const bool empty):
   Boundary<Dimension>(),
   Physics<Dimension>(),
-  mBeamAnchor(Vector::zero),
-  mBeamNormal(Vector::zero),
-  mBeamRadius(0.0),
+  mInflowRadius(std::numeric_limits<double>::max()),
   mDataBase(dataBase),
   mPlane(plane),
   mBoundaryCount(dataBase.numNodeLists()),
@@ -400,11 +398,16 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar /*time*/,
     const auto& gNodes = this->ghostNodes(nodeList);
     auto& pos = nodeList.positions();
     vector<int> insideNodes;
+
+    // allow limiting of inflow radius from plane center
+    const auto p0 = mPlane.point();
+    const auto n0 = mPlane.normal();
     for (auto i: gNodes) {
-      const Scalar Ri = ((pos[i] - mBeamAnchor) - (pos[i] - mBeamAnchor).dot(mBeamNormal)*mBeamNormal).magnitude();
-      const bool addNode = (mPlane.compare(pos[i]) == -1) and (Ri < mBeamRadius);
+      const Scalar Ri = ((pos[i] - p0) - (pos[i] - p0).dot(n0)*n0).magnitude();
+      const bool addNode = (mPlane.compare(pos[i]) == -1) and (Ri < mInflowRadius);
       if (addNode) insideNodes.push_back(i - gNodes[0]);
     }
+
     const auto numNew = insideNodes.size();
     if (numNew > 0) {
       nodeListAltered = true;
@@ -522,9 +525,7 @@ template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
-  file.write(mBeamAnchor,pathName+"/beamAnchor");
-  file.write(mBeamNormal,pathName+"/beamNormal");
-  file.write(mBeamRadius,pathName+"/beamRadius");
+  file.write(mInflowRadius,pathName+"/inflowRadius");
   //file.write(mActive, pathName + "/active");
   //file.write(mBoundaryCount, pathName + "/boundaryCount");
 
@@ -544,9 +545,7 @@ template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::
 restoreState(const FileIO& file, const string& pathName)  {
-  file.read(mBeamAnchor,pathName+"/beamAnchor");
-  file.read(mBeamNormal,pathName+"/beamNormal");
-  file.read(mBeamRadius,pathName+"/beamRadius");
+  file.read(mInflowRadius,pathName+"/inflowRadius");
   
   //file.read(mActive, pathName + "/active");
   //file.read(mBoundaryCount, pathName + "/boundaryCount");
