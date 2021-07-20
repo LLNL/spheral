@@ -275,7 +275,7 @@ for dim in dims:
                                        "classname"            : "SolidFSISPHHydro",
                                        "smoothingScaleMethod" : "SPHSmoothingScale"})
     exec(SolidFSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                       "classname"            : "SolidASISPHHydro",
+                                       "classname"            : "SolidAFSISPHHydro",
                                        "smoothingScaleMethod" : "ASPHSmoothingScale"})
 '''
 if 2 in dims:

@@ -3,6 +3,7 @@
 //----------------------------------------------------------------------------//
 #include "FSISPH/SlideSurface.hh"
 #include "FSISPH/computeSurfaceNormals.hh"
+#include "FSISPH/FSIFieldNames.hh"
 
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
@@ -124,7 +125,7 @@ template<typename Dimension>
 void
 SlideSurface<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase){
-  mSurfaceNormals = dataBase.newFluidFieldList(Vector::zero,  "FSISurfaceNormals");
+  mSurfaceNormals = dataBase.newFluidFieldList(Vector::zero,  FSIFieldNames::interfaceNormals);
   mNumNodeLists = dataBase.numNodeLists();
 }
 
@@ -177,7 +178,7 @@ void
 SlideSurface<Dimension>:: 
 registerState(DataBase<Dimension>& dataBase,
                    State<Dimension>& state){
-  dataBase.resizeFluidFieldList(mSurfaceNormals, Vector::zero, "FSISurfaceNormals",false);
+  dataBase.resizeFluidFieldList(mSurfaceNormals, Vector::zero,FSIFieldNames::interfaceNormals,false);
   state.enroll(mSurfaceNormals);               
 };
 

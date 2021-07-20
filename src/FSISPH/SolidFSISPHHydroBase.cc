@@ -38,7 +38,7 @@
 
 #include "FSISPH/FSISpecificThermalEnergyPolicy.hh"
 #include "FSISPH/SolidFSISPHHydroBase.hh"
-//#include "FSISPH/computeSurfaceNormals.hh"
+#include "FSISPH/FSIFieldNames.hh"
 #include "FSISPH/computeFSISPHSumMassDensity.hh"
 #include "FSISPH/SlideSurface.hh"
 
@@ -168,12 +168,8 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mSpecificThermalEnergyDiffusionCoefficient(specificThermalEnergyDiffusionCoefficient),
   mApplySelectDensitySum(false),
   mSumDensityNodeLists(sumDensityNodeLists),
-  //mSurfaceNormals(FieldStorageType::CopyFields),
   mPairDepsDt(){
-
-    //mSurfaceNormals = dataBase.newSolidFieldList(Vector::zero,  "FSISurfaceNormals");
     mPairDepsDt.clear();
-
     // see if we're summing density for any nodelist
     auto numNodeLists = dataBase.numNodeLists();
     for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
@@ -206,13 +202,17 @@ registerState(DataBase<Dimension>& dataBase,
   SolidSPHHydroBase<Dimension>::registerState(dataBase,state);
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
   
-  if(this->compatibleEnergyEvolution()){
-    // Override the specific thermal energy policy if compatible
-    FieldList<Dimension, Scalar> eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-    CHECK(eps.numFields() == dataBase.numFluidNodeLists());
-    PolicyPointer epsPolicy(new FSISpecificThermalEnergyPolicy<Dimension>(dataBase));
-    state.enroll(eps, epsPolicy);
-  }
+  // Override the specific thermal energy policy if compatible
+  auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+  auto velocity = dataBase.fluidVelocity();
+  CHECK(specificThermalEnergy.numFields() == dataBase.numFluidNodeLists());
+  CHECK(velocity.numFields() == dataBase.numFluidNodeLists());
+  PolicyPointer epsPolicy(new FSISpecificThermalEnergyPolicy<Dimension>(dataBase));
+  PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
+                                                                           HydroFieldNames::specificThermalEnergy,
+                                                                           true));
+  state.enroll(specificThermalEnergy, epsPolicy);
+  state.enroll(velocity, velocityPolicy);
 
   // override our pressure policy we need neg pressure to decouple
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
@@ -238,8 +238,7 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   SolidSPHHydroBase<Dimension>::registerDerivatives(dataBase, derivs);  
   
   // enroll for our compatible energy formulation
-  const std::string pairDepsDtKey = "pairDepsDt";
-  derivs.enrollAny(pairDepsDtKey,  mPairDepsDt);
+  derivs.enrollAny(FSIFieldNames::pairDepsDt,  mPairDepsDt);
   
   TIME_SolidFSISPHregisterDerivs.stop();
 }
@@ -324,8 +323,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto tiny = 1.0e-30;
   const auto W0 = W(0.0, 1.0);
   const auto epsTensile = this->epsilonTensile();
-  const auto compatibleEnergy = this->compatibleEnergyEvolution();
-  const auto totalEnergy = this->evolveTotalEnergy();
+  //const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  //const auto totalEnergy = this->evolveTotalEnergy();
   const auto damageRelieveRubble = this->damageRelieveRubble();
   const auto rhoDiffusionCoeff = this->densityDiffusionCoefficient();
   const auto epsDiffusionCoeff = this->specificThermalEnergyDiffusionCoefficient();
@@ -382,7 +381,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   //auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   //auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  auto& pairDepsDt = derivatives.getAny("pairDepsDt", vector<Scalar>());
+  auto& pairDepsDt = derivatives.getAny(FSIFieldNames::pairDepsDt, vector<Scalar>());
   auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
@@ -413,10 +412,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  npairs = pairs.size();
 
   // Size up the pair-wise accelerations before we start.
-  if(compatibleEnergy){
-    pairAccelerations.resize(npairs);
-    pairDepsDt.resize(2*npairs);
-  }
+  //if(compatibleEnergy){
+  pairAccelerations.resize(npairs);
+  pairDepsDt.resize(2*npairs);
+  //}
 
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();
@@ -777,7 +776,7 @@ if(this->correctVelocityGradient()){
         sigmarhoj = sf*((rhoirhoj*sigmaj-0.5*QPiji));
       
         const auto deltaDvDt = sigmarhoi*gradWi+sigmarhoj*gradWj;
-        if (compatibleEnergy) pairAccelerations[kk] = -deltaDvDt;
+        pairAccelerations[kk] = -deltaDvDt;
 
         if (freeParticle) {
           DvDti += mj*deltaDvDt;
@@ -791,6 +790,8 @@ if(this->correctVelocityGradient()){
         const auto uj = vj.dot(rhatij);
         const auto wi = vi - ui*rhatij;
         const auto wj = vj - uj*rhatij;
+        const auto umin = min(ui,uj);
+        const auto umax = max(ui,uj);
 
         // material property avg weights
         const auto Ci = Ki*volj*gWi;
@@ -838,7 +839,8 @@ if(this->correctVelocityGradient()){
 
           ustar += rhoStabilizeCoeff * min(0.1, max(-0.1, ustarStabilizer)) * cijEff *etaMagij;
         }
-
+        
+        ustar = min(max(ustar,umin),umax);
         const auto vstari = ustar * rhatij + wstari;
         const auto vstarj = ustar * rhatij + wstarj;
         auto deltaDvDxi = 2.0*(vi-vstari).dyad(gradWi);
@@ -848,8 +850,8 @@ if(this->correctVelocityGradient()){
         // ----------------------------------------------------------
         DepsDti -= mj*sigmarhoi.doubledot(deltaDvDxi);
         DepsDtj -= mi*sigmarhoj.doubledot(deltaDvDxj);
-        if (compatibleEnergy) pairDepsDt[2*kk] = -sigmarhoi.doubledot(deltaDvDxi); 
-        if (compatibleEnergy) pairDepsDt[2*kk+1] = -sigmarhoj.doubledot(deltaDvDxj);
+        pairDepsDt[2*kk] = -sigmarhoi.doubledot(deltaDvDxi); 
+        pairDepsDt[2*kk+1] = -sigmarhoj.doubledot(deltaDvDxj);
 
         // velocity gradient --> continuity
         //-----------------------------------------------------------
@@ -875,8 +877,8 @@ if(this->correctVelocityGradient()){
 
         if (sameMatij and epsDiffusionCoeff>tiny){
           const auto diffusion =  epsDiffusionCoeff*(epsi-epsj)*cijEff*etaij.dot(gradWij)/(rhoij*etaMagij*etaMagij+tiny);
-          if (compatibleEnergy) pairDepsDt[2*kk]   += diffusion; 
-          if (compatibleEnergy) pairDepsDt[2*kk+1] -= diffusion;
+          pairDepsDt[2*kk]   += diffusion; 
+          pairDepsDt[2*kk+1] -= diffusion;
         }
 
         // rigorous enforcement of single-valued stress-state at interface
@@ -946,7 +948,7 @@ if(this->correctVelocityGradient()){
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
  
-      if (totalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
+      //if (totalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       DrhoDti -=  rhoi*DvDxi.Trace();
 
@@ -1007,15 +1009,26 @@ if(this->correctVelocityGradient()){
 template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
-finalize(const Scalar time, 
-         const Scalar  dt,
-               DataBase<Dimension>&  dataBase, 
-               State<Dimension>& state,
-               StateDerivatives<Dimension>&  derivs){
-  SPHHydroBase<Dimension>::finalizeDerivatives(time,dt,dataBase,state,derivs);
-} 
+finalizeDerivatives(const Scalar /*time*/, 
+                    const Scalar  /*dt*/,
+                    const DataBase<Dimension>&  /*dataBase*/, 
+                    const State<Dimension>& /*state*/,
+                          StateDerivatives<Dimension>&  derivs) const {
+                            
+  //if (this->compatibleEnergyEvolution()) {
+    auto accelerations = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
+    
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  //}
 
-}
+} // finalize
+
+} // Spheral namespace
 
 
 

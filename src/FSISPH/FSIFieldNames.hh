@@ -10,6 +10,7 @@ namespace Spheral {
 
 struct FSIFieldNames {
   static const std::string interfaceNormals;
+  static const std::string pairDepsDt;
 };
 
 }

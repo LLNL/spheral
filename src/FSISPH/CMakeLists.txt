@@ -8,7 +8,8 @@ set(FSISPH_inst
     )
 
 
-set(FSISPH_sources )
+set(FSISPH_sources
+    FSIFieldNames.cc )
 
 #if(ENABLE_2D)
 #  list(APPEND FSISPH_sources
@@ -25,6 +26,7 @@ set(FSISPH_headers
     computeSurfaceNormals.hh
     computeFSISPHSumMassDensity.hh
     FSISpecificThermalEnergyPolicy.hh
+    FSIFieldNames.hh
     SlideSurface.hh
     )
 

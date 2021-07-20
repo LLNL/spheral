@@ -7,7 +7,8 @@
 //
 // Created by JMO, Tue Sep 14 22:27:08 2004
 //----------------------------------------------------------------------------//
-#include "FSISpecificThermalEnergyPolicy.hh"
+#include "FSISPH/FSISpecificThermalEnergyPolicy.hh"
+#include "FSISPH/FSIFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
@@ -65,9 +66,6 @@ update(const KeyType& key,
        const double /*t*/,
        const double /*dt*/) {
 
-//   // HACK!
-//   std::cerr.setf(std::ios::scientific, std::ios::floatfield);
-//   std::cerr.precision(15);
 
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
@@ -81,11 +79,13 @@ update(const KeyType& key,
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  const auto& pairDepsDt = derivs.getAny("pairDepsDt", vector<Scalar>());
+  const auto& pairDepsDt = derivs.getAny(FSIFieldNames::pairDepsDt, vector<Scalar>());
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
-  CHECK(pairAccelerations.size() == 2*npairs);
+
+  CHECK(pairAccelerations.size() == npairs);
+  CHECK(pairDepsDt.size() == 2*npairs);
 
   auto  DepsDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   DepsDt.Zero();
@@ -122,14 +122,14 @@ update(const KeyType& key,
       const auto vij = vi12 - vj12;
 
       // difference between assessed derivs and conserative ones
-      const auto delta_duij = vij.dot(paccij)-(DepsDt0i+DepsDt0j);
+      const auto delta_duij = vij.dot(paccij);//-(DepsDt0i+DepsDt0j);
       const auto wi = abs(DepsDt0i)/(abs(DepsDt0i) + abs(DepsDt0j) + numeric_limits<Scalar>::epsilon());
 
       CHECK(wi >= 0.0 and wi <= 1.0);
 
       // make conservative
-      DepsDt_thread(nodeListi, i) += mj*(DepsDt0i + wi*delta_duij);
-      DepsDt_thread(nodeListj, j) += mi*(DepsDt0j + (1.0-wi)*delta_duij);
+      DepsDt_thread(nodeListi, i) += mj*wi*delta_duij;//mj*(DepsDt0i + wi*delta_duij);
+      DepsDt_thread(nodeListj, j) += mi*(1.0-wi)*delta_duij;//mi*(DepsDt0j + (1.0-wi)*delta_duij);
       
 
 

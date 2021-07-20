@@ -7,4 +7,4 @@
 #include "FSIFieldNames.hh"
 
 const std::string Spheral::FSIFieldNames::interfaceNormals = "interfaceNormals";
-
+const std::string Spheral::FSIFieldNames::pairDepsDt = "pairwise thermal energy derivative";
