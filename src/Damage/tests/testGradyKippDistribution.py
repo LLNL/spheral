@@ -4,11 +4,11 @@
 #
 # See Benz & Asphaug (1994), Icarus, 107, 98
 #-------------------------------------------------------------------------------
-from SolidSpheral2d import *
+from Spheral2d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
 from math import *
 import mpi
+import matplotlib.pyplot as plt
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -58,7 +58,10 @@ nodes = makeFluidNodeList("test nodes", eos)
 #-------------------------------------------------------------------------------
 from GenerateNodeDistribution2d import *
 from CompositeNodeDistribution import *
-from PeanoHilbertDistributeNodes import distributeNodes2d
+if mpi.procs > 1:
+    from PeanoHilbertDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
 energiesBA = []
 fBA = []
@@ -84,6 +87,7 @@ for test in xrange(ntests):
 
     m = nodes.mass()
     rho = nodes.massDensity()
+    mask1 = IntField("mask1", nodes, 1)
     print "Area sum: ", mpi.allreduce(sum([m[i]/rho[i] for i in xrange(nodes.numInternalNodes)]), mpi.SUM)
 
     # Construct the flaws.
@@ -94,13 +98,15 @@ for test in xrange(ntests):
                                                       mWeibull,
                                                       nodes,
                                                       1,
-                                                      1)
+                                                      1,
+                                                      mask1)
     localFlawsO = weibullFlawDistributionOwen(randomSeed,
                                               kWeibull,
                                               mWeibull,
                                               nodes,
                                               1,     # numFlawsPerNode
-                                              1.0)    # volumeMultiplier
+                                              1.0,    # volumeMultiplier
+                                              mask1)
 
     # Collect the distribution function of flaws.
     for (localFlaws, energies, f) in [(localFlawsBA, energiesBA, fBA),
@@ -145,6 +151,7 @@ for test in xrange(ntests):
 
     m = nodes.mass()
     rho = nodes.massDensity()
+    mask2 = IntField("mask2", nodes, 1)
     print "Area sum: ", mpi.allreduce(sum([m[i]/rho[i] for i in xrange(nodes.numInternalNodes)]), mpi.SUM)
 
     # Construct the flaws.
@@ -153,7 +160,8 @@ for test in xrange(ntests):
                                               mWeibull,
                                               nodes,
                                               1,      # minFlawsPerNode
-                                              1.0)    # volumeMultiplier
+                                              1.0,    # volumeMultiplier
+                                              mask2)
 
     # Collect the distribution function of flaws.
     for (localFlaws, energies, f) in [(localFlawsO, energiesO, fO)]:
@@ -172,17 +180,29 @@ assert len(energiesO) == 2*ntests
 #-------------------------------------------------------------------------------
 # Now plot the results.
 #-------------------------------------------------------------------------------
-import Gnuplot
-cache = []
-p = Gnuplot.Gnuplot()
-p("set logscale xy")
+fig1 = plt.figure(1)
+fig2 = plt.figure(2)
+
+plt.figure(1)
+plt.xscale("log")
+plt.yscale("log")
 for i in xrange(ntests):
-    data = Gnuplot.Data(energiesBA[i], fBA[i],
-                        with_ = "lines lw 2",
-                        title = ("BA: N = %i" % ((i + 1)**2*nx0*ny0)),
-                        inline=True)
-    cache.append(data)
-    p.replot(data)
+    plt.plot(energiesBA[i], fBA[i], "-", linewidth=2*(ntests - i) + 3, label=("BA: N = %i" % ((i + 1)**2*nx0*ny0)))
+
+# Plot the expectation.
+emin = min([min(x) for x in (energiesBA + energiesO)])
+emax = max([max(x) for x in (energiesBA + energiesO)])
+eans = [emin + 0.01*(emax - emin)*i for i in range(101)]
+fans = [kWeibull * e**mWeibull for e in eans]
+plt.plot(eans, fans, "-", linewidth=3, label="Analytic")
+
+plt.legend(loc="best")
+plt.xlabel(r"Flaw Activation Energy ($\varepsilon$)")
+plt.ylabel(r"$n(\varepsilon^f < \varepsilon)$")
+
+plt.figure(2)
+plt.xscale("log")
+plt.yscale("log")
 for i in xrange(2*ntests):
     if i % 2 == 1:
         nx1 = (i/2 + 1)*nx0/2
@@ -194,24 +214,15 @@ for i in xrange(2*ntests):
         nx = (i/2 + 1)*nx0
         ny = (i/2 + 1)*ny0
         TT = "O: N = %i" % (nx*ny)
-    data = Gnuplot.Data(energiesO[i], fO[i],
-                        with_ = "lines lw 2",
-                        title = TT,
-                        inline=True)
-    cache.append(data)
-    p.replot(data)
+    plt.plot(energiesO[i], fO[i], "-", linewidth=2, label=TT)
 
 # Plot the expectation.
 emin = min([min(x) for x in (energiesBA + energiesO)])
 emax = max([max(x) for x in (energiesBA + energiesO)])
 eans = [emin + 0.01*(emax - emin)*i for i in range(101)]
 fans = [kWeibull * e**mWeibull for e in eans]
-answer = Gnuplot.Data(eans, fans,
-                      with_ = "lines lw 3",
-                      title = "Analytic",
-                      inline = True)
-p.replot(answer)
-p("set key top left")
-p.xlabel("Flaw Activation Energy ({/Symbol e})")
-p.ylabel("n({/Symbol e})")
-p.refresh()
+plt.plot(eans, fans, "-", linewidth=3, label="Analytic")
+
+plt.legend(loc="lower right")
+plt.xlabel(r"Flaw Activation Energy ($\varepsilon$)")
+plt.ylabel(r"$n(\varepsilon^f < \varepsilon)$")

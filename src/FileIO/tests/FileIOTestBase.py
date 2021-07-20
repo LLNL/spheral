@@ -843,6 +843,29 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
+    # UnsignedField1d
+    #---------------------------------------------------------------------------
+    def testUnsignedField1d(self):
+        v0 = UnsignedField1d("unsigned field 1d control", nodes1d)
+        for i in xrange(self.n):
+            v0[i] = g.randint(self.unsignedmin, self.unsignedmax)
+        assert len(v0) == self.n
+        f = self.constructor("TestUnsignedField1d", Write)
+        f.write(v0, "FileIOTestBase/UnsignedField1d")
+        f.close()
+        f = self.constructor("TestUnsignedField1d", Read)
+        v = UnsignedField1d("unsigned field 1d test", nodes1d)
+        f.read(v, "FileIOTestBase/UnsignedField1d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in xrange(self.n):
+            self.failUnless(v[i] == v0[i],
+                            "%i != %i @ %i of %i in UnsignedField1d test" %
+                            (v[i], v0[i], i, self.n))
+        self.removeFile("TestUnsignedField1d")
+        return
+
+    #---------------------------------------------------------------------------
     # ScalarField1d
     #---------------------------------------------------------------------------
     def testScalarField1d(self):

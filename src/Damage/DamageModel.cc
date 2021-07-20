@@ -7,9 +7,6 @@
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 #include "DamageModel.hh"
-#include "YoungsModulusPolicy.hh"
-#include "LongitudinalSoundSpeedPolicy.hh"
-#include "DamagedSoundSpeedPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "DataBase/DataBase.hh"
@@ -20,13 +17,13 @@
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "Utilities/NodeCoupling.hh"
-#include "Utilities/DamagedNodeCoupling.hh"
-#include "Utilities/DamageGradientNodeCoupling.hh"
-#include "Utilities/ThreePointDamagedNodeCoupling.hh"
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/Timer.hh"
+#include "Utilities/NodeCoupling.hh"
+#include "Damage/PairMaxDamageNodeCoupling.hh"
+#include "Damage/DamageGradientNodeCoupling.hh"
+#include "Damage/ThreePointDamagedNodeCoupling.hh"
 
 #include "boost/shared_ptr.hpp"
 
@@ -57,17 +54,12 @@ DamageModel<Dimension>::
 DamageModel(SolidNodeList<Dimension>& nodeList,
             const TableKernel<Dimension>& W,
             const double crackGrowthMultiplier,
-            const DamageCouplingAlgorithm damageCouplingAlgorithm,
-            const FlawStorageType& flaws):
+            const DamageCouplingAlgorithm damageCouplingAlgorithm):
   Physics<Dimension>(),
-  mFlaws(SolidFieldNames::flaws, flaws),
   mNodeList(nodeList),
   mW(W),
   mCrackGrowthMultiplier(crackGrowthMultiplier),
-  mCriticalNodesPerSmoothingScale(0.99),
   mDamageCouplingAlgorithm(damageCouplingAlgorithm),
-  mYoungsModulus(SolidFieldNames::YoungsModulus, nodeList),
-  mLongitudinalSoundSpeed(SolidFieldNames::longitudinalSoundSpeed, nodeList),
   mExcludeNode("Nodes excluded from damage", nodeList, 0),
   mNodeCouplingPtr(new NodeCoupling()),
   mComputeIntersectConnectivity(false),
@@ -97,7 +89,6 @@ computeScalarDDDt(const DataBase<Dimension>& /*dataBase*/,
 
   // Pre-conditions.
   REQUIRE(DDDt.nodeListPtr() == &mNodeList);
-  REQUIRE(mFlaws.nodeListPtr() == &mNodeList);
 
   // Get the state fields.
   const auto  clKey = State<Dimension>::buildFieldKey(SolidFieldNames::longitudinalSoundSpeed, mNodeList.name());
@@ -136,29 +127,6 @@ computeScalarDDDt(const DataBase<Dimension>& /*dataBase*/,
 }
 
 //------------------------------------------------------------------------------
-// Register our state.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DamageModel<Dimension>::
-registerState(DataBase<Dimension>& dataBase,
-              State<Dimension>& state) {
-
-  // Register Youngs modulus and the longitudinal sound speed.
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-  PolicyPointer EPolicy(new YoungsModulusPolicy<Dimension>());
-  PolicyPointer clPolicy(new LongitudinalSoundSpeedPolicy<Dimension>());
-  state.enroll(mYoungsModulus, EPolicy);
-  state.enroll(mLongitudinalSoundSpeed, clPolicy);
-
-  // Set the initial values for the Youngs modulus, sound speed, and pressure.
-  typename StateDerivatives<Dimension>::PackageList dummyPackages;
-  StateDerivatives<Dimension> derivs(dataBase, dummyPackages);
-  EPolicy->update(state.key(mYoungsModulus), state, derivs, 1.0, 0.0, 0.0);
-  clPolicy->update(state.key(mLongitudinalSoundSpeed), state, derivs, 1.0, 0.0, 0.0);
-}
-
-//------------------------------------------------------------------------------
 // initialize (before evaluateDerivatives)
 // This is where we update the damage coupling, which is stored in the
 // connectivity pair list in f_couple.
@@ -182,7 +150,7 @@ initialize(const Scalar /*time*/,
     break;
 
   case DamageCouplingAlgorithm::PairMaxDamage:
-    mNodeCouplingPtr = std::make_shared<DamagedNodeCoupling<Dimension>>(state, pairs);
+    mNodeCouplingPtr = std::make_shared<PairMaxDamageNodeCoupling<Dimension>>(state, pairs);
     break;
 
   case DamageCouplingAlgorithm::DamageGradient:
@@ -238,28 +206,11 @@ finalize(const Scalar /*time*/,
     const auto ntot = std::max(1, dataBase.globalNumInternalNodes());
     const auto dfrac = double(nD)/double(ntot);
     mComputeIntersectConnectivity = (dfrac > 0.2);  // Should tune this number...
-    if (Process::getRank() == 0) std::cout << "DamageModel dfrac = " << nD << "/" << ntot << " = " << dfrac << " : " << mComputeIntersectConnectivity << std::endl;
+    // if (Process::getRank() == 0) std::cout << "DamageModel dfrac = " << nD << "/" << ntot << " = " << dfrac << " : " << mComputeIntersectConnectivity << std::endl;
   }
 
   TIME_DamageModel_finalize.stop();
   TIME_Damage.stop();
-}
-
-//------------------------------------------------------------------------------
-// Cull the flaws on each node to the single weakest one.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DamageModel<Dimension>::
-cullToWeakestFlaws() {
-#pragma omp parallel for
-  for (auto i = 0u; i < mNodeList.numInternalNodes(); ++i) {
-    auto& flaws = mFlaws[i];
-    if (flaws.size() > 0) {
-      const auto maxVal = *max_element(flaws.begin(), flaws.end());
-      flaws = vector<double>(maxVal);
-    }
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -290,39 +241,6 @@ excludeNodes(vector<int> ids) {
 }
 
 //------------------------------------------------------------------------------
-// Compute a Field with the sum of the activation energies per node.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-DamageModel<Dimension>::
-sumActivationEnergiesPerNode() const {
-  Field<Dimension, Scalar> result("Sum activation energies", mNodeList);
-  for (auto i = 0u; i != mNodeList.numInternalNodes(); ++i) {
-    const vector<double>& flaws = mFlaws(i);
-    for (vector<double>::const_iterator flawItr = flaws.begin();
-         flawItr != flaws.end();
-         ++flawItr) {
-      result(i) += *flawItr;
-    }
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Compute a Field with the number of flaws per node.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-DamageModel<Dimension>::
-numFlawsPerNode() const {
-  Field<Dimension, Scalar> result("num flaws", mNodeList);
-  for (auto i = 0u; i != mNodeList.numInternalNodes(); ++i) {
-    result(i) = flawsForNode(i).size();
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
 // Dump the current state to the given file.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -330,7 +248,6 @@ void
 DamageModel<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   file.write(mCrackGrowthMultiplier, pathName + "/crackGrowthMultiplier");
-  file.write(mFlaws, pathName + "/flaws");
   file.write(mExcludeNode, pathName + "/excludeNode");
   file.write(mComputeIntersectConnectivity, pathName + "/computeIntersectConnectivity");
 }
@@ -343,7 +260,6 @@ void
 DamageModel<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   file.read(mCrackGrowthMultiplier, pathName + "/crackGrowthMultiplier");
-  file.read(mFlaws, pathName + "/flaws");
   file.read(mExcludeNode, pathName + "/excludeNode");
   file.read(mComputeIntersectConnectivity, pathName + "/computeIntersectConnectivity");
 }

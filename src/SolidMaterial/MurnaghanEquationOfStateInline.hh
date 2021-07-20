@@ -6,7 +6,7 @@ namespace Spheral {
 template<typename Dimension>
 inline
 double
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 n() const {
   return mn;
 }
@@ -14,7 +14,7 @@ n() const {
 template<typename Dimension>
 inline
 void
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 n(double x) {
   mn = x;
 }
@@ -25,7 +25,7 @@ n(double x) {
 template<typename Dimension>
 inline
 double
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 K() const {
   return mK;
 }
@@ -33,7 +33,7 @@ K() const {
 template<typename Dimension>
 inline
 void
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 K(double x) {
   mK = x;
 }
@@ -44,7 +44,7 @@ K(double x) {
 template<typename Dimension>
 inline
 double
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 atomicWeight() const {
   return mAtomicWeight;
 }
@@ -52,7 +52,7 @@ atomicWeight() const {
 template<typename Dimension>
 inline
 void
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 atomicWeight(double x) {
   mAtomicWeight = x;
 }
@@ -63,7 +63,7 @@ atomicWeight(double x) {
 template<typename Dimension>
 inline
 double
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 externalPressure() const {
   return mExternalPressure;
 }
@@ -71,7 +71,7 @@ externalPressure() const {
 template<typename Dimension>
 inline
 void
-MurnahanEquationOfState<Dimension>::
+MurnaghanEquationOfState<Dimension>::
 externalPressure(double val) {
   mExternalPressure = val;
 }
