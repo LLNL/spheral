@@ -1,11 +1,13 @@
 //---------------------------------Spheral++----------------------------------//
-// FSISpecificThermalEnergyPolicy -- An implementation of UpdatePolicyBase specialized
-// for the updating the specific thermal energy as a dependent quantity.
+// FSISpecificThermalEnergyPolicy -- An implementation of UpdatePolicyBase 
+// specialized for the updating the specific thermal energy as a dependent 
+// quantity.
 // 
-// This version is specialized for the compatible energy discretization 
-// method.
-//
-// Created by JMO, Tue Sep 14 22:27:08 2004
+// This version is specialized for materials with different properties. A 
+// compatible energy discretization in which pairwise work allows for opposite
+// sign pair-wise work. DepsDti and  DepsDtj are used as weights and the 
+// difference between the conservative  and consistent formulations is added 
+// back in.
 //----------------------------------------------------------------------------//
 #include "FSISPH/FSISpecificThermalEnergyPolicy.hh"
 #include "FSISPH/FSIFieldNames.hh"
@@ -66,13 +68,15 @@ update(const KeyType& key,
        const double /*t*/,
        const double /*dt*/) {
 
-
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
   auto eps = state.fields(fieldKey, Scalar());
   const auto numFields = eps.numFields();
+
+  // constant we'll need for the weighting scheme
+  const auto tiny = numeric_limits<Scalar>::epsilon();
 
   // Get the state fields.
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
@@ -89,8 +93,9 @@ update(const KeyType& key,
 
   auto  DepsDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   DepsDt.Zero();
-  //auto DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
+
   const auto hdt = 0.5*multiplier;
+  
   // Walk all pairs and figure out the discrete work for each point
 #pragma omp parallel
   {
@@ -121,17 +126,19 @@ update(const KeyType& key,
       const auto vj12 = vj + aj*hdt;
       const auto vij = vi12 - vj12;
 
+      // weighting scheme
+      const auto weighti = abs(DepsDt0i) + tiny;
+      const auto weightj = abs(DepsDt0j) + tiny;
+      const auto wi = weighti/(weighti+weightj);
+
       // difference between assessed derivs and conserative ones
-      const auto delta_duij = vij.dot(paccij);//-(DepsDt0i+DepsDt0j);
-      const auto wi = abs(DepsDt0i)/(abs(DepsDt0i) + abs(DepsDt0j) + numeric_limits<Scalar>::epsilon());
+      const Scalar delta_duij = vij.dot(paccij)-DepsDt0i-DepsDt0j;
 
       CHECK(wi >= 0.0 and wi <= 1.0);
 
       // make conservative
-      DepsDt_thread(nodeListi, i) += mj*wi*delta_duij;//mj*(DepsDt0i + wi*delta_duij);
-      DepsDt_thread(nodeListj, j) += mi*(1.0-wi)*delta_duij;//mi*(DepsDt0j + (1.0-wi)*delta_duij);
-      
-
+      DepsDt_thread(nodeListi, i) += mj*(wi*delta_duij+DepsDt0i);
+      DepsDt_thread(nodeListj, j) += mi*((1.0-wi)*delta_duij+DepsDt0j);
 
     }
 
