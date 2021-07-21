@@ -526,16 +526,26 @@ void
 InflowOutflowBoundary<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   file.write(mInflowRadius,pathName+"/inflowRadius");
-  //file.write(mActive, pathName + "/active");
-  //file.write(mBoundaryCount, pathName + "/boundaryCount");
+  /*
+  file.write(mActive, pathName + "/active");
+  file.write(mBoundaryCount, pathName + "/boundaryCount");
 
-  //vector<std::string> keys;
-  //for (const auto& p: mBufferedValues) {
-   // keys.push_back(p.first);
-   // std::string val(p.second.begin(), p.second.end());
-  //  file.write(val, pathName + "/BufferedValues/" + p.first);
-  //}
-  //file.write(keys, pathName + "/keys");
+
+  vector<std::string> keys;
+  for (const auto& p: mBufferedValues) {
+    keys.push_back(p.first);
+    std::string val(p.second.begin(), p.second.end());
+    file.write(val, pathName + "/BufferedValues/" + p.first);
+  }
+  file.write(keys, pathName + "/keys");
+
+  vector<std::string> keysXmin;
+  for (const auto& p: mXmin) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/Xmin/" + p.first);
+  }
+  file.write(keysXmin, pathName + "/Xmin/keys");
+  */
 }
 
 //------------------------------------------------------------------------------
@@ -546,18 +556,28 @@ void
 InflowOutflowBoundary<Dimension>::
 restoreState(const FileIO& file, const string& pathName)  {
   file.read(mInflowRadius,pathName+"/inflowRadius");
-  
-  //file.read(mActive, pathName + "/active");
-  //file.read(mBoundaryCount, pathName + "/boundaryCount");
+  /*
+  file.read(mActive, pathName + "/active");
+  file.read(mBoundaryCount, pathName + "/boundaryCount");
 
-  //vector<std::string> keys;
-  //file.read(keys, pathName + "/keys");
-  //mBufferedValues.clear();
-  //for (const auto key: keys) {
-  //  std::string val;
-  //  file.read(val, pathName + "/BufferedValues/" + key);
-  //  mBufferedValues[key] = vector<char>(val.begin(), val.end());
-  //}
+  vector<std::string> keys;
+  file.read(keys, pathName + "/keys");
+  mBufferedValues.clear();
+  for (const auto key: keys) {
+    std::string val;
+    file.read(val, pathName + "/BufferedValues/" + key);
+    mBufferedValues[key] = vector<char>(val.begin(), val.end());
+  }
+
+  vector<std::string> keysXmin;
+  file.read(keys, pathName + "/Xmin/keys");
+  mXmin.clear();
+  for (const auto key: keysXmin) {
+    Scalar val;
+    file.read(val, pathName + "/Xmin/" + key);
+    mXmin[key] = val;
+  }
+  */
 }
 
 }
