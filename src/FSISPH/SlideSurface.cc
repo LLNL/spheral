@@ -146,7 +146,7 @@ initialize(const typename Dimension::Scalar /*time*/,
   const auto& mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto& massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto& H = state.fields(HydroFieldNames::H, SymTensor::zero);
-        auto& normals = this->mSurfaceNormals;
+        auto  normals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
 
   normals.Zero();
   computeSurfaceNormals(connectivityMap,
