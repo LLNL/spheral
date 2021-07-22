@@ -3,7 +3,7 @@ set(SolidMaterial_inst
     LinearPolynomialEquationOfState
     GruneisenEquationOfState
     OsborneEquationOfState
-    MurnahanEquationOfState
+    MurnaghanEquationOfState
     TillotsonEquationOfState
     StrengthModel
     ConstantStrength
@@ -14,11 +14,12 @@ set(SolidMaterial_inst
     PorousStrengthModel
     StrainPorosity
     PhysicsEvolvingMaterialLibrary
-   )
+    )
 
 set(SolidMaterial_sources )
 
 set(SolidMaterial_headers
+    ANEOS.hh
     CollinsStrength.hh
     ConstantStrength.hh
     Geodyn.hh
@@ -27,8 +28,8 @@ set(SolidMaterial_headers
     JohnsonCookStrength.hh
     LinearPolynomialEquationOfState.hh
     LinearPolynomialEquationOfStateInline.hh
-    MurnahanEquationOfState.hh
-    MurnahanEquationOfStateInline.hh
+    MurnaghanEquationOfState.hh
+    MurnaghanEquationOfStateInline.hh
     NullStrength.hh
     OsborneEquationOfState.hh
     OsborneEquationOfStateInline.hh
@@ -49,13 +50,13 @@ set(SolidMaterial_headers
     )
 
 spheral_install_python_files(
-  MaterialPropertiesLib.py
-  SolidMaterialUnits.py
-  SolidMaterialEquationsOfState.py
-  ShadowTillotsonEquationOfState.py
-  ShadowGruneisenEquationOfState.py
-  ShadowConstantStrength.py
-  )
+    MaterialPropertiesLib.py
+    SolidMaterialUnits.py
+    SolidMaterialEquationsOfState.py
+    ShadowTillotsonEquationOfState.py
+    ShadowGruneisenEquationOfState.py
+    ShadowConstantStrength.py
+    )
 
 # ANEOS
 if (ENABLE_ANEOS)

@@ -83,7 +83,7 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             bArtificialConduction = False,
             arCondAlpha = 0.5,
 
-            clearDirectories = True,
+            clearDirectories = False,
             checkError = False,
             checkRestart = False,
             checkEnergy = False,
@@ -455,8 +455,7 @@ P = mpi.allreduce(Pf.internalValues(), mpi.SUM)
 A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
 
 # Solution profiles.
-xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
+xans, vans, uans, rhoans, Pans, Aans, hans = answer.solution(control.time(), xprof)
 L1 = 0.0
 for i in xrange(len(rho)):
     L1 = L1 + abs(rho[i]-rhoans[i])
@@ -470,37 +469,24 @@ L1_tot = L1 / len(rho)
 # Plot the final state.
 #-------------------------------------------------------------------------------
 if graphics:
-    from SpheralGnuPlotUtilities import *
+    from SpheralMatplotlib import *
     if problem == "planar":
         rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, xFunction="%s.x", vecyFunction="%s.x", tenyFunction="1.0/%s.xx")
     elif problem == "cylindrical":
         rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, xFunction="%s.y", vecyFunction="%s.y", tenyFunction="1.0/%s.yy")
     else:
         rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
-    plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot)
+    APlot = newFigure()
+    APlot.plot(xprof, A, marker='o', label="Simulation")
+    plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, APlot, HPlot)
     EPlot = plotEHistory(control.conserve)
     plots = [(rhoPlot, "Sedov-%s-rho-RZ.png" % problem),
              (velPlot, "Sedov-%s-vel-RZ.png" % problem),
              (epsPlot, "Sedov-%s-eps-RZ.png" % problem),
              (PPlot, "Sedov-%s-P-RZ.png" % problem),
+             (APlot, "Sedov-planar-A.png"),
              (HPlot, "Sedov-%s-h-RZ.png" % problem)]
 
-    # Plot the specific entropy.
-    Aplot = generateNewGnuPlot()
-    AsimData = Gnuplot.Data(xprof, A,
-                            with_ = "points",
-                            title = "Simulation",
-                            inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                            with_ = "lines",
-                            title = "Solution",
-                            inline = True)
-    Aplot.plot(AsimData)
-    Aplot.replot(AansData)
-    Aplot.title("Specific entropy")
-    Aplot.refresh()
-    plots.append((Aplot, "Sedov-planar-A.png"))
-    
     if crksph:
         volPlot = plotFieldList(hydro.volume, 
                                 winTitle = "volume",
@@ -509,8 +495,7 @@ if graphics:
 
     # Make hardcopies of the plots.
     for p, filename in plots:
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
-
+        p.figure.savefig(os.path.join(dataDir, filename))
 
 #-------------------------------------------------------------------------------
 # Measure the difference between the simulation and analytic answer.
