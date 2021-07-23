@@ -1146,7 +1146,7 @@ updateState(const unsigned* nintpermat,
       std::vector<int> nodeIDs;
       nodeIDs.reserve(me.mNumHostGhostNodes[imat]);
       for (auto i = 0; i < npermat[imat]; ++i) {
-        if (me.mParticleType[imat][i] == 1) nodeIDs.emplace_back(i);
+        if (me.mParticleType[imat][i] != 0) nodeIDs.emplace_back(i);
       }
       me.mConstantBoundaries.emplace_back(std::make_shared<ConstantBoundary<Dimension>>(*me.mDataBasePtr,
                                                                                         *me.mNodeLists[imat],
