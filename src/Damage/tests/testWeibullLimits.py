@@ -3,10 +3,14 @@
 # realization should go.
 #-------------------------------------------------------------------------------
 from Spheral import *
-from SpheralTestUtilities import *
 from math import *
 import random
 import matplotlib.pyplot as plt
+
+# Use amsmath with latex in matplotlib
+plt.rc('text', usetex=True)
+plt.rc('text.latex',
+       preamble=r'\usepackage{amsmath}')
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -46,10 +50,17 @@ print "  Range of minflaws: [%g : %g]" % (min(minflaws), max(minflaws))
 print "  Range of maxflaws: [%g : %g]" % (min(maxflaws), max(maxflaws))
 
 #-------------------------------------------------------------------------------
+# Compute the ratio of the effective number of flaws to our target number
+#-------------------------------------------------------------------------------
+Neffratio = [k*V*(epsmax**m - epsmin**m)/Nflaws for epsmin, epsmax in zip(minflaws, maxflaws)]
+print "  Range of Neff/Nflaws: [%g : %g]" % (min(Neffratio), max(Neffratio))
+
+#-------------------------------------------------------------------------------
 # Now plot the results.
 #-------------------------------------------------------------------------------
 fig1 = plt.figure(1)
 fig2 = plt.figure(2)
+fig3 = plt.figure(3)
 
 plt.figure(1)
 plt.hist(minflaws0,
@@ -81,3 +92,12 @@ plt.yscale("log")
 plt.xlabel(r"Max flaw activation energy ($\varepsilon_{\max}$)")
 plt.ylabel(r"N($\varepsilon_{\max}$)")
 plt.legend(loc="upper left")
+
+plt.figure(3)
+plt.hist(Neffratio,
+         bins = max(10, Ntrials/100),
+         color = "black",
+         label = "Neff/Nflaws")
+plt.xlabel(r"$N_{\text{eff}}/N_{\text{flaws}}$")
+plt.ylabel(r"$N(N_{\text{eff}}/N_{\text{flaws}})$")
+#plt.legend(loc="upper left")
