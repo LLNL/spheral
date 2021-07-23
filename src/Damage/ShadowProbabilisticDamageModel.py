@@ -27,7 +27,7 @@ default values listed in parens):
         mWeibull                : the "m" Weibull constant -- can be looked up from 
                                   materialName or provided
         seed                    : (48927592) random number seed for flaw generation
-        minFlawsPerNode         : (100) the minimum number of flaws to seed on a point
+        minFlawsPerNode         : (1) the minimum number of flaws to seed on a point
         crackGrowthMultiplier   : (0.4) crack growth rate in units of longitudinal
                                   sound speed
         volumeMultiplier        : (1.0) Multiplies per node volume, useful for 
@@ -66,7 +66,7 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
                          "kWeibull"                 : None,
                          "mWeibull"                 : None,
                          "seed"                     : 48927592,
-                         "minFlawsPerNode"          : 100,
+                         "minFlawsPerNode"          : 1,
                          "crackGrowthMultiplier"    : 0.4,
                          "volumeMultiplier"         : 1.0,
                          "damageCouplingAlgorithm"  : PairMaxDamage,

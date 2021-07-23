@@ -523,8 +523,7 @@ elif DamageModelConstructor is ProbabilisticDamageModel:
                                          volumeMultiplier = volumeMultiplier,
                                          strainAlgorithm = strainType,
                                          damageCouplingAlgorithm = damageCoupling,
-                                         damageInCompression = damageInCompression,
-                                         minFlawsPerNode = 100)
+                                         damageInCompression = damageInCompression)
 
 output("damageModel")
 if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):

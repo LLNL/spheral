@@ -166,7 +166,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
       mMinFlaw(i) = Ai*pow(1.0 - pow(randomGenerators[i](), 1.0/Nflaws), mInv);
       mMaxFlaw(i) = Ai*pow(randomGenerators[i](), 1.0/(mmWeibull*Nflaws));
       CHECK(mMaxFlaw(i) > mMinFlaw(i));
-      mNumFlaws(i) = mInitialVolume(i)*mkWeibull*(pow(mMaxFlaw(i), mmWeibull) - pow(mMinFlaw(i), mmWeibull));
+      mNumFlaws(i) = std::max(1, int(mInitialVolume(i)*mkWeibull*(pow(mMaxFlaw(i), mmWeibull) - pow(mMinFlaw(i), mmWeibull))));
 
       // Gather statistics
 #pragma omp critical
@@ -176,7 +176,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
         totalNumFlaws += size_t(mNumFlaws(i));
         epsMin = std::min(epsMin, mMinFlaw(i));
         epsMax = std::max(epsMax, mMaxFlaw(i));
-        numFlawsRatio += mNumFlaws(i)/Nflaws;
+        numFlawsRatio += double(mNumFlaws(i))/Nflaws;
       }
     }
   }

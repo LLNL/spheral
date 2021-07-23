@@ -248,21 +248,22 @@ update(const KeyType& key,
       sortEigen(eigeni);
 
       // Is this node under enough strain to cause damage?
-      if (eigeni.eigenValues(0) > minFlaw(i)) {
+      // if (eigeni.eigenValues(0) > minFlaw(i)) {
+      {
 
         // Iterate over the eigenvalues of the strain and accumulate damage in the direction
         // of the eigenvectors.
         for (auto jdim = 0; jdim < Dimension::nDim; ++jdim) {
-          const auto strainj = eigeni.eigenValues(jdim); //   + plasticStrain(i))/(fDi*fDi + 1.0e-20);
+          const auto strainDirection = eigeni.eigenVectors.getColumn(jdim);
+          CHECK(fuzzyEqual(strainDirection.magnitude2(), 1.0, 1.0e-10));
+          const auto D0 = min(1.0, (Di * strainDirection).magnitude());
+          CHECK(D0 >= 0.0 && D0 <= 1.0);
+          const auto strainj = eigeni.eigenValues(jdim)*safeInvVar(1.0 - D0); //   + plasticStrain(i))/(fDi*fDi + 1.0e-20);
 
           // How many of the flaws are activated in this direction?
           if (strainj > minFlaw(i)) {
 
             // The direction of the strain, and projected current (starting) damage.
-            const auto strainDirection = eigeni.eigenVectors.getColumn(jdim);
-            CHECK(fuzzyEqual(strainDirection.magnitude2(), 1.0, 1.0e-10));
-            const auto D0 = max(0.0, min(1.0, (Di * strainDirection).magnitude()));
-            CHECK(D0 >= 0.0 && D0 <= 1.0);
             if (D0 < 1.0) {
 
               // Find how many flaws are activated in this direction
