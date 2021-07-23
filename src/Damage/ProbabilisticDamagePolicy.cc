@@ -157,17 +157,11 @@ template<typename Dimension>
 ProbabilisticDamagePolicy<Dimension>::
 ProbabilisticDamagePolicy(const bool damageInCompression,  // allow damage in compression
                           const double kWeibull,           // coefficient in Weibull power-law
-                          const double mWeibull,           // exponenent in Weibull power-law
-                          const size_t minFlawsPerNode,    // minimum number of flaws to seed on any node
-                          const double Vmin,               // minimum (initial) node volume
-                          const double Vmax):              // maximum (initial) node volume
+                          const double mWeibull):          // exponenent in Weibull power-law
   UpdatePolicyBase<Dimension>(SolidFieldNames::strain),
   mDamageInCompression(damageInCompression),
-  mMinFlawsPerNode(minFlawsPerNode),
   mkWeibull(kWeibull),
-  mmWeibull(mWeibull),
-  mVmin(Vmin),
-  mVmax(Vmax) {
+  mmWeibull(mWeibull) {
 }
 
 //------------------------------------------------------------------------------
@@ -205,18 +199,21 @@ update(const KeyType& key,
   const auto numFlawsKey = State<Dimension>::buildFieldKey(SolidFieldNames::numFlaws, nodeListKey);
   const auto minFlawKey = State<Dimension>::buildFieldKey(SolidFieldNames::minFlaw, nodeListKey);
   const auto maxFlawKey = State<Dimension>::buildFieldKey(SolidFieldNames::maxFlaw, nodeListKey);
+  const auto V0Key = State<Dimension>::buildFieldKey(SolidFieldNames::initialVolume, nodeListKey);
   CHECK(state.registered(strainKey));
   CHECK(derivs.registered(DdamageDtKey));
   CHECK(derivs.registered(DvDxKey));
   CHECK(state.registered(numFlawsKey));
   CHECK(state.registered(minFlawKey));
   CHECK(state.registered(maxFlawKey));
+  CHECK(state.registered(V0Key));
   const auto& strain = state.field(strainKey, SymTensor::zero);
   const auto& DDDt = derivs.field(DdamageDtKey, 0.0);
   const auto& localDvDx = derivs.field(DvDxKey, Tensor::zero);
   const auto& numFlaws = state.field(numFlawsKey, 0);
   const auto& minFlaw = state.field(minFlawKey, 0.0);
   const auto& maxFlaw = state.field(maxFlawKey, 0.0);
+  const auto& V0 = state.field(V0Key, 0.0);
 
   // Iterate over the internal nodes.
   const auto ni = stateField.numInternalElements();
@@ -252,7 +249,6 @@ update(const KeyType& key,
 
       // Is this node under enough strain to cause damage?
       if (eigeni.eigenValues(0) > minFlaw(i)) {
-        vector<double> flaws;
 
         // Iterate over the eigenvalues of the strain and accumulate damage in the direction
         // of the eigenvectors.
@@ -274,9 +270,7 @@ update(const KeyType& key,
               double fractionFlawsActive = 1.0;
               if (numFlaws(i) > 1 and strainj < maxFlaw(i)) {
                 CHECK(maxFlaw(i) > minFlaw(i));
-                const auto Nmini = pow(minFlaw(i), mmWeibull);  // Missing factors of k*Vi, but those cancel below
-                fractionFlawsActive = ((pow(strainj, mmWeibull) - Nmini)/
-                                       (pow(maxFlaw(i), mmWeibull) - Nmini));
+                fractionFlawsActive = mkWeibull*V0(i)*(pow(strainj, mmWeibull) - pow(minFlaw(i), mmWeibull))/numFlaws(i);
               }
               CHECK(fractionFlawsActive >= 0.0 and fractionFlawsActive <= 1.0);
 

@@ -95,7 +95,7 @@ commandLine(length = 3.0,
             etamax = 1.5,
 
             # Parameters for the time dependent strain and cracking.
-            DamageModelConstructor = GradyKippTensorDamageOwen,
+            DamageModelConstructor = ProbabilisticDamageModel,
             volumeMultiplier = (3.0/100.0)**2,
             numFlawsPerNode = 1,
             v0 = 1e-2,
@@ -523,7 +523,8 @@ elif DamageModelConstructor is ProbabilisticDamageModel:
                                          volumeMultiplier = volumeMultiplier,
                                          strainAlgorithm = strainType,
                                          damageCouplingAlgorithm = damageCoupling,
-                                         damageInCompression = damageInCompression)
+                                         damageInCompression = damageInCompression,
+                                         minFlawsPerNode = 100)
 
 output("damageModel")
 if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
