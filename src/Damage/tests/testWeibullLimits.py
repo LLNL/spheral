@@ -43,8 +43,8 @@ print "  Range of maxflaws: [%g : %g]" % (min(maxflaws0), max(maxflaws0))
 #-------------------------------------------------------------------------------
 # Generate distributions of the expected min/max flaws for comparison
 #-------------------------------------------------------------------------------
-minflaws = [(chi * (1.0 - random.random()**(1.0/Nflaws))**mInv for i in xrange(Ntrials)]
-maxflaws = [(chi * random.random()**(1.0/(m*Nflaws)) for i in xrange(Ntrials)]
+minflaws = [chi * (1.0 - random.random()**(1.0/Nflaws))**mInv for i in xrange(Ntrials)]
+maxflaws = [chi * random.random()**(1.0/(m*Nflaws)) for i in xrange(Ntrials)]
 print "Using math to estimate min/max flaw ranges:"
 print "  Range of minflaws: [%g : %g]" % (min(minflaws), max(minflaws))
 print "  Range of maxflaws: [%g : %g]" % (min(maxflaws), max(maxflaws))
