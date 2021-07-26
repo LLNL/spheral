@@ -32,6 +32,13 @@ class PyFileIO(FileIO):
         return "void"
 
     @PYB11virtual
+    def write_size_t(self,
+                     value = "const size_t",
+                     pathName = "const std::string"):
+        "Write an size_t"
+        return "void"
+
+    @PYB11virtual
     def write_int(self,
                   value = "const int",
                   pathName = "const std::string"):
@@ -158,6 +165,13 @@ class PyFileIO(FileIO):
                           pathName = "const std::string"):
         "Read an unsigned int"
         return "unsigned int"
+
+    @PYB11virtual
+    @PYB11const
+    def read_size_t(self,
+                    pathName = "const std::string"):
+        "Read an size_t"
+        return "size_t"
 
     @PYB11virtual
     @PYB11const
@@ -322,6 +336,12 @@ def write_IntField%(ndim)id(self,
     return "void"
 
 @PYB11pure_virtual
+def write_UnsignedField%(ndim)id(self,
+                     field = "const Field<Dim<%(ndim)i>, unsigned>&",
+                     pathName = "const std::string"):
+    return "void"
+
+@PYB11pure_virtual
 @PYB11const
 def read_ScalarField%(ndim)id(self,
                        field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Scalar>*",
@@ -360,6 +380,13 @@ def read_ThirdRankTensorField%(ndim)id(self,
 @PYB11const
 def read_IntField%(ndim)id(self,
                     field = "Field<Dim<%(ndim)i>, int>*",
+                    pathName = "const std::string"):
+    return "void"
+
+@PYB11pure_virtual
+@PYB11const
+def read_UnsignedField%(ndim)id(self,
+                    field = "Field<Dim<%(ndim)i>, unsigned>*",
                     pathName = "const std::string"):
     return "void"
 ''' % {"ndim" : ndim})

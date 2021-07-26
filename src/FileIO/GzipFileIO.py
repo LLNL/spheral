@@ -174,6 +174,9 @@ class GzipFileIO(PyFileIO):
     def write_unsigned_int(self, val, pathName):
         self.writeObject(val, pathName)
 
+    def write_size_t(self, val, pathName):
+        self.writeObject(val, pathName)
+
     def write_int(self, val, pathName):
         self.writeObject(val, pathName)
 
@@ -246,6 +249,9 @@ class GzipFileIO(PyFileIO):
     def write_IntField1d(self, val, pathName):
         self.writeFieldObject(val, pathName)
 
+    def write_UnsignedField1d(self, val, pathName):
+        self.writeFieldObject(val, pathName)
+
     def write_ScalarField2d(self, val, pathName):
         self.writeFieldObject(val, pathName)
 
@@ -262,6 +268,9 @@ class GzipFileIO(PyFileIO):
         self.writeFieldObject(val, pathName)
 
     def write_IntField2d(self, val, pathName):
+        self.writeFieldObject(val, pathName)
+
+    def write_UnsignedField2d(self, val, pathName):
         self.writeFieldObject(val, pathName)
 
     def write_ScalarField3d(self, val, pathName):
@@ -282,10 +291,16 @@ class GzipFileIO(PyFileIO):
     def write_IntField3d(self, val, pathName):
         self.writeFieldObject(val, pathName)
 
+    def write_UnsignedField3d(self, val, pathName):
+        self.writeFieldObject(val, pathName)
+
     #---------------------------------------------------------------------------
     # We now use unpickling to read objects.
     #---------------------------------------------------------------------------
     def read_unsigned_int(self, pathName):
+        return self.readObject(pathName)
+
+    def read_size_t(self, pathName):
         return self.readObject(pathName)
 
     def read_int(self, pathName):
@@ -360,6 +375,9 @@ class GzipFileIO(PyFileIO):
     def read_IntField1d(self, val, pathName):
         self.readFieldObject(val, pathName)
 
+    def read_UnsignedField1d(self, val, pathName):
+        self.readFieldObject(val, pathName)
+
     def read_ScalarField2d(self, val, pathName):
         self.readFieldObject(val, pathName)
 
@@ -378,6 +396,9 @@ class GzipFileIO(PyFileIO):
     def read_IntField2d(self, val, pathName):
         self.readFieldObject(val, pathName)
 
+    def read_UnsignedField2d(self, val, pathName):
+        self.readFieldObject(val, pathName)
+
     def read_ScalarField3d(self, val, pathName):
         self.readFieldObject(val, pathName)
 
@@ -394,6 +415,9 @@ class GzipFileIO(PyFileIO):
         self.readFieldObject(val, pathName)
 
     def read_IntField3d(self, val, pathName):
+        self.readFieldObject(val, pathName)
+
+    def read_UnsignedField3d(self, val, pathName):
         self.readFieldObject(val, pathName)
 
     #---------------------------------------------------------------------------

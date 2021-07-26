@@ -14,6 +14,8 @@ class SiloFileIOTest(FileIOTestBase, unittest.TestCase):
         self.n = 10 # 1000
         self.intmin = -2**24
         self.intmax = 2**24
+        self.unsignedmin = 0
+        self.unsignedmax = 2**32
         self.doublemin = -1e50
         self.doublemax = 1e50
         self.constructor = SiloFileIO

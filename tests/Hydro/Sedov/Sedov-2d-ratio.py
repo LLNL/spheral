@@ -461,8 +461,7 @@ if mpi.rank == 0:
     from SpheralGnuPlotUtilities import multiSort
     import Pnorm
     multiSort(r, rho, v, eps, P, A, hr, ht)
-    rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
-    Aans = [Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pans, rhoans)]
+    rans, vans, epsans, rhoans, Pans, Aans, hans = answer.solution(control.time(), r)
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     #f = open("MCTesting.txt", "a")
     #f.write(("CL=%g, Cq=%g \t") %(Cl, Cq))

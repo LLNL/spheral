@@ -3,7 +3,7 @@ set(SolidMaterial_inst
     LinearPolynomialEquationOfState
     GruneisenEquationOfState
     OsborneEquationOfState
-    MurnahanEquationOfState
+    MurnaghanEquationOfState
     TillotsonEquationOfState
     StrengthModel
     ConstantStrength
@@ -28,8 +28,8 @@ set(SolidMaterial_headers
     JohnsonCookStrength.hh
     LinearPolynomialEquationOfState.hh
     LinearPolynomialEquationOfStateInline.hh
-    MurnahanEquationOfState.hh
-    MurnahanEquationOfStateInline.hh
+    MurnaghanEquationOfState.hh
+    MurnaghanEquationOfStateInline.hh
     NullStrength.hh
     OsborneEquationOfState.hh
     OsborneEquationOfStateInline.hh
