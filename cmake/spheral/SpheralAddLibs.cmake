@@ -112,17 +112,13 @@ function(spheral_add_pybind11_library package_name)
                   SHARED       TRUE
                   )
   add_dependencies(${MODULE_NAME} ${spheral_py_depends} ${spheral_depends})
+
   if (NOT ENABLE_CUDA)
     target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
-    #target_compile_options(${MODULE_NAME} PRIVATE
-    #                       "-Wno-unused-local-typedefs"
-    #                       "-Wno-self-assign-overloaded"
-    #                       "-Wno-overloaded-virtual"
-    #                       "-Wno-delete-non-abstract-non-virtual-dtor")
   else()
     target_compile_options(${MODULE_NAME} PRIVATE
       $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe --diag_suppress=partial_override>) 
-    #partial_override (611) overloaded virtual function %no1 is only partially overridden in %n2.
+      #partial_override (611) overloaded virtual function %n1 is only partially overridden in %n2.
   endif()
 
   install(TARGETS     ${MODULE_NAME}
@@ -132,6 +128,6 @@ function(spheral_add_pybind11_library package_name)
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(${MODULE_NAME} PROPERTIES
     INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${boost_DIR}/lib;${python_DIR}/lib;${silo_DIR}/lib"
-                        )
+    )
 
 endfunction()
