@@ -68,6 +68,7 @@ source("../src/PythonMPIInterfaces/tests/testMPI4PYasPYMPI.py")
 
 # C++ unit tests.
 source("CXXTests/test_r3d_utils.py")
+source("CXXTests/test_cuda_launch.py")
 
 # Hydro tests
 source("Hydro/HydroTests.ats")
