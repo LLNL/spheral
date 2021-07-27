@@ -12,7 +12,6 @@ mkdir -p ${BUILD_SUFFIX}/build && cd ${BUILD_SUFFIX}/build
 
 module load cmake/3.14.5
 module load gcc/8.3.1
-module load cuda/11.1.0
 
 cmake \
   ../.. \
@@ -21,7 +20,6 @@ cmake \
   -C ${HOST_CONFIGS_DIR}/lc-builds/blueos/gcc8.3.1_tpl.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_MPI=Off \
-  -DCMAKE_CUDA_STANDARD="14" \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
   "$@" \
   #-DSPHERAL_TPL_DIR=/usr/workspace/wsrzd/davis291/SPHERAL/blueos_Spheral_gcc8_noMPI/install/tpl \
