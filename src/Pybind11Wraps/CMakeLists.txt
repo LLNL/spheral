@@ -1,9 +1,9 @@
 set (_python_packages
   CXXTypes
+  CXXTests
   Geometry
   Silo
   DataOutput
-  #DeviceTestLib
   NodeList
   Field
   FieldList

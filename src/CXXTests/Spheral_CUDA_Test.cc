@@ -1,25 +1,12 @@
 #include <iostream>
 #include "DeviceTestLib/DeviceTest.hh"
 
-#ifndef BUILD_CUDA_TEST_SHARED
-
-__global__ void launch(int a, int b, int *c)
-{
-  Spheral::add(a,b,c);
-}
-
-#endif
-
-
 int main() {
-  std::cout << "Hello World\n";
-
   int a,b,c;
-
   a = 3; b = 4;
 
-#ifdef BUILD_CUDA_TEST_SHARED
-  Spheral::launchCaller(a,b,c);
+#if 1
+  c = Spheral::launchCaller(a,b);
 #else
   int *d_c;
   cudaMalloc((void**) &d_c, sizeof(int));
