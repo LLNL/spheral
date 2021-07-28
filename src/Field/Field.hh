@@ -11,6 +11,11 @@
 #ifndef __Spheral_Field_hh__
 #define __Spheral_Field_hh__
 
+#if defined(LVARRAY_USE_CUDA)
+#include "LvArray/Array.hpp"
+#include "LvArray/ChaiBuffer.hpp"
+#endif
+
 #include "FieldBase.hh"
 
 #include <string>
@@ -28,6 +33,10 @@ template<typename Dimension> class RefineNodeIterator;
 template<typename Dimension> class NodeList;
 template<typename Dimension> class TableKernel;
 
+namespace detail{
+  template<typename T>  class DeviceAccessor;
+}
+
 #ifdef USE_UVM
 template<typename DataType>
 using DataAllocator = typename uvm_allocator::UVMAllocator<DataType>;
@@ -39,8 +48,18 @@ using DataAllocator = std::allocator<DataType>;
 template<typename Dimension, typename DataType>
 class Field: 
     public FieldBase<Dimension> {
-   
+
+  //using ContainerType = std::vector<DataType ,DataAllocator<DataType>>;
+
 public:
+  using ValueType = DataType;
+#if defined(LVARRAY_USE_CUDA)
+  using ContainerType = LvArray::Array< ValueType, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer >;
+  using ContainerTypeView = LvArray::ArrayView< ValueType, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer >;
+#else
+  using ContainerType = std::vector< ValueType >;
+#endif
+   
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -52,8 +71,13 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
-  typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
-  typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
+#if defined(LVARRAY_USE_CUDA)
+  typedef typename ContainerType::value_type* iterator;
+  typedef typename ContainerType::value_type* const_iterator;
+#else
+  typedef typename ContainerType::iterator iterator;
+  typedef typename ContainerType::const_iterator const_iterator;
+#endif
 
   // Constructors.
   explicit Field(FieldName name);
@@ -65,7 +89,7 @@ public:
         DataType value);
   Field(FieldName name,
         const NodeList<Dimension>& nodeList, 
-        const std::vector<DataType,DataAllocator<DataType>>& array);
+        const ContainerType& array);
   Field(const NodeList<Dimension>& nodeList, const Field& field);
   Field(const Field& field);
   virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
@@ -76,7 +100,7 @@ public:
   // Assignment operator.
   virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs) override;
   Field& operator=(const Field& rhs);
-  Field& operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs);
+  Field& operator=(const ContainerType& rhs);
   Field& operator=(const DataType& rhs);
 
   // Required method to test equivalence with a FieldBase.
@@ -121,15 +145,6 @@ public:
   Field& operator+=(const DataType& rhs);
   Field& operator-=(const DataType& rhs);
 
-//   // Multiplication of two fields, possibly by another DataType.
-//   template<typename OtherDataType>
-//   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
-//   operator*(const Field<Dimension, OtherDataType>& rhs) const;
-
-//   template<typename OtherDataType>
-//   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
-//   operator*(const OtherDataType& rhs) const;
-
   Field<Dimension, DataType>& operator*=(const Field<Dimension, Scalar>& rhs);
   Field<Dimension, DataType>& operator*=(const Scalar& rhs);
 
@@ -166,24 +181,6 @@ public:
   bool operator>=(const DataType& rhs) const;
   bool operator<=(const DataType& rhs) const;
 
-//   // Interpolate from this Field onto the given position.  Assumes that the
-//   // neighbor initializations have already been performed for the given
-//   // position!
-//   DataType operator()(const Vector& r,
-//                       const TableKernel<Dimension>& W) const;
-
-//   // Interpolate from this Field onto a new Field defined at the positions
-//   // of the given NodeList.
-//   Field<Dimension, DataType>
-//   sampleField(const NodeList<Dimension>& splatNodeList,
-//               const TableKernel<Dimension>& W) const;
-
-//   // Conservatively splat values from this Field onto a new Field defined
-//   // at the positions of the given NodeList, using the MASH formalism.
-//   Field<Dimension, DataType>
-//   splatToFieldMash(const NodeList<Dimension>& splatNodeList,
-//                    const TableKernel<Dimension>& W) const;
-
   // Test if this Field is in a valid, internally consistent state.
   bool valid() const;
 
@@ -203,8 +200,8 @@ public:
   const_iterator ghostEnd() const;
 
   // Index operator.
-  DataType& operator[](const unsigned int index);
-  const DataType& operator[](const unsigned int index) const;
+  RAJA_HOST_DEVICE DataType& operator[](const unsigned int index);
+  RAJA_HOST_DEVICE const DataType& operator[](const unsigned int index) const;
 
   // Required functions from FieldBase
   virtual void setNodeList(const NodeList<Dimension>& nodeList) override;
@@ -235,15 +232,17 @@ public:
   std::vector<DataType> ghostValues() const;
   std::vector<DataType> allValues() const;
 
+
+  ContainerType mDataArray;
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
-//  std::vector<DataType,std::allocator<DataType> > mDataArray;
-  std::vector<DataType, DataAllocator<DataType>> mDataArray;
   bool mValid;
 
   // No default constructor.
   Field();
+
+  friend class detail::DeviceAccessor<Field<Dimension, DataType>>;
 };
 
 }

@@ -27,10 +27,11 @@ using DataAllocator = typename std::allocator<DataType>;
 
 namespace Spheral {
 
-template<typename Value, typename Allocator, typename index_t>
+//template<typename Value, typename Allocator, typename index_t>
+template<typename ArrayType, typename index_t>
 inline
 void
-removeElements(std::vector<Value, Allocator>& vec,
+removeElements(ArrayType& vec,
                const std::vector<index_t>& elements) {
 
   // Is there anything to do?
@@ -55,7 +56,7 @@ removeElements(std::vector<Value, Allocator>& vec,
 
     // A single value is trivial.
     if (elements.size() == 1) {
-      vec.erase(vec.begin() + elements[0]);
+      vec.erase(elements[0]);
 
     } else {
 
@@ -64,13 +65,14 @@ removeElements(std::vector<Value, Allocator>& vec,
       // many elements the copy and move behaviour of erase can make this
       // an N^2 thing.  Yuck!
       auto i = elements[0];
-      for (auto k = 1; k < elements.size(); ++k) {
+      for (auto k = 1u; k < elements.size(); ++k) {
         std::copy(vec.begin() + i + 1, vec.begin() + elements[k], vec.begin() + i);
         i = elements[k];
       }
 
       // Resize vec to it's new size.
-      vec.erase(vec.begin() + newSize, vec.end());
+      //vec.erase(vec.begin() + newSize, vec.end());
+      vec.resize(newSize);
 
     }
 
@@ -102,7 +104,7 @@ removeElements(std::vector<Value,DataAllocator<Value>>& vec,
         REQUIRE(*itr < *(itr + 1));
       }
       if (elements.size() > 0) {
-        REQUIRE(elements.back() < originalSize);
+        REQUIRE(elements[0] >= 0 && elements.back() < originalSize);
       }
     }
     END_CONTRACT_SCOPE
