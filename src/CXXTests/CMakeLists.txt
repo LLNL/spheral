@@ -35,6 +35,10 @@ blt_add_executable( NAME lvarray_test
                     SOURCES LvArray_Test.cc
                     DEPENDS_ON ${SPHERAL_CXX_LIBS} ${spheral_blt_depends} cuda)
 
+blt_add_executable( NAME lvarray_field_test
+                    SOURCES LvArray_Field_Test.cc
+                    DEPENDS_ON ${SPHERAL_CXX_LIBS} ${spheral_blt_depends} cuda)
+
 blt_add_executable( NAME spheral_cuda_test
                     SOURCES Spheral_CUDA_Test.cc
                     #DEPENDS_ON Spheral_DeviceTestLib ${spheral_blt_depends} ${SPHERAL_CXX_DEPENDS})
