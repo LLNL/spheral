@@ -51,7 +51,7 @@ using DataAllocator = std::allocator<DataType>;
 
 template<typename Dimension, typename DataType>
 class Field: 
-    public FieldBase<Dimension> {
+  public FieldBase<Dimension> {
 
   //using ContainerType = std::vector<DataType ,DataAllocator<DataType>>;
 
