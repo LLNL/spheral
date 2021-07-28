@@ -28,4 +28,3 @@ cmake \
   -DCMAKE_CUDA_STANDARD="14" \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
   "$@" \
-  #-DSPHERAL_TPL_DIR=/usr/workspace/wsrzd/davis291/SPHERAL/blueos_Spheral_gcc8_noMPI/install/tpl \
