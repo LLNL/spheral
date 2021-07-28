@@ -3,6 +3,7 @@
 namespace Spheral
 {
 
+#ifdef __CUDACC__
 __device__ void add(int a, int b, int *c)
 {
   *c = a + b;
@@ -23,5 +24,13 @@ __host__ int launchCaller(int a, int b)
   cudaFree(d_c);
   return c;
 }
+
+#else
+int launchCaller(int a, int b)
+{
+  return a + b;
+}
+
+#endif
 
 } // namespace Spehral
