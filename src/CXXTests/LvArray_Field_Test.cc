@@ -69,7 +69,7 @@ int main() {
       field_view[kk][2]++;
   });
 
-  //data.move(LvArray::MemorySpace::cuda);
+  field_view.move(LvArray::MemorySpace::cuda);
 
   RAJA::forall<EXEC_POL>(range, 
     [=] RAJA_HOST_DEVICE (int kk) {
@@ -78,7 +78,7 @@ int main() {
       field_view[kk][2]++;
   });
 
-  //data.move(LvArray::MemorySpace::host);
+  field_view.move(LvArray::MemorySpace::host);
 
   bool correctness = true;
   RAJA::forall<HOST_POL>(range,
