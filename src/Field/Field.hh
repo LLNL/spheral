@@ -11,6 +11,10 @@
 #ifndef __Spheral_Field_hh__
 #define __Spheral_Field_hh__
 
+#include "RAJA/RAJA.hpp"
+
+#include "LvArrayConfig.hpp"
+
 #if defined(LVARRAY_USE_CUDA)
 #include "LvArray/Array.hpp"
 #include "LvArray/ChaiBuffer.hpp"
