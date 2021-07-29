@@ -33,6 +33,11 @@
 #
 #ATS:t300 = test(        SELF, "--psph True --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with PSPH -- 1-D (serial)")
 #ATS:t301 = testif(t300, SELF, "--psph True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with PSPH -- 1-D (serial) RESTART CHECK")
+#
+# FSISPH
+#
+#ATS:t400 = test(        SELF, "--fsisph True --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with FSISPH -- 1-D (serial)")
+#ATS:t401 = testif(t300, SELF, "--fsisph True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with FSISPH -- 1-D (serial) RESTART CHECK")
 
 import os, shutil
 from SolidSpheral1d import *
@@ -67,6 +72,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             svph = False,
             crksph = False,
             psph = False,
+            fsisph = False,
             crktype = "default",        # one of ("default", "variant")
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             boolReduceViscosity = False,
@@ -187,6 +193,8 @@ elif crksph:
     hydroname = os.path.join("CRKSPH",
                              str(volumeType),
                              str(correctionOrder))
+elif fsisph:
+    hydroname = "FSISPH"
 elif psph:
     hydroname = "PSPH"
 else:
@@ -325,6 +333,20 @@ elif psph:
                  densityUpdate = densityUpdate,
                  HUpdate = HUpdate,
                  XSPH = XSPH)
+
+elif fsisph:
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   sumDensityNodeLists=[nodes1],                       
+                   densityStabilizationCoefficient = 0.00,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   correctVelocityGradient = correctVelocityGradient,
+                   HUpdate = HUpdate,
+                   XSPH = XSPH)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
