@@ -34,10 +34,10 @@
 #ATS:t300 = test(        SELF, "--psph True --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with PSPH -- 1-D (serial)")
 #ATS:t301 = testif(t300, SELF, "--psph True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with PSPH -- 1-D (serial) RESTART CHECK")
 #
-# FSISPH
+# Solid FSISPH
 #
-#ATS:t400 = test(        SELF, "--fsisph True --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with FSISPH -- 1-D (serial)")
-#ATS:t401 = testif(t300, SELF, "--fsisph True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with FSISPH -- 1-D (serial) RESTART CHECK")
+#ATS:t400 = test(        SELF, "--fsisph True --solid True --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with FSISPH -- 1-D (serial)")
+#ATS:t401 = testif(t400, SELF, "--fsisph True --solid True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with FSISPH -- 1-D (serial) RESTART CHECK")
 
 import os, shutil
 from SolidSpheral1d import *
