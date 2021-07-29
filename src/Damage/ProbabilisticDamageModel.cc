@@ -149,35 +149,24 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mVmin = allReduce(mVmin, MPI_MIN, Communicator::communicator());
   mVmax = allReduce(mVmax, MPI_MAX, Communicator::communicator());
 
-  // Compute the maximum strain we expect for the minimum volume.
-  const auto epsMax2m = mMinFlawsPerNode/(mkWeibull*mVmin);  // epsmax ** m
-
-  // Based on this compute the maximum number of flaws any node will have.
-  const auto maxFlawsPerNode = int(std::max(1, int(mkWeibull*mVmax*epsMax2m + 0.5)));
-
-  // Generate initial realizations of the flaw population for each point, of which we capture the min/max range
-  // for each point.
+  // Generate min/max ranges of flaws for each point.
   const auto mInv = 1.0/mmWeibull;
   size_t minNumFlaws = std::numeric_limits<size_t>::max();
   size_t maxNumFlaws = 0u;
   size_t totalNumFlaws = 0u;
   auto epsMin = std::numeric_limits<double>::max();
   auto epsMax = std::numeric_limits<double>::min();
-  auto sumFlaws = 0.0;
+  auto numFlawsRatio = 0.0;
 #pragma omp parallel for
   for (auto i = 0u; i < nlocal; ++i) {
     if (mMask(i) == 1) {
-      mMinFlaw(i) = std::numeric_limits<double>::max();
-      mNumFlaws(i) = std::max(1, std::min(maxFlawsPerNode, int(mkWeibull*mInitialVolume(i)*epsMax2m + 0.5)));
-      const auto Ai = mNumFlaws(i)/(mkWeibull*mInitialVolume(i));
-      CHECK(Ai > 0.0);
-      auto sumFlawsi = 0.0;
-      for (auto j = 0; j < mNumFlaws(i); ++j) {
-        const auto flaw = pow(Ai * randomGenerators[i](), mInv);
-        mMinFlaw(i) = std::min(mMinFlaw(i), flaw);
-        mMaxFlaw(i) = std::max(mMinFlaw(i), flaw);
-        sumFlawsi += flaw;
-      }
+      const auto Nflaws = int(mMinFlawsPerNode*mInitialVolume(i)/mVmin + 0.5);  // Target number of flaws on this point
+      CHECK(Nflaws >= mMinFlawsPerNode);
+      const auto Ai = pow(Nflaws/(mkWeibull*mInitialVolume(i)), mInv);
+      mMinFlaw(i) = Ai*pow(1.0 - pow(randomGenerators[i](), 1.0/Nflaws), mInv);
+      mMaxFlaw(i) = Ai*pow(randomGenerators[i](), 1.0/(mmWeibull*Nflaws));
+      CHECK(mMaxFlaw(i) > mMinFlaw(i));
+      mNumFlaws(i) = std::max(1, int(mInitialVolume(i)*mkWeibull*(pow(mMaxFlaw(i), mmWeibull) - pow(mMinFlaw(i), mmWeibull))));
 
       // Gather statistics
 #pragma omp critical
@@ -187,7 +176,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
         totalNumFlaws += size_t(mNumFlaws(i));
         epsMin = std::min(epsMin, mMinFlaw(i));
         epsMax = std::max(epsMax, mMaxFlaw(i));
-        sumFlaws += sumFlawsi;
+        numFlawsRatio += double(mNumFlaws(i))/Nflaws;
       }
     }
   }
@@ -199,17 +188,17 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
     epsMin = allReduce(epsMin, MPI_MIN, Communicator::communicator());
     epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
-    sumFlaws = allReduce(sumFlaws, MPI_SUM, Communicator::communicator());
+    numFlawsRatio = allReduce(numFlawsRatio, MPI_SUM, Communicator::communicator())/nused_global;
     if (Process::getRank() == 0) {
       cerr << "ProbabilisticDamageModel for " << nodes.name() << ":" << endl
            << " Min, max, max/min volumes: " << mVmin << " " << mVmax << " " << mVmax*safeInv(mVmin) << endl
            << "    Min num flaws per node: " << minNumFlaws << endl
            << "    Max num flaws per node: " << maxNumFlaws << endl
            << "    Total num flaws       : " << totalNumFlaws << endl
-           << "    Avg flaws per node    : " << totalNumFlaws / std::max(size_t(1), nused_global) << endl
+           << "    Avg flaws per node    : " << totalNumFlaws/nused_global << endl
            << "    Min flaw strain       : " << epsMin << endl
            << "    Max flaw strain       : " << epsMax << endl
-           << "    Avg node failure      : " << sumFlaws / std::max(size_t(1), nused_global) << endl;
+           << "    Avg Neff/Nflaws       : " << numFlawsRatio << endl;
     }
   }
 }
@@ -304,10 +293,7 @@ registerState(DataBase<Dimension>& dataBase,
   auto& damage = this->nodeList().damage();
   PolicyPointer damagePolicy(new ProbabilisticDamagePolicy<Dimension>(mDamageInCompression,
                                                                       mkWeibull,
-                                                                      mmWeibull,
-                                                                      mMinFlawsPerNode,
-                                                                      mVmin,
-                                                                      mVmax));
+                                                                      mmWeibull));
   state.enroll(damage, damagePolicy);
   state.enroll(mNumFlaws);
   state.enroll(mMinFlaw);
