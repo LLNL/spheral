@@ -76,12 +76,12 @@ public:
   std::set<GridCellIndex<Dimension> > computeGridCellRind(const GridCellIndex<Dimension>& gridCell,
                                                                          const int gridLevel) const;
 
-  // Set the master grid cell info for all NodeLists in the DataBase.
-  void setMasterNodeLists(DataBase<Dimension>& dataBase,
-                          const GridCellIndex<Dimension>& gridCell,
-                          const int gridLevel,
-                          std::vector<std::vector<int>>& masterLists,
-                          std::vector<std::vector<int>>& coarseNeighbors) const;
+  // Set the master grid cell info for all NeighborNodeLists in the DataBase.
+  void setMasterNeighborNodeLists(DataBase<Dimension>& dataBase,
+                                  const GridCellIndex<Dimension>& gridCell,
+                                  const int gridLevel,
+                                  std::vector<std::vector<int>>& masterLists,
+                                  std::vector<std::vector<int>>& coarseNeighbors) const;
 
   // Gather up the unassigned coarse neighbor nodes, filling in the global node indices and work.
   void gatherAvailableCoarseNodes(const DataBase<Dimension>& dataBase,

@@ -175,19 +175,19 @@ public:
 
   // Provide a convenience function for setting the neighbor node information
   // for all the NodeList in this FieldList.
-  void setMasterNodeLists(const Vector& r, const SymTensor& H,
-                          std::vector<std::vector<int>>& masterLists,
-                          std::vector<std::vector<int>>& coarseNeighbors) const;
-  void setMasterNodeLists(const Vector& r,
-                          std::vector<std::vector<int>>& masterLists,
-                          std::vector<std::vector<int>>& coarseNeighbors) const;
+  void setMasterNeighborNodeLists(const Vector& r, const SymTensor& H,
+                                  std::vector<std::vector<int>>& masterLists,
+                                  std::vector<std::vector<int>>& coarseNeighbors) const;
+  void setMasterNeighborNodeLists(const Vector& r,
+                                  std::vector<std::vector<int>>& masterLists,
+                                  std::vector<std::vector<int>>& coarseNeighbors) const;
 
-  void setRefineNodeLists(const Vector& r, const SymTensor& H,
-                          const std::vector<std::vector<int>>& coarseNeighbors,
-                          std::vector<std::vector<int>>& refineNeighbors) const;
-  void setRefineNodeLists(const Vector& r,
-                          const std::vector<std::vector<int>>& coarseNeighbors,
-                          std::vector<std::vector<int>>& refineNeighbors) const;
+  void setRefineNeighborNodeLists(const Vector& r, const SymTensor& H,
+                                  const std::vector<std::vector<int>>& coarseNeighbors,
+                                  std::vector<std::vector<int>>& refineNeighbors) const;
+   void setRefineNeighborNodeLists(const Vector& r,
+                                   const std::vector<std::vector<int>>& coarseNeighbors,
+                                   std::vector<std::vector<int>>& refineNeighbors) const;
 
   // Reproduce the standard Field operators for FieldLists.
   void Zero();

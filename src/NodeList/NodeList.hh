@@ -20,11 +20,7 @@ namespace Spheral {
 template<typename Dimension> class AllNodeIterator;
 template<typename Dimension> class InternalNodeIterator;
 template<typename Dimension> class GhostNodeIterator;
-template<typename Dimension> class MasterNodeIterator;
-template<typename Dimension> class CoarseNodeIterator;
-template<typename Dimension> class RefineNodeIterator;
 template<typename Dimension> class State;
-template<typename Dimension> class Neighbor;
 template<typename Dimension> class DataBase;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class FieldBase;
@@ -57,9 +53,7 @@ public:
                     const Scalar hmin = 1.0e-20,
                     const Scalar hmax = 1.0e20,
                     const Scalar hminratio = 0.1,
-                    const Scalar nPerh = 2.01,
-                    const unsigned maxNumNeighbors = 500);
-
+                    const Scalar nPerh = 2.01);
   // Destructor
   virtual ~NodeList();
 
@@ -83,15 +77,6 @@ public:
   GhostNodeIterator<Dimension> ghostNodeBegin() const;
   GhostNodeIterator<Dimension> ghostNodeEnd() const;
           
-  MasterNodeIterator<Dimension> masterNodeBegin(const std::vector<std::vector<int>>& masterLists) const;
-  MasterNodeIterator<Dimension> masterNodeEnd() const;
-          
-  CoarseNodeIterator<Dimension> coarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const;
-  CoarseNodeIterator<Dimension> coarseNodeEnd() const;
-
-  RefineNodeIterator<Dimension> refineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const;
-  RefineNodeIterator<Dimension> refineNodeEnd() const;
-
   // The NodeList state Fields.
   Field<Dimension, Scalar>& mass();
   Field<Dimension, Vector>& positions();
@@ -135,19 +120,9 @@ public:
   NodeType nodeType(int i) const;
   unsigned firstGhostNode() const;
 
-  // Access the neighbor object.
-  Neighbor<Dimension>& neighbor() const;
-
-  void registerNeighbor(Neighbor<Dimension>& neighbor);
-  void unregisterNeighbor();
-
   // The target number of nodes per smoothing scale (for calculating the ideal H).
   Scalar nodesPerSmoothingScale() const;
   void nodesPerSmoothingScale(Scalar val);
-
-  // The maximum number of neighbors we want to have (for calculating the ideal H).
-  unsigned maxNumNeighbors() const;
-  void maxNumNeighbors(unsigned val);
 
   // Allowed range of smoothing scales for use in calculating H.
   Scalar hmin() const;
@@ -206,11 +181,9 @@ private:
   // Stuff for how H is handled.
   Scalar mhmin, mhmax, mhminratio;
   Scalar mNodesPerSmoothingScale;
-  unsigned mMaxNumNeighbors;
 
   // List of fields that are defined over this NodeList.
   mutable std::vector<FieldBase<Dimension>*> mFieldBaseList;
-  Neighbor<Dimension>* mNeighborPtr;
 
   // Provide a dummy vector to buid NodeIterators against.
   std::vector<NodeList<Dimension>*> mDummyList;

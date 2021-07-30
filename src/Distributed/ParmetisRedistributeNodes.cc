@@ -404,7 +404,7 @@ buildCSRGraph(const DataBase<Dimension>& dataBase,
 
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
-      dataBase.setMasterNodeLists(positions(nodeItr), Hfield(nodeItr));
+      dataBase.setMasterNeighborNodeLists(positions(nodeItr), Hfield(nodeItr));
 
       // Now loop over all the master nodes.
       for (MasterNodeIterator<Dimension> masterItr = dataBase.masterNodeBegin();
@@ -424,7 +424,7 @@ buildCSRGraph(const DataBase<Dimension>& dataBase,
         neighbors[globalNodeI] = vector<pair<int, double> >();
 
         // Set the refined neighbor information for this master node.
-        dataBase.setRefineNodeLists(positions(masterItr), Hfield(masterItr));
+        dataBase.setRefineNeighborNodeLists(positions(masterItr), Hfield(masterItr));
 
         // Loop over the refined neighbors, and determine what nodes
         // are attached to this one.

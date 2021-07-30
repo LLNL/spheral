@@ -88,9 +88,9 @@ class EulerianTracerHistory(Spheral.RestartableObject):
         masterLists = vector_of_vector_of_int()
         coarseNeighbors = vector_of_vector_of_int()
         refineNeighbors = vector_of_vector_of_int()
-        self.db.setMasterNodeLists(self.position, Hmin, masterLists, coarseNeighbors)
+        self.db.setMasterNeighborNodeLists(self.position, Hmin, masterLists, coarseNeighbors)
         assert len(coarseNeighbors) == numNodeLists
-        self.db.setRefineNodeLists(self.position, Hmin, coarseNeighbors, refineNeighbors)
+        self.db.setRefineNeighborNodeLists(self.position, Hmin, coarseNeighbors, refineNeighbors)
         for nodeListj in xrange(numNodeLists):
             for j in refineNeighbors[nodeListj]:
 

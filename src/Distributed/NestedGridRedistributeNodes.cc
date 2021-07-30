@@ -195,7 +195,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
         // Set the master information for all NodeLists (and therefore coarse neighbors as well).
         vector<vector<int>> localMasterLists(dataBase.numNodeLists()), localCoarseNeighbors(dataBase.numNodeLists());
-        setMasterNodeLists(dataBase, *gcItr, masterGridLevel, localMasterLists, localCoarseNeighbors);
+        setMasterNeighborNodeLists(dataBase, *gcItr, masterGridLevel, localMasterLists, localCoarseNeighbors);
 
         // Gather the available nodes from the coarse neighbor set to process 0.
         vector<int> coarseNodeIndices;
@@ -647,11 +647,11 @@ computeGridCellRind(const GridCellIndex<Dim<3> >& gridCell,
 template<typename Dimension>
 void
 NestedGridRedistributeNodes<Dimension>::
-setMasterNodeLists(DataBase<Dimension>& dataBase,
-                   const GridCellIndex<Dimension>& gridCell,
-                   const int gridLevel,
-                   std::vector<std::vector<int>>& masterLists,
-                   std::vector<std::vector<int>>& coarseNeighbors) const {
+setMasterNeighborNodeLists(DataBase<Dimension>& dataBase,
+                           const GridCellIndex<Dimension>& gridCell,
+                           const int gridLevel,
+                           std::vector<std::vector<int>>& masterLists,
+                           std::vector<std::vector<int>>& coarseNeighbors) const {
   REQUIRE(masterLists.size() == dataBase.numNodeLists());
   REQUIRE(coarseNeighbors.size() == dataBase.numNodeLists());
   unsigned iNodeList = 0;

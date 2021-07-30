@@ -41,8 +41,7 @@ NodeList<Dimension>::NodeList(std::string name,
                               const Scalar hmin,
                               const Scalar hmax,
                               const Scalar hminratio,
-                              const Scalar nPerh,
-                              const unsigned maxNumNeighbors):
+                              const Scalar nPerh)
   mNumNodes(numInternal + numGhost),
   mFirstGhostNode(numInternal),
   mName(name),
@@ -55,9 +54,7 @@ NodeList<Dimension>::NodeList(std::string name,
   mhmax(hmax),
   mhminratio(hminratio),
   mNodesPerSmoothingScale(nPerh),
-  mMaxNumNeighbors(maxNumNeighbors),
   mFieldBaseList(),
-  mNeighborPtr(0),
   mDummyList(),
   mRestart(registerWithRestart(*this, 10)) {
   NodeListRegistrar<Dimension>::instance().registerNodeList(*this);
@@ -179,90 +176,6 @@ NodeList<Dimension>::ghostNodeEnd() const {
   return GhostNodeIterator<Dimension>(mDummyList.end(),
                                       mDummyList.begin(),
                                       mDummyList.end());
-}
-
-//------------------------------------------------------------------------------
-// Node iterators for master neighbor nodes.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-MasterNodeIterator<Dimension>
-NodeList<Dimension>::masterNodeBegin(const std::vector<std::vector<int>>& masterLists) const {
-  REQUIRE(mNeighborPtr != 0);
-  REQUIRE(masterLists.size() == 1);
-  if (masterLists[0].size() > 0) {
-    return MasterNodeIterator<Dimension>(mDummyList.begin(),
-                                         mDummyList.begin(),
-                                         mDummyList.end(),
-                                         masterLists[0].begin(),
-                                         masterLists);
-  } else {
-    return this->masterNodeEnd();
-  }
-}
-
-template<typename Dimension>
-MasterNodeIterator<Dimension>
-NodeList<Dimension>::masterNodeEnd() const {
-  return MasterNodeIterator<Dimension>(mDummyList.end(),
-                                       mDummyList.begin(),
-                                       mDummyList.end(),
-                                       std::vector<std::vector<int>>());
-}
-
-//------------------------------------------------------------------------------
-// Node iterators for coarse neighbor nodes.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-CoarseNodeIterator<Dimension>
-NodeList<Dimension>::coarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const {
-  REQUIRE(mNeighborPtr != 0);
-  REQUIRE(coarseNeighbors.size() == 1);
-  if (coarseNeighbors[0].size() > 0) {
-    return CoarseNodeIterator<Dimension>(mDummyList.begin(),
-                                         mDummyList.begin(),
-                                         mDummyList.end(),
-                                         coarseNeighbors[0].begin(),
-                                         coarseNeighbors);
-  } else {
-    return this->coarseNodeEnd();
-  }
-}
-
-template<typename Dimension>
-CoarseNodeIterator<Dimension>
-NodeList<Dimension>::coarseNodeEnd() const {
-  return CoarseNodeIterator<Dimension>(mDummyList.end(),
-                                       mDummyList.begin(),
-                                       mDummyList.end(),
-                                       std::vector<std::vector<int>>());
-}
-
-//------------------------------------------------------------------------------
-// Node iterators for refine neighbor nodes.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-RefineNodeIterator<Dimension>
-NodeList<Dimension>::refineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const {
-  REQUIRE(mNeighborPtr != 0);
-  REQUIRE(refineNeighbors.size() == 1);
-  if (refineNeighbors[0].size() > 0) {
-    return RefineNodeIterator<Dimension>(mDummyList.begin(),
-                                         mDummyList.begin(),
-                                         mDummyList.end(),
-                                         refineNeighbors[0].begin(),
-                                         refineNeighbors);
-  } else {
-    return this->refineNodeEnd();
-  }
-}
-
-template<typename Dimension>
-RefineNodeIterator<Dimension>
-NodeList<Dimension>::refineNodeEnd() const {
-  return RefineNodeIterator<Dimension>(mDummyList.end(),
-                                       mDummyList.begin(),
-                                       mDummyList.end(),
-                                       std::vector<std::vector<int>>());
 }
 
 //------------------------------------------------------------------------------

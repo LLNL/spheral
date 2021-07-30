@@ -69,6 +69,11 @@ class DataBase:
         return "void"
 
     @PYB11pycppname("appendNodeList")
+    def appendNodeList3(self, nodeList="NeighborNodeList<%(Dimension)s>&"):
+        "Add a NeighborNodeList"
+        return "void"
+    
+    @PYB11pycppname("appendNodeList")
     def appendNodeList1(self, nodeList="FluidNodeList<%(Dimension)s>&"):
         "Add a FluidNodeList"
         return "void"
@@ -80,6 +85,11 @@ class DataBase:
 
     def deleteNodeList(self, nodeList="SolidNodeList<%(Dimension)s>&"):
         "Remove a SolidNodeList"
+        return "void"
+    
+    @PYB11pycppname("deleteNodeList")
+    def deleteNodeList3(self, nodeList="NeighborNodeList<%(Dimension)s>&"):
+        "Remove a NeighborNodeList"
         return "void"
 
     @PYB11pycppname("deleteNodeList")
@@ -98,13 +108,13 @@ class DataBase:
         return "bool"
 
     @PYB11const
-    def setMasterNodeLists(self,
-                           position = "const Vector&",
-                           H = "const SymTensor&",
-                           masterLists = "std::vector<std::vector<int>>&",
-                           coarseNeighbors = "std::vector<std::vector<int>>&",
-                           computeGhostConnectivity = "bool"):
-        "Set the master/coarse neighbor lists for all NodeLists"
+    def setMasterNeighborNodeLists(self,
+                                   position = "const Vector&",
+                                   H = "const SymTensor&",
+                                   masterLists = "std::vector<std::vector<int>>&",
+                                   coarseNeighbors = "std::vector<std::vector<int>>&",
+                                   computeGhostConnectivity = "bool"):
+        "Set the master/coarse neighbor lists for all NeighborNodeLists"
         return "void"
 
     @PYB11const
@@ -114,16 +124,16 @@ class DataBase:
                                 masterLists = "std::vector<std::vector<int>>&",
                                 coarseNeighbors = "std::vector<std::vector<int>>&",
                                 computeGhostConnectivity = "bool"):
-        "Set the master/coarse neighbor lists for all NodeLists"
+        "Set the master/coarse neighbor lists for all FluidNodeLists"
         return "void"
 
     @PYB11const
-    def setRefineNodeLists(self,
-                           position = "const Vector&",
-                           H = "const SymTensor&",
-                           coarseNeighbors = "const std::vector<std::vector<int>>&",
-                           refineNeighbors = "std::vector<std::vector<int>>&"):
-        "Set the refine neighbor lists for all NodeLists"
+    def setRefineNeighborNodeLists(self,
+                                   position = "const Vector&",
+                                   H = "const SymTensor&",
+                                   coarseNeighbors = "const std::vector<std::vector<int>>&",
+                                   refineNeighbors = "std::vector<std::vector<int>>&"):
+        "Set the refine neighbor lists for all NeighborNodeLists"
         return "void"
 
     @PYB11const
@@ -254,6 +264,14 @@ class DataBase:
 
     @PYB11template("DataType")
     @PYB11const
+    def newNeighborFieldList(self,
+                          value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                          name = ("const Field<%(Dimension)s, %(DataType)s>::FieldName", '"Unnamed Field"')):
+        "Construct a new FieldList<%(DataType)s> for all NeighborNodeLists in DataBase"
+        return "FieldList<%(Dimension)s, %(DataType)s>"
+    
+    @PYB11template("DataType")
+    @PYB11const
     def newFluidFieldList(self,
                           value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
                           name = ("const Field<%(Dimension)s, %(DataType)s>::FieldName", '"Unnamed Field"')):
@@ -281,6 +299,19 @@ Note that if the FieldList is resized it is reconstructed from scratch, so all e
 will get the new value regardless of resetValues."""
         return "void"
 
+    @PYB11template("DataType")
+    @PYB11const
+    def resizeNeighborFieldList(self,
+                                fieldList = "FieldList<%(Dimension)s, %(DataType)s>&",
+                                value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                                name = ("const Field<%(Dimension)s, %(DataType)s>::FieldName", '"Unnamed Field"'),
+                                resetValues = ("const bool", "true")):
+        """Resize a FieldList to the number of NeighborNodeLists.
+Optionally we can also set all elements in the FieldList to the specified value.
+Note that if the FieldList is resized it is reconstructed from scratch, so all elements
+will get the new value regardless of resetValues."""
+        return "void"
+    
     @PYB11template("DataType")
     @PYB11const
     def resizeFluidFieldList(self,
@@ -321,6 +352,21 @@ will get the new value regardless of resetValues."""
     newGlobalvector_of_VectorFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<Vector>")
     newGlobalvector_of_CellFaceFlagFieldList = PYB11TemplateMethod(newGlobalFieldList, template_parameters="std::vector<CellFaceFlag>")
     newGlobalDomainNodeFieldList       = PYB11TemplateMethod(newGlobalFieldList, template_parameters="DomainNode<%(Dimension)s>")
+    
+    newNeighborIntFieldList              = PYB11TemplateMethod(newNeighborFieldList, template_parameters="int")
+    newNeighborScalarFieldList           = PYB11TemplateMethod(newNeighborFieldList, template_parameters="double")
+    newNeighborVectorFieldList           = PYB11TemplateMethod(newNeighborFieldList, template_parameters="Vector")
+    newNeighborTensorFieldList           = PYB11TemplateMethod(newNeighborFieldList, template_parameters="Tensor")
+    newNeighborSymTensorFieldList        = PYB11TemplateMethod(newNeighborFieldList, template_parameters="SymTensor")
+    newNeighborThirdRankTensorFieldList  = PYB11TemplateMethod(newNeighborFieldList, template_parameters="ThirdRankTensor")
+    newNeighborFourthRankTensorFieldList = PYB11TemplateMethod(newNeighborFieldList, template_parameters="FourthRankTensor")
+    newNeighborFifthRankTensorFieldList  = PYB11TemplateMethod(newNeighborFieldList, template_parameters="FifthRankTensor")
+    newNeighborFacetedVolumeFieldList    = PYB11TemplateMethod(newNeighborFieldList, template_parameters="FacetedVolume")
+    newNeighborvector_of_intFieldList    = PYB11TemplateMethod(newNeighborFieldList, template_parameters="std::vector<int>")
+    newNeighborvector_of_doubleFieldList = PYB11TemplateMethod(newNeighborFieldList, template_parameters="std::vector<double>")
+    newNeighborvector_of_VectorFieldList = PYB11TemplateMethod(newNeighborFieldList, template_parameters="std::vector<Vector>")
+    newNeighborvector_of_CellFaceFlagFieldList = PYB11TemplateMethod(newNeighborFieldList, template_parameters="std::vector<CellFaceFlag>")
+    newNeighborDomainNodeFieldList       = PYB11TemplateMethod(newNeighborFieldList, template_parameters="DomainNode<%(Dimension)s>")
     
     newFluidIntFieldList              = PYB11TemplateMethod(newFluidFieldList, template_parameters="int")
     newFluidScalarFieldList           = PYB11TemplateMethod(newFluidFieldList, template_parameters="double")
@@ -366,6 +412,20 @@ will get the new value regardless of resetValues."""
     resizeGlobalvector_of_VectorFieldList = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="std::vector<Vector>")
     resizeGlobalDomainNodeFieldList       = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="DomainNode<%(Dimension)s>")
 
+    resizeNeighborIntFieldList              = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="int")
+    resizeNeighborScalarFieldList           = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="double")
+    resizeNeighborVectorFieldList           = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="Vector")
+    resizeNeighborTensorFieldList           = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="Tensor")
+    resizeNeighborSymTensorFieldList        = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="SymTensor")
+    resizeNeighborThirdRankTensorFieldList  = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="ThirdRankTensor")
+    resizeNeighborFourthRankTensorFieldList = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="FourthRankTensor")
+    resizeNeighborFifthRankTensorFieldList  = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="FifthRankTensor")
+    resizeNeighborFacetedVolumeFieldList    = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="FacetedVolume")
+    resizeNeighborvector_of_intFieldList    = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="std::vector<int>")
+    resizeNeighborvector_of_doubleFieldList = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="std::vector<double>")
+    resizeNeighborvector_of_VectorFieldList = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="std::vector<Vector>")
+    resizeNeighborDomainNodeFieldList       = PYB11TemplateMethod(resizeNeighborFieldList, template_parameters="DomainNode<%(Dimension)s>")
+    
     resizeFluidIntFieldList              = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="int")
     resizeFluidScalarFieldList           = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="double")
     resizeFluidVectorFieldList           = PYB11TemplateMethod(resizeFluidFieldList, template_parameters="Vector")
@@ -404,6 +464,13 @@ will get the new value regardless of resetValues."""
 
     @PYB11template("DataType")
     @PYB11const
+    def newNeighborArray(self,
+                      value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()")):
+        "Construct a new array<%(DataType)s> for all NeighborNodeLists in DataBase"
+        return "std::vector<std::vector<%(DataType)s>>"
+    
+    @PYB11template("DataType")
+    @PYB11const
     def newFluidArray(self,
                       value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()")):
         "Construct a new array<%(DataType)s> for all FluidNodeLists in DataBase"
@@ -423,6 +490,18 @@ will get the new value regardless of resetValues."""
                           value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
                           resetValues = ("const bool", "true")):
         """Resize an array to the number of NodeLists.
+Optionally we can also set all elements in the Array to the specified value.
+Note that if the Array is resized it is reconstructed from scratch, so all elements
+will get the new value regardless of resetValues."""
+        return "void"
+
+    @PYB11template("DataType")
+    @PYB11const
+    def resizeNeighborArray(self,
+                            array = "std::vector<std::vector<%(DataType)s>>&",
+                            value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                            resetValues = ("const bool", "true")):
+        """Resize an array to the number of NeighborNodeLists.
 Optionally we can also set all elements in the Array to the specified value.
 Note that if the Array is resized it is reconstructed from scratch, so all elements
 will get the new value regardless of resetValues."""
@@ -466,6 +545,21 @@ will get the new value regardless of resetValues."""
     newGlobalvector_of_VectorArray = PYB11TemplateMethod(newGlobalArray, template_parameters="std::vector<Vector>")
     newGlobalvector_of_CellFaceFlagArray = PYB11TemplateMethod(newGlobalArray, template_parameters="std::vector<CellFaceFlag>")
     newGlobalDomainNodeArray       = PYB11TemplateMethod(newGlobalArray, template_parameters="DomainNode<%(Dimension)s>")
+    
+    newNeighborIntArray              = PYB11TemplateMethod(newNeighborArray, template_parameters="int")
+    newNeighborScalarArray           = PYB11TemplateMethod(newNeighborArray, template_parameters="double")
+    newNeighborVectorArray           = PYB11TemplateMethod(newNeighborArray, template_parameters="Vector")
+    newNeighborTensorArray           = PYB11TemplateMethod(newNeighborArray, template_parameters="Tensor")
+    newNeighborSymTensorArray        = PYB11TemplateMethod(newNeighborArray, template_parameters="SymTensor")
+    newNeighborThirdRankTensorArray  = PYB11TemplateMethod(newNeighborArray, template_parameters="ThirdRankTensor")
+    newNeighborFourthRankTensorArray = PYB11TemplateMethod(newNeighborArray, template_parameters="FourthRankTensor")
+    newNeighborFifthRankTensorArray  = PYB11TemplateMethod(newNeighborArray, template_parameters="FifthRankTensor")
+    newNeighborFacetedVolumeArray    = PYB11TemplateMethod(newNeighborArray, template_parameters="FacetedVolume")
+    newNeighborvector_of_intArray    = PYB11TemplateMethod(newNeighborArray, template_parameters="std::vector<int>")
+    newNeighborvector_of_doubleArray = PYB11TemplateMethod(newNeighborArray, template_parameters="std::vector<double>")
+    newNeighborvector_of_VectorArray = PYB11TemplateMethod(newNeighborArray, template_parameters="std::vector<Vector>")
+    newNeighborvector_of_CellFaceFlagArray = PYB11TemplateMethod(newNeighborArray, template_parameters="std::vector<CellFaceFlag>")
+    newNeighborDomainNodeArray       = PYB11TemplateMethod(newNeighborArray, template_parameters="DomainNode<%(Dimension)s>")
     
     newFluidIntArray              = PYB11TemplateMethod(newFluidArray, template_parameters="int")
     newFluidScalarArray           = PYB11TemplateMethod(newFluidArray, template_parameters="double")
@@ -511,6 +605,20 @@ will get the new value regardless of resetValues."""
     resizeGlobalvector_of_VectorArray = PYB11TemplateMethod(resizeGlobalArray, template_parameters="std::vector<Vector>")
     resizeGlobalDomainNodeArray       = PYB11TemplateMethod(resizeGlobalArray, template_parameters="DomainNode<%(Dimension)s>")
 
+    resizeNeighborIntArray              = PYB11TemplateMethod(resizeNeighborArray, template_parameters="int")
+    resizeNeighborScalarArray           = PYB11TemplateMethod(resizeNeighborArray, template_parameters="double")
+    resizeNeighborVectorArray           = PYB11TemplateMethod(resizeNeighborArray, template_parameters="Vector")
+    resizeNeighborTensorArray           = PYB11TemplateMethod(resizeNeighborArray, template_parameters="Tensor")
+    resizeNeighborSymTensorArray        = PYB11TemplateMethod(resizeNeighborArray, template_parameters="SymTensor")
+    resizeNeighborThirdRankTensorArray  = PYB11TemplateMethod(resizeNeighborArray, template_parameters="ThirdRankTensor")
+    resizeNeighborFourthRankTensorArray = PYB11TemplateMethod(resizeNeighborArray, template_parameters="FourthRankTensor")
+    resizeNeighborFifthRankTensorArray  = PYB11TemplateMethod(resizeNeighborArray, template_parameters="FifthRankTensor")
+    resizeNeighborFacetedVolumeArray    = PYB11TemplateMethod(resizeNeighborArray, template_parameters="FacetedVolume")
+    resizeNeighborvector_of_intArray    = PYB11TemplateMethod(resizeNeighborArray, template_parameters="std::vector<int>")
+    resizeNeighborvector_of_doubleArray = PYB11TemplateMethod(resizeNeighborArray, template_parameters="std::vector<double>")
+    resizeNeighborvector_of_VectorArray = PYB11TemplateMethod(resizeNeighborArray, template_parameters="std::vector<Vector>")
+    resizeNeighborDomainNodeArray       = PYB11TemplateMethod(resizeNeighborArray, template_parameters="DomainNode<%(Dimension)s>")
+    
     resizeFluidIntArray              = PYB11TemplateMethod(resizeFluidArray, template_parameters="int")
     resizeFluidScalarArray           = PYB11TemplateMethod(resizeFluidArray, template_parameters="double")
     resizeFluidVectorArray           = PYB11TemplateMethod(resizeFluidArray, template_parameters="Vector")
@@ -545,6 +653,12 @@ will get the new value regardless of resetValues."""
     def nodeLists(self):
         return "const std::vector<NodeList<%(Dimension)s>*>&"
 
+    @PYB11cppname("neighborNodeListPtrs")
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    def neighborNodeLists(self):
+        return "const std::vector<NeighborNodeList<%(Dimension)s>*>&"
+    
     @PYB11cppname("fluidNodeListPtrs")
     @PYB11returnpolicy("reference_internal")
     @PYB11const
@@ -558,6 +672,7 @@ will get the new value regardless of resetValues."""
         return "const std::vector<SolidNodeList<%(Dimension)s>*>&"
 
     nodeListPtrs = PYB11property("const std::vector<NodeList<%(Dimension)s>*>&", "nodeListPtrs", doc="The set of NodeLists in the DataBase")
+    neighborNodeListPtrs = PYB11property("const std::vector<NeighborNodeList<%(Dimension)s>*>&", "neighborNodeListPtrs", doc="The set of NeighborNodeLists in the DataBase")
     fluidNodeListPtrs = PYB11property("const std::vector<FluidNodeList<%(Dimension)s>*>&", "fluidNodeListPtrs", doc="The set of FluidNodeLists in the DataBase")
     solidNodeListPtrs = PYB11property("const std::vector<SolidNodeList<%(Dimension)s>*>&", "solidNodeListPtrs", doc="The set of SolidNodeLists in the DataBase")
 
@@ -570,6 +685,7 @@ will get the new value regardless of resetValues."""
     #...........................................................................
     # Properties
     numNodeLists = PYB11property("int", "numNodeLists", doc="Number of NodeLists in DataBase")
+    numNeighborNodeLists = PYB11property("int", "numNeighborNodeLists", doc="Number of NeighborNodeLists in DataBase")
     numFluidNodeLists = PYB11property("int", "numFluidNodeLists", doc="Number of FluidNodeLists in DataBase")
     numSolidNodeLists = PYB11property("int", "numSolidNodeLists", doc="Number of SolidNodeLists in DataBase")
 
@@ -581,6 +697,14 @@ will get the new value regardless of resetValues."""
     globalNumInternalNodes = PYB11property("int", "globalNumInternalNodes", doc="Number of internal nodes in all NodeLists in DataBase across all processors")
     globalNumGhostNodes = PYB11property("int", "globalNumGhostNodes", doc="Number of ghost nodes in all NodeLists in DataBase across all processors")
 
+    numNeighborNodes = PYB11property("int", "numNeighborNodes", doc="Number of nodes in all NodeLists in DataBase")
+    numNeighborInternalNodes = PYB11property("int", "numNeighborInternalNodes", doc="Number of internal nodes in all NodeLists in DataBase")
+    numNeighborGhostNodes = PYB11property("int", "numNeighborGhostNodes", doc="Number of ghost nodes in all NodeLists in DataBase")
+
+    globalNumNeighborNodes = PYB11property("int", "globalNumNeighborNodes", doc="Number of nodes in all NodeLists in DataBase across all processors")
+    globalNumNeighborInternalNodes = PYB11property("int", "globalNumNeighborInternalNodes", doc="Number of internal nodes in all NodeLists in DataBase across all processors")
+    globalNumNeighborGhostNodes = PYB11property("int", "globalNumNeighborGhostNodes", doc="Number of ghost nodes in all NodeLists in DataBase across all processors")
+    
     numFluidNodes = PYB11property("int", "numFluidNodes", doc="Number of nodes in all NodeLists in DataBase")
     numFluidInternalNodes = PYB11property("int", "numFluidInternalNodes", doc="Number of internal nodes in all NodeLists in DataBase")
     numFluidGhostNodes = PYB11property("int", "numFluidGhostNodes", doc="Number of ghost nodes in all NodeLists in DataBase")
@@ -590,6 +714,7 @@ will get the new value regardless of resetValues."""
     globalNumFluidGhostNodes = PYB11property("int", "globalNumFluidGhostNodes", doc="Number of ghost nodes in all NodeLists in DataBase across all processors")
     
     nodeListPtrs = PYB11property("const std::vector<NodeList<%(Dimension)s>*>&", "nodeListPtrs", doc="The set of NodeLists in the DataBase")
+    neighborNodeListPtrs = PYB11property("const std::vector<NeighborNodeList<%(Dimension)s>*>&", "neighborNodeListPtrs", doc="The set of NeighborNodeLists in the DataBase")
     fluidNodeListPtrs = PYB11property("const std::vector<FluidNodeList<%(Dimension)s>*>&", "fluidNodeListPtrs", doc="The set of FluidNodeLists in the DataBase")
     solidNodeListPtrs = PYB11property("const std::vector<SolidNodeList<%(Dimension)s>*>&", "solidNodeListPtrs", doc="The set of SolidNodeLists in the DataBase")
 
@@ -622,6 +747,6 @@ will get the new value regardless of resetValues."""
     solidDamage = PYB11property("FieldList<%(Dimension)s, SymTensor>")
     solidFragmentIDs = PYB11property("FieldList<%(Dimension)s, int>")
 
-    globalNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")
+    neighborNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")
     fluidNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")
     solidNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")

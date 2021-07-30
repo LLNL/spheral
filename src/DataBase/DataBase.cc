@@ -45,6 +45,8 @@ namespace Spheral {
 template<typename Dimension>
 DataBase<Dimension>::DataBase():
   mNodeListPtrs(0),
+  mNeighborNodeListPtrs(0),
+  mNeighborNodeListAsNodeListPtrs(0),
   mFluidNodeListPtrs(0),
   mFluidNodeListAsNodeListPtrs(0),
   mSolidNodeListPtrs(0),
@@ -69,6 +71,8 @@ operator=(const DataBase<Dimension>& rhs) {
   REQUIRE(rhs.valid());
   if (this != &rhs) {
     mNodeListPtrs = rhs.mNodeListPtrs;
+    mNeighborNodeListPtrs = rhs.mNeighborNodeListPtrs;
+    mNeighborNodeListAsNodeListPtrs = rhs.mNeighborNodeListAsNodeListPtrs;
     mFluidNodeListPtrs = rhs.mFluidNodeListPtrs;
     mFluidNodeListAsNodeListPtrs = rhs.mFluidNodeListAsNodeListPtrs;
     mSolidNodeListPtrs = rhs.mSolidNodeListPtrs;
@@ -104,6 +108,36 @@ template<typename Dimension>
 int
 DataBase<Dimension>::globalNumNodes() const {
   int localResult = numNodes();
+  int result = localResult;
+  result = allReduce(result, MPI_SUM, Communicator::communicator());
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Global numbers of neighbor nodes in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+int
+DataBase<Dimension>::globalNumNeighborInternalNodes() const {
+  int localResult = numNeighborInternalNodes();
+  int result = localResult;
+  result = allReduce(result, MPI_SUM, Communicator::communicator());
+  return result;
+}
+
+template<typename Dimension>
+int
+DataBase<Dimension>::globalNumNeighborGhostNodes() const {
+  int localResult = numNeighborGhostNodes();
+  int result = localResult;
+  result = allReduce(result, MPI_SUM, Communicator::communicator());
+  return result;
+}
+
+template<typename Dimension>
+int
+DataBase<Dimension>::globalNumNeighborNodes() const {
+  int localResult = numNeighborNodes();
   int result = localResult;
   result = allReduce(result, MPI_SUM, Communicator::communicator());
   return result;
@@ -556,7 +590,7 @@ updateConnectivityMap(const bool computeGhostConnectivity,
                       const bool computeIntersectionConnectivity) const {
   REQUIRE(mConnectivityMapPtr != 0 and
           mConnectivityMapPtr.get() != 0);
-  mConnectivityMapPtr->rebuild(fluidNodeListBegin(), fluidNodeListEnd(),
+  mConnectivityMapPtr->rebuild(neighborNodeListBegin(), neighborNodeListEnd(),
                                computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
 }
 
@@ -641,6 +675,34 @@ appendNodeList(FluidNodeList<Dimension>& nodeList) {
   ENSURE(valid());
 }
 
+// NeighborNodeList
+template<typename Dimension>
+void
+DataBase<Dimension>::
+appendNodeList(NeighborNodeList<Dimension>& nodeList) {
+  REQUIRE(valid());
+  if (haveNodeList(nodeList)) {
+    cerr << "DataBase::appendNodeList() Warning: attempt to add NeighborNodeList "
+         << &nodeList << " to DataBase " << this
+         << ", which already has it." << endl;
+  } else {
+    const NodeListRegistrar<Dimension>& nlr = NodeListRegistrar<Dimension>::instance();
+    NodeListIterator orderItr = nlr.findInsertionPoint((NodeList<Dimension>*) &nodeList,
+                                                       nodeListBegin(),
+                                                       nodeListEnd());
+    mNodeListPtrs.insert(orderItr, &nodeList);
+    NeighborNodeListIterator neighborOrderItr = nlr.findInsertionPoint(&nodeList,
+                                                                       neighborNodeListBegin(),
+                                                                       neighborNodeListEnd());
+    const size_t delta = distance(neighborNodeListBegin(), neighborOrderItr);
+    mNeighborNodeListPtrs.insert(neighborOrderItr, &nodeList);
+    mNeighborNodeListAsNodeListPtrs.insert(neighborNodeListAsNodeListBegin() + delta,
+                                           &nodeList);
+
+  }
+  ENSURE(valid());
+}
+
 // NodeList
 template<typename Dimension>
 void
@@ -704,6 +766,38 @@ deleteNodeList(SolidNodeList<Dimension>& nodeList) {
                        &nodeList);
     CHECK(nodeListItr != fluidNodeListAsNodeListEnd());
     mFluidNodeListAsNodeListPtrs.erase(nodeListItr);
+  }
+  ENSURE(valid());
+}
+
+// NeighborNodeList
+template<typename Dimension>
+void
+DataBase<Dimension>::
+deleteNodeList(NeighborNodeList<Dimension>& nodeList) {
+  REQUIRE(valid());
+  if (!haveNodeList(nodeList)) {
+    cerr << "DataBase::deleteNodeList() Warning: attempt to remove NeighborNodeList "
+         << &nodeList << " from DataBase " << this
+         << ", which does not have it." << endl;
+  } else {
+    // Erase from the NodeList vector.
+    NodeListIterator nodeListItr = find(nodeListBegin(), nodeListEnd(),
+                                        &nodeList);
+    CHECK(nodeListItr != nodeListEnd());
+    mNodeListPtrs.erase(nodeListItr);
+
+    // Erase from the NeighborNodeList vector.
+    NeighborNodeListIterator neighborItr = find(neighborNodeListBegin(), neighborNodeListEnd(), &nodeList);
+    CHECK(neighborItr != neighborNodeListEnd());
+    mNeighborNodeListPtrs.erase(neighborItr);
+
+    // Erase from the NeighborNodeListAsNodeList vector.
+    nodeListItr = find(neighborNodeListAsNodeListBegin(),
+                       neighborNodeListAsNodeListEnd(),
+                       &nodeList);
+    CHECK(nodeListItr != neighborNodeListAsNodeListEnd());
+    mNeighborNodeListAsNodeListPtrs.erase(nodeListItr);
   }
   ENSURE(valid());
 }
@@ -783,6 +877,15 @@ DataBase<Dimension>::nodeListPtrs() const {
 }
 
 //------------------------------------------------------------------------------
+// Return the const list of NeighborNodeList pointers.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const vector<NeighborNodeList<Dimension>*>&
+DataBase<Dimension>::neighborNodeListPtrs() const {
+  return mNeighborNodeListPtrs;
+}
+
+//------------------------------------------------------------------------------
 // Return the const list of FluidNodeList pointers.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -806,14 +909,14 @@ DataBase<Dimension>::solidNodeListPtrs() const {
 template<typename Dimension>
 void
 DataBase<Dimension>::
-setMasterNodeLists(const typename Dimension::Vector& position,
-                   const typename Dimension::SymTensor& H,
-                   std::vector<std::vector<int>>& masterLists,
-                   std::vector<std::vector<int>>& coarseNeighbors,
-                   const bool computeGhostConnectivity) const {
+setMasterNeighborNodeLists(const typename Dimension::Vector& position,
+                           const typename Dimension::SymTensor& H,
+                           std::vector<std::vector<int>>& masterLists,
+                           std::vector<std::vector<int>>& coarseNeighbors,
+                           const bool computeGhostConnectivity) const {
   Neighbor<Dimension>::setMasterNeighborGroup(position, H,
-                                              nodeListBegin(),
-                                              nodeListEnd(),
+                                              neighborNodeListBegin(),
+                                              neighborNodeListEnd(),
                                               maxKernelExtent(),
                                               masterLists,
                                               coarseNeighbors,
@@ -846,10 +949,10 @@ setMasterFluidNodeLists(const typename Dimension::Vector& position,
 template<typename Dimension>
 void
 DataBase<Dimension>::
-setRefineNodeLists(const typename Dimension::Vector& position,
-                   const typename Dimension::SymTensor& H,
-                   const std::vector<std::vector<int>>& coarseNeighbors,
-                   std::vector<std::vector<int>>& refineNeighbors) const {
+setRefineNeighborNodeLists(const typename Dimension::Vector& position,
+                           const typename Dimension::SymTensor& H,
+                           const std::vector<std::vector<int>>& coarseNeighbors,
+                           std::vector<std::vector<int>>& refineNeighbors) const {
   REQUIRE(coarseNeighbors.size() == this->numNodeLists());
   refineNeighbors = std::vector<std::vector<int>>(this->numNodeLists());
   size_t iNodeList = 0;
@@ -1260,15 +1363,15 @@ DataBase<Dimension>::solidParticleTypes() const {
 }
 
 //------------------------------------------------------------------------------
-// Return the node extent for each NodeList.
+// Return the node extent for each NeighborNodeList.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 FieldList<Dimension, typename Dimension::Vector>
-DataBase<Dimension>::globalNodeExtent() const {
+DataBase<Dimension>::neighborNodeExtent() const {
   REQUIRE(valid());
   FieldList<Dimension, Vector> result;
-  for (ConstNodeListIterator nodeListItr = nodeListBegin();
-       nodeListItr < nodeListEnd(); ++nodeListItr) {
+  for (ConstNeighborNodeListIterator nodeListItr = neighborNodeListBegin();
+       nodeListItr < neighborNodeListEnd(); ++nodeListItr) {
     result.appendField((*nodeListItr)->neighbor().nodeExtentField());
   }
   return result;
@@ -1513,11 +1616,11 @@ FieldList<Dimension, int>
 DataBase<Dimension>::numNeighbors() const {
   REQUIRE(valid());
   VERIFY(mConnectivityMapPtr != 0);
-  FieldList<Dimension, int> result = newFluidFieldList(int(), "number of neighbors");
-  for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
-       nodeListItr != fluidNodeListEnd(); 
+  FieldList<Dimension, int> result = newNeighborFieldList(int(), "number of neighbors");
+  for (ConstNeighborNodeListIterator nodeListItr = neighborNodeListBegin();
+       nodeListItr != neighborNodeListEnd(); 
        ++nodeListItr) {
-    const FluidNodeList<Dimension>& nodes = **nodeListItr;
+    const NeighborNodeList<Dimension>& nodes = **nodeListItr;
     Field<Dimension, int>& count = **(result.fieldForNodeList(nodes));
     for (auto i = 0u; i != nodes.numInternalNodes(); ++i) {
       count(i) = 0;
@@ -1618,7 +1721,7 @@ localSamplingBoundingVolume(typename Dimension::Vector& centroid,
   xmaxSample = -FLT_MAX;
   size_t count = 0;
   const FieldList<Dimension, Vector> positions = this->globalPosition();
-  const FieldList<Dimension, Vector> extent = this->globalNodeExtent();
+  const FieldList<Dimension, Vector> extent = this->neighborNodeExtent();
   for (auto nodeList = 0u; nodeList != positions.numFields(); ++nodeList) {
     for (auto i = 0u; i != mNodeListPtrs[nodeList]->numInternalNodes(); ++i) {
       const Vector& xi = positions(nodeList, i);
@@ -1703,7 +1806,7 @@ globalSamplingBoundingVolume(typename Dimension::Vector& centroid,
       radiusNodes = 0.0;
       radiusSample = 0.0;
       const FieldList<Dimension, Vector> positions = this->globalPosition();
-      const FieldList<Dimension, Vector> extent = this->globalNodeExtent();
+      const FieldList<Dimension, Vector> extent = this->neighborNodeExtent();
       FieldList<Dimension, SymTensor> Hinv = this->newGlobalFieldList(SymTensor::zero, "H inverse");
       this->globalHinverse(Hinv);
       for (auto nodeList = 0u; nodeList != positions.numFields(); ++nodeList) {
@@ -1747,7 +1850,7 @@ localSamplingBoundingBoxes(vector<typename Dimension::Vector>& xminima,
   this->updateConnectivityMap(false, false, false);
   const ConnectivityMap<Dimension>& connectivityMap = this->connectivityMap(false, false, false);
   const FieldList<Dimension, Vector> positions = this->globalPosition();
-  const FieldList<Dimension, Vector> extent = this->globalNodeExtent();
+  const FieldList<Dimension, Vector> extent = this->neighborNodeExtent();
   const int numNodeLists = this->numNodeLists();
 
   // Iterate over the nodes and progressively build up the result by linking
@@ -1887,6 +1990,23 @@ DataBase<Dimension>::valid() const {
 
   bool ok = (numNodeLists() >= numFluidNodeLists());
 
+  // Verify that all NeighborNodeLists are listed in the NodeList array.
+  ConstNeighborNodeListIterator neighborNodeItr = neighborNodeListBegin();
+  while (ok && neighborNodeItr < neighborNodeListEnd()) {
+    ok = haveNodeList(dynamic_cast<const NodeList<Dimension>&>(**neighborNodeItr));
+    ++neighborNodeItr;
+  }
+
+  // Verify that all NeighborNodeLists are listed in the NeighborNodeListAsNodeList
+  // array.
+  neighborNodeItr = neighborNodeListBegin();
+  while (ok && neighborNodeItr < neighborNodeListEnd()) {
+    ok = find(mNeighborNodeListAsNodeListPtrs.begin(),
+              mNeighborNodeListAsNodeListPtrs.end(),
+              *neighborNodeItr) != mNeighborNodeListAsNodeListPtrs.end();
+    ++neighborNodeItr;
+  }
+  
   // Verify that all FluidNodeLists are listed in the NodeList array.
   ConstFluidNodeListIterator fluidNodeItr = fluidNodeListBegin();
   while (ok && fluidNodeItr < fluidNodeListEnd()) {
@@ -1932,6 +2052,30 @@ DataBase<Dimension>::valid() const {
       ++itr;
     }
     ok = (itr == nodeListEnd());
+  }
+
+  // Verify that the NeighborNodeLists are listed in the proper order.
+  if (ok) {
+    typename NodeListRegistrar<Dimension>::const_iterator checkItr = nlr.begin();
+    ConstNeighborNodeListIterator itr = neighborNodeListBegin();
+    while (itr != neighborNodeListEnd()) {
+      while (checkItr != nlr.end() && *checkItr != dynamic_cast<NodeList<Dimension>*>(*itr))
+        ++checkItr;
+      ++itr;
+    }
+    ok = (itr == neighborNodeListEnd());
+  }
+
+  // Verify that the NeighborNodeListsAsNodeLists are listed in the proper order.
+  if (ok) {
+    typename NodeListRegistrar<Dimension>::const_iterator checkItr = nlr.begin();
+    ConstNodeListIterator itr = neighborNodeListAsNodeListBegin();
+    while (itr != neighborNodeListAsNodeListEnd()) {
+      while (checkItr != nlr.end() && *checkItr != *itr)
+        ++checkItr;
+      ++itr;
+    }
+    ok = (itr == neighborNodeListAsNodeListEnd());
   }
 
   // Verify that the FluidNodeLists are listed in the proper order.

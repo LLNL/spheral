@@ -186,8 +186,8 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
       // Set the neighbor info over the positions we're sampling to.
       vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors,
                           masterListsSample, coarseNeighborsSample, refineNeighborsSample;
-      position.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
-      samplePositions.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterListsSample, coarseNeighborsSample);
+      position.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
+      samplePositions.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr), masterListsSample, coarseNeighborsSample);
 
       // Loop over the set of master nodes in the FieldList we're sampling from.
       for (MasterNodeIterator<Dimension> masterItr = position.masterNodeBegin(masterLists);
@@ -201,7 +201,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
         const Scalar weighti = weight(masterItr);
 
         // Refine the set of nodes we're sampling to for this position.
-        samplePositions.setRefineNodeLists(ri, Hi, coarseNeighborsSample, refineNeighborsSample);
+        samplePositions.setRefineNeighborNodeLists(ri, Hi, coarseNeighborsSample, refineNeighborsSample);
 
         // Loop over the refined neighbors, and determine the normalization
         // constant.
@@ -286,8 +286,8 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     // Set the neighbor info over the positions we're sampling to.
     vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors,
                         masterListsSample, coarseNeighborsSample, refineNeighborsSample;
-    position.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
-    samplePositions.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterListsSample, coarseNeighborsSample);
+    position.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
+    samplePositions.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr), masterListsSample, coarseNeighborsSample);
 
     // Sample node (i) state.
     const Vector& ri = position(nodeItr);
@@ -295,7 +295,7 @@ splatMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
     const Scalar weighti = weight(nodeItr);
 
     // Refine the set of nodes we're donating from to for this position.
-    samplePositions.setRefineNodeLists(ri, Hi, coarseNeighborsSample, refineNeighborsSample);
+    samplePositions.setRefineNeighborNodeLists(ri, Hi, coarseNeighborsSample, refineNeighborsSample);
 
     // Loop over the refined neighbors again, and do the splat of the donor node
     // values to each of the sample nodes.

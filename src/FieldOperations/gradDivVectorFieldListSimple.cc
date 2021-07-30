@@ -71,7 +71,7 @@ gradDivVectorFieldListSimple
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
       vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
-      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
+      fieldList.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
 
       // Now loop over all the master nodes.
       for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin(masterLists);
@@ -80,7 +80,7 @@ gradDivVectorFieldListSimple
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
 
         // Set the refined neighbor information for this master node.
-        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
+        fieldList.setRefineNeighborNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
 
         // State for node i.
         const Vector& ri = position(masterItr);
@@ -233,7 +233,7 @@ gradDivVectorFieldListSimple
 
 //       // We will do the batch of master nodes associated with this node together.
 //       // Set the neighbor information.
-//       fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+//       fieldList.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr));
 
 //       // Now loop over all the master nodes.
 //       for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin();
@@ -242,7 +242,7 @@ gradDivVectorFieldListSimple
 //         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
 
 //         // Set the refined neighbor information for this master node.
-//         fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr));
+//         fieldList.setRefineNeighborNodeLists(position(masterItr), Hfield(masterItr));
 
 //         // State for node i.
 //         const Vector& ri = position(masterItr);

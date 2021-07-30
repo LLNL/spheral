@@ -8,6 +8,7 @@
 #define DataBase_HH
 
 #include "NodeList/NodeList.hh"
+#include "NodeList/NeighborNodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Field/NodeIterators.hh"
@@ -35,6 +36,9 @@ public:
   typedef typename std::vector<NodeList<Dimension>*>::iterator NodeListIterator;
   typedef typename std::vector<NodeList<Dimension>*>::const_iterator ConstNodeListIterator;
 
+  typedef typename std::vector<NeighborNodeList<Dimension>*>::iterator NeighborNodeListIterator;
+  typedef typename std::vector<NeighborNodeList<Dimension>*>::const_iterator ConstNeighborNodeListIterator;
+   
   typedef typename std::vector<FluidNodeList<Dimension>*>::iterator FluidNodeListIterator;
   typedef typename std::vector<FluidNodeList<Dimension>*>::const_iterator ConstFluidNodeListIterator;
 
@@ -60,6 +64,7 @@ public:
 
   // Number of NodeLists we have in the DataBase.
   unsigned int numNodeLists() const;
+  unsigned int numNeighborNodeLists() const;
   unsigned int numFluidNodeLists() const;
   int numSolidNodeLists() const;
 
@@ -72,6 +77,15 @@ public:
   int globalNumGhostNodes() const;
   int globalNumNodes() const;
 
+  // Numbers of neighbor nodes.
+  int numNeighborInternalNodes() const;
+  int numNeighborGhostNodes() const;
+  int numNeighborNodes() const;
+
+  int globalNumNeighborInternalNodes() const;
+  int globalNumNeighborGhostNodes() const;
+  int globalNumNeighborNodes() const;
+   
   // Numbers of fluid nodes.
   int numFluidInternalNodes() const;
   int numFluidGhostNodes() const;
@@ -88,6 +102,18 @@ public:
   ConstNodeListIterator nodeListBegin() const;
   ConstNodeListIterator nodeListEnd() const;
 
+  NeighborNodeListIterator neighborNodeListBegin();
+  NeighborNodeListIterator neighborNodeListEnd();
+
+  ConstNeighborNodeListIterator neighborNodeListBegin() const;
+  ConstNeighborNodeListIterator neighborNodeListEnd() const;
+
+  NodeListIterator neighborNodeListAsNodeListBegin();
+  NodeListIterator neighborNodeListAsNodeListEnd();
+
+  ConstNodeListIterator neighborNodeListAsNodeListBegin() const;
+  ConstNodeListIterator neighborNodeListAsNodeListEnd() const;
+   
   FluidNodeListIterator fluidNodeListBegin();
   FluidNodeListIterator fluidNodeListEnd();
 
@@ -131,6 +157,25 @@ public:
   RefineNodeIterator<Dimension> refineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const;
   RefineNodeIterator<Dimension> refineNodeEnd() const;
 
+  // Same iterator methods, but over NeighborNodeLists.
+  AllNodeIterator<Dimension> neighborNodeBegin() const;
+  AllNodeIterator<Dimension> neighborNodeEnd() const;
+  
+  InternalNodeIterator<Dimension> neighborInternalNodeBegin() const;
+  InternalNodeIterator<Dimension> neighborInternalNodeEnd() const;
+  
+  GhostNodeIterator<Dimension> neighborGhostNodeBegin() const;
+  GhostNodeIterator<Dimension> neighborGhostNodeEnd() const;
+  
+  MasterNodeIterator<Dimension> neighborMasterNodeBegin(const std::vector<std::vector<int>>& masterLists) const;
+  MasterNodeIterator<Dimension> neighborMasterNodeEnd() const;
+  
+  CoarseNodeIterator<Dimension> neighborCoarseNodeBegin(const std::vector<std::vector<int>>& coarseNeighbors) const;
+  CoarseNodeIterator<Dimension> neighborCoarseNodeEnd() const;
+  
+  RefineNodeIterator<Dimension> neighborRefineNodeBegin(const std::vector<std::vector<int>>& refineNeighbors) const;
+  RefineNodeIterator<Dimension> neighborRefineNodeEnd() const;
+   
   // Same iterator methods, but over FluidNodeLists.
   AllNodeIterator<Dimension> fluidNodeBegin() const;
   AllNodeIterator<Dimension> fluidNodeEnd() const;
@@ -171,10 +216,12 @@ public:
 
   // Methods to add, remove, and verify NodeLists.
   void appendNodeList(SolidNodeList<Dimension>& nodeList);
+  void appendNodeList(NeighborNodeList<Dimension>& nodeList);
   void appendNodeList(FluidNodeList<Dimension>& nodeList);
   void appendNodeList(NodeList<Dimension>& nodeList);
 
   void deleteNodeList(SolidNodeList<Dimension>& nodeList);
+  void deleteNodeList(NeighborNodeList<Dimension>& nodeList);
   void deleteNodeList(FluidNodeList<Dimension>& nodeList);
   void deleteNodeList(NodeList<Dimension>& nodeList);
 
@@ -182,26 +229,27 @@ public:
 
   // Allow const access to the list of NodeList pointers.
   const std::vector<NodeList<Dimension>*>& nodeListPtrs() const;
+  const std::vector<NeighborNodeList<Dimension>*>& neighborNodeListPtrs() const;
   const std::vector<FluidNodeList<Dimension>*>& fluidNodeListPtrs() const;
   const std::vector<SolidNodeList<Dimension>*>& solidNodeListPtrs() const;
 
   // Provide convenience functions for manipulating the neighbor information
-  // of the NodeLists.
-  void setMasterNodeLists(const Vector& position,
-                          const SymTensor& H,
-                          std::vector<std::vector<int>>& masterLists,
-                          std::vector<std::vector<int>>& coarseNeighbors,
-                          const bool computeGhostConnectivity) const;
+  // of the NeighborNodeLists.
+  void setMasterNeighborNodeLists(const Vector& position,
+                                  const SymTensor& H,
+                                  std::vector<std::vector<int>>& masterLists,
+                                  std::vector<std::vector<int>>& coarseNeighbors,
+                                  const bool computeGhostConnectivity) const;
   void setMasterFluidNodeLists(const Vector& position,
                                const SymTensor& H,
                                std::vector<std::vector<int>>& masterLists,
                                std::vector<std::vector<int>>& coarseNeighbors,
                                const bool computeGhostConnectivity) const;
 
-  void setRefineNodeLists(const Vector& position,
-                          const SymTensor& H,
-                          const std::vector<std::vector<int>>& coarseNeighbors,
-                          std::vector<std::vector<int>>& refineNeighbors) const;
+  void setRefineNeighborNodeLists(const Vector& position,
+                                  const SymTensor& H,
+                                  const std::vector<std::vector<int>>& coarseNeighbors,
+                                  std::vector<std::vector<int>>& refineNeighbors) const;
   void setRefineFluidNodeLists(const Vector& position,
                                const SymTensor& H,
                                const std::vector<std::vector<int>>& coarseNeighbors,
@@ -239,7 +287,7 @@ public:
   FieldList<Dimension, int> solidParticleTypes() const;
 
   // We can also return the node extent Fields stored in the Neighbor objects.
-  FieldList<Dimension, Vector> globalNodeExtent() const;
+  FieldList<Dimension, Vector> neighorNodeExtent() const;
   FieldList<Dimension, Vector> fluidNodeExtent() const;
   FieldList<Dimension, Vector> solidNodeExtent() const;
 
@@ -268,6 +316,9 @@ public:
   FieldList<Dimension, DataType> newGlobalFieldList(const DataType value,
                                                     const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
   template<typename DataType>
+  FieldList<Dimension, DataType> newNeighborFieldList(const DataType value,
+                                                      const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
+  template<typename DataType>
   FieldList<Dimension, DataType> newFluidFieldList(const DataType value,
                                                    const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
   template<typename DataType>
@@ -284,6 +335,11 @@ public:
                              const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field",
                              const bool resetValues = true) const;
   template<typename DataType>
+  void resizeNeighborFieldList(FieldList<Dimension, DataType>& fieldList,
+                               const DataType value,
+                               const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field",
+                               const bool resetValues = true) const;
+  template<typename DataType>
   void resizeFluidFieldList(FieldList<Dimension, DataType>& fieldList,
                             const DataType value,
                             const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field",
@@ -297,6 +353,7 @@ public:
   //............................................................................
   // Create vector<vector<>> versions of the FieldLists.
   template<typename DataType> std::vector<std::vector<DataType>> newGlobalArray(const DataType value) const;
+  template<typename DataType> std::vector<std::vector<DataType>> newNeighborArray(const DataType value) const;
   template<typename DataType> std::vector<std::vector<DataType>> newFluidArray(const DataType value) const;
   template<typename DataType> std::vector<std::vector<DataType>> newSolidArray(const DataType value) const;
 
@@ -304,6 +361,9 @@ public:
   template<typename DataType> void resizeGlobalArray(std::vector<std::vector<DataType>>& array,
                                                      const DataType value,
                                                      const bool resetValues = true) const;
+  template<typename DataType> void resizeNeighborArray(std::vector<std::vector<DataType>>& array,
+                                                       const DataType value,
+                                                       const bool resetValues = true) const;
   template<typename DataType> void resizeFluidArray(std::vector<std::vector<DataType>>& array,
                                                     const DataType value,
                                                     const bool resetValues = true) const;
@@ -344,6 +404,9 @@ private:
   //--------------------------- Private Interface ---------------------------//
   std::vector<NodeList<Dimension>*> mNodeListPtrs;
 
+  std::vector<NeighborNodeList<Dimension>*> mNeighborNodeListPtrs;
+  std::vector<NodeList<Dimension>*> mNeighborNodeListAsNodeListPtrs;
+   
   std::vector<FluidNodeList<Dimension>*> mFluidNodeListPtrs;
   std::vector<NodeList<Dimension>*> mFluidNodeListAsNodeListPtrs;
 

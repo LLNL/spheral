@@ -13,6 +13,16 @@ DataBase<Dimension>::numNodeLists() const {
 }
 
 //------------------------------------------------------------------------------
+// Number of NeighborNodeLists registered with the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+unsigned int
+DataBase<Dimension>::numNeighborNodeLists() const {
+  return mNeighborNodeListPtrs.size();
+}
+
+//------------------------------------------------------------------------------
 // Number of FluidNodeLists registered with the DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -64,6 +74,42 @@ DataBase<Dimension>::numNodes() const {
   int result = 0;
   for (ConstNodeListIterator nodeListItr = nodeListBegin();
        nodeListItr != nodeListEnd();
+       ++nodeListItr) result += (*nodeListItr)->numNodes();
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Numbers of neighbor nodes in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+DataBase<Dimension>::numNeighborInternalNodes() const {
+  int result = 0;
+  for (ConstNeighborNodeListIterator nodeListItr = neighborNodeListBegin();
+       nodeListItr != neighborNodeListEnd();
+       ++nodeListItr) result += (*nodeListItr)->numInternalNodes();
+  return result;
+}
+
+template<typename Dimension>
+inline
+int
+DataBase<Dimension>::numNeighborGhostNodes() const {
+  int result = 0;
+  for (ConstNeighborNodeListIterator nodeListItr = neighborNodeListBegin();
+       nodeListItr != neighborNodeListEnd();
+       ++nodeListItr) result += (*nodeListItr)->numGhostNodes();
+  return result;
+}
+
+template<typename Dimension>
+inline
+int
+DataBase<Dimension>::numNeighborNodes() const {
+  int result = 0;
+  for (ConstNeighborNodeListIterator nodeListItr = neighborNodeListBegin();
+       nodeListItr != neighborNodeListEnd();
        ++nodeListItr) result += (*nodeListItr)->numNodes();
   return result;
 }
@@ -133,6 +179,69 @@ inline
 typename DataBase<Dimension>::ConstNodeListIterator
 DataBase<Dimension>::nodeListEnd() const {
   return mNodeListPtrs.end();
+}
+
+//------------------------------------------------------------------------------
+// Standard STL like iterators for NeighborNodeLists.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::NeighborNodeListIterator
+DataBase<Dimension>::neighborNodeListBegin() {
+  return mNeighborNodeListPtrs.begin();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::NeighborNodeListIterator
+DataBase<Dimension>::neighborNodeListEnd() {
+  return mNeighborNodeListPtrs.end();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConstNeighborNodeListIterator
+DataBase<Dimension>::neighborNodeListBegin() const {
+  return mNeighborNodeListPtrs.begin();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConstNeighborNodeListIterator
+DataBase<Dimension>::neighborNodeListEnd() const {
+  return mNeighborNodeListPtrs.end();
+}
+
+//------------------------------------------------------------------------------
+// Standard STL like iterators for NeighborNodeLists, but over NodeList
+// base type.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::NodeListIterator
+DataBase<Dimension>::neighborNodeListAsNodeListBegin() {
+  return mNeighborNodeListAsNodeListPtrs.begin();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::NodeListIterator
+DataBase<Dimension>::neighborNodeListAsNodeListEnd() {
+  return mNeighborNodeListAsNodeListPtrs.end();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConstNodeListIterator
+DataBase<Dimension>::neighborNodeListAsNodeListBegin() const {
+  return mNeighborNodeListAsNodeListPtrs.begin();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConstNodeListIterator
+DataBase<Dimension>::neighborNodeListAsNodeListEnd() const {
+  return mNeighborNodeListAsNodeListPtrs.end();
 }
 
 //------------------------------------------------------------------------------
@@ -320,6 +429,28 @@ newGlobalFieldList(const DataType value,
 
 //------------------------------------------------------------------------------
 // Convenience method to construct a new FieldList with a Field for every
+// NeighborNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+FieldList<Dimension, DataType>
+DataBase<Dimension>::
+newNeighborFieldList(const DataType value,
+                     const typename Field<Dimension, DataType>::FieldName name) const {
+  FieldList<Dimension, DataType> result(FieldStorageType::CopyFields);
+  for (ConstNeighborNodeListIterator nodeListItr = neighborNodeListBegin();
+       nodeListItr != neighborNodeListEnd();
+       ++nodeListItr) {
+    result.appendNewField(name, **nodeListItr, value);
+  }
+
+  ENSURE(result.numFields() == numNeighborNodeLists());
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Convenience method to construct a new FieldList with a Field for every
 // FluidNodeList in the DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -399,6 +530,45 @@ resizeGlobalFieldList(FieldList<Dimension, DataType>& fieldList,
   }
 
   ENSURE(fieldList.numFields() == numNodeLists());
+}
+
+//------------------------------------------------------------------------------
+// Convenience method to resize a FieldList such that it has a Field for every
+// NeighborNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+DataBase<Dimension>::
+resizeNeighborFieldList(FieldList<Dimension, DataType>& fieldList,
+                     const DataType value,
+                     const typename Field<Dimension, DataType>::FieldName name,
+                     const bool resetValues) const {
+  VERIFY((fieldList.storageType() == FieldStorageType::CopyFields));
+
+  // First check if it's necessary to resize the FieldList.
+  bool reinitialize = fieldList.numFields() != numNeighborNodeLists();
+  ConstNeighborNodeListIterator nodeListItr = neighborNodeListBegin();
+  typename FieldList<Dimension, DataType>::const_iterator itr = fieldList.begin();
+  while (!reinitialize && 
+         nodeListItr != neighborNodeListEnd() &&
+         itr != fieldList.end()) {
+    reinitialize = (*itr)->nodeListPtr() != *nodeListItr;
+    ++nodeListItr;
+    ++itr;
+  }
+
+  if (reinitialize) {
+    fieldList = FieldList<Dimension, DataType>(fieldList.storageType());
+    for (ConstNeighborNodeListIterator nodeListItr = neighborNodeListBegin();
+         nodeListItr != neighborNodeListEnd();
+         ++nodeListItr) fieldList.appendNewField(name, **nodeListItr, value);
+  } else if (resetValues) {
+    fieldList = value;
+  }
+
+  ENSURE(fieldList.numFields() == numNeighborNodeLists());
 }
 
 //------------------------------------------------------------------------------
@@ -500,6 +670,26 @@ newGlobalArray(const DataType value) const {
 }
 
 //------------------------------------------------------------------------------
+// Construct a new array<array> with an array for every NeighborNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+std::vector<std::vector<DataType>>
+DataBase<Dimension>::
+newNeighborArray(const DataType value) const {
+  std::vector<std::vector<DataType>> result;
+  for (auto nodeListItr = neighborNodeListBegin();
+       nodeListItr != neighborNodeListEnd();
+       ++nodeListItr) {
+    result.push_back(std::vector<DataType>((*nodeListItr)->numNodes(), value));
+  }
+
+  ENSURE(result.size() == numNeighborNodeLists());
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Construct a new array<array> with an array for every FluidNodeList in the DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -515,7 +705,7 @@ newFluidArray(const DataType value) const {
     result.push_back(std::vector<DataType>((*nodeListItr)->numNodes(), value));
   }
 
-  ENSURE(result.size() == numNodeLists());
+  ENSURE(result.size() == numFluidNodeLists());
   return result;
 }
 
@@ -535,7 +725,7 @@ newSolidArray(const DataType value) const {
     result.push_back(std::vector<DataType>((*nodeListItr)->numNodes(), value));
   }
 
-  ENSURE(result.size() == numNodeLists());
+  ENSURE(result.size() == numSolidNodeLists());
   return result;
 }
 
@@ -566,6 +756,32 @@ resizeGlobalArray(std::vector<std::vector<DataType>>& array,
 }
 
 //------------------------------------------------------------------------------
+// Resize an array<array> for every NeighborNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+DataBase<Dimension>::
+resizeNeighborArray(std::vector<std::vector<DataType>>& array,
+                 const DataType value,
+                 const bool resetValues) const {
+  array.resize(this->numNeighborNodeLists());
+  auto k = 0;
+  for (auto nodeListItr = neighborNodeListBegin();
+       nodeListItr != neighborNodeListEnd();
+       ++nodeListItr, ++k) {
+    if (resetValues) {
+      array[k] = std::vector<DataType>((*nodeListItr)->numNodes(), value);
+    } else {
+      array[k].resize((*nodeListItr)->numNodes(), value);
+    }
+  }
+
+  ENSURE(array.size() == numNeighborNodeLists());
+}
+
+//------------------------------------------------------------------------------
 // Resize an array<array> for every FluidNodeList in the DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -588,7 +804,7 @@ resizeFluidArray(std::vector<std::vector<DataType>>& array,
     }
   }
 
-  ENSURE(array.size() == numNodeLists());
+  ENSURE(array.size() == numFluidNodeLists());
 }
 
 //------------------------------------------------------------------------------
@@ -614,7 +830,7 @@ resizeSolidArray(std::vector<std::vector<DataType>>& array,
     }
   }
 
-  ENSURE(array.size() == numNodeLists());
+  ENSURE(array.size() == numSolidNodeLists());
 }
 
 }

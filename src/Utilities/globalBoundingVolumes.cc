@@ -160,7 +160,7 @@ globalBoundingVolumes(const DataBase<Dimension>& dataBase,
   const size_t numNodes = dataBase.numNodes();
   const size_t numSamples = (1U << Dimension::nDim) * numNodes;
   const FieldList<Dimension, Vector> positions = dataBase.globalPosition();
-  const FieldList<Dimension, Vector> extents = dataBase.globalNodeExtent();
+  const FieldList<Dimension, Vector> extents = dataBase.neighborNodeExtent();
   vector<Vector> nodePositions, samplePositions;
   nodePositions.reserve(numNodes);
   samplePositions.reserve(numSamples);

@@ -65,7 +65,7 @@ gradient(const FieldList<Dimension, DataType>& fieldList,
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
       vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
-      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
+      fieldList.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
 
       // Now loop over all the master nodes.
       for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin(masterLists);
@@ -74,7 +74,7 @@ gradient(const FieldList<Dimension, DataType>& fieldList,
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
 
         // Set the refined neighbor information for this master node.
-        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
+        fieldList.setRefineNeighborNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
 
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
@@ -193,7 +193,7 @@ gradient(const FieldList<Dimension, std::vector<DataType>>& fieldList,
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
       vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
-      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
+      fieldList.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
 
       // Now loop over all the master nodes.
       for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin(masterLists);
@@ -202,7 +202,7 @@ gradient(const FieldList<Dimension, std::vector<DataType>>& fieldList,
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
 
         // Set the refined neighbor information for this master node.
-        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
+        fieldList.setRefineNeighborNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
 
         // Loop over the refined neighbors.
         const Vector& ri = position(masterItr);
@@ -356,7 +356,7 @@ limiter(const FieldList<Dimension, DataType>& fieldList,
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
       vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
-      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
+      fieldList.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
 
       // Now loop over all the master nodes.
       for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin(masterLists);
@@ -365,7 +365,7 @@ limiter(const FieldList<Dimension, DataType>& fieldList,
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
 
         // Set the refined neighbor information for this master node.
-        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
+        fieldList.setRefineNeighborNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
 
         // State for node i.
         const Vector& ri = position(masterItr);

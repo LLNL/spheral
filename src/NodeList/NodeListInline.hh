@@ -184,22 +184,6 @@ NodeList<Dimension>::nodesPerSmoothingScale(typename Dimension::Scalar val) {
 }
 
 //------------------------------------------------------------------------------
-// Access the maximum number of neighbors to allow.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-unsigned 
-NodeList<Dimension>::maxNumNeighbors() const {
-  return mMaxNumNeighbors;
-}
-
-template<typename Dimension>
-void
-NodeList<Dimension>::maxNumNeighbors(unsigned val) {
-  mMaxNumNeighbors = val;
-}
-
-//------------------------------------------------------------------------------
 // The min allowed smoothing scale.
 //------------------------------------------------------------------------------
 template<typename Dimension>

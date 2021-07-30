@@ -44,7 +44,7 @@ SPHGradSquared(const DataBase<Dimension>& db)
     const SymTensor& Hi = Hfield(ithNodeIter);
 
     // Set the refined neighbor information for this master node.
-    dataBase.setRefineNodeLists(position(masterItr), Hfield(masterItr));
+    dataBase.setRefineNeighborNodeLists(position(masterItr), Hfield(masterItr));
     for (typename DataBase<Dimension>::ConstFluidNodeListIterator nodeListItr = 
         dataBase.fluidNodeListBegin();
         nodeListItr < dataBase.fluidNodeListEnd();

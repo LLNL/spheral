@@ -136,8 +136,8 @@ class TestIndexFieldLists(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             for fieldlist in self.scalarfieldlists:
                 result = testIndexScalarFieldListByMasterNodeIterators2d(dataBase,
                                                                          fieldlist)
@@ -152,8 +152,8 @@ class TestIndexFieldLists(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             for fieldlist in self.vectorfieldlists:
                 result = testIndexVectorFieldListByMasterNodeIterators2d(dataBase,
                                                                          fieldlist)
@@ -168,8 +168,8 @@ class TestIndexFieldLists(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             for fieldlist in self.scalarfieldlists:
                 result = testIndexScalarFieldListByCoarseNodeIterators2d(dataBase,
                                                                          fieldlist)
@@ -184,8 +184,8 @@ class TestIndexFieldLists(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             for fieldlist in self.vectorfieldlists:
                 result = testIndexVectorFieldListByCoarseNodeIterators2d(dataBase,
                                                                          fieldlist)
@@ -200,8 +200,8 @@ class TestIndexFieldLists(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             for fieldlist in self.scalarfieldlists:
                 result = testCacheIndexScalarFieldListByCoarseNodeIterators2d(dataBase,
                                                                               fieldlist)
@@ -216,8 +216,8 @@ class TestIndexFieldLists(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             for fieldlist in self.vectorfieldlists:
                 result = testCacheIndexVectorFieldListByCoarseNodeIterators2d(dataBase,
                                                                               fieldlist)
@@ -232,10 +232,10 @@ class TestIndexFieldLists(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
-            dataBase.setRefineNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
+            dataBase.setRefineNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             for fieldlist in self.scalarfieldlists:
                 result = testIndexScalarFieldListByRefineNodeIterators2d(dataBase,
                                                                          fieldlist)
@@ -250,10 +250,10 @@ class TestIndexFieldLists(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
-            dataBase.setRefineNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
+            dataBase.setRefineNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             for fieldlist in self.vectorfieldlists:
                 result = testIndexVectorFieldListByRefineNodeIterators2d(dataBase,
                                                                          fieldlist)
@@ -268,8 +268,8 @@ class TestIndexFieldLists(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             for fieldlist in self.scalarfieldlists:
                 result = testCacheIndexScalarFieldListByRefineNodeIterators2d(dataBase,
                                                                               fieldlist)
@@ -284,8 +284,8 @@ class TestIndexFieldLists(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             for fieldlist in self.vectorfieldlists:
                 result = testCacheIndexVectorFieldListByRefineNodeIterators2d(dataBase,
                                                                               fieldlist)

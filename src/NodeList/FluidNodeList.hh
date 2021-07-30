@@ -7,7 +7,7 @@
 #ifndef __Spheral_FluidNodeList__
 #define __Spheral_FluidNodeList__
 
-#include "NodeList.hh"
+#include "NeighborNodeList.hh"
 
 #include <float.h>
 #include <string>
@@ -34,7 +34,7 @@ template<typename Dimension> class DataBase;
 class FileIO;
 
 template<typename Dimension>
-class FluidNodeList: public NodeList<Dimension> {
+class FluidNodeList: public NeighborNodeList<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//

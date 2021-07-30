@@ -73,7 +73,7 @@ gradDivVectorFieldListPairWise
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
       vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
-      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
+      fieldList.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
 
       // Now loop over all the master nodes.
       for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin(masterLists);
@@ -81,8 +81,7 @@ gradDivVectorFieldListPairWise
            ++masterItr) {
         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
 
-        // Set the refined neighbor information for this master node.
-        fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
+        // Set the refined neighbor information for this master node. fieldList.setRefineNeighborNodeLists(position(masterItr), Hfield(masterItr), coarseNeighbors, refineNeighbors);
 
         // State for node i.
         const Vector& ri = position(masterItr);

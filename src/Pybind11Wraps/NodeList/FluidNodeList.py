@@ -8,7 +8,7 @@ from RestartMethods import *
 @PYB11template("Dimension")
 @PYB11module("SpheralNodeList")
 @PYB11dynamic_attr
-class FluidNodeList(NodeList):
+class FluidNodeList(NeighborNodeList):
     "Spheral FluidNodeList base class in %(Dimension)s, i.e.,  the NodeList for fluid hydrodynamics."
 
     PYB11typedefs = """

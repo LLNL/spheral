@@ -176,8 +176,8 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
       // Set the neighbor info over the positions we're sampling to.
       vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors,
                           masterListsSample, coarseNeighborsSample, refineNeighborsSample;
-      position.setMasterNodeLists(samplePositions(nodeItr), sampleHfield(nodeItr), masterLists, coarseNeighbors);
-      samplePositions.setMasterNodeLists(samplePositions(nodeItr), sampleHfield(nodeItr), masterListsSample, coarseNeighborsSample);
+      position.setMasterNeighborNodeLists(samplePositions(nodeItr), sampleHfield(nodeItr), masterLists, coarseNeighbors);
+      samplePositions.setMasterNeighborNodeLists(samplePositions(nodeItr), sampleHfield(nodeItr), masterListsSample, coarseNeighborsSample);
 
       // Loop over the set of master nodes in the FieldList we're sampling to.
       for (MasterNodeIterator<Dimension> masterItr = samplePositions.masterNodeBegin(masterListsSample);
@@ -191,7 +191,7 @@ sampleMultipleFieldsMash(const FieldListSet<Dimension>& fieldListSet,
         const Scalar& weighti = sampleWeight(masterItr);
 
         // Refine the set of nodes we're sampling from for this position.
-        position.setRefineNodeLists(ri, Hi, coarseNeighbors, refineNeighbors);
+        position.setRefineNeighborNodeLists(ri, Hi, coarseNeighbors, refineNeighbors);
 
         // Loop over the refined neighbors, and calculate the local values.
         Scalar normalization = 1.0e-30;

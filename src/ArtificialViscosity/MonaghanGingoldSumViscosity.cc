@@ -99,7 +99,7 @@ initialize(const DataBase<Dimension>& dataBase,
 
       // We will do the batch of master nodes associated with this node together.
       // Set the neighbor information.
-      dataBase.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
+      dataBase.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr));
 
       // Now loop over all the master nodes.
       for (IDIterator masterItr = dataBase.masterNodeBegin();
@@ -115,7 +115,7 @@ initialize(const DataBase<Dimension>& dataBase,
         const Scalar ci = soundSpeed(masterItr);
 
         // Set the refined neighbor information for this master node.
-        dataBase.setRefineNodeLists(position(masterItr), Hfield(masterItr));
+        dataBase.setRefineNeighborNodeLists(position(masterItr), Hfield(masterItr));
 
         // Loop over the refined neighbors for this master node and calculate
         // an estimate of del^2 v.

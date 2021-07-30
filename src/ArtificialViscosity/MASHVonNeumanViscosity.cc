@@ -73,7 +73,7 @@ initialize(const DataBase<Dimension>& dataBase,
     if (flagNodeDone(itr) == 0) {
 
       // Set the master/coarse neighbor info.
-      dataBase.setMasterNodeLists(r(itr), H(itr));
+      dataBase.setMasterNeighborNodeLists(r(itr), H(itr));
 
       // Iterate over the masters.
       for (MasterNodeIterator<Dimension> nodeI = dataBase.fluidMasterNodeBegin();
@@ -87,7 +87,7 @@ initialize(const DataBase<Dimension>& dataBase,
         const Scalar wi = weight(nodeI);
 
         // Select the neighbor nodes.
-        dataBase.setRefineNodeLists(ri, Hi);
+        dataBase.setRefineNeighborNodeLists(ri, Hi);
 
         // Iterate over the neighbors.
         for (RefineNodeIterator<Dimension> nodeJ = r.refineNodeBegin();
@@ -133,7 +133,7 @@ initialize(const DataBase<Dimension>& dataBase,
     if (flagNodeDone(itr) == 0) {
 
       // Set the master/coarse neighbor info.
-      dataBase.setMasterNodeLists(r(itr), H(itr));
+      dataBase.setMasterNeighborNodeLists(r(itr), H(itr));
 
       // Iterate over the masters.
       for (MasterNodeIterator<Dimension> nodeI = dataBase.fluidMasterNodeBegin();
@@ -149,7 +149,7 @@ initialize(const DataBase<Dimension>& dataBase,
         const Tensor& Ci = mCorrection(nodeI);
 
         // Select the neighbor nodes.
-        dataBase.setRefineNodeLists(ri, Hi);
+        dataBase.setRefineNeighborNodeLists(ri, Hi);
 
         // Iterate over the neighbors.
         for (RefineNodeIterator<Dimension> nodeJ = r.refineNodeBegin();

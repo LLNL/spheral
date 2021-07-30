@@ -89,8 +89,8 @@ sampleFieldsMash(const FieldList<Dimension, DataType>& fieldList,
       // Set the neighbor info over the positions we're sampling to.
       vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors,
                           masterListsSample, coarseNeighborsSample, refineNeighborsSample;
-      fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
-      samplePositions.setMasterNodeLists(position(nodeItr), Hfield(nodeItr), masterListsSample, coarseNeighborsSample);
+      fieldList.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr), masterLists, coarseNeighbors);
+      samplePositions.setMasterNeighborNodeLists(position(nodeItr), Hfield(nodeItr), masterListsSample, coarseNeighborsSample);
 
       // Loop over the set of master nodes in the FieldList we're sampling from.
       for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin(masterLists);
@@ -105,7 +105,7 @@ sampleFieldsMash(const FieldList<Dimension, DataType>& fieldList,
         const DataType& fieldi = fieldList(masterItr);
 
         // Refine the set of nodes we're sampling to for this position.
-        samplePositions.setRefineNodeLists(ri, Hi, masterListsSample, coarseNeighborsSample);
+        samplePositions.setRefineNeighborNodeLists(ri, Hi, masterListsSample, coarseNeighborsSample);
 
         // Loop over the refined neighbors.
         for (RefineNodeIterator<Dimension> neighborItr = samplePositions.refineNodeBegin(refineNeighborsSample);

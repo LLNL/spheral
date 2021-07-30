@@ -28,8 +28,7 @@ class NodeList:
                hmin = ("double", "1e-20"),
                hmax = ("double", "1e20"),
                hminratio = ("double", "0.1"),
-               nPerh = ("double", "2.01"),
-               maxNumNeighbors = ("unsigned", "500")):
+               nPerh = ("double", "2.01")):
         "Constructor for NodeList base class."
         return
 
@@ -104,20 +103,6 @@ class NodeList:
         "Return the classification of the given node"
         return "NodeType"
 
-    @PYB11const
-    @PYB11returnpolicy("reference_internal")
-    def neighbor(self):
-        "Neighbor object associated with this NodeList"
-        return "Neighbor<%(Dimension)s>&"
-
-    def registerNeighbor(self, neighbor="Neighbor<%(Dimension)s>&"):
-        "Associate a Neighbor object with this NodeList"
-        return "void"
-
-    def unregisterNeighbor(self):
-        "Break the relation of this NodeList with it's Neighbor object"
-        return "void"
-
     # Virtual methods
     @PYB11virtual
     def deleteNodes(self, nodeIDs="const std::vector<int>&"):
@@ -147,8 +132,6 @@ class NodeList:
     firstGhostNode = PYB11property("unsigned", doc="Index of the first ghost node on this NodeList")
     nodesPerSmoothingScale = PYB11property("Scalar", "nodesPerSmoothingScale", "nodesPerSmoothingScale", 
                                            doc="The target number of nodes per smoothing scale")
-    maxNumNeighbors = PYB11property("unsigned", "maxNumNeighbors", "maxNumNeighbors",
-                                    doc="The maximum number of neighbors per node allowed for this NodeList")
     hmin = PYB11property("Scalar", "hmin", "hmin", doc="Minimum allowed smoothing scale")
     hmax = PYB11property("Scalar", "hmax", "hmax", doc="Maximum allowed smoothing scale")
     hminratio = PYB11property("Scalar", "hminratio", "hminratio", 

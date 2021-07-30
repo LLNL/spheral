@@ -80,36 +80,36 @@ class FieldList(FieldListBase):
         return "FieldType*"
 
     @PYB11const
-    def setMasterNodeLists(self,
-                           r = "const Vector&",
-                           H = "const SymTensor&",
-                           masterLists = "std::vector<std::vector<int>>&",
-                           coarseNeighbors = "std::vector<std::vector<int>>&"):
+    def setMasterNeighborNodeLists(self,
+                                   r = "const Vector&",
+                                   H = "const SymTensor&",
+                                   masterLists = "std::vector<std::vector<int>>&",
+                                   coarseNeighbors = "std::vector<std::vector<int>>&"):
         "Set the master neighbor information based on (r,H)"
         return "void"
 
     @PYB11const
-    def setMasterNodeLists(self,
-                           r = "const Vector&",
-                           masterLists = "std::vector<std::vector<int>>&",
-                           coarseNeighbors = "std::vector<std::vector<int>>&"):
+    def setMasterNeighborNodeLists(self,
+                                   r = "const Vector&",
+                                   masterLists = "std::vector<std::vector<int>>&",
+                                   coarseNeighbors = "std::vector<std::vector<int>>&"):
         "Set the master neighbor information based on position r (assume zero associated length scale)"
         return "void"
 
     @PYB11const
-    def setRefineNodeLists(self,
-                           r = "const Vector&",
-                           H = "const SymTensor&",
-                           coarseNeighbors = "const std::vector<std::vector<int>>&",
-                           refineNeighbors = "std::vector<std::vector<int>>&"):
+    def setRefineNeighborNodeLists(self,
+                                   r = "const Vector&",
+                                   H = "const SymTensor&",
+                                   coarseNeighbors = "const std::vector<std::vector<int>>&",
+                                   refineNeighbors = "std::vector<std::vector<int>>&"):
         "Set the refine neighbor information based on (r,H)"
         return "void"
 
     @PYB11const
-    def setRefineNodeLists(self,
-                           r = "const Vector&",
-                           coarseNeighbors = "const std::vector<std::vector<int>>&",
-                           refineNeighbors = "std::vector<std::vector<int>>&"):
+    def setRefineNeighborNodeLists(self,
+                                   r = "const Vector&",
+                                   coarseNeighbors = "const std::vector<std::vector<int>>&",
+                                   refineNeighbors = "std::vector<std::vector<int>>&"):
         "Set the refine neighbor information based on r (assume zero associated length scale)"
         return "void"
 

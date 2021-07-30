@@ -41,8 +41,8 @@ class TestNodeIterators(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             result = testGlobalMasterNodeIterators2d(dataBase)
             self.failUnless(result == "OK", result)
         return
@@ -53,8 +53,8 @@ class TestNodeIterators(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             result = testGlobalCoarseNodeIterators2d(dataBase)
             self.failUnless(result == "OK", result)
         return
@@ -65,10 +65,10 @@ class TestNodeIterators(unittest.TestCase):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
-            dataBase.setMasterNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
-            dataBase.setRefineNodeLists(nodes.positions()[inode],
-                                        nodes.Hfield()[inode])
+            dataBase.setMasterNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
+            dataBase.setRefineNeighborNodeLists(nodes.positions()[inode],
+                                                nodes.Hfield()[inode])
             result = testGlobalRefineNodeIterators2d(dataBase)
             self.failUnless(result == "OK", result)
         return
