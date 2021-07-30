@@ -12,9 +12,6 @@ set(Utilities_inst
     medianPosition
     computeShepardsInterpolation
     overlayRemapFields
-    DamagedNodeCoupling
-    ThreePointDamagedNodeCoupling
-    DamageGradientNodeCoupling
    )
 
 set(Utilities_sources
@@ -46,8 +43,6 @@ set(Utilities_headers
     Bessel.hh
     CounterClockwiseComparator.hh
     DBC.hh
-    DamageGradientNodeCoupling.hh
-    DamagedNodeCoupling.hh
     DataTypeTraits.hh
     DomainNode.hh
     DomainNodeInline.hh
@@ -56,7 +51,6 @@ set(Utilities_headers
     Functors.hh
     GeometricUtilities.hh
     KeyTraits.hh
-    MaxDamageNodeCoupling.hh
     NodeCoupling.hh
     NodeListHashMap.hh
     OpenMP_wrapper.hh
@@ -72,7 +66,6 @@ set(Utilities_headers
     SidreDataCollection.hh
     SpheralFunctions.hh
     SurfaceNodeCoupling.hh
-    ThreePointDamagedNodeCoupling.hh
     Timer.hh
     Tree.hh
     TreeInline.hh
