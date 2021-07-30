@@ -218,6 +218,31 @@ packElement(const std::tuple<T, T, T>& value,
   packElement(std::get<2>(value), buffer);
 }
 
+// Specialization for a std::tuple of four common elements.
+template<typename T>
+inline
+void
+packElement(const std::tuple<T, T, T, T>& value,
+            std::vector<char>& buffer) {
+  packElement(std::get<0>(value), buffer);
+  packElement(std::get<1>(value), buffer);
+  packElement(std::get<2>(value), buffer);
+  packElement(std::get<3>(value), buffer);
+}
+
+// Specialization for a std::tuple of five common elements.
+template<typename T>
+inline
+void
+packElement(const std::tuple<T, T, T, T, T>& value,
+            std::vector<char>& buffer) {
+  packElement(std::get<0>(value), buffer);
+  packElement(std::get<1>(value), buffer);
+  packElement(std::get<2>(value), buffer);
+  packElement(std::get<3>(value), buffer);
+  packElement(std::get<4>(value), buffer);
+}
+
 // Specialize for a std::vector<DataType>.
 // Assumes the elements of the vector<> are of a type we already know how to pack.
 template<typename DataType>
@@ -534,6 +559,44 @@ unpackElement(std::tuple<DataType, DataType, DataType>& value,
   std::get<0>(value) = x;
   std::get<1>(value) = y;
   std::get<2>(value) = z;
+}
+
+// std::tuple<T,T,T,T>
+template<typename DataType>
+inline
+void
+unpackElement(std::tuple<DataType, DataType, DataType, DataType>& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  DataType x, y, z, a;
+  unpackElement(x, itr, endPackedVector);
+  unpackElement(y, itr, endPackedVector);
+  unpackElement(z, itr, endPackedVector);
+  unpackElement(a, itr, endPackedVector);
+  std::get<0>(value) = x;
+  std::get<1>(value) = y;
+  std::get<2>(value) = z;
+  std::get<3>(value) = a;
+}
+
+// std::tuple<T,T,T>
+template<typename DataType>
+inline
+void
+unpackElement(std::tuple<DataType, DataType, DataType, DataType, DataType>& value,
+              std::vector<char>::const_iterator& itr,
+              const std::vector<char>::const_iterator& endPackedVector) {
+  DataType x, y, z, a, b;
+  unpackElement(x, itr, endPackedVector);
+  unpackElement(y, itr, endPackedVector);
+  unpackElement(z, itr, endPackedVector);
+  unpackElement(a, itr, endPackedVector);
+  unpackElement(b, itr, endPackedVector);
+  std::get<0>(value) = x;
+  std::get<1>(value) = y;
+  std::get<2>(value) = z;
+  std::get<3>(value) = a;
+  std::get<4>(value) = b;
 }
 
 // Handle the vector<DataType> case, so long as DataType is one of the types
