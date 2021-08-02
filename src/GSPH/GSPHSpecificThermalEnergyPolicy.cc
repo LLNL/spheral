@@ -1,9 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// GSPHSpecificThermalEnergyPolicy -- An implementation of UpdatePolicyBase specialized
-// for the updating the specific thermal energy as a dependent quantity.
+// GSPHSpecificThermalEnergyPolicy -- An implementation of UpdatePolicyBase 
+// specialized for the updating the specific thermal energy as a dependent 
+// quantity.
 // 
-// This version is specialized for the compatible energy discretization 
-// method.
+// GSPH needs pairwise nodes to be allowed to have DepsDt of opposite sign 
+// from a given interaction. This is a modificaiton of the standard compatibe
+// energy formultion based on a difference approach with different weights 
 //----------------------------------------------------------------------------//
 #include "GSPHSpecificThermalEnergyPolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -63,23 +65,18 @@ update(const KeyType& key,
        const double /*t*/,
        const double /*dt*/) {
 
-//   // HACK!
-//   std::cerr.setf(std::ios::scientific, std::ios::floatfield);
-//   std::cerr.precision(15);
-
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
   auto eps = state.fields(fieldKey, Scalar());
   const auto numFields = eps.numFields();
-
+   
   // Get the state fields.
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  //const auto& pairDepsDt = derivs.getAny("pairDepsDt", vector<Scalar>());
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
@@ -87,8 +84,8 @@ update(const KeyType& key,
 
   auto  DepsDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   DepsDt.Zero();
-  //auto DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
   const auto hdt = 0.5*multiplier;
+  const auto tiny = numeric_limits<Scalar>::epsilon();
   // Walk all pairs and figure out the discrete work for each point
 #pragma omp parallel
   {
@@ -114,21 +111,24 @@ update(const KeyType& key,
       const auto& vj = velocity(nodeListj, j);
       const auto& aj = acceleration(nodeListj, j);
 
-      // weighting based on pairwise thermal energy deltas.
-      // add difference in allowing for diff sign DepsDt
-      
-
+      // half-step velocity
       const auto vi12 = vi + ai*hdt;
       const auto vj12 = vj + aj*hdt;
-      
       const auto vij = vi12 - vj12;
 
-      const auto delta_duij = vij.dot(paccij)-(DepsDt0i+DepsDt0j);
-      //const auto signi = ((DepsDt0i + DepsDt0j) > 0.0) - ((DepsDt0i + DepsDt0j) < 0.0);
-      const auto wi = abs(DepsDt0i)/(abs(DepsDt0i) + abs(DepsDt0j) + numeric_limits<Scalar>::epsilon());
+      // weighting scheme
+      const auto weighti = abs(DepsDt0i) + tiny;
+      const auto weightj = abs(DepsDt0j) + tiny;
+      const auto wi = weighti/(weighti+weightj);
 
-      DepsDt_thread(nodeListi, i) += mj*(DepsDt0i + wi*delta_duij);
-      DepsDt_thread(nodeListj, j) += mi*(DepsDt0j + (1.0-wi)*delta_duij);
+      // difference between assessed derivs and conserative ones
+      const Scalar delta_duij = vij.dot(paccij)-DepsDt0i-DepsDt0j;
+
+      CHECK(wi >= 0.0 and wi <= 1.0);
+
+      // make conservative
+      DepsDt_thread(nodeListi, i) += mj*(wi*delta_duij+DepsDt0i);
+      DepsDt_thread(nodeListj, j) += mi*((1.0-wi)*delta_duij+DepsDt0j);
     }
 
 #pragma omp critical
