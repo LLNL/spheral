@@ -5,4 +5,9 @@
 
 #include "GSPHFieldNames.hh"
 
-const std::string Spheral::HydroFieldNames::mass = "mass";
+const std::string Spheral::GSPHFieldNames::densityGradient = "density gradient";
+const std::string Spheral::GSPHFieldNames::previousDensityGradient = "previous density gradient";
+const std::string Spheral::GSPHFieldNames::pressureGradient = "pressure gradient";
+const std::string Spheral::GSPHFieldNames::previousPressureGradient = "previous pressure gradient";
+const std::string Spheral::GSPHFieldNames::previousVelocityGradient = "previous velocity gradient";
+const std::string Spheral::GSPHFieldNames::previousLocalVelocityGradient = "previous local velocity gradient";
