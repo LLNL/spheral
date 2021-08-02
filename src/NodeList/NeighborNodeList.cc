@@ -139,6 +139,36 @@ NodeList<Dimension>::refineNodeEnd() const {
 }
 
 //------------------------------------------------------------------------------
+// Access the neighbor object.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+Neighbor<Dimension>&
+NodeList<Dimension>::neighbor() const {
+  CHECK(mNeighborPtr != 0);
+  return *mNeighborPtr;
+}
+
+//------------------------------------------------------------------------------
+// Register the given neighbor object with this node list.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+NodeList<Dimension>::
+registerNeighbor(Neighbor<Dimension>& neighbor) {
+  mNeighborPtr = &neighbor;
+}
+
+//------------------------------------------------------------------------------
+// Unregister the current neighbor object from this node list.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+NodeList<Dimension>::unregisterNeighbor() {
+  mNeighborPtr = nullptr;
+  // mNeighborPtr = 0;
+}
+
+//------------------------------------------------------------------------------
 // Dump the current state of the NodeList to the given file.
 //------------------------------------------------------------------------------
 template<typename Dimension>

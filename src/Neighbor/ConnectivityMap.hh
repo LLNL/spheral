@@ -169,7 +169,7 @@ public:
   const NodeList<Dimension>& nodeList(const int index) const;
 
   // Return which NodeList index in order the given one would be in our connectivity.
-  unsigned nodeListIndex(const NodeList<Dimension>* nodeListPtr) const;
+  unsigned nodeListIndex(const NeighborNodeList<Dimension>* nodeListPtr) const;
 
   // Check that the internal data structure is valid.
   bool valid() const;
@@ -177,7 +177,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // The set of NodeLists.
-  std::vector<const NodeList<Dimension>*> mNodeLists;
+  std::vector<const NeighborNodeList<Dimension>*> mNodeLists;
 
   // Are we building ghost and/or overlap connectivity?
   bool mBuildGhostConnectivity, mBuildOverlapConnectivity, mBuildIntersectionConnectivity;

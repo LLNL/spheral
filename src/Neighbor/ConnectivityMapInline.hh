@@ -1,4 +1,4 @@
-#include "NodeList/FluidNodeList.hh"
+#include "NodeList/NeighborNodeList.hh"
 #include "NodeList/NodeListRegistrar.hh"
 
 #include <algorithm>
@@ -7,15 +7,14 @@ namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor.
-// The input iterators must dereference to const NodeList*, and must be 
-// const FluidNodeLists underneath.
+// The input iterators must dereference to const NeighborNodeList*
 //------------------------------------------------------------------------------
 template<typename Dimension>
 template<typename NodeListIterator>
 inline
 ConnectivityMap<Dimension>::
-ConnectivityMap(const NodeListIterator& begin,
-                const NodeListIterator& end,
+ConnectivityMap(const NeighborNodeListIterator& begin,
+                const NeighborNodeListIterator& end,
                 const bool buildGhostConnectivity,
                 const bool buildOverlapConnectivity,
                 const bool buildIntersectionConnectivity):
@@ -41,12 +40,12 @@ ConnectivityMap(const NodeListIterator& begin,
 // Rebuild for a given set of NodeLists.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-template<typename NodeListIterator>
+template<typename NeighborNodeListIterator>
 inline
 void
 ConnectivityMap<Dimension>::
-rebuild(const NodeListIterator& begin,
-        const NodeListIterator& end, 
+rebuild(const NeighborNodeListIterator& begin,
+        const NeighborNodeListIterator& end, 
         const bool buildGhostConnectivity,
         const bool buildOverlapConnectivity,
         const bool buildIntersectionConnectivity) {
@@ -54,7 +53,7 @@ rebuild(const NodeListIterator& begin,
   mBuildOverlapConnectivity = buildOverlapConnectivity;
   mBuildIntersectionConnectivity = buildIntersectionConnectivity;
 
-  // Copy the set of NodeLists in the order prescribed by the NodeListRegistrar.
+  // Copy the set of NeighborNodeLists in the order prescribed by the NodeListRegistrar.
   NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
   const bool domainDecompIndependent = registrar.domainDecompositionIndependent();
   const unsigned numNodeLists = std::distance(begin, end);

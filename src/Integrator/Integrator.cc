@@ -389,8 +389,8 @@ Integrator<Dimension>::postStepFinalize(const double t,
 
   // Loop over the physics packages and perform any necessary finalizations.
   DataBase<Dimension>& db = accessDataBase();
-//   for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
-//        nodeListItr != db.fluidNodeListEnd(); 
+//   for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.neighborNodeListBegin();
+//        nodeListItr != db.neighborNodeListEnd(); 
 //        ++nodeListItr) {
 //     (*nodeListItr)->neighbor().updateNodes();
 //   }
@@ -500,14 +500,14 @@ Integrator<Dimension>::setGhostNodes() {
   const auto boundaries = uniqueBoundaryConditions();
 
   // Remove any old ghost node information from the NodeLists.
-  for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd(); ++nodeListItr) {
+  for (auto nodeListItr = db.neighborNodeListBegin(); nodeListItr < db.neighborNodeListEnd(); ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
   }
 
 
   // If we're need overlap connectivity, we need to double the kernel extent before setting ghost nodes.
   if (mRequireOverlapConnectivity) {
-    for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
+    for (auto nodeListItr = db.neighborNodeListBegin(); nodeListItr < db.neighborNodeListEnd();  ++nodeListItr) {
       auto& neighbor = (*nodeListItr)->neighbor();
       auto maxeta = 2.0*neighbor.kernelExtent();
       neighbor.kernelExtent(maxeta);
@@ -515,7 +515,7 @@ Integrator<Dimension>::setGhostNodes() {
   }
 
   // Update neighboring
-  for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
+  for (auto nodeListItr = db.neighborNodeListBegin(); nodeListItr < db.neighborNodeListEnd();  ++nodeListItr) {
     auto& neighbor = (*nodeListItr)->neighbor();
     neighbor.updateNodes();
   }
@@ -524,14 +524,14 @@ Integrator<Dimension>::setGhostNodes() {
   for (auto boundaryItr = boundaries.begin(); boundaryItr != boundaries.end(); ++boundaryItr) {
     (*boundaryItr)->setAllGhostNodes(db);
     (*boundaryItr)->finalizeGhostBoundary();
-    for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
+    for (auto nodeListItr = db.neighborNodeListBegin(); nodeListItr < db.neighborNodeListEnd();  ++nodeListItr) {
       (*nodeListItr)->neighbor().updateNodes();
     }
   }
 
   // If we doubled the kernel extents for overlap connectivity, put 'em back.
   if (mRequireOverlapConnectivity) {
-    for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
+    for (auto nodeListItr = db.neighborNodeListBegin(); nodeListItr < db.neighborNodeListEnd();  ++nodeListItr) {
       auto& neighbor = (*nodeListItr)->neighbor();
       auto maxeta = 0.5*neighbor.kernelExtent();
       neighbor.kernelExtent(maxeta);
@@ -672,7 +672,7 @@ Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
       }
       (*boundaryItr)->finalizeGhostBoundary();
     }
-    for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr != db.fluidNodeListEnd(); ++nodeListItr) {
+    for (auto nodeListItr = db.neighborNodeListBegin(); nodeListItr != db.neighborNodeListEnd(); ++nodeListItr) {
       (*nodeListItr)->neighbor().updateNodes();
     }
   }
@@ -751,8 +751,8 @@ Integrator<Dimension>::setViolationNodes() {
   }
 
   // Fix neighbor information.
-  for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
-       nodeListItr != db.fluidNodeListEnd(); 
+  for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.neighborNodeListBegin();
+       nodeListItr != db.neighborNodeListEnd(); 
        ++nodeListItr) {
     (*nodeListItr)->neighbor().updateNodes();
   }

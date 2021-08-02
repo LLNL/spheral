@@ -42,13 +42,13 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   const auto t0 = clock();
 
   // Extract the state we care about.
-  const auto pos = dataBase.fluidPosition();
-  auto m = dataBase.fluidMass();
-  auto rho = dataBase.fluidMassDensity();
-  auto H = dataBase.fluidHfield();
+  const auto pos = dataBase.neighborPosition();
+  auto m = dataBase.neighborMass();
+  auto rho = dataBase.neighborMassDensity();
+  auto H = dataBase.neighborHfield();
 
   // If we're using the fixDeterminant, take a snapshot of the input H determinants.
-  auto Hdet0 = dataBase.newFluidFieldList(double());
+  auto Hdet0 = dataBase.newNeighborFieldList(double());
   if (fixDeterminant) {
     for (auto itr = dataBase.internalNodeBegin();
          itr != dataBase.internalNodeEnd();
@@ -58,8 +58,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   // Store the input nperh for each NodeList.
   // If we're rescaling the nodes per h for our work, make a cut at it.
   vector<double> nperh0;
-  for (auto nodeListItr = dataBase.fluidNodeListBegin();
-       nodeListItr != dataBase.fluidNodeListEnd(); 
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd(); 
        ++nodeListItr) {
     const auto nperh = (*nodeListItr)->nodesPerSmoothingScale();
     nperh0.push_back(nperh);
@@ -69,11 +69,11 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       (*nodeListItr)->nodesPerSmoothingScale(nPerhForIteration);
     }
   }
-  CHECK(nperh0.size() == dataBase.numFluidNodeLists());
+  CHECK(nperh0.size() == dataBase.numNeighborNodeLists());
 
   // If we are both fixing the H determinant and rescaling the nodes per h,
   // we need a snapshot of the rescaled H determinant as well.
-  auto Hdet1 = dataBase.newFluidFieldList(double());
+  auto Hdet1 = dataBase.newNeighborFieldList(double());
   if (fixDeterminant) {
     for (auto itr = dataBase.internalNodeBegin();
          itr != dataBase.internalNodeEnd();
@@ -92,10 +92,10 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   }
 
   // Build a list of flags to indicate which nodes have been completed.
-  auto flagNodeDone = dataBase.newFluidFieldList(0, "node completed");
+  auto flagNodeDone = dataBase.newNeighborFieldList(0, "node completed");
 
   // Iterate until we either hit the max iterations or the H's achieve convergence.
-  const auto numNodeLists = dataBase.numFluidNodeLists();
+  const auto numNodeLists = dataBase.numNeighborNodeLists();
   auto maxDeltaH = 2.0*tolerance;
   auto itr = 0;
   while (itr < maxIterations and maxDeltaH > tolerance) {
@@ -105,7 +105,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
     // Remove any old ghost node information from the NodeLists.
     for (auto k = 0u; k < numNodeLists; ++k) {
-      auto nodeListPtr = *(dataBase.fluidNodeListBegin() + k);
+      auto nodeListPtr = *(dataBase.neighborNodeListBegin() + k);
       nodeListPtr->numGhostNodes(0);
       nodeListPtr->neighbor().updateNodes();
     }
@@ -117,8 +117,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       boundaryPtr->applyFieldListGhostBoundary(m);
       boundaryPtr->applyFieldListGhostBoundary(rho);
       boundaryPtr->finalizeGhostBoundary();
-      for (auto nodeListItr = dataBase.fluidNodeListBegin();
-           nodeListItr != dataBase.fluidNodeListEnd(); 
+      for (auto nodeListItr = dataBase.neighborNodeListBegin();
+           nodeListItr != dataBase.neighborNodeListEnd(); 
            ++nodeListItr) {
         (*nodeListItr)->neighbor().updateNodes();
       }
@@ -127,8 +127,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     // Prepare a FieldList to hold the new H.
     FieldList<Dimension, SymTensor> H1(H);
     H1.copyFields();
-    auto zerothMoment = dataBase.newFluidFieldList(0.0, "zerothMoment");
-    auto secondMoment = dataBase.newFluidFieldList(SymTensor::zero, "secondMoment");
+    auto zerothMoment = dataBase.newNeighborFieldList(0.0, "zerothMoment");
+    auto secondMoment = dataBase.newNeighborFieldList(SymTensor::zero, "secondMoment");
 
     // Get the new connectivity.
     dataBase.updateConnectivityMap(false, false, false);
@@ -207,7 +207,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
     // Finish the moments and measure the new H.
     for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-      const auto nodeListPtr = *(dataBase.fluidNodeListBegin() + nodeListi);
+      const auto nodeListPtr = *(dataBase.neighborNodeListBegin() + nodeListi);
       const auto ni = nodeListPtr->numInternalNodes();
       const auto hmin = nodeListPtr->hmin();
       const auto hmax = nodeListPtr->hmax();
@@ -270,8 +270,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
     // Reset the nperh.
     size_t k = 0;
-    for (auto nodeListItr = dataBase.fluidNodeListBegin();
-         nodeListItr != dataBase.fluidNodeListEnd(); 
+    for (auto nodeListItr = dataBase.neighborNodeListBegin();
+         nodeListItr != dataBase.neighborNodeListEnd(); 
          ++nodeListItr, ++k) {
       CHECK(k < nperh0.size());
       //const double nperh = nperh0[k];
@@ -294,8 +294,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   }
 
   // Leave the boundary conditions properly enforced.
-  for (auto nodeListItr = dataBase.fluidNodeListBegin();
-       nodeListItr != dataBase.fluidNodeListEnd(); 
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd(); 
        ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
     (*nodeListItr)->neighbor().updateNodes();
@@ -305,8 +305,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
        ++boundaryItr) {
     (*boundaryItr)->setAllGhostNodes(dataBase);
     (*boundaryItr)->finalizeGhostBoundary();
-    for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
-         nodeListItr != dataBase.fluidNodeListEnd(); 
+    for (typename DataBase<Dimension>::NeighborNodeListIterator nodeListItr = dataBase.neighborNodeListBegin();
+         nodeListItr != dataBase.neighborNodeListEnd(); 
          ++nodeListItr) {
       (*nodeListItr)->neighbor().updateNodes();
     }

@@ -264,6 +264,12 @@ public:
   FieldList<Dimension, SymTensor> globalHfield() const;
   FieldList<Dimension, Scalar> globalWork() const;
 
+  FieldList<Dimension, Scalar> neighborMass() const;
+  FieldList<Dimension, Vector> neighborPosition() const;
+  FieldList<Dimension, Vector> neighborVelocity() const;
+  FieldList<Dimension, SymTensor> neighborHfield() const;
+  FieldList<Dimension, Scalar> neighborWork() const;
+  
   FieldList<Dimension, Scalar> fluidMass() const;
   FieldList<Dimension, Vector> fluidPosition() const;
   FieldList<Dimension, Vector> fluidVelocity() const;
@@ -287,7 +293,7 @@ public:
   FieldList<Dimension, int> solidParticleTypes() const;
 
   // We can also return the node extent Fields stored in the Neighbor objects.
-  FieldList<Dimension, Vector> neighorNodeExtent() const;
+  FieldList<Dimension, Vector> neighborNodeExtent() const;
   FieldList<Dimension, Vector> fluidNodeExtent() const;
   FieldList<Dimension, Vector> solidNodeExtent() const;
 

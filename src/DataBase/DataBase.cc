@@ -1063,6 +1063,80 @@ DataBase<Dimension>::globalWork() const {
 }
 
 //------------------------------------------------------------------------------
+// Return the global mass field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Scalar>
+DataBase<Dimension>::globalMass() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Scalar> result;
+  for (ConstNodeListIterator nodeListItr = nodeListBegin();
+       nodeListItr < nodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->mass());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the neighbor position field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Vector>
+DataBase<Dimension>::neighborPosition() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Vector> result;
+  for (ConstNodeListIterator nodeListItr = nodeListBegin();
+       nodeListItr < nodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->positions());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the neighbor velocity field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Vector>
+DataBase<Dimension>::neighborVelocity() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Vector> result;
+  for (ConstNodeListIterator nodeListItr = nodeListBegin();
+       nodeListItr < nodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->velocity());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the neighbor H smoothing field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::SymTensor>
+DataBase<Dimension>::neighborHfield() const {
+  REQUIRE(valid());
+  FieldList<Dimension, SymTensor> result;
+  for (ConstNodeListIterator nodeListItr = nodeListBegin();
+       nodeListItr < nodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->Hfield());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the neighbor work field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Scalar>
+DataBase<Dimension>::neighborWork() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Scalar> result;
+  for (ConstNodeListIterator nodeListItr = nodeListBegin();
+       nodeListItr < nodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->work());
+  }
+  return result;
+}
+//------------------------------------------------------------------------------
 // Return the fluid mass field.
 //------------------------------------------------------------------------------
 template<typename Dimension>
