@@ -551,6 +551,31 @@ internalDvDx() const {
 
 template<typename Dimension>
 inline
+const FieldList<Dimension, typename Dimension::Tensor>&
+GSPHHydroBase<Dimension>::
+lastDvDx() const {
+  return mLastDvDx;
+}
+
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Vector>&
+GSPHHydroBase<Dimension>::
+DpDx() const {
+  return mDpDx;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Vector>&
+GSPHHydroBase<Dimension>::
+lastDpDx() const {
+  return mLastDpDx;
+}
+
+template<typename Dimension>
+inline
 const std::vector<typename Dimension::Vector>&
 GSPHHydroBase<Dimension>::
 pairAccelerations() const {

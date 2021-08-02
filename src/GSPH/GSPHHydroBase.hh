@@ -1,7 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
 // GSPHHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
-//                   
-// Created by JMO, Mon Jul 19 21:52:29 PDT 2010
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_GSPHHydroBase_hh__
 #define __Spheral_GSPHHydroBase_hh__
@@ -16,7 +14,6 @@ namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class SmoothingScaleBase;
-template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
@@ -32,6 +29,7 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
 
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
@@ -157,15 +155,7 @@ public:
                 const Tensor& DvDxi,
                 const Tensor& DvDxj) const;
 
-  void pearlLimiter( const Scalar& Si,
-                     const Scalar& Sj,
-                     const Vector& rij,
-                const Vector& vi,   
-                const Vector& vj,
-                const Tensor& DvDxi,
-                const Tensor& DvDxj,
-                      Vector& vstari,   
-                      Vector& vstarj) const;
+                      
   // Also allow access to the CFL timestep safety criteria.
   Scalar cfl() const;
   void cfl(Scalar cfl);
@@ -256,6 +246,10 @@ public:
   const FieldList<Dimension, Tensor>&    internalDvDx() const;
   const std::vector<Vector>&             pairAccelerations() const;
 
+  const FieldList<Dimension, Vector>&    DpDx() const;
+  const FieldList<Dimension, Tensor>&    lastDvDx() const;
+  const FieldList<Dimension, Vector>&    lastDpDx() const;
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "GSPHHydroBase" ; }
@@ -269,7 +263,6 @@ protected:
   void updateCoarseNeighborStats(int numNeighbor) const;
   void updateRefineNeighborStats(int numNeighbor) const;
   void updateActualNeighborStats(int numNeighbor) const;
-
 
   // The interpolation kernels.
   const TableKernel<Dimension>& mKernel;
@@ -332,7 +325,8 @@ private:
 
   Scalar mCfl;
   bool mUseVelocityMagnitudeForDt;
-
+  bool mInitializeSpatialDerivatives;
+  
   mutable int mMinMasterNeighbor, mMaxMasterNeighbor, mSumMasterNeighbor;
   mutable int mMinCoarseNeighbor, mMaxCoarseNeighbor, mSumCoarseNeighbor;
   mutable int mMinRefineNeighbor, mMaxRefineNeighbor, mSumRefineNeighbor;
