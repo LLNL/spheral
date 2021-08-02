@@ -182,7 +182,9 @@ mass density, velocity, and specific thermal energy."""
     DvDx =                         PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "DvDx",                 returnpolicy="reference_internal")
     internalDvDx =                 PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "internalDvDx",         returnpolicy="reference_internal")
     pairAccelerations =            PYB11property("const std::vector<Vector>&", "pairAccelerations", returnpolicy="reference_internal")
-
+    DpDx =                         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DpDx",                 returnpolicy="reference_internal")
+    lastDpDx =                     PYB11property("const FieldList<%(Dimension)s, Vector>&",   "lastDpDx",             returnpolicy="reference_internal")
+    
     #...........................................................................
     # Attributes -- Generic Hydro
     cfl = PYB11property("Scalar", "cfl", "cfl", doc="The Courant-Friedrichs-Lewy timestep limit multiplier")
