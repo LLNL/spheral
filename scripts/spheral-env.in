@@ -2,5 +2,5 @@
 
 source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate
 python "$@"
+exit $?
 deactivate
-
