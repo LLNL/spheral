@@ -26,7 +26,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ConstantVelocityBoundary<Dimension>::
-ConstantVelocityBoundary(const NodeList<Dimension>& nodeList,
+ConstantVelocityBoundary(const NeighborNodeList<Dimension>& nodeList,
                          const vector<int>& nodeIndices):
   Boundary<Dimension>(),
   mNodeListPtr(&nodeList),
@@ -60,7 +60,7 @@ ConstantVelocityBoundary<Dimension>::~ConstantVelocityBoundary() {
 template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
-setGhostNodes(NodeList<Dimension>& nodeList) {
+setGhostNodes(NeighborNodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
 }
 
@@ -71,7 +71,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
-updateGhostNodes(NodeList<Dimension>&) {
+updateGhostNodes(NeighborNodeList<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ applyGhostBoundary(FieldBase<Dimension>&) const {
 template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
-setViolationNodes(NodeList<Dimension>& nodeList) {
+setViolationNodes(NeighborNodeList<Dimension>& nodeList) {
 
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
   this->addNodeList(nodeList);
@@ -111,7 +111,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantVelocityBoundary<Dimension>::
-updateViolationNodes(NodeList<Dimension>&) {
+updateViolationNodes(NeighborNodeList<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------

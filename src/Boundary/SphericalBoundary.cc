@@ -46,7 +46,7 @@ SphericalBoundary::
 //------------------------------------------------------------------------------
 void
 SphericalBoundary::
-setGhostNodes(NodeList<Dim<3> >& nodeList) {
+setGhostNodes(NeighborNodeList<Dim<3> >& nodeList) {
   REQUIRE(mGhostPositions.fieldForNodeList(nodeList) < mGhostPositions.end());
 
   // Add this NodeList, creating space for control & ghost nodes.
@@ -182,7 +182,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
 //------------------------------------------------------------------------------
 void
 SphericalBoundary::
-updateGhostNodes(NodeList<Dim<3> >& nodeList) {
+updateGhostNodes(NeighborNodeList<Dim<3> >& nodeList) {
   REQUIRE(mGhostPositions.fieldForNodeList(nodeList) < mGhostPositions.end());
 
   // Get the control and ghost nodes for this NodeList.
@@ -496,7 +496,7 @@ applyGhostBoundary(Field<Dim<3> , std::vector<Dim<3>::Scalar> >& field) const {
 //------------------------------------------------------------------------------
 void
 SphericalBoundary::
-setViolationNodes(NodeList<Dim<3> >& nodeList) {
+setViolationNodes(NeighborNodeList<Dim<3> >& nodeList) {
 
   // Get the BoundaryNodes.violationNodes for this NodeList.
   BoundaryNodes& boundaryNodes = accessBoundaryNodes(nodeList);
@@ -517,7 +517,7 @@ setViolationNodes(NodeList<Dim<3> >& nodeList) {
 //------------------------------------------------------------------------------
 void
 SphericalBoundary::
-updateViolationNodes(NodeList<Dim<3> >& nodeList) {
+updateViolationNodes(NeighborNodeList<Dim<3> >& nodeList) {
 
   // Get the set of violation nodes for this NodeList.
   const vector<int>& vNodes = violationNodes(nodeList);

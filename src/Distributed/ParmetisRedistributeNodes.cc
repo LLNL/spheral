@@ -78,8 +78,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   const int numProcs = this->numDomains();
 
   // Go over each NodeList, and clear out any ghost nodes.
-  for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-       nodeListItr != dataBase.nodeListEnd();
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd();
        ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
     (*nodeListItr)->neighbor().updateNodes();
@@ -97,8 +97,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
        ++boundItr) {
     (*boundItr)->setAllGhostNodes(dataBase);
     (*boundItr)->finalizeGhostBoundary();
-    for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-         nodeListItr != dataBase.nodeListEnd();
+    for (auto nodeListItr = dataBase.neighborNodeListBegin();
+         nodeListItr != dataBase.neighborNodeListEnd();
          ++nodeListItr) (*nodeListItr)->neighbor().updateNodes();
   }
 
@@ -155,8 +155,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
   // We're done with the ghost nodes now, so eliminate them before we try 
   // rearranging nodes.
-  for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-       nodeListItr != dataBase.nodeListEnd();
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd();
        ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
     (*nodeListItr)->neighbor().updateNodes();
@@ -223,8 +223,8 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
   const int numProcs = this->numDomains();
 
   // Go over each NodeList, and clear out any ghost nodes.
-  for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-       nodeListItr != dataBase.nodeListEnd();
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd();
        ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
     (*nodeListItr)->neighbor().updateNodes();
@@ -242,8 +242,8 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
        ++boundItr) {
     (*boundItr)->setAllGhostNodes(dataBase);
     (*boundItr)->finalizeGhostBoundary();
-    for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-         nodeListItr != dataBase.nodeListEnd();
+    for (auto nodeListItr = dataBase.neighborNodeListBegin();
+         nodeListItr != dataBase.neighborNodeListEnd();
          ++nodeListItr) (*nodeListItr)->neighbor().updateNodes();
   }
 
@@ -300,8 +300,8 @@ refineAndRedistributeNodes(DataBase<Dimension>& dataBase,
 
   // We're done with the ghost nodes now, so eliminate them before we try 
   // rearranging nodes.
-  for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-       nodeListItr != dataBase.nodeListEnd();
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd();
        ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
     (*nodeListItr)->neighbor().updateNodes();

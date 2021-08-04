@@ -33,13 +33,13 @@ public:
   virtual ~PlanarSymmetryBoundary();
 
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeList<Dim<3> >& nodeList);
-  virtual void updateGhostNodes(NodeList<Dim<3> >& nodeList);
+  virtual void setGhostNodes(NeighborNodeList<Dim<3> >& nodeList);
+  virtual void updateGhostNodes(NeighborNodeList<Dim<3> >& nodeList);
 
   // Find the set of nodes in violation of this boundary in the given NodeList.
   // For planar boundaries this is any node that is "behind" the enter plane.
-  virtual void setViolationNodes(NodeList<Dim<3> >& nodeList);
-  virtual void updateViolationNodes(NodeList<Dim<3> >& nodeList);
+  virtual void setViolationNodes(NeighborNodeList<Dim<3> >& nodeList);
+  virtual void updateViolationNodes(NeighborNodeList<Dim<3> >& nodeList);
 
   // Apply the boundary condition to ghost nodes.
   virtual void applyGhostBoundary(Field<Dim<3> , Scalar>& field) const;

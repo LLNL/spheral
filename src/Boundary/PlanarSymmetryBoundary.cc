@@ -29,7 +29,7 @@ PlanarSymmetryBoundary::
 //------------------------------------------------------------------------------
 void
 PlanarSymmetryBoundary::
-setGhostNodes(NodeList<Dim<3> >& nodeList) {
+setGhostNodes(NeighborNodeList<Dim<3> >& nodeList) {
    // Add this NodeList, ecreating space for control & ghost nodes.
    addNodeList(nodeList);
 
@@ -101,7 +101,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
 //------------------------------------------------------------------------------
 void
 PlanarSymmetryBoundary::
-updateGhostNodes(NodeList<Dim<3> >& nodeList) {
+updateGhostNodes(NeighborNodeList<Dim<3> >& nodeList) {
    // We are going to update all the positions of our ghost nodes.  We 
    // do this by iterating over the internal nodes and updating the 
    // ghost nodes that correspond to these internal nodes.
@@ -149,7 +149,7 @@ updateGhostNodes(NodeList<Dim<3> >& nodeList) {
 //------------------------------------------------------------------------------
 void
 PlanarSymmetryBoundary::
-setViolationNodes(NodeList<Dim<3> >& nodeList) {
+setViolationNodes(NeighborNodeList<Dim<3> >& nodeList) {
    // Find the set of nodes in the given NodeList that violate this boundary
    // condition.  We flag all nodes that have moved out of the XY plane as 
    // violation nodes.
@@ -167,7 +167,7 @@ setViolationNodes(NodeList<Dim<3> >& nodeList) {
 //------------------------------------------------------------------------------
 void
 PlanarSymmetryBoundary::
-updateViolationNodes(NodeList<Dim<3> >& nodeList) {
+updateViolationNodes(NeighborNodeList<Dim<3> >& nodeList) {
    // Zero out the z components of every violation node.  We can do this
    // by looping through the violation nodes and just setting the positions 
    // of the nodes accordingly.

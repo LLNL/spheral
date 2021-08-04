@@ -10,7 +10,7 @@ using std::vector;
 
 template<typename Dimension>
 std::vector<int>
-findNodesTouchingThroughPlanes(const NodeList<Dimension>& nodeList,
+findNodesTouchingThroughPlanes(const NeighborNodeList<Dimension>& nodeList,
                                const GeomPlane<Dimension>& enterPlane,
                                const GeomPlane<Dimension>& exitPlane,
                                const double hmultiplier) {

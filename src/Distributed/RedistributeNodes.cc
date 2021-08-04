@@ -457,22 +457,34 @@ enforceDomainDecomposition(const vector<DomainNode<Dimension> >& nodeDistributio
     CHECK(recvProc < (int)totalNumRecvNodes.size());
     if (totalNumRecvNodes[recvProc] > 0) {
       CHECK(procBufItr != fieldBuffers.end());
-      int nodeListID = 0;
-      list< list< vector<char> > >::const_iterator nodeListBufItr = procBufItr->begin();
-      for (NodeListIterator nodeListItr = dataBase.nodeListBegin();
-           nodeListItr != dataBase.nodeListEnd();
-           ++nodeListItr, ++nodeListID) {
-        const int numNewNodes = numRecvNodes[recvProc][nodeListID];
-        if (numNewNodes > 0) {
-          CHECK(nodeListBufItr != procBufItr->end());
-          const list< vector<char> >& bufs = *nodeListBufItr;
-          (*nodeListItr)->appendInternalNodes(numNewNodes, bufs);
-          (*nodeListItr)->neighbor().updateNodes();
-          ++nodeListBufItr;
+      {
+        int nodeListID = 0;
+        list< list< vector<char> > >::const_iterator nodeListBufItr = procBufItr->begin();
+        for (auto nodeListItr = dataBase.nodeListBegin();
+             nodeListItr != dataBase.nodeListEnd();
+             ++nodeListItr, ++nodeListID) {
+          const int numNewNodes = numRecvNodes[recvProc][nodeListID];
+          if (numNewNodes > 0) {
+            CHECK(nodeListBufItr != procBufItr->end());
+            const list< vector<char> >& bufs = *nodeListBufItr;
+            (*nodeListItr)->appendInternalNodes(numNewNodes, bufs);
+            ++nodeListBufItr;
+          }
+        }
+        CHECK(nodeListBufItr == procBufItr->end());
+        ++procBufItr;
+      }
+      {
+        int nodeListID = 0;
+        for (auto nodeListItr = dataBase.neighborNodeListBegin();
+             nodeListItr != dataBase.neighborNodeListEnd();
+             ++nodeListItr, ++nodeListID) {
+          const int numNewNodes = numRecvNodes[recvProc][nodeListID];
+          if (numNewNodes > 0) {
+            (*nodeListItr)->neighbor().updateNodes();
+          }
         }
       }
-      CHECK(nodeListBufItr == procBufItr->end());
-      ++procBufItr;
     }
   }
   CHECK(procBufItr == fieldBuffers.end());

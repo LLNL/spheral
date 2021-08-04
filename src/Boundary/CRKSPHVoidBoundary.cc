@@ -41,7 +41,7 @@ CRKSPHVoidBoundary<Dimension>::~CRKSPHVoidBoundary() {
 template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
-setGhostNodes(NodeList<Dimension>& nodeList) {
+setGhostNodes(NeighborNodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
 
   typename Boundary<Dimension>::BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
@@ -88,7 +88,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
-updateGhostNodes(NodeList<Dimension>& nodeList) {
+updateGhostNodes(NeighborNodeList<Dimension>& nodeList) {
   const vector<int>& cNodes = this->controlNodes(nodeList);
   const vector<int>& gNodes = this->ghostNodes(nodeList);
   const unsigned nvoid = gNodes.size();
@@ -269,7 +269,7 @@ applyGhostBoundary(Field<Dimension, std::vector<typename Dimension::Scalar> >& f
 template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
-setViolationNodes(NodeList<Dimension>& nodeList) {
+setViolationNodes(NeighborNodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
 }
 
@@ -280,7 +280,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 CRKSPHVoidBoundary<Dimension>::
-updateViolationNodes(NodeList<Dimension>&) {
+updateViolationNodes(NeighborNodeList<Dimension>&) {
 }
 
 }

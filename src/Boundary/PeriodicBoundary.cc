@@ -81,7 +81,7 @@ PeriodicBoundary<Dimension>::~PeriodicBoundary() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-PeriodicBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
+PeriodicBoundary<Dimension>::setGhostNodes(NeighborNodeList<Dimension>& nodeList) {
 
   mPlane1Boundary.setGhostNodes(nodeList);
   mPlane2Boundary.setGhostNodes(nodeList);
@@ -133,7 +133,7 @@ PeriodicBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-PeriodicBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
+PeriodicBoundary<Dimension>::updateGhostNodes(NeighborNodeList<Dimension>& nodeList) {
   mPlane1Boundary.updateGhostNodes(nodeList);
   mPlane2Boundary.updateGhostNodes(nodeList);
 }
@@ -143,7 +143,7 @@ PeriodicBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-PeriodicBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
+PeriodicBoundary<Dimension>::setViolationNodes(NeighborNodeList<Dimension>& nodeList) {
   mPlane1Boundary.setViolationNodes(nodeList);
   mPlane2Boundary.setViolationNodes(nodeList);
 
@@ -172,7 +172,7 @@ PeriodicBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-PeriodicBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
+PeriodicBoundary<Dimension>::updateViolationNodes(NeighborNodeList<Dimension>& nodeList) {
   // The sub-boundaries have already fired their updateViolationNodes!
   // mPlane1Boundary.updateViolationNodes(nodeList);
   // mPlane2Boundary.updateViolationNodes(nodeList);
@@ -253,7 +253,7 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
 
   // Recreate our set of ghost & control.
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
-  typedef map<NodeList<Dimension>*, BoundaryNodes> BNMap;
+  typedef map<NeighborNodeList<Dimension>*, BoundaryNodes> BNMap;
   BNMap& allBoundaryNodes = this->accessBoundaryNodes();
   allBoundaryNodes = BNMap();
   const BNMap& allBoundaryNodes1 = mPlane1Boundary.accessBoundaryNodes();

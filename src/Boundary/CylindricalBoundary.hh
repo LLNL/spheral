@@ -39,8 +39,8 @@ public:
   virtual ~CylindricalBoundary();
 
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;
-  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
+  virtual void setGhostNodes(NeighborNodeList<Dimension>& nodeList) override;
+  virtual void updateGhostNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the ghost node values in the given Field.
   virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const override;
@@ -53,8 +53,8 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const override;
 
   // Find the set of nodes in violation of this boundary in the given NodeList.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void setViolationNodes(NeighborNodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the violation node values in the given Field.
   virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;

@@ -79,8 +79,8 @@ initialize(const DataBase<Dimension>& dataBase,
   // Set the viscous energy for each fluid node.
   const Scalar alpha = -Cl();
   const Scalar beta = Cq();
-  for (NodeIDIterator<Dimension> nodeItr = dataBase.internalNodeBegin();
-       nodeItr < dataBase.internalNodeEnd();
+  for (NodeIDIterator<Dimension> nodeItr = dataBase.neighborInternalNodeBegin();
+       nodeItr < dataBase.neighborInternalNodeEnd();
        ++nodeItr) {
     const Scalar mui = min(0.0, DvDx(nodeItr).Trace());
     const Scalar l = nodeItr.nodeListPtr()->neighborPtr()->nodeExtentField()(nodeItr).maxElement();

@@ -17,7 +17,7 @@
 
 namespace Spheral {
 
-template<typename Dimension> class NodeList;
+template<typename Dimension> class NeighborNodeList;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class DataBase;
@@ -38,34 +38,34 @@ public:
   typedef typename Dimension::FacetedVolume FacetedVolume;
 
   // Constructors and destructors.
-  ConstantVelocityBoundary(const NodeList<Dimension>& nodeList,
+  ConstantVelocityBoundary(const NeighborNodeList<Dimension>& nodeList,
                            const std::vector<int>& nodeIndices);
   virtual ~ConstantVelocityBoundary();
 
   //**********************************************************************
   // All Boundary conditions must provide the following methods:
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;
+  virtual void setGhostNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // For the computed set of ghost nodes, set the positions and H's.
-  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateGhostNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the given Field.
   virtual void applyGhostBoundary(FieldBase<Dimension>& field) const override;
 
   // Find any internal nodes that are in violation of this Boundary.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void setViolationNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // For the computed set of nodes in violation of the boundary, bring them
   // back into compliance (for the positions and H's.)
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the violation node values in the given Field.
   virtual void enforceBoundary(Field<Dimension, Vector>& field) const override;
   //**********************************************************************
 
   // Allow read only access to the node indices and their forced velocities.
-  const NodeList<Dimension>& nodeList() const;
+  const NeighborNodeList<Dimension>& nodeList() const;
   std::vector<int> nodeIndices() const;
   std::vector<Vector> velocityCondition() const;
 
@@ -88,7 +88,7 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const NodeList<Dimension>* mNodeListPtr;
+  const NeighborNodeList<Dimension>* mNodeListPtr;
   Field<Dimension, int> mNodes;
   Field<Dimension, Vector> mVelocity;
 

@@ -65,8 +65,8 @@ redistributeNodes(DataBase<Dim<2> >& dataBase,
   const int numProcs = this->numDomains();
 
   // Go over each NodeList, and clear out any ghost nodes.
-  for (DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-       nodeListItr != dataBase.nodeListEnd();
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd();
        ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
     (*nodeListItr)->neighbor().updateNodes();
@@ -86,8 +86,8 @@ redistributeNodes(DataBase<Dim<2> >& dataBase,
        ++boundItr) {
     (*boundItr)->setAllGhostNodes(dataBase);
     (*boundItr)->finalizeGhostBoundary();
-    for (DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-         nodeListItr != dataBase.nodeListEnd();
+    for (auto nodeListItr = dataBase.neighborNodeListBegin();
+         nodeListItr != dataBase.neighborNodeListEnd();
          ++nodeListItr) (*nodeListItr)->neighbor().updateNodes();
   }
 
@@ -95,8 +95,8 @@ redistributeNodes(DataBase<Dim<2> >& dataBase,
   const FieldList<Dimension, Scalar> work = this->workPerNode(dataBase, Hextent());
 
   // Once again clear out any ghost nodes.
-  for (DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-       nodeListItr != dataBase.nodeListEnd();
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd();
        ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
     (*nodeListItr)->neighbor().updateNodes();

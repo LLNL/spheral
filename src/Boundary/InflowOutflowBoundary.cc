@@ -79,7 +79,7 @@ InflowOutflowBoundary<Dimension>::~InflowOutflowBoundary() {
 template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::
-setGhostNodes(NodeList<Dimension>& nodeList) {
+setGhostNodes(NeighborNodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
 
   if (mActive) {
@@ -109,7 +109,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::
-updateGhostNodes(NodeList<Dimension>& nodeList) {
+updateGhostNodes(NeighborNodeList<Dimension>& nodeList) {
   if (mActive) {
 
     // Go ahead and set all the ghost values!
@@ -168,7 +168,7 @@ applyGhostBoundary(FieldBase<Dimension>& field) const {
 template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::
-setViolationNodes(NodeList<Dimension>& nodeList) {
+setViolationNodes(NeighborNodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
 }
 
@@ -179,7 +179,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::
-updateViolationNodes(NodeList<Dimension>&) {
+updateViolationNodes(NeighborNodeList<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -201,7 +201,7 @@ InflowOutflowBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
 
     // Does the Boundary have entries for this NodeList?
     if (this->haveNodeList(*nodeListPtr)) {
-      auto& boundaryNodes = this->accessBoundaryNodes(const_cast<NodeList<Dimension>&>(*nodeListPtr));
+      auto& boundaryNodes = this->accessBoundaryNodes(const_cast<NeighborNodeList<Dimension>&>(*nodeListPtr));
       if (boundaryNodes.ghostNodes.size() > 0) {
         const auto myOldFirstGhostNode = boundaryNodes.ghostNodes[0];
         const auto myNewFirstGhostNode = myOldFirstGhostNode - numNodesRemoved[nodeListi];

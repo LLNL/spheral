@@ -25,7 +25,7 @@
 namespace Spheral {
 
 // Forward declarations.
-template<typename Dimension> class NodeList;
+template<typename Dimension> class NeighborNodeList;
 template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class DataBase;
 template<typename Dimension> class Mesh;
@@ -61,17 +61,17 @@ public:
   //****************************************************************************
   // All Boundary conditions must provide the following methods:
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList) = 0;
+  virtual void setGhostNodes(NeighborNodeList<Dimension>& nodeList) = 0;
 
   // For the computed set of ghost nodes, set the positions and H's.
-  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) = 0;
+  virtual void updateGhostNodes(NeighborNodeList<Dimension>& nodeList) = 0;
 
   // Find any internal nodes that are in violation of this Boundary.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList) = 0;
+  virtual void setViolationNodes(NeighborNodeList<Dimension>& nodeList) = 0;
 
   // For the computed set of nodes in violation of the boundary, bring them
   // back into compliance (for the positions and H's.)
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) = 0;
+  virtual void updateViolationNodes(NeighborNodeList<Dimension>& nodeList) = 0;
 
   //****************************************************************************
   // Apply the boundary condition to the ghost node values in the given Field.
@@ -177,40 +177,40 @@ public:
   const std::map<NodeList<Dimension>*, BoundaryNodes>& boundaryNodeMap() const;
 
   // Check if we have entries for the given NodeList.
-  bool haveNodeList(const NodeList<Dimension>& nodeList) const;
+  bool haveNodeList(const NeighborNodeList<Dimension>& nodeList) const;
 
   // Control, Ghost, and Violation nodes for a given NodeList.
-  const std::vector<int>& controlNodes(const NodeList<Dimension>& nodeList) const;
-  const std::vector<int>& ghostNodes(const NodeList<Dimension>& nodeList) const;
-  const std::vector<int>& violationNodes(const NodeList<Dimension>& nodeList) const;
+  const std::vector<int>& controlNodes(const NeighborNodeList<Dimension>& nodeList) const;
+  const std::vector<int>& ghostNodes(const NeighborNodeList<Dimension>& nodeList) const;
+  const std::vector<int>& violationNodes(const NeighborNodeList<Dimension>& nodeList) const;
 
   // Provide iterators over the control, ghost, and violation nodes for a
-  // given NodeList.
-  std::vector<int>::const_iterator controlBegin(const NodeList<Dimension>& nodeList) const;
-  std::vector<int>::const_iterator controlEnd(const NodeList<Dimension>& nodeList) const;
+  // given NeighborNodeList.
+  std::vector<int>::const_iterator controlBegin(const NeighborNodeList<Dimension>& nodeList) const;
+  std::vector<int>::const_iterator controlEnd(const NeighborNodeList<Dimension>& nodeList) const;
 
-  std::vector<int>::const_iterator ghostBegin(const NodeList<Dimension>& nodeList) const;
-  std::vector<int>::const_iterator ghostEnd(const NodeList<Dimension>& nodeList) const;
+  std::vector<int>::const_iterator ghostBegin(const NeighborNodeList<Dimension>& nodeList) const;
+  std::vector<int>::const_iterator ghostEnd(const NeighborNodeList<Dimension>& nodeList) const;
 
-  std::vector<int>::const_iterator violationBegin(const NodeList<Dimension>& nodeList) const;
-  std::vector<int>::const_iterator violationEnd(const NodeList<Dimension>& nodeList) const;
+  std::vector<int>::const_iterator violationBegin(const NeighborNodeList<Dimension>& nodeList) const;
+  std::vector<int>::const_iterator violationEnd(const NeighborNodeList<Dimension>& nodeList) const;
 
   // Descendent classes are allowed to access the BoundaryNodes for the
   // given NodeList.
-  std::map<NodeList<Dimension>*, BoundaryNodes>&       accessBoundaryNodes();
-  const std::map<NodeList<Dimension>*, BoundaryNodes>& accessBoundaryNodes() const;
+  std::map<NeighborNodeList<Dimension>*, BoundaryNodes>&       accessBoundaryNodes();
+  const std::map<NeighborNodeList<Dimension>*, BoundaryNodes>& accessBoundaryNodes() const;
 
-  BoundaryNodes&       accessBoundaryNodes(NodeList<Dimension>& nodeList);
-  const BoundaryNodes& accessBoundaryNodes(NodeList<Dimension>& nodeList) const;
+  BoundaryNodes&       accessBoundaryNodes(NeighborNodeList<Dimension>& nodeList);
+  const BoundaryNodes& accessBoundaryNodes(NeighborNodeList<Dimension>& nodeList) const;
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
   // Descendent classes need to add NodeLists as they build ghosts.
-  virtual void addNodeList(NodeList<Dimension>& nodeList);
+  virtual void addNodeList(NeighborNodeList<Dimension>& nodeList);
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  std::map<NodeList<Dimension>*, BoundaryNodes> mBoundaryNodes;
+  std::map<NeighborNodeList<Dimension>*, BoundaryNodes> mBoundaryNodes;
 };
 
 }

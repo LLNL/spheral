@@ -58,7 +58,7 @@ overlayRemapFields(const vector<Boundary<Dimension>*>& boundaries,
   const unsigned nSymTensorFields = symTensorDonorFields.size();
 
   // Find the donor and acceptor NodeLists.
-  const NodeList<Dimension> *donorNodeListPtr = NULL, *acceptorNodeListPtr = NULL;
+  const NeighborNodeList<Dimension> *donorNodeListPtr = NULL, *acceptorNodeListPtr = NULL;
   for (const Field<Dimension, Scalar>* field: scalarDonorFields) {
     VERIFY2(donorNodeListPtr == NULL or donorNodeListPtr == field->nodeListPtr(), "overlayRemapFields ERROR: all donor fields must be on same NodeList.");
     donorNodeListPtr = field->nodeListPtr();

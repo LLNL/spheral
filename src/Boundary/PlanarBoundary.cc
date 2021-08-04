@@ -106,7 +106,7 @@ PlanarBoundary<Dimension>::~PlanarBoundary() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
+PlanarBoundary<Dimension>::setGhostNodes(NeighborNodeList<Dimension>& nodeList) {
 
   // Remember which node list we are setting the ghost nodes for.
   this->addNodeList(nodeList);
@@ -130,7 +130,7 @@ PlanarBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 PlanarBoundary<Dimension>::
-setGhostNodes(NodeList<Dimension>& nodeList, 
+setGhostNodes(NeighborNodeList<Dimension>& nodeList, 
               const vector<int>& presetControlNodes) {
 
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
@@ -157,7 +157,7 @@ setGhostNodes(NodeList<Dimension>& nodeList,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-PlanarBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
+PlanarBoundary<Dimension>::setViolationNodes(NeighborNodeList<Dimension>& nodeList) {
 
   // Get the BoundaryNodes.violationNodes for this NodeList.
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
@@ -183,7 +183,7 @@ PlanarBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-PlanarBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
+PlanarBoundary<Dimension>::updateViolationNodes(NeighborNodeList<Dimension>& nodeList) {
 
   // Get the set of violation nodes for this NodeList.
   const vector<int>& vNodes = this->violationNodes(nodeList);
@@ -267,7 +267,7 @@ PlanarBoundary<Dimension>::valid() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-PlanarBoundary<Dimension>::setGhostNodeIndices(NodeList<Dimension>& nodeList) {
+PlanarBoundary<Dimension>::setGhostNodeIndices(NeighborNodeList<Dimension>& nodeList) {
 
   // Get the sets of control and ghost nodes.
   BoundaryNodes& boundaryNodes = this->accessBoundaryNodes(nodeList);
@@ -297,7 +297,7 @@ PlanarBoundary<Dimension>::setGhostNodeIndices(NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-PlanarBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
+PlanarBoundary<Dimension>::updateGhostNodes(NeighborNodeList<Dimension>& nodeList) {
   REQUIRE(valid());
 
   // Get the control and ghost node indices.

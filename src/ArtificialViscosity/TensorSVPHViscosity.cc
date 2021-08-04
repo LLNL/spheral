@@ -71,8 +71,8 @@ initialize(const DataBase<Dimension>& dataBase,
   typedef typename Mesh<Dimension>::Face Face;
 
   // The set of NodeLists.
-  const vector<const NodeList<Dimension>*> nodeLists(dataBase.fluidNodeListBegin(),
-                                                     dataBase.fluidNodeListEnd());
+  const vector<const NeighborNodeList<Dimension>*> nodeLists(dataBase.fluidNodeListBegin(),
+                                                             dataBase.fluidNodeListEnd());
   const unsigned numNodeLists = nodeLists.size();
 
   // Grab the state we need.
@@ -131,7 +131,7 @@ initialize(const DataBase<Dimension>& dataBase,
 
     // Iterate over the NodeLists.
     for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-      const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
+      const NeighborNodeList<Dimension>& nodeList = *nodeLists[nodeListj];
       Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
       vector<int> refineNeighbors;
       neighbor.setRefineNeighborList(posFace, H0, coarseNeighbors[nodeListj], refineNeighbors);

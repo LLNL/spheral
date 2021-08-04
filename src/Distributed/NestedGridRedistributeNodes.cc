@@ -62,8 +62,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   const int numProcs = this->numDomains();
 
   // Go over each NodeList, and clear out any ghost nodes.
-  for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-       nodeListItr != dataBase.nodeListEnd();
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd();
        ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
     (*nodeListItr)->neighbor().updateNodes();
@@ -91,8 +91,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
        ++boundItr) {
     (*boundItr)->setAllGhostNodes(dataBase);
     (*boundItr)->finalizeGhostBoundary();
-    for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-         nodeListItr != dataBase.nodeListEnd();
+    for (auto nodeListItr = dataBase.neighborNodeListBegin();
+         nodeListItr != dataBase.neighborNodeListEnd();
          ++nodeListItr) (*nodeListItr)->neighbor().updateNodes();
   }
 
@@ -101,8 +101,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
                                                               mHextent);
 
   // Once again clear out any ghost nodes.
-  for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-       nodeListItr != dataBase.nodeListEnd();
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd();
        ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
     (*nodeListItr)->neighbor().updateNodes();
@@ -263,8 +263,8 @@ computeGridCellPopulations(const DataBase<Dimension>& dataBase,
   gridLevelPopulations = vector<int>(numOccupiedGridLevels, 0);
 
   // Iterate over the NodeLists in the DataBase.
-  for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
-       nodeListItr != dataBase.nodeListEnd();
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd();
        ++nodeListItr) {
 
     // Get the set of occupied grid cells for this NodeList.
@@ -655,8 +655,8 @@ setMasterNeighborNodeLists(DataBase<Dimension>& dataBase,
   REQUIRE(masterLists.size() == dataBase.numNodeLists());
   REQUIRE(coarseNeighbors.size() == dataBase.numNodeLists());
   unsigned iNodeList = 0;
-  for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-       nodeListItr != dataBase.nodeListEnd();
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd();
        ++nodeListItr, ++iNodeList) {
     NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*nodeListItr);
     neighbor.setNestedMasterList(gridCell, gridLevel, masterLists[iNodeList], coarseNeighbors[iNodeList]);
@@ -815,7 +815,7 @@ assignNodesToDomain(const DataBase<Dimension>& dataBase,
       
       // Figure out which grid cell/grid level this node is on.
       CHECK(domainNodeItr->nodeListID < dataBase.numNodeLists());
-      const NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*(dataBase.nodeListBegin() + 
+      const NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*(dataBase.neighborNodeListBegin() + 
                                                                               domainNodeItr->nodeListID));
       gridLevel = neighbor.gridLevel(domainNodeItr->localNodeID);
       gc = neighbor.nodeInCell()[gridLevel][domainNodeItr->localNodeID];

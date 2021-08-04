@@ -9,7 +9,7 @@
 #define __Spheral_findNodesTouchingThroughPlanes__
 
 #include "Geometry/GeomPlane.hh"
-#include "NodeList/NodeList.hh"
+#include "NodeList/NeighborNodeList.hh"
 
 #include <vector>
 
@@ -17,7 +17,7 @@ namespace Spheral {
   
 template<typename Dimension>
 std::vector<int>
-findNodesTouchingThroughPlanes(const NodeList<Dimension>& nodeList,
+findNodesTouchingThroughPlanes(const NeighborNodeList<Dimension>& nodeList,
                                const GeomPlane<Dimension>& enterPlane,
                                const GeomPlane<Dimension>& exitPlane,
                                const double hmultiplier = 1.0);

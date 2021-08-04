@@ -17,7 +17,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 Field<Dimension, std::pair<typename Dimension::Vector, typename Dimension::Vector> >
-nodeBoundingBoxes(const NodeList<Dimension>& nodes) {
+nodeBoundingBoxes(const NeighborNodeList<Dimension>& nodes) {
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
@@ -49,8 +49,8 @@ nodeBoundingBoxes(const DataBase<Dimension>& dataBase) {
   const FieldList<Dimension, Vector> positions = dataBase.globalPosition();
   const FieldList<Dimension, SymTensor> Hfield = dataBase.globalHfield();
   int nodeListi = 0;
-  for (typename DataBase<Dimension>::ConstNodeListIterator itr = dataBase.nodeListBegin();
-       itr != dataBase.nodeListEnd();
+  for (typename DataBase<Dimension>::ConstNodeListIterator itr = dataBase.neighborNodeListBegin();
+       itr != dataBase.neighborNodeListEnd();
        ++itr, ++nodeListi) {
     const int numNodes = (**itr).numNodes();
     const Scalar kernelExtent = (**itr).neighbor().kernelExtent();

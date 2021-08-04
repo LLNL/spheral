@@ -44,7 +44,7 @@ AxisBoundaryRZ::~AxisBoundaryRZ() {
 // where behind is defined in terms of the plane normal.
 //------------------------------------------------------------------------------
 void
-AxisBoundaryRZ::setViolationNodes(NodeList<Dimension>& nodeList) {
+AxisBoundaryRZ::setViolationNodes(NeighborNodeList<Dimension>& nodeList) {
 
   // Get the BoundaryNodes.violationNodes for this NodeList.
   typedef Boundary<Dimension>::BoundaryNodes BoundaryNodes;
@@ -73,7 +73,7 @@ AxisBoundaryRZ::setViolationNodes(NodeList<Dimension>& nodeList) {
 // positions and H tensors.
 //------------------------------------------------------------------------------
 void
-AxisBoundaryRZ::updateViolationNodes(NodeList<Dim<2> >& nodeList) {
+AxisBoundaryRZ::updateViolationNodes(NeighborNodeList<Dim<2> >& nodeList) {
 
   // The effective plane we're reflecting from in eta space.
   GeomPlane<Dim<2> > plane(Vector(0.0, mEtaMin), Vector(0.0, 1.0));

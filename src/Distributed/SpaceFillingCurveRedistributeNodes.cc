@@ -111,8 +111,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     if (this->workBalance()) {
 
       // Enforce boundary conditions for the work computation.
-      for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-           nodeListItr != dataBase.nodeListEnd();
+      for (auto nodeListItr = dataBase.neighborNodeListBegin();
+           nodeListItr != dataBase.neighborNodeListEnd();
            ++nodeListItr) {
         (*nodeListItr)->numGhostNodes(0);
         (*nodeListItr)->neighbor().updateNodes();
@@ -122,8 +122,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
            ++boundaryItr) {
         (*boundaryItr)->setAllGhostNodes(dataBase);
         (*boundaryItr)->finalizeGhostBoundary();
-        for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = dataBase.fluidNodeListBegin();
-             nodeListItr != dataBase.fluidNodeListEnd(); 
+        for (auto nodeListItr = dataBase.neighborNodeListBegin();
+             nodeListItr != dataBase.neighborNodeListEnd(); 
              ++nodeListItr) (*nodeListItr)->neighbor().updateNodes();
       }
 
@@ -149,8 +149,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     // Clear out any ghost nodes.
     // We won't bother to update the neighbor info at this point -- we don't need 
     // it for this algorithm, so we just update it when we're done.
-    for (typename DataBase<Dimension>::NodeListIterator nodeListItr = dataBase.nodeListBegin();
-         nodeListItr != dataBase.nodeListEnd();
+    for (auto nodeListItr = dataBase.neighborNodeListBegin();
+         nodeListItr != dataBase.neighborNodeListEnd();
          ++nodeListItr) {
       (*nodeListItr)->numGhostNodes(0);
     }
@@ -277,7 +277,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     if (not this->localReorderOnly()) this->enforceDomainDecomposition(nodeDistribution, dataBase);
 
     // Sort the local indices in each NodeList to find the local ordering.
-    for (auto nodeListPtr: dataBase.nodeListPtrs()) {
+    for (auto nodeListPtr: dataBase.neighborNodeListPtrs()) {
       const auto n = nodeListPtr->numInternalNodes();
       const auto& keys = **indices.fieldForNodeList(*nodeListPtr);
       vector<pair<Key, int>> orderedkeys(n);
@@ -301,7 +301,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     // Make sure the nodes are now sorted by the index keys.
     BEGIN_CONTRACT_SCOPE
       {
-        for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
+        for (auto nodeListItr = dataBase.nodeListBegin();
              nodeListItr != dataBase.nodeListEnd();
              ++nodeListItr) {
           const Field<Dimension, Key> keyField = **indices.fieldForNodeList(**nodeListItr);

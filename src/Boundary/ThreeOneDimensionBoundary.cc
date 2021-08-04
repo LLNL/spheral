@@ -36,7 +36,7 @@ ThreeOneDimensionBoundary<Dimension>::~ThreeOneDimensionBoundary() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-ThreeOneDimensionBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
+ThreeOneDimensionBoundary<Dimension>::setGhostNodes(NeighborNodeList<Dimension>& nodeList) {
   // Add this NodeList, creating space for control & ghost nodes.
   addNodeList(nodeList);
 }
@@ -46,7 +46,7 @@ ThreeOneDimensionBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeLis
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-ThreeOneDimensionBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
+ThreeOneDimensionBoundary<Dimension>::updateGhostNodes(NeighborNodeList<Dimension>& nodeList) {
 }
 
 //------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ ThreeOneDimensionBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& node
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-ThreeOneDimensionBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
+ThreeOneDimensionBoundary<Dimension>::setViolationNodes(NeighborNodeList<Dimension>& nodeList) {
 
   // Get the BoundaryNodes.violationNodes for this NodeList.
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
@@ -79,7 +79,7 @@ ThreeOneDimensionBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nod
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-ThreeOneDimensionBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
+ThreeOneDimensionBoundary<Dimension>::updateViolationNodes(NeighborNodeList<Dimension>& nodeList) {
 
   // Zero the y,z position values.
   Field<Dimension, Vector>& positions = nodeList.positions();

@@ -32,7 +32,7 @@ boundingBox(const typename Dimension::Vector& xi,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 Field<Dimension, std::pair<typename Dimension::Vector, typename Dimension::Vector> >
-nodeBoundingBoxes(const NodeList<Dimension>& nodes);
+nodeBoundingBoxes(const NeighborNodeList<Dimension>& nodes);
 
 //------------------------------------------------------------------------------
 // The bounding boxes for all nodes in a DataBase.

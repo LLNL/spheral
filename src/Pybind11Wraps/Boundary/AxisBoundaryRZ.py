@@ -29,11 +29,11 @@ class AxisBoundaryRZ(Boundary):
     #...........................................................................
     # Methods
     @PYB11virtual
-    def setViolationNodes(self, nodeList="NodeList<%(Dimension)s>&"):
+    def setViolationNodes(self, nodeList="NeighborNodeList<%(Dimension)s>&"):
         return "void"
 
     @PYB11virtual
-    def updateViolationNodes(self, nodeList="NodeList<%(Dimension)s>&"):
+    def updateViolationNodes(self, nodeList="NeighborNodeList<%(Dimension)s>&"):
         return "void"
 
     @PYB11virtual

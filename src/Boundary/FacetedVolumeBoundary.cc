@@ -348,7 +348,7 @@ FacetedVolumeBoundary<Dimension>::~FacetedVolumeBoundary() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
+FacetedVolumeBoundary<Dimension>::setGhostNodes(NeighborNodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
   if (mUseGhosts) {
     const auto& facets = mPoly.facets();
@@ -415,7 +415,7 @@ FacetedVolumeBoundary<Dimension>::setGhostNodes(NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-FacetedVolumeBoundary<Dimension>::updateGhostNodes(NodeList<Dimension>& nodeList) {
+FacetedVolumeBoundary<Dimension>::updateGhostNodes(NeighborNodeList<Dimension>& nodeList) {
   if (mUseGhosts) {
 
     const auto  name = nodeList.name();
@@ -546,7 +546,7 @@ applyGhostBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) c
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-FacetedVolumeBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeList) {
+FacetedVolumeBoundary<Dimension>::setViolationNodes(NeighborNodeList<Dimension>& nodeList) {
 
   // Get the BoundaryNodes.violationNodes for this NodeList.
   this->addNodeList(nodeList);
@@ -576,7 +576,7 @@ FacetedVolumeBoundary<Dimension>::setViolationNodes(NodeList<Dimension>& nodeLis
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-FacetedVolumeBoundary<Dimension>::updateViolationNodes(NodeList<Dimension>& nodeList) {
+FacetedVolumeBoundary<Dimension>::updateViolationNodes(NeighborNodeList<Dimension>& nodeList) {
 
   // Get the set of violation nodes for this NodeList.
   const auto& vNodes = this->violationNodes(nodeList);

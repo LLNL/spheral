@@ -73,8 +73,8 @@ DistributedBoundary<Dimension>::~DistributedBoundary() {
 template<typename Dimension>
 bool
 DistributedBoundary<Dimension>::
-communicatedNodeList(const NodeList<Dimension>& nodeList) const {
-  return mNodeListDomainBoundaryNodeMap.find(const_cast<NodeList<Dimension>*>(&nodeList)) !=
+communicatedNodeList(const NeighborNodeList<Dimension>& nodeList) const {
+  return mNodeListDomainBoundaryNodeMap.find(const_cast<NeighborNodeList<Dimension>*>(&nodeList)) !=
     mNodeListDomainBoundaryNodeMap.end();
 }
 
@@ -84,10 +84,10 @@ communicatedNodeList(const NodeList<Dimension>& nodeList) const {
 template<typename Dimension>
 bool
 DistributedBoundary<Dimension>::
-nodeListSharedWithDomain(const NodeList<Dimension>& nodeList,
+nodeListSharedWithDomain(const NeighborNodeList<Dimension>& nodeList,
                          int neighborDomainID) const {
   typename NodeListDomainBoundaryNodeMap::const_iterator itr =
-    mNodeListDomainBoundaryNodeMap.find(const_cast<NodeList<Dimension>*>(&nodeList));
+    mNodeListDomainBoundaryNodeMap.find(const_cast<NeighborNodeList<Dimension>*>(&nodeList));
 
   if (itr == mNodeListDomainBoundaryNodeMap.end()) return false;
   const DomainBoundaryNodeMap& thpt = itr->second;
@@ -100,9 +100,9 @@ nodeListSharedWithDomain(const NodeList<Dimension>& nodeList,
 template<typename Dimension>
 const typename DistributedBoundary<Dimension>::DomainBoundaryNodeMap&
 DistributedBoundary<Dimension>::
-domainBoundaryNodeMap(const NodeList<Dimension>& nodeList) const {
+domainBoundaryNodeMap(const NeighborNodeList<Dimension>& nodeList) const {
   typename NodeListDomainBoundaryNodeMap::const_iterator itr =
-    mNodeListDomainBoundaryNodeMap.find(const_cast<NodeList<Dimension>*>(&nodeList));
+    mNodeListDomainBoundaryNodeMap.find(const_cast<NeighborNodeList<Dimension>*>(&nodeList));
   REQUIRE(itr != mNodeListDomainBoundaryNodeMap.end());
   return itr->second;
 }
@@ -113,7 +113,7 @@ domainBoundaryNodeMap(const NodeList<Dimension>& nodeList) const {
 template<typename Dimension>
 const typename DistributedBoundary<Dimension>::DomainBoundaryNodes&
 DistributedBoundary<Dimension>::
-domainBoundaryNodes(const NodeList<Dimension>& nodeList,
+domainBoundaryNodes(const NeighborNodeList<Dimension>& nodeList,
                     int neighborDomainID) const {
   const DomainBoundaryNodeMap& domainBoundary = domainBoundaryNodeMap(nodeList);
   typename DomainBoundaryNodeMap::const_iterator itr = domainBoundary.find(neighborDomainID);
@@ -966,7 +966,7 @@ beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const {
 template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
-setGhostNodes(NodeList<Dimension>&) {
+setGhostNodes(NeighborNodeList<Dimension>&) {
   VERIFY(0);
 }
 
@@ -977,7 +977,7 @@ setGhostNodes(NodeList<Dimension>&) {
 template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
-updateGhostNodes(NodeList<Dimension>& nodeList) {
+updateGhostNodes(NeighborNodeList<Dimension>& nodeList) {
 
   // Exchange the positions and H fields for this NodeList.
   Field<Dimension, Vector>& positions = nodeList.positions();
@@ -993,13 +993,13 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
-setViolationNodes(NodeList<Dimension>&) {
+setViolationNodes(NeighborNodeList<Dimension>&) {
 }
 
 template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
-updateViolationNodes(NodeList<Dimension>&) {
+updateViolationNodes(NeighborNodeList<Dimension>&) {
 }
 
 //------------------------------------------------------------------------------
@@ -1430,7 +1430,7 @@ setControlAndGhostNodes() {
 template<typename Dimension>
 typename DistributedBoundary<Dimension>::DomainBoundaryNodeMap&
 DistributedBoundary<Dimension>::
-accessDomainBoundaryNodeMap(const NodeList<Dimension>& nodeList) {
+accessDomainBoundaryNodeMap(const NeighborNodeList<Dimension>& nodeList) {
   return const_cast<DomainBoundaryNodeMap&>(domainBoundaryNodeMap(nodeList));
 }
 
@@ -1441,7 +1441,7 @@ accessDomainBoundaryNodeMap(const NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 typename DistributedBoundary<Dimension>::DomainBoundaryNodes&
 DistributedBoundary<Dimension>::
-accessDomainBoundaryNodes(const NodeList<Dimension>& nodeList,
+accessDomainBoundaryNodes(const NeighborNodeList<Dimension>& nodeList,
                           int neighborDomainID) {
   return const_cast<DomainBoundaryNodes&>(domainBoundaryNodes(nodeList,
                                                               neighborDomainID));
@@ -1455,7 +1455,7 @@ accessDomainBoundaryNodes(const NodeList<Dimension>& nodeList,
 template<typename Dimension>
 typename DistributedBoundary<Dimension>::DomainBoundaryNodes&
 DistributedBoundary<Dimension>::
-openDomainBoundaryNodes(NodeList<Dimension>* nodeListPtr,
+openDomainBoundaryNodes(NeighborNodeList<Dimension>* nodeListPtr,
                         const int domainID) {
 
   // Is there an entry for this NodeList yet?
@@ -1487,7 +1487,7 @@ openDomainBoundaryNodes(NodeList<Dimension>* nodeListPtr,
 template<typename Dimension>
 void
 DistributedBoundary<Dimension>::
-removeDomainBoundaryNodes(NodeList<Dimension>* nodeListPtr,
+removeDomainBoundaryNodes(NeighborNodeList<Dimension>* nodeListPtr,
                           const int domainID) {
 
   typename NodeListDomainBoundaryNodeMap::iterator nodeListItr = mNodeListDomainBoundaryNodeMap.find(nodeListPtr);

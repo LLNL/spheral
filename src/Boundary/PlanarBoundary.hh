@@ -40,16 +40,16 @@ public:
   virtual ~PlanarBoundary();
 
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;
-  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
+  virtual void setGhostNodes(NeighborNodeList<Dimension>& nodeList) override;
+  virtual void updateGhostNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // Find the set of nodes in violation of this boundary in the given NodeList.
   // For planar boundaries this is any node that is "behind" the enter plane.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void setViolationNodes(NeighborNodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // Set the ghost nodes for a predefined set of control nodes.
-  void setGhostNodes(NodeList<Dimension>& nodeList, 
+  void setGhostNodes(NeighborNodeList<Dimension>& nodeList, 
                      const std::vector<int>& presetControlNodes);
 
   // Allow access to the entrance and exit planes.
@@ -97,7 +97,7 @@ private:
 
   // Method to set the ghost node indices for a given NodeList once the
   // master nodes are set.
-  void setGhostNodeIndices(NodeList<Dimension>& nodeList);
+  void setGhostNodeIndices(NeighborNodeList<Dimension>& nodeList);
 };
 
 }

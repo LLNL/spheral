@@ -34,7 +34,7 @@ namespace Spheral {
 template<typename Dimension>
 ConstantBoundary<Dimension>::
 ConstantBoundary(DataBase<Dimension>& dataBase,
-                 NodeList<Dimension>& nodeList,
+                 NeighborNodeList<Dimension>& nodeList,
                  const vector<int>& nodeIDs,
                  const GeomPlane<Dimension>& denialPlane):
   Boundary<Dimension>(),
@@ -75,7 +75,7 @@ ConstantBoundary<Dimension>::~ConstantBoundary() {
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
-setGhostNodes(NodeList<Dimension>& nodeList) {
+setGhostNodes(NeighborNodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
 
   if (mActive and &nodeList == mNodeListPtr) {
@@ -105,7 +105,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
-updateGhostNodes(NodeList<Dimension>& nodeList) {
+updateGhostNodes(NeighborNodeList<Dimension>& nodeList) {
   if (mActive and &nodeList == mNodeListPtr) {
     this->applyGhostBoundary(nodeList.positions());
     this->applyGhostBoundary(nodeList.Hfield());
@@ -128,7 +128,7 @@ applyGhostBoundary(FieldBase<Dimension>& field) const {
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
-setViolationNodes(NodeList<Dimension>& nodeList) {
+setViolationNodes(NeighborNodeList<Dimension>& nodeList) {
   this->addNodeList(nodeList);
   if (&nodeList == mNodeListPtr) {
     const auto& pos = nodeList.positions();
@@ -148,7 +148,7 @@ setViolationNodes(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 ConstantBoundary<Dimension>::
-updateViolationNodes(NodeList<Dimension>& nodeList) {
+updateViolationNodes(NeighborNodeList<Dimension>& nodeList) {
   if (&nodeList == mNodeListPtr) {
     auto& pos = nodeList.positions();
     auto& vel = nodeList.velocity();

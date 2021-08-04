@@ -47,7 +47,7 @@ CylindricalBoundary::
 //------------------------------------------------------------------------------
 void
 CylindricalBoundary::
-setGhostNodes(NodeList<Dim<3> >& nodeList) {
+setGhostNodes(NeighborNodeList<Dim<3> >& nodeList) {
   REQUIRE(mDeltaPhi.fieldForNodeList(nodeList) < mDeltaPhi.end());
 
   // Add this NodeList, creating space for control & ghost nodes.
@@ -170,7 +170,7 @@ setGhostNodes(NodeList<Dim<3> >& nodeList) {
 //------------------------------------------------------------------------------
 void
 CylindricalBoundary::
-updateGhostNodes(NodeList<Dim<3> >& nodeList) {
+updateGhostNodes(NeighborNodeList<Dim<3> >& nodeList) {
   REQUIRE(mDeltaPhi.fieldForNodeList(nodeList) < mDeltaPhi.end());
 
   // Get the control and ghost nodes for this NodeList.

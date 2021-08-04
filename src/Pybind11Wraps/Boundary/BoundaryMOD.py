@@ -60,7 +60,7 @@ pair and return the mapped position."""
     return "%(Dimension)s::Vector"
 
 @PYB11template("Dimension")
-def findNodesTouchingThroughPlanes(nodeList = "const NodeList<%(Dimension)s>&",
+def findNodesTouchingThroughPlanes(nodeList = "const NeighborNodeList<%(Dimension)s>&",
                                    enterPlane = "const GeomPlane<%(Dimension)s>&",
                                    exitPlane = "const GeomPlane<%(Dimension)s>&",
                                    hmultiplier = ("double", "1.0")):

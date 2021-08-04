@@ -19,7 +19,7 @@ namespace Spheral {
 template<typename Dimension>
 inline
 NestedGridNeighbor<Dimension>&
-getNestedGridNeighbor(const NodeList<Dimension>* nodeListPtr) {
+getNestedGridNeighbor(const NeighborNodeList<Dimension>* nodeListPtr) {
   NestedGridNeighbor<Dimension>& neighbor = dynamic_cast<NestedGridNeighbor<Dimension>&>(nodeListPtr->neighbor());
   return neighbor;
 }
@@ -37,8 +37,8 @@ maxNumGridLevels(const DataBase<Dimension>& dataBase,
   int numGridLevels = 0;
 
   // Loop over the NodeLists in the DataBase.
-  for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
-       nodeListItr != dataBase.nodeListEnd();
+  for (auto nodeListItr = dataBase.neighborNodeListBegin();
+       nodeListItr != dataBase.neighborNodeListEnd();
        ++nodeListItr) {
     NestedGridNeighbor<Dimension>& neighbor = getNestedGridNeighbor(*nodeListItr);
     numGridLevels = std::max(numGridLevels, neighbor.numGridLevels());

@@ -536,7 +536,7 @@ reinitializeNeighbors() const {
   auto xmin = Vector(std::numeric_limits<Scalar>::max()), xmax = Vector(std::numeric_limits<Scalar>::lowest());
   unsigned ntot = 0;
   Scalar havg = 0.0, hmax = 0.0, maxExtent = 0.0;
-  for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
+  for (auto itr = this->neighborNodeListBegin(); itr != this->neighborNodeListEnd(); ++itr) {
     const auto positions = (*itr)->positions();
     const auto  n = (*itr)->numInternalNodes();
     const auto& neighbor = (*itr)->neighbor();
@@ -572,7 +572,7 @@ reinitializeNeighbors() const {
   }
 
   // Now initialize the neighbors.
-  for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
+  for (auto itr = this->neighborNodeListBegin(); itr != this->neighborNodeListEnd(); ++itr) {
     auto& neighbor = (*itr)->neighbor();
     neighbor.reinitialize(xmin, xmax, havg);
     neighbor.updateNodes();
@@ -956,8 +956,8 @@ setRefineNeighborNodeLists(const typename Dimension::Vector& position,
   REQUIRE(coarseNeighbors.size() == this->numNodeLists());
   refineNeighbors = std::vector<std::vector<int>>(this->numNodeLists());
   size_t iNodeList = 0;
-  for (ConstNodeListIterator nodeListItr = nodeListBegin();
-       nodeListItr < nodeListEnd();
+  for (ConstNeighborNodeListIterator nodeListItr = neighborNodeListBegin();
+       nodeListItr < neighborNodeListEnd();
        ++nodeListItr, ++iNodeList) {
     (*nodeListItr)->neighbor().setRefineNeighborList(position, H, 
                                                      coarseNeighbors[iNodeList],
@@ -1717,8 +1717,8 @@ typename Dimension::Scalar
 DataBase<Dimension>::
 maxKernelExtent() const {
   Scalar result = 0.0;
-  for (ConstNodeListIterator nodeListItr = nodeListBegin();
-       nodeListItr != nodeListEnd();
+  for (ConstNeighborNodeListIterator nodeListItr = neighborNodeListBegin();
+       nodeListItr != neighborNodeListEnd();
        ++nodeListItr) result = std::max(result, (**nodeListItr).neighbor().kernelExtent());
   return result;
 }

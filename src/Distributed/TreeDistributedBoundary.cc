@@ -118,7 +118,7 @@ template<typename Dimension>
 inline
 const TreeNeighbor<Dimension>*
 TreeDistributedBoundary<Dimension>::
-getTreeNeighborPtr(const NodeList<Dimension>* nodeListPtr) const {
+getTreeNeighborPtr(const NeighborNodeList<Dimension>* nodeListPtr) const {
   const TreeNeighbor<Dimension>* result = dynamic_cast<TreeNeighbor<Dimension>*>(&(nodeListPtr->neighbor()));
   VERIFY2(result != NULL, "TreeDistributedBoundary ERROR : unable to extract TreeNeighbor from NodeList " << nodeListPtr->name());
   return result;

@@ -31,13 +31,13 @@ public:
   virtual ~ThreeOneDimensionBoundary();
 
   // Use the given NodeList's neighbor object to select the ghost nodes.
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList);
-  virtual void updateGhostNodes(NodeList<Dimension>& nodeList);
+  virtual void setGhostNodes(NeighborNodeList<Dimension>& nodeList);
+  virtual void updateGhostNodes(NeighborNodeList<Dimension>& nodeList);
 
   // Find the set of nodes in violation of this boundary in the given NodeList.
   // For planar boundaries this is any node that is "behind" the enter plane.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList);
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList);
+  virtual void setViolationNodes(NeighborNodeList<Dimension>& nodeList);
+  virtual void updateViolationNodes(NeighborNodeList<Dimension>& nodeList);
 
   // Apply the boundary condition to ghost nodes.
   virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const;

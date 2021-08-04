@@ -38,10 +38,10 @@ public:
   virtual ~FacetedVolumeBoundary();
 
   // Create any ghost nodes for the NodeList
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;
+  virtual void setGhostNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // For the computed set of ghost nodes, set the positions and H's.
-  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateGhostNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the ghost values of given Field.
   virtual void applyGhostBoundary(Field<Dimension, int>& field) const override;
@@ -55,11 +55,11 @@ public:
   virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const override;
 
   // Find any internal nodes that are in violation of this Boundary.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void setViolationNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // For the computed set of nodes in violation of the boundary, bring them
   // back into compliance (for the positions and H's.)
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the violation node values in the given Field.
   virtual void enforceBoundary(Field<Dimension, int>& field) const override;

@@ -33,12 +33,12 @@ public:
   virtual ~PeriodicBoundary();
 
   // Override the default methods for setting ghost nodes.
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;
-  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
+  virtual void setGhostNodes(NeighborNodeList<Dimension>& nodeList) override;
+  virtual void updateGhostNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // Override the default methods for setting violation nodes.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void setViolationNodes(NeighborNodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // Override the methods for setting the enter and exit planes.
   virtual const GeomPlane<Dimension>& enterPlane() const override;

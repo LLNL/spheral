@@ -482,8 +482,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const TableKernel<Dimension>& W = this->kernel();
 
   // The set of NodeLists.
-  const vector<const NodeList<Dimension>*> nodeLists(dataBase.fluidNodeListBegin(),
-                                                     dataBase.fluidNodeListEnd());
+  const vector<const NeighborNodeList<Dimension>*> nodeLists(dataBase.fluidNodeListBegin(),
+                                                             dataBase.fluidNodeListEnd());
   const size_t numNodeLists = nodeLists.size();
 
   // The mesh.

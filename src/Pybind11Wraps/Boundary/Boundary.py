@@ -342,35 +342,35 @@ class Boundary:
 
     @PYB11virtual
     @PYB11protected
-    def addNodeList(self, nodeList="NodeList<%(Dimension)s>&"):
+    def addNodeList(self, nodeList="NeighborNodeList<%(Dimension)s>&"):
         return "void"
 
     #...........................................................................
     # Methods
     @PYB11const
-    def haveNodeList(self, nodeList="const NodeList<%(Dimension)s>&"):
+    def haveNodeList(self, nodeList="const NeighborNodeList<%(Dimension)s>&"):
         "Check if we have entries for the given NodeList."
         return "bool"
 
     @PYB11returnpolicy("reference_internal")
-    def accessBoundaryNodes(self, nodeList="NodeList<%(Dimension)s>&"):
+    def accessBoundaryNodes(self, nodeList="NeighborNodeList<%(Dimension)s>&"):
         return "BoundaryNodes&"
 
     @PYB11returnpolicy("reference_internal")
     @PYB11const
-    def controlNodes(self, nodeList="const NodeList<%(Dimension)s>&"):
+    def controlNodes(self, nodeList="const NeighborNodeList<%(Dimension)s>&"):
         "Control nodes for a given NodeList"
         return "const std::vector<int>&"
 
     @PYB11returnpolicy("reference_internal")
     @PYB11const
-    def ghostNodes(self, nodeList="const NodeList<%(Dimension)s>&"):
+    def ghostNodes(self, nodeList="const NeighborNodeList<%(Dimension)s>&"):
         "Ghost nodes for a given NodeList"
         return "const std::vector<int>&"
 
     @PYB11returnpolicy("reference_internal")
     @PYB11const
-    def violationNodes(self, nodeList="const NodeList<%(Dimension)s>&"):
+    def violationNodes(self, nodeList="const NeighborNodeList<%(Dimension)s>&"):
         "Violation nodes for a given NodeList"
         return "const std::vector<int>&"
 
