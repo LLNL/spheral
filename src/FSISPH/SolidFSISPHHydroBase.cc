@@ -316,7 +316,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // A few useful constants we'll use in the following loop.
-  const auto tiny = 1.0e-30;
+  const auto tiny = std::numeric_limits<double>::epsilon();
   const auto W0 = W(0.0, 1.0);
   const auto epsTensile = this->epsilonTensile();
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
