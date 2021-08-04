@@ -27,7 +27,7 @@ closestPointOnSegment(const Vector& p,
   const auto ahat = a01*safeInv(a01mag);
   const auto a0p = p - a0;
   const auto ptest = a0p.dot(ahat);
-  return a0 + std::max(0.0, std::min(1.0, ptest))*ahat;
+  return a0 + ptest*ahat;
 }
 
 // This version returns true if the closest point forms a right angle between
