@@ -695,7 +695,7 @@ if outputFile != "None":
 #------------------------------------------------------------------------------
 # Compute the error.
 #------------------------------------------------------------------------------
-if mpi.rank == 0:
+if mpi.rank == 0 :
     xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
     import Pnorm
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
@@ -732,23 +732,45 @@ if mpi.rank == 0:
            
 
         if checkError:
-            if not fuzzyEqual(L1, L1expect, tol):
-                print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+            if not crksph and not psph and not fsisph: # if sph use the known error norms
+                if not fuzzyEqual(L1, L1expect, tol):
+                    print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                       L1,
                                                                                       L1expect)
-                failure = True
-            if not fuzzyEqual(L2, L2expect, tol):
-                print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                    failure = True
+                if not fuzzyEqual(L2, L2expect, tol):
+                    print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                       L2,
                                                                                       L2expect)
-                failure = True
-            if not fuzzyEqual(Linf, Linfexpect, tol):
-                print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                    failure = True
+                if not fuzzyEqual(Linf, Linfexpect, tol):
+                    print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                         Linf,
                                                                                         Linfexpect)
-                failure = True
-            if failure:
-                raise ValueError, "Error bounds violated."
+                    failure = True
+                if failure:
+                    raise ValueError, "Error bounds violated."
+
+            if fsisph: # for fsi check if the norms are order of mag same as sph 
+            
+                if L1 > 2.0*L1expect:
+                    print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                      L1,
+                                                                                      L1expect)
+                    failure = True
+                if L2 > 2.0*L2expect:
+                    print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                      L2,
+                                                                                      L2expect)
+                    failure = True
+                if Linf > 2.0 * Linfexpect:
+                    print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                        Linf,
+                                                                                        Linfexpect)
+                    failure = True
+                if failure:
+                    raise ValueError, "Error bounds violated."
+  
     if normOutputFile != "None":
        f.write("\n")
                                              
