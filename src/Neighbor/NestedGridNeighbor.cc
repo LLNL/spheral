@@ -7,7 +7,7 @@
 //----------------------------------------------------------------------------//
 #include "NestedGridNeighbor.hh"
 #include "Neighbor.hh"
-#include "NodeList/NodeList.hh"
+#include "NodeList/NeighborNodeList.hh"
 #include "Field/Field.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "GridCellIndex.hh"
@@ -40,7 +40,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 NestedGridNeighbor<Dimension>::
-NestedGridNeighbor(NodeList<Dimension>& aNodeList,
+NestedGridNeighbor(NeighborNodeList<Dimension>& aNodeList,
                    const NeighborSearchType aSearchType,
                    const int numGridLevels,
                    const double topGridCellSize,
@@ -733,7 +733,7 @@ mapGridCell(const GridCellIndex<Dimension>& gridCell,
 template<typename Dimension>
 bool
 NestedGridNeighbor<Dimension>::valid() const {
-  const NodeList<Dimension>& nodes = this->nodeList();
+  const NeighborNodeList<Dimension>& nodes = this->nodeList();
 
   if (mMaxGridLevels <= 0) {
     cerr << "NestedGridNeighbor::valid: invalid mMaxGridLevels "
@@ -980,7 +980,7 @@ NestedGridNeighbor<Dimension>::updateNodes() {
   BEGIN_CONTRACT_SCOPE
   {
     // Make sure each node is only linked into one grid cell.
-    const NodeList<Dimension>& nodes = this->nodeList();
+    const NeighborNodeList<Dimension>& nodes = this->nodeList();
     Field<Dimension, uint64_t> count("count check", nodes);
     const vector<int> occupiedGLs = occupiedGridLevels();
     for (vector<int>::const_iterator glItr = occupiedGLs.begin();

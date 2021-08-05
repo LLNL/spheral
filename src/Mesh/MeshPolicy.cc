@@ -109,12 +109,12 @@ update(const KeyType& key,
   }
 
   // Do the deed.
-  NodeList<Dimension> voidNodes("void", 0, 0);
-  vector<const NodeList<Dimension>*> nodeLists(positions.nodeListPtrs().begin(),
+  NeighborNodeList<Dimension> voidNodes("void", 0, 0);
+  vector<const NeighborNodeList<Dimension>*> nodeLists(positions.nodeListPtrs().begin(),
                                                positions.nodeListPtrs().end());
   nodeLists.push_back(&voidNodes);
   generateMesh<Dimension, 
-               typename vector<const NodeList<Dimension>*>::iterator,
+               typename vector<const NeighborNodeList<Dimension>*>::iterator,
                typename Physics<Dimension>::ConstBoundaryIterator>
     (nodeLists.begin(), nodeLists.end(),
      mPackage.boundaryBegin(),

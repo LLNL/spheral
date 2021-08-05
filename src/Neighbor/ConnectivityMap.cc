@@ -479,7 +479,7 @@ ConnectivityMap<Dimension>::
 globalConnectivity(vector<Boundary<Dimension>*>& boundaries) const {
 
   // Get the set of global node IDs.
-  FieldList<Dimension, int> globalIDs = globalNodeIDs<Dimension, typename vector<const NodeList<Dimension>*>::const_iterator>
+  FieldList<Dimension, int> globalIDs = globalNodeIDs<Dimension, typename vector<const NeighborNodeList<Dimension>*>::const_iterator>
     (mNodeLists.begin(), mNodeLists.end());
 
   // Make sure all ghost nodes have the appropriate global IDs.
@@ -495,7 +495,7 @@ globalConnectivity(vector<Boundary<Dimension>*>& boundaries) const {
   const size_t numNodeLists = mNodeLists.size();
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
 
-    const NodeList<Dimension>* nodeListPtr = mNodeLists[nodeListi];
+    const NeighborNodeList<Dimension>* nodeListPtr = mNodeLists[nodeListi];
     for (auto i = 0u; i != nodeListPtr->numInternalNodes(); ++i) {
       const int gid = globalIDs(nodeListi, i);
       result[gid] = vector<int>();
@@ -524,7 +524,7 @@ globalConnectivity(vector<Boundary<Dimension>*>& boundaries) const {
 template<typename Dimension>
 unsigned
 ConnectivityMap<Dimension>::
-nodeListIndex(const NodeList<Dimension>* nodeListPtr) const {
+nodeListIndex(const NeighborNodeList<Dimension>* nodeListPtr) const {
   return distance(mNodeLists.begin(), 
                   find(mNodeLists.begin(), mNodeLists.end(), nodeListPtr));
 }
@@ -564,7 +564,7 @@ valid() const {
     const NodeListRegistrar<Dimension>& registrar = NodeListRegistrar<Dimension>::instance();
     const vector<string> names = registrar.registeredNames();
     int lastPosition = -1;
-    for (typename vector<const NodeList<Dimension>*>::const_iterator itr = mNodeLists.begin();
+    for (typename vector<const NeighborNodeList<Dimension>*>::const_iterator itr = mNodeLists.begin();
          itr != mNodeLists.end();
          ++itr) {
       const int newPosition = distance(names.begin(),
@@ -581,7 +581,7 @@ valid() const {
   for (auto nodeListIDi = 0; nodeListIDi != numNodeLists; ++nodeListIDi) {
 
     // Are all internal nodes represented?
-    const NodeList<Dimension>* nodeListPtri = mNodeLists[nodeListIDi];
+    const NeighborNodeList<Dimension>* nodeListPtri = mNodeLists[nodeListIDi];
     const int numNodes = (ghostConnectivity ?
                           nodeListPtri->numNodes() : 
                           nodeListPtri->numInternalNodes());
@@ -608,7 +608,7 @@ valid() const {
 
       // Iterate over the sets of NodeList neighbors for this node.
       for (int nodeListIDj = 0; nodeListIDj != numNodeLists; ++nodeListIDj) {
-        const NodeList<Dimension>* nodeListPtrj = mNodeLists[nodeListIDj];
+        const NeighborNodeList<Dimension>* nodeListPtrj = mNodeLists[nodeListIDj];
         //const int firstGhostNodej = nodeListPtrj->firstGhostNode();
         const vector<int>& neighbors = allNeighborsForNode[nodeListIDj];
 
@@ -689,7 +689,7 @@ valid() const {
   // Check that if we are using domain decompostion independence then the keys 
   // have been calculated.
   if (domainDecompIndependent) {
-    for (typename vector<const NodeList<Dimension>*>::const_iterator itr = mNodeLists.begin();
+    for (typename vector<const NeighborNodeList<Dimension>*>::const_iterator itr = mNodeLists.begin();
          itr != mNodeLists.end();
          ++itr) {
       if (not mKeys.haveNodeList(**itr)) {
@@ -763,7 +763,7 @@ computeConnectivity() {
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   {
-    for (typename vector<const NodeList<Dimension>*>::const_iterator itr = mNodeLists.begin();
+    for (typename vector<const NeighborNodeList<Dimension>*>::const_iterator itr = mNodeLists.begin();
          itr != mNodeLists.end();
          ++itr) {
       REQUIRE((**itr).neighbor().valid());
@@ -784,10 +784,10 @@ computeConnectivity() {
   // Simultaneously find the maximum kernel extent.
   DataBase<Dimension> dataBase;
   double kernelExtent = 0.0;
-  for (typename vector<const NodeList<Dimension>*>::const_iterator itr = mNodeLists.begin();
+  for (typename vector<const NeighborNodeList<Dimension>*>::const_iterator itr = mNodeLists.begin();
        itr != mNodeLists.end();
        ++itr) {
-    dataBase.appendNodeList(const_cast<NodeList<Dimension>&>(**itr));
+    dataBase.appendNodeList(const_cast<NeighborNodeList<Dimension>&>(**itr));
     kernelExtent = max(kernelExtent, (**itr).neighbor().kernelExtent());
   }
   const double kernelExtent2 = kernelExtent*kernelExtent;
@@ -825,7 +825,7 @@ computeConnectivity() {
   CHECK(mNodeTraversalIndices.size() == numNodeLists);
   if (domainDecompIndependent) {
     for (auto iNodeList = 0u; iNodeList != numNodeLists; ++iNodeList) {
-      const NodeList<Dimension>& nodeList = *mNodeLists[iNodeList];
+      const NeighborNodeList<Dimension>& nodeList = *mNodeLists[iNodeList];
       mNodeTraversalIndices[iNodeList].resize(nodeList.numNodes());
       vector<pair<int, Key> > keys;
       keys.reserve(nodeList.numNodes());
@@ -839,7 +839,7 @@ computeConnectivity() {
     }
   } else {
     for (auto iNodeList = 0u; iNodeList != numNodeLists; ++iNodeList) {
-      const NodeList<Dimension>& nodeList = *mNodeLists[iNodeList];
+      const NeighborNodeList<Dimension>& nodeList = *mNodeLists[iNodeList];
       mNodeTraversalIndices[iNodeList].resize(nodeList.numInternalNodes());
       for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) mNodeTraversalIndices[iNodeList][i] = i;
     }

@@ -43,7 +43,7 @@ template<typename Dimension>
 inline
 bool
 Boundary<Dimension>::
-haveNodeList(const NodeList<Dimension>& nodeList) const {
+haveNodeList(const NeighborNodeList<Dimension>& nodeList) const {
   return mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList)) != mBoundaryNodes.end();
 }
 

@@ -14,7 +14,7 @@
 
 namespace Spheral {
 
-template<typename Dimension> class NodeList;
+template<typename Dimension> class NeighborNodeList;
 template<typename Dimension, typename DataType> class Field;
 
 enum class NeighborSearchType {
@@ -37,7 +37,7 @@ public:
   typedef std::vector<int>::const_iterator const_iterator;
 
   // Constructors and destructors
-  Neighbor(NodeList<Dimension>& nodeList, 
+  Neighbor(NeighborNodeList<Dimension>& nodeList, 
            const NeighborSearchType searchType,
            const double kernelExtent);
   virtual ~Neighbor();
@@ -54,14 +54,13 @@ public:
   const Field<Dimension, Vector>& nodeExtentField() const;
 
   // Access the node list.
-  const NodeList<Dimension>& nodeList() const;
-  void nodeList(NodeList<Dimension>& nodeList);
+  const NeighborNodeList<Dimension>& nodeList() const;
+  void nodeList(NeighborNodeList<Dimension>& nodeList);
 
-  const NodeList<Dimension>* nodeListPtr() const;
-  void nodeListPtr(NodeList<Dimension>* nodeListPtr);
+  const NeighborNodeList<Dimension>* nodeListPtr() const;
+  void nodeListPtr(NeighborNodeList<Dimension>* nodeListPtr);
 
-  void unregisterNodeList();
-
+  void unregisterNodeList(); 
   // Determine the node extent for an individual node.
   Vector nodeExtent(int nodeID) const;
 
@@ -165,7 +164,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   NeighborSearchType mSearchType;
   double mKernelExtent;
-  NodeList<Dimension>* mNodeListPtr;
+  NeighborNodeList<Dimension>* mNodeListPtr;
   Field<Dimension, Vector> mNodeExtent;
 };
 

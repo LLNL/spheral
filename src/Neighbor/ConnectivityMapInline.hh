@@ -13,8 +13,8 @@ template<typename Dimension>
 template<typename NodeListIterator>
 inline
 ConnectivityMap<Dimension>::
-ConnectivityMap(const NeighborNodeListIterator& begin,
-                const NeighborNodeListIterator& end,
+ConnectivityMap(const NodeListIterator& begin,
+                const NodeListIterator& end,
                 const bool buildGhostConnectivity,
                 const bool buildOverlapConnectivity,
                 const bool buildIntersectionConnectivity):
@@ -40,12 +40,12 @@ ConnectivityMap(const NeighborNodeListIterator& begin,
 // Rebuild for a given set of NodeLists.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-template<typename NeighborNodeListIterator>
+template<typename NodeListIterator>
 inline
 void
 ConnectivityMap<Dimension>::
-rebuild(const NeighborNodeListIterator& begin,
-        const NeighborNodeListIterator& end, 
+rebuild(const NodeListIterator& begin,
+        const NodeListIterator& end, 
         const bool buildGhostConnectivity,
         const bool buildOverlapConnectivity,
         const bool buildIntersectionConnectivity) {
@@ -118,7 +118,7 @@ buildIntersectionConnectivity() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const std::vector<const NodeList<Dimension>*>&
+const std::vector<const NeighborNodeList<Dimension>*>&
 ConnectivityMap<Dimension>::
 nodeLists() const {
   return mNodeLists;
@@ -139,7 +139,7 @@ template<typename Dimension>
 inline
 const std::vector< std::vector<int> >&
 ConnectivityMap<Dimension>::
-connectivityForNode(const NodeList<Dimension>* nodeListPtr,
+connectivityForNode(const NeighborNodeList<Dimension>* nodeListPtr,
                     const int nodeID) const {
   const bool ghostValid = (mBuildGhostConnectivity or
                            NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
@@ -182,7 +182,7 @@ template<typename Dimension>
 inline
 const std::vector< std::vector<int> >&
 ConnectivityMap<Dimension>::
-overlapConnectivityForNode(const NodeList<Dimension>* nodeListPtr,
+overlapConnectivityForNode(const NeighborNodeList<Dimension>* nodeListPtr,
                            const int nodeID) const {
   const bool ghostValid = (mBuildGhostConnectivity or
                            NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent());
@@ -224,7 +224,7 @@ template<typename Dimension>
 inline
 int
 ConnectivityMap<Dimension>::
-numNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
+numNeighborsForNode(const NeighborNodeList<Dimension>* nodeListPtr,
                     const int nodeID) const {
   const std::vector< std::vector<int> >& neighbors = connectivityForNode(nodeListPtr, nodeID);
   int result = 0;
@@ -251,7 +251,7 @@ template<typename Dimension>
 inline
 int
 ConnectivityMap<Dimension>::
-numOverlapNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
+numOverlapNeighborsForNode(const NeighborNodeList<Dimension>* nodeListPtr,
                            const int nodeID) const {
   const std::vector< std::vector<int> >& neighbors = overlapConnectivityForNode(nodeListPtr, nodeID);
   int result = 0;
@@ -346,7 +346,7 @@ ithNode(const int nodeList, const int index) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const NodeList<Dimension>&
+const NeighborNodeList<Dimension>&
 ConnectivityMap<Dimension>::
 nodeList(const int index) const {
   REQUIRE(index >= 0 and index < (int)mNodeLists.size());

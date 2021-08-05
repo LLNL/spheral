@@ -12,7 +12,7 @@
 #include "Mesh.hh"
 #include "MeshConstructionUtilities.hh"
 #include "Geometry/Dimension.hh"
-#include "NodeList/NodeList.hh"
+#include "NodeList/NeighborNodeList.hh"
 #include "Neighbor/Neighbor.hh"
 #include "Boundary/Boundary.hh"
 #include "Utilities/bisectSearch.hh"

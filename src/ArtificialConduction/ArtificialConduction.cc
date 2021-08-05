@@ -134,7 +134,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
     // The connectivity map
     const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-    const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
+    const vector<const NeighborNodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
     const size_t numNodeLists = nodeLists.size();
     
     // The relevant fields
@@ -173,7 +173,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     for (typename DataBase<Dimension>::ConstFluidNodeListIterator itr = dataBase.fluidNodeListBegin();
          itr != dataBase.fluidNodeListEnd();
          ++itr, ++nodeListi) {
-        const NodeList<Dimension>& nodeList = **itr;
+        const NeighborNodeList<Dimension>& nodeList = **itr;
         
         // Iterate over the internal nodes in this NodeList.
         for (typename ConnectivityMap<Dimension>::const_iterator iItr = connectivityMap.begin(nodeListi);

@@ -73,7 +73,7 @@ public:
   bool buildIntersectionConnectivity() const;
 
   // Get the set of NodeLists.
-  const std::vector<const NodeList<Dimension>*>& nodeLists() const;
+  const std::vector<const NeighborNodeList<Dimension>*>& nodeLists() const;
   const NodePairList& nodePairList() const;
 
   // A functor to specify the coupling between nodes
@@ -84,7 +84,7 @@ public:
   //............................................................................
   // Get the set of neighbors for the given (internal!) node in the given NodeList.
   const std::vector< std::vector<int> >&
-  connectivityForNode(const NodeList<Dimension>* nodeListPtr,
+  connectivityForNode(const NeighborNodeList<Dimension>* nodeListPtr,
                       const int nodeID) const;
 
   // Same as above, just referencing the NodeList by an integer index.
@@ -107,7 +107,7 @@ public:
   // to get the overlapping set of points.
   // Get the set of neighbors we have overlap with (common neighbors).
   const std::vector< std::vector<int> >&
-  overlapConnectivityForNode(const NodeList<Dimension>* nodeListPtr,
+  overlapConnectivityForNode(const NeighborNodeList<Dimension>* nodeListPtr,
                              const int nodeID) const;
 
   // Same as above, just referencing the NodeList by an integer index.
@@ -130,14 +130,14 @@ public:
                             const int nodeListj, const int j) const;
 
   // Compute the number of neighbors for the given node.
-  int numNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
+  int numNeighborsForNode(const NeighborNodeList<Dimension>* nodeListPtr,
                           const int nodeID) const;
 
   int numNeighborsForNode(const int nodeListID,
                           const int nodeID) const;
 
   // Compute the number of overlap neighbors for the given node.
-  int numOverlapNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
+  int numOverlapNeighborsForNode(const NeighborNodeList<Dimension>* nodeListPtr,
                                  const int nodeID) const;
 
   int numOverlapNeighborsForNode(const int nodeListID,
@@ -166,7 +166,7 @@ public:
   int ithNode(const int nodeList, const int index) const;
 
   // Get the ith NodeList or FluidNodeList.
-  const NodeList<Dimension>& nodeList(const int index) const;
+  const NeighborNodeList<Dimension>& nodeList(const int index) const;
 
   // Return which NodeList index in order the given one would be in our connectivity.
   unsigned nodeListIndex(const NeighborNodeList<Dimension>* nodeListPtr) const;

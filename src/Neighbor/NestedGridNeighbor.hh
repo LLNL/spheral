@@ -17,7 +17,7 @@
 namespace Spheral {
 
 template<typename Dimension> class GeomPlane;
-template<typename Dimension> class NodeList;
+template<typename Dimension> class NeighborNodeList;
 
 template<typename Dimension>
 class NestedGridNeighbor: public Neighbor<Dimension> {
@@ -33,7 +33,7 @@ public:
   typedef GridCellIndex<Dimension> GC;
 
   // Constructors and destructors.
-  NestedGridNeighbor(NodeList<Dimension>& nodeList, 
+  NestedGridNeighbor(NeighborNodeList<Dimension>& nodeList, 
                      const NeighborSearchType searchType,
                      const int numGridLevels, 
                      const double topGridCellSize,

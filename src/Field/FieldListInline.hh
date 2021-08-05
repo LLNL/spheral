@@ -988,72 +988,72 @@ FieldList<Dimension, DataType>::refineNodeEnd() const {
                                        std::vector<std::vector<int>>());
 }
 
-//------------------------------------------------------------------------------
-// Set the master node lists of all the NodeLists.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-void
-FieldList<Dimension, DataType>::
-setMasterNeighborNodeLists(const typename Dimension::Vector& r,
-                           const typename Dimension::SymTensor& H,
-                           std::vector<std::vector<int>>& masterLists,
-                           std::vector<std::vector<int>>& coarseNeighbors) const {
-  auto etaMax = 0.0;
-  for (auto nodeListItr = mNodeListPtrs.begin();
-       nodeListItr != mNodeListPtrs.end();
-       ++nodeListItr) etaMax = std::max(etaMax, (**nodeListItr).neighbor().kernelExtent());
-  Neighbor<Dimension>::setMasterNeighborGroup(r, H,
-                                              mNodeListPtrs.begin(),
-                                              mNodeListPtrs.end(),
-                                              etaMax,
-                                              masterLists,
-                                              coarseNeighbors);
-}
+// //------------------------------------------------------------------------------
+// // Set the master node lists of all the NodeLists.
+// //------------------------------------------------------------------------------
+// template<typename Dimension, typename DataType>
+// inline
+// void
+// FieldList<Dimension, DataType>::
+// setMasterNeighborNodeLists(const typename Dimension::Vector& r,
+//                            const typename Dimension::SymTensor& H,
+//                            std::vector<std::vector<int>>& masterLists,
+//                            std::vector<std::vector<int>>& coarseNeighbors) const {
+//   auto etaMax = 0.0;
+//   for (auto nodeListItr = mNodeListPtrs.begin();
+//        nodeListItr != mNodeListPtrs.end();
+//        ++nodeListItr) etaMax = std::max(etaMax, (**nodeListItr).neighbor().kernelExtent());
+//   Neighbor<Dimension>::setMasterNeighborGroup(r, H,
+//                                               mNodeListPtrs.begin(),
+//                                               mNodeListPtrs.end(),
+//                                               etaMax,
+//                                               masterLists,
+//                                               coarseNeighbors);
+// }
 
-template<typename Dimension, typename DataType>
-inline
-void
-FieldList<Dimension, DataType>::
-setMasterNeighborNodeLists(const typename Dimension::Vector& r,
-                           std::vector<std::vector<int>>& masterLists,
-                           std::vector<std::vector<int>>& coarseNeighbors) const {
-  this->setMasterNeighborNodeLists(r, 1e-30*SymTensor::one, masterLists, coarseNeighbors);
-}
+// template<typename Dimension, typename DataType>
+// inline
+// void
+// FieldList<Dimension, DataType>::
+// setMasterNeighborNodeLists(const typename Dimension::Vector& r,
+//                            std::vector<std::vector<int>>& masterLists,
+//                            std::vector<std::vector<int>>& coarseNeighbors) const {
+//   this->setMasterNeighborNodeLists(r, 1e-30*SymTensor::one, masterLists, coarseNeighbors);
+// }
 
-//------------------------------------------------------------------------------
-// Set the refine node lists of all the NodeLists.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-void
-FieldList<Dimension, DataType>::
-setRefineNeighborNodeLists(const typename Dimension::Vector& r,
-                           const typename Dimension::SymTensor& H,
-                           const std::vector<std::vector<int>>& coarseNeighbors,
-                           std::vector<std::vector<int>>& refineNeighbors) const {
-   const auto numNodeLists = mNodeListPtrs.size();
-  REQUIRE(coarseNeighbors.size() == numNodeLists);
-  refineNeighbors = std::vector<std::vector<int>>(numNodeLists);
-  auto iNodeList = 0;
-  for (auto nodeListItr = mNodeListPtrs.begin();
-       nodeListItr < mNodeListPtrs.end();
-       ++nodeListItr, ++iNodeList) {
-    (*nodeListItr)->neighbor().setRefineNeighborList(r, H, 
-                                                     coarseNeighbors[iNodeList],
-                                                     refineNeighbors[iNodeList]);
-  }
-}
+// //------------------------------------------------------------------------------
+// // Set the refine node lists of all the NodeLists.
+// //------------------------------------------------------------------------------
+// template<typename Dimension, typename DataType>
+// inline
+// void
+// FieldList<Dimension, DataType>::
+// setRefineNeighborNodeLists(const typename Dimension::Vector& r,
+//                            const typename Dimension::SymTensor& H,
+//                            const std::vector<std::vector<int>>& coarseNeighbors,
+//                            std::vector<std::vector<int>>& refineNeighbors) const {
+//    const auto numNodeLists = mNodeListPtrs.size();
+//   REQUIRE(coarseNeighbors.size() == numNodeLists);
+//   refineNeighbors = std::vector<std::vector<int>>(numNodeLists);
+//   auto iNodeList = 0;
+//   for (auto nodeListItr = mNodeListPtrs.begin();
+//        nodeListItr < mNodeListPtrs.end();
+//        ++nodeListItr, ++iNodeList) {
+//     (*nodeListItr)->neighbor().setRefineNeighborList(r, H, 
+//                                                      coarseNeighbors[iNodeList],
+//                                                      refineNeighbors[iNodeList]);
+//   }
+// }
 
-template<typename Dimension, typename DataType>
-inline
-void
-FieldList<Dimension, DataType>::
-setRefineNeighborNodeLists(const typename Dimension::Vector& r,
-                           const std::vector<std::vector<int>>& coarseNeighbors,
-                           std::vector<std::vector<int>>& refineNeighbors) const {
-  this->setRefineNeighborNodeLists(r, 1e-30*SymTensor::one, coarseNeighbors, refineNeighbors);
-}
+// template<typename Dimension, typename DataType>
+// inline
+// void
+// FieldList<Dimension, DataType>::
+// setRefineNeighborNodeLists(const typename Dimension::Vector& r,
+//                            const std::vector<std::vector<int>>& coarseNeighbors,
+//                            std::vector<std::vector<int>>& refineNeighbors) const {
+//   this->setRefineNeighborNodeLists(r, 1e-30*SymTensor::one, coarseNeighbors, refineNeighbors);
+// }
 
 //------------------------------------------------------------------------------
 // Zero out the FieldList.

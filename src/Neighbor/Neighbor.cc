@@ -10,7 +10,7 @@
 #include "Utilities/DBC.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
-#include "NodeList/NodeList.hh"
+#include "NodeList/NeighborNodeList.hh"
 #include "NodeList/NodeListRegistrar.hh"
 #include "Utilities/testBoxIntersection.hh"
 
@@ -30,7 +30,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 Neighbor<Dimension>::
-Neighbor(NodeList<Dimension>& nodeList,
+Neighbor(NeighborNodeList<Dimension>& nodeList,
          const NeighborSearchType searchType,
          const double kernelExtent):
   mSearchType(searchType),
@@ -91,7 +91,7 @@ accessNodeExtentField() {
 // Access the node list.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const NodeList<Dimension>&
+const NeighborNodeList<Dimension>&
 Neighbor<Dimension>::
 nodeList() const {
   CHECK(mNodeListPtr != nullptr);
@@ -99,7 +99,7 @@ nodeList() const {
 }
 
 template<typename Dimension>
-const NodeList<Dimension>*
+const NeighborNodeList<Dimension>*
 Neighbor<Dimension>::
 nodeListPtr() const {
   return mNodeListPtr;
@@ -111,7 +111,7 @@ nodeListPtr() const {
 template<typename Dimension>
 void
 Neighbor<Dimension>::
-nodeList(NodeList<Dimension>& nodeList) {
+nodeList(NeighborNodeList<Dimension>& nodeList) {
   mNodeListPtr = &nodeList;
   mNodeExtent.setNodeList(nodeList);
 }
@@ -119,7 +119,7 @@ nodeList(NodeList<Dimension>& nodeList) {
 template<typename Dimension>
 void
 Neighbor<Dimension>::
-nodeListPtr(NodeList<Dimension>* nodeListPtr) {
+nodeListPtr(NeighborNodeList<Dimension>* nodeListPtr) {
   CHECK(nodeListPtr);
   mNodeListPtr = nodeListPtr;
   mNodeExtent.setNodeList(*nodeListPtr);
