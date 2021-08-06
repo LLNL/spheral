@@ -1,4 +1,4 @@
-#include "NodeList/NodeList.hh"
+#include "NodeList/NeighborNodeList.hh"
 #include "Field/Field.hh"
 #include "DataBase/DataBase.hh"
 #include "Communicator.hh"

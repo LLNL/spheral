@@ -37,7 +37,7 @@ public:
   typedef uint64_t CellKey;
 
   // Constructors and destructors
-  TreeNeighbor(NodeList<Dimension>& nodeList, 
+  TreeNeighbor(NeighborNodeList<Dimension>& nodeList, 
                const NeighborSearchType searchType,
                const double kernelExtent,
                const Vector& xmin,

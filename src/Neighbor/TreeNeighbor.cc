@@ -10,7 +10,7 @@
 // Created by J. Michael Owen, Fri Mar 23 15:50:35 PDT 2012
 //----------------------------------------------------------------------------//
 #include "TreeNeighbor.hh"
-#include "NodeList/NodeList.hh"
+#include "NodeList/NeighborNodeList.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/packElement.hh"
 #include "Utilities/allReduce.hh"
@@ -154,7 +154,7 @@ squeezeCell(vector<Dim<3>::Vector>& vertices,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 TreeNeighbor<Dimension>::
-TreeNeighbor(NodeList<Dimension>& nodeList,
+TreeNeighbor(NeighborNodeList<Dimension>& nodeList,
              const NeighborSearchType searchType,
              const double kernelExtent,
              const Vector& xmin,

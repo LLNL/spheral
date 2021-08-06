@@ -20,7 +20,7 @@
 
 // Forward declarations.
 namespace Spheral {
-  template<typename Dimension> class NodeList;
+  template<typename Dimension> class NeighborNodeList;
   template<typename Dimension> class FieldBase;
   template<typename Dimension, typename DataType> class Field;
   template<typename Dimension> class DataBase;
@@ -48,7 +48,7 @@ public:
   };
 
   typedef std::map<int, DomainBoundaryNodes> DomainBoundaryNodeMap;
-  typedef std::map<NodeList<Dimension>*, DomainBoundaryNodeMap> NodeListDomainBoundaryNodeMap;
+  typedef std::map<NeighborNodeList<Dimension>*, DomainBoundaryNodeMap> NodeListDomainBoundaryNodeMap;
 
   // Constructors and destructors.
   DistributedBoundary();
@@ -61,16 +61,16 @@ public:
   int numDomains() const;
 
   // Test if the given NodeList is communicated on this domain or not.
-  bool communicatedNodeList(const NodeList<Dimension>& nodeList) const;
+  bool communicatedNodeList(const NeighborNodeList<Dimension>& nodeList) const;
 
   // Test if the given NodeList is communicated with the given domain.
-  bool nodeListSharedWithDomain(const NodeList<Dimension>& nodeList,
+  bool nodeListSharedWithDomain(const NeighborNodeList<Dimension>& nodeList,
                                 int neighborDomainID) const;
 
   // Allow read access to the communication information.
   const NodeListDomainBoundaryNodeMap& nodeListDomainBoundaryNodeMap() const;
-  const DomainBoundaryNodeMap& domainBoundaryNodeMap(const NodeList<Dimension>& nodeList) const;
-  const DomainBoundaryNodes& domainBoundaryNodes(const NodeList<Dimension>&,
+  const DomainBoundaryNodeMap& domainBoundaryNodeMap(const NeighborNodeList<Dimension>& nodeList) const;
+  const DomainBoundaryNodes& domainBoundaryNodes(const NeighborNodeList<Dimension>&,
                                                  int neighborDomainID) const;
 
   // Extract the current set of processors we're communicating with.
@@ -79,12 +79,12 @@ public:
 
   //****************************************************************************
   // Required Boundary interface
-  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;       // This one should not be used with DistributedBoundary
-  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
+  virtual void setGhostNodes(NeighborNodeList<Dimension>& nodeList) override;       // This one should not be used with DistributedBoundary
+  virtual void updateGhostNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // Distributed boundaries don't have "violate" nodes, so override these methods to no-ops.
-  virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
-  virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
+  virtual void setViolationNodes(NeighborNodeList<Dimension>& nodeList) override;
+  virtual void updateViolationNodes(NeighborNodeList<Dimension>& nodeList) override;
 
   // Apply the boundary condition to the given Field.
   virtual void applyGhostBoundary(FieldBase<Dimension>& field) const override;
@@ -134,11 +134,11 @@ protected:
   // Convenience method to return an iterator to the DomainBoundaryNodes for the
   // given NodeList and domain pair.  If there isn't an entry for this pair already,
   // this method creates one.
-  DomainBoundaryNodes& openDomainBoundaryNodes(NodeList<Dimension>* nodeListPtr,
+  DomainBoundaryNodes& openDomainBoundaryNodes(NeighborNodeList<Dimension>* nodeListPtr,
                                                const int domainID);
 
   // Inverse of above -- remove the DomainBoundaryNodes for a NodeList/procID pair.
-  void removeDomainBoundaryNodes(NodeList<Dimension>* nodeListPtr,
+  void removeDomainBoundaryNodes(NeighborNodeList<Dimension>* nodeListPtr,
                                  const int domainID);
 
   // Override the Boundary method for clearing the maps.
