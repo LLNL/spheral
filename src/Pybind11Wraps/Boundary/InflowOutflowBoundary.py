@@ -202,6 +202,7 @@ Really we should rename this post-step finalize."""
 
     #...........................................................................
     # Properties
+    inflowRadius = PYB11property("Scalar", "inflowRadius", "inflowRadius",doc="radius of inflow clip")
     dataBase = PYB11property(doc="The DataBase for the NodeLists we know about")
     plane = PYB11property(doc="The inflowplane")
     storedKeys = PYB11property(doc="Keys for all the Fields we have stored ghost information about")

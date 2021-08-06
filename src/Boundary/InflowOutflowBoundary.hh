@@ -114,6 +114,9 @@ public:
   const DataBase<Dimension>& dataBase() const;
   const GeomPlane<Dimension>& plane() const;
   int numInflowNodes(const NeighborNodeList<Dimension>& nodeList) const;
+  
+  void inflowRadius(const Scalar x);
+  Scalar inflowRadius() const;
 
   // Get the stored data for generating ghost nodes.
   template<typename DataType> std::vector<DataType> storedValues(const KeyType key, const DataType& dummy);
@@ -145,6 +148,8 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  Scalar mInflowRadius;   // radius to clip inflow
+
   DataBase<Dimension>& mDataBase;
   GeomPlane<Dimension> mPlane;
   int mBoundaryCount;
