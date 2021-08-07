@@ -83,7 +83,7 @@ Piij(const unsigned nodeListi, const unsigned i,
   const auto fCqi = this->mCqMultiplier(nodeListi, i);
   const auto fClj = this->mClMultiplier(nodeListj, j);
   const auto fCqj = this->mCqMultiplier(nodeListj, j);
-  const auto fshear = std::max(this->mShearCorrection(nodeListi, i), this->mShearCorrection(nodeListj, j));
+  const auto fshear = 0.5*(this->mShearCorrection(nodeListi, i) + this->mShearCorrection(nodeListj, j));
   Cl *= 0.5*(fCli + fClj)*fshear;
   Cq *= 0.5*(fCqi + fCqj)*fshear;
 
