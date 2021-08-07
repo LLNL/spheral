@@ -25,7 +25,8 @@ class RiemannSolverBase {
 public:
 
   RiemannSolverBase(SlopeLimiterBase<Dimension>& slopeLimiter,
-                    WaveSpeedBase<Dimension>& waveSpeedBase);
+                    WaveSpeedBase<Dimension>& waveSpeedBase,
+                    bool linearReconstruction);
 
   ~RiemannSolverBase();
 
@@ -55,10 +56,12 @@ public:
 
   const FieldList<Dimension,Vector>& DpDx() const;
   const FieldList<Dimension,Tensor>& DvDx() const;
+  
 private:
   
   SlopeLimiterBase<Dimension>& mSlopeLimiter;   
   WaveSpeedBase<Dimension>& mWaveSpeed;
+  bool mLinearReconstruction; 
 
   FieldList<Dimension, Vector> mDpDx;
   FieldList<Dimension, Tensor> mDvDx;

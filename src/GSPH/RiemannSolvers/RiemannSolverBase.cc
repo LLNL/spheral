@@ -26,9 +26,11 @@ namespace Spheral {
 template<typename Dimension>
 RiemannSolverBase<Dimension>::
 RiemannSolverBase(SlopeLimiterBase<Dimension>& slopeLimiter,
-                  WaveSpeedBase<Dimension>& waveSpeed):
+                  WaveSpeedBase<Dimension>& waveSpeed,
+                  bool linearReconstruction):
   mSlopeLimiter(slopeLimiter),
   mWaveSpeed(waveSpeed),
+  mLinearReconstruction(linearReconstruction),
   mDpDx(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields){
 
@@ -54,31 +56,31 @@ initialize(const DataBase<Dimension>& dataBase,
                 const typename Dimension::Scalar time,
                 const typename Dimension::Scalar dt,
                 const TableKernel<Dimension>& W){
+  if(mLinearReconstruction){
+    dataBase.resizeFluidFieldList(mDpDx,Vector::zero,"pressureGradient",true);
+    dataBase.resizeFluidFieldList(mDvDx,Tensor::zero,"velocityGradient",true);
+    
+    const auto DpDx = derivs.fields( GSPHFieldNames::pressureGradient, Vector::zero);
+    const auto DvDx = derivs.fields( HydroFieldNames::velocityGradient,Tensor::zero);
 
-  dataBase.resizeFluidFieldList(mDpDx,Vector::zero,"pressureGradient",true);
-  dataBase.resizeFluidFieldList(mDvDx,Tensor::zero,"velocityGradient",true);
+    const auto& connectivityMap = dataBase.connectivityMap();
+    const auto& nodeLists = connectivityMap.nodeLists();
+    const auto numNodeLists = nodeLists.size();
 
-  const auto DpDx = derivs.fields( GSPHFieldNames::pressureGradient, Vector::zero);
-  const auto DvDx = derivs.fields( HydroFieldNames::velocityGradient,Tensor::zero);
+    // copy from previous time step
+    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+      const auto& nodeList = nodeLists[nodeListi];
+      const auto ni = nodeList->numNodes();
+      #pragma omp parallel for
+      for (auto i = 0u; i < ni; ++i) {
+        const auto DvDxi = DvDx(nodeListi,i);
+        const auto DpDxi = DpDx(nodeListi,i);
+        mDvDx(nodeListi,i) = DvDxi;
+        mDpDx(nodeListi,i) = DpDxi;
+      } 
+    }
 
-  
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto& nodeLists = connectivityMap.nodeLists();
-  const auto numNodeLists = nodeLists.size();
-
-  // copy from previous time step
-  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& nodeList = nodeLists[nodeListi];
-    const auto ni = nodeList->numNodes();
-#pragma omp parallel for
-    for (auto i = 0u; i < ni; ++i) {
-      const auto DvDxi = DvDx(nodeListi,i);
-      const auto DpDxi = DpDx(nodeListi,i);
-      mDvDx(nodeListi,i) = DvDxi;
-      mDpDx(nodeListi,i) = DpDxi;
-    } 
   }
-
 } // initialize method 
 
 } // spheral namespace
