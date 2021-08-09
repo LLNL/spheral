@@ -373,13 +373,12 @@ class NeighborTestBase:
         for pair in random.sample(pairs, self.ncheck):
             print "Checking ", pair
             answer = intersectionAnswer(pair)
-            assert len(intersect0) == numNodeLists
-            assert len(intersect1) == numNodeLists
+            intersect = convertToSets(answer)
+            assert len(intersect) == numNodeLists
             print answer
-            print intersect0
-            print intersect1
-            self.assertEqual(intersect0, answer,
-                            ("\nIntersection computed from Neighbor set intersections does not match: \nintersect0: %s\nanswer: %s\n" % (intersect0, answer)))
+            print intersect
+            self.assertEqual(intersect, answer,
+                            ("\nIntersection computed from Neighbor set intersections does not match: \nintersect: %s\nanswer: %s\n" % (intersect, answer)))
             print "    Passed for pair ", pair
 
         return
