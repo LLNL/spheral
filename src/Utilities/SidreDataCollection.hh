@@ -24,39 +24,39 @@ public:
               typename std::enable_if<std::is_arithmetic<DataType>::value,
                                       DataType>::type* = nullptr>
     axom::sidre::Group *sidreStoreField(const std::string &view_name,
-                                  const Spheral::Field<Dimension, DataType> &field);
+                                        const Spheral::Field<Dimension, DataType> &field);
 
     template <typename Dimension, typename DataType,
               typename std::enable_if<is_rank_n_tensor<DataType>::value && !std::is_arithmetic<DataType>::value,
                                       DataType>::type* = nullptr>
     axom::sidre::Group *sidreStoreField(const std::string &view_name,
-                                  const Spheral::Field<Dimension, DataType> &field);
+                                        const Spheral::Field<Dimension, DataType> &field);
 
     template <typename Dimension, typename DataType,
               typename std::enable_if<!is_rank_n_tensor<DataType>::value  && !std::is_arithmetic<DataType>::value,
                                       DataType>::type* = nullptr>
     axom::sidre::Group *sidreStoreField(const std::string &view_name,
-                                  const Spheral::Field<Dimension, DataType> &field);
+                                        const Spheral::Field<Dimension, DataType> &field);
 
     
     template<typename Dimension>
     axom::sidre::Group *sidreStoreField(const std::string &view_name,
-                                  const Spheral::Field<Dimension, std::string> &field);
+                                        const Spheral::Field<Dimension, std::string> &field);
     template<typename Dimension, typename DataType>
     axom::sidre::Group *sidreStoreField(const std::string &view_name,
-                                  const Spheral::Field<Dimension, std::vector<DataType>> &field);
+                                        const Spheral::Field<Dimension, std::vector<DataType>> &field);
     template<typename Dimension, typename DataType>
     axom::sidre::Group *sidreStoreField(const std::string &view_name,
-                                  const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType>> &field);
+                                        const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType>> &field);
     template<typename Dimension, typename DataType>
     axom::sidre::Group *sidreStoreField(const std::string &view_name,
-                                  const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType, DataType>> &field);
+                                        const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType, DataType>> &field);
     template<typename Dimension, typename DataType>
     axom::sidre::Group *sidreStoreField(const std::string &view_name,
-                                  const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType, DataType, DataType>> &field);
+                                        const Spheral::Field<Dimension, std::tuple<DataType, DataType, DataType, DataType, DataType>> &field);
     template<typename Dimension>
     axom::sidre::Group *sidreStoreField(const std::string &view_name,
-                                  const Spheral::Field<Dimension, Dim<2>::Vector> &field);
+                                        const Spheral::Field<Dimension, Dim<2>::Vector> &field);
 
         
 private:
