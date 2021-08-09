@@ -1,5 +1,5 @@
 #include "AcousticWaveSpeed.hh"
-
+#include <stdio.h>
 namespace Spheral {
 
 //========================================================

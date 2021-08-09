@@ -18,10 +18,14 @@ public:
   ~WaveSpeedBase();
 
   virtual
-  void waveSpeed(const Scalar rhoi, const Scalar rhoj, 
-                 const Scalar ci,   const Scalar cj, 
-                 const Scalar ui,   const Scalar uj,
-                       Scalar& Si,        Scalar& Sj) const = 0;
+  void waveSpeed(const Scalar rhoi, 
+                 const Scalar rhoj, 
+                 const Scalar ci,   
+                 const Scalar cj, 
+                 const Scalar ui,   
+                 const Scalar uj,
+                       Scalar& Si,        
+                       Scalar& Sj) const = 0;
 
 };
 
