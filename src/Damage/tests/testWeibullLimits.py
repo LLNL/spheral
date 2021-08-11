@@ -52,7 +52,7 @@ print "  Range of maxflaws: [%g : %g]" % (min(maxflaws), max(maxflaws))
 #-------------------------------------------------------------------------------
 # Compute the ratio of the effective number of flaws to our target number
 #-------------------------------------------------------------------------------
-Neffratio = [k*V*(epsmax**m - epsmin**m)/Nflaws for epsmin, epsmax in zip(minflaws, maxflaws)]
+Neffratio = [(1.0 + k*V*(epsmax**m - epsmin**m))/Nflaws for epsmin, epsmax in zip(minflaws, maxflaws)]
 print "  Range of Neff/Nflaws: [%g : %g]" % (min(Neffratio), max(Neffratio))
 
 #-------------------------------------------------------------------------------

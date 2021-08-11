@@ -160,13 +160,18 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 #pragma omp parallel for
   for (auto i = 0u; i < nlocal; ++i) {
     if (mMask(i) == 1) {
-      const auto Nflaws = int(mMinFlawsPerNode*mInitialVolume(i)/mVmin + 0.5);  // Target number of flaws on this point
+      const auto Nflaws = size_t(mMinFlawsPerNode*mInitialVolume(i)/mVmin + 0.5);  // Target number of flaws on this point
       CHECK(Nflaws >= mMinFlawsPerNode);
       const auto Ai = pow(Nflaws/(mkWeibull*mInitialVolume(i)), mInv);
-      mMinFlaw(i) = Ai*pow(1.0 - pow(randomGenerators[i](), 1.0/Nflaws), mInv);
-      mMaxFlaw(i) = Ai*pow(randomGenerators[i](), 1.0/(mmWeibull*Nflaws));
+      mMinFlaw(i) = 1.0;
+      mMaxFlaw(i) = 0.0;
+      auto ntries = 0u;
+      while (mMinFlaw(i) > mMaxFlaw(i) and ntries++ < 100u) {
+        mMinFlaw(i) = Ai*pow(1.0 - pow(randomGenerators[i](), 1.0/Nflaws), mInv);
+        mMaxFlaw(i) = Ai*pow(randomGenerators[i](), 1.0/(mmWeibull*Nflaws));
+      }
       CHECK(mMaxFlaw(i) > mMinFlaw(i));
-      mNumFlaws(i) = std::max(1, int(mInitialVolume(i)*mkWeibull*(pow(mMaxFlaw(i), mmWeibull) - pow(mMinFlaw(i), mmWeibull))));
+      mNumFlaws(i) = std::max(1, 1 + int(mInitialVolume(i)*mkWeibull*(pow(mMaxFlaw(i), mmWeibull) - pow(mMinFlaw(i), mmWeibull))));
 
       // Gather statistics
 #pragma omp critical
