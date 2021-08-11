@@ -1,5 +1,6 @@
 #include "Utilities/safeInv.hh"
 #include "EinfeldtWaveSpeed.hh"
+#include <math.h>
 
 namespace Spheral {
 
@@ -32,17 +33,18 @@ waveSpeed(const typename Dimension::Scalar rhoi,
                 typename Dimension::Scalar& Si,  
                 typename Dimension::Scalar& Sj) const {
 
-  const auto sRhoi = FastMath::Sqrt(rhoi);
-  const auto sRhoj = FastMath::Sqrt(rhoj);
-  const auto denom = safeInv(sRhoi+sRhoj);
+  const auto tiny = std::numeric_limits<Scalar>::epsilon();
+  const auto sRhoi = sqrt(rhoi);
+  const auto sRhoj = sqrt(rhoj);
+  const auto denom = 1.0/std::max(sRhoi+sRhoj,tiny);
   const auto eta = 0.5*sRhoi*sRhoj*denom*denom;
   const auto d2 = (sRhoi * ci*ci + sRhoj * cj*cj)*denom + eta * (ui-uj)*(ui-uj);
-  const auto d = FastMath::Sqrt(d2);
+  const auto d = sqrt(d2);
 
   const auto utilde = (sRhoi * ui + sRhoj * uj)*denom;
 
-  Si = rhoi*((utilde + d)-ui);
-  Sj = rhoj*((utilde - d)-uj);
+  Si = rhoi*(std::max( utilde + d, ui+ci ) - ui);
+  Sj = rhoj*(std::min( utilde - d, uj-cj ) - uj);
 }
 
 
