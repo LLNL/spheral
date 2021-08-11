@@ -30,8 +30,8 @@ waveSpeed(const typename Dimension::Scalar rhoi,
           const typename Dimension::Scalar uj,
                 typename Dimension::Scalar& Si,  
                 typename Dimension::Scalar& Sj) const {
-  Si = rhoi * ci;
-  Sj = rhoj * cj;
+  Si =  rhoi * ci;
+  Sj = -rhoj * cj;
 }
 
 
