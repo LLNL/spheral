@@ -7,12 +7,12 @@
 #ifndef __Spheral_VanLeerLimiter_hh__
 #define __Spheral_VanLeerLimiter_hh__
 
-#include "SlopeLimiterBase.hh"
+#include "LimiterBase.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class VanLeerLimiter : public SlopeLimiterBase<Dimension> {
+class VanLeerLimiter : public LimiterBase<Dimension> {
 
 public:
 

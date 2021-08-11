@@ -1,12 +1,12 @@
 from PYB11Generator import *
-from SlopeLimiterBaseAbstractMethods import *
+from LimiterBaseAbstractMethods import *
 
 #-------------------------------------------------------------------------------
 # Base class for riemann solver wave speeds
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralGSPH")
-class SlopeLimiterBase:
+class LimiterBase:
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -21,14 +21,14 @@ class SlopeLimiterBase:
         "slope limiter from flux limiter."
         return "Scalar"
 
-PYB11inject(SlopeLimiterBaseAbstractMethods, SlopeLimiterBase, pure_virtual=True)
+PYB11inject(LimiterBaseAbstractMethods, LimiterBase, pure_virtual=True)
 
 #-------------------------------------------------------------------------------
 # minmod limiter
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralGSPH")
-class MinModLimiter:
+class MinModLimiter(LimiterBase):
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -55,7 +55,7 @@ class MinModLimiter:
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralGSPH")
-class VanLeerLimiter:
+class VanLeerLimiter(LimiterBase):
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -82,7 +82,7 @@ class VanLeerLimiter:
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralGSPH")
-class VanAlbaLimiter:
+class VanAlbaLimiter(LimiterBase):
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -109,7 +109,7 @@ class VanAlbaLimiter:
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralGSPH")
-class SuperbeeLimiter:
+class SuperbeeLimiter(LimiterBase):
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -136,7 +136,7 @@ class SuperbeeLimiter:
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralGSPH")
-class OspreLimiter:
+class OspreLimiter(LimiterBase):
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;

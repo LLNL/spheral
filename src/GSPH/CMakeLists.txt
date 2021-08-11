@@ -3,7 +3,7 @@ include_directories(.)
 set(GSPH_inst
     GSPHHydroBase
     GSPHSpecificThermalEnergyPolicy
-    Limiters/SlopeLimiterBase
+    Limiters/LimiterBase
     Limiters/VanLeerLimiter
     Limiters/SuperbeeLimiter
     Limiters/MinModLimiter
@@ -13,7 +13,8 @@ set(GSPH_inst
     WaveSpeeds/AcousticWaveSpeed
     WaveSpeeds/DavisWaveSpeed
     WaveSpeeds/EinfeldtWaveSpeed
-    RiemannSolvers/RiemannSolverBase)
+    RiemannSolvers/RiemannSolverBase
+    RiemannSolvers/HLLC)
 
 set(GSPH_sources 
     GSPHFieldNames.cc)
@@ -22,7 +23,7 @@ set(GSPH_headers
     GSPHFieldNames.hh
     GSPHHydroBase.hh
     GSPHSpecificThermalEnergyPolicy.hh
-    Limiters/SlopeLimiterBase.hh
+    Limiters/LimiterBase.hh
     Limiters/VanLeerLimiter.hh
     Limiters/SuperbeeLimiter.hh
     Limiters/MinModLimiter.hh
@@ -32,7 +33,8 @@ set(GSPH_headers
     WaveSpeeds/AcousticWaveSpeed.hh
     WaveSpeeds/DavisWaveSpeed.hh
     WaveSpeeds/EinfeldtWaveSpeed.hh
-    RiemannSolvers/RiemannSolverBase.hh)
+    RiemannSolvers/RiemannSolverBase.hh
+    RiemannSolvers/HLLC.hh)
 
 add_subdirectory(Limiters)
 add_subdirectory(WaveSpeeds)

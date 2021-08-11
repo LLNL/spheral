@@ -7,12 +7,12 @@
 #ifndef __Spheral_OspreLimiter_hh__
 #define __Spheral_OspreLimiter_hh__
 
-#include "SlopeLimiterBase.hh"
+#include "LimiterBase.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class OspreLimiter : public SlopeLimiterBase<Dimension> {
+class OspreLimiter : public LimiterBase<Dimension> {
 
 public:
 

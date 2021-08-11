@@ -5,12 +5,13 @@
 
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Boundary/Boundary.hh"
 
 #include "Hydro/HydroFieldNames.hh"
 #include "GSPH/GSPHFieldNames.hh"
 
 #include "GSPH/WaveSpeeds/WaveSpeedBase.hh"
-#include "GSPH/Limiters/SlopeLimiterBase.hh"
+#include "GSPH/Limiters/LimiterBase.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 
@@ -25,14 +26,15 @@ namespace Spheral {
 //========================================================
 template<typename Dimension>
 RiemannSolverBase<Dimension>::
-RiemannSolverBase(SlopeLimiterBase<Dimension>& slopeLimiter,
+RiemannSolverBase(LimiterBase<Dimension>& slopeLimiter,
                   WaveSpeedBase<Dimension>& waveSpeed,
                   bool linearReconstruction):
   mSlopeLimiter(slopeLimiter),
   mWaveSpeed(waveSpeed),
   mLinearReconstruction(linearReconstruction),
   mDpDx(FieldStorageType::CopyFields),
-  mDvDx(FieldStorageType::CopyFields){
+  mDvDx(FieldStorageType::CopyFields),
+  mDrhoDx(FieldStorageType::CopyFields){
 
 }
 
@@ -45,23 +47,29 @@ RiemannSolverBase<Dimension>::
 
 //========================================================
 // initialize derivs -- we'll stowe copies of some spatial 
-// derivs
+// derivs. the basic set up will be pressure and velocity
 //========================================================
 template<typename Dimension>
 void
 RiemannSolverBase<Dimension>::
 initialize(const DataBase<Dimension>& dataBase,
-                const State<Dimension>& state,
-                const StateDerivatives<Dimension>& derivs,
-                const typename Dimension::Scalar time,
-                const typename Dimension::Scalar dt,
-                const TableKernel<Dimension>& W){
+           const State<Dimension>& state,
+           const StateDerivatives<Dimension>& derivs,
+           typename RiemannSolverBase<Dimension>::ConstBoundaryIterator boundaryBegin,
+           typename RiemannSolverBase<Dimension>::ConstBoundaryIterator boundaryEnd,
+           const typename Dimension::Scalar /*time*/,
+           const typename Dimension::Scalar /*dt*/,
+           const TableKernel<Dimension>& /*W*/){
   if(mLinearReconstruction){
-    dataBase.resizeFluidFieldList(mDpDx,Vector::zero,"pressureGradient",true);
-    dataBase.resizeFluidFieldList(mDvDx,Tensor::zero,"velocityGradient",true);
+    dataBase.resizeFluidFieldList(mDpDx,Vector::zero,"riemann solver pressure gradient",true);
+    dataBase.resizeFluidFieldList(mDvDx,Tensor::zero,"riemann solver velocity Gradient",true);
+    //dataBase.resizeFluidFieldList(mDrhoDx,Vector::zero,"riemann solver density Gradient",true);
     
-    const auto DpDx = derivs.fields( GSPHFieldNames::pressureGradient, Vector::zero);
-    const auto DvDx = derivs.fields( HydroFieldNames::velocityGradient,Tensor::zero);
+    //const auto& DrhoDx0 = derivs.fields( GSPHFieldNames::densityGradient, Vector::zero);
+    const auto& DpDx0 = derivs.fields( GSPHFieldNames::pressureGradient, Vector::zero);
+    const auto& DvDx0 = derivs.fields( HydroFieldNames::velocityGradient,Tensor::zero);
+    const auto& DvDt0 = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+    const auto& rho0 = state.fields(HydroFieldNames::massDensity, 0.0);
 
     const auto& connectivityMap = dataBase.connectivityMap();
     const auto& nodeLists = connectivityMap.nodeLists();
@@ -70,17 +78,93 @@ initialize(const DataBase<Dimension>& dataBase,
     // copy from previous time step
     for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
       const auto& nodeList = nodeLists[nodeListi];
-      const auto ni = nodeList->numNodes();
+      const auto ni = nodeList->numInternalNodes();
       #pragma omp parallel for
       for (auto i = 0u; i < ni; ++i) {
-        const auto DvDxi = DvDx(nodeListi,i);
-        const auto DpDxi = DpDx(nodeListi,i);
+        const auto DvDxi = DvDx0(nodeListi,i);
+        const auto DpDxi = DpDx0(nodeListi,i);
+        const auto DvDti = DvDt0(nodeListi,i);
+        const auto rhoi = rho0(nodeListi,i);
+        //const auto DrhoDxi = DrhoDx0(nodeListi,i);
         mDvDx(nodeListi,i) = DvDxi;
         mDpDx(nodeListi,i) = DpDxi;
+        //mDpDx(nodeListi,i) = -rhoi*DvDti;
+        //mDrhoDx(nodeListi,i) = DrhoDxi;
       } 
     }
 
-  }
-} // initialize method 
+    for (auto boundItr = boundaryBegin;
+              boundItr != boundaryEnd;
+            ++boundItr) {
+      (*boundItr)->applyFieldListGhostBoundary(mDpDx);
+      (*boundItr)->applyFieldListGhostBoundary(mDvDx);
+      //(*boundItr)->applyFieldListGhostBoundary(mDrhoDx);
+    }
+
+    for (auto boundItr = boundaryBegin;
+              boundItr != boundaryEnd;
+            ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  
+  } // if LinearReconstruction
+
+} // initialize method
+
+
+//========================================================
+// default to non-op
+//========================================================
+template<typename Dimension>
+void
+RiemannSolverBase<Dimension>::
+interfaceState(const int /*i*/,
+               const int /*j*/,
+               const int /*nodelisti*/,
+               const int /*nodelistj*/,
+               const Vector& /*ri*/,
+               const Vector& /*rj*/,
+               const Scalar& /*rhoi*/,   
+               const Scalar& /*rhoj*/, 
+               const Scalar& /*ci*/,   
+               const Scalar& /*cj*/, 
+               const Scalar& /*sigmai*/,    
+               const Scalar& /*sigmaj*/,
+               const Vector& /*vi*/,    
+               const Vector& /*vj*/,
+                     Scalar& /*Pstar*/,
+                     Vector& /*vstar*/,
+                     Scalar& /*rhostari*/,
+                     Scalar& /*rhostarj*/) const{
+
+}
+
+
+//========================================================
+// default to non-op
+//========================================================
+template<typename Dimension>
+void
+RiemannSolverBase<Dimension>::
+interfaceState(const int /*i*/,
+               const int /*j*/,
+               const int /*nodelisti*/,
+               const int /*nodelistj*/,
+               const Vector& /*ri*/,
+               const Vector& /*rj*/,
+               const Scalar& /*rhoi*/,   
+               const Scalar& /*rhoj*/, 
+               const Scalar& /*ci*/,   
+               const Scalar& /*cj*/,
+               const Scalar& /*Pi*/,    
+               const Scalar& /*Pj*/,
+               const Vector& /*vi*/,    
+               const Vector& /*vj*/,
+               const SymTensor& /*Si*/,    
+               const SymTensor& /*Sj*/,
+               const Tensor& /*Di*/,    
+               const Tensor& /*Dj*/,
+                     Vector& /*Tstar*/,
+                     Vector& /*vstar*/) const{
+
+}
 
 } // spheral namespace

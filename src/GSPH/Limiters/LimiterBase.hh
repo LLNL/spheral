@@ -1,21 +1,21 @@
 //---------------------------------Spheral++----------------------------------//
-// SlopeLimiterBase -- base class for scalar slope limiters
+// LimiterBase -- base class for scalar slope limiters
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SlopeLimiterBase_hh__
-#define __Spheral_SlopeLimiterBase_hh__
+#ifndef __Spheral_LimiterBase_hh__
+#define __Spheral_LimiterBase_hh__
 
 namespace Spheral {
 
 template<typename Dimension>
-class SlopeLimiterBase {
+class LimiterBase {
 
 public:
 
   typedef typename Dimension::Scalar Scalar;
 
-  SlopeLimiterBase();
+  LimiterBase();
 
-  ~SlopeLimiterBase();
+  ~LimiterBase();
 
   virtual
   Scalar slopeLimiter(const Scalar) const ;

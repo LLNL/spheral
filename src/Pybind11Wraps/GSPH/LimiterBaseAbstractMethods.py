@@ -4,7 +4,7 @@
 from PYB11Generator import *
 
 @PYB11ignore
-class SlopeLimiterBaseAbstractMethods:
+class LimiterBaseAbstractMethods:
 
     @PYB11const
     def fluxLimiter(self,

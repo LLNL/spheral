@@ -6,12 +6,12 @@
 #ifndef __Spheral_MinModLimiter_hh__
 #define __Spheral_MinModLimiter_hh__
 
-#include "SlopeLimiterBase.hh"
+#include "LimiterBase.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class MinModLimiter : public SlopeLimiterBase<Dimension> {
+class MinModLimiter : public LimiterBase<Dimension> {
 
 public:
 

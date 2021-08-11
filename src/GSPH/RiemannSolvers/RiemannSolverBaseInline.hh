@@ -1,46 +1,58 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Set/Get slope limiter
+// Get slope limiter
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const SlopeLimiterBase<Dimension>&
+LimiterBase<Dimension>&
 RiemannSolverBase<Dimension>::
-slopeLimiter() const {
+limiter() const {
   return mSlopeLimiter;
 }
 
-template<typename Dimension>
-inline
-void
-RiemannSolverBase<Dimension>::
-slopeLimiter(SlopeLimiterBase<Dimension>& slopeLimiter) {
-  mSlopeLimiter=slopeLimiter;
-}
-
 //------------------------------------------------------------------------------
-// Set/Get wave speed
+// Get wave speed
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const WaveSpeedBase<Dimension>&
+WaveSpeedBase<Dimension>&
 RiemannSolverBase<Dimension>::
 waveSpeed() const {
   return mWaveSpeed;
 }
 
+//------------------------------------------------------------------------------
+// set/get linear reconstruction switch
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+RiemannSolverBase<Dimension>::
+linearReconstruction() const {
+  return mLinearReconstruction;
+}
+
 template<typename Dimension>
 inline
 void
 RiemannSolverBase<Dimension>::
-waveSpeed(WaveSpeedBase<Dimension>& waveSpeed) {
-  mWaveSpeed=waveSpeed;
+linearReconstruction(bool x) {
+  mLinearReconstruction=x;
 }
 
 //------------------------------------------------------------------------------
 // field getters
 //------------------------------------------------------------------------------
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Vector>&
+RiemannSolverBase<Dimension>::
+DpDx() const {
+  return mDpDx;
+}
+
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Tensor>&
@@ -53,8 +65,8 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Vector>&
 RiemannSolverBase<Dimension>::
-DpDx() const {
-  return mDpDx;
+DrhoDx() const {
+  return mDrhoDx;
 }
 
 

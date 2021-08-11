@@ -11,7 +11,8 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension> class WaveSpeedBase;
-template<typename Dimension> class SlopeLimiterBase;
+template<typename Dimension> class LimiterBase;
+template<typename Dimension> class Boundary;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
 
@@ -21,10 +22,13 @@ class RiemannSolverBase {
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
+
+  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
 public:
 
-  RiemannSolverBase(SlopeLimiterBase<Dimension>& slopeLimiter,
+  RiemannSolverBase(LimiterBase<Dimension>& slopeLimiter,
                     WaveSpeedBase<Dimension>& waveSpeedBase,
                     bool linearReconstruction);
 
@@ -34,37 +38,74 @@ public:
   void initialize(const DataBase<Dimension>& dataBase,
                   const State<Dimension>& state,
                   const StateDerivatives<Dimension>& derivs,
+                  ConstBoundaryIterator boundaryBegin,
+                  ConstBoundaryIterator boundaryEnd,
                   const Scalar time,
                   const Scalar dt,
                   const TableKernel<Dimension>& W);
 
   virtual
-  void interfaceState(const Scalar  Si,   
-                      const Scalar  Sj, 
-                      const Scalar  sigmai,    
-                      const Scalar  sigmaj,
-                      const Scalar  ui,    
-                      const Scalar  uj,
+  void interfaceState(const int i,
+                      const int j,
+                      const int nodelisti,
+                      const int nodelistj,
+                      const Vector& ri,
+                      const Vector& rj,
+                      const Scalar& rhoi,   
+                      const Scalar& rhoj, 
+                      const Scalar& ci,   
+                      const Scalar& cj, 
+                      const Scalar& sigmai,    
+                      const Scalar& sigmaj,
+                      const Vector& vi,    
+                      const Vector& vj,
                             Scalar& Pstar,
-                            Scalar& ustar) const = 0;
+                            Vector& vstar,
+                            Scalar& rhostari,
+                            Scalar& rhostarj) const;
 
-  const SlopeLimiterBase<Dimension>& slopeLimiter() const;
-  void slopeLimiter(SlopeLimiterBase<Dimension>& slopeLimiter);
 
-  const WaveSpeedBase<Dimension>& waveSpeed() const;
-  void waveSpeed(WaveSpeedBase<Dimension>& waveSpeed);
+  virtual
+  void interfaceState(const int i,
+                      const int j,
+                      const int nodelisti,
+                      const int nodelistj,
+                      const Vector& ri,
+                      const Vector& rj,
+                      const Scalar& rhoi,   
+                      const Scalar& rhoj, 
+                      const Scalar& ci,   
+                      const Scalar& cj,
+                      const Scalar& Pi,    
+                      const Scalar& Pj,
+                      const Vector& vi,    
+                      const Vector& vj,
+                      const SymTensor& Si,    
+                      const SymTensor& Sj,
+                      const Tensor& Di,    
+                      const Tensor& Dj,
+                            Vector& Tstar,
+                            Vector& vstar) const;
+
+  LimiterBase<Dimension>& limiter() const;
+  WaveSpeedBase<Dimension>& waveSpeed() const;
+
+  bool linearReconstruction() const;
+  void linearReconstruction(bool x);
 
   const FieldList<Dimension,Vector>& DpDx() const;
   const FieldList<Dimension,Tensor>& DvDx() const;
-  
+  const FieldList<Dimension,Vector>& DrhoDx() const;
+
 private:
   
-  SlopeLimiterBase<Dimension>& mSlopeLimiter;   
+  LimiterBase<Dimension>& mSlopeLimiter;   
   WaveSpeedBase<Dimension>& mWaveSpeed;
   bool mLinearReconstruction; 
 
   FieldList<Dimension, Vector> mDpDx;
   FieldList<Dimension, Tensor> mDvDx;
+  FieldList<Dimension, Vector> mDrhoDx;
 
 };
 

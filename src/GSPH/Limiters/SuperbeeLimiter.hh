@@ -6,12 +6,12 @@
 #ifndef __Spheral_SuperbeeLimiter_hh__
 #define __Spheral_SuperbeeLimiter_hh__
 
-#include "SlopeLimiterBase.hh"
+#include "LimiterBase.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class SuperbeeLimiter : public SlopeLimiterBase<Dimension> {
+class SuperbeeLimiter : public LimiterBase<Dimension> {
 
 public:
 
