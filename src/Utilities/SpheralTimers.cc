@@ -207,6 +207,15 @@ Timer TIME_SolidSPHevalDerivs_pairs   ("SolidSPH evaluateDerivates (pairs)  ", T
 Timer TIME_SolidSPHevalDerivs_final   ("SolidSPH evaluateDerivates (final)  ", TIME_SolidSPHevalDerivs);
 
 //------------------------------------------------------------------------------
+// SolidFSISPH 
+//------------------------------------------------------------------------------
+Timer TIME_SolidFSISPH                   ("SolidFSISPH base timer                 ", TIME_Physics);
+Timer TIME_SolidFSISPHregisterDerivs     ("SolidFSISPH registerDerivatives        ", TIME_SolidFSISPH);
+Timer TIME_SolidFSISPHregisterState      ("SolidFSISPH registerState              ", TIME_SolidFSISPH);
+Timer TIME_SolidFSISPHpreStepInitialize  ("SolidFSISPH preStepInitialize (step)   ", TIME_SolidFSISPH);
+Timer TIME_SolidFSISPHinitialize         ("SolidFSISPH initialize (evalderivs)    ", TIME_SolidFSISPH);
+
+//------------------------------------------------------------------------------
 // Damage
 //------------------------------------------------------------------------------
 Timer TIME_Damage                       ("Damage base timer                 ", TIME_Physics);

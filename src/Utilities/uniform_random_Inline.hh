@@ -25,7 +25,7 @@ uniform_random::operator==(const uniform_random& rhs) const {
 inline
 bool
 uniform_random::operator!=(const uniform_random& rhs) const {
-  return (mGen != rhs.mGen) || (mRan == rhs.mRan);
+  return (mGen != rhs.mGen) || (mRan != rhs.mRan);
 }
 
 }
