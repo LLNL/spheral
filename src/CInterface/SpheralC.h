@@ -509,18 +509,6 @@ SPHERALDLL_API
 SPHERALDLL_API 
   int* spheral_get_num_ghost_nodes(const int ndims);
 
-/*------------------------------------------------------------------------------
-  spheral_start_timers
-  spheral_stop_timers
-
-  Utilities for profiling with built-in Spheral Timer class -- developer methods
-  ----------------------------------------------------------------------------*/
-SPHERALDLL_API 
-  void spheral_start_timers();
-
-SPHERALDLL_API 
-  void spheral_stop_timers();
-
 #ifdef __cplusplus
 }
 #endif

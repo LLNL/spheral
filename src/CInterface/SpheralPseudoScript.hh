@@ -27,8 +27,6 @@
 #include "NodeList/SmoothingScaleBase.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "Physics/Physics.hh"
-#include "Boundary/Boundary.hh"
-#include "Boundary/ConstantBoundary.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -198,22 +196,19 @@ public:
   static int* getNumInternalNodes();
   static int* getNumGhostNodes();
 
-  // Numbers of nodes per material.
-  std::vector<int> mNumTotalNodes, mNumInternalNodes, mNumHostGhostNodes;
-
 private:
   //------------------------===== Private Interface =====----------------------//
   // The one and only instance.
   static SpheralPseudoScript* mInstancePtr;
+
+  // Numbers of nodes per material.
+  std::vector<int> mNumTotalNodes, mNumInternalNodes, mNumHostGhostNodes;
 
   // Damage flag
   bool mDamage;
 
   // CRK flag
   bool mCRK;
-
-  // SPH h grad correction flag
-  bool mhGradCorrection;
 
   // Flag as to whether we're doing the DistributedBoundary or not.
   int mDistributedBoundary;
@@ -224,8 +219,8 @@ private:
   std::shared_ptr<StrengthModel<Dimension>> mStrengthModelPtr;
 
   // The NodeList data.
-  std::vector<std::shared_ptr<Neighbor<Dimension>>> mNeighbors;
-  std::vector<std::shared_ptr<SolidNodeList<Dimension>>> mNodeLists;
+  std::vector<std::shared_ptr<Neighbor<Dimension>> > mNeighbors;
+  std::vector<std::shared_ptr<SolidNodeList<Dimension>> > mNodeLists;
 
   // Hydro bits.
   std::shared_ptr<TableKernel<Dimension>> mKernelPtr;
@@ -245,9 +240,7 @@ private:
 
   // A container to hold the host code values.
   std::vector<std::shared_ptr<Boundary<Dimension>>> mHostCodeBoundaries;
-  std::vector<std::shared_ptr<ConstantBoundary<Dimension>>> mConstantBoundaries;
-  std::vector<std::vector<int>> mParticleType;      // hang onto particle type info from user
-  bool mLockBoundaries;                             // Flag to prevent adding new boundaries
+  bool mLockBoundaries;                // Flag to prevent adding new boundaries
 
   // node generator data
   std::vector<double> mSphXcoord, mSphYcoord, mSphZcoord;

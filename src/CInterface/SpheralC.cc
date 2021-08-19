@@ -4,15 +4,12 @@
 //------------------------------------------------------------------------------
 
 #include "SpheralC.h"
-#include "SpheralPseudoScript.hh"
-#include "Geometry/Dimension.hh"
-#include "Distributed/Communicator.hh"
-#include "Utilities/Timer.hh"
 
 #include <vector>
 
-// Declare timers
-extern Timer TIME_SpheralC;
+#include "Geometry/Dimension.hh"
+#include "Distributed/Communicator.hh"
+#include "SpheralPseudoScript.hh"
 
 //------------------------------------------------------------------------------
 // spheral_set_communicator
@@ -675,16 +672,3 @@ int* spheral_get_num_ghost_nodes(const int ndims) {
     VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
   }
 }
-
-//------------------------------------------------------------------------------
-// Timer utility methods (have to hide the C++)
-//------------------------------------------------------------------------------
-void spheral_start_timers() {
-  TIME_SpheralC.start();
-}
-
-void spheral_stop_timers() {
-  TIME_SpheralC.stop();
-  Timer::TimerSummary();
-}
-
