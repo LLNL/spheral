@@ -9,8 +9,9 @@ units = PhysicalConstants(0.01,     # Unit length in meters
 #-------------------------------------------------------------------------------
 # Build an ANEOS SiO2 like thing.
 #-------------------------------------------------------------------------------
-izetl = [-1, -2, -3]
-initializeANEOS("ANEOS.INPUT", "ANEOS.barf", izetl)
+izetl = [-1] #, -2, -3]
+initializeANEOS("ANEOS.SIO2", "ANEOS.barf", izetl)
+#initializeANEOS("ANEOS.INPUT", "ANEOS.barf", izetl)
 etaMin, etaMax = 0.2, 5.0
 Tmin, Tmax = 1.0e3, 1.0e8
 rhoMin, rhoMax = 0.1, 20.0
@@ -23,22 +24,27 @@ eosSiO2 =       ANEOS(1,                 # Material number (offset sequentially 
                       Tmin,              # minimum temperature (K)
                       Tmax,              # maximum temperature (K)
                       units)
-eosForsterite = ANEOS(2,                 # Material number (offset sequentially from ANEOS.INPUT)
-                      100,               # num rho vals
-                      100,               # num T vals
-                      rhoMin,            # minimum density (kg/m^3)
-                      rhoMax,            # maximum density (kg/m^3)
-                      Tmin,              # minimum temperature (K)
-                      Tmax,              # maximum temperature (K)
-                      units)
-eosWater =      ANEOS(3,                 # Material number (offset sequentially from ANEOS.INPUT)
-                      100,               # num rho vals
-                      100,               # num T vals
-                      rhoMin,            # minimum density (kg/m^3)
-                      rhoMax,            # maximum density (kg/m^3)
-                      Tmin,              # minimum temperature (K)
-                      Tmax,              # maximum temperature (K)
-                      units)
+# eosForsterite = ANEOS(2,                 # Material number (offset sequentially from ANEOS.INPUT)
+#                       100,               # num rho vals
+#                       100,               # num T vals
+#                       rhoMin,            # minimum density (kg/m^3)
+#                       rhoMax,            # maximum density (kg/m^3)
+#                       Tmin,              # minimum temperature (K)
+#                       Tmax,              # maximum temperature (K)
+#                       units)
+# eosWater =      ANEOS(3,                 # Material number (offset sequentially from ANEOS.INPUT)
+#                       100,               # num rho vals
+#                       100,               # num T vals
+#                       rhoMin,            # minimum density (kg/m^3)
+#                       rhoMax,            # maximum density (kg/m^3)
+#                       Tmin,              # minimum temperature (K)
+#                       Tmax,              # maximum temperature (K)
+#                       units)
+
+eosTillotsonBasalt = TillotsonEquationOfState(materialName = "basalt",
+                                              etamin = etaMin,
+                                              etamax = etaMax,
+                                              units = units)
 
 #-------------------------------------------------------------------------------
 # Plot the pressure, entropy, & sound speed as a function of (rho, eps)
@@ -49,8 +55,9 @@ rho = [rhoMin + i*drho for i in xrange(n + 1)]
 
 plots = []
 for eos, label in ((eosSiO2, "SiO2"),
-                   (eosForsterite, "Forsterite"),
-                   (eosWater, "water")):
+                   # (eosForsterite, "Forsterite"),
+                   # (eosWater, "water"),
+                   (eosTillotsonBasalt, "Tillotson")):
     epsMin = eos.specificThermalEnergy(rhoMin, Tmin)
     epsMax = eos.specificThermalEnergy(rhoMax, Tmax)
     deps = (epsMax - epsMin)/n
