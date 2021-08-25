@@ -95,15 +95,16 @@ void
 Boundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
                                     FieldList<Dimension, int>& old2newIndexMap,
                                     vector<int>& numNodesRemoved) {
-
-  auto& registrar = NodeListRegistrar<Dimension>::instance();
-  REQUIRE((int)numNodesRemoved.size() == registrar.numNodeLists());
+  const auto& nodeListPtrs = flagSet.nodeListPtrs();
+  REQUIRE(numNodesRemoved.size() == nodeListPtrs.size());
+  // auto& registrar = NodeListRegistrar<Dimension>::instance();
+  // REQUIRE((int)numNodesRemoved.size() == registrar.numNodeLists());
 
   // Walk the NodeLists.
   auto nodeListi = 0;
-  for (auto itr = registrar.begin(); itr != registrar.end(); ++itr, ++nodeListi) {
-    const auto* nodeListPtr = *itr;
-
+  // for (auto itr = registrar.begin(); itr != registrar.end(); ++itr, ++nodeListi) {
+  //   const auto* nodeListPtr = *itr;
+  for (auto nodeListPtr : nodeListPtrs) {
     // Does the Boundary have entries for this NodeList?
     if (haveNodeList(*nodeListPtr)) {
       auto& boundaryNodes = accessBoundaryNodes(const_cast<NodeList<Dimension>&>(*nodeListPtr));
