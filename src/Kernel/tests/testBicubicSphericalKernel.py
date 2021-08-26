@@ -1,3 +1,4 @@
+#ATS:test(SELF, label="SphericalKernel (using Biquadratic interpolation) unit tests")
 from math import *
 import unittest
 import numpy as np
