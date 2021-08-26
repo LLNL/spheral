@@ -1,10 +1,11 @@
 text = """
 //------------------------------------------------------------------------------
-// Explicit instantiation.
+// Explict instantiation.
 //------------------------------------------------------------------------------
-#include "Utilities/ThreePointDamagedNodeCoupling.cc"
+#include "FSISPH/SolidFSISPHHydroBase.cc"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class ThreePointDamagedNodeCoupling< Dim< %(ndim)s > >;
+  template class SolidFSISPHHydroBase< Dim< %(ndim)s > >;
 }
 """

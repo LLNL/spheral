@@ -50,6 +50,8 @@ from DEMNodeLists import *
 # ------------------------------------------------------------------------------
 from SPHHydros import *
 from PSPHHydros import *
+from FSISPHHydros import *
+from SlideSurfaces import *
 #from SVPHHydros import *
 from CRKSPHHydros import *
 #from TaylorSPHHydros import *
@@ -114,7 +116,8 @@ except:
 for shadowedthing in ("TillotsonEquationOfState",
                       "GruneisenEquationOfState",
                       "ConstantStrength",
-                      "ProbabilisticDamageModel"):
+                      "ProbabilisticDamageModel",
+                      "IvanoviSALEDamageModel"):
     for dim in dims:
         exec("from Shadow%(thing)s import %(thing)s%(dim)sd" % {"thing" : shadowedthing,
                                                                 "dim"   : dim})

@@ -27,7 +27,7 @@ default values listed in parens):
         mWeibull                : the "m" Weibull constant -- can be looked up from 
                                   materialName or provided
         seed                    : (48927592) random number seed for flaw generation
-        minFlawsPerNode         : (10) the minimum number of flaws to seed on a point
+        minFlawsPerNode         : (1) the minimum number of flaws to seed on a point
         crackGrowthMultiplier   : (0.4) crack growth rate in units of longitudinal
                                   sound speed
         volumeMultiplier        : (1.0) Multiplies per node volume, useful for 
@@ -66,7 +66,7 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
                          "kWeibull"                 : None,
                          "mWeibull"                 : None,
                          "seed"                     : 48927592,
-                         "minFlawsPerNode"          : 10,
+                         "minFlawsPerNode"          : 1,
                          "crackGrowthMultiplier"    : 0.4,
                          "volumeMultiplier"         : 1.0,
                          "damageCouplingAlgorithm"  : PairMaxDamage,
@@ -84,7 +84,7 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
         for argname in kwargs:
             if not argname in validKeys:
                 raise ValueError, ("ERROR: argument %%s not a valid option.\\n" %% argname +
-                                   expectedUsageStringBA)
+                                   expectedUsageString)
 
         # Did the user try any convenient constructor operations?
         if ((len(args) > 0 and type(args[0]) == str) or
@@ -97,7 +97,7 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
                 del kwargs["materialName"]
             if not materialName in SpheralMaterialPropertiesLib:
                 raise ValueError, (("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
-                                   expectedUsageStringBA)
+                                   expectedUsageString)
             matprops = SpheralMaterialPropertiesLib[materialName]
             if not ("kWeibull" in matprops and "mWeibull" in matprops):
                 raise ValueError, (("ERROR : material %%s does not provide the required values for kWeibull and mWeibull.\\n" %% materialName) + 

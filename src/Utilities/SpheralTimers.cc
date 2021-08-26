@@ -7,10 +7,10 @@
 #include "Timer.hh"
 #include <list>
 
-// Must initialize the static list defined in Timer.hh
-#ifdef TIMER
-std::list<Timer*> Timer::TimerList(0); 
-#endif
+// // Must initialize the static list defined in Timer.hh
+// #ifdef TIMER
+// std::list<Timer*> Timer::TimerList(0); 
+// #endif
 
 //------------------------------------------------------------------------------
 // Root Timers
@@ -205,6 +205,15 @@ Timer TIME_SolidSPHevalDerivs         ("SolidSPH evaluateDerivates          ", T
 Timer TIME_SolidSPHevalDerivs_initial ("SolidSPH evaluateDerivates (initial)", TIME_SolidSPHevalDerivs);
 Timer TIME_SolidSPHevalDerivs_pairs   ("SolidSPH evaluateDerivates (pairs)  ", TIME_SolidSPHevalDerivs);
 Timer TIME_SolidSPHevalDerivs_final   ("SolidSPH evaluateDerivates (final)  ", TIME_SolidSPHevalDerivs);
+
+//------------------------------------------------------------------------------
+// SolidFSISPH 
+//------------------------------------------------------------------------------
+Timer TIME_SolidFSISPH                   ("SolidFSISPH base timer                 ", TIME_Physics);
+Timer TIME_SolidFSISPHregisterDerivs     ("SolidFSISPH registerDerivatives        ", TIME_SolidFSISPH);
+Timer TIME_SolidFSISPHregisterState      ("SolidFSISPH registerState              ", TIME_SolidFSISPH);
+Timer TIME_SolidFSISPHpreStepInitialize  ("SolidFSISPH preStepInitialize (step)   ", TIME_SolidFSISPH);
+Timer TIME_SolidFSISPHinitialize         ("SolidFSISPH initialize (evalderivs)    ", TIME_SolidFSISPH);
 
 //------------------------------------------------------------------------------
 // Damage
