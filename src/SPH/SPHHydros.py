@@ -146,6 +146,8 @@ class %(classname)s(SPHHydroBaseRZ):
                  xmin = Vector2d(-1e100, -1e100),
                  xmax = Vector2d( 1e100,  1e100),
                  etaMinAxis = 0.1):
+        if GeometryRegistrar.coords != CoordinateType.RZ:
+            raise RuntimeError("Import from SpheralRZ before trying to use RZ physics")
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
             WPi = W
@@ -202,6 +204,8 @@ class %(classname)s(SPHHydroBaseGSRZ):
                  xmin = Vector2d(-1e100, -1e100),
                  xmax = Vector2d( 1e100,  1e100),
                  etaMinAxis = 0.1):
+        if GeometryRegistrar.coords != CoordinateType.RZ:
+            raise RuntimeError("Import from SpheralRZ before trying to use RZ physics")
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
             WPi = W
@@ -262,6 +266,8 @@ class %(classname)s(SolidSPHHydroBaseRZ):
                  xmin = Vector2d(-1e100, -1e100),
                  xmax = Vector2d( 1e100,  1e100),
                  etaMinAxis = 0.1):
+        if GeometryRegistrar.coords != CoordinateType.RZ:
+            raise RuntimeError("Import from SpheralRZ before trying to use RZ physics")
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
             WPi = W
@@ -356,8 +362,7 @@ def SPH(dataBase,
         strengthInDamage = False,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
-        ASPH = False,
-        RZ = False):
+        ASPH = False):
 
     # We use the provided DataBase to sniff out what sort of NodeLists are being
     # used, and based on this determine which SPH object to build.
@@ -371,7 +376,7 @@ def SPH(dataBase,
         raise RuntimeError, "Cannot mix solid and fluid NodeLists."
 
     # Decide on the hydro object.
-    if RZ:
+    if GeometryRegistrar.coords() == CoordinateType.RZ:
 
         # RZ ----------------------------------------
         if nsolid > 0:
@@ -486,107 +491,4 @@ def ASPH(dataBase,
                xmin = xmin,
                xmax = xmax,
                ASPH = True)
-
-#-------------------------------------------------------------------------------
-# RZ SPH frontend
-#-------------------------------------------------------------------------------
-def SPHRZ(dataBase,
-          W,
-          WPi = None,
-          Q = None,
-          filter = 0.0,
-          cfl = 0.25,
-          useVelocityMagnitudeForDt = False,
-          compatibleEnergyEvolution = True,
-          evolveTotalEnergy = False,
-          gradhCorrection = True,
-          XSPH = True,
-          correctVelocityGradient = True,
-          sumMassDensityOverAllNodeLists = True,
-          densityUpdate = RigorousSumDensity,
-          HUpdate = IdealH,
-          epsTensile = 0.0,
-          nTensile = 4.0,
-          damageRelieveRubble = False,
-          negativePressureInDamage = False,
-          strengthInDamage = False,
-          xmin = (-1e100, -1e100, -1e100),
-          xmax = ( 1e100,  1e100,  1e100),
-          etaMinAxis = 0.1,
-          ASPH = False):
-    return SPH(dataBase = dataBase,
-               W = W,
-               WPi = WPi,
-               Q = Q,
-               filter = filter,
-               cfl = cfl,
-               useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-               compatibleEnergyEvolution = compatibleEnergyEvolution,
-               evolveTotalEnergy = evolveTotalEnergy,
-               gradhCorrection = gradhCorrection,
-               XSPH = XSPH,
-               correctVelocityGradient = correctVelocityGradient,
-               sumMassDensityOverAllNodeLists = sumMassDensityOverAllNodeLists,
-               densityUpdate = densityUpdate,
-               HUpdate = HUpdate,
-               epsTensile = epsTensile,
-               nTensile = nTensile,
-               damageRelieveRubble = damageRelieveRubble,
-               negativePressureInDamage = negativePressureInDamage,
-               strengthInDamage = strengthInDamage,
-               xmin = xmin,
-               xmax = xmax,
-               ASPH = ASPH,
-               RZ = True)
-
-#-------------------------------------------------------------------------------
-# RZ ASPH frontend
-#-------------------------------------------------------------------------------
-def ASPHRZ(dataBase,
-           W,
-           WPi = None,
-           Q = None,
-           filter = 0.0,
-           cfl = 0.25,
-           useVelocityMagnitudeForDt = False,
-           compatibleEnergyEvolution = True,
-           evolveTotalEnergy = False,
-           gradhCorrection = True,
-           XSPH = True,
-           correctVelocityGradient = True,
-           sumMassDensityOverAllNodeLists = True,
-           densityUpdate = RigorousSumDensity,
-           HUpdate = IdealH,
-           epsTensile = 0.0,
-           nTensile = 4.0,
-           damageRelieveRubble = False,
-           negativePressureInDamage = False,
-           strengthInDamage = False,
-           xmin = (-1e100, -1e100, -1e100),
-           xmax = ( 1e100,  1e100,  1e100),
-           etaMinAxis = 0.1):
-    return SPH(dataBase = dataBase,
-               W = W,
-               WPi = WPi,
-               Q = Q,
-               filter = filter,
-               cfl = cfl,
-               useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-               compatibleEnergyEvolution = compatibleEnergyEvolution,
-               evolveTotalEnergy = evolveTotalEnergy,
-               gradhCorrection = gradhCorrection,
-               XSPH = XSPH,
-               correctVelocityGradient = correctVelocityGradient,
-               sumMassDensityOverAllNodeLists = sumMassDensityOverAllNodeLists,
-               densityUpdate = densityUpdate,
-               HUpdate = HUpdate,
-               epsTensile = epsTensile,
-               nTensile = nTensile,
-               damageRelieveRubble = damageRelieveRubble,
-               negativePressureInDamage = negativePressureInDamage,
-               strengthInDamage = strengthInDamage,
-               xmin = xmin,
-               xmax = xmax,
-               ASPH = True,
-               RZ = True)
 

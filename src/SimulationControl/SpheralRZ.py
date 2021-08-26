@@ -9,3 +9,4 @@ for name in [x for x in Spheral.__dict__ if x[-2:] == "RZ"]:
     exec("%s = Spheral.__dict__['%s']" % (name.replace("RZ", ""), name))
 del x, name
 from Spheral import *
+GeometryRegistar.coords(CoordinateType.RZ)
