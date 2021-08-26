@@ -106,7 +106,7 @@ class %(classname)s(CRKSPHHydroBaseRZ):
                  epsTensile,
                  nTensile,
                  etaMinAxis):
-        if GeometryRegistrar.coords != CoordinateType.RZ:
+        if GeometryRegistrar.coords() != CoordinateType.RZ:
             raise RuntimeError("Import from SpheralRZ before trying to use RZ physics")
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         CRKSPHHydroBaseRZ.__init__(self,
@@ -152,7 +152,7 @@ class %(classname)s(SolidCRKSPHHydroBaseRZ):
                  damageRelieveRubble,
                  negativePressureInDamage,
                  etaMinAxis):
-        if GeometryRegistrar.coords != CoordinateType.RZ:
+        if GeometryRegistrar.coords() != CoordinateType.RZ:
             raise RuntimeError("Import from SpheralRZ before trying to use RZ physics")
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         SolidCRKSPHHydroBaseRZ.__init__(self,
@@ -240,7 +240,7 @@ def CRKSPH(dataBase,
         raise RuntimeError, "Cannot mix solid and fluid NodeLists."
 
     # Decide on the hydro object.
-    if GeometryRegistrar.coords == CoordinateType.RZ:
+    if GeometryRegistrar.coords() == CoordinateType.RZ:
 
         # RZ ----------------------------------------
         if nsolid > 0:
@@ -302,7 +302,7 @@ def CRKSPH(dataBase,
         kwargs.update({"damageRelieveRubble" : damageRelieveRubble,
                        "negativePressureInDamage" : negativePressureInDamage})
 
-    if GeometryRegistrar.coords == CoordinateType.RZ:
+    if GeometryRegistrar.coords() == CoordinateType.RZ:
         kwargs.update({"etaMinAxis" : etaMinAxis})
 
     # Build the thing.

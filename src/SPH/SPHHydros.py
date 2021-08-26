@@ -376,7 +376,7 @@ def SPH(dataBase,
         raise RuntimeError, "Cannot mix solid and fluid NodeLists."
 
     # Decide on the hydro object.
-    if GeometryRegistrar.coords == CoordinateType.RZ:
+    if GeometryRegistrar.coords() == CoordinateType.RZ:
 
         # RZ ----------------------------------------
         if nsolid > 0:
