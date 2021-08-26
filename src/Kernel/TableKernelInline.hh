@@ -62,8 +62,9 @@ TableKernel<Dimension>::kernelAndGradValue(const double etaMagnitude, const doub
   REQUIRE(etaMagnitude >= 0.0);
   REQUIRE(Hdet >= 0.0);
   if (etaMagnitude < this->mKernelExtent) {
-    return std::make_pair(Hdet*mInterp(etaMagnitude),
-                          Hdet*mGradInterp(etaMagnitude));
+    const auto i0 = mInterp.lowerBound(etaMagnitude);
+    return std::make_pair(Hdet*mInterp(etaMagnitude, i0),
+                          Hdet*mGradInterp(etaMagnitude, i0));
   } else {
     return std::make_pair(0.0, 0.0);
   }
@@ -97,8 +98,9 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaMagnit
 
   // Fill those suckers in.
   for (auto i = 0u; i < n; ++i) {
-    kernelValues[i] = Hdets[i]*mInterp(etaMagnitudes[i]);
-    gradValues[i] = Hdets[i]*mGradInterp(etaMagnitudes[i]);
+    const auto i0 = mInterp.lowerBound(etaMagnitudes[i]);
+    kernelValues[i] = Hdets[i]*mInterp(etaMagnitudes[i], i0);
+    gradValues[i] = Hdets[i]*mGradInterp(etaMagnitudes[i], i0);
   }
 }
 

@@ -12,6 +12,14 @@ QuadraticInterpolator::operator()(const double x) const {
   return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
 }
 
+inline
+double
+QuadraticInterpolator::operator()(const double x,
+                                  const size_t i0) const {
+  REQUIRE(i0 <= 3u*mN1);
+  return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
+}
+
 //------------------------------------------------------------------------------
 // Interpolate the first derivative the given x value.
 //------------------------------------------------------------------------------
@@ -19,6 +27,14 @@ inline
 double
 QuadraticInterpolator::prime(const double x) const {
   const auto i0 = lowerBound(x);
+  return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
+}
+
+inline
+double
+QuadraticInterpolator::prime(const double x,
+                             const size_t i0) const {
+  REQUIRE(i0 <= 3u*mN1);
   return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
 }
 
@@ -30,6 +46,14 @@ inline
 double
 QuadraticInterpolator::prime2(const double x) const {
   const auto i0 = lowerBound(x);
+  return 2.0*mcoeffs[i0 + 2];
+}
+
+inline
+double
+QuadraticInterpolator::prime2(const double /*x*/,
+                              const size_t i0) const {
+  REQUIRE(i0 <= 3u*mN1);
   return 2.0*mcoeffs[i0 + 2];
 }
 

@@ -33,6 +33,11 @@ public:
   double prime(const double x) const;    // First derivative
   double prime2(const double x) const;   // Second derivative
 
+  // Same as above, but use a pre-computed table position (from lowerBound)
+  double operator()(const double x, const size_t i0) const;
+  double prime(const double x, const size_t i0) const;    // First derivative
+  double prime2(const double x, const size_t i0) const;   // Second derivative
+
   // Return the lower bound index in the table for the given x coordinate
   size_t lowerBound(const double x) const;
 

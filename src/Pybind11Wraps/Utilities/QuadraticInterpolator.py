@@ -25,21 +25,49 @@ Assumes the results is interpolated as y_interp = a + b*x + c*x^2"""
                    yvals = "const std::vector<double>&"):
         "Initializes the interpolator for yvals sampled in x in [xmin, xmax]"
 
+    @PYB11const
     def __call__(self,
                  x = "const double"):
         "Returns the interpolated value <y>(x)"
         return "double"
 
+    @PYB11const
     def prime(self,
               x = "const double"):
         "Interpolator for the first derivative: <dy/dx>(x)"
         return "double"
 
+    @PYB11const
     def prime2(self,
                x = "const double"):
         "Interpolator for the second derivative: <d^2y/dx^2>(x)"
         return "double"
 
+    @PYB11pyname("__call__")
+    @PYB11const
+    def __call__i0(self,
+                   x = "const double",
+                   i0 = "const size_t"):
+        "Returns the interpolated value <y>(x)"
+        return "double"
+
+    @PYB11pycppname("prime")
+    @PYB11const
+    def prime_i0(self,
+                 x = "const double",
+                 i0 = "const size_t"):
+        "Interpolator for the first derivative: <dy/dx>(x)"
+        return "double"
+
+    @PYB11pycppname("prime2")
+    @PYB11const
+    def prime2_i0(self,
+                  x = "const double",
+                  i0 = "const size_t"):
+        "Interpolator for the second derivative: <d^2y/dx^2>(x)"
+        return "double"
+
+    @PYB11const
     def lowerBound(self,
                    x = "const double"):
         "Return the lower bound index in the table for the given x coordinate"
