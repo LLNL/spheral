@@ -9,8 +9,7 @@ endif()
 set(BOOST_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(BOOST_SRC_DIR ${BOOST_PREFIX}/src/boost)
 set(BOOST_BUILD_DIR ${BOOST_PREFIX}/src/boost-build)
-set(BOOST_URL "https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2")
-set(BOOST_MD5 "MD5=da07ca30dd1c0d1fdedbd487efee01bd")
+set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.bz2/download")
 set(BOOST_CACHE "${CACHE_DIR}/boost_1_74_0.tar.bz2")
 
 # Choose which compiled libraries we're building
@@ -60,7 +59,7 @@ if(${lib_name}_BUILD)
   ExternalProject_add(${lib_name}
     PREFIX ${BOOST_PREFIX}
     URL ${BOOST_URL} 
-    URL_HASH ${BOOST_MD5}
+    URL_HASH "MD5=${BOOST_MD5}"
     DOWNLOAD_DIR ${CACHE_DIR}
     CONFIGURE_COMMAND env CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} CFLAGS=-fPIC CXXFLAGS=-fPIC FCFLAGS=-fPIC ${BOOST_SRC_DIR}/bootstrap.sh
     --with-toolset=${TOOLSET}

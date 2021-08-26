@@ -15,7 +15,6 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Instance
 //------------------------------------------------------------------------------
-inline
 GeometryRegistrar&
 GeometryRegistrar::instance() {
   if (mInstancePtr == 0) mInstancePtr = new GeometryRegistrar;

@@ -171,6 +171,7 @@ class SedovSolution:
         P = []
         u = []
         h = []
+        A = []
 
         for ri in r:
             if abs(ri) < r2:
@@ -182,8 +183,9 @@ class SedovSolution:
             P.append(Pi*P2)
             u.append(P[-1]/(gam1*rho[-1] + 1.0e-50))
             h.append(self.h0 * self.rho0/(rho[-1] + 1.0e-50))
+            A.append(P[-1]/max(1.0e-30, rho[-1])**gamma)
 
-        return r, v, u, rho, P, h
+        return r, v, u, rho, P, A, h
 
     #---------------------------------------------------------------------------
     # alpha1

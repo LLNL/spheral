@@ -61,6 +61,7 @@ source("../src/Utilities/tests/testSegmentIntersectPolyhedronEdges.py")
 source("../src/Utilities/tests/testSimpsonsIntegration.py")
 source("../src/Utilities/tests/testQuadraticInterpolator.py")
 source("../src/Utilities/tests/testBiQuadraticInterpolator.py")
+source("../src/Utilities/tests/test_uniform_random.py")
 
 # Mesh tests.
 source("../src/Mesh/tests/testLineMesh.py")
@@ -82,6 +83,7 @@ source("Gravity/CollisionlessSphereCollapse.py")
 # Strength tests.
 #source("Strength/PlateImpact/PlateImpact-1d.py")
 source("Strength/CollidingPlates/CollidingPlates-1d.py")
+source("Strength/DiametralCompression/DiametralCompression.py")
 
 # Damage tests.
 source("Damage/TensileRod/TensileRod-1d.py")
