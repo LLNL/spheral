@@ -106,7 +106,7 @@ inline bool nearlyEqual(const T& x,
 //                            REQUIRE -- Preconditions
 //----------------------------------------------------------------------------
 
-#ifdef DBC_USE_REQUIRE
+#if defined(DBC_USE_REQUIRE) && !defined(__CUDACC__)
 #define DBC_ASSERTION(x, msg, kind)                     \
    if (::Spheral::dbc::assertionLock()) {               \
       if (!(x)) {                                       \
@@ -130,7 +130,7 @@ inline bool nearlyEqual(const T& x,
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-#ifdef DBC_USE_ENSURE
+#if defined(DBC_USE_ENSURE) && defined (DBC_ASSERTION)
 #define ENSURE2(x, msg) DBC_ASSERTION(x, msg,"Postcondition violated")
 #define INVARIANT2(x, msg) DBC_ASSERTION(x, msg, "Invariant violated")
 #else
