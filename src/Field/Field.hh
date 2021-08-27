@@ -60,7 +60,7 @@ public:
 #if defined(LVARRAY_USE_CUDA)
   using ContainerType = LvArray::Array< ValueType, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer >;
   using ContainerTypeView = LvArray::ArrayView< ValueType, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer >;
-  ContainerTypeView getAccessorView() { return ContainerTypeView(mDataArray); }
+  RAJA_HOST_DEVICE ContainerTypeView getAccessorView() { return ContainerTypeView(mDataArray); }
 #else
   using ContainerType = std::vector< ValueType >;
 #endif
