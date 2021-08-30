@@ -51,6 +51,29 @@ namespace Spheral {
 // }
 
 //------------------------------------------------------------------------------
+// A functor to compute eps(rho, T) for use building the interpolation table
+//------------------------------------------------------------------------------
+class epsFunc {
+public:
+  epsFunc(int matNum, double rhoConv, double Tconv, double Econv):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mEconv(Econv) {};
+  double operator()(const Dim<2>::Vector& x) const {
+    rho = x[0]/mRhoConv;
+    T = x[1]/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return eps * mEconv;
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mEconv;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -83,6 +106,7 @@ ANEOS(const int materialNumber,
   mTmax(Tmax),
   mExternalPressure(externalPressure),
   mSTEvals(boost::extents[numRhoVals][numTvals]),
+  mEpsInterp(),
   mANEOSunits(0.01,   // cm expressed as meters.
               0.001,  // g expressed in kg.
               1.0),   // sec in secs.
@@ -130,19 +154,24 @@ ANEOS(const int materialNumber,
   // Fix the reference density.
   this->referenceDensity(this->referenceDensity() * mRhoConv);
 
-  // Build our lookup table to find eps(rho, T).
-  const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
-  const double dT = (mTmax - mTmin)/(mNumTvals - 1);
-  double Ti, rhoi, Pi, Si, CVi, DPDTi, DPDRi, csi;
+  // Build the biquadratic interpolation function for eps(rho, T)
+  mEpsInterp.initialize(Dim<2>::Vector(mRhoMin/mRhoConv, mTmin/mRhoConv),
+                        Dim<2>::Vector(mRhoMax/mRhoConv, mTmax/mRhoConv),
+                        mNumRhoVals,
+                        mNumTvals,
+                        epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv));
+
+  // Build our lookup table.
+  const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1u);
+  const double dT = (mTmax - mTmin)/(mNumTvals - 1u);
   CHECK(drho > 0.0);
   CHECK(dT > 0.0);
-  for (unsigned i = 0; i != mNumRhoVals; ++i) {
-    rhoi = min(mRhoMin + i*drho, mRhoMax) / mRhoConv;
-    for (unsigned j = 0; j != mNumTvals; ++j) {
-      Ti = min(mTmin + j*dT, mTmax) / mTconv;
-      call_aneos_(&mMaterialNumber, &Ti, &rhoi,
-                  &Pi, &mSTEvals[i][j], &Si, &CVi, &DPDTi, &DPDRi, &csi);
-      mSTEvals[i][j] = mSTEvals[i][j] * mEconv;
+  double rhoi, Ti;
+  for (unsigned i = 0u; i < mNumRhoVals; ++i) {
+    rhoi = min(mRhoMin + i*drho, mRhoMax);
+    for (unsigned j = 0; j < mNumTvals; ++j) {
+      Ti = min(mTmin + j*dT, mTmax);
+      mSTEvals[i][j] = mEpsInterp(Dim<2>::Vector(rhoi, Ti));
     }
   }
 }
@@ -297,30 +326,49 @@ pressure(const Scalar massDensity,
 
 //------------------------------------------------------------------------------
 // Calculate an individual temperature.
-// We employ an interpolated inverse lookup in our local table of specific
-// thermal energies.  Based on the assumption we're looking up eps in the table
-// using bilinear interpolation in (rho, T), and backing out T.
+// This is an inverse lookup in the eps(rho, T) table we've precomputed.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
 ANEOS<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
+
+  // Figure out where we are in the table.
   // const double logeps = log(specificThermalEnergy);
-  const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
-  const double dT = (mTmax - mTmin)/(mNumTvals - 1);
-  const unsigned irho0 = min(mNumRhoVals - 2, unsigned(max(0.0, (massDensity - mRhoMin)/drho))),
-                 irho1 = irho0 + 1;
+  const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1u);
+  const double dT = (mTmax - mTmin)/(mNumTvals - 1u);
+  const unsigned irho0 = min(mNumRhoVals - 2u, unsigned(max(0.0, (massDensity - mRhoMin)/drho))),
+                 irho2 = irho0 + 2u;
   const_slice_type rho0_slice = mSTEvals[boost::indices[irho0][range(0, mNumTvals)]];
-  const unsigned iT0 = max(0, min(int(mNumTvals - 2), 
+  const unsigned iT0 = max(0, min(int(mNumTvals - 2u), 
                                   bisectSearch(rho0_slice.begin(), rho0_slice.end(), specificThermalEnergy))),
-                 iT1 = iT0 + 1;
-  const double u = max(0.0, min(1.0, (massDensity - mRhoMin - irho0*drho)/drho));
-  double num = specificThermalEnergy - (1.0 - u)*mSTEvals[irho0][iT0] - u*mSTEvals[irho0][iT1];
-  double den = (1.0 - u)*(mSTEvals[irho1][iT0] - mSTEvals[irho0][iT0]) + u*(mSTEvals[irho1][iT1] - mSTEvals[irho0][iT1]);
-  if (irho0 == 0 or irho1 == mNumRhoVals - 1 or iT0 == 0 or iT1 == mNumTvals - 1) num = 0.0;   // Avoid extrapolating off the T table.
-  CHECK(den != 0.0);
-  const double t = max(0.0, min(1.0, num*safeInv(den, 1.0e-100)));
+                 iT2 = iT0 + 2u;
+
+  // If we're off the table, do the best we can...
+  if (massDensity < mRhoMin) {
+    if (specificThermalEnergy < mSTEvals[irho0][iT0]) return mSTEvals[irho0][iT0];
+  } else if (massDensity > mRhoMax) {
+    if (specificThermalEnergy > mSTEvals[irho2][iT2]) return mSTEvals[irho2][iT2];
+  } else if (iT0 == 0u) {
+    if (
+
+  VERIFY2((specificThermalEnergy - mSTEvals[irho0][iT0])*(specificThermalEnergy - mSTEvals[irho0][iT2]) <= 0.0,
+          "Bad bounding on eps: " << irho0 << " " << iT0 << " " << specificThermalEnergy << " " << mSTEvals[irho0][iT0] << " " << mSTEvals[irho0][iT2]);
+
+  // There are two possible values for the temperature from the quadratic equation, so pick the one bounded
+  // by our table position.
+  const auto& coeffs = mEpsInterp.coeffs();
+  const auto  i0 = mEpsInterp.lowerBound(massDensity + 0.5*drho,
+                                          mTmin + (iT0 + 0.5)*dT);
+  const auto  B0 = coeffs[i0] + coeffs[i0+1u]*massDensity + coeffs[i0+4u]*massDensity*massDensity - specificThermalEnergy;
+  const auto  B1 = coeffs[i0+2u] + coeffs[i0+3u]*massDensity;
+  const auto  x = std::sqrt(max(0.0, B1*B1 - 4.0*B0*coeffs[i0+5u]));
+  auto  result = (-B1 + x)*safeInvVar(2.0*coeffs[i0+5u]);
+  if (result < mTmin + iT0*dT or result > mTmin + iT2*dT) {
+    result = -(B1 + x)*safeInvVar(2.0*coeffs[i0+5u]);
+  }
+  VERIFY(result >= mTmin + iT0*dT and result <= mTmin + iT2*dT);
   // cerr << "Looking up temperature : " << massDensity << " " << specificThermalEnergy << endl
   //      << "                         " << mRhoMin << " " << mRhoMax << " : " << mTmin << " " << mTmax << endl
   //      << "                         " << irho0 << " " << iT0 << endl
@@ -328,7 +376,7 @@ temperature(const Scalar massDensity,
   //      << "                         " << u << " " << t << endl
   //      << "                         " << num << " " << den << endl
   //      << "                         " << mTmin + (iT0 + t)*dT << endl;
-  return mTmin + (iT0 + t)*dT;
+  return result;
 }
 
 //------------------------------------------------------------------------------

@@ -11,7 +11,7 @@
 #define ANEOS_HH
 
 #include "SolidMaterial/SolidEquationOfState.hh"
-
+#include "Utilities/BiQuadraticInterpolator.hh"
 #include "boost/multi_array.hpp"
 
 // Forward declarations.
@@ -131,11 +131,11 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  // Tables for the temp->energy lookup.
   int mMaterialNumber;
   unsigned mNumRhoVals, mNumTvals;
   double mRhoMin, mRhoMax, mTmin, mTmax, mExternalPressure;
   array_type mSTEvals;
+  BiQuadraticInterpolator mEpsInterp;
 
   // ANEOS internal units.
   PhysicalConstants mANEOSunits;
