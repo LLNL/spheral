@@ -74,6 +74,12 @@ Assumes the results is interpolated as
         """Returns the interpolated value \\\partial_yy <F>(x,y)"""
         return "double"
 
+    def lowerBound(self,
+                   x = "const double",
+                   y = "const double"):
+        "Return the index into the coefficient array for the given coordinates"
+        return "size_t"
+
     # Attributes
     size = PYB11property(doc="The size of the tabulated coefficient arrays")
     xmin = PYB11property(doc="Minimum coordinate for table")

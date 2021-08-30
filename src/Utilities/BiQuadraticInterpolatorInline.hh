@@ -7,6 +7,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Default constructor
 //------------------------------------------------------------------------------
+inline
 BiQuadraticInterpolator::BiQuadraticInterpolator():
   mnx1(),
   mny1(),
@@ -37,6 +38,7 @@ BiQuadraticInterpolator::BiQuadraticInterpolator(const Vector& xmin,
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
+inline
 BiQuadraticInterpolator::~BiQuadraticInterpolator() {
 }
 
@@ -44,6 +46,7 @@ BiQuadraticInterpolator::~BiQuadraticInterpolator() {
 // Initialize the interpolation to fit the given data
 //------------------------------------------------------------------------------
 template<typename Func>
+inline
 void
 BiQuadraticInterpolator::initialize(const Vector& xmin,
                                     const Vector& xmax,
@@ -61,8 +64,8 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
   // Figure out the sampling steps.
   mxmin = xmin;
   mxmax = xmax;
-  mxstep = {(xmax[0] - xmin[0])/mnx1,
-            (xmax[1] - xmin[1])/mny1};
+  mxstep = {(xmax[0] - xmin[0])/(nx - 1u),
+            (xmax[1] - xmin[1])/(ny - 1u)};
 
   // Fit the coefficients
   Vector x00, x01, x02, x10, x11, x12, x20, x21, x22;

@@ -49,6 +49,9 @@ public:
   double prime2_yx(const Vector& pos) const;
   double prime2_yy(const Vector& pos) const;
 
+  // Return the lower bound index in the table of coefficients for the given position
+  size_t lowerBound(const double x, const double y) const;
+
   // Allow read access the internal data representation
   size_t size() const;                        // The size of the tabulated coefficient arrays
   Vector xmin() const;                        // Minimum coordinate for table              
@@ -62,9 +65,6 @@ private:
   size_t mnx1, mny1;
   Vector mxmin, mxmax, mxstep;
   std::vector<double> mcoeffs;
-
-  // Return the lower bound index in the table of coefficients for the given position
-  size_t lowerBound(const double x, const double y) const;
 };
 
 }
