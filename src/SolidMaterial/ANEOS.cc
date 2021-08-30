@@ -14,6 +14,7 @@
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#include "boost/multi_array.hpp"
 #include <iostream>
 using std::vector;
 using std::string;
@@ -50,6 +51,8 @@ namespace Spheral {
 //           &mat);
 // }
 
+namespace { // anonymous
+
 //------------------------------------------------------------------------------
 // A functor to compute eps(rho, T) for use building the interpolation table
 //------------------------------------------------------------------------------
@@ -72,6 +75,213 @@ private:
   double mRhoConv, mTconv, mEconv;
   mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
 };
+
+//------------------------------------------------------------------------------
+// A functor to compute T(rho, eps) for use building the interpolation table
+//------------------------------------------------------------------------------
+class Tfunc {
+  typedef typename boost::multi_array<double, 2> array_type;
+  typedef typename array_type::array_view<1>::type slice_type;
+  typedef typename array_type::const_array_view<1>::type const_slice_type;
+  typedef boost::multi_array_types::index_range range;
+
+public:
+  Tfunc(const int matNum,
+        double rhoMin, 
+        double rhoMax, 
+        double Tmin, 
+        double Tmax,
+        unsigned numRhoVals, 
+        unsigned numTvals,
+        double rhoConv,
+        double Tconv, 
+        double Econv,
+        const BiQuadraticInterpolator& epsInterp):
+    mNumRhoVals(numRhoVals),
+    mNumTvals(numTvals),
+    mRhoMin(rhoMin),
+    mRhoMax(rhoMax),
+    mTmin(Tmin),
+    mTmax(Tmax),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mEconv(Econv),
+    mdrho((mRhoMax - mRhoMin)/(mNumRhoVals - 1u)),
+    mdT((mTmax - mTmin)/(mNumTvals - 1u)),
+    mSTEvals(boost::extents[numRhoVals][numTvals]),
+    mMatNum(matNum) {
+
+    // Compute the tabulated eps(rho, T) values.
+    double rhoi, Ti;
+    for (auto i = 0; i < mNumRhoVals; ++i) {
+      rhoi = min(mRhoMin + i*mdrho, mRhoMax);
+      for (auto j = 0; j < mNumTvals; ++j) {
+        Ti = min(mTmin + j*mdT, mTmax);
+        mSTEvals[i][j] = epsInterp(rhoi, Ti);
+      }
+    }
+  }
+
+  double operator()(const Dim<2>::Vector& x) const {
+
+    // Find the closest starting point on the tabulated surface.
+    const auto rhoi = x[0], epsi = x[1];
+    const auto irho0 = min(mNumRhoVals - 1, int(max(0.0, (rhoi - mRhoMin)/mdrho)));
+    const_slice_type rho0_slice = mSTEvals[boost::indices[irho0][range(0, mNumTvals)]];
+    const auto iT0 = max(0, min(int(mNumTvals - 1), bisectSearch(rho0_slice.begin(), rho0_slice.end(), epsi)));
+
+    // Try to iterate the EOS until we're close to the desired specific thermal energy
+    auto iter = 0u;
+    auto epsgoal = epsi/mEconv;
+    rho = rhoi/mRhoConv;
+    T = (mTmin + iT0*mdT)/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    while (abs(eps - epsgoal)/std::max(1e-15, abs(epsgoal)) > 1.0e-8 and ++iter < 20u) {
+      T += 0.9*(epsgoal - eps)/cV;
+      call_aneos_(&mMatNum, &T, &rho,
+                  &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    }
+
+    return T * mTconv;
+  }
+
+private:
+  int mNumRhoVals, mNumTvals;
+  double mRhoMin, mRhoMax, mTmin, mTmax, mRhoConv, mTconv, mEconv, mdrho, mdT;
+  array_type mSTEvals;
+  mutable int mMatNum;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
+// P(rho, eps)
+//------------------------------------------------------------------------------
+class Pfunc {
+public:
+  Pfunc(int matNum, double rhoConv, double Tconv, double Pconv,
+        const BiQuadraticInterpolator& Tinterp):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mPconv(Pconv),
+    mTinterp(Tinterp) {}
+  double operator()(const Dim<2>::Vector& x) const {
+    rho = x[0]/mRhoConv;
+    T = mTinterp(x[0], x[1])/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return P * mPconv;
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mPconv;
+  const BiQuadraticInterpolator& mTinterp;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
+// cV(rho, eps)
+//------------------------------------------------------------------------------
+class cVfunc {
+public:
+  cVfunc(int matNum, double rhoConv, double Tconv, double cVconv):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mCVconv(cVconv) {}
+  double operator()(const Dim<2>::Vector& x) const {
+    rho = x[0]/mRhoConv;
+    T = x[1]/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return cV * mCVconv;
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mCVconv;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
+// cs(rho, eps)
+//------------------------------------------------------------------------------
+class csfunc {
+public:
+  csfunc(int matNum, double rhoConv, double Tconv, double velConv,
+         const BiQuadraticInterpolator& Tinterp):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mVelConv(velConv),
+    mTinterp(Tinterp) {}
+  double operator()(const Dim<2>::Vector& x) const {
+    rho = x[0]/mRhoConv;
+    T = mTinterp(x[0], x[1])/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return cs * mVelConv;
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mVelConv;
+  const BiQuadraticInterpolator& mTinterp;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
+// DPDrho(rho, eps)
+//------------------------------------------------------------------------------
+class Kfunc {
+public:
+  Kfunc(int matNum, double rhoConv, double Tconv, double Pconv,
+        const BiQuadraticInterpolator& Tinterp):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mPconv(Pconv),
+    mTinterp(Tinterp) {}
+  double operator()(const Dim<2>::Vector& x) const {
+    rho = x[0]/mRhoConv;
+    T = mTinterp(x[0], x[1])/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return std::abs(rho * DPDR * mPconv);
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mPconv;
+  const BiQuadraticInterpolator& mTinterp;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
+// s(rho, eps) (entropy)
+//------------------------------------------------------------------------------
+class sfunc {
+public:
+  sfunc(int matNum, double rhoConv, double Tconv, double Sconv,
+        const BiQuadraticInterpolator& Tinterp):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mSconv(Sconv),
+    mTinterp(Tinterp) {}
+  double operator()(const Dim<2>::Vector& x) const {
+    rho = x[0]/mRhoConv;
+    T = mTinterp(x[0], x[1])/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return S * mSconv;
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mSconv;
+  const BiQuadraticInterpolator& mTinterp;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+} // anonymous
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -104,9 +314,16 @@ ANEOS(const int materialNumber,
   mRhoMax(rhoMax),
   mTmin(Tmin),
   mTmax(Tmax),
+  mEpsMin(std::numeric_limits<double>::max()),
+  mEpsMax(std::numeric_limits<double>::min()),
   mExternalPressure(externalPressure),
-  mSTEvals(boost::extents[numRhoVals][numTvals]),
   mEpsInterp(),
+  mTinterp(),
+  mPinterp(),
+  mCVinterp(),
+  mCSinterp(),
+  mKinterp(),
+  mSinterp(),
   mANEOSunits(0.01,   // cm expressed as meters.
               0.001,  // g expressed in kg.
               1.0),   // sec in secs.
@@ -154,26 +371,77 @@ ANEOS(const int materialNumber,
   // Fix the reference density.
   this->referenceDensity(this->referenceDensity() * mRhoConv);
 
-  // Build the biquadratic interpolation function for eps(rho, T)
-  mEpsInterp.initialize(Dim<2>::Vector(mRhoMin/mRhoConv, mTmin/mRhoConv),
-                        Dim<2>::Vector(mRhoMax/mRhoConv, mTmax/mRhoConv),
-                        mNumRhoVals,
-                        mNumTvals,
-                        epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv));
-
-  // Build our lookup table.
-  const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1u);
-  const double dT = (mTmax - mTmin)/(mNumTvals - 1u);
+  // Scan the boundaries of the (rho,T) space for the min/max specific thermal energy (eps)
+  const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
+  const auto drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1u);
+  const auto dT = (mTmax - mTmin)/(mNumTvals - 1u);
   CHECK(drho > 0.0);
   CHECK(dT > 0.0);
-  double rhoi, Ti;
-  for (unsigned i = 0u; i < mNumRhoVals; ++i) {
-    rhoi = min(mRhoMin + i*drho, mRhoMax);
-    for (unsigned j = 0; j < mNumTvals; ++j) {
-      Ti = min(mTmin + j*dT, mTmax);
-      mSTEvals[i][j] = mEpsInterp(Dim<2>::Vector(rhoi, Ti));
-    }
+  // [rhoMin:rhoMax], Tmin
+  for (auto i = 0u; i < mNumRhoVals; ++i) {
+    const auto epsi = Feps(Dim<2>::Vector(mRhoMin + i*drho, mTmin));
+    mEpsMin = min(mEpsMin, epsi);
+    mEpsMax = max(mEpsMax, epsi);
   }
+  // [rhoMin:rhoMax], Tmax
+  for (auto i = 0u; i < mNumRhoVals; ++i) {
+    const auto epsi = Feps(Dim<2>::Vector(mRhoMin + i*drho, mTmax));
+    mEpsMin = min(mEpsMin, epsi);
+    mEpsMax = max(mEpsMax, epsi);
+  }
+  // rhoMin, [Tmin:Tmax]
+  for (auto i = 0u; i < mNumTvals; ++i) {
+    const auto epsi = Feps(Dim<2>::Vector(mRhoMin, mTmin + i*dT));
+    mEpsMin = min(mEpsMin, epsi);
+    mEpsMax = max(mEpsMax, epsi);
+  }
+  // rhoMax, [Tmin:Tmax]
+  for (auto i = 0u; i < mNumTvals; ++i) {
+    const auto epsi = Feps(Dim<2>::Vector(mRhoMax, mTmin + i*dT));
+    mEpsMin = min(mEpsMin, epsi);
+    mEpsMax = max(mEpsMax, epsi);
+  }
+
+  // Build the biquadratic interpolation function for eps(rho, T)
+  mEpsInterp.initialize(Dim<2>::Vector(mRhoMin, mTmin),
+                        Dim<2>::Vector(mRhoMax, mTmax),
+                        mNumRhoVals, mNumTvals, Feps);
+
+  // Now the hard inversion method for looking up T(rho, eps)
+  const auto Ftemp = Tfunc(mMaterialNumber, mRhoMin, mRhoMax, mTmin, mTmax,
+                           mNumRhoVals, mNumTvals, mRhoConv, mTconv, mEconv,
+                           mEpsInterp);
+  mTinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
+                      Dim<2>::Vector(mRhoMax, mEpsMax),
+                      mNumRhoVals, mNumTvals, Ftemp);
+
+  // And finally the interpolators for most of our derived quantities
+  const auto Fpres = Pfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, mTinterp);
+  mPinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
+                      Dim<2>::Vector(mRhoMax, mEpsMax),
+                      mNumRhoVals, mNumTvals, Fpres);
+
+  const auto Fcv = cVfunc(mMaterialNumber, mRhoConv, mTconv, mCVconv);
+  mCVinterp.initialize(Dim<2>::Vector(mRhoMin, mTmin),
+                       Dim<2>::Vector(mRhoMax, mTmax),
+                       mNumRhoVals, mNumTvals, Fcv);
+
+  const auto Fcs = csfunc(mMaterialNumber, mRhoConv, mTconv, mVelConv, mTinterp);
+  mCSinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
+                       Dim<2>::Vector(mRhoMax, mEpsMax),
+                       mNumRhoVals, mNumTvals, Fcs);
+
+  const auto FK = Kfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, mTinterp);
+  mKinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
+                      Dim<2>::Vector(mRhoMax, mEpsMax),
+                      mNumRhoVals, mNumTvals, FK);
+
+
+  const auto Fs = sfunc(mMaterialNumber, mRhoConv, mTconv, mSconv, mTinterp);
+  mSinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
+                      Dim<2>::Vector(mRhoMax, mEpsMax),
+                      mNumRhoVals, mNumTvals, Fs);
+
 }
 
 //------------------------------------------------------------------------------
@@ -313,70 +581,18 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
-
-  // That's it.
-  Pi *= mPconv;
-  return this->applyPressureLimits(Pi - mExternalPressure);
+  return this->applyPressureLimits(mPinterp(massDensity, specificThermalEnergy) - mExternalPressure);
 }
 
 //------------------------------------------------------------------------------
 // Calculate an individual temperature.
-// This is an inverse lookup in the eps(rho, T) table we've precomputed.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
 ANEOS<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-
-  // Figure out where we are in the table.
-  // const double logeps = log(specificThermalEnergy);
-  const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1u);
-  const double dT = (mTmax - mTmin)/(mNumTvals - 1u);
-  const unsigned irho0 = min(mNumRhoVals - 2u, unsigned(max(0.0, (massDensity - mRhoMin)/drho))),
-                 irho2 = irho0 + 2u;
-  const_slice_type rho0_slice = mSTEvals[boost::indices[irho0][range(0, mNumTvals)]];
-  const unsigned iT0 = max(0, min(int(mNumTvals - 2u), 
-                                  bisectSearch(rho0_slice.begin(), rho0_slice.end(), specificThermalEnergy))),
-                 iT2 = iT0 + 2u;
-
-  // If we're off the table, do the best we can...
-  if (massDensity < mRhoMin) {
-    if (specificThermalEnergy < mSTEvals[irho0][iT0]) return mSTEvals[irho0][iT0];
-  } else if (massDensity > mRhoMax) {
-    if (specificThermalEnergy > mSTEvals[irho2][iT2]) return mSTEvals[irho2][iT2];
-  } else if (iT0 == 0u) {
-    if (
-
-  VERIFY2((specificThermalEnergy - mSTEvals[irho0][iT0])*(specificThermalEnergy - mSTEvals[irho0][iT2]) <= 0.0,
-          "Bad bounding on eps: " << irho0 << " " << iT0 << " " << specificThermalEnergy << " " << mSTEvals[irho0][iT0] << " " << mSTEvals[irho0][iT2]);
-
-  // There are two possible values for the temperature from the quadratic equation, so pick the one bounded
-  // by our table position.
-  const auto& coeffs = mEpsInterp.coeffs();
-  const auto  i0 = mEpsInterp.lowerBound(massDensity + 0.5*drho,
-                                          mTmin + (iT0 + 0.5)*dT);
-  const auto  B0 = coeffs[i0] + coeffs[i0+1u]*massDensity + coeffs[i0+4u]*massDensity*massDensity - specificThermalEnergy;
-  const auto  B1 = coeffs[i0+2u] + coeffs[i0+3u]*massDensity;
-  const auto  x = std::sqrt(max(0.0, B1*B1 - 4.0*B0*coeffs[i0+5u]));
-  auto  result = (-B1 + x)*safeInvVar(2.0*coeffs[i0+5u]);
-  if (result < mTmin + iT0*dT or result > mTmin + iT2*dT) {
-    result = -(B1 + x)*safeInvVar(2.0*coeffs[i0+5u]);
-  }
-  VERIFY(result >= mTmin + iT0*dT and result <= mTmin + iT2*dT);
-  // cerr << "Looking up temperature : " << massDensity << " " << specificThermalEnergy << endl
-  //      << "                         " << mRhoMin << " " << mRhoMax << " : " << mTmin << " " << mTmax << endl
-  //      << "                         " << irho0 << " " << iT0 << endl
-  //      << "                         " << mSTEvals[irho0][iT0] << " " << mSTEvals[irho0][iT1] << " " << mSTEvals[irho1][iT0] << " " << mSTEvals[irho1][iT1] << endl
-  //      << "                         " << u << " " << t << endl
-  //      << "                         " << num << " " << den << endl
-  //      << "                         " << mTmin + (iT0 + t)*dT << endl;
-  return result;
+  return mTinterp(massDensity, specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------
@@ -387,12 +603,7 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = temperature / mTconv;
-  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
-  return Ei * mEconv;
+  return mEpsInterp(massDensity, temperature);
 }
 
 //------------------------------------------------------------------------------
@@ -403,13 +614,7 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = max(mTmin, min(mTmax, temperature)) / mTconv;
-  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
-  const auto nDen = massDensity/mAtomicWeight;
-  return max(1.0e-1*mConstants.molarGasConstant()*nDen, CVi * mCVconv);
+  return mCVinterp(massDensity, temperature);
 }
 
 //------------------------------------------------------------------------------
@@ -420,13 +625,7 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
-  return csi * mVelConv;
-  // return sqrt(max(1e-10, DPDRi)) * mVelConv;
+  return mCSinterp(massDensity, specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------
@@ -451,12 +650,7 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
-  return std::abs(rhoi * DPDRi * mPconv);
+  return mKinterp(massDensity, specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------
@@ -467,15 +661,7 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 entropy(const Scalar massDensity,
         const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
-
-  // That's it.
-  Si *= mSconv;
-  return Si;
+  return mSinterp(massDensity, specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------
@@ -538,13 +724,6 @@ double
 ANEOS<Dimension>::
 Tmax() const {
   return mTmax;
-}
-
-template<typename Dimension>
-const boost::multi_array<double, 2>&
-ANEOS<Dimension>::
-specificThermalEnergyVals() const {
-  return mSTEvals;
 }
 
 //------------------------------------------------------------------------------

@@ -12,7 +12,6 @@
 
 #include "SolidMaterial/SolidEquationOfState.hh"
 #include "Utilities/BiQuadraticInterpolator.hh"
-#include "boost/multi_array.hpp"
 
 // Forward declarations.
 namespace Spheral {
@@ -28,11 +27,6 @@ public:
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
-
-  typedef typename boost::multi_array<double, 2> array_type;
-  typedef typename array_type::array_view<1>::type slice_type;
-  typedef typename array_type::const_array_view<1>::type const_slice_type;
-  typedef boost::multi_array_types::index_range range;
 
   // Constructors, destructors.
   ANEOS(const int materialNumber,
@@ -120,7 +114,6 @@ public:
   double rhoMax() const;
   double Tmin() const;
   double Tmax() const;
-  const array_type& specificThermalEnergyVals() const;
 
   // If requested, the user can specify an external pressure to be applied
   // in the pressure calculation.
@@ -133,9 +126,8 @@ private:
   //--------------------------- Private Interface ---------------------------//
   int mMaterialNumber;
   unsigned mNumRhoVals, mNumTvals;
-  double mRhoMin, mRhoMax, mTmin, mTmax, mExternalPressure;
-  array_type mSTEvals;
-  BiQuadraticInterpolator mEpsInterp;
+  double mRhoMin, mRhoMax, mTmin, mTmax, mEpsMin, mEpsMax, mExternalPressure;
+  BiQuadraticInterpolator mEpsInterp, mTinterp, mPinterp, mCVinterp, mCSinterp, mKinterp, mSinterp;
 
   // ANEOS internal units.
   PhysicalConstants mANEOSunits;
