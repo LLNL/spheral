@@ -88,7 +88,7 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                 for i in xrange(self.n):
                     pos = Vector(rangen.uniform(xmin.x, xmax.x),
                                  rangen.uniform(xmin.y, xmax.y))
-                    self.failUnless(fuzzyEqual(Finterp(pos), F(pos)),
+                    self.failUnless(fuzzyEqual(Finterp(pos.x, pos.y), F(pos)),
                                     "Interpolation off: %g != %g" % (Finterp(pos), F(pos)))
 
     #===========================================================================
@@ -140,8 +140,8 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                 for i in xrange(self.n):
                     pos = Vector(rangen.uniform(xmin.x, xmax.x),
                                  rangen.uniform(xmin.y, xmax.y))
-                    self.failUnless(fuzzyEqual(Finterp(pos), F(pos), acc),
-                                    "Interpolation off: %g != %g, err=%g" % (Finterp(pos), F(pos), 2.0*abs((F(pos) - Finterp(pos))/(F(pos) + Finterp(pos)))))
+                    self.failUnless(fuzzyEqual(Finterp(pos.x, pos.y), F(pos), acc),
+                                    "Interpolation off: %g != %g, err=%g" % (Finterp(pos), F(pos), 2.0*abs((F(pos.x, pos.y) - Finterp(pos))/(F(pos) + Finterp(pos)))))
 
 
 if __name__ == "__main__":

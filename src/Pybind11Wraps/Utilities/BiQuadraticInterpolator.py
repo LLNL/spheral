@@ -40,37 +40,44 @@ Assumes the results is interpolated as
     initialize = PYB11TemplateMethod(initialize_, "Spheral::PythonBoundFunctors::SpheralFunctor<Vector, double>")
 
     def __call__(self,
-                 pos = "const Vector&"):
+                 x = "const double",
+                 y = "const double"):
         "Returns the interpolated value <F>(x,y)"
         return "double"
 
     def prime_x(self,
-                 pos = "const Vector&"):
+                 x = "const double",
+                 y = "const double"):
         """Returns the interpolated value \\\partial_x <F>(x,y)"""
         return "double"
 
     def prime_y(self,
-                 pos = "const Vector&"):
+                 x = "const double",
+                 y = "const double"):
         """Returns the interpolated value \\\partial_y <F>(x,y)"""
         return "double"
 
     def prime2_xx(self,
-                  pos = "const Vector&"):
+                 x = "const double",
+                 y = "const double"):
         """Returns the interpolated value \\\partial_xx <F>(x,y)"""
         return "double"
 
     def prime2_xy(self,
-                  pos = "const Vector&"):
+                 x = "const double",
+                 y = "const double"):
         """Returns the interpolated value \\\partial_xy <F>(x,y)"""
         return "double"
 
     def prime2_yx(self,
-                  pos = "const Vector&"):
+                 x = "const double",
+                 y = "const double"):
         """Returns the interpolated value \\\partial_yx <F>(x,y)"""
         return "double"
 
     def prime2_yy(self,
-                  pos = "const Vector&"):
+                 x = "const double",
+                 y = "const double"):
         """Returns the interpolated value \\\partial_yy <F>(x,y)"""
         return "double"
 

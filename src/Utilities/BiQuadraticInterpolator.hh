@@ -39,15 +39,15 @@ public:
                   const Func& F);
 
   // Interpolate for the F(x,y) value
-  double operator()(const Vector& pos) const;
+  double operator()(const double x, const double y) const;
 
   // Interpolated gradient values.
-  double prime_x(const Vector& pos) const;
-  double prime_y(const Vector& pos) const;
-  double prime2_xx(const Vector& pos) const;
-  double prime2_xy(const Vector& pos) const;
-  double prime2_yx(const Vector& pos) const;
-  double prime2_yy(const Vector& pos) const;
+  double prime_x(const double x, const double y) const;
+  double prime_y(const double x, const double y) const;
+  double prime2_xx(const double x, const double y) const;
+  double prime2_xy(const double x, const double y) const;
+  double prime2_yx(const double x, const double y) const;
+  double prime2_yy(const double x, const double y) const;
 
   // Return the lower bound index in the table of coefficients for the given position
   size_t lowerBound(const double x, const double y) const;
