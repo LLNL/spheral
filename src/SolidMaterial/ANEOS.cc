@@ -12,6 +12,7 @@
 #include "Utilities/bisectSearch.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
+#include "Utilities/bisectRoot.hh"
 #include "Utilities/DBC.hh"
 
 #include "boost/multi_array.hpp"
@@ -80,79 +81,77 @@ private:
 // A functor to compute T(rho, eps) for use building the interpolation table
 //------------------------------------------------------------------------------
 class Tfunc {
-  typedef typename boost::multi_array<double, 2> array_type;
-  typedef typename array_type::array_view<1>::type slice_type;
-  typedef typename array_type::const_array_view<1>::type const_slice_type;
-  typedef boost::multi_array_types::index_range range;
-
 public:
-  Tfunc(const int matNum,
-        double rhoMin, 
-        double rhoMax, 
-        double Tmin, 
+  Tfunc(double Tmin, 
         double Tmax,
-        unsigned numRhoVals, 
-        unsigned numTvals,
-        double rhoConv,
-        double Tconv, 
-        double Econv,
         const BiQuadraticInterpolator& epsInterp):
-    mNumRhoVals(numRhoVals),
-    mNumTvals(numTvals),
-    mRhoMin(rhoMin),
-    mRhoMax(rhoMax),
     mTmin(Tmin),
     mTmax(Tmax),
-    mRhoConv(rhoConv),
-    mTconv(Tconv),
-    mEconv(Econv),
-    mdrho((mRhoMax - mRhoMin)/(mNumRhoVals - 1u)),
-    mdT((mTmax - mTmin)/(mNumTvals - 1u)),
-    mSTEvals(boost::extents[numRhoVals][numTvals]),
-    mMatNum(matNum) {
-
-    // Compute the tabulated eps(rho, T) values.
-    double rhoi, Ti;
-    for (auto i = 0; i < mNumRhoVals; ++i) {
-      rhoi = min(mRhoMin + i*mdrho, mRhoMax);
-      for (auto j = 0; j < mNumTvals; ++j) {
-        Ti = min(mTmin + j*mdT, mTmax);
-        mSTEvals[i][j] = epsInterp(rhoi, Ti);
-      }
-    }
-  }
+    mEpsInterp(epsInterp) {}
 
   double operator()(const Dim<2>::Vector& x) const {
-
-    // Find the closest starting point on the tabulated surface.
-    const auto rhoi = x[0], epsi = x[1];
-    const auto irho0 = min(mNumRhoVals - 1, int(max(0.0, (rhoi - mRhoMin)/mdrho)));
-    const_slice_type rho0_slice = mSTEvals[boost::indices[irho0][range(0, mNumTvals)]];
-    const auto iT0 = max(0, min(int(mNumTvals - 1), bisectSearch(rho0_slice.begin(), rho0_slice.end(), epsi)));
-
-    // Try to iterate the EOS until we're close to the desired specific thermal energy
-    auto iter = 0u;
-    auto epsgoal = epsi/mEconv;
-    rho = rhoi/mRhoConv;
-    T = (mTmin + iT0*mdT)/mTconv;
-    call_aneos_(&mMatNum, &T, &rho,
-                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
-    while (abs(eps - epsgoal)/std::max(1e-15, abs(epsgoal)) > 1.0e-8 and ++iter < 20u) {
-      T += 0.9*(epsgoal - eps)/cV;
-      call_aneos_(&mMatNum, &T, &rho,
-                  &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    // Check if we're in bounds.
+    const auto rho = x[0], eps = x[1];
+    const auto epsMin = mEpsInterp(rho, mTmin);
+    const auto epsMax = mEpsInterp(rho, mTmax);
+    if (eps < epsMin) {
+      const auto cvInv = mTmin/epsMin;
+      return max(0.0, mTmin + (eps - epsMin)*cvInv);
+    } else if (eps > epsMax) {
+      const auto cvInv = mTmax/epsMax;
+      return max(0.0, mTmax + (eps - epsMax)*cvInv);
+    } else {
+      return bisectRoot(Trho_func(rho, eps, mEpsInterp),
+                        mTmin, mTmax,
+                        1.0e-15, 1.0e-15, 200u);
     }
-
-    return T * mTconv;
   }
 
 private:
-  int mNumRhoVals, mNumTvals;
-  double mRhoMin, mRhoMax, mTmin, mTmax, mRhoConv, mTconv, mEconv, mdrho, mdT;
-  array_type mSTEvals;
-  mutable int mMatNum;
-  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+  double mTmin, mTmax;
+  const BiQuadraticInterpolator& mEpsInterp;
+
+  // We need to make a single argument functor for eps(T) given a fixed rho
+  class Trho_func {
+    double mrho, meps;
+    const BiQuadraticInterpolator& mEpsInterp;
+  public:
+    Trho_func(const double rho,
+              const double eps,
+              const BiQuadraticInterpolator& epsInterp):
+      mrho(rho),
+      meps(eps),
+      mEpsInterp(epsInterp) {}
+    double operator()(const double T) const { return mEpsInterp(mrho, T) - meps; }
+  };
 };
+
+// //------------------------------------------------------------------------------
+// // T(rho, eps) with extrapolation
+// // Note this is only extrapolation in T, not rho
+// //------------------------------------------------------------------------------
+// class TfuncExtra {
+// public:
+//   TfuncExtra(const BiQuadraticInterpolator& Tinterp,
+//              const BiQuadraticInterpolator& cvInterp,):
+//     mTinterp(Tinterp),
+//     mcvInterp(cvInterp) {}
+//   double operator()(const Dim<2>::Vector& x) const {
+//     rho = x[0];
+//     eps = x[1];
+//     if (eps < 
+
+//      = mTinterp(x[0], x[1])/mTconv;
+//     call_aneos_(&mMatNum, &T, &rho,
+//                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+//     return P * mPconv;
+//   }
+// private:
+//   mutable int mMatNum;
+//   double mRhoConv, mTconv, mPconv;
+//   const BiQuadraticInterpolator& mTinterp;
+//   mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+// };
 
 //------------------------------------------------------------------------------
 // P(rho, eps)
@@ -408,9 +407,7 @@ ANEOS(const int materialNumber,
                         mNumRhoVals, mNumTvals, Feps);
 
   // Now the hard inversion method for looking up T(rho, eps)
-  const auto Ftemp = Tfunc(mMaterialNumber, mRhoMin, mRhoMax, mTmin, mTmax,
-                           mNumRhoVals, mNumTvals, mRhoConv, mTconv, mEconv,
-                           mEpsInterp);
+  const auto Ftemp = Tfunc(mTmin, mTmax, mEpsInterp);
   mTinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
                       Dim<2>::Vector(mRhoMax, mEpsMax),
                       mNumRhoVals, mNumTvals, Ftemp);
