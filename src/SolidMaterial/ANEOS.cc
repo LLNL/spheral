@@ -17,6 +17,7 @@
 
 #include "boost/multi_array.hpp"
 #include <iostream>
+#include <ctime>
 using std::vector;
 using std::string;
 using std::pair;
@@ -66,7 +67,7 @@ public:
     mEconv(Econv) {};
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
-    T = x[1]/mTconv;
+    T = exp(x[1])/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return eps * mEconv;
@@ -95,11 +96,11 @@ public:
     const auto epsMin = mEpsInterp(rho, mTmin);
     const auto epsMax = mEpsInterp(rho, mTmax);
     if (eps < epsMin) {
-      const auto cvInv = mTmin/epsMin;
-      return max(0.0, mTmin + (eps - epsMin)*cvInv);
+      const auto cvInv = exp(mTmin)/epsMin;
+      return max(0.0, log(exp(mTmin) + (eps - epsMin)*cvInv));
     } else if (eps > epsMax) {
-      const auto cvInv = mTmax/epsMax;
-      return max(0.0, mTmax + (eps - epsMax)*cvInv);
+      const auto cvInv = exp(mTmax)/epsMax;
+      return max(0.0, log(exp(mTmax) + (eps - epsMax)*cvInv));
     } else {
       return bisectRoot(Trho_func(rho, eps, mEpsInterp),
                         mTmin, mTmax,
@@ -167,7 +168,7 @@ public:
     mTinterp(Tinterp) {}
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
-    T = mTinterp(x[0], x[1])/mTconv;
+    T = exp(mTinterp(x[0], x[1]))/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return P * mPconv;
@@ -180,7 +181,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-// cV(rho, eps)
+// cV(rho, T)
 //------------------------------------------------------------------------------
 class cVfunc {
 public:
@@ -191,7 +192,7 @@ public:
     mCVconv(cVconv) {}
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
-    T = x[1]/mTconv;
+    T = exp(x[1])/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return cV * mCVconv;
@@ -216,7 +217,7 @@ public:
     mTinterp(Tinterp) {}
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
-    T = mTinterp(x[0], x[1])/mTconv;
+    T = exp(mTinterp(x[0], x[1]))/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return cs * mVelConv;
@@ -242,7 +243,7 @@ public:
     mTinterp(Tinterp) {}
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
-    T = mTinterp(x[0], x[1])/mTconv;
+    T = exp(mTinterp(x[0], x[1]))/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return std::abs(rho * DPDR * mPconv);
@@ -268,7 +269,7 @@ public:
     mTinterp(Tinterp) {}
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
-    T = mTinterp(x[0], x[1])/mTconv;
+    T = exp(mTinterp(x[0], x[1]))/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return S * mSconv;
@@ -345,9 +346,9 @@ ANEOS(const int materialNumber,
   VERIFY2(Tmin > 0.0,
           "ANEOS ERROR : specify Tmin > 0.0");
 
-  // // Convert temperature range to log space.
-  // mTmin = log(mTmin);
-  // mTmax = log(mTmax);
+  // Convert temperature range to log space.
+  mTmin = log(mTmin);
+  mTmax = log(mTmax);
   
   // Look up the atomic weight.
   mAtomicWeight = get_aneos_atomicweight_(&mMaterialNumber);
@@ -402,43 +403,55 @@ ANEOS(const int materialNumber,
   }
 
   // Build the biquadratic interpolation function for eps(rho, T)
+  auto t0 = clock();
   mEpsInterp.initialize(Dim<2>::Vector(mRhoMin, mTmin),
                         Dim<2>::Vector(mRhoMax, mTmax),
                         mNumRhoVals, mNumTvals, Feps);
+  cout << "Time to build epsInterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   // Now the hard inversion method for looking up T(rho, eps)
+  t0 = clock();
   const auto Ftemp = Tfunc(mTmin, mTmax, mEpsInterp);
   mTinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
                       Dim<2>::Vector(mRhoMax, mEpsMax),
                       mNumRhoVals, mNumTvals, Ftemp);
+  cout << "Time to build Tinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   // And finally the interpolators for most of our derived quantities
+  t0 = clock();
   const auto Fpres = Pfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, mTinterp);
   mPinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
                       Dim<2>::Vector(mRhoMax, mEpsMax),
                       mNumRhoVals, mNumTvals, Fpres);
+  cout << "Time to build Pinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
+  t0 = clock();
   const auto Fcv = cVfunc(mMaterialNumber, mRhoConv, mTconv, mCVconv);
   mCVinterp.initialize(Dim<2>::Vector(mRhoMin, mTmin),
                        Dim<2>::Vector(mRhoMax, mTmax),
                        mNumRhoVals, mNumTvals, Fcv);
+  cout << "Time to build CVinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
+  t0 = clock();
   const auto Fcs = csfunc(mMaterialNumber, mRhoConv, mTconv, mVelConv, mTinterp);
   mCSinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
                        Dim<2>::Vector(mRhoMax, mEpsMax),
                        mNumRhoVals, mNumTvals, Fcs);
+  cout << "Time to build CSinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
+  t0 = clock();
   const auto FK = Kfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, mTinterp);
   mKinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
                       Dim<2>::Vector(mRhoMax, mEpsMax),
                       mNumRhoVals, mNumTvals, FK);
+  cout << "Time to build Kinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
-
+  t0 = clock();
   const auto Fs = sfunc(mMaterialNumber, mRhoConv, mTconv, mSconv, mTinterp);
   mSinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
                       Dim<2>::Vector(mRhoMax, mEpsMax),
                       mNumRhoVals, mNumTvals, Fs);
-
+  cout << "Time to build Sinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -589,7 +602,7 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  return mTinterp(massDensity, specificThermalEnergy);
+  return exp(mTinterp(massDensity, specificThermalEnergy));
 }
 
 //------------------------------------------------------------------------------
@@ -600,7 +613,7 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
-  return mEpsInterp(massDensity, temperature);
+  return mEpsInterp(massDensity, log(temperature));
 }
 
 //------------------------------------------------------------------------------
@@ -611,7 +624,7 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
-  return mCVinterp(massDensity, temperature);
+  return mCVinterp(massDensity, log(temperature));
 }
 
 //------------------------------------------------------------------------------
@@ -633,9 +646,9 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
-  const double Ti = this->temperature(massDensity, specificThermalEnergy);
-  const double cvi = this->specificHeat(massDensity, Ti);
-  const double nDen = massDensity/mAtomicWeight;
+  const auto logTi = mTinterp(massDensity, specificThermalEnergy);  // this->temperature(massDensity, specificThermalEnergy);
+  const auto cvi = mCVinterp(massDensity, logTi);                   // this->specificHeat(massDensity, Ti);
+  const auto nDen = massDensity/mAtomicWeight;
   return 1.0 + mConstants.molarGasConstant()*nDen*safeInvVar(cvi);
 }
 
