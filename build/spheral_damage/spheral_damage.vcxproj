@@ -351,10 +351,14 @@
     <ClCompile Include="..\..\src\Damage\computeFragmentFieldInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Damage\DamagedPressurePolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Damage\DamagedPressurePolicyInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Damage\DamageGradientNodeCouplingInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\Damage\DamageGradientNodeCouplingInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Damage\DamageModelInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Damage\DamageModelInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Damage\LongitudinalSoundSpeedPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Damage\LongitudinalSoundSpeedPolicyInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Damage\PairMaxDamageNodeCouplingInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\Damage\PairMaxDamageNodeCouplingInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Damage\StrainPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Damage\StrainPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Damage\TensorDamageModelInst.cc.2.cc" />
@@ -363,6 +367,8 @@
     <ClCompile Include="..\..\src\Damage\TensorDamagePolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Damage\TensorStrainPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Damage\TensorStrainPolicyInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Damage\ThreePointDamagedNodeCouplingInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\Damage\ThreePointDamagedNodeCouplingInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Damage\YoungsModulusPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Damage\YoungsModulusPolicyInst.cc.3.cc" />
   </ItemGroup>
@@ -386,6 +392,14 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+    <CustomBuild Include="..\..\src\Damage\DamageGradientNodeCouplingInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
     <CustomBuild Include="..\..\src\Damage\DamageModelInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
@@ -395,6 +409,14 @@
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Damage\LongitudinalSoundSpeedPolicyInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Damage\PairMaxDamageNodeCouplingInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -434,6 +456,14 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+    <CustomBuild Include="..\..\src\Damage\ThreePointDamagedNodeCouplingInst.cc.py">
+      <Command>
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+         </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
     <CustomBuild Include="..\..\src\Damage\YoungsModulusPolicyInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
@@ -446,12 +476,14 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\Damage\DamagedPressurePolicy.hh" />
     <ClInclude Include="..\..\src\Damage\DamagedSoundSpeedPolicy.hh" />
+    <ClInclude Include="..\..\src\Damage\DamageGradientNodeCoupling.hh" />
     <ClInclude Include="..\..\src\Damage\DamageGradientPolicy.hh" />
     <ClInclude Include="..\..\src\Damage\DamageModel.hh" />
     <ClInclude Include="..\..\src\Damage\DamageModelInline.hh" />
     <ClInclude Include="..\..\src\Damage\EffectiveTensorDamagePolicy.hh" />
     <ClInclude Include="..\..\src\Damage\LongitudinalSoundSpeedPolicy.hh" />
     <ClInclude Include="..\..\src\Damage\oneMinusDamage.hh" />
+    <ClInclude Include="..\..\src\Damage\PairMaxDamageNodeCoupling.hh" />
     <ClInclude Include="..\..\src\Damage\ScalarDamageModel.hh" />
     <ClInclude Include="..\..\src\Damage\ScalarDamagePolicy.hh" />
     <ClInclude Include="..\..\src\Damage\StrainPolicy.hh" />
@@ -459,6 +491,7 @@
     <ClInclude Include="..\..\src\Damage\TensorDamageModelInline.hh" />
     <ClInclude Include="..\..\src\Damage\TensorDamagePolicy.hh" />
     <ClInclude Include="..\..\src\Damage\TensorStrainPolicy.hh" />
+    <ClInclude Include="..\..\src\Damage\ThreePointDamagedNodeCoupling.hh" />
     <ClInclude Include="..\..\src\Damage\YoungsModulusPolicy.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

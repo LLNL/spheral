@@ -352,10 +352,6 @@
     <ClCompile Include="..\..\src\Utilities\buildMessage.cc" />
     <ClCompile Include="..\..\src\Utilities\computeShepardsInterpolationInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\computeShepardsInterpolationInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Utilities\DamagedNodeCouplingInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Utilities\DamagedNodeCouplingInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Utilities\DamageGradientNodeCouplingInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Utilities\DamageGradientNodeCouplingInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Utilities\DBC.cc" />
     <ClCompile Include="..\..\src\Utilities\globalBoundingVolumesInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\globalBoundingVolumesInst.cc.3.cc" />
@@ -381,8 +377,7 @@
     <ClCompile Include="..\..\src\Utilities\segmentIntersectEdges.cc" />
     <ClCompile Include="..\..\src\Utilities\SpheralTimers.cc" />
     <ClCompile Include="..\..\src\Utilities\SpheralTimersAlternate.cc" />
-    <ClCompile Include="..\..\src\Utilities\ThreePointDamagedNodeCouplingInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Utilities\ThreePointDamagedNodeCouplingInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Utilities\uniform_random.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\Utilities\allReduce.hh">
@@ -431,22 +426,6 @@
     <None Include="..\..\src\Utilities\CounterClockwiseComparator.hh">
       <FileType>Document</FileType>
     </None>
-    <CustomBuild Include="..\..\src\Utilities\DamagedNodeCouplingInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Utilities\DamageGradientNodeCouplingInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Utilities\DataTypeTraits.hh">
       <FileType>Document</FileType>
     </None>
@@ -631,14 +610,6 @@
     <None Include="..\..\src\Utilities\testBoxIntersection.hh">
       <FileType>Document</FileType>
     </None>
-    <CustomBuild Include="..\..\src\Utilities\ThreePointDamagedNodeCouplingInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Utilities\Timer.hh">
       <FileType>Document</FileType>
     </None>
@@ -661,6 +632,8 @@
     <ClInclude Include="..\..\src\Utilities\OpenMP_wrapper.hh" />
     <ClInclude Include="..\..\src\Utilities\size_t_bits.hh" />
     <ClInclude Include="..\..\src\Utilities\ThreePointDamagedNodeCoupling.hh" />
+    <ClInclude Include="..\..\src\Utilities\uniform_random.hh" />
+    <ClInclude Include="..\..\src\Utilities\uniform_random_Inline.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

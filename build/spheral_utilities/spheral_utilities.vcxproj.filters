@@ -108,22 +108,7 @@
     <ClCompile Include="..\..\src\Utilities\SpheralTimersAlternate.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\DamagedNodeCouplingInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\DamagedNodeCouplingInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\DamageGradientNodeCouplingInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\DamageGradientNodeCouplingInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\ThreePointDamagedNodeCouplingInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\ThreePointDamagedNodeCouplingInst.cc.3.cc">
+    <ClCompile Include="..\..\src\Utilities\uniform_random.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -337,9 +322,6 @@
     <CustomBuild Include="..\..\src\Utilities\peanoHilbertOrderIndicesInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\Utilities\DamagedNodeCouplingInst.cc.py" />
-    <CustomBuild Include="..\..\src\Utilities\DamageGradientNodeCouplingInst.cc.py" />
-    <CustomBuild Include="..\..\src\Utilities\ThreePointDamagedNodeCouplingInst.cc.py" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Utilities\DomainNode.hh">
@@ -364,6 +346,12 @@
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Utilities\ThreePointDamagedNodeCoupling.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\uniform_random.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\uniform_random_Inline.hh">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
