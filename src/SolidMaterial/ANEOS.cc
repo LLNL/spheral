@@ -112,7 +112,7 @@ public:
         epsi = mFeps(Dim<2>::Vector(rho, log(Ti)));
         Ti = max(1.0e-15, Ti + (eps/mFeps.mEconv - mFeps.eps)/mFeps.cV*mFeps.mTconv);
       }
-      cerr << " --> (" << rho << " " << eps << ") : " << epsi/eps << " " << Ti << " in iter=" << iter << endl;
+      // cerr << " --> (" << rho << " " << eps << ") : " << epsi/eps << " " << Ti << " in iter=" << iter << endl;
       return log(Ti);
       
     } else {
@@ -407,7 +407,7 @@ ANEOS(const int materialNumber,
   mEpsInterp.initialize(Dim<2>::Vector(mRhoMin, mTmin),
                         Dim<2>::Vector(mRhoMax, mTmax),
                         mNumRhoVals, mNumTvals, Feps);
-  cout << "Time to build epsInterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build epsInterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   // Now the hard inversion method for looking up T(rho, eps)
   t0 = clock();
@@ -415,7 +415,7 @@ ANEOS(const int materialNumber,
   mTinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
                       Dim<2>::Vector(mRhoMax, mEpsMax),
                       mNumRhoVals, mNumTvals, Ftemp);
-  cout << "Time to build Tinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build Tinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   // And finally the interpolators for most of our derived quantities
   t0 = clock();
@@ -423,35 +423,35 @@ ANEOS(const int materialNumber,
   mPinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
                       Dim<2>::Vector(mRhoMax, mEpsMax),
                       mNumRhoVals, mNumTvals, Fpres);
-  cout << "Time to build Pinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build Pinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fcv = cVfunc(mMaterialNumber, mRhoConv, mTconv, mCVconv);
   mCVinterp.initialize(Dim<2>::Vector(mRhoMin, mTmin),
                        Dim<2>::Vector(mRhoMax, mTmax),
                        mNumRhoVals, mNumTvals, Fcv);
-  cout << "Time to build CVinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build CVinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fcs = csfunc(mMaterialNumber, mRhoConv, mTconv, mVelConv, mTinterp);
   mCSinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
                        Dim<2>::Vector(mRhoMax, mEpsMax),
                        mNumRhoVals, mNumTvals, Fcs);
-  cout << "Time to build CSinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build CSinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto FK = Kfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, mTinterp);
   mKinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
                       Dim<2>::Vector(mRhoMax, mEpsMax),
                       mNumRhoVals, mNumTvals, FK);
-  cout << "Time to build Kinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build Kinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fs = sfunc(mMaterialNumber, mRhoConv, mTconv, mSconv, mTinterp);
   mSinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
                       Dim<2>::Vector(mRhoMax, mEpsMax),
                       mNumRhoVals, mNumTvals, Fs);
-  cout << "Time to build Sinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build Sinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 }
 
 //------------------------------------------------------------------------------
