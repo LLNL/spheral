@@ -146,7 +146,7 @@ class %(classname)s(SPHHydroBaseRZ):
                  xmin = Vector2d(-1e100, -1e100),
                  xmax = Vector2d( 1e100,  1e100),
                  etaMinAxis = 0.1):
-        if GeometryRegistrar.coords != CoordinateType.RZ:
+        if GeometryRegistrar.coords() != CoordinateType.RZ:
             raise RuntimeError("Import from SpheralRZ before trying to use RZ physics")
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
@@ -204,7 +204,7 @@ class %(classname)s(SPHHydroBaseGSRZ):
                  xmin = Vector2d(-1e100, -1e100),
                  xmax = Vector2d( 1e100,  1e100),
                  etaMinAxis = 0.1):
-        if GeometryRegistrar.coords != CoordinateType.RZ:
+        if GeometryRegistrar.coords() != CoordinateType.RZ:
             raise RuntimeError("Import from SpheralRZ before trying to use RZ physics")
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
@@ -266,7 +266,7 @@ class %(classname)s(SolidSPHHydroBaseRZ):
                  xmin = Vector2d(-1e100, -1e100),
                  xmax = Vector2d( 1e100,  1e100),
                  etaMinAxis = 0.1):
-        if GeometryRegistrar.coords != CoordinateType.RZ:
+        if GeometryRegistrar.coords() != CoordinateType.RZ:
             raise RuntimeError("Import from SpheralRZ before trying to use RZ physics")
         self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
         if WPi is None:
