@@ -591,7 +591,21 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
-  return this->applyPressureLimits(mPinterp(massDensity, specificThermalEnergy) - mExternalPressure);
+  auto P = mPinterp(massDensity, specificThermalEnergy);
+
+  // If we're out of bounds, extrapolate as though a gamma-law gas
+  if (specificThermalEnergy < mEpsMin) {
+    P *= specificThermalEnergy/mEpsMin;
+  } else if (specificThermalEnergy > mEpsMax) {
+    P *= specificThermalEnergy/mEpsMax;
+  }
+  if (massDensity < mRhoMin) {
+    P *= massDensity/mRhoMin;
+  } else if (massDensity > mRhoMax) {
+    P *= massDensity/mRhoMax;
+  }
+
+  return this->applyPressureLimits(P - mExternalPressure);
 }
 
 //------------------------------------------------------------------------------
