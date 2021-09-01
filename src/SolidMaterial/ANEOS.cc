@@ -72,7 +72,8 @@ public:
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return eps * mEconv;
   }
-private:
+
+public:
   mutable int mMatNum;
   double mRhoConv, mTconv, mEconv;
   mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
@@ -85,22 +86,35 @@ class Tfunc {
 public:
   Tfunc(double Tmin, 
         double Tmax,
-        const BiQuadraticInterpolator& epsInterp):
+        const BiQuadraticInterpolator& epsInterp,
+        const epsFunc& Feps):
     mTmin(Tmin),
     mTmax(Tmax),
-    mEpsInterp(epsInterp) {}
+    mEpsInterp(epsInterp),
+    mFeps(Feps) {}
 
   double operator()(const Dim<2>::Vector& x) const {
     // Check if we're in bounds.
     const auto rho = x[0], eps = x[1];
     const auto epsMin = mEpsInterp(rho, mTmin);
     const auto epsMax = mEpsInterp(rho, mTmax);
-    if (eps < epsMin) {
-      const auto cvInv = exp(mTmin)/epsMin;
-      return max(0.0, log(exp(mTmin) + (eps - epsMin)*cvInv));
-    } else if (eps > epsMax) {
-      const auto cvInv = exp(mTmax)/epsMax;
-      return max(0.0, log(exp(mTmax) + (eps - epsMax)*cvInv));
+    if (eps < epsMin or eps > epsMax) {
+      double Ti, epsi;
+      if (eps < epsMin) {
+        Ti = exp(mTmin);
+        epsi = epsMin;
+      } else if (eps > epsMax) {
+        Ti = exp(mTmax);
+        epsi = epsMax;
+      }
+      auto iter = 0u;
+      while (abs(eps - epsi)/max(1.0e-15, abs(eps)) > 1.0e-8 and ++iter < 200u) {
+        epsi = mFeps(Dim<2>::Vector(rho, log(Ti)));
+        Ti = max(1.0e-15, Ti + (eps/mFeps.mEconv - mFeps.eps)/mFeps.cV*mFeps.mTconv);
+      }
+      cerr << " --> (" << rho << " " << eps << ") : " << epsi/eps << " " << Ti << " in iter=" << iter << endl;
+      return log(Ti);
+      
     } else {
       return bisectRoot(Trho_func(rho, eps, mEpsInterp),
                         mTmin, mTmax,
@@ -111,6 +125,7 @@ public:
 private:
   double mTmin, mTmax;
   const BiQuadraticInterpolator& mEpsInterp;
+  const epsFunc& mFeps;
 
   // We need to make a single argument functor for eps(T) given a fixed rho
   class Trho_func {
@@ -168,6 +183,7 @@ public:
     mTinterp(Tinterp) {}
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
+    // cerr << " *** mTinterp(" << x << ") = " << mTinterp(x[0], x[1]) << endl;
     T = exp(mTinterp(x[0], x[1]))/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
@@ -314,7 +330,7 @@ ANEOS(const int materialNumber,
   mRhoMax(rhoMax),
   mTmin(Tmin),
   mTmax(Tmax),
-  mEpsMin(std::numeric_limits<double>::max()),
+  mEpsMin(std::numeric_limits<double>::min()),
   mEpsMax(std::numeric_limits<double>::min()),
   mExternalPressure(externalPressure),
   mEpsInterp(),
@@ -374,31 +390,15 @@ ANEOS(const int materialNumber,
   // Scan the boundaries of the (rho,T) space for the min/max specific thermal energy (eps)
   const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
   const auto drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1u);
-  const auto dT = (mTmax - mTmin)/(mNumTvals - 1u);
   CHECK(drho > 0.0);
-  CHECK(dT > 0.0);
   // [rhoMin:rhoMax], Tmin
   for (auto i = 0u; i < mNumRhoVals; ++i) {
     const auto epsi = Feps(Dim<2>::Vector(mRhoMin + i*drho, mTmin));
-    mEpsMin = min(mEpsMin, epsi);
-    mEpsMax = max(mEpsMax, epsi);
+    mEpsMin = max(mEpsMin, epsi);
   }
   // [rhoMin:rhoMax], Tmax
   for (auto i = 0u; i < mNumRhoVals; ++i) {
     const auto epsi = Feps(Dim<2>::Vector(mRhoMin + i*drho, mTmax));
-    mEpsMin = min(mEpsMin, epsi);
-    mEpsMax = max(mEpsMax, epsi);
-  }
-  // rhoMin, [Tmin:Tmax]
-  for (auto i = 0u; i < mNumTvals; ++i) {
-    const auto epsi = Feps(Dim<2>::Vector(mRhoMin, mTmin + i*dT));
-    mEpsMin = min(mEpsMin, epsi);
-    mEpsMax = max(mEpsMax, epsi);
-  }
-  // rhoMax, [Tmin:Tmax]
-  for (auto i = 0u; i < mNumTvals; ++i) {
-    const auto epsi = Feps(Dim<2>::Vector(mRhoMax, mTmin + i*dT));
-    mEpsMin = min(mEpsMin, epsi);
     mEpsMax = max(mEpsMax, epsi);
   }
 
@@ -411,7 +411,7 @@ ANEOS(const int materialNumber,
 
   // Now the hard inversion method for looking up T(rho, eps)
   t0 = clock();
-  const auto Ftemp = Tfunc(mTmin, mTmax, mEpsInterp);
+  const auto Ftemp = Tfunc(mTmin, mTmax, mEpsInterp, Feps);
   mTinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
                       Dim<2>::Vector(mRhoMax, mEpsMax),
                       mNumRhoVals, mNumTvals, Ftemp);
@@ -602,7 +602,23 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  return exp(mTinterp(massDensity, specificThermalEnergy));
+  if (specificThermalEnergy < mEpsMin or specificThermalEnergy > mEpsMax) {
+    const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
+    const auto Ftemp = Tfunc(mTmin, mTmax, mEpsInterp, Feps);
+    return exp(Ftemp(Dim<2>::Vector(massDensity, specificThermalEnergy)));
+  } else {
+    return exp(mTinterp(massDensity, specificThermalEnergy));
+  }
+  // if (
+  //   const auto cV = this->specificHeat(massDensity, T);
+  //   CHECK(cV > 0.0);
+  //   T = max(0.0, T + (specificThermalEnergy - mEpsMin)/cV);
+  // } else if (specificThermalEnergy > mEpsMax) {
+  //   const auto cV = this->specificHeat(massDensity, T);
+  //   CHECK(cV > 0.0);
+  //   T = max(0.0, T + (specificThermalEnergy - mEpsMax)/cV);
+  // }
+  // return T;
 }
 
 //------------------------------------------------------------------------------
