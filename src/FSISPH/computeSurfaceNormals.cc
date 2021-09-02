@@ -70,8 +70,9 @@ computeSurfaceNormals(const ConnectivityMap<Dimension>& connectivityMap,
         const auto gWj = W.gradValue(etaMagj, Hdetj);
         auto gradWj = gWj*Hetaj;
 
-        interfaceNormals_thread(nodeListi, i) += mj/rhoj  * gradWi;
-        interfaceNormals_thread(nodeListj, j) -= mi/rhoi  * gradWj;
+        const auto gradWij = (gradWi+gradWj)*0.5;
+        interfaceNormals_thread(nodeListi, i) += mj/rhoj  * gradWij;
+        interfaceNormals_thread(nodeListj, j) -= mi/rhoi  * gradWij;
       }
     }
 
