@@ -67,7 +67,7 @@ public:
     mEconv(Econv) {};
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
-    T = exp(x[1])/mTconv;
+    T = x[1]/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return eps * mEconv;
@@ -101,19 +101,19 @@ public:
     if (eps < epsMin or eps > epsMax) {
       double Ti, epsi;
       if (eps < epsMin) {
-        Ti = exp(mTmin);
+        Ti = mTmin;
         epsi = epsMin;
       } else if (eps > epsMax) {
-        Ti = exp(mTmax);
+        Ti = mTmax;
         epsi = epsMax;
       }
       auto iter = 0u;
-      while (abs(eps - epsi)/max(1.0e-15, abs(eps)) > 1.0e-8 and ++iter < 200u) {
-        epsi = mFeps(Dim<2>::Vector(rho, log(Ti)));
-        Ti = max(1.0e-15, Ti + (eps/mFeps.mEconv - mFeps.eps)/mFeps.cV*mFeps.mTconv);
+      while (abs(eps - epsi)/max(1.0e-15, abs(eps)) > 1.0e-10 and ++iter < 200u) {
+        epsi = mFeps(Dim<2>::Vector(rho, Ti));
+        Ti = max(1.0e-30, Ti + (eps/mFeps.mEconv - mFeps.eps)/mFeps.cV*mFeps.mTconv);
       }
       // cerr << " --> (" << rho << " " << eps << ") : " << epsi/eps << " " << Ti << " in iter=" << iter << endl;
-      return log(Ti);
+      return Ti;
       
     } else {
       return bisectRoot(Trho_func(rho, eps, mEpsInterp),
@@ -142,33 +142,6 @@ private:
   };
 };
 
-// //------------------------------------------------------------------------------
-// // T(rho, eps) with extrapolation
-// // Note this is only extrapolation in T, not rho
-// //------------------------------------------------------------------------------
-// class TfuncExtra {
-// public:
-//   TfuncExtra(const BiQuadraticInterpolator& Tinterp,
-//              const BiQuadraticInterpolator& cvInterp,):
-//     mTinterp(Tinterp),
-//     mcvInterp(cvInterp) {}
-//   double operator()(const Dim<2>::Vector& x) const {
-//     rho = x[0];
-//     eps = x[1];
-//     if (eps < 
-
-//      = mTinterp(x[0], x[1])/mTconv;
-//     call_aneos_(&mMatNum, &T, &rho,
-//                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
-//     return P * mPconv;
-//   }
-// private:
-//   mutable int mMatNum;
-//   double mRhoConv, mTconv, mPconv;
-//   const BiQuadraticInterpolator& mTinterp;
-//   mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
-// };
-
 //------------------------------------------------------------------------------
 // P(rho, eps)
 //------------------------------------------------------------------------------
@@ -184,7 +157,7 @@ public:
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
     // cerr << " *** mTinterp(" << x << ") = " << mTinterp(x[0], x[1]) << endl;
-    T = exp(mTinterp(x[0], x[1]))/mTconv;
+    T = mTinterp(x[0], x[1])/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return P * mPconv;
@@ -208,7 +181,7 @@ public:
     mCVconv(cVconv) {}
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
-    T = exp(x[1])/mTconv;
+    T = x[1]/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return cV * mCVconv;
@@ -233,7 +206,7 @@ public:
     mTinterp(Tinterp) {}
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
-    T = exp(mTinterp(x[0], x[1]))/mTconv;
+    T = mTinterp(x[0], x[1])/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return cs * mVelConv;
@@ -259,7 +232,7 @@ public:
     mTinterp(Tinterp) {}
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
-    T = exp(mTinterp(x[0], x[1]))/mTconv;
+    T = mTinterp(x[0], x[1])/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return std::abs(rho * DPDR * mPconv);
@@ -285,7 +258,7 @@ public:
     mTinterp(Tinterp) {}
   double operator()(const Dim<2>::Vector& x) const {
     rho = x[0]/mRhoConv;
-    T = exp(mTinterp(x[0], x[1]))/mTconv;
+    T = mTinterp(x[0], x[1])/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return S * mSconv;
@@ -362,9 +335,9 @@ ANEOS(const int materialNumber,
   VERIFY2(Tmin > 0.0,
           "ANEOS ERROR : specify Tmin > 0.0");
 
-  // Convert temperature range to log space.
-  mTmin = log(mTmin);
-  mTmax = log(mTmax);
+  // // Convert temperature range to log space.
+  // mTmin = log(mTmin);
+  // mTmax = log(mTmax);
   
   // Look up the atomic weight.
   mAtomicWeight = get_aneos_atomicweight_(&mMaterialNumber);
@@ -591,20 +564,15 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
-  auto P = mPinterp(massDensity, specificThermalEnergy);
-
   // If we're out of bounds, extrapolate as though a gamma-law gas
-  if (specificThermalEnergy < mEpsMin) {
-    P *= specificThermalEnergy/mEpsMin;
-  } else if (specificThermalEnergy > mEpsMax) {
-    P *= specificThermalEnergy/mEpsMax;
+  double P;
+  if (specificThermalEnergy < mEpsMin or specificThermalEnergy > mEpsMax) {
+    const auto P0 = mPinterp(massDensity, mEpsMin);
+    const auto P1 = mPinterp(massDensity, mEpsMax);
+    P = P0 + (P1 - P0)/(mEpsMax - mEpsMin)*(specificThermalEnergy - mEpsMin);
+  } else {
+    P = mPinterp(massDensity, specificThermalEnergy);
   }
-  if (massDensity < mRhoMin) {
-    P *= massDensity/mRhoMin;
-  } else if (massDensity > mRhoMax) {
-    P *= massDensity/mRhoMax;
-  }
-
   return this->applyPressureLimits(P - mExternalPressure);
 }
 
@@ -619,9 +587,9 @@ temperature(const Scalar massDensity,
   if (specificThermalEnergy < mEpsMin or specificThermalEnergy > mEpsMax) {
     const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
     const auto Ftemp = Tfunc(mTmin, mTmax, mEpsInterp, Feps);
-    return exp(Ftemp(Dim<2>::Vector(massDensity, specificThermalEnergy)));
+    return Ftemp(Dim<2>::Vector(massDensity, specificThermalEnergy));
   } else {
-    return exp(mTinterp(massDensity, specificThermalEnergy));
+    return mTinterp(massDensity, specificThermalEnergy);
   }
   // if (
   //   const auto cV = this->specificHeat(massDensity, T);
@@ -643,7 +611,7 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
-  return mEpsInterp(massDensity, log(temperature));
+  return mEpsInterp(massDensity, temperature);
 }
 
 //------------------------------------------------------------------------------
@@ -654,7 +622,7 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
-  return mCVinterp(massDensity, log(temperature));
+  return mCVinterp(massDensity, temperature);
 }
 
 //------------------------------------------------------------------------------
@@ -665,7 +633,14 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
-  return mCSinterp(massDensity, specificThermalEnergy);
+  // If we're out of bounds, extrapolate as though a gamma-law gas
+  if (specificThermalEnergy < mEpsMin or specificThermalEnergy > mEpsMax) {
+    const auto cs0 = mCSinterp(massDensity, mEpsMin);
+    const auto cs1 = mCSinterp(massDensity, mEpsMax);
+    return max(1.0e-30, cs0 + (cs1 - cs0)/(mEpsMax - mEpsMin)*(specificThermalEnergy - mEpsMin));
+  } else {
+    return mCSinterp(massDensity, specificThermalEnergy);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -676,8 +651,8 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
-  const auto logTi = mTinterp(massDensity, specificThermalEnergy);  // this->temperature(massDensity, specificThermalEnergy);
-  const auto cvi = mCVinterp(massDensity, logTi);                   // this->specificHeat(massDensity, Ti);
+  const auto Ti = mTinterp(massDensity, specificThermalEnergy);     // this->temperature(massDensity, specificThermalEnergy);
+  const auto cvi = mCVinterp(massDensity, Ti);                      // this->specificHeat(massDensity, Ti);
   const auto nDen = massDensity/mAtomicWeight;
   return 1.0 + mConstants.molarGasConstant()*nDen*safeInvVar(cvi);
 }
