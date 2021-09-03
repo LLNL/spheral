@@ -59,6 +59,13 @@ struct GPUFieldList {
 };
 
 
+  RAJA_HOST_DEVICE
+  void atomicAdd(Spheral::GeomVector<3>* addr, Spheral::GeomVector<3> rhs) {
+    RAJA::atomicAdd<RAJA::cuda_atomic>(&addr[0][0], rhs[0]);
+    RAJA::atomicAdd<RAJA::cuda_atomic>(&addr[0][1], rhs[1]);
+    RAJA::atomicAdd<RAJA::cuda_atomic>(&addr[0][2], rhs[2]);
+  }
+
 
 int main() {
 
@@ -67,7 +74,7 @@ int main() {
 #if 1
   {
 
-    std::cout << "Prototype FieldList data manipulation.\n";
+    std::cout << "Prototype FieldList data manipulation w/ atomics.\n";
 
     using Dim = Spheral::Dim<3>;
     Spheral::NodeList<Dim> node_list("example node list", N, 0);
@@ -90,16 +97,28 @@ int main() {
 
     RAJA::forall<EXEC_POL>(range, 
       [=] RAJA_HOST_DEVICE (int kk) mutable {
-        auto& v = gpufl(0, kk);
-        v[0]++;
-        v[1]++;
-        field_view[kk][2]++;
+        if (kk < 50) {
+          auto& v0 = gpufl(0,0);
+          ::atomicAdd(&v0, Spheral::GeomVector<3>(1,1,1));
+        }
+        if (kk != 0) {
+          auto& v = gpufl(0, kk);
+          v += Spheral::GeomVector<3>(1,1,1);
+        }
     });
 
     bool correctness = true;
     RAJA::forall<HOST_POL>(range,
       [=, &correctness] (int kk) {
-        if (gpufl[0][kk] != Spheral::GeomVector<3>(2,2,2)) correctness = false;
+        if (kk == 0) {
+          double ans = N > 50 ? 50 : N; ans++;
+          if (gpufl[0][kk] != Spheral::GeomVector<3>(ans,ans,ans)) {
+            correctness = false;
+            std::cout << gpufl[0][kk] << "\n";
+          }
+        }else{
+          if (gpufl[0][kk] != Spheral::GeomVector<3>(2,2,2)) correctness = false;
+        }
     });
 
     if (correctness)
