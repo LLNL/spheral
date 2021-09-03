@@ -9,7 +9,6 @@
 //----------------------------------------------------------------------------//
 #include "ANEOS.hh"
 #include "Field/Field.hh"
-#include "Utilities/bisectSearch.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/bisectRoot.hh"
@@ -118,7 +117,7 @@ public:
     } else {
       return bisectRoot(Trho_func(rho, eps, mEpsInterp),
                         mTmin, mTmax,
-                        1.0e-15, 1.0e-15, 200u);
+                        1.0e-15, 200u);
     }
   }
 
