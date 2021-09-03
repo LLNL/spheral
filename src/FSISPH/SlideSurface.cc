@@ -112,7 +112,7 @@ slideCorrection(const int nodeListi,
       const auto vijhat = (vi-vj).unitVector();
       const auto fi =  abs(normi.dot(vijhat));
       const auto fj =  abs(normj.dot(vijhat));
-      slideCorr = fi*fj * fi*fj; 
+      slideCorr = fi*fj; 
     }
     return slideCorr;      
 
