@@ -8,3 +8,8 @@ set(SPHERAL_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 include(cmake/SetupSpheral.cmake)
 
 add_subdirectory(${SPHERAL_ROOT_DIR}/scripts)
+
+install(DIRECTORY
+    ${SPHERAL_ROOT_DIR}/tests/
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/tests
+  )
