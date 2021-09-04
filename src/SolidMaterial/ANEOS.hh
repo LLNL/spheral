@@ -40,7 +40,8 @@ public:
         const double externalPressure,
         const double minimumPressure,
         const double maximumPressure,
-        const MaterialPressureMinType minPressureType);
+        const MaterialPressureMinType minPressureType,
+        const bool useInterpolation);
   ~ANEOS();
 
   // We require any equation of state to define the following properties.
@@ -114,6 +115,7 @@ public:
   double rhoMax() const;
   double Tmin() const;
   double Tmax() const;
+  bool useInterpolation() const;
 
   // If requested, the user can specify an external pressure to be applied
   // in the pressure calculation.
@@ -124,6 +126,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  bool mUseInterpolation;
   int mMaterialNumber;
   unsigned mNumRhoVals, mNumTvals;
   double mRhoMin, mRhoMax, mTmin, mTmax, mEpsMin, mEpsMax, mExternalPressure;

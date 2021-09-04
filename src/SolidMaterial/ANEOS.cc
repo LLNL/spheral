@@ -287,7 +287,8 @@ ANEOS(const int materialNumber,
       const double externalPressure,
       const double minimumPressure,
       const double maximumPressure,
-      const MaterialPressureMinType minPressureType):
+      const MaterialPressureMinType minPressureType,
+      const bool useInterpolation):
   SolidEquationOfState<Dimension>(get_aneos_referencedensity_(const_cast<int*>(&materialNumber)),  // not in the right units yet!
                                   0.0,                                           // dummy etamin
                                   std::numeric_limits<double>::max(),            // dummy etamax
@@ -295,6 +296,7 @@ ANEOS(const int materialNumber,
                                   minimumPressure,
                                   maximumPressure,
                                   minPressureType),
+  mUseInterpolation(useInterpolation),
   mMaterialNumber(materialNumber),
   mNumRhoVals(numRhoVals),
   mNumTvals(numTvals),
@@ -563,14 +565,27 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
-  // If we're out of bounds, extrapolate as though a gamma-law gas
   double P;
-  if (specificThermalEnergy < mEpsMin or specificThermalEnergy > mEpsMax) {
-    const auto P0 = mPinterp(massDensity, mEpsMin);
-    const auto P1 = mPinterp(massDensity, mEpsMax);
-    P = P0 + (P1 - P0)/(mEpsMax - mEpsMin)*(specificThermalEnergy - mEpsMin);
+  if (mUseInterpolation) {
+
+    // If we're out of bounds, extrapolate as though a gamma-law gas
+    if (specificThermalEnergy < mEpsMin or specificThermalEnergy > mEpsMax) {
+      const auto P0 = mPinterp(massDensity, mEpsMin);
+      const auto P1 = mPinterp(massDensity, mEpsMax);
+      P = P0 + (P1 - P0)/(mEpsMax - mEpsMin)*(specificThermalEnergy - mEpsMin);
+    } else {
+      P = mPinterp(massDensity, specificThermalEnergy);
+    }
+
   } else {
-    P = mPinterp(massDensity, specificThermalEnergy);
+
+    auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double eps, S, cV, DPDT, DPDR, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    P *= mPconv;
+
   }
   return this->applyPressureLimits(P - mExternalPressure);
 }
@@ -583,23 +598,13 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  if (specificThermalEnergy < mEpsMin or specificThermalEnergy > mEpsMax) {
+  if (not mUseInterpolation or (specificThermalEnergy < mEpsMin or specificThermalEnergy > mEpsMax)) {
     const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
     const auto Ftemp = Tfunc(mTmin, mTmax, mEpsInterp, Feps);
     return Ftemp(Dim<2>::Vector(massDensity, specificThermalEnergy));
   } else {
     return mTinterp(massDensity, specificThermalEnergy);
   }
-  // if (
-  //   const auto cV = this->specificHeat(massDensity, T);
-  //   CHECK(cV > 0.0);
-  //   T = max(0.0, T + (specificThermalEnergy - mEpsMin)/cV);
-  // } else if (specificThermalEnergy > mEpsMax) {
-  //   const auto cV = this->specificHeat(massDensity, T);
-  //   CHECK(cV > 0.0);
-  //   T = max(0.0, T + (specificThermalEnergy - mEpsMax)/cV);
-  // }
-  // return T;
 }
 
 //------------------------------------------------------------------------------
@@ -610,7 +615,16 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
-  return mEpsInterp(massDensity, temperature);
+  if (mUseInterpolation) {
+    return mEpsInterp(massDensity, temperature);
+  } else {
+    auto T = temperature/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double P, eps, S, cV, DPDT, DPDR, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return eps * mEconv;
+  }    
 }
 
 //------------------------------------------------------------------------------
@@ -621,7 +635,16 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
-  return mCVinterp(massDensity, temperature);
+  if (mUseInterpolation) {
+    return mCVinterp(massDensity, temperature);
+  } else {
+    auto T = temperature/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double P, eps, S, cV, DPDT, DPDR, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return cV * mCVconv;
+  }    
 }
 
 //------------------------------------------------------------------------------
@@ -633,13 +656,22 @@ ANEOS<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
   // If we're out of bounds, extrapolate as though a gamma-law gas
-  if (specificThermalEnergy < mEpsMin or specificThermalEnergy > mEpsMax) {
-    const auto cs0 = mCSinterp(massDensity, mEpsMin);
-    const auto cs1 = mCSinterp(massDensity, mEpsMax);
-    return max(1.0e-30, cs0 + (cs1 - cs0)/(mEpsMax - mEpsMin)*(specificThermalEnergy - mEpsMin));
+  if (mUseInterpolation) {
+    if (specificThermalEnergy < mEpsMin or specificThermalEnergy > mEpsMax) {
+      const auto cs0 = mCSinterp(massDensity, mEpsMin);
+      const auto cs1 = mCSinterp(massDensity, mEpsMax);
+      return max(1.0e-30, cs0 + (cs1 - cs0)/(mEpsMax - mEpsMin)*(specificThermalEnergy - mEpsMin));
+    } else {
+      return mCSinterp(massDensity, specificThermalEnergy);
+    }
   } else {
-    return mCSinterp(massDensity, specificThermalEnergy);
-  }
+    auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double P, eps, S, cV, DPDT, DPDR, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return cs * mVelConv;
+  }    
 }
 
 //------------------------------------------------------------------------------
@@ -664,7 +696,16 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  return mKinterp(massDensity, specificThermalEnergy);
+  if (mUseInterpolation) {
+    return mKinterp(massDensity, specificThermalEnergy);
+  } else {
+    auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double P, eps, S, cV, DPDT, DPDR, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return  std::abs(rho*DPDR) * mPconv;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -675,7 +716,16 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 entropy(const Scalar massDensity,
         const Scalar specificThermalEnergy) const {
-  return mSinterp(massDensity, specificThermalEnergy);
+  if (mUseInterpolation) {
+    return mSinterp(massDensity, specificThermalEnergy);
+  } else {
+    auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double P, eps, S, cV, DPDT, DPDR, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return S * mSconv;
+  }    
 }
 
 //------------------------------------------------------------------------------
@@ -738,6 +788,13 @@ double
 ANEOS<Dimension>::
 Tmax() const {
   return mTmax;
+}
+
+template<typename Dimension>
+bool
+ANEOS<Dimension>::
+useInterpolation() const {
+  return mUseInterpolation;
 }
 
 //------------------------------------------------------------------------------
