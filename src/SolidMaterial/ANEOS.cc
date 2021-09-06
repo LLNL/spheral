@@ -64,9 +64,9 @@ public:
     mRhoConv(rhoConv),
     mTconv(Tconv),
     mEconv(Econv) {};
-  double operator()(const Dim<2>::Vector& x) const {
-    rho = x[0]/mRhoConv;
-    T = x[1]/mTconv;
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = y/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return eps * mEconv;
@@ -94,9 +94,8 @@ public:
     mFeps(Feps),
     mVerbose(verbose) {}
 
-  double operator()(const Dim<2>::Vector& x) const {
+  double operator()(const double rho, const double eps) const {
     // Check if we're in bounds.
-    const auto rho = x[0], eps = x[1];
     const auto epsMin = mEpsInterp(rho, mTmin);
     const auto epsMax = mEpsInterp(rho, mTmax);
     if (eps < epsMin or eps > epsMax) {
@@ -110,7 +109,7 @@ public:
       }
       auto iter = 0u;
       while (abs(eps - epsi)/max(1.0e-15, abs(eps)) > 1.0e-10 and ++iter < 200u) {
-        epsi = mFeps(Dim<2>::Vector(rho, Ti));
+        epsi = mFeps(rho, Ti);
         Ti = max(1.0e-30, Ti + (eps/mFeps.mEconv - mFeps.eps)/mFeps.cV*mFeps.mTconv);
         if (mVerbose) cerr << "         " << Ti << " " << mFeps.eps*mFeps.mEconv << " " << abs(mFeps.cV)*mFeps.mEconv/mFeps.mTconv << endl;
       }
@@ -157,10 +156,10 @@ public:
     mTconv(Tconv),
     mPconv(Pconv),
     mTinterp(Tinterp) {}
-  double operator()(const Dim<2>::Vector& x) const {
-    rho = x[0]/mRhoConv;
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
     // cerr << " *** mTinterp(" << x << ") = " << mTinterp(x[0], x[1]) << endl;
-    T = mTinterp(x[0], x[1])/mTconv;
+    T = mTinterp(x, y)/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return P * mPconv;
@@ -182,9 +181,9 @@ public:
     mRhoConv(rhoConv),
     mTconv(Tconv),
     mCVconv(cVconv) {}
-  double operator()(const Dim<2>::Vector& x) const {
-    rho = x[0]/mRhoConv;
-    T = x[1]/mTconv;
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = y/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return cV * mCVconv;
@@ -207,9 +206,9 @@ public:
     mTconv(Tconv),
     mVelConv(velConv),
     mTinterp(Tinterp) {}
-  double operator()(const Dim<2>::Vector& x) const {
-    rho = x[0]/mRhoConv;
-    T = mTinterp(x[0], x[1])/mTconv;
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = mTinterp(x, y)/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return cs * mVelConv;
@@ -233,9 +232,9 @@ public:
     mTconv(Tconv),
     mPconv(Pconv),
     mTinterp(Tinterp) {}
-  double operator()(const Dim<2>::Vector& x) const {
-    rho = x[0]/mRhoConv;
-    T = mTinterp(x[0], x[1])/mTconv;
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = mTinterp(x, y)/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return std::abs(rho * DPDR * mPconv);
@@ -259,9 +258,9 @@ public:
     mTconv(Tconv),
     mSconv(Sconv),
     mTinterp(Tinterp) {}
-  double operator()(const Dim<2>::Vector& x) const {
-    rho = x[0]/mRhoConv;
-    T = mTinterp(x[0], x[1])/mTconv;
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = mTinterp(x, y)/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return S * mSconv;
@@ -371,63 +370,63 @@ ANEOS(const int materialNumber,
   CHECK(drho > 0.0);
   // [rhoMin:rhoMax], Tmin
   for (auto i = 0u; i < mNumRhoVals; ++i) {
-    const auto epsi = Feps(Dim<2>::Vector(mRhoMin + i*drho, mTmin));
+    const auto epsi = Feps(mRhoMin + i*drho, mTmin);
     mEpsMin = max(mEpsMin, epsi);
   }
   // [rhoMin:rhoMax], Tmax
   for (auto i = 0u; i < mNumRhoVals; ++i) {
-    const auto epsi = Feps(Dim<2>::Vector(mRhoMin + i*drho, mTmax));
+    const auto epsi = Feps(mRhoMin + i*drho, mTmax);
     mEpsMax = max(mEpsMax, epsi);
   }
 
   // Build the biquadratic interpolation function for eps(rho, T)
   auto t0 = clock();
-  mEpsInterp.initialize(Dim<2>::Vector(mRhoMin, mTmin),
-                        Dim<2>::Vector(mRhoMax, mTmax),
+  mEpsInterp.initialize(mRhoMin, mRhoMax,
+                        mTmin, mTmax,
                         mNumRhoVals, mNumTvals, Feps);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build epsInterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   // Now the hard inversion method for looking up T(rho, eps)
   t0 = clock();
   const auto Ftemp = Tfunc(mTmin, mTmax, mEpsInterp, Feps);
-  mTinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
-                      Dim<2>::Vector(mRhoMax, mEpsMax),
+  mTinterp.initialize(mRhoMin, mRhoMax,
+                      mEpsMin, mEpsMax,
                       mNumRhoVals, mNumTvals, Ftemp);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Tinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   // And finally the interpolators for most of our derived quantities
   t0 = clock();
   const auto Fpres = Pfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, mTinterp);
-  mPinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
-                      Dim<2>::Vector(mRhoMax, mEpsMax),
+  mPinterp.initialize(mRhoMin, mRhoMax,
+                      mEpsMin, mEpsMax,
                       mNumRhoVals, mNumTvals, Fpres);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Pinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fcv = cVfunc(mMaterialNumber, mRhoConv, mTconv, mCVconv);
-  mCVinterp.initialize(Dim<2>::Vector(mRhoMin, mTmin),
-                       Dim<2>::Vector(mRhoMax, mTmax),
+  mCVinterp.initialize(mRhoMin, mRhoMax,
+                       mTmin, mTmax,
                        mNumRhoVals, mNumTvals, Fcv);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build CVinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fcs = csfunc(mMaterialNumber, mRhoConv, mTconv, mVelConv, mTinterp);
-  mCSinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
-                       Dim<2>::Vector(mRhoMax, mEpsMax),
+  mCSinterp.initialize(mRhoMin, mRhoMax,
+                       mEpsMin, mEpsMax,
                        mNumRhoVals, mNumTvals, Fcs);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build CSinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto FK = Kfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, mTinterp);
-  mKinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
-                      Dim<2>::Vector(mRhoMax, mEpsMax),
+  mKinterp.initialize(mRhoMin, mRhoMax,
+                      mEpsMin, mEpsMax,
                       mNumRhoVals, mNumTvals, FK);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Kinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fs = sfunc(mMaterialNumber, mRhoConv, mTconv, mSconv, mTinterp);
-  mSinterp.initialize(Dim<2>::Vector(mRhoMin, mEpsMin),
-                      Dim<2>::Vector(mRhoMax, mEpsMax),
+  mSinterp.initialize(mRhoMin, mRhoMax,
+                      mEpsMin, mEpsMax,
                       mNumRhoVals, mNumTvals, Fs);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Sinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 }
@@ -605,7 +604,7 @@ temperature(const Scalar massDensity,
   if (not mUseInterpolation or (specificThermalEnergy < mEpsMin or specificThermalEnergy > mEpsMax)) {
     const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
     const auto Ftemp = Tfunc(mTmin, mTmax, mEpsInterp, Feps, true);
-    return Ftemp(Dim<2>::Vector(massDensity, specificThermalEnergy));
+    return Ftemp(massDensity, specificThermalEnergy);
   } else {
     return mTinterp(massDensity, specificThermalEnergy);
   }

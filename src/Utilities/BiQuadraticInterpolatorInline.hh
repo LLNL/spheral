@@ -13,7 +13,10 @@ BiQuadraticInterpolator::BiQuadraticInterpolator():
   mny1(),
   mxmin(),
   mxmax(),
+  mymin(),
+  mymax(),
   mxstep(),
+  mystep(),
   mcoeffs() {
 }
 
@@ -21,8 +24,10 @@ BiQuadraticInterpolator::BiQuadraticInterpolator():
 // Construct with tabulated data
 //------------------------------------------------------------------------------
 template<typename Func>
-BiQuadraticInterpolator::BiQuadraticInterpolator(const Vector& xmin,
-                                                 const Vector& xmax,
+BiQuadraticInterpolator::BiQuadraticInterpolator(const double xmin,
+                                                 const double xmax,
+                                                 const double ymin,
+                                                 const double ymax,
                                                  const size_t nx,
                                                  const size_t ny,
                                                  const Func& F):
@@ -32,7 +37,7 @@ BiQuadraticInterpolator::BiQuadraticInterpolator(const Vector& xmin,
   mxmax(),
   mxstep(),
   mcoeffs() {
-  this->initialize(xmin, xmax, nx, ny, F);
+  this->initialize(xmin, xmax, ymin, ymax, nx, ny, F);
 }
 
 //------------------------------------------------------------------------------
@@ -48,8 +53,10 @@ BiQuadraticInterpolator::~BiQuadraticInterpolator() {
 template<typename Func>
 inline
 void
-BiQuadraticInterpolator::initialize(const Vector& xmin,
-                                    const Vector& xmax,
+BiQuadraticInterpolator::initialize(const double xmin,
+                                    const double xmax,
+                                    const double ymin,
+                                    const double ymax,
                                     const size_t nx,
                                     const size_t ny,
                                     const Func& F) {
@@ -64,24 +71,26 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
   // Figure out the sampling steps.
   mxmin = xmin;
   mxmax = xmax;
-  mxstep = {(xmax[0] - xmin[0])/(nx - 1u),
-            (xmax[1] - xmin[1])/(ny - 1u)};
+  mymin = ymin;
+  mymax = ymax;
+  mxstep = (xmax - xmin)/(nx - 1u);
+  mystep = (ymax - ymin)/(ny - 1u);
 
   // Fit the coefficients
-  Vector x00, x01, x02, x10, x11, x12, x20, x21, x22;
+  Eigen::Vector2d x00, x01, x02, x10, x11, x12, x20, x21, x22;
   Eigen::MatrixXd A(9, 6);
   Eigen::VectorXd b(9), c(9);
   for (auto i = 0u; i < mnx1; ++i) {
     for (auto j = 0u; j < mny1; ++j) {
-      x00 = {xmin[0] + i      *mxstep[0], xmin[1] + j      *mxstep[1]};
-      x10 = {xmin[0] + (i + 1)*mxstep[0], xmin[1] + j      *mxstep[1]};
-      x20 = {xmin[0] + (i + 2)*mxstep[0], xmin[1] + j      *mxstep[1]};
-      x01 = {xmin[0] + i      *mxstep[0], xmin[1] + (j + 1)*mxstep[1]};
-      x11 = {xmin[0] + (i + 1)*mxstep[0], xmin[1] + (j + 1)*mxstep[1]};
-      x21 = {xmin[0] + (i + 2)*mxstep[0], xmin[1] + (j + 1)*mxstep[1]};
-      x02 = {xmin[0] + i      *mxstep[0], xmin[1] + (j + 2)*mxstep[1]};
-      x12 = {xmin[0] + (i + 1)*mxstep[0], xmin[1] + (j + 2)*mxstep[1]};
-      x22 = {xmin[0] + (i + 2)*mxstep[0], xmin[1] + (j + 2)*mxstep[1]};
+      x00 = {xmin + i      *mxstep, ymin + j      *mystep};
+      x10 = {xmin + (i + 1)*mxstep, ymin + j      *mystep};
+      x20 = {xmin + (i + 2)*mxstep, ymin + j      *mystep};
+      x01 = {xmin + i      *mxstep, ymin + (j + 1)*mystep};
+      x11 = {xmin + (i + 1)*mxstep, ymin + (j + 1)*mystep};
+      x21 = {xmin + (i + 2)*mxstep, ymin + (j + 1)*mystep};
+      x02 = {xmin + i      *mxstep, ymin + (j + 2)*mystep};
+      x12 = {xmin + (i + 1)*mxstep, ymin + (j + 2)*mystep};
+      x22 = {xmin + (i + 2)*mxstep, ymin + (j + 2)*mystep};
       A << 1.0, x00[0], x00[1], x00[0]*x00[1], x00[0]*x00[0], x00[1]*x00[1],
            1.0, x01[0], x01[1], x01[0]*x01[1], x01[0]*x01[0], x01[1]*x01[1],
            1.0, x02[0], x02[1], x02[0]*x02[1], x02[0]*x02[0], x02[1]*x02[1],
@@ -91,7 +100,15 @@ BiQuadraticInterpolator::initialize(const Vector& xmin,
            1.0, x20[0], x20[1], x20[0]*x20[1], x20[0]*x20[0], x20[1]*x20[1],
            1.0, x21[0], x21[1], x21[0]*x21[1], x21[0]*x21[0], x21[1]*x21[1],
            1.0, x22[0], x22[1], x22[0]*x22[1], x22[0]*x22[0], x22[1]*x22[1];
-      b << F(x00), F(x01), F(x02), F(x10), F(x11), F(x12), F(x20), F(x21), F(x22);
+      b << F(x00[0], x00[1]),
+           F(x01[0], x01[1]),
+           F(x02[0], x02[1]),
+           F(x10[0], x10[1]),
+           F(x11[0], x11[1]),
+           F(x12[0], x12[1]),
+           F(x20[0], x20[1]),
+           F(x21[0], x21[1]),
+           F(x22[0], x22[1]);
       c = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
       // std::cerr << "------------------------------------------------------------------------------\n"
       //           << "x00: " << x00 << "\n"
@@ -124,8 +141,8 @@ inline
 double
 BiQuadraticInterpolator::operator()(const double xi,
                                     const double yi) const {
-  const auto x = std::max(mxmin[0], std::min(mxmax[0], xi));
-  const auto y = std::max(mxmin[1], std::min(mxmax[1], yi));
+  const auto x = std::max(mxmin, std::min(mxmax, xi));
+  const auto y = std::max(mymin, std::min(mymax, yi));
   const auto i0 = lowerBound(x, y);
   // std::cerr << "================================================================================\n"
   //           << "mxlog, mylog : " << mxlog << " " << mylog << "\n"
@@ -143,8 +160,8 @@ BiQuadraticInterpolator::operator()(const double xi,
 inline
 double
 BiQuadraticInterpolator::prime_x(const double xi, const double yi) const {
-  const auto x = std::max(mxmin[0], std::min(mxmax[0], xi));
-  const auto y = std::max(mxmin[1], std::min(mxmax[1], yi));
+  const auto x = std::max(mxmin, std::min(mxmax, xi));
+  const auto y = std::max(mymin, std::min(mymax, yi));
   const auto i0 = lowerBound(x, y);
   return mcoeffs[i0 + 1] + mcoeffs[i0 + 3]*y + 2.0*mcoeffs[i0 + 4]*x;
 }
@@ -155,8 +172,8 @@ BiQuadraticInterpolator::prime_x(const double xi, const double yi) const {
 inline
 double
 BiQuadraticInterpolator::prime_y(const double xi, const double yi) const {
-  const auto x = std::max(mxmin[0], std::min(mxmax[0], xi));
-  const auto y = std::max(mxmin[1], std::min(mxmax[1], yi));
+  const auto x = std::max(mxmin, std::min(mxmax, xi));
+  const auto y = std::max(mymin, std::min(mymax, yi));
   const auto i0 = lowerBound(x, y);
   return mcoeffs[i0 + 2] + mcoeffs[i0 + 3]*x + 2.0*mcoeffs[i0 + 5]*y;
 }
@@ -167,8 +184,8 @@ BiQuadraticInterpolator::prime_y(const double xi, const double yi) const {
 inline
 double
 BiQuadraticInterpolator::prime2_xx(const double xi, const double yi) const {
-  const auto x = std::max(mxmin[0], std::min(mxmax[0], xi));
-  const auto y = std::max(mxmin[1], std::min(mxmax[1], yi));
+  const auto x = std::max(mxmin, std::min(mxmax, xi));
+  const auto y = std::max(mymin, std::min(mymax, yi));
   const auto i0 = lowerBound(x, y);
   return 2.0*mcoeffs[i0 + 4];
 }
@@ -179,8 +196,8 @@ BiQuadraticInterpolator::prime2_xx(const double xi, const double yi) const {
 inline
 double
 BiQuadraticInterpolator::prime2_xy(const double xi, const double yi) const {
-  const auto x = std::max(mxmin[0], std::min(mxmax[0], xi));
-  const auto y = std::max(mxmin[1], std::min(mxmax[1], yi));
+  const auto x = std::max(mxmin, std::min(mxmax, xi));
+  const auto y = std::max(mymin, std::min(mymax, yi));
   const auto i0 = lowerBound(x, y);
   return mcoeffs[i0 + 3];
 }
@@ -191,8 +208,8 @@ BiQuadraticInterpolator::prime2_xy(const double xi, const double yi) const {
 inline
 double
 BiQuadraticInterpolator::prime2_yx(const double xi, const double yi) const {
-  const auto x = std::max(mxmin[0], std::min(mxmax[0], xi));
-  const auto y = std::max(mxmin[1], std::min(mxmax[1], yi));
+  const auto x = std::max(mxmin, std::min(mxmax, xi));
+  const auto y = std::max(mymin, std::min(mymax, yi));
   const auto i0 = lowerBound(x, y);
   return mcoeffs[i0 + 3];
 }
@@ -203,8 +220,8 @@ BiQuadraticInterpolator::prime2_yx(const double xi, const double yi) const {
 inline
 double
 BiQuadraticInterpolator::prime2_yy(const double xi, const double yi) const {
-  const auto x = std::max(mxmin[0], std::min(mxmax[0], xi));
-  const auto y = std::max(mxmin[1], std::min(mxmax[1], yi));
+  const auto x = std::max(mxmin, std::min(mxmax, xi));
+  const auto y = std::max(mymin, std::min(mymax, yi));
   const auto i0 = lowerBound(x, y);
   return 2.0*mcoeffs[i0 + 5];
 }
@@ -215,8 +232,8 @@ BiQuadraticInterpolator::prime2_yy(const double xi, const double yi) const {
 inline
 size_t
 BiQuadraticInterpolator::lowerBound(const double x, const double y) const {
-  const auto result = 6u*(mnx1*std::min(mny1 - 1u, size_t(std::max(0.0, y - mxmin[1])/mxstep[1])) +
-                               std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin[0])/mxstep[0])));
+  const auto result = 6u*(mnx1*std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep)) +
+                               std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep)));
   ENSURE(result <= 6u*mnx1*mny1);
   return result;
 }
@@ -231,21 +248,39 @@ BiQuadraticInterpolator::size() const {
 }
 
 inline
-typename BiQuadraticInterpolator::Vector
+double
 BiQuadraticInterpolator::xmin() const {
   return mxmin;
 }
 
 inline
-typename BiQuadraticInterpolator::Vector
+double
 BiQuadraticInterpolator::xmax() const {
   return mxmax;
 }
 
 inline
-typename BiQuadraticInterpolator::Vector
+double
+BiQuadraticInterpolator::ymin() const {
+  return mymin;
+}
+
+inline
+double
+BiQuadraticInterpolator::ymax() const {
+  return mymax;
+}
+
+inline
+double
 BiQuadraticInterpolator::xstep() const {
   return mxstep;
+}
+
+inline
+double
+BiQuadraticInterpolator::ystep() const {
+  return mystep;
 }
 
 inline

@@ -36,9 +36,7 @@ struct W3S1Func {
   };
 
   // Now the lookup based on (etaj, etai) -- the (rprime/h, r/h) from the paper
-  double operator()(const Dim<2>::Vector& bounds) const {
-    const auto low = bounds[0];
-    const auto high = bounds[1];
+  double operator()(const double low, const double high) const {
     if (low >= high) return 0.0;
     return simpsonsIntegration<VolFunc, double, double>(VolFunc(mW),
                                                         low,
@@ -53,8 +51,8 @@ struct W3S1Func {
 // Constructor
 //------------------------------------------------------------------------------
 SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
-  mInterp(Dim<2>::Vector(0.0, 0.0),
-          Dim<2>::Vector(kernel.kernelExtent(), kernel.kernelExtent()),
+  mInterp(0.0, kernel.kernelExtent(),
+          0.0, kernel.kernelExtent(),
           std::max(size_t(200), kernel.numPoints()),
           std::max(size_t(200), kernel.numPoints()),
           W3S1Func(kernel)),
