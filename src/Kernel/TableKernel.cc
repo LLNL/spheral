@@ -23,6 +23,7 @@ using std::abs;
 
 namespace Spheral {
 
+namespace {  // anonymous
 //------------------------------------------------------------------------------
 // Sum the Kernel values for the given stepsize.
 //------------------------------------------------------------------------------
@@ -207,6 +208,8 @@ gradf1Integral(const KernelType& W,
                                                                      numbins);
 }
 
+}  // anonymous
+
 //------------------------------------------------------------------------------
 // Construct from a kernel.
 //------------------------------------------------------------------------------
@@ -280,6 +283,25 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
 }
 
 //------------------------------------------------------------------------------
+// Copy
+//------------------------------------------------------------------------------
+template<typename Dimension>
+TableKernel<Dimension>::
+TableKernel(const TableKernel<Dimension>& rhs):
+  Kernel<Dimension, TableKernel<Dimension>>(rhs),
+  mInterp(rhs.mInterp),
+  mGradInterp(rhs.mGradInterp),
+  mGrad2Interp(rhs.mGrad2Interp),
+  mNumPoints(rhs.mNumPoints),
+  mNperhValues(rhs.mNperhValues),
+  mWsumValues( rhs.mWsumValues),
+  mMinNperh(rhs.mMinNperh),
+  mMaxNperh(rhs.mMaxNperh),
+  mf1Interp(rhs.mf1Interp),
+  mf2Interp(rhs.mf2Interp) {
+}
+
+//------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -295,8 +317,10 @@ TableKernel<Dimension>&
 TableKernel<Dimension>::
 operator=(const TableKernel<Dimension>& rhs) {
   if (this != &rhs) {
-    Kernel<Dimension, TableKernel<Dimension> >::operator=(rhs);
+    Kernel<Dimension, TableKernel<Dimension>>::operator=(rhs);
     mInterp = rhs.mInterp;
+    mGradInterp = rhs.mGradInterp;
+    mGrad2Interp = rhs.mGrad2Interp;
     mNumPoints = rhs.mNumPoints;
     mNperhValues = rhs.mNperhValues;
     mWsumValues =  rhs.mWsumValues;

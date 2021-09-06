@@ -23,6 +23,7 @@ public:
 
   // Constructors, destructors.
   Kernel();
+  Kernel(const Kernel& rhs);
   ~Kernel();
 
   // Assignment.

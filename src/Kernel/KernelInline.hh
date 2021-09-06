@@ -27,6 +27,17 @@ Kernel<Dimension, Descendant>::Kernel():
 }
 
 //------------------------------------------------------------------------------
+// Copy constructor
+//------------------------------------------------------------------------------
+template<typename Dimension, typename Descendant>
+inline
+Kernel<Dimension, Descendant>::Kernel(const Kernel& rhs):
+  mVolumeNormalization(rhs.mVolumeNormalization),
+  mKernelExtent(rhs.mKernelExtent),
+  mInflectionPoint(rhs.mInflectionPoint) {
+}
+
+//------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Descendant>

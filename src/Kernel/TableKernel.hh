@@ -29,6 +29,7 @@ public:
   TableKernel(const KernelType& kernel,
               const unsigned numPoints = 100u,
               const double hmult = 1.0);
+  TableKernel(const TableKernel<Dimension>& rhs);
 
   // Destructor.
   virtual ~TableKernel();
