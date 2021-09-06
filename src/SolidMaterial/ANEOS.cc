@@ -86,11 +86,13 @@ public:
   Tfunc(double Tmin, 
         double Tmax,
         const BiQuadraticInterpolator& epsInterp,
-        const epsFunc& Feps):
+        const epsFunc& Feps,
+        const bool verbose = false):
     mTmin(Tmin),
     mTmax(Tmax),
     mEpsInterp(epsInterp),
-    mFeps(Feps) {}
+    mFeps(Feps),
+    mVerbose(verbose) {}
 
   double operator()(const Dim<2>::Vector& x) const {
     // Check if we're in bounds.
@@ -110,8 +112,9 @@ public:
       while (abs(eps - epsi)/max(1.0e-15, abs(eps)) > 1.0e-10 and ++iter < 200u) {
         epsi = mFeps(Dim<2>::Vector(rho, Ti));
         Ti = max(1.0e-30, Ti + (eps/mFeps.mEconv - mFeps.eps)/mFeps.cV*mFeps.mTconv);
+        if (mVerbose) cerr << "         " << Ti << " " << mFeps.eps*mFeps.mEconv << " " << abs(mFeps.cV)*mFeps.mEconv/mFeps.mTconv << endl;
       }
-      // cerr << " --> (" << rho << " " << eps << ") : " << epsi/eps << " " << Ti << " in iter=" << iter << endl;
+      if (mVerbose) cerr << " --> (" << rho << " " << eps << ") : " << epsi/eps << " " << Ti << " in iter=" << iter << endl;
       return Ti;
       
     } else {
@@ -125,6 +128,7 @@ private:
   double mTmin, mTmax;
   const BiQuadraticInterpolator& mEpsInterp;
   const epsFunc& mFeps;
+  bool mVerbose;
 
   // We need to make a single argument functor for eps(T) given a fixed rho
   class Trho_func {
@@ -600,7 +604,7 @@ temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   if (not mUseInterpolation or (specificThermalEnergy < mEpsMin or specificThermalEnergy > mEpsMax)) {
     const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
-    const auto Ftemp = Tfunc(mTmin, mTmax, mEpsInterp, Feps);
+    const auto Ftemp = Tfunc(mTmin, mTmax, mEpsInterp, Feps, true);
     return Ftemp(Dim<2>::Vector(massDensity, specificThermalEnergy));
   } else {
     return mTinterp(massDensity, specificThermalEnergy);
@@ -788,6 +792,20 @@ double
 ANEOS<Dimension>::
 Tmax() const {
   return mTmax;
+}
+
+template<typename Dimension>
+double
+ANEOS<Dimension>::
+epsMin() const {
+  return mEpsMin;
+}
+
+template<typename Dimension>
+double
+ANEOS<Dimension>::
+epsMax() const {
+  return mEpsMax;
 }
 
 template<typename Dimension>

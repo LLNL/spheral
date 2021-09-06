@@ -115,6 +115,8 @@ public:
   double rhoMax() const;
   double Tmin() const;
   double Tmax() const;
+  double epsMin() const;
+  double epsMax() const;
   bool useInterpolation() const;
 
   // If requested, the user can specify an external pressure to be applied
