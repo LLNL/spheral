@@ -37,21 +37,6 @@ template<typename Dimension>
 inline
 void
 SolidFSISPHHydroBase<Dimension>::
-densityDiffusionCoefficient(double x) {
-  mDensityDiffusionCoefficient = x;
-}
-template<typename Dimension>
-inline
-double
-SolidFSISPHHydroBase<Dimension>::
-densityDiffusionCoefficient() const {
-  return mDensityDiffusionCoefficient;
-}
-
-template<typename Dimension>
-inline
-void
-SolidFSISPHHydroBase<Dimension>::
 specificThermalEnergyDiffusionCoefficient(double x) {
   mSpecificThermalEnergyDiffusionCoefficient = x;
 }

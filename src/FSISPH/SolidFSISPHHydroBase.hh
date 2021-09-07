@@ -44,7 +44,6 @@ public:
                     const double cfl,
                     const double surfaceForceCoefficient,
                     const double densityStabilizationCoefficient,
-                    const double densityDiffusionCoefficient,
                     const double specificThermalEnergyDiffusionCoefficient,
                     const std::vector<int> sumDensityNodeLists,
                     const bool useVelocityMagnitudeForDt,
@@ -106,9 +105,6 @@ public:
   double densityStabilizationCoefficient() const;
   void densityStabilizationCoefficient(double x);
 
-  double densityDiffusionCoefficient() const;
-  void densityDiffusionCoefficient(double x);
-
   double specificThermalEnergyDiffusionCoefficient() const;
   void specificThermalEnergyDiffusionCoefficient(double x);
 
@@ -130,7 +126,6 @@ private:
   SlideSurface<Dimension>& mSlideSurface;             // ref to the obj tracking slideSurfs between nodelists
   double mSurfaceForceCoefficient;                    // Monaghan 2013 force increase @ interface
   double mDensityStabilizationCoefficient;            // adjusts DvDx to stabilize rho
-  double mDensityDiffusionCoefficient;                // controls diffusion of rho
   double mSpecificThermalEnergyDiffusionCoefficient;  // controls diffusion of eps
   
   bool   mApplySelectDensitySum;                      // switch for density sum

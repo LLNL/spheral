@@ -18,7 +18,6 @@ class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
                  cfl = 0.5,
                  surfaceForceCoefficient = 0.0,
                  densityStabilizationCoefficient = 0.0,
-                 densityDiffusionCoefficient = 0.0,   
                  specificThermalEnergyDiffusionCoefficient = 0.0,                     
                  sumDensityNodeLists = None,
                  useVelocityMagnitudeForDt = False,
@@ -45,7 +44,6 @@ class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
                                           cfl,
                                           surfaceForceCoefficient,
                                           densityStabilizationCoefficient,
-                                          densityDiffusionCoefficient,
                                           specificThermalEnergyDiffusionCoefficient,             
                                           sumDensityNodeLists,
                                           useVelocityMagnitudeForDt,
@@ -77,8 +75,7 @@ class %(classname)s(FSISPHHydroBaseRZ):
                  filter = 0.0,
                  cfl = 0.5,
                  surfaceForceCoefficient = 0.0,
-                 densityStabilizationCoefficient = 0.0,
-                 densityDiffusionCoefficient = 0.0,   
+                 densityStabilizationCoefficient = 0.0,  
                  specificThermalEnergyDiffusionCoefficient = 0.0,          
                  sumDensityNodeLists = None,
                  useVelocityMagnitudeForDt = False,
@@ -108,7 +105,6 @@ class %(classname)s(FSISPHHydroBaseRZ):
                                     cfl,
                                     surfaceForceCoefficient,
                                     densityStabilizationCoefficient,
-                                    densityDiffusionCoefficient,
                                     specificThermalEnergyDiffusionCoefficient,       
                                     sumDensityNodeLists,
                                     useVelocityMagnitudeForDt,
@@ -141,8 +137,7 @@ class %(classname)s(SolidFSISPHHydroBaseRZ):
                  filter = 0.0,
                  cfl = 0.5,
                  surfaceForceCoefficient = 0.0,
-                 densityStabilizationCoefficient = 0.0,
-                 densityDiffusionCoefficient = 0.0,   
+                 densityStabilizationCoefficient = 0.0, 
                  specificThermalEnergyDiffusionCoefficient = 0.0,          
                  sumDensityNodeLists = None,
                  useVelocityMagnitudeForDt = False,
@@ -172,8 +167,7 @@ class %(classname)s(SolidFSISPHHydroBaseRZ):
                                         filter,
                                         cfl,
                                         surfaceForceCoefficient,
-                                        densityStabilizationCoefficient,
-                                        densityDiffusionCoefficient,   
+                                        densityStabilizationCoefficient,  
                                         specificThermalEnergyDiffusionCoefficient,          
                                         sumDensityNodeLists,
                                         useVelocityMagnitudeForDt,
@@ -210,8 +204,7 @@ class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
                  filter = 0.0,
                  cfl = 0.5,
                  surfaceForceCoefficient = 0.0,
-                 densityStabilizationCoefficient = 0.0,
-                 densityDiffusionCoefficient = 0.0,   
+                 densityStabilizationCoefficient = 0.0, 
                  specificThermalEnergyDiffusionCoefficient = 0.0,        
                  sumDensityNodeLists = None,
                  useVelocityMagnitudeForDt = False,
@@ -240,8 +233,7 @@ class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
                                           filter,
                                           cfl,
                                           surfaceForceCoefficient,
-                                          densityStabilizationCoefficient,
-                                          densityDiffusionCoefficient,   
+                                          densityStabilizationCoefficient, 
                                           specificThermalEnergyDiffusionCoefficient,       
                                           sumDensityNodeLists,
                                           useVelocityMagnitudeForDt,
@@ -299,7 +291,6 @@ def FSISPH(dataBase,
         cfl = 0.25,
         surfaceForceCoefficient=0.0,
         densityStabilizationCoefficient=0.0, 
-        densityDiffusionCoefficient=0.0,      
         specificThermalEnergyDiffusionCoefficient=0.0,        
         sumDensityNodeLists=[],
         useVelocityMagnitudeForDt = False,
@@ -323,15 +314,6 @@ def FSISPH(dataBase,
 
     if compatibleEnergyEvolution and evolveTotalEnergy:
         raise RuntimeError, "compatibleEnergyEvolution and evolveTotalEnergy are incompatible"
-    
-    if densityDiffusionCoefficient > 1e-30 or specificThermalEnergyDiffusionCoefficient > 1e-30:
-        print("**********************************************************************")
-        print(" FSISPH WARNING : compatibility issue w/ StrainPorosity when running:")
-        print("                  densityDiffusionCoefficient > 0.0")
-        print("                  ")
-        print("                  densityStabilizationCoefficient > 0.0 is safe")
-        print("                  specificThermalEnergyDiffusionCoefficient > 0.0 is safe")
-        print("**********************************************************************")
 
     if gradhCorrection:
         raise RuntimeError, "gradhCorrection not implemented yet"
@@ -391,7 +373,7 @@ def FSISPH(dataBase,
             else:
                 Constructor = eval("SolidFSISPHHydro%id" % ndim)
         else:
-            raise RuntimeError, "currently only implemented for solid nodelists"
+            raise RuntimeError, "currently only implemented for fluid nodelists"
             '''
             if ASPH:
                 Constructor = eval("AFSISPHHydro%id" % ndim)
@@ -420,8 +402,7 @@ def FSISPH(dataBase,
               "filter" : filter,
               "cfl" : cfl,
               "surfaceForceCoefficient" : surfaceForceCoefficient,
-              "densityStabilizationCoefficient" : densityStabilizationCoefficient,
-              "densityDiffusionCoefficient" : densityDiffusionCoefficient,        
+              "densityStabilizationCoefficient" : densityStabilizationCoefficient,      
               "specificThermalEnergyDiffusionCoefficient" : specificThermalEnergyDiffusionCoefficient,        
               "sumDensityNodeLists" : sumDensitySwitch,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
@@ -459,8 +440,7 @@ def AFSISPH(dataBase,
          filter = 0.0,
          cfl = 0.25,
          surfaceForceCoefficient = 0.0,
-         densityStabilizationCoefficient = 0.0,
-         densityDiffusionCoefficient = 0.0,   
+         densityStabilizationCoefficient = 0.0,  
          specificThermalEnergyDiffusionCoefficient = 0.0,                     
          sumDensityNodeLists = None,       
          useVelocityMagnitudeForDt = False,
@@ -485,8 +465,7 @@ def AFSISPH(dataBase,
                filter = filter,
                cfl = cfl,
                surfaceForceCoefficient = 0.0,
-               densityStabilizationCoefficient = 0.0,
-               densityDiffusionCoefficient = 0.0,   
+               densityStabilizationCoefficient = 0.0, 
                specificThermalEnergyDiffusionCoefficient = 0.0,                     
                sumDensityNodeLists = None,          
                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,

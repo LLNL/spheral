@@ -27,7 +27,6 @@ class SolidFSISPHHydroBase(SolidSPHHydroBase):
                cfl = "const double",
                surfaceForceCoefficient = "const double",
                densityStabilizationCoefficient = "const double",
-               densityDiffusionCoefficient = "const double",
                specificThermalEnergyDiffusionCoefficient = "const double",
                sumDensityNodeLists = "std::vector<int>",
                useVelocityMagnitudeForDt = "const bool",
@@ -101,9 +100,6 @@ mass density, velocity, and specific thermal energy."""
     
     densityStabilizationCoefficient = PYB11property("double", "densityStabilizationCoefficient", "densityStabilizationCoefficient", 
                                           doc="coefficient used to adjust velocity gradient to prevent unstable rho.")
-    
-    densityDiffusionCoefficient = PYB11property("double", "densityDiffusionCoefficient", "densityDiffusionCoefficient", 
-                                          doc="coefficient used to diffuse density amongst like nodes.")
     
     specificThermalEnergyDiffusionCoefficient = PYB11property("double", "specificThermalEnergyDiffusionCoefficient", "specificThermalEnergyDiffusionCoefficient", 
                                           doc="coefficient used to diffuse specificThermalEnergy amongst like nodes.")

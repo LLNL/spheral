@@ -119,7 +119,6 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   const double cfl,
                   const double surfaceForceCoefficient,
                   const double densityStabilizationCoefficient,
-                  const double densityDiffusionCoefficient,
                   const double specificThermalEnergyDiffusionCoefficient,
                   const std::vector<int> sumDensityNodeLists,
                   const bool useVelocityMagnitudeForDt,
@@ -164,7 +163,6 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mSlideSurface(slides),
   mSurfaceForceCoefficient(surfaceForceCoefficient),
   mDensityStabilizationCoefficient(densityStabilizationCoefficient),
-  mDensityDiffusionCoefficient(densityDiffusionCoefficient),
   mSpecificThermalEnergyDiffusionCoefficient(specificThermalEnergyDiffusionCoefficient),
   mApplySelectDensitySum(false),
   mSumDensityNodeLists(sumDensityNodeLists),
@@ -322,7 +320,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
   const auto totalEnergy = this->evolveTotalEnergy();
   const auto damageRelieveRubble = this->damageRelieveRubble();
-  //const auto rhoDiffusionCoeff = this->densityDiffusionCoefficient();
   const auto epsDiffusionCoeff = this->specificThermalEnergyDiffusionCoefficient();
   const auto rhoStabilizeCoeff = this->densityStabilizationCoefficient();
   const auto surfaceForceCoeff = this->surfaceForceCoefficient();
@@ -665,7 +662,7 @@ if(this->correctVelocityGradient()){
       const auto damageDecouple =  isExpanding and (isDispersedRubblei or isDispersedRubblej);
 
       const auto constructInterface = (fSij < 0.99);
-      const auto negligableShearWave = max(mui,muj) < 1.0e-5*min(Ki,Kj);
+      const auto negligableShearWave = max(fDi*mui,fDj*muj) < 1.0e-5*min(Ki,Kj);
 
       if (!damageDecouple){
 
@@ -790,10 +787,10 @@ if(this->correctVelocityGradient()){
         if (constructInterface){
 
           // material property avg weights
-          const auto Ci = rhoi*ci+tiny;//abs(Ki*volj*gWi)+tiny;
-          const auto Cj = rhoj*cj+tiny;//abs(Kj*voli*gWj)+tiny;
-          const auto Csi = std::sqrt(rhoi*mui)+tiny;
-          const auto Csj = std::sqrt(rhoj*muj)+tiny;
+          const auto Ci = abs(Ki*volj*gWi)+tiny;//rhoi*ci+tiny;//
+          const auto Cj = abs(Kj*voli*gWj)+tiny;//rhoj*cj+tiny;//
+          const auto Csi = abs(mui*volj*gWi)+tiny;//std::sqrt(rhoi*mui)+tiny;
+          const auto Csj = abs(muj*voli*gWj)+tiny;//std::sqrt(rhoj*muj)+tiny;
           const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
           const auto weightUj = 1.0 - weightUi;
           //const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, mui/(abs(mui)+abs(muj)+tiny))) );
@@ -808,13 +805,15 @@ if(this->correctVelocityGradient()){
           const auto wi = vi - ui*nij;
           const auto wj = vj - uj*nij;
 
-          const auto ustar = weightUi*ui + weightUj*uj +   (Pj-Pi)/(Ci+Cj) ;
+          const auto ustar = weightUi*ui + weightUj*uj;// +   (Pj-Pi)/(Ci+Cj) ;
           const auto wstar = weightWi*wi + weightWj*wj;
           vstar = fSij * vstar + (1.0-fSij)*(ustar*nij + wstar);
   
-        }//else{
-         // vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, (Pj-Pi)/max(rhoi*ci,rhoj*cj) )) * rhatij;
-        //}
+        }//else
+        
+        if(stabilizeDensity){
+          vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, (Pj-Pi)/max(rhoi*ci,rhoj*cj) )) * rhatij;
+        }
 
         auto deltaDvDxi = 2.0*(vi-vstar).dyad(gradWi);
         auto deltaDvDxj = 2.0*(vstar-vj).dyad(gradWj);
