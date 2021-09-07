@@ -11,6 +11,7 @@
 #define ANEOS_HH
 
 #include "SolidMaterial/SolidEquationOfState.hh"
+#include "Utilities/QuadraticInterpolator.hh"
 #include "Utilities/BiQuadraticInterpolator.hh"
 
 // Forward declarations.
@@ -132,6 +133,7 @@ private:
   int mMaterialNumber;
   unsigned mNumRhoVals, mNumTvals;
   double mRhoMin, mRhoMax, mTmin, mTmax, mEpsMin, mEpsMax, mExternalPressure;
+  QuadraticInterpolator mEpsMinInterp;
   BiQuadraticInterpolator mEpsInterp, mTinterp, mPinterp, mCVinterp, mCSinterp, mKinterp, mSinterp;
 
   // ANEOS internal units.
