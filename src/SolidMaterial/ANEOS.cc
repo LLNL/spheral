@@ -121,7 +121,7 @@ private:
               const double eps0,
               const BiQuadraticInterpolator& epsInterp):
       mrho(rho),
-      mepseff(eps + eps0),
+      mepseff(eps - eps0),
       mEpsInterp(epsInterp) {}
     double operator()(const double T) const { return mEpsInterp(mrho, T) - mepseff; }
   };
