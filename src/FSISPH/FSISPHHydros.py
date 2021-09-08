@@ -314,7 +314,6 @@ def FSISPH(dataBase,
         useVelocityMagnitudeForDt = False,
         compatibleEnergyEvolution = True,
         evolveTotalEnergy = False,
-        XSPH = False,
         correctVelocityGradient = False,    # will break consistency between DrhoDt and DepsDt
         HUpdate = IdealH,
         epsTensile = 0.0,
@@ -327,17 +326,16 @@ def FSISPH(dataBase,
         ASPH = False,
         RZ = False):
 
+    # terms that are on deck or on their way out
     gradhCorrection = False
     densityUpdate = IntegrateDensity
+    XSPH = False
 
     if compatibleEnergyEvolution and evolveTotalEnergy:
         raise RuntimeError, "compatibleEnergyEvolution and evolveTotalEnergy are incompatible"
 
     if gradhCorrection:
         raise RuntimeError, "gradhCorrection not implemented yet"
-
-    #if XSPH  and dataBase.numNodeLists>1:
-    #    raise RuntimeError, "XSPH is not set up for multiple nodeLists"
 
     if strengthInDamage and damageRelieveRubble:
         raise RuntimeError, "strengthInDamage and damageRelieveRubble are incompatible"

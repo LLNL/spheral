@@ -313,9 +313,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // Get the SlideSurfaces.
   auto& slides = this->slideSurface();
 
+  // get our interface method (default is modulus weights)
+  const auto constructHLLC = (this->interfaceMethod() == InterfaceMethod::HLLCInterface);
+
   // The kernels and such.
   const auto& W = this->kernel();
   const auto& smoothingScaleMethod = this->smoothingScaleMethod();
+  
 
   // A few useful constants we'll use in the following loop.
   const auto tiny = std::numeric_limits<double>::epsilon();
@@ -327,7 +331,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto epsDiffusionCoeff = this->specificThermalEnergyDiffusionCoefficient();
   const auto rhoStabilizeCoeff = this->densityStabilizationCoefficient();
   const auto surfaceForceCoeff = this->surfaceForceCoefficient();
-  const auto XSPH = this->XSPH();
+  const auto xsphCoeff = this->xsphCoefficient();
+  const auto XSPH = xsphCoeff > tiny;
   const auto diffuseEnergy = epsDiffusionCoeff>tiny and compatibleEnergy;
   const auto stabilizeDensity = rhoStabilizeCoeff>tiny;
 
@@ -350,7 +355,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  const auto surfaceNormals = state.fields(FSIFieldNames::interfaceNormals,Vector::zero);
+  //const auto surfaceNormals = state.fields(FSIFieldNames::interfaceNormals,Vector::zero);
 
 
   CHECK(mass.size() == numNodeLists);
@@ -569,7 +574,7 @@ if(this->correctVelocityGradient()){
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
-      const auto& ni = surfaceNormals(nodeListi, i);
+      // const auto& ni = surfaceNormals(nodeListi, i);
       const auto& ri = position(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
@@ -607,7 +612,7 @@ if(this->correctVelocityGradient()){
       //auto& viscousWorki = viscousWork_thread(nodeListi, i);
 
       // Get the state for node j
-      const auto& nj = surfaceNormals(nodeListj, j);
+      //const auto& nj = surfaceNormals(nodeListj, j);
       const auto& rj = position(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
@@ -791,29 +796,29 @@ if(this->correctVelocityGradient()){
         if (constructInterface){
 
           // material property avg weights
-          const auto Ci = abs(Ki*volj*gWi)+tiny;//rhoi*ci+tiny;//
-          const auto Cj = abs(Kj*voli*gWj)+tiny;//rhoj*cj+tiny;//
-          const auto Csi = abs(mui*volj*gWi)+tiny;//std::sqrt(rhoi*mui)+tiny;
-          const auto Csj = abs(muj*voli*gWj)+tiny;//std::sqrt(rhoj*muj)+tiny;
+
+          const auto Ci = (constructHLLC ? rhoi*ci : abs(Ki*volj*gWi) ) + tiny;
+          const auto Cj = (constructHLLC ? rhoj*cj : abs(Kj*voli*gWj) ) + tiny;
+          const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : abs(mui*volj*gWi) ) + tiny;
+          const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : abs(muj*voli*gWj) ) + tiny;
+
           const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
           const auto weightUj = 1.0 - weightUi;
-          //const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, mui/(abs(mui)+abs(muj)+tiny))) );
-          
           const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, Csi/(Csi+Csj) )) );
           const auto weightWj = 1.0 - weightWi;
 
           // components
-          const auto nij = rhatij;//(nj-ni).unitVector();//-(weightUi*gradWi.unitVector()+weightUj*gradWj.unitVector()).unitVector();
+          const auto nij = rhatij;
           const auto ui = vi.dot(nij);
           const auto uj = vj.dot(nij);
           const auto wi = vi - ui*nij;
           const auto wj = vj - uj*nij;
 
-          const auto ustar = weightUi*ui + weightUj*uj;// +   (Pj-Pi)/(Ci+Cj) ;
+          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ?  (Pj-Pi)/(Ci+Cj) : 0.0);
           const auto wstar = weightWi*wi + weightWj*wj;
           vstar = fSij * vstar + (1.0-fSij)*(ustar*nij + wstar);
   
-        }//else
+        }
         
         if(stabilizeDensity){
           vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, (Pj-Pi)/max(rhoi*ci,rhoj*cj) )) * rhatij;
@@ -930,10 +935,10 @@ if(this->correctVelocityGradient()){
       DrhoDti -=  rhoi*DvDxi.Trace();
 
       DxDti = vi;
-       if (XSPH) {
+      if (XSPH) {
         CHECK(XSPHWeightSumi >= 0.0);
         XSPHWeightSumi += Hdeti*mi/rhoi*W0 + tiny;
-        DxDti += 0.25*XSPHDeltaVi/XSPHWeightSumi;
+        DxDti += xsphCoeff*XSPHDeltaVi/XSPHWeightSumi;
       }
 
     
