@@ -661,14 +661,14 @@ ANEOS<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
   if (mUseInterpolation) {
-    return mCVinterp(massDensity, temperature);
+    return max(1.0e-20, mCVinterp(massDensity, temperature));
   } else {
     auto T = temperature/mTconv;
     auto rho = massDensity/mRhoConv;
     double P, eps, S, cV, DPDT, DPDR, cs;
     call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
-    return cV * mCVconv;
+    return max(1.0e-20, cV * mCVconv);
   }    
 }
 
@@ -701,9 +701,10 @@ ANEOS<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
   const auto Ti = mTinterp(massDensity, specificThermalEnergy);     // this->temperature(massDensity, specificThermalEnergy);
-  const auto cvi = mCVinterp(massDensity, Ti);                      // this->specificHeat(massDensity, Ti);
+  const auto cvi = this->specificHeat(massDensity, Ti);
+  // return 1.0 + mConstants.molarGasConstant()*safeInvVar(cvi);
   const auto nDen = massDensity/mAtomicWeight;
-  return 1.0 + mConstants.molarGasConstant()*nDen*safeInvVar(cvi);
+  return 1.0 + mConstants.molarGasConstant()*nDen*safeInv(cvi, 1.0e-10);
 }
 
 //------------------------------------------------------------------------------
@@ -735,14 +736,14 @@ ANEOS<Dimension>::
 entropy(const Scalar massDensity,
         const Scalar specificThermalEnergy) const {
   if (mUseInterpolation) {
-    return mSinterp(massDensity, specificThermalEnergy);
+    return max(1.0e-20, mSinterp(massDensity, specificThermalEnergy));
   } else {
     auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
     auto rho = massDensity/mRhoConv;
     double P, eps, S, cV, DPDT, DPDR, cs;
     call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
-    return S * mSconv;
+    return max(1.0e-20, S * mSconv);
   }    
 }
 
