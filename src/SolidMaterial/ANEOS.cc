@@ -86,29 +86,39 @@ public:
   Tfunc(double Tmin, 
         double Tmax,
         const QuadraticInterpolator& epsMinInterp,
+        const QuadraticInterpolator& epsMaxInterp,
         const BiQuadraticInterpolator& epsInterp,
         const epsFunc& Feps,
         const bool verbose = false):
     mTmin(Tmin),
     mTmax(Tmax),
     mEpsMinInterp(epsMinInterp),
+    mEpsMaxInterp(epsMaxInterp),
     mEpsInterp(epsInterp),
     mFeps(Feps),
     mVerbose(verbose) {}
 
   double operator()(const double rho, const double eps) const {
-    // Find the eps offset for this density
-    const auto eps0 = mEpsMinInterp(rho);
-    const auto FT = Trho_func(rho, eps + eps0, mEpsInterp);
-    // cerr << " **> " << rho << " " << eps << " " << eps0 << " " << (eps + eps0) << " " << FT(mTmin) << " " << FT(mTmax) << endl;
-    return bisectRoot(Trho_func(rho, eps + eps0, mEpsInterp),
-                      mTmin, mTmax,
-                      1.0e-15, 200u);
+    if (eps < mEpsMinInterp(rho)) {
+      return mTmin;
+    } else if (eps > mEpsMaxInterp(rho)) {
+      return mTmax;
+    } else {
+      const auto FT = Trho_func(rho, eps, mEpsInterp);
+      const auto FTmin = FT(mTmin), FTmax = FT(mTmax);
+      if (FTmin*FTmax > 0.0) {
+        return abs(FTmin) < abs(FTmax) ? mTmin : mTmax;
+      }
+      // cerr << " **> (" << rho << " " << eps << ") [" << mEpsMinInterp(rho) << " " << mEpsMaxInterp(rho) << "] " << FT(mTmin) << " " << FT(mTmax) << endl;
+      return bisectRoot(Trho_func(rho, eps, mEpsInterp),
+                        mTmin, mTmax,
+                        1.0e-15, 200u);
+    }
   }
 
 private:
   double mTmin, mTmax;
-  const QuadraticInterpolator& mEpsMinInterp;
+  const QuadraticInterpolator& mEpsMinInterp, mEpsMaxInterp;
   const BiQuadraticInterpolator& mEpsInterp;
   const epsFunc& mFeps;
   bool mVerbose;
@@ -129,24 +139,52 @@ private:
 };
 
 //------------------------------------------------------------------------------
+// A wrapper around the T(rho, eps) interpolator with safe limiting
+//------------------------------------------------------------------------------
+class Textrapolator {
+public:
+  Textrapolator(const double Tmin,
+                const double Tmax,
+                const QuadraticInterpolator& epsMinInterp,
+                const QuadraticInterpolator& epsMaxInterp,
+                const BiQuadraticInterpolator& Tinterp):
+    mTmin(Tmin),
+    mTmax(Tmax),
+    mEpsMinInterp(epsMinInterp),
+    mEpsMaxInterp(epsMaxInterp),
+    mTinterp(Tinterp) {}
+
+  double operator()(const double rho, const double eps) const {
+    if (eps < mEpsMinInterp(rho)) {
+      return mTmin;
+    } else if (eps > mEpsMaxInterp(rho)) {
+      return mTmax;
+    } else {
+      return mTinterp(rho, eps);
+    }
+  }
+
+private:
+  double mTmin, mTmax;
+  const QuadraticInterpolator& mEpsMinInterp, mEpsMaxInterp;
+  const BiQuadraticInterpolator& mTinterp;
+};
+
+//------------------------------------------------------------------------------
 // P(rho, eps)
 //------------------------------------------------------------------------------
 class Pfunc {
 public:
   Pfunc(int matNum, double rhoConv, double Tconv, double Pconv,
-        const QuadraticInterpolator& epsMinInterp,
-        const BiQuadraticInterpolator& Tinterp):
+        const Textrapolator& Textra):
     mMatNum(matNum),
     mRhoConv(rhoConv),
     mTconv(Tconv),
     mPconv(Pconv),
-    mEpsMinInterp(epsMinInterp),
-    mTinterp(Tinterp) {}
+    mTextra(Textra) {}
   double operator()(const double x, const double y) const {
     rho = x/mRhoConv;
-    const auto eps0 = mEpsMinInterp(x);
-    // cerr << " *** mTinterp(" << x << ") = " << mTinterp(x[0], x[1]) << endl;
-    T = mTinterp(x, y - eps0)/mTconv;
+    T = mTextra(x, y)/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return P * mPconv;
@@ -154,8 +192,7 @@ public:
 private:
   mutable int mMatNum;
   double mRhoConv, mTconv, mPconv;
-  const QuadraticInterpolator& mEpsMinInterp;
-  const BiQuadraticInterpolator& mTinterp;
+  const Textrapolator& mTextra;
   mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
 };
 
@@ -188,18 +225,15 @@ private:
 class csfunc {
 public:
   csfunc(int matNum, double rhoConv, double Tconv, double velConv,
-         const QuadraticInterpolator& epsMinInterp,
-         const BiQuadraticInterpolator& Tinterp):
+         const Textrapolator& Textra):
     mMatNum(matNum),
     mRhoConv(rhoConv),
     mTconv(Tconv),
     mVelConv(velConv),
-    mEpsMinInterp(epsMinInterp),
-    mTinterp(Tinterp) {}
+    mTextra(Textra) {}
   double operator()(const double x, const double y) const {
     rho = x/mRhoConv;
-    const auto eps0 = mEpsMinInterp(x);
-    T = mTinterp(x, y - eps0)/mTconv;
+    T = mTextra(x, y)/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return cs * mVelConv;
@@ -207,8 +241,7 @@ public:
 private:
   mutable int mMatNum;
   double mRhoConv, mTconv, mVelConv;
-  const QuadraticInterpolator& mEpsMinInterp;
-  const BiQuadraticInterpolator& mTinterp;
+  const Textrapolator& mTextra;
   mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
 };
 
@@ -218,18 +251,15 @@ private:
 class Kfunc {
 public:
   Kfunc(int matNum, double rhoConv, double Tconv, double Pconv,
-        const QuadraticInterpolator& epsMinInterp,
-        const BiQuadraticInterpolator& Tinterp):
+        const Textrapolator& Textra):
     mMatNum(matNum),
     mRhoConv(rhoConv),
     mTconv(Tconv),
     mPconv(Pconv),
-    mEpsMinInterp(epsMinInterp),
-    mTinterp(Tinterp) {}
+    mTextra(Textra) {}
   double operator()(const double x, const double y) const {
     rho = x/mRhoConv;
-    const auto eps0 = mEpsMinInterp(x);
-    T = mTinterp(x, y - eps0)/mTconv;
+    T = mTextra(x, y)/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return std::abs(rho * DPDR * mPconv);
@@ -237,8 +267,7 @@ public:
 private:
   mutable int mMatNum;
   double mRhoConv, mTconv, mPconv;
-  const QuadraticInterpolator& mEpsMinInterp;
-  const BiQuadraticInterpolator& mTinterp;
+  const Textrapolator& mTextra;
   mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
 };
 
@@ -248,18 +277,15 @@ private:
 class sfunc {
 public:
   sfunc(int matNum, double rhoConv, double Tconv, double Sconv,
-        const QuadraticInterpolator& epsMinInterp,
-        const BiQuadraticInterpolator& Tinterp):
+        const Textrapolator& Textra):
     mMatNum(matNum),
     mRhoConv(rhoConv),
     mTconv(Tconv),
     mSconv(Sconv),
-    mEpsMinInterp(epsMinInterp),
-    mTinterp(Tinterp) {}
+    mTextra(Textra) {}
   double operator()(const double x, const double y) const {
     rho = x/mRhoConv;
-    const auto eps0 = mEpsMinInterp(x);
-    T = mTinterp(x, y - eps0)/mTconv;
+    T = mTextra(x, y)/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     return S * mSconv;
@@ -267,8 +293,7 @@ public:
 private:
   mutable int mMatNum;
   double mRhoConv, mTconv, mSconv;
-  const QuadraticInterpolator& mEpsMinInterp;
-  const BiQuadraticInterpolator& mTinterp;
+  const Textrapolator& mTextra;
   mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
 };
 
@@ -307,10 +332,11 @@ ANEOS(const int materialNumber,
   mRhoMax(rhoMax),
   mTmin(Tmin),
   mTmax(Tmax),
-  mEpsMin(std::numeric_limits<double>::min()),
-  mEpsMax(std::numeric_limits<double>::max()),
+  mEpsMin(std::numeric_limits<double>::max()),
+  mEpsMax(std::numeric_limits<double>::min()),
   mExternalPressure(externalPressure),
   mEpsMinInterp(),
+  mEpsMaxInterp(),
   mEpsInterp(),
   mTinterp(),
   mPinterp(),
@@ -370,14 +396,15 @@ ANEOS(const int materialNumber,
   const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
   const auto drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1u);
   CHECK(drho > 0.0);
-  // [rhoMin:rhoMax], Tmin
-  vector<double> epsMinVals(mNumRhoVals);
+  vector<double> epsMinVals(mNumRhoVals), epsMaxVals(mNumRhoVals);
   for (auto i = 0u; i < mNumRhoVals; ++i) {
     epsMinVals[i] = Feps(mRhoMin + i*drho, mTmin);
-    const auto epsi = Feps(mRhoMin + i*drho, mTmax);
-    mEpsMax = min(mEpsMax, epsi);
+    epsMaxVals[i] = Feps(mRhoMin + i*drho, mTmax);
+    mEpsMin = min(mEpsMin, epsMinVals[i]);
+    mEpsMax = max(mEpsMax, epsMaxVals[i]);
   }
   mEpsMinInterp.initialize(mTmin, mTmax, epsMinVals);
+  mEpsMaxInterp.initialize(mTmin, mTmax, epsMaxVals);
 
   // Build the biquadratic interpolation function for eps(rho, T)
   auto t0 = clock();
@@ -388,17 +415,18 @@ ANEOS(const int materialNumber,
 
   // Now the hard inversion method for looking up T(rho, eps)
   t0 = clock();
-  const auto Ftemp = Tfunc(mTmin, mTmax, mEpsMinInterp, mEpsInterp, Feps);
+  const auto Ftemp = Tfunc(mTmin, mTmax, mEpsMinInterp, mEpsMaxInterp, mEpsInterp, Feps);
   mTinterp.initialize(mRhoMin, mRhoMax,
-                      0.0, mEpsMax,
+                      mEpsMin, mEpsMax,
                       mNumRhoVals, mNumTvals, Ftemp);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Tinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   // And finally the interpolators for most of our derived quantities
   t0 = clock();
-  const auto Fpres = Pfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, mEpsMinInterp, mTinterp);
+  const auto Textra = Textrapolator(mTmin, mTmax, mEpsMinInterp, mEpsMaxInterp, mTinterp);
+  const auto Fpres = Pfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
   mPinterp.initialize(mRhoMin, mRhoMax,
-                      0.0, mEpsMax,
+                      mEpsMin, mEpsMax,
                       mNumRhoVals, mNumTvals, Fpres);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Pinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
@@ -410,23 +438,23 @@ ANEOS(const int materialNumber,
   if (Process::getRank() == 0) cout << "ANEOS: Time to build CVinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
-  const auto Fcs = csfunc(mMaterialNumber, mRhoConv, mTconv, mVelConv, mEpsMinInterp, mTinterp);
+  const auto Fcs = csfunc(mMaterialNumber, mRhoConv, mTconv, mVelConv, Textra);
   mCSinterp.initialize(mRhoMin, mRhoMax,
-                       0.0, mEpsMax,
+                       mEpsMin, mEpsMax,
                        mNumRhoVals, mNumTvals, Fcs);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build CSinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
-  const auto FK = Kfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, mEpsMinInterp, mTinterp);
+  const auto FK = Kfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
   mKinterp.initialize(mRhoMin, mRhoMax,
-                      0.0, mEpsMax,
+                      mEpsMin, mEpsMax,
                       mNumRhoVals, mNumTvals, FK);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Kinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
-  const auto Fs = sfunc(mMaterialNumber, mRhoConv, mTconv, mSconv, mEpsMinInterp, mTinterp);
+  const auto Fs = sfunc(mMaterialNumber, mRhoConv, mTconv, mSconv, Textra);
   mSinterp.initialize(mRhoMin, mRhoMax,
-                      0.0, mEpsMax,
+                      mEpsMin, mEpsMax,
                       mNumRhoVals, mNumTvals, Fs);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Sinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 }
@@ -571,7 +599,7 @@ pressure(const Scalar massDensity,
   double P;
   if (mUseInterpolation) {
 
-    P = mPinterp(massDensity, specificThermalEnergy - mEpsMinInterp(massDensity));
+    P = mPinterp(massDensity, specificThermalEnergy);
 
   } else {
 
@@ -594,14 +622,13 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  const auto eps0 = mEpsMinInterp(massDensity);
-  const auto eps = specificThermalEnergy - eps0;
-  if (not mUseInterpolation or (eps < 0.0 or eps > mEpsMax)) {
-    const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
-    const auto Ftemp = Tfunc(mTmin, mTmax, mEpsMinInterp, mEpsInterp, Feps, true);
-    return Ftemp(massDensity, specificThermalEnergy);
+  const auto Textra = Textrapolator(mTmin, mTmax, mEpsMinInterp, mEpsMaxInterp, mTinterp);
+  if (mUseInterpolation) {
+    return Textra(massDensity, specificThermalEnergy);
   } else {
-    return mTinterp(massDensity, eps);
+    const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
+    const auto Ftemp = Tfunc(mTmin, mTmax, mEpsMinInterp, mEpsMaxInterp, mEpsInterp, Feps, true);
+    return Ftemp(massDensity, specificThermalEnergy);
   }
 }
 
@@ -653,9 +680,8 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
-  // If we're out of bounds, extrapolate as though a gamma-law gas
   if (mUseInterpolation) {
-    return mCSinterp(massDensity, specificThermalEnergy - mEpsMinInterp(massDensity));
+    return mCSinterp(massDensity, specificThermalEnergy);
   } else {
     auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
     auto rho = massDensity/mRhoConv;
@@ -689,7 +715,7 @@ ANEOS<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   if (mUseInterpolation) {
-    return mKinterp(massDensity, specificThermalEnergy - mEpsMinInterp(massDensity));
+    return mKinterp(massDensity, specificThermalEnergy);
   } else {
     auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
     auto rho = massDensity/mRhoConv;
@@ -709,7 +735,7 @@ ANEOS<Dimension>::
 entropy(const Scalar massDensity,
         const Scalar specificThermalEnergy) const {
   if (mUseInterpolation) {
-    return mSinterp(massDensity, specificThermalEnergy - mEpsMinInterp(massDensity));
+    return mSinterp(massDensity, specificThermalEnergy);
   } else {
     auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
     auto rho = massDensity/mRhoConv;

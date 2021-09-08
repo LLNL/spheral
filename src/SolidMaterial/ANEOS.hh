@@ -133,7 +133,7 @@ private:
   int mMaterialNumber;
   unsigned mNumRhoVals, mNumTvals;
   double mRhoMin, mRhoMax, mTmin, mTmax, mEpsMin, mEpsMax, mExternalPressure;
-  QuadraticInterpolator mEpsMinInterp;
+  QuadraticInterpolator mEpsMinInterp, mEpsMaxInterp;
   BiQuadraticInterpolator mEpsInterp, mTinterp, mPinterp, mCVinterp, mCSinterp, mKinterp, mSinterp;
 
   // ANEOS internal units.
