@@ -157,17 +157,11 @@ template<typename Dimension>
 ProbabilisticDamagePolicy<Dimension>::
 ProbabilisticDamagePolicy(const bool damageInCompression,  // allow damage in compression
                           const double kWeibull,           // coefficient in Weibull power-law
-                          const double mWeibull,           // exponenent in Weibull power-law
-                          const size_t minFlawsPerNode,    // minimum number of flaws to seed on any node
-                          const double Vmin,               // minimum (initial) node volume
-                          const double Vmax):              // maximum (initial) node volume
+                          const double mWeibull):          // exponenent in Weibull power-law
   UpdatePolicyBase<Dimension>(SolidFieldNames::strain),
   mDamageInCompression(damageInCompression),
-  mMinFlawsPerNode(minFlawsPerNode),
   mkWeibull(kWeibull),
-  mmWeibull(mWeibull),
-  mVmin(Vmin),
-  mVmax(Vmax) {
+  mmWeibull(mWeibull) {
 }
 
 //------------------------------------------------------------------------------
@@ -205,18 +199,21 @@ update(const KeyType& key,
   const auto numFlawsKey = State<Dimension>::buildFieldKey(SolidFieldNames::numFlaws, nodeListKey);
   const auto minFlawKey = State<Dimension>::buildFieldKey(SolidFieldNames::minFlaw, nodeListKey);
   const auto maxFlawKey = State<Dimension>::buildFieldKey(SolidFieldNames::maxFlaw, nodeListKey);
+  const auto V0Key = State<Dimension>::buildFieldKey(SolidFieldNames::initialVolume, nodeListKey);
   CHECK(state.registered(strainKey));
   CHECK(derivs.registered(DdamageDtKey));
   CHECK(derivs.registered(DvDxKey));
   CHECK(state.registered(numFlawsKey));
   CHECK(state.registered(minFlawKey));
   CHECK(state.registered(maxFlawKey));
+  CHECK(state.registered(V0Key));
   const auto& strain = state.field(strainKey, SymTensor::zero);
   const auto& DDDt = derivs.field(DdamageDtKey, 0.0);
   const auto& localDvDx = derivs.field(DvDxKey, Tensor::zero);
   const auto& numFlaws = state.field(numFlawsKey, 0);
   const auto& minFlaw = state.field(minFlawKey, 0.0);
   const auto& maxFlaw = state.field(maxFlawKey, 0.0);
+  const auto& V0 = state.field(V0Key, 0.0);
 
   // Iterate over the internal nodes.
   const auto ni = stateField.numInternalElements();
@@ -251,22 +248,22 @@ update(const KeyType& key,
       sortEigen(eigeni);
 
       // Is this node under enough strain to cause damage?
-      if (eigeni.eigenValues(0) > minFlaw(i)) {
-        vector<double> flaws;
+      // if (eigeni.eigenValues(0) > minFlaw(i)) {
+      {
 
         // Iterate over the eigenvalues of the strain and accumulate damage in the direction
         // of the eigenvectors.
         for (auto jdim = 0; jdim < Dimension::nDim; ++jdim) {
-          const auto strainj = eigeni.eigenValues(jdim); //   + plasticStrain(i))/(fDi*fDi + 1.0e-20);
+          const auto strainDirection = eigeni.eigenVectors.getColumn(jdim);
+          CHECK(fuzzyEqual(strainDirection.magnitude2(), 1.0, 1.0e-10));
+          const auto D0 = min(1.0, (Di * strainDirection).magnitude());
+          CHECK(D0 >= 0.0 && D0 <= 1.0);
+          const auto strainj = eigeni.eigenValues(jdim)*safeInvVar(1.0 - D0); //   + plasticStrain(i))/(fDi*fDi + 1.0e-20);
 
           // How many of the flaws are activated in this direction?
           if (strainj > minFlaw(i)) {
 
             // The direction of the strain, and projected current (starting) damage.
-            const auto strainDirection = eigeni.eigenVectors.getColumn(jdim);
-            CHECK(fuzzyEqual(strainDirection.magnitude2(), 1.0, 1.0e-10));
-            const auto D0 = max(0.0, min(1.0, (Di * strainDirection).magnitude()));
-            CHECK(D0 >= 0.0 && D0 <= 1.0);
             if (D0 < 1.0) {
 
               // Find how many flaws are activated in this direction
@@ -274,9 +271,7 @@ update(const KeyType& key,
               double fractionFlawsActive = 1.0;
               if (numFlaws(i) > 1 and strainj < maxFlaw(i)) {
                 CHECK(maxFlaw(i) > minFlaw(i));
-                const auto Nmini = pow(minFlaw(i), mmWeibull);  // Missing factors of k*Vi, but those cancel below
-                fractionFlawsActive = ((pow(strainj, mmWeibull) - Nmini)/
-                                       (pow(maxFlaw(i), mmWeibull) - Nmini));
+                fractionFlawsActive = mkWeibull*V0(i)*(pow(strainj, mmWeibull) - pow(minFlaw(i), mmWeibull))/numFlaws(i);
               }
               CHECK(fractionFlawsActive >= 0.0 and fractionFlawsActive <= 1.0);
 

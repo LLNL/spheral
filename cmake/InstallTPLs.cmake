@@ -72,3 +72,10 @@ Spheral_Handle_TPL(polyclipper spheral_depends)
 if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})
   include(${EXTERNAL_SPHERAL_TPL_CMAKE})
 endif()
+
+# Configure CMake config
+configure_file(${PROJECT_SOURCE_DIR}/cmake/spheral-config.cmake.in
+  ${PROJECT_BINARY_DIR}/share/spheral/cmake/spheral-config.cmake)
+
+install(FILES ${PROJECT_BINARY_DIR}/share/spheral/cmake/spheral-config.cmake
+  DESTINATION share/spheral/cmake/)

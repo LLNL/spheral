@@ -40,10 +40,7 @@ public:
   // Constructors, destructor.
   explicit ProbabilisticDamagePolicy(const bool damageInCompression,  // allow damage in compression
                                      const double kWeibull,           // coefficient in Weibull power-law
-                                     const double mWeibull,           // exponenent in Weibull power-law
-                                     const size_t minFlawsPerNode,    // minimum number of flaws to seed on any node
-                                     const double Vmin,               // minimum (initial) node volume
-                                     const double Vmax);              // maximum (initial) node volume
+                                     const double mWeibull);          // exponenent in Weibull power-law
   virtual ~ProbabilisticDamagePolicy();
   
   // Overload the methods describing how to update Fields.
@@ -62,8 +59,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   bool mDamageInCompression;
-  size_t mMinFlawsPerNode;
-  double mkWeibull, mmWeibull, mVmin, mVmax;
+  double mkWeibull, mmWeibull;
 
   ProbabilisticDamagePolicy();
   ProbabilisticDamagePolicy(const ProbabilisticDamagePolicy& rhs);

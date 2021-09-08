@@ -22,6 +22,7 @@ list(APPEND _packages
   Field
   FieldOperations
   FileIO
+  FSISPH
   Geometry
   Gravity
   Hydro

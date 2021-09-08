@@ -305,6 +305,7 @@ class TestPolygon(unittest.TestCase):
     # Closest point on facets.
     #---------------------------------------------------------------------------
     def testClosestPointOnFacets(self):
+
         facets = self.polygon.facets
         for f in facets:
             p = f.position
@@ -318,7 +319,7 @@ class TestPolygon(unittest.TestCase):
     def testClosestPointAboveFacets(self):
         facets = self.polygon.facets
         for f in facets:
-            chi = rangen.uniform(0.1, 10.0)
+            chi = 0.0001
             cp0 = f.position
             p = cp0 + chi*f.normal
             cp = self.polygon.closestPoint(p)
