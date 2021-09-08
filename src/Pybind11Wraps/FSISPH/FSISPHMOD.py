@@ -21,6 +21,12 @@ PYB11includes += ['"FSISPH/SolidFSISPHHydroBase.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"']
 
 #-------------------------------------------------------------------------------
+# Enums
+#-------------------------------------------------------------------------------
+InterfaceMethod = PYB11enum(("HLLCInterface", 
+                             "modulusInterface"), export_values = True)
+
+#-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
 PYB11namespaces = ["Spheral"]

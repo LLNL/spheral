@@ -48,6 +48,39 @@ specificThermalEnergyDiffusionCoefficient() const {
   return mSpecificThermalEnergyDiffusionCoefficient;
 }
 
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+xsphCoefficient(double x) {
+  mXSPHCoefficient = x;
+}
+template<typename Dimension>
+inline
+double
+SolidFSISPHHydroBase<Dimension>::
+xsphCoefficient() const {
+  return mXSPHCoefficient;
+}
+
+
+//------------------------------------------------------------------------------
+// return our interface method
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+interfaceMethod(InterfaceMethod x) {
+  mInterfaceMethod = x;
+}
+template<typename Dimension>
+inline
+InterfaceMethod
+SolidFSISPHHydroBase<Dimension>::
+interfaceMethod() const {
+  return mInterfaceMethod;
+}
 
 //------------------------------------------------------------------------------
 // swtich to turn on density sum for different nodeLists
