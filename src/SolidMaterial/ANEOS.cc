@@ -99,7 +99,9 @@ public:
   double operator()(const double rho, const double eps) const {
     // Find the eps offset for this density
     const auto eps0 = mEpsMinInterp(rho);
-    return bisectRoot(Trho_func(rho, eps, eps0, mEpsInterp),
+    const auto FT = Trho_func(rho, eps + eps0, mEpsInterp);
+    // cerr << " **> " << rho << " " << eps << " " << eps0 << " " << (eps + eps0) << " " << FT(mTmin) << " " << FT(mTmax) << endl;
+    return bisectRoot(Trho_func(rho, eps + eps0, mEpsInterp),
                       mTmin, mTmax,
                       1.0e-15, 200u);
   }
@@ -113,17 +115,16 @@ private:
 
   // We need to make a single argument functor for eps(T) given a fixed rho
   class Trho_func {
-    double mrho, mepseff;
+    double mrho, meps;
     const BiQuadraticInterpolator& mEpsInterp;
   public:
     Trho_func(const double rho,
               const double eps,
-              const double eps0,
               const BiQuadraticInterpolator& epsInterp):
       mrho(rho),
-      mepseff(eps - eps0),
+      meps(eps),
       mEpsInterp(epsInterp) {}
-    double operator()(const double T) const { return mEpsInterp(mrho, T) - mepseff; }
+    double operator()(const double T) const { return mEpsInterp(mrho, T) - meps; }
   };
 };
 
@@ -307,7 +308,7 @@ ANEOS(const int materialNumber,
   mTmin(Tmin),
   mTmax(Tmax),
   mEpsMin(std::numeric_limits<double>::min()),
-  mEpsMax(std::numeric_limits<double>::min()),
+  mEpsMax(std::numeric_limits<double>::max()),
   mExternalPressure(externalPressure),
   mEpsMinInterp(),
   mEpsInterp(),
@@ -374,7 +375,7 @@ ANEOS(const int materialNumber,
   for (auto i = 0u; i < mNumRhoVals; ++i) {
     epsMinVals[i] = Feps(mRhoMin + i*drho, mTmin);
     const auto epsi = Feps(mRhoMin + i*drho, mTmax);
-    mEpsMax = max(mEpsMax, epsi);
+    mEpsMax = min(mEpsMax, epsi);
   }
   mEpsMinInterp.initialize(mTmin, mTmax, epsMinVals);
 
