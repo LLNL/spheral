@@ -339,6 +339,7 @@ elif fsisph:
                    W = WT,
                    filter = filter,
                    cfl = cfl,
+                   interfaceMethod = ModulusInterface,
                    sumDensityNodeLists=[nodes1],                       
                    densityStabilizationCoefficient = 0.00,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
