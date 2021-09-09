@@ -24,7 +24,7 @@ PYB11includes += ['"FSISPH/SolidFSISPHHydroBase.hh"',
 # Enums
 #-------------------------------------------------------------------------------
 InterfaceMethod = PYB11enum(("HLLCInterface", 
-                             "modulusInterface"), export_values = True)
+                             "ModulusInterface"), export_values = True)
 
 #-------------------------------------------------------------------------------
 # Namespaces

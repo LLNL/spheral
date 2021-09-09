@@ -13,7 +13,7 @@ namespace Spheral {
 
 enum class InterfaceMethod {
   HLLCInterface = 0,
-  modulusInterface = 1,
+  ModulusInterface = 1,
 };
 
 template<typename Dimension> class State;
