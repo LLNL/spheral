@@ -750,7 +750,7 @@ if(this->correctVelocityGradient()){
           sigmaj = min(fDij,fDj)*Sj - Peffj * SymTensor::one;
         }else {
           const auto slideCorrection = slides.slideCorrection(nodeListi, i, nodeListj, j,vi,vj);
-          //const auto isSlide = slides.isSlideSurface(nodeListi,nodeListj);
+
           QPiij *= slideCorrection;
           QPiji *= slideCorrection;
 
@@ -795,8 +795,7 @@ if(this->correctVelocityGradient()){
 
         if (constructInterface){
 
-          // material property avg weights
-
+          // weights weights
           const auto Ci = (constructHLLC ? rhoi*ci : abs(Ki*volj*gWi) ) + tiny;
           const auto Cj = (constructHLLC ? rhoj*cj : abs(Kj*voli*gWj) ) + tiny;
           const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : abs(mui*volj*gWi) ) + tiny;
@@ -819,7 +818,8 @@ if(this->correctVelocityGradient()){
           vstar = fSij * vstar + (1.0-fSij)*(ustar*nij + wstar);
   
         }
-        
+
+        // diffusion added to vel gradient if additional stabilization is needed
         if(stabilizeDensity){
           vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, (Pj-Pi)/max(rhoi*ci,rhoj*cj) )) * rhatij;
         }
@@ -853,7 +853,7 @@ if(this->correctVelocityGradient()){
           localDvDxj -= fSij*voli*(deltaDvDxj); 
         }
         
-      // diffusions
+      // diffusion
       //-----------------------------------------------------------
         if (sameMatij and diffuseEnergy){
           const auto vMagij = (vi-vj).dot(rhatij);
@@ -863,12 +863,6 @@ if(this->correctVelocityGradient()){
           pairDepsDt[2*kk+1] -= diffusion;
         }
 
-        // rigorous enforcement of single-valued stress-state at interface
-        //if (!sameMatij and false ){
-        //  const auto diffusion = (Si-Sj)*cijEff*etaij.dot(gradWij)/(etaMagij*etaMagij+tiny);
-        //  DSDti += volj*diffusion;
-        //  DSDtj -= voli*diffusion;
-        //}
 
         // XSPH
         //-----------------------------------------------------------
