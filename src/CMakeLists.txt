@@ -22,6 +22,7 @@ list(APPEND _packages
   Field
   FieldOperations
   FileIO
+  FSISPH
   Geometry
   Gravity
   Hydro
@@ -64,6 +65,6 @@ foreach(e_package ${extra_packages})
   add_subdirectory(${extra_packages_DIR}/${e_package} ${CMAKE_CURRENT_BINARY_DIR}/${e_package})
 endforeach()
 
-#add_subdirectory(CXXTests)
+add_subdirectory(CXXTests)
 
 install(EXPORT ${PROJECT_NAME}-targets DESTINATION Spheral/lib/cmake)
