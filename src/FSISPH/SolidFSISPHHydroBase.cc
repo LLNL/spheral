@@ -281,6 +281,7 @@ initialize(const typename Dimension::Scalar time,
 
   const TableKernel<Dimension>& W = this->kernel();
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
+
   Q.initialize(dataBase, 
                state,
                derivs,
@@ -519,9 +520,12 @@ if(this->correctVelocityGradient()){
 
         const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
         auto& Mi = M(nodeListi, i);
+        const auto Mdeti = Mi.Determinant();
 
-        const auto goodM = std::abs(Mi.Determinant()) > 1.0e-10 and numNeighborsi > Dimension::pownu(2);
-        Mi =  (goodM? Mi.Inverse(): Tensor::one);
+        // blend out M correction if its not so nice
+        const auto goodM = ( Mdeti > 1e-2 and numNeighborsi > Dimension::pownu(2));
+        //const auto x = max(0.0,min(1.0, (goodM ? 80.0*Mdeti/((1.0+Mdeti)*(1.0+Mdeti)) : 0.0) ));
+        Mi =  (goodM ? Mi.Inverse() : Tensor::one);//x*Mi.Inverse() + (1.0-x) * Tensor::one;
       } 
     }
 
@@ -793,6 +797,8 @@ if(this->correctVelocityGradient()){
         // default to average
         auto vstar = 0.5*(vi+vj);
 
+        // we should really clean this up and probably make two 
+        // separate functions at some point...
         if (constructInterface){
 
           // weights weights
@@ -813,14 +819,18 @@ if(this->correctVelocityGradient()){
           const auto wi = vi - ui*nij;
           const auto wj = vj - uj*nij;
 
-          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ?  (Pj-Pi)/(Ci+Cj) : 0.0);
+          // get our eff pressure
+          const auto Psigmai = -rhatij.dot(sigmai.dot(rhatij));
+          const auto Psigmaj = -rhatij.dot(sigmaj.dot(rhatij));
+
+          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ?  (Psigmaj-Psigmai)/(Ci+Cj) : 0.0);
           const auto wstar = weightWi*wi + weightWj*wj;
           vstar = fSij * vstar + (1.0-fSij)*(ustar*nij + wstar);
   
         }
 
         // diffusion added to vel gradient if additional stabilization is needed
-        if(stabilizeDensity){
+        if(stabilizeDensity and !(constructHLLC and !sameMatij) ){
           vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, (Pj-Pi)/max(rhoi*ci,rhoj*cj) )) * rhatij;
         }
 

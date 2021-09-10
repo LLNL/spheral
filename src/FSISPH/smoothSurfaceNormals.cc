@@ -1,21 +1,22 @@
-#include "FSISPH/computeSurfaceNormals.hh"
-#include "Field/FieldList.hh"
+#include "FSISPH/smoothSurfaceNormals.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
-//#include "Hydro/HydroFieldNames.hh"
+#include "Field/FieldList.hh"
 
 namespace Spheral{
 
 template<typename Dimension>
 void
-computeSurfaceNormals(const ConnectivityMap<Dimension>& connectivityMap,
+smoothSurfaceNormals(const ConnectivityMap<Dimension>& connectivityMap,
                             const TableKernel<Dimension>& W,
                             const FieldList<Dimension, typename Dimension::Vector>& position,
                             const FieldList<Dimension, typename Dimension::Scalar>& mass,
                             const FieldList<Dimension, typename Dimension::Scalar>& massDensity,
                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
                             FieldList<Dimension, typename Dimension::Vector>& interfaceNormals) {
+
+  typedef typename Dimension::Vector Vector;
 
   // Pre-conditions.
   const auto numNodeLists = massDensity.size();
@@ -27,11 +28,16 @@ computeSurfaceNormals(const ConnectivityMap<Dimension>& connectivityMap,
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
 
+   FieldList<Dimension, Vector> n0(FieldStorageType::CopyFields);
+   for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
+     n0.appendNewField("normalsTemp", massDensity[nodeListi]->nodeList(), Vector::zero);
+  }
+
   // Now the pair contributions.
 #pragma omp parallel
   {
     int i, j, nodeListi, nodeListj;
-    auto interfaceNormals_thread = interfaceNormals.threadCopy();
+    auto interfaceNormals_thread = n0.threadCopy();
 
 #pragma omp for
     for (auto k = 0u; k < npairs; ++k) {
@@ -40,39 +46,31 @@ computeSurfaceNormals(const ConnectivityMap<Dimension>& connectivityMap,
       nodeListi = pairs[k].i_list;
       nodeListj = pairs[k].j_list;
 
-      if(nodeListi!=nodeListj){
+      if(nodeListi==nodeListj){
         // State for node i
         const auto& ri = position(nodeListi, i);
         const auto  mi = mass(nodeListi, i);
         const auto  rhoi = massDensity(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
-        const auto  Hdeti = Hi.Determinant();
-      
+        const auto& ni = interfaceNormals(nodeListi,i);
+
         // State for node j
         const auto& rj = position(nodeListj, j);
         const auto  mj = mass(nodeListj, j);
         const auto  rhoj = massDensity(nodeListj, j);
         const auto& Hj = H(nodeListj, j);
-        const auto  Hdetj = Hj.Determinant();
-      
+        const auto& nj = interfaceNormals(nodeListj,j);
+
         // Kernel weighting and gradient.
         const auto rij = ri - rj;
         const auto etai = Hi*rij;
         const auto etaj = Hj*rij;
-        const auto etaMagi = etai.magnitude();
-        const auto etaMagj = etaj.magnitude();
-        const auto Hetai = Hi*etai.unitVector();
-        const auto Hetaj = Hj*etaj.unitVector();
 
-        const auto gWi = W.gradValue(etaMagi, Hdeti);
-        const auto gWj = W.gradValue(etaMagj, Hdetj);
-        
-        const auto gradWi = gWi*Hetai;
-        const auto gradWj = gWj*Hetaj;
-        const auto gradWij = (gradWi+gradWj)*0.5;
+        const auto Wi = W.kernelValue(etai.magnitude(), Hi.Determinant());
+        const auto Wj = W.kernelValue(etaj.magnitude(), Hj.Determinant());
 
-        interfaceNormals_thread(nodeListi, i) += mj/rhoj  * gradWij;
-        interfaceNormals_thread(nodeListj, j) -= mi/rhoi  * gradWij;
+        interfaceNormals_thread(nodeListi, i) += mj/rhoj * nj * Wi;
+        interfaceNormals_thread(nodeListj, j) += mi/rhoi * ni * Wj;
       }
     }
 
@@ -86,7 +84,7 @@ computeSurfaceNormals(const ConnectivityMap<Dimension>& connectivityMap,
      const auto n = interfaceNormals[nodeListi]->numInternalElements();
  #pragma omp parallel for
      for (auto i = 0u; i < n; ++i) {
-       interfaceNormals(nodeListi,i) /= max(interfaceNormals(nodeListi,i).magnitude(),1e-30);
+       interfaceNormals(nodeListi,i) = n0(nodeListi,i)/max(n0(nodeListi,i).magnitude(),1e-30);
      }
     
    }
