@@ -109,6 +109,16 @@ BiQuadraticInterpolator::initialize(const double xmin,
            F(x20[0], x20[1]),
            F(x21[0], x21[1]),
            F(x22[0], x22[1]);
+      CHECK2(b == b, "BiQuadraticInterpoolator function return error: \n"
+             << x00 << " : " << b[0] << "\n"
+             << x01 << " : " << b[1] << "\n"
+             << x02 << " : " << b[2] << "\n"
+             << x10 << " : " << b[3] << "\n"
+             << x11 << " : " << b[4] << "\n"
+             << x12 << " : " << b[5] << "\n"
+             << x20 << " : " << b[6] << "\n"
+             << x21 << " : " << b[7] << "\n"
+             << x22 << " : " << b[8] << "\n");
       c = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
       // std::cerr << "------------------------------------------------------------------------------\n"
       //           << "x00: " << x00 << "\n"
