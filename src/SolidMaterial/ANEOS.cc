@@ -187,6 +187,7 @@ public:
     T = mTextra(x, y)/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    if (P != P) P = 0.0;   // Hack for ANEOS giving us a NaN
     return P * mPconv;
   }
 private:
@@ -211,6 +212,7 @@ public:
     T = y/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    if (cV != cV) cV = 1.0e-30;   // Hack for ANEOS giving us a NaN
     return cV * mCVconv;
   }
 private:
@@ -236,6 +238,7 @@ public:
     T = mTextra(x, y)/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    if (cs != cs) cs = 1.0e-30;   // Hack for ANEOS giving us a NaN
     return cs * mVelConv;
   }
 private:
@@ -262,6 +265,7 @@ public:
     T = mTextra(x, y)/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    if (DPDR != DPDR) DPDR = 0.0;   // Hack for ANEOS giving us a NaN
     return std::abs(rho * DPDR * mPconv);
   }
 private:
@@ -288,6 +292,7 @@ public:
     T = mTextra(x, y)/mTconv;
     call_aneos_(&mMatNum, &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    if (S != S) S = 0.0;   // Hack for ANEOS giving us a NaN
     return S * mSconv;
   }
 private:
@@ -395,10 +400,20 @@ ANEOS(const int materialNumber,
   // Also find the maximum specific energy.
   const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
   const auto drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1u);
+  const auto dT = (mTmax - mTmin)/(mNumTvals - 1u);
   CHECK(drho > 0.0);
   vector<double> epsMinVals(mNumRhoVals), epsMaxVals(mNumRhoVals);
   for (auto i = 0u; i < mNumRhoVals; ++i) {
-    epsMinVals[i] = Feps(mRhoMin + i*drho, mTmin);
+
+    // ANEOS seems to often have ranges of constant return values for low temperatures.  We're
+    // looking for where the EOS starts to actually have structure.
+    auto j = 0u;
+    auto eps0 = Feps(mRhoMin + i*drho, mTmin);
+    while (j++ < mNumTvals and
+           abs(eps0*safeInv(Feps(mRhoMin + i*drho, mTmin + j*dT)) - 1.0) < 1.0e-8) {
+      eps0 = Feps(mRhoMin + i*drho, mTmin + j*dT);
+    }
+    epsMinVals[i] = eps0;
     epsMaxVals[i] = Feps(mRhoMin + i*drho, mTmax);
     mEpsMin = min(mEpsMin, epsMinVals[i]);
     mEpsMax = max(mEpsMax, epsMaxVals[i]);
@@ -546,18 +561,21 @@ ANEOS<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  int n = massDensity.numElements();
-  if (n > 0) {
-    Field<Dimension, Scalar> T("temperature", gamma.nodeList()),
-                            cv("cv", gamma.nodeList());
-    this->setTemperature(T, massDensity, specificThermalEnergy);
-    this->setSpecificHeat(cv, massDensity, specificThermalEnergy);
-    Scalar nDen;
-    for (int i = 0; i != n; ++i) {
-      nDen = massDensity(i)/mAtomicWeight;
-      gamma(i) = 1.0 + mConstants.molarGasConstant()*nDen*safeInvVar(cv(i));
-    }
+  for (auto i = 0u; i < gamma.size(); ++i) {
+    gamma(i) = this->gamma(massDensity(i), specificThermalEnergy(i));
   }
+  // int n = massDensity.numElements();
+  // if (n > 0) {
+  //   Field<Dimension, Scalar> T("temperature", gamma.nodeList()),
+  //                           cv("cv", gamma.nodeList());
+  //   this->setTemperature(T, massDensity, specificThermalEnergy);
+  //   this->setSpecificHeat(cv, massDensity, specificThermalEnergy);
+  //   Scalar nDen;
+  //   for (int i = 0; i != n; ++i) {
+  //     nDen = massDensity(i)/mAtomicWeight;
+  //     gamma(i) = 1.0 + mConstants.molarGasConstant()*nDen*safeInvVar(cv(i));
+  //   }
+  // }
 }
 
 //------------------------------------------------------------------------------
@@ -598,18 +616,14 @@ pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
   double P;
   if (mUseInterpolation) {
-
     P = mPinterp(massDensity, specificThermalEnergy);
-
   } else {
-
     auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
     auto rho = massDensity/mRhoConv;
     double eps, S, cV, DPDT, DPDR, cs;
     call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     P *= mPconv;
-
   }
   return this->applyPressureLimits(P - mExternalPressure);
 }
@@ -716,7 +730,17 @@ ANEOS<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   if (mUseInterpolation) {
-    return mKinterp(massDensity, specificThermalEnergy);
+    const auto eps0 = mEpsMinInterp(massDensity);
+    const auto eps1 = mEpsMaxInterp(massDensity);
+    double K;
+    if (specificThermalEnergy <= eps0) {
+      K = mKinterp(massDensity, eps0);
+    } else if (specificThermalEnergy >= eps1) {
+      K = mKinterp(massDensity, eps1);
+    } else {
+      K = mKinterp(massDensity, specificThermalEnergy);
+    }
+    return std::abs(K);
   } else {
     auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
     auto rho = massDensity/mRhoConv;
