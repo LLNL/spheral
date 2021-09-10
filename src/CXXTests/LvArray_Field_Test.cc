@@ -3,7 +3,14 @@
 #include "LvArray/Array.hpp"
 #include "LvArray/ChaiBuffer.hpp"
 
+#ifdef ENABLE_CUDA
 using EXEC_POL = RAJA::cuda_exec<256>;
+using ATOMIC_POL = RAJA::cuda_atomic;
+#else
+using EXEC_POL = RAJA::seq_exec;
+using ATOMIC_POL = RAJA::seq_atomic;
+#endif
+
 using HOST_POL = RAJA::seq_exec;
 
 template<typename FieldList>
@@ -53,17 +60,17 @@ struct GPUFieldList {
     return (*m_fieldptrs)[fieldIdx]->getAccessorView()[nodeIdx];
   }
 
-  FieldList* m_fieldptrs = nullptr;
   chai::ArrayManager* m_array_manager = nullptr;
   chai::ExecutionSpace* m_prev_space;
+  FieldList* m_fieldptrs = nullptr;
 };
 
 
   RAJA_HOST_DEVICE
   void atomicAdd(Spheral::GeomVector<3>* addr, Spheral::GeomVector<3> rhs) {
-    RAJA::atomicAdd<RAJA::cuda_atomic>(&addr[0][0], rhs[0]);
-    RAJA::atomicAdd<RAJA::cuda_atomic>(&addr[0][1], rhs[1]);
-    RAJA::atomicAdd<RAJA::cuda_atomic>(&addr[0][2], rhs[2]);
+    RAJA::atomicAdd<ATOMIC_POL>(&addr[0][0], rhs[0]);
+    RAJA::atomicAdd<ATOMIC_POL>(&addr[0][1], rhs[1]);
+    RAJA::atomicAdd<ATOMIC_POL>(&addr[0][2], rhs[2]);
   }
 
 
@@ -188,9 +195,9 @@ int main() {
     RAJA::forall<EXEC_POL>(range, 
       [=] RAJA_HOST_DEVICE (int kk) {
         if (kk < 50) {
-          RAJA::atomicAdd<RAJA::cuda_atomic>(&field_view[0][0], 1.0);
-          RAJA::atomicAdd<RAJA::cuda_atomic>(&field_view[0][1], 1.0);
-          RAJA::atomicAdd<RAJA::cuda_atomic>(&field_view[0][2], 1.0);
+          RAJA::atomicAdd<ATOMIC_POL>(&field_view[0][0], 1.0);
+          RAJA::atomicAdd<ATOMIC_POL>(&field_view[0][1], 1.0);
+          RAJA::atomicAdd<ATOMIC_POL>(&field_view[0][2], 1.0);
         }
     });
 

@@ -11,6 +11,16 @@ if(${lib_name}_BUILD)
     set(LVARRAY_URL ${LVARRAY_CACHE})
   endif()
 
+  if(ENABLE_CUDA)
+    set(LVARRAY_CUDA_FLAGS 
+               -DENABLE_CUDA=${ENABLE_CUDA}
+               -DCMAKE_CUDA_COMPILER=${CMAKE_CUDA_COMPILER}
+               -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_TOOLKIT_ROOT_DIR}
+               -DCUDA_ARCH=${CUDA_ARCH}
+               -DCMAKE_CUDA_STANDARD=${CMAKE_CUDA_STANDARD}
+               )
+  endif()
+
   ExternalProject_add(${lib_name}
     PREFIX ${LVARRAY_PREFIX}
     URL ${LVARRAY_URL}
@@ -31,11 +41,7 @@ if(${lib_name}_BUILD)
                -DENABLE_BENCHMARKS=OFF
                -DENABLE_DOCS=OFF
 
-               -DENABLE_CUDA=${ENABLE_CUDA}
-               -DCMAKE_CUDA_COMPILER=${CMAKE_CUDA_COMPILER}
-               -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_TOOLKIT_ROOT_DIR}
-               -DCMAKE_CUDA_STANDARD=${CMAKE_CUDA_STANDARD}
-               -DCMAKE_CUDA_FLAGS=${CMAKE_CUDA_FLAGS}
+               ${LVARRAY_CUDA_FLAGS}
 
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
 

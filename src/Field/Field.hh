@@ -15,10 +15,10 @@
 
 #include "LvArrayConfig.hpp"
 
-#if defined(LVARRAY_USE_CUDA)
+//#if defined(LVARRAY_USE_CUDA)
 #include "LvArray/Array.hpp"
 #include "LvArray/ChaiBuffer.hpp"
-#endif
+//#endif
 
 #include "FieldBase.hh"
 
@@ -57,13 +57,13 @@ class Field:
 
 public:
   using ValueType = DataType;
-#if defined(LVARRAY_USE_CUDA)
+//#if defined(LVARRAY_USE_CUDA)
   using ContainerType = LvArray::Array< ValueType, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer >;
   using ContainerTypeView = LvArray::ArrayView< ValueType, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer >;
   RAJA_HOST_DEVICE ContainerTypeView getAccessorView() { return ContainerTypeView(mDataArray); }
-#else
-  using ContainerType = std::vector< ValueType >;
-#endif
+//#else
+//  using ContainerType = std::vector< ValueType >;
+//#endif
    
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
@@ -76,13 +76,13 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
-#if defined(LVARRAY_USE_CUDA)
+//#if defined(LVARRAY_USE_CUDA)
   typedef typename ContainerType::value_type* iterator;
   typedef typename ContainerType::value_type* const_iterator;
-#else
-  typedef typename ContainerType::iterator iterator;
-  typedef typename ContainerType::const_iterator const_iterator;
-#endif
+//#else
+//  typedef typename ContainerType::iterator iterator;
+//  typedef typename ContainerType::const_iterator const_iterator;
+//#endif
 
   // Constructors.
   explicit Field(FieldName name);

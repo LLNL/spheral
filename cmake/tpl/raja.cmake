@@ -11,6 +11,16 @@ if(${lib_name}_BUILD)
     set(RAJA_URL ${RAJA_CACHE})
   endif()
 
+  if(ENABLE_CUDA)
+  set(RAJA_CUDA_FLAGS 
+               -DENABLE_CUDA=${ENABLE_CUDA}
+               -DCMAKE_CUDA_COMPILER=${CMAKE_CUDA_COMPILER}
+               -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_TOOLKIT_ROOT_DIR}
+               -DCUDA_ARCH=${CUDA_ARCH}
+               -DCMAKE_CUDA_STANDARD=${CMAKE_CUDA_STANDARD}
+               )
+  endif()
+
   ExternalProject_add(${lib_name}
     PREFIX ${RAJA_PREFIX}
     URL ${RAJA_URL}
@@ -28,12 +38,8 @@ if(${lib_name}_BUILD)
                -DENABLE_DOCS=OFF
                -DENABLE_QUEST=Off
                -DENABLE_TESTS=Off
-
-               -DENABLE_CUDA=${ENABLE_CUDA}
-               -DCMAKE_CUDA_COMPILER=${CMAKE_CUDA_COMPILER}
-               -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_TOOLKIT_ROOT_DIR}
-               -DCUDA_ARCH=${CUDA_ARCH}
-               -DCMAKE_CUDA_STANDARD=${CMAKE_CUDA_STANDARD}
+               
+               ${RAJA_CUDA_FLAGS}
 
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
 

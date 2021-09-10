@@ -1190,11 +1190,11 @@ Field<Dimension, DataType>::deleteElement(int nodeID) {
   const unsigned originalSize = this->size();
   CONTRACT_VAR(originalSize);
   REQUIRE(nodeID >= 0 && nodeID < (int)originalSize);
-#if defined(LVARRAY_USE_CUDA)
+//#if defined(LVARRAY_USE_CUDA)
   mDataArray.erase(nodeID);
-#else
-  mDataArray.erase(mDataArray.begin() + nodeID);
-#endif
+//#else
+//  mDataArray.erase(mDataArray.begin() + nodeID);
+//#endif
   ENSURE(mDataArray.size() == originalSize - 1);
 }
 

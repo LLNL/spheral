@@ -3,6 +3,7 @@
 namespace Spheral
 {
 
+#if defined(RAJA_ENABLE_CUDA)
 __device__ void add(int a, int b, int *c)
 {
   *c = a + b;
@@ -13,7 +14,7 @@ __global__ void launch(int a, int b, int *c)
   add(a,b,c);
 }
 
-__host__ int launchCaller(int a, int b)
+int launchCaller(int a, int b)
 {
   int c;
   int *d_c;
@@ -23,5 +24,9 @@ __host__ int launchCaller(int a, int b)
   cudaFree(d_c);
   return c;
 }
+#else
+
+int launchCaller(int a, int b) {return a + b;}
+#endif
 
 } // namespace Spehral

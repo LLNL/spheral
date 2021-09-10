@@ -1,7 +1,13 @@
 #include "LvArray/Array.hpp"
 #include "LvArray/ChaiBuffer.hpp"
 
+#ifdef ENABLE_CUDA
 using EXEC_POL = RAJA::cuda_exec<256>;
+using ATOMIC_POL = RAJA::cuda_atomic;
+#else
+using EXEC_POL = RAJA::seq_exec;
+using ATOMIC_POL = RAJA::seq_atomic;
+#endif
 using HOST_POL = RAJA::seq_exec;
 
 template<typename T>
