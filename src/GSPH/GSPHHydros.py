@@ -11,7 +11,9 @@ class %(classname)s%(dim)s(GSPHHydroBase%(dim)s):
 
     def __init__(self,
                  dataBase,
+                 riemannSolver,
                  W,
+                 epsDiffusionCoeff = 0.0,
                  cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
@@ -27,7 +29,9 @@ class %(classname)s%(dim)s(GSPHHydroBase%(dim)s):
         GSPHHydroBase%(dim)s.__init__(self,
                                      self._smoothingScaleMethod,
                                      dataBase,
+                                     riemannSolver,
                                      W,
+                                     epsDiffusionCoeff,
                                      cfl,
                                      useVelocityMagnitudeForDt,
                                      compatibleEnergyEvolution,
@@ -60,6 +64,8 @@ for dim in dims:
 #-------------------------------------------------------------------------------
 def GSPH(dataBase,
         W,
+        riemannSolver=None,
+        specificThermalEnergyDiffusionCoefficient = 0.0,
         cfl = 0.25,
         useVelocityMagnitudeForDt = False,
         compatibleEnergyEvolution = True,
@@ -93,10 +99,19 @@ def GSPH(dataBase,
     else:
         Constructor = eval("GSPHHydro%id" % ndim)
 
+    if riemannSolver is None:
+        waveSpeedMethod = eval("DavisWaveSpeed%id()" % (ndim))
+        slopeLimiter = eval("VanLeerLimiter%id()" % (ndim))
+        linearReconstruction=True
+        riemannSolver = eval("HLLC%id(slopeLimiter,waveSpeedMethod,linearReconstruction)" % (ndim))
+   
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
-    kwargs = {"W" : W,
+
+    kwargs = {"riemannSolver" : riemannSolver,
+              "W" : W,
+              "epsDiffusionCoeff" : specificThermalEnergyDiffusionCoefficient,
               "dataBase" : dataBase,
               "cfl" : cfl,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,

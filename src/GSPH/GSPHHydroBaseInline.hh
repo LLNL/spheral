@@ -209,6 +209,13 @@ updateActualNeighborStats(int numNeighbor) const {
 ////////////////////////////////////////////////////////////////////////////////
 // SPH Hydro Methods
 ////////////////////////////////////////////////////////////////////////////////
+template<typename Dimension>
+inline
+RiemannSolverBase<Dimension>&
+GSPHHydroBase<Dimension>::riemannSolver() const {
+  return mRiemannSolver;
+}
+
 //------------------------------------------------------------------------------
 // Choose how we want to update the H tensor.
 //------------------------------------------------------------------------------
@@ -422,14 +429,6 @@ soundSpeed() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-GSPHHydroBase<Dimension>::
-specificThermalEnergy0() const {
-  return mSpecificThermalEnergy0;
-}
-
-template<typename Dimension>
-inline
 const FieldList<Dimension, typename Dimension::SymTensor>&
 GSPHHydroBase<Dimension>::
 Hideal() const {
@@ -485,13 +484,13 @@ M() const {
   return mM;
 }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Tensor>&
-GSPHHydroBase<Dimension>::
-localM() const {
-  return mLocalM;
-}
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension, typename Dimension::Tensor>&
+// GSPHHydroBase<Dimension>::
+// localM() const {
+//   return mLocalM;
+// }
 
 template<typename Dimension>
 inline
@@ -541,22 +540,13 @@ DvDx() const {
   return mDvDx;
 }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Tensor>&
-GSPHHydroBase<Dimension>::
-internalDvDx() const {
-  return mInternalDvDx;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Tensor>&
-GSPHHydroBase<Dimension>::
-lastDvDx() const {
-  return mLastDvDx;
-}
-
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension, typename Dimension::Tensor>&
+// GSPHHydroBase<Dimension>::
+// internalDvDx() const {
+//   return mInternalDvDx;
+// }
 
 template<typename Dimension>
 inline
@@ -570,9 +560,27 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Vector>&
 GSPHHydroBase<Dimension>::
-lastDpDx() const {
-  return mLastDpDx;
+DpDxRaw() const {
+  return mDpDxRaw;
 }
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Tensor>&
+GSPHHydroBase<Dimension>::
+DvDxRaw() const {
+  return mDvDxRaw;
+}
+
+
+
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension, typename Dimension::Vector>&
+// GSPHHydroBase<Dimension>::
+// DrhoDx() const {
+//   return mDrhoDx;
+// }
 
 template<typename Dimension>
 inline
@@ -580,6 +588,22 @@ const std::vector<typename Dimension::Vector>&
 GSPHHydroBase<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;
+}
+
+
+template<typename Dimension>
+inline
+void
+GSPHHydroBase<Dimension>::
+specificThermalEnergyDiffusionCoefficient(const typename Dimension::Scalar x) {
+  mSpecificThermalEnergyDiffusionCoefficient = x;
+}
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+GSPHHydroBase<Dimension>::
+specificThermalEnergyDiffusionCoefficient() const {
+  return mSpecificThermalEnergyDiffusionCoefficient;
 }
 
 }

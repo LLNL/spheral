@@ -15,6 +15,7 @@ template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class TableKernel;
+template<typename Dimension> class RiemannSolverBase;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
@@ -37,7 +38,9 @@ public:
   // Constructors.
   GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                DataBase<Dimension>& dataBase,
+               RiemannSolverBase<Dimension>& riemannSolver,
                const TableKernel<Dimension>& W,
+               const Scalar epsDiffusionCoeff,
                const double cfl,
                const bool useVelocityMagnitudeForDt,
                const bool compatibleEnergyEvolution,
@@ -123,48 +126,58 @@ public:
   virtual
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
+                  
 
+  // Access the stored riemann solver
+  RiemannSolverBase<Dimension>& riemannSolver() const;
 
-  void computeHLLCstate( const Vector& rij,
-                         int nodeListi,
-                         int nodeListj,
-                         int i,
-                         int j,
-                         const Scalar& Pi,  
-                         const Scalar& Pj,
-                         const Scalar& rhoi, 
-                         const Scalar& rhoj,
-                         const Vector& vi,   
-                         const Vector& vj,
-                         const Scalar& ci,   
-                         const Scalar& cj, 
-                         const Vector& DpDxi,
-                         const Vector& DpDxj,
-                         const Tensor& DvDxi,
-                         const Tensor& DvDxj,
-                         Vector& vstar,
-                         Scalar& Pstar,
-                         Scalar& rhostariOut,
-                         Scalar& rhostarjOut) const;
+  // Access the stored interpolation kernels.
+  const TableKernel<Dimension>& kernel() const;
 
-  const Scalar vanLeerLimiter( const Vector& rij,
-                const Vector& DvDxi,
-                const Vector& DvDxj) const;
+  // The object defining how we evolve smoothing scales.
+  const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
 
-  const Scalar vanLeerLimiter( const Vector& rij,
-                const Tensor& DvDxi,
-                const Tensor& DvDxj) const;
+  // Flag to select how we want to evolve the H tensor.
+  HEvolutionType HEvolution() const;
+  void HEvolution(HEvolutionType type);
 
-                      
+  // setter-getters for our bool switches
+  bool compatibleEnergyEvolution() const;
+  void compatibleEnergyEvolution(bool val);
+
+  bool evolveTotalEnergy() const;
+  void evolveTotalEnergy(bool val);
+
+  bool useVelocityMagnitudeForDt() const;
+  void useVelocityMagnitudeForDt(bool x);
+
+  bool XSPH() const;
+  void XSPH(bool val);
+  
+  bool correctVelocityGradient() const;
+  void correctVelocityGradient(bool val);
+
+  // Parameters for the tensile correction force at small scales.
+  Scalar epsilonTensile() const;
+  void epsilonTensile(Scalar val);
+
+  Scalar nTensile() const;
+  void nTensile(Scalar val);
+
+  // diffusion coefficient for specific thermal energy
+  Scalar specificThermalEnergyDiffusionCoefficient() const;
+  void specificThermalEnergyDiffusionCoefficient(const Scalar x);
+
   // Also allow access to the CFL timestep safety criteria.
   Scalar cfl() const;
   void cfl(Scalar cfl);
 
-  // Attribute to determine if the absolute magnitude of the velocity should
-  // be used in determining the timestep.
-  bool useVelocityMagnitudeForDt() const;
-  void useVelocityMagnitudeForDt(bool x);
-
+  // Optionally we can provide a bounding box
+  const Vector& xmin() const;
+  const Vector& xmax() const;
+  void xmin(const Vector& x);
+  void xmax(const Vector& x);
+  
   // Return the cumulative neighboring statistics.
   int minMasterNeighbor() const;
   int maxMasterNeighbor() const;
@@ -182,53 +195,10 @@ public:
   int maxActualNeighbor() const;
   double averageActualNeighbor() const;
 
-  // Flag to select how we want to evolve the H tensor.
-  // the continuity equation.
-  HEvolutionType HEvolution() const;
-  void HEvolution(HEvolutionType type);
-
-  // Flag to determine if we're using the total energy conserving compatible energy
-  // evolution scheme.
-  bool compatibleEnergyEvolution() const;
-  void compatibleEnergyEvolution(bool val);
-
-  // Flag controlling if we evolve total or specific energy.
-  bool evolveTotalEnergy() const;
-  void evolveTotalEnergy(bool val);
-
-  // Flag to determine if we're using the XSPH algorithm.
-  bool XSPH() const;
-  void XSPH(bool val);
-
-  // Flag to determine if we're applying the linear correction for the velocity gradient.
-  bool correctVelocityGradient() const;
-  void correctVelocityGradient(bool val);
-
-  // Parameters for the tensile correction force at small scales.
-  Scalar epsilonTensile() const;
-  void epsilonTensile(Scalar val);
-
-  Scalar nTensile() const;
-  void nTensile(Scalar val);
-
-  // Optionally we can provide a bounding box for use generating the mesh
-  // for the Voronoi mass density update.
-  const Vector& xmin() const;
-  const Vector& xmax() const;
-  void xmin(const Vector& x);
-  void xmax(const Vector& x);
-
-  // Access the stored interpolation kernels.
-  const TableKernel<Dimension>& kernel() const;
-
-  // The object defining how we evolve smoothing scales.
-  const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
-
   // The state field lists we're maintaining.
   const FieldList<Dimension, int>&       timeStepMask() const;
   const FieldList<Dimension, Scalar>&    pressure() const;
   const FieldList<Dimension, Scalar>&    soundSpeed() const;
-  const FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldList<Dimension, Scalar>&    normalization() const;
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
@@ -236,20 +206,24 @@ public:
   const FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Tensor>&    M() const;
-  const FieldList<Dimension, Tensor>&    localM() const;
+  //const FieldList<Dimension, Tensor>&    localM() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    DvDt() const;
   const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
   const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
   const FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
-  const FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const std::vector<Vector>&             pairAccelerations() const;
-
+  //const FieldList<Dimension, Tensor>&    internalDvDx() const;
   const FieldList<Dimension, Vector>&    DpDx() const;
-  const FieldList<Dimension, Tensor>&    lastDvDx() const;
-  const FieldList<Dimension, Vector>&    lastDpDx() const;
+  const FieldList<Dimension, Vector>&    DpDxRaw() const;
+  const FieldList<Dimension, Tensor>&    DvDxRaw() const;
+  const std::vector<Vector>&             pairAccelerations() const;
+  const std::vector<Scalar>&             pairDepsDt() const;
 
+  const FieldList<Dimension, Vector>& riemannDpDx() const;
+  const FieldList<Dimension, Tensor>& riemannDvDx() const;
+
+  
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "GSPHHydroBase" ; }
@@ -258,33 +232,47 @@ public:
   //****************************************************************************
 
 protected:
-  //-------------------------- Protected Interface --------------------------//
+  //--------------------------- Protected Interface ---------------------------//
+  RestartRegistrationType mRestart;
+
   void updateMasterNeighborStats(int numMaster) const;
   void updateCoarseNeighborStats(int numNeighbor) const;
   void updateRefineNeighborStats(int numNeighbor) const;
   void updateActualNeighborStats(int numNeighbor) const;
 
-  // The interpolation kernels.
+  
+private:
+  //--------------------------- Private Interface ---------------------------//
+  RiemannSolverBase<Dimension>& mRiemannSolver;
   const TableKernel<Dimension>& mKernel;
-
-  // The method defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
-
-  // A bunch of switches.
   HEvolutionType mHEvolution;
-  bool mCompatibleEnergyEvolution, mEvolveTotalEnergy,  mXSPH, mCorrectVelocityGradient;
 
-  // Tensile correction.
-  Scalar mEpsTensile, mnTensile;
-
-  // Optional bounding box for generating the mesh.
+   // A bunch of switches.
+  bool mCompatibleEnergyEvolution;    
+  bool mEvolveTotalEnergy;           
+  bool mXSPH;
+  bool mCorrectVelocityGradient;
+  bool mUseVelocityMagnitudeForDt;
+  
+  Scalar mEpsTensile, mnTensile;                      
+  Scalar mSpecificThermalEnergyDiffusionCoefficient; 
+  Scalar mCfl; 
   Vector mxmin, mxmax;
+            
+  mutable int mMinMasterNeighbor, mMaxMasterNeighbor, mSumMasterNeighbor;
+  mutable int mMinCoarseNeighbor, mMaxCoarseNeighbor, mSumCoarseNeighbor;
+  mutable int mMinRefineNeighbor, mMaxRefineNeighbor, mSumRefineNeighbor;
+  mutable int mMinActualNeighbor, mMaxActualNeighbor, mSumActualNeighbor;
+  mutable int mNormMasterNeighbor;
+  mutable int mNormCoarseNeighbor;
+  mutable int mNormRefineNeighbor;
+  mutable int mNormActualNeighbor;
 
-  // Some internal scratch fields.
+  // Our fields.
   FieldList<Dimension, int>       mTimeStepMask;
   FieldList<Dimension, Scalar>    mPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
-  FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
 
   FieldList<Dimension, SymTensor> mHideal;
   FieldList<Dimension, Scalar>    mNormalization;
@@ -295,47 +283,25 @@ protected:
   FieldList<Dimension, Scalar>    mXSPHWeightSum;
   FieldList<Dimension, Vector>    mXSPHDeltaV;
 
+  FieldList<Dimension, Tensor>    mM;
+  //FieldList<Dimension, Tensor>    mLocalM;
+
   FieldList<Dimension, Vector>    mDxDt;
   FieldList<Dimension, Vector>    mDvDt;
   FieldList<Dimension, Scalar>    mDmassDensityDt;
   FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
   FieldList<Dimension, SymTensor> mDHDt;
+
   FieldList<Dimension, Tensor>    mDvDx;
-  FieldList<Dimension, Tensor>    mInternalDvDx;
-  FieldList<Dimension, Tensor>    mM;
-  FieldList<Dimension, Tensor>    mLocalM;
+  //FieldList<Dimension, Tensor>    mInternalDvDx;
+  FieldList<Dimension, Tensor>    mDvDxRaw;
+  FieldList<Dimension, Vector>    mDpDx;
+  FieldList<Dimension, Vector>    mDpDxRaw;
+  //FieldList<Dimension, Vector>    mDrhoDx;
 
   std::vector<Vector>             mPairAccelerations;
+  std::vector<Scalar>             mPairDepsDt;
 
-  FieldList<Dimension, Vector> mDpDx;
-  FieldList<Dimension, Vector> mDcDx;
-  FieldList<Dimension, Vector> mDrhoDx;
-  FieldList<Dimension, Vector> mLastDpDx;
-  FieldList<Dimension, Vector> mLastDcDx;
-  FieldList<Dimension, Vector> mLastDrhoDx;
-  FieldList<Dimension, Tensor> mLastDvDx;
-  FieldList<Dimension, Tensor> mLastInternalDvDx;
-
-protected:
-  //--------------------------- Protected Interface ---------------------------//
-  // The restart registration.
-  RestartRegistrationType mRestart;
-
-private:
-
-  Scalar mCfl;
-  bool mUseVelocityMagnitudeForDt;
-  bool mInitializeSpatialDerivatives;
-  
-  mutable int mMinMasterNeighbor, mMaxMasterNeighbor, mSumMasterNeighbor;
-  mutable int mMinCoarseNeighbor, mMaxCoarseNeighbor, mSumCoarseNeighbor;
-  mutable int mMinRefineNeighbor, mMaxRefineNeighbor, mSumRefineNeighbor;
-  mutable int mMinActualNeighbor, mMaxActualNeighbor, mSumActualNeighbor;
-  mutable int mNormMasterNeighbor;
-  mutable int mNormCoarseNeighbor;
-  mutable int mNormRefineNeighbor;
-  mutable int mNormActualNeighbor;
-  //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
   GSPHHydroBase();
   GSPHHydroBase(const GSPHHydroBase&);

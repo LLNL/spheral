@@ -12,6 +12,7 @@ dims = spheralDimensions()
 from GSPHHydroBase import *
 from WaveSpeeds import *
 from Limiters import *
+from RiemannSolvers import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -21,12 +22,17 @@ PYB11includes += ['"GSPH/GSPHHydroBase.hh"',
                   '"GSPH/WaveSpeeds/AcousticWaveSpeed.hh"',
                   '"GSPH/WaveSpeeds/DavisWaveSpeed.hh"',
                   '"GSPH/WaveSpeeds/EinfeldtWaveSpeed.hh"',
-                  '"GSPH/Limiters/SlopeLimiterBase.hh"',
+                  '"GSPH/Limiters/LimiterBase.hh"',
                   '"GSPH/Limiters/MinModLimiter.hh"',
                   '"GSPH/Limiters/VanLeerLimiter.hh"',
                   '"GSPH/Limiters/VanAlbaLimiter.hh"',
                   '"GSPH/Limiters/SuperbeeLimiter.hh"',
                   '"GSPH/Limiters/OspreLimiter.hh"',
+                  '"GSPH/Limiters/PearlLimiter.hh"',
+                  '"GSPH/Limiters/BarthJespersenMinLimiter.hh"',
+                  '"GSPH/RiemannSolvers/RiemannSolverBase.hh"',
+                  '"GSPH/RiemannSolvers/HLLC.hh"',
+                  '"GSPH/RiemannSolvers/GHLLC.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
@@ -44,12 +50,17 @@ WaveSpeedBase%(ndim)id = PYB11TemplateClass(WaveSpeedBase, template_parameters="
 AcousticWaveSpeed%(ndim)id = PYB11TemplateClass(AcousticWaveSpeed, template_parameters="%(Dimension)s")
 DavisWaveSpeed%(ndim)id = PYB11TemplateClass(DavisWaveSpeed, template_parameters="%(Dimension)s")
 EinfeldtWaveSpeed%(ndim)id = PYB11TemplateClass(EinfeldtWaveSpeed, template_parameters="%(Dimension)s")
-SlopeLimiterBase%(ndim)id = PYB11TemplateClass(SlopeLimiterBase, template_parameters="%(Dimension)s")
+LimiterBase%(ndim)id = PYB11TemplateClass(LimiterBase, template_parameters="%(Dimension)s")
 MinModLimiter%(ndim)id = PYB11TemplateClass(MinModLimiter, template_parameters="%(Dimension)s")
 VanLeerLimiter%(ndim)id = PYB11TemplateClass(VanLeerLimiter, template_parameters="%(Dimension)s")
 VanAlbaLimiter%(ndim)id = PYB11TemplateClass(VanAlbaLimiter, template_parameters="%(Dimension)s")
 SuperbeeLimiter%(ndim)id = PYB11TemplateClass(SuperbeeLimiter, template_parameters="%(Dimension)s")
 OspreLimiter%(ndim)id = PYB11TemplateClass(OspreLimiter, template_parameters="%(Dimension)s")
+PearlLimiter%(ndim)id = PYB11TemplateClass(PearlLimiter, template_parameters="%(Dimension)s")
+BarthJespersenMinLimiter%(ndim)id = PYB11TemplateClass(BarthJespersenMinLimiter, template_parameters="%(Dimension)s")
+RiemannSolverBase%(ndim)id = PYB11TemplateClass(RiemannSolverBase, template_parameters="%(Dimension)s")
+HLLC%(ndim)id = PYB11TemplateClass(HLLC, template_parameters="%(Dimension)s")
+GHLLC%(ndim)id = PYB11TemplateClass(GHLLC, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
