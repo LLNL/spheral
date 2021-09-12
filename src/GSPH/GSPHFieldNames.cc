@@ -5,6 +5,7 @@
 
 #include "GSPHFieldNames.hh"
 
+const std::string Spheral::GSPHFieldNames::deviatoricStressTensorGradient = "deviatoric stress tensor gradient";
 const std::string Spheral::GSPHFieldNames::densityGradient = "density gradient";
 const std::string Spheral::GSPHFieldNames::previousDensityGradient = "previous density gradient";
 const std::string Spheral::GSPHFieldNames::pressureGradient = "pressure gradient";
