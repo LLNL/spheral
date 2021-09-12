@@ -7,7 +7,9 @@ namespace Spheral {
 //========================================================
 template<typename Dimension>
 SuperbeeLimiter<Dimension>::
-SuperbeeLimiter(){}
+SuperbeeLimiter():
+  LimiterBase<Dimension>(true,true){
+}
 
 //========================================================
 // Destructor

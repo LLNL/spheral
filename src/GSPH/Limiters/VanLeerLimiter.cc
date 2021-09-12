@@ -7,7 +7,9 @@ namespace Spheral {
 //========================================================
 template<typename Dimension>
 VanLeerLimiter<Dimension>::
-VanLeerLimiter(){}
+VanLeerLimiter():
+  LimiterBase<Dimension>(true,true){
+}
 
 //========================================================
 // Destructor

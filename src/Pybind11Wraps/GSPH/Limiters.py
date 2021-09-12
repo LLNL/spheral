@@ -12,14 +12,28 @@ class LimiterBase:
   typedef typename %(Dimension)s::Scalar Scalar;
   """
 
-    def pyinit():
+    def pyinit(TVD = "bool",
+               symmetric = "bool"):
         "slope limiter constructor"
 
+    @PYB11virtual
     @PYB11const
     def slopeLimiter(self,
                      x = "const Scalar"):
         "slope limiter from flux limiter."
         return "Scalar"
+
+    @PYB11virtual
+    @PYB11const
+    def isTVD(self):
+        "is this a TVD limiter?."
+        return "bool"
+
+    @PYB11virtual
+    @PYB11const
+    def isSymmetric(self):
+        "is this a Symmetric limiter?."
+        return "bool"
 
 PYB11inject(LimiterBaseAbstractMethods, LimiterBase, pure_virtual=True)
 
@@ -37,6 +51,7 @@ class MinModLimiter(LimiterBase):
     def pyinit():
         "minmod slope limiter constructor"
 
+    @PYB11virtual
     @PYB11const
     def slopeLimiter(self,
                      x = "const Scalar"):
@@ -64,6 +79,7 @@ class VanLeerLimiter(LimiterBase):
     def pyinit():
         "VanLeer slope limiter constructor"
 
+    @PYB11virtual
     @PYB11const
     def slopeLimiter(self,
                      x = "const Scalar"):
@@ -91,6 +107,7 @@ class VanAlbaLimiter(LimiterBase):
     def pyinit():
         "VanAlba slope limiter constructor"
 
+    @PYB11virtual
     @PYB11const
     def slopeLimiter(self,
                      x = "const Scalar"):
@@ -118,6 +135,7 @@ class SuperbeeLimiter(LimiterBase):
     def pyinit():
         "Superbee slope limiter constructor"
 
+    @PYB11virtual
     @PYB11const
     def slopeLimiter(self,
                      x = "const Scalar"):
@@ -145,6 +163,63 @@ class OspreLimiter(LimiterBase):
     def pyinit():
         "Ospre slope limiter constructor"
 
+    @PYB11virtual
+    @PYB11const
+    def slopeLimiter(self,
+                     x = "const Scalar"):
+        "slope limiter from flux limiter."
+        return "Scalar"
+
+    @PYB11virtual
+    @PYB11const
+    def fluxLimiter(self,
+                     x = "const Scalar"):
+        "slope limiter from flux limiter."
+        return "Scalar"
+
+#-------------------------------------------------------------------------------
+# Pearl limiter
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+@PYB11module("SpheralGSPH")
+class PearlLimiter(LimiterBase):
+
+    PYB11typedefs = """
+  typedef typename %(Dimension)s::Scalar Scalar;
+  """
+
+    def pyinit():
+        "Pearl slope limiter constructor"
+
+    @PYB11virtual
+    @PYB11const
+    def slopeLimiter(self,
+                     x = "const Scalar"):
+        "slope limiter from flux limiter."
+        return "Scalar"
+
+    @PYB11virtual
+    @PYB11const
+    def fluxLimiter(self,
+                     x = "const Scalar"):
+        "slope limiter from flux limiter."
+        return "Scalar"
+
+#-------------------------------------------------------------------------------
+# Modified Barth-Jespersen -- Min-mod hybrid
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+@PYB11module("SpheralGSPH")
+class BarthJespersenMinLimiter(LimiterBase):
+
+    PYB11typedefs = """
+  typedef typename %(Dimension)s::Scalar Scalar;
+  """
+
+    def pyinit():
+        "Barth Jespersen minmod hybrid slope limiter constructor"
+
+    @PYB11virtual
     @PYB11const
     def slopeLimiter(self,
                      x = "const Scalar"):

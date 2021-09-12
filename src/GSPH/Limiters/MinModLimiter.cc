@@ -7,7 +7,9 @@ namespace Spheral {
 //========================================================
 template<typename Dimension>
 MinModLimiter<Dimension>::
-MinModLimiter(){}
+MinModLimiter():
+  LimiterBase<Dimension>(true,true){
+}
 
 //========================================================
 // Destructor

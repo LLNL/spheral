@@ -7,7 +7,9 @@ namespace Spheral {
 //========================================================
 template<typename Dimension>
 OspreLimiter<Dimension>::
-OspreLimiter(){}
+OspreLimiter():
+  LimiterBase<Dimension>(true,true){
+}
 
 //========================================================
 // Destructor

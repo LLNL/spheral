@@ -7,7 +7,9 @@ namespace Spheral {
 //========================================================
 template<typename Dimension>
 VanAlbaLimiter<Dimension>::
-VanAlbaLimiter(){}
+VanAlbaLimiter():
+  LimiterBase<Dimension>(true,true){
+}
 
 //========================================================
 // Destructor
