@@ -8,24 +8,32 @@
 // energy formultion based on a difference approach with different weights 
 //----------------------------------------------------------------------------//
 #include "GSPHSpecificThermalEnergyPolicy.hh"
+
 #include "Hydro/HydroFieldNames.hh"
+#include "FSISPH/FSIFieldNames.hh"
+
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
+
 #include "DataBase/DataBase.hh"
 #include "DataBase/FieldUpdatePolicyBase.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
+
 #include "Neighbor/ConnectivityMap.hh"
+
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
+
 #include "Utilities/DBC.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
 
 #include <vector>
 #include <limits>
+
 using std::vector;
 using std::numeric_limits;
 using std::abs;
@@ -65,6 +73,9 @@ update(const KeyType& key,
        const double /*t*/,
        const double /*dt*/) {
 
+  const auto hdt = 0.5*multiplier;
+  const auto tiny = numeric_limits<Scalar>::epsilon();
+
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
@@ -77,15 +88,17 @@ update(const KeyType& key,
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  const auto& pairDepsDt = derivs.getAny(FSIFieldNames::pairDepsDt, vector<Scalar>());
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
-  CHECK(pairAccelerations.size() == 2*npairs);
+  CHECK(pairAccelerations.size() == npairs);
+  CHECK(pairDepsDt.size() == 2*npairs);
 
   auto  DepsDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   DepsDt.Zero();
-  const auto hdt = 0.5*multiplier;
-  const auto tiny = numeric_limits<Scalar>::epsilon();
+
+  
   // Walk all pairs and figure out the discrete work for each point
 #pragma omp parallel
   {
@@ -99,9 +112,9 @@ update(const KeyType& key,
       const auto nodeListi = pairs[kk].i_list;
       const auto nodeListj = pairs[kk].j_list;
 
-      const auto& paccij = pairAccelerations[2*kk];
-      const auto& DepsDt0i = pairAccelerations[2*kk+1].x();
-      const auto& DepsDt0j = pairAccelerations[2*kk+1].y();
+      const auto& paccij = pairAccelerations[kk];
+      const auto& DepsDt0i = pairDepsDt[2*kk];
+      const auto& DepsDt0j = pairDepsDt[2*kk+1];
 
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
