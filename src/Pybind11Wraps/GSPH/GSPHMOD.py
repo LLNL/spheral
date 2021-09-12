@@ -28,8 +28,6 @@ PYB11includes += ['"GSPH/GSPHHydroBase.hh"',
                   '"GSPH/Limiters/VanAlbaLimiter.hh"',
                   '"GSPH/Limiters/SuperbeeLimiter.hh"',
                   '"GSPH/Limiters/OspreLimiter.hh"',
-                  '"GSPH/Limiters/PearlLimiter.hh"',
-                  '"GSPH/Limiters/BarthJespersenMinLimiter.hh"',
                   '"GSPH/RiemannSolvers/RiemannSolverBase.hh"',
                   '"GSPH/RiemannSolvers/HLLC.hh"',
                   '"GSPH/RiemannSolvers/GHLLC.hh"',
@@ -56,8 +54,6 @@ VanLeerLimiter%(ndim)id = PYB11TemplateClass(VanLeerLimiter, template_parameters
 VanAlbaLimiter%(ndim)id = PYB11TemplateClass(VanAlbaLimiter, template_parameters="%(Dimension)s")
 SuperbeeLimiter%(ndim)id = PYB11TemplateClass(SuperbeeLimiter, template_parameters="%(Dimension)s")
 OspreLimiter%(ndim)id = PYB11TemplateClass(OspreLimiter, template_parameters="%(Dimension)s")
-PearlLimiter%(ndim)id = PYB11TemplateClass(PearlLimiter, template_parameters="%(Dimension)s")
-BarthJespersenMinLimiter%(ndim)id = PYB11TemplateClass(BarthJespersenMinLimiter, template_parameters="%(Dimension)s")
 RiemannSolverBase%(ndim)id = PYB11TemplateClass(RiemannSolverBase, template_parameters="%(Dimension)s")
 HLLC%(ndim)id = PYB11TemplateClass(HLLC, template_parameters="%(Dimension)s")
 GHLLC%(ndim)id = PYB11TemplateClass(GHLLC, template_parameters="%(Dimension)s")
