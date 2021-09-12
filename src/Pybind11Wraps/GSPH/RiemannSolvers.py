@@ -16,7 +16,8 @@ class RiemannSolverBase:
 
     def pyinit(slopeLimiter = "LimiterBase<%(Dimension)s>&",
                waveSpeed = "WaveSpeedBase<%(Dimension)s>&",
-               linearReconstruction = "bool"):
+               linearReconstruction = "bool",
+               gradType = "int"):
         "slope limiter constructor"
 
 
@@ -44,5 +45,27 @@ class HLLC(RiemannSolverBase):
 
     def pyinit(slopeLimiter = "LimiterBase<%(Dimension)s>&",
                waveSpeed = "WaveSpeedBase<%(Dimension)s>&",
-               linearReconstruction = "bool"):
+               linearReconstruction = "bool",
+               gradType = "int"):
         "slope limiter constructor"
+
+#-------------------------------------------------------------------------------
+# HLLC Approximate Riemann Solver with constant grav acceleration
+#-------------------------------------------------------------------------------
+class GHLLC(RiemannSolverBase):
+
+    PYB11typedefs = """
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename %(Dimension)s::Tensor Tensor;
+    typedef typename %(Dimension)s::SymTensor SymTensor;
+    """
+
+    def pyinit(slopeLimiter = "LimiterBase<%(Dimension)s>&",
+               waveSpeed = "WaveSpeedBase<%(Dimension)s>&",
+               linearReconstruction = "bool",
+               gravitationalAcceleration = "const Vector"):
+        "slope limiter constructor"
+
+    
+    gravitationalAcceleration = PYB11property("Vector", "gravitationalAcceleration", "gravitationalAcceleration", doc="constant gravitational acceleration vector") 

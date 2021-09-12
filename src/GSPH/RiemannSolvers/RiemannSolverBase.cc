@@ -28,10 +28,12 @@ template<typename Dimension>
 RiemannSolverBase<Dimension>::
 RiemannSolverBase(LimiterBase<Dimension>& slopeLimiter,
                   WaveSpeedBase<Dimension>& waveSpeed,
-                  bool linearReconstruction):
+                  bool linearReconstruction,
+                  int gradType):
   mSlopeLimiter(slopeLimiter),
   mWaveSpeed(waveSpeed),
   mLinearReconstruction(linearReconstruction),
+  mGradType(gradType),
   mDpDx(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields),
   mDrhoDx(FieldStorageType::CopyFields){
@@ -60,6 +62,7 @@ initialize(const DataBase<Dimension>& dataBase,
            const typename Dimension::Scalar /*time*/,
            const typename Dimension::Scalar /*dt*/,
            const TableKernel<Dimension>& /*W*/){
+
   if(mLinearReconstruction){
     dataBase.resizeFluidFieldList(mDpDx,Vector::zero,"riemann solver pressure gradient",true);
     dataBase.resizeFluidFieldList(mDvDx,Tensor::zero,"riemann solver velocity Gradient",true);
@@ -67,7 +70,9 @@ initialize(const DataBase<Dimension>& dataBase,
     
     //const auto& DrhoDx0 = derivs.fields( GSPHFieldNames::densityGradient, Vector::zero);
     const auto& DpDx0 = derivs.fields( GSPHFieldNames::pressureGradient, Vector::zero);
+    const auto& DpDxRaw0 = derivs.fields( GSPHFieldNames::pressureGradient+"RAW", Vector::zero);
     const auto& DvDx0 = derivs.fields( HydroFieldNames::velocityGradient,Tensor::zero);
+    const auto& DvDxRaw0 = derivs.fields( HydroFieldNames::velocityGradient+"RAW",Tensor::zero);
     const auto& DvDt0 = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
     const auto& rho0 = state.fields(HydroFieldNames::massDensity, 0.0);
 
@@ -82,14 +87,39 @@ initialize(const DataBase<Dimension>& dataBase,
       #pragma omp parallel for
       for (auto i = 0u; i < ni; ++i) {
         const auto DvDxi = DvDx0(nodeListi,i);
+        const auto DvDxRawi = DvDxRaw0(nodeListi,i);
         const auto DpDxi = DpDx0(nodeListi,i);
+        const auto DpDxRawi = DpDxRaw0(nodeListi,i);
         const auto DvDti = DvDt0(nodeListi,i);
         const auto rhoi = rho0(nodeListi,i);
-        //const auto DrhoDxi = DrhoDx0(nodeListi,i);
-        mDvDx(nodeListi,i) = DvDxi;
-        mDpDx(nodeListi,i) = DpDxi;
-        //mDpDx(nodeListi,i) = -rhoi*DvDti;
-        //mDrhoDx(nodeListi,i) = DrhoDxi;
+
+        // this'll need some cleaning
+        switch(mGradType){ 
+          case 1 : // default grad based on riemann soln
+            mDvDx(nodeListi,i) = DvDxi;
+            mDpDx(nodeListi,i) = DpDxi;
+            break;
+          case 2 : // based on hydro accel for DpDx
+            mDvDx(nodeListi,i) = DvDxi;
+            mDpDx(nodeListi,i) = -rhoi*DvDti;
+            break;
+          case 3 : // raw gradients
+            mDvDx(nodeListi,i) = DvDxRawi;
+            mDpDx(nodeListi,i) = DpDxRawi;
+            break;
+          case 4 : // raw gradient for P riemann gradient for v
+            mDvDx(nodeListi,i) = DvDxi;
+            mDpDx(nodeListi,i) = DpDxRawi;
+            break;
+          case 5 : // raw gradients
+            mDvDx(nodeListi,i) = DvDxi;
+            mDpDx(nodeListi,i) = Vector::zero;
+            break;
+          default : 
+            mDvDx(nodeListi,i) = Tensor::zero;
+            mDpDx(nodeListi,i) = Vector::zero;
+            
+        }
       } 
     }
 

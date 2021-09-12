@@ -30,7 +30,8 @@ public:
 
   RiemannSolverBase(LimiterBase<Dimension>& slopeLimiter,
                     WaveSpeedBase<Dimension>& waveSpeedBase,
-                    bool linearReconstruction);
+                    bool linearReconstruction,
+                    int gradType);
 
   ~RiemannSolverBase();
 
@@ -93,6 +94,10 @@ public:
   bool linearReconstruction() const;
   void linearReconstruction(bool x);
 
+  // we'll want the ability to modify these (make better)
+  FieldList<Dimension,Vector>& DpDx();
+  FieldList<Dimension,Tensor>& DvDx();
+
   const FieldList<Dimension,Vector>& DpDx() const;
   const FieldList<Dimension,Tensor>& DvDx() const;
   const FieldList<Dimension,Vector>& DrhoDx() const;
@@ -101,7 +106,8 @@ private:
   
   LimiterBase<Dimension>& mSlopeLimiter;   
   WaveSpeedBase<Dimension>& mWaveSpeed;
-  bool mLinearReconstruction; 
+  bool mLinearReconstruction;
+  int mGradType;
 
   FieldList<Dimension, Vector> mDpDx;
   FieldList<Dimension, Tensor> mDvDx;
