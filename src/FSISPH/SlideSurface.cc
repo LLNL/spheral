@@ -111,6 +111,7 @@ slideCorrection(const int nodeListi,
 
     typename Dimension::Scalar slideCorr = 1.0;
     if (this->isSlideSurface(nodeListi,nodeListj)){
+      
       const auto normi = mSurfaceNormals(nodeListi,i);
       const auto normj = mSurfaceNormals(nodeListj,j);
 

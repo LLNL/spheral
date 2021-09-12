@@ -356,7 +356,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  //const auto surfaceNormals = state.fields(FSIFieldNames::interfaceNormals,Vector::zero);
+  const auto surfaceNormals = state.fields(FSIFieldNames::interfaceNormals,Vector::zero);
 
 
   CHECK(mass.size() == numNodeLists);
@@ -496,9 +496,9 @@ if(this->correctVelocityGradient()){
 
       //Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
       //if (!(nodeListi==nodeListj)){
-      //  const auto gradWij = 0.5*(gradWi+gradWj);
-      //  gradWi = gradWij;
-      //  gradWj = gradWij;
+      // const auto gradWij = 0.5*(gradWi+gradWj);
+      // gradWi = gradWij;
+      // gradWj = gradWij;
       //}
 
       // linear velocity gradient correction
@@ -578,7 +578,7 @@ if(this->correctVelocityGradient()){
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
-      // const auto& ni = surfaceNormals(nodeListi, i);
+      const auto& ni = surfaceNormals(nodeListi, i);
       const auto& ri = position(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
@@ -616,7 +616,7 @@ if(this->correctVelocityGradient()){
       //auto& viscousWorki = viscousWork_thread(nodeListi, i);
 
       // Get the state for node j
-      //const auto& nj = surfaceNormals(nodeListj, j);
+      const auto& nj = surfaceNormals(nodeListj, j);
       const auto& rj = position(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
@@ -813,17 +813,17 @@ if(this->correctVelocityGradient()){
           const auto weightWj = 1.0 - weightWi;
 
           // components
-          const auto nij = rhatij;
+          const auto nij = (nj-ni).unitVector();//rhatij;
           const auto ui = vi.dot(nij);
           const auto uj = vj.dot(nij);
           const auto wi = vi - ui*nij;
           const auto wj = vj - uj*nij;
 
           // get our eff pressure
-          const auto Psigmai = -rhatij.dot(sigmai.dot(rhatij));
-          const auto Psigmaj = -rhatij.dot(sigmaj.dot(rhatij));
+          const auto Psi = -rhatij.dot(sigmai.dot(rhatij));
+          const auto Psj = -rhatij.dot(sigmaj.dot(rhatij));
 
-          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ?  (Psigmaj-Psigmai)/(Ci+Cj) : 0.0);
+          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ?  (Psj-Psi)/(Ci+Cj) : 0.0);
           const auto wstar = weightWi*wi + weightWj*wj;
           vstar = fSij * vstar + (1.0-fSij)*(ustar*nij + wstar);
   
