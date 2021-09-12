@@ -59,6 +59,7 @@ commandLine(order = 5,
             svph = False,
             crksph = False,
             psph = False,
+            gsph = False,
             asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH
@@ -152,6 +153,8 @@ elif crksph:
     hydroname = os.path.join("CRKSPH",
                              str(correctionOrder),
                              str(volumeType))
+elif gsph:
+    hydroname = "GSPH"
 elif psph:
     hydroname = "PSPH"
 else:
@@ -318,6 +321,25 @@ elif psph:
                  HUpdate = HUpdate,
                  XSPH = XSPH,
                  ASPH = asph)
+elif gsph:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,True,rsphGradType)
+    hydro = GSPH(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                specificThermalEnergyDiffusionCoefficient = 0.05,
+                useVelocityMagnitudeForDt = False,
+                compatibleEnergyEvolution = True,
+                correctVelocityGradient= correctVelocityGradient,
+                evolveTotalEnergy = False,
+                XSPH = XSPH,
+                ASPH = asph,
+                HUpdate = HUpdate,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile,
+                RZ = False)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -346,28 +368,29 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
-q = hydro.Q
-if Cl:
-    q.Cl = Cl
-if Cq:
-    q.Cq = Cq
-if epsilon2:
-    q.epsilon2 = epsilon2
-if Qlimiter:
-    q.limiter = Qlimiter
-if balsaraCorrection:
-    q.balsaraShearCorrection = balsaraCorrection
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-try:
-    output("q.linearInExpansion")
-    output("q.quadraticInExpansion")
-except:
-    pass
+if not gsph:
+    q = hydro.Q
+    if Cl:
+        q.Cl = Cl
+    if Cq:
+        q.Cq = Cq
+    if epsilon2:
+        q.epsilon2 = epsilon2
+    if Qlimiter:
+        q.limiter = Qlimiter
+    if balsaraCorrection:
+        q.balsaraShearCorrection = balsaraCorrection
+    output("q")
+    output("q.Cl")
+    output("q.Cq")
+    output("q.epsilon2")
+    output("q.limiter")
+    output("q.balsaraShearCorrection")
+    try:
+        output("q.linearInExpansion")
+        output("q.quadraticInExpansion")
+    except:
+        pass
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
