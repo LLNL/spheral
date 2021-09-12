@@ -13,8 +13,8 @@ class uniform_random:
 
     def pyinit1(self,
                 seed = "const size_t",
-                minVal = "const double",
-                maxVal = "const double"):
+                minVal = ("const double", "0.0"),
+                maxVal = ("const double", "1.0")):
         "Construct with a seed value and range"
 
     def pyinit2(self, rhs="const uniform_random&"):
