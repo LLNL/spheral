@@ -356,7 +356,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  const auto surfaceNormals = state.fields(FSIFieldNames::interfaceNormals,Vector::zero);
+  // const auto surfaceNormals = state.fields(FSIFieldNames::interfaceNormals,Vector::zero);
 
 
   CHECK(mass.size() == numNodeLists);
@@ -479,6 +479,16 @@ if(this->correctVelocityGradient()){
       //--------------------------------------
       const auto rij = ri - rj;
 
+      // ij set
+      // const auto Hij = 0.5*(Hi+Hj);
+      // const auto Hdetij = Hij.Determinant();
+      // const auto etaij = Hij*rij;
+      // const auto etaMagij = etaij.magnitude();
+      // const auto gWij = W.gradValue(etaMagij, Hdetij);
+      // const auto Hetaij = Hij*etaij.unitVector();
+      // const auto gradWij = gWij*Hetaij;
+      // ij set
+
       const auto etai = Hi*rij;
       const auto etaj = Hj*rij;
       const auto etaMagi = etai.magnitude();
@@ -489,16 +499,18 @@ if(this->correctVelocityGradient()){
       // Symmetrized kernel weight and gradient.
       const auto gWi = W.gradValue(etaMagi, Hdeti);
       const auto gWj = W.gradValue(etaMagj, Hdetj);
+      
       const auto Hetai = Hi*etai.unitVector();
       const auto Hetaj = Hj*etaj.unitVector();
+      
       auto gradWi = gWi*Hetai;
       auto gradWj = gWj*Hetaj;
-
+      
       //Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
       //if (!(nodeListi==nodeListj)){
-      // const auto gradWij = 0.5*(gradWi+gradWj);
-      // gradWi = gradWij;
-      // gradWj = gradWij;
+      const auto gradWij = 0.5*(gradWi+gradWj);
+      gradWi = gradWij;
+      gradWj = gradWij;
       //}
 
       // linear velocity gradient correction
@@ -549,7 +561,7 @@ if(this->correctVelocityGradient()){
   {
     // Thread private  scratch variables.
     int i, j, nodeListi, nodeListj;
-    Scalar Wi, gWi, Wj, gWj;
+    Scalar Wi, gWi, Wj, gWj, Wij, gWij;
     Tensor QPiij, QPiji;
     SymTensor sigmai, sigmaj, sigmarhoi, sigmarhoj;
 
@@ -578,7 +590,7 @@ if(this->correctVelocityGradient()){
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
-      const auto& ni = surfaceNormals(nodeListi, i);
+      //const auto& ni = surfaceNormals(nodeListi, i);
       const auto& ri = position(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
@@ -616,7 +628,7 @@ if(this->correctVelocityGradient()){
       //auto& viscousWorki = viscousWork_thread(nodeListi, i);
 
       // Get the state for node j
-      const auto& nj = surfaceNormals(nodeListj, j);
+      //const auto& nj = surfaceNormals(nodeListj, j);
       const auto& rj = position(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
@@ -662,8 +674,8 @@ if(this->correctVelocityGradient()){
       // we'll need a couple damage defs
       const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
       const auto fSij = (sameMatij ? 1.0-abs(Di-Dj)     : 0.0);
-      const auto fDi = (1.0-Di);
-      const auto fDj = (1.0-Dj);
+      const auto fDi =  (sameMatij ? (1.0-Di) : 0.0 );
+      const auto fDj =  (sameMatij ? (1.0-Dj) : 0.0 );
 
       // Decoupling
       //-------------------------------------------------------
@@ -695,31 +707,25 @@ if(this->correctVelocityGradient()){
         CHECK(etaMagj >= 0.0);
 
         // Symmetrized kernel weight and gradient.
-        std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
-        std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
-        const auto Hetai = Hi*etai.unitVector();
-        const auto Hetaj = Hj*etaj.unitVector();
-        auto gradWi = gWi*Hetai;
-        auto gradWj = gWj*Hetaj;
+         std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
+         std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
+         const auto Hetai = Hi*etai.unitVector();
+         const auto Hetaj = Hj*etaj.unitVector();
+         auto gradWi = gWi*Hetai;
+         auto gradWj = gWj*Hetaj;
+        
+        // average our kernels
+        const auto Wij = 0.5*(Wi+Wj);
+        const auto gWij = 0.5*(gWi+gWj);
         const auto gradWij = 0.5*(gradWi+gradWj);
 
-        // Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
-        // this is basically manditory for ideal gas - ideal gas or 
-        // when using porosity.
-        //if (!sameMatij){
-          // const auto Hdetij = Hij.Determinant();
-          // const auto Wij = 0.5*(Wi+Wj); 
-          // const auto gWij = 0.5*(gWi+gWj);
+        Wi = Wij;
+        Wj = Wij;
+        gWi = gWij;
+        gWj = gWij;
+        gradWi = gradWij;
+        gradWj = gradWij;
 
-          // Hdeti =  Hdetij;
-          // Hdetj = Hdetij;
-          // Wi = Wij;
-          // Wj = Wij;
-          // gWi = gWij;
-          // gWj = gWij;
-          // gradWi = gradWij;
-          // gradWj = gradWij;
-        //}
 
         if(this->correctVelocityGradient()){
          gradWi = Mi.Transpose()*gradWi;
@@ -742,32 +748,28 @@ if(this->correctVelocityGradient()){
         const auto cij = 0.5*(ci+cj); 
         const auto vij = vi - vj;
 
+        // artificial viscosity
         std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
                                         ri, etaij, vi, rhoij, cij, Hij,  
                                         rj, etaij, vj, rhoij, cij, Hij); 
         
-        // stresses for interacting pairs.
-        if (sameMatij) {
-          const auto Peffi = (Pi<0.0 ? fDi : 1.0) * Pi;
-          const auto Peffj = (Pj<0.0 ? fDj : 1.0) * Pj;
-          sigmai = min(fDij,fDi)*Si - Peffi * SymTensor::one;
-          sigmaj = min(fDij,fDj)*Sj - Peffj * SymTensor::one;
-        }else {
-          const auto slideCorrection = slides.slideCorrection(nodeListi, i, nodeListj, j,vi,vj);
+        const auto slideCorrection = slides.slideCorrection(nodeListi, i, nodeListj, j,vi,vj);
 
-          QPiij *= slideCorrection;
-          QPiji *= slideCorrection;
+        QPiij *= slideCorrection;
+        QPiji *= slideCorrection;
 
-          const auto Peffi = max(Pi,0.0);
-          const auto Peffj = max(Pj,0.0);
-          const auto Pstar = ((Peffi)*rhoj+(Peffj)*rhoi)/(rhoi+rhoj);
-          sigmai = -Pstar*SymTensor::one;
-          sigmaj = -Pstar*SymTensor::one;
-        }
 
         maxViscousPressurei = max(maxViscousPressurei, rhoi*rhoj * QPiij.diagonalElements().maxAbsElement());
         maxViscousPressurej = max(maxViscousPressurej, rhoi*rhoj * QPiji.diagonalElements().maxAbsElement());
-      
+
+        // stress tensor
+        const auto Peffi = (Pi<0.0 ? fDi : 1.0) * Pi;
+        const auto Peffj = (Pj<0.0 ? fDj : 1.0) * Pj;
+        const auto Pstar = (rhoi*Peffj + rhoj*Peffi)/(rhoi+rhoj);
+
+        sigmai = fDi * Si - (constructHLLC ? Peffi : Pstar) * SymTensor::one;
+        sigmaj = fDj * Sj - (constructHLLC ? Peffj : Pstar) * SymTensor::one;
+
         // Compute the tensile correction to add to the stress as described in 
         // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
         const auto fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
@@ -813,15 +815,15 @@ if(this->correctVelocityGradient()){
           const auto weightWj = 1.0 - weightWi;
 
           // components
-          const auto nij = (nj-ni).unitVector();//rhatij;
+          const auto nij = rhatij; 
           const auto ui = vi.dot(nij);
           const auto uj = vj.dot(nij);
           const auto wi = vi - ui*nij;
           const auto wj = vj - uj*nij;
 
           // get our eff pressure
-          const auto Psi = -rhatij.dot(sigmai.dot(rhatij));
-          const auto Psj = -rhatij.dot(sigmaj.dot(rhatij));
+          const auto Psi = -nij.dot(sigmai.dot(nij));
+          const auto Psj = -nij.dot(sigmaj.dot(nij));
 
           const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ?  (Psj-Psi)/(Ci+Cj) : 0.0);
           const auto wstar = weightWi*wi + weightWj*wj;
@@ -830,7 +832,7 @@ if(this->correctVelocityGradient()){
         }
 
         // diffusion added to vel gradient if additional stabilization is needed
-        if(stabilizeDensity and !(constructHLLC and !sameMatij) ){
+        if(stabilizeDensity){// and !(constructHLLC and !sameMatij) ){
           vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, (Pj-Pi)/max(rhoi*ci,rhoj*cj) )) * rhatij;
         }
 
