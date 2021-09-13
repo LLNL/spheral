@@ -681,15 +681,15 @@ if(this->correctVelocityGradient()){
       //-------------------------------------------------------
       // we need to test if these nodes are allowed to interact
       const auto isExpanding = (ri-rj).dot(vi-vj) > 0.0;
-      const auto isDispersedRubblei = (Di>0.99) and (Pi<0.0);
-      const auto isDispersedRubblej = (Dj>0.99) and (Pj<0.0);
+      const auto cantSupportTension = (fDi<0.01) or (fDj<0.01);
+      const auto isInTension = (Pi<0.0) or (Pj<0.0);
 
-      const auto damageDecouple =  isExpanding and (isDispersedRubblei or isDispersedRubblej);
+      const auto decouple =  isExpanding and (cantSupportTension and isInTension);
 
       const auto constructInterface = (fSij < 0.99);
       const auto negligableShearWave = max(fDi*mui,fDj*muj) < 1.0e-5*min(Ki,Kj);
 
-      if (!damageDecouple){
+      if (!decouple){
 
         // Kernels
         //--------------------------------------
@@ -806,8 +806,8 @@ if(this->correctVelocityGradient()){
           // weights weights
           const auto Ci = (constructHLLC ? rhoi*ci : abs(Ki*volj*gWi) ) + tiny;
           const auto Cj = (constructHLLC ? rhoj*cj : abs(Kj*voli*gWj) ) + tiny;
-          const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : abs(mui*volj*gWi) ) + tiny;
-          const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : abs(muj*voli*gWj) ) + tiny;
+          const auto Csi = fDi*(constructHLLC ? std::sqrt(rhoi*mui) : abs(mui*volj*gWi) ) + tiny;
+          const auto Csj = fDj*(constructHLLC ? std::sqrt(rhoj*muj) : abs(muj*voli*gWj) ) + tiny;
 
           const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
           const auto weightUj = 1.0 - weightUi;
@@ -815,24 +815,23 @@ if(this->correctVelocityGradient()){
           const auto weightWj = 1.0 - weightWi;
 
           // components
-          const auto nij = rhatij; 
-          const auto ui = vi.dot(nij);
-          const auto uj = vj.dot(nij);
-          const auto wi = vi - ui*nij;
-          const auto wj = vj - uj*nij;
+          const auto ui = vi.dot(rhatij);
+          const auto uj = vj.dot(rhatij);
+          const auto wi = vi - ui*rhatij;
+          const auto wj = vj - uj*rhatij;
 
           // get our eff pressure
-          const auto Psi = -nij.dot(sigmai.dot(nij));
-          const auto Psj = -nij.dot(sigmaj.dot(nij));
+          const auto Psi = -rhatij.dot(sigmai.dot(rhatij));
+          const auto Psj = -rhatij.dot(sigmaj.dot(rhatij));
 
           const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ?  (Psj-Psi)/(Ci+Cj) : 0.0);
           const auto wstar = weightWi*wi + weightWj*wj;
-          vstar = fSij * vstar + (1.0-fSij)*(ustar*nij + wstar);
+          vstar = fSij * vstar + (1.0-fSij)*(ustar*rhatij + wstar);
   
         }
 
         // diffusion added to vel gradient if additional stabilization is needed
-        if(stabilizeDensity){// and !(constructHLLC and !sameMatij) ){
+        if(stabilizeDensity){
           vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, (Pj-Pi)/max(rhoi*ci,rhoj*cj) )) * rhatij;
         }
 
