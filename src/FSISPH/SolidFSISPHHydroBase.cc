@@ -476,8 +476,7 @@ if(this->correctVelocityGradient()){
       auto& Mi = M_thread(nodeListi,i);
       auto& Mj = M_thread(nodeListj,j);
 
-      const auto differentMatij = !(nodeListi==nodeListj);
-
+      //const auto differentMatij = (nodeListi!=nodeListj);
       // Kernels
       //--------------------------------------
       const auto rij = ri - rj;
@@ -500,12 +499,11 @@ if(this->correctVelocityGradient()){
       auto gradWj = gWj*Hetaj;
       
       //Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
-      if (differentMatij and constructModulus){
-        const auto gradWij = 0.5*(gradWi+gradWj);
-        gradWi = gradWij;
-        gradWj = gradWij;
-      }
-
+      //if(differentMatij){
+      //  const auto gradWij = 0.5*(gradWi+gradWj);
+      //  gradWi = gradWij;
+      //  gradWj = gradWij;
+      //}
       // linear velocity gradient correction
       //---------------------------------------------------------------
       Mi -=  mj/rhoj * rij.dyad(gradWi);
@@ -660,7 +658,7 @@ if(this->correctVelocityGradient()){
 
       // Flag if this is a contiguous material pair or not.
       const auto sameMatij =  (nodeListi == nodeListj);// and fragIDi == fragIDj); 
-      const auto differentMatij = !sameMatij;
+      //const auto differentMatij = !sameMatij;
 
       // Flag if at least one particle is free (0).
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
@@ -710,17 +708,16 @@ if(this->correctVelocityGradient()){
         
         // average our kernels
         const auto gradWij = 0.5*(gradWi+gradWj);
-
-        if(differentMatij and constructModulus){
-          const auto Wij = 0.5*(Wi+Wj);
-          const auto gWij = 0.5*(gWi+gWj);
-          Wi = Wij;
-          Wj = Wij;
-          gWi = gWij;
-          gWj = gWij;
-          gradWi = gradWij;
-          gradWj = gradWij;
-        }
+        //if(differentMatij){
+        //  const auto Wij = 0.5*(Wi+Wj);
+        //  const auto gWij = 0.5*(gWi+gWj);
+        //  Wi = Wij;
+        //  Wj = Wij;
+        //  gWi = gWij;
+        //  gWj = gWij;
+        //  gradWi = gradWij;
+        //  gradWj = gradWij;
+        //}
 
         if(this->correctVelocityGradient()){
          gradWi = Mi.Transpose()*gradWi;
@@ -742,8 +739,7 @@ if(this->correctVelocityGradient()){
         const auto rhoij = 0.5*(rhoi+rhoj); 
         const auto cij = 0.5*(ci+cj); 
         const auto vij = vi - vj;
-        const auto cijEff = max(min(cij + (vi-vj).dot(rhatij), cij),0.0);
-
+        
         // artificial viscosity
         std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
                                         ri, etaij, vi, rhoij, cij, Hij,  
@@ -828,8 +824,8 @@ if(this->correctVelocityGradient()){
 
         // diffusion added to vel gradient if additional stabilization is needed
         if (stabilizeDensity and (constructModulus or sameMatij) ){
-          const auto ustarStabilizer =  ((Pj-Pi))*safeInv(max(tiny,max(rhoi*ci*ci,rhoj*cj*cj)));
-          vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, ustarStabilizer)) * cijEff * rhatij;
+          const auto ustarStabilizer =  (Pj-Pi)/max(tiny,max(rhoi*ci*ci,rhoj*cj*cj));
+          vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, ustarStabilizer)) * cij * rhatij;
         }
 
         auto deltaDvDxi = 2.0*(vi-vstar).dyad(gradWi);
@@ -864,6 +860,7 @@ if(this->correctVelocityGradient()){
       // diffusion
       //-----------------------------------------------------------
         if (sameMatij and diffuseEnergy){
+          const auto cijEff = max(min(cij + (vi-vj).dot(rhatij), cij),0.0);
           const auto diffusion =  epsDiffusionCoeff*cijEff*(epsi-epsj)*etaij.dot(gradWij)/(rhoij*etaMagij*etaMagij+tiny);
           pairDepsDt[2*kk]   += diffusion; 
           pairDepsDt[2*kk+1] -= diffusion;
@@ -979,7 +976,7 @@ if(this->correctVelocityGradient()){
       const auto spin = localDvDxi.SkewSymmetric();
       const auto deviatoricDeformation = deformation - (deformation.Trace()/Dimension::nDim)*SymTensor::one;
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
-      DSDti += spinCorrection + (2.0*mui)*deviatoricDeformation;
+      DSDti += spinCorrection + (2.0*mui*(1.0-Di))*deviatoricDeformation;
 
       // In the presence of damage, add a term to reduce the stress on this point.
       if(Di>0.99) DSDti = (1.0 - Di)*DSDti - 0.125/dt*Di*Si;
