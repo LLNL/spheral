@@ -317,6 +317,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // get our interface method (default is modulus weights)
   const auto constructHLLC = (this->interfaceMethod() == InterfaceMethod::HLLCInterface);
   const auto constructModulus = (this->interfaceMethod() == InterfaceMethod::ModulusInterface);
+  const auto activateConstruction = !(this->interfaceMethod() == InterfaceMethod::NoInterface);
 
   // The kernels and such.
   const auto& W = this->kernel();
@@ -500,9 +501,9 @@ if(this->correctVelocityGradient()){
       
       //Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
       //if(differentMatij){
-      //  const auto gradWij = 0.5*(gradWi+gradWj);
-      //  gradWi = gradWij;
-      //  gradWj = gradWij;
+        // const auto gradWij = 0.5*(gradWi+gradWj);
+        // gradWi = gradWij;
+        // gradWj = gradWij;
       //}
       // linear velocity gradient correction
       //---------------------------------------------------------------
@@ -678,7 +679,7 @@ if(this->correctVelocityGradient()){
 
       const auto decouple =  isExpanding and (cantSupportTension and isInTension);
 
-      const auto constructInterface = (fSij < 0.99);
+      const auto constructInterface = (fSij < 0.99) and activateConstruction;
       const auto negligableShearWave = max(fDi*mui,fDj*muj) < 1.0e-5*min(Ki,Kj);
 
       if (!decouple){
