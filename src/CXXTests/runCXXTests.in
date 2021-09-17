@@ -1,0 +1,3 @@
+import subprocess
+
+subprocess.call(["@CMAKE_INSTALL_PREFIX@/tests/@test_name@_test"])

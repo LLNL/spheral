@@ -18,11 +18,21 @@ foreach(test ${gtest_spheral_tests})
 
     blt_add_executable( NAME ${test_name}_test
                         SOURCES ${test}
-                        OUTPUT_DIR ${PROJECT_BINARY_DIR}/tests
                         DEPENDS_ON gtest ${SPHERAL_CXX_LIBS} ${spheral_blt_depends}
                         )
 
     blt_add_test( NAME ${test_name}
                   COMMAND ${test_name}_test
                   )
+
+    if (NOT ENABLE_CXXONLY)
+      configure_file(
+          "${CMAKE_CURRENT_SOURCE_DIR}/runCXXTests.in"
+          "${CMAKE_INSTALL_PREFIX}/tests/run${test_name}_test.py"
+      )
+    endif()
+    
+    install(TARGETS ${test_name}_test
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/tests
+            )
 endforeach()
