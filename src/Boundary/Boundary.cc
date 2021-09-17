@@ -102,8 +102,6 @@ Boundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
 
   // Walk the NodeLists.
   auto nodeListi = 0;
-  // for (auto itr = registrar.begin(); itr != registrar.end(); ++itr, ++nodeListi) {
-  //   const auto* nodeListPtr = *itr;
   for (auto nodeListPtr : nodeListPtrs) {
     // Does the Boundary have entries for this NodeList?
     if (haveNodeList(*nodeListPtr)) {
@@ -140,6 +138,7 @@ Boundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
         CHECK(boundaryNodes.ghostNodes.size() == boundaryNodes.controlNodes.size());
       }
     }
+    ++nodeListi;
   }
 }
 
