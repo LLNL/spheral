@@ -45,13 +45,14 @@ shearModulus(Field<Dimension, Scalar>& shearModulus,
              const Field<Dimension, Scalar>& /*density*/,
              const Field<Dimension, Scalar>& /*specificThermalEnergy*/,
              const Field<Dimension, Scalar>& /*pressure*/,
-             const Field<Dimension, SymTensor>& damage) const {
-  const auto n = damage.numInternalElements();
-#pragma omp parallel for
-  for (auto i = 0u; i < n; ++i) {
-    const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
-    shearModulus(i) = (1.0 - Di)*mShearModulus0;
-  }
+             const Field<Dimension, SymTensor>& /*damage*/) const {
+  shearModulus = mShearModulus0;
+// const auto n = damage.numInternalElements();
+// #pragma omp parallel for
+//   for (auto i = 0u; i < n; ++i) {
+//     const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
+//     shearModulus(i) = (1.0 - Di)*mShearModulus0;
+//   }
 }
 
 //------------------------------------------------------------------------------
@@ -66,17 +67,18 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
               const Field<Dimension, Scalar>& /*pressure*/,
               const Field<Dimension, Scalar>& /*plasticStrain*/,
               const Field<Dimension, Scalar>& /*plasticStrainRate*/,
-              const Field<Dimension, SymTensor>& damage) const {
+              const Field<Dimension, SymTensor>& /*damage*/) const {
   if (mEOSptr != 0 and
       density/(mEOSptr->referenceDensity()) < mEOSptr->etamin()) {
     yieldStrength = 0.0;
   } else {
-    const auto n = damage.numInternalElements();
-#pragma omp parallel for
-    for (auto i = 0u; i < n; ++i) {
-      const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
-      yieldStrength(i) = (1.0 - Di)*mYieldStrength0;
-    }
+    yieldStrength = mYieldStrength0;
+//     const auto n = damage.numInternalElements();
+// #pragma omp parallel for
+//     for (auto i = 0u; i < n; ++i) {
+//       const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
+//       yieldStrength(i) = (1.0 - Di)*mYieldStrength0;
+//     }
   }
 }
 

@@ -173,7 +173,13 @@ Zero() {
         ptr->clear();
 
       } catch (const boost::bad_any_cast&) {
-        VERIFY2(false, "StateDerivatives::Zero ERROR: unknown type for key " << itr->first << "\n");
+        try {
+          auto ptr = boost::any_cast<vector<Scalar>*>(itr->second);
+          ptr->clear();
+
+        } catch (const boost::bad_any_cast&) {
+          VERIFY2(false, "StateDerivatives::Zero ERROR: unknown type for key " << itr->first << "\n");
+        }
       }
     }
   }

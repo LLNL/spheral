@@ -104,7 +104,9 @@ uniform_random::seed(const size_t val) {
 //------------------------------------------------------------------------------
 void
 uniform_random::range(const double a, const double b) {
-  mRan = std::uniform_real_distribution<double>(a, b);
+  mMin = a;
+  mMax = b;
+  mRan = std::uniform_real_distribution<double>(mMin, mMax);
 }
 
 //------------------------------------------------------------------------------

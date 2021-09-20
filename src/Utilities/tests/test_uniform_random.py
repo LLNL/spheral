@@ -51,7 +51,7 @@ class TestRandom01(unittest.TestCase):
         gen1 = uniform_random(seed)
         gen2 = uniform_random(seed + 1)
         assert gen1 != gen2
-        gen2.seed(seed)
+        gen2.seed = seed
         assert gen1 == gen2
         gen3 = uniform_random(seed, 2.0, 3.0)
         assert gen3 != gen1
@@ -76,7 +76,12 @@ class TestRandom01(unittest.TestCase):
     #===========================================================================
     def testRange(self):
         seed = rangen.randint(1, 2**64)
-        xmin = rangen.
+        gen1 = uniform_random(seed)
+        assert gen1.min == 0.0
+        assert gen1.max == 1.0
+        gen1.range(5.0, 10.0)
+        assert gen1.min == 5.0
+        assert gen1.max == 10.0
 
     #===========================================================================
     # Serialization
