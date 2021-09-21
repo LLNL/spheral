@@ -316,7 +316,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
   // get our interface method (default is modulus weights)
   const auto constructHLLC = (this->interfaceMethod() == InterfaceMethod::HLLCInterface);
-  const auto constructModulus = (this->interfaceMethod() == InterfaceMethod::ModulusInterface);
+  //const auto constructModulus = (this->interfaceMethod() == InterfaceMethod::ModulusInterface);
   const auto activateConstruction = !(this->interfaceMethod() == InterfaceMethod::NoInterface);
 
   // The kernels and such.
@@ -359,7 +359,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   // const auto surfaceNormals = state.fields(FSIFieldNames::interfaceNormals,Vector::zero);
-
+  // const auto interfaceFraction = state.fields(FSIFieldNames::interfaceFraction,0.0);
 
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -583,6 +583,7 @@ if(this->correctVelocityGradient()){
 
       // Get the state for node i.
       //const auto& ni = surfaceNormals(nodeListi, i);
+      //const auto& fraci = interfaceFraction(nodeListi,i);
       const auto& ri = position(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
@@ -605,9 +606,7 @@ if(this->correctVelocityGradient()){
 
       const auto& Mi = M(nodeListi, i);
       auto& DvDti = DvDt_thread(nodeListi, i);
-      //auto& DrhoDti = DrhoDt_thread(nodeListi, i);
       auto& DepsDti = DepsDt_thread(nodeListi, i);
-      //auto& DSDti = DSDt_thread(nodeListi, i);
       auto& DvDxi = DvDx_thread(nodeListi, i);
       auto& localDvDxi = localDvDx_thread(nodeListi, i);
       auto& localMi = localM_thread(nodeListi, i);
@@ -621,6 +620,7 @@ if(this->correctVelocityGradient()){
 
       // Get the state for node j
       //const auto& nj = surfaceNormals(nodeListj, j);
+      //const auto& fracj = interfaceFraction(nodeListj,j);
       const auto& rj = position(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
@@ -641,13 +641,11 @@ if(this->correctVelocityGradient()){
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
+      const auto& Mj = M(nodeListj,j);
       auto& DvDtj = DvDt_thread(nodeListj, j);
-      //auto& DrhoDtj = DrhoDt_thread(nodeListj, j);
       auto& DepsDtj = DepsDt_thread(nodeListj, j);
-      //auto& DSDtj = DSDt_thread(nodeListj, j);
       auto& DvDxj = DvDx_thread(nodeListj, j);
       auto& localDvDxj = localDvDx_thread(nodeListj, j);
-      const auto& Mj = M(nodeListj,j);
       auto& localMj = localM_thread(nodeListj, j);
       auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
@@ -824,8 +822,12 @@ if(this->correctVelocityGradient()){
         }
 
         // diffusion added to vel gradient if additional stabilization is needed
-        if (stabilizeDensity and (constructModulus or sameMatij) ){
-          const auto ustarStabilizer =  (Pj-Pi)/max(tiny,max(rhoi*ci*ci,rhoj*cj*cj));
+        if (stabilizeDensity){// and (constructModulus or sameMatij) ){
+          const auto denom = (sameMatij?(rhoi+rhoj)             :
+                                        (rhoi*ci*ci+rhoj*cj*cj));
+          const auto ustarStabilizer =  (sameMatij ? (rhoj-rhoi) :
+                                                    (Pj-Pi)     )/max(tiny,denom);
+         //const auto coeffEffective = min(max(rhoStabilizeCoeff,(fraci+fracj)),1.0);
           vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, ustarStabilizer)) * cij * rhatij;
         }
 
