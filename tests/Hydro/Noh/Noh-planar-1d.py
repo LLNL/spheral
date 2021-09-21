@@ -346,8 +346,7 @@ elif fsisph:
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    correctVelocityGradient = correctVelocityGradient,
-                   HUpdate = HUpdate,
-                   XSPH = XSPH)
+                   HUpdate = HUpdate)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,

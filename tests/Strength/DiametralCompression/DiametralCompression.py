@@ -149,7 +149,7 @@ assert SpecimenDistribution in (["lattice","conformal"])
 
 assert not (useDamage and strengthModel=="null") # if were using damage strength must be used
 
-assert fsiRhoDiffuseCoeff >= 0.0 
+assert fsiXSPHCoeff >= 0.0 
 assert fsiEpsDiffuseCoeff >= 0.0 
 assert fsiRhoStabilizeCoeff >= 0.0 
 assert fsiSurfaceCoefficient >= 0.0 
@@ -414,10 +414,10 @@ elif SPHType=="fsisph":
                    W = WT,
                    cfl = cfl,
                    surfaceForceCoefficient = fsiSurfaceCoefficient,                       
-                   densityDiffusionCoefficient = fsiRhoDiffuseCoeff,                 
+                   densityStabilizationCoefficient = fsiRhoStabilizeCoeff,                 
                    specificThermalEnergyDiffusionCoefficient = fsiEpsDiffuseCoeff,  
                    xsphCoefficient = fsiXSPHCoeff,
-                   inerfaceMethod = fsiInterfaceMethod,      
+                   interfaceMethod = fsiInterfaceMethod,      
                    correctVelocityGradient = correctVelocityGradient,
                    compatibleEnergyEvolution = compatibleEnergyEvolution,  
                    evolveTotalEnergy = totalEnergyEvolution,         
