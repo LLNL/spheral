@@ -55,7 +55,7 @@ timeStep(const DataBase<Dimension>& dataBase,
   const auto& radius = state.fields(DEMFieldNames::particleRadius,0.0);
 
   const auto numNodeLists = dataBase.numNodeLists();
-
+  const auto Y2eff = 16.0/3.0*mYoungsModulus;
   const auto pi = 3.14159265358979323846;
   auto minContactTime = std::numeric_limits<double>::max();
 
@@ -70,8 +70,8 @@ timeStep(const DataBase<Dimension>& dataBase,
       for (auto i = 0u; i < ni; ++i) {
           const auto mi = mass(nodeListi,i);
           const auto Ri = radius(nodeListi,i);
-          const auto k = 4.0/3.0*mYoungsModulus*std::sqrt(Ri);
-          minContactTime_thread = min(minContactTime_thread,mi/k);
+          const auto k = Yeff*Ri;
+          minContactTime_thread = min(minContactTime_thread,mi*mi/k);
       }
 
     #pragma omp critical
@@ -80,7 +80,7 @@ timeStep(const DataBase<Dimension>& dataBase,
     }
   }
 
-  minContactTime = pi*std::sqrt(minContactTime);
+  minContactTime = pi*std::sqrt(std::sqrt(minContactTime));
   return minContactTime;
 };
 
