@@ -44,6 +44,9 @@ set(Utilities_headers
     Bessel.hh
     CounterClockwiseComparator.hh
     DBC.hh
+    QuadraticInterpolator.hh
+    BiQuadraticInterpolator.hh
+    BiQuadraticInterpolatorInline.hh
     DataTypeTraits.hh
     DomainNode.hh
     DomainNodeInline.hh
