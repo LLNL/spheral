@@ -28,7 +28,7 @@ foreach(test ${gtest_spheral_tests})
     if (NOT ENABLE_CXXONLY)
       configure_file(
           "${CMAKE_CURRENT_SOURCE_DIR}/runCXXTests.in"
-          "${CMAKE_INSTALL_PREFIX}/tests/run${test_name}_test.py"
+          "${CMAKE_INSTALL_PREFIX}/tests/${test_name}_test.py"
       )
     endif()
     
