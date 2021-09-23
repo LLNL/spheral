@@ -91,6 +91,3 @@ source("testSidreStorage_test.py")
 ## RK tests
 #source("RK/RKInterpolation.py")
 #source("RK/testVoronoiVolume.py")
-
-# CXX tests
-#source("testSidreStorage_test.py")
