@@ -79,6 +79,7 @@ source("Gravity/CollisionlessSphereCollapse.py")
 # Strength tests.
 #source("Strength/PlateImpact/PlateImpact-1d.py")
 source("Strength/CollidingPlates/CollidingPlates-1d.py")
+source("Strength/DiametralCompression/DiametralCompression.py")
 
 # Damage tests.
 source("Damage/TensileRod/TensileRod-1d.py")

@@ -90,7 +90,7 @@ commandLine(seed = "lattice",
             etamax = 1.5,
 
             # Parameters for the time dependent strain and cracking.
-            DamageModelConstructor = GradyKippTensorDamageOwen,
+            DamageModelConstructor = ProbabilisticDamageModel,
             volumeMultiplier = (3.0/100.0)**2,
             numFlawsPerNode = 1,
             v0 = 1e-2,
