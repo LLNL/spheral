@@ -11,6 +11,12 @@
 
 namespace Spheral {
 
+enum class InterfaceMethod {
+  HLLCInterface = 0,
+  ModulusInterface = 1,
+  NoInterface = 2,
+};
+
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class SmoothingScaleBase;
@@ -44,8 +50,9 @@ public:
                     const double cfl,
                     const double surfaceForceCoefficient,
                     const double densityStabilizationCoefficient,
-                    const double densityDiffusionCoefficient,
                     const double specificThermalEnergyDiffusionCoefficient,
+                    const double xsphCoefficient,
+                    const InterfaceMethod interfaceMethod,
                     const std::vector<int> sumDensityNodeLists,
                     const bool useVelocityMagnitudeForDt,
                     const bool compatibleEnergyEvolution,
@@ -106,11 +113,11 @@ public:
   double densityStabilizationCoefficient() const;
   void densityStabilizationCoefficient(double x);
 
-  double densityDiffusionCoefficient() const;
-  void densityDiffusionCoefficient(double x);
-
   double specificThermalEnergyDiffusionCoefficient() const;
   void specificThermalEnergyDiffusionCoefficient(double x);
+
+  double xsphCoefficient() const;
+  void xsphCoefficient(double x);
 
   bool applySelectSumDensity() const;
   void applySelectSumDensity(bool x);
@@ -121,6 +128,9 @@ public:
   const std::vector<Scalar>& pairDepsDt() const;
   SlideSurface<Dimension>& slideSurface() const;
 
+  InterfaceMethod interfaceMethod() const;
+  void interfaceMethod(InterfaceMethod method);
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "SolidFSISPHHydroBase"; }
@@ -130,14 +140,17 @@ private:
   SlideSurface<Dimension>& mSlideSurface;             // ref to the obj tracking slideSurfs between nodelists
   double mSurfaceForceCoefficient;                    // Monaghan 2013 force increase @ interface
   double mDensityStabilizationCoefficient;            // adjusts DvDx to stabilize rho
-  double mDensityDiffusionCoefficient;                // controls diffusion of rho
   double mSpecificThermalEnergyDiffusionCoefficient;  // controls diffusion of eps
+  double mXSPHCoefficient;                            // controls amount of xsph-ing
+  InterfaceMethod mInterfaceMethod;                   // switch for material interface method
   
   bool   mApplySelectDensitySum;                      // switch for density sum
   std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
   
   std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
  
+  
+
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();
   SolidFSISPHHydroBase(const SolidFSISPHHydroBase&);

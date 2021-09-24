@@ -1,6 +1,6 @@
 #ATS:test(SELF, label="BiQuadraticInterpolator unit tests")
 
-from Spheral2d import *
+from Spheral import *
 from SpheralTestUtilities import *
 
 import unittest
@@ -31,38 +31,38 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
     #===========================================================================
     # A quadratic answer object
     #===========================================================================
-    class QuadraticFunctor(VectorScalarFunctor2d):
+    class QuadraticFunctor(ScalarScalarScalarFunctor):
         def __init__(self,
                      c00, c01, c02,
                      c10, c11, 
                      c20):
-            VectorScalarFunctor2d.__init__(self)
+            ScalarScalarScalarFunctor.__init__(self)
             self.c = np.array([[c00, c01, c02],
                                [c10, c11, 0.0],
                                [c20, 0.0, 0.0]])
             return
 
-        def __call__(self, pos):
-            return npP2D(pos.x, pos.y, self.c)
+        def __call__(self, x, y):
+            return npP2D(x, y, self.c)
 
     #===========================================================================
     # A cubic answer object
     #===========================================================================
-    class CubicFunctor(VectorScalarFunctor2d):
+    class CubicFunctor(ScalarScalarScalarFunctor):
         def __init__(self,
                      c00, c01, c02, c03,
                      c10, c11, c12, 
                      c20, c21,
                      c30):
-            VectorScalarFunctor2d.__init__(self)
+            ScalarScalarScalarFunctor.__init__(self)
             self.c = np.array([[c00, c01, c02, c03],
                                [c10, c11, c12, 0.0],
                                [c20, c21, 0.0, 0.0],
                                [c30, 0.0, 0.0, 0.0]])
             return
 
-        def __call__(self, pos):
-            return npP2D(pos.x, pos.y, self.c)
+        def __call__(self, x, y):
+            return npP2D(x, y, self.c)
 
     #===========================================================================
     # Interpolate a quadratic function (should be exact)
@@ -76,9 +76,9 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                                           rangen.uniform(-10.0, 10.0),
                                           rangen.uniform(-10.0, 10.0),
                                           rangen.uniform(-10.0, 10.0))
-                xmin = Vector(-100.0, -100.0)
-                xmax = Vector( 100.0,  100.0)
-                Finterp = BiQuadraticInterpolator(xmin, xmax, nx, ny, F)
+                xmin, ymin = -100.0, -100.0
+                xmax, ymax =  100.0,  100.0
+                Finterp = BiQuadraticInterpolator(xmin, xmax, ymin, ymax, nx, ny, F)
                 assert fuzzyEqual(Finterp.coeffs[0], F.c[0][0])
                 assert fuzzyEqual(Finterp.coeffs[1], F.c[1][0])
                 assert fuzzyEqual(Finterp.coeffs[2], F.c[0][1])
@@ -86,10 +86,10 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                 assert fuzzyEqual(Finterp.coeffs[4], F.c[2][0])
                 assert fuzzyEqual(Finterp.coeffs[5], F.c[0][2])
                 for i in xrange(self.n):
-                    pos = Vector(rangen.uniform(xmin.x, xmax.x),
-                                 rangen.uniform(xmin.y, xmax.y))
-                    self.failUnless(fuzzyEqual(Finterp(pos.x, pos.y), F(pos)),
-                                    "Interpolation off: %g != %g" % (Finterp(pos), F(pos)))
+                    x = rangen.uniform(xmin, xmax)
+                    y = rangen.uniform(ymin, ymax)
+                    self.failUnless(fuzzyEqual(Finterp(x, y), F(x, y)),
+                                    "Interpolation off: %g != %g" % (Finterp(x, y), F(x, y)))
 
     #===========================================================================
     # Interpolate a cubic function (not exact)
@@ -108,9 +108,9 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                                       rangen.uniform(-10.0, 10.0),
                                       rangen.uniform(-10.0, 10.0),
                                       rangen.uniform(-10.0, 10.0))
-                xmin = Vector(-100.0, -100.0)
-                xmax = Vector( 100.0,  100.0)
-                Finterp = BiQuadraticInterpolator(xmin, xmax, nx, ny, F)
+                xmin, ymin = -100.0, -100.0
+                xmax, ymax =  100.0,  100.0
+                Finterp = BiQuadraticInterpolator(xmin, xmax, ymin, ymax, nx, ny, F)
                 # sys.stderr.write("(%i, %i): %s\n" % (nx, ny, Finterp))
                 
                 # # Plotting fun
@@ -138,10 +138,10 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                 # # Plotting fun
 
                 for i in xrange(self.n):
-                    pos = Vector(rangen.uniform(xmin.x, xmax.x),
-                                 rangen.uniform(xmin.y, xmax.y))
-                    self.failUnless(fuzzyEqual(Finterp(pos.x, pos.y), F(pos), acc),
-                                    "Interpolation off: %g != %g, err=%g" % (Finterp(pos), F(pos), 2.0*abs((F(pos.x, pos.y) - Finterp(pos))/(F(pos) + Finterp(pos)))))
+                    x = rangen.uniform(xmin, xmax)
+                    y = rangen.uniform(ymin, ymax)
+                    self.failUnless(fuzzyEqual(Finterp(x, y), F(x, y), acc),
+                                    "Interpolation off: %g != %g, err=%g" % (Finterp(x, y), F(x, y), 2.0*abs((F(x, y) - Finterp(x, y))/(F(x, y) + Finterp(x, y)))))
 
 
 if __name__ == "__main__":
