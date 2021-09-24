@@ -529,6 +529,7 @@ GeomPolygon::
 contains(const GeomPolygon::Vector& point,
          const bool countBoundary,
          const double tol) const {
+  if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
   if (mConvex) {
     return this->convexContains(point, countBoundary, tol);
   } else {
@@ -545,7 +546,6 @@ GeomPolygon::
 convexContains(const GeomPolygon::Vector& point,
                const bool countBoundary,
                const double tol) const {
-  if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
   vector<Facet>::const_iterator facetItr = mFacets.begin();
   bool result = true;
   if (countBoundary) {
