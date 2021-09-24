@@ -10,6 +10,7 @@
 
 #include <vector>
 #include "GeomVector.hh"
+#include "GeomTensor.hh"
 #include "GeomFacet3d.hh"
 
 namespace Spheral {
@@ -17,8 +18,9 @@ namespace Spheral {
 class GeomPolyhedron {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef GeomVector<3> Vector;
-  typedef GeomFacet3d Facet;
+  using Vector = GeomVector<3>;
+  using Tensor = GeomTensor<3>;
+  using Facet = GeomFacet3d;
 
   //----------------------------------------------------------------------------
   // Constructors, assignment, destructor.
@@ -114,6 +116,9 @@ public:
   GeomPolyhedron& operator/=(const double rhs);
   GeomPolyhedron operator*(const double rhs) const;
   GeomPolyhedron operator/(const double rhs) const;
+
+  // Apply a tensor transformation
+  GeomPolyhedron& transform(const Tensor& t);
 
   // Comparisons.
   bool operator==(const GeomPolyhedron& rhs) const;

@@ -7,9 +7,10 @@ from PYB11Generator import *
 class Polyhedron:
 
     PYB11typedefs = """
-    typedef GeomPolyhedron Polyhedron;
-    typedef GeomPolyhedron::Vector Vector;
-    typedef GeomPolyhedron::Facet Facet;
+    using Polyhedron = GeomPolyhedron;
+    using Vector = GeomPolyhedron::Vector;
+    using Tensor = GeomPolyhedron::Tensor;
+    using Facet = GeomPolyhedron::Facet;
 """
 
     #...........................................................................
@@ -138,6 +139,10 @@ indices that define the facets, and outward normals at the facets."""
     def facetSubVolume(self, facetID="const unsigned"):
         "Decompose the polyhedron into tetrahedra for each facet"
         return "Polyhedron"
+
+    def transform(self, t="const Tensor&"):
+        "Apply a general transformation tensor"
+        return "Polyhedron&"
 
     #...........................................................................
     # Operators
