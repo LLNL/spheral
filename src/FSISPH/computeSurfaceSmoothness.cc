@@ -1,21 +1,22 @@
-#include "FSISPH/computeSurfaceNormals.hh"
-#include "Field/FieldList.hh"
+#include "FSISPH/computeSurfaceSmoothness.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
-//#include "Hydro/HydroFieldNames.hh"
+#include "Field/FieldList.hh"
 
 namespace Spheral{
 
 template<typename Dimension>
 void
-computeSurfaceNormals(const ConnectivityMap<Dimension>& connectivityMap,
+computeSurfaceSmoothness(const ConnectivityMap<Dimension>& connectivityMap,
                             const TableKernel<Dimension>& W,
                             const FieldList<Dimension, typename Dimension::Vector>& position,
                             const FieldList<Dimension, typename Dimension::Scalar>& mass,
                             const FieldList<Dimension, typename Dimension::Scalar>& massDensity,
                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
-                            FieldList<Dimension, typename Dimension::Vector>& interfaceNormals) {
+                            FieldList<Dimension, typename Dimension::Vector>& surfaceNormals,
+                            FieldList<Dimension, typename Dimension::Scalar>& surfaceVolumes,
+                            FieldList<Dimension, typename Dimension::Scalar>& surfaceSmoothness) {
 
   // Pre-conditions.
   const auto numNodeLists = massDensity.size();
@@ -31,7 +32,8 @@ computeSurfaceNormals(const ConnectivityMap<Dimension>& connectivityMap,
 #pragma omp parallel
   {
     int i, j, nodeListi, nodeListj;
-    auto interfaceNormals_thread = interfaceNormals.threadCopy();
+    auto surfaceSmoothness_thread = surfaceSmoothness.threadCopy();
+    auto surfaceVolumes_thread = surfaceVolumes.threadCopy();
 
 #pragma omp for
     for (auto k = 0u; k < npairs; ++k) {
@@ -41,52 +43,59 @@ computeSurfaceNormals(const ConnectivityMap<Dimension>& connectivityMap,
       nodeListj = pairs[k].j_list;
 
       if(nodeListi!=nodeListj){
+        
         // State for node i
         const auto& ri = position(nodeListi, i);
         const auto  mi = mass(nodeListi, i);
         const auto  rhoi = massDensity(nodeListi, i);
         const auto& Hi = H(nodeListi, i);
-        const auto  Hdeti = Hi.Determinant();
-      
+        const auto& ni = surfaceNormals(nodeListi,i);
+        const auto  voli = mi/rhoi;
+
         // State for node j
         const auto& rj = position(nodeListj, j);
         const auto  mj = mass(nodeListj, j);
         const auto  rhoj = massDensity(nodeListj, j);
         const auto& Hj = H(nodeListj, j);
-        const auto  Hdetj = Hj.Determinant();
-      
+        const auto& nj = surfaceNormals(nodeListj,j);
+        const auto  volj = mj/rhoj;
+
         // Kernel weighting and gradient.
         const auto rij = ri - rj;
         const auto etai = Hi*rij;
         const auto etaj = Hj*rij;
-        const auto etaMagi = etai.magnitude();
-        const auto etaMagj = etaj.magnitude();
-        const auto Hetai = Hi*etai.unitVector();
-        const auto Hetaj = Hj*etaj.unitVector();
 
-        const auto gWi = W.gradValue(etaMagi, Hdeti);
-        const auto gWj = W.gradValue(etaMagj, Hdetj);
-        
-        const auto gradWi = gWi*Hetai;
-        const auto gradWj = gWj*Hetaj;
-        const auto gradWij = (gradWi+gradWj)*0.5;
+        const auto Wi = W.kernelValue(etai.magnitude(), Hi.Determinant());
+        const auto Wj = W.kernelValue(etaj.magnitude(), Hj.Determinant());
+        const auto Wij = 0.5*(Wi+Wj);
 
-        interfaceNormals_thread(nodeListi, i) += mj/rhoj  * gradWij;
-        interfaceNormals_thread(nodeListj, j) -= mi/rhoi  * gradWij;
+        surfaceVolumes_thread(nodeListi, i) += volj*Wij;
+        surfaceVolumes_thread(nodeListj, j) += voli*Wij;
+
+        const auto nirij =  ni.dot(rij);
+        const auto njrij = -nj.dot(rij);
+
+        const auto isSubmerged = (nirij > 0.0 or njrij > 0.0);
+        if (!isSubmerged){
+          const auto ninja = std::max(ni.dot(-nj),0.0);
+          surfaceSmoothness_thread(nodeListi, i) += volj * ninja * Wij;
+          surfaceSmoothness_thread(nodeListj, j) += voli * ninja * Wij;
+        }
       }
     }
 
 #pragma omp critical
     {
-      interfaceNormals_thread.threadReduce();
+      surfaceVolumes_thread.threadReduce();
+      surfaceSmoothness_thread.threadReduce();
     }
   }
 
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-     const auto n = interfaceNormals[nodeListi]->numInternalElements();
+     const auto n = surfaceVolumes[nodeListi]->numInternalElements();
  #pragma omp parallel for
      for (auto i = 0u; i < n; ++i) {
-       interfaceNormals(nodeListi,i) /= max(interfaceNormals(nodeListi,i).magnitude(),1e-30);
+       surfaceSmoothness(nodeListi,i) /= max(surfaceVolumes(nodeListi,i),1.0e-5);
      }
     
    }
