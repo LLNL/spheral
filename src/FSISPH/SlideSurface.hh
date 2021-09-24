@@ -93,6 +93,8 @@ class SlideSurface: public Physics<Dimension> {
 
 
     const FieldList<Dimension, Vector>& surfaceNormals() const;
+    const FieldList<Dimension, Scalar>& surfaceFraction() const;
+    const FieldList<Dimension, Scalar>& surfaceSmoothness() const;
 
     std::vector<bool> isSlideSurface() const;
     void isSlideSurface(const std::vector<bool> x);
@@ -112,10 +114,13 @@ class SlideSurface: public Physics<Dimension> {
     //--------------------------- Private Interface ---------------------------//
     const TableKernel<Dimension>& mKernel;
 
-    bool mIsActive;                                // is there are 1 or more slide surface activate physics package
-    int mNumNodeLists;                             // number of total node lists
-    std::vector<bool> mIsSlideSurface;             // true if slide interaction between nodelists index --> numNodeList*nodeListi + nodeListj 
-    FieldList<Dimension, Vector> mSurfaceNormals;  // surface normals between nodelists     
+    bool mIsActive;                                  // is there are 1 or more slide surface activate physics package
+    int mNumNodeLists;                               // number of total node lists
+    std::vector<bool> mIsSlideSurface;               // true if slide interaction between nodelists index --> numNodeList*nodeListi + nodeListj 
+    
+    FieldList<Dimension, Vector> mSurfaceNormals;    // surface normals between nodelists     
+    FieldList<Dimension, Scalar> mSurfaceFraction;   // fraction of dissimilar neighbor volume     
+    FieldList<Dimension, Scalar> mSurfaceSmoothness; // smoothness metric (0-1)    
   
     SlideSurface();
     SlideSurface(const SlideSurface&);
