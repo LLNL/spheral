@@ -83,7 +83,7 @@ update(const KeyType& key,
   // Now set the longitudinal sound speed.
   for (auto i = 0u; i != stateField.numInternalElements(); ++i) {
     const double ack = 3.0*K(i) + mu(i) + 1.0e-30*std::max(1.0, K(i));
-    CHECK2(ack > 0.0, i << " " << ack << " " << K(i) << " " << mu(i));
+    CHECK2(ack > 0.0, nodeListKey << " : " << i << " " << ack << " " << K(i) << " " << mu(i));
     const double nu = min(0.5, max(0.0, 0.5*(3.0*K(i) - 2.0*mu(i))/ack));
     CHECK(nu >= 0.0 && nu <= 0.5);
     const double barf = (1.0 + nu)*(1.0 - 2.0*nu) + 1.0e-10;

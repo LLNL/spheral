@@ -97,6 +97,8 @@ class SlideSurface(Physics):
     #...........................................................................
     # Properties
     surfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "surfaceNormals", returnpolicy="reference_internal")
+    surfaceFraction = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "surfaceFraction", returnpolicy="reference_internal")
+    surfaceSmoothness = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "surfaceSmoothness", returnpolicy="reference_internal")
     numNodeLists = PYB11property("int", "numNodeLists", "numNodeLists", doc="number of nodelists.")
     isActive = PYB11property("bool", "isActive", "isActive", doc="switch if we have a slide.")
     

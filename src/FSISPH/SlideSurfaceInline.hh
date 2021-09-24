@@ -11,6 +11,28 @@ surfaceNormals() const {
 }
 
 //------------------------------------------------------------------------------
+// Return the surface fraction
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SlideSurface<Dimension>::
+surfaceFraction() const {
+  return mSurfaceFraction;
+}
+
+//------------------------------------------------------------------------------
+// smoothness metric for mixing interfaces
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SlideSurface<Dimension>::
+surfaceSmoothness() const {
+  return mSurfaceSmoothness;
+}
+
+//------------------------------------------------------------------------------
 // set/get bool list of interactions 
 //------------------------------------------------------------------------------
 template<typename Dimension>
