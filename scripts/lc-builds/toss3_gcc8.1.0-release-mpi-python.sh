@@ -18,6 +18,10 @@ cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-8.1.0/bin/g++ \
   -C ${HOST_CONFIGS_DIR}/lc-builds/toss3/gcc8.1.0_tpl.cmake \
+  -Dhdf5_BUILD=Off \
+  -Dhdf5_DIR="/usr/gapps/Spheral/tpl/$SYS_TYPE/lchdf5" \
+  -Dsilo_BUILD=Off \
+  -Dsilo_DIR="/usr/gapps/Spheral/tpl/$SYS_TYPE/lcsilo" \
   -DENABLE_OPENMP=On \
   -DENABLE_MPI=On \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
