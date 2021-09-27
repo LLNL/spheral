@@ -32,8 +32,8 @@ if(${lib_name}_BUILD)
                -DAXOM_ENABLE_SLAM=Off
                -DAXOM_ENABLE_MINT=On
                -DAXOM_ENABLE_PRIMAL=On
-               -DAXOM_ENABLE_SPIN=Off
-               -DAXOM_ENABLE_QUEST=Off
+               -DAXOM_ENABLE_SPIN=On
+               -DAXOM_ENABLE_QUEST=On
                -DENABLE_TESTS=Off
 
                -DCONDUIT_DIR=${CONDUIT_INSTALL_DIR}
