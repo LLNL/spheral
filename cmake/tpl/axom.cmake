@@ -29,7 +29,7 @@ if(${lib_name}_BUILD)
                -DAXOM_ENABLE_DOCS=Off
                -DAXOM_ENABLE_INLET=Off
                -DAXOM_ENABLE_LUMBERJACK=Off
-               -DAXOM_ENABLE_SLAM=Off
+               -DAXOM_ENABLE_SLAM=On
                -DAXOM_ENABLE_MINT=On
                -DAXOM_ENABLE_PRIMAL=On
                -DAXOM_ENABLE_SPIN=On
