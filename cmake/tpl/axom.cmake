@@ -24,14 +24,14 @@ if(${lib_name}_BUILD)
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                -DCMAKE_C_FLAGS=-fPIC
 
-               -DAXOM_ENABLE_TESTS=OFF
-               -DAXOM_ENABLE_EXAMPLES=OFF
-               -DAXOM_ENABLE_DOCS=OFF
+               -DAXOM_ENABLE_TESTS=Off
+               -DAXOM_ENABLE_EXAMPLES=Off
+               -DAXOM_ENABLE_DOCS=Off
                -DAXOM_ENABLE_INLET=Off
                -DAXOM_ENABLE_LUMBERJACK=Off
                -DAXOM_ENABLE_SLAM=Off
-               -DAXOM_ENABLE_MINT=Off
-               -DAXOM_ENABLE_PRIMAL=Off
+               -DAXOM_ENABLE_MINT=On
+               -DAXOM_ENABLE_PRIMAL=On
                -DAXOM_ENABLE_SPIN=Off
                -DAXOM_ENABLE_QUEST=Off
                -DENABLE_TESTS=Off
