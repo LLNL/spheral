@@ -8,6 +8,12 @@
 #
 #ATS:crk1 = test(        SELF, "--crksph True --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with CRK -- 1-D (serial)")
 #ATS:crk2 = testif(crk1, SELF, "--crksph True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with CRK -- 1-D (serial) RESTART CHECK")
+#
+# Solid FSISPH
+#
+#ATS:fsisph1 = test(           SELF, "--crksph False --fsisph True --solid True --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with FSISPH -- 1-D (serial)")
+#ATS:fsisph2 = testif(fsisph1, SELF, "--crksph False --fsisph True --solid True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with FSISPH -- 1-D (serial) RESTART CHECK")
+#
 import os, sys
 import shutil
 from SolidSpheral1d import *
@@ -43,6 +49,7 @@ commandLine(nx1 = 400,
             svph = False,
             crksph = False,
             psph = False,
+            fsisph = False,
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             solid = False,    # If true, use the fluid limit of the solid hydro option
             boolReduceViscosity = False,
@@ -127,6 +134,8 @@ elif crksph:
                              str(correctionOrder))
 elif psph:
     hydroname = "PSPH"
+elif fsisph:
+    hydroname = "FSISPH"
 else:
     hydroname = "SPH"
 if solid:
@@ -308,6 +317,18 @@ elif psph:
                  XSPH = XSPH,
                  correctVelocityGradient = correctVelocityGradient,
                  HopkinsConductivity = HopkinsConductivity)
+elif fsisph:
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   sumDensityNodeLists=[nodes1],                       
+                   densityStabilizationCoefficient = 0.00,
+                   interfaceMethod = ModulusInterface,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   correctVelocityGradient = correctVelocityGradient,
+                   HUpdate = HUpdate)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,

@@ -32,8 +32,9 @@ set(pip-setup-modules
 # General pip modules, anything from PyPi can 
 # be added to this list to install
 set(pip-modules
+    numpy==1.16.6
     numpy-stl==2.11.2
-    PYB11Generator
+    PYB11Generator==1.0.12
     matplotlib==2.2.5
     decorator==4.4.2
     h5py==2.10.0
@@ -44,6 +45,7 @@ set(pip-modules
     sobol==0.9
     scipy==1.2.3
     pipreqs==0.4.10
+    importlib_metadata==2.1.1
     virtualenv==20.2.2)
 
 # Only needed when we're allowing MPI parallelism

@@ -22,10 +22,14 @@ public:
 
   // Constructors, destructor.
   ConstantStrength(const double mu0,
-                   const double Y0);
+                   const double Y0,
+                   const double muD = 0.0,
+                   const double YD = 0.0);
   ConstantStrength(const double mu0,
                    const double Y0,
-                   const SolidEquationOfState<Dimension>& eos);
+                   const SolidEquationOfState<Dimension>& eos,
+                   const double muD = 0.0,
+                   const double YD = 0.0);
   virtual ~ConstantStrength() {};
 
   // The generic interface we require all strength models to provide.
@@ -46,12 +50,13 @@ public:
   // Read only access to the parameters.
   double mu0() const;
   double Y0() const; 
+  double muD() const;
+  double YD() const; 
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // The values for shear modulus and yield strength.
-  double mShearModulus0;
-  double mYieldStrength0;
+  double mmu0, mY0, mmuD, mYD;
   const SolidEquationOfState<Dimension>* mEOSptr;
 
   // No copying or assignment.

@@ -10,6 +10,7 @@
 #include "Field/Field.hh"
 #include "Field/FieldBase.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Geometry/GeometryRegistrar.hh"
 #include "Utilities/allReduce.hh"
 #include "Utilities/planarReflectingOperator.hh"
 #include "Utilities/DBC.hh"
@@ -54,6 +55,7 @@ InflowOutflowBoundary(DataBase<Dimension>& dataBase,
                       const bool empty):
   Boundary<Dimension>(),
   Physics<Dimension>(),
+  mInflowRadius(std::numeric_limits<double>::max()),
   mDataBase(dataBase),
   mPlane(plane),
   mBoundaryCount(dataBase.numNodeLists()),
@@ -285,7 +287,7 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool /*final*/)
     for (const auto& p: posvals) packElement(p, posbuf);
 
     // IF RZ adjust ghost masses
-    if (mDataBase.isRZ){
+    if (GeometryRegistrar::coords() == CoordinateType::RZ){
       auto& mass = nodeList.mass();
       const auto masskey = StateBase<Dimension>::key(mass);
       auto massitr = mBufferedValues.find(masskey);
@@ -375,7 +377,7 @@ InflowOutflowBoundary<Dimension>::registerDerivatives(DataBase<Dimension>&,
 //------------------------------------------------------------------------------
 // Physics::finalize
 // At the end of a step, any ghost points that have wandered inside the entrance
-// plane become internal points.
+// plane become internal points. **If they are within the user spec. window**
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -393,13 +395,20 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar /*time*/,
     // cerr << "--------------------------------------------------------------------------------" << endl
     //      << nodeList.name() << endl;
 
-    // Find any ghost points that are inside the entrance plane now.  These are inflow.
+    // Find any ghost points that are inside the entrance plane and within our particle beam
     const auto& gNodes = this->ghostNodes(nodeList);
     auto& pos = nodeList.positions();
     vector<int> insideNodes;
+
+    // allow limiting of inflow radius from plane center
+    const auto p0 = mPlane.point();
+    const auto n0 = mPlane.normal();
     for (auto i: gNodes) {
-      if (mPlane.compare(pos[i]) == -1) insideNodes.push_back(i - gNodes[0]);
+      const Scalar Ri = ((pos[i] - p0) - (pos[i] - p0).dot(n0)*n0).magnitude();
+      const bool addNode = (mPlane.compare(pos[i]) == -1) and (Ri < mInflowRadius);
+      if (addNode) insideNodes.push_back(i - gNodes[0]);
     }
+
     const auto numNew = insideNodes.size();
     if (numNew > 0) {
       nodeListAltered = true;
@@ -517,8 +526,11 @@ template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
+  file.write(mInflowRadius,pathName+"/inflowRadius");
+  /*
   file.write(mActive, pathName + "/active");
   file.write(mBoundaryCount, pathName + "/boundaryCount");
+
 
   vector<std::string> keys;
   for (const auto& p: mBufferedValues) {
@@ -527,6 +539,14 @@ dumpState(FileIO& file, const string& pathName) const {
     file.write(val, pathName + "/BufferedValues/" + p.first);
   }
   file.write(keys, pathName + "/keys");
+
+  vector<std::string> keysXmin;
+  for (const auto& p: mXmin) {
+    keys.push_back(p.first);
+    file.write(p.second, pathName + "/Xmin/" + p.first);
+  }
+  file.write(keysXmin, pathName + "/Xmin/keys");
+  */
 }
 
 //------------------------------------------------------------------------------
@@ -536,6 +556,8 @@ template<typename Dimension>
 void
 InflowOutflowBoundary<Dimension>::
 restoreState(const FileIO& file, const string& pathName)  {
+  file.read(mInflowRadius,pathName+"/inflowRadius");
+  /*
   file.read(mActive, pathName + "/active");
   file.read(mBoundaryCount, pathName + "/boundaryCount");
 
@@ -547,6 +569,16 @@ restoreState(const FileIO& file, const string& pathName)  {
     file.read(val, pathName + "/BufferedValues/" + key);
     mBufferedValues[key] = vector<char>(val.begin(), val.end());
   }
+
+  vector<std::string> keysXmin;
+  file.read(keys, pathName + "/Xmin/keys");
+  mXmin.clear();
+  for (const auto key: keysXmin) {
+    Scalar val;
+    file.read(val, pathName + "/Xmin/" + key);
+    mXmin[key] = val;
+  }
+  */
 }
 
 }

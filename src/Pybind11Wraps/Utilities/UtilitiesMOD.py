@@ -48,9 +48,10 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/Timer.hh"',
                   '"Utilities/DomainNode.hh"',
                   '"Utilities/NodeCoupling.hh"',
-                  '"Utilities/DamagedNodeCoupling.hh"',
-                  '"Utilities/ThreePointDamagedNodeCoupling.hh"',
-                  '"Utilities/DamageGradientNodeCoupling.hh"']
+                  '"Utilities/QuadraticInterpolator.hh"',
+                  '"Utilities/BiQuadraticInterpolator.hh"',
+                  '"Utilities/uniform_random.hh"',
+                  '<algorithm>']
 
 #-------------------------------------------------------------------------------
 # Preamble
@@ -82,9 +83,13 @@ from KeyTraits import *
 from Timer import *
 from DomainNode import *
 from NodeCoupling import *
+from QuadraticInterpolator import *
+from BiQuadraticInterpolator import *
+from uniform_random import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
+ScalarScalarScalarFunctor = PYB11TemplateClass(Spheral2ArgFunctor, template_parameters=("double", "double", "double"))
 
 @PYB11template("Vector")
 @PYB11implementation("[](std::vector<%(Vector)s>& positions) { %(Vector)s xmin, xmax; boundingBox(positions, xmin, xmax); return py::make_tuple(xmin, xmax); }")
@@ -255,10 +260,6 @@ def computeShepardsInterpolation(fieldList = "const FieldList<%(Dimension)s, %(D
 # Instantiate stuff for the dimensions Spheral is building
 for ndim in dims:
     exec('''
-DamagedNodeCoupling%(ndim)id = PYB11TemplateClass(DamagedNodeCoupling, template_parameters="%(Dimension)s")
-ThreePointDamagedNodeCoupling%(ndim)id = PYB11TemplateClass(ThreePointDamagedNodeCoupling, template_parameters="%(Dimension)s")
-DamageGradientNodeCoupling%(ndim)id = PYB11TemplateClass(DamageGradientNodeCoupling, template_parameters="%(Dimension)s")
-
 # Functors
 VectorScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "double"))
 VectorVectorFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "%(Vector)s"))

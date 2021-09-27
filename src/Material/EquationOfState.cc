@@ -70,10 +70,10 @@ specificThermalEnergyForPressure(const typename Dimension::Scalar Ptarget,
                                  const typename Dimension::Scalar epsMin,
                                  const typename Dimension::Scalar epsMax,
                                  const typename Dimension::Scalar epsTol,
-                                 const typename Dimension::Scalar Ptol,
+                                 const typename Dimension::Scalar /* Ptol */,
                                  const unsigned maxIterations) const {
   const Pfunctor<Dimension> pfunc(*this, rho, Ptarget);
-  return bisectRoot(pfunc, epsMin, epsMax, epsTol, Ptol, maxIterations);
+  return bisectRoot(pfunc, epsMin, epsMax, epsTol, maxIterations);
 }
 
 }

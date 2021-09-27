@@ -51,7 +51,7 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
 
     #...........................................................................
     # non-numeric types
-    for (value, label) in (("Dim<%i>::FacetedVolume" % ndim,       "FacetedVolume"), 
+    for (value, label) in (("Dim<%i>::FacetedVolume" % ndim,       "FacetedVolume"),
                            ("std::vector<int>",                    "VectorInt"),
                            ("std::vector<double>",                 "VectorDouble"),
                            ("std::vector<Dim<%i>::Vector>" % ndim, "VectorVector"),
@@ -69,6 +69,7 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
     #...........................................................................
     # arithmetic fields
     for (value, label) in (("int",                              "Int"),
+                           ("unsigned",                         "Unsigned"),
                            ("uint64_t",                         "ULL"),
                            ("Dim<%i>::Vector" % ndim,           "Vector"),
                            ("Dim<%i>::Tensor" % ndim,           "Tensor"),

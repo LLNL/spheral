@@ -16,7 +16,7 @@ from LinearPolynomialEquationOfState import *
 from GruneisenEquationOfState import *
 from OsborneEquationOfState import *
 from TillotsonEquationOfState import *
-from MurnahanEquationOfState import *
+from MurnaghanEquationOfState import *
 
 from StrengthModel import *
 from NullStrength import *
@@ -24,6 +24,7 @@ from ConstantStrength import *
 from SteinbergGuinanStrength import *
 from JohnsonCookStrength import *
 from CollinsStrength import *
+from iSALEROCKStrength import *
 
 from PorousEquationOfState import *
 from PorousStrengthModel import *
@@ -38,7 +39,7 @@ PYB11includes += ['"SolidMaterial/SolidEquationOfState.hh"',
                   '"SolidMaterial/GruneisenEquationOfState.hh"',
                   '"SolidMaterial/OsborneEquationOfState.hh"',
                   '"SolidMaterial/TillotsonEquationOfState.hh"',
-                  '"SolidMaterial/MurnahanEquationOfState.hh"',
+                  '"SolidMaterial/MurnaghanEquationOfState.hh"',
                   '"SolidMaterial/StrengthModel.hh"',
                   '"SolidMaterial/ConstantStrength.hh"',
                   '"SolidMaterial/NullStrength.hh"',
@@ -47,6 +48,7 @@ PYB11includes += ['"SolidMaterial/SolidEquationOfState.hh"',
                   '"SolidMaterial/SteinbergGuinanLundStrength.hh"',
                   '"SolidMaterial/JohnsonCookStrength.hh"',
                   '"SolidMaterial/CollinsStrength.hh"',
+                  '"SolidMaterial/iSALEROCKStrength.hh"',
                   '"SolidMaterial/PorousEquationOfState.hh"',
                   '"SolidMaterial/PorousStrengthModel.hh"',
                   '"SolidMaterial/StrainPorosity.hh"',
@@ -94,13 +96,14 @@ LinearPolynomialEquationOfState%(ndim)id = PYB11TemplateClass(LinearPolynomialEq
 GruneisenEquationOfState%(ndim)id = PYB11TemplateClass(GruneisenEquationOfState, template_parameters="%(Dimension)s")
 OsborneEquationOfState%(ndim)id = PYB11TemplateClass(OsborneEquationOfState, template_parameters="%(Dimension)s")
 TillotsonEquationOfState%(ndim)id = PYB11TemplateClass(TillotsonEquationOfState, template_parameters="%(Dimension)s")
-MurnahanEquationOfState%(ndim)id = PYB11TemplateClass(MurnahanEquationOfState, template_parameters="%(Dimension)s")
+MurnaghanEquationOfState%(ndim)id = PYB11TemplateClass(MurnaghanEquationOfState, template_parameters="%(Dimension)s")
 
 NullStrength%(ndim)id = PYB11TemplateClass(NullStrength, template_parameters="%(Dimension)s")
 ConstantStrength%(ndim)id = PYB11TemplateClass(ConstantStrength, template_parameters="%(Dimension)s")
 SteinbergGuinanStrength%(ndim)id = PYB11TemplateClass(SteinbergGuinanStrength, template_parameters="%(Dimension)s")
 JohnsonCookStrength%(ndim)id = PYB11TemplateClass(JohnsonCookStrength, template_parameters="%(Dimension)s")
 CollinsStrength%(ndim)id = PYB11TemplateClass(CollinsStrength, template_parameters="%(Dimension)s")
+iSALEROCKStrength%(ndim)id = PYB11TemplateClass(iSALEROCKStrength, template_parameters="%(Dimension)s")
 
 PorousEquationOfState%(ndim)id = PYB11TemplateClass(PorousEquationOfState, template_parameters="%(Dimension)s")
 PorousStrengthModel%(ndim)id = PYB11TemplateClass(PorousStrengthModel, template_parameters="%(Dimension)s")
