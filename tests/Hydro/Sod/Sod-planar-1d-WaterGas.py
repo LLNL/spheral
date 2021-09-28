@@ -21,8 +21,8 @@ title("1-D integrated hydro test -- planar Sod problem Water-Gas")
 # Waves, 2008.
 #-------------------------------------------------------------------------------
             # materials
-commandLine(nx1 = 100,      # number of nodes
-            nx2 = 100,
+commandLine(nx1 = 1000,     # number of nodes
+            nx2 = 60,
             rho1 = 1000.0,  # density
             rho2 = 50.0,
             P1 = 1.0e9,     # Pressure
@@ -44,6 +44,7 @@ commandLine(nx1 = 100,      # number of nodes
             order = 5,                           # spline order for NBSplineKernel
             nPerh = 1.35,                        # neighbors per smoothing scale
             HUpdate = IdealH,                    # (IdealH, IntegrateH) how do we update smoothing scale?
+            iterateInitialH = True,              # do we want to find an ideal H to start 
             gradhCorrection = True,              # correct for adaptive-h (not implemented in FSISPH)
             hmin = 1e-10,                    
             hmax = 1.0,
@@ -119,7 +120,7 @@ commandLine(nx1 = 100,      # number of nodes
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert not (fsisph and not solid)       # only implemented for solid
 assert (fsisph + crksph + psph <= 1)    # only one hydro selection
-assert mpi.procs == 1
+#assert mpi.procs == 1
 
 if crksph:
     hydroname = os.path.join("CRKSPH",
@@ -206,13 +207,13 @@ dx1 = (x1 - x0)/nx1
 dx2 = (x2 - x1)/nx2
 
 def rho_initial(xi):
-    if xi <= x1:
+    if xi < x1:
         return rho1
     else:
         return rho2
 
 def specificEnergy(xi, rhoi):
-    if xi < 0:
+    if xi < x1:
         Pi = P1
         Poi = Po1
         gammai = gamma1
@@ -220,7 +221,7 @@ def specificEnergy(xi, rhoi):
         Pi = P2
         Poi = Po2
         gammai = gamma2
-    return (Pi-gammai*Poi)/((gammai - 1.0)*rhoi)
+    return (Pi+gammai*Poi)/((gammai - 1.0)*rhoi)
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
@@ -269,7 +270,7 @@ if crksph:
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
-                   densityUpdate = densityUpdate,
+                   densityUpdate = RigorousSumDensity,#densityUpdate,
                    HUpdate = HUpdate)
 elif psph:
     hydro = PSPH(dataBase = db,
@@ -289,6 +290,7 @@ elif fsisph:
                    sumDensityNodeLists=[],                       
                    densityStabilizationCoefficient = 0.00,
                    specificThermalEnergyDiffusionCoefficient = 0.00,
+                   xsphCoefficient = 0.00,
                    interfaceMethod = HLLCInterface,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
@@ -388,6 +390,7 @@ output("integrator.rigorousBoundaries")
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator,
+                            iterateInitialH=iterateInitialH,
                             kernel = WT,
                             volumeType = volumeType,
                             statsStep = statsStep,
