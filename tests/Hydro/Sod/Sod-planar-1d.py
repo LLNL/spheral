@@ -343,7 +343,7 @@ elif fsisph:
                    cfl = cfl,
                    sumDensityNodeLists=sumDensityNodeLists,                       
                    densityStabilizationCoefficient = 0.00,
-                   specificThermalEnergyCoefficient = 0.00,
+                   specificThermalEnergyDiffusionCoefficient = 0.00,
                    interfaceMethod = HLLCInterface,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
