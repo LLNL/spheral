@@ -348,14 +348,17 @@ elif psph:
                  XSPH = XSPH,
                  correctVelocityGradient = correctVelocityGradient)
 elif fsisph:
+    sumDensityNodeLists = [nodes1]
+    if numNodeLists == 2:
+        sumDensityNodeLists += [nodes2]
     hydro = FSISPH(dataBase = db,
                    W = WT,
                    filter = filter,
                    cfl = cfl,
-                   sumDensityNodeLists=[nodes1],                       
+                   sumDensityNodeLists=sumDensityNodeLists,                       
                    densityStabilizationCoefficient = 0.00,
                    specificThermalEnergyDiffusionCoefficient = 0.00,
-                   interfaceMethod = ModulusInterface,
+                   interfaceMethod = HLLCInterface,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    correctVelocityGradient = correctVelocityGradient,
