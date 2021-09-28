@@ -12,13 +12,11 @@ set(Utilities_inst
     medianPosition
     computeShepardsInterpolation
     overlayRemapFields
-    DamagedNodeCoupling
-    ThreePointDamagedNodeCoupling
-    DamageGradientNodeCoupling
    )
 
 set(Utilities_sources
     DBC.cc
+    QuadraticInterpolator.cc
     Process.cc
     KeyTraits.cc
     PeanoHilbertTransform.cc
@@ -37,6 +35,7 @@ set(Utilities_sources
     SpheralTimers.cc
     #SpheralTimersAlternate.cc
     Timer.cc
+    uniform_random.cc
     )
 
 instantiate(Utilities_inst Utilities_sources)
@@ -45,8 +44,10 @@ set(Utilities_headers
     Bessel.hh
     CounterClockwiseComparator.hh
     DBC.hh
-    DamageGradientNodeCoupling.hh
-    DamagedNodeCoupling.hh
+    QuadraticInterpolator.hh
+    QuadraticInterpolatorInline.hh
+    BiQuadraticInterpolator.hh
+    BiQuadraticInterpolatorInline.hh
     DataTypeTraits.hh
     DomainNode.hh
     DomainNodeInline.hh
@@ -55,7 +56,6 @@ set(Utilities_headers
     Functors.hh
     GeometricUtilities.hh
     KeyTraits.hh
-    MaxDamageNodeCoupling.hh
     NodeCoupling.hh
     NodeListHashMap.hh
     OpenMP_wrapper.hh
@@ -68,9 +68,9 @@ set(Utilities_headers
     RedistributionRegistrarInline.hh
     RegisterMPIDataTypes.hh
     SafeIndexMap.hh
+    SidreDataCollection.hh
     SpheralFunctions.hh
     SurfaceNodeCoupling.hh
-    ThreePointDamagedNodeCoupling.hh
     Timer.hh
     Tree.hh
     TreeInline.hh
@@ -125,6 +125,8 @@ set(Utilities_headers
     sort_permutation.hh
     testBoxIntersection.hh
     timingUtilities.hh
+    uniform_random.hh
+    uniform_random_Inline.hh
     )
 
 spheral_install_python_files(fitspline.py)

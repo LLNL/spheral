@@ -33,6 +33,11 @@
 #
 #ATS:t300 = test(        SELF, "--psph True --graphics None --clearDirectories True --checkError False --restartStep 20 --steps 40", label="Planar Noh problem with PSPH -- 1-D (serial)")
 #ATS:t301 = testif(t300, SELF, "--psph True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with PSPH -- 1-D (serial) RESTART CHECK")
+#
+# Solid FSISPH
+#
+#ATS:t400 = test(        SELF, "--fsisph True --solid True --graphics None --clearDirectories True --checkError True --restartStep 20", label="Planar Noh problem with FSISPH -- 1-D (serial)")
+#ATS:t401 = testif(t400, SELF, "--fsisph True --solid True --graphics None --clearDirectories False --checkError True --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with FSISPH -- 1-D (serial) RESTART CHECK")
 
 import os, shutil
 from SolidSpheral1d import *
@@ -67,6 +72,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             svph = False,
             crksph = False,
             psph = False,
+            fsisph = False,
             crktype = "default",        # one of ("default", "variant")
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             boolReduceViscosity = False,
@@ -187,6 +193,8 @@ elif crksph:
     hydroname = os.path.join("CRKSPH",
                              str(volumeType),
                              str(correctionOrder))
+elif fsisph:
+    hydroname = "FSISPH"
 elif psph:
     hydroname = "PSPH"
 else:
@@ -256,9 +264,14 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from DistributeNodes import distributeNodesInRange1d
-distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1))],
-                         nPerh = nPerh)
+from GenerateNodeDistribution1d import GenerateNodeDistribution1d
+from DistributeNodes import distributeNodes1d
+gen = GenerateNodeDistribution1d(n = nx1,
+                                 rho = rho1,
+                                 xmin = x0,
+                                 xmax = x1,
+                                 nNodePerh = nPerh)
+distributeNodes1d((nodes1, gen))
 output("nodes1.numNodes")
 
 # Set node specific thermal energies
@@ -325,6 +338,20 @@ elif psph:
                  densityUpdate = densityUpdate,
                  HUpdate = HUpdate,
                  XSPH = XSPH)
+
+elif fsisph:
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   interfaceMethod = ModulusInterface,
+                   sumDensityNodeLists=[nodes1],                       
+                   densityStabilizationCoefficient = 0.00,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   correctVelocityGradient = correctVelocityGradient,
+                   HUpdate = HUpdate)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -673,7 +700,7 @@ if outputFile != "None":
 #------------------------------------------------------------------------------
 # Compute the error.
 #------------------------------------------------------------------------------
-if mpi.rank == 0:
+if mpi.rank == 0 :
     xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
     import Pnorm
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
@@ -710,23 +737,45 @@ if mpi.rank == 0:
            
 
         if checkError:
-            if not fuzzyEqual(L1, L1expect, tol):
-                print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+            if not crksph and not psph and not fsisph: # if sph use the known error norms
+                if not fuzzyEqual(L1, L1expect, tol):
+                    print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                       L1,
                                                                                       L1expect)
-                failure = True
-            if not fuzzyEqual(L2, L2expect, tol):
-                print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                    failure = True
+                if not fuzzyEqual(L2, L2expect, tol):
+                    print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                       L2,
                                                                                       L2expect)
-                failure = True
-            if not fuzzyEqual(Linf, Linfexpect, tol):
-                print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                    failure = True
+                if not fuzzyEqual(Linf, Linfexpect, tol):
+                    print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                         Linf,
                                                                                         Linfexpect)
-                failure = True
-            if failure:
-                raise ValueError, "Error bounds violated."
+                    failure = True
+                if failure:
+                    raise ValueError, "Error bounds violated."
+
+            if fsisph: # for fsi check if the norms are order of mag same as sph 
+            
+                if L1 > 2.0*L1expect:
+                    print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                      L1,
+                                                                                      L1expect)
+                    failure = True
+                if L2 > 2.0*L2expect:
+                    print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                      L2,
+                                                                                      L2expect)
+                    failure = True
+                if Linf > 2.0 * Linfexpect:
+                    print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                        Linf,
+                                                                                        Linfexpect)
+                    failure = True
+                if failure:
+                    raise ValueError, "Error bounds violated."
+  
     if normOutputFile != "None":
        f.write("\n")
                                              

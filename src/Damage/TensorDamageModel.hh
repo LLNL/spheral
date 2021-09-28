@@ -78,12 +78,11 @@ public:
   //...........................................................................
   // Provide the required physics package interface.
   // Compute the derivatives.
-  virtual 
-  void evaluateDerivatives(const Scalar time,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const override;
+  virtual void evaluateDerivatives(const Scalar time,
+                                   const Scalar dt,
+                                   const DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivatives) const override;
 
   // Vote on a time step.
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
@@ -107,11 +106,27 @@ public:
   virtual void enforceBoundaries(State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
   //...........................................................................
+  // Optional method to cull the set of flaws to the single weakest one on
+  // each point.
+  void cullToWeakestFlaws();
+
+  // Get the set of flaw activation energies for the given node index.
+  const std::vector<double> flawsForNode(const size_t index) const;
+
+  // Compute a Field with the sum of the activation energies per node.
+  Field<Dimension, Scalar> sumActivationEnergiesPerNode() const;
+
+  // Compute a Field with the number of flaws per node.
+  Field<Dimension, Scalar> numFlawsPerNode() const;
 
   // Provide access to the state fields we maintain.
+  const Field<Dimension, Scalar>& youngsModulus() const;
+  const Field<Dimension, Scalar>& longitudinalSoundSpeed() const;
   const Field<Dimension, SymTensor>& strain() const;
   const Field<Dimension, SymTensor>& effectiveStrain() const;
   const Field<Dimension, Scalar>& DdamageDt() const;
+  const FlawStorageType& flaws() const;
+  FlawStorageType& flaws();
 
   // The algorithms to update the strain.
   TensorStrainAlgorithm strainAlgorithm() const;
@@ -133,6 +148,9 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
+  FlawStorageType mFlaws;
+  Field<Dimension, Scalar> mYoungsModulus;
+  Field<Dimension, Scalar> mLongitudinalSoundSpeed;
   Field<Dimension, SymTensor> mStrain;
   Field<Dimension, SymTensor> mEffectiveStrain;
   Field<Dimension, Scalar> mDdamageDt;
@@ -140,7 +158,7 @@ protected:
 private:
   //--------------------------- Private Interface ---------------------------//
   TensorStrainAlgorithm mStrainAlgorithm;
-  double mCriticalDamageThreshold;
+  double mCriticalDamageThreshold, mCriticalNodesPerSmoothingScale;
   bool mDamageInCompression;
 
   // No default constructor, copying or assignment.

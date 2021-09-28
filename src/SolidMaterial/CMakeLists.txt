@@ -3,13 +3,14 @@ set(SolidMaterial_inst
     LinearPolynomialEquationOfState
     GruneisenEquationOfState
     OsborneEquationOfState
-    MurnahanEquationOfState
+    MurnaghanEquationOfState
     TillotsonEquationOfState
     StrengthModel
     ConstantStrength
     SteinbergGuinanStrength
     JohnsonCookStrength
     CollinsStrength
+    iSALEROCKStrength
     PorousEquationOfState
     PorousStrengthModel
     StrainPorosity
@@ -21,6 +22,7 @@ set(SolidMaterial_sources )
 set(SolidMaterial_headers
     ANEOS.hh
     CollinsStrength.hh
+    iSALEROCKStrength.hh
     ConstantStrength.hh
     Geodyn.hh
     GruneisenEquationOfState.hh
@@ -28,8 +30,8 @@ set(SolidMaterial_headers
     JohnsonCookStrength.hh
     LinearPolynomialEquationOfState.hh
     LinearPolynomialEquationOfStateInline.hh
-    MurnahanEquationOfState.hh
-    MurnahanEquationOfStateInline.hh
+    MurnaghanEquationOfState.hh
+    MurnaghanEquationOfStateInline.hh
     NullStrength.hh
     OsborneEquationOfState.hh
     OsborneEquationOfStateInline.hh

@@ -27,7 +27,8 @@ class ANEOS(SolidEquationOfState):
                externalPressure = ("const double", "0.0"),
                minimumPressure = ("const double", "-std::numeric_limits<double>::max()"),
                maximumPressure = ("const double",  "std::numeric_limits<double>::max()"),
-               minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor")):
+               minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor"),
+               useInterpolation = ("const bool", "true")):
         """ANEOS constructor
 
 Note the material number is the "EOS#" from the associated ANEOS input file passed to initializeANEOS, and the 
@@ -97,8 +98,11 @@ an appropriate range for (rhoMin, rhoMax), (Tmin, Tmax), *and* have enough value
     rhoMax = PYB11property()
     Tmin = PYB11property()
     Tmax = PYB11property()
-    specificThermalEnergyVals = PYB11property(getterraw="[](const ANEOS<%(Dimension)s>& self) { return ANEOS_STEvals(self); }",
-                                              doc="Get the specific thermal energy lookup table values")
+    epsMin = PYB11property()
+    epsMax = PYB11property()
+    useInterpolation = PYB11property()
+    # specificThermalEnergyVals = PYB11property(getterraw="[](const ANEOS<%(Dimension)s>& self) { return ANEOS_STEvals(self); }",
+    #                                           doc="Get the specific thermal energy lookup table values")
     atomicWeight = PYB11property("double", "atomicWeight")
     externalPressure = PYB11property("double", "externalPressure", "externalPressure")
     

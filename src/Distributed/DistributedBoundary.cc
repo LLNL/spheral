@@ -1034,10 +1034,10 @@ cullGhostNodes(const FieldList<Dimension, int>& flagSet,
   typedef typename Boundary<Dimension>::BoundaryNodes BoundaryNodes;
   const int procID = domainID();
 
-  typedef NodeListRegistrar<Dimension> Registrar;
-  Registrar& registrar = Registrar::instance();
-  CONTRACT_VAR(registrar);
-  REQUIRE((int)numNodesRemoved.size() == registrar.numNodeLists());
+  // typedef NodeListRegistrar<Dimension> Registrar;
+  // Registrar& registrar = Registrar::instance();
+  // CONTRACT_VAR(registrar);
+  // REQUIRE((int)numNodesRemoved.size() == registrar.numNodeLists());
 
   const vector<int> numNodesRemovedPreviously(numNodesRemoved);
 

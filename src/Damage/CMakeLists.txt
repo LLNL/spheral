@@ -2,6 +2,10 @@ include_directories(.)
 set(Damage_inst
     DamageModel
     TensorDamageModel
+    ProbabilisticDamageModel
+    ProbabilisticDamagePolicy
+    IvanoviSALEDamageModel
+    IvanoviSALEDamagePolicy
     StrainPolicy
     TensorStrainPolicy
     TensorDamagePolicy
@@ -14,8 +18,10 @@ set(Damage_inst
     JohnsonCookFailureStrainPolicy
     JohnsonCookDamagePolicy
     DamagedPressurePolicy
+    PairMaxDamageNodeCoupling
+    ThreePointDamagedNodeCoupling
+    DamageGradientNodeCoupling
    )
-
 
 set(Damage_sources )
 
@@ -39,13 +45,23 @@ set(Damage_headers
     StrainPolicy.hh
     TensorDamageModel.hh
     TensorDamageModelInline.hh
+    ProbabilisticDamageModel.hh
+    ProbabilisticDamageModelInline.hh
+    IvanoviSALEDamageModel.hh
+    IvanoviSALEDamageModelInline.hh
     TensorDamagePolicy.hh
+    ProbabilisticDamagePolicy.hh
+    IvanoviSALEDamagePolicy.hh
     TensorStrainPolicy.hh
     YoungsModulusPolicy.hh
     computeFragmentField.hh
     oneMinusDamage.hh
     weibullFlawDistributionBenzAsphaug.hh
     weibullFlawDistributionOwen.hh
+    DamageGradientNodeCoupling.hh
+    PairMaxDamageNodeCoupling.hh
+    MaxDamageNodeCoupling.hh
+    ThreePointDamagedNodeCoupling.hh
     )
 
 spheral_install_python_files(
@@ -53,6 +69,8 @@ spheral_install_python_files(
   WeibullDamage.py
   GradyKippTensorDamage.py
   JohnsonCookDamageFactories.py
+  ShadowProbabilisticDamageModel.py
+  ShadowIvanoviSALEDamageModel.py
   )
 
 spheral_add_cxx_library(Damage)
