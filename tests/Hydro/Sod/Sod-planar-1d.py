@@ -127,6 +127,10 @@ commandLine(nx1 = 400,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
+assert not svph
+assert not (fsisph and not solid)
+assert numNodeLists in (1, 2)
+assert mpi.procs == 1
 
 if svph:
     hydroname = "SVPH"
@@ -155,15 +159,13 @@ dataDir = os.path.join(dataDirBase,
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Sod-planar-1d-%i" % (nx1 + nx2))
 
-assert numNodeLists in (1, 2)
-
 # if two gammas were given but one node list we need to sort things out
 if numNodeLists == 1 and abs(gamma1-gamma2) > 0.001:
     gamma2 = gamma1
     print(" ")
     print("============================================================")
     print("warning: because we're running 1 nodelist, gamma2 had to be ")
-    print("         be set equal to gamma1")
+    print("         set equal to gamma1")
     print("============================================================")
     print(" ")
 #-------------------------------------------------------------------------------
@@ -330,8 +332,7 @@ elif psph:
                  densityUpdate = densityUpdate,
                  HUpdate = HUpdate,
                  XSPH = XSPH,
-                 correctVelocityGradient = correctVelocityGradient,
-                 HopkinsConductivity = HopkinsConductivity)
+                 correctVelocityGradient = correctVelocityGradient)
 elif fsisph:
     hydro = FSISPH(dataBase = db,
                    W = WT,
