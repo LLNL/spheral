@@ -2,6 +2,7 @@ set(AXOM_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(AXOM_DIST "Axom-v0.3.3.tar.gz")
 set(AXOM_URL "https://github.com/LLNL/axom/releases/download/v0.3.3/${AXOM_DIST}")
 set(AXOM_CACHE "${CACHE_DIR}/${AXOM_DIST}")
+set(AXOM_SRC_DIR "${AXOM_PREFIX}/src/axom/src")
 
 set(${lib_name}_libs 
     libaxom.a 
@@ -18,6 +19,7 @@ if(${lib_name}_BUILD)
     URL ${AXOM_URL}
     URL_HASH "MD5=${AXOM_MD5}"
     DOWNLOAD_DIR ${CACHE_DIR}
+    PATCH_COMMAND patch -t ${AXOM_SRC_DIR}/axom/quest/interface/internal/mpicomm_wrapper.hpp ${PATCH_DIR}/axom-mpicomm_wrapper.hpp.patch
     SOURCE_SUBDIR src/
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
