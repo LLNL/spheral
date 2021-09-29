@@ -154,6 +154,7 @@ private:
   bool mConvex;
   mutable axom::quest::InOutOctree<3>::SurfaceMesh* mSurfaceMeshPtr;
   mutable axom::quest::InOutOctree<3>* mSurfaceMeshQueryPtr;
+  mutable axom::quest::SignedDistance<3>* mSignedDistancePtr;
 
   static FILE* mDevnull;
 

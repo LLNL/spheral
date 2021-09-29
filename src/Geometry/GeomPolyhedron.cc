@@ -121,7 +121,8 @@ GeomPolyhedron():
   mRinterior2(-1.0),
   mConvex(true),
   mSurfaceMeshPtr(nullptr),
-  mSurfaceMeshQueryPtr(nullptr) {
+  mSurfaceMeshQueryPtr(nullptr),
+  mSignedDistancePtr(nullptr) {
   if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
 }
 
@@ -141,7 +142,8 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
   mRinterior2(-1.0),
   mConvex(true),
   mSurfaceMeshPtr(nullptr),
-  mSurfaceMeshQueryPtr(nullptr) {
+  mSurfaceMeshQueryPtr(nullptr),
+  mSignedDistancePtr(nullptr) {
   TIME_Polyhedron_construct1.start();
   if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
 
@@ -318,7 +320,8 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   mRinterior2(-1.0),
   mConvex(false),
   mSurfaceMeshPtr(nullptr),
-  mSurfaceMeshQueryPtr(nullptr) {
+  mSurfaceMeshQueryPtr(nullptr),
+  mSignedDistancePtr(nullptr) {
   TIME_Polyhedron_construct2.start();
 
   unsigned i, j, n;
@@ -365,7 +368,8 @@ GeomPolyhedron(const GeomPolyhedron& rhs):
   mRinterior2(rhs.mRinterior2),
   mConvex(rhs.mConvex),
   mSurfaceMeshPtr(nullptr),
-  mSurfaceMeshQueryPtr(nullptr) {
+  mSurfaceMeshQueryPtr(nullptr),
+  mSignedDistancePtr(nullptr) {
   for (Facet& facet: mFacets) facet.mVerticesPtr = &mVertices;
 }
 
@@ -392,6 +396,7 @@ operator=(const GeomPolyhedron& rhs) {
     mConvex = rhs.mConvex;
     mSurfaceMeshPtr = nullptr;
     mSurfaceMeshQueryPtr = nullptr;
+    mSignedDistancePtr = nullptr;
   }
   ENSURE(mFacets.size() == rhs.mFacets.size());
   return *this;
@@ -404,6 +409,7 @@ GeomPolyhedron::
 ~GeomPolyhedron() {
   if (mSurfaceMeshPtr != nullptr) delete mSurfaceMeshPtr;
   if (mSurfaceMeshQueryPtr != nullptr) delete mSurfaceMeshQueryPtr;
+  if (mSignedDistancePtr != nullptr) delete mSignedDistancePtr;
 }
 
 //------------------------------------------------------------------------------
@@ -412,12 +418,17 @@ GeomPolyhedron::
 bool
 GeomPolyhedron::
 contains(const GeomPolyhedron::Vector& point,
-         const bool /*countBoundary*/,
+         const bool countBoundary,
          const double tol) const {
   if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
   using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
   if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
-  return mSurfaceMeshQueryPtr->within(AxPoint(&const_cast<Vector&>(point)[0]));
+  const auto inside = mSurfaceMeshQueryPtr->within(AxPoint(&const_cast<Vector&>(point)[0]));
+  if (not inside and countBoundary) {
+    return this->distance(point) < tol;
+  } else {
+    return inside;
+  }
   // if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
   // if (mConvex) {
   //   return this->convexContains(point, countBoundary, tol);
@@ -806,7 +817,10 @@ closestFacet(const GeomPolyhedron::Vector& p) const {
 double
 GeomPolyhedron::
 distance(const GeomPolyhedron::Vector& p) const {
-  return (p - this->closestPoint(p)).magnitude();
+  using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
+  if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
+  return std::abs(mSignedDistancePtr->computeDistance(AxPoint(&const_cast<Vector&>(p)[0])));
+  //  return (p - this->closestPoint(p)).magnitude();
 }
 
 //------------------------------------------------------------------------------
@@ -995,6 +1009,7 @@ buildAxomData() const {
   using AxOctree = axom::quest::InOutOctree<3>;
   using AxBoundingBox = AxOctree::GeometricBoundingBox;
   using AxPoint = AxOctree::SpacePt;
+  using AxDistance = axom::quest::SignedDistance<3>;
 
   // Set the vertex positions
   auto* meshPtr = new AxMesh(3, axom::mint::TRIANGLE);
@@ -1014,15 +1029,20 @@ buildAxomData() const {
     }
   }
 
-  // Build the query object
+  // Build the query objects
   AxBoundingBox bb;
-  Vector xmin = mXmin, xmax = mXmax;
+  Vector xmin = mXmin - 0.01*(mXmax - mXmin);
+  Vector xmax = mXmax + 0.01*(mXmax - mXmin);
   bb.addPoint(AxPoint(&xmin[0]));
   bb.addPoint(AxPoint(&xmax[0]));
   // axom::mint::write_vtk(mSurfaceMeshPtr, "blago.vtk");
   mSurfaceMeshPtr = meshPtr;
   mSurfaceMeshQueryPtr = new AxOctree(bb, mSurfaceMeshPtr);
   mSurfaceMeshQueryPtr->generateIndex();
+  mSignedDistancePtr = new AxDistance(mSurfaceMeshPtr,
+                                      true,               // is_watertight
+                                      25,                 // max_objects
+                                      10);                // max_levels
 }
 
 //------------------------------------------------------------------------------
