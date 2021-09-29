@@ -100,7 +100,7 @@ class TestPolyhedron(unittest.TestCase):
             result = self.polyhedron.contains(p)
             if not result:
                 print "Bad polyhedron:  ", [str(x) for x in self.polyhedron.vertices]
-                print "Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron.vertices)
+                print "Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron)
             self.failUnless(result,
                             "Polyhedron does not contain seed point: %s" % str(p))
         return
