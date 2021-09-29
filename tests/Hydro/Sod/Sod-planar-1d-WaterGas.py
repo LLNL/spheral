@@ -1,8 +1,8 @@
 
 # Solid FSISPH
 #
-#ATS:fsisph1 = test(           SELF, "--crksph False --fsisph True --solid True --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with FSISPH -- 1-D (serial)")
-#ATS:fsisph2 = testif(fsisph1, SELF, "--crksph False --fsisph True --solid True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with FSISPH -- 1-D (serial) RESTART CHECK")
+#ATS:fsisph1 = test(           SELF, "--fsisph True --solid True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Water-Gas Sod problem with FSISPH -- 1-D (serial)")
+#ATS:fsisph2 = testif(fsisph1, SELF, "--fsisph True --solid True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Water-Gas Sod problem with FSISPH -- 1-D (serial) RESTART CHECK")
 #
 import os, sys
 import shutil
@@ -54,6 +54,12 @@ commandLine(nx1 = 1000,     # number of nodes
             psph = False,     # pressure based sph
             fsisph = False,   # multimaterial patching method
             
+            # FSI parameters
+            fsiRhoStabilizeCoeff = 0.0,         # diffusion operating through the vel-gradient
+            fsiEpsDiffuseCoeff = 0.0,           # diffusion coeff for specific thermal energy
+            fsiXSPHCoeff = 0.0,                 # ramps xsph up
+            fsiInterfaceMethod = HLLCInterface, # (HLLCInterface, ModulusInterface, NoInterface)
+
             # CRK parameters
             correctionOrder = LinearOrder,
             volumeType = RKSumVolume,
@@ -288,10 +294,10 @@ elif fsisph:
                    filter = filter,
                    cfl = cfl,
                    sumDensityNodeLists=[],                       
-                   densityStabilizationCoefficient = 0.00,
-                   specificThermalEnergyDiffusionCoefficient = 0.00,
-                   xsphCoefficient = 0.00,
-                   interfaceMethod = HLLCInterface,
+                   densityStabilizationCoefficient = fsiRhoStabilizeCoeff,
+                   specificThermalEnergyDiffusionCoefficient = fsiEpsDiffuseCoeff,
+                   xsphCoefficient = fsiXSPHCoeff,
+                   interfaceMethod = fsiInterfaceMethod,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    correctVelocityGradient = correctVelocityGradient,
