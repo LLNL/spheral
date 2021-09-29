@@ -51,60 +51,6 @@ extern Timer TIME_Polyhedron_convex;
 
 namespace Spheral {
 
-
-namespace {    // anonymous
-
-// //------------------------------------------------------------------------------
-// // Copy a mint::mesh 
-// //------------------------------------------------------------------------------
-// void copyMintMesh(axom::mint::UnstructuredMesh<axom::mint::SINGLE_SHAPE>& toMesh,
-//                   const axom::mint::UnstructuredMesh<axom::mint::SINGLE_SHAPE>& fromMesh) {
-
-//   const auto nnodes = fromMesh.getNumberOfNodes();
-//   const auto nfaces = fromMesh.getNumberOfFaces();
-//   const auto ncellnodes = fromMesh.getCellNodesSize();
-//   CHECK(ncellnodes == 3*nfaces);
-
-//   // Copy the node positions
-//   toMesh.resize(nnodes, nfaces);
-//   CHECK(toMesh.getNumberOfNodes() == nnodes);
-//   CHECK(toMesh.getCellNodesSize() == ncellnodes);
-//   const auto* x0 = fromMesh.getCoordinateArray(axom::mint::X_COORDINATE);
-//   const auto* y0 = fromMesh.getCoordinateArray(axom::mint::Y_COORDINATE);
-//   const auto* z0 = fromMesh.getCoordinateArray(axom::mint::Z_COORDINATE);
-//   auto* x1 = toMesh.getCoordinateArray(axom::mint::X_COORDINATE);
-//   auto* y1 = toMesh.getCoordinateArray(axom::mint::Y_COORDINATE);
-//   auto* z1 = toMesh.getCoordinateArray(axom::mint::Z_COORDINATE);
-//   std::copy(x0, x0 + nnodes, x1);
-//   std::copy(y0, y0 + nnodes, y1);
-//   std::copy(z0, z0 + nnodes, z1);
-
-//   // Copy the connectivity
-//   const axom::IndexType* conn0 = fromMesh.getCellNodesArray();
-//   axom::IndexType* conn1 = toMesh.getCellNodesArray();
-//   std::copy(conn0, conn0 + ncellnodes, conn1);
-// }
-
-//------------------------------------------------------------------------------
-// Copy a mesh::quest::InOutOctree as a new shared_ptr
-//------------------------------------------------------------------------------
-// axom::quest::InOutOctree<3>*
-// copyQuestOctree(const axom::quest::InOutOctree<3>* fromOctree,
-//                 const axom::mint::UnstructuredMesh<axom::mint::SINGLE_SHAPE>& fromMesh) {
-//   using AxOctree = axom::quest::InOutOctree<3>;
-//   using AxMesh = axom::mint::UnstructuredMesh<axom::mint::SINGLE_SHAPE>;
-//   if (fromOctree == nullptr) {
-//     return nullptr;
-//   }
-//   // auto* blago = dynamic_cast<axom::mint::Mesh*>(const_cast<AxMesh*>(&fromMesh));
-//   // AxMesh* blago = const_cast<AxMesh*>(&fromMesh);
-//   auto result = new AxOctree(fromOctree->boundingBox(), const_cast<AxMesh*>(&fromMesh));
-//   result->generateIndex();
-//   return result;
-// }
-
-}              // anonymous
-
 //------------------------------------------------------------------------------
 // Default constructor.
 //------------------------------------------------------------------------------
@@ -539,59 +485,28 @@ intersect(const std::pair<Vector, Vector>& rhs) const {
   //     |.       |/
   //     0--------1             
   //
-  vector<Vector> verts(8);
-  vector<vector<unsigned> > facets(6, vector<unsigned>(4));
 
-  // Vertices.
+  // Check if any of our vertices fall in the box.
   const double x1 = rhs.first.x(), y1 = rhs.first.y(), z1 = rhs.first.z(),
                x2 = rhs.second.x(), y2 = rhs.second.y(), z2 = rhs.second.z();
-  verts[0] = Vector(x1, y1, z2);
-  verts[1] = Vector(x2, y1, z2);
-  verts[2] = Vector(x1, y2, z2);
-  verts[3] = Vector(x2, y2, z2);
-  verts[4] = Vector(x1, y1, z1);
-  verts[5] = Vector(x2, y1, z1);
-  verts[6] = Vector(x1, y2, z1);
-  verts[7] = Vector(x2, y2, z1);
+  for (const auto& v: mVertices) {
+    if (v.x() >= x1 and v.x() <= x2 and
+        v.y() >= y1 and v.y() <= y2 and
+        v.z() >= z1 and v.z() <= z2) return true;
+  }
 
-  // facet 0 -- bottom face.
-  facets[0][0] = 0;
-  facets[0][1] = 4;
-  facets[0][2] = 5;
-  facets[0][3] = 1;
+  // Check if any of the box vertices are inside this polyhedron
+  if (this->contains(Vector(x1, y1, z2))) return true;
+  if (this->contains(Vector(x2, y1, z2))) return true;
+  if (this->contains(Vector(x1, y2, z2))) return true;
+  if (this->contains(Vector(x2, y2, z2))) return true;
+  if (this->contains(Vector(x1, y1, z1))) return true;
+  if (this->contains(Vector(x2, y1, z1))) return true;
+  if (this->contains(Vector(x1, y2, z1))) return true;
+  if (this->contains(Vector(x2, y2, z1))) return true;
 
-  // facet 1 -- top face.
-  facets[1][0] = 2;
-  facets[1][1] = 3;
-  facets[1][2] = 7;
-  facets[1][3] = 6;
-
-  // facet 2 -- left face.
-  facets[2][0] = 0;
-  facets[2][1] = 2;
-  facets[2][2] = 6;
-  facets[2][3] = 4;
-
-  // facet 3 -- right face.
-  facets[3][0] = 1;
-  facets[3][1] = 5;
-  facets[3][2] = 7;
-  facets[3][3] = 3;
-
-  // facet 4 -- front face.
-  facets[4][0] = 0;
-  facets[4][1] = 1;
-  facets[4][2] = 3;
-  facets[4][3] = 2;
-
-  // facet 5 -- back face.
-  facets[5][0] = 5;
-  facets[5][1] = 4;
-  facets[5][2] = 6;
-  facets[5][3] = 7;
-
-  GeomPolyhedron other(verts, facets);
-  return this->intersect(other);
+  // Otherwise nope!
+  return false;
 }
 
 //------------------------------------------------------------------------------
