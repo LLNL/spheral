@@ -52,6 +52,59 @@ extern Timer TIME_Polyhedron_convex;
 namespace Spheral {
 
 
+namespace {    // anonymous
+
+// //------------------------------------------------------------------------------
+// // Copy a mint::mesh 
+// //------------------------------------------------------------------------------
+// void copyMintMesh(axom::mint::UnstructuredMesh<axom::mint::SINGLE_SHAPE>& toMesh,
+//                   const axom::mint::UnstructuredMesh<axom::mint::SINGLE_SHAPE>& fromMesh) {
+
+//   const auto nnodes = fromMesh.getNumberOfNodes();
+//   const auto nfaces = fromMesh.getNumberOfFaces();
+//   const auto ncellnodes = fromMesh.getCellNodesSize();
+//   CHECK(ncellnodes == 3*nfaces);
+
+//   // Copy the node positions
+//   toMesh.resize(nnodes, nfaces);
+//   CHECK(toMesh.getNumberOfNodes() == nnodes);
+//   CHECK(toMesh.getCellNodesSize() == ncellnodes);
+//   const auto* x0 = fromMesh.getCoordinateArray(axom::mint::X_COORDINATE);
+//   const auto* y0 = fromMesh.getCoordinateArray(axom::mint::Y_COORDINATE);
+//   const auto* z0 = fromMesh.getCoordinateArray(axom::mint::Z_COORDINATE);
+//   auto* x1 = toMesh.getCoordinateArray(axom::mint::X_COORDINATE);
+//   auto* y1 = toMesh.getCoordinateArray(axom::mint::Y_COORDINATE);
+//   auto* z1 = toMesh.getCoordinateArray(axom::mint::Z_COORDINATE);
+//   std::copy(x0, x0 + nnodes, x1);
+//   std::copy(y0, y0 + nnodes, y1);
+//   std::copy(z0, z0 + nnodes, z1);
+
+//   // Copy the connectivity
+//   const axom::IndexType* conn0 = fromMesh.getCellNodesArray();
+//   axom::IndexType* conn1 = toMesh.getCellNodesArray();
+//   std::copy(conn0, conn0 + ncellnodes, conn1);
+// }
+
+//------------------------------------------------------------------------------
+// Copy a mesh::quest::InOutOctree as a new shared_ptr
+//------------------------------------------------------------------------------
+// axom::quest::InOutOctree<3>*
+// copyQuestOctree(const axom::quest::InOutOctree<3>* fromOctree,
+//                 const axom::mint::UnstructuredMesh<axom::mint::SINGLE_SHAPE>& fromMesh) {
+//   using AxOctree = axom::quest::InOutOctree<3>;
+//   using AxMesh = axom::mint::UnstructuredMesh<axom::mint::SINGLE_SHAPE>;
+//   if (fromOctree == nullptr) {
+//     return nullptr;
+//   }
+//   // auto* blago = dynamic_cast<axom::mint::Mesh*>(const_cast<AxMesh*>(&fromMesh));
+//   // AxMesh* blago = const_cast<AxMesh*>(&fromMesh);
+//   auto result = new AxOctree(fromOctree->boundingBox(), const_cast<AxMesh*>(&fromMesh));
+//   result->generateIndex();
+//   return result;
+// }
+
+}              // anonymous
+
 //------------------------------------------------------------------------------
 // Default constructor.
 //------------------------------------------------------------------------------
@@ -66,7 +119,9 @@ GeomPolyhedron():
   mXmax(),
   mCentroid(),
   mRinterior2(-1.0),
-  mConvex(true) {
+  mConvex(true),
+  mSurfaceMeshPtr(nullptr),
+  mSurfaceMeshQueryPtr(nullptr) {
   if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
 }
 
@@ -84,7 +139,9 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
   mXmax(),
   mCentroid(),
   mRinterior2(-1.0),
-  mConvex(true) {
+  mConvex(true),
+  mSurfaceMeshPtr(nullptr),
+  mSurfaceMeshQueryPtr(nullptr) {
   TIME_Polyhedron_construct1.start();
   if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
 
@@ -259,7 +316,9 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   mXmax(),
   mCentroid(),
   mRinterior2(-1.0),
-  mConvex(false) {
+  mConvex(false),
+  mSurfaceMeshPtr(nullptr),
+  mSurfaceMeshQueryPtr(nullptr) {
   TIME_Polyhedron_construct2.start();
 
   unsigned i, j, n;
@@ -304,7 +363,9 @@ GeomPolyhedron(const GeomPolyhedron& rhs):
   mXmax(rhs.mXmax),
   mCentroid(rhs.mCentroid),
   mRinterior2(rhs.mRinterior2),
-  mConvex(rhs.mConvex) {
+  mConvex(rhs.mConvex),
+  mSurfaceMeshPtr(nullptr),
+  mSurfaceMeshQueryPtr(nullptr) {
   for (Facet& facet: mFacets) facet.mVerticesPtr = &mVertices;
 }
 
@@ -329,6 +390,8 @@ operator=(const GeomPolyhedron& rhs) {
     mCentroid = rhs.mCentroid;
     mRinterior2 = rhs.mRinterior2;
     mConvex = rhs.mConvex;
+    mSurfaceMeshPtr = nullptr;
+    mSurfaceMeshQueryPtr = nullptr;
   }
   ENSURE(mFacets.size() == rhs.mFacets.size());
   return *this;
@@ -339,6 +402,8 @@ operator=(const GeomPolyhedron& rhs) {
 //------------------------------------------------------------------------------
 GeomPolyhedron::
 ~GeomPolyhedron() {
+  if (mSurfaceMeshPtr != nullptr) delete mSurfaceMeshPtr;
+  if (mSurfaceMeshQueryPtr != nullptr) delete mSurfaceMeshQueryPtr;
 }
 
 //------------------------------------------------------------------------------
@@ -347,15 +412,18 @@ GeomPolyhedron::
 bool
 GeomPolyhedron::
 contains(const GeomPolyhedron::Vector& point,
-         const bool countBoundary,
+         const bool /*countBoundary*/,
          const double tol) const {
   if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
-  if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
-  if (mConvex) {
-    return this->convexContains(point, countBoundary, tol);
-  } else {
-    return pointInPolyhedron(point, *this, countBoundary, tol);
-  }
+  using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
+  if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
+  return mSurfaceMeshQueryPtr->within(AxPoint(&const_cast<Vector&>(point)[0]));
+  // if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
+  // if (mConvex) {
+  //   return this->convexContains(point, countBoundary, tol);
+  // } else {
+  //   return pointInPolyhedron(point, *this, countBoundary, tol);
+  // }
 }
 
 //------------------------------------------------------------------------------
@@ -874,6 +942,7 @@ operator!=(const GeomPolyhedron& rhs) const {
 
 //------------------------------------------------------------------------------
 // Set the minimum and maximum extents of the polyhedron.
+// We are also piggybacking updating the Axom data structures here as well.
 //------------------------------------------------------------------------------
 void
 GeomPolyhedron::
@@ -907,7 +976,53 @@ setBoundingBox() {
     mRinterior2 = -1.0;
   }
   TIME_Polyhedron_BB_R2.stop();
+
+  // Clear any existing Axom information, so it's reconstructed if needed
+  if (mSurfaceMeshPtr != nullptr) delete mSurfaceMeshPtr;
+  if (mSurfaceMeshQueryPtr != nullptr) delete mSurfaceMeshQueryPtr;
+  mSurfaceMeshPtr = nullptr;
+  mSurfaceMeshQueryPtr = nullptr;
   TIME_Polyhedron_BB.stop();
+}
+
+//------------------------------------------------------------------------------
+// Build the Axom mesh representation
+//------------------------------------------------------------------------------
+void
+GeomPolyhedron::
+buildAxomData() const {
+  using AxMesh = axom::mint::UnstructuredMesh<axom::mint::SINGLE_SHAPE>;
+  using AxOctree = axom::quest::InOutOctree<3>;
+  using AxBoundingBox = AxOctree::GeometricBoundingBox;
+  using AxPoint = AxOctree::SpacePt;
+
+  // Set the vertex positions
+  auto* meshPtr = new AxMesh(3, axom::mint::TRIANGLE);
+  for (const auto& v: mVertices) {
+    meshPtr->appendNode(v.x(), v.y(), v.z());
+  }
+
+  // Set the facets -- note we have to ensure all Axom facets are triangles
+  for (const auto& f: mFacets) {
+    const auto& ipts = f.ipoints();
+    const auto  n = ipts.size();
+    for (auto k = 1u; k < n; k += 2u) {  // This only works for convex facets!
+      const axom::IndexType tri[] = {axom::IndexType(ipts[0]),
+                                     axom::IndexType(ipts[k]),
+                                     axom::IndexType(ipts[k + 1])};
+      meshPtr->appendCell(tri);
+    }
+  }
+
+  // Build the query object
+  AxBoundingBox bb;
+  Vector xmin = mXmin, xmax = mXmax;
+  bb.addPoint(AxPoint(&xmin[0]));
+  bb.addPoint(AxPoint(&xmax[0]));
+  // axom::mint::write_vtk(mSurfaceMeshPtr, "blago.vtk");
+  mSurfaceMeshPtr = meshPtr;
+  mSurfaceMeshQueryPtr = new AxOctree(bb, mSurfaceMeshPtr);
+  mSurfaceMeshQueryPtr->generateIndex();
 }
 
 //------------------------------------------------------------------------------

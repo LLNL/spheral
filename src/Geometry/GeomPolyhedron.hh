@@ -8,10 +8,17 @@
 #ifndef __Spheral_GeomPolyhedron__
 #define __Spheral_GeomPolyhedron__
 
-#include <vector>
 #include "GeomVector.hh"
 #include "GeomTensor.hh"
 #include "GeomFacet3d.hh"
+
+#include "axom/config.hpp"                          // compile time definitions
+#include "axom/core.hpp"                            // for execution_space traits
+#include "axom/mint.hpp"                            // for mint classes and functions
+#include "axom/quest.hpp"                           // axom surface queries (containment)
+
+#include <vector>
+#include <memory>
 
 namespace Spheral {
 
@@ -135,6 +142,7 @@ public:
 
   // Decompose the polyhedron into tetrahedra.
   void decompose(std::vector<GeomPolyhedron>& subcells) const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   std::vector<Vector> mVertices;
@@ -144,8 +152,13 @@ private:
   Vector mXmin, mXmax, mCentroid;
   double mRinterior2;
   bool mConvex;
+  mutable axom::quest::InOutOctree<3>::SurfaceMesh* mSurfaceMeshPtr;
+  mutable axom::quest::InOutOctree<3>* mSurfaceMeshQueryPtr;
 
   static FILE* mDevnull;
+
+  // Construct the Axom representation
+  void buildAxomData() const;
 };
 
 std::ostream& operator<<(std::ostream& os, const GeomPolyhedron& polygon);
