@@ -132,8 +132,6 @@ public:
 
 private:
   //--------------------------- Private Interface---------------------------//
-  // The one and only instance.
-  static NodeListRegistrar* mInstancePtr;
 
   // The current set of NodeLists.
   ContainerType mNodeLists;
