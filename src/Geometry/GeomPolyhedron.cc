@@ -367,19 +367,21 @@ contains(const GeomPolyhedron::Vector& point,
          const bool countBoundary,
          const double tol) const {
   if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
-  using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
-  if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
-  const auto inside = mSurfaceMeshQueryPtr->within(AxPoint(&const_cast<Vector&>(point)[0]));
-  if (not inside and countBoundary) {
-    return this->distance(point) < tol;
+  if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
+  if (mConvex) {
+    return this->convexContains(point, countBoundary, tol);
   } else {
-    return inside;
+    return pointInPolyhedron(point, *this, countBoundary, tol);
   }
-  // if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
-  // if (mConvex) {
-  //   return this->convexContains(point, countBoundary, tol);
+
+  // Experimental version using Axom
+  // using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
+  // if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
+  // const auto inside = mSurfaceMeshQueryPtr->within(AxPoint(&const_cast<Vector&>(point)[0]));
+  // if (not inside and countBoundary) {
+  //   return this->distance(point) < tol;
   // } else {
-  //   return pointInPolyhedron(point, *this, countBoundary, tol);
+  //   return inside;
   // }
 }
 
@@ -732,10 +734,12 @@ closestFacet(const GeomPolyhedron::Vector& p) const {
 double
 GeomPolyhedron::
 distance(const GeomPolyhedron::Vector& p) const {
-  using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
-  if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
-  return std::abs(mSignedDistancePtr->computeDistance(AxPoint(&const_cast<Vector&>(p)[0])));
-  //  return (p - this->closestPoint(p)).magnitude();
+  return (p - this->closestPoint(p)).magnitude();
+
+  // Experimental version using Axom
+  // using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
+  // if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
+  // return std::abs(mSignedDistancePtr->computeDistance(AxPoint(&const_cast<Vector&>(p)[0])));
 }
 
 //------------------------------------------------------------------------------
@@ -937,25 +941,13 @@ buildAxomData() const {
   for (const auto& f: mFacets) {
     const auto& ipts = f.ipoints();
     const auto  n = ipts.size();
-    // maxFacet = std::max(maxFacet, n);
-    // if (n > 3) {
-    //   cerr << "--------------------------------------------------------------------------------" << endl;
-    //   for (auto i: ipts) cerr << " " << i;
-    //   cerr << endl;
-    //   for (auto i: ipts) cerr << " " << mVertices[i];
-    //   cerr << endl;
-    // }
     for (auto k = 1u; k < n - 1u; ++k) {  // This only works for convex facets!
       const axom::IndexType tri[] = {axom::IndexType(ipts[0]),
                                      axom::IndexType(ipts[k]),
                                      axom::IndexType(ipts[k + 1])};
       meshPtr->appendCell(tri);
-      // if (n > 3) {
-      //   cerr << "        [" << ipts[0] << " " << ipts[k] << " " << ipts[k+1] << "] " << (mVertices[ipts[k]] - mVertices[ipts[0]]).cross(mVertices[ipts[k+1]] - mVertices[ipts[0]]) << endl;
-      // }
     }
   }
-  // std::cerr << "  --> maxFacet: " << maxFacet << std::endl;
 
   // Build the query objects
   AxBoundingBox bb;
@@ -963,7 +955,7 @@ buildAxomData() const {
   Vector xmax = mXmax + 0.01*(mXmax - mXmin);
   bb.addPoint(AxPoint(&xmin[0]));
   bb.addPoint(AxPoint(&xmax[0]));
-  // axom::mint::write_vtk(meshPtr, "blago.vtk");
+  axom::mint::write_vtk(meshPtr, "blago.vtk");
   mSurfaceMeshPtr = meshPtr;
   mSurfaceMeshQueryPtr = new AxOctree(bb, mSurfaceMeshPtr);
   mSurfaceMeshQueryPtr->generateIndex();
