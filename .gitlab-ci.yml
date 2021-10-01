@@ -18,6 +18,7 @@ unit-test-job:
 
 lint-test-job:
   stage: test
+  script:
     - echo "Linting code... This will take about 10 seconds."
     - sleep 10
     - echo "No lint issues found."
