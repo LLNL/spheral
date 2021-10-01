@@ -33,7 +33,7 @@ if(${lib_name}_BUILD)
                -DCMAKE_EXE_LINKER_FLAGS=${ldflags}
                -DENABLE_TESTS=Off
                -DBUILD_SHARED_LIBS=Off
-               -DHDF5_DIR=${hdf5_DIR}
+               -DHDF5_DIR=${HDF5_INSTALL_DIR}
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
 
     DEPENDS ${hdf5_build_dep} ${zlib_build_dep}
