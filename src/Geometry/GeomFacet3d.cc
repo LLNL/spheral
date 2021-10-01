@@ -9,6 +9,50 @@
 
 namespace Spheral {
 
+//------------------------------------------------------------------------------
+// Constructors, destructor.
+//------------------------------------------------------------------------------
+// We really don't want the default constructor, but it's required to have 
+// std::vectors of these.
+GeomFacet3d::
+GeomFacet3d():
+  mVerticesPtr(0),
+  mPoints(),
+  mNormal(1.0, 0.0, 0.0) {
+  VERIFY(false);
+}
+
+GeomFacet3d::
+GeomFacet3d(const std::vector<GeomFacet3d::Vector>& vertices,
+            const std::vector<unsigned>& ipoints):
+  mVerticesPtr(&vertices),
+  mPoints(ipoints),
+  mNormal() {
+  REQUIRE(mPoints.size() >= 3);
+  this->computeNormal();
+}
+
+GeomFacet3d::
+GeomFacet3d(const GeomFacet3d& rhs):
+  mVerticesPtr(rhs.mVerticesPtr),
+  mPoints(rhs.mPoints),
+  mNormal(rhs.mNormal) {
+}
+
+GeomFacet3d&
+GeomFacet3d::
+operator=(const GeomFacet3d& rhs) {
+  if (this != &rhs) {
+    mVerticesPtr = rhs.mVerticesPtr;
+    mPoints = rhs.mPoints;
+    mNormal = rhs.mNormal;
+  }
+  return *this;
+}
+
+GeomFacet3d::
+~GeomFacet3d() {
+}
 
 //------------------------------------------------------------------------------
 // Compare a set of points:
@@ -183,9 +227,26 @@ triangles() const {
   std::vector<GeomFacet3d> result;
   const auto nverts = mPoints.size();
   for (auto k = 1u; k < nverts - 1; ++k) {
-    result.emplace_back(*mVerticesPtr, std::vector<unsigned>({mPoints[0], mPoints[k], mPoints[k+1]}), mNormal);
+    result.emplace_back(*mVerticesPtr, std::vector<unsigned>({mPoints[0], mPoints[k], mPoints[k+1]}));
   }
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Compute our normal
+//------------------------------------------------------------------------------
+void
+GeomFacet3d::
+computeNormal() {
+  const auto& vertices = *mVerticesPtr;
+  const auto  n = mPoints.size();
+  mNormal.Zero();
+  for (auto i = 1u; i < n - 1u; ++i) {
+    auto j = (i + 1) % n;
+    mNormal += (vertices[mPoints[i]] - vertices[mPoints[0]]).cross(vertices[mPoints[j]] - vertices[mPoints[0]]);
+  }
+  // CHECK2(normal.magnitude2() > 0.0, normal << " " << facetIndices.size());
+  mNormal = mNormal.unitVector();
 }
 
 }

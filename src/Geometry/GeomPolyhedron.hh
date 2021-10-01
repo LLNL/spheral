@@ -97,8 +97,7 @@ public:
   // Reconstruct the internal data given a set of vertices and the vertex
   // indicies that define the facets.
   void reconstruct(const std::vector<Vector>& vertices,
-                   const std::vector<std::vector<unsigned> >& facetVertices,
-                   const std::vector<Vector>& facetNormals);
+                   const std::vector<std::vector<unsigned> >& facetVertices);
 
   // Compute the volume.
   double volume() const;

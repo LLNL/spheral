@@ -852,8 +852,7 @@ GeomPolygon&
 GeomPolygon::
 operator+=(const GeomPolygon::Vector& rhs) {
   for (auto& v: mVertices) v += rhs;
-  mXmin += rhs;
-  mXmax += rhs;
+  this->setBoundingBox();
   return *this;
 }
 
@@ -974,6 +973,7 @@ GeomPolygon::
 setBoundingBox() {
   boundingBox(mVertices, mXmin, mXmax);
   mConvex = this->convex();
+  for (auto& f: mFacets) f.computeNormal();
 }
 
 //------------------------------------------------------------------------------

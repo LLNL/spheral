@@ -97,8 +97,7 @@ meaning that the full set of points passed in may not appear in the vertices."""
 
     def reconstruct(self,
                     vertices = "const std::vector<Vector>&",
-                    facetVertices = "const std::vector<std::vector<unsigned> >&",
-                    facetNormals = "const std::vector<Vector>&"):
+                    facetVertices = "const std::vector<std::vector<unsigned> >&"):
         """Reconstruct the internal data given a set of vertices, vertex
 indices that define the facets, and outward normals at the facets."""
         return "void"

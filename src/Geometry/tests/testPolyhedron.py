@@ -288,8 +288,7 @@ class TestPolyhedron(unittest.TestCase):
     def testReconstruct(self):
         polyhedron2 = Polyhedron()
         polyhedron2.reconstruct(self.polyhedron.vertices,
-                                self.polyhedron.facetVertices,
-                                self.polyhedron.facetNormals)
+                                self.polyhedron.facetVertices)
         self.failUnless(polyhedron2 == self.polyhedron,
                         "Failed to properly reconstruct polyhedron from vertices and facets.")
         return
