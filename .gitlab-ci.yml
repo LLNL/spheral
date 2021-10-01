@@ -27,4 +27,3 @@ deploy-job:
   script:
     - echo "Deploying application..."
     - echo "Application successfully deployed."
-
