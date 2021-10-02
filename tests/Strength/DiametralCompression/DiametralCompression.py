@@ -79,10 +79,11 @@ commandLine(
     totalEnergyEvolution = False,        # evolve the total energy instead of specific thermal energy
     
     # FSISPH parameters
-    fsiSurfaceCoefficient = 0.00,  # adds additional repulsive force to material interfaces)
-    fsiRhoStabilizeCoeff = 0.00,   # coefficient that smooths the density field
-    fsiRhoDiffuseCoeff = 0.00,     # explicit diffusion of the density field      
-    fsiEpsDiffuseCoeff = 0.00,     # explicit diiffusion of the thermal energy
+    fsiSurfaceCoefficient = 0.00,          # adds additional repulsive force to material interfaces)
+    fsiRhoStabilizeCoeff = 0.00,           # coefficient that smooths the density field
+    fsiEpsDiffuseCoeff = 0.00,             # explicit diiffusion of the thermal energy
+    fsiXSPHCoeff = 0.00,                   # fsi uses multiplier for XSPH instead of binary switch
+    fsiInterfaceMethod = ModulusInterface, # (HLLCInterface, ModulusInterface)
     
     # CRKSPH parameters
     correctionOrder = LinearOrder,   # for CRKSPH higher order field approximations
@@ -148,7 +149,7 @@ assert SpecimenDistribution in (["lattice","conformal"])
 
 assert not (useDamage and strengthModel=="null") # if were using damage strength must be used
 
-assert fsiRhoDiffuseCoeff >= 0.0 
+assert fsiXSPHCoeff >= 0.0 
 assert fsiEpsDiffuseCoeff >= 0.0 
 assert fsiRhoStabilizeCoeff >= 0.0 
 assert fsiSurfaceCoefficient >= 0.0 
@@ -412,14 +413,14 @@ elif SPHType=="fsisph":
                    Q=q,
                    W = WT,
                    cfl = cfl,
-                   surfaceForceCoefficient = fsiSurfaceCoefficient,               
-                   densityStabilizationCoefficient = fsiRhoStabilizeCoeff,         
-                   densityDiffusionCoefficient = fsiRhoDiffuseCoeff,                 
-                   specificThermalEnergyDiffusionCoefficient = fsiEpsDiffuseCoeff,        
+                   surfaceForceCoefficient = fsiSurfaceCoefficient,                       
+                   densityStabilizationCoefficient = fsiRhoStabilizeCoeff,                 
+                   specificThermalEnergyDiffusionCoefficient = fsiEpsDiffuseCoeff,  
+                   xsphCoefficient = fsiXSPHCoeff,
+                   interfaceMethod = fsiInterfaceMethod,      
                    correctVelocityGradient = correctVelocityGradient,
-                   compatibleEnergyEvolution = True,  
-                   evolveTotalEnergy = False,         
-                   XSPH = xsph,
+                   compatibleEnergyEvolution = compatibleEnergyEvolution,  
+                   evolveTotalEnergy = totalEnergyEvolution,         
                    ASPH = asph,
                    HUpdate=HEvolution,
                    epsTensile = epsilonTensile,

@@ -21,19 +21,26 @@ values for the shear modulus and yield strength."""
     # Constructors
     def pyinit(self,
                mu0 = "const double",
-               Y0 = "const double"):
-        "Construct with constant shear modulus (mu0) and yield strength (Y0)"
+               Y0 = "const double",
+               muD = ("const double", "0.0"),
+               YD = ("const double", "0.0")):
+        "Construct with constant shear modulus (mu0) and yield strength (Y0), optionally specifying the damaged values as well (default to 0.0)."
 
     def pyinit1(self,
                 mu0 = "const double",
                 Y0 = "const double",
-                eos = "const SolidEquationOfState<%(Dimension)s>&"):
-        "Construct with constant shear modulus (mu0), yield strength (Y0), and associated solid EOS"
+                eos = "const SolidEquationOfState<%(Dimension)s>&",
+                muD = ("const double", "0.0"),
+                YD = ("const double", "0.0")):
+        """Construct with constant shear modulus (mu0), yield strength (Y0), and associated solid EOS.
+Optionally you can specify damaged values (default to 0.0)."""
 
     #...........................................................................
     # Properties
-    mu0 = PYB11property("double", doc="shear modulus")
-    Y0 = PYB11property("double", doc="yield strength")
+    mu0 = PYB11property("double", doc="intact shear modulus")
+    Y0 = PYB11property("double", doc="intact yield strength")
+    muD = PYB11property("double", doc="damaged shear modulus")
+    YD = PYB11property("double", doc="damaged yield strength")
 
 #-------------------------------------------------------------------------------
 # Inject Strength interface

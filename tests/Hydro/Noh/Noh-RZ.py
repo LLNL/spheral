@@ -264,31 +264,31 @@ output("db.numFluidNodeLists")
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 if crksph:
-    hydro = CRKSPHRZ(dataBase = db,
-                     filter = filter,
-                     cfl = cfl,
-                     useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                     compatibleEnergyEvolution = compatibleEnergy,
-                     evolveTotalEnergy = evolveTotalEnergy,
-                     XSPH = XSPH,
-                     order = correctionOrder,
-                     densityUpdate = densityUpdate,
-                     HUpdate = HUpdate)
+    hydro = CRKSPH(dataBase = db,
+                   filter = filter,
+                   cfl = cfl,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   XSPH = XSPH,
+                   order = correctionOrder,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate)
 else:
-    hydro = SPHRZ(dataBase = db,
-                  W = WT,
-                  filter = filter,
-                  cfl = cfl,
-                  useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                  compatibleEnergyEvolution = compatibleEnergy,
-                  evolveTotalEnergy = evolveTotalEnergy,
-                  gradhCorrection = gradhCorrection,
-                  correctVelocityGradient = correctVelocityGradient,
-                  densityUpdate = densityUpdate,
-                  HUpdate = HUpdate,
-                  XSPH = XSPH,
-                  epsTensile = epsilonTensile,
-                  nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT,
+                filter = filter,
+                cfl = cfl,
+                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
