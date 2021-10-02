@@ -55,7 +55,7 @@ timeStep(const DataBase<Dimension>& dataBase,
   const auto& radius = state.fields(DEMFieldNames::particleRadius,0.0);
 
   const auto numNodeLists = dataBase.numNodeLists();
-  const auto Y2eff = 16.0/3.0*mYoungsModulus;
+  const auto Y2eff = 16.0/9.0*mYoungsModulus*mYoungsModulus;        
   const auto pi = 3.14159265358979323846;
   auto minContactTime = std::numeric_limits<double>::max();
 
@@ -70,8 +70,8 @@ timeStep(const DataBase<Dimension>& dataBase,
       for (auto i = 0u; i < ni; ++i) {
           const auto mi = mass(nodeListi,i);
           const auto Ri = radius(nodeListi,i);
-          const auto k = Yeff*Ri;
-          minContactTime_thread = min(minContactTime_thread,mi*mi/k);
+          const auto k2 = Y2eff*Ri;
+          minContactTime_thread = min(minContactTime_thread,mi*mi/k2);
       }
 
     #pragma omp critical
@@ -80,7 +80,7 @@ timeStep(const DataBase<Dimension>& dataBase,
     }
   }
 
-  minContactTime = pi*std::sqrt(std::sqrt(minContactTime));
+  minContactTime = pi*std::pow(minContactTime,0.25);
   return minContactTime;
 };
 
@@ -112,24 +112,23 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  //const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  //const auto omega = state.fields(DEMFieldNames::angularVelocity, Vector::zero);
-  const auto radius = state.fields(DEMFieldNames::particleRadius, .0);
+  const auto omega = state.fields(DEMFieldNames::angularVelocity, Vector::zero);
+  const auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
 
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
   CHECK(radius.size() == numNodeLists);
-  //CHECK(omega.size() == numNodeLists);
+  CHECK(omega.size() == numNodeLists);
 
   //auto  T    = derivatives.getany("minContactTime",0.0);
   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  //auto  DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + DEMFieldNames::angularVelocity, Vector::zero);
+  auto  DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + DEMFieldNames::angularVelocity, Vector::zero);
 
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
-  //CHECK(DomegaDt.size() == numNodeLists);
+  CHECK(DomegaDt.size() == numNodeLists);
 
 
 #pragma omp parallel
@@ -166,29 +165,33 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& DvDtj = DvDt_thread(nodeListj, j);
       
       CHECK(mi > 0.0);
-      CHECK(Hdeti > 0.0);
-      CHECK(Ri > 0.0);
       CHECK(mj > 0.0);
-      CHECK(Hdetj > 0.0);
+      CHECK(Ri > 0.0);
       CHECK(Rj > 0.0);
-      
-      const auto mij = (mi*mj)/(mi+mj);
-      const auto Rij = (Ri*Rj)/(Ri+Rj);
 
-      const auto vij = vi-vj;
+      // are we overlapping ? 
       const auto rij = ri-rj;
-      const auto rhatij = rij.unitVector();
-
-      const auto delta = (Ri+Rj) - std::sqrt(rij.dot(rij));  // negative will get ya a force
+      const auto delta = (Ri+Rj) - std::sqrt(rij.dot(rij)); 
       
-      const auto c1 = 4.0/3.0*mYoungsModulus*std::sqrt(Rij);
-      const auto c2 = std::sqrt(4.0*mij*c1/(1.0+mBeta*mBeta));
-      
+      // if so do the things
       if (delta > 0.0){
-         const auto vn = vij.dot(rhatij);
-         const auto f = c1*delta - c2*vn;
-         DvDti += f/mi*rhatij;
-         DvDtj -= f/mj*rhatij;
+
+        const auto vij = vi-vj;
+        const auto rhatij = rij.unitVector();
+
+        // effective quantities
+        const auto mij = (mi*mj)/(mi+mj);
+        const auto Rij = (Ri*Rj)/(Ri+Rj);
+
+        // normal force w/ Herzian spring constant
+        const auto c1 = 4.0/3.0*mYoungsModulus*std::sqrt(Rij);
+        const auto c2 = std::sqrt(4.0*mij*c1/(1.0+mBeta*mBeta));
+        const auto vn = vij.dot(rhatij);
+
+        // normal force
+        const auto f = c1*delta - c2*vn;
+        DvDti += f/mi*rhatij;
+        DvDtj -= f/mj*rhatij;
       }
 
       //minContactTimekk = min(c1/mij,minContactTimekk);

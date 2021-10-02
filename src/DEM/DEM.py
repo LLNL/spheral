@@ -42,7 +42,7 @@ def DEM(dataBase,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100)):
 
-    assert dataBase.numDemNodeLists == dataBase.numNodeLists
+    assert dataBase.numDEMNodeLists == dataBase.numNodeLists
 
     # We use the provided DataBase to sniff out what sort of NodeLists are being
     # used, and based on this determine which SPH object to build.
@@ -50,22 +50,31 @@ def DEM(dataBase,
 
     Constructor = eval("DEM%id" % ndim)
 
-    # if a particle radius is specified set it.
+    '''
+    # set particle radius
+    #---------------------
+    # if a particle radius is specified set it and then
+    # set out H tensor to the appropriate nPerh
     if particleRadius is not None: 
-        for DEMNodeList in dataBase.DEMNodeLists:
-            radii = DEMNodeList.particleRadius()
-            for i in range(DEMNodeList.numInternalNodes):
-               radii[i] = particleRadius
-
-    # do it based on nPerh and H
-    else:
-        for DEMNodeList in dataBase.DEMNodeLists:
+        for DEMNodeList in dataBase.DEMNodeLists():
             radii = DEMNodeList.particleRadius()
             H = DEMNodeList.HField()
             nPerh = DEMNodeList.nPerh
             for i in range(DEMNodeList.numInternalNodes):
-               radii[i] = 0.5/(nodesPerSmoothingScale*H[i].Determinant())
+                radii[i] = particleRadius
+                H[i] = Tensor.one * 1.0/(2.0*nPerh*radii[i])
 
+    # do it based on nPerh and H
+    else:
+        ndimInv = 1.0/ndim
+        for DEMNodeList in dataBase.DEMNodeLists():
+            radii = DEMNodeList.particleRadius()
+            H = DEMNodeList.HField()
+            nPerh = DEMNodeList.nPerh
+            for i in range(DEMNodeList.numInternalNodes):
+               radii[i] = 1.0/(2.0*nPerh*pow(H[i].Determinant(),ndimInv))
+    #---------------------
+    '''
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
