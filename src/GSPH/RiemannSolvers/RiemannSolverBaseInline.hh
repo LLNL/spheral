@@ -79,13 +79,5 @@ DvDx() const {
   return mDvDx;
 }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-RiemannSolverBase<Dimension>::
-DrhoDx() const {
-  return mDrhoDx;
-}
-
 
 }

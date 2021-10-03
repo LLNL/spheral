@@ -35,9 +35,7 @@ RiemannSolverBase(LimiterBase<Dimension>& slopeLimiter,
   mLinearReconstruction(linearReconstruction),
   mGradType(gradType),
   mDpDx(FieldStorageType::CopyFields),
-  mDvDx(FieldStorageType::CopyFields),
-  mDrhoDx(FieldStorageType::CopyFields){
-
+  mDvDx(FieldStorageType::CopyFields){
 }
 
 //========================================================
@@ -66,9 +64,7 @@ initialize(const DataBase<Dimension>& dataBase,
   if(mLinearReconstruction){
     dataBase.resizeFluidFieldList(mDpDx,Vector::zero,"riemann solver pressure gradient",true);
     dataBase.resizeFluidFieldList(mDvDx,Tensor::zero,"riemann solver velocity Gradient",true);
-    //dataBase.resizeFluidFieldList(mDrhoDx,Vector::zero,"riemann solver density Gradient",true);
-    
-    //const auto& DrhoDx0 = derivs.fields( GSPHFieldNames::densityGradient, Vector::zero);
+
     const auto& DpDx0 = derivs.fields( GSPHFieldNames::pressureGradient, Vector::zero);
     const auto& DpDxRaw0 = derivs.fields( GSPHFieldNames::pressureGradient+"RAW", Vector::zero);
     const auto& DvDx0 = derivs.fields( HydroFieldNames::velocityGradient,Tensor::zero);
@@ -128,7 +124,6 @@ initialize(const DataBase<Dimension>& dataBase,
             ++boundItr) {
       (*boundItr)->applyFieldListGhostBoundary(mDpDx);
       (*boundItr)->applyFieldListGhostBoundary(mDvDx);
-      //(*boundItr)->applyFieldListGhostBoundary(mDrhoDx);
     }
 
     for (auto boundItr = boundaryBegin;
@@ -139,6 +134,89 @@ initialize(const DataBase<Dimension>& dataBase,
 
 } // initialize method
 
+
+//========================================================
+// reconstruct from limited gradient
+//========================================================
+template<typename Dimension>
+void
+RiemannSolverBase<Dimension>::
+linearReconstruction(const typename Dimension::Vector& ri,
+                     const typename Dimension::Vector& rj,
+                     const typename Dimension::Scalar& yi,
+                     const typename Dimension::Scalar& yj,
+                     const typename Dimension::Vector& DyDxi,
+                     const typename Dimension::Vector& DyDxj,
+                           typename Dimension::Scalar& ytildei,
+                           typename Dimension::Scalar& ytildej) const {
+  
+  const auto tiny = std::numeric_limits<Scalar>::epsilon();
+
+  const auto rij = (ri-rj);
+
+  // relavant deltas in field value
+  const auto Dy0 = (yi-yj);
+  const auto Dyi = 0.5*DyDxi.dot(rij);
+  const auto Dyj = 0.5*DyDxj.dot(rij);
+
+  // ratios of SPH derivs to ij particle difference
+  const auto denom = 2.0 / (sgn(Dy0) * std::max(tiny,abs(Dy0)));
+  const auto ratioi = Dyi * denom;
+  const auto ratioj = Dyj * denom;
+
+  // limiter function 
+  const auto phii = this->mSlopeLimiter.slopeLimiter(ratioi);
+  const auto phij = this->mSlopeLimiter.slopeLimiter(ratioj);
+  const auto phi = std::min(phii,phij);
+
+  // linear constructed inteface values
+  ytildei = yi + phi * Dyi;
+  ytildej = yj + phi * Dyj;
+}
+
+//========================================================
+// reconstruct from limited gradient
+//========================================================
+template<typename Dimension>
+void
+RiemannSolverBase<Dimension>::
+linearReconstruction(const typename Dimension::Vector& ri,
+                     const typename Dimension::Vector& rj,
+                     const typename Dimension::Vector& yi,
+                     const typename Dimension::Vector& yj,
+                     const typename Dimension::Tensor& DyDxi,
+                     const typename Dimension::Tensor& DyDxj,
+                           typename Dimension::Vector& ytildei,
+                           typename Dimension::Vector& ytildej) const {
+  
+  const auto tiny = std::numeric_limits<Scalar>::epsilon();
+
+  const auto rij = (ri-rj);
+  const auto rhatij = rij.unitVector();
+
+  // relavant deltas in field value
+  const auto Dy0 = (yi-yj);
+  const auto Dyi = 0.5*DyDxi.dot(rij);   
+  const auto Dyj = 0.5*DyDxj.dot(rij);  
+
+  // scalar delta along line of action s
+  const auto Dy0s = Dy0.dot(rhatij);
+  const auto Dyis = Dyi.dot(rhatij);
+  const auto Dyjs = Dyj.dot(rhatij);
+
+  // ratios of SPH derivs to ij particle difference
+  const auto denom = 2.0 / (sgn(Dy0s) * std::max(tiny,abs(Dy0s)));
+  const auto ratioi = Dyis * denom;
+  const auto ratioj = Dyjs * denom;
+
+  // limiter function 
+  const auto phii = this->mSlopeLimiter.slopeLimiter(ratioi);
+  const auto phij = this->mSlopeLimiter.slopeLimiter(ratioj);
+  const auto phi = std::min(phii,phij);
+
+  ytildei = yi + phi * Dyi;
+  ytildej = yj + phi * Dyj;
+}
 
 //========================================================
 // default to non-op

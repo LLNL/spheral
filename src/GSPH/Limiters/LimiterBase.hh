@@ -25,26 +25,6 @@ public:
 
   virtual
   Scalar fluxLimiter(const Scalar) const = 0;
-
-  virtual 
-  void construct(const Vector& ri,
-                 const Vector& rj,
-                 const Scalar& yi,
-                 const Scalar& yj,
-                 const Vector& DyDxi,
-                 const Vector& DyDxj,
-                       Scalar& ytildei,
-                       Scalar& ytildej) const;
-
-  virtual 
-  void construct(const Vector& ri,
-                 const Vector& rj,
-                 const Vector& yi,
-                 const Vector& yj,
-                 const Tensor& DyDxi,
-                 const Tensor& DyDxj,
-                       Vector& ytildei,
-                       Vector& ytildej) const;
   
 
   virtual bool isSymmetric() const;

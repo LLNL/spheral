@@ -94,13 +94,32 @@ public:
   bool linearReconstruction() const;
   void linearReconstruction(bool x);
 
+  virtual 
+  void linearReconstruction(const Vector& ri,
+                            const Vector& rj,
+                            const Scalar& yi,
+                            const Scalar& yj,
+                            const Vector& DyDxi,
+                            const Vector& DyDxj,
+                                  Scalar& ytildei,
+                                  Scalar& ytildej) const;
+
+  virtual 
+  void linearReconstruction(const Vector& ri,
+                            const Vector& rj,
+                            const Vector& yi,
+                            const Vector& yj,
+                            const Tensor& DyDxi,
+                            const Tensor& DyDxj,
+                                  Vector& ytildei,
+                                  Vector& ytildej) const;
+
   // we'll want the ability to modify these (make better)
   FieldList<Dimension,Vector>& DpDx();
   FieldList<Dimension,Tensor>& DvDx();
 
   const FieldList<Dimension,Vector>& DpDx() const;
   const FieldList<Dimension,Tensor>& DvDx() const;
-  const FieldList<Dimension,Vector>& DrhoDx() const;
 
 private:
   
@@ -111,7 +130,6 @@ private:
 
   FieldList<Dimension, Vector> mDpDx;
   FieldList<Dimension, Tensor> mDvDx;
-  FieldList<Dimension, Vector> mDrhoDx;
 
 };
 
