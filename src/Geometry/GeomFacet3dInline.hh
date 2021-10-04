@@ -4,56 +4,6 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Constructors, destructor.
-//------------------------------------------------------------------------------
-// We really don't want the default constructor, but it's required to have 
-// std::vectors of these.
-inline
-GeomFacet3d::
-GeomFacet3d():
-  mVerticesPtr(0),
-  mPoints(),
-  mNormal(1.0, 0.0, 0.0) {
-  VERIFY(false);
-}
-
-inline
-GeomFacet3d::
-GeomFacet3d(const std::vector<GeomFacet3d::Vector>& vertices,
-            const std::vector<unsigned>& ipoints,
-            const GeomFacet3d::Vector& normal):
-  mVerticesPtr(&vertices),
-  mPoints(ipoints),
-  mNormal(normal) {
-  REQUIRE(mPoints.size() >= 3);
-}
-
-inline
-GeomFacet3d::
-GeomFacet3d(const GeomFacet3d& rhs):
-  mVerticesPtr(rhs.mVerticesPtr),
-  mPoints(rhs.mPoints),
-  mNormal(rhs.mNormal) {
-}
-
-inline
-GeomFacet3d&
-GeomFacet3d::
-operator=(const GeomFacet3d& rhs) {
-  if (this != &rhs) {
-    mVerticesPtr = rhs.mVerticesPtr;
-    mPoints = rhs.mPoints;
-    mNormal = rhs.mNormal;
-  }
-  return *this;
-}
-
-inline
-GeomFacet3d::
-~GeomFacet3d() {
-}
-
-//------------------------------------------------------------------------------
 // Is the given point above, below, or coplanar with the facet?
 // Returns 1, -1, 0 respectively.
 //------------------------------------------------------------------------------

@@ -34,7 +34,7 @@ set(pip-setup-modules
 set(pip-modules
     numpy==1.16.6
     numpy-stl==2.11.2
-    PYB11Generator
+    PYB11Generator==1.0.12
     matplotlib==2.2.5
     decorator==4.4.2
     h5py==2.10.0
