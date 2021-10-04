@@ -1,0 +1,6 @@
+#ATS:test(SELF, label="CXX unit tests")
+import subprocess
+
+print("@TEST_LIST@")
+
+assert subprocess.call(["@CMAKE_INSTALL_PREFIX@/tests/@test_name@_test"]) == 0

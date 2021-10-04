@@ -13,8 +13,13 @@ set(gtest_spheral_tests
 
 get_property(SPHERAL_CXX_LIBS GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 
+set(TEST_LIST)
+
 foreach(test ${gtest_spheral_tests})
     get_filename_component( test_name ${test} NAME_WE )
+
+    list(APPEND TEST_LIST ${test_name}_test.py)
+    message(STATUS "Name of test in list::::::::::::::::::::::::::: ${test_name}")
 
     blt_add_executable( NAME ${test_name}_test
                         SOURCES ${test}
@@ -28,7 +33,7 @@ foreach(test ${gtest_spheral_tests})
 
     if (NOT ENABLE_CXXONLY)
       configure_file(
-          "${CMAKE_CURRENT_SOURCE_DIR}/runCXXTests.in"
+          "${CMAKE_CURRENT_SOURCE_DIR}/pyRunCXXTest.in"
           "${CMAKE_INSTALL_PREFIX}/tests/${test_name}_test.py"
       )
     endif()
@@ -41,3 +46,6 @@ foreach(test ${gtest_spheral_tests})
     INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;"
                         )
 endforeach()
+
+list(LENGTH TEST_LIST TEST_LIST_LENGTH)
+message(STATUS "THIS IS THE LENGTH OF MY TEST_LIST ================ ${TEST_LIST_LENGTH}")
