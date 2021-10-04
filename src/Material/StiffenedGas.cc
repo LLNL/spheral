@@ -230,11 +230,11 @@ StiffenedGas<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return massDensity*max(0.0, mGamma*mGamma1*(specificThermalEnergy+mP0/massDensity));
+  return massDensity*max(0.0, mGamma*mGamma1*(specificThermalEnergy-mP0/massDensity));
 }
 
 //------------------------------------------------------------------------------
-// Calculate an entropy. This should be double checked
+// Calculate an entropy.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
@@ -242,7 +242,7 @@ StiffenedGas<Dimension>::
 entropy(const Scalar massDensity,
         const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return (mGamma*mP0+this->pressure(massDensity, specificThermalEnergy))*safeInvVar(pow(massDensity, mGamma));
+  return (mP0+this->pressure(massDensity, specificThermalEnergy))*safeInvVar(pow(massDensity, mGamma));
 }
 
 //------------------------------------------------------------------------------
