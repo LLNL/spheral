@@ -77,8 +77,10 @@ interfaceState(const int i,
     const auto rhogh = 0.5*(rhoi+rhoj)*mGravitationalAcceleration.dot(ri-rj);
     const auto p1i = Pi - rhogh;
     const auto p1j = Pj + rhogh;
-    HLLC<Dimension>::interfaceState(i,j,
-                                    nodelisti, nodelistj,
+    HLLC<Dimension>::interfaceState(i,
+                                    j,
+                                    nodelisti, 
+                                    nodelistj,
                                     ri,
                                     rj,
                                     rhoi, 

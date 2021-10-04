@@ -62,8 +62,8 @@ initialize(const DataBase<Dimension>& dataBase,
            const TableKernel<Dimension>& /*W*/){
 
   if(mLinearReconstruction){
-    dataBase.resizeFluidFieldList(mDpDx,Vector::zero,"riemann solver pressure gradient",true);
-    dataBase.resizeFluidFieldList(mDvDx,Tensor::zero,"riemann solver velocity Gradient",true);
+    dataBase.resizeFluidFieldList(mDpDx,Vector::zero,GSPHFieldNames::RiemannPressureGradient,true);
+    dataBase.resizeFluidFieldList(mDvDx,Tensor::zero,GSPHFieldNames::RiemannVelocityGradient,true);
 
     const auto& DpDx0 = derivs.fields( GSPHFieldNames::pressureGradient, Vector::zero);
     const auto& DpDxRaw0 = derivs.fields( GSPHFieldNames::pressureGradient+"RAW", Vector::zero);
@@ -170,7 +170,7 @@ linearReconstruction(const typename Dimension::Vector& ri,
   const auto phi = std::min(phii,phij);
 
   // linear constructed inteface values
-  ytildei = yi + phi * Dyi;
+  ytildei = yi - phi * Dyi;
   ytildej = yj + phi * Dyj;
 }
 
@@ -214,7 +214,7 @@ linearReconstruction(const typename Dimension::Vector& ri,
   const auto phij = this->mSlopeLimiter.slopeLimiter(ratioj);
   const auto phi = std::min(phii,phij);
 
-  ytildei = yi + phi * Dyi;
+  ytildei = yi - phi * Dyi;
   ytildej = yj + phi * Dyj;
 }
 

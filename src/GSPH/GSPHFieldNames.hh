@@ -10,13 +10,12 @@
 namespace Spheral {
 
 struct GSPHFieldNames {
-  static const std::string deviatoricStressTensorGradient;
   static const std::string densityGradient;
-  static const std::string previousDensityGradient;
   static const std::string pressureGradient;
-  static const std::string previousPressureGradient;
-  static const std::string previousVelocityGradient;
-  static const std::string previousLocalVelocityGradient;
+  static const std::string deviatoricStressTensorGradient;
+  static const std::string RiemannPressureGradient;
+  static const std::string RiemannVelocityGradient;
+  static const std::string RiemannDeviatoricStressTensorGradient;
 };
 
 }
