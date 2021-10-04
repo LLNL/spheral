@@ -264,9 +264,14 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from DistributeNodes import distributeNodesInRange1d
-distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1))],
-                         nPerh = nPerh)
+from GenerateNodeDistribution1d import GenerateNodeDistribution1d
+from DistributeNodes import distributeNodes1d
+gen = GenerateNodeDistribution1d(n = nx1,
+                                 rho = rho1,
+                                 xmin = x0,
+                                 xmax = x1,
+                                 nNodePerh = nPerh)
+distributeNodes1d((nodes1, gen))
 output("nodes1.numNodes")
 
 # Set node specific thermal energies
@@ -339,14 +344,14 @@ elif fsisph:
                    W = WT,
                    filter = filter,
                    cfl = cfl,
+                   interfaceMethod = ModulusInterface,
                    sumDensityNodeLists=[nodes1],                       
                    densityStabilizationCoefficient = 0.00,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    correctVelocityGradient = correctVelocityGradient,
-                   HUpdate = HUpdate,
-                   XSPH = XSPH)
+                   HUpdate = HUpdate)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,

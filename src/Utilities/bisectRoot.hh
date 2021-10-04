@@ -7,9 +7,10 @@
 #ifndef __Spheral_bisectRoot_hh__
 #define __Spheral_bisectRoot_hh__
 
-#include <map>
 #include "Utilities/DBC.hh"
 #include "Utilities/SpheralFunctions.hh"
+
+#include <iostream>
 
 namespace Spheral {
 
@@ -20,19 +21,19 @@ bisectRoot(const Function& functor,
            double x1,
            double x2,
            const double xaccuracy = 1.0e-15,
-           const double yaccuracy = 1.0e-15,
-           const unsigned maxIterations = 100) {
+           const unsigned maxIterations = 100,
+           const bool verbose = false) {
 
   // Initialize values for the function and its derivative.
   double xminValue = functor(x1);
   double xmaxValue = functor(x2);
 
-  // Is the root already at the min or max range?
-  if (fuzzyEqual(xminValue, 0.0, yaccuracy)) return x1;
-  if (fuzzyEqual(xmaxValue, 0.0, yaccuracy)) return x2;
+  // // Is the root already at the min or max range?
+  // if (fuzzyEqual(xminValue, 0.0, yaccuracy)) return x1;
+  // if (fuzzyEqual(xmaxValue, 0.0, yaccuracy)) return x2;
 
   // Make sure the root is bracketed by the input range.
-  VERIFY2(distinctlyLessThan(xminValue * xmaxValue, 0.0),
+  VERIFY2(xminValue*xmaxValue <= 0.0, // distinctlyLessThan(xminValue * xmaxValue, 0.0),
           "bisectRoot: root must be bracketed by input range:  " << xminValue << " " << xmaxValue);
 
   // Initialize the searching parameters.
@@ -53,6 +54,7 @@ bisectRoot(const Function& functor,
   // Iterate until we either converge or achieve the desired accuracy.
   unsigned iter = 0;
   while (iter < maxIterations) {
+    if (verbose) std::cout << "bisectRoot " << iter << ": x in [" << xl << " " << xh << "] : F(x) in [" << functor(xl) << " " << functor(xh) << "]" << std::endl;
     ++iter;
     dxold = dx;
     dx = 0.5*(xh - xl);

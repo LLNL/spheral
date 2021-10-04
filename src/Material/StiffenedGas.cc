@@ -157,7 +157,7 @@ setEntropy(Field<Dimension, Scalar>& entropy,
            const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
   for (size_t i = 0; i != massDensity.numElements(); ++i) {
-    entropy(i) = (mGamma*mP0+pressure(massDensity(i), specificThermalEnergy(i)))*safeInvVar(pow(massDensity(i), mGamma));
+    entropy(i) = (mP0+pressure(massDensity(i), specificThermalEnergy(i)))*safeInvVar(pow(massDensity(i), mGamma));
   }
 }
 
@@ -218,7 +218,7 @@ StiffenedGas<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return sqrt(max(0.0, mGamma*mGamma1*(specificThermalEnergy+mP0/massDensity)));
+  return sqrt(max(0.0, mGamma*mGamma1*(specificThermalEnergy-mP0/massDensity)));
 }
 
 //------------------------------------------------------------------------------

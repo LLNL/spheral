@@ -16,6 +16,7 @@ set(Utilities_inst
 
 set(Utilities_sources
     DBC.cc
+    QuadraticInterpolator.cc
     Process.cc
     KeyTraits.cc
     PeanoHilbertTransform.cc
@@ -43,6 +44,9 @@ set(Utilities_headers
     Bessel.hh
     CounterClockwiseComparator.hh
     DBC.hh
+    QuadraticInterpolator.hh
+    BiQuadraticInterpolator.hh
+    BiQuadraticInterpolatorInline.hh
     DataTypeTraits.hh
     DomainNode.hh
     DomainNodeInline.hh
