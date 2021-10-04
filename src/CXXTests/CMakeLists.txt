@@ -36,4 +36,8 @@ foreach(test ${gtest_spheral_tests})
     install(TARGETS ${test_name}_test
             DESTINATION ${CMAKE_INSTALL_PREFIX}/tests
             )
+    
+    set_target_properties(${test_name}_test PROPERTIES
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;"
+                        )
 endforeach()
