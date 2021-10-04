@@ -21,6 +21,10 @@ cmake \
   -DENABLE_MPI=On \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
   -DBUILD_TPL_ONLY=On \
+  -Dhdf5_BUILD=Off \
+  -Dhdf5_DIR="/usr/gapps/Spheral/tpl/$SYS_TYPE/lchdf5" \
+  -Dsilo_BUILD=Off \
+  -Dsilo_DIR="/usr/gapps/Spheral/tpl/$SYS_TYPE/lcsilo" \
   -Wno-dev \
   $CMAKE_ARGS
 

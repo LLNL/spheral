@@ -7,9 +7,10 @@ from PYB11Generator import *
 class Polyhedron:
 
     PYB11typedefs = """
-    typedef GeomPolyhedron Polyhedron;
-    typedef GeomPolyhedron::Vector Vector;
-    typedef GeomPolyhedron::Facet Facet;
+    using Polyhedron = GeomPolyhedron;
+    using Vector = GeomPolyhedron::Vector;
+    using Tensor = GeomPolyhedron::Tensor;
+    using Facet = GeomPolyhedron::Facet;
 """
 
     #...........................................................................
@@ -96,8 +97,7 @@ meaning that the full set of points passed in may not appear in the vertices."""
 
     def reconstruct(self,
                     vertices = "const std::vector<Vector>&",
-                    facetVertices = "const std::vector<std::vector<unsigned> >&",
-                    facetNormals = "const std::vector<Vector>&"):
+                    facetVertices = "const std::vector<std::vector<unsigned> >&"):
         """Reconstruct the internal data given a set of vertices, vertex
 indices that define the facets, and outward normals at the facets."""
         return "void"
@@ -138,6 +138,10 @@ indices that define the facets, and outward normals at the facets."""
     def facetSubVolume(self, facetID="const unsigned"):
         "Decompose the polyhedron into tetrahedra for each facet"
         return "Polyhedron"
+
+    def transform(self, t="const Tensor&"):
+        "Apply a general transformation tensor"
+        return "Polyhedron&"
 
     #...........................................................................
     # Operators

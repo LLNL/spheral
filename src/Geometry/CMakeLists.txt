@@ -20,7 +20,6 @@ set(Geometry_sources
     buildEigenVector.cc
     computeEigenValues.cc
     PolyClipperUtilities.cc
-    fakemain.cc
    )
 
 instantiate(Geometry_inst Geometry_sources)

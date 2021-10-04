@@ -865,7 +865,6 @@ packElement(const GeomPolyhedron& value,
             std::vector<char>& buffer) {
   packElement(value.vertices(), buffer);
   packElement(value.facetVertices(), buffer);
-  packElement(value.facetNormals(), buffer);
 }
 
 //------------------------------------------------------------------------------
@@ -904,12 +903,11 @@ void
 unpackElement(GeomPolyhedron& value,
               std::vector<char>::const_iterator& itr,
               const std::vector<char>::const_iterator& endPackedVector) {
-  std::vector<Dim<3>::Vector> vertices, facetNormals;
+  std::vector<Dim<3>::Vector> vertices;
   std::vector<std::vector<unsigned> > facetVertices;
   unpackElement(vertices, itr, endPackedVector);
   unpackElement(facetVertices, itr, endPackedVector);
-  unpackElement(facetNormals, itr, endPackedVector);
-  value.reconstruct(vertices, facetVertices, facetNormals);
+  value.reconstruct(vertices, facetVertices);
 }
 
 //------------------------------------------------------------------------------
