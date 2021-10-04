@@ -6,6 +6,15 @@
 
 namespace Spheral {
 
+enum class GradientType {
+  Riemann = 0,
+  HydroAcceleration = 1,
+  Raw = 2,
+  Mixed = 3,
+  OnlyDvDx = 4,
+  None = 5
+};
+
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class TableKernel;
@@ -30,8 +39,8 @@ public:
 
   RiemannSolverBase(LimiterBase<Dimension>& slopeLimiter,
                     WaveSpeedBase<Dimension>& waveSpeedBase,
-                    bool linearReconstruction,
-                    int gradType);
+                    const bool linearReconstruction,
+                    const GradientType gradientType);
 
   ~RiemannSolverBase();
 
@@ -93,6 +102,9 @@ public:
 
   bool linearReconstruction() const;
   void linearReconstruction(bool x);
+  
+  GradientType gradientType() const;
+  void gradientType(GradientType x);
 
   virtual 
   void linearReconstruction(const Vector& ri,
@@ -126,7 +138,7 @@ private:
   LimiterBase<Dimension>& mSlopeLimiter;   
   WaveSpeedBase<Dimension>& mWaveSpeed;
   bool mLinearReconstruction;
-  int mGradType;
+  GradientType mGradientType;
 
   FieldList<Dimension, Vector> mDpDx;
   FieldList<Dimension, Tensor> mDvDx;

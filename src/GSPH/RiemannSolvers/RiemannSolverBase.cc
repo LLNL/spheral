@@ -28,12 +28,12 @@ template<typename Dimension>
 RiemannSolverBase<Dimension>::
 RiemannSolverBase(LimiterBase<Dimension>& slopeLimiter,
                   WaveSpeedBase<Dimension>& waveSpeed,
-                  bool linearReconstruction,
-                  int gradType):
+                  const bool linearReconstruction,
+                  const GradientType gradientType):
   mSlopeLimiter(slopeLimiter),
   mWaveSpeed(waveSpeed),
   mLinearReconstruction(linearReconstruction),
-  mGradType(gradType),
+  mGradientType(gradientType),
   mDpDx(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields){
 }
@@ -90,24 +90,24 @@ initialize(const DataBase<Dimension>& dataBase,
         const auto rhoi = rho0(nodeListi,i);
 
         // this'll need some cleaning
-        switch(mGradType){ 
-          case 1 : // default grad based on riemann soln
+        switch(mGradientType){ 
+          case GradientType::Riemann: // default grad based on riemann soln
             mDvDx(nodeListi,i) = DvDxi;
             mDpDx(nodeListi,i) = DpDxi;
             break;
-          case 2 : // based on hydro accel for DpDx
+          case GradientType::HydroAcceleration: // based on hydro accel for DpDx
             mDvDx(nodeListi,i) = DvDxi;
             mDpDx(nodeListi,i) = -rhoi*DvDti;
             break;
-          case 3 : // raw gradients
+          case GradientType::Raw: // raw gradients
             mDvDx(nodeListi,i) = DvDxRawi;
             mDpDx(nodeListi,i) = DpDxRawi;
             break;
-          case 4 : // raw gradient for P riemann gradient for v
+          case GradientType::Mixed: // raw gradient for P riemann gradient for v
             mDvDx(nodeListi,i) = DvDxi;
             mDpDx(nodeListi,i) = DpDxRawi;
             break;
-          case 5 : // raw gradients
+          case GradientType::OnlyDvDx: // raw gradients
             mDvDx(nodeListi,i) = DvDxi;
             mDpDx(nodeListi,i) = Vector::zero;
             break;

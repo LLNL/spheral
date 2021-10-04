@@ -4,7 +4,8 @@
 #ifndef __Spheral_GHLLC_hh__
 #define __Spheral_GHLLC_hh__
 
-#include "RiemannSolverBase.hh"
+#include "HLLC.hh"
+
 namespace Spheral {
 
 template<typename Dimension> class State;
@@ -16,7 +17,7 @@ template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
-class GHLLC : public RiemannSolverBase<Dimension> {
+class GHLLC : public HLLC<Dimension> {
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -27,7 +28,8 @@ public:
 
   GHLLC(LimiterBase<Dimension>& slopeLimiter,
        WaveSpeedBase<Dimension>& waveSpeedBase,
-       bool linearReconstruction,
+       const bool linearReconstruction,
+       const GradientType gradType,
        const Vector gravitationalAcceleration);
 
   ~GHLLC();

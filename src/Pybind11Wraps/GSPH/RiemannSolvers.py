@@ -16,12 +16,14 @@ class RiemannSolverBase:
 
     def pyinit(slopeLimiter = "LimiterBase<%(Dimension)s>&",
                waveSpeed = "WaveSpeedBase<%(Dimension)s>&",
-               linearReconstruction = "bool",
-               gradType = "int"):
+               linearReconstruction = "const bool",
+               gradType = "const GradientType"):
         "slope limiter constructor"
 
 
     linearReconstruction = PYB11property("bool", "linearReconstruction", "linearReconstruction", doc="linear reconstruction of L and R state for riemann problem") 
+    gradientType = PYB11property("GradientType", "gradientType", "gradientType",
+                                 doc="Enum to selecting different gradients we can use")
 
     waveSpeed = PYB11property("WaveSpeedBase<%(Dimension)s>&", "waveSpeed",returnpolicy="reference_internal", doc="wave speed object")
     limiter = PYB11property("LimiterBase<%(Dimension)s>&", "limiter",returnpolicy="reference_internal", doc="slope limiter object")
@@ -45,14 +47,14 @@ class HLLC(RiemannSolverBase):
 
     def pyinit(slopeLimiter = "LimiterBase<%(Dimension)s>&",
                waveSpeed = "WaveSpeedBase<%(Dimension)s>&",
-               linearReconstruction = "bool",
-               gradType = "int"):
+               linearReconstruction = "const bool",
+               gradType = "const GradientType"):
         "slope limiter constructor"
 
 #-------------------------------------------------------------------------------
 # HLLC Approximate Riemann Solver with constant grav acceleration
 #-------------------------------------------------------------------------------
-class GHLLC(RiemannSolverBase):
+class GHLLC(HLLC):
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
@@ -63,7 +65,8 @@ class GHLLC(RiemannSolverBase):
 
     def pyinit(slopeLimiter = "LimiterBase<%(Dimension)s>&",
                waveSpeed = "WaveSpeedBase<%(Dimension)s>&",
-               linearReconstruction = "bool",
+               linearReconstruction = "const bool",
+               gradType = "const GradientType",
                gravitationalAcceleration = "const Vector"):
         "slope limiter constructor"
 

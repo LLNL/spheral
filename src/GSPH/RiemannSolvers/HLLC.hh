@@ -27,8 +27,8 @@ public:
 
   HLLC(LimiterBase<Dimension>& slopeLimiter,
        WaveSpeedBase<Dimension>& waveSpeedBase,
-       bool linearReconstruction,
-                    int gradType);
+       const bool linearReconstruction,
+       const GradientType gradType);
 
   ~HLLC();
 
