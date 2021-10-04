@@ -45,6 +45,7 @@ set(Utilities_headers
     CounterClockwiseComparator.hh
     DBC.hh
     QuadraticInterpolator.hh
+    QuadraticInterpolatorInline.hh
     BiQuadraticInterpolator.hh
     BiQuadraticInterpolatorInline.hh
     DataTypeTraits.hh
