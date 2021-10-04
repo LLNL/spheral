@@ -556,7 +556,7 @@ updateConnectivityMap(const bool computeGhostConnectivity,
                       const bool computeIntersectionConnectivity) const {
   REQUIRE(mConnectivityMapPtr != 0 and
           mConnectivityMapPtr.get() != 0);
-  mConnectivityMapPtr->rebuild(fluidNodeListBegin(), fluidNodeListEnd(),
+  mConnectivityMapPtr->rebuild(nodeListBegin(), nodeListEnd(),
                                computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
 }
 

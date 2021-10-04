@@ -18,7 +18,7 @@ import os, sys
 import shutil
 from SolidSpheral1d import *
 from SpheralTestUtilities import *
-from SodAnalyticSolution import *
+from SodAnalyticSolution import SodSolutionGasGas as SodSolution
 
 title("1-D integrated hydro test -- planar Sod problem")
 
@@ -31,6 +31,8 @@ commandLine(nx1 = 400,
             rho2 = 0.25,
             P1 = 1.0,
             P2 = 0.1795,
+            gamma1 = 5.0/3.0,
+            gamma2 = 5.0/3.0,
 
             numNodeLists = 1,
 
@@ -43,13 +45,13 @@ commandLine(nx1 = 400,
 
             nPerh = 1.35,
 
-            gammaGas = 5.0/3.0,
             mu = 1.0,
             
             svph = False,
             crksph = False,
             psph = False,
             fsisph = False,
+            
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             solid = False,    # If true, use the fluid limit of the solid hydro option
             boolReduceViscosity = False,
@@ -125,6 +127,10 @@ commandLine(nx1 = 400,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
+assert not svph
+assert not (fsisph and not solid)
+assert numNodeLists in (1, 2)
+assert mpi.procs == 1
 
 if svph:
     hydroname = "SVPH"
@@ -153,8 +159,15 @@ dataDir = os.path.join(dataDirBase,
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Sod-planar-1d-%i" % (nx1 + nx2))
 
-assert numNodeLists in (1, 2)
-
+# if two gammas were given but one node list we need to sort things out
+if numNodeLists == 1 and abs(gamma1-gamma2) > 0.001:
+    gamma2 = gamma1
+    print(" ")
+    print("============================================================")
+    print("warning: because we're running 1 nodelist, gamma2 had to be ")
+    print("         set equal to gamma1")
+    print("============================================================")
+    print(" ")
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
@@ -168,7 +181,8 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-eos = GammaLawGasMKS(gammaGas, mu)
+eos1 = GammaLawGasMKS(gamma1, mu)
+eos2 = GammaLawGasMKS(gamma2, mu)
 strength = NullStrength()
 
 #-------------------------------------------------------------------------------
@@ -185,13 +199,13 @@ if solid:
     makeNL = makeSolidNodeList
 else:
     makeNL = makeFluidNodeList
-nodes1 = makeNL("nodes1", eos, 
+nodes1 = makeNL("nodes1", eos1, 
                 hmin = hmin,
                 hmax = hmax,
                 nPerh = nPerh,
                 kernelExtent = kernelExtent,
                 rhoMin = rhoMin)
-nodes2 = makeNL("nodes2", eos, 
+nodes2 = makeNL("nodes2", eos2, 
                 hmin = hmin,
                 hmax = hmax,
                 nPerh = nPerh,
@@ -214,14 +228,14 @@ def rho_initial(xi):
     else:
         return rho2
 
-def specificEnergy(xi, rhoi):
+def specificEnergy(xi, rhoi, gammai):
     if hfold > 0.0:
         Pi = P1 + (P2 - P1)/(1.0 + exp((-xi - x1)/hfold))
     elif xi <= x1:
         Pi = P1
     else:
         Pi = P2
-    return Pi/((gammaGas - 1.0)*rhoi)
+    return Pi/((gammai - 1.0)*rhoi)
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
@@ -265,11 +279,14 @@ output("nodes2.numNodes")
 
 # Set node specific thermal energies
 for nodes in nodeSet:
+
     pos = nodes.positions()
     eps = nodes.specificThermalEnergy()
     rho = nodes.massDensity()
+    gammai = nodes.eos.gamma
+
     for i in xrange(nodes.numInternalNodes):
-        eps[i] = specificEnergy(pos[i].x, rho[i])
+        eps[i] = specificEnergy(pos[i].x, rho[i], gammai)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -315,16 +332,19 @@ elif psph:
                  densityUpdate = densityUpdate,
                  HUpdate = HUpdate,
                  XSPH = XSPH,
-                 correctVelocityGradient = correctVelocityGradient,
-                 HopkinsConductivity = HopkinsConductivity)
+                 correctVelocityGradient = correctVelocityGradient)
 elif fsisph:
+    sumDensityNodeLists = [nodes1]
+    if numNodeLists == 2:
+        sumDensityNodeLists += [nodes2]
     hydro = FSISPH(dataBase = db,
                    W = WT,
                    filter = filter,
                    cfl = cfl,
-                   sumDensityNodeLists=[nodes1],                       
+                   sumDensityNodeLists=sumDensityNodeLists,                       
                    densityStabilizationCoefficient = 0.00,
-                   interfaceMethod = ModulusInterface,
+                   specificThermalEnergyDiffusionCoefficient = 0.00,
+                   interfaceMethod = HLLCInterface,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    correctVelocityGradient = correctVelocityGradient,
@@ -469,8 +489,9 @@ if sumInitialDensity and control.totalSteps == 0:
         pos = nodes.positions()
         eps = nodes.specificThermalEnergy()
         rho = nodes.massDensity()
+        gammai = nodes.eos.gamma
         for i in xrange(nodes.numInternalNodes):
-            eps[i] = specificEnergy(pos[i].x, rho[i])
+            eps[i] = specificEnergy(pos[i].x, rho[i],gammai)
 
 #-------------------------------------------------------------------------------
 # If we want to use refinement, build the refinemnt algorithm.
@@ -537,7 +558,8 @@ dx2 = (x2 - x1)/nx2
 h1 = 1.0/(nPerh*dx1)
 h2 = 1.0/(nPerh*dx2)
 answer = SodSolution(nPoints=nx1 + nx2,
-                     gamma = gammaGas,
+                     gamma1 = gamma1,
+                     gamma2 = gamma2,
                      rho1 = rho1,
                      P1 = P1,
                      rho2 = rho2,
@@ -561,15 +583,19 @@ def createList(x):
     return mpi.allreduce(result, mpi.SUM)
 
 # Compute the simulated specific entropy.
+gamma = db.newFluidScalarFieldList(0.0, "specific heat ratio")
+db.fluidGamma(gamma)
+gammaList = createList(gamma)
+
 rho = createList(db.fluidMassDensity)
 P = createList(hydro.pressure)
-A = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
+A = [Pi/rhoi**gammai for (Pi, rhoi,gammai) in zip(P, rho,gammaList)]
 
 # The analytic solution for the simulated entropy.
 xprof = [x.x for x in createList(db.fluidPosition)]
-xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
-csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
+xans, vans, uans, rhoans, Pans, hans, gammaans = answer.solution(control.time(), xprof)
+Aans = [Pi/rhoi**gammai for (Pi, rhoi, gammai) in zip(Pans,  rhoans, gammaans)]
+csAns = [sqrt(gammai*Pi/rhoi) for (Pi, rhoi, gammai) in zip(Pans,  rhoans, gammaans)]
 
 if graphics:
     from SpheralMatplotlib import *

@@ -9,6 +9,7 @@
 #ifndef __Spheral_QuadraticInterpolator__
 #define __Spheral_QuadraticInterpolator__
 
+#include <cstddef>
 #include <vector>
 
 namespace Spheral {
