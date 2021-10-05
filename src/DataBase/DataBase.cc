@@ -560,17 +560,8 @@ updateConnectivityMap(const bool computeGhostConnectivity,
                       const bool computeIntersectionConnectivity) const {
   REQUIRE(mConnectivityMapPtr != 0 and
           mConnectivityMapPtr.get() != 0);
-
-  // this can be replaced w/ using nodeList iterators if we figure
-  // out the voidnodelist thing... or just give up and use rho
-  if (this->numDEMNodeLists() > 0){
-    mConnectivityMapPtr->rebuild(DEMNodeListBegin(), DEMNodeListEnd(),
+  mConnectivityMapPtr->rebuild(nodeListBegin(), nodeListEnd(),
                                computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
-  }else{
-    mConnectivityMapPtr->rebuild(fluidNodeListBegin(), fluidNodeListEnd(),
-                                 computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
-  }
-  
 }
 
 //------------------------------------------------------------------------------

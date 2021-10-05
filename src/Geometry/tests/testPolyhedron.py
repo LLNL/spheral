@@ -100,7 +100,7 @@ class TestPolyhedron(unittest.TestCase):
             result = self.polyhedron.contains(p)
             if not result:
                 print "Bad polyhedron:  ", [str(x) for x in self.polyhedron.vertices]
-                print "Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron.vertices)
+                print "Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron)
             self.failUnless(result,
                             "Polyhedron does not contain seed point: %s" % str(p))
         return
@@ -288,8 +288,7 @@ class TestPolyhedron(unittest.TestCase):
     def testReconstruct(self):
         polyhedron2 = Polyhedron()
         polyhedron2.reconstruct(self.polyhedron.vertices,
-                                self.polyhedron.facetVertices,
-                                self.polyhedron.facetNormals)
+                                self.polyhedron.facetVertices)
         self.failUnless(polyhedron2 == self.polyhedron,
                         "Failed to properly reconstruct polyhedron from vertices and facets.")
         return
