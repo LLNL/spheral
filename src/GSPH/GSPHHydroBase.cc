@@ -1215,8 +1215,8 @@ applyGhostBoundaries(State<Dimension>& state,
   auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
 
   // our store vars in the riemann solver
-  auto DpDx = state.fields(GSPHFieldNames::pressureGradient+"Riemann",Vector::zero); 
-  auto DvDx = state.fields(HydroFieldNames::velocityGradient+"Riemann",Tensor::zero); 
+  auto DpDx = state.fields(GSPHFieldNames::RiemannPressureGradient,Vector::zero); 
+  auto DvDx = state.fields(GSPHFieldNames::RiemannVelocityGradient,Tensor::zero); 
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -1253,8 +1253,8 @@ enforceBoundaries(State<Dimension>& state,
   auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
 
   // our store vars in the riemann solver
-  auto DpDx = state.fields(GSPHFieldNames::pressureGradient+"Riemann",Vector::zero); 
-  auto DvDx = state.fields(HydroFieldNames::velocityGradient+"Riemann",Tensor::zero); 
+  auto DpDx = state.fields(GSPHFieldNames::RiemannPressureGradient,Vector::zero); 
+  auto DvDx = state.fields(GSPHFieldNames::RiemannVelocityGradient,Tensor::zero); 
 
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
