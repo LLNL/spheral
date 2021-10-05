@@ -85,7 +85,7 @@ interfaceState(const int i,
   vstar = 0.5*(vi+vj);
   Pstar = 0.5*(Pi+Pj);
 
-  if (ci > 0.0 or cj > 0.0){
+  if (ci > tiny or cj > tiny){
 
 
     // default to nodal values
@@ -131,8 +131,6 @@ interfaceState(const int i,
         const auto xp = std::min(rpi,rpj);
         const auto phip = limiter.slopeLimiter(xp);
 
-        //const auto phi = std::min(phip,phiu);
-
         v1i = vi - phiu * Dvi;
         v1j = vj + phiu * Dvj;
         p1i = Pi - phip * Dpi;
@@ -155,7 +153,10 @@ interfaceState(const int i,
     vstar = ustar*rhatij + wstar;
     Pstar = Sj * (ustar-uj) + p1j;
 
-  } // if statement for sound speed check
+  }else{ // if ci & cj too small punt to normal av
+    const auto uij = std::min((vi-vj).dot(rhatij),0.0);
+    Pstar = 0.5 * (uij*uij)/(rhoi+rhoj);
+  }
 }// Scalar interface class
 
 template<typename Dimension>
