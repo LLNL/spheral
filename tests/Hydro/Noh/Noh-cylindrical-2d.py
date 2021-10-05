@@ -86,7 +86,7 @@ commandLine(order = 5,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
-            cfl = 0.5,
+            cfl = 0.25,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
@@ -97,8 +97,8 @@ commandLine(order = 5,
             steps = None,
             vizCycle = None,
             vizTime = 0.1,
-            dt = 0.0001,
-            dtMin = 1.0e-5, 
+            dt = 0.000001,
+            dtMin = 1.0e-8, 
             dtMax = 0.1,
             dtGrowth = 2.0,
             maxSteps = None,
@@ -111,7 +111,7 @@ commandLine(order = 5,
             rigorousBoundaries = False,
             dtverbose = False,
 
-            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            densityUpdate = IntegrateDensity, # VolumeScaledDensity,
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -321,25 +321,25 @@ elif psph:
                  HUpdate = HUpdate,
                  XSPH = XSPH,
                  ASPH = asph)
+     
 elif gsph:
     limiter = VanLeerLimiter()
     waveSpeed = DavisWaveSpeed()
-    solver = HLLC(limiter,waveSpeed,True,rsphGradType)
+    solver = HLLC(limiter,waveSpeed,True,Riemann)
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
                 W = WT,
                 cfl=cfl,
-                specificThermalEnergyDiffusionCoefficient = 0.05,
-                useVelocityMagnitudeForDt = False,
-                compatibleEnergyEvolution = True,
+                specificThermalEnergyDiffusionCoefficient = 0.00,
+                compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient= correctVelocityGradient,
-                evolveTotalEnergy = False,
+                evolveTotalEnergy = evolveTotalEnergy,
                 XSPH = XSPH,
                 ASPH = asph,
+                densityUpdate=densityUpdate,
                 HUpdate = HUpdate,
                 epsTensile = epsilonTensile,
-                nTensile = nTensile,
-                RZ = False)
+                nTensile = nTensile)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
