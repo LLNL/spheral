@@ -1,0 +1,5 @@
+25c25,26
+< constexpr int MPI_COMM_SELF = -1;
+---
+> #define MPI_COMM_SELF -1
+> // constexpr int MPI_COMM_SELF = -1;
