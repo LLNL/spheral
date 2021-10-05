@@ -28,6 +28,7 @@ class GSPHHydroBase(Physics):
                evolveTotalEnergy = "const bool",
                XSPH = "const bool",
                correctVelocityGradient = "const bool",
+               densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",

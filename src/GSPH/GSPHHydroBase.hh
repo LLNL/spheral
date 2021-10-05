@@ -47,6 +47,7 @@ public:
                const bool evolveTotalEnergy,
                const bool XSPH,
                const bool correctVelocityGradient,
+               const MassDensityType densityUpdate,
                const HEvolutionType HUpdate,
                const double epsTensile,
                const double nTensile,
@@ -246,6 +247,7 @@ private:
   RiemannSolverBase<Dimension>& mRiemannSolver;
   const TableKernel<Dimension>& mKernel;
   const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
+  MassDensityType mDensityUpdate;
   HEvolutionType mHEvolution;
 
    // A bunch of switches.

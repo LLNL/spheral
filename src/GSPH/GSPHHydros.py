@@ -20,6 +20,7 @@ class %(classname)s%(dim)s(GSPHHydroBase%(dim)s):
                  evolveTotalEnergy = False,
                  XSPH = True,
                  correctVelocityGradient = True,
+                 densityUpdate = IntegrateDensity,
                  HUpdate = IdealH,
                  epsTensile = 0.0,
                  nTensile = 4.0,
@@ -38,6 +39,7 @@ class %(classname)s%(dim)s(GSPHHydroBase%(dim)s):
                                      evolveTotalEnergy,
                                      XSPH,
                                      correctVelocityGradient,
+                                     densityUpdate,
                                      HUpdate,
                                      epsTensile,
                                      nTensile,
@@ -67,6 +69,7 @@ def GSPH(dataBase,
         riemannSolver=None,
         specificThermalEnergyDiffusionCoefficient = 0.0,
         cfl = 0.25,
+        densityUpdate = IntegrateDensity,
         useVelocityMagnitudeForDt = False,
         compatibleEnergyEvolution = True,
         evolveTotalEnergy = False,
@@ -82,6 +85,9 @@ def GSPH(dataBase,
         xmax = ( 1e100,  1e100,  1e100),
         ASPH = False,
         RZ = False):
+
+
+    assert densityUpdate in (RigorousSumDensity,IntegrateDensity)
 
     # We use the provided DataBase to sniff out what sort of NodeLists are being
     # used, and based on this determine which SPH object to build.
@@ -119,6 +125,7 @@ def GSPH(dataBase,
               "evolveTotalEnergy" : evolveTotalEnergy,
               "XSPH" : XSPH,
               "correctVelocityGradient" : correctVelocityGradient,
+              "densityUpdate" : densityUpdate,
               "HUpdate" : HUpdate,
               "epsTensile" : epsTensile,
               "nTensile" : nTensile,

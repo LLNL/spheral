@@ -111,6 +111,7 @@ GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              const bool evolveTotalEnergy,
              const bool XSPH,
              const bool correctVelocityGradient,
+             const MassDensityType densityUpdate,
              const HEvolutionType HUpdate,
              const double epsTensile,
              const double nTensile,
@@ -121,6 +122,7 @@ GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mRiemannSolver(riemannSolver),
   mKernel(W),
   mSmoothingScaleMethod(smoothingScaleMethod),
+  mDensityUpdate(densityUpdate),
   mHEvolution(HUpdate),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mEvolveTotalEnergy(evolveTotalEnergy),
@@ -536,7 +538,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
   TIME_GSPHpreStepInitialize.start();
-  if(false){
+  if(mDensityUpdate == MassDensityType::RigorousSumDensity){
     const auto& connectivityMap = dataBase.connectivityMap();
     const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
     const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
