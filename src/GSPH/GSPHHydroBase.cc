@@ -74,12 +74,8 @@ extern Timer TIME_GSPHpreStepInitialize;
 extern Timer TIME_GSPHinitialize;
 extern Timer TIME_GSPHfinalizeDerivs;
 extern Timer TIME_GSPHghostBounds;
-extern Timer TIME_GSPHupdateVol;
 extern Timer TIME_GSPHenforceBounds;
 extern Timer TIME_GSPHevalDerivs;
-extern Timer TIME_GSPHevalDerivs_initial;
-extern Timer TIME_GSPHevalDerivs_pairs;
-extern Timer TIME_GSPHevalDerivs_final;
 
 
 namespace {
@@ -593,7 +589,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
   TIME_GSPHevalDerivs.start();
-  TIME_GSPHevalDerivs_initial.start();
 
   if (this->correctVelocityGradient()) this->evaluateSpatialGradients(time,dt,dataBase,state,derivatives);
 
@@ -685,10 +680,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
-  TIME_GSPHevalDerivs_initial.stop();
 
   // Walk all the interacting pairs.
-  TIME_GSPHevalDerivs_pairs.start();
 #pragma omp parallel
   {
     // Thread private scratch variables
@@ -930,11 +923,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     } // loop over pairs
     threadReduceFieldLists<Dimension>(threadStack);
   } // OpenMP parallel region
-  TIME_GSPHevalDerivs_pairs.stop();
 
 
   // Finish up the derivatives for each point.
-  TIME_GSPHevalDerivs_final.start();
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
@@ -1014,7 +1005,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         i);
     }
   }
-  TIME_GSPHevalDerivs_final.stop();
   TIME_GSPHevalDerivs.stop();
 }
 

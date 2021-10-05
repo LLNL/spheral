@@ -216,6 +216,20 @@ Timer TIME_SolidFSISPHpreStepInitialize  ("SolidFSISPH preStepInitialize (step) 
 Timer TIME_SolidFSISPHinitialize         ("SolidFSISPH initialize (evalderivs)    ", TIME_SolidFSISPH);
 
 //------------------------------------------------------------------------------
+// GSPH
+//------------------------------------------------------------------------------
+Timer TIME_GSPH                         ("GSPH base timer                    ", TIME_Physics);
+Timer TIME_GSPHinitializeStartup        ("GSPH initializeStartup             ", TIME_GSPH);
+Timer TIME_GSPHregister                 ("GSPH register                      ", TIME_GSPH);
+Timer TIME_GSPHregisterDerivs           ("GSPH registerDerivatives           ", TIME_GSPH);
+Timer TIME_GSPHpreStepInitialize        ("GSPH preStepInitialize (step)      ", TIME_GSPH);
+Timer TIME_GSPHinitialize               ("GSPH initialize (evalderivs)       ", TIME_GSPH);
+Timer TIME_GSPHfinalizeDerivs           ("GSPH finalizeDerivatives           ", TIME_GSPH);
+Timer TIME_GSPHghostBounds              ("GSPH ghost boundaries              ", TIME_GSPH);
+Timer TIME_GSPHenforceBounds            ("GSPH enforceBoundaries             ", TIME_GSPH);
+Timer TIME_GSPHevalDerivs               ("GSPH evaluateDerviatives           ", TIME_GSPH);
+
+//------------------------------------------------------------------------------
 // Damage
 //------------------------------------------------------------------------------
 Timer TIME_Damage                       ("Damage base timer                 ", TIME_Physics);
