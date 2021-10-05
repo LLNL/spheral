@@ -12,6 +12,8 @@ if(${lib_name}_BUILD)
   if (EXISTS ${AXOM_CACHE})
     set(AXOM_URL ${AXOM_CACHE})
   endif()
+  
+  set(ldflags "-L${ZLIB_INSTALL_DIR}/lib -lz")
 
   ExternalProject_add(${lib_name}
     PREFIX ${AXOM_PREFIX}
@@ -23,6 +25,8 @@ if(${lib_name}_BUILD)
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                -DCMAKE_C_FLAGS=-fPIC
+               # TODO : Remove with new TPL management system.
+               -DCMAKE_EXE_LINKER_FLAGS=${ldflags}
 
                -DENABLE_MPI=${ENABLE_MPI}
 
@@ -43,7 +47,7 @@ if(${lib_name}_BUILD)
 
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
 
-    DEPENDS ${hdf5_build_dep} ${conduit_build_dep}
+    DEPENDS ${hdf5_build_dep} ${conduit_build_dep} ${zlib_build_dep}
 
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
     LOG_CONFIGURE ${OUT_PROTOCOL_EP}
