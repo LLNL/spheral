@@ -17,6 +17,12 @@ enum class InterfaceMethod {
   NoInterface = 2,
 };
 
+enum class KernelMethod {
+  NeverAverageKernels = 0,
+  AlwaysAverageKernels = 1,
+  AverageInterfaceKernels = 2,
+};
+
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class SmoothingScaleBase;
@@ -53,6 +59,7 @@ public:
                     const double specificThermalEnergyDiffusionCoefficient,
                     const double xsphCoefficient,
                     const InterfaceMethod interfaceMethod,
+                    const KernelMethod kernelMethod,
                     const std::vector<int> sumDensityNodeLists,
                     const bool useVelocityMagnitudeForDt,
                     const bool compatibleEnergyEvolution,
@@ -131,6 +138,9 @@ public:
   InterfaceMethod interfaceMethod() const;
   void interfaceMethod(InterfaceMethod method);
 
+  KernelMethod kernelMethod() const;
+  void kernelMethod(KernelMethod method);
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "SolidFSISPHHydroBase"; }
@@ -143,7 +153,8 @@ private:
   double mSpecificThermalEnergyDiffusionCoefficient;  // controls diffusion of eps
   double mXSPHCoefficient;                            // controls amount of xsph-ing
   InterfaceMethod mInterfaceMethod;                   // switch for material interface method
-  
+  KernelMethod mKernelMethod;                         // switch how we do our kernels
+
   bool   mApplySelectDensitySum;                      // switch for density sum
   std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
   

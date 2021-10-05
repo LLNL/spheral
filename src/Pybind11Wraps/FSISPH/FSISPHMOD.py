@@ -27,6 +27,10 @@ InterfaceMethod = PYB11enum(("HLLCInterface",
                              "ModulusInterface",
                              "NoInterface"), export_values = True)
 
+KernelMethod = PYB11enum(("NeverAverageKernels", 
+                          "AlwaysAverageKernels",
+                          "AverageInterfaceKernels"), export_values = True)
+
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------

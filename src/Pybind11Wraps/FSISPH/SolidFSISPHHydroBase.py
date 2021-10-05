@@ -30,6 +30,7 @@ class SolidFSISPHHydroBase(SolidSPHHydroBase):
                specificThermalEnergyDiffusionCoefficient = "const double",
                xsphCoefficient = "const double",
                interfaceMethod = "const InterfaceMethod",
+               kernelMethod = "const KernelMethod",
                sumDensityNodeLists = "std::vector<int>",
                useVelocityMagnitudeForDt = "const bool",
                compatibleEnergyEvolution = "const bool",
@@ -114,6 +115,9 @@ mass density, velocity, and specific thermal energy."""
     
     interfaceMethod = PYB11property("InterfaceMethod", "interfaceMethod", "interfaceMethod",
                                     doc="Flag to select how we want construct material interfaces")
+    
+    kernelMethod = PYB11property("KernelMethod", "kernelMethod", "kernelMethod",
+                                    doc="Flag to select our kernel type")
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
