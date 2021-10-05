@@ -145,6 +145,8 @@ mass density, velocity, and specific thermal energy."""
                                           doc="coefficient used to diffuse specificThermalEnergy amongst like nodes.")
     riemannSolver = PYB11property("RiemannSolverBase<%(Dimension)s>&", "riemannSolver",returnpolicy="reference_internal",doc="The object defining the interface state construction.")
     kernel = PYB11property("const TableKernel<%(Dimension)s>&", "kernel", doc="The interpolation kernel")
+    densityUpdate = PYB11property("MassDensityType", "densityUpdate", "densityUpdate",
+                                  doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
     HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution",
                                doc="Flag to select how we want to evolve the H tensor")
     compatibleEnergyEvolution = PYB11property("bool", "compatibleEnergyEvolution", "compatibleEnergyEvolution",

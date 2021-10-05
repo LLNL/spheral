@@ -138,6 +138,10 @@ public:
   // The object defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
 
+  // Flag for our density update
+  MassDensityType densityUpdate() const;
+  void densityUpdate(MassDensityType type);
+
   // Flag to select how we want to evolve the H tensor.
   HEvolutionType HEvolution() const;
   void HEvolution(HEvolutionType type);

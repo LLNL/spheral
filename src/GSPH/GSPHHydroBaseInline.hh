@@ -197,24 +197,35 @@ updateActualNeighborStats(int numNeighbor) const {
   }
 }
 
-
-
-
-
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// SPH Hydro Methods
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
+// get out reimann solver obj
+//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 RiemannSolverBase<Dimension>&
 GSPHHydroBase<Dimension>::riemannSolver() const {
   return mRiemannSolver;
 }
+
+//------------------------------------------------------------------------------
+// Choose whether we want to sum for mass density, or integrate the continuity
+// equation.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+MassDensityType
+GSPHHydroBase<Dimension>::densityUpdate() const {
+  return mDensityUpdate;
+}
+
+template<typename Dimension>
+inline
+void
+GSPHHydroBase<Dimension>::
+densityUpdate(MassDensityType type) {
+  mDensityUpdate = type;
+}
+
 
 //------------------------------------------------------------------------------
 // Choose how we want to update the H tensor.
