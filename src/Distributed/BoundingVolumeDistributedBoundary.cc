@@ -6,7 +6,7 @@
 //
 // Created by JMO, Tue Jan 19 09:22:37 PST 2010
 //----------------------------------------------------------------------------//
-#include "mpi.h"
+#include <mpi.h>
 
 #include "DistributedBoundary.hh"
 #include "BoundingVolumeDistributedBoundary.hh"
