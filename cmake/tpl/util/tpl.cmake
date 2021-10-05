@@ -34,4 +34,15 @@ if (LC_TPL_DIR)
   set(zlib_DIR "${LC_TPL_DIR}/zlib/${ZLIB_MD5}" CACHE STRING "")
   set(polyclipper_DIR "${LC_TPL_DIR}/polyclipper/${POLYCLIPPER_MD5}" CACHE STRING "")
   #set(raja_DIR "${LC_TPL_DIR}/raja/${RAJA_MD5}" CACHE STRING "")
+
+  #----------------------------------------------------------------------------
+  # We need to build some configurations localy until a better 
+  # LC TPL management system is implemented.
+
+  # Build axom locally when MPI disabled...
+  if(NOT ENABLE_MPI)
+    set(axom_BUILD ON)
+    set(axom_DIR "")
+  endif()
+
 endif()
