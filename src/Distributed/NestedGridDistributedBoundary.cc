@@ -21,7 +21,7 @@
 #include <list>
 #include <algorithm>
 
-#include "mpi.h"
+#include <mpi.h>
 
 
 namespace Spheral {

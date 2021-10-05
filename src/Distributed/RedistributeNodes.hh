@@ -12,7 +12,7 @@
 #include <vector>
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include <mpi.h>
 #endif
 
 namespace Spheral {
