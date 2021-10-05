@@ -41,11 +41,11 @@ PYB11namespaces = ["Spheral"]
 #-------------------------------------------------------------------------------
 # Enums
 #-------------------------------------------------------------------------------
-GradientType = PYB11enum(("Riemann",
-                          "HydroAcceleration",
-                          "Raw",
-                          "Mixed",
-                          "OnlyDvDx"), export_values = True)
+GradientType = PYB11enum(("RiemannGradient",
+                          "HydroAccelerationGradient",
+                          "SPHGradient",
+                          "MixedMethodGradient",
+                          "OnlyDvDxGradient"), export_values = True)
 
 #-------------------------------------------------------------------------------
 # Instantiate our types

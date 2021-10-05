@@ -7,11 +7,11 @@
 namespace Spheral {
 
 enum class GradientType {
-  Riemann = 0,
-  HydroAcceleration = 1,
-  Raw = 2,
-  Mixed = 3,
-  OnlyDvDx = 4
+  RiemannGradient = 0,
+  HydroAccelerationGradient = 1,
+  SPHGradient = 2,
+  MixedMethodGradient = 3,
+  OnlyDvDxGradient = 4
 };
 
 template<typename Dimension> class State;

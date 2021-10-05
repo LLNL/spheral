@@ -91,23 +91,23 @@ initialize(const DataBase<Dimension>& dataBase,
 
         // this'll need some cleaning
         switch(mGradientType){ 
-          case GradientType::Riemann: // default grad based on riemann soln
+          case GradientType::RiemannGradient: // default grad based on riemann soln
             mDvDx(nodeListi,i) = DvDxi;
             mDpDx(nodeListi,i) = DpDxi;
             break;
-          case GradientType::HydroAcceleration: // based on hydro accel for DpDx
+          case GradientType::HydroAccelerationGradient: // based on hydro accel for DpDx
             mDvDx(nodeListi,i) = DvDxi;
             mDpDx(nodeListi,i) = -rhoi*DvDti;
             break;
-          case GradientType::Raw: // raw gradients
+          case GradientType::SPHGradient: // raw gradients
             mDvDx(nodeListi,i) = DvDxRawi;
             mDpDx(nodeListi,i) = DpDxRawi;
             break;
-          case GradientType::Mixed: // raw gradient for P riemann gradient for v
+          case GradientType::MixedMethodGradient: // raw gradient for P riemann gradient for v
             mDvDx(nodeListi,i) = DvDxi;
             mDpDx(nodeListi,i) = DpDxRawi;
             break;
-          case GradientType::OnlyDvDx: // raw gradients
+          case GradientType::OnlyDvDxGradient: // raw gradients
             mDvDx(nodeListi,i) = DvDxi;
             mDpDx(nodeListi,i) = Vector::zero;
             break;
