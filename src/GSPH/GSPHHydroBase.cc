@@ -1147,7 +1147,7 @@ evaluateSpatialGradients(const typename Dimension::Scalar /*time*/,
       const auto Mdeti = std::abs(Mi.Determinant());
 
       const auto enoughNeighbors =  numNeighborsi > Dimension::pownu(2);
-      const auto goodM =  (Mdeti > 1.0e-10 and enoughNeighbors);                   
+      const auto goodM =  (Mdeti > 1e-2 and enoughNeighbors);                   
 
       // vanLeer limiter for M correction
       // const auto x = min(1.0, max(0.0, 8.0*Mdeti/((1.0+Mdeti)*(1.0+Mdeti)) ));
