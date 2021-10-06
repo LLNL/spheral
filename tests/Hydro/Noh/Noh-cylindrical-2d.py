@@ -111,7 +111,7 @@ commandLine(order = 5,
             rigorousBoundaries = False,
             dtverbose = False,
 
-            densityUpdate = IntegrateDensity, # VolumeScaledDensity,
+            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             compatibleEnergy = True,
             gradhCorrection = True,

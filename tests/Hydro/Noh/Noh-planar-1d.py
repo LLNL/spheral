@@ -37,12 +37,8 @@
 # Solid FSISPH
 #
 #ATS:t400 = test(        SELF, "--fsisph True --solid True --graphics None --clearDirectories True --checkError True --restartStep 20", label="Planar Noh problem with FSISPH -- 1-D (serial)")
-#ATS:t401 = testif(t400, SELF, "--fsisph True --solid True --graphics None --clearDirectories False --checkError True --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with FSISPH -- 1-D (serial) RESTART CHECK")
-#
-# GSPH
-#
-#ATS:t400 = test(        SELF, "--gsph True --graphics None --clearDirectories True --checkError True --restartStep 20", label="Planar Noh problem with FSISPH -- 1-D (serial)")
-#ATS:t401 = testif(t400, SELF, "--gsph True --graphics None --clearDirectories False --checkError True --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with FSISPH -- 1-D (serial) RESTART CHECK")
+#ATS:t401 = testif(t400, SELF, "--fsisph True --solid True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with FSISPH -- 1-D (serial) RESTART CHECK")
+
 
 import os, shutil
 from SolidSpheral1d import *
@@ -353,7 +349,6 @@ elif fsisph:
                    filter = filter,
                    cfl = cfl,
                    interfaceMethod = ModulusInterface,
-                   kernelMethod = NeverAverageKernels,
                    sumDensityNodeLists=[nodes1],                       
                    densityStabilizationCoefficient = 0.00,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
@@ -367,7 +362,7 @@ elif gsph:
     solver = HLLC(limiter,
                   waveSpeed,
                   True,                   # False - first order , True - second order
-                  SPHGradient)        # what gradient are we using in reconstruction
+                  RiemannGradient)        # what gradient are we using in reconstruction
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
                 W = WT,
@@ -377,7 +372,7 @@ elif gsph:
                 correctVelocityGradient=correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
                 XSPH = XSPH,
-                densityUpdate=IntegrateDensity,
+                densityUpdate=densityUpdate,
                 HUpdate = IdealH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
@@ -558,6 +553,7 @@ if not steps is None:
     if checkRestart:
         state0 = State(db, integrator.physicsPackages())
         state0.copyState()
+        print control.totalSteps
         control.loadRestartFile(control.totalSteps)
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
@@ -767,7 +763,7 @@ if mpi.rank == 0 :
            
 
         if checkError:
-            if not crksph and not psph and not fsisph: # if sph use the known error norms
+            if not crksph and not psph and not fsisph and not gsph: # if sph use the known error norms
                 if not fuzzyEqual(L1, L1expect, tol):
                     print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                       L1,
