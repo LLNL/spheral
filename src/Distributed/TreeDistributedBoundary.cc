@@ -4,7 +4,7 @@
 //
 // Created by JMO, Mon Aug 27 21:57:51 PDT 2001
 //----------------------------------------------------------------------------//
-#include "mpi.h"
+#include <mpi.h>
 
 #include "DistributedBoundary.hh"
 #include "TreeDistributedBoundary.hh"

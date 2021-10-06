@@ -13,7 +13,7 @@
 // MPI version
 //------------------------------------------------------------------------------
 
-#include "mpi.h"
+#include <mpi.h>
 
 namespace Spheral {
 
