@@ -157,14 +157,12 @@ GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mXSPHWeightSum(FieldStorageType::CopyFields),
   mXSPHDeltaV(FieldStorageType::CopyFields),
   mM(FieldStorageType::CopyFields),
-  //mLocalM(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
   mDvDt(FieldStorageType::CopyFields),
   mDmassDensityDt(FieldStorageType::CopyFields),
   mDspecificThermalEnergyDt(FieldStorageType::CopyFields),
   mDHDt(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields),
-  //mInternalDvDx(FieldStorageType::CopyFields),
   mDvDxRaw(FieldStorageType::CopyFields),
   mDpDx(FieldStorageType::CopyFields),
   mDpDxRaw(FieldStorageType::CopyFields),
@@ -182,14 +180,12 @@ GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mXSPHWeightSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::XSPHWeightSum);
   mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
-  //mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection);
   mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position);
   mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
   mDmassDensityDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity);
   mDspecificThermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy);
   mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::H);
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
-  //mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
   mDvDxRaw = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient+"RAW");
   mDpDx = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::pressureGradient);
   mDpDxRaw = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::pressureGradient+"RAW");
@@ -198,8 +194,8 @@ GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
 
   auto& DpDx = mRiemannSolver.DpDx();
   auto& DvDx = mRiemannSolver.DvDx();
-  DpDx = dataBase.newFluidFieldList(Vector::zero,GSPHFieldNames::pressureGradient+"Riemann");
-  DvDx = dataBase.newFluidFieldList(Tensor::zero,HydroFieldNames::velocityGradient+"Riemann");
+  DpDx = dataBase.newFluidFieldList(Vector::zero,GSPHFieldNames::RiemannPressureGradient);
+  DvDx = dataBase.newFluidFieldList(Tensor::zero,GSPHFieldNames::RiemannVelocityGradient);
 }
 
 //------------------------------------------------------------------------------
@@ -1270,6 +1266,12 @@ template<typename Dimension>
 void
 GSPHHydroBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
+
+  auto& DpDx = mRiemannSolver.DpDx();
+  auto& DvDx = mRiemannSolver.DvDx();
+  file.write(DpDx,pathName+"/RiemannDpDx");
+  file.write(DvDx,pathName+"/RiemannDvDx");
+
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mPressure, pathName + "/pressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
@@ -1280,16 +1282,13 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mXSPHWeightSum, pathName + "/XSPHWeightSum");
   file.write(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
-
   file.write(mDxDt, pathName + "/DxDt");
   file.write(mDvDt, pathName + "/DvDt");
   file.write(mDmassDensityDt, pathName + "/DmassDensityDt");
   file.write(mDspecificThermalEnergyDt, pathName + "/DspecificThermalEnergyDt");
   file.write(mDHDt, pathName + "/DHDt");
   file.write(mDvDx, pathName + "/DvDx");
-  //file.write(mInternalDvDx, pathName + "/internalDvDx");
   file.write(mM, pathName + "/M");
-  //file.write(mLocalM, pathName + "/localM");
 
 }
 
@@ -1300,7 +1299,12 @@ template<typename Dimension>
 void
 GSPHHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
- 
+
+  auto& DpDx = mRiemannSolver.DpDx();
+  auto& DvDx = mRiemannSolver.DvDx();
+  file.read(DpDx,pathName + "/RiemannDpDx");
+  file.read(DvDx,pathName + "/RiemannDvDx");
+
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mPressure, pathName + "/pressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
@@ -1310,174 +1314,15 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mMassSecondMoment, pathName + "/massSecondMoment");
   file.read(mXSPHWeightSum, pathName + "/XSPHWeightSum");
   file.read(mXSPHDeltaV, pathName + "/XSPHDeltaV");
+
   file.read(mDxDt, pathName + "/DxDt");
   file.read(mDvDt, pathName + "/DvDt");
   file.read(mDmassDensityDt, pathName + "/DmassDensityDt");
   file.read(mDspecificThermalEnergyDt, pathName + "/DspecificThermalEnergyDt");
   file.read(mDHDt, pathName + "/DHDt");
   file.read(mDvDx, pathName + "/DvDx");
-  //file.read(mInternalDvDx, pathName + "/internalDvDx");
   file.read(mM, pathName + "/M");
-  //file.read(mLocalM, pathName + "/localM");
-
 
 }
 
-
-/*
-template<typename Dimension>
-void
-GSPHHydroBase<Dimension>::
-computeInitialGradients(Dimension::State<Dimension> state) const {
-
-  // The kernels and such.
-  const auto& W = this->kernel();
-
-  // A few useful constants we'll use in the following loop.
-  const double tiny = 1.0e-30;
-  const Scalar W0 = W(0.0, 1.0);
-
-  // The connectivity.
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto& nodeLists = connectivityMap.nodeLists();
-  const auto numNodeLists = nodeLists.size();
-
-  auto mass = dataBase.fluidMass();
-  auto massDensity = dataBase.fluidMassDensity();
-  const auto H = dataBase.fluidHfield();
-  const auto position = dataBase.fluidPosition();
-  auto pressure = mPressure;
-  CHECK(mass.size() == numNodeLists);
-  CHECK(position.size() == numNodeLists);
-  CHECK(massDensity.size() == numNodeLists);
-  CHECK(pressure.size() == numNodeLists);
-  CHECK(H.size() == numNodeLists);
-
-  // The set of interacting node pairs.
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
-
-  // The scale for the tensile correction.
-  const auto& nodeList = mass[0]->nodeList();
-  const auto  nPerh = nodeList.nodesPerSmoothingScale();
-  const auto  WnPerh = W(1.0/nPerh, 1.0);
-
-#pragma omp parallel
-  {
-    // Thread private scratch variables
-    int i, j, nodeListi, nodeListj;
-
-    typename SpheralThreads<Dimension>::FieldListStack threadStack;
-    auto DpDx_thread = mDpDx.threadCopy(threadStack);
-    auto M_thread = mM.threadCopy(threadStack);
-
-
-#pragma omp for
-    for (auto kk = 0u; kk < npairs; ++kk) {
-      i = pairs[kk].i_node;
-      j = pairs[kk].j_node;
-      nodeListi = pairs[kk].i_list;
-      nodeListj = pairs[kk].j_list;
-      
-      // Get the state for node i.
-      const auto& ri = position(nodeListi, i);
-      const auto& mi = mass(nodeListi, i);
-      const auto& Pi = pressure(nodeListi, i);
-      const auto& rhoi = massDensity(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
-      const auto  Hdeti = Hi.Determinant();
-      CHECK(mi > 0.0);
-      CHECK(rhoi > 0.0);
-      CHECK(Hdeti > 0.0);
-
-      auto& DpDxi = DpDx_thread(nodeListi,i);
-      auto& Mi = M_thread(nodeListi, i);
-
-      // Get the state for node j
-      const auto& rj = position(nodeListj, j);
-      const auto& mj = mass(nodeListj, j);
-      const auto& Pj = pressure(nodeListj, j);
-      const auto& rhoj = massDensity(nodeListj, j);
-      const auto& Hj = H(nodeListj, j);
-      const auto  Hdetj = Hj.Determinant();
-      CHECK(mj > 0.0);
-      CHECK(rhoj > 0.0);
-      CHECK(Hdetj > 0.0);
-
-      auto& DpDxj = DpDx_thread(nodeListj,j);
-      auto& Mj = M_thread(nodeListj, j);
-
-      // Node displacement.
-      const auto rij = ri - rj;
-
-      const auto etai = Hi*rij;
-      const auto etaj = Hj*rij;
-      const auto etaMagi = etai.magnitude();
-      const auto etaMagj = etaj.magnitude();
-      CHECK(etaMagi >= 0.0);
-      CHECK(etaMagj >= 0.0);
-
-      // Symmetrized kernel weight and gradient.
-      const auto gWi = W.gradValue(etaMagi, Hdeti);
-      const auto Hetai = Hi*etai.unitVector();
-      const auto gradWi = gWi*Hetai;
-
-      const auto gWj = W.gradValue(etaMagj, Hdetj);
-      const auto Hetaj = Hj*etaj.unitVector();
-      const auto gradWj = gWj*Hetaj;
-
-      // volumes
-      const auto voli = mi/rhoi;
-      const auto volj = mj/rhoj;
-      
-      DpDxi -= volj*(Pi-Pj)*gradWi;
-      DpDxj -= voli*(Pi-Pj)*gradWj;
-
-      // Linear gradient correction term.
-      Mi -= volj*rij.dyad(gradWi);
-      Mj -= voli*rij.dyad(gradWj);
-      
-    } // loop over pairs
-
-    // Reduce the thread values to the master.
-    threadReduceFieldLists<Dimension>(threadStack);
-
-  }   // OpenMP parallel region
-  
-  // Finish up the spatial gradient calculation
-  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& nodeList = mass[nodeListi]->nodeList();
-    const auto ni = nodeList.numInternalNodes();
-#pragma omp parallel for
-    for (auto i = 0u; i < ni; ++i) {
-      const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
-      auto& Mi = mM(nodeListi, i);
-      auto& DpDxi = mDpDx(nodeListi,i);
-      auto& lastDpDxi = mLastDpDx(nodeListi,i);
-
-      const auto Mdeti = std::abs(Mi.Determinant());
-
-      const auto enoughNeighbors =  numNeighborsi > Dimension::pownu(2);
-      const auto goodM =  (Mdeti > 0.05 and enoughNeighbors);                   
-
-      // interp var to blend out M when it gets ill conditioned detM>0.5 away from 1.0
-      const auto x = min(1.0, max(0.0, 1.0-2.0*Mdeti));
-      Mi = (goodM? (1.0-x)*Mi.Inverse() + x*Tensor::one : Tensor::one);
-
-      if(mCorrectVelocityGradient){
-        DpDxi = Mi.Transpose()*DpDxi;
-      }
-
-      lastDpDxi = DpDxi;
-    }
-    
-  }
-*/
 }
-
-
-// Trying out GSPH to reduce the number of neighbors required to resolve a sedov problem. 
-// gets negative STE when zero pressure. slightly greater than one good to go.
-// XSPH might help sedov w/ AGSPH ? 
-// different limiters? 
-// other wave speed estimates? HLLE min max type deal
