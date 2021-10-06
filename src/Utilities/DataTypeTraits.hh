@@ -24,7 +24,7 @@
 
 #ifdef USE_MPI
 extern "C" {
-#include "mpi.h"
+#include <mpi.h>
 }
 #endif
 

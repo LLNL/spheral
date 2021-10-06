@@ -3,7 +3,7 @@
 // to generate the spun node distribution.
 //------------------------------------------------------------------------------
 #ifdef USE_MPI
-#include "mpi.h"
+#include <mpi.h>
 #endif
 
 #include "Boundary/CylindricalBoundary.hh"
