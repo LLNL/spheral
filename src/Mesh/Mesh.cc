@@ -21,7 +21,7 @@ using std::abs;
 #include "NodeList/NodeList.hh"
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include <mpi.h>
 #include "Utilities/packElement.hh"
 #endif
 
