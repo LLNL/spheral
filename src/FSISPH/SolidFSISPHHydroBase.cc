@@ -678,7 +678,7 @@ if(this->correctVelocityGradient()){
       const auto decouple =  isExpanding and (cantSupportTension and isInTension);
 
       const auto constructInterface = (fSij < 0.99) and activateConstruction;
-      const auto negligableShearWave = max(fDi*mui,fDj*muj) < 1.0e-5*min(Ki,Kj);
+      const auto negligableShearWave = max(mui,muj) < 1.0e-5*min(Ki,Kj);
 
       if (!decouple){
 
@@ -797,8 +797,8 @@ if(this->correctVelocityGradient()){
           // weights weights
           const auto Ci = (constructHLLC ? rhoi*ci : abs(Ki*volj*gWi) ) + tiny;
           const auto Cj = (constructHLLC ? rhoj*cj : abs(Kj*voli*gWj) ) + tiny;
-          const auto Csi = fDi*(constructHLLC ? std::sqrt(rhoi*mui) : abs(mui*volj*gWi) ) + tiny;
-          const auto Csj = fDj*(constructHLLC ? std::sqrt(rhoj*muj) : abs(muj*voli*gWj) ) + tiny;
+          const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : abs(mui*volj*gWi) ) + tiny;
+          const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : abs(muj*voli*gWj) ) + tiny;
 
           const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
           const auto weightUj = 1.0 - weightUi;
@@ -979,7 +979,7 @@ if(this->correctVelocityGradient()){
       const auto spin = localDvDxi.SkewSymmetric();
       const auto deviatoricDeformation = deformation - (deformation.Trace()/Dimension::nDim)*SymTensor::one;
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
-      DSDti += spinCorrection + (2.0*mui*(1.0-Di))*deviatoricDeformation;
+      DSDti += spinCorrection + 2.0*mui*deviatoricDeformation;
 
       // In the presence of damage, add a term to reduce the stress on this point.
       if(Di>0.99) DSDti = (1.0 - Di)*DSDti - 0.125/dt*Di*Si;
