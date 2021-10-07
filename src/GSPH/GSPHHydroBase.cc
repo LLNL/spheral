@@ -1267,14 +1267,10 @@ void
 GSPHHydroBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
 
-  auto& DpDx = mRiemannSolver.DpDx();
-  auto& DvDx = mRiemannSolver.DvDx();
-  file.write(DpDx,pathName+"/RiemannDpDx");
-  file.write(DvDx,pathName+"/RiemannDvDx");
-
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mPressure, pathName + "/pressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
+
   file.write(mHideal, pathName + "/Hideal");
   file.write(mNormalization, pathName + "/normalization");
   file.write(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
@@ -1282,13 +1278,20 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mXSPHWeightSum, pathName + "/XSPHWeightSum");
   file.write(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
+  // time derivs
   file.write(mDxDt, pathName + "/DxDt");
   file.write(mDvDt, pathName + "/DvDt");
   file.write(mDmassDensityDt, pathName + "/DmassDensityDt");
   file.write(mDspecificThermalEnergyDt, pathName + "/DspecificThermalEnergyDt");
   file.write(mDHDt, pathName + "/DHDt");
-  file.write(mDvDx, pathName + "/DvDx");
+
+  // spatial derivs
   file.write(mM, pathName + "/M");
+  file.write(mDvDx, pathName + "/DvDx");
+  file.write(mDpDx, pathName + "/DpDx");
+  file.write(mDvDxRaw, pathName + "/DvDxRaw");
+  file.write(mDpDxRaw, pathName + "/DpDxRaw");
+  
 
 }
 
@@ -1300,14 +1303,10 @@ void
 GSPHHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
 
-  auto& DpDx = mRiemannSolver.DpDx();
-  auto& DvDx = mRiemannSolver.DvDx();
-  file.read(DpDx,pathName + "/RiemannDpDx");
-  file.read(DvDx,pathName + "/RiemannDvDx");
-
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mPressure, pathName + "/pressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
+
   file.read(mHideal, pathName + "/Hideal");
   file.read(mNormalization, pathName + "/normalization");
   file.read(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
@@ -1315,13 +1314,19 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mXSPHWeightSum, pathName + "/XSPHWeightSum");
   file.read(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
+  // time derivs
   file.read(mDxDt, pathName + "/DxDt");
   file.read(mDvDt, pathName + "/DvDt");
   file.read(mDmassDensityDt, pathName + "/DmassDensityDt");
   file.read(mDspecificThermalEnergyDt, pathName + "/DspecificThermalEnergyDt");
   file.read(mDHDt, pathName + "/DHDt");
-  file.read(mDvDx, pathName + "/DvDx");
+
+  // spatial derivs
   file.read(mM, pathName + "/M");
+  file.read(mDvDx, pathName + "/DvDx");
+  file.read(mDpDx, pathName + "/DpDx");
+  file.read(mDvDxRaw, pathName + "/DvDxRaw");
+  file.read(mDpDxRaw, pathName + "/DpDxRaw");
 
 }
 
