@@ -3,37 +3,29 @@
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 
-#include "SPH/SPHHydroBase.hh"
+#include "SPH/SPHHydroBase.hh"                 
 #include "SPH/SolidSPHHydroBase.hh"
-#include "NodeList/SmoothingScaleBase.hh"
-#include "Hydro/HydroFieldNames.hh"
+
 #include "Hydro/PressurePolicy.hh"
+#include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
-//#include "Strength/DeviatoricStressPolicy.hh"
-//#include "Strength/BulkModulusPolicy.hh"
-//#include "Strength/PlasticStrainPolicy.hh"
-//#include "Strength/ShearModulusPolicy.hh"
-//#include "Strength/YieldStrengthPolicy.hh"
-//#include "Strength/StrengthSoundSpeedPolicy.hh"
+#include "NodeList/SmoothingScaleBase.hh"
+#include "SolidMaterial/SolidEquationOfState.hh" 
+
+#include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementFieldList.hh"
-//#include "DataBase/IncrementBoundedState.hh"
-//#include "DataBase/IncrementBoundedFieldList.hh"
-//#include "DataBase/ReplaceFieldList.hh"
-//#include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
-//#include "DataBase/CompositeFieldListPolicy.hh"
+
 #include "ArtificialViscosity/ArtificialViscosity.hh"
-#include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "SolidMaterial/SolidEquationOfState.hh"
 #include "Utilities/Timer.hh"
 
 #include "FSISPH/FSISpecificThermalEnergyPolicy.hh"
@@ -521,15 +513,11 @@ if(this->correctVelocityGradient()){
       const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
       for (auto i = 0u; i < ni; ++i) {
-
         const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
         auto& Mi = M(nodeListi, i);
         const auto Mdeti = Mi.Determinant();
-
-        // blend out M correction if its not so nice
         const auto goodM = ( Mdeti > 1e-2 and numNeighborsi > Dimension::pownu(2));
-        //const auto x = max(0.0,min(1.0, (goodM ? 80.0*Mdeti/((1.0+Mdeti)*(1.0+Mdeti)) : 0.0) ));
-        Mi =  (goodM ? Mi.Inverse() : Tensor::one);//x*Mi.Inverse() + (1.0-x) * Tensor::one;
+        Mi =  (goodM ? Mi.Inverse() : Tensor::one);
       } 
     }
 

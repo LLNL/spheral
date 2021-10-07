@@ -4,205 +4,6 @@ from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
 #-------------------------------------------------------------------------------
-# The generic FSISPHHydro pattern.
-#-------------------------------------------------------------------------------
-FSISPHHydroFactoryString = """
-class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
-
-    def __init__(self,
-                 dataBase,
-                 Q,
-                 slides,
-                 W,
-                 filter = 0.0,
-                 cfl = 0.5,
-                 surfaceForceCoefficient = 0.0,
-                 densityStabilizationCoefficient = 0.0,
-                 specificThermalEnergyDiffusionCoefficient = 0.0,  
-                 xsphCoefficient=0.0,
-                 interfaceMethod=HLLCInterface,                            
-                 sumDensityNodeLists = None,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 gradhCorrection = False,
-                 XSPH = False,
-                 correctVelocityGradient = True,
-                 densityUpdate = RigorousSumDensity,
-                 HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
-                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
-                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
-        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-
-        FSISPHHydroBase%(dim)s.__init__(self,
-                                          self._smoothingScaleMethod,
-                                          dataBase,
-                                          Q,
-                                          slides,
-                                          W,
-                                          filter,
-                                          cfl,
-                                          surfaceForceCoefficient,
-                                          densityStabilizationCoefficient,
-                                          specificThermalEnergyDiffusionCoefficient,
-                                          xsphCoefficient,
-                                          interfaceMethod,                      
-                                          sumDensityNodeLists,
-                                          useVelocityMagnitudeForDt,
-                                          compatibleEnergyEvolution,
-                                          evolveTotalEnergy,
-                                          gradhCorrection,
-                                          XSPH,
-                                          correctVelocityGradient,
-                                          densityUpdate,
-                                          HUpdate,
-                                          epsTensile,
-                                          nTensile,
-                                          xmin,
-                                          xmax)
-        return
-"""
-
-#-------------------------------------------------------------------------------
-# The generic FSISPHHydro RZ pattern.
-#-------------------------------------------------------------------------------
-FSISPHHydroRZFactoryString = """
-class %(classname)s(FSISPHHydroBaseRZ):
-
-    def __init__(self,
-                 dataBase,
-                 Q,
-                 slides,
-                 W,
-                 filter = 0.0,
-                 cfl = 0.5,
-                 surfaceForceCoefficient = 0.0,
-                 densityStabilizationCoefficient = 0.0,  
-                 specificThermalEnergyDiffusionCoefficient = 0.0,  
-                 xsphCoefficient=0.0,
-                 interfaceMethod=HLLCInterface,                 
-                 sumDensityNodeLists = None,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 gradhCorrection = False,
-                 XSPH = False,
-                 correctVelocityGradient = True,
-                 densityUpdate = RigorousSumDensity,
-                 HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
-                 xmin = Vector2d(-1e100, -1e100),
-                 xmax = Vector2d( 1e100,  1e100),
-                 etaMinAxis = 0.1):
-        self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
-        
-        WPi = W
-
-        FSISPHHydroBaseRZ.__init__(self,
-                                   self._smoothingScaleMethod,
-                                   dataBase,
-                                    Q,
-                                    slides,
-                                    W,
-                                    filter,
-                                    cfl,
-                                    surfaceForceCoefficient,
-                                    densityStabilizationCoefficient,
-                                    specificThermalEnergyDiffusionCoefficient,     
-                                    xsphCoefficient,
-                                    interfaceMethod,           
-                                    sumDensityNodeLists,
-                                    useVelocityMagnitudeForDt,
-                                    compatibleEnergyEvolution,
-                                    evolveTotalEnergy,
-                                    gradhCorrection,
-                                    XSPH,
-                                    correctVelocityGradient,
-                                    densityUpdate,
-                                    HUpdate,
-                                    epsTensile,
-                                    nTensile,
-                                    xmin,
-                                    xmax)
-        self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
-        self.appendBoundary(self.zaxisBC)
-        return
-"""
-#-------------------------------------------------------------------------------
-# The generic FSISPHHydro RZ pattern.
-#-------------------------------------------------------------------------------
-SolidFSISPHHydroRZFactoryString = """
-class %(classname)s(SolidFSISPHHydroBaseRZ):
-
-    def __init__(self,
-                 dataBase,
-                 Q,
-                 slides,
-                 W,
-                 filter = 0.0,
-                 cfl = 0.5,
-                 surfaceForceCoefficient = 0.0,
-                 densityStabilizationCoefficient = 0.0, 
-                 specificThermalEnergyDiffusionCoefficient = 0.0,   
-                 xsphCoefficient=0.0,
-                 interfaceMethod=HLLCInterface,                
-                 sumDensityNodeLists = None,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 gradhCorrection = False,
-                 XSPH = False,
-                 correctVelocityGradient = True,
-                 densityUpdate = RigorousSumDensity,
-                 HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
-                 damageRelieveRubble = False,
-                 negativePressureInDamage = False,
-                 strengthInDamage = False,
-                 xmin = Vector2d(-1e100, -1e100),
-                 xmax = Vector2d( 1e100,  1e100),
-                 etaMinAxis = 0.1):
-        self._smoothingScaleMethod = %(smoothingScaleMethod)s2d()
-
-        SolidFSISPHHydroBaseRZ.__init__(self,
-                                        self._smoothingScaleMethod,
-                                        dataBase,
-                                        Q,
-                                        slides,
-                                        W,
-                                        filter,
-                                        cfl,
-                                        surfaceForceCoefficient,
-                                        densityStabilizationCoefficient,  
-                                        specificThermalEnergyDiffusionCoefficient, 
-                                        xsphCoefficient,
-                                        interfaceMethod,                  
-                                        sumDensityNodeLists,
-                                        useVelocityMagnitudeForDt,
-                                        compatibleEnergyEvolution,
-                                        evolveTotalEnergy,
-                                        gradhCorrection,
-                                        XSPH,
-                                        correctVelocityGradient,
-                                        densityUpdate,
-                                        HUpdate,
-                                        epsTensile,
-                                        nTensile,
-                                        damageRelieveRubble,
-                                        negativePressureInDamage,
-                                        strengthInDamage,
-                                        xmin,
-                                        xmax)
-        self.zaxisBC = AxisBoundaryRZ(etaMinAxis)
-        self.appendBoundary(self.zaxisBC)
-        return
-"""
-
-#-------------------------------------------------------------------------------
 # The generic solidFSISPHHydro pattern.
 #-------------------------------------------------------------------------------
 SolidFSISPHHydroFactoryString = """
@@ -271,34 +72,14 @@ class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
 """
 
 for dim in dims:
-    '''
-    exec(FSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                     "classname"            : "FSISPHHydro",
-                                     "smoothingScaleMethod" : "SPHSmoothingScale"})
-    exec(FSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                     "classname"            : "AFSISPHHydro",
-                                     "smoothingScaleMethod" : "ASPHSmoothingScale"})
-    '''
+
     exec(SolidFSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
                                        "classname"            : "SolidFSISPHHydro",
                                        "smoothingScaleMethod" : "SPHSmoothingScale"})
     exec(SolidFSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
                                        "classname"            : "SolidAFSISPHHydro",
                                        "smoothingScaleMethod" : "ASPHSmoothingScale"})
-'''
-if 2 in dims:
-    exec(SolidFSISPHHydroRZFactoryString % {"classname"            : "SolidFSISPHHydroRZ",
-                                             "smoothingScaleMethod" : "SPHSmoothingScale"})
 
-    exec(SolidFSISPHHydroRZFactoryString % {"classname"            : "SolidAFSISPHHydroRZ",
-                                            "smoothingScaleMethod" : "ASPHSmoothingScale"})
-
-    exec(FSISPHHydroRZFactoryString % {"classname"            : "FSISPHHydroRZ",
-                                        "smoothingScaleMethod" : "SPHSmoothingScale"})
-
-    exec(FSISPHHydroRZFactoryString % {"classname"            : "AFSISPHHydroRZ",
-                                        "smoothingScaleMethod" : "ASPHSmoothingScale"})
-'''
 def FSISPH(dataBase,
         W,
         Q = None,
@@ -329,8 +110,7 @@ def FSISPH(dataBase,
     # terms that are on deck or on their way out
     gradhCorrection = False
     densityUpdate = IntegrateDensity
-    XSPH = False
-
+    
     if compatibleEnergyEvolution and evolveTotalEnergy:
         raise RuntimeError, "compatibleEnergyEvolution and evolveTotalEnergy are incompatible"
 
