@@ -114,6 +114,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   const double specificThermalEnergyDiffusionCoefficient,
                   const double xsphCoefficient,
                   const InterfaceMethod interfaceMethod,
+                  const KernelAveragingMethod kernelAveragingMethod,
                   const std::vector<int> sumDensityNodeLists,
                   const bool useVelocityMagnitudeForDt,
                   const bool compatibleEnergyEvolution,
@@ -160,6 +161,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mSpecificThermalEnergyDiffusionCoefficient(specificThermalEnergyDiffusionCoefficient),
   mXSPHCoefficient(xsphCoefficient),
   mInterfaceMethod(interfaceMethod),
+  mKernelAveragingMethod(kernelAveragingMethod),
   mApplySelectDensitySum(false),
   mSumDensityNodeLists(sumDensityNodeLists),
   mPairDepsDt(){
@@ -330,6 +332,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto XSPH = xsphCoeff > tiny;
   const auto diffuseEnergy = epsDiffusionCoeff>tiny and compatibleEnergy;
   const auto stabilizeDensity = rhoStabilizeCoeff>tiny;
+  const auto alwaysAverageKernels = (mKernelAveragingMethod==KernelAveragingMethod::AlwaysAverageKernels);
+  const auto averageInterfaceKernels = (mKernelAveragingMethod==KernelAveragingMethod::AverageInterfaceKernels);
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -469,7 +473,9 @@ if(this->correctVelocityGradient()){
       auto& Mi = M_thread(nodeListi,i);
       auto& Mj = M_thread(nodeListj,j);
 
-      //const auto differentMatij = (nodeListi!=nodeListj);
+      const auto differentMatij = (nodeListi!=nodeListj);
+      const auto averageKernelij = ( (differentMatij and averageInterfaceKernels) or alwaysAverageKernels);
+
       // Kernels
       //--------------------------------------
       const auto rij = ri - rj;
@@ -492,11 +498,11 @@ if(this->correctVelocityGradient()){
       auto gradWj = gWj*Hetaj;
       
       //Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
-      //if(differentMatij){
-        // const auto gradWij = 0.5*(gradWi+gradWj);
-        // gradWi = gradWij;
-        // gradWj = gradWij;
-      //}
+      if(averageKernelij){
+        const auto gradWij = 0.5*(gradWi+gradWj);
+        gradWi = gradWij;
+        gradWj = gradWij;
+      }
       // linear velocity gradient correction
       //---------------------------------------------------------------
       Mi -=  mj/rhoj * rij.dyad(gradWi);
@@ -645,7 +651,8 @@ if(this->correctVelocityGradient()){
 
       // Flag if this is a contiguous material pair or not.
       const auto sameMatij =  (nodeListi == nodeListj);// and fragIDi == fragIDj); 
-      //const auto differentMatij = !sameMatij;
+      const auto differentMatij = !sameMatij;
+      const auto averageKernelij = ( (differentMatij and averageInterfaceKernels) or alwaysAverageKernels);
 
       // Flag if at least one particle is free (0).
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
@@ -695,16 +702,16 @@ if(this->correctVelocityGradient()){
         
         // average our kernels
         const auto gradWij = 0.5*(gradWi+gradWj);
-        //if(differentMatij){
-        //  const auto Wij = 0.5*(Wi+Wj);
-        //  const auto gWij = 0.5*(gWi+gWj);
-        //  Wi = Wij;
-        //  Wj = Wij;
-        //  gWi = gWij;
-        //  gWj = gWij;
-        //  gradWi = gradWij;
-        //  gradWj = gradWij;
-        //}
+        if(averageKernelij){
+          const auto Wij = 0.5*(Wi+Wj);
+          const auto gWij = 0.5*(gWi+gWj);
+          Wi = Wij;
+          Wj = Wij;
+          gWi = gWij;
+          gWj = gWij;
+          gradWi = gradWij;
+          gradWj = gradWij;
+        }
 
         if(this->correctVelocityGradient()){
          gradWi = Mi.Transpose()*gradWi;
@@ -746,8 +753,8 @@ if(this->correctVelocityGradient()){
         const auto Peffj = (Pj<0.0 ? fDj : 1.0) * Pj;
         const auto Pstar = (rhoi*Peffj + rhoj*Peffi)/(rhoi+rhoj);
 
-        sigmai = fDi * Si - (constructHLLC or sameMatij ? Peffi : Pstar) * SymTensor::one;
-        sigmaj = fDj * Sj - (constructHLLC or sameMatij ? Peffj : Pstar) * SymTensor::one;
+        sigmai = fDi * Si - (averageKernelij ? Pstar : Peffi) * SymTensor::one;
+        sigmaj = fDj * Sj - (averageKernelij ? Pstar : Peffj) * SymTensor::one;
 
         // Compute the tensile correction to add to the stress as described in 
         // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -809,14 +816,11 @@ if(this->correctVelocityGradient()){
   
         }
 
-        // diffusion added to vel gradient if additional stabilization is needed
-        if (stabilizeDensity){// and (constructModulus or sameMatij) ){
-          const auto denom = (sameMatij?(rhoi+rhoj)             :
-                                        (rhoi*ci*ci+rhoj*cj*cj));
-          const auto ustarStabilizer =  (sameMatij ? (rhoj-rhoi) :
-                                                    (Pj-Pi)     )/max(tiny,denom);
-         //const auto coeffEffective = min(max(rhoStabilizeCoeff,(fraci+fracj)),1.0);
-          vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, ustarStabilizer)) * cij * rhatij;
+        // this is a little opaque. For HLLC we don't want to 
+        // stabilize across interface since thats baked into the 
+        // construction already.
+        if (stabilizeDensity and (!constructHLLC or sameMatij) ){
+          vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, (Pj-Pi)/(rhoi*ci*ci+rhoj*cj*cj))) * cij * rhatij;
         }
 
         auto deltaDvDxi = 2.0*(vi-vstar).dyad(gradWi);
