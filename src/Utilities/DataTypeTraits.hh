@@ -24,7 +24,7 @@
 
 #ifdef USE_MPI
 extern "C" {
-#include "mpi.h"
+#include <mpi.h>
 }
 #endif
 
@@ -242,6 +242,8 @@ struct DataTypeTraits<std::pair<Value1, Value2> > {
   static bool fixedSize() { return true; }
   static int numElements(const std::pair<Value1, Value2>&) { return 2; }
   static std::pair<Value1, Value2> zero() { return std::make_pair(Value1(), Value2()); }
+  static axom::sidre::DataTypeId axomTypeID() { VERIFY2(false, "axom interface not checked for std::pair<T1,T2>"); return DataTypeTraits<Value1>::axomTypeID(); }
+  using AxomType = typename DataTypeTraits<Value1>::AxomType;
 };
 
 //------------------------------------------------------------------------------

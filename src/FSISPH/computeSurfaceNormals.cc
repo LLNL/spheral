@@ -65,13 +65,14 @@ computeSurfaceNormals(const ConnectivityMap<Dimension>& connectivityMap,
         const auto Hetaj = Hj*etaj.unitVector();
 
         const auto gWi = W.gradValue(etaMagi, Hdeti);
-        auto gradWi = gWi*Hetai;
-
         const auto gWj = W.gradValue(etaMagj, Hdetj);
-        auto gradWj = gWj*Hetaj;
+        
+        const auto gradWi = gWi*Hetai;
+        const auto gradWj = gWj*Hetaj;
+        const auto gradWij = (gradWi+gradWj)*0.5;
 
-        interfaceNormals_thread(nodeListi, i) += mj/rhoj  * gradWi;
-        interfaceNormals_thread(nodeListj, j) -= mi/rhoi  * gradWj;
+        interfaceNormals_thread(nodeListi, i) += mj/rhoj  * gradWij;
+        interfaceNormals_thread(nodeListj, j) -= mi/rhoi  * gradWij;
       }
     }
 

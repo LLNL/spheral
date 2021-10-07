@@ -2,20 +2,31 @@ import os, sys
 import shutil
 from SolidSpheral3d import *
 from SpheralTestUtilities import *
-from SodAnalyticSolution import *
+from SodAnalyticSolution import SodSolutionGasGas as SodSolution
 
-title("1-D integrated hydro test -- planar Sod problem")
+from GenerateNodeProfile import GeneratePlanarNodeProfile3d
+from CompositeNodeDistribution import CompositeNodeDistribution
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes3d
+else:
+    from DistributeNodes import distributeNodes3d
+
+import Pnorm
+from SpheralGnuPlotUtilities import multiSort
+from SpheralMatplotlib import *
+
+title("3-D integrated hydro test -- planar Sod problem")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1 = 200,
-            ny1 = 40,
-            nz1 = 40,
+commandLine(nx1 = 100,
+            ny1 = 20,
+            nz1 = 20,
 
-            nx2 = 100,
-            ny2 = 20,
-            nz2 = 20,
+            nx2 = 50,
+            ny2 = 10,
+            nz2 = 10,
 
             initialRotation = 0.0,     # Degrees, optionally rotate and clip the initial positions
 
@@ -23,6 +34,8 @@ commandLine(nx1 = 200,
             rho2 = 0.25,
             P1 = 1.0,
             P2 = 0.1795,
+            gamma1 = 5.0/3.0,
+            gamma2 = 5.0/3.0,
 
             numNodeLists = 1,
 
@@ -43,11 +56,11 @@ commandLine(nx1 = 200,
 
             nPerh = 1.25,
 
-            gammaGas = 5.0/3.0,
             mu = 1.0,
             
             svph = False,
             crksph = False,
+            fsisph = False,
             psph = False,
             asph = False,               # Choose the H evolution -- works with all hydro options
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
@@ -121,6 +134,10 @@ commandLine(nx1 = 200,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
+assert numNodeLists in (1, 2)
+assert not (fsisph and not solid)
+assert not svph 
+
 
 if svph:
     hydroname = "SVPH"
@@ -130,6 +147,8 @@ elif crksph:
                              str(correctionOrder))
 elif psph:
     hydroname = "PSPH"
+elif fsisph:
+    hydroname = "FSISPH"
 else:
     hydroname = "SPH"
 if asph:
@@ -155,7 +174,14 @@ if vizTime is None and vizCycle is None:
 else:
     vizBaseName = "Sod-planar-3d-%i" % (nx1 + nx2)
 
-assert numNodeLists in (1, 2)
+if numNodeLists == 1 and abs(gamma1-gamma2) > 0.001:
+    gamma2 = gamma1
+    print(" ")
+    print("============================================================")
+    print("warning: because we're running 1 nodelist, gamma2 had to be ")
+    print("         set equal to gamma1")
+    print("============================================================")
+    print(" ")
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -172,7 +198,8 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-eos = GammaLawGasMKS(gammaGas, mu)
+eos1 = GammaLawGasMKS(gamma1, mu)
+eos2 = GammaLawGasMKS(gamma2, mu)
 strength = NullStrength()
 
 #-------------------------------------------------------------------------------
@@ -189,13 +216,13 @@ if solid:
     makeNL = makeSolidNodeList
 else:
     makeNL = makeFluidNodeList
-nodes1 = makeNL("nodes1", eos, 
+nodes1 = makeNL("nodes1", eos1, 
                 hmin = hmin,
                 hmax = hmax,
                 nPerh = nPerh,
                 kernelExtent = kernelExtent,
                 rhoMin = rhoMin)
-nodes2 = makeNL("nodes2", eos, 
+nodes2 = makeNL("nodes2", eos2, 
                 hmin = hmin,
                 hmax = hmax,
                 nPerh = nPerh,
@@ -218,19 +245,19 @@ def rho_initial(xi):
     else:
         return rho2
 
-def specificEnergy(xi, rhoi):
+def specificEnergy(xi, rhoi, gammai):
     if hfold > 0.0:
         Pi = P1 + (P2 - P1)/(1.0 + exp((-xi - x1)/hfold))
     elif xi <= x1:
         Pi = P1
     else:
         Pi = P2
-    return Pi/((gammaGas - 1.0)*rhoi)
+    return Pi/((gammai - 1.0)*rhoi)
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from GenerateNodeProfile import GeneratePlanarNodeProfile3d
+
 gen1 = GeneratePlanarNodeProfile3d(nx = nx1,
                                    ny = ny1,
                                    nz = nz1,
@@ -247,13 +274,8 @@ gen2 = GeneratePlanarNodeProfile3d(nx = nx2,
                                    xmax = (x2, y1, z1),
                                    nNodePerh = nPerh,
                                    SPH = not ASPH)
-if mpi.procs > 1:
-    from VoronoiDistributeNodes import distributeNodes3d
-else:
-    from DistributeNodes import distributeNodes3d
 
-if numNodeLists == 1:
-    from CompositeNodeDistribution import CompositeNodeDistribution
+if numNodeLists == 1: 
     gen = CompositeNodeDistribution(gen1, gen2)
     distributeNodes3d((nodes1, gen))
 else:
@@ -267,13 +289,18 @@ for n in nodeSet:
     output("   mpi.reduce(n.numInternalNodes, mpi.SUM)")
 del n
 
+
 # Set node specific thermal energies
 for nodes in nodeSet:
+
     pos = nodes.positions()
     eps = nodes.specificThermalEnergy()
     rho = nodes.massDensity()
+    gammai = nodes.eos.gamma
+
     for i in xrange(nodes.numInternalNodes):
-        eps[i] = specificEnergy(pos[i].x, rho[i])
+        eps[i] = specificEnergy(pos[i].x, rho[i], gammai)
+
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -319,8 +346,23 @@ elif psph:
                  densityUpdate = densityUpdate,
                  HUpdate = HUpdate,
                  XSPH = XSPH,
-                 correctVelocityGradient = correctVelocityGradient,
-                 HopkinsConductivity = HopkinsConductivity)
+                 correctVelocityGradient = correctVelocityGradient)
+elif fsisph:
+    sumDensityNodeLists = [nodes1]
+    if numNodeLists == 2:
+        sumDensityNodeLists += [nodes2]
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   sumDensityNodeLists=sumDensityNodeLists,                       
+                   densityStabilizationCoefficient = 0.00,
+                   specificThermalEnergyDiffusionCoefficient = 0.00,
+                   interfaceMethod = HLLCInterface,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   correctVelocityGradient = correctVelocityGradient,
+                   HUpdate = HUpdate)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -462,8 +504,9 @@ if sumInitialDensity and control.totalSteps == 0:
         pos = nodes.positions()
         eps = nodes.specificThermalEnergy()
         rho = nodes.massDensity()
+        gammai = nodes.eos.gamma
         for i in xrange(nodes.numInternalNodes):
-            eps[i] = specificEnergy(pos[i].x, rho[i])
+            eps[i] = specificEnergy(pos[i].x, rho[i],gammai)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
@@ -494,7 +537,8 @@ dx2 = (x2 - x1)/nx2
 h1 = 1.0/(nPerh*dx1)
 h2 = 1.0/(nPerh*dx2)
 answer = SodSolution(nPoints=nx1 + nx2,
-                     gamma = gammaGas,
+                     gamma1 = gamma1,
+                     gamma2 = gamma2,
                      rho1 = rho1,
                      P1 = P1,
                      rho2 = rho2,
@@ -505,8 +549,6 @@ answer = SodSolution(nPoints=nx1 + nx2,
                      h1 = 1.0/h1,
                      h2 = 1.0/h2)
 
-#cs = db.newFluidScalarFieldList(0.0, "sound speed")
-#db.fluidSoundSpeed(cs)
 cs = hydro.soundSpeed
 
 # Provide a function to select the points we want to plot.
@@ -525,9 +567,13 @@ def createList(x):
     return mpi.allreduce(result)
 
 # Compute the simulated specific entropy.
+gamma = db.newFluidScalarFieldList(0.0, "specific heat ratio")
+db.fluidGamma(gamma)
+gammaList = createList(gamma)
+
 rho = createList(db.fluidMassDensity)
 P = createList(hydro.pressure)
-A = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(P, rho)]
+A = [Pi/rhoi**gammai for (Pi, rhoi, gammai) in zip(P, rho, gammaList)]
 
 # The analytic solution for the simulated entropy.
 xprof = [x.x for x in createList(db.fluidPosition)]
@@ -537,12 +583,11 @@ vzprof = [v.z for v in createList(db.fluidVelocity)]
 epsprof = createList(db.fluidSpecificThermalEnergy)
 hprof = [1.0/Hi.xx for Hi in createList(db.fluidHfield)]
 multiSort(xprof, rho, P, A, vxprof, vyprof, vzprof, epsprof, hprof)
-xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-Aans = [Pi/rhoi**gammaGas for (Pi, rhoi) in zip(Pans,  rhoans)]
-csAns = [sqrt(gammaGas*Pi/rhoi) for (Pi, rhoi) in zip(Pans,  rhoans)]
+xans, vans, uans, rhoans, Pans, hans, gammaans = answer.solution(control.time(), xprof)
+Aans = [Pi/rhoi**gammai for (Pi, rhoi, gammai) in zip(Pans,  rhoans, gammaans)]
+csAns = [sqrt(gammai*Pi/rhoi) for (Pi, rhoi, gammai) in zip(Pans,  rhoans, gammaans)]
 
 if graphics:
-    from SpheralMatplotlib import *
 
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db, plotStyle="rx", filterFunc=plotFilter)
     plotAnswer(answer, control.time(),
@@ -609,7 +654,6 @@ print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-from SpheralGnuPlotUtilities import multiSort
 rmin = x0
 rmax = x2
 if mpi.rank == 0:
@@ -626,7 +670,7 @@ if mpi.rank == 0:
                      rhoansi, Pansi, vansi, Aansi, hansi))
         f.close()
 
-    import Pnorm
+    
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     failure = False
     hD = []

@@ -18,8 +18,9 @@ class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
                  cfl = 0.5,
                  surfaceForceCoefficient = 0.0,
                  densityStabilizationCoefficient = 0.0,
-                 densityDiffusionCoefficient = 0.0,   
-                 specificThermalEnergyDiffusionCoefficient = 0.0,                     
+                 specificThermalEnergyDiffusionCoefficient = 0.0,  
+                 xsphCoefficient=0.0,
+                 interfaceMethod=HLLCInterface,                            
                  sumDensityNodeLists = None,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
@@ -45,8 +46,9 @@ class %(classname)s%(dim)s(FSISPHHydroBase%(dim)s):
                                           cfl,
                                           surfaceForceCoefficient,
                                           densityStabilizationCoefficient,
-                                          densityDiffusionCoefficient,
-                                          specificThermalEnergyDiffusionCoefficient,             
+                                          specificThermalEnergyDiffusionCoefficient,
+                                          xsphCoefficient,
+                                          interfaceMethod,                      
                                           sumDensityNodeLists,
                                           useVelocityMagnitudeForDt,
                                           compatibleEnergyEvolution,
@@ -77,9 +79,10 @@ class %(classname)s(FSISPHHydroBaseRZ):
                  filter = 0.0,
                  cfl = 0.5,
                  surfaceForceCoefficient = 0.0,
-                 densityStabilizationCoefficient = 0.0,
-                 densityDiffusionCoefficient = 0.0,   
-                 specificThermalEnergyDiffusionCoefficient = 0.0,          
+                 densityStabilizationCoefficient = 0.0,  
+                 specificThermalEnergyDiffusionCoefficient = 0.0,  
+                 xsphCoefficient=0.0,
+                 interfaceMethod=HLLCInterface,                 
                  sumDensityNodeLists = None,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
@@ -108,8 +111,9 @@ class %(classname)s(FSISPHHydroBaseRZ):
                                     cfl,
                                     surfaceForceCoefficient,
                                     densityStabilizationCoefficient,
-                                    densityDiffusionCoefficient,
-                                    specificThermalEnergyDiffusionCoefficient,       
+                                    specificThermalEnergyDiffusionCoefficient,     
+                                    xsphCoefficient,
+                                    interfaceMethod,           
                                     sumDensityNodeLists,
                                     useVelocityMagnitudeForDt,
                                     compatibleEnergyEvolution,
@@ -141,9 +145,10 @@ class %(classname)s(SolidFSISPHHydroBaseRZ):
                  filter = 0.0,
                  cfl = 0.5,
                  surfaceForceCoefficient = 0.0,
-                 densityStabilizationCoefficient = 0.0,
-                 densityDiffusionCoefficient = 0.0,   
-                 specificThermalEnergyDiffusionCoefficient = 0.0,          
+                 densityStabilizationCoefficient = 0.0, 
+                 specificThermalEnergyDiffusionCoefficient = 0.0,   
+                 xsphCoefficient=0.0,
+                 interfaceMethod=HLLCInterface,                
                  sumDensityNodeLists = None,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
@@ -172,9 +177,10 @@ class %(classname)s(SolidFSISPHHydroBaseRZ):
                                         filter,
                                         cfl,
                                         surfaceForceCoefficient,
-                                        densityStabilizationCoefficient,
-                                        densityDiffusionCoefficient,   
-                                        specificThermalEnergyDiffusionCoefficient,          
+                                        densityStabilizationCoefficient,  
+                                        specificThermalEnergyDiffusionCoefficient, 
+                                        xsphCoefficient,
+                                        interfaceMethod,                  
                                         sumDensityNodeLists,
                                         useVelocityMagnitudeForDt,
                                         compatibleEnergyEvolution,
@@ -210,9 +216,10 @@ class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
                  filter = 0.0,
                  cfl = 0.5,
                  surfaceForceCoefficient = 0.0,
-                 densityStabilizationCoefficient = 0.0,
-                 densityDiffusionCoefficient = 0.0,   
-                 specificThermalEnergyDiffusionCoefficient = 0.0,        
+                 densityStabilizationCoefficient = 0.0, 
+                 specificThermalEnergyDiffusionCoefficient = 0.0, 
+                 xsphCoefficient=0.0,
+                 interfaceMethod=HLLCInterface,         
                  sumDensityNodeLists = None,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
@@ -224,7 +231,7 @@ class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
                  HUpdate = IdealH,
                  epsTensile = 0.0,
                  nTensile = 4.0,
-                 damageRelieveRubble = False,
+                 damageRelieveRubble = True,
                  negativePressureInDamage = False,
                  strengthInDamage = False,
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
@@ -240,9 +247,10 @@ class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
                                           filter,
                                           cfl,
                                           surfaceForceCoefficient,
-                                          densityStabilizationCoefficient,
-                                          densityDiffusionCoefficient,   
-                                          specificThermalEnergyDiffusionCoefficient,       
+                                          densityStabilizationCoefficient, 
+                                          specificThermalEnergyDiffusionCoefficient,
+                                          xsphCoefficient,
+                                          interfaceMethod,       
                                           sumDensityNodeLists,
                                           useVelocityMagnitudeForDt,
                                           compatibleEnergyEvolution,
@@ -299,18 +307,18 @@ def FSISPH(dataBase,
         cfl = 0.25,
         surfaceForceCoefficient=0.0,
         densityStabilizationCoefficient=0.0, 
-        densityDiffusionCoefficient=0.0,      
-        specificThermalEnergyDiffusionCoefficient=0.0,        
+        specificThermalEnergyDiffusionCoefficient=0.0, 
+        xsphCoefficient=0.0,
+        interfaceMethod=HLLCInterface,       
         sumDensityNodeLists=[],
         useVelocityMagnitudeForDt = False,
         compatibleEnergyEvolution = True,
         evolveTotalEnergy = False,
-        XSPH = False,
         correctVelocityGradient = False,    # will break consistency between DrhoDt and DepsDt
         HUpdate = IdealH,
         epsTensile = 0.0,
         nTensile = 4.0,
-        damageRelieveRubble = False,
+        damageRelieveRubble = True,
         negativePressureInDamage = False,
         strengthInDamage = False,
         xmin = (-1e100, -1e100, -1e100),
@@ -318,26 +326,16 @@ def FSISPH(dataBase,
         ASPH = False,
         RZ = False):
 
+    # terms that are on deck or on their way out
     gradhCorrection = False
     densityUpdate = IntegrateDensity
+    XSPH = False
 
     if compatibleEnergyEvolution and evolveTotalEnergy:
         raise RuntimeError, "compatibleEnergyEvolution and evolveTotalEnergy are incompatible"
-    
-    if densityDiffusionCoefficient > 1e-30 or specificThermalEnergyDiffusionCoefficient > 1e-30:
-        print("**********************************************************************")
-        print(" FSISPH WARNING : compatibility issue w/ StrainPorosity when running:")
-        print("                  densityDiffusionCoefficient > 0.0")
-        print("                  ")
-        print("                  densityStabilizationCoefficient > 0.0 is safe")
-        print("                  specificThermalEnergyDiffusionCoefficient > 0.0 is safe")
-        print("**********************************************************************")
 
     if gradhCorrection:
         raise RuntimeError, "gradhCorrection not implemented yet"
-
-    #if XSPH  and dataBase.numNodeLists>1:
-    #    raise RuntimeError, "XSPH is not set up for multiple nodeLists"
 
     if strengthInDamage and damageRelieveRubble:
         raise RuntimeError, "strengthInDamage and damageRelieveRubble are incompatible"
@@ -391,7 +389,7 @@ def FSISPH(dataBase,
             else:
                 Constructor = eval("SolidFSISPHHydro%id" % ndim)
         else:
-            raise RuntimeError, "currently only implemented for solid nodelists"
+            raise RuntimeError, "currently only implemented for fluid nodelists"
             '''
             if ASPH:
                 Constructor = eval("AFSISPHHydro%id" % ndim)
@@ -401,9 +399,9 @@ def FSISPH(dataBase,
 
     # Artificial viscosity.
     if not Q:
-        Cl = 1.0*(dataBase.maxKernelExtent/2.0)
-        Cq = 1.0*(dataBase.maxKernelExtent/2.0)**2
-        Q = eval("MonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
+        Cl = 2.0*(dataBase.maxKernelExtent/2.0)
+        Cq = 8.0*(dataBase.maxKernelExtent/2.0)**2
+        Q = eval("CRKSPHMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # slide surfaces.
     if not slides:
@@ -420,9 +418,10 @@ def FSISPH(dataBase,
               "filter" : filter,
               "cfl" : cfl,
               "surfaceForceCoefficient" : surfaceForceCoefficient,
-              "densityStabilizationCoefficient" : densityStabilizationCoefficient,
-              "densityDiffusionCoefficient" : densityDiffusionCoefficient,        
+              "densityStabilizationCoefficient" : densityStabilizationCoefficient,      
               "specificThermalEnergyDiffusionCoefficient" : specificThermalEnergyDiffusionCoefficient,        
+              "xsphCoefficient" : xsphCoefficient,
+              "interfaceMethod" : interfaceMethod,
               "sumDensityNodeLists" : sumDensitySwitch,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
@@ -459,9 +458,10 @@ def AFSISPH(dataBase,
          filter = 0.0,
          cfl = 0.25,
          surfaceForceCoefficient = 0.0,
-         densityStabilizationCoefficient = 0.0,
-         densityDiffusionCoefficient = 0.0,   
-         specificThermalEnergyDiffusionCoefficient = 0.0,                     
+         densityStabilizationCoefficient = 0.0,  
+         specificThermalEnergyDiffusionCoefficient = 0.0,
+         xsphCoefficient = 0.0,   
+         interfaceMethod = HLLCInterface,                     
          sumDensityNodeLists = None,       
          useVelocityMagnitudeForDt = False,
          compatibleEnergyEvolution = True,
@@ -481,14 +481,15 @@ def AFSISPH(dataBase,
     return FSISPH(dataBase = dataBase,
                W = W,
                Q = Q,
-               slides=None,
+               slides=slides,
                filter = filter,
                cfl = cfl,
-               surfaceForceCoefficient = 0.0,
-               densityStabilizationCoefficient = 0.0,
-               densityDiffusionCoefficient = 0.0,   
-               specificThermalEnergyDiffusionCoefficient = 0.0,                     
-               sumDensityNodeLists = None,          
+               surfaceForceCoefficient = surfaceForceCoefficient,
+               densityStabilizationCoefficient = densityStabilizationCoefficient, 
+               specificThermalEnergyDiffusionCoefficient = specificThermalEnergyDiffusionCoefficient,  
+               xsphCoefficient = xsphCoefficient,   
+               interfaceMethod = interfaceMethod,                   
+               sumDensityNodeLists = sumDensityNodeLists,          
                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                compatibleEnergyEvolution = compatibleEnergyEvolution,
                evolveTotalEnergy = evolveTotalEnergy,

@@ -13,6 +13,12 @@ set(SPH_inst
 
 set(SPH_sources )
 
+# if(ENABLE_1D)
+#   list(APPEND SPH_sources
+#        SolidSPHHydroBaseR.cc
+#       )
+# endif()
+
 if(ENABLE_2D)
   list(APPEND SPH_sources
        SPHHydroBaseGSRZ.cc
@@ -39,6 +45,7 @@ set(SPH_headers
     SPHHydroBaseRZ.hh
     SolidSPHHydroBase.hh
     SolidSPHHydroBaseInline.hh
+    SolidSPHHydroBaseR.hh
     SolidSPHHydroBaseRZ.hh
     computeHydrostaticEquilibriumPressure.hh
     computePSPHCorrections.hh

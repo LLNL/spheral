@@ -35,6 +35,7 @@ if(${lib_name}_BUILD)
                -DBUILD_SHARED_LIBS=Off
                -DHDF5_DIR=${hdf5_DIR}
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
+               -DBUILD_SHARED_LIBS=Off
 
     DEPENDS ${hdf5_build_dep} ${zlib_build_dep}
 

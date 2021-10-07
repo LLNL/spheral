@@ -51,7 +51,6 @@ extern Timer TIME_Polyhedron_convex;
 
 namespace Spheral {
 
-
 //------------------------------------------------------------------------------
 // Default constructor.
 //------------------------------------------------------------------------------
@@ -66,7 +65,10 @@ GeomPolyhedron():
   mXmax(),
   mCentroid(),
   mRinterior2(-1.0),
-  mConvex(true) {
+  mConvex(true),
+  mSurfaceMeshPtr(nullptr),
+  mSurfaceMeshQueryPtr(nullptr),
+  mSignedDistancePtr(nullptr) {
   if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
 }
 
@@ -84,7 +86,10 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
   mXmax(),
   mCentroid(),
   mRinterior2(-1.0),
-  mConvex(true) {
+  mConvex(true),
+  mSurfaceMeshPtr(nullptr),
+  mSurfaceMeshQueryPtr(nullptr),
+  mSignedDistancePtr(nullptr) {
   TIME_Polyhedron_construct1.start();
   if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
 
@@ -155,12 +160,12 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
       ipoints3.push_back(2); ipoints3.push_back(3); ipoints3.push_back(7); ipoints3.push_back(6);
       ipoints4.push_back(0); ipoints4.push_back(4); ipoints4.push_back(7); ipoints4.push_back(3);
       ipoints5.push_back(4); ipoints5.push_back(5); ipoints5.push_back(6); ipoints5.push_back(7);
-      mFacets.push_back(Facet(mVertices, ipoints0, Vector(0, 0, -1)));
-      mFacets.push_back(Facet(mVertices, ipoints1, Vector(1, 0, 0)));
-      mFacets.push_back(Facet(mVertices, ipoints2, Vector(0, 1, 0)));
-      mFacets.push_back(Facet(mVertices, ipoints3, Vector(-1, 0, 0)));
-      mFacets.push_back(Facet(mVertices, ipoints4, Vector(0, -1, 0)));
-      mFacets.push_back(Facet(mVertices, ipoints5, Vector(0, 0, 1)));
+      mFacets.push_back(Facet(mVertices, ipoints0));
+      mFacets.push_back(Facet(mVertices, ipoints1));
+      mFacets.push_back(Facet(mVertices, ipoints2));
+      mFacets.push_back(Facet(mVertices, ipoints3));
+      mFacets.push_back(Facet(mVertices, ipoints4));
+      mFacets.push_back(Facet(mVertices, ipoints5));
 
     } else {
 
@@ -206,8 +211,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
 //       }
 
         mFacets.push_back(Facet(mVertices,
-                                vertex_indices,
-                                normal));
+                                vertex_indices));
       }
     }
 
@@ -259,29 +263,19 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   mXmax(),
   mCentroid(),
   mRinterior2(-1.0),
-  mConvex(false) {
+  mConvex(false),
+  mSurfaceMeshPtr(nullptr),
+  mSurfaceMeshQueryPtr(nullptr),
+  mSignedDistancePtr(nullptr) {
   TIME_Polyhedron_construct2.start();
 
-  unsigned i, j, n;
-  Vector normal;
-  mFacets.reserve(facetIndices.size());
-
   // Construct the facets.
+  mFacets.reserve(facetIndices.size());
   for (const auto& indices: facetIndices) {
     CHECK2(indices.size() > 2, "Need at least two points per facet.");
     CHECK2(*max_element(indices.begin(), indices.end()) < points.size(),
            "Bad vertex index for facet.");
-
-    // Figure out the normal.
-    n = indices.size();
-    normal.Zero();
-    for (i = 1; i < n - 1; ++i) {
-      j = (i + 1) % n;
-      normal += (mVertices[indices[i]] - mVertices[indices[0]]).cross(mVertices[indices[j]] - mVertices[indices[0]]);
-    }
-    // CHECK2(normal.magnitude2() > 0.0, normal << " " << facetIndices.size());
-    normal = normal.unitVector();
-    mFacets.push_back(Facet(mVertices, indices, normal));
+    mFacets.push_back(Facet(mVertices, indices));
   }
   CHECK(mFacets.size() == facetIndices.size());
 
@@ -304,7 +298,10 @@ GeomPolyhedron(const GeomPolyhedron& rhs):
   mXmax(rhs.mXmax),
   mCentroid(rhs.mCentroid),
   mRinterior2(rhs.mRinterior2),
-  mConvex(rhs.mConvex) {
+  mConvex(rhs.mConvex),
+  mSurfaceMeshPtr(nullptr),
+  mSurfaceMeshQueryPtr(nullptr),
+  mSignedDistancePtr(nullptr) {
   for (Facet& facet: mFacets) facet.mVerticesPtr = &mVertices;
 }
 
@@ -319,8 +316,7 @@ operator=(const GeomPolyhedron& rhs) {
     mFacets = vector<Facet>();
     mFacets.reserve(rhs.mFacets.size());
     for (const Facet& facet: rhs.mFacets) mFacets.push_back(Facet(mVertices,
-                                                                  facet.ipoints(),
-                                                                  facet.normal()));
+                                                                  facet.ipoints()));
     mVertexFacetConnectivity = rhs.mVertexFacetConnectivity;
     mFacetFacetConnectivity = rhs.mFacetFacetConnectivity;
     mVertexUnitNorms = rhs.mVertexUnitNorms;
@@ -329,6 +325,9 @@ operator=(const GeomPolyhedron& rhs) {
     mCentroid = rhs.mCentroid;
     mRinterior2 = rhs.mRinterior2;
     mConvex = rhs.mConvex;
+    mSurfaceMeshPtr = nullptr;
+    mSurfaceMeshQueryPtr = nullptr;
+    mSignedDistancePtr = nullptr;
   }
   ENSURE(mFacets.size() == rhs.mFacets.size());
   return *this;
@@ -339,6 +338,9 @@ operator=(const GeomPolyhedron& rhs) {
 //------------------------------------------------------------------------------
 GeomPolyhedron::
 ~GeomPolyhedron() {
+  if (mSurfaceMeshPtr != nullptr) delete mSurfaceMeshPtr;
+  if (mSurfaceMeshQueryPtr != nullptr) delete mSurfaceMeshQueryPtr;
+  if (mSignedDistancePtr != nullptr) delete mSignedDistancePtr;
 }
 
 //------------------------------------------------------------------------------
@@ -349,12 +351,23 @@ GeomPolyhedron::
 contains(const GeomPolyhedron::Vector& point,
          const bool countBoundary,
          const double tol) const {
+  if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
   if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
   if (mConvex) {
     return this->convexContains(point, countBoundary, tol);
   } else {
     return pointInPolyhedron(point, *this, countBoundary, tol);
   }
+
+  // Experimental version using Axom
+  // using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
+  // if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
+  // const auto inside = mSurfaceMeshQueryPtr->within(AxPoint(&const_cast<Vector&>(point)[0]));
+  // if (not inside and countBoundary) {
+  //   return this->distance(point) < tol;
+  // } else {
+  //   return inside;
+  // }
 }
 
 //------------------------------------------------------------------------------
@@ -366,7 +379,6 @@ GeomPolyhedron::
 convexContains(const GeomPolyhedron::Vector& point,
                const bool countBoundary,
                const double tol) const {
-  if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
   if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
   vector<Facet>::const_iterator facetItr = mFacets.begin();
   bool result = true;
@@ -460,59 +472,28 @@ intersect(const std::pair<Vector, Vector>& rhs) const {
   //     |.       |/
   //     0--------1             
   //
-  vector<Vector> verts(8);
-  vector<vector<unsigned> > facets(6, vector<unsigned>(4));
 
-  // Vertices.
+  // Check if any of our vertices fall in the box.
   const double x1 = rhs.first.x(), y1 = rhs.first.y(), z1 = rhs.first.z(),
                x2 = rhs.second.x(), y2 = rhs.second.y(), z2 = rhs.second.z();
-  verts[0] = Vector(x1, y1, z2);
-  verts[1] = Vector(x2, y1, z2);
-  verts[2] = Vector(x1, y2, z2);
-  verts[3] = Vector(x2, y2, z2);
-  verts[4] = Vector(x1, y1, z1);
-  verts[5] = Vector(x2, y1, z1);
-  verts[6] = Vector(x1, y2, z1);
-  verts[7] = Vector(x2, y2, z1);
+  for (const auto& v: mVertices) {
+    if (v.x() >= x1 and v.x() <= x2 and
+        v.y() >= y1 and v.y() <= y2 and
+        v.z() >= z1 and v.z() <= z2) return true;
+  }
 
-  // facet 0 -- bottom face.
-  facets[0][0] = 0;
-  facets[0][1] = 4;
-  facets[0][2] = 5;
-  facets[0][3] = 1;
+  // Check if any of the box vertices are inside this polyhedron
+  if (this->contains(Vector(x1, y1, z2))) return true;
+  if (this->contains(Vector(x2, y1, z2))) return true;
+  if (this->contains(Vector(x1, y2, z2))) return true;
+  if (this->contains(Vector(x2, y2, z2))) return true;
+  if (this->contains(Vector(x1, y1, z1))) return true;
+  if (this->contains(Vector(x2, y1, z1))) return true;
+  if (this->contains(Vector(x1, y2, z1))) return true;
+  if (this->contains(Vector(x2, y2, z1))) return true;
 
-  // facet 1 -- top face.
-  facets[1][0] = 2;
-  facets[1][1] = 3;
-  facets[1][2] = 7;
-  facets[1][3] = 6;
-
-  // facet 2 -- left face.
-  facets[2][0] = 0;
-  facets[2][1] = 2;
-  facets[2][2] = 6;
-  facets[2][3] = 4;
-
-  // facet 3 -- right face.
-  facets[3][0] = 1;
-  facets[3][1] = 5;
-  facets[3][2] = 7;
-  facets[3][3] = 3;
-
-  // facet 4 -- front face.
-  facets[4][0] = 0;
-  facets[4][1] = 1;
-  facets[4][2] = 3;
-  facets[4][3] = 2;
-
-  // facet 5 -- back face.
-  facets[5][0] = 5;
-  facets[5][1] = 4;
-  facets[5][2] = 6;
-  facets[5][3] = 7;
-
-  GeomPolyhedron other(verts, facets);
-  return this->intersect(other);
+  // Otherwise nope!
+  return false;
 }
 
 //------------------------------------------------------------------------------
@@ -675,17 +656,14 @@ facetNormals() const {
 void
 GeomPolyhedron::
 reconstruct(const vector<GeomPolyhedron::Vector>& vertices,
-            const vector<vector<unsigned> >& facetVertices,
-            const vector<GeomPolyhedron::Vector>& facetNormals) {
+            const vector<vector<unsigned> >& facetVertices) {
   const unsigned numFacets = facetVertices.size();
-  REQUIRE(facetNormals.size() == numFacets);
   mVertices = vertices;
   mFacets = vector<Facet>();
   mFacets.reserve(numFacets);
   for (unsigned ifacet = 0; ifacet != numFacets; ++ifacet) {
     mFacets.push_back(Facet(mVertices,
-                            facetVertices[ifacet],
-                            facetNormals[ifacet]));
+                            facetVertices[ifacet]));
   }
   setBoundingBox();
   mConvex = this->convex();
@@ -739,6 +717,11 @@ double
 GeomPolyhedron::
 distance(const GeomPolyhedron::Vector& p) const {
   return (p - this->closestPoint(p)).magnitude();
+
+  // Experimental version using Axom
+  // using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
+  // if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
+  // return std::abs(mSignedDistancePtr->computeDistance(AxPoint(&const_cast<Vector&>(p)[0])));
 }
 
 //------------------------------------------------------------------------------
@@ -758,8 +741,7 @@ GeomPolyhedron&
 GeomPolyhedron::
 operator+=(const GeomPolyhedron::Vector& rhs) {
   for (auto& v: mVertices) v += rhs;
-  mXmin += rhs;
-  mXmax += rhs;
+  this->setBoundingBox();
   return *this;
 }
 
@@ -810,6 +792,7 @@ operator*=(const double rhs) {
 GeomPolyhedron&
 GeomPolyhedron::
 operator/=(const double rhs) {
+  CHECK(rhs != 0.0);
   (*this) *= 1.0/rhs;
   return *this;
 }
@@ -834,6 +817,17 @@ operator/(const double rhs) const {
   GeomPolyhedron result(*this);
   result /= rhs;
   return result;
+}
+
+//------------------------------------------------------------------------------
+// transform
+//------------------------------------------------------------------------------
+GeomPolyhedron&
+GeomPolyhedron::
+transform(const typename GeomPolyhedron::Tensor& t) {
+  for (auto& v: mVertices) v = t*v;
+  this->setBoundingBox();
+  return *this;
 }
 
 //------------------------------------------------------------------------------
@@ -863,6 +857,7 @@ operator!=(const GeomPolyhedron& rhs) const {
 
 //------------------------------------------------------------------------------
 // Set the minimum and maximum extents of the polyhedron.
+// We are also piggybacking updating the Axom data structures here as well.
 //------------------------------------------------------------------------------
 void
 GeomPolyhedron::
@@ -881,6 +876,9 @@ setBoundingBox() {
   // GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
   TIME_Polyhedron_BB_ancillary.stop();
 
+  // Have the facets recompute their normals
+  for (auto& f: mFacets) f.computeNormal();
+
   // Stash the centroid and inscribed radius for use in containment.  If the centroid is not contained however,
   // we set this internal radius to zero to disable this accelerated containment checking.
   TIME_Polyhedron_BB_centroid.start();
@@ -895,8 +893,64 @@ setBoundingBox() {
   } else {
     mRinterior2 = -1.0;
   }
+  mRinterior2 = -1.0; // BLAGO!
   TIME_Polyhedron_BB_R2.stop();
+
+  // Clear any existing Axom information, so it's reconstructed if needed
+  if (mSurfaceMeshPtr != nullptr) delete mSurfaceMeshPtr;
+  if (mSurfaceMeshQueryPtr != nullptr) delete mSurfaceMeshQueryPtr;
+  if (mSignedDistancePtr != nullptr) delete mSignedDistancePtr;
+  mSurfaceMeshPtr = nullptr;
+  mSurfaceMeshQueryPtr = nullptr;
+  mSignedDistancePtr = nullptr;
   TIME_Polyhedron_BB.stop();
+}
+
+//------------------------------------------------------------------------------
+// Build the Axom mesh representation
+//------------------------------------------------------------------------------
+void
+GeomPolyhedron::
+buildAxomData() const {
+  using AxMesh = axom::mint::UnstructuredMesh<axom::mint::SINGLE_SHAPE>;
+  using AxOctree = axom::quest::InOutOctree<3>;
+  using AxBoundingBox = AxOctree::GeometricBoundingBox;
+  using AxPoint = AxOctree::SpacePt;
+  using AxDistance = axom::quest::SignedDistance<3>;
+
+  // Set the vertex positions
+  auto* meshPtr = new AxMesh(3, axom::mint::TRIANGLE);
+  for (const auto& v: mVertices) {
+    meshPtr->appendNode(v.x(), v.y(), v.z());
+  }
+
+  // Set the facets -- note we have to ensure all Axom facets are triangles
+  // size_t maxFacet = 0u;
+  for (const auto& f: mFacets) {
+    const auto& ipts = f.ipoints();
+    const auto  n = ipts.size();
+    for (auto k = 1u; k < n - 1u; ++k) {  // This only works for convex facets!
+      const axom::IndexType tri[] = {axom::IndexType(ipts[0]),
+                                     axom::IndexType(ipts[k]),
+                                     axom::IndexType(ipts[k + 1])};
+      meshPtr->appendCell(tri);
+    }
+  }
+
+  // Build the query objects
+  AxBoundingBox bb;
+  Vector xmin = mXmin - 0.01*(mXmax - mXmin);
+  Vector xmax = mXmax + 0.01*(mXmax - mXmin);
+  bb.addPoint(AxPoint(&xmin[0]));
+  bb.addPoint(AxPoint(&xmax[0]));
+  axom::mint::write_vtk(meshPtr, "blago.vtk");
+  mSurfaceMeshPtr = meshPtr;
+  mSurfaceMeshQueryPtr = new AxOctree(bb, mSurfaceMeshPtr);
+  mSurfaceMeshQueryPtr->generateIndex();
+  mSignedDistancePtr = new AxDistance(mSurfaceMeshPtr,
+                                      true,               // is_watertight
+                                      25,                 // max_objects
+                                      10);                // max_levels
 }
 
 //------------------------------------------------------------------------------
