@@ -13,6 +13,12 @@
 #
 #ATS:crk2 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKVoronoiVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (Voronoi vol), nPerh=2.0", np=2)
 #ATS:crk3 = testif(crk2, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKVoronoiVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (Voronoi vol) , nPerh=2.0, restart test", np=2)
+#
+# GSPH
+#
+#ATS:gsph0 = test(        SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical GSPH, nPerh=2.0", np=8)
+#ATS:gsph1 = testif(sph0, SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical GSPH, nPerh=2.0, restart test", np=8)
+
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -325,7 +331,7 @@ elif psph:
 elif gsph:
     limiter = VanLeerLimiter()
     waveSpeed = DavisWaveSpeed()
-    solver = HLLC(limiter,waveSpeed,True,Riemann)
+    solver = HLLC(limiter,waveSpeed,True,RiemannGradient)
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
                 W = WT,

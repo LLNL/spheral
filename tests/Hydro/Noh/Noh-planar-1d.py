@@ -38,6 +38,15 @@
 #
 #ATS:t400 = test(        SELF, "--fsisph True --solid True --graphics None --clearDirectories True --checkError True --restartStep 20", label="Planar Noh problem with FSISPH -- 1-D (serial)")
 #ATS:t401 = testif(t400, SELF, "--fsisph True --solid True --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with FSISPH -- 1-D (serial) RESTART CHECK")
+#
+# GSPH
+#
+#ATS:t500 = test(        SELF, "--gsph True --gsphReconstructionGradient=RiemannGradient --graphics None --clearDirectories True --checkError True --restartStep 20", label="Planar Noh problem with GSPH and RiemannGradient -- 1-D (serial)")
+#ATS:t501 = testif(t500, SELF, "--gsph True --gsphReconstructionGradient=RiemannGradient --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with GSPH and RiemannGradient -- 1-D (serial) RESTART CHECK")
+#ATS:t502 = test(        SELF, "--gsph True --gsphReconstructionGradient=HydroAccelerationGradient --graphics None --clearDirectories True --checkError True --restartStep 20", label="Planar Noh problem with GSPH and and HydroAccelerationGradient -- 1-D (serial)")
+#ATS:t503 = testif(t502, SELF, "--gsph True --gsphReconstructionGradient=HydroAccelerationGradient --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with GSPH and HydroAccelerationGradient -- 1-D (serial) RESTART CHECK")
+#ATS:t504 = test(        SELF, "--gsph True --gsphReconstructionGradient=SPHGradient --graphics None --clearDirectories True --checkError True --restartStep 20", label="Planar Noh problem with GSPH and SPHGradient -- 1-D (serial)")
+#ATS:t505 = testif(t504, SELF, "--gsph True --gsphReconstructionGradient=SPHGradient --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with GSPH and SPHGradient -- 1-D (serial) RESTART CHECK")
 
 
 import os, shutil
@@ -76,6 +85,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             fsisph = False,
             gsph = False,
             crktype = "default",        # one of ("default", "variant")
+            gsphReconstructionGradient = RiemannGradient, #one of (RiemannGradient, HydroAccelerationGradient, SPHGradient, MixedGradient, OnlyDvDxGradient)
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH
@@ -198,7 +208,7 @@ elif crksph:
 elif fsisph:
     hydroname = "FSISPH"
 elif gsph:
-    hydroname = "GSPH"
+    hydroname = os.path.join("GSPH",str(gsphReconstructionGradient))
 elif psph:
     hydroname = "PSPH"
 else:
@@ -361,8 +371,8 @@ elif gsph:
     waveSpeed = DavisWaveSpeed()
     solver = HLLC(limiter,
                   waveSpeed,
-                  True,                   # False - first order , True - second order
-                  RiemannGradient)        # what gradient are we using in reconstruction
+                  True,                           # False - first order , True - second order
+                  gsphReconstructionGradient)     # what gradient are we using in reconstruction
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
                 W = WT,
