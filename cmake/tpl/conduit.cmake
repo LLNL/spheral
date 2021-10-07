@@ -6,9 +6,9 @@ set(CONDUIT_CACHE "${CACHE_DIR}/${CONDUIT_DIST}")
 list(APPEND ${lib_name}_INCLUDES $<BUILD_INTERFACE:${${lib_name}_DIR}/include/${lib_name}>)
 
 set(${lib_name}_libs 
-    libconduit.so
-    libconduit_blueprint.so
-    libconduit_relay.so
+    libconduit.a
+    libconduit_blueprint.a
+    libconduit_relay.a
    )
 
 if(${lib_name}_BUILD)
@@ -32,6 +32,7 @@ if(${lib_name}_BUILD)
                -DCMAKE_C_FLAGS=${cflags}
                -DCMAKE_EXE_LINKER_FLAGS=${ldflags}
                -DENABLE_TESTS=Off
+               -DBUILD_SHARED_LIBS=Off
                -DHDF5_DIR=${hdf5_DIR}
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
 

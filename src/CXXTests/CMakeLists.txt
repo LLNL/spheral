@@ -23,7 +23,7 @@ foreach(test ${gtest_spheral_tests})
     blt_add_executable( NAME ${test_name}_test
                         SOURCES ${test}
                         OUTPUT_DIR ${PROJECT_BINARY_DIR}/tests
-                        DEPENDS_ON gtest -Wl,--start-group ${SPHERAL_CXX_LIBS} -Wl,--end-group ${spheral_blt_depends}
+                        DEPENDS_ON gtest -Wl,--start-group ${SPHERAL_CXX_LIBS} ${spheral_blt_depends} -Wl,--end-group ${CMAKE_DL_LIBS} 
                         )
 
     blt_add_test( NAME ${test_name}
