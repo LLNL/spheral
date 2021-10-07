@@ -362,7 +362,7 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
-
+  file.write(mTimeStepMask, pathName + "/timeStepMask");
 }
 
 //------------------------------------------------------------------------------
@@ -372,7 +372,7 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
-
+  file.read(mTimeStepMask, pathName + "/timeStepMask");
 }
 
 }
