@@ -68,7 +68,7 @@ source("Geometry-tests/testPolyClipper3d.py")
 #
 ## C++ unit tests.
 #source("CXXTests/test_r3d_utils.py")
-source("testSidreStorage_test.py")
+source("CXXTests/runCXXTests.ats")
 #
 ## Hydro tests
 #source("Hydro/HydroTests.ats")

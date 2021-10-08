@@ -4,6 +4,8 @@
 
 set(gtest_spheral_tests
     testSidreStorage.cc
+    testFake.cc
+    testFakeFail.cc
    )
 
 
@@ -13,18 +15,17 @@ set(gtest_spheral_tests
 
 get_property(SPHERAL_CXX_LIBS GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 
-set(TEST_LIST)
+set(TESTS)
 
 foreach(test ${gtest_spheral_tests})
     get_filename_component( test_name ${test} NAME_WE )
 
-    list(APPEND TEST_LIST ${test_name}_test.py)
-    message(STATUS "Name of test in list::::::::::::::::::::::::::: ${test_name}")
+    list(APPEND TESTS '${test_name}_test.py')
 
     blt_add_executable( NAME ${test_name}_test
                         SOURCES ${test}
                         OUTPUT_DIR ${PROJECT_BINARY_DIR}/tests
-                        DEPENDS_ON gtest ${SPHERAL_CXX_LIBS} ${spheral_blt_depends}
+                        DEPENDS_ON gtest -Wl,--start-group ${SPHERAL_CXX_LIBS} ${spheral_blt_depends} -Wl,--end-group ${CMAKE_DL_LIBS}
                         )
 
     blt_add_test( NAME ${test_name}
@@ -34,12 +35,12 @@ foreach(test ${gtest_spheral_tests})
     if (NOT ENABLE_CXXONLY)
       configure_file(
           "${CMAKE_CURRENT_SOURCE_DIR}/pyRunCXXTest.in"
-          "${CMAKE_INSTALL_PREFIX}/tests/${test_name}_test.py"
+          "${CMAKE_INSTALL_PREFIX}/tests/CXXTests/${test_name}_test.py"
       )
     endif()
     
     install(TARGETS ${test_name}_test
-            DESTINATION ${CMAKE_INSTALL_PREFIX}/tests
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/tests/CXXTests
             )
     
     set_target_properties(${test_name}_test PROPERTIES
@@ -47,5 +48,11 @@ foreach(test ${gtest_spheral_tests})
                         )
 endforeach()
 
-list(LENGTH TEST_LIST TEST_LIST_LENGTH)
-message(STATUS "THIS IS THE LENGTH OF MY TEST_LIST ================ ${TEST_LIST_LENGTH}")
+string(REPLACE ";" ", " TEST_LIST "${TESTS}")
+
+if (NOT ENABLE_CXXONLY)
+  configure_file(
+      "${CMAKE_CURRENT_SOURCE_DIR}/runCXXTests.in"
+      "${CMAKE_INSTALL_PREFIX}/tests/CXXTests/runCXXTests.ats"
+  )
+endif()
