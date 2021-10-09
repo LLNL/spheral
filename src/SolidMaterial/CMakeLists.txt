@@ -51,6 +51,10 @@ set(SolidMaterial_headers
     TillotsonEquationOfStateInline.hh
     )
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/ShadowANEOS.py.in
+  ${CMAKE_CURRENT_BINARY_DIR}/ShadowANEOS.py)
+
 spheral_install_python_files(
     MaterialPropertiesLib.py
     SolidMaterialUnits.py
@@ -58,6 +62,7 @@ spheral_install_python_files(
     ShadowTillotsonEquationOfState.py
     ShadowGruneisenEquationOfState.py
     ShadowConstantStrength.py
+    ${CMAKE_CURRENT_BINARY_DIR}/ShadowANEOS.py
     )
 
 # ANEOS

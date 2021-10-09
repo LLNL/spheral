@@ -93,8 +93,6 @@ def _GruneisenFactory(*args,
             if arg not in kwargs:
                 exec("%s = optionalKwArgs['%s']" % (arg, arg))
 
-        import sys
-
         # Check that the caller specified a valid material label.
         mat = materialName.lower()
         if mat not in SpheralMaterialPropertiesLib:

@@ -1,0 +1,179 @@
+#-------------------------------------------------------------------------------
+# ShadowANEOS
+#
+# Provides convenient constructors for the Gruneisen using the canned values
+# in MaterialPropertiesLib.py.
+#-------------------------------------------------------------------------------
+from spheralDimensions import spheralDimensions
+import os, os.path
+dims = spheralDimensions()
+
+from SpheralCompiledPackages import PhysicalConstants, PressureFloor, ZeroPressure, vector_of_int, initializeANEOS
+for dim in dims:
+    exec("""
+from SpheralCompiledPackages import ANEOS%(dim)sd as RealANEOS%(dim)sd
+""" % {"dim" : dim})
+
+#-------------------------------------------------------------------------------
+# Define a string providing the help for building a ANEOS.
+#-------------------------------------------------------------------------------
+expectedUsageString = """
+ANEOS can be constructed one of two ways:
+
+1.  Using internal material input parameters from the Github repository for one
+    of:
+       - quartz
+       - dunnite
+       - serpentine
+    For this constructor you *must* specify the material name using the "material="
+    keyword argument.  Other  expected arguments for this constructor (default 
+    values in []):
+        material            : Label for the material (required for this constructor, one of the above)
+        units               : Units the user wants to work in (required)
+        numRhoVals          : [500] number of rho values to build table
+        numTvals            : [500] number of temperature values to build table
+        rhoMin              : [1e-3 g/cc] lower table bound in density
+        rhoMax              : [100 g/cc] upper table bound in density
+        Tmin                : [1K] lower table bound in temperature
+        Tmax                : [1e6K] upper table bound in temperature
+        externalPressure    : [0.0] external pressure                         
+        minimumPressure     : [-inf] minimum pressure                          
+        maximumPressure     : [inf] maximum pressure                          
+        minPressureType     : [PressureFloor] behavior at minimumPressure (one of PressureFloor, ZeroPressure)
+        useInterpolation    : [True] build our own local interpolation table for EOS lookups
+
+2.  You can specify an ANEOS material number after calling initializeANEOS manually on an ANEOS input file.
+    Expected arguments for this constructor (default values in []):
+        materialNumber      : number ID of ANEOS material in input file
+        units               : Units the user wants to work in (required)
+        numRhoVals          : [500] number of rho values to build table
+        numTvals            : [500] number of temperature values to build table
+        rhoMin              : [1e-3 g/cc] lower table bound in density
+        rhoMax              : [100 g/cc] upper table bound in density
+        Tmin                : [1K] lower table bound in temperature
+        Tmax                : [1e6K] upper table bound in temperature
+        externalPressure    : [0.0] external pressure                         
+        minimumPressure     : [-inf] minimum pressure                          
+        maximumPressure     : [inf] maximum pressure                          
+        minPressureType     : [PressureFloor] behavior at minimumPressure (one of PressureFloor, ZeroPressure)
+        useInterpolation    : [True] build our own local interpolation table for EOS lookups
+
+3.  The backwards compatible argument list, again assuming you're using a material number:
+        materialNumber      : number ID of ANEOS material in input file
+        numRhoVals          : number of rho values to build table
+        numTvals            : number of temperature values to build table
+        rhoMin              : lower table bound in density
+        rhoMax              : upper table bound in density
+        Tmin                : lower table bound in temperature
+        Tmax                : upper table bound in temperature
+        units               : Units the user wants to work in (required)
+        externalPressure    : [0.0] external pressure                         
+        minimumPressure     : [-inf] minimum pressure                          
+        maximumPressure     : [inf] maximum pressure                          
+        minPressureType     : [PressureFloor] behavior at minimumPressure (one of PressureFloor, ZeroPressure)
+        useInterpolation    : [True] build our own local interpolation table for EOS lookups
+
+"""
+
+#-------------------------------------------------------------------------------
+# The generic factory function, where you pass in the dimension specific 
+# ANEOS constructor.
+# This one is for internal use only -- people will actually call the dimension
+# specific front-ends at the end of this script.
+#-------------------------------------------------------------------------------
+def _ANEOSFactory(*args, 
+                  **kwargs):
+
+    # The calling routine must provide the appropriate C++ constructor.
+    RealConstructor = kwargs["RealConstructor"]
+
+    # The arguments that need to be passed to this method.
+    expectedArgs = ["units"]
+    optionalKwArgs = {"materialNumber"   : 1,
+                      "numRhoVals"       : 500,
+                      "numTvals"         : 500,
+                      "rhoMin"           : 1e-3,
+                      "rhoMax"           : 100.0,
+                      "Tmin"             : 1.0,
+                      "Tmax"             : 1e6,
+                      "externalPressure" : 0.0,
+                      "minimumPressure"  : -1e200,
+                      "maximumPressure"  :  1e200,
+                      "minPressureType"  : PressureFloor,
+                      "useInterpolation" : True}
+    backCompatArgs = ["materialNumber",
+                      "numRhoVals",
+                      "numTvals",
+                      "rhoMin",
+                      "rhoMax",
+                      "Tmin",
+                      "Tmax",
+                      "units"]
+
+    # Are we using one of the provided, canned materials?
+    if "material" in kwargs or type(args[0]) == str:
+        if "material" in kwargs:
+            material = kwargs["material"]
+            del kwargs["material"]
+        else:
+            material = args[0]
+            args = args[1:]
+        if material not in ("quartz", "dunnite", "serpentine"):
+            raise ValueError, "ANEOS: material must be one of (quartz, dunnite, serpentine), passed %s" % material
+        filename = os.path.join("@ANEOS_INPUT_DEST_DIR@", {"quartz" : "quartz_.input",
+                                                           "dunite" : "dunite_.input",
+                                                           "serpentine" : "serpent.input"}[material])
+        izetl = vector_of_int([-1])
+        initializeANEOS(filename, "/dev/null", izetl)
+
+    # Deal with arguments
+    if len(args) > len(expectedArgs) and len(args) < len(backCompatArgs):
+        raise ValueError, expectedUsageString
+    for i in xrange(len(args)): # deal with mandatory args
+        exec("%s = args[i]" % expectedArgs[i])
+    for arg in kwargs: # deal with optional args
+        if arg not in (expectedArgs + optionalKwArgs.keys() + ["RealConstructor"]):
+            raise ValueError, expectedUsageString
+        exec("%s = kwargs['%s']" % (arg, arg))
+    for arg in optionalKwArgs: # make sure all optional args have a value
+        if arg not in kwargs:
+            exec("%s = optionalKwArgs['%s']" % (arg, arg))
+
+    # Did we use default values for rho min/max?  If so, need to check units
+    lconv = 0.01  / units.unitLengthMeters
+    mconv = 0.001 / units.unitMassKg
+    rhoConv = mconv/(lconv**3)
+    if not "rhoMin" in kwargs:
+        rhoMin *= rhoConv
+    if not "rhoMax" in kwargs:
+        rhoMax *= rhoConv
+
+    # The calling routine must provide the appropriate C++ constructor.
+    RealConstructor = kwargs["RealConstructor"]
+    return RealConstructor(materialNumber,
+                           numRhoVals,
+                           numTvals,
+                           rhoMin,
+                           rhoMax,
+                           Tmin,
+                           Tmax,
+                           units,
+                           externalPressure,
+                           minimumPressure,
+                           maximumPressure,
+                           minPressureType,
+                           useInterpolation)
+
+#-------------------------------------------------------------------------------
+# Create the dimension specific Gruneisen factories.  These are the ones
+# you actually use.
+#-------------------------------------------------------------------------------
+for dim in dims:
+    exec("""
+def ANEOS%(dim)sd(*args, **kwargs):
+    expectedUsageString
+    kwargs["RealConstructor"] = RealANEOS%(dim)sd
+    return _ANEOSFactory(*args, **kwargs)
+
+ANEOS%(dim)sd.__doc__ = expectedUsageString
+""" % {"dim" : dim})
