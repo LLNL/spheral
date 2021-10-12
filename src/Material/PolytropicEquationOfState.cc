@@ -173,7 +173,7 @@ PolytropicEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar /*specificThermalEnergy*/) const {
   CHECK(valid());
-  return this->applyPressureLimits(mPolytropicConstant*pow(massDensity, mGamma) - mExternalPressure);
+  return this->applyPressureLimits(mPolytropicConstant*pow(massDensity, mGamma) - mExternalPressure, 0.0);
 }
 
 //------------------------------------------------------------------------------
