@@ -4,7 +4,7 @@
 //
 // Created by JMO, Mon Feb 10 16:12:47 PST 2003
 //----------------------------------------------------------------------------//
-#include "mpi.h"
+#include <mpi.h>
 
 #include "RedistributeNodes.hh"
 #include "DistributeByXPosition.hh"

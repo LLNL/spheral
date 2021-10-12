@@ -8,7 +8,7 @@
 #define __Spheral_Communicator__
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include <mpi.h>
 #endif
 
 namespace Spheral {
