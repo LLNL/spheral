@@ -56,23 +56,6 @@ EquationOfState<Dimension>::maximumPressure(const double val) {
 }
 
 //------------------------------------------------------------------------------
-// Min damage pressure.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-EquationOfState<Dimension>::minimumDamagePressure() const {
-  return mMinimumDamagePressure;
-}
-
-template<typename Dimension>
-inline
-void
-EquationOfState<Dimension>::minimumDamagePressure(const double val) {
-  mMinimumDamagePressure = val;
-}
-
-//------------------------------------------------------------------------------
 // Min pressure algorithm choice.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -95,24 +78,13 @@ EquationOfState<Dimension>::minimumPressureType(const MaterialPressureMinType x)
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-EquationOfState<Dimension>::applyPressureLimits(Scalar P,
-                                                const Scalar Di) const {
-  REQUIRE(Di >= 0.0 and Di <= 1.0);
-
-  // First apply standard limiting
-  P = (P < mMinimumPressure ? (mMinPressureType == MaterialPressureMinType::PressureFloor ? 
-                               mMinimumPressure :
-                               0.0) :
+EquationOfState<Dimension>::applyPressureLimits(Scalar P) const {
+  return (P < mMinimumPressure ? (mMinPressureType == MaterialPressureMinType::PressureFloor ? 
+                                  mMinimumPressure :
+                                  0.0) :
           P > mMaximumPressure ? 
           mMaximumPressure :
           P);
-
-  // Now any damage application to negative pressures
-  if (P < 0.0) {
-    P = (1.0 - Di)*P + Di*min(0.0, mMinimumDamagePressure);
-  }
-
-  return P;
 }
 
 }

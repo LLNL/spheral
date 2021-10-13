@@ -22,19 +22,20 @@ expectedUsageString = """
 GruneisenEquationOfState can be constructed one of two ways:
 
 1.  Using canned material values stored in our internal data base.  Expected arguments:
-        materialName        : Label for the material in data base
-        etamin              : Lower bound for rho/rho0                           
-        etamax              : Upper bound for rho/rho0                           
-        units               : Units the user wants to work in                    
-        externalPressure    : Optional external pressure                         
-        minimumPressure     : Optional minimum pressure                          
-        maximumPressure     : Optional maximum pressure                          
-        minPressureType     : Optional behavior at minimumPressure (PressureFloor, ZeroPressure)
+        materialName          : Label for the material in data base                
+        etamin                : Lower bound for rho/rho0                           
+        etamax                : Upper bound for rho/rho0                           
+        units                 : Units the user wants to work in                    
+        externalPressure      : Optional external pressure                         
+        minimumPressure       : Optional minimum pressure                          
+        maximumPressure       : Optional maximum pressure                          
+        minimumPressureDamage : Optional minimum pressure in damaged material (default 0.0)
+        minPressureType       : Optional behavior at minimumPressure (PressureFloor, ZeroPressure)
 
 2.  You can directly set all the Gruneisen parameters explicitly, as
-        referenceDensity    : reference material mass density
-        etamin              : minimum allowed ratio rho/rho0
-        etamax              : maximum allowed ratio rho/rho0
+        referenceDensity      : reference material mass density
+        etamin                : minimum allowed ratio rho/rho0
+        etamax                : maximum allowed ratio rho/rho0
         C0
         S1
         S2
@@ -43,10 +44,11 @@ GruneisenEquationOfState can be constructed one of two ways:
         b
         atomicWeight
         units
-        externalPressure    : Optional external pressure                         
-        minimumPressure     : Optional minimum pressure                          
-        maximumPressure     : Optional maximum pressure                          
-        minPressureType     : Optional behavior at minimumPressure (PressureFloor, ZeroPressure)
+        externalPressure      : Optional external pressure                         
+        minimumPressure       : Optional minimum pressure                          
+        maximumPressure       : Optional maximum pressure                          
+        minimumPressureDamage : Optional minimum pressure in damaged material (default 0.0)
+        minPressureType       : Optional behavior at minimumPressure (PressureFloor, ZeroPressure)
 """
 
 #-------------------------------------------------------------------------------
@@ -63,12 +65,13 @@ def _GruneisenFactory(*args,
 
     # The arguments that need to be passed to this method.
     expectedArgs = ["materialName", "etamin", "etamax", "units"]
-    optionalKwArgs = {"etamin_solid"     : 0.0,
-                      "etamax_solid"     : 1e200,
-                      "externalPressure" : 0.0,
-                      "minimumPressure"  : -1e200,
-                      "maximumPressure"  :  1e200,
-                      "minPressureType"  : PressureFloor}
+    optionalKwArgs = {"etamin_solid"           : 0.0,   
+                      "etamax_solid"           : 1e200, 
+                      "externalPressure"       : 0.0,   
+                      "minimumPressure"        : -1e200,
+                      "maximumPressure"        :  1e200,
+                      "minimumPressureDamage"  : 0.0,
+                      "minPressureType"        : PressureFloor}
 
     # The base units for parameters in this file.
     CGS = PhysicalConstants(0.01,    # Length in m
@@ -127,6 +130,7 @@ def _GruneisenFactory(*args,
         passargs.extend([externalPressure,
                          minimumPressure,
                          maximumPressure,
+                         minimumPressureDamage,
                          minPressureType])
         passkwargs = {}
 
@@ -151,5 +155,5 @@ def GruneisenEquationOfState%(dim)sd(*args, **kwargs):
     kwargs["GrunConstructor"] = RealGruneisenEquationOfState%(dim)sd
     return _GruneisenFactory(*args, **kwargs)
 
-GruneisenEquationOfState%(dim)sd.__doc__ = expectedUsageString
+GruneisenEquationOfState%(dim)sd.__doc__ = expectedUsageString + "\\n\\n" + RealGruneisenEquationOfState%(dim)sd.__doc__
 """ % {"dim" : dim})

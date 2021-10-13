@@ -46,7 +46,7 @@ commandLine(
     rotation = 0.0,                      # rotates Specimen distribution (radians)
 
     # Material parameters 
-    eosChoice = "tillotson",       # (gruneisen, tillotson, leos)
+    eosChoice = "tillotson",       # (gruneisen, tillotson)
     isPressureEquilibrium = False, # initialize eps to give pressure equilibrium
     PoissonsRatio = 0.25,          # possion's ratio
     Y0 = 1000.0 / 1e5,             # yield strength  (Zaytsev 2021)

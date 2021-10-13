@@ -72,19 +72,20 @@ def _ANEOSFactory(RealConstructor,
                   **kwargs):
 
     # The arguments that need to be passed to this method.
-    cppArgs = buildOrderedDict(("materialNumber"   , 1),
-                               ("numRhoVals"       , 500),
-                               ("numTvals"         , 500),
-                               ("rhoMin"           , 1e-3),
-                               ("rhoMax"           , 100.0),
-                               ("Tmin"             , 1.0),
-                               ("Tmax"             , 1e6),
-                               ("constants"        , None),
-                               ("externalPressure" , 0.0),
-                               ("minimumPressure"  , -1e200),
-                               ("maximumPressure"  ,  1e200),
-                               ("minPressureType"  , PressureFloor),
-                               ("useInterpolation" , True))
+    cppArgs = buildOrderedDict(("materialNumber"         , 1),
+                               ("numRhoVals"             , 500),
+                               ("numTvals"               , 500),
+                               ("rhoMin"                 , 1e-3),
+                               ("rhoMax"                 , 100.0),
+                               ("Tmin"                   , 1.0),
+                               ("Tmax"                   , 1e6),
+                               ("constants"              , None),
+                               ("externalPressure"       , 0.0),
+                               ("minimumPressure"        , -1e200),
+                               ("maximumPressure"        ,  1e200),
+                               ("minPressureType"        , PressureFloor),
+                               ("minimumPressureDamage"  , -1e200),
+                               ("useInterpolation"       , True))
     optionalArgs = ["material"]
 
     # Check usage

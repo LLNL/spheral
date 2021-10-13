@@ -35,7 +35,6 @@ public:
   EquationOfState(const PhysicalConstants& constants,
                   const double minimumPressure,
                   const double maximumPressure,
-                  const double minimumDamagePressure,
                   const MaterialPressureMinType minPressureType);
 
   virtual ~EquationOfState();
@@ -91,10 +90,8 @@ public:
   // The min and max allowed pressures.
   double minimumPressure() const;
   double maximumPressure() const;
-  double minimumDamagePressure() const;
   void minimumPressure(double x);
   void maximumPressure(double x);
-  void minimumDamagePressure(double x);
   
   // The algorithm for applying the minimum pressure.
   MaterialPressureMinType minimumPressureType() const;
@@ -104,13 +101,13 @@ public:
   virtual bool valid() const = 0;
 
   // Apply limits to a pressure value.
-  Scalar applyPressureLimits(Scalar P, const Scalar Di) const;
+  Scalar applyPressureLimits(Scalar P) const;
 
 protected:
   PhysicalConstants mConstants;
 
 private:
-  double mMinimumPressure, mMaximumPressure, mMinimumDamagePressure;
+  double mMinimumPressure, mMaximumPressure;
   MaterialPressureMinType mMinPressureType;
 
   // No default constructor.
