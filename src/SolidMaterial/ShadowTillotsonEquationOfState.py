@@ -5,15 +5,15 @@
 # in MaterialPropertiesLib.py.
 #-------------------------------------------------------------------------------
 from spheralDimensions import spheralDimensions
-dims = spheralDimensions()
+from CaptureStdout import helpString
+from SpheralCompiledPackages import PhysicalConstants, PressureFloor, ZeroPressure
+from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
+dims = spheralDimensions()
 for dim in dims:
     exec("""
 from SpheralCompiledPackages import TillotsonEquationOfState%(dim)sd as RealTillotsonEquationOfState%(dim)sd
 """ % {"dim" : dim})
-
-from SpheralCompiledPackages import PhysicalConstants, PressureFloor, ZeroPressure
-from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
 #-------------------------------------------------------------------------------
 # Define a string providing the help for building a TillotsonEquationOfState.
@@ -168,5 +168,5 @@ def TillotsonEquationOfState%(dim)sd(*args, **kwargs):
     kwargs["TillConstructor"] = RealTillotsonEquationOfState%(dim)sd
     return _TillotsonFactory(*args, **kwargs)
 
-TillotsonEquationOfState%(dim)sd.__doc__ = expectedUsageString + "\\n\\n" + RealTillotsonEquationOfState%(dim)sd.__doc__
+TillotsonEquationOfState%(dim)sd.__doc__ = expectedUsageString + "\\n\\n" + helpString(RealTillotsonEquationOfState%(dim)sd)
 """ % {"dim" : dim})

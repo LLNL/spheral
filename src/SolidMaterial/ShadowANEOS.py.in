@@ -7,9 +7,10 @@
 from spheralDimensions import spheralDimensions
 import os, os.path
 from buildOrderedDict import buildOrderedDict
-dims = spheralDimensions()
-
+from CaptureStdout import helpString
 from SpheralCompiledPackages import PhysicalConstants, PressureFloor, ZeroPressure, vector_of_int, initializeANEOS
+
+dims = spheralDimensions()
 for dim in dims:
     exec("""
 from SpheralCompiledPackages import ANEOS%(dim)sd as RealANEOS%(dim)sd
@@ -30,35 +31,37 @@ ANEOS can be constructed one of two ways:
     *NOTE* : if you use this option you can *only* use this single material for ANEOS (i.e., you
     cannot use multiple ANEOS equations of state.)
     Supported arguments for this constructor (default values in []):
-        material            : Label for the material (required for this constructor, one of the above)
-        units               : Units the user wants to work in (required)
-        numRhoVals          : [500] number of rho values to build table
-        numTvals            : [500] number of temperature values to build table
-        rhoMin              : [1e-3 g/cc] lower table bound in density
-        rhoMax              : [100 g/cc] upper table bound in density
-        Tmin                : [1K] lower table bound in temperature
-        Tmax                : [1e6K] upper table bound in temperature
-        externalPressure    : [0.0] external pressure                         
-        minimumPressure     : [-inf] minimum pressure                          
-        maximumPressure     : [inf] maximum pressure                          
-        minPressureType     : [PressureFloor] behavior at minimumPressure (one of PressureFloor, ZeroPressure)
-        useInterpolation    : [True] build our own local interpolation table for EOS lookups
+        material              : Label for the material (required for this constructor, one of the above) 
+        units                 : Units the user wants to work in (required)                               
+        numRhoVals            : [500] number of rho values to build table                                
+        numTvals              : [500] number of temperature values to build table                        
+        rhoMin                : [1e-3 g/cc] lower table bound in density                                 
+        rhoMax                : [100 g/cc] upper table bound in density                                  
+        Tmin                  : [1K] lower table bound in temperature                                    
+        Tmax                  : [1e6K] upper table bound in temperature                                  
+        externalPressure      : [0.0] external pressure                                                  
+        minimumPressure       : [-inf] minimum pressure                                                  
+        maximumPressure       : [inf] maximum pressure                                                   
+        minimumPressureDamage : [0.0] minimum pressure in damaged material
+        minPressureType       : [PressureFloor] behavior at minimumPressure (one of PressureFloor, ZeroPressure)
+        useInterpolation      : [True] build our own local interpolation table for EOS lookups
 
 2.  You can specify an ANEOS material number after calling initializeANEOS manually on an ANEOS input file.
     Expected arguments for this constructor (default values in []):
-        materialNumber      : number ID of ANEOS material in input file
-        numRhoVals          : [500] number of rho values to build table
-        numTvals            : [500] number of temperature values to build table
-        rhoMin              : [1e-3 g/cc] lower table bound in density
-        rhoMax              : [100 g/cc] upper table bound in density
-        Tmin                : [1K] lower table bound in temperature
-        Tmax                : [1e6K] upper table bound in temperature
-        units               : Units the user wants to work in (required)  *REQUIRED*
-        externalPressure    : [0.0] external pressure                         
-        minimumPressure     : [-inf] minimum pressure                          
-        maximumPressure     : [inf] maximum pressure                          
-        minPressureType     : [PressureFloor] behavior at minimumPressure (one of PressureFloor, ZeroPressure)
-        useInterpolation    : [True] build our own local interpolation table for EOS lookups
+        materialNumber        : number ID of ANEOS material in input file              
+        numRhoVals            : [500] number of rho values to build table              
+        numTvals              : [500] number of temperature values to build table      
+        rhoMin                : [1e-3 g/cc] lower table bound in density               
+        rhoMax                : [100 g/cc] upper table bound in density                
+        Tmin                  : [1K] lower table bound in temperature                  
+        Tmax                  : [1e6K] upper table bound in temperature                
+        units                 : Units the user wants to work in (required)  *REQUIRED* 
+        externalPressure      : [0.0] external pressure                                
+        minimumPressure       : [-inf] minimum pressure                                
+        maximumPressure       : [inf] maximum pressure                                 
+        minimumPressureDamage : [0.0] minimum pressure in damaged material
+        minPressureType       : [PressureFloor] behavior at minimumPressure (one of PressureFloor, ZeroPressure)
+        useInterpolation      : [True] build our own local interpolation table for EOS lookups
 """
 
 #-------------------------------------------------------------------------------
@@ -84,7 +87,7 @@ def _ANEOSFactory(RealConstructor,
                                ("minimumPressure"        , -1e200),
                                ("maximumPressure"        ,  1e200),
                                ("minPressureType"        , PressureFloor),
-                               ("minimumPressureDamage"  , -1e200),
+                               ("minimumPressureDamage"  , 0.0),
                                ("useInterpolation"       , True))
     optionalArgs = ["material"]
 
@@ -155,6 +158,7 @@ def _ANEOSFactory(RealConstructor,
                            externalPressure,
                            minimumPressure,
                            maximumPressure,
+                           minimumPressureDamage,
                            minPressureType,
                            useInterpolation)
 
@@ -166,7 +170,8 @@ for dim in dims:
     exec("""
 def ANEOS%(dim)sd(*args, **kwargs):
     expectedUsageString
+    RealANEOS%(dim)sd.__doc__
     return _ANEOSFactory(RealANEOS%(dim)sd, *args, **kwargs)
 
-ANEOS%(dim)sd.__doc__ = expectedUsageString
+ANEOS%(dim)sd.__doc__ = expectedUsageString + "\\n\\n" + helpString(RealANEOS%(dim)sd)
 """ % {"dim" : dim})

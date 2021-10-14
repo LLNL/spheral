@@ -5,15 +5,15 @@
 # in MaterialPropertiesLib.py.
 #-------------------------------------------------------------------------------
 from spheralDimensions import spheralDimensions
-dims = spheralDimensions()
+from CaptureStdout import helpString
+from SpheralCompiledPackages import PhysicalConstants, PressureFloor, ZeroPressure
+from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
+dims = spheralDimensions()
 for dim in dims:
     exec("""
 from SpheralCompiledPackages import GruneisenEquationOfState%(dim)sd as RealGruneisenEquationOfState%(dim)sd
 """ % {"dim" : dim})
-
-from SpheralCompiledPackages import PhysicalConstants, PressureFloor, ZeroPressure
-from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
 #-------------------------------------------------------------------------------
 # Define a string providing the help for building a GruneisenEquationOfState.
@@ -155,5 +155,5 @@ def GruneisenEquationOfState%(dim)sd(*args, **kwargs):
     kwargs["GrunConstructor"] = RealGruneisenEquationOfState%(dim)sd
     return _GruneisenFactory(*args, **kwargs)
 
-GruneisenEquationOfState%(dim)sd.__doc__ = expectedUsageString + "\\n\\n" + RealGruneisenEquationOfState%(dim)sd.__doc__
+GruneisenEquationOfState%(dim)sd.__doc__ = expectedUsageString + "\\n\\n" + helpString(RealGruneisenEquationOfState%(dim)sd)
 """ % {"dim" : dim})

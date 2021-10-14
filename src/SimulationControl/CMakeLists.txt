@@ -74,6 +74,7 @@ spheral_install_python_files(
   overlayNodeList.py
   writeSiloQuadMesh.py
   buildOrderedDict.py
+  CaptureStdout.py
   ${CMAKE_CURRENT_BINARY_DIR}/Spheral_banner.py
   ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py
   )
