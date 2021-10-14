@@ -15,6 +15,8 @@ set(gtest_spheral_tests
 
 get_property(SPHERAL_CXX_LIBS GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 
+include_directories(${SPHERAL_ROOT_DIR}/src)
+
 set(TESTS)
 
 foreach(test ${gtest_spheral_tests})
