@@ -83,6 +83,23 @@ interfaceMethod() const {
 }
 
 //------------------------------------------------------------------------------
+// return our kernel method
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+kernelAveragingMethod(KernelAveragingMethod x) {
+  mKernelAveragingMethod = x;
+}
+template<typename Dimension>
+inline
+KernelAveragingMethod
+SolidFSISPHHydroBase<Dimension>::
+kernelAveragingMethod() const {
+  return mKernelAveragingMethod;
+}
+//------------------------------------------------------------------------------
 // swtich to turn on density sum for different nodeLists
 //------------------------------------------------------------------------------
 template<typename Dimension>

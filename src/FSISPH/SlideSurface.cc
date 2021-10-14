@@ -128,14 +128,7 @@ slideCorrection(const int nodeListi,
       slideCorr = ssij + (1.0-ssij)*fi*fj; 
     
     }
-    // if (this->isSlideSurface(nodeListi,nodeListj)){
-    //   const auto normi = mSurfaceNormals(nodeListi,i);
-    //   const auto normj = mSurfaceNormals(nodeListj,j);
-    //   const auto vijhat = (vi-vj).unitVector();
-    //   const auto fi =  abs(normi.dot(vijhat));
-    //   const auto fj =  abs(normj.dot(vijhat));
-    //   slideCorr = fi*fj; 
-    // }
+
     return slideCorr;      
 
 }
