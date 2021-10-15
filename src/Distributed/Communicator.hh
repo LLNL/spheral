@@ -18,13 +18,12 @@ class Communicator {
 public:
   //------------------------===== Public Interface =====-----------------------//
   // Get the instance.
-  static Communicator& instance();
-  static Communicator* instancePtr();
+  static Communicator& instance() { static Communicator theInstance; return theInstance; }
 
   // Access the communicator.
 #ifdef USE_MPI
-  static MPI_Comm& communicator() { return instancePtr()->mCommunicator; }
-  static void communicator(MPI_Comm& comm) { instancePtr()->mCommunicator = comm; }
+  static MPI_Comm& communicator() { return instance().mCommunicator; }
+  static void communicator(MPI_Comm& comm) { instance().mCommunicator = comm; }
 #else
   static int communicator() { return 0; }
   static void communicator(int&) {}
@@ -32,9 +31,6 @@ public:
 
 private:
   //------------------------===== Private Interface =====----------------------//
-  // The one and only instance.
-  static Communicator* mInstancePtr;
-
 #ifdef USE_MPI
   MPI_Comm mCommunicator;
 #endif

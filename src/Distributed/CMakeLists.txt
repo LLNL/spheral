@@ -35,6 +35,7 @@ instantiate(Distributed_inst Distributed_sources)
 
 set(Distributed_headers
     BoundingVolumeDistributedBoundary.hh
+    BoundingVolumeDistributedBoundaryInline.hh
     Communicator.hh
     CompareDomainNodesByPosition.hh
     DistributeByXPosition.hh
@@ -42,6 +43,7 @@ set(Distributed_headers
     DistributedBoundaryInline.hh
     MortonOrderRedistributeNodes.hh
     NestedGridDistributedBoundary.hh
+    NestedGridDistributedBoundaryInline.hh
     NestedGridRedistributeNodes.hh
     NestedGridRedistributeNodesInline.hh
     NestedGridUtilities.hh
@@ -57,6 +59,7 @@ set(Distributed_headers
     SortAndDivideRedistributeNodesInline.hh
     SpaceFillingCurveRedistributeNodes.hh
     TreeDistributedBoundary.hh
+    TreeDistributedBoundaryInline.hh
     VoronoiRedistributeNodes.hh
     waitAllWithDeadlockDetection.hh
     )
