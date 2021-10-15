@@ -49,6 +49,7 @@ from VoidNodeLists import *
 # ------------------------------------------------------------------------------
 from SPHHydros import *
 from PSPHHydros import *
+from GSPHHydros import *
 from FSISPHHydros import *
 from SlideSurfaces import *
 #from SVPHHydros import *

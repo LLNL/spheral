@@ -130,7 +130,6 @@ assert not(boolReduceViscosity and boolCullenViscosity)
 assert not svph
 assert not (fsisph and not solid)
 assert numNodeLists in (1, 2)
-assert mpi.procs == 1
 
 if svph:
     hydroname = "SVPH"
