@@ -10,7 +10,7 @@ include(cmake/SetupSpheral.cmake)
 add_subdirectory(${SPHERAL_ROOT_DIR}/tests/CXXTests)
 add_subdirectory(${SPHERAL_ROOT_DIR}/scripts)
 
-install(DIRECTORY
-    ${SPHERAL_ROOT_DIR}/tests/
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/tests
-  )
+install(DIRECTORY ${SPHERAL_ROOT_DIR}/tests/
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/tests
+        PATTERN "runCXXTests.ats" EXCLUDE
+       )
