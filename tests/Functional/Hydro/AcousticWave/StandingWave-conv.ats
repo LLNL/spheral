@@ -1,0 +1,16 @@
+#-*-python-*-
+# This is an ATS script to coordinate running convergence tests of the standing wave.
+cfl = 0.2
+nPerh = 1.51
+filter = 0.0
+for crk, Cl, Cq, label in ((False, 0.0, 0.0, "SPH-ZeroQ"),
+                           (False, 1.0, 1.0, "SPH"),
+                           (True,  1.0, 1.0, "CRK")):
+    for nx in (50, 100, 200, 400, 800, 1600):
+        if nx == 50:
+            writeOutputLabel = True
+        else:
+            writeOutputLabel = False
+        test(script = "StandingWave-1d.py",
+             clas = "--nx %i --A 1e-6 --goalTime 1.0 --CRKSPH %s --cfl %g --nPerh %g --Cl %g --Cq %g --filter %g --graphics False --normOutputFile StandingWave-%s-convergence.gnu --writeOutputLabel %s" % (nx, crk, cfl, nPerh, Cl, Cq, filter, label, writeOutputLabel), 
+             label = "Planar Standing problem -- 1-D (serial %s, nx=%i)" % (label, nx))

@@ -7,7 +7,7 @@ set(SPHERAL_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(cmake/SetupSpheral.cmake)
 
-add_subdirectory(${SPHERAL_ROOT_DIR}/tests/CXXTests)
+add_subdirectory(${SPHERAL_ROOT_DIR}/tests/Unit/CXXTests)
 add_subdirectory(${SPHERAL_ROOT_DIR}/scripts)
 
 install(DIRECTORY ${SPHERAL_ROOT_DIR}/tests/

@@ -1,0 +1,306 @@
+*     EOS#     string for EOS name        Hugoniot initial      input format
+*                                      temperature  density     
+ANEOS1 -1  'ANEOS SIO2 WITH MOLECULES'  THUG=-1   RHUG=2.0     LONG
+*
+*      nelem  type   rho0  temp0(K)  press0  B0/-Cbulk  Grun Tdebye(K)
+ANEOS2   2      4    2.65     273       0.0     -3.68E5    .618    -649.85
+*
+*                                   Critical Pt. Adj  Thermal Conduction
+*         S    3*C24   Evap   Tmelt(K)    C53   C54         H0    C41
+ANEOS3   2.12   2.    1.237E11    1996.    6.E11    0.8         0.     0.
+*
+*                 Solid-solid phase transition data
+*       rhomin    D1     D2     D3      D4      D5    Hfusion  -rholiq
+ANEOS4   0.      3.5    4.3    2.1e11  1.8E12   6.E12     0.       0.
+*
+*     Cold comp. limits     Liquid EOS params       Interpolation params
+*       Up        L0      alpha    beta    gamma     C60     C61    C62
+ANEOS5  0.        0.       0.      0.       0.        0.     0.      0.5
+*
+*   Ionization model    Reactive chemistry   ...............Molecular Clusters...............
+*       Ionflag         Eshift     Sshift      Atoms  Ebind(eV)   RotDOF    Rbond   VibDOF  
+ANEOS6     0              0.        0.         2.     5.0           2.0      1.5e-8  1.
+*
+*      ..............    Pcold/Expanded      Variables for future expansion
+*       Theta_vib(K)     Mieflag  a_exp
+ANEOS7      2000.          1      1.7          0       0       0     0      0    
+*
+*    Elements in material (number must = nelem)
+*        Z   Atomic Fraction
+ANEOS8    8      0.66667
+ANEOS10  14      0.33333
+*
+*****   END of input for ANEOS
+*
+*   Note:  Lines must not be longer than 120 characters
+*
+*   Explanation of new input parameters for molecular clusters:
+*
+*   There are 8 new input parameters that appear on line ANEOS6 and ANEOS7 in the space
+*   Sam Thompson originally alloted for extensions.  You must use the LONG 
+*   input format to access this new data.
+*
+*
+*   Atoms is the number of atoms in the molecular cluster.  If Atoms = 0 or 1
+*          no molecular clusters are added.  The current code can treat both
+*          Atoms = 2 (diatomic) or Atoms = 3 (triatomic) clusters.
+*
+*   Ebind is the binding energy of the molecules in eV.
+*
+*   RotDOF is the number of rotational degrees of freedom in the molecule.  It is 2 for.
+*          a diatomic molecule.  Larger values increase the heat capacity of the molecular gas.
+*
+*   Rbond is the bond length of the clusters in cm.  This is needed to compute
+*         the moment of inertia (hence rotational energy level spacing) of the molecules.
+*
+*   VibDOF is the number of vibrational degrees of freedom.  It is 1 for diatomic molecules,
+*          but larger values apply to polyatomic molecules.
+*
+*  Theta_vib is the effective "debye" temperature of the molecule.  k * Theta_vib is the average
+*          spacing of vibrational energy levels.
+*
+*   MieFlag = 0 uses the standard ANEOS cold pressure equation of state.
+*           = 1 substitues a Mie-type cold potential for Pc when eta < 1.
+*
+*   a_exp is the exponent of the density in the Mie potential
+*          for expanded states only. It has no effect on the compressed pressure.
+*          use this parameter to move the critical point by changing the shape
+*          of the cold expanded pressure.
+*
+***************************************************************************************************
+*
+*   Further information on the use of interpolation coefficients:
+*
+*     Adjustments to the critical point (Thompson and Lauson 1972, Appendix E)
+*
+*      C53 density limit to the adjustment of the cold pressure for
+*          expanded states.  Set between (critical density)/Rho00 and
+*          0.95.  C53 is a dimensionless ratio Eta = Rho/Rho00.
+*
+*      C54 presssure coefficient of cold pressure modification.  In units
+*          of dyne/cm**2.  If increased too much it can produce a multiple
+*          critical point, so be careful!  In general, this moves the critical point
+*          up and down along the phase curve, and can change the critical ratio
+*          but not the slope of the phase curve.
+*
+*      Adjustments to Gruneisen Gamma (and hence Debye temperature). See Thompson 1990. 
+*
+*      C60 is for density equal to or greater than Rho00.  Interpolates between 
+*          two different functional forms for the Gruneisen Gamma's dependence
+*          on density. C60 ranges from 0. to 1. (0. is the original function, 
+*          1. is alternate, intermediate values give mixtures).
+*
+*      C61 is for density less than Rho00, C61 is simply added to gamma.  This can
+*          make Gamma discontinuous at Rho00, so be careful!
+*
+*      Adustment to the transition between liquid and vapor limits (Thompson 1990)
+*
+*      C62  must be between 0. and 1., but cannot be exactly equal to 1. 
+*
+*
+*     EOS#     string for EOS name        Hugoniot initial      input format
+*                                      temperature  density     
+ANEOS1 -2  'ANEOS DUNITE WITH MOLECULES'  THUG=-1   RHUG=2.0     LONG
+*
+*      nelem  type   rho0  temp0(K)  press0  B0/-Cbulk  Grun Tdebye(K)
+ANEOS2   3      4    3.32     298.       0.0     -6.6E5    .82    -661.4565
+*
+*                                   Critical Pt. Adj  Thermal Conduction
+*         S    3*C24   Evap   Tmelt(K)    C53   C54         H0    C41
+ANEOS3   0.86   2.    1.3E11    2204.855      0.    0.         0.     0.
+*
+*                 Solid-solid phase transition data
+*       rhomin    D1     D2     D3      D4      D5    Hfusion  -rholiq
+ANEOS4   0.      4.65   4.9   6.6E11  3.5E12  1.3E13     0.       0.
+*
+*     Cold comp. limits     Liquid EOS params       Interpolation params
+*       Up        L0      alpha    beta    gamma     C60     C61    C62
+ANEOS5  0.        0.       0.      0.       0.        0.     0.      0.5
+*
+*   Ionization model    Reactive chemistry   ...............Molecular Clusters...............
+*       Ionflag         Eshift     Sshift      Atoms  Ebind(eV)   RotDOF    Rbond   VibDOF  
+ANEOS6     1              0.        0.           2      8.00       0.     1.5E-8     0.
+*
+*      ..............    Pcold/Expanded      Variables for future expansion
+*       Theta_vib(K)     Mieflag  a_exp
+ANEOS7      0.          1      1.27          0       0       0     0      0    
+*
+*    Elements in material (number must = nelem)
+*        Z   Atomic Fraction
+ANEOS8    8      0.571
+ANEOS9   12      0.286
+ANEOS10  14      0.143
+*
+*****   END of input for ANEOS
+*
+*   Note:  Lines must not be longer than 120 characters
+*
+*   Explanation of new input parameters for molecular clusters:
+*
+*   There are 8 new input parameters that appear on line ANEOS6 and ANEOS7 in the space
+*   Sam Thompson originally alloted for extensions.  You must use the LONG 
+*   input format to access this new data.
+*
+*
+*   Atoms is the number of atoms in the molecular cluster.  If Atoms = 0 or 1
+*          no molecular clusters are added.  The current code can treat both
+*          Atoms = 2 (diatomic) or Atoms = 3 (triatomic) clusters.
+*
+*   Ebind is the binding energy of the molecules in eV.
+*
+*   RotDOF is the number of rotational degrees of freedom in the molecule.  It is 2 for.
+*          a diatomic molecule.  Larger values increase the heat capacity of the molecular gas.
+*
+*   Rbond is the bond length of the clusters in cm.  This is needed to compute
+*         the moment of inertia (hence rotational energy level spacing) of the molecules.
+*
+*   VibDOF is the number of vibrational degrees of freedom.  It is 1 for diatomic molecules,
+*          but larger values apply to polyatomic molecules.
+*
+*  Theta_vib is the effective "debye" temperature of the molecule.  k * Theta_vib is the average
+*          spacing of vibrational energy levels.
+*
+*   MieFlag = 0 uses the standard ANEOS cold pressure equation of state.
+*           = 1 substitues a Mie-type cold potential for Pc when eta < 1.
+*
+*   a_exp is the exponent of the density in the Mie potential
+*          for expanded states only. It has no effect on the compressed pressure.
+*          use this parameter to move the critical point by changing the shape
+*          of the cold expanded pressure.
+*
+***************************************************************************************************
+*
+*   Further information on the use of interpolation coefficients:
+*
+*     Adjustments to the critical point (Thompson and Lauson 1972, Appendix E)
+*
+*      C53 density limit to the adjustment of the cold pressure for
+*          expanded states.  Set between (critical density)/Rho00 and
+*          0.95.  C53 is a dimensionless ratio Eta = Rho/Rho00.
+*
+*      C54 presssure coefficient of cold pressure modification.  In units
+*          of dyne/cm**2.  If increased too much it can produce a multiple
+*          critical point, so be careful!  In general, this moves the critical point
+*          up and down along the phase curve, and can change the critical ratio
+*          but not the slope of the phase curve.
+*
+*      Adjustments to Gruneisen Gamma (and hence Debye temperature). See Thompson 1990. 
+*
+*      C60 is for density equal to or greater than Rho00.  Interpolates between 
+*          two different functional forms for the Gruneisen Gamma's dependence
+*          on density. C60 ranges from 0. to 1. (0. is the original function, 
+*          1. is alternate, intermediate values give mixtures).
+*
+*      C61 is for density less than Rho00, C61 is simply added to gamma.  This can
+*          make Gamma discontinuous at Rho00, so be careful!
+*
+*      Adustment to the transition between liquid and vapor limits (Thompson 1990)
+*
+*      C62  must be between 0. and 1., but cannot be exactly equal to 1. 
+*
+
+*MBS created 9/2014 from CTH EOS_data file
+*N.B.eV has been converted to K for Spheral
+*No molecular clusters here; issues with CTH WATER-ICE_MOL line 5
+*     EOS#     string for EOS name        Hugoniot initial      input format
+*                                      temperature  density     
+ANEOS1 -3  'ANEOS WATER-ICE'  THUG=-1   RHUG=2.0     LONG
+*Question about default pressure; can B0 be neg?
+*      nelem  type   rho0  temp0(K)  press0  B0/-Cbulk  Grun Tdebye(K)
+ANEOS2  2    4    0.919   260.0   0.0  -1.8e5     0.641   -315.0
+*
+*                                   Critical Pt. Adj  Thermal Conduction
+*         S    3*C24   Evap   Tmelt(K)    C53   C54         H0    C41
+ANEOS3   1.2   0.0      2.677e10   273.17      0.     0.0      0.0     0.0
+*
+*                 Solid-solid phase transition data
+*       rhomin    D1     D2     D3      D4      D5    Hfusion  -rholiq
+ANEOS4  0.0        0.      0.      0.       0.       0.   -1.0    -0.93
+*
+*     Cold comp. limits     Liquid EOS params       Interpolation params
+*       Up        L0      alpha    beta    gamma     C60     C61    C62
+ANEOS5  0.        0.       0.      0.       0.        0.0     0.      0.0
+*
+*   Ionization model    Reactive chemistry   ...............Molecular Clusters...............
+*       Ionflag         Eshift     Sshift      Atoms  Ebind(eV)   RotDOF    Rbond   VibDOF  
+ANEOS6  1                0.           0.          0       0         0         0       0
+*
+*      ..............    Pcold/Expanded      Variables for future expansion
+*       Theta_vib(K)     Mieflag  a_exp
+ANEOS7    0                0       0       0 0 0 0 0
+*
+*    Elements in material (number must = nelem)
+*        Z   Atomic Fraction
+ANEOS8    1      0.66666667
+ANEOS9    8      0.33333333
+*
+*
+*
+*****   END of input for ANEOS
+*
+*   Note:  Lines must not be longer than 120 characters
+*
+*   Explanation of new input parameters for molecular clusters:
+*
+*   There are 8 new input parameters that appear on line ANEOS6 and ANEOS7 in the space
+*   Sam Thompson originally alloted for extensions.  You must use the LONG 
+*   input format to access this new data.
+*
+*
+*   Atoms is the number of atoms in the molecular cluster.  If Atoms = 0 or 1
+*          no molecular clusters are added.  The current code can treat both
+*          Atoms = 2 (diatomic) or Atoms = 3 (triatomic) clusters.
+*
+*   Ebind is the binding energy of the molecules in eV.
+*
+*   RotDOF is the number of rotational degrees of freedom in the molecule.  It is 2 for.
+*          a diatomic molecule.  Larger values increase the heat capacity of the molecular gas.
+*
+*   Rbond is the bond length of the clusters in cm.  This is needed to compute
+*         the moment of inertia (hence rotational energy level spacing) of the molecules.
+*
+*   VibDOF is the number of vibrational degrees of freedom.  It is 1 for diatomic molecules,
+*          but larger values apply to polyatomic molecules.
+*
+*  Theta_vib is the effective "debye" temperature of the molecule.  k * Theta_vib is the average
+*          spacing of vibrational energy levels.
+*
+*   MieFlag = 0 uses the standard ANEOS cold pressure equation of state.
+*           = 1 substitues a Mie-type cold potential for Pc when eta < 1.
+*
+*   a_exp is the exponent of the density in the Mie potential
+*          for expanded states only. It has no effect on the compressed pressure.
+*          use this parameter to move the critical point by changing the shape
+*          of the cold expanded pressure.
+*
+***************************************************************************************************
+*
+*   Further information on the use of interpolation coefficients:
+*
+*     Adjustments to the critical point (Thompson and Lauson 1972, Appendix E)
+*
+*      C53 density limit to the adjustment of the cold pressure for
+*          expanded states.  Set between (critical density)/Rho00 and
+*          0.95.  C53 is a dimensionless ratio Eta = Rho/Rho00.
+*
+*      C54 presssure coefficient of cold pressure modification.  In units
+*          of dyne/cm**2.  If increased too much it can produce a multiple
+*          critical point, so be careful!  In general, this moves the critical point
+*          up and down along the phase curve, and can change the critical ratio
+*          but not the slope of the phase curve.
+*
+*      Adjustments to Gruneisen Gamma (and hence Debye temperature). See Thompson 1990. 
+*
+*      C60 is for density equal to or greater than Rho00.  Interpolates between 
+*          two different functional forms for the Gruneisen Gamma's dependence
+*          on density. C60 ranges from 0. to 1. (0. is the original function, 
+*          1. is alternate, intermediate values give mixtures).
+*
+*      C61 is for density less than Rho00, C61 is simply added to gamma.  This can
+*          make Gamma discontinuous at Rho00, so be careful!
+*
+*      Adustment to the transition between liquid and vapor limits (Thompson 1990)
+*
+*      C62  must be between 0. and 1., but cannot be exactly equal to 1. 
+*
+

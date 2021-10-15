@@ -1,0 +1,17 @@
+# pdv -gnu dumps-TP106-1d/strength=True/SolidSPHHydro1d/MonaghanGingoldViscosity1d/densityUpdate=3/nxAl=100_nxTa=597/TP106-profiles-t=1.5.gnu dumps-TP106-1d/strength=True/SolidCRKSPHHydro1d/CRKSPHMonaghanGingoldViscosity1d/densityUpdate=3/nxAl=100_nxTa=597/TP106-profiles-t=1.5.gnu
+cur 1 15
+ran de
+dataid off
+fontsize 32
+lnwidth a:z 3
+marker a x 5
+marker b square 5
+color a red
+color b blue
+color c black
+linespoints a:b on
+key lr
+label a SPH
+label b CRK
+xlabel $x$ (cm)
+ylabel $\rho$ (gm/cm$^3$)
