@@ -137,6 +137,8 @@ commandLine(order = 5,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
+assert not(gsph and (boolReduceViscosity or boolCullenViscosity))
+assert not(fsisph and not solid)
 assert thetaFactor in (0.5, 1.0, 2.0)
 theta = thetaFactor * pi
 
@@ -327,7 +329,19 @@ elif psph:
                  HUpdate = HUpdate,
                  XSPH = XSPH,
                  ASPH = asph)
-     
+elif fsisph:
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   interfaceMethod = ModulusInterface,
+                   sumDensityNodeLists=[nodes1],                       
+                   densityStabilizationCoefficient = 0.00,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   correctVelocityGradient = correctVelocityGradient,
+                   HUpdate = HUpdate) 
 elif gsph:
     limiter = VanLeerLimiter()
     waveSpeed = DavisWaveSpeed()

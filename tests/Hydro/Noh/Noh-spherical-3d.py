@@ -47,6 +47,9 @@ commandLine(order = 5,
             svph = False,
             crksph = False,
             psph = False,
+            fsisph = False,
+            gsph = False,
+
             asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH
@@ -120,6 +123,9 @@ commandLine(order = 5,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
+assert not(gsph and (boolReduceViscosity and boolCullenViscosity))
+assert not(fsisph and not solid)
+
 if smallPressure:
    P0 = 1.0e-6
    eps0 = P0/((gamma - 1.0)*rho0)
@@ -130,6 +136,10 @@ elif crksph:
     hydroname = "CRKSPH"
 elif psph:
     hydroname = "PSPH"
+elif fsisph:
+    hydroname = "FSISPH"
+elif gsph:
+    hydroname = "GSPH"
 else:
     hydroname = "SPH"
 if asph:
@@ -216,8 +226,8 @@ generator = GenerateNodeDistribution3d(nx, ny, nz, rho0, seed,
                                        SPH = True)
 
 if mpi.procs > 1:
-    from VoronoiDistributeNodes import distributeNodes3d
-    #from PeanoHilbertDistributeNodes import distributeNodes3d
+    #from VoronoiDistributeNodes import distributeNodes3d
+    from PeanoHilbertDistributeNodes import distributeNodes3d
 else:
     from DistributeNodes import distributeNodes3d
 
@@ -272,6 +282,35 @@ elif crksph:
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    ASPH = asph)
+elif fsisph:
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   interfaceMethod = ModulusInterface,
+                   sumDensityNodeLists=[nodes1],                       
+                   densityStabilizationCoefficient = 0.00,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   correctVelocityGradient = correctVelocityGradient,
+                   HUpdate = HUpdate)
+elif gsph:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,True,RiemannGradient)
+    hydro = GSPH(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
@@ -302,49 +341,52 @@ else:
                 ASPH = asph)
 output("hydro")
 output("hydro.kernel")
-output("hydro.PiKernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.densityUpdate")
 output("hydro.HEvolution")
+if not (gsph or fsisph):
+    output("hydro.PiKernel")
+if not fsisph:
+    output("hydro.densityUpdate")
 
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
-q = hydro.Q
-if Cl:
-    q.Cl = Cl
-if Cq:
-    q.Cq = Cq
-if epsilon2:
-    q.epsilon2 = epsilon2
-if Qlimiter:
-    q.limiter = Qlimiter
-if balsaraCorrection:
-    q.balsaraShearCorrection = balsaraCorrection
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-try:
-    output("q.linearInExpansion")
-    output("q.quadraticInExpansion")
-except:
-    pass
+if not gsph:
+    q = hydro.Q
+    if Cl:
+        q.Cl = Cl
+    if Cq:
+        q.Cq = Cq
+    if epsilon2:
+        q.epsilon2 = epsilon2
+    if Qlimiter:
+        q.limiter = Qlimiter
+    if balsaraCorrection:
+        q.balsaraShearCorrection = balsaraCorrection
+    output("q")
+    output("q.Cl")
+    output("q.Cq")
+    output("q.epsilon2")
+    output("q.limiter")
+    output("q.balsaraShearCorrection")
+    try:
+        output("q.linearInExpansion")
+        output("q.quadraticInExpansion")
+    except:
+        pass
 
-#-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
-    packages.append(evolveReducingViscosityMultiplier)
-elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
-    packages.append(evolveCullenViscosityMultiplier)
+    #-------------------------------------------------------------------------------
+    # Construct the MMRV physics object.
+    #-------------------------------------------------------------------------------
+    if boolReduceViscosity:
+        evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
+        packages.append(evolveReducingViscosityMultiplier)
+    elif boolCullenViscosity:
+        evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+        packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
