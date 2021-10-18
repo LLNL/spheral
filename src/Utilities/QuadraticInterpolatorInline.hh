@@ -1,4 +1,5 @@
 #include "Utilities/DBC.hh"
+#include <algorithm>
 
 namespace Spheral {
 

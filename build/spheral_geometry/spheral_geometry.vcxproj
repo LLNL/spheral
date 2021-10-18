@@ -351,8 +351,8 @@
     <ClCompile Include="..\..\src\Geometry\computeEigenValues.cc" />
     <ClCompile Include="..\..\src\Geometry\Dimension.cc" />
     <ClCompile Include="..\..\src\Geometry\EigenStruct.cc" />
-    <ClCompile Include="..\..\src\Geometry\fakemain.cc" />
     <ClCompile Include="..\..\src\Geometry\Geom3Vector.cc" />
+    <ClCompile Include="..\..\src\Geometry\GeometryRegistrar.cc" />
     <ClCompile Include="..\..\src\Geometry\GeomFacet2d.cc" />
     <ClCompile Include="..\..\src\Geometry\GeomFacet3d.cc" />
     <ClCompile Include="..\..\src\Geometry\GeomPlane.cc" />

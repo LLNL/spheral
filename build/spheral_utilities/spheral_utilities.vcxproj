@@ -372,6 +372,7 @@
     <ClCompile Include="..\..\src\Utilities\pointOnPolygon.cc" />
     <ClCompile Include="..\..\src\Utilities\pointOnPolyhedron.cc" />
     <ClCompile Include="..\..\src\Utilities\Process.cc" />
+    <ClCompile Include="..\..\src\Utilities\QuadraticInterpolator.cc" />
     <ClCompile Include="..\..\src\Utilities\RedistributionRegistrar.cc" />
     <ClCompile Include="..\..\src\Utilities\RegisterMPIDataTypes.cc" />
     <ClCompile Include="..\..\src\Utilities\segmentIntersectEdges.cc" />
@@ -630,6 +631,8 @@
     <ClInclude Include="..\..\src\Utilities\DomainNodeInline.hh" />
     <ClInclude Include="..\..\src\Utilities\MaxDamageNodeCoupling.hh" />
     <ClInclude Include="..\..\src\Utilities\OpenMP_wrapper.hh" />
+    <ClInclude Include="..\..\src\Utilities\QuadraticInterpolator.hh" />
+    <ClInclude Include="..\..\src\Utilities\QuadraticInterpolatorInline.hh" />
     <ClInclude Include="..\..\src\Utilities\size_t_bits.hh" />
     <ClInclude Include="..\..\src\Utilities\ThreePointDamagedNodeCoupling.hh" />
     <ClInclude Include="..\..\src\Utilities\uniform_random.hh" />

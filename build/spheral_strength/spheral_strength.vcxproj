@@ -436,7 +436,6 @@
     <ClCompile Include="..\..\src\Strength\DeviatoricStressPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Strength\PlasticStrainPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Strength\PlasticStrainPolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Strength\RZPlasticStrainPolicy.cc" />
     <ClCompile Include="..\..\src\Strength\ShearModulusPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Strength\ShearModulusPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Strength\SolidFieldNames.cc" />

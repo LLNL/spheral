@@ -111,6 +111,9 @@
     <ClCompile Include="..\..\src\Utilities\uniform_random.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Utilities\QuadraticInterpolator.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\Utilities\allReduce.hh">
@@ -352,6 +355,12 @@
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Utilities\uniform_random_Inline.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\QuadraticInterpolator.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\QuadraticInterpolatorInline.hh">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>

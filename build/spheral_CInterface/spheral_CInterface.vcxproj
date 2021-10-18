@@ -211,7 +211,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(OutDir)spheral_distributed.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)spheral_distributed.lib;$(OutDir)axom_core.lib;$(OutDir)axom_lumberjack.lib;$(OutDir)axom_mint.lib;$(OutDir)axom_primal.lib;$(OutDir)axom_slic.lib;$(OutDir)axom_quest_par.lib;$(OutDir)axom_quest.lib;$(OutDir)axom_sidre_par.lib;$(OutDir)axom_sidre.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
