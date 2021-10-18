@@ -34,15 +34,39 @@ commandLine(seed = "lattice",
             smoothSpikeScale = 0.5,
             gamma = 5.0/3.0,
             mu = 1.0,
+            rhomin = 1e-10,
 
+            # kernel
+            HUpdate = IdealH,
+            hmin = 1e-15,
+            hmax = 1.0,
+
+            # hydros
             crksph = False,
             psph = False,
-            asph = False,     # Only for H evolution, not hydro algorithm
+            fsisph = False,
+            gsph = False,
+
+            # hydro options
+            solid = False,
+            asph = False,
+            XSPH = False,    
+            evolveTotalEnergy = False,    
+            compatibleEnergy = True,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
+            densityUpdate = RigorousSumDensity, 
+            filter = 0.0,
+
+            # crksph options
             correctionOrder = LinearOrder,
             volumeType = RKSumVolume,
-            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-            HUpdate = IdealH,
-            filter = 0.0,
+
+            # gsph options
+            RiemannGradientType = RiemannGradient, # (RiemannGradient,SPHGradient,HydroAccelerationGradient,OnlyDvDxGradient,MixedMethodGradient)
+            linearReconstruction = True,
+
+            # Artifical Viscosity
             boolReduceViscosity = False,
             nh = 5.0,
             aMin = 0.1,
@@ -56,17 +80,10 @@ commandLine(seed = "lattice",
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
-            HopkinsConductivity = False,     # For PSPH
-            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
-
-            hmin = 1e-15,
-            hmax = 1.0,
-            cfl = 0.25,
-            useVelocityMagnitudeForDt = True,
-            XSPH = False,
-            rhomin = 1e-10,
-
+    
+            # Integration
             IntegratorConstructor = CheapSynchronousRK2Integrator,
+            cfl = 0.25,
             steps = None,
             goalTime = None,
             goalRadius = 0.8,
@@ -74,23 +91,21 @@ commandLine(seed = "lattice",
             dtMin = 1.0e-8,
             dtMax = None,
             dtGrowth = 2.0,
-            vizCycle = None,
-            vizTime = 0.1,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            HEvolution = IdealH,
-            compatibleEnergy = True,
-            gradhCorrection = True,
-            correctVelocityGradient = True,
+            useVelocityMagnitudeForDt = False,
 
+            # IO
+            vizCycle = None,
+            vizTime = 0.1,
             restoreCycle = -1,
             restartStep = 1000,
 
             graphics = False,
             useVoronoiOutput = False,
             clearDirectories = False,
-            dataRoot = "dumps-cylindrical-Sedov",
+            dataDirBase = "dumps-cylindrical-Sedov",
             outputFile = "None",
             serialDump=True,
             )
@@ -102,6 +117,8 @@ if smallPressure:
 
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert thetaFactor in (0.5, 1.0, 2.0)
+assert not(gsph and (boolReduceViscosity or boolCullenViscosity))
+assert not(fsisph and not solid)
 theta = thetaFactor * pi
 
 # Figure out what our goal time should be.
@@ -133,12 +150,16 @@ if crksph:
     hydroname = "CRKSPH"
 elif psph:
     hydroname = "PSPH"
+elif fsisph:
+    hydroname = "FSISPH"
+elif gsph:
+    hydroname = "GSPH"
 else:
     hydroname = "SPH"
 if asph:
     hydroname = "A" + hydroname
 
-dataDir = os.path.join(dataRoot,
+dataDir = os.path.join(dataDirBase,
                        hydroname,
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
@@ -180,7 +201,11 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Create a NodeList and associated Neighbor object.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos, 
+if solid:
+    nodeListConstructor = makeSolidNodeList
+else:
+    nodeListConstructor = makeFluidNodeList
+nodes1 = nodeListConstructor("nodes1", eos, 
                            hmin = hmin,
                            hmax = hmax,
                            kernelExtent = kernelExtent,
@@ -299,15 +324,43 @@ if crksph:
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    ASPH = asph)
+elif fsisph:
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   interfaceMethod = ModulusInterface,
+                   sumDensityNodeLists=[nodes1],                       
+                   densityStabilizationCoefficient = 0.00,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   correctVelocityGradient = correctVelocityGradient,
+                   HUpdate = HUpdate) 
+elif gsph:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,linearReconstruction,RiemannGradientType)
+    hydro = GSPH(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                specificThermalEnergyDiffusionCoefficient = 0.00,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient= correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                ASPH = asph,
+                densityUpdate=densityUpdate,
+                HUpdate = HUpdate)
 elif psph:
-    hydro = PASPH(dataBase = db,
+    hydro = PSPH(dataBase = db,
                       W = WT,
                       filter = filter,
                       cfl = cfl,
                       useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                       compatibleEnergyEvolution = compatibleEnergy,
                       evolveTotalEnergy = evolveTotalEnergy,
-                      HopkinsConductivity = HopkinsConductivity,
                       correctVelocityGradient = correctVelocityGradient,
                       densityUpdate = densityUpdate,
                       HUpdate = HUpdate,
@@ -323,8 +376,11 @@ else:
                 correctVelocityGradient = correctVelocityGradient,
                 densityUpdate = densityUpdate,
                 XSPH = XSPH,
-                HUpdate = HEvolution,
+                HUpdate = HUpdate,
                 ASPH = asph)
+
+packages = [hydro]
+
 output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
@@ -332,27 +388,26 @@ output("hydro.XSPH")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
-q = hydro.Q
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+if not gsph:
+    q = hydro.Q
+    output("q")
+    output("q.Cl")
+    output("q.Cq")
+    output("q.epsilon2")
+    output("q.limiter")
+    output("q.balsaraShearCorrection")
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
 
-packages = [hydro]
-
-#-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
-    packages.append(evolveReducingViscosityMultiplier)
-elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
-    packages.append(evolveCullenViscosityMultiplier)
+    #-------------------------------------------------------------------------------
+    # Construct the MMRV physics object.
+    #-------------------------------------------------------------------------------
+    if boolReduceViscosity:
+        evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+        packages.append(evolveReducingViscosityMultiplier)
+    elif boolCullenViscosity:
+        evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+        packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.

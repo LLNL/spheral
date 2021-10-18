@@ -32,22 +32,46 @@ commandLine(seed = "lattice",
             smoothSpikeScale = 0.5,
             gamma = 5.0/3.0,
             mu = 1.0,
+            rhomin = 1e-10,
 
+            # kernel
+            HUpdate = IdealH,
+            hmin = 1e-15,
+            hmax = 1.0,
+
+            # hydros
+            crksph = False,
+            psph = False,
+            gsph = False,
+            fsisph = False,
+
+            # hydro parameters
+            asph = False,
+            solid = False,
+            XSPH = False,
+            evolveTotalEnergy = False,
+            compatibleEnergy = True,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
+            densityUpdate = RigorousSumDensity, 
+            filter = 0.0,
+
+            # crksph parameters
+            correctionOrder = LinearOrder,
+            volumeType = RKSumVolume,      
+
+            # gsph parameters
+            RiemannGradientType = RiemannGradient, # (RiemannGradient,SPHGradient,HydroAccelerationGradient,OnlyDvDxGradient,MixedMethodGradient)
+            linearReconstruction = True,
+
+            # Artificial Viscosity
+            Qconstructor = MonaghanGingoldViscosity,
             Cl = 1.0,
             Cq = 0.75,
             epsilon2 = 1e-2,
             Qlimiter = False,
             balsaraCorrection = False,
             linearInExpansion = False,
-
-            crksph = False,
-            psph = False,
-            asph = False,     # Only for H evolution, not hydro algorithm
-            Qconstructor = MonaghanGingoldViscosity,
-            correctionOrder = LinearOrder,
-            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-            HUpdate = IdealH,
-            filter = 0.0,
             boolReduceViscosity = False,
             nh = 5.0,
             aMin = 0.1,
@@ -61,18 +85,11 @@ commandLine(seed = "lattice",
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
-            HopkinsConductivity = False,     # For PSPH
-            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
-            volumeType = RKSumVolume,       # For CRK
 
-            hmin = 1e-15,
-            hmax = 1.0,
-            cfl = 0.5,
-            useVelocityMagnitudeForDt = True,
-            XSPH = False,
-            rhomin = 1e-10,
-
+            # Integration
             IntegratorConstructor = CheapSynchronousRK2Integrator,
+            cfl = 0.5,
+            useVelocityMagnitudeForDt = False,
             steps = None,
             goalTime = None,
             goalRadius = 0.8,
@@ -80,22 +97,19 @@ commandLine(seed = "lattice",
             dtMin = 1.0e-8,
             dtMax = None,
             dtGrowth = 2.0,
-            vizCycle = None,
-            vizTime = 0.1,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            HEvolution = IdealH,
-            compatibleEnergy = True,
-            gradhCorrection = True,
-            correctVelocityGradient = True,
 
+            # IO
+            vizCycle = None,
+            vizTime = 0.1,
             restoreCycle = -1,
             restartStep = 1000,
 
             graphics = True,
             clearDirectories = False,
-            dataRoot = "dumps-spherical-Sedov",
+            dataDirBase = "dumps-spherical-Sedov",
             outputFile = "None",
             )
 
@@ -132,12 +146,16 @@ if asph:
     hydroname += "A"
 if crksph:
     hydroname += "CRKSPH"
+elif fsisph:
+    hydroname = "FSISPH"
+elif gsph:
+    hydroname = "GSPH"
 elif psph:
     hydroname += "PSPH"
 else:
     hydroname += "SPH"
 
-dataDir = os.path.join(dataRoot,
+dataDir = os.path.join(dataDirBase,
                        hydroname,
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
@@ -182,7 +200,11 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Create a NodeList and associated Neighbor object.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos, 
+if solid:
+    nodeListConstructor = makeSolidNodeList
+else:
+    nodeListConstructor = makeFluidNodeList
+nodes1 = nodeListConstructor("nodes1", eos, 
                            hmin = hmin,
                            hmax = hmax,
                            kernelExtent = kernelExtent,
@@ -209,7 +231,8 @@ else:
                                            SPH = (not asph))
 
 if mpi.procs > 1:
-    from VoronoiDistributeNodes import distributeNodes3d
+    #from VoronoiDistributeNodes import distributeNodes3d
+    from PeanoHilbertDistributeNodes import distributeNodes3d
 else:
     from DistributeNodes import distributeNodes3d
 
@@ -279,18 +302,19 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = Qconstructor(Cl, Cq, linearInExpansion)
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+if not gsph:
+    q = Qconstructor(Cl, Cq, linearInExpansion)
+    q.epsilon2 = epsilon2
+    q.limiter = Qlimiter
+    q.balsaraShearCorrection = balsaraCorrection
+    output("q")
+    output("q.Cl")
+    output("q.Cq")
+    output("q.epsilon2")
+    output("q.limiter")
+    output("q.balsaraShearCorrection")
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
@@ -302,9 +326,38 @@ if crksph:
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
-                   correctionOrder = correctionOrder,
+                   order = correctionOrder,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate)
+elif fsisph:
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   interfaceMethod = ModulusInterface,
+                   sumDensityNodeLists=[nodes1],                       
+                   densityStabilizationCoefficient = 0.00,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   correctVelocityGradient = correctVelocityGradient,
+                   HUpdate = HUpdate) 
+elif gsph:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,linearReconstruction,RiemannGradientType)
+    hydro = GSPH(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                specificThermalEnergyDiffusionCoefficient = 0.00,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient= correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                ASPH = asph,
+                densityUpdate=densityUpdate,
+                HUpdate = HUpdate)
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
@@ -314,7 +367,6 @@ elif psph:
                  useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                  compatibleEnergyEvolution = compatibleEnergy,
                  evolveTotalEnergy = evolveTotalEnergy,
-                 HopkinsConductivity = HopkinsConductivity,
                  correctVelocityGradient = correctVelocityGradient,
                  densityUpdate = densityUpdate,
                  HUpdate = HUpdate,
@@ -330,7 +382,7 @@ else:
                 correctVelocityGradient = correctVelocityGradient,
                 densityUpdate = densityUpdate,
                 XSPH = XSPH,
-                HUpdate = HEvolution)
+                HUpdate = HUpdate)
 output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
