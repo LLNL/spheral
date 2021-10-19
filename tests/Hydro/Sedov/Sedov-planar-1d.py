@@ -21,7 +21,7 @@ commandLine(# discretization & domain
             rho0 = 1.0,
             eps0 = 0.0,
             Espike = 1.0,
-            smoothSpike = False,
+            smoothSpike = True,
             topHatSpike = False,
             smoothSpikeScale = 0.5,
             gamma = 5.0/3.0,
