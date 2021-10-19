@@ -1,4 +1,0 @@
-source("Sod/Sod-planar-1d.py")
-source("Sod/Sod-planar-1d-WaterGas.py")
-source("Noh/Noh-planar-1d.py")
-source("Noh/Noh-cylindrical-2d.py")
