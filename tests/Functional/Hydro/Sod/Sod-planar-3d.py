@@ -62,6 +62,7 @@ commandLine(nx1 = 100,
             crksph = False,
             fsisph = False,
             psph = False,
+            gsph = False,
             asph = False,               # Choose the H evolution -- works with all hydro options
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             solid = False,    # If true, use the fluid limit of the solid hydro option
@@ -134,6 +135,7 @@ commandLine(nx1 = 100,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
+assert not(GSPH and (boolCullenViscosity or boolReduceViscosity))
 assert numNodeLists in (1, 2)
 assert not (fsisph and not solid)
 assert not svph 
@@ -149,6 +151,8 @@ elif psph:
     hydroname = "PSPH"
 elif fsisph:
     hydroname = "FSISPH"
+elif gsph:
+    hydroname = "GSPH"
 else:
     hydroname = "SPH"
 if asph:
@@ -363,6 +367,22 @@ elif fsisph:
                    evolveTotalEnergy = evolveTotalEnergy,
                    correctVelocityGradient = correctVelocityGradient,
                    HUpdate = HUpdate)
+elif gsph:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,True,RiemannGradient)
+    hydro = GSPH(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -383,40 +403,41 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Tweak the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = hydro.Q
-if not Cl is None:
-    q.Cl = Cl
-if not Cq is None:
-    q.Cq = Cq
-if not linearInExpansion is None:
-    q.linearInExpansion = linearInExpansion
-if not quadraticInExpansion is None:
-    q.quadraticInExpansion = quadraticInExpansion
-if not Qlimiter is None:
-    q.limiter = Qlimiter
-if not epsilon2 is None:
-    q.epsilon2 = epsilon2
-if not etaCritFrac is None:
-    q.etaCritFrac = etaCritFrac
-if not etaFoldFrac is None:
-    q.etaFoldFrac = etaFoldFrac
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.limiter")
-output("q.epsilon2")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+if not gsph:
+    q = hydro.Q
+    if not Cl is None:
+        q.Cl = Cl
+    if not Cq is None:
+        q.Cq = Cq
+    if not linearInExpansion is None:
+        q.linearInExpansion = linearInExpansion
+    if not quadraticInExpansion is None:
+        q.quadraticInExpansion = quadraticInExpansion
+    if not Qlimiter is None:
+        q.limiter = Qlimiter
+    if not epsilon2 is None:
+        q.epsilon2 = epsilon2
+    if not etaCritFrac is None:
+        q.etaCritFrac = etaCritFrac
+    if not etaFoldFrac is None:
+        q.etaFoldFrac = etaFoldFrac
+    output("q")
+    output("q.Cl")
+    output("q.Cq")
+    output("q.limiter")
+    output("q.epsilon2")
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
 
-#-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
-    packages.append(evolveReducingViscosityMultiplier)
-elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
-    packages.append(evolveCullenViscosityMultiplier)
+    #-------------------------------------------------------------------------------
+    # Construct the MMRV physics object.
+    #-------------------------------------------------------------------------------
+    if boolReduceViscosity:
+        evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
+        packages.append(evolveReducingViscosityMultiplier)
+    elif boolCullenViscosity:
+        evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+        packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Construct the Artificial Conduction physics object.
@@ -624,11 +645,11 @@ if graphics:
                               colorNodeLists = False)
         plots += [(volPlot, "Sod-planar-vol.png"),
                    (splot, "Sod-planar-surfacePoint.png")]
-    
-    viscPlot = plotFieldList(hydro.maxViscousPressure,
+    if not gsph:
+        viscPlot = plotFieldList(hydro.maxViscousPressure,
                              winTitle = "max($\\rho^2 \pi_{ij}$)",
                              colorNodeLists = False)
-    plots.append((viscPlot, "Sod-planar-viscosity.png"))
+        plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier,

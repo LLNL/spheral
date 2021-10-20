@@ -183,6 +183,8 @@ commandLine(KernelConstructor = NBSplineKernel,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
+assert not(gsph and (boolReduceViscosity or boolCullenViscosity))
+assert not(fsisph and not solid)
 if smallPressure:
     P0 = 1.0e-6
     eps1 = P0/((gamma - 1.0)*rho1)
