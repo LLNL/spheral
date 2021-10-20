@@ -30,10 +30,10 @@ if(${lib_name}_BUILD)
     CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR} 
-               -DPYBIND11_INCLUDE_DIRS=${PYBIND11_INSTALL_DIR}/include
+               -DPYBIND11_INCLUDE_DIRS=${pybind11_DIR}/include
                -DUSE_PYTHON=${POLYTOPE_USE_PYTHON}
                -DPYTHON_EXE=${PYTHON_EXE}
-               -DBoost_INCLUDE_DIR=${BOOST_INSTALL_DIR}/include
+               -DBoost_INCLUDE_DIR=${boost_DIR}/include
                -DTESTING=Off
                DEPENDS ${POLYTOPE_DEPENDS}
 
