@@ -14,80 +14,83 @@ source("Unit/Geometry/testPolyhedron.py")
 source("Unit/Geometry/testPolyClipper2d.py")
 source("Unit/Geometry/testPolyClipper3d.py")
 
-## Boundary unit tests
-#source("Unit/Boundary/testPeriodicBoundary-1d.py")
-#source("Unit/Boundary/testPeriodicBoundary-2d.py")
-#
-## SPH unit tests
-#source("Unit/SPH/testLinearVelocityGradient.py")
-#
-## SVPH unit tests
-#source("Unit/SVPH/testSVPHInterpolation-1d.py")
-## source("Unit/SVPH/testSVPHInterpolation-2d.py")
-#
-## Field unit tests
-#source("Unit/Field/testField.py")
-#
-### Neighbor unit tests
-##source("Unit/Neighbor/testNestedGridNeighbor.py")
-##source("Unit/Neighbor/testTreeNeighbor.py")
-##source("Unit/Neighbor/testDistributedConnectivity.py")
-#
-## Distributed unit tests
-#source("Unit/Distributed/distributedUnitTests.py")
-#
-## Material unit tests.
-#source("Unit/Material/testEOS.py")
-#source("Unit/SolidMaterialtestTillotsonEquationOfState.py")
-#source("Functional/Material/UnitConversion.py")
-#
-## Test the sampling to lattice method.
-#source("Unit/FieldOperations/testSampleMultipleFields2Lattice1d.py")
-#source("Unit/FieldOperations/testSampleMultipleFields2Lattice2d.py")
-#source("Unit/FieldOperations/testSampleMultipleFields2Lattice3d.py")
-#
-## FileIO tests
-#source("Unit/FileIO/testGzipFileIO.py")
-#source("Unit/FileIO/testSiloFileIO.py")
-#
-## Utilities tests
-#source("Unit/Utilities/testSegmentSegmentIntersection.py")
-#source("Unit/Utilities/testDistances3d.py")
-#source("Unit/Utilities/testSegmentIntersectPolygonEdges.py")
-#source("Unit/Utilities/testSegmentIntersectPolyhedronEdges.py")
-#source("Unit/Utilities/testSimpsonsIntegration.py")
-#source("Unit/Utilities/test_uniform_random.py")
-#
-## Mesh tests.
-#source("Unit/Mesh/testLineMesh.py")
-## source("Unit/Mesh/testPolygonalMesh.py")   # Suspended until we fix the polytope with Spheral issues.
-## source("Unit/Mesh/testPolyhedralMesh.py")  # Suspended until we fix the polytope with Spheral issues.
-#
-## MPI python interface unit tests
-#source("Unit/PythonMPIInterfaces/testMPI4PYasPYMPI.py")
-#
-## C++ unit tests.
-#source("Unit/CXXTests/test_r3d_utils.py")
+# Kernel unit tests
+source("Unit/Kernel/testBicubicSphericalKernel.py")
+
+# Boundary unit tests
+source("Unit/Boundary/testPeriodicBoundary-1d.py")
+source("Unit/Boundary/testPeriodicBoundary-2d.py")
+
+# SPH unit tests
+source("Unit/SPH/testLinearVelocityGradient.py")
+
+# SVPH unit tests
+source("Unit/SVPH/testSVPHInterpolation-1d.py")
+# source("Unit/SVPH/testSVPHInterpolation-2d.py")
+
+# Field unit tests
+source("Unit/Field/testField.py")
+
+# Neighbor unit tests
+source("Unit/Neighbor/testNestedGridNeighbor.py")
+source("Unit/Neighbor/testTreeNeighbor.py")
+source("Unit/Neighbor/testDistributedConnectivity.py")
+
+# Distributed unit tests
+source("Unit/Distributed/distributedUnitTests.py")
+
+# Material unit tests.
+source("Unit/Material/testEOS.py")
+source("Unit/SolidMaterial/testTillotsonEquationOfState.py")
+source("Functional/Material/UnitConversion.py")
+
+# Test the sampling to lattice method.
+source("Unit/FieldOperations/testSampleMultipleFields2Lattice1d.py")
+source("Unit/FieldOperations/testSampleMultipleFields2Lattice2d.py")
+source("Unit/FieldOperations/testSampleMultipleFields2Lattice3d.py")
+
+# FileIO tests
+source("Unit/FileIO/testGzipFileIO.py")
+source("Unit/FileIO/testSiloFileIO.py")
+
+# Utilities tests
+source("Unit/Utilities/testSegmentSegmentIntersection.py")
+source("Unit/Utilities/testDistances3d.py")
+source("Unit/Utilities/testSegmentIntersectPolygonEdges.py")
+source("Unit/Utilities/testSegmentIntersectPolyhedronEdges.py")
+source("Unit/Utilities/testSimpsonsIntegration.py")
+source("Unit/Utilities/test_uniform_random.py")
+
+# Mesh tests.
+source("Unit/Mesh/testLineMesh.py")
+# source("Unit/Mesh/testPolygonalMesh.py")   # Suspended until we fix the polytope with Spheral issues.
+# source("Unit/Mesh/testPolyhedralMesh.py")  # Suspended until we fix the polytope with Spheral issues.
+
+# MPI python interface unit tests
+source("Unit/PythonMPIInterfaces/testMPI4PYasPYMPI.py")
+
+# C++ unit tests.
+source("Functional/CXXTests/test_r3d_utils.py")
 source("Unit/CXXTests/runCXXTests.ats")
-#
-## Hydro tests
-#source("Functional/Hydro/HydroTests.ats")
-#
-### Gravity tests
-##source("Functional/Gravity/CollisionlessSphereCollapse.py")
-#
-## Strength tests.
-##source("Functional/Strength/PlateImpact/PlateImpact-1d.py")
-#source("Functional/Strength/CollidingPlates/CollidingPlates-1d.py")
-#source("Functional/Strength/DiametralCompression/DiametralCompression.py")
-#
-## Damage tests.
-#source("Functional/Damage/TensileRod/TensileRod-1d.py")
-#
-## Surface detection test
-## Susending this until we fix the test for the up to date surface detection method.
-## source("Functional/Surfaces/Surface.py")
-#
-## RK tests
-#source("Functional/RK/RKInterpolation.py")
-#source("Functional/RK/testVoronoiVolume.py")
+
+# Hydro tests
+source("Functional/Hydro/HydroTests.ats")
+
+# Gravity tests
+source("Functional/Gravity/CollisionlessSphereCollapse.py")
+
+# Strength tests.
+#source("Functional/Strength/PlateImpact/PlateImpact-1d.py")
+source("Functional/Strength/CollidingPlates/CollidingPlates-1d.py")
+source("Functional/Strength/DiametralCompression/DiametralCompression.py")
+
+# Damage tests.
+source("Functional/Damage/TensileRod/TensileRod-1d.py")
+
+# Surface detection test
+# Susending this until we fix the test for the up to date surface detection method.
+# source("Functional/Surfaces/Surface.py")
+
+# RK tests
+source("Functional/RK/RKInterpolation.py")
+source("Functional/RK/testVoronoiVolume.py")
