@@ -13,15 +13,12 @@
 #
 #ATS:crk2 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKVoronoiVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (Voronoi vol), nPerh=2.0", np=2)
 #ATS:crk3 = testif(crk2, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKVoronoiVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (Voronoi vol) , nPerh=2.0, restart test", np=2)
-<<<<<<< HEAD:tests/Functional/Hydro/Noh/Noh-cylindrical-2d.py
-=======
 #
 # GSPH
 #
 #ATS:gsph0 = test(         SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical GSPH, nPerh=2.0", np=8)
 #ATS:gsph1 = testif(gsph0, SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical GSPH, nPerh=2.0, restart test", np=8)
 
->>>>>>> develop:tests/Hydro/Noh/Noh-cylindrical-2d.py
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -68,11 +65,8 @@ commandLine(order = 5,
             svph = False,
             crksph = False,
             psph = False,
-<<<<<<< HEAD:tests/Functional/Hydro/Noh/Noh-cylindrical-2d.py
-=======
             fsisph = False,
             gsph = False,
->>>>>>> develop:tests/Hydro/Noh/Noh-cylindrical-2d.py
             asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH
@@ -99,7 +93,7 @@ commandLine(order = 5,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
-            cfl = 0.5,
+            cfl = 0.25,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
@@ -110,8 +104,8 @@ commandLine(order = 5,
             steps = None,
             vizCycle = None,
             vizTime = 0.1,
-            dt = 0.0001,
-            dtMin = 1.0e-5, 
+            dt = 0.000001,
+            dtMin = 1.0e-8, 
             dtMax = 0.1,
             dtGrowth = 2.0,
             maxSteps = None,
@@ -168,6 +162,8 @@ elif crksph:
     hydroname = os.path.join("CRKSPH",
                              str(correctionOrder),
                              str(volumeType))
+elif gsph:
+    hydroname = "GSPH"
 elif psph:
     hydroname = "PSPH"
 else:
@@ -334,8 +330,6 @@ elif psph:
                  HUpdate = HUpdate,
                  XSPH = XSPH,
                  ASPH = asph)
-<<<<<<< HEAD:tests/Functional/Hydro/Noh/Noh-cylindrical-2d.py
-=======
 elif fsisph:
     hydro = FSISPH(dataBase = db,
                    W = WT,
@@ -367,7 +361,6 @@ elif gsph:
                 HUpdate = HUpdate,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
->>>>>>> develop:tests/Hydro/Noh/Noh-cylindrical-2d.py
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -396,28 +389,29 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
-q = hydro.Q
-if Cl:
-    q.Cl = Cl
-if Cq:
-    q.Cq = Cq
-if epsilon2:
-    q.epsilon2 = epsilon2
-if Qlimiter:
-    q.limiter = Qlimiter
-if balsaraCorrection:
-    q.balsaraShearCorrection = balsaraCorrection
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-try:
-    output("q.linearInExpansion")
-    output("q.quadraticInExpansion")
-except:
-    pass
+if not gsph:
+    q = hydro.Q
+    if Cl:
+        q.Cl = Cl
+    if Cq:
+        q.Cq = Cq
+    if epsilon2:
+        q.epsilon2 = epsilon2
+    if Qlimiter:
+        q.limiter = Qlimiter
+    if balsaraCorrection:
+        q.balsaraShearCorrection = balsaraCorrection
+    output("q")
+    output("q.Cl")
+    output("q.Cq")
+    output("q.epsilon2")
+    output("q.limiter")
+    output("q.balsaraShearCorrection")
+    try:
+        output("q.linearInExpansion")
+        output("q.quadraticInExpansion")
+    except:
+        pass
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
@@ -705,3 +699,4 @@ Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e
 print "Total energy error: %g" % Eerror
 if compatibleEnergy and abs(Eerror) > 1e-13:
     raise ValueError, "Energy error outside allowed bounds."
+    
