@@ -5,7 +5,7 @@ set(POLTOPE_SRC_DIR ${POLYTOPE_PREFIX}/src/boost)
 
 set(${lib_name}_libs libpolytope.a)
 
-set(POLYTOPE_DEPENDS boost)
+set(POLYTOPE_DEPENDS ${boost_build_dep})
 set(POLYTOPE_USE_PYTHON On)
 
 if(ENABLE_CXXONLY)
