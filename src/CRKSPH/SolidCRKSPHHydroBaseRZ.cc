@@ -119,8 +119,7 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                        const HEvolutionType HUpdate,
                        const double epsTensile,
                        const double nTensile,
-                       const bool damageRelieveRubble,
-                       const bool negativePressureInDamage):
+                       const bool damageRelieveRubble):
   SolidCRKSPHHydroBase<Dimension>(smoothingScaleMethod, 
                                   dataBase,
                                   Q,
@@ -135,8 +134,7 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                                   HUpdate,
                                   epsTensile,
                                   nTensile,
-                                  damageRelieveRubble,
-                                  negativePressureInDamage) {
+                                  damageRelieveRubble) {
 }
 
 //------------------------------------------------------------------------------

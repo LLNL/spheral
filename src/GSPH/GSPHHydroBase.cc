@@ -831,10 +831,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto Peffj = Pj + Rj;
 
       // Acceleration.
-      CHECK(rhoi > 0.0);
-      CHECK(rhoj > 0.0);
-      CHECK(ci > 0.0);
-      CHECK(cj > 0.0);
       const auto voli = mi/rhoi;
       const auto volj = mj/rhoj;
 
