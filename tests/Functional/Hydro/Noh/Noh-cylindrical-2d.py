@@ -699,4 +699,3 @@ Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e
 print "Total energy error: %g" % Eerror
 if compatibleEnergy and abs(Eerror) > 1e-13:
     raise ValueError, "Energy error outside allowed bounds."
-    

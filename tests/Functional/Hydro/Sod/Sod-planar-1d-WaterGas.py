@@ -4,6 +4,12 @@
 #ATS:fsisph1 = test(           SELF, "--fsisph True --solid True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Water-Gas Sod problem with FSISPH -- 1-D (serial)")
 #ATS:fsisph2 = testif(fsisph1, SELF, "--fsisph True --solid True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Water-Gas Sod problem with FSISPH -- 1-D (serial) RESTART CHECK")
 #
+# GSPH
+#
+#ATS:gsph1 = test(         SELF, "--gsph True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Water-Gas Sod problem with GSPH -- 1-D (serial)")
+#ATS:gsph2 = testif(gsph1, SELF, "--gsph True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Water-Gas Sod problem with GSPH -- 1-D (serial) RESTART CHECK")
+#
+
 import os, sys
 import shutil
 from SolidSpheral1d import *
@@ -53,7 +59,8 @@ commandLine(nx1 = 1000,     # number of nodes
             crksph = False,   # based on conservative formulation w/ repoducing kernels
             psph = False,     # pressure based sph
             fsisph = False,   # multimaterial patching method
-            
+            gsph = False,     # Convolution-free godunov-SPH
+
             # FSI parameters
             fsiRhoStabilizeCoeff = 0.0,         # diffusion operating through the vel-gradient
             fsiEpsDiffuseCoeff = 0.0,           # diffusion coeff for specific thermal energy
@@ -63,6 +70,10 @@ commandLine(nx1 = 1000,     # number of nodes
             # CRK parameters
             correctionOrder = LinearOrder,
             volumeType = RKSumVolume,
+
+            # GSPH parameters
+            gsphReconstructionGradient = RiemannGradient,
+            linearReconstruction = True,
 
             # general hydro parameters
             densityUpdate = IntegrateDensity,     # (RigorousSumDensity, IntegrateDensity, CorrectedSumDensity)
@@ -124,9 +135,8 @@ commandLine(nx1 = 1000,     # number of nodes
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
-assert not (fsisph and not solid)       # only implemented for solid
-assert (fsisph + crksph + psph <= 1)    # only one hydro selection
-#assert mpi.procs == 1
+assert not (fsisph and not solid)              # only implemented for solid
+assert (fsisph + crksph + psph + gsph <= 1)    # only one hydro selection
 
 if crksph:
     hydroname = os.path.join("CRKSPH",
@@ -136,6 +146,8 @@ elif psph:
     hydroname = "PSPH"
 elif fsisph:
     hydroname = "FSISPH"
+elif gsph:
+    hydroname = os.path.join("GSPH",str(gsphReconstructionGradient))
 else:
     hydroname = "SPH"
 if solid:
@@ -302,6 +314,25 @@ elif fsisph:
                    evolveTotalEnergy = evolveTotalEnergy,
                    correctVelocityGradient = correctVelocityGradient,
                    HUpdate = HUpdate)
+elif gsph:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,
+                  waveSpeed,
+                  linearReconstruction,           # False - first order , True - second order
+                  gsphReconstructionGradient)     # what gradient are we using in reconstruction
+    hydro = GSPH(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -322,40 +353,41 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Tweak the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = hydro.Q
-if not Cl is None:
-    q.Cl = Cl
-if not Cq is None:
-    q.Cq = Cq
-if not linearInExpansion is None:
-    q.linearInExpansion = linearInExpansion
-if not quadraticInExpansion is None:
-    q.quadraticInExpansion = quadraticInExpansion
-if not Qlimiter is None:
-    q.limiter = Qlimiter
-if not epsilon2 is None:
-    q.epsilon2 = epsilon2
-if not etaCritFrac is None:
-    q.etaCritFrac = etaCritFrac
-if not etaFoldFrac is None:
-    q.etaFoldFrac = etaFoldFrac
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.limiter")
-output("q.epsilon2")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+if not gsph:
+    q = hydro.Q
+    if not Cl is None:
+        q.Cl = Cl
+    if not Cq is None:
+        q.Cq = Cq
+    if not linearInExpansion is None:
+        q.linearInExpansion = linearInExpansion
+    if not quadraticInExpansion is None:
+        q.quadraticInExpansion = quadraticInExpansion
+    if not Qlimiter is None:
+        q.limiter = Qlimiter
+    if not epsilon2 is None:
+        q.epsilon2 = epsilon2
+    if not etaCritFrac is None:
+        q.etaCritFrac = etaCritFrac
+    if not etaFoldFrac is None:
+        q.etaFoldFrac = etaFoldFrac
+    output("q")
+    output("q.Cl")
+    output("q.Cq")
+    output("q.limiter")
+    output("q.epsilon2")
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
 
-#-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
-    packages.append(evolveReducingViscosityMultiplier)
-elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
-    packages.append(evolveCullenViscosityMultiplier)
+    #-------------------------------------------------------------------------------
+    # Construct the MMRV physics object.
+    #-------------------------------------------------------------------------------
+    if boolReduceViscosity:
+        evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
+        packages.append(evolveReducingViscosityMultiplier)
+    elif boolCullenViscosity:
+        evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+        packages.append(evolveCullenViscosityMultiplier)
 
 
 
