@@ -1,3 +1,4 @@
+### Used to run c++ tests through python for ats
 #ATS:test(SELF, label="CXX unit tests")
 import subprocess
 
