@@ -39,6 +39,7 @@ public:
                                  const PhysicalConstants& constants,
                                  const double minimumPressure,
                                  const double maximumPressure,
+                                 const double minimumPressureDamage,
                                  const MaterialPressureMinType minPressureType);
   virtual ~PhysicsEvolvingMaterialLibrary();
 

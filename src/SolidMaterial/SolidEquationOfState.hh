@@ -31,6 +31,7 @@ public:
                        const PhysicalConstants& constants,
                        const double minimumPressure,
                        const double maximumPressure,
+                       const double minimumPressureDamage,
                        const MaterialPressureMinType minPressureType);
   virtual ~SolidEquationOfState();
 
@@ -38,10 +39,12 @@ public:
   virtual double referenceDensity() const;
   double etamin() const;
   double etamax() const;
+  double minimumPressureDamage() const;
   
   virtual void referenceDensity(const double x);
   void etamin(double x);
   void etamax(double x);
+  void minimumPressureDamage(double x);
   
   // Compute eta = rho/refrho, bounded to be in [etamin, etamax].
   double boundedEta(const double rho) const;
@@ -50,7 +53,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mReferenceDensity, mEtaMin, mEtaMax;
+  double mReferenceDensity, mEtaMin, mEtaMax, mMinimumPressureDamage;
 
   // Disallow default constructor
   SolidEquationOfState();
