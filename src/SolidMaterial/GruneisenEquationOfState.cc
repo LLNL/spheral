@@ -34,6 +34,7 @@ GruneisenEquationOfState(const double referenceDensity,
                          const double externalPressure,
                          const double minimumPressure,
                          const double maximumPressure,
+                         const double minimumPressureDamage,
                          const MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
@@ -41,6 +42,7 @@ GruneisenEquationOfState(const double referenceDensity,
                                   constants,
                                   minimumPressure,
                                   maximumPressure,
+                                  minimumPressureDamage,
                                   minPressureType),
   mC0(C0),
   mS1(S1),
@@ -71,12 +73,14 @@ GruneisenEquationOfState<Dimension>::~GruneisenEquationOfState() {
 template<typename Dimension>
 void
 GruneisenEquationOfState<Dimension>::
-setPressure(Field<Dimension, Scalar>& Pressure,
+setPressure(Field<Dimension, Scalar>& pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (auto i = 0u; i != Pressure.size(); ++i) {
-    Pressure(i) = this->pressure(massDensity(i),specificThermalEnergy(i));
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
   }
 }
 
@@ -90,7 +94,9 @@ setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (auto i = 0u; i != temperature.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     temperature(i) = this->temperature(massDensity(i),specificThermalEnergy(i));
   }
 }
@@ -105,7 +111,9 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
   CHECK(valid());
-  for (auto i = 0u; i != specificThermalEnergy.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), temperature(i));
   }
 }
@@ -133,7 +141,9 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (auto i = 0u; i != soundSpeed.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     soundSpeed(i) = this->soundSpeed(massDensity(i),specificThermalEnergy(i));
   }
 }
@@ -148,8 +158,10 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (auto i = 0u; i != gamma.size(); ++i) {
-    gamma(i) = this->gamma(massDensity(i),specificThermalEnergy(i));
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    gamma(i) = this->gamma(massDensity(i), specificThermalEnergy(i));
   }
 }
 
@@ -163,7 +175,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (auto i = 0u; i != bulkModulus.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     bulkModulus(i) = this->bulkModulus(massDensity(i),specificThermalEnergy(i));
   }
 }
@@ -178,7 +192,9 @@ setEntropy(Field<Dimension, Scalar>& entropy,
            const Field<Dimension, Scalar>& massDensity,
            const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     entropy(i) = pressure(massDensity(i), specificThermalEnergy(i))*safeInvVar(pow(massDensity(i), gamma(massDensity(i), specificThermalEnergy(i))));
   }
 }

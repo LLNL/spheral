@@ -106,7 +106,6 @@ commandLine(length = 3.0,
             damageCoupling = PairMaxDamage,
             cullToWeakestFlaws = False,
             damageInCompression = False,
-            negativePressureInDamage = False,
 
             # Johnson-Cook choices
             D1 = 0.0,
@@ -444,8 +443,7 @@ else:
                 HUpdate = HUpdate,
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
-                nTensile = nTensile,
-                negativePressureInDamage = negativePressureInDamage)
+                nTensile = nTensile)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")

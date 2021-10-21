@@ -38,6 +38,7 @@ OsborneEquationOfState(const double referenceDensity,
                        const double externalPressure,
                        const double minimumPressure,
                        const double maximumPressure,
+                       const double minimumPressureDamage,
                        const MaterialPressureMinType minPressureType):
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
@@ -45,6 +46,7 @@ OsborneEquationOfState(const double referenceDensity,
                                   constants,
                                   minimumPressure,
                                   maximumPressure,
+                                  minimumPressureDamage,
                                   minPressureType),
   mA1(a1),
   mA2pos(a2pos),
@@ -83,7 +85,9 @@ setPressure(Field<Dimension, Scalar>& pressure,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
   const double rho0 = this->referenceDensity();
-  for (auto i = 0u; i != pressure.size(); ++i) {
+  const auto n = pressure.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     const double eta = this->boundedEta(massDensity(i));
     const double mu = eta - 1.0;
     const double E = rho0*specificThermalEnergy(i);
@@ -144,7 +148,9 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (auto i = 0u; i != soundSpeed.size(); ++i) {
+  const auto n = soundSpeed.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     const double dPdrhoi = DPDrho(massDensity(i), specificThermalEnergy(i));
     CHECK(dPdrhoi >= 0.0);
     soundSpeed(i) = sqrt(dPdrhoi);
@@ -161,7 +167,9 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& /*specificThermalEnergy*/) const {
   CHECK(mCv > 0.0);
-  for (auto i = 0u; i != gamma.size(); ++i) {
+  const auto n = gamma.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     const double eta = this->boundedEta(massDensity(i)),
                  rho0 = this->referenceDensity(),
                  rho = rho0*eta,
@@ -180,7 +188,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  for (auto i = 0u; i != bulkModulus.size(); ++i) {
+  const auto n = bulkModulus.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     bulkModulus(i) = massDensity(i) * DPDrho(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -195,7 +205,9 @@ setEntropy(Field<Dimension, Scalar>& entropy,
            const Field<Dimension, Scalar>& massDensity,
            const Field<Dimension, Scalar>& specificThermalEnergy) const {
   this->setPressure(entropy, massDensity, specificThermalEnergy);
-  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+  const auto n = massDensity.numElements();
+#pragma omp parallel for
+  for (auto i = 0u; i < n ; ++i) {
     const double eta = this->boundedEta(massDensity(i)),
                  rho0 = this->referenceDensity(),
                  rho = rho0*eta,
