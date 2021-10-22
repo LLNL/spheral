@@ -31,6 +31,9 @@ def makeDistributeNodesMethod(distribute, SpheralModule):
 
     return f
 
+# For backwards compatibility we provide a default distributor here
+from PeanoHilbertDistributeNodes import *
+
 #-------------------------------------------------------------------------------
 # Old method for handling 1-D distributions.  Deprecated now.
 # Distribute sets of nodes evenly in the given ranges (1d)
