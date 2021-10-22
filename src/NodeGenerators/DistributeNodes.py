@@ -31,10 +31,6 @@ def makeDistributeNodesMethod(distribute, SpheralModule):
 
     return f
 
-# We provide the SortAndDivide methods implicitly for backward-compatibility
-for dim in dims:
-    exec("import Spheral{dim}d; distributeNodes{dim}d = makeDistributeNodesMethod('{distributor}', Spheral{dim}d)".format(dim=dim, distributor="SortAndDivideRedistribute"))
-
 #-------------------------------------------------------------------------------
 # Old method for handling 1-D distributions.  Deprecated now.
 # Distribute sets of nodes evenly in the given ranges (1d)
