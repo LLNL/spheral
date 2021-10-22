@@ -57,7 +57,7 @@ commandLine(
     outputFile = "Collisionless_sphere_collapse.gnu",
     checkRestart = False,
     checkRef = False,
-    tol = 1.0e-5,
+    tol = 5.0e-5,
     )
 
 # Reference values for tests
@@ -65,7 +65,7 @@ if timeStepChoice == AccelerationRatio:
     coefsRef = np.array([ 8.33175998e+00,  1.24358171e-12, -2.83895427e-23])
     sigmaPhiRef = 9.25853628363647
 elif timeStepChoice == DynamicalTime:
-    coefsRef = np.array([ 8.29012807e+00,  1.20195868e-12, -2.60750402e-23])
+    coefsRef = np.array([ 8.29009280e+00,  1.20192051e-12, -2.60731358e-23])
     sigmaPhiRef = 8.968145544554178
 
 # Convert to MKS units.
