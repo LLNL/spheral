@@ -4,71 +4,36 @@ import mpi
 import distributeNodesGeneric
 from NodeGeneratorBase import ConstantRho
 
-#-------------------------------------------------------------------------------
-# Domain decompose using the sort and divide scheme (1d method).
-#-------------------------------------------------------------------------------
-def distributeNodes1d(*listOfNodeTuples):
-    if mpi.procs > 1:
-        distributeNodesGeneric.distributeNodesGeneric(listOfNodeTuples,
-                                                      DataBase1d,
-                                                      globalNodeIDs1d,
-                                                      SortAndDivideRedistributeNodes1d)
-    else:
-        distributeNodesGeneric.distributeNodesGeneric(listOfNodeTuples,
-                                                      DataBase1d,
-                                                      globalNodeIDs1d,
-                                                      None)
+from spheralDimensions import spheralDimensions
+dims = spheralDimensions()
 
 #-------------------------------------------------------------------------------
-# Domain decompose using the sort and divide scheme (2d method).
+# A factory string pattern for making distributors based on different algorithms
 #-------------------------------------------------------------------------------
-def distributeNodes2d(*listOfNodeTuples):
-    if mpi.procs > 1:
-        distributeNodesGeneric.distributeNodesGeneric(listOfNodeTuples,
-                                                      DataBase2d,
-                                                      globalNodeIDs2d,
-                                                      SortAndDivideRedistributeNodes2d)
-    else:
-        distributeNodesGeneric.distributeNodesGeneric(listOfNodeTuples,
-                                                      DataBase2d,
-                                                      globalNodeIDs2d,
-                                                      None)
+def makeDistributeNodesMethod(distribute, SpheralModule):
+    assert type(distribute) == str
 
-#-------------------------------------------------------------------------------
-# Domain decompose using the sort and divide scheme (3d method).
-#-------------------------------------------------------------------------------
-def distributeNodes3d(*listOfNodeTuples):
-    if mpi.procs > 1:
-        distributeNodesGeneric.distributeNodesGeneric(listOfNodeTuples,
-                                                      DataBase3d,
-                                                      globalNodeIDs3d,
-                                                      SortAndDivideRedistributeNodes3d)
-    else:
-        distributeNodesGeneric.distributeNodesGeneric(listOfNodeTuples,
-                                                      DataBase3d,
-                                                      globalNodeIDs3d,
-                                                      None)
+    def f(*listOfNodeTuples):
+        "Domain decompose using the %s method)" % distribute
+        import mpi
+        if mpi.procs > 1:
+            if not hasattr(SpheralModule, distribute):
+                raise RuntimeError, "ERROR: %s is not available in the Spheral module" % distribute
+            distributeNodesGeneric.distributeNodesGeneric(listOfNodeTuples,
+                                                          SpheralModule.DataBase,
+                                                          SpheralModule.globalNodeIDs,
+                                                          getattr(SpheralModule, distribute))
+        else:
+            distributeNodesGeneric.distributeNodesGeneric(listOfNodeTuples,
+                                                          SpheralModule.DataBase,
+                                                          SpheralModule.globalNodeIDs,
+                                                          None)
 
-#-------------------------------------------------------------------------------
-# Provide no-op versions of the distributer.
-#-------------------------------------------------------------------------------
-def nullDistributeNodes1d(*listOfNodeTuples):
-    distributeNodesGeneric.distributeNodesGeneric(listOfNodeTuples,
-                                                  DataBase1d,
-                                                  globalNodeIDs1d,
-                                                  None)
+    return f
 
-def nullDistributeNodes2d(*listOfNodeTuples):
-    distributeNodesGeneric.distributeNodesGeneric(listOfNodeTuples,
-                                                  DataBase2d,
-                                                  globalNodeIDs2d,
-                                                  None)
-
-def nullDistributeNodes3d(*listOfNodeTuples):
-    distributeNodesGeneric.distributeNodesGeneric(listOfNodeTuples,
-                                                  DataBase3d,
-                                                  globalNodeIDs3d,
-                                                  None)
+# We provide the SortAndDivide methods implicitly for backward-compatibility
+for dim in dims:
+    exec("import Spheral{dim}d; distributeNodes{dim}d = makeDistributeNodesMethod('{distributor}', Spheral{dim}d)".format(dim=dim, distributor="SortAndDivideRedistribute"))
 
 #-------------------------------------------------------------------------------
 # Old method for handling 1-D distributions.  Deprecated now.
