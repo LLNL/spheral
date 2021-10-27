@@ -78,7 +78,7 @@ EquationOfState<Dimension>::minimumPressureType(const MaterialPressureMinType x)
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-EquationOfState<Dimension>::applyPressureLimits(const Scalar P) const {
+EquationOfState<Dimension>::applyPressureLimits(Scalar P) const {
   return (P < mMinimumPressure ? (mMinPressureType == MaterialPressureMinType::PressureFloor ? 
                                   mMinimumPressure :
                                   0.0) :

@@ -34,7 +34,6 @@ class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
                  epsTensile = 0.0,
                  nTensile = 4.0,
                  damageRelieveRubble = True,
-                 negativePressureInDamage = False,
                  strengthInDamage = False,
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
@@ -66,7 +65,6 @@ class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
                                           epsTensile,
                                           nTensile,
                                           damageRelieveRubble,
-                                          negativePressureInDamage,
                                           strengthInDamage,
                                           xmin,
                                           xmax)
@@ -103,7 +101,6 @@ def FSISPH(dataBase,
         epsTensile = 0.0,
         nTensile = 4.0,
         damageRelieveRubble = True,
-        negativePressureInDamage = False,
         strengthInDamage = False,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
@@ -223,7 +220,6 @@ def FSISPH(dataBase,
 
     if nsolid > 0:
         kwargs.update({"damageRelieveRubble"      : damageRelieveRubble,
-                       "negativePressureInDamage" : negativePressureInDamage,
                        "strengthInDamage"         : strengthInDamage})
 
     # Build and return the thing.
@@ -260,7 +256,6 @@ def AFSISPH(dataBase,
          epsTensile = 0.0,
          nTensile = 4.0,
          damageRelieveRubble = False,
-         negativePressureInDamage = False,
          strengthInDamage = False,
          xmin = (-1e100, -1e100, -1e100),
          xmax = ( 1e100,  1e100,  1e100)):
@@ -288,7 +283,6 @@ def AFSISPH(dataBase,
                epsTensile = epsTensile,
                nTensile = nTensile,
                damageRelieveRubble = damageRelieveRubble,
-               negativePressureInDamage = negativePressureInDamage,
                strengthInDamage = strengthInDamage,
                xmin = xmin,
                xmax = xmax,

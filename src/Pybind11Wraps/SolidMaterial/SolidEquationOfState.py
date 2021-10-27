@@ -23,6 +23,7 @@ class SolidEquationOfState(EquationOfState):
                constants = "const PhysicalConstants&",
                minimumPressure = "const double",
                maximumPressure = "const double",
+               minimumPressureDamage = "const double",
                minPressureType = "const MaterialPressureMinType"):
         "Solid EOS base constructor"
 
@@ -42,6 +43,7 @@ class SolidEquationOfState(EquationOfState):
 
     #...........................................................................
     # Properties
-    referenceDensity = PYB11property("double", "referenceDensity", "referenceDensity")
-    etamin = PYB11property("double", "etamin", "etamin")
-    etamax = PYB11property("double", "etamax", "etamax")
+    referenceDensity = PYB11property("double", "referenceDensity", "referenceDensity", doc="Reference density for material")
+    etamin = PYB11property("double", "etamin", "etamin", doc="Minimum value of rho/rho0 during lookups")
+    etamax = PYB11property("double", "etamax", "etamax", doc="Maximum value of rho/rho0 during lookups")
+    minimumPressureDamage = PYB11property("double", "minimumPressureDamage", "minimumPressureDamage", doc="Minimum pressure in fully damaged material")

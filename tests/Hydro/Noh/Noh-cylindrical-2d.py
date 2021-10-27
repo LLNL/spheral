@@ -16,8 +16,8 @@
 #
 # GSPH
 #
-#ATS:gsph0 = test(        SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical GSPH, nPerh=2.0", np=8)
-#ATS:gsph1 = testif(sph0, SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical GSPH, nPerh=2.0, restart test", np=8)
+#ATS:gsph0 = test(         SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical GSPH, nPerh=2.0", np=8)
+#ATS:gsph1 = testif(gsph0, SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical GSPH, nPerh=2.0, restart test", np=8)
 
 
 #-------------------------------------------------------------------------------
@@ -65,6 +65,7 @@ commandLine(order = 5,
             svph = False,
             crksph = False,
             psph = False,
+            fsisph = False,
             gsph = False,
             asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             boolReduceViscosity = False,
@@ -137,6 +138,8 @@ commandLine(order = 5,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
+assert not(gsph and (boolReduceViscosity or boolCullenViscosity))
+assert not(fsisph and not solid)
 assert thetaFactor in (0.5, 1.0, 2.0)
 theta = thetaFactor * pi
 
@@ -327,7 +330,19 @@ elif psph:
                  HUpdate = HUpdate,
                  XSPH = XSPH,
                  ASPH = asph)
-     
+elif fsisph:
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   interfaceMethod = ModulusInterface,
+                   sumDensityNodeLists=[nodes1],                       
+                   densityStabilizationCoefficient = 0.00,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   correctVelocityGradient = correctVelocityGradient,
+                   HUpdate = HUpdate) 
 elif gsph:
     limiter = VanLeerLimiter()
     waveSpeed = DavisWaveSpeed()

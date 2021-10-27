@@ -9,6 +9,21 @@ import unittest
 import random
 rangen = random.Random()
 
+#===========================================================================
+# A generator for creating a range of x values to test
+#===========================================================================
+def xgen(n, xmin, xmax):
+    assert n > 2
+    count = 0
+    while count < n:
+        if count == 0:
+            yield xmin
+        elif count == n - 1:
+            yield xmax
+        else:
+            yield rangen.uniform(xmin, xmax)
+        count += 1
+
 #===============================================================================
 # TestQuadraticInterpolator
 #===============================================================================
@@ -18,7 +33,7 @@ class TestQuadraticInterpolator(unittest.TestCase):
     # Set up
     #===========================================================================
     def setUp(self):
-        self.ntests = 1000
+        self.ntests = 100000
         self.n = 100
         self.xmin = -10.0
         self.xmax =  40.0
@@ -26,9 +41,9 @@ class TestQuadraticInterpolator(unittest.TestCase):
         self.A = rangen.uniform(-100.0, 100.0)
         self.B = rangen.uniform(-100.0, 100.0)
         self.C = rangen.uniform(-100.0, 100.0)
-        self.xvals = [self.xmin + i*self.dx for i in xrange(self.n)]
-        self.yvals = vector_of_double([self.y(self.xmin + i*self.dx) for i in xrange(self.n)])
-        self.F = QuadraticInterpolator(self.xmin, self.xmax, self.yvals)
+        yvals = vector_of_double([self.y(self.xmin + i*self.dx) for i in xrange(self.n)])
+        self.F = QuadraticInterpolator(self.xmin, self.xmax, yvals)
+        self.fuzz = 1.0e-10
         return
 
     #===========================================================================
@@ -53,27 +68,24 @@ class TestQuadraticInterpolator(unittest.TestCase):
     # Interpolate y
     #===========================================================================
     def test_yinterp(self):
-        for i in xrange(self.ntests):
-            x = rangen.uniform(self.xmin, self.xmax)
-            self.failUnless(fuzzyEqual(self.F(x), self.y(x), 1.0e-10),
+        for x in xgen(self.ntests, self.xmin, self.xmax):
+            self.failUnless(fuzzyEqual(self.F(x), self.y(x), self.fuzz),
                             "Error interpolating F(x): %g != %g" % (self.F(x), self.y(x)))
 
     #===========================================================================
     # Interpolate dy/dx
     #===========================================================================
     def test_dyinterp(self):
-        for i in xrange(self.ntests):
-            x = rangen.uniform(self.xmin, self.xmax)
-            self.failUnless(fuzzyEqual(self.yprime(x), self.F.prime(x), 1.0e-10),
+        for x in xgen(self.ntests, self.xmin, self.xmax):
+            self.failUnless(fuzzyEqual(self.yprime(x), self.F.prime(x), self.fuzz),
                             "Error interpolating F'(x): %g != %g" % (self.F.prime(x), self.yprime(x)))
 
     #===========================================================================
     # Interpolate d^2y/dx^2
     #===========================================================================
     def test_dy2interp(self):
-        for i in xrange(self.ntests):
-            x = rangen.uniform(self.xmin, self.xmax)
-            self.failUnless(fuzzyEqual(self.yprime2(x), self.F.prime2(x), 1.0e-10),
+        for x in xgen(self.ntests, self.xmin, self.xmax):
+            self.failUnless(fuzzyEqual(self.yprime2(x), self.F.prime2(x), self.fuzz),
                             "Error interpolating F''(x): %g != %g" % (self.F.prime2(x), self.yprime2(x)))
 
 if __name__ == "__main__":
