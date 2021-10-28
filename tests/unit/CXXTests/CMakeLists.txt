@@ -24,7 +24,7 @@ foreach(test ${gtest_spheral_tests})
 
   blt_add_executable(NAME ${test_name}
                      SOURCES ${test}
-                     OUTPUT_DIR ${PROJECT_BINARY_DIR}/tests/Unit/CXXTests
+                     OUTPUT_DIR ${PROJECT_BINARY_DIR}/tests/unit/CXXTests
                      DEPENDS_ON gtest -Wl,--start-group ${SPHERAL_CXX_LIBS} ${spheral_blt_depends} -Wl,--end-group ${CMAKE_DL_LIBS}
                      )
 
@@ -34,12 +34,12 @@ foreach(test ${gtest_spheral_tests})
 
   if (NOT ENABLE_CXXONLY)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/pyRunCXXTest.in"
-                   "${CMAKE_INSTALL_PREFIX}/tests/Unit/CXXTests/${test_name}.py"
+                   "${CMAKE_INSTALL_PREFIX}/tests/unit/CXXTests/${test_name}.py"
                    )
   endif()
   
   install(TARGETS ${test_name}
-          DESTINATION ${CMAKE_INSTALL_PREFIX}/tests/Unit/CXXTests
+          DESTINATION ${CMAKE_INSTALL_PREFIX}/tests/unit/CXXTests
           )
   
   set_target_properties(${test_name} PROPERTIES
@@ -51,6 +51,6 @@ string(REPLACE ";" ", " TEST_LIST "${TESTS}")
 
 if (NOT ENABLE_CXXONLY)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/runCXXTests.in"
-                 "${CMAKE_INSTALL_PREFIX}/tests/Unit/CXXTests/runCXXTests.ats"
+                 "${CMAKE_INSTALL_PREFIX}/tests/unit/CXXTests/runCXXTests.ats"
                  )
 endif()
