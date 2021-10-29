@@ -12,12 +12,12 @@ title("1-D integrated hydro test -- planar Sedov problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nRadial = 50,
+commandLine(# discretization & domain
+            nRadial = 50,
             rmin = 0.0,
             rmax = 1.0,
-            nPerh = 1.51,
-            order = 5, 
 
+            # material properties
             rho0 = 1.0,
             eps0 = 0.0,
             Espike = 1.0,
@@ -27,16 +27,40 @@ commandLine(nRadial = 50,
             gamma = 5.0/3.0,
             mu = 1.0,
             smallPressure = False,
+            rhomin = 1e-10,
 
+            #Kernel 
+            HUpdate = IdealH,
+            nPerh = 1.51,
+            order = 5, 
+            hmin = 1e-15,
+            hmax = 1.0,
+
+            # hydro type
             crksph = False,
             psph = False,
-            asph = False,  # Selects the H update algorithm -- can be used with CRK, PSPH, SPH, etc.
-            correctionOrder = LinearOrder,
-            volumeType = RKSumVolume,
-            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-            HUpdate = IdealH,
-            filter = 0.0,
+            gsph = False,
+            fsisph = False,
 
+            # hydro options
+            solid = False,
+            asph = False,                       # Selects the H update algorithm -- can be used with CRK, PSPH, SPH, etc.
+            XSPH = False,
+            evolveTotalEnergy = False,          # Only for SPH variants -- evolve total rather than specific energy
+            compatibleEnergy = True,
+            gradhCorrection = True,
+            correctVelocityGradient = True,
+            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+            filter = 0.0,
+            
+            # crksph options
+            correctionOrder = LinearOrder,
+
+            # gsph options
+            RiemannGradientType = RiemannGradient, # (RiemannGradient,SPHGradient,HydroAccelerationGradient,OnlyDvDxGradient,MixedMethodGradient)
+            linearReconstruction = True,
+
+            # artificial viscosity options
             boolReduceViscosity = False,
             nh = 5.0,
             aMin = 0.1,
@@ -49,16 +73,10 @@ commandLine(nRadial = 50,
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
-            HopkinsConductivity = False,     # For PSPH
-            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
-
-            hmin = 1e-15,
-            hmax = 1.0,
+            
+            # integration
             cfl = 0.5,
-            useVelocityMagnitudeForDt = True,
-            XSPH = False,
-            rhomin = 1e-10,
-
+            useVelocityMagnitudeForDt = False,
             steps = None,
             goalTime = None,
             goalRadius = 0.8,
@@ -70,17 +88,14 @@ commandLine(nRadial = 50,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            HEvolution = IdealH,
-            compatibleEnergy = True,
-            gradhCorrection = True,
-            correctVelocityGradient = True,
 
+            # IO
             restoreCycle = -1,
             restartStep = 1000,
 
             graphics = True,
             clearDirectories = False,
-            dataRoot = "dumps-planar-Sedov",
+            dataDirBase = "dumps-planar-Sedov",
             outputFile = "None",
             )
 
@@ -90,6 +105,9 @@ if smallPressure:
     print "WARNING: smallPressure specified, so setting eps0=%g" % eps0
 
 assert not(boolReduceViscosity and boolCullenViscosity)
+assert not(gsph and (boolReduceViscosity or boolCullenViscosity))
+assert not(fsisph and not solid)
+
 # Figure out what our goal time should be.
 import SedovAnalyticSolution
 h0 = 1.0/nRadial*nPerh
@@ -116,12 +134,16 @@ if crksph:
     hydroname = "CRKSPH"
 elif psph:
     hydroname = "PSPH"
+elif gsph:
+    hydroname = "GSPH"
+elif fsisph:
+    hydroname = "FSISPH"
 else:
     hydroname = "SPH"
 if asph:
     hydroname = "A" + hydroname
 
-dataDir = os.path.join(dataRoot,
+dataDir = os.path.join(dataDirBase,
                        hydroname,
                        "nperh=%4.2f" % nPerh,
                        "XSPH=%s" % XSPH,
@@ -159,12 +181,17 @@ output("WT")
 #-------------------------------------------------------------------------------
 # Create a NodeList and associated Neighbor object.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos, 
-                           hmin = hmin,
-                           hmax = hmax,
-                           nPerh = nPerh,
-                           kernelExtent = kernelExtent,
-                           rhoMin = rhomin)
+if solid:
+    nodeListConstructor = makeSolidNodeList
+else:
+    nodeListConstructor = makeFluidNodeList
+
+nodes1 = nodeListConstructor("nodes1", eos, 
+                             hmin = hmin,
+                             hmax = hmax,
+                             nPerh = nPerh,
+                             kernelExtent = kernelExtent,
+                             rhoMin = rhomin)
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
@@ -236,24 +263,51 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT, 
+                   order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
-                   correctionOrder = correctionOrder,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    ASPH = asph)
+elif fsisph:
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   filter = filter,
+                   cfl = cfl,
+                   interfaceMethod = ModulusInterface,
+                   sumDensityNodeLists=[nodes1],                       
+                   densityStabilizationCoefficient = 0.00,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
+                   correctVelocityGradient = correctVelocityGradient,
+                   HUpdate = HUpdate) 
+elif gsph:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,linearReconstruction,RiemannGradientType)
+    hydro = GSPH(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                specificThermalEnergyDiffusionCoefficient = 0.00,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient= correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                ASPH = asph,
+                densityUpdate=densityUpdate,
+                HUpdate = HUpdate)
 elif psph:
-    hydro = PASPH(dataBase = db,
+    hydro = PSPH(dataBase = db,
                       W = WT,
                       filter = filter,
                       cfl = cfl,
                       useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                       compatibleEnergyEvolution = compatibleEnergy,
                       evolveTotalEnergy = evolveTotalEnergy,
-                      HopkinsConductivity = HopkinsConductivity,
                       correctVelocityGradient = correctVelocityGradient,
                       densityUpdate = densityUpdate,
                       HUpdate = HUpdate,
@@ -269,38 +323,36 @@ else:
                 correctVelocityGradient = correctVelocityGradient,
                 densityUpdate = densityUpdate,
                 XSPH = XSPH,
-                HUpdate = HEvolution,
+                HUpdate = HUpdate,
                 ASPH = asph)
+
+packages = [hydro]
 output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.XSPH")
-output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
-q = hydro.Q
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+if not gsph:
+    q = hydro.Q
+    output("q")
+    output("q.Cl")
+    output("q.Cq")
+    output("q.epsilon2")
+    output("q.limiter")
+    output("q.balsaraShearCorrection")
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
 
-packages = [hydro]
-
-#-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
-    packages.append(evolveReducingViscosityMultiplier)
-elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
-    packages.append(evolveCullenViscosityMultiplier)
+    #-------------------------------------------------------------------------------
+    # Construct the MMRV physics object.
+    #-------------------------------------------------------------------------------
+    if boolReduceViscosity:
+        evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+        packages.append(evolveReducingViscosityMultiplier)
+    elif boolCullenViscosity:
+        evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+        packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.

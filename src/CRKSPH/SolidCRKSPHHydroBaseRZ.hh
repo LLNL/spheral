@@ -56,8 +56,7 @@ public:
                          const HEvolutionType HUpdate,
                          const double epsTensile,
                          const double nTensile,
-                         const bool damageRelieveRubble,
-                         const bool negativePressureInDamage);
+                         const bool damageRelieveRubble);
 
   // Destructor.
   virtual ~SolidCRKSPHHydroBaseRZ();

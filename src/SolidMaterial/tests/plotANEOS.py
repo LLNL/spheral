@@ -21,7 +21,7 @@ eosSiO2 =       ANEOS(1,                 # Material number (offset sequentially 
                       400,               # num T vals
                       rhoMin,            # minimum density (kg/m^3)
                       rhoMax,            # maximum density (kg/m^3)
-                      10.0*Tmin,              # minimum temperature (K)
+                      10.0*Tmin,         # minimum temperature (K)
                       Tmax,              # maximum temperature (K)
                       units)
 # eosForsterite = ANEOS(2,                 # Material number (offset sequentially from ANEOS.INPUT)

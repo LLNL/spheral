@@ -6,10 +6,10 @@
 #-------------------------------------------------------------------------------
 from SpheralCompiledPackages import PhysicalConstants
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
-
+from CaptureStdout import helpString
 from spheralDimensions import spheralDimensions
-dims = spheralDimensions()
 
+dims = spheralDimensions()
 for dim in dims:
     exec("""
 from SpheralCompiledPackages import ConstantStrength%(dim)sd as RealConstantStrength%(dim)sd
@@ -121,5 +121,5 @@ def ConstantStrength%(dim)sd(*args, **kwargs):
     kwargs["CSConstructor"] = RealConstantStrength%(dim)sd
     return _ConstantStrengthFactory(*args, **kwargs)
 
-ConstantStrength%(dim)sd.__doc__ = expectedUsageString
+ConstantStrength%(dim)sd.__doc__ = expectedUsageString + "\\n\\n" + helpString(RealConstantStrength%(dim)sd)
 """ % {"dim" : dim})

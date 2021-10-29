@@ -49,6 +49,7 @@ from VoidNodeLists import *
 # ------------------------------------------------------------------------------
 from SPHHydros import *
 from PSPHHydros import *
+from GSPHHydros import *
 from FSISPHHydros import *
 from SlideSurfaces import *
 #from SVPHHydros import *
@@ -115,7 +116,8 @@ for shadowedthing in ("TillotsonEquationOfState",
                       "GruneisenEquationOfState",
                       "ConstantStrength",
                       "ProbabilisticDamageModel",
-                      "IvanoviSALEDamageModel"):
+                      "IvanoviSALEDamageModel",
+                      "ANEOS"):
     for dim in dims:
         exec("from Shadow%(thing)s import %(thing)s%(dim)sd" % {"thing" : shadowedthing,
                                                                 "dim"   : dim})
