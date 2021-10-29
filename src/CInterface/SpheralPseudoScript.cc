@@ -373,7 +373,6 @@ template<> struct HydroConstructor<Dim<3>> {
                                                       const double epsTensile,
                                                       const double nTensile,
                                                       const bool damageRelieveRubble,
-                                                      const bool negativePressureInDamage,
                                                       const bool strengthInDamage,
                                                       const Dim<3>::Vector& xmin,
                                                       const Dim<3>::Vector& xmax,
@@ -393,8 +392,7 @@ template<> struct HydroConstructor<Dim<3>> {
                                                                                HUpdate,
                                                                                epsTensile,
                                                                                nTensile,
-                                                                               damageRelieveRubble,
-                                                                               negativePressureInDamage));
+                                                                               damageRelieveRubble));
     }
     else {
       return std::shared_ptr<Physics<Dim<3>>>(new SolidSPHHydroBase<Dim<3>>(smoothingScaleMethod,
@@ -417,7 +415,6 @@ template<> struct HydroConstructor<Dim<3>> {
                                                                             epsTensile,
                                                                             nTensile,
                                                                             damageRelieveRubble,
-                                                                            negativePressureInDamage,
                                                                             strengthInDamage,
                                                                             xmin,
                                                                             xmax));
@@ -452,7 +449,6 @@ template<> struct HydroConstructor<Dim<2>> {
                                                       const double epsTensile,
                                                       const double nTensile,
                                                       const bool damageRelieveRubble,
-                                                      const bool negativePressureInDamage,
                                                       const bool strengthInDamage,
                                                       const Dim<2>::Vector& xmin,
                                                       const Dim<2>::Vector& xmax,
@@ -473,8 +469,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                            HUpdate,
                                                                            epsTensile,
                                                                            nTensile,
-                                                                           damageRelieveRubble,
-                                                                           negativePressureInDamage));
+                                                                           damageRelieveRubble));
       }
       else {
         return std::shared_ptr<Physics<Dim<2>>>(new SolidSPHHydroBaseRZ(smoothingScaleMethod,
@@ -497,7 +492,6 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                         epsTensile,
                                                                         nTensile,
                                                                         damageRelieveRubble,
-                                                                        negativePressureInDamage,
                                                                         strengthInDamage,
                                                                         xmin,
                                                                         xmax));
@@ -518,8 +512,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                                  HUpdate,
                                                                                  epsTensile,
                                                                                  nTensile,
-                                                                                 damageRelieveRubble,
-                                                                                 negativePressureInDamage));
+                                                                                 damageRelieveRubble));
       }
       else {
         return std::shared_ptr<Physics<Dim<2>>>(new SolidSPHHydroBase<Dim<2>>(smoothingScaleMethod,
@@ -542,7 +535,6 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                               epsTensile,
                                                                               nTensile,
                                                                               damageRelieveRubble,
-                                                                              negativePressureInDamage,
                                                                               strengthInDamage,
                                                                               xmin,
                                                                               xmax));
@@ -639,7 +631,7 @@ initialize(const bool     RZ,
                                                                   1.0, 0.0, 0.0,
                                                                   100.0, 
                                                                   *me.mUnitsPtr,
-                                                                  0.0, 0.0, 1e100,
+                                                                  0.0, 0.0, 1e100, 0.0,
                                                                   MaterialPressureMinType::ZeroPressure));
   me.mStrengthModelPtr.reset(new NullStrength<Dimension>());
 
@@ -783,7 +775,6 @@ initialize(const bool     RZ,
                                                           0.0,                                  // epsTensile
                                                           4.0,                                  // nTensile
                                                           false,                                // damageRelieve
-                                                          false,                                // negativePressureInDamage
                                                           false,                                // strengthInDamage
                                                           xmin,                                 // xmin
                                                           xmax,                                 // xmax
