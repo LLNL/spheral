@@ -320,6 +320,7 @@ ANEOS(const int materialNumber,
       const double externalPressure,
       const double minimumPressure,
       const double maximumPressure,
+      const double minimumPressureDamage,
       const MaterialPressureMinType minPressureType,
       const bool useInterpolation):
   SolidEquationOfState<Dimension>(get_aneos_referencedensity_(const_cast<int*>(&materialNumber)),  // not in the right units yet!
@@ -328,6 +329,7 @@ ANEOS(const int materialNumber,
                                   constants,
                                   minimumPressure,
                                   maximumPressure,
+                                  minimumPressureDamage,
                                   minPressureType),
   mUseInterpolation(useInterpolation),
   mMaterialNumber(materialNumber),
@@ -488,11 +490,13 @@ ANEOS<Dimension>::
 template<typename Dimension>
 void
 ANEOS<Dimension>::
-setPressure(Field<Dimension, Scalar>& Pressure,
+setPressure(Field<Dimension, Scalar>& pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != (int)Pressure.size(); ++i) {
-    Pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
   }
 }
 
@@ -505,7 +509,9 @@ ANEOS<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != (int)temperature.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     temperature(i) = this->temperature(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -519,7 +525,9 @@ ANEOS<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
-  for (int i = 0; i != (int)specificThermalEnergy.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), temperature(i));
   }
 }
@@ -533,7 +541,9 @@ ANEOS<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& massDensity,
                 const Field<Dimension, Scalar>& temperature) const {
-  for (int i = 0; i != (int)specificHeat.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     specificHeat(i) = this->specificHeat(massDensity(i), temperature(i));
   }
 }
@@ -547,7 +557,9 @@ ANEOS<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != (int)soundSpeed.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     soundSpeed(i) = this->soundSpeed(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -561,7 +573,9 @@ ANEOS<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (auto i = 0u; i < gamma.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     gamma(i) = this->gamma(massDensity(i), specificThermalEnergy(i));
   }
   // int n = massDensity.numElements();
@@ -587,7 +601,9 @@ ANEOS<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != (int)bulkModulus.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     bulkModulus(i)=this->bulkModulus(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -601,7 +617,9 @@ ANEOS<Dimension>::
 setEntropy(Field<Dimension, Scalar>& entropy,
            const Field<Dimension, Scalar>& massDensity,
            const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != (int)entropy.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     entropy(i)=this->entropy(massDensity(i), specificThermalEnergy(i));
   }
 }
