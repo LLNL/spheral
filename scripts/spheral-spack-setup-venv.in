@@ -1,9 +1,10 @@
 cd @CMAKE_INSTALL_PREFIX@
 # echo "Creating Spheral virtual python environment ..."
 # @PYTHON_EXE@ @python_DIR@/bin/virtualenv -p @PYTHON_EXE@ --system-site-packages .venv
+mkdir -p lib/python2.7/site-packages
+mkdir -p bin
 
 echo "Installing Spheral python site-packages ..."
-mkdir -p lib/python2.7/site-packages
 cp @polytope_DIR@/lib/python2.7/site-packages/polytope/polytope.so @CMAKE_INSTALL_PREFIX@/lib/python2.7/site-packages/
 #cp Spheral.pth @CMAKE_INSTALL_PREFIX@/lib/python2.7/site-packages/
 cd - > /dev/null
@@ -16,12 +17,14 @@ cd - > /dev/null
 # cp -r @PYTHON_SITE_PACKAGE_DIR@/Gnuplot @CMAKE_INSTALL_PREFIX@/.venv/lib/python2.7/site-packages/
 # cp -r @PYTHON_SITE_PACKAGE_DIR@/ats @CMAKE_INSTALL_PREFIX@/.venv/lib/python2.7/site-packages/
 
-echo "Creating spheral symlink to spheral-env script ..."
+echo "Setting spheral script permissions ..."
 cd @CMAKE_INSTALL_PREFIX@
-mkdir -p bin
 chmod u+x scripts/spheral-env.sh
 chmod u+x scripts/atstest.sh
-cp --symbolic-link scripts/spheral-env.sh bin/spheral
-cp --symbolic-link scripts/atstest.sh bin/spheral-atstest
+
+echo "Creating spheral symlink to spheral-env script ..."
+cd @CMAKE_INSTALL_PREFIX@/bin
+cp --symbolic-link @CMAKE_INSTALL_PREFIX@/scripts/spheral-env.sh spheral
+cp --symbolic-link @CMAKE_INSTALL_PREFIX@/scripts/atstest.sh spheral-atstest
 cd - > /dev/null 
 
