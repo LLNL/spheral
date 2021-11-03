@@ -2,3 +2,6 @@
 [submodule "blt"]
 	path = cmake/blt
 	url = https://github.com/llnl/blt
+[submodule "scripts/uberenv"]
+	path = scripts/uberenv
+	url = https://github.com/llnl/uberenv
