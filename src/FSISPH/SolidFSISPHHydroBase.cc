@@ -353,7 +353,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   // const auto surfaceNormals = state.fields(FSIFieldNames::interfaceNormals,Vector::zero);
-  // const auto interfaceFraction = state.fields(FSIFieldNames::interfaceFraction,0.0);
+  const auto interfaceFraction = state.fields(FSIFieldNames::interfaceNeighborFraction,0.0);
 
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -575,7 +575,7 @@ if(this->correctVelocityGradient()){
 
       // Get the state for node i.
       //const auto& ni = surfaceNormals(nodeListi, i);
-      //const auto& fraci = interfaceFraction(nodeListi,i);
+      const auto& fraci = interfaceFraction(nodeListi,i);
       const auto& ri = position(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
@@ -612,7 +612,7 @@ if(this->correctVelocityGradient()){
 
       // Get the state for node j
       //const auto& nj = surfaceNormals(nodeListj, j);
-      //const auto& fracj = interfaceFraction(nodeListj,j);
+      const auto& fracj = interfaceFraction(nodeListj,j);
       const auto& rj = position(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
@@ -697,6 +697,7 @@ if(this->correctVelocityGradient()){
          const auto Hetaj = Hj*etaj.unitVector();
          auto gradWi = gWi*Hetai;
          auto gradWj = gWj*Hetaj;
+        
         
         // average our kernels
         const auto gradWij = 0.5*(gradWi+gradWj);
@@ -788,8 +789,8 @@ if(this->correctVelocityGradient()){
         if (constructInterface){
 
           // weights weights
-          const auto Ci = (constructHLLC ? rhoi*ci : abs(Ki*volj*gWi) ) + tiny;
-          const auto Cj = (constructHLLC ? rhoj*cj : abs(Kj*voli*gWj) ) + tiny;
+          const auto Ci =  (constructHLLC ? std::sqrt(rhoi*Ki)  : abs(Ki*volj*gWi) )  + tiny;
+          const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj)  : abs(Kj*voli*gWj) )  + tiny;
           const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : abs(mui*volj*gWi) ) + tiny;
           const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : abs(muj*voli*gWj) ) + tiny;
 
@@ -805,21 +806,36 @@ if(this->correctVelocityGradient()){
           const auto wj = vj - uj*rhatij;
 
           // get our eff pressure
-          const auto Psi = -rhatij.dot(sigmai.dot(rhatij));
-          const auto Psj = -rhatij.dot(sigmaj.dot(rhatij));
+          //const auto Psi = -rhatij.dot(sigmai.dot(rhatij));
+          //const auto Psj = -rhatij.dot(sigmaj.dot(rhatij));
+          const auto deltaSigij = fDj * Sj - fDi * Si - (Peffj - Peffi) * SymTensor::one;
+          //const auto Ci =   std::sqrt(rhoi*Ki)   + tiny;
+          //const auto Cj =   std::sqrt(rhoj*Kj)   + tiny;
+          const auto sigij = -rhatij.dot((deltaSigij).dot(rhatij));
+          //const auto interfaceCoeff = 0.5*(fraci*Hdeti+fracj*Hdetj)/(Hdeti+Hdetj);
+          //const auto effCoeff = min(max(rhoStabilizeCoeff,interfaceCoeff),1.0);
 
-          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ?  (Psj-Psi)/(Ci+Cj) : 0.0);
+          const auto ustar = weightUi*ui + weightUj*uj; // + (constructHLLC ?  (Psj-Psi)/(Ci+Cj) : 0.0);
           const auto wstar = weightWi*wi + weightWj*wj;
-          vstar = fSij * vstar + (1.0-fSij)*(ustar*rhatij + wstar);
+          vstar = fSij * vstar + (1.0-fSij)*(ustar*rhatij + wstar) ;
   
         }
 
         // this is a little opaque. For HLLC we don't want to 
         // stabilize across interface since thats baked into the 
         // construction already.
-        if (stabilizeDensity and (!constructHLLC or sameMatij) ){
-          vstar += rhoStabilizeCoeff * min(0.1, max(-0.1, (Pj-Pi)/(rhoi*ci*ci+rhoj*cj*cj))) * cij * rhatij;
-        }
+        //if (stabilizeDensity and sameMatij){
+          //const auto deltaSigij = fDj * Sj - fDi * Si - (Peffj - Peffi) * SymTensor::one;
+          //const auto Ci =   std::sqrt(rhoi*Ki)   + tiny;
+          //const auto Cj =   std::sqrt(rhoj*Kj)   + tiny;
+          //const auto sigij = -rhatij.dot((deltaSigij).dot(rhatij))*rhatij;
+          //const auto stabilizer = (sameMatij ?
+          //                                 (rhoj-rhoi)/(rhoi+rhoj) :
+          //                                 (Pj-Pi)/max(rhoi*ci*ci+rhoj*cj*cj,tiny));
+          //const auto interfaceCoeff = (fraci+fracj)*0.25;
+          //const auto effCoeff = min(max(rhoStabilizeCoeff,interfaceCoeff),1.0);
+        //  vstar += rhoStabilizeCoeff * rhatij * cij * max(min((rhoj-rhoi)/(rhoi+rhoj),0.2),-0.2);
+        //}
 
         auto deltaDvDxi = 2.0*(vi-vstar).dyad(gradWi);
         auto deltaDvDxj = 2.0*(vstar-vj).dyad(gradWj);
@@ -852,12 +868,14 @@ if(this->correctVelocityGradient()){
         
       // diffusion
       //-----------------------------------------------------------
-        if (sameMatij and diffuseEnergy){
-          const auto cijEff = max(min(cij + (vi-vj).dot(rhatij), cij),0.0);
-          const auto diffusion =  epsDiffusionCoeff*cijEff*(epsi-epsj)*etaij.dot(gradWij)/(rhoij*etaMagij*etaMagij+tiny);
-          pairDepsDt[2*kk]   += diffusion; 
-          pairDepsDt[2*kk+1] -= diffusion;
-        }
+        // if (sameMatij and diffuseEnergy){
+        //   const auto cijEff = max(min(cij + (vi-vj).dot(rhatij), cij),0.0);
+        //   const auto interfaceCoeff = (fraci+fracj)*0.25;
+        //   const auto effCoeff = min(max(epsDiffusionCoeff,interfaceCoeff),1.0);
+        //   const auto diffusion =  epsDiffusionCoeff*cijEff*(epsi-epsj)*etaij.dot(gradWij)/(rhoij*etaMagij*etaMagij+tiny);
+        //   pairDepsDt[2*kk]   += diffusion; 
+        //   pairDepsDt[2*kk+1] -= diffusion;
+        // }
 
 
         // XSPH

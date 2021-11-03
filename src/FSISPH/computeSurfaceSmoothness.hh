@@ -23,7 +23,8 @@ computeSurfaceSmoothness(const ConnectivityMap<Dimension>& connectivityMap,
                             const FieldList<Dimension, typename Dimension::Scalar>& massDensity,
                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
                             FieldList<Dimension, typename Dimension::Vector>& surfaceNormals,
-                            FieldList<Dimension, typename Dimension::Scalar>& surfaceVolumes,
+                            FieldList<Dimension, typename Dimension::Scalar>& surfaceFraction,
+                            FieldList<Dimension, typename Dimension::Scalar>& surfaceNeighborFraction,
                             FieldList<Dimension, typename Dimension::Scalar>& surfaceSmoothness);
 
 }

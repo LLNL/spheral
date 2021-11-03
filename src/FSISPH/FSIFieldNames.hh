@@ -11,6 +11,7 @@ namespace Spheral {
 struct FSIFieldNames {
   static const std::string interfaceNormals;
   static const std::string interfaceFraction;
+  static const std::string interfaceNeighborFraction;
   static const std::string interfaceSmoothness;
   static const std::string pairDepsDt;
 };
