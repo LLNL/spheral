@@ -72,10 +72,12 @@ commandLine(
 
     nPerh = 1.51,
 
-    SVPH = False,
-    CRKSPH = False,
-    PSPH = False,
-    SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+    svph = False,
+    crksph = False,
+    fsisph = False,
+    psph = False,
+    asph = False, 
+    solid = False,
     filter = 0.0,  # For CRKSPH
     KernelConstructor = NBSplineKernel,
     order = 5,
@@ -146,28 +148,24 @@ commandLine(
     )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
+
+
 # Decide on our hydro algorithm.
-if SVPH:
-    if SPH:
-        HydroConstructor = SVPHFacetedHydro
-    else:
-        HydroConstructor = ASVPHFacetedHydro
-elif CRKSPH:
+if svph:
+    hydroname = "SVPH"
+elif crksph:
     Qconstructor = CRKSPHMonaghanGingoldViscosity
-    if SPH:
-        HydroConstructor = CRKSPHHydro
-    else:
-        HydroConstructor = ACRKSPHHydro
-elif PSPH:
-    if SPH:
-        HydroConstructor = PSPHHydro
-    else:
-        HydroConstructor = APSPHHydro
+    hydroname = "CRKSPH"
+elif psph:
+    hydroname = "PSPH"
+elif fsisph:
+    hydroname = "FSISPH"
 else:
-    if SPH:
-        HydroConstructor = SPHHydro
-    else:
-        HydroConstructor = ASPHHydro
+    hydroname = "SPH"
+if asph:
+    hydroname = "A"+hydroname
+if solid:
+    hydroname = "solid"+hydroname
 
 #-------------------------------------------------------------------------------
 # Build our directory paths.
@@ -177,7 +175,7 @@ densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
                       RigorousSumDensity : "RigorousSumDensity",
                       SumVoronoiCellDensity : "SumVoronoiCellDensity"}
 baseDir = os.path.join(dataDir,
-                       HydroConstructor.__name__,
+                       hydroname,
                        Qconstructor.__name__,
                        KernelConstructor.__name__,
                        "Cl=%g_Cq=%g" % (Cl, Cq),
@@ -232,7 +230,11 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Make the NodeLists.
 #-------------------------------------------------------------------------------
-nodes = makeFluidNodeList("fluid", eos,
+if solid:
+    nodeListConstructor = makeSolidNodeList
+else:
+    nodeListConstructor = makeFluidNodeList
+nodes = nodeListConstructor("fluid", eos,
                           hmin = hmin,
                           hmax = hmax,
                           hminratio = hminratio,
@@ -328,64 +330,79 @@ output("q.quadraticInExpansion")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             densityUpdate = densityUpdate,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             generateVoid = False,
-                             HUpdate = HUpdate,
-                             fcentroidal = fcentroidal,
-                             fcellPressure = fcellPressure,
-                             xmin = Vector(x0 - (x1 - x0), y0 - (y1 - y0)),
-                             xmax = Vector(x1 + (x1 - x0), y3 + (y1 - y0)))
-elif CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
-elif PSPH:
-    hydro = HydroConstructor(W=WT,
-                             Q=q,
-                             filter=filter,
-                             cfl=cfl,
-                             compatibleEnergyEvolution=compatibleEnergy,
-                             evolveTotalEnergy=evolveTotalEnergy,
-                             HopkinsConductivity=HopkinsConductivity,
-                             correctVelocityGradient=correctVelocityGradient,
-                             densityUpdate=densityUpdate,
-                             HUpdate=HUpdate,
-                             XSPH=XPSH)
+packages=[]
+if svph:
+    hydro = SVPH(dataBase=db,
+                W = WT,
+                Q = q,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                densityUpdate = densityUpdate,
+                XSVPH = XSPH,
+                linearConsistent = linearConsistent,
+                generateVoid = False,
+                HUpdate = HUpdate,
+                fcentroidal = fcentroidal,
+                fcellPressure = fcellPressure,
+                xmin = Vector(x0 - (x1 - x0), y0 - (y1 - y0)),
+                xmax = Vector(x1 + (x1 - x0), y3 + (y1 - y0)))
+elif crksph:
+    hydro = CRKSPH(dataBase=db,
+                    Q = q,
+                    filter = filter,
+                    epsTensile = epsilonTensile,
+                    nTensile = nTensile,
+                    cfl = cfl,
+                    compatibleEnergyEvolution = compatibleEnergy,
+                    XSPH = XSPH,
+                    densityUpdate = densityUpdate,
+                    HUpdate = HUpdate)
+elif fsisph: 
+    hydro = FSISPH(dataBase = db,
+                Q=q,
+                W = WT,
+                cfl = cfl,                      
+                densityStabilizationCoefficient = 0.1,              
+                specificThermalEnergyDiffusionCoefficient = 0.1, 
+                correctVelocityGradient = correctVelocityGradient,
+                compatibleEnergyEvolution = compatibleEnergy,
+                HUpdate = HUpdate,
+                ASPH = asph,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+    packages += [hydro.slides]
+elif psph:
+    hydro = PSPH(dataBase=db,
+                W=WT,
+                Q=q,
+                filter=filter,
+                cfl=cfl,
+                compatibleEnergyEvolution=compatibleEnergy,
+                evolveTotalEnergy=evolveTotalEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                densityUpdate=densityUpdate,
+                HUpdate=HUpdate,
+                XSPH=XPSH)
 else:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             XSPH = XSPH,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase=db,
+                W = WT,
+                Q = q,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                XSPH = XSPH,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 output("hydro")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
-packages = [hydro]
+packages += [hydro]
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
@@ -407,7 +424,7 @@ for i in xrange(nodes.numInternalNodes):
         boundNodes.append(i)
 print "Selected %i boundary nodes" % mpi.allreduce(len(boundNodes), mpi.SUM)
 denialPlane = Plane(Vector(-2.0*rmax, 0.0), Vector(1.0, 0.0))  # A fake denial plane since we're working in circles.
-bc = ConstantBoundary(nodes, boundNodes, denialPlane)
+bc = ConstantBoundary(db,nodes, boundNodes, denialPlane)
 for p in packages:
     p.appendBoundary(bc)
 
@@ -471,24 +488,23 @@ if smooth:
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-if useVoronoiOutput:
-    import SpheralVoronoiSiloDump
-    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
-else:
-    vizMethod = None # default
+# if useVoronoiOutput:
+#     import SpheralVoronoiSiloDump
+#     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
+# else:
+#     vizMethod = None # default
 control = SpheralController(integrator, WT,
                             initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
-                            vizMethod = vizMethod,
+                            #vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            skipInitialPeriodicWork = (HydroConstructor in (SVPHFacetedHydro, ASVPHFacetedHydro)),
-                            SPH = SPH)
+                            skipInitialPeriodicWork = svph)
 output("control")
 
 #-------------------------------------------------------------------------------
