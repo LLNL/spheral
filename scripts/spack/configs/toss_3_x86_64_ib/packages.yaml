@@ -1,0 +1,193 @@
+packages:
+  all:
+    # This defaults us to machine specific flags of ivybridge which allows
+    # us to run on broadwell as well
+    target: [ivybridge]
+    compiler: [gcc, intel, pgi, clang]
+  cmake:
+    version: [3.14.5]
+    buildable: false
+
+    externals:
+    - spec: cmake@3.14.5
+      prefix: /usr/tce/packages/cmake/cmake-3.14.5
+  cuda:
+    version: [10.1.168]
+    buildable: false
+
+    externals:
+    - spec: cuda@10.1.168
+      prefix: /usr/tce/packages/cuda/cuda-10.1.168
+  hip:
+    version: [4.0.0, 4.1.0, 4.2.0]
+    buildable: false
+    externals:
+    - spec: hip@4.0.0
+      prefix: /opt/rocm-4.0.0/hip
+    - spec: hip@4.1.0
+      prefix: /opt/rocm-4.1.0/hip
+    - spec: hip@4.2.0
+      prefix: /opt/rocm-4.2.0/hip
+  llvm-amdgpu:
+    version: [4.0.0, 4.1.0, 4.2.0]
+    buildable: false
+    externals:
+    - spec: llvm-amdgpu@4.0.0
+      prefix: /opt/rocm-4.0.0/llvm
+    - spec: llvm-amdgpu@4.1.0
+      prefix: /opt/rocm-4.1.0/llvm
+    - spec: llvm-amdgpu@4.2.0
+      prefix: /opt/rocm-4.2.0/llvm
+  hsa-rocr-dev:
+    version: [4.0.0, 4.1.0, 4.2.0]
+    buildable: false
+    externals:
+    - spec: hsa-rocr-dev@4.0.0
+      prefix: /opt/rocm-4.0.0/
+    - spec: hsa-rocr-dev@4.1.0
+      prefix: /opt/rocm-4.1.0/
+    - spec: hsa-rocr-dev@4.2.0
+      prefix: /opt/rocm-4.2.0/
+  rocminfo:
+    version: [4.0.0, 4.1.0, 4.2.0]
+    buildable: false
+    externals:
+    - spec: rocminfo@4.0.0
+      prefix: /opt/rocm-4.0.0/
+    - spec: rocminfo@4.1.0
+      prefix: /opt/rocm-4.1.0/
+    - spec: rocminfo@4.2.0
+      prefix: /opt/rocm-4.2.0/
+  rocm-device-libs:
+    version: [4.0.0, 4.1.0, 4.2.0]
+    buildable: false
+    externals:
+    - spec: rocm-device-libs@4.0.0
+      prefix: /opt/rocm-4.0.0/
+    - spec: rocm-device-libs@4.1.0
+      prefix: /opt/rocm-4.1.0/
+    - spec: rocm-device-libs@4.2.0
+      prefix: /opt/rocm-4.2.0/
+  mvapich2:
+    externals:
+    - spec: mvapich2@2.3.1%clang@10.0.0~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
+        file_systems=lustre,nfs,ufs process_managers=slurm
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3-clang-10.0.0
+    - spec: mvapich2@2.3.1%clang@9.0.0~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
+        file_systems=lustre,nfs,ufs process_managers=slurm
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3-clang-9.0.0
+    - spec: mvapich2@2.3.1%pgi@19.7~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
+        file_systems=lustre,nfs,ufs process_managers=slurm
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3-pgi-19.7
+    - spec: mvapich2@2.3.1%pgi@20.1~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
+        file_systems=lustre,nfs,ufs process_managers=slurm
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3-pgi-20.1
+    - spec: mvapich2@2.3.1%intel@19.1.0.166~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
+        file_systems=lustre,nfs,ufs process_managers=slurm
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3-intel-19.1.0
+    - spec: mvapich2@2.3.1%intel@18.0.2~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
+        file_systems=lustre,nfs,ufs process_managers=slurm
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3-intel-18.0.2
+    - spec: mvapich2@2.3.1%intel@17.0.2~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
+        file_systems=lustre,nfs,ufs process_managers=slurm
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3-intel-17.0.2
+    - spec: mvapich2@2.3.1%gcc@8.1.0~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
+        file_systems=lustre,nfs,ufs process_managers=slurm
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3-gcc-8.1.0
+    - spec: mvapich2@2.3.1%gcc@8.3.1~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
+        file_systems=lustre,nfs,ufs process_managers=slurm
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3-gcc-8.3.1
+    - spec: mvapich2@2.3.1%gcc@4.9.3~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
+        file_systems=lustre,nfs,ufs process_managers=slurm
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3-gcc-4.9.3
+    buildable: false
+  llvm:
+    externals:
+    - spec: llvm@10.0.1
+      prefix: /usr/tce/packages/clang/clang-10.0.1/
+    buildable: false
+  opensubdiv:
+    externals:
+    - spec: opensubdiv@3.4.3
+      prefix: /usr/workspace/wsrzd/davis291/spack/opt/spack/linux-rhel7-broadwell/gcc-8.3.1/opensubdiv-3.4.3-ct3kqiacszbxftmhl5c266ppmq2t3ayw
+    buildable: false
+  python:
+    externals:
+    - spec: python@2.7.16
+      prefix: /usr/gapps/python/toss_3_x86_64/python-2.7.16
+    buildable: false
+  readline:
+    externals:
+    - spec: readline@7.0
+      prefix: /collab/usr/gapps/python/build/spack-toss3.3/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/readline-7.0-e5jqqjmcjknidgwvi353pd6umpixzxr2
+    buildable: false
+  py-decorator:
+    externals:
+    - spec: py-decorator@4.3.0
+      prefix: /collab/usr/gapps/python/build/spack-toss3.3/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/py-decorator-4.3.0-cilrjvyfwa5tfitrsinwjlkc5mtipgyw
+    buildable: false
+  py-setuptools:
+    externals:
+    - spec: py-setuptools@40.8.0
+      prefix: /collab/usr/gapps/python/build/spack-toss3.3/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/py-setuptools-40.8.0-7vtps5n5spf6mled2xfz3p5ukm76g6gz
+    buildable: false
+  #py-matplotlib:
+  #  externals:
+  #  - spec: py-matplotlib@2.2.5
+  #    prefix: /collab/usr/gapps/python/build/spack-toss3.3/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/py-matplotlib-2.2.3-sjgzkwny2psq25xsxkixe7cbwju4b4lq
+  #  buildable: false
+  autoconf:
+    externals:
+    - spec: autoconf@2.69
+      prefix: /usr
+    buildable: false
+  automake:
+    externals:
+    - spec: automake@1.13.4
+      prefix: /usr
+    buildable: false
+  libtool:
+    externals:
+    - spec: libtool@2.4.2
+      prefix: /usr
+    buildable: false
+  bzip2:
+    externals:
+    - spec: bzip2@1.0.6
+      prefix: /usr
+    buildable: false
+  gettext:
+    externals:
+    - spec: gettext@0.19
+      prefix: /usr
+    buildable: false
+  perl:
+    externals:
+    - spec: perl@5.16.3
+      prefix: /usr
+    buildable: false
+  pkg-config:
+    externals:
+    - spec: pkg-config@0.27.1
+      prefix: /usr
+    buildable: false
+  libpng:
+    externals:
+    - spec: libpng@1.6.37
+      prefix: /usr
+    buildable: false
+  #zlib:
+  #  externals:
+  #  - spec: zlib@1.2.11
+  #    prefix: /usr/lib64
+  #  buildable: false
+  nasm:
+    externals:
+    - spec: nasm@2.10.07
+      prefix: /usr
+    buildable: false
+  tar:
+    externals:
+    - spec: tar@1.26
+      prefix: /usr
+    buildable: false

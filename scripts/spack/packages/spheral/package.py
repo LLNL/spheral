@@ -82,14 +82,14 @@ class Spheral(CMakePackage, PythonPackage):
     depends_on('py-pybind11@2.4.3')
     depends_on('py-pyb11generator@1.0.12')
 
-    depends_on('py-numpy@1.16.6')
-    depends_on('py-mpi4py')
+    #depends_on('py-numpy@1.16.6')
+    #depends_on('py-mpi4py')
     depends_on('py-numpy-stl@2.11.2') # MikeO: What do we use this for? do we need it?
-    depends_on('py-matplotlib@2.2.5') 
-    #depends_on('py-pillow@6.2.0') # Need this to saitsify dep for matplotlib.
-    depends_on('py-gnuplot@1.8')
-    depends_on('py-enum34')
-    depends_on('py-python-utils')
+    #depends_on('py-matplotlib@2.2.5') 
+    ##depends_on('py-pillow@6.2.0') # Need this to saitsify dep for matplotlib.
+    #depends_on('py-gnuplot@1.8')
+    #depends_on('py-enum34')
+    #depends_on('py-python-utils')
 
     #depends_on('py-setuptools')
     #depends_on('py-decorator@4.4.2')

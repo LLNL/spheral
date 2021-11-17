@@ -1,0 +1,81 @@
+packages:
+  all:
+    # This defaults us to machine specific flags of ivybridge which allows
+    # us to run on broadwell as well
+    target: [ppc64le]
+    compiler: [gcc, pgi, clang, xl]
+  cmake:
+    version: [3.18.0, 3.20.2, 3.14.5]
+    buildable: false
+    externals:
+    - spec: cmake@3.14.5
+      prefix: /usr/tce/packages/cmake/cmake-3.14.5
+    - spec: cmake@3.18.0
+      prefix: /usr/tce/packages/cmake/cmake-3.18.0
+    - spec: cmake@3.20.2
+      prefix: /usr/tce/packages/cmake/cmake-3.20.2
+  #cuda:
+  #  version: [11.0.2, 10.1.243, 10.1.168, 9.2.148, 8.0]
+  #  buildable: false
+  #  externals:
+  #  - spec: cuda@11.0.2~allow-unsupported-compilers
+  #    prefix: /usr/tce/packages/cuda/cuda-11.0.2
+  #  - spec: cuda@10.1.243~allow-unsupported-compilers
+  #    prefix: /usr/tce/packages/cuda/cuda-10.1.243
+  #  - spec: cuda@10.1.168+allow-unsupported-compilers
+  #    prefix: /usr/tce/packages/cuda/cuda-10.1.168
+  #  - spec: cuda@9.2.148~allow-unsupported-compilers
+  #    prefix: /usr/tce/packages/cuda/cuda-9.2.148
+  #  - spec: cuda@8.0~allow-unsupported-compilers
+  #    prefix: /usr/tce/packages/cuda/cuda-8.0
+  spectrum-mpi:
+    externals:
+    - spec: spectrum-mpi@10.3.1.03rtm0%pgi@19.10
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-pgi-19.10
+    - spec: spectrum-mpi@10.3.1.03rtm0%pgi@20.4
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-pgi-20.4
+    - spec: spectrum-mpi@10.3.1.03rtm0%gcc@8.3.1
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-8.3.1
+    - spec: spectrum-mpi@10.3.1.03rtm0%gcc@4.9.3
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-4.9.3
+    - spec: spectrum-mpi@10.3.1.03rtm0%clang@9.0.0
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-clang-9.0.0
+    - spec: spectrum-mpi@10.3.1.03rtm0%clang@9.0.0-ibm
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-clang-ibm-2019.10.03
+    - spec: spectrum-mpi@10.3.1.03rtm0%clang@10.0.1-ibm
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-clang-ibm-10.0.1
+    - spec: spectrum-mpi@10.3.1.03rtm0%xl@16.1.1.7
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-xl-2020.03.18
+    - spec: spectrum-mpi@10.3.1.03rtm0%xl@beta2019.06.20
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-xl-beta-2019.06.20
+    buildable: false
+  llvm:
+    externals:
+    - spec: llvm@10.0.1
+      prefix: /usr/tce/packages/clang/clang-10.0.1/
+    buildable: false
+  opensubdiv:
+    externals:
+    - spec: opensubdiv@3.4.3
+      prefix: /usr/workspace/wsrzd/davis291/spack/opt/spack/linux-rhel7-broadwell/gcc-8.3.1/opensubdiv-3.4.3-ct3kqiacszbxftmhl5c266ppmq2t3ayw
+    buildable: false
+  python:
+    externals:
+    - spec: python@2.7.16
+      prefix: /usr/tce/packages/python/python-2.7.16
+    buildable: false
+  autoconf:
+    externals:
+    - spec: autoconf@2.69
+      prefix: /bin
+    buildable: false
+  automake:
+    externals:
+    - spec: automake@1.13.4
+      prefix: /bin
+    buildable: false
+  libtool:
+    externals:
+    - spec: libtool@2.4.2
+      prefix: /bin
+    buildable: false
