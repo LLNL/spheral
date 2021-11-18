@@ -33,6 +33,7 @@ class PyNumpyStl(PythonPackage):
     version('2.11.2', 'd625e8c11a6cfb475d9c33781593e830')
 
     extends('python@2.7:2.8', type=['build','run'])
-    extends('py-setuptools', type=['build','run'])
+    depends_on('py-setuptools', type=['build','run'])
+    depends_on('py-python-utils', type=['build','run'])
     # FIXME: Add dependencies if required.
     # depends_on('foo')
