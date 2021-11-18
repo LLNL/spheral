@@ -64,10 +64,12 @@ class Spheral(CMakePackage, PythonPackage):
 
     # Zlib fix has been merged into conduit, using develop until next release.
     #depends_on('conduit@develop +mpi +hdf5 -shared -test', type='build')
-    depends_on('conduit@develop +mpi +hdf5 -test', type='build')
+    depends_on('conduit@develop +mpi +hdf5 -test', type='build', when='+mpi')
+    depends_on('conduit@develop ~mpi +hdf5 -test', type='build', when='~mpi')
 
     # TODO: axom machine broke
-    depends_on('axom@0.5.0 +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build')
+    depends_on('axom@0.5.0 +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
+    depends_on('axom@0.5.0 ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
     # TODO: ANEOS
 
