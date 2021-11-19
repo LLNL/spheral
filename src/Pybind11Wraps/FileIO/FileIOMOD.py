@@ -150,6 +150,7 @@ FlatFileFormat = PYB11enum(("ascii", "binary"), export_values=True,
 #-------------------------------------------------------------------------------
 from FileIO import *
 from FlatFileIO import *
+#from SidreFileIO import *
 from SiloFileIO import *
 from PyFileIO import *
 
