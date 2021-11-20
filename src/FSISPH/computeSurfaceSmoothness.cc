@@ -15,8 +15,7 @@ computeSurfaceSmoothness(const ConnectivityMap<Dimension>& connectivityMap,
                             const FieldList<Dimension, typename Dimension::Scalar>& massDensity,
                             const FieldList<Dimension, typename Dimension::SymTensor>& H,
                             FieldList<Dimension, typename Dimension::Vector>& surfaceNormals,
-                            FieldList<Dimension, typename Dimension::Scalar>& surfaceFraction,
-                            FieldList<Dimension, typename Dimension::Scalar>& surfaceNeighborFraction,
+                            FieldList<Dimension, typename Dimension::Scalar>& surfaceVolumes,
                             FieldList<Dimension, typename Dimension::Scalar>& surfaceSmoothness) {
 
   // Pre-conditions.
@@ -34,8 +33,8 @@ computeSurfaceSmoothness(const ConnectivityMap<Dimension>& connectivityMap,
   {
     int i, j, nodeListi, nodeListj;
     auto surfaceSmoothness_thread = surfaceSmoothness.threadCopy();
-    auto surfaceFraction_thread = surfaceFraction.threadCopy();
-    auto surfaceNeighborFraction_thread = surfaceNeighborFraction.threadCopy();
+    auto surfaceVolumes_thread = surfaceVolumes.threadCopy();
+
 #pragma omp for
     for (auto k = 0u; k < npairs; ++k) {
       i = pairs[k].i_node;
@@ -70,11 +69,8 @@ computeSurfaceSmoothness(const ConnectivityMap<Dimension>& connectivityMap,
         const auto Wj = W.kernelValue(etaj.magnitude(), Hj.Determinant());
         const auto Wij = 0.5*(Wi+Wj);
 
-        surfaceNeighborFraction_thread(nodeListi, i) += 1.0;
-        surfaceNeighborFraction_thread(nodeListj, j) += 1.0;
-
-        surfaceFraction_thread(nodeListi, i) += volj*Wij;
-        surfaceFraction_thread(nodeListj, j) += voli*Wij;
+        surfaceVolumes_thread(nodeListi, i) += volj*Wij;
+        surfaceVolumes_thread(nodeListj, j) += voli*Wij;
 
         const auto nirij =  ni.dot(rij);
         const auto njrij = -nj.dot(rij);
@@ -90,19 +86,16 @@ computeSurfaceSmoothness(const ConnectivityMap<Dimension>& connectivityMap,
 
 #pragma omp critical
     {
-      surfaceFraction_thread.threadReduce();
-      surfaceNeighborFraction_thread.threadReduce();
+      surfaceVolumes_thread.threadReduce();
       surfaceSmoothness_thread.threadReduce();
     }
   }
 
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto n = surfaceFraction[nodeListi]->numInternalElements();
+     const auto n = surfaceVolumes[nodeListi]->numInternalElements();
  #pragma omp parallel for
-    for (auto i = 0u; i < n; ++i) {
-      const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
-      surfaceSmoothness(nodeListi,i) /= max(surfaceFraction(nodeListi,i),1.0e-5);
-      surfaceNeighborFraction(nodeListi,i) /= numNeighborsi;
+     for (auto i = 0u; i < n; ++i) {
+       surfaceSmoothness(nodeListi,i) /= max(surfaceVolumes(nodeListi,i),1.0e-5);
      }
     
    }

@@ -22,17 +22,6 @@ surfaceFraction() const {
 }
 
 //------------------------------------------------------------------------------
-// Return the surface neighbor fraction
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const FieldList<Dimension,  typename Dimension::Scalar>&
-SlideSurface<Dimension>::
-surfaceNeighborFraction() const {
-  return mSurfaceNeighborFraction;
-}
-
-//------------------------------------------------------------------------------
 // smoothness metric for mixing interfaces
 //------------------------------------------------------------------------------
 template<typename Dimension>

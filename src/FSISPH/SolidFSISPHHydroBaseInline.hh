@@ -132,9 +132,7 @@ sumDensityNodeLists() const {
   return mSumDensityNodeLists;
 }
 
-//------------------------------------------------------------------------------
-// return the pairwise work
-//------------------------------------------------------------------------------
+
 template<typename Dimension>
 inline
 const std::vector<typename Dimension::Scalar>&
@@ -143,42 +141,6 @@ pairDepsDt() const {
   return mPairDepsDt;
 }
 
-//------------------------------------------------------------------------------
-// Return the pressure gradient field list ref
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
-DpDx() const {
-  return mDpDx;
-}
-
-//------------------------------------------------------------------------------
-// Return the eff deviatoric pressure gradient field list ref
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
-DSDx() const {
-  return mDSDx;
-}
-
-//------------------------------------------------------------------------------
-// Return the specific thermal energy gradient field list ref
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
-DepsDx() const {
-  return mDepsDx;
-}
-
-//------------------------------------------------------------------------------
-// Return ref to the slide surface object
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 SlideSurface<Dimension>&

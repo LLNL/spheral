@@ -40,7 +40,6 @@ SlideSurface(const TableKernel<Dimension>& W,
   mIsSlideSurface(),
   mSurfaceNormals(FieldStorageType::CopyFields),
   mSurfaceFraction(FieldStorageType::CopyFields),
-  mSurfaceNeighborFraction(FieldStorageType::CopyFields),
   mSurfaceSmoothness(FieldStorageType::CopyFields){
 
     for(std::vector<int>::const_iterator it = contactTypes.begin();
@@ -67,7 +66,6 @@ SlideSurface(const TableKernel<Dimension>& W,
   mIsSlideSurface(contactTypes),
   mSurfaceNormals(FieldStorageType::CopyFields),
   mSurfaceFraction(FieldStorageType::CopyFields),
-  mSurfaceNeighborFraction(FieldStorageType::CopyFields),
   mSurfaceSmoothness(FieldStorageType::CopyFields){
 
     for(std::vector<bool>::const_iterator it = contactTypes.begin();
@@ -144,7 +142,6 @@ SlideSurface<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase){
   mSurfaceNormals = dataBase.newFluidFieldList(Vector::zero,  FSIFieldNames::interfaceNormals);
   mSurfaceFraction = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceFraction);
-  mSurfaceNeighborFraction = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceNeighborFraction);
   mSurfaceSmoothness = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceSmoothness);
   mNumNodeLists = dataBase.numNodeLists();
 }
@@ -167,11 +164,9 @@ const auto& connectivityMap = dataBase.connectivityMap();
   const auto& massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto& H = state.fields(HydroFieldNames::H, SymTensor::zero);
         auto  normals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
-        auto  surfaceNeighborFraction = state.fields(FSIFieldNames::interfaceNeighborFraction, 0.0);
         auto  surfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
         auto  surfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
 
-  surfaceNeighborFraction.Zero();
   surfaceFraction.Zero();
   surfaceSmoothness.Zero();
   normals.Zero();
@@ -200,7 +195,6 @@ const auto& connectivityMap = dataBase.connectivityMap();
                              H,
                              normals,
                              surfaceFraction,
-                             surfaceNeighborFraction,
                              surfaceSmoothness);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
@@ -208,7 +202,6 @@ const auto& connectivityMap = dataBase.connectivityMap();
        ++boundaryItr){
     (*boundaryItr)->applyFieldListGhostBoundary(surfaceSmoothness);
     (*boundaryItr)->applyFieldListGhostBoundary(surfaceFraction);
-    (*boundaryItr)->applyFieldListGhostBoundary(surfaceNeighborFraction);
   }
 
 
@@ -226,10 +219,8 @@ registerState(DataBase<Dimension>& dataBase,
                    State<Dimension>& state){
   dataBase.resizeFluidFieldList(mSurfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals,false);
   dataBase.resizeFluidFieldList(mSurfaceFraction, 0.0, FSIFieldNames::interfaceFraction,false); 
-  dataBase.resizeFluidFieldList(mSurfaceNeighborFraction, 0.0, FSIFieldNames::interfaceNeighborFraction,false); 
   dataBase.resizeFluidFieldList(mSurfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness,false);
   state.enroll(mSurfaceNormals); 
-  state.enroll(mSurfaceNeighborFraction);
   state.enroll(mSurfaceFraction);
   state.enroll(mSurfaceSmoothness);               
 };
