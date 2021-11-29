@@ -19,23 +19,27 @@ then
         exit 1
     fi
 
+    upstream_opt=""
     prefix_opt=""
-    #prefix="/dev/shm/${hostname}"
-    prefix="shm/${hostname}"
-    if [[ -z ${job_unique_id} ]]; then
-      job_unique_id=manual_job_$(date +%s)
-      while [[ -d ${prefix}/${job_unique_id} ]] ; do
-          sleep 1
+    if [[ "${option}" != "--tpl-only" ]]
+    then
+        #prefix="/dev/shm/${hostname}"
+        prefix="shm/${hostname}"
+        if [[ -z ${job_unique_id} ]]; then
           job_unique_id=manual_job_$(date +%s)
-      done
+          while [[ -d ${prefix}/${job_unique_id} ]] ; do
+              sleep 1
+              job_unique_id=manual_job_$(date +%s)
+          done
+        fi
+
+        prefix="${prefix}/${job_unique_id}"
+        #prefix="/usr/WS2/davis291/SPHERAL/spheral-pr/shm/rzgenie47/manual_job_1637216151"
+        mkdir -p ${prefix}
+        prefix_opt="--prefix=${prefix}"
+
+        upstream_opt="--upstream=/usr/WS2/davis291/SPHERAL/lc_uberenv_tpl2/spack/opt/spack"
     fi
-
-    prefix="${prefix}/${job_unique_id}"
-    #prefix="/usr/WS2/davis291/SPHERAL/spheral-pr/shm/rzgenie47/manual_job_1637216151"
-    mkdir -p ${prefix}
-    prefix_opt="--prefix=${prefix}"
-
-    upstream_opt="--upstream=/usr/WS2/davis291/SPHERAL/lc_uberenv_tpl2/spack/opt/spack"
 
     python3 scripts/uberenv/uberenv.py --spec="${spec}" --reuse=True ${upstream_opt} ${prefix_opt}
 
