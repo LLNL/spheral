@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+set -o errexit
+set -o nounset
+
 option=${1:-""}
 hostname="$(hostname)"
 spec=${SPEC:-""}
