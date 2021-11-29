@@ -4,6 +4,11 @@
 #
 # SPDX-License-Identifier: (MIT)
 ##############################################################################
+gcc_8_1_0_mvapich2:
+  variables:
+    SPEC: "%gcc@8.1.0^mvapich2"
+  extends: .build_and_test_on_ruby
+
 gcc_8_3_1_mvapich2:
   variables:
     SPEC: "%gcc@8.3.1^mvapich2"
