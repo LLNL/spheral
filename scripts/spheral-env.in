@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate
+#source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate
 python "$@"
 exit_result=$?
-deactivate
+#deactivate
 exit $exit_result

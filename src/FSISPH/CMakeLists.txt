@@ -1,6 +1,7 @@
 include_directories(.)
 set(FSISPH_inst
     SolidFSISPHHydroBase
+    computeSurfaceSmoothness
     computeSurfaceNormals
     computeFSISPHSumMassDensity
     FSISpecificThermalEnergyPolicy
@@ -23,6 +24,7 @@ instantiate(FSISPH_inst FSISPH_sources)
 
 set(FSISPH_headers
     SolidFSISPHHydroBase.hh
+    computeSurfaceSmoothness.hh
     computeSurfaceNormals.hh
     computeFSISPHSumMassDensity.hh
     FSISpecificThermalEnergyPolicy.hh

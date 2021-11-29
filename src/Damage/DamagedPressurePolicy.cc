@@ -6,6 +6,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
+#include "SolidMaterial/SolidEquationOfState.hh"
 #include "DataBase/UpdatePolicyBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
@@ -64,12 +65,20 @@ update(const KeyType& key,
   // Scale by the damage.
   for (auto il = 0u; il < numFields; ++il) {
     const auto ni = pressure[il]->numInternalElements();
+    auto Pmin = 0.0;
+    const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(pressure[il]->nodeListPtr());
+    if (solidNodeListPtr != nullptr) {
+      const auto* eosPtr = dynamic_cast<const SolidEquationOfState<Dimension>*>(&(solidNodeListPtr->equationOfState()));
+      if (eosPtr != nullptr) {
+        Pmin = eosPtr->minimumPressureDamage();
+      }
+    }
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
       if (pressure(il,i) < 0.0) {
-        const Scalar fDi = std::max(0.0, std::min(1.0, 1.0 - D(il,i).Trace()/Dimension::nDim));
-        CHECK(fDi >= 0.0 and fDi <= 1.0);
-        pressure(il,i) *= fDi;
+        const Scalar Di = std::max(0.0, std::min(1.0, D(il,i).eigenValues().maxElement()));
+        CHECK(Di >= 0.0 and Di <= 1.0);
+        pressure(il,i) = (1.0 - Di)*pressure(il,i) + Di*std::max(pressure(il,i), Pmin);
       }
     }
   }

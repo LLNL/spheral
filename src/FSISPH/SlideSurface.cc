@@ -3,6 +3,7 @@
 //----------------------------------------------------------------------------//
 #include "FSISPH/SlideSurface.hh"
 #include "FSISPH/computeSurfaceNormals.hh"
+#include "FSISPH/computeSurfaceSmoothness.hh"
 #include "FSISPH/FSIFieldNames.hh"
 
 #include "DataBase/DataBase.hh"
@@ -37,7 +38,9 @@ SlideSurface(const TableKernel<Dimension>& W,
   mIsActive(false),
   mNumNodeLists(0.0),
   mIsSlideSurface(),
-  mSurfaceNormals(FieldStorageType::CopyFields){
+  mSurfaceNormals(FieldStorageType::CopyFields),
+  mSurfaceFraction(FieldStorageType::CopyFields),
+  mSurfaceSmoothness(FieldStorageType::CopyFields){
 
     for(std::vector<int>::const_iterator it = contactTypes.begin();
         it != contactTypes.end();
@@ -61,7 +64,9 @@ SlideSurface(const TableKernel<Dimension>& W,
   mIsActive(false),
   mNumNodeLists(0.0),
   mIsSlideSurface(contactTypes),
-  mSurfaceNormals(FieldStorageType::CopyFields){
+  mSurfaceNormals(FieldStorageType::CopyFields),
+  mSurfaceFraction(FieldStorageType::CopyFields),
+  mSurfaceSmoothness(FieldStorageType::CopyFields){
 
     for(std::vector<bool>::const_iterator it = contactTypes.begin();
         it != contactTypes.end();
@@ -105,15 +110,25 @@ slideCorrection(const int nodeListi,
                 const typename Dimension::Vector vj) const {
 
     typename Dimension::Scalar slideCorr = 1.0;
-
     if (this->isSlideSurface(nodeListi,nodeListj)){
+      
       const auto normi = mSurfaceNormals(nodeListi,i);
       const auto normj = mSurfaceNormals(nodeListj,j);
+
+      // surface smoothness to turn of our slide 
+      // 1.00-0.95 full on
+      // 0.95-0.70 linear ramp down
+      // 0.70-0.00 full off
+      const auto maxSS = min(mSurfaceSmoothness(nodeListi,i),mSurfaceSmoothness(nodeListj,j));
+      const auto ssij  = 4.0*min(max(0.95-maxSS,0.0),0.25);
+
       const auto vijhat = (vi-vj).unitVector();
-      const auto fi =  abs(normi.dot(vijhat));
-      const auto fj =  abs(normj.dot(vijhat));
-      slideCorr = fi*fj * fi*fj; 
+      const auto fi = abs(normi.dot(vijhat));//max(0.0, normi.dot(vijhat));
+      const auto fj = abs(normj.dot(vijhat));//max(0.0,-normj.dot(vijhat));
+      slideCorr = ssij + (1.0-ssij)*fi*fj; 
+    
     }
+
     return slideCorr;      
 
 }
@@ -126,6 +141,8 @@ void
 SlideSurface<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase){
   mSurfaceNormals = dataBase.newFluidFieldList(Vector::zero,  FSIFieldNames::interfaceNormals);
+  mSurfaceFraction = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceFraction);
+  mSurfaceSmoothness = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceSmoothness);
   mNumNodeLists = dataBase.numNodeLists();
 }
 
@@ -141,14 +158,19 @@ initialize(const typename Dimension::Scalar /*time*/,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& /*derivs*/) {
 
-  const auto& connectivityMap = dataBase.connectivityMap();
+const auto& connectivityMap = dataBase.connectivityMap();
   const auto& position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto& mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto& massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto& H = state.fields(HydroFieldNames::H, SymTensor::zero);
         auto  normals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
+        auto  surfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
+        auto  surfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
 
+  surfaceFraction.Zero();
+  surfaceSmoothness.Zero();
   normals.Zero();
+  
   computeSurfaceNormals(connectivityMap,
                         mKernel,
                         position,
@@ -157,14 +179,31 @@ initialize(const typename Dimension::Scalar /*time*/,
                         H,
                         normals);
 
-
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
        boundaryItr != this->boundaryEnd();
-       ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(normals);
-    
+       ++boundaryItr)(*boundaryItr)->applyFieldListGhostBoundary(normals);
+
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  
+  computeSurfaceSmoothness(connectivityMap,
+                             mKernel,
+                             position,
+                             mass,
+                             massDensity,
+                             H,
+                             normals,
+                             surfaceFraction,
+                             surfaceSmoothness);
+
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr){
+    (*boundaryItr)->applyFieldListGhostBoundary(surfaceSmoothness);
+    (*boundaryItr)->applyFieldListGhostBoundary(surfaceFraction);
+  }
+
 
   
 };
@@ -178,8 +217,12 @@ void
 SlideSurface<Dimension>:: 
 registerState(DataBase<Dimension>& dataBase,
                    State<Dimension>& state){
-  dataBase.resizeFluidFieldList(mSurfaceNormals, Vector::zero,FSIFieldNames::interfaceNormals,false);
-  state.enroll(mSurfaceNormals);               
+  dataBase.resizeFluidFieldList(mSurfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals,false);
+  dataBase.resizeFluidFieldList(mSurfaceFraction, 0.0, FSIFieldNames::interfaceFraction,false); 
+  dataBase.resizeFluidFieldList(mSurfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness,false);
+  state.enroll(mSurfaceNormals); 
+  state.enroll(mSurfaceFraction);
+  state.enroll(mSurfaceSmoothness);               
 };
 
 

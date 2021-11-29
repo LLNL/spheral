@@ -2,3 +2,9 @@
 [submodule "blt"]
 	path = cmake/blt
 	url = https://github.com/llnl/blt
+[submodule "scripts/uberenv"]
+	path = scripts/uberenv
+	url = https://github.com/mdavis36/uberenv
+[submodule "scripts/radiuss-spack-configs"]
+	path = scripts/radiuss-spack-configs
+	url = https://github.com/llnl/radiuss-spack-configs

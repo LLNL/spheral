@@ -37,21 +37,6 @@ template<typename Dimension>
 inline
 void
 SolidFSISPHHydroBase<Dimension>::
-densityDiffusionCoefficient(double x) {
-  mDensityDiffusionCoefficient = x;
-}
-template<typename Dimension>
-inline
-double
-SolidFSISPHHydroBase<Dimension>::
-densityDiffusionCoefficient() const {
-  return mDensityDiffusionCoefficient;
-}
-
-template<typename Dimension>
-inline
-void
-SolidFSISPHHydroBase<Dimension>::
 specificThermalEnergyDiffusionCoefficient(double x) {
   mSpecificThermalEnergyDiffusionCoefficient = x;
 }
@@ -63,7 +48,57 @@ specificThermalEnergyDiffusionCoefficient() const {
   return mSpecificThermalEnergyDiffusionCoefficient;
 }
 
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+xsphCoefficient(double x) {
+  mXSPHCoefficient = x;
+}
+template<typename Dimension>
+inline
+double
+SolidFSISPHHydroBase<Dimension>::
+xsphCoefficient() const {
+  return mXSPHCoefficient;
+}
 
+
+//------------------------------------------------------------------------------
+// return our interface method
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+interfaceMethod(InterfaceMethod x) {
+  mInterfaceMethod = x;
+}
+template<typename Dimension>
+inline
+InterfaceMethod
+SolidFSISPHHydroBase<Dimension>::
+interfaceMethod() const {
+  return mInterfaceMethod;
+}
+
+//------------------------------------------------------------------------------
+// return our kernel method
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+kernelAveragingMethod(KernelAveragingMethod x) {
+  mKernelAveragingMethod = x;
+}
+template<typename Dimension>
+inline
+KernelAveragingMethod
+SolidFSISPHHydroBase<Dimension>::
+kernelAveragingMethod() const {
+  return mKernelAveragingMethod;
+}
 //------------------------------------------------------------------------------
 // swtich to turn on density sum for different nodeLists
 //------------------------------------------------------------------------------

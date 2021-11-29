@@ -35,6 +35,8 @@ dumps-*
 python
 lc_*
 *.core
+spack-build*
+*.logs
 
 # These are files automatically generated in our configure process.
 src/aclocal.m4

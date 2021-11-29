@@ -23,7 +23,7 @@
 #include <tuple>
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include <mpi.h>
 #include "Distributed/Communicator.hh"
 #endif
 

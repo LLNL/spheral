@@ -5,13 +5,16 @@ set(POLTOPE_SRC_DIR ${POLYTOPE_PREFIX}/src/boost)
 
 set(${lib_name}_libs libpolytope.a)
 
-set(POLYTOPE_DEPENDS boost)
+set(POLYTOPE_DEPENDS ${boost_build_dep})
 set(POLYTOPE_USE_PYTHON On)
 
 if(ENABLE_CXXONLY)
   set(POLYTOPE_USE_PYTHON Off)
 else()
-  list(APPEND POLYTOPE_DEPENDS python-install pip-modules ${spheral_py_depends})
+  list(APPEND POLYTOPE_DEPENDS python-install ${spheral_py_depends})
+  if (pip_BUILD)
+    list(APPEND POLYTOPE_DEPENDS pip-modules)
+  endif()
 endif()
 
 if(${lib_name}_BUILD)
@@ -30,10 +33,10 @@ if(${lib_name}_BUILD)
     CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR} 
-               -DPYBIND11_INCLUDE_DIRS=${PYBIND11_INSTALL_DIR}/include
+               -DPYBIND11_INCLUDE_DIRS=${pybind11_DIR}/include
                -DUSE_PYTHON=${POLYTOPE_USE_PYTHON}
                -DPYTHON_EXE=${PYTHON_EXE}
-               -DBoost_INCLUDE_DIR=${BOOST_INSTALL_DIR}/include
+               -DBoost_INCLUDE_DIR=${boost_DIR}/include
                -DTESTING=Off
                DEPENDS ${POLYTOPE_DEPENDS}
 

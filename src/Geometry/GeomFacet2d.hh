@@ -76,6 +76,9 @@ public:
   // For consistency with GeomFacet3d.
   void decompose(std::vector<std::array<Vector, 2>>& subfacets) const;
   
+  // Recompute our normal
+  void computeNormal();
+
 private:
   //--------------------------- Private Interface ---------------------------//
   const std::vector<Vector>* mVerticesPtr;

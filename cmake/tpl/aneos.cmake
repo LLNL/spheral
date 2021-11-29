@@ -4,6 +4,8 @@ set(ANEOS_CACHE "${CACHE_DIR}/${ANEOS_DIST}")
 set(ANEOS_URL "https://github.com/isale-code/M-ANEOS/releases/download/v1.0beta/${ANEOS_DIST}")
 set(ANEOS_SRC_DIR "${ANEOS_PREFIX}/src/aneos/src")
 set(ANEOS_DEST_DIR "${${lib_name}_DIR}/lib")
+set(ANEOS_INPUT_SRC_DIR "${ANEOS_PREFIX}/src/aneos/input")
+set(ANEOS_INPUT_DEST_DIR "${${lib_name}_DIR}/input")
 
 #set(${lib_name}_INCLUDES aneos.h)
 set(${lib_name}_libs libaneos.a)
@@ -29,6 +31,13 @@ if (${lib_name}_BUILD)
     LOG_CONFIGURE ${OUT_PROTOCOL_EP}
     LOG_BUILD ${OUT_PROTOCOL_EP}
     LOG_INSTALL ${OUT_PROTOCOL_EP}
-    )
+  )
+
+  install(
+    FILES ${ANEOS_INPUT_SRC_DIR}/quartz_.input ${ANEOS_INPUT_SRC_DIR}/dunite_.input ${ANEOS_INPUT_SRC_DIR}/serpent.input
+    DESTINATION ${ANEOS_INPUT_DEST_DIR}
+  )
 
 endif()
+
+set(ANEOS_INPUT_DEST_DIR ${ANEOS_INPUT_DEST_DIR} PARENT_SCOPE)

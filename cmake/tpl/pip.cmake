@@ -25,17 +25,18 @@ if(${lib_name}_BUILD)
   )
   set(${lib_name}-install-dep ${lib_name})
 
+  add_custom_target(
+    ${lib_name}-install
+    COMMAND ${PYTHON_EXE} ${PIP_EXE} -V &> pip-version.log
+    DEPENDS ${${lib_name}-install-dep}
+  )
+
+  list(APPEND ${dep_list}
+    pip-install)
+
 else()
   set(${lib_name}_ADD_BLT_TARGET OFF)
 endif()
 
-add_custom_target(
-  ${lib_name}-install
-  COMMAND ${PYTHON_EXE} ${PIP_EXE} -V &> pip-version.log
-  DEPENDS ${${lib_name}-install-dep}
-)
-
-list(APPEND ${dep_list}
-  pip-install)
 
 set(PIP_EXE ${PIP_EXE} PARENT_SCOPE)

@@ -101,7 +101,7 @@ public:
   virtual bool valid() const = 0;
 
   // Apply limits to a pressure value.
-  Scalar applyPressureLimits(const Scalar P) const;
+  Scalar applyPressureLimits(Scalar P) const;
 
 protected:
   PhysicalConstants mConstants;

@@ -64,9 +64,10 @@ update(const KeyType& key,
 
   // Now set Youngs modulus.
   for (auto i = 0u; i != stateField.numInternalElements(); ++i) {
-    const double thpt = 9.0*std::abs(K(i)*mu(i));
-    const double ack = 3.0*std::abs(K(i)) + std::abs(mu(i)) + 1.0e-50*std::max(1.0, thpt);
-    CHECK(ack > 0.0);
+    const double thpt = 9.0*K(i)*mu(i);
+    const double ack = 3.0*K(i) + mu(i) + 1.0e-30*std::max(1.0, K(i));
+    CHECK2(thpt > 0.0, nodeListKey << " : " << i << " " << thpt << " " << K(i) << " " << mu(i));
+    CHECK2(ack > 0.0, nodeListKey << " : " << i << " " << ack << " " << K(i) << " " << mu(i));
     stateField(i) = thpt/ack;
     CHECK2(stateField(i) >= 0.0, stateField(i) << " " << K(i) << " " << mu(i));
   }

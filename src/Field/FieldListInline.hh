@@ -10,7 +10,7 @@
 #include "Utilities/allReduce.hh"
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include <mpi.h>
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/packElement.hh"
 #include "Distributed/Communicator.hh"
