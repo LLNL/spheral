@@ -21,7 +21,6 @@ then
 
     prefix_opt=""
     #prefix="/dev/shm/${hostname}"
-    #prefix="/usr/WS2/davis291/SPHERAL/spheral-pr/shm/rzgenie32/manual_job_1637197496"
     prefix="shm/${hostname}"
     if [[ -z ${job_unique_id} ]]; then
       job_unique_id=manual_job_$(date +%s)
@@ -32,6 +31,7 @@ then
     fi
 
     prefix="${prefix}/${job_unique_id}"
+    #prefix="/usr/WS2/davis291/SPHERAL/spheral-pr/shm/rzgenie47/manual_job_1637216151"
     mkdir -p ${prefix}
     prefix_opt="--prefix=${prefix}"
 
@@ -50,7 +50,16 @@ then
 
     # TODO inject debug and non mpi filters when appropriate ...
     echo "Running spheral-atstest from ${spheral_install_prefix} ..."
-    spheral-atstest ${spheral_install_prefix}/tests/integration.ats 
+
+    filter_opt=""
+
+    if [[ ${spec} == *"~mpi"* ]]; then
+      fitler_opt="${filter_opt}--filter=\"\'np<2\'\" "
+      echo "MPI is disabled in the spec running tests with ${filter_opt}"
+    fi
+
+    spheral-atstest ${spheral_install_prefix}/tests/integration.ats ${filter_opt}
 
 fi
 date
+

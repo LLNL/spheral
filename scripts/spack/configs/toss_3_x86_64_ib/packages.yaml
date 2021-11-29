@@ -106,11 +106,11 @@ packages:
     - spec: llvm@10.0.1
       prefix: /usr/tce/packages/clang/clang-10.0.1/
     buildable: false
-  opensubdiv:
-    externals:
-    - spec: opensubdiv@3.4.3
-      prefix: /usr/workspace/wsrzd/davis291/spack/opt/spack/linux-rhel7-broadwell/gcc-8.3.1/opensubdiv-3.4.3-ct3kqiacszbxftmhl5c266ppmq2t3ayw
-    buildable: false
+  #opensubdiv:
+  #  externals:
+  #  - spec: opensubdiv@3.4.3
+  #    prefix: /usr/workspace/wsrzd/davis291/spack/opt/spack/linux-rhel7-broadwell/gcc-8.3.1/opensubdiv-3.4.3-ct3kqiacszbxftmhl5c266ppmq2t3ayw
+  #  buildable: false
   python:
     externals:
     - spec: python@2.7.16
