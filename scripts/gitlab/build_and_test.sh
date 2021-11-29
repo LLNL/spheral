@@ -53,17 +53,20 @@ then
     echo "Loading spheral ${spheral_spack_hash} ..."
     spack load /${spheral_spack_hash}
 
-    # TODO inject debug and non mpi filters when appropriate ...
-    echo "Running spheral-atstest from ${spheral_install_prefix} ..."
+    echo "Spheral import test..."
+    spheral -c "import Spheral"
 
-    filter_opt=""
+    ## TODO inject debug and non mpi filters when appropriate ...
+    #echo "Running spheral-atstest from ${spheral_install_prefix} ..."
 
-    if [[ ${spec} == *"~mpi"* ]]; then
-      fitler_opt="${filter_opt}--filter=\"\'np<2\'\" "
-      echo "MPI is disabled in the spec running tests with ${filter_opt}"
-    fi
+    #filter_opt=""
 
-    spheral-atstest ${spheral_install_prefix}/tests/integration.ats ${filter_opt}
+    #if [[ ${spec} == *"~mpi"* ]]; then
+    #  fitler_opt="${filter_opt}--filter=\"\'np<2\'\" "
+    #  echo "MPI is disabled in the spec running tests with ${filter_opt}"
+    #fi
+
+    #spheral-atstest ${spheral_install_prefix}/tests/integration.ats ${filter_opt}
 
 fi
 date
