@@ -38,7 +38,8 @@ then
         mkdir -p ${prefix}
         prefix_opt="--prefix=${prefix}"
 
-        upstream_opt="--upstream=/usr/WS2/davis291/SPHERAL/lc_uberenv_tpl2/spack/opt/spack"
+        #upstream_opt="--upstream=/usr/WS2/davis291/SPHERAL/lc_uberenv_tpl2/spack/opt/spack"
+        upstream_opt="--upstream=/usr/workspace/wsb/davis291/SPHERAL/spheral-spack-tpls/uberenv_libs/spack/opt/spack"
     fi
 
     python3 scripts/uberenv/uberenv.py --spec="${spec}" --reuse=True ${upstream_opt} ${prefix_opt}
