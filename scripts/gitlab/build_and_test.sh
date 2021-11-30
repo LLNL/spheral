@@ -39,7 +39,7 @@ then
         prefix_opt="--prefix=${prefix}"
 
         #upstream_opt="--upstream=/usr/WS2/davis291/SPHERAL/lc_uberenv_tpl2/spack/opt/spack"
-        upstream_opt="--upstream=/usr/workspace/wsb/davis291/SPHERAL/spheral-spack-tpls/uberenv_libs/spack/opt/spack"
+        upstream_opt="--upstream=/usr/workspace/wsb/davis291/SPHERAL/spheral-spack-tpls/uberenv_libs/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__"
     fi
 
     python3 scripts/uberenv/uberenv.py --spec="${spec}" --reuse=True ${upstream_opt} ${prefix_opt}
@@ -53,17 +53,20 @@ then
     echo "Loading spheral ${spheral_spack_hash} ..."
     spack load /${spheral_spack_hash}
 
-    # TODO inject debug and non mpi filters when appropriate ...
-    echo "Running spheral-atstest from ${spheral_install_prefix} ..."
+    echo "Spheral import test..."
+    spheral -c "import Spheral"
 
-    filter_opt=""
+    ## TODO inject debug and non mpi filters when appropriate ...
+    #echo "Running spheral-atstest from ${spheral_install_prefix} ..."
 
-    if [[ ${spec} == *"~mpi"* ]]; then
-      fitler_opt="${filter_opt}--filter=\"\'np<2\'\" "
-      echo "MPI is disabled in the spec running tests with ${filter_opt}"
-    fi
+    #filter_opt=""
 
-    spheral-atstest ${spheral_install_prefix}/tests/integration.ats ${filter_opt}
+    #if [[ ${spec} == *"~mpi"* ]]; then
+    #  fitler_opt="${filter_opt}--filter=\"\'np<2\'\" "
+    #  echo "MPI is disabled in the spec running tests with ${filter_opt}"
+    #fi
+
+    #spheral-atstest ${spheral_install_prefix}/tests/integration.ats ${filter_opt}
 
 fi
 date
