@@ -6,7 +6,7 @@ set -o nounset
 option=${1:-""}
 hostname="$(hostname)"
 spec=${SPEC:-""}
-job_unique_id=${CI_JOB_ID:-""}
+job_unique_id=${JOBID:-""}
 
 # Dependencies
 date
@@ -27,7 +27,7 @@ then
     if [[ "${option}" != "--tpl-only" ]]
     then
         #prefix="/dev/shm/${hostname}"
-        prefix="shm/${hostname}"
+        prefix="build/${hostname}"
         if [[ -z ${job_unique_id} ]]; then
           job_unique_id=manual_job_$(date +%s)
           while [[ -d ${prefix}/${job_unique_id} ]] ; do
