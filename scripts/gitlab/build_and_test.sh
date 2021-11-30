@@ -6,7 +6,7 @@ set -o nounset
 option=${1:-""}
 hostname="$(hostname)"
 spec=${SPEC:-""}
-job_unique_id=${JOBID:-""}
+job_unique_id=${CI_JOB_ID:-""}
 
 # Dependencies
 date
