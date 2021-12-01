@@ -58,7 +58,7 @@ function(spheral_add_cxx_library package_name)
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(Spheral_${package_name} PROPERTIES
-                        INSTALL_RPATH           ${CMAKE_INSTALL_PREFIX}/lib
+                        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${boost_DIR}/lib"
                         )
 
   # Add this to the SPHERAL_CXX_LIBS list
