@@ -34,6 +34,11 @@ set(pybind11_BUILD ON CACHE BOOL "Option to build pybind11")
 set(python_BUILD ON CACHE BOOL "Option to build python")
 set(pip_BUILD ON CACHE BOOL "Option to build pip")
 
+set(setuptools_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")
+set(wheel_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")
+set(pyb11generator_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")
+set(virtualenv_BUILD ON CACHE BOOL "Option to build virtualenv python module")
+
 # These libs are always needed
 Spheral_Handle_TPL(zlib spheral_depends)
 Spheral_Handle_TPL(boost spheral_depends)
@@ -56,8 +61,10 @@ endif()
 if(NOT ENABLE_CXXONLY)
   Spheral_Handle_TPL(python spheral_depends)
   Spheral_Handle_TPL(pip spheral_py_depends)
-  include(${SPHERAL_ROOT_DIR}/cmake/tpl/pythonModule.cmake)
   Spheral_Handle_TPL(pybind11 spheral_depends)
+
+  include(${SPHERAL_ROOT_DIR}/cmake/tpl/pythonModule.cmake)
+
 endif()
 
 Spheral_Handle_TPL(polytope spheral_depends)
