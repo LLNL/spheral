@@ -4,39 +4,39 @@
 #ifndef __Spheral_SlideSurface_hh__
 #define __Spheral_SlideSurface_hh__
 
-#include "Physics/Physics.hh"
-
 #include <string>
 #include <vector>
+#include <utility>
+
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class Boundary;
+template<typename Dimension> class ConnectivityMap;
+template<typename Dimension> class TableKernel;
 class FileIO;
 
 template<typename Dimension>
-class SlideSurface: public Physics<Dimension> {
+class SlideSurface {
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
-  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
+  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
 
   public:
 
-    SlideSurface(const TableKernel<Dimension>& W,
-                 const vector<int> contactTypes);
+    SlideSurface(const std::vector<int> contactTypes);
 
-    SlideSurface(const TableKernel<Dimension>& W,
-                 const vector<bool> contactTypes);
+    SlideSurface(const std::vector<bool> contactTypes);
 
     virtual ~SlideSurface();
 
@@ -55,41 +55,44 @@ class SlideSurface: public Physics<Dimension> {
 
     // Physics Package methods
     //------------------------------------------------------
-    virtual 
-    TimeStepType dt(const DataBase<Dimension>& dataBase, 
-                    const State<Dimension>& state,
-                    const StateDerivatives<Dimension>& derivs,
-                    const Scalar currentTime) const  override;
+    //virtual 
+    //TimeStepType dt(const DataBase<Dimension>& dataBase, 
+    //                const State<Dimension>& state,
+    //                const StateDerivatives<Dimension>& derivs,
+    //                const Scalar currentTime) const  override;
 
     // Tasks we do once on problem startup.
     virtual
-    void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+    void initializeProblemStartup(DataBase<Dimension>& dataBase);
 
     // calls calc func for surface normals
     virtual
-    void initialize(const Scalar time,
-                    const Scalar dt,
-                    const DataBase<Dimension>& dataBase,
-                          State<Dimension>& state,
-                          StateDerivatives<Dimension>& derivs) override;
-
+    void initialize(const DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    const StateDerivatives<Dimension>& derivs,
+                          ConstBoundaryIterator boundaryBegin,
+                          ConstBoundaryIterator boundaryEnd,
+                    const Scalar /*time*/,
+                    const Scalar /*dt*/,
+                    const TableKernel<Dimension>& W);
+    
     // override w/ non-op
-    virtual
-    void evaluateDerivatives(const Scalar time,
-                             const Scalar dt,
-                             const DataBase<Dimension>& dataBase,
-                             const State<Dimension>& state,
-                                   StateDerivatives<Dimension>& derivatives) const override;
+    //virtual
+    //void evaluateDerivatives(const Scalar time,
+    //                         const Scalar dt,
+    //                         const DataBase<Dimension>& dataBase,
+    //                         const State<Dimension>& state,
+    //                               StateDerivatives<Dimension>& derivatives) const override;
 
     // register the surface normal field
     virtual
     void registerState(DataBase<Dimension>& dataBase,
-                       State<Dimension>& state) override;
+                       State<Dimension>& state);
 
     // override w/ non-op
-    virtual
-    void registerDerivatives(DataBase<Dimension>& dataBase,
-                             StateDerivatives<Dimension>& derivs) override;
+    //virtual
+    //void registerDerivatives(DataBase<Dimension>& dataBase,
+    //                         StateDerivatives<Dimension>& derivs) override;
 
 
     const FieldList<Dimension, Vector>& surfaceNormals() const;
@@ -106,14 +109,12 @@ class SlideSurface: public Physics<Dimension> {
     void numNodeLists(const int x);
 
     // non-ops for now
-    virtual std::string label() const override { return "SlideSurface" ; }
-    virtual void dumpState(FileIO& file, const std::string& pathName) const;
-    virtual void restoreState(const FileIO& file, const std::string& pathName);
+    //virtual std::string label() const override { return "SlideSurface" ; }
+    //virtual void dumpState(FileIO& file, const std::string& pathName) const;
+    //virtual void restoreState(const FileIO& file, const std::string& pathName);
 
   private:
     //--------------------------- Private Interface ---------------------------//
-    const TableKernel<Dimension>& mKernel;
-
     bool mIsActive;                                  // is there are 1 or more slide surface activate physics package
     int mNumNodeLists;                               // number of total node lists
     std::vector<bool> mIsSlideSurface;               // true if slide interaction between nodelists index --> numNodeList*nodeListi + nodeListj 

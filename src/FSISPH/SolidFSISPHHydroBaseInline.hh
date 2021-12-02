@@ -100,7 +100,7 @@ kernelAveragingMethod() const {
   return mKernelAveragingMethod;
 }
 //------------------------------------------------------------------------------
-// swtich to turn on density sum for different nodeLists
+// switch to turn on density sum for different nodeLists
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -132,7 +132,9 @@ sumDensityNodeLists() const {
   return mSumDensityNodeLists;
 }
 
-
+//------------------------------------------------------------------------------
+// Return ref to our pair-wise energy derivs
+//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const std::vector<typename Dimension::Scalar>&
@@ -141,6 +143,31 @@ pairDepsDt() const {
   return mPairDepsDt;
 }
 
+//------------------------------------------------------------------------------
+// Return the pressure gradient field list ref
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+DpDx() const {
+  return mDpDx;
+}
+
+//------------------------------------------------------------------------------
+// Return the specific thermal energy gradient field list ref
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+DepsDx() const {
+  return mDepsDx;
+}
+
+//------------------------------------------------------------------------------
+// Ref to the slide surface obj
+//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 SlideSurface<Dimension>&

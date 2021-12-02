@@ -76,10 +76,11 @@ public:
                     const Vector& xmin,
                     const Vector& xmax);
 
-  // Destructor.
   virtual ~SolidFSISPHHydroBase();
 
-  // Register the derivatives/change fields for updating state.
+  virtual
+  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+
   virtual
   void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
@@ -140,6 +141,9 @@ public:
   KernelAveragingMethod kernelAveragingMethod() const;
   void kernelAveragingMethod(KernelAveragingMethod method);
 
+  const FieldList<Dimension, Vector>& DpDx() const;
+  const FieldList<Dimension, Vector>& DepsDx() const;
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "SolidFSISPHHydroBase"; }
@@ -159,6 +163,9 @@ private:
   
   std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
  
+  FieldList<Dimension, Vector> mDpDx;                  // pressure gradient     
+  FieldList<Dimension, Vector> mDepsDx;                // specific thermal energy gradient    
+    
   
 
   // No default constructor, copying, or assignment.
