@@ -214,7 +214,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(OutDir)spheral_distributed.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)spheral_distributed.lib;$(OutDir)axom_lumberjack.lib;$(OutDir)axom_sidre_par.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
@@ -239,7 +239,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(OutDir)spheral_distributed.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)spheral_distributed.lib;$(OutDir)axom_lumberjack.lib;$(OutDir)axom_sidre_par.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
@@ -351,7 +351,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(OutDir)spheral_distributed.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)spheral_distributed.lib;$(OutDir)axom_lumberjack.lib;$(OutDir)axom_sidre_par.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
@@ -381,7 +381,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(OutDir)spheral_distributed.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)spheral_distributed.lib;$(OutDir)axom_lumberjack.lib;$(OutDir)axom_sidre_par.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
@@ -404,9 +404,6 @@
     <ProjectReference Include="..\..\..\axom\Win32\core\core.vcxproj">
       <Project>{0511e583-4ee3-3921-9ed1-55446a1d8366}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\axom\Win32\lumberjack\lumberjack.vcxproj">
-      <Project>{d0793d27-601e-4d41-99f4-18713b0ae4b1}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\axom\Win32\mint\mint.vcxproj">
       <Project>{c61534e9-3fa5-38eb-aaf6-0d1c93e8fa56}</Project>
     </ProjectReference>
@@ -416,14 +413,8 @@
     <ProjectReference Include="..\..\..\axom\Win32\quest\quest.vcxproj">
       <Project>{d9a11388-4fe9-3141-b965-ed84efe8e922}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\axom\Win32\quest_par\quest_par.vcxproj">
-      <Project>{6dc058e5-d4b7-48fd-980c-f0f043b3ee75}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\axom\Win32\sidre\sidre.vcxproj">
       <Project>{f16f06d8-78bd-4467-8ae9-74a0999c387b}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\axom\Win32\sidre_par\sidre_par.vcxproj">
-      <Project>{88970d0a-671c-424a-b84a-59f86dbf6c1b}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\axom\Win32\slam\slam.vcxproj">
       <Project>{19cb4748-ef76-3ba2-8651-5f80163a008a}</Project>
