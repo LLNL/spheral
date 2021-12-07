@@ -27,17 +27,6 @@ class SlideSurface:
     def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
         "register the surface normals w/ the database"
         return "void"
-
-
-    # @PYB11virtual
-    # def initialize(time = "const Scalar",
-    #                dt = "const Scalar",
-    #                dataBase = "const DataBase<%(Dimension)s>&",
-    #                state = "State<%(Dimension)s>&",
-    #                derivs = "StateDerivatives<%(Dimension)s>&"):
-    #     "calculates surface normals, frac, and smoothness"
-    #     return "void"
-
     
     @PYB11virtual
     def registerState(dataBase = "DataBase<%(Dimension)s>&",
@@ -62,10 +51,6 @@ class SlideSurface:
         "returns true if slide surface between nodelisti and j"
         return "Scalar"
 
-    # @PYB11virtual
-    # @PYB11const
-    # def label(self):
-    #     return "std::string"
     #...........................................................................
     # Properties
     surfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "surfaceNormals", returnpolicy="reference_internal")
