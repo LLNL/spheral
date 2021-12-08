@@ -33,7 +33,7 @@ commandLine(
 
     # ats settings
     checkError=True,             # check error rel to analytic
-    tol = 1.0,                   # error toleration (%) average tensile stress
+    tol = 10.0,                  # error toleration (%) average tensile stress
     leaveNoTrace=True,           # delete output dirs
 
     # Specimen
