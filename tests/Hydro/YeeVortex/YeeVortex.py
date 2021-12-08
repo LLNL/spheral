@@ -370,7 +370,6 @@ elif fsisph:
                 ASPH = asph,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
-    packages += [hydro.slides]
 elif psph:
     hydro = PSPH(dataBase=db,
                 W=WT,
