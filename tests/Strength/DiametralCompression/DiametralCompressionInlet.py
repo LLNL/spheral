@@ -1,10 +1,10 @@
 #-------------------------------------------------------------------------------
-# Diametral Compression Test 2D
+# Diametral Compression Test 2D with inflow BC
 #-------------------------------------------------------------------------------
 #
 # Solid FSISPH
 #
-#ATS:t100 = test(        SELF, "--clearDirectories True --checkError True --goalTime 5.0 --nrSpecimen 15 ", label="Diametral Compression Test FSISPH -- 2-D", np=1)
+#ATS:t100 = test(        SELF, "--clearDirectories True --checkError True --fsisph True --goalTime 2.0 --nrSpecimen 15 ", label="Diametral Compression Test FSISPH -- 2-D", np=1)
 
 from Spheral2d import *
 import sys, os
@@ -18,12 +18,18 @@ from findLastRestart import *
 from CompositeNodeDistribution import *
 from GenerateNodeDistribution2d import *
 from LatticeSampler import *
+from HerzianSolution import HerzianSolution
+
+if mpi.procs > 1:
+    from PeanoHilbertDistributeNodes import distributeNodes2d as distributeNodes
+else:
+    from DistributeNodes import distributeNodes2d as distributeNodes
 
 # Note -- all units in (cm, gm, microsec)
 
 commandLine(
 
-    compressionSpeed = 5.0e-6,   # downward velocity of top bc (cm/usec)
+    compressionSpeed = 1.0e-6,   # downward velocity of top bc (cm/usec)
 
     # ats settings
     checkError=False,             # check error rel to analytic
@@ -61,10 +67,12 @@ commandLine(
     strengthInDamage = False,       # this isn't ready right now
     strainType = BenzAsphaugStrain, # (BenzAsphaugStrain, PseudoPlasticStrain, MeloshRyanAsphaugStrain, PlasticStrain, PseudoPlasticStrain)
 
-    # Hydro parameters
-    cfl = 0.35,   
-    SPHType = "FSISPH",                  # (CRKSPH,PSPH,SPH,FSISPH)
-    correctVelocityGradient=True,       # linear order velocity gradient for PSPH SPH or FSISPH
+    # hydro type
+    crksph = False,
+    fsisph = False,
+
+    # Hydro parameters  
+    correctVelocityGradient=True,        # linear order velocity gradient for PSPH SPH or FSISPH
     asph = False,                        # turns on elliptic kernels
     xsph = False,                        # updates position based on averaged velocity
     epsilonTensile = 0.00,               # term to fight the tensile instability 
@@ -75,10 +83,10 @@ commandLine(
     
     # FSISPH parameters
     fsiSurfaceCoefficient = 0.00,          # adds additional repulsive force to material interfaces)
-    fsiRhoStabilizeCoeff = 0.0,           # coefficient that smooths the density field
-    fsiEpsDiffuseCoeff = 0.0,             # explicit diiffusion of the thermal energy
+    fsiRhoStabilizeCoeff = 0.0,            # coefficient that smooths the density field
+    fsiEpsDiffuseCoeff = 0.0,              # explicit diiffusion of the thermal energy
     fsiXSPHCoeff = 0.00,                   # fsi uses multiplier for XSPH instead of binary switch
-    fsiInterfaceMethod = NoInterface, # (HLLCInterface, ModulusInterface)
+    fsiInterfaceMethod = ModulusInterface, # (HLLCInterface, ModulusInterface)
     
     # CRKSPH parameters
     correctionOrder = LinearOrder,   # for CRKSPH higher order field approximations
@@ -99,8 +107,9 @@ commandLine(
     iterateInitialH = False,  # to calc initial ideal H in controller constructor
      
     # Times, and simulation control.
-    steps = None,
-    goalTime = 10.0,         # usec -- final time
+    cfl = 0.35,               #
+    steps = None,             #
+    goalTime = 10.0,          # usec -- final time
     dt = 1e-4,                # usec -- initial time step
     dtMin = 1e-4,             # usec -- minimum time step size
     dtMax = 1000.0,           # usec -- maximum time step size
@@ -116,6 +125,7 @@ commandLine(
     historyfreq = 1000,       # how often we write to the history file
 
     # Output
+    graphics = False,
     vizDerivs = True,                    # output derivatives in viz dump
     vizTime = 10.0,                      # usec -- visit output 
     vizCycle = None,                     # can also output visit silo files based on cycles
@@ -133,11 +143,10 @@ title("2d diametral compression test.")
 
 eosChoice = eosChoice.lower()
 strengthModel = strengthModel.lower()
-SPHType = SPHType.lower()
 SpecimenDistribution = SpecimenDistribution.lower()
 
 # valid options for things
-assert SPHType in (["crksph","sph","fsisph"])
+assert not (fsisph and crksph)
 assert eosChoice in (["gruneisen","tillotson"])
 assert strengthModel in (["constant", "collins"]) 
 assert SpecimenDistribution in (["lattice","conformal"])
@@ -152,19 +161,16 @@ assert fsiSurfaceCoefficient >= 0.0
 assert useDamage
 
 #--------------------------------------------------------------------------------
-# Dependent imports
-#--------------------------------------------------------------------------------
-if mpi.procs > 1:
-    from PeanoHilbertDistributeNodes import distributeNodes2d as distributeNodes
-else:
-    from DistributeNodes import distributeNodes2d as distributeNodes
-
-#--------------------------------------------------------------------------------
 # Path and File Name
 #--------------------------------------------------------------------------------
-hydroname = SPHType
+hydroname = "SPH"
+if crksph:
+    hydroname = "CRK"+hydroname
+elif fsisph:
+    hydroname = "FSI"+hydroname
 if asph:
     hydroname = "A" + hydroname
+
 
 # Restart and output files.
 dataDir = os.path.join(baseDir,
@@ -272,11 +278,12 @@ if incompressibleClamps:
                                        etaMin,
                                        etaMax,
                                        units)
-    PoissonsRatioCu=0.0
+    PoissonsRatioCu=0.33
     rho0Cu = eosSolidCu.referenceDensity 
     cs0Cu = eosSolidCu.soundSpeed(rho0Cu, 0.0)
     Ks0Cu = rho0Cu*cs0Cu*cs0Cu
     GsCu = Ks0Cu / ((2.0*(1.0+PoissonsRatioCu))/(3.0*(1.0-2.0*PoissonsRatioCu)))
+    print ((2.0*(1.0+PoissonsRatioCu))/(3.0*(1.0-2.0*PoissonsRatioCu)))
     strengthCu = ConstantStrength(GsCu, 10.0*Y0) 
 
     print "Reference K   (granite, copper) = (%g, %g)" % (Ks0, Ks0Cu)
@@ -348,6 +355,11 @@ else:
 #-----------------------------
 if cylindricalClamps:
     radRatio = rClamp/rSpecimen
+
+    # we need to know where inflow is if were doing that
+    yLowerBC = -rSpecimen*(1.0+radRatio)
+    yUpperBC =  rSpecimen*(1.0+radRatio)
+
     generatorDriver = GenerateNodeDistribution2d(nRadial = int(nrSpecimen*radRatio), 
                                                  nTheta = int(nrSpecimen*radRatio),
                                                         rho = rho0Clamps,
@@ -370,6 +382,8 @@ if cylindricalClamps:
                                                         offset=[0.0,-(1.0+radRatio)*rSpecimen],
                                                         nNodePerh = nPerh)
 else:
+    yLowerBC = -rSpecimen-ymaxLattice
+    yUpperBC =  rSpecimen+ymaxLattice
     radRatio = 1.0
     generatorDriver = GenerateNodeDistribution2d(nx, ny,
                                                         rho = rho0Clamps,
@@ -421,7 +435,7 @@ output("db.numFluidNodeLists")
 packages = []
 periodicWork = []
 
-if SPHType=="crksph":
+if crksph:
     hydro = CRKSPH(dataBase = db,
                    cfl = cfl,
                    useVelocityMagnitudeForDt = False,
@@ -432,7 +446,7 @@ if SPHType=="crksph":
                    XSPH = xsph,
                    ASPH = asph)
 
-elif SPHType=="fsisph": 
+elif fsisph: 
     q = CRKSPHMonaghanGingoldViscosity(Cl,Cq)   
     hydro = FSISPH(dataBase = db,
                    Q=q,
@@ -452,9 +466,8 @@ elif SPHType=="fsisph":
                    nTensile = nTensile,
                    strengthInDamage=False,
                    damageRelieveRubble=False)
-    packages += [hydro.slideSurfaces]
 
-elif SPHType == "sph":
+else:
     hydro = SPH(dataBase = db,
                 W = WT,
                 cfl = cfl,
@@ -467,8 +480,6 @@ elif SPHType == "sph":
                 HUpdate=HEvolution,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
-else:
-    raise RuntimeError, "invalid SPHType"
 
 if not epsilon2 is None:
     hydro.Q.epsilon2=epsilon2              
@@ -511,7 +522,6 @@ packages += [hydro]
 #-------------------------------------------------------------------------------
 # Physics Package :  construct the damage model.
 #-------------------------------------------------------------------------------
-
 damageModelSpecimen = GradyKippTensorDamage("granite",
                                             nodeList = nodesSpecimen,
                                             strainAlgorithm = strainType,
@@ -537,8 +547,8 @@ nodesBase.velocity(VectorField("initial velocity base", nodesBase,Vector(0.0,com
 # turn this feature off. 
 #-------------------------------------------------------------------------------
 if compressionWithInflowBC:
-    yp1 = Plane(Vector(0.0,rSpecimen+ymaxLattice), Vector( 0.0, -1.0))
-    yp2 = Plane(Vector(0.0,-rSpecimen-ymaxLattice), Vector( 0.0, 1.0))
+    yp1 = Plane(Vector(0.0,yUpperBC), Vector( 0.0, -1.0))
+    yp2 = Plane(Vector(0.0,yLowerBC), Vector( 0.0, 1.0))
     bcUpper = InflowOutflowBoundary(db,yp1)
     bcLower = InflowOutflowBoundary(db,yp2)
 
@@ -752,23 +762,6 @@ samplers.append(LSyy)
 Sample = Sample(db, eulerianSampleVars, samplers )
 periodicWork += [(Sample.sample,100)]
 
-#-------------------------------------------------------------------------------
-# PeriodicWork: print total energy
-#-------------------------------------------------------------------------------
-def printTotalEnergy(cycle,time,dt):
-    Etot=0.0
-    mass00=db.solidMass
-    vel00=db.solidVelocity
-    eps00=db.solidSpecificThermalEnergy
-    nodeLists = db.nodeLists()
-    for nodelisti in range(db.numNodeLists):
-
-        for i in range(nodeLists[nodelisti].numInternalNodes):
-            Etot += mass00(nodelisti,i)*(0.5*vel00(nodelisti,i).magnitude2()+eps00(nodelisti,i))
-    Etot = mpi.allreduce(Etot,mpi.SUM)
-    print(" TOTAL ENERGY : %.15f" % Etot)
-
-periodicWork += [(printTotalEnergy,5)]
 
 #-------------------------------------------------------------------------------
 # Build the controller.
@@ -802,93 +795,44 @@ else:
 # Comparison to analytic solution.
 #-------------------------------------------------------------------------------
 
+# get our force from sampling
+#----------------------------
 Sigmaxx=LSyy.DATA_Tot[:,5]-LSyy.DATA_Tot[:,3]
 x_sample = LSyy.DATA_Tot[:,0]
 y_sample = LSyy.DATA_Tot[:,1]
 z_sample = LSyy.DATA_Tot[:,2]
 xdiff = x_sample[:-1]-x_sample[1:]
-forceS = sum((0.5*Sigmaxx[1:]+0.5*Sigmaxx[:-1])*xdiff)
-print "Force from Sampling %g " % forceS
+forceSampled = sum((0.5*Sigmaxx[1:]+0.5*Sigmaxx[:-1])*xdiff)
 
 
-# analytic eqn
-#--------------------------------
+# estimate plane-strain force from displacement
+#----------------------------------------------
 Ks = rho0Specimen*c0Specimen**2
 Kc = rho0Clamps*cS0Clamps**2
 cSs = sqrt((Gs)/rho0Specimen)
 cSc = sqrt((GsCu)/rho0Clamps)
 Es = 3.0*Ks*(1.0-2.0*PoissonsRatio)
 Ec = 3.0*Kc*(1.0-2.0*PoissonsRatioClamps)
+pi=3.1415
 
 oneOverEstar = (1.0-PoissonsRatio**2)/Es + (1.0-PoissonsRatioClamps**2)/Ec
 Estar = 1.0/oneOverEstar
 
-# Eqns aren't write for rClamp = oo need to correct. 
-# clamp was fixed lower than center messing up displacement
-vel = mpi.allreduce(bcUpper.storedValues(nodesDriver.velocity()),mpi.SUM)
-#print vel
-#print compressionSpeed
-b = sqrt( (2 * forceS / pi) * oneOverEstar*rSpecimen)
-
-goalTime1 = goalTime - rSpecimen/cSs
-goalTime2 = goalTime1 - ymaxLattice/cSc
-print "goalTime : %g" % goalTime
-print "goalTime1: %g" % goalTime1
-print "goalTime2: %g" % goalTime2
-
 delta = compressionSpeed*goalTime
-force = 1.0*pi/4.0*Estar*delta
-delta1 = compressionSpeed*goalTime1
-force1 = 1.0*pi/4.0*Estar*delta1
-delta2 = compressionSpeed*goalTime2
-force2 = 1.0*pi/4.0*Estar*delta2
-print "force from displacement : %g" % force
-print "force from displacement1: %g" % force1
-print "force from displacement2: %g" % force2
+forceEstimated = 1.0*pi/4.0*Estar*delta
 
-delta = compressionSpeed*goalTime1
-force = 1.0*pi/4.0*Estar*delta
-#force3 = 4.0/3.0*pi*Estar**(0.5)*delta**1.5
-Pmax = sqrt(force*Estar/pi/rSpecimen)
-print "Force from Displacement: %g" % force
-print "Ratio: %g" % (force1/forceS)
-print "b: %g" % (b)
-print "Force from displacement: %g" % (pi*Estar*delta/(0.666+2*log((4*rSpecimen)/b)))
+print " "
+print "force from displacement : %g" % forceEstimated
+print "Force from sampling     : %g" % forceSampled
+print " "
 
-print "Pstar: %g" % Pmax
-
-def analyticSigmaxx(X,Y):
-
-    sigma0 = 2.0*forceS/(pi)
-    sigmax = [0]*len(X)
-    R = rSpecimen
-    for i in range(len(X)):
-        sigmax[i] = 1e5*sigma0*(0.5/R - ( (X[i]*X[i]*(R-Y[i]))/(X[i]*X[i]+(R-Y[i])**2)**2.0 + 
-                                      (X[i]*X[i]*(R+Y[i]))/(X[i]*X[i]+(R+Y[i])**2)**2.0 ))
-    return sigmax
-
-def analyticSigmayy(X,Y):
-
-    sigma0 = 2.0*forceS/(pi)
-    sigmay = [0]*len(X)
-    R = rSpecimen
-    for i in range(len(X)):
-        sigmay[i] = 1e5*sigma0*(0.5/R - ( ((R-Y[i]))**3.0/(X[i]*X[i]+(R-Y[i])**2)**2.0 + 
-                                      ((R+Y[i]))**3.0/(X[i]*X[i]+(R+Y[i])**2)**2.0 ))
-    return sigmay
-
-def analyticSigmaxy(X,Y):
-
-    sigma0 = 2.0*forceS/(pi)
-    sigmay = [0]*len(X)
-    R = rSpecimen
-    for i in range(len(X)):
-        sigmay[i] = 1e5*sigma0*( ( (X[i]*(R-Y[i]))**2.0/(X[i]*X[i]+(R-Y[i])**2) + 
-                               (X[i]*(R+Y[i]))**2.0/(X[i]*X[i]+(R+Y[i])**2) ))
-    return sigmay
-
-# numerical Solution
+# analytic soln
 #--------------------------------
+analyticSolution = HerzianSolution(forceSampled,rSpecimen)
+
+#-----------------------
+# Plot along the x-axis  
+#-----------------------
 P = []
 Sxx = []
 Syy = []
@@ -902,9 +846,9 @@ pos = db.globalPosition
 for i in range(nodesSpecimen.numInternalNodes):
     if abs(pos(2,i).y)<2.0*rSpecimen/nrSpecimen and abs(pos(2,i).x)<0.95*rSpecimen:
         P.append(float(pressure(2,i)))
-        Sxx.append(1e5*float(sigma(2,i).xx-P[-1]))
-        Syy.append(1e5*float(sigma(2,i).yy-P[-1]))
-        Sxy.append(1e5*float(sigma(2,i).xy))
+        Sxx.append(float(sigma(2,i).xx-P[-1]))
+        Syy.append(float(sigma(2,i).yy-P[-1]))
+        Sxy.append(float(sigma(2,i).xy))
         X.append(float(pos(2,i).x))
         Y.append(float(pos(2,i).y))
     
@@ -922,41 +866,27 @@ SxxY0 = Sxxreduced
 SyyY0 = Syyreduced
 xY0 = [(-rSpecimen + i/float(Nsteps)*(2.0*rSpecimen)) for i in range(Nsteps) ]
 yY0 = [0.0 for i in range(Nsteps)]
-SxxAnalyticY0 = analyticSigmaxx(xY0,yY0)
-SyyAnalyticY0 = analyticSigmayy(xY0,yY0)
+SxxAnalyticY0 = analyticSolution.sigmaxx(xY0,yY0)
+SyyAnalyticY0 = analyticSolution.sigmayy(xY0,yY0)
 
-if mpi.rank==0:
 
-    if checkError:
-
-        avgSxxanalytic = sum(Sxxanalytic)/len(Sxxanalytic)
-        avgSxxreduced = sum(Sxxreduced)/len(Sxxreduced)
-        error = 100.0*abs(avgSxxanalytic - avgSxxreduced)/max(abs(avgSxxanalytic),1e-30)
-        
-        if error > tol:
-            raise ValueError, "tensile stress error bounds violated (error, error tolerance) = (%g,%g)." % (error,tol)
-
-    if leaveNoTrace:
-        os.system("rm -rf "+baseDir)
-
-if mpi.rank==0:
+if mpi.rank==0 and graphics:
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(6, 6), dpi=200)
-
-
 
     ax.plot(Xreduced,Sxxreduced,'c.',label='$\sigma_{xx}$ -- FSISPH')
     ax.plot(xY0,SxxAnalyticY0,'b--',label='$\sigma_{xx}$ -- Analytic')
     ax.plot(Xreduced,Syyreduced,'y.',label='$\sigma_{yy}$ -- FSISPH')
     ax.plot(xY0,SyyAnalyticY0,'k-',label='$\sigma_{yy}$ -- Analytic')
-    #ax.plot(Yreduced,Syy,'r-',label='$\sigma_{yy}$ -- Sampled')
-    #ax.legend(fontsize=FS)
     plt.xlabel(r'x-$cm$',fontsize=FS)
-    plt.ylabel(r'Stress-$MPa$',fontsize=FS)
-    #plt.savefig('DiametralCompression-xaxis.png')
+    plt.ylabel(r'Stress-$CGuS$',fontsize=FS)
+    plt.savefig('DiametralCompression-xaxis.png')
     #plt.show()
-    
+
+#-----------------------
+# Plot along the y-axis  
+#-----------------------
 P = []
 Sxx = []
 Syy = []
@@ -970,9 +900,9 @@ pos = db.globalPosition
 for i in range(nodesSpecimen.numInternalNodes):
     if abs(pos(2,i).x)<2.0*rSpecimen/nrSpecimen and abs(pos(2,i).y)<0.9*rSpecimen:
         P.append(float(pressure(2,i)))
-        Sxx.append(1e5*float(sigma(2,i).xx-P[-1]))
-        Syy.append(1e5*float(sigma(2,i).yy-P[-1]))
-        Sxy.append(1e5*float(sigma(2,i).xy))
+        Sxx.append(float(sigma(2,i).xx-P[-1]))
+        Syy.append(float(sigma(2,i).yy-P[-1]))
+        Sxy.append(float(sigma(2,i).xy))
         X.append(float(pos(2,i).x))
         Y.append(float(pos(2,i).y))
     
@@ -983,18 +913,33 @@ Sxyreduced = mpi.allreduce(Sxy,mpi.SUM)
 Syyreduced = mpi.allreduce(Syy,mpi.SUM)
 Yreduced = mpi.allreduce(Y,mpi.SUM)
 Xreduced = mpi.allreduce(X,mpi.SUM)
-Sxxanalytic = analyticSigmaxx(Xreduced,Yreduced)
-Syyanalytic = analyticSigmayy(Xreduced,Yreduced)
+Sxxanalytic = analyticSolution.sigmaxx(Xreduced,Yreduced)
+Syyanalytic = analyticSolution.sigmayy(Xreduced,Yreduced)
 
 Nsteps = 100
 SxxY0 = Sxxreduced
 SyyY0 = Syyreduced
 yY0 = [(-rSpecimen*0.9 + i/float(Nsteps)*(2.0*rSpecimen*0.9)) for i in range(Nsteps) ]
 xY0 = [0.0 for i in range(Nsteps)]
-SxxAnalyticY0 = analyticSigmaxx(xY0,yY0)
-SyyAnalyticY0 = analyticSigmayy(xY0,yY0)
+SxxAnalyticY0 = analyticSolution.sigmaxx(xY0,yY0)
+SyyAnalyticY0 = analyticSolution.sigmayy(xY0,yY0)
+
 
 if mpi.rank==0:
+    if graphics:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(6, 6), dpi=200)
+
+        ax.plot(Yreduced,Sxxreduced,'c.',label='$\sigma_{xx}$ -- FSISPH')
+        ax.plot(yY0,SxxAnalyticY0,'b--',label='$\sigma_{xx}$ -- Analytic')
+        ax.plot(Yreduced,Syyreduced,'y.',label='$\sigma_{yy}$ -- FSISPH')
+        ax.plot(yY0,SyyAnalyticY0,'k-',label='$\sigma_{yy}$ -- Analytic')
+        ax.legend(fontsize=FS)
+        plt.xlabel(r'y-$cm$',fontsize=FS)
+        plt.ylabel(r'Stress-$CGuS$',fontsize=FS)
+        plt.savefig('DiametralCompression-yaxis.png')
+        #plt.show()
 
     if checkError:
 
@@ -1007,29 +952,6 @@ if mpi.rank==0:
 
     if leaveNoTrace:
         os.system("rm -rf "+baseDir)
-
-if mpi.rank==0:
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots(figsize=(6, 6), dpi=200)
-
-
-
-    ax.plot(Yreduced,Sxxreduced,'c.',label='$\sigma_{xx}$ -- FSISPH')
-    ax.plot(yY0,SxxAnalyticY0,'b--',label='$\sigma_{xx}$ -- Analytic')
-    ax.plot(Yreduced,Syyreduced,'y.',label='$\sigma_{yy}$ -- FSISPH')
-    ax.plot(yY0,SyyAnalyticY0,'k-',label='$\sigma_{yy}$ -- Analytic')
-    #ax.plot(Yreduced,Syy,'r-',label='$\sigma_{yy}$ -- Sampled')
-    #ax.plot(x_sample,Sigmaxx,'r-',label='$\sigma_{yy}$ -- Sampled')
-    ax.legend(fontsize=FS)
-    plt.xlabel(r'y-$cm$',fontsize=FS)
-    plt.ylabel(r'Stress-$MPa$',fontsize=FS)
-    #plt.savefig('DiametralCompression-yaxis.png')
-    #plt.show()
-    
-
-
-
 
 
 
