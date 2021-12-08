@@ -650,7 +650,7 @@ if(this->correctVelocityGradient()){
       const auto& Si = S(nodeListi, i);
       const auto& mui = mu(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
-      //const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
+      
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
