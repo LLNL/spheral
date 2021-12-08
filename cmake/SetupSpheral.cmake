@@ -153,3 +153,15 @@ if (NOT BUILD_TPL_ONLY)
     add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
   endif()
 endif()
+
+#-------------------------------------------------------------------------------
+# Build C++ tests and install tests to install directory
+#-------------------------------------------------------------------------------
+if (ENABLE_TESTS)
+  add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit/CXXTests)
+
+  install(DIRECTORY ${SPHERAL_ROOT_DIR}/tests/
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/tests
+        PATTERN "runCXXTests.ats" EXCLUDE
+       )
+endif()
