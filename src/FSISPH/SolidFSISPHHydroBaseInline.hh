@@ -150,8 +150,8 @@ template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Vector>&
 SolidFSISPHHydroBase<Dimension>::
-DpDx() const {
-  return mDpDx;
+DPDx() const {
+  return mDPDx;
 }
 
 //------------------------------------------------------------------------------

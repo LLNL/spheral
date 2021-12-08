@@ -114,6 +114,15 @@ public:
                            const State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) const override;
 
+  void linearReconstruction(const typename Dimension::Vector& ri,
+                            const typename Dimension::Vector& rj,
+                            const typename Dimension::Scalar& yi,
+                            const typename Dimension::Scalar& yj,
+                            const typename Dimension::Vector& DyDxi,
+                            const typename Dimension::Vector& DyDxj,
+                                  typename Dimension::Scalar& ytildei,
+                                  typename Dimension::Scalar& ytildej) const;
+
   double surfaceForceCoefficient() const;
   void surfaceForceCoefficient(double x);
 
@@ -141,7 +150,7 @@ public:
   KernelAveragingMethod kernelAveragingMethod() const;
   void kernelAveragingMethod(KernelAveragingMethod method);
 
-  const FieldList<Dimension, Vector>& DpDx() const;
+  const FieldList<Dimension, Vector>& DPDx() const;
   const FieldList<Dimension, Vector>& DepsDx() const;
 
   //****************************************************************************
@@ -163,7 +172,7 @@ private:
   
   std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
  
-  FieldList<Dimension, Vector> mDpDx;                  // pressure gradient     
+  FieldList<Dimension, Vector> mDPDx;                  // pressure gradient     
   FieldList<Dimension, Vector> mDepsDx;                // specific thermal energy gradient    
     
   
