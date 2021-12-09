@@ -23,6 +23,7 @@ macro(PYB11_GENERATE_BINDINGS PYB11_MODULE_NAME)
   # List directories in which spheral .py files can be found.
   set(PYTHON_ENV 
       ${EXTRA_PYB11_SPHERAL_ENV_VARS}
+      "${BUILDTIME_PYTHONENV_STR}:"
       "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps:"
       "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/${PYB11_MODULE_NAME}:"
       "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/polytope:"
