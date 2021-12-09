@@ -4,6 +4,8 @@
 
 set(gtest_spheral_tests
     testSidreStorage.cc
+    tryingSidreFileIO.cc
+    axomExample.cc
    )
 
 

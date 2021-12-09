@@ -31,7 +31,7 @@ class SidreFileIOTest(FileIOTestBase, unittest.TestCase):
         return
 
     def removeFile(self, filename):
-        os.remove()
+        os.remove(filename)
 
 #-------------------------------------------------------------------------------
 # Run those tests.

@@ -63,6 +63,7 @@ axom::sidre::Group *SidreDataCollection::sidreStoreField(const std::string &view
       wholeField->createView(view_name + std::to_string(view_count), dtype, num_elements, (void*)data);
       view_count++;
    }
+   wholeField->print();
    return wholeField;
 }
 

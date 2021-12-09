@@ -155,8 +155,11 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  // A pointer to the SiloFile file associated with this object.
-  std::shared_ptr<axom::sidre::DataStore> mFilePtr = std::make_shared<axom::sidre::DataStore>();
+  // A pointer to the root of the sidre datastore associated with this object.
+  std::shared_ptr<axom::sidre::DataStore> mFilePtr;
+
+  //save() function in sidre needs to have access to file name, also used for loadExternalData()
+  std::string mFileName;
 
   // Don't allow assignment.
   SidreFileIO& operator=(const SidreFileIO& rhs);
