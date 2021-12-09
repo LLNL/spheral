@@ -50,11 +50,11 @@ then
     echo "Activating spack instance."
     . ${prefix}/spack/share/spack/setup-env.sh
 
-    #spheral_spack_hash=`spack find -L spheral | grep spheral | cut -d ' ' -f1`
+    spheral_spack_hash=`spack find -L spheral | grep spheral | cut -d ' ' -f1`
     spheral_install_prefix=`spack find -p spheral | grep spheral | cut -d ' ' -f3`
 
-    #echo "Loading spheral ${spheral_spack_hash} ..."
-    #spack load /${spheral_spack_hash}
+    echo "Loading spheral ${spheral_spack_hash} ..."
+    spack load /${spheral_spack_hash}
 
     cd ${spheral_install_prefix}
 
