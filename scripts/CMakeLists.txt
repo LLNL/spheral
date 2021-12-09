@@ -28,13 +28,16 @@ if (NOT ENABLE_CXXONLY)
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
     )
 
-  if(SPACK_INSTALL)
-    install(CODE "execute_process( \
-      COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/spheral-spack-setup-venv.sh \ 
-      )")
-  else()
-    install(CODE "execute_process( \
-      COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh \ 
-      )")
-  endif()
+  #if(SPACK_INSTALL)
+  #  install(CODE "execute_process( \
+  #    COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/spheral-spack-setup-venv.sh \ 
+  #    )")
+  #else()
+  #  install(CODE "execute_process( \
+  #    COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh \ 
+  #    )")
+  #endif()
+  install(CODE "execute_process( \
+    COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh \ 
+    )")
 endif()

@@ -78,15 +78,15 @@ class Spheral(CMakePackage, PythonPackage):
     # OpenSubDiv plus all dependencies took over 2 hours to build.
     depends_on('opensubdiv@3.4.3', type='build')
 
-    extends('python@2.7.16 +zlib +shared', type=['build', 'run'])
+    extends('python@2.7.16 +zlib +shared', type='build')
 
-    depends_on('py-pip@9.0.1', type=['build'])
-    depends_on('py-pybind11@2.4.3')
-    depends_on('py-pyb11generator@1.0.12')
+    depends_on('py-pip@9.0.1', type='build')
+    depends_on('py-pybind11@2.4.3', type='build')
+    depends_on('py-pyb11generator@1.0.12', type='build')
 
     #depends_on('py-numpy@1.16.6')
     #depends_on('py-mpi4py')
-    depends_on('py-numpy-stl@2.11.2') # MikeO: What do we use this for? do we need it?
+    #depends_on('py-numpy-stl@2.11.2') # MikeO: What do we use this for? do we need it?
     #depends_on('py-matplotlib@2.2.5') 
     ##depends_on('py-pillow@6.2.0') # Need this to saitsify dep for matplotlib.
     #depends_on('py-gnuplot@1.8')
@@ -110,7 +110,7 @@ class Spheral(CMakePackage, PythonPackage):
 
 
     #TODO: Polytope spack package.
-    depends_on('polytope')
+    depends_on('polytope', type='build')
     #TODO: Polyclipper package.
 
     #def setup_run_environment(self, env):
@@ -123,7 +123,7 @@ class Spheral(CMakePackage, PythonPackage):
         options.append(self.define('ENABLE_CXXONLY', False))
         options.append(self.define('TPL_VERBOSE', False))
         options.append(self.define('BUILD_TPL', True))
-        options.append(self.define('SPACK_INSTALL', True))
+        #options.append(self.define('SPACK_INSTALL', True))
 
         options.append(self.define('python_BUILD', False))
         options.append(self.define('python_DIR', spec['python'].prefix))
@@ -157,7 +157,7 @@ class Spheral(CMakePackage, PythonPackage):
         options.append(self.define('opensubdiv_DIR', spec['opensubdiv'].prefix))
 
         options.append(self.define('pip_BUILD', False))
-        options.append(self.define('pip_DIR', spec['py-pip'].prefix))
+        options.append(self.define('pip_DIR', spec['py-pip'].prefix + '/lib/python2.7/site-packages/'))
 
         options.append(self.define('pybind11_BUILD', False))
         options.append(self.define('pybind11_DIR', spec['py-pybind11'].prefix))
