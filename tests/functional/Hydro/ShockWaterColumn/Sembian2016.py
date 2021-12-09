@@ -122,7 +122,7 @@ commandLine(
     vizCycle = None,                      # cycle freq to dump silos
     vizDerivs = False,                    # dump our derivative fields
     vizName = "Sembian2016_WaterColumn",  # name for our silo files
-    restartName = "Sembian2016"           # name for our rst files
+    restartName = "Sembian2016",          # name for our rst files
     baseDir = "dumps-Sembian2016",        # name for dump dir
     clearDirectories = False,             # wipe out existing files in dump dir on start
 )
@@ -419,7 +419,7 @@ elif fsisph:
     if fsiSlides:
         slidePairs = [(nodesAir,nodesWater)]
 
-    slides = makeSlideSurfaces(WT,db,slidePairs)
+    slides = makeSlideSurfaces(db,slidePairs)
 
     hydro = FSISPH(dataBase = db,
                 slides=slides,
