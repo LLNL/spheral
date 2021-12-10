@@ -403,7 +403,7 @@ if(this->correctVelocityGradient()){
 
       // we'll need a couple damage defs
       //const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
-      const auto fSij = (sameMatij ? 1.0-abs(Di-Dj)     : 0.0);
+      const auto fSij = (sameMatij ? 1.0-abs(Di-Dj) : 0.0);
       const auto fDi =  (sameMatij ? (1.0-Di) : 0.0 );
       const auto fDj =  (sameMatij ? (1.0-Dj) : 0.0 );
 
@@ -544,16 +544,16 @@ if(this->correctVelocityGradient()){
           const auto uij = -min(ui-uj,0.0);
 
           // traction vectors to see if were applying damage to P-wave modulus
-          //const auto normalTractioni = rhatij.dot(sigmai.dot(rhatij));
-          //const auto normalTractionj = rhatij.dot(sigmaj.dot(rhatij));
+          const auto normalTractioni = rhatij.dot(sigmai.dot(rhatij));
+          const auto normalTractionj = rhatij.dot(sigmaj.dot(rhatij));
 
           // positive normal traction = state of tension -> apply damage weight
-          //const auto fKi = (normalTractioni > 0.0 ?  fDi : 1.0);
-          //const auto fKj = (normalTractionj > 0.0 ?  fDj : 1.0);
+          const auto fKi = (normalTractioni > 0.0 ?  fDi : 1.0);
+          const auto fKj = (normalTractionj > 0.0 ?  fDj : 1.0);
           
           // weights weights
-          const auto Ci =  (constructHLLC ? std::sqrt(rhoi*Ki) + rhoi*uij  : abs(Ki*volj*gWi) )  + tiny;
-          const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj) + rhoj*uij  : abs(Kj*voli*gWj) )  + tiny;
+          const auto Ci =  (constructHLLC ? std::sqrt(rhoi*fKi*Ki) + rhoi*uij  : abs(fKi*Ki*volj*gWi) )  + tiny;
+          const auto Cj =  (constructHLLC ? std::sqrt(rhoj*fKj*Kj) + rhoj*uij  : abs(fKj*Kj*voli*gWj) )  + tiny;
           const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : abs(mui*volj*gWi) ) + tiny;
           const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : abs(muj*voli*gWj) ) + tiny;
 
