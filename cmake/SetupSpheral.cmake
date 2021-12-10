@@ -160,8 +160,26 @@ endif()
 if (ENABLE_TESTS)
   add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit/CXXTests)
 
-  install(DIRECTORY ${SPHERAL_ROOT_DIR}/tests/
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/tests
-        PATTERN "runCXXTests.ats" EXCLUDE
-       )
+  # A macro to preserve directory structure when installing files
+  macro(install_with_directory)
+      set(optionsArgs "")
+      set(oneValueArgs "DESTINATION")
+      set(multiValueArgs "FILES")
+      cmake_parse_arguments(CAS "${optionsArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+
+      foreach(FILE ${CAS_FILES})
+          get_filename_component(DIR ${FILE} DIRECTORY)
+          INSTALL(FILES ${FILE} DESTINATION ${CAS_DESTINATION}/${DIR})
+      endforeach()
+  endmacro(install_with_directory)
+
+  # Find the test files we want to install
+  execute_process(
+    COMMAND git ls-files tests
+    WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
+    OUTPUT_VARIABLE test_files)
+  string(REPLACE "\n" ";" test_files_list ${test_files})
+  install_with_directory(
+    FILES ${test_files_list} 
+    DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
