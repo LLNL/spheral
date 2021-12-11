@@ -4,6 +4,8 @@
 // Created by Mikhail Zakharchanka, 11/4/2021
 //----------------------------------------------------------------------------//
 #include "SidreFileIO.hh"
+#include "Utilities/SidreDataCollection.hh"
+#include "axom/core/Path.hpp"
 #include <iostream>
 
 namespace Spheral
@@ -14,17 +16,17 @@ namespace Spheral
 //------------------------------------------------------------------------------
 SidreFileIO::SidreFileIO():
   FileIO(),
-  mFilePtr(0) {}
+  mDataStorePtr(0) {}
 
 //------------------------------------------------------------------------------
 // Construct and open the given file.
 //------------------------------------------------------------------------------
 SidreFileIO::SidreFileIO(const std::string fileName, AccessType access):
   FileIO(fileName, access),
-  mFilePtr(0)
+  mDataStorePtr(0)
 {
   open(fileName, access);
-  //ENSURE(mFileOpen && mFilePtr != 0);
+  //ENSURE(mFileOpen && mDataStorePtr != 0);
 }
 
 //------------------------------------------------------------------------------
@@ -40,18 +42,18 @@ SidreFileIO::~SidreFileIO()
 //------------------------------------------------------------------------------
 void SidreFileIO::open(const std::string fileName, AccessType access)
 {
-  VERIFY2(mFilePtr == 0 and mFileOpen == false,
+  VERIFY2(mDataStorePtr == 0 and mFileOpen == false,
           "ERROR: attempt to reopen SidreFileIO object.");
 
-  mFilePtr = std::make_shared<axom::sidre::DataStore>();
+  mDataStorePtr = std::make_shared<axom::sidre::DataStore>();
 
   // Need this member var because save() needs to know the name too.
   mFileName = fileName;
 
   if (access == AccessType::Read) 
-    mFilePtr->getRoot()->load(fileName);
+    mDataStorePtr->getRoot()->load(fileName);
   
-  VERIFY2(mFilePtr != 0, "SidreFileIO ERROR: unable to open " << fileName);
+  VERIFY2(mDataStorePtr != 0, "SidreFileIO ERROR: unable to open " << fileName);
   mFileOpen = true;
 }
 
@@ -60,10 +62,10 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
 //------------------------------------------------------------------------------
 void SidreFileIO::close()
 {
-  if (mFilePtr != 0)
+  if (mDataStorePtr != 0)
   {
-    mFilePtr->getRoot()->save(mFileName, "sidre_hdf5");
-    mFilePtr = 0;
+    mDataStorePtr->getRoot()->save(mFileName, "sidre_hdf5");
+    mDataStorePtr = 0;
   }
   mFileOpen = false;
 }
@@ -83,7 +85,7 @@ bool SidreFileIO::pathExists(const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const unsigned& value, const std::string pathName)
 {
-  mFilePtr->getRoot()->createViewScalar(pathName, value);
+  mDataStorePtr->getRoot()->createViewScalar(pathName, value);
 }
 
 //------------------------------------------------------------------------------
@@ -91,7 +93,7 @@ void SidreFileIO::write(const unsigned& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const size_t& value, const std::string pathName)
 {
-  mFilePtr->getRoot()->createViewScalar(pathName, value);
+  mDataStorePtr->getRoot()->createViewScalar(pathName, value);
 }
 
 //------------------------------------------------------------------------------
@@ -99,7 +101,7 @@ void SidreFileIO::write(const size_t& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const int& value, const std::string pathName)
 {
-  mFilePtr->getRoot()->createViewScalar(pathName, value);
+  mDataStorePtr->getRoot()->createViewScalar(pathName, value);
 }
 
 // ------------------------------------------------------------------------------
@@ -107,7 +109,7 @@ void SidreFileIO::write(const int& value, const std::string pathName)
 // ------------------------------------------------------------------------------
 void SidreFileIO::write(const bool& value, const std::string pathName)
 {
-  mFilePtr->getRoot()->createViewScalar(pathName, (int)value);
+  mDataStorePtr->getRoot()->createViewScalar(pathName, (int)value);
 }
 
 //------------------------------------------------------------------------------
@@ -115,7 +117,7 @@ void SidreFileIO::write(const bool& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const double& value, const std::string pathName)
 {
-  mFilePtr->getRoot()->createViewScalar(pathName, value);
+  mDataStorePtr->getRoot()->createViewScalar(pathName, value);
 }
 
 //------------------------------------------------------------------------------
@@ -123,7 +125,7 @@ void SidreFileIO::write(const double& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::string& value, const std::string pathName) 
 {
-  mFilePtr->getRoot()->createViewString(pathName, value);
+  mDataStorePtr->getRoot()->createViewString(pathName, value);
 }
 
 //------------------------------------------------------------------------------
@@ -138,13 +140,13 @@ void SidreFileIO::write(const std::vector<int>& value, const std::string pathNam
   //   std::cout << *it << " ";
   // std::cout << "\n";
 
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::INT_ID, value.size(), (void*)(&(*value.begin())));
-  // mFilePtr->getRoot()->print();
-  // std::cout << "This is how many views root has:" << mFilePtr->getRoot()->getNumViews() << "\n";
-  // if (mFilePtr->getRoot()->getView(pathName)->isExternal())
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::INT_ID, value.size(), (void*)(&(*value.begin())));
+  // mDataStorePtr->getRoot()->print();
+  // std::cout << "This is how many views root has:" << mDataStorePtr->getRoot()->getNumViews() << "\n";
+  // if (mDataStorePtr->getRoot()->getView(pathName)->isExternal())
   //   std::cout << "This is reading the correct external vector.\n";
-  // std::cout << "This view has size of: " << mFilePtr->getRoot()->getView(pathName)->getNumElements() << "\n";
-  // if (mFilePtr->getRoot()->hasChildView(pathName))
+  // std::cout << "This view has size of: " << mDataStorePtr->getRoot()->getView(pathName)->getNumElements() << "\n";
+  // if (mDataStorePtr->getRoot()->hasChildView(pathName))
   //   std::cout << "Root does have the view " << pathName << "\n";
 
   // #if defined(AXOM_USE_HDF5)
@@ -157,7 +159,7 @@ void SidreFileIO::write(const std::vector<int>& value, const std::string pathNam
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::vector<double>& value, const std::string pathName)
 {
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, value.size(), (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, value.size(), (void*)(&(*value.begin())));
 }
 
 //------------------------------------------------------------------------------
@@ -165,8 +167,11 @@ void SidreFileIO::write(const std::vector<double>& value, const std::string path
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::vector<std::string>& value, const std::string pathName)
 {
+  axom::Path myPath = axom::Path(pathName);
+  std::pair<std::string, std::string> dirSplit = myPath.split();
+  std::cout << "This is the split path, string 1: " << dirSplit.first << ". and string 2: " << dirSplit.second << "\n";
   //create a view with the pathname and then multiple views each containing one string
-  axom::sidre::Group* group = mFilePtr->getRoot()->createGroup(pathName);
+  axom::sidre::Group* group = mDataStorePtr->getRoot()->createGroup(pathName);
   // for (int i = 0; i < value.size(); ++i)
   //   group->createView(pathName + std::to_string(i), axom::sidre::INT8_ID, value[i].size(), (void*)(&(*value[i].begin())));
 
@@ -174,8 +179,8 @@ void SidreFileIO::write(const std::vector<std::string>& value, const std::string
   // for (int i = 0; i < value.size(); ++i)
   //   totalString += value[i];
 
-  // mFilePtr->getRoot()->createView(pathName, axom::sidre::INT8_ID, totalString.size(), (void*)(&(*totalString.begin())));
-  mFilePtr->getRoot()->print();
+  // mDataStorePtr->getRoot()->createView(pathName, axom::sidre::INT8_ID, totalString.size(), (void*)(&(*totalString.begin())));
+  mDataStorePtr->getRoot()->print();
   std::cout << std::endl;
 }
 
@@ -185,7 +190,7 @@ void SidreFileIO::write(const std::vector<std::string>& value, const std::string
 void SidreFileIO::write(const Dim<1>::Vector& value, const std::string pathName)
 {
   int size = int(Dim<1>::Vector::numElements);
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
 }
 
 //------------------------------------------------------------------------------
@@ -194,7 +199,7 @@ void SidreFileIO::write(const Dim<1>::Vector& value, const std::string pathName)
 void SidreFileIO::write(const Dim<1>::Tensor& value, const std::string pathName)
 {
   int size = int(Dim<1>::Tensor::numElements);
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
 }
 
 //------------------------------------------------------------------------------
@@ -203,7 +208,7 @@ void SidreFileIO::write(const Dim<1>::Tensor& value, const std::string pathName)
 void SidreFileIO::write(const Dim<1>::SymTensor& value, const std::string pathName)
 {
   int size = int(Dim<1>::SymTensor::numElements);
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
 }
 
 //------------------------------------------------------------------------------
@@ -212,7 +217,7 @@ void SidreFileIO::write(const Dim<1>::SymTensor& value, const std::string pathNa
 void SidreFileIO::write(const Dim<1>::ThirdRankTensor& value, const std::string pathName)
 {
   int size = int(Dim<1>::ThirdRankTensor::numElements);
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
 }
 
 //------------------------------------------------------------------------------
@@ -221,7 +226,7 @@ void SidreFileIO::write(const Dim<1>::ThirdRankTensor& value, const std::string 
 void SidreFileIO::write(const Dim<2>::Vector& value, const std::string pathName)
 {
   int size = int(Dim<2>::Vector::numElements);
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
 }
 
 //------------------------------------------------------------------------------
@@ -230,7 +235,7 @@ void SidreFileIO::write(const Dim<2>::Vector& value, const std::string pathName)
 void SidreFileIO::write(const Dim<2>::Tensor& value, const std::string pathName)
 {
   int size = int(Dim<2>::Tensor::numElements);
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
 }
 
 //------------------------------------------------------------------------------
@@ -239,7 +244,7 @@ void SidreFileIO::write(const Dim<2>::Tensor& value, const std::string pathName)
 void SidreFileIO::write(const Dim<2>::SymTensor& value, const std::string pathName)
 {
   int size = int(Dim<2>::SymTensor::numElements);
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
 }
 
 //------------------------------------------------------------------------------
@@ -248,7 +253,7 @@ void SidreFileIO::write(const Dim<2>::SymTensor& value, const std::string pathNa
 void SidreFileIO::write(const Dim<2>::ThirdRankTensor& value, const std::string pathName)
 {
   int size = int(Dim<2>::ThirdRankTensor::numElements);
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
 }
 
 //------------------------------------------------------------------------------
@@ -257,7 +262,7 @@ void SidreFileIO::write(const Dim<2>::ThirdRankTensor& value, const std::string 
 void SidreFileIO::write(const Dim<3>::Vector& value, const std::string pathName)
 {
   int size = int(Dim<3>::Vector::numElements);
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
 }
 
 //------------------------------------------------------------------------------
@@ -266,7 +271,7 @@ void SidreFileIO::write(const Dim<3>::Vector& value, const std::string pathName)
 void SidreFileIO::write(const Dim<3>::Tensor& value, const std::string pathName)
 {
   int size = int(Dim<3>::Tensor::numElements);
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
 }
 
 //------------------------------------------------------------------------------
@@ -275,7 +280,7 @@ void SidreFileIO::write(const Dim<3>::Tensor& value, const std::string pathName)
 void SidreFileIO::write(const Dim<3>::SymTensor& value, const std::string pathName)
 {
   int size = int(Dim<3>::SymTensor::numElements);
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
 }
 
 //------------------------------------------------------------------------------
@@ -284,7 +289,7 @@ void SidreFileIO::write(const Dim<3>::SymTensor& value, const std::string pathNa
 void SidreFileIO::write(const Dim<3>::ThirdRankTensor& value, const std::string pathName)
 {
   int size = int(Dim<3>::ThirdRankTensor::numElements);
-  mFilePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, size, (void*)(&(*value.begin())));
 }
 
 
@@ -293,7 +298,7 @@ void SidreFileIO::write(const Dim<3>::ThirdRankTensor& value, const std::string 
 // ------------------------------------------------------------------------------
 void SidreFileIO::read(unsigned& value, const std::string pathName) const
 {
-  value = mFilePtr->getRoot()->getView(pathName)->getScalar();
+  value = mDataStorePtr->getRoot()->getView(pathName)->getScalar();
 }
 
 //------------------------------------------------------------------------------
@@ -301,7 +306,7 @@ void SidreFileIO::read(unsigned& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(size_t& value, const std::string pathName) const
 {
-  value = mFilePtr->getRoot()->getView(pathName)->getScalar();
+  value = mDataStorePtr->getRoot()->getView(pathName)->getScalar();
 }
 
 //------------------------------------------------------------------------------
@@ -309,8 +314,8 @@ void SidreFileIO::read(size_t& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(int& value, const std::string pathName) const
 {
-  // mFilePtr->getRoot()->getView(pathName)->print();
-  value = mFilePtr->getRoot()->getView(pathName)->getScalar();
+  // mDataStorePtr->getRoot()->getView(pathName)->print();
+  value = mDataStorePtr->getRoot()->getView(pathName)->getScalar();
 }
 
 //------------------------------------------------------------------------------
@@ -318,7 +323,7 @@ void SidreFileIO::read(int& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(bool& value, const std::string pathName) const
 {
-  value = (int)mFilePtr->getRoot()->getView(pathName)->getScalar();
+  value = (int)mDataStorePtr->getRoot()->getView(pathName)->getScalar();
 }
 
 //------------------------------------------------------------------------------
@@ -326,7 +331,7 @@ void SidreFileIO::read(bool& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(double& value, const std::string pathName) const
 {
-  value = mFilePtr->getRoot()->getView(pathName)->getScalar();
+  value = mDataStorePtr->getRoot()->getView(pathName)->getScalar();
 }
 
 //------------------------------------------------------------------------------
@@ -334,7 +339,7 @@ void SidreFileIO::read(double& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::string& value, const std::string pathName) const
 {
-  value = mFilePtr->getRoot()->getView(pathName)->getString();
+  value = mDataStorePtr->getRoot()->getView(pathName)->getString();
 }
 
 //------------------------------------------------------------------------------
@@ -344,22 +349,22 @@ void SidreFileIO::read(std::vector<int>& value, const std::string pathName) cons
 {
   // std::cout << "---------------------------------------------------------------------------\n";
 
-  // mFilePtr->print();
-  // if (mFilePtr->getRoot()->getView(pathName)->isExternal())
+  // mDataStorePtr->print();
+  // if (mDataStorePtr->getRoot()->getView(pathName)->isExternal())
   //   std::cout << "This is reading the correct external vector.\n";
-  int size = mFilePtr->getRoot()->getView(pathName)->getNumElements();
+  int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
   value.resize(size);
   // std::cout << value.size() << "\n";
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
-  // mFilePtr->getRoot()->print();
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
+  // mDataStorePtr->getRoot()->print();
   // std::cout << std::endl;
 
   // for (int i = 0; i < size; ++i)
   //   std::cout << value[i] << " ";
   // std::cout << std::endl;
-  // mFilePtr->getRoot()->getView(pathName)->print();
-  // value = (std::vector<int>)mFilePtr->getRoot()->getView(pathName)->getData();
+  // mDataStorePtr->getRoot()->getView(pathName)->print();
+  // value = (std::vector<int>)mDataStorePtr->getRoot()->getView(pathName)->getData();
 }
 
 //------------------------------------------------------------------------------
@@ -367,12 +372,12 @@ void SidreFileIO::read(std::vector<int>& value, const std::string pathName) cons
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::vector<double>& value, const std::string pathName) const
 {
-  int size = mFilePtr->getRoot()->getView(pathName)->getNumElements();
+  int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
   value.resize(size);
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
-  // mFilePtr->getRoot()->getView(pathName)->print();
-  // value = mFilePtr->getRoot()->getView(pathName)->getData();
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
+  // mDataStorePtr->getRoot()->getView(pathName)->print();
+  // value = mDataStorePtr->getRoot()->getView(pathName)->getData();
 }
 
 //------------------------------------------------------------------------------
@@ -380,14 +385,14 @@ void SidreFileIO::read(std::vector<double>& value, const std::string pathName) c
 //------------------------------------------------------------------------------
 void SidreFileIO::read(vector<std::string>& value, const std::string pathName) const
 {
-  axom::sidre::Group* group = mFilePtr->getRoot()->getGroup(pathName);
+  axom::sidre::Group* group = mDataStorePtr->getRoot()->getGroup(pathName);
   int stringCount = group->getNumViews();
   std::cout << "This is the amount of views in the group of strings: " << stringCount << std::endl;
   value.resize(stringCount);
-  // int size = mFilePtr->getRoot()->getView(pathName)->getNumElements();
+  // int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
   // value.resize(size);
   // std::cout << value.size() << "\n";
-  // mFilePtr->getRoot()->getView(pathName)->print();
+  // mDataStorePtr->getRoot()->getView(pathName)->print();
 }
 
 //------------------------------------------------------------------------------
@@ -395,8 +400,8 @@ void SidreFileIO::read(vector<std::string>& value, const std::string pathName) c
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<1>::Vector& value, const std::string pathName) const
 {
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
 }
 
 //------------------------------------------------------------------------------
@@ -404,8 +409,8 @@ void SidreFileIO::read(Dim<1>::Vector& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<1>::Tensor& value, const std::string pathName) const
 {
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
 }
 
 //------------------------------------------------------------------------------
@@ -413,8 +418,8 @@ void SidreFileIO::read(Dim<1>::Tensor& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<1>::SymTensor& value, const std::string pathName) const
 {
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
 }
 
 //------------------------------------------------------------------------------
@@ -422,8 +427,8 @@ void SidreFileIO::read(Dim<1>::SymTensor& value, const std::string pathName) con
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<1>::ThirdRankTensor& value, const std::string pathName) const
 {
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
 }
 
 //------------------------------------------------------------------------------
@@ -431,8 +436,8 @@ void SidreFileIO::read(Dim<1>::ThirdRankTensor& value, const std::string pathNam
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<2>::Vector& value, const std::string pathName) const
 {
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
 }
 
 //------------------------------------------------------------------------------
@@ -440,8 +445,8 @@ void SidreFileIO::read(Dim<2>::Vector& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<2>::Tensor& value, const std::string pathName) const
 {
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
 }
 
 //------------------------------------------------------------------------------
@@ -449,8 +454,8 @@ void SidreFileIO::read(Dim<2>::Tensor& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<2>::SymTensor& value, const std::string pathName) const
 {
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
 }
 
 //------------------------------------------------------------------------------
@@ -458,8 +463,8 @@ void SidreFileIO::read(Dim<2>::SymTensor& value, const std::string pathName) con
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<2>::ThirdRankTensor& value, const std::string pathName) const
 {
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
 }
 
 //------------------------------------------------------------------------------
@@ -467,8 +472,8 @@ void SidreFileIO::read(Dim<2>::ThirdRankTensor& value, const std::string pathNam
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<3>::Vector& value, const std::string pathName) const
 {
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
 }
 
 //------------------------------------------------------------------------------
@@ -476,8 +481,8 @@ void SidreFileIO::read(Dim<3>::Vector& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<3>::Tensor& value, const std::string pathName) const
 {
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
 }
 
 //------------------------------------------------------------------------------
@@ -485,8 +490,8 @@ void SidreFileIO::read(Dim<3>::Tensor& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<3>::SymTensor& value, const std::string pathName) const
 {
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
 }
 
 //------------------------------------------------------------------------------
@@ -494,8 +499,8 @@ void SidreFileIO::read(Dim<3>::SymTensor& value, const std::string pathName) con
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<3>::ThirdRankTensor& value, const std::string pathName) const
 {
-  mFilePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mFilePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
 }
 
 #ifdef SPHERAL1D
@@ -539,6 +544,17 @@ void SidreFileIO::write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, con
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<1>, int>& value, const std::string pathName)
 {
+  axom::sidre::DataTypeId dtype = axom::sidre::INT_ID;
+  axom::sidre::Group* wholeField = mDataStorePtr->getRoot()->createGroup(pathName);
+  axom::IndexType num_elements = 1;
+
+  for (u_int i = 0; i < value.size(); ++i)
+  {
+    const int *data = &(value[i]);
+    wholeField->createView(pathName + std::to_string(i), dtype, num_elements, (void*)data);
+  }
+  std::cout << "This is a Field<Dim<1>, int> ===================================\n";
+  mDataStorePtr->print();
 }
 
 //------------------------------------------------------------------------------

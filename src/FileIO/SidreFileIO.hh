@@ -156,7 +156,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // A pointer to the root of the sidre datastore associated with this object.
-  std::shared_ptr<axom::sidre::DataStore> mFilePtr;
+  std::shared_ptr<axom::sidre::DataStore> mDataStorePtr;
 
   //save() function in sidre needs to have access to file name, also used for loadExternalData()
   std::string mFileName;
