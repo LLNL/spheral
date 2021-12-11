@@ -29,6 +29,8 @@ class Opensubdiv(CMakePackage, CudaPackage):
     variant('tbb', default=False, description='Builds with Intel TBB support')
     variant('openmp', default=False, description='Builds with OpenMP support')
     variant('doc', default=False, description='Builds documentation. Requires Python 2')
+    variant('pic', default=True,
+            description='Produce position-independent code (for shared libs)')
 
     depends_on('cmake@2.8.6:', type='build')
     depends_on('graphviz', type='build', when='+doc')
@@ -43,6 +45,10 @@ class Opensubdiv(CMakePackage, CudaPackage):
     #depends_on('libxcursor')
     #depends_on('libxinerama')
     depends_on('llvm-openmp', when='+openmp')
+
+    def setup_build_environment(self, env):
+        if '+pic' in self.spec:
+            env.append_flags('CFLAGS', self.compiler.cc_pic_flag)
 
     def cmake_args(self):
         spec = self.spec
