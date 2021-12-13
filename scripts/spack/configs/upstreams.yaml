@@ -1,5 +1,0 @@
-#upstreams:
-#  spack-instance-2:
-#    install_tree: /collab/usr/gapps/python/build/spack-toss3.3/opt/spack/
-#  spack-instance-1:
-#    install_tree: /usr/workspace/wsrzd/davis291/SPHERAL/spheral-pr/lc_uberenv_cache3

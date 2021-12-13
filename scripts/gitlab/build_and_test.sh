@@ -68,7 +68,8 @@ then
     echo "spack dev-build spheral@develop${spec}"
     spack dev-build -d ${src_dir} spheral@develop${spec}
 
-    sleep 5
+    echo "Activating spack instance..."
+    . ${prefix}/spack/share/spack/setup-env.sh
 
     spheral_spack_hash=`spack find -L spheral | grep spheral | cut -d ' ' -f1`
     spheral_install_prefix=`spack find -p spheral | grep spheral | cut -d ' ' -f3`
