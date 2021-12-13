@@ -38,7 +38,7 @@ then
     prefix="${prefix}/${job_unique_id}"
     spack_env_dir="${prefix}/spack-env"
     mirror_dir="/usr/WS2/davis291/SPHERAL/spheral-tpl/mirror"
-    src_dir=pwd
+    src_dir=$(pwd)
 
     #prefix="/usr/WS2/davis291/SPHERAL/spheral-pr/shm/rzgenie47/manual_job_1637216151"
 
@@ -59,14 +59,16 @@ then
     echo "Create and activate Spack environment..."
     cd ${spack_env_dir}
     spack env create -d .
-    spacktivate .
+    spack env activate .
 
     echo "Adding Spheral-tpl mirror..."
     spack mirror add spheral-tpl ${mirror_dir}
     spack gpg trust `find ${mirror_dir} -name "*.pub"`
 
     echo "spack dev-build spheral@develop${spec}"
-    spack dev-build -d ${pwd} spheral@develop${spec}
+    spack dev-build -d ${src_dir} spheral@develop${spec}
+
+    sleep 5
 
     spheral_spack_hash=`spack find -L spheral | grep spheral | cut -d ' ' -f1`
     spheral_install_prefix=`spack find -p spheral | grep spheral | cut -d ' ' -f3`
