@@ -177,9 +177,11 @@ if (ENABLE_TESTS)
   execute_process(
     COMMAND git ls-files tests
     WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
-    OUTPUT_VARIABLE test_files)
-  string(REPLACE "\n" ";" test_files_list ${test_files})
+    OUTPUT_VARIABLE test_files1)
+  string(REPLACE "\n" " " test_files ${test_files1})
+  separate_arguments(test_files)
+  list(REMOVE_ITEM test_files tests/unit/CXXTests/runCXXTests.ats)
   install_with_directory(
-    FILES ${test_files_list} 
+    FILES ${test_files} 
     DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
