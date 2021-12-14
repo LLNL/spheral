@@ -27,13 +27,11 @@ class CloudMassFraction(NodeHistory):
         self.rho0 = rhoThreshold
         self.eps0 = epsThreshold
         NodeHistory.__init__(self,
-                             nodeList = nodes,
-                             nodeIndicies = [],
-                             sampleMethod = self.measureCloudFraction,
-                             filename = filename,
-                             labels = ("mfrac",
-                                       "mass",
-                                       "volume"))
+                             nodes,
+                             [],
+                             self.measureCloudFraction,
+                             filename,
+                             labels = ("mfrac","mass","volume"))
 
         # Check our dimensionality
         if isinstance(nodes, Spheral.NodeList2d):

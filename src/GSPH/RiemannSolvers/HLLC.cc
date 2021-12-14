@@ -155,7 +155,7 @@ interfaceState(const int i,
 
   }else{ // if ci & cj too small punt to normal av
     const auto uij = std::min((vi-vj).dot(rhatij),0.0);
-    Pstar = 0.5 * (uij*uij)/(rhoi+rhoj);
+    Pstar += 0.25 * (rhoi+rhoj) * (uij*uij);
   }
 }// Scalar interface class
 
