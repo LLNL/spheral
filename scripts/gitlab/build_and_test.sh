@@ -37,12 +37,10 @@ then
     fi
 
     prefix="${prefix}/${job_unique_id}"
-    #spack_env_dir="${prefix}/spack-env"
-    mirror_dir="/usr/WS2/davis291/SPHERAL/uberenv-tpl/mirror"
-    #mirror_dir="/usr/WS2/davis291/SPHERAL/spheral-tpl/mirror"
+    #mirror_dir="/usr/WS2/davis291/SPHERAL/uberenv-tpl/mirror"
+    mirror_dir="/usr/WS2/davis291/SPHERAL/spheral-tpl/mirror"
 
     mkdir -p ${prefix}
-    #mkdir -p ${spack_env_dir}
     prefix_opt="--prefix=${prefix}"
 
     #upstream_opt="--upstream=/usr/workspace/wsb/davis291/SPHERAL/spheral-spack-tpls/uberenv_libs/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__"
