@@ -163,8 +163,8 @@ then
       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
       $cmake_exe --build . --verbose --target install -j 1
     else
-      .${install_dir}/spheral -c "import Spheral"
-      .${install_dir}/spheral-atstest ${install_dir}/tests/integration.ats
+      ${install_dir}/spheral -c "import Spheral"
+      ${install_dir}/spheral-atstest ${install_dir}/tests/integration.ats
     fi
     date
 fi
