@@ -29,11 +29,10 @@ stages:
 
 .run_test_suite:
   script:
-    - cd build_ruby-toss_3_x86_64_ib-gcc@8.1.0/install/
+    - cd build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
     - ./spheral -c "import Spheral"
     - ./spheral-atstest tests/integration.ats
     #- source test.sh
-
 
 .gcc_8_1_0_mvapich2_t:
   variables:
@@ -45,7 +44,7 @@ gcc_8_1_0_mvapich2:
   stage: r_build_and_install
   artifacts:
     paths:
-      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0/install/
+      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
   
 ats_gcc_8_1_0_mvapich2:
   extends: [.gcc_8_1_0_mvapich2_t, .run_test_suite, .on_ruby]
