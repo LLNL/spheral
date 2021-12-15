@@ -164,7 +164,8 @@ then
       $cmake_exe --build . --verbose --target install -j 1
     else
       ${install_dir}/spheral -c "import Spheral"
-      ${install_dir}/spheral-atstest --atsExe /usr/gapps/ats/${sys_type}/7.0.5/bin/ats ${install_dir}/tests/integration.ats
+      #${install_dir}/spheral-atstest --atsExe /usr/gapps/ats/${sys_type}/7.0.5/bin/ats ${install_dir}/tests/integration.ats
+      /usr/gapps/ats/${sys_type}/7.0.5/bin/ats -e ${install_dir}/spheral ${install_dir}/tests/integration.ats
     fi
     date
 fi
