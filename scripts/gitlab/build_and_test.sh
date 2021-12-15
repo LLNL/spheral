@@ -63,9 +63,9 @@ then
 
     spack gpg trust `find ${mirror_dir} -name "*.pub"`
 
-    echo "spack dev-build spheral@develop${spec} hostconfig"
+    echo "spack dev-build spheral@develop%${spec} hostconfig"
     #spack spec -I spheral@develop${spec}
-    spack dev-build --quiet -d ${project_dir} -u initconfig spheral@develop${spec} 2>&1 | tee -a dev-build-out.txt
+    spack dev-build --quiet -d ${project_dir} -u initconfig spheral@develop%${spec} 2>&1 | tee -a dev-build-out.txt
 fi
 date
 
@@ -164,7 +164,7 @@ then
       $cmake_exe --build . --verbose --target install -j 1
     else
       ${install_dir}/spheral -c "import Spheral"
-      ${install_dir}/spheral-atstest ${install_dir}/tests/integration.ats
+      ${install_dir}/spheral-atstest --atsExe /usr/gapps/ats/${sys_type}/7.0.5/bin/ats ${install_dir}/tests/integration.ats
     fi
     date
 fi
