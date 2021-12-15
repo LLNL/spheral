@@ -22,16 +22,17 @@ stages:
 
 .build_and_install:
   script:
-    - mkdir -p build_ruby-toss_3_x86_64_ib-gcc@8.1.0/install/
-    - cd build_ruby-toss_3_x86_64_ib-gcc@8.1.0/install/
-    - echo "echo running dummy file" > test.sh
-    #- srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.sh
+    - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.sh
+    #- mkdir -p build_ruby-toss_3_x86_64_ib-gcc@8.1.0/install/
+    #- cd build_ruby-toss_3_x86_64_ib-gcc@8.1.0/install/
+    #- echo "echo running dummy file" > test.sh
 
 .run_test_suite:
   script:
     - cd build_ruby-toss_3_x86_64_ib-gcc@8.1.0/install/
-    - source test.sh
-      #- ./spheral -c "import Spheral"
+    - ./spheral -c "import Spheral"
+    - ./spheral-atstest tests/integration.ats
+    #- source test.sh
 
 
 .gcc_8_1_0_mvapich2_t:
@@ -44,7 +45,7 @@ gcc_8_1_0_mvapich2:
   stage: r_build_and_install
   artifacts:
     paths:
-      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0/
+      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0/install/
   
 ats_gcc_8_1_0_mvapich2:
   extends: [.gcc_8_1_0_mvapich2_t, .run_test_suite, .on_ruby]
