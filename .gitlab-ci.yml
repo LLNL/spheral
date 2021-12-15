@@ -60,7 +60,7 @@ build:gcc_8_1_0_mvapich2:
   
 ats:gcc_8_1_0_mvapich2:
   extends: [.gcc_8_1_0_mvapich2, .run_test_suite, .on_ruby]
-  needs: [build:gcc_8_1_0_mvapich2]
+  needs: ["build:gcc_8_1_0_mvapich2"]
   stage: r_run_test_suite
 
 # gcc8.3.1+mpi
@@ -73,6 +73,6 @@ build:gcc_8_3_1_mvapich2:
   
 ats:gcc_8_3_1_mvapich2:
   extends: [.gcc_8_3_1_mvapich2, .run_test_suite, .on_ruby]
-  needs: [build:gcc_8_3_1_mvapich2]
+  needs: ["build:gcc_8_3_1_mvapich2"]
   stage: r_run_test_suite
 
