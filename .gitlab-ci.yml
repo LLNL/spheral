@@ -14,6 +14,9 @@ stages:
   tags:
     - shell
     - ruby
+  varibles:
+    HOST: "ruby"
+    ARCH: "toss_3_x86_64_ib"
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_RUBY == "OFF"' #run except if ...
       when: never
@@ -24,17 +27,17 @@ stages:
 
 .build_and_install:
   script:
-    - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.sh
-    #- mkdir -p build_ruby-toss_3_x86_64_ib-gcc@8.1.0/install/
-    #- cd build_ruby-toss_3_x86_64_ib-gcc@8.1.0/install/
-    #- echo "echo running dummy file" > test.sh
+    #- srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.sh
+    - mkdir -p build_"$HOST"-"$ARCH"-"$SPEC"/install/
+    - cd build_"$HOST"-"$ARCH"-"$SPEC"/install/
+    - echo "echo running dummy file" > test.sh
 
 .run_test_suite:
   script:
-    - cd build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
-    - ./spheral -c "import Spheral"
-    - ./spheral-atstest --atsExe /usr/gapps/ats/toss_3_x86_64_ib/7.0.5/bin/ats tests/integration.ats
-    #- source test.sh
+    - cd build_"$HOST"-"$ARCH"-"$SPEC"/install/
+    - source test.sh
+    #- ./spheral -c "import Spheral"
+    #- ./spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats tests/integration.ats
 
 # ------------------------------------------------------------------------------
 
