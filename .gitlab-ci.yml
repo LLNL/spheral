@@ -34,6 +34,7 @@ stages:
 
 .run_test_suite:
   script:
+    - ml load "$LC_MODULES"
     - cd build_"$HOST"-"$ARCH"-"$SPEC"/install/
     - ./spheral -c "import Spheral"
     - ./spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats tests/integration.ats
@@ -65,6 +66,9 @@ ats:gcc_8_1_0_mvapich2:
   extends: [.gcc_8_1_0_mvapich2, .run_test_suite, .on_ruby]
   needs: ["build:gcc_8_1_0_mvapich2"]
   stage: r_run_test_suite
+  artifacts:
+    paths:
+      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/*.logs/
 
 # gcc8.3.1+mpi
 build:gcc_8_3_1_mvapich2:
@@ -78,4 +82,7 @@ ats:gcc_8_3_1_mvapich2:
   extends: [.gcc_8_3_1_mvapich2, .run_test_suite, .on_ruby]
   needs: ["build:gcc_8_3_1_mvapich2"]
   stage: r_run_test_suite
+  artifacts:
+    paths:
+      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/*.logs/
 
