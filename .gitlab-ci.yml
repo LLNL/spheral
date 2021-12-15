@@ -14,7 +14,7 @@ stages:
   tags:
     - shell
     - ruby
-  varibles:
+  variables:
     HOST: "ruby"
     ARCH: "toss_3_x86_64_ib"
   rules:
