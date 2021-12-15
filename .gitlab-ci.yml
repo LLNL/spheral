@@ -8,6 +8,8 @@ stages:
   - r_build_and_install
   - r_run_test_suite
 
+# ------------------------------------------------------------------------------
+
 .on_ruby:
   tags:
     - shell
@@ -34,20 +36,43 @@ stages:
     - ./spheral-atstest --atsExe /usr/gapps/ats/toss_3_x86_64_ib/7.0.5/bin/ats tests/integration.ats
     #- source test.sh
 
-.gcc_8_1_0_mvapich2_t:
+# ------------------------------------------------------------------------------
+
+.gcc_8_1_0_mvapich2:
   variables:
     SPEC: "gcc@8.1.0^mvapich2"
     LC_MODULES: "gcc/8.1.0"
 
-gcc_8_1_0_mvapich2:
-  extends: [.gcc_8_1_0_mvapich2_t, .build_and_install, .on_ruby]
+.gcc_8_3_1_mvapich2:
+  variables:
+    SPEC: "gcc@8.3.1^mvapich2"
+    LC_MODULES: "gcc/8.3.1"
+
+# ------------------------------------------------------------------------------
+
+# gcc8.1.0+mpi
+build:gcc_8_1_0_mvapich2:
+  extends: [.gcc_8_1_0_mvapich2, .build_and_install, .on_ruby]
   stage: r_build_and_install
   artifacts:
     paths:
       - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
   
-ats_gcc_8_1_0_mvapich2:
-  extends: [.gcc_8_1_0_mvapich2_t, .run_test_suite, .on_ruby]
-  needs: [gcc_8_1_0_mvapich2]
+ats:gcc_8_1_0_mvapich2:
+  extends: [.gcc_8_1_0_mvapich2, .run_test_suite, .on_ruby]
+  needs: [build:gcc_8_1_0_mvapich2]
+  stage: r_run_test_suite
+
+# gcc8.3.1+mpi
+build:gcc_8_3_1_mvapich2:
+  extends: [.gcc_8_3_1_mvapich2, .build_and_install, .on_ruby]
+  stage: r_build_and_install
+  artifacts:
+    paths:
+      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/
+  
+ats:gcc_8_3_1_mvapich2:
+  extends: [.gcc_8_3_1_mvapich2, .run_test_suite, .on_ruby]
+  needs: [build:gcc_8_3_1_mvapich2]
   stage: r_run_test_suite
 
