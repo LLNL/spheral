@@ -31,4 +31,5 @@ stages:
 
 gcc_8_1_0_mvapich2:
   extends: [.gcc_8_1_0_mvapich2_t, .build_and_test, .on_ruby]
+  stage: r_build_and_install
 
