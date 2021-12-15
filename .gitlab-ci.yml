@@ -31,7 +31,7 @@ stages:
   script:
     - cd build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
     - ./spheral -c "import Spheral"
-    - ./spheral-atstest tests/integration.ats
+    - ./spheral-atstest --atsExe /usr/gapps/ats/toss_3_x86_64_ib/7.0.5/bin/ats tests/integration.ats
     #- source test.sh
 
 .gcc_8_1_0_mvapich2_t:
