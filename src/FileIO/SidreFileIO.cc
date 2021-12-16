@@ -50,9 +50,9 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
   // Need this member var because save() needs to know the name too.
   mFileName = fileName;
 
-  if (access == AccessType::Read) 
+  if (access == AccessType::Read)
     mDataStorePtr->getRoot()->load(fileName);
-  
+
   VERIFY2(mDataStorePtr != 0, "SidreFileIO ERROR: unable to open " << fileName);
   mFileOpen = true;
 }
@@ -78,7 +78,7 @@ bool SidreFileIO::pathExists(const std::string pathName) const
   return mFileOpen;
 }
 
-// 
+//
 
 //------------------------------------------------------------------------------
 // Write an unsigned to the file.
@@ -123,7 +123,7 @@ void SidreFileIO::write(const double& value, const std::string pathName)
 //------------------------------------------------------------------------------
 // Write a std::string to the file.
 //------------------------------------------------------------------------------
-void SidreFileIO::write(const std::string& value, const std::string pathName) 
+void SidreFileIO::write(const std::string& value, const std::string pathName)
 {
   mDataStorePtr->getRoot()->createViewString(pathName, value);
 }
@@ -174,7 +174,7 @@ void SidreFileIO::write(const std::vector<std::string>& value, const std::string
 
   // when createGroup() is called true is passed so the Group uses list collections
   ////axom::sidre::Group* group = mDataStorePtr->getRoot()->createGroup(pathName, true);
-  
+
   // for (int i = 0; i < value.size(); ++i)
   //   group->createView(pathName + std::to_string(i), axom::sidre::INT8_ID, value[i].size(), (void*)(&(*value[i].begin())));
 

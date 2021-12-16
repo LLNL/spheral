@@ -32,7 +32,7 @@ public:
   // Check if the specified path is in the file.
   virtual bool pathExists(const std::string pathName) const override;
 
-  // All FileIO objects had better be able to read and write the primitive 
+  // All FileIO objects had better be able to read and write the primitive
   // DataTypes.
   virtual void write(const unsigned& value, const std::string pathName) override;
   virtual void write(const size_t& value, const std::string pathName) override;
