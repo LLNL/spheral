@@ -163,13 +163,12 @@ if (ENABLE_TESTS)
   # A macro to preserve directory structure when installing files
   macro(install_with_directory)
       set(optionsArgs "")
-      set(oneValueArgs "DESTINATION")
-      set(multiValueArgs "FILES")
+      set(oneValueArgs SOURCE DESTINATION)
+      set(multiValueArgs FILES)
       cmake_parse_arguments(CAS "${optionsArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
-
       foreach(FILE ${CAS_FILES})
           get_filename_component(DIR ${FILE} DIRECTORY)
-          INSTALL(FILES ${FILE} DESTINATION ${CAS_DESTINATION}/${DIR})
+          INSTALL(FILES ${CAS_SOURCE}/${FILE} DESTINATION ${CAS_DESTINATION}/${DIR})
       endforeach()
   endmacro(install_with_directory)
 
@@ -182,6 +181,7 @@ if (ENABLE_TESTS)
   separate_arguments(test_files)
   list(REMOVE_ITEM test_files tests/unit/CXXTests/runCXXTests.ats)
   install_with_directory(
-    FILES ${test_files} 
-    DESTINATION ${CMAKE_INSTALL_PREFIX})
+    FILES       ${test_files} 
+    SOURCE      ${SPHERAL_ROOT_DIR}
+    DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
 endif()
