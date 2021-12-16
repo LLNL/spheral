@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------//
 #include "SidreFileIO.hh"
 #include "Utilities/SidreDataCollection.hh"
-#include "axom/core/Path.hpp"
+// #include "axom/core/Path.hpp"
 #include <iostream>
 
 namespace Spheral
@@ -167,11 +167,14 @@ void SidreFileIO::write(const std::vector<double>& value, const std::string path
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::vector<std::string>& value, const std::string pathName)
 {
-  axom::Path myPath = axom::Path(pathName);
-  std::pair<std::string, std::string> dirSplit = myPath.split();
-  std::cout << "This is the split path, string 1: " << dirSplit.first << ". and string 2: " << dirSplit.second << "\n";
+  //axom::Path myPath = axom::Path(pathName);
+  //std::pair<std::string, std::string> dirSplit = myPath.split();
+  //std::cout << "This is the split path, string 1: " << dirSplit.first << ". and string 2: " << dirSplit.second << "\n";
   //create a view with the pathname and then multiple views each containing one string
-  axom::sidre::Group* group = mDataStorePtr->getRoot()->createGroup(pathName);
+
+  // when createGroup() is called true is passed so the Group uses list collections
+  ////axom::sidre::Group* group = mDataStorePtr->getRoot()->createGroup(pathName, true);
+  
   // for (int i = 0; i < value.size(); ++i)
   //   group->createView(pathName + std::to_string(i), axom::sidre::INT8_ID, value[i].size(), (void*)(&(*value[i].begin())));
 
@@ -180,8 +183,12 @@ void SidreFileIO::write(const std::vector<std::string>& value, const std::string
   //   totalString += value[i];
 
   // mDataStorePtr->getRoot()->createView(pathName, axom::sidre::INT8_ID, totalString.size(), (void*)(&(*totalString.begin())));
-  mDataStorePtr->getRoot()->print();
-  std::cout << std::endl;
+
+  //string name is empty because it will be ignored in a list collection group
+  // for(auto itr = value.begin(); itr != value.end(); ++itr)
+  //   group->createViewString("", *itr);
+  // mDataStorePtr->getRoot()->print();
+  // std::cout << std::endl;
 }
 
 //------------------------------------------------------------------------------
