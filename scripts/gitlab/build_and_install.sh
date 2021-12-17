@@ -8,6 +8,10 @@ hostname="$(hostname)"
 project_dir="$(pwd)"
 
 build_root=${BUILD_ROOT:-""}
+spheral_spack_prefix=${SPHERAL_SPACK_PREFIX:-""}
+mirror_dir=${SPHERAL_MIRROR_DIR:-""}
+upstream_dir=${SPHERAL_UPSTREAM_DIR:-""}
+
 hostconfig=${HOST_CONFIG:-""}
 spec=${SPEC:-""}
 job_unique_id=${CI_JOB_ID:-""}
@@ -31,38 +35,61 @@ then
         exit 1
     fi
 
-    prefix_opt=""
+    #prefix_opt=""
+    #prefix="${project_dir}/../${hostname}"
+    #if [[ -z ${job_unique_id} ]]; then
+    #  job_unique_id=manual_job_$(date +%s)
+    #  while [[ -d ${prefix}/${job_unique_id} ]] ; do
+    #      sleep 1
+    #      job_unique_id=manual_job_$(date +%s)
+    #  done
+    #fi
+    #prefix="${prefix}/${job_unique_id}"
 
-    prefix="${project_dir}/../${hostname}"
-    if [[ -z ${job_unique_id} ]]; then
-      job_unique_id=manual_job_$(date +%s)
-      while [[ -d ${prefix}/${job_unique_id} ]] ; do
-          sleep 1
-          job_unique_id=manual_job_$(date +%s)
-      done
+    echo "** Setting up spack"
+    if [[ -z ${spheral_spack_prefix} ]]
+    then
+        spheral_spack_prefix="${project_dir}/../spheral-spack-tpls"
     fi
 
-    prefix="${prefix}/${job_unique_id}"
-    mkdir -p ${prefix}
-    prefix_opt="--prefix=${prefix}"
+    mkdir -p ${spheral_spack_prefix}
+    prefix_opt="--prefix=${spheral_spack_prefix}"
+
+
+    echo "** Setting up upstream"
+    upstream_opt=""
+    if [[ ! -z ${upstream_dir} ]]
+    then
+        echo "** SPHERAL_UPSTREAM_DIR defined : Adding upstream ${upstream_dir}"
+        upstream_opt="--upstream=${upstream_dir}"
+    fi
     
-    python3 scripts/uberenv/uberenv.py --setup-only ${prefix_opt}
+    python3 scripts/uberenv/uberenv.py --setup-only ${prefix_opt} ${upstream_opt}
 
 
-    mirror_dir="/usr/WS2/davis291/SPHERAL/spheral-tpl/mirror"
 
     echo "Activating spack instance..."
-    . ${prefix}/spack/share/spack/setup-env.sh
+    . ${spheral_spack_prefix}/spack/share/spack/setup-env.sh
 
-    if spack mirror list | grep spheral-tpl; then
-      echo "Spheral-tpl mirror found."
+
+    echo "** Setting up mirror"
+    if [[ ! -z ${mirror_dir} ]]
+    then
+        echo "** SPHERAL_MIRROR_DIR defined : Adding mirror ${mirror_dir}"
     else
-      echo "Adding Spheral-tpl mirror..."
-      spack mirror add spheral-tpl ${mirror_dir}
+        mirror_dir="/usr/WS2/davis291/SPHERAL/spheral-tpl/mirror"
+        echo "** SPHERAL_MIRROR_DIR NOT defined : Adding mirror ${mirror_dir}"
     fi
-
+    if spack mirror list | grep spheral-tpl; then
+      echo "Spheral-tpl mirror found, removing..."
+      spack mirror rm spheral-tpl
+    fi
+    echo "Adding Spheral-tpl mirror..."
+    spack mirror add spheral-tpl ${mirror_dir}
     spack gpg trust `find ${mirror_dir} -name "*.pub"`
 
+
+    echo "** Building TPL's and Host Config"
     echo "spack dev-build spheral@develop%${spec} hostconfig"
     #spack spec -I spheral@develop${spec}
     spack dev-build --quiet -d ${project_dir} -u initconfig spheral@develop%${spec} 2>&1 | tee -a dev-build-out.txt
@@ -87,6 +114,13 @@ then
         hostconfig=${generated_hostconfig}
         echo "Found host config file: ${hostconfig_path}"
         echo "Host-config handle: ${hostconfig}"
+        
+        if [[ "${option}" != "--build_only" && ! -z "lc_modules" ]]
+        then
+            echo "#--------------------" >> ${hostconfig_path}
+            echo "# LC_MODULES:${lc_modules}" >> ${hostconfig_path}
+            echo "#--------------------" >> ${hostconfig_path}
+        fi
 
     elif [[ ${#hostconfigs[@]} == 1 ]]
     then
@@ -124,11 +158,6 @@ install_dir="${build_root}/build_${hostconfig}/install"
 
 cmake_exe=`grep 'CMake executable' ${hostconfig_path} | cut -d ':' -f 2 | xargs`
 
-# Load modules for LC
-if [[ ! -z ${lc_modules} ]]
-then
-    ml load ${lc_modules}
-fi
 
 # Build
 if [[ "${option}" != "--deps-only" && "${option}" != "--test-only" ]]
@@ -152,6 +181,14 @@ then
     mkdir -p ${install_dir}
     mkdir -p ${build_dir} && cd ${build_dir}
 
+    # Load modules for LC
+    if [[ ! -z ${lc_modules} ]]
+    then
+        ml load ${lc_modules}
+    else
+        echo "Warning: No LC_MODULES set, ensure appropriate compilers are in path or you may experience incorrect builds!"
+    fi
+
     date
     $cmake_exe \
       -C ${hostconfig_path} \
@@ -169,34 +206,4 @@ then
     fi
     date
 fi
-
-#
-#    spheral_spack_hash=$(tail -1 dev-build-out.txt | grep "\[+\]" | rev | cut -d"-" -f 1 | rev)
-#    spheral_install_prefix=$(tail -1 dev-build-out.txt | grep "\[+\]" | cut -d" " -f 2)
-#
-#    echo "Loading spheral ${spheral_spack_hash} ..."
-#    spack load /${spheral_spack_hash}
-#
-#    cd ${spheral_install_prefix}
-#
-#    echo "Spheral import test..."
-#    ./spheral -c "import Spheral"
-#
-#    #echo "Spheral ats test..."
-#    #./spheral-atstest tests/integration.ats
-#
-#    ## TODO inject debug and non mpi filters when appropriate ...
-#    #echo "Running spheral-atstest from ${spheral_install_prefix} ..."
-#
-#    #filter_opt=""
-#
-#    #if [[ ${spec} == *"~mpi"* ]]; then
-#    #  fitler_opt="${filter_opt}--filter=\"\'np<2\'\" "
-#    #  echo "MPI is disabled in the spec running tests with ${filter_opt}"
-#    #fi
-#
-#    #spheral-atstest ${spheral_install_prefix}/tests/integration.ats ${filter_opt}
-#
-#fi
 date
-

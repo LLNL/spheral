@@ -27,7 +27,8 @@ stages:
 
 .build_and_install:
   script:
-    - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.sh
+    - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
+    #- srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.sh
     #- mkdir -p build_"$HOST"-"$ARCH"-"$SPEC"/install/
     #- cd build_"$HOST"-"$ARCH"-"$SPEC"/install/
     #- echo "echo running dummy file" > test.sh
