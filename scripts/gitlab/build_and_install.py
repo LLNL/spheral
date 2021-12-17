@@ -28,10 +28,10 @@ def parse_args():
       help='host-config path.')
 
   # Spec args
-  parser.add_argument('--spec', type=str, default="",
+  parser.add_argument('--spec', type=str, default="", required=True,
       help='Spack spec to use.')
   parser.add_argument('--lc-modules', type=str, default="",
-      help='Spack spec to use.')
+      help='LC Modules to use during build and install and smoke test.')
 
   return parser.parse_args()
 
@@ -60,9 +60,8 @@ def main():
 
   # Build out our TPLs for this spec if we need to.
   if not args.build_only:
+    print("** Building spec TPLs : {0}".format(args.spec))
     sexe("{0} --spec={1}".format(tpl_manager_cmd, args.spec))
-  elif not args.host_config:
-    print("ERROR: Please define --host-config when using --build-only, aborting...")
 
   # Get the host-config name and path.
   if not args.build_only and not args.host_config:
@@ -128,8 +127,9 @@ def main():
     sys.exit(1)
 
   # Try to import Spheral for a basic sanity test.
-  basic_test = sexe("{0} {1}/spheral -c \"import Spheral\"".format(ml_cmd, install_dir))[0]
-  sys.exit(basic_test)
+  smoke_test = sexe("{0} {1}/spheral -c \"import Spheral\"".format(ml_cmd, install_dir))
+  if smoke_test != 0:
+    sys.exit(1)
 
 
 
