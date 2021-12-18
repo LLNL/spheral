@@ -73,7 +73,7 @@ def main():
     hostconfig_path=args.host_config
   print(hostconfig)
 
-  sexe("{0} --host-config={1} --lc-modules={2} --build".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules))
+  sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules))
 
 
 if __name__ == "__main__":
