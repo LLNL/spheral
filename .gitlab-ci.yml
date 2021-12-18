@@ -45,7 +45,7 @@ stages:
 
 .gcc_8_1_0_mvapich2:
   variables:
-    SPEC: "gcc@8.1.0^mvapich2"
+    SPEC: "gcc@8.1.0 build_type=Debug ^mvapich2"
     LC_MODULES: "gcc/8.1.0"
 
 .gcc_8_3_1_mvapich2:
@@ -53,23 +53,28 @@ stages:
     SPEC: "gcc@8.3.1^mvapich2"
     LC_MODULES: "gcc/8.3.1"
 
+.clang_9_0_0_mvapich2:
+  variables:
+    SPEC: "clang@9.0.0^mvapich2"
+    LC_MODULES: "clang/9.0.0"
+
 # ------------------------------------------------------------------------------
 
 # gcc8.1.0+mpi
-build:gcc_8_1_0_mvapich2:
+build:gcc_8_1_0_mvapich2_Debug:
   extends: [.gcc_8_1_0_mvapich2, .build_and_install, .on_ruby]
   stage: r_build_and_install
   artifacts:
     paths:
-      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
+      - "build_ruby-toss_3_x86_64_ib-gcc@8.1.0 build_type=Debug ^mvapich2/install/"
   
-ats:gcc_8_1_0_mvapich2:
+ats:gcc_8_1_0_mvapich2_Debug:
   extends: [.gcc_8_1_0_mvapich2, .run_test_suite, .on_ruby]
-  needs: ["build:gcc_8_1_0_mvapich2"]
+  needs: ["build:gcc_8_1_0_mvapich2_Debug"]
   stage: r_run_test_suite
   artifacts:
     paths:
-      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/*.logs/
+      - "build_ruby-toss_3_x86_64_ib-gcc@8.1.0 build_type=Debug ^mvapich2/install/*.logs/"
 
 # gcc8.3.1+mpi
 build:gcc_8_3_1_mvapich2:
@@ -86,4 +91,20 @@ ats:gcc_8_3_1_mvapich2:
   artifacts:
     paths:
       - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/*.logs/
+
+# clang9.0.0+mpi
+build:clang_9_0_0_mvapich2:
+  extends: [.clang_9_0_0_mvapich2, .build_and_install, .on_ruby]
+  stage: r_build_and_install
+  artifacts:
+    paths:
+      - build_ruby-toss_3_x86_64_ib-clang@9.0.0^mvapich2/install/
+  
+ats:clang_9_0_0_mvapich2:
+  extends: [.clang_9_0_0_mvapich2, .run_test_suite, .on_ruby]
+  needs: ["build:clang_9_0_0_mvapich2"]
+  stage: r_run_test_suite
+  artifacts:
+    paths:
+      - build_ruby-toss_3_x86_64_ib-clang@9.0.0^mvapich2/install/*.logs/
 
