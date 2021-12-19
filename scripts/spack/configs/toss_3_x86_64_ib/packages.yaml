@@ -68,6 +68,11 @@ packages:
       prefix: /opt/rocm-4.1.0/
     - spec: rocm-device-libs@4.2.0
       prefix: /opt/rocm-4.2.0/
+  openmpi:
+    externals:
+    - spec: openmpi@4.0.0%clang@9.0.0
+      prefix: /usr/tce/packages/openmpi/openmpi-4.0.0-clang-9.0.0
+    buildable: false
   mvapich2:
     externals:
     - spec: mvapich2@2.3.1%clang@10.0.0~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
