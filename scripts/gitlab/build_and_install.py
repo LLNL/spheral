@@ -62,7 +62,7 @@ def main():
   # Build out our TPLs for this spec if we need to.
   if not args.build_only:
     print("** Building spec TPLs : {0}".format(args.spec))
-    sexe("{0} --spec={1}".format(tpl_manager_cmd, args.spec))
+    sexe("{0} --spec=\"{1}\" --use-mirror True".format(tpl_manager_cmd, args.spec))
 
   # Get the host-config name and path.
   if not args.build_only and not args.host_config:

@@ -81,10 +81,10 @@ def main():
   print("")
 
   # Clean our build and install dirs...
-  sexe("rm -rf {0} 2>/dev/null".format(build_dir),echo=True)
-  sexe("rm -rf {0} 2>/dev/null".format(install_dir),echo=True)
-  sexe("mkdir -p {0}".format(build_dir),echo=True)
-  sexe("mkdir -p {0}".format(install_dir),echo=True)
+  sexe("rm -rf \"{0}\" 2>/dev/null".format(build_dir),echo=True)
+  sexe("rm -rf \"{0}\" 2>/dev/null".format(install_dir),echo=True)
+  sexe("mkdir -p \"{0}\"".format(build_dir),echo=True)
+  sexe("mkdir -p \"{0}\"".format(install_dir),echo=True)
 
   # Move to the build directory.
   os.chdir(build_dir)

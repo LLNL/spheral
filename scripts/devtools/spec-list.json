@@ -1,7 +1,7 @@
 {
   "specs": {
     "toss_3_x86_64_ib": [
-        "gcc@8.1.0 build_type=Debug ^mvapich2",
+        "gcc@8.1.0^mvapich2",
         "gcc@8.3.1^mvapich2",
         "clang@9.0.0^mvapich2"
       ]
