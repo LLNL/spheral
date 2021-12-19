@@ -45,18 +45,21 @@ stages:
 
 .gcc_8_1_0_mvapich2:
   variables:
-    SPEC: "gcc@8.1.0 build_type=Debug ^mvapich2"
+    SPEC: "gcc@8.1.0^mvapich2"
     LC_MODULES: "gcc/8.1.0"
+    EXTRA_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
 
 .gcc_8_3_1_mvapich2:
   variables:
     SPEC: "gcc@8.3.1^mvapich2"
     LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
 
 .clang_9_0_0_mvapich2:
   variables:
     SPEC: "clang@9.0.0^mvapich2"
     LC_MODULES: "clang/9.0.0"
+    EXTRA_CMAKE_ARGS: ""
 
 # ------------------------------------------------------------------------------
 

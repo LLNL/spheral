@@ -34,6 +34,9 @@ def parse_args():
   parser.add_argument('--lc-modules', type=str, default="",
       help='LC Modules to use during build, install and smoke test.')
 
+  parser.add_argument('--extra-cmake-args', type=str, default="",
+      help='CMake args to pass to the build stage in the host-config-build script.')
+
   return parser.parse_args()
 
 
@@ -73,7 +76,7 @@ def main():
     hostconfig_path=args.host_config
   print(hostconfig)
 
-  sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules))
+  sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build {3}".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules, args.extra_cmake_args))
 
 
 if __name__ == "__main__":
