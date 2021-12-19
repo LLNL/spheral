@@ -1,7 +1,7 @@
 {
   "package_name" : "spheral",
   "package_version" : "develop",
-  "package_source_dir" : "../..",
+  "package_source_dir" : "../../..",
   "spack_url" : "https://github.com/mdavis36/spack",
   "spack_branch" : "bugfix/dev-build-reuse",
   "spack_configs_path" : "scripts/spack/configs",

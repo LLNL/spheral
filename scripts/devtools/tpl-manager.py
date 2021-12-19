@@ -88,7 +88,7 @@ def build_deps(args):
   print("** Running uberenv...")
   prefix_opt="--prefix=" + args.spheral_spack_dir
   print("** Spheral Spack Dir : {0}".format(args.spheral_spack_dir))
-  sexe("python3 scripts/uberenv/uberenv.py --setup-only {0}".format(prefix_opt))
+  sexe("python3 scripts/devtools/uberenv/uberenv.py --setup-only {0}".format(prefix_opt))
 
   # We just want to use the spac instance directly to generate our TPLs, we don't want
   # to have the spack instance take over our environment.
