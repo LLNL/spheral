@@ -63,7 +63,7 @@ def main():
     install_dir=args.install_dir
 
   # Pull the cmake command to use out of our host config.
-  cmake_cmd=sexe("grep 'CMake executable' {0}".format(hostconfig_path), ret_output=True, echo=True)[1].split()[-1]
+  cmake_cmd=sexe("grep 'CMake executable' \"{0}\"".format(hostconfig_path), ret_output=True, echo=True)[1].split()[-1]
 
   cmake_extra_args=""
   if args.D:
@@ -96,10 +96,11 @@ def main():
   if not args.lc_modules:
     print("Warning: No LC_MODULES set, ensure appropriate compilers are in path or you may experience incorrect builds!")
   else:
+    ml_cmd_v = "module load {0} &&".format(args.lc_modules)
     ml_cmd = "module load {0} 2>/dev/null &&".format(args.lc_modules)
 
   # Run our CMake config step.
-  sexe("{0} {1} -C {2} -DCMAKE_INSTALL_PREFIX={3} {4} {5}".format(ml_cmd, cmake_cmd, hostconfig_path, install_dir, cmake_extra_args, source_dir))
+  sexe("{0} {1} -C {2} -DCMAKE_INSTALL_PREFIX={3} {4} {5}".format(ml_cmd_v, cmake_cmd, hostconfig_path, install_dir, cmake_extra_args, source_dir))
 
   # Build and install Spheral
 
