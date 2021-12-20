@@ -128,12 +128,12 @@ ats:gcc_8_3_1_mvapich2:
 
 update_mirror:gcc_8_1_0_mvapich2:
   extends: [.gcc_8_1_0_mvapich2, .update_mirror, .on_ruby]
-  dependencies: ats:gcc_8_1_0_mvapich2
+  dependencies: ["ats:gcc_8_1_0_mvapich2"]
   stage: r_update_mirror
 
 update_mirror:gcc_8_3_1_mvapich2:
   extends: [.gcc_8_3_1_mvapich2, .update_mirror, .on_ruby]
-  dependencies: ats:gcc_8_3_1_mvapich2
+  dependencies: ["ats:gcc_8_3_1_mvapich2"]
   stage: r_update_mirror
 
 #update_mirror:clang_9_0_0_mvapich2:
