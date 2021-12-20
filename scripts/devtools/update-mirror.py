@@ -63,15 +63,10 @@ def update_mirror(args):
   sexe("mv {0}/* {1}".format(spack_gpg_dir, spack_gpg_backup_dir), echo=True)
   sexe("cp {0}* {1}".format(args.secret_key_dir, spack_gpg_dir), echo=True)
 
-
-  # Create Source Mirror
-  #sexe("{0} mirror create --directory {1}".format(spack_cmd, args.mirror_dir), echo=True)
-  #sexe("chmod -R g+rws {0}".format(args.mirror_dir), echo=True)
-
   sexe("{0} mirror add spheral-tpl {1}".format(spack_cmd, args.mirror_dir), echo=True)
   sexe("{0} buildcache keys --install --trust".format(spack_cmd), echo=True)
 
-  sexe("for ii in $({0} find --format \"yyy {{name}} {{version}} /{{hash}}\" | grep -v -E \"^(develop^master)\" | grep -v spheral | grep \"yyy\" | cut -f4 -d \" \" ); do {0} buildcache create --allow-root --force -d {1} --only=package $ii; done".format(spack_cmd, args.mirror_dir), echo=True)
+  sexe("for ii in $({0} find --format \"yyy {{name}} {{version}} /{{hash}}\" | grep -v -E \"^(develop^master)\" | grep -v spheral | grep \"yyy\" | cut -f4 -d \" \" ); do {0} buildcache create --allow-root -d {1} --only=package $ii; done".format(spack_cmd, args.mirror_dir), echo=True)
   sexe("chmod -R g+rws {0}".format(spack_build_cache_dir), echo=True)
 
   

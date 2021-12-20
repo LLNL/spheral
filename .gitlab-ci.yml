@@ -7,6 +7,7 @@ variables:
 stages:
   - r_build_and_install
   - r_run_test_suite
+  - r_update_mirror
 
 # ------------------------------------------------------------------------------
 
@@ -41,6 +42,11 @@ stages:
     - ./spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats tests/integration.ats
     #- source test.sh
 
+.update_mirror:
+  script:
+    - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/../spheral-spack-tpls --mirror-dir="/usr/WS2/davis291/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
+
+
 # ------------------------------------------------------------------------------
 
 .gcc_8_1_0_mvapich2:
@@ -64,20 +70,21 @@ stages:
 # ------------------------------------------------------------------------------
 
 # gcc8.1.0+mpi
-build:gcc_8_1_0_mvapich2_Debug:
+build:gcc_8_1_0_mvapich2:
   extends: [.gcc_8_1_0_mvapich2, .build_and_install, .on_ruby]
   stage: r_build_and_install
   artifacts:
     paths:
-      - "build_ruby-toss_3_x86_64_ib-gcc@8.1.0 build_type=Debug ^mvapich2/install/"
+      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/"
   
-ats:gcc_8_1_0_mvapich2_Debug:
+ats:gcc_8_1_0_mvapich2:
   extends: [.gcc_8_1_0_mvapich2, .run_test_suite, .on_ruby]
-  needs: ["build:gcc_8_1_0_mvapich2_Debug"]
+  needs: ["build:gcc_8_1_0_mvapich2"]
   stage: r_run_test_suite
   artifacts:
     paths:
-      - "build_ruby-toss_3_x86_64_ib-gcc@8.1.0 build_type=Debug ^mvapich2/install/*.logs/"
+      - ./*.logs/
+      - ../../../spheral-spack-tpls
 
 # gcc8.3.1+mpi
 build:gcc_8_3_1_mvapich2:
@@ -93,7 +100,8 @@ ats:gcc_8_3_1_mvapich2:
   stage: r_run_test_suite
   artifacts:
     paths:
-      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/*.logs/
+      - ./*.logs/
+      - ../../../spheral-spack-tpls
 
 # clang9.0.0+mpi
 build:clang_9_0_0_mvapich2:
@@ -109,5 +117,17 @@ ats:clang_9_0_0_mvapich2:
   stage: r_run_test_suite
   artifacts:
     paths:
-      - build_ruby-toss_3_x86_64_ib-clang@9.0.0^mvapich2/install/*.logs/
+      - ./*.logs/
+      - ../../../spheral-spack-tpls
 
+update_mirror:gcc_8_1_0_mvapich2:
+  extends: [.gcc_8_1_0_mvapich2, .update_mirror, .on_ruby]
+  stage: r_update_mirror
+
+update_mirror:gcc_8_3_1_mvapich2:
+  extends: [.gcc_8_3_1_mvapich2, .update_mirror, .on_ruby]
+  stage: r_update_mirror
+
+update_mirror:clang_9_0_0_mvapich2:
+  extends: [.gcc_9_0_0_mvapich2, .update_mirror, .on_ruby]
+  stage: r_update_mirror
