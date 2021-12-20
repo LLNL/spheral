@@ -29,10 +29,6 @@ stages:
 .build_and_install:
   script:
     - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
-    #- srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.sh
-    #- mkdir -p build_"$HOST"-"$ARCH"-"$SPEC"/install/
-    #- cd build_"$HOST"-"$ARCH"-"$SPEC"/install/
-    #- echo "echo running dummy file" > test.sh
 
 .run_test_suite:
   script:
@@ -41,12 +37,6 @@ stages:
     - ./spheral -c "import Spheral"
     - ./spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats tests/integration.ats
     #- source test.sh
-
-  #.update_mirror:
-  #  script:
-  #    - srun -N 1 -c 36 -p pdebug -t 60 scripts/devtools/tpl-manager.py --spec-list="scripts/devtools/spec-list.json" --use-mirror=True --spheral-spack-dir=$PWD/mirror-update-tpl 
-  #    - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/spheral-spack-tpls --mirror-dir="/usr/WS2/davis291/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
-
 
 # ------------------------------------------------------------------------------
 
@@ -70,62 +60,41 @@ stages:
 
 # ------------------------------------------------------------------------------
 
-## gcc8.1.0+mpi
-#build:gcc_8_1_0_mvapich2:
-#  extends: [.gcc_8_1_0_mvapich2, .build_and_install, .on_ruby]
-#  stage: r_build_and_install
-#  artifacts:
-#    paths:
-#      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
-#        #- ../spheral-spack-tpls
-#    expire_in: 1 day
-#  
-#ats:gcc_8_1_0_mvapich2:
-#  extends: [.gcc_8_1_0_mvapich2, .run_test_suite, .on_ruby]
-#  needs: ["build:gcc_8_1_0_mvapich2"]
-#  stage: r_run_test_suite
-#  artifacts:
-#    paths:
-#      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/*.logs/*
-#        #- ../spheral-spack-tpls
-#    expire_in: 1 day
-#
-## gcc8.3.1+mpi
-#build:gcc_8_3_1_mvapich2:
-#  extends: [.gcc_8_3_1_mvapich2, .build_and_install, .on_ruby]
-#  stage: r_build_and_install
-#  artifacts:
-#    paths:
-#      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/
-#        #- ../spheral-spack-tpls
-#    expire_in: 1 day
-#  
-#ats:gcc_8_3_1_mvapich2:
-#  extends: [.gcc_8_3_1_mvapich2, .run_test_suite, .on_ruby]
-#  needs: ["build:gcc_8_3_1_mvapich2"]
-#  stage: r_run_test_suite
-#  artifacts:
-#    paths:
-#      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/*.logs/*
-#        #- ../spheral-spack-tpls
-#    expire_in: 1 day
+# gcc8.1.0+mpi
+build:gcc_8_1_0_mvapich2:
+  extends: [.gcc_8_1_0_mvapich2, .build_and_install, .on_ruby]
+  stage: r_build_and_install
+  artifacts:
+    paths:
+      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
+    expire_in: 1 day
+  
+ats:gcc_8_1_0_mvapich2:
+  extends: [.gcc_8_1_0_mvapich2, .run_test_suite, .on_ruby]
+  needs: ["build:gcc_8_1_0_mvapich2"]
+  stage: r_run_test_suite
+  artifacts:
+    paths:
+      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
+    expire_in: 1 day
 
-# clang9.0.0+mpi
-#build:clang_9_0_0_mvapich2:
-#  extends: [.clang_9_0_0_mvapich2, .build_and_install, .on_ruby]
-#  stage: r_build_and_install
-#  artifacts:
-#    paths:
-#      - build_ruby-toss_3_x86_64_ib-clang@9.0.0^mvapich2/install/
-#  
-#ats:clang_9_0_0_mvapich2:
-#  extends: [.clang_9_0_0_mvapich2, .run_test_suite, .on_ruby]
-#  needs: ["build:clang_9_0_0_mvapich2"]
-#  stage: r_run_test_suite
-#  artifacts:
-#    paths:
-#      - build_ruby-toss_3_x86_64_ib-clang@9.0.0^mvapich2/install/*.logs/
-#      - ../spheral-spack-tpls
+# gcc8.3.1+mpi
+build:gcc_8_3_1_mvapich2:
+  extends: [.gcc_8_3_1_mvapich2, .build_and_install, .on_ruby]
+  stage: r_build_and_install
+  artifacts:
+    paths:
+      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/
+    expire_in: 1 day
+  
+ats:gcc_8_3_1_mvapich2:
+  extends: [.gcc_8_3_1_mvapich2, .run_test_suite, .on_ruby]
+  needs: ["build:gcc_8_3_1_mvapich2"]
+  stage: r_run_test_suite
+  artifacts:
+    paths:
+      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/
+    expire_in: 1 day
 
 update_mirror:
   extends: [.on_ruby]
