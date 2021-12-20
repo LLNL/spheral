@@ -129,5 +129,5 @@ update_mirror:gcc_8_3_1_mvapich2:
   stage: r_update_mirror
 
 update_mirror:clang_9_0_0_mvapich2:
-  extends: [.gcc_9_0_0_mvapich2, .update_mirror, .on_ruby]
+  extends: [.clang_9_0_0_mvapich2, .update_mirror, .on_ruby]
   stage: r_update_mirror
