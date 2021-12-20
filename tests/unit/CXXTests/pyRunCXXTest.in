@@ -2,4 +2,4 @@
 #ATS:test(SELF, label="CXX unit tests")
 import subprocess
 
-assert subprocess.call(["@CMAKE_INSTALL_PREFIX@/tests/unit/CXXTests/@test_name@"]) == 0
+assert subprocess.call(["@SPHERAL_TEST_INSTALL_PREFIX@/tests/unit/CXXTests/@test_name@"]) == 0

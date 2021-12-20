@@ -50,20 +50,37 @@ commandLine(nx1 = 256,
             gamma = 5.0/3.0,
             mu = 1.0,
 
+            # kernel
             KernelConstructor = WendlandC4Kernel,
             nbSplineOrder = 7,
             nPerh = 4.01,
+            hmin = 0.0001, 
+            hmax = 0.5,
+            hminratio = 0.1,
 
+            # hydro type
             svph = False,
-            crksph = True,
+            crksph = False,
             psph = False,
+            fsisph = False,
+            gsph = False,
+
+            # hydro options
+            solid = False,
             asph = False,   # Just for choosing the H algorithm
-            filter = 0.0,   # CRKSPH filtering
-            correctionOrder = LinearOrder,
-            volumeType = RKSumVolume,
+            useVelocityMagnitudeForDt = False,
+            XSPH = False,
+            epsilonTensile = 0.0,
+            nTensile = 8,
+            filter = 0.0,
+            densityUpdate = RigorousSumDensity,
+            compatibleEnergy = True,         
+            gradhCorrection = True,
+            correctVelocityGradient = True,
+            evolveTotalEnergy = False,     
+
+            # artificial viscosity 
             linearConsistent = False,
-            fcentroidal = 0.0,
-            fcellPressure = 0.0,
             boolReduceViscosity = False,
             nh = 5.0,
             aMin = 0.1,
@@ -83,15 +100,29 @@ commandLine(nx1 = 256,
             Qlimiter = None,
             balsaraCorrection = False,
             epsilon2 = None,
-            hmin = 0.0001, 
-            hmax = 0.5,
-            hminratio = 0.1,
-            cfl = 0.5,
-            useVelocityMagnitudeForDt = False,
-            XSPH = False,
-            epsilonTensile = 0.0,
-            nTensile = 8,
+            
+            # CRKSPH parameters
+            correctionOrder = LinearOrder,
+            volumeType = RKSumVolume,
 
+            # SVPH parameters
+            fcentroidal = 0.0,
+            fcellPressure = 0.0,
+
+            # FSISPH parameters
+            fsiSurfaceCoefficient = 0.00,           # adds additional repulsive force to material interfaces)
+            fsiRhoStabilizeCoeff = 0.1,             # coefficient that smooths the density field
+            fsiEpsDiffuseCoeff = 0.1,               # explicit diiffusion of the thermal energy
+            fsiXSPHCoeff = 0.00,                    # fsi uses multiplier for XSPH instead of binary switch
+            fsiInterfaceMethod = HLLCInterface,     # (HLLCInterface, ModulusInterface)
+            fsiKernelMethod  = NeverAverageKernels, # (NeverAverageKernels, AlwaysAverageKernels, AverageInterfaceKernels)
+    
+            # GSPH parameters
+            gsphEpsDiffuseCoeff = 0.0,
+            gsphLinearCorrect = True,
+
+            ## integrator
+            cfl = 0.5,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 2.0,
             steps = None,
@@ -109,13 +140,7 @@ commandLine(nx1 = 256,
             rigorousBoundaries = False,
             dtverbose = False,
 
-            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-            compatibleEnergy = True,            # <--- Important!  rigorousBoundaries does not work with the compatibleEnergy algorithm currently.
-            gradhCorrection = True,
-            correctVelocityGradient = True,
-            HopkinsConductivity = False,     # For PSPH
-            evolveTotalEnergy = False,       # Only for SPH variants -- evolve total rather than specific energy
-
+            # outputs
             useVoronoiOutput = True,
             clearDirectories = False,
             restoreCycle = -1,
@@ -137,6 +162,10 @@ commandLine(nx1 = 256,
 
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert numNodeLists in (1, 2)
+assert not svph 
+assert not (compatibleEnergy and evolveTotalEnergy)
+assert sum([fsisph,psph,gsph,crksph,svph])<=1
+assert not (fsisph and not solid)
 
 # hydro algorithm label
 if svph:
@@ -147,6 +176,10 @@ elif crksph:
                              "volumeType=%s" % volumeType)
 elif psph:
     hydroname = "PSPH"
+elif fsisph:
+    hydroname = "FSISPH"
+elif gsph:
+    hydroname = "GSPH"
 else:
     hydroname = "SPH"
 if asph:
@@ -199,17 +232,22 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("High density gas", eos,
+if solid:
+    nodeListConstructor=makeSolidNodeList
+else:
+    nodeListConstructor=makeFluidNodeList
+
+nodes1 = nodeListConstructor("High density gas", eos,
                            hmin = hmin,
                            hmax = hmax,
                            hminratio = hminratio,
                            kernelExtent = kernelExtent,
                            nPerh = nPerh)
-nodes2 = makeFluidNodeList("Low density gas", eos,
+nodes2 = nodeListConstructor("Low density gas", eos,
                            hmin = hmin,
                            hmax = hmax,
-                           kernelExtent = kernelExtent,
                            hminratio = hminratio,
+                           kernelExtent = kernelExtent,
                            nPerh = nPerh)
 nodeSet = [nodes1, nodes2]
 for nodes in nodeSet:
@@ -362,17 +400,51 @@ elif crksph:
                    HUpdate = HUpdate,
                    ASPH = asph)
 elif psph:
-    hydro = PSPH(W = WT,
+    hydro = PSPH(dataBase = db,
+                 W = WT,
                  filter = filter,
                  cfl = cfl,
                  compatibleEnergyEvolution = compatibleEnergy,
                  evolveTotalEnergy = evolveTotalEnergy,
-                 HopkinsConductivity = HopkinsConductivity,
                  correctVelocityGradient = correctVelocityGradient,
                  densityUpdate = densityUpdate,
                  HUpdate = HUpdate,
                  XSPH = XSPH,
                  ASPH = asph)
+if fsisph:
+    sumDensityNodeListSwitch =[nodes1,nodes2]  
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   cfl = cfl,
+                   surfaceForceCoefficient = fsiSurfaceCoefficient,              
+                   densityStabilizationCoefficient = fsiRhoStabilizeCoeff,         
+                   specificThermalEnergyDiffusionCoefficient = fsiEpsDiffuseCoeff,     
+                   xsphCoefficient = fsiXSPHCoeff,
+                   interfaceMethod = fsiInterfaceMethod,
+                   kernelAveragingMethod = fsiKernelMethod,
+                   sumDensityNodeLists = sumDensityNodeListSwitch,
+                   correctVelocityGradient = correctVelocityGradient,
+                   compatibleEnergyEvolution = compatibleEnergy,  
+                   evolveTotalEnergy = evolveTotalEnergy,         
+                   ASPH = asph,
+                   epsTensile = epsilonTensile)
+elif gsph:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,gsphLinearCorrect,RiemannGradient)
+    hydro = GSPH(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                specificThermalEnergyDiffusionCoefficient = gsphEpsDiffuseCoeff,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient= correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                densityUpdate=densityUpdate,
+                XSPH = XSPH,
+                ASPH = asph,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -399,28 +471,29 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
-q = hydro.Q
-if not Cl is None:
-    q.Cl = Cl
-if not Cq is None:
-    q.Cq = Cq
-if not epsilon2 is None:
-    q.epsilon2 = epsilon2
-if not Qlimiter is None:
-    q.limiter = Qlimiter
-if not balsaraCorrection is None:
-    q.balsaraShearCorrection = balsaraCorrection
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
-output("q.balsaraShearCorrection")
-try:
-    output("q.linearInExpansion")
-    output("q.quadraticInExpansion")
-except:
-    pass
+if not gsph:
+    q = hydro.Q
+    if not Cl is None:
+        q.Cl = Cl
+    if not Cq is None:
+        q.Cq = Cq
+    if not epsilon2 is None:
+        q.epsilon2 = epsilon2
+    if not Qlimiter is None:
+        q.limiter = Qlimiter
+    if not balsaraCorrection is None:
+        q.balsaraShearCorrection = balsaraCorrection
+    output("q")
+    output("q.Cl")
+    output("q.Cq")  
+    output("q.epsilon2")
+    output("q.limiter")
+    output("q.balsaraShearCorrection")
+    try:
+        output("q.linearInExpansion")
+        output("q.quadraticInExpansion")
+    except:
+        pass
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
@@ -512,7 +585,7 @@ def mixingScale(cycle, t, dt):
      yprof = mpi.reduce([x.y for x in nodeL.positions().internalValues()], mpi.SUM)
      vely = mpi.reduce([v.y for v in nodeL.velocity().internalValues()], mpi.SUM)
      hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodeL.Hfield().internalValues()], mpi.SUM)
-     rhoprof = mpi.reduce(nodes.massDensity().internalValues(), mpi.SUM)
+     rhoprof = mpi.reduce(nodeL.massDensity().internalValues(), mpi.SUM)
      if mpi.rank == 0:
       for j in xrange (len(xprof)):
         ke.append(0.5*rhoprof[j]*vely[j]*vely[j])
