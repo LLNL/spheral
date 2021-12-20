@@ -77,7 +77,7 @@ build:gcc_8_1_0_mvapich2:
     paths:
       - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
       - ../spheral-spack-tpls
-    expires_in: 1 day
+    expire_in: 1 day
   
 ats:gcc_8_1_0_mvapich2:
   extends: [.gcc_8_1_0_mvapich2, .run_test_suite, .on_ruby]
@@ -87,7 +87,7 @@ ats:gcc_8_1_0_mvapich2:
     paths:
       - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/*.logs/*
       - ../spheral-spack-tpls
-    expires_in: 1 day
+    expire_in: 1 day
 
 # gcc8.3.1+mpi
 build:gcc_8_3_1_mvapich2:
@@ -97,7 +97,7 @@ build:gcc_8_3_1_mvapich2:
     paths:
       - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/
       - ../spheral-spack-tpls
-    expires_in: 1 day
+    expire_in: 1 day
   
 ats:gcc_8_3_1_mvapich2:
   extends: [.gcc_8_3_1_mvapich2, .run_test_suite, .on_ruby]
@@ -107,7 +107,7 @@ ats:gcc_8_3_1_mvapich2:
     paths:
       - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/*.logs/*
       - ../spheral-spack-tpls
-    expires_in: 1 day
+    expire_in: 1 day
 
 # clang9.0.0+mpi
 #build:clang_9_0_0_mvapich2:
