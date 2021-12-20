@@ -392,10 +392,10 @@ void SidreFileIO::read(std::vector<double>& value, const std::string pathName) c
 //------------------------------------------------------------------------------
 void SidreFileIO::read(vector<std::string>& value, const std::string pathName) const
 {
-  axom::sidre::Group* group = mDataStorePtr->getRoot()->getGroup(pathName);
-  int stringCount = group->getNumViews();
-  std::cout << "This is the amount of views in the group of strings: " << stringCount << std::endl;
-  value.resize(stringCount);
+  // axom::sidre::Group* group = mDataStorePtr->getRoot()->getGroup(pathName);
+  // int stringCount = group->getNumViews();
+  // std::cout << "This is the amount of views in the group of strings: " << stringCount << std::endl;
+  // value.resize(stringCount);
   // int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
   // value.resize(size);
   // std::cout << value.size() << "\n";
@@ -551,6 +551,9 @@ void SidreFileIO::write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, con
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<1>, int>& value, const std::string pathName)
 {
+  for (int i = 0; i < value.size(); ++i)
+    std::cout << value[i] << " ";
+  std::cout << std::endl;
   axom::sidre::DataTypeId dtype = axom::sidre::INT_ID;
   axom::sidre::Group* wholeField = mDataStorePtr->getRoot()->createGroup(pathName);
   axom::IndexType num_elements = 1;
@@ -611,6 +614,12 @@ void SidreFileIO::read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std:
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<1>, int>& value, const std::string pathName) const
 {
+  // axom::sidre::Group* group = mDataStorePtr->getRoot()->getGroup(pathName);
+  // int size = group->getNumViews();
+  // value.resizeField(size);
+  // for (int i = 0; i < size; ++i)
+  //   group->getView(pathName + std::to_string(i))->setExternalDataPtr(static_cast<void*>(&value[i]));
+  // group->loadExternalData(mFileName);
 }
 
 //------------------------------------------------------------------------------
