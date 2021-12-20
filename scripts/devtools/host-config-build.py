@@ -93,6 +93,7 @@ def main():
   # subprocess call otherwise we might get a bad build depending on 
   # the default compiler setup for the system.
   ml_cmd=""
+  ml_cmd_v=""
   if not args.lc_modules:
     print("Warning: No LC_MODULES set, ensure appropriate compilers are in path or you may experience incorrect builds!")
   else:
