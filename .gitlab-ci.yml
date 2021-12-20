@@ -133,5 +133,5 @@ update_mirror:
   script:
     - srun -N 1 -c 36 -p pdebug -t 60 scripts/devtools/tpl-manager.py --spec-list="scripts/devtools/spec-list.json" --use-mirror=True --spheral-spack-dir=$PWD/mirror-update-tpls
     - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/mirror-update-tpls --mirror-dir="/usr/WS2/davis291/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
-  only:
-    - develop
+  rules:
+    if: '$CI_COMMIT_REF_NAME == "develop"'
