@@ -9,7 +9,7 @@ import json
 #------------------------------------------------------------------------------
 
 project_dir=os.getcwd()
-default_mirror_dir="/usr/WS2/davis291/gapps/Spheral/spheral-spack-tpl/mirror"
+default_mirror_dir="/usr/WS2/davis291/gapps/Spheral/spheral-spack-tpls/mirror"
 default_spheral_spack_dir=os.path.join(project_dir, "../spheral-spack-tpls")
 
 #------------------------------------------------------------------------------
