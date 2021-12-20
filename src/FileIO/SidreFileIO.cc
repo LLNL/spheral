@@ -565,6 +565,7 @@ void SidreFileIO::write(const Field<Dim<1>, int>& value, const std::string pathN
   }
   std::cout << "This is a Field<Dim<1>, int> ===================================\n";
   mDataStorePtr->print();
+  
 }
 
 //------------------------------------------------------------------------------
