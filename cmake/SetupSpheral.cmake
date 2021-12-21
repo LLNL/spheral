@@ -170,7 +170,7 @@ if (NOT BUILD_TPL_ONLY)
             INSTALL(FILES ${CAS_SOURCE}/${FILE} DESTINATION ${CAS_DESTINATION}/${DIR})
         endforeach()
     endmacro(install_with_directory)
-  
+
     # Find the test files we want to install
     execute_process(
       COMMAND git ls-files tests

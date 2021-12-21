@@ -15,12 +15,8 @@ def parse_args():
   parser.add_argument('--mirror-dir', type=str, required=True,
       help='Dir of mirror to be used when --use-mirror is enabled.')
 
-  #parser.add_argumtnt('--generate-new-key', type=bool, default=False,
-  #    help='Should spack generate a new key, only use this if creating a new mirror.')
-
   parser.add_argument('--secret-key-dir', type=str, required=True,
       help='Dir where the secret keys are stored.')
-
 
   return parser.parse_args()
 
