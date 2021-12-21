@@ -8,7 +8,7 @@ import socket
 import os
 
 class Spheral(CachedCMakePackage, PythonPackage):
-    """FIXME: Put a proper description of your package here."""
+    """Spheral++ provides a steerable parallel environment for performing coupled hydrodynamical and gravitational numerical simulations."""
 
     homepage = "https://spheral.readthedocs.io/"
     git      = "https://github.com/llnl/spheral.git"
@@ -49,7 +49,6 @@ class Spheral(CachedCMakePackage, PythonPackage):
     depends_on('silo@4.10.2 +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
-    #depends_on('conduit@develop +mpi +hdf5 -shared -test', type='build')
     depends_on('conduit@develop +mpi +hdf5 -test', type=['build','run'], when='+mpi')
     depends_on('conduit@develop ~mpi +hdf5 -test', type=['build','run'], when='~mpi')
 
@@ -129,24 +128,11 @@ class Spheral(CachedCMakePackage, PythonPackage):
         spec = self.spec
         entries = []
 
-        # TPL locations
-        #entries.append("#------------------{0}".format("-" * 60))
-        #entries.append("# TPLs")
-        #entries.append("#------------------{0}\n".format("-" * 60))
-
-        #entries.append(cmake_cache_path("BLT_SOURCE_DIR", spec['blt'].prefix))
-        #if spec.satisfies('@5.0.0:'):
-        #    entries.append(cmake_cache_path("camp_DIR" ,spec['camp'].prefix))
-        #entries.append(cmake_cache_option("ENABLE_NUMA", '+numa' in spec))
-        #entries.append(cmake_cache_option("ENABLE_OPENMP", '+openmp' in spec))
-        #entries.append(cmake_cache_option("ENABLE_BENCHMARKS", 'tests=benchmarks' in spec))
-        #entries.append(cmake_cache_option("ENABLE_EXAMPLES", '+examples' in spec))
-        #entries.append(cmake_cache_option("BUILD_SHARED_LIBS", '+shared' in spec))
-        #entries.append(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec))
         entries.append(cmake_cache_option('ENABLE_CXXONLY', False))
         entries.append(cmake_cache_option('TPL_VERBOSE', False))
         entries.append(cmake_cache_option('BUILD_TPL', True))
 
+        # TPL locations
         entries.append(cmake_cache_option('python_BUILD', False))
         entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
 

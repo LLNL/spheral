@@ -3,28 +3,11 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-# ----------------------------------------------------------------------------
-# If you submit this package back to Spack as a pull request,
-# please first remove this boilerplate and all FIXME comments.
-#
-# This is a template package file for Spack.  We've put "FIXME"
-# next to all the things you'll want to change. Once you've handled
-# them, you can save this file and test your package like this:
-#
-#     spack install pyb11generator
-#
-# You can edit this file again by typing:
-#
-#     spack edit pyb11generator
-#
-# See the Spack documentation for more information on packaging.
-# ----------------------------------------------------------------------------
-
 from spack import *
 
 
 class PyPyb11generator(PythonPackage):
-    """FIXME: Put a proper description of your package here."""
+    """PYB11Generator is a python based code generator that creates pybind11 code for binding C++ libraries as extensions in Python."""
 
     homepage = "https://pypi.org/project/PYB11Generator/"
     pypi = "PYB11Generator/PYB11Generator-1.0.12.tar.gz" 

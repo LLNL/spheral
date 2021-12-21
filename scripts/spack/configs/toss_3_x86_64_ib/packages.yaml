@@ -111,11 +111,6 @@ packages:
     - spec: llvm@10.0.1
       prefix: /usr/tce/packages/clang/clang-10.0.1/
     buildable: false
-  #opensubdiv:
-  #  externals:
-  #  - spec: opensubdiv@3.4.3
-  #    prefix: /usr/workspace/wsrzd/davis291/spack/opt/spack/linux-rhel7-broadwell/gcc-8.3.1/opensubdiv-3.4.3-ct3kqiacszbxftmhl5c266ppmq2t3ayw
-  #  buildable: false
   python:
     externals:
     - spec: python@2.7.16
@@ -136,11 +131,6 @@ packages:
     - spec: py-setuptools@40.8.0
       prefix: /collab/usr/gapps/python/build/spack-toss3.3/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/py-setuptools-40.8.0-7vtps5n5spf6mled2xfz3p5ukm76g6gz
     buildable: false
-  #py-matplotlib:
-  #  externals:
-  #  - spec: py-matplotlib@2.2.5
-  #    prefix: /collab/usr/gapps/python/build/spack-toss3.3/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/py-matplotlib-2.2.3-sjgzkwny2psq25xsxkixe7cbwju4b4lq
-  #  buildable: false
   autoconf:
     externals:
     - spec: autoconf@2.69
@@ -181,11 +171,6 @@ packages:
     - spec: libpng@1.6.37
       prefix: /usr
     buildable: false
-  #zlib:
-  #  externals:
-  #  - spec: zlib@1.2.11
-  #    prefix: /usr/lib64
-  #  buildable: false
   nasm:
     externals:
     - spec: nasm@2.10.07
