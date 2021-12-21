@@ -85,10 +85,10 @@ def FSISPH(dataBase,
         Q = None,
         slides=None,
         filter = 0.0,
-        cfl = 0.25,
+        cfl = 0.35,
         surfaceForceCoefficient=0.0,
-        densityStabilizationCoefficient=0.0, 
-        specificThermalEnergyDiffusionCoefficient=0.0, 
+        densityStabilizationCoefficient=0.1, 
+        specificThermalEnergyDiffusionCoefficient=0.1, 
         xsphCoefficient=0.0,
         interfaceMethod=HLLCInterface, 
         kernelAveragingMethod = NeverAverageKernels,      
@@ -96,7 +96,7 @@ def FSISPH(dataBase,
         useVelocityMagnitudeForDt = False,
         compatibleEnergyEvolution = True,
         evolveTotalEnergy = False,
-        correctVelocityGradient = False,    # will break consistency between DrhoDt and DepsDt
+        correctVelocityGradient = True,    
         HUpdate = IdealH,
         epsTensile = 0.0,
         nTensile = 4.0,
@@ -187,7 +187,7 @@ def FSISPH(dataBase,
     # slide surfaces.
     if not slides:
         contactTypes = vector_of_int([0]*(dataBase.numNodeLists**2))
-        slides = eval("SlideSurface%id(W,contactTypes)" % (ndim))
+        slides = eval("SlideSurface%id(contactTypes)" % (ndim))
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin

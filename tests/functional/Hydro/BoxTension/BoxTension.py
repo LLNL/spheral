@@ -82,15 +82,60 @@ commandLine(
     nx2 = 50,
     ny2 = 50,
 
+    # kernel
+    HUpdate = IdealH,
     nPerh = 1.35,
     KernelConstructor = NBSplineKernel,
     order = 5,
+    hmin = 1e-5,
+    hmax = 0.5,
+    hminratio = 0.1,
 
+    # hydro 
     svph = False,
     crksph = False,
+    fsisph = False,
+    gsph = False,
     psph = False,
+
+    # hydro parameters 
     asph = False,
-    filter = 0.0,  # For CRKSPH
+    solid = False,
+    filter = 0.0,  
+    evolveTotalEnergy = False,
+    XSPH = False,
+    epsilonTensile = 0.0,
+    nTensile = 8,
+    densityUpdate = RigorousSumDensity,
+    compatibleEnergy = True,
+    gradhCorrection = True,
+    correctVelocityGradient = True,
+
+    # CRKSPH - specific parameters
+    correctionOrder = LinearOrder,
+
+    # fsisph-specific parameters
+    fsiSurfaceCoefficient = 0.00,                # magnificaiton factor for interface face
+    fsiRhoStabilizeCoeff = 0.1,                  # coeff for HLLC-pressure term style diffusion
+    fsiXSPHCoeff=0.00,                           # xsph coeff
+    fsiEpsDiffuseCoeff=0.1,                      # coeff second order artificial conduction
+    fsiInterfaceMethod = HLLCInterface,          # how do we handle multimat? (HLLCInterface,ModulusInterface,NoInterface)
+    fsiKernelMethod = AverageInterfaceKernels,   # should we avg the kernels? (AlwaysAverageKernels,NeverAverageKernels,AverageInterfaceKernels)
+    fsiSumDensity = True,                        # apply sum density to air nodes
+
+    # gsph-specific parameters
+    gsphEpsDiffuseCoeff = 0.0,                   # 1st order artificial conduction coeff
+    gsphLinearCorrect = True,                    # True - second order False - first order HLLC
+    gsphGradientMethod = MixedMethodGradient,    # gradient def (RiemannGradient,HydroAccelerationGradient,SPHGradient,MixedMethodGradient)
+    
+    # SVPH-specific parameters
+    linearConsistent = False,
+    fcentroidal = 0.0,
+    fcellPressure = 0.0,
+
+    # Artificial Viscosity
+    Cl = None,
+    Cq = None,
     boolReduceViscosity = False,
     nh = 5.0,
     aMin = 0.1,
@@ -103,25 +148,12 @@ commandLine(
     betaE = 1.0,
     fKern = 1.0/3.0,
     boolHopkinsCorrection = True,
-    evolveTotalEnergy = False,
-    HopkinsConductivity = False,
-
-    linearConsistent = False,
-    fcentroidal = 0.0,
-    fcellPressure = 0.0,
-    Cl = None,
-    Cq = None,
     Qlimiter = None,
     balsaraCorrection = None,
     epsilon2 = None,
-    hmin = 1e-5,
-    hmax = 0.5,
-    hminratio = 0.1,
+    
+    # integrator
     cfl = 0.5,
-    XSPH = False,
-    epsilonTensile = 0.0,
-    nTensile = 8,
-
     IntegratorConstructor = CheapSynchronousRK2Integrator,
     goalTime = 7.0,
     steps = None,
@@ -133,26 +165,20 @@ commandLine(
     dtGrowth = 2.0,
     maxSteps = None,
     statsStep = 10,
-    HUpdate = IdealH,
     domainIndependent = False,
     rigorousBoundaries = False,
     dtverbose = False,
     redistributeStep = 1000,
 
-    densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-    volumeType = RKSumVolume,
-    correctionOrder = LinearOrder,
-    compatibleEnergy = True,
-    gradhCorrection = True,
-    correctVelocityGradient = True,
+    # output
     serialDump = False,
-
     clearDirectories = False,
     restoreCycle = -1,
     restartStep = 200,
     dataDir = "dumps-boxtension-xy",
     )
 
+assert not svph 
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert problem.lower() in ("box", "ellipse")
 
@@ -161,6 +187,10 @@ if svph:
     hydroname = "SVPH"
 elif crksph:
     hydroname = "CRKSPH"
+elif gsph:
+    hydroname = "GSPH"
+elif fsisph:
+    hydroname = "FSISPH"
 elif psph:
     hydroname = "PSPH"
 else:
@@ -172,7 +202,6 @@ densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
 baseDir = os.path.join(dataDir,
                        problem,
                        hydroname,
-                       "volumeType=%s" % volumeType,
                        densityUpdateLabel[densityUpdate],
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "XSPH=%s" % XSPH,
@@ -224,13 +253,17 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Make the NodeLists.
 #-------------------------------------------------------------------------------
-outerNodes = makeFluidNodeList("outer", eos1,
+if solid:
+    nodeListConstructor = makeSolidNodeList
+else:
+    nodeListConstructor = makeFluidNodeList
+outerNodes = nodeListConstructor("outer", eos1,
                                hmin = hmin,
                                hmax = hmax,
                                hminratio = hminratio,
                                kernelExtent = kernelExtent,
                                nPerh = nPerh)
-innerNodes = makeFluidNodeList("inner", eos2,
+innerNodes = nodeListConstructor("inner", eos2,
                                hmin = hmin,
                                hmax = hmax,
                                hminratio = hminratio,
@@ -335,31 +368,68 @@ if svph:
                  fcellPressure = fcellPressure,
                  xmin = Vector(x0 - (x3 - x0), y0 - (y3 - y0)),
                  xmax = Vector(x3 + (x3 - x0), y3 + (y3 - y0)))
-elif CRKSPH:
+elif crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT, 
                    filter = filter,
                    epsTensile = epsilonTensile,
                    nTensile = nTensile,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
-                   correctionOrder = correctionOrder,
+                   order = correctionOrder,
                    densityUpdate = densityUpdate,
-                   volumeType = volumeType,
                    HUpdate = HUpdate)
-elif PSPH:
+elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
                  filter = filter,
                  cfl = cfl,
                  compatibleEnergyEvolution = compatibleEnergy,
                  evolveTotalEnergy = evolveTotalEnergy,
-                 HopkinsConductivity = HopkinsConductivity,
                  correctVelocityGradient = correctVelocityGradient,
                  densityUpdate = densityUpdate,
                  HUpdate = HUpdate,
                  XSPH = XSPH)
+elif fsisph: 
+    sumDensityNodeLists = []
+    slidePairs = []
+    if fsiSumDensity:
+        sumDensityNodeLists = [outerNodes,innerNodes]
+    hydro = FSISPH(dataBase = db,
+                W = WT,
+                cfl = cfl,
+                surfaceForceCoefficient = fsiSurfaceCoefficient,                   
+                densityStabilizationCoefficient = fsiRhoStabilizeCoeff,         
+                specificThermalEnergyDiffusionCoefficient = fsiEpsDiffuseCoeff,  
+                xsphCoefficient = fsiXSPHCoeff,
+                interfaceMethod = fsiInterfaceMethod,  
+                kernelAveragingMethod = fsiKernelMethod,
+                sumDensityNodeLists = sumDensityNodeLists,
+                correctVelocityGradient = correctVelocityGradient,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                HUpdate = HUpdate,
+                ASPH = asph,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+
+elif gsph:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,gsphLinearCorrect,gsphGradientMethod)
+    hydro = GSPH(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                specificThermalEnergyDiffusionCoefficient = gsphEpsDiffuseCoeff,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient= correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                ASPH = asph,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)         
 
 else:
     hydro = SPH(dataBase = db,
@@ -374,8 +444,6 @@ else:
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
 output("hydro")
-output("hydro.kernel")
-output("hydro.PiKernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
@@ -386,32 +454,33 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Tweak the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = hydro.Q
-if not Cl is None:
-    q.Cl = Cl
-if not Cq is None:
-    q.Cq = Cq
-if not Qlimiter is None:
-    q.limiter = Qlimiter
-if not epsilon2 is None:
-    q.epsilon2 = epsilon2
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.limiter")
-output("q.epsilon2")
-output("q.linearInExpansion")
-output("q.quadraticInExpansion")
+if not gsph:
+    q = hydro.Q
+    if not Cl is None:
+        q.Cl = Cl
+    if not Cq is None:
+        q.Cq = Cq
+    if not Qlimiter is None:
+        q.limiter = Qlimiter
+    if not epsilon2 is None:
+        q.epsilon2 = epsilon2
+    output("q")
+    output("q.Cl")
+    output("q.Cq")
+    output("q.limiter")
+    output("q.epsilon2")
+    output("q.linearInExpansion")
+    output("q.quadraticInExpansion")
 
-#-------------------------------------------------------------------------------
-# Construct the MMRV physics object.
-#-------------------------------------------------------------------------------
-if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
-    packages.append(evolveReducingViscosityMultiplier)
-elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
-    packages.append(evolveCullenViscosityMultiplier)
+    #-------------------------------------------------------------------------------
+    # Construct the MMRV physics object.
+    #-------------------------------------------------------------------------------
+    if boolReduceViscosity:
+        evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+        packages.append(evolveReducingViscosityMultiplier)
+    elif boolCullenViscosity:
+        evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+        packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -424,13 +493,7 @@ yPlane1 = Plane(Vector(x0, y3), Vector( 0.0, -1.0))
 xbc = PeriodicBoundary(xPlane0, xPlane1)
 ybc = PeriodicBoundary(yPlane0, yPlane1)
 
-xbc0 = ReflectingBoundary(xPlane0)
-xbc1 = ReflectingBoundary(xPlane1)
-ybc0 = ReflectingBoundary(yPlane0)
-ybc1 = ReflectingBoundary(yPlane1)
-
 bcSet = [xbc, ybc]
-#bcSet = [xbc0, xbc1, ybc0, ybc1]
 
 for p in packages:
     for bc in bcSet:
