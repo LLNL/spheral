@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------//
 #include "SidreFileIO.hh"
 #include "Utilities/SidreDataCollection.hh"
-// #include "axom/core/Path.hpp"
+#include "axom/core/Path.hpp"
 #include <iostream>
 
 namespace Spheral
