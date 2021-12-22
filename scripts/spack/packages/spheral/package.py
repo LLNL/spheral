@@ -58,7 +58,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope', type='build')
 
-    extends('python@2.7.16 +zlib +shared', type='build')
+    extends('python@2.7.16 +zlib +shared +ssl', type='build')
 
     depends_on('py-pip@9.0.1', type='build')
     depends_on('py-pybind11@2.4.3', type='build')
@@ -166,12 +166,16 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
         entries.append(cmake_cache_option('pip_BUILD', False))
         entries.append(cmake_cache_path('pip_DIR', spec['py-pip'].prefix + '/lib/python2.7/site-packages/'))
+        entries.append(cmake_cache_path('PIP_EXE', spec['py-pip'].prefix + '/bin/pip'))
 
         entries.append(cmake_cache_option('setuptools_BUILD', False))
         entries.append(cmake_cache_path('setuptools_DIR', spec['py-setuptools'].prefix + '/lib/python2.7/site-packages/'))
 
         entries.append(cmake_cache_option('pybind11_BUILD', False))
         entries.append(cmake_cache_path('pybind11_DIR', spec['py-pybind11'].prefix))
+
+        entries.append(cmake_cache_option('decorator_BUILD', False))
+        entries.append(cmake_cache_path('decorator_DIR', spec['py-decorator'].prefix + '/lib/python2.7/site-packages/'))
 
         entries.append(cmake_cache_option('pyb11generator_BUILD', False))
         entries.append(cmake_cache_path('pyb11generator_DIR', spec['py-pyb11generator'].prefix + '/lib/python2.7/site-packages/'))

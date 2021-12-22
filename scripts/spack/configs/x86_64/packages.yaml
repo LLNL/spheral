@@ -1,0 +1,99 @@
+packages:
+  #all:
+    # This defaults us to machine specific flags of ivybridge which allows
+    # us to run on broadwell as well
+    #target: [ivybridge]
+    #compiler: [gcc, intel, pgi, clang]
+  openmpi:
+    externals:
+    - spec: openmpi@4.1.2%gcc@11.1.0
+      prefix: /usr/
+    buildable: false
+
+  cmake:
+    externals:
+    - spec: cmake@3.22.1
+      prefix: /usr
+    buildable: false
+
+# ------ SYSTEM LIBS -------
+  #python:
+  #  externals:
+  #  - spec: python@2.7.16
+  #    prefix: /usr/
+  #  buildable: false
+  readline:
+    externals:
+    - spec: readline@7.0
+      prefix: /usr
+    buildable: false
+  autoconf:
+    externals:
+    - spec: autoconf@2.69
+      prefix: /usr
+    buildable: false
+  automake:
+    externals:
+    - spec: automake@1.13.4
+      prefix: /usr
+    buildable: false
+  libtool:
+    externals:
+    - spec: libtool@2.4.2
+      prefix: /usr
+    buildable: false
+  bzip2:
+    externals:
+    - spec: bzip2@1.0.6
+      prefix: /usr
+    buildable: false
+  expat:
+    externals:
+    - spec: expat@2.4.1
+      prefix: /usr
+    buildable: false
+  gdbm:
+    externals:
+    - spec: gdbm@1.19
+      prefix: /usr
+    buildable: false
+  gettext:
+    externals:
+    - spec: gettext@0.19
+      prefix: /usr
+    buildable: false
+  libffi:
+    externals:
+    - spec: libffi@3.3
+      prefix: /usr
+    buildable: false
+  openssl:
+    externals:
+    - spec: openssl@1.1.1
+      prefix: /usr
+    buildable: false
+  ossp-uuid:
+    externals:
+    - spec: ossp-uuid@1.62
+      prefix: /usr
+    buildable: false
+  sqlite:
+    externals:
+    - spec: sqlite@3.36.0
+      prefix: /usr
+    buildable: false
+  #  perl:
+  #    externals:
+  #    - spec: perl@5.16.3
+  #      prefix: /usr
+  #    buildable: false
+  pkg-config:
+    externals:
+    - spec: pkg-config@0.27.1
+      prefix: /usr
+    buildable: false
+  tar:
+    externals:
+    - spec: tar@1.26
+      prefix: /usr
+    buildable: false

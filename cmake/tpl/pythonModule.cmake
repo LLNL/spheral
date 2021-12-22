@@ -3,11 +3,12 @@ include(${SPHERAL_ROOT_DIR}/cmake/tpl/util/Install_Python_distutils_library.cmak
 #
 # Buildtime Python Module Dependencies
 #
-set(PYTHONENV )
+set(PYTHONENV ${pip_DIR})
 
 set(pip_build_modules
     setuptools
-    wheel
+    #wheel
+    decorator==4.4.2
     virtualenv==20.2.2
     pyb11generator==1.0.12)
 

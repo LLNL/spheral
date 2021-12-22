@@ -1,16 +1,13 @@
 cd @CMAKE_INSTALL_PREFIX@
 echo "Creating Spheral virtual python environment ..."
 
-env PYTHONPATH=@BUILDTIME_PYTHONENV_STR@ @PYTHON_EXE@ -m virtualenv -p @PYTHON_EXE@ .venv --no-pip --no-wheel --no-setuptools
+env PYTHONPATH=@BUILDTIME_PYTHONENV_STR@ @PYTHON_EXE@ -m virtualenv -p @PYTHON_EXE@ .venv --no-pip --no-setuptools
 
 echo "Copy pip from pip_DIR ..."
 cp -r @pip_DIR@/* .venv/lib/python2.7/site-packages/
 
 echo "Copy setuptools from setuptools_DIR ..."
 cp -r @setuptools_DIR@/* .venv/lib/python2.7/site-packages/
-
-echo "Copy wheel from wheel_DIR ..."
-cp -r @wheel_DIR@/* .venv/lib/python2.7/site-packages/
 
 echo "Copy pyb11generator from pyb11generator_DIR ..."
 cp -r @pyb11generator_DIR@/* .venv/lib/python2.7/site-packages/
