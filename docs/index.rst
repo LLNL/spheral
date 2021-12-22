@@ -12,6 +12,8 @@ Welcome to Spheral's documentation!
 
    intro.rst
    building.rst
+   Developer_Workflow.rst
+   Development_Documentation.rst
 
 Indices and tables
 ==================

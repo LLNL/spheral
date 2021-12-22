@@ -12,6 +12,12 @@ set(pip_build_modules
     virtualenv==20.2.2
     pyb11generator==1.0.12)
 
+if (ENABLE_DOCS)
+  list(APPEND pip_build_modules
+    sphinx==1.8.5
+    sphinx_rtd_theme==0.5.0)
+endif()
+
 foreach(lib ${pip_build_modules})
   string(REGEX REPLACE "[\=]+[^ ]*" "" lib_name_str ${lib})
 
@@ -40,8 +46,6 @@ set(pip-runtime-modules
     matplotlib==2.2.5
     decorator==4.4.2
     h5py==2.10.0
-    sphinx==1.8.5
-    sphinx_rtd_theme==0.5.0
     docutils==0.17.1
     twine==1.15.0
     cython==0.29.21

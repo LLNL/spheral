@@ -64,6 +64,9 @@ class Spheral(CachedCMakePackage, PythonPackage):
     depends_on('py-pybind11@2.4.3', type='build')
     depends_on('py-pyb11generator@1.0.12', type='build')
 
+    depends_on('py-sphinx@1.8.5', type='build', when='+docs')
+    depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
+
     def _get_sys_type(self, spec):
         sys_type = spec.architecture
         if "SYS_TYPE" in env:
@@ -179,6 +182,14 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
         entries.append(cmake_cache_option('pyb11generator_BUILD', False))
         entries.append(cmake_cache_path('pyb11generator_DIR', spec['py-pyb11generator'].prefix + '/lib/python2.7/site-packages/'))
+
+        if "+docs" in spec:
+            entries.append(cmake_cache_option('sphinx_BUILD', False))
+            entries.append(cmake_cache_path('sphinx_DIR', spec['py-sphinx'].prefix + '/lib/python2.7/site-packages/'))
+            entries.append(cmake_cache_path('SPHINX_EXEC', spec['py-sphinx'].prefix + '/bin/sphinx-build'))
+            entries.append(cmake_cache_option('sphinx_rtd_theme_BUILD', False))
+            entries.append(cmake_cache_path('sphinx_rtd_theme_DIR', spec['py-sphinx-rtd-theme'].prefix + '/lib/python2.7/site-packages/'))
+
 
         entries.append(cmake_cache_option('polytope_BUILD', False))
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))
