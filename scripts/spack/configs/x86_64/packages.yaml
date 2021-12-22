@@ -1,27 +1,27 @@
 packages:
-  #all:
-    # This defaults us to machine specific flags of ivybridge which allows
-    # us to run on broadwell as well
-    #target: [ivybridge]
-    #compiler: [gcc, intel, pgi, clang]
-  openmpi:
+  mpich:
     externals:
-    - spec: openmpi@4.1.2%gcc@11.1.0
-      prefix: /usr/
+    - spec: mpich@3.3.2
+      prefix: /usr
     buildable: false
+  #openmpi:
+  #  externals:
+  #  - spec: openmpi@4.1.2
+  #    prefix: /usr/
+  #  buildable: false
 
   cmake:
     externals:
-    - spec: cmake@3.22.1
+    - spec: cmake@3.16.3
       prefix: /usr
     buildable: false
 
 # ------ SYSTEM LIBS -------
-  #python:
-  #  externals:
-  #  - spec: python@2.7.16
-  #    prefix: /usr/
-  #  buildable: false
+  ncurses:
+    externals:
+    - spec: ncurses@6.2
+      prefix: /usr
+    buildable: false
   readline:
     externals:
     - spec: readline@7.0
@@ -82,11 +82,6 @@ packages:
     - spec: sqlite@3.36.0
       prefix: /usr
     buildable: false
-  #  perl:
-  #    externals:
-  #    - spec: perl@5.16.3
-  #      prefix: /usr
-  #    buildable: false
   pkg-config:
     externals:
     - spec: pkg-config@0.27.1
