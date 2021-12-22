@@ -140,9 +140,9 @@ DEMBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   TIME_DEMinitializeStartup.start();
-  auto radius = dataBase.DEMParticleRadius();
-  const auto H = dataBase.DEMHfield();
-  computeParticleRadius(H,radius);
+  //auto radius = dataBase.DEMParticleRadius();
+  //const auto H = dataBase.DEMHfield();
+  //computeParticleRadius(H,radius);
   TIME_DEMinitializeStartup.stop();
 
 }
@@ -160,12 +160,12 @@ registerState(DataBase<Dimension>& dataBase,
 
   dataBase.resizeDEMFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
 
-  FieldList<Dimension, Vector> position = dataBase.DEMPosition();
-  FieldList<Dimension, Vector> velocity = dataBase.DEMVelocity();
-  FieldList<Dimension, Vector> angularVelocity = dataBase.DEMAngularVelocity();
-  FieldList<Dimension, Scalar> mass = dataBase.DEMMass();
+  FieldList<Dimension, Vector>    position = dataBase.DEMPosition();
+  FieldList<Dimension, Vector>    velocity = dataBase.DEMVelocity();
+  FieldList<Dimension, Vector>    angularVelocity = dataBase.DEMAngularVelocity();
+  FieldList<Dimension, Scalar>    mass = dataBase.DEMMass();
   FieldList<Dimension, SymTensor> Hfield = dataBase.DEMHfield();
-  FieldList<Dimension, Scalar>  radius = dataBase.DEMParticleRadius();
+  FieldList<Dimension, Scalar>    radius = dataBase.DEMParticleRadius();
 
   PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
   PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,true));
