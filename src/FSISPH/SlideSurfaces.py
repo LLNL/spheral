@@ -6,8 +6,7 @@ dims = spheralDimensions()
 # Convienent constructor for slide surfaces.
 #-------------------------------------------------------------------------------
 SlideSurfaceFactoryString = """
-def makeSlideSurfaces%(dim)s(W,
-                             dataBase,
+def makeSlideSurfaces%(dim)s(dataBase,
                              slideSurfaces=None):
 
         contactTypes = [0]*(dataBase.numNodeLists**2)
@@ -27,7 +26,7 @@ def makeSlideSurfaces%(dim)s(W,
                 contactTypes[dataBase.numNodeLists*nodeListi+nodeListj]=1
                 contactTypes[nodeListi+dataBase.numNodeLists*nodeListj]=1
 
-        result = SlideSurface%(dim)s(W, vector_of_int(contactTypes))
+        result = SlideSurface%(dim)s(vector_of_int(contactTypes))
 
         result.numNodeLists=dataBase.numNodeLists
 

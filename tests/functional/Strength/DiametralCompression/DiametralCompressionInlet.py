@@ -1,10 +1,10 @@
 #-------------------------------------------------------------------------------
-# Diametral Compression Test 2D
+# Diametral Compression Test 2D with inflow BC
 #-------------------------------------------------------------------------------
 #
 # Solid FSISPH
 #
-#ATS:t100 = test(        SELF, "--clearDirectories True --checkError True --goalTime 5.0 --fsisph True --nrSpecimen 15 ", label="Diametral Compression Test FSISPH -- 2-D", np=1)
+#ATS:t100 = test(        SELF, "--clearDirectories True --checkError True --fsisph True --goalTime 2.0 --nrSpecimen 15 ", label="Diametral Compression Test FSISPH -- 2-D", np=1)
 
 from Spheral2d import *
 import sys, os
@@ -32,18 +32,18 @@ commandLine(
     compressionSpeed = 1.0e-6,   # downward velocity of top bc (cm/usec)
 
     # ats settings
-    checkError=True,             # check error rel to analytic
-    tol = 10.0,                  # error toleration (%) average tensile stress
-    leaveNoTrace=True,           # delete output dirs
+    checkError=False,             # check error rel to analytic
+    tol = 5.0,                   # error toleration (%) average tensile stress
+    leaveNoTrace=False,           # delete output dirs
 
     # Specimen
     rho0 = 3.24,    # g/cc
-    m = 1.73,       # weibull exponent  (Figuero 2016 Tamdakht H-OC)
-    k = 2.0e8,      # weibull constant  (fit to Figuero 2016 and Zaytsev 2021)
 
     # Clamps
-    incompressibleClamps = True,
-    rClamp = 0.165,
+    compressionWithInflowBC = True,      # inflow vs periodic work function
+    cylindricalClamps = True,           # cylinder vs lattice
+    incompressibleClamps = True,         # makes them out of Cu (10x bulk modulus)
+    rClamp = 0.165,                      # radius of our clamp
 
     # Specimen geometry.
     SpecimenDistribution = "conformal",  # node distribution for the rock
@@ -60,11 +60,6 @@ commandLine(
     etaMin = 0.1,                  # rho/rho0 limit
     etaMax = 6.0,                  # rho/rho0 limit
 
-    # Porosity Model
-    epsEGranite = 0.0,       # Elastic compaction limit (porosity)
-    epsXGranite = -0.4,      # Transition from exponential to power-law distention (porosity)
-    kappaGranite = 0.8,      # Exponential factor for distention (porosity)
-    
     # Damage Model
     strengthModel = "collins",      # ("collins", "constant", "null")
     fullyDamagedSpecimen=False,     # treat Specimen as full damaged to start?
@@ -72,12 +67,11 @@ commandLine(
     strengthInDamage = False,       # this isn't ready right now
     strainType = BenzAsphaugStrain, # (BenzAsphaugStrain, PseudoPlasticStrain, MeloshRyanAsphaugStrain, PlasticStrain, PseudoPlasticStrain)
 
-    # hydro selection
+    # hydro type
     crksph = False,
     fsisph = False,
 
-    # Hydro parameters
-    cfl = 0.35,   
+    # Hydro parameters  
     correctVelocityGradient=True,        # linear order velocity gradient for PSPH SPH or FSISPH
     asph = False,                        # turns on elliptic kernels
     xsph = False,                        # updates position based on averaged velocity
@@ -89,8 +83,8 @@ commandLine(
     
     # FSISPH parameters
     fsiSurfaceCoefficient = 0.00,          # adds additional repulsive force to material interfaces)
-    fsiRhoStabilizeCoeff = 0.00,           # coefficient that smooths the density field
-    fsiEpsDiffuseCoeff = 0.00,             # explicit diiffusion of the thermal energy
+    fsiRhoStabilizeCoeff = 0.0,            # coefficient that smooths the density field
+    fsiEpsDiffuseCoeff = 0.0,              # explicit diiffusion of the thermal energy
     fsiXSPHCoeff = 0.00,                   # fsi uses multiplier for XSPH instead of binary switch
     fsiInterfaceMethod = ModulusInterface, # (HLLCInterface, ModulusInterface)
     
@@ -98,8 +92,8 @@ commandLine(
     correctionOrder = LinearOrder,   # for CRKSPH higher order field approximations
     
     # Artificial Viscosity
-    Cl = 0.5,                     # Cl linear coefficient for av -- None allows spheral to decide
-    Cq = 0.5,                     # Cq quadratic coefficient for av -- None allows spheral to decide
+    Cl = 1.0,                      # Cl linear coefficient for av -- None allows spheral to decide
+    Cq = 2.0,                      # Cq quadratic coefficient for av -- None allows spheral to decide
     epsilon2 = 1e-30,              # denominator term in balsara correct to prevent singularity
     balsaraCorrection=False,       # do we want the balsara shear correction
     linearInExpansion = None,      # can run the linear portion when nodes are expanding
@@ -108,13 +102,14 @@ commandLine(
 
     # smoothing scale parameters
     kernelOrder = None,       # for b spline kernels, None defaults to WendlandC2 
-    nPerh = 3.51,             # number of neighbors / smoothing length     
+    nPerh = 3.01,             # number of neighbors / smoothing length     
     HEvolution =  IntegrateH, # (IdealH , IntegrateH) update method for smoothing kernel
     iterateInitialH = False,  # to calc initial ideal H in controller constructor
      
     # Times, and simulation control.
-    steps = None,
-    goalTime = 100.0,         # usec -- final time
+    cfl = 0.35,               #
+    steps = None,             #
+    goalTime = 10.0,          # usec -- final time
     dt = 1e-4,                # usec -- initial time step
     dtMin = 1e-4,             # usec -- minimum time step size
     dtMax = 1000.0,           # usec -- maximum time step size
@@ -131,7 +126,7 @@ commandLine(
 
     # Output
     graphics = False,
-    vizDerivs = False,                   # output derivatives in viz dump
+    vizDerivs = True,                    # output derivatives in viz dump
     vizTime = 10.0,                      # usec -- visit output 
     vizCycle = None,                     # can also output visit silo files based on cycles
     vizName = "DiametralTest",           # name for silo files
@@ -175,6 +170,7 @@ elif fsisph:
     hydroname = "FSI"+hydroname
 if asph:
     hydroname = "A" + hydroname
+
 
 # Restart and output files.
 dataDir = os.path.join(baseDir,
@@ -282,17 +278,18 @@ if incompressibleClamps:
                                        etaMin,
                                        etaMax,
                                        units)
-    PoissonsRatioCu=0.0
+    PoissonsRatioCu=0.33
     rho0Cu = eosSolidCu.referenceDensity 
     cs0Cu = eosSolidCu.soundSpeed(rho0Cu, 0.0)
     Ks0Cu = rho0Cu*cs0Cu*cs0Cu
     GsCu = Ks0Cu / ((2.0*(1.0+PoissonsRatioCu))/(3.0*(1.0-2.0*PoissonsRatioCu)))
+    print ((2.0*(1.0+PoissonsRatioCu))/(3.0*(1.0-2.0*PoissonsRatioCu)))
     strengthCu = ConstantStrength(GsCu, 10.0*Y0) 
 
-    print "Reference K (granite, copper) = (%g, %g)" % (Ks0, Ks0Cu)
-    print "Reference G (granite, copper) = (%g, %g)" % (Gs, GsCu)
+    print "Reference K   (granite, copper) = (%g, %g)" % (Ks0, Ks0Cu)
+    print "Reference G   (granite, copper) = (%g, %g)" % (Gs, GsCu)
     print "Reference rho (granite, copper) = (%g, %g)" % (rho0Specimen, rho0Cu)
-    print "Reference c (granite, copper) = (%g, %g)" % (rho0Specimen, cs0Cu)
+    print "Reference c   (granite, copper) = (%g, %g)" % (c0Specimen, cs0Cu)
 
     eosClamps = eosSolidCu
     strengthClamps = strengthCu
@@ -343,30 +340,66 @@ nodeListSet = [nodesSpecimen,nodesDriver,nodesBase]
 #-------------------------------------------------------------------------------
 # Generate and distribute the nodes. 
 #-------------------------------------------------------------------------------
+if compressionWithInflowBC:
+    theta = pi
+    ymaxLattice = 3*rSpecimen
+    nx = 4*nrSpecimen
+    ny = 3*nrSpecimen
+else:
+    theta = 2*pi
+    ymaxLattice = 3*rSpecimen
+    nx = 4*nrSpecimen
+    ny = 3*nrSpecimen
 
 # Driver
 #-----------------------------
-radRatio = int(rClamp/rSpecimen)
-generatorDriver = GenerateNodeDistribution2d(nRadial = int(nrSpecimen*radRatio), nTheta = int(nrSpecimen*radRatio),
+if cylindricalClamps:
+    radRatio = rClamp/rSpecimen
+
+    # we need to know where inflow is if were doing that
+    yLowerBC = -rSpecimen*(1.0+radRatio)
+    yUpperBC =  rSpecimen*(1.0+radRatio)
+
+    generatorDriver = GenerateNodeDistribution2d(nRadial = int(nrSpecimen*radRatio), 
+                                                 nTheta = int(nrSpecimen*radRatio),
                                                         rho = rho0Clamps,
                                                         distributionType = "constantDTheta",
-                                                        theta = 2.0*pi,
+                                                        theta = theta,
                                                         rotation = pi,
                                                         rmax = rClamp,
                                                         rmin = 0.0,
                                                         offset=[0.0,(1.0+radRatio)*rSpecimen],
                                                         nNodePerh = nPerh)
 
-generatorBase = GenerateNodeDistribution2d(nRadial = int(nrSpecimen*radRatio), nTheta = int(nrSpecimen*radRatio),
+    generatorBase = GenerateNodeDistribution2d(nRadial = int(nrSpecimen*radRatio), 
+                                               nTheta = int(nrSpecimen*radRatio),
                                                         rho = rho0Clamps,
                                                         distributionType = "constantDTheta",
-                                                        theta = 2.0*pi,
+                                                        theta = theta,
                                                         rotation = 0.0,
                                                         rmax = rClamp,
                                                         rmin = 0.0,
                                                         offset=[0.0,-(1.0+radRatio)*rSpecimen],
                                                         nNodePerh = nPerh)
+else:
+    yLowerBC = -rSpecimen-ymaxLattice
+    yUpperBC =  rSpecimen+ymaxLattice
+    radRatio = 1.0
+    generatorDriver = GenerateNodeDistribution2d(nx, ny,
+                                                        rho = rho0Clamps,
+                                                        distributionType = "lattice",
+                                                        xmax = [2*rSpecimen,ymaxLattice],
+                                                        xmin = [-2*rSpecimen,0.0],
+                                                        offset=[0.0,rSpecimen],
+                                                        nNodePerh = nPerh)
 
+    generatorBase = GenerateNodeDistribution2d(nx, ny,
+                                                        rho = rho0Clamps,
+                                                        distributionType = "lattice",
+                                                        xmax = [2*rSpecimen,0.0],
+                                                        xmin = [-2*rSpecimen,-ymaxLattice],
+                                                        offset=[0.0,-rSpecimen],
+                                                        nNodePerh = nPerh)
 # Specimen
 #-----------------------------
 generatorSpecimen = GenerateNodeDistribution2d(nRadial = nrSpecimen, nTheta = nrSpecimen,
@@ -399,7 +432,8 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Physics Package : construct the hydro physics object.
 #-------------------------------------------------------------------------------
-packages=[]
+packages = []
+periodicWork = []
 
 if crksph:
     hydro = CRKSPH(dataBase = db,
@@ -488,10 +522,7 @@ packages += [hydro]
 #-------------------------------------------------------------------------------
 # Physics Package :  construct the damage model.
 #-------------------------------------------------------------------------------
-
 damageModelSpecimen = GradyKippTensorDamage("granite",
-                                            mWeibull = m,
-                                            kWeibull = k,
                                             nodeList = nodesSpecimen,
                                             strainAlgorithm = strainType,
                                             kernel = WT,
@@ -504,6 +535,62 @@ packages.append(damageModelSpecimen)
 #-------------------------------------------------------------------------------
 nodesDriver.velocity(VectorField("initial velocity driver", nodesDriver,Vector(0.0,-compressionSpeed)))
 nodesBase.velocity(VectorField("initial velocity base", nodesBase,Vector(0.0,compressionSpeed)))
+
+
+#-------------------------------------------------------------------------------
+# How are we compressing the specimen? (BC vs periodic work)
+#-------------------------------------------------------------------------------
+# the bc method uses hemispherical clamps with an inflow conditions on the
+# top chuck to drive the system. The lower chuck has a reflection condition. 
+# This method results in a predictable total displacement from the compression
+# and is prefered when the total displacement is small. For large compression
+# turn this feature off. 
+#-------------------------------------------------------------------------------
+if compressionWithInflowBC:
+    yp1 = Plane(Vector(0.0,yUpperBC), Vector( 0.0, -1.0))
+    yp2 = Plane(Vector(0.0,yLowerBC), Vector( 0.0, 1.0))
+    bcUpper = InflowOutflowBoundary(db,yp1)
+    bcLower = InflowOutflowBoundary(db,yp2)
+
+    packages.extend([bcUpper,bcLower])
+
+    bcSet = [bcUpper,bcLower]
+    for p in packages:
+        for bc in bcSet:
+            p.appendBoundary(bc)
+else:
+    class Squeezer:
+        def __init__(self,nodes,vNodes,criterion):
+            self.nodes = nodes
+            self.vNodes = vNodes
+            self.criterion = criterion
+
+        def squeeze(self,cycle,time,dt):
+            vel = self.nodes.velocity()
+            pos = self.nodes.positions()
+            for i in range(self.nodes.numInternalNodes):
+                if self.criterion(pos[i].y):
+                    vel[i].y = self.vNodes
+
+    def critUpper(yPos):
+        crit = False
+        if yPos>rSpecimen*(1.0+radRatio):
+            crit = True
+        return crit
+
+    def critLower(yPos):
+        crit = False
+        if yPos<-rSpecimen*(1.0+radRatio):
+            crit = True
+        return crit
+
+    res = rSpecimen/nrSpecimen
+    unstoppableForce = Squeezer(nodesDriver,-compressionSpeed,critUpper)
+    immovableObject = Squeezer(nodesBase,compressionSpeed,critLower)
+
+    periodicWork += [(unstoppableForce.squeeze,1)]
+    periodicWork += [(immovableObject.squeeze,1)]
+
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
@@ -530,7 +617,7 @@ output("integrator.verbose")
 output("integrator.allowDtCheck")
 
 #-------------------------------------------------------------------------------
-# PeriodicWork:  zap the net x velocity.
+# PeriodicWork: zap the net x velocity.
 #-------------------------------------------------------------------------------
 class removeTransverseVelocity:
     def __init__(self,nodes):
@@ -548,42 +635,7 @@ class removeTransverseVelocity:
             vel -= Vector(averageVelx,0.0)
 
 killVelx = removeTransverseVelocity(nodesSpecimen)
-periodicWork = [(killVelx.apply,1)]
-
-#-------------------------------------------------------------------------------
-# PeriodicWork: squeeze the specimen
-#-------------------------------------------------------------------------------
-class Squeezer:
-    def __init__(self,nodes,vNodes,criterion):
-        self.nodes = nodes
-        self.vNodes = vNodes
-        self.criterion = criterion
-
-    def squeeze(self,cycle,time,dt):
-        vel = self.nodes.velocity()
-        pos = self.nodes.positions()
-        for i in range(self.nodes.numInternalNodes):
-            if self.criterion(pos[i].y):
-                vel[i].y = self.vNodes
-
-def critUpper(yPos):
-    crit = False
-    if yPos>rSpecimen*(1.0+radRatio):
-        crit = True
-    return crit
-
-def critLower(yPos):
-    crit = False
-    if yPos<-rSpecimen*(1.0+radRatio):
-        crit = True
-    return crit
-
-res = rSpecimen/nrSpecimen
-unstoppableForce = Squeezer(nodesDriver,-compressionSpeed,critUpper)
-immovableObject = Squeezer(nodesBase,compressionSpeed,critLower)
-
-periodicWork += [(unstoppableForce.squeeze,1)]
-periodicWork += [(immovableObject.squeeze,1)]
+periodicWork += [(killVelx.apply,1)]
 
 
 #-------------------------------------------------------------------------------
@@ -677,9 +729,6 @@ LCS = loadCurveStorage(compressionSpeed,
 periodicWork += [(LCS.storeLoadCurve ,1)]
 
 
-#-------------------------------------------------------------------------------
-# PeriodicWork: Sampling function
-#-------------------------------------------------------------------------------
 header_label='"x(km)" "y(km)" "z(km)"  "P (psi)" "Sxx" "Syy" "Sxy"'
 P = hydro.pressure
 Sigma =db.solidDeviatoricStress
@@ -692,6 +741,9 @@ def eulerianSampleVars(j,i):
 
 res_clip = 2.0*rSpecimen/float(nrSpecimen)
 
+#-------------------------------------------------------------------------------
+# PeriodicWork: sampling function
+#-------------------------------------------------------------------------------
 samplers = [] # list of sample types (currently only line segments are supported)
 LSxx = LineSegment(p0=Vector(0.0,-rSpecimen), p1=Vector(0.0,rSpecimen),
            resolution=rSpecimen/float(nrSpecimen),
@@ -743,9 +795,9 @@ else:
 # Comparison to analytic solution.
 #-------------------------------------------------------------------------------
 
-# sampled force 
-#-------------------
-Sigmaxx= LSyy.DATA_Tot[:,5]-LSyy.DATA_Tot[:,3]
+# get our force from sampling
+#----------------------------
+Sigmaxx=LSyy.DATA_Tot[:,5]-LSyy.DATA_Tot[:,3]
 x_sample = LSyy.DATA_Tot[:,0]
 y_sample = LSyy.DATA_Tot[:,1]
 z_sample = LSyy.DATA_Tot[:,2]
@@ -753,49 +805,106 @@ xdiff = x_sample[:-1]-x_sample[1:]
 forceSampled = sum((0.5*Sigmaxx[1:]+0.5*Sigmaxx[:-1])*xdiff)
 
 
-# plane strain estimate of force
-#--------------------------------
-Kc = rho0Clamps*cS0Clamps**2
+# estimate plane-strain force from displacement
+#----------------------------------------------
 Ks = rho0Specimen*c0Specimen**2
-Es = 3.0*Ks*(1-2.0*PoissonsRatio)
-Ec = 3.0*Kc*(1-2.0*PoissonsRatioClamps)
+Kc = rho0Clamps*cS0Clamps**2
+cSs = sqrt((Gs)/rho0Specimen)
+cSc = sqrt((GsCu)/rho0Clamps)
+Es = 3.0*Ks*(1.0-2.0*PoissonsRatio)
+Ec = 3.0*Kc*(1.0-2.0*PoissonsRatioClamps)
+pi=3.1415
+
 oneOverEstar = (1.0-PoissonsRatio**2)/Es + (1.0-PoissonsRatioClamps**2)/Ec
 Estar = 1.0/oneOverEstar
 
 delta = compressionSpeed*goalTime
+forceEstimated = 1.0*pi/4.0*Estar*delta
 
-forceEstimated = pi/4.0*Estar*delta
+print " "
+print "force from displacement : %g" % forceEstimated
+print "Force from sampling     : %g" % forceSampled
+print " "
 
-print "   "
-print "Force from Displacement: %g" % forceEstimated
-print "Force from Sampling    : %g" % forceSampled
-print "   "
-
-# analytic herzian soln for stress field
-#----------------------------------------
+# analytic soln
+#--------------------------------
 analyticSolution = HerzianSolution(forceSampled,rSpecimen)
 
-# numerical Solution
-#--------------------------------
+#-----------------------
+# Plot along the x-axis  
+#-----------------------
 P = []
 Sxx = []
 Syy = []
 Sxy = []
 Y = []
 X = []
-
-pressure = hydro.pressure.fieldForNodeList(nodesSpecimen)
+pressure = hydro.pressure
+sigma = db.solidDeviatoricStress
+pos = db.globalPosition
 
 for i in range(nodesSpecimen.numInternalNodes):
-    pos = nodesSpecimen.positions()
-    S = nodesSpecimen.deviatoricStress()
-    if abs(pos[i].x)<2.0*rSpecimen/float(nrSpecimen) and abs(pos[i].y)<0.75*rSpecimen:
-        P.append(float(pressure[i]))
-        Sxx.append(float(S[i].xx-P[-1]))
-        Syy.append(float(S[i].yy-P[-1]))
-        Sxy.append(float(S[i].xy))
-        X.append(float(pos[i].x))
-        Y.append(float(pos[i].y))
+    if abs(pos(2,i).y)<2.0*rSpecimen/nrSpecimen and abs(pos(2,i).x)<0.95*rSpecimen:
+        P.append(float(pressure(2,i)))
+        Sxx.append(float(sigma(2,i).xx-P[-1]))
+        Syy.append(float(sigma(2,i).yy-P[-1]))
+        Sxy.append(float(sigma(2,i).xy))
+        X.append(float(pos(2,i).x))
+        Y.append(float(pos(2,i).y))
+    
+
+Preduced = mpi.allreduce(P,mpi.SUM)
+Sxxreduced = mpi.allreduce(Sxx,mpi.SUM)
+Sxyreduced = mpi.allreduce(Sxy,mpi.SUM)
+Syyreduced = mpi.allreduce(Syy,mpi.SUM)
+Yreduced = mpi.allreduce(Y,mpi.SUM)
+Xreduced = mpi.allreduce(X,mpi.SUM)
+
+FS=14
+Nsteps = 100
+SxxY0 = Sxxreduced
+SyyY0 = Syyreduced
+xY0 = [(-rSpecimen + i/float(Nsteps)*(2.0*rSpecimen)) for i in range(Nsteps) ]
+yY0 = [0.0 for i in range(Nsteps)]
+SxxAnalyticY0 = analyticSolution.sigmaxx(xY0,yY0)
+SyyAnalyticY0 = analyticSolution.sigmayy(xY0,yY0)
+
+
+if mpi.rank==0 and graphics:
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(6, 6), dpi=200)
+
+    ax.plot(Xreduced,Sxxreduced,'c.',label='$\sigma_{xx}$ -- FSISPH')
+    ax.plot(xY0,SxxAnalyticY0,'b--',label='$\sigma_{xx}$ -- Analytic')
+    ax.plot(Xreduced,Syyreduced,'y.',label='$\sigma_{yy}$ -- FSISPH')
+    ax.plot(xY0,SyyAnalyticY0,'k-',label='$\sigma_{yy}$ -- Analytic')
+    plt.xlabel(r'x-$cm$',fontsize=FS)
+    plt.ylabel(r'Stress-$CGuS$',fontsize=FS)
+    plt.savefig('DiametralCompression-xaxis.png')
+    #plt.show()
+
+#-----------------------
+# Plot along the y-axis  
+#-----------------------
+P = []
+Sxx = []
+Syy = []
+Sxy = []
+Y = []
+X = []
+pressure = hydro.pressure
+sigma = db.solidDeviatoricStress
+pos = db.globalPosition
+
+for i in range(nodesSpecimen.numInternalNodes):
+    if abs(pos(2,i).x)<2.0*rSpecimen/nrSpecimen and abs(pos(2,i).y)<0.9*rSpecimen:
+        P.append(float(pressure(2,i)))
+        Sxx.append(float(sigma(2,i).xx-P[-1]))
+        Syy.append(float(sigma(2,i).yy-P[-1]))
+        Sxy.append(float(sigma(2,i).xy))
+        X.append(float(pos(2,i).x))
+        Y.append(float(pos(2,i).y))
     
 
 Preduced = mpi.allreduce(P,mpi.SUM)
@@ -807,22 +916,30 @@ Xreduced = mpi.allreduce(X,mpi.SUM)
 Sxxanalytic = analyticSolution.sigmaxx(Xreduced,Yreduced)
 Syyanalytic = analyticSolution.sigmayy(Xreduced,Yreduced)
 
+Nsteps = 100
+SxxY0 = Sxxreduced
+SyyY0 = Syyreduced
+yY0 = [(-rSpecimen*0.9 + i/float(Nsteps)*(2.0*rSpecimen*0.9)) for i in range(Nsteps) ]
+xY0 = [0.0 for i in range(Nsteps)]
+SxxAnalyticY0 = analyticSolution.sigmaxx(xY0,yY0)
+SyyAnalyticY0 = analyticSolution.sigmayy(xY0,yY0)
+
+
 if mpi.rank==0:
     if graphics:
         import matplotlib.pyplot as plt
-        
+
         fig, ax = plt.subplots(figsize=(6, 6), dpi=200)
-        FS = 14
-        factor = 1e5 # cgus -> MPa
-        ax.plot(Yreduced,[entry*factor for entry in Sxxreduced],'c.',label='$\sigma_{xx}$ -- FSISPH')
-        ax.plot(Yreduced,[entry*factor for entry in Sxxanalytic],'b--',label='$\sigma_{xx}$ -- Analytic')
-        ax.plot(Yreduced,[entry*factor for entry in Syyreduced],'y.',label='$\sigma_{yy}$ -- FSISPH')
-        ax.plot(Yreduced,[entry*factor for entry in Syyanalytic],'k-',label='$\sigma_{yy}$ -- Analytic')
+
+        ax.plot(Yreduced,Sxxreduced,'c.',label='$\sigma_{xx}$ -- FSISPH')
+        ax.plot(yY0,SxxAnalyticY0,'b--',label='$\sigma_{xx}$ -- Analytic')
+        ax.plot(Yreduced,Syyreduced,'y.',label='$\sigma_{yy}$ -- FSISPH')
+        ax.plot(yY0,SyyAnalyticY0,'k-',label='$\sigma_{yy}$ -- Analytic')
         ax.legend(fontsize=FS)
         plt.xlabel(r'y-$cm$',fontsize=FS)
-        plt.ylabel(r'Stress-$MPa$',fontsize=FS)
+        plt.ylabel(r'Stress-$CGuS$',fontsize=FS)
         plt.savefig('DiametralCompression-yaxis.png')
-        plt.show()
+        #plt.show()
 
     if checkError:
 
@@ -837,5 +954,4 @@ if mpi.rank==0:
         os.system("rm -rf "+baseDir)
 
 
-    
-    
+
