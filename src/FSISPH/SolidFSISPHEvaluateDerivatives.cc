@@ -310,7 +310,7 @@ if(this->correctVelocityGradient()){
     auto DSDt_thread = DSDt.threadCopy(threadStack);
     auto DvDx_thread = DvDx.threadCopy(threadStack);
     auto localDvDx_thread = localDvDx.threadCopy(threadStack);
-    auto localM_thread = localM.threadCopy(threadStack);
+    //auto localM_thread = localM.threadCopy(threadStack);
     auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
@@ -339,7 +339,6 @@ if(this->correctVelocityGradient()){
       const auto  voli = mi/rhoi;
       const auto  mui = max(mu(nodeListi,i),tiny);
       const auto  Ki = max(tiny,rhoi*ci*ci)+4.0/3.0*mui;
-      const auto  Di = max(0.0, min(1.0, damage(nodeListi, i).Trace()/Dimension::nDim));
       auto  Hdeti = Hi.Determinant();
       //const auto fragIDi = fragIDs(nodeListi, i);
       CHECK(mi > 0.0);
@@ -352,6 +351,7 @@ if(this->correctVelocityGradient()){
       auto& DvDti = DvDt_thread(nodeListi, i);
       auto& DepsDti = DepsDt_thread(nodeListi, i);
       auto& DvDxi = DvDx_thread(nodeListi, i);
+      //auto& localMi = localM_thread(nodeListi, i);
       auto& localDvDxi = localDvDx_thread(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
@@ -373,7 +373,6 @@ if(this->correctVelocityGradient()){
       const auto  volj = mj/rhoj;
       const auto  muj = max(mu(nodeListj,j),tiny);
       const auto  Kj = max(tiny,rhoj*cj*cj)+4.0/3.0*muj;
-      const auto  Dj = max(0.0, min(1.0, damage(nodeListj, j).Trace()/Dimension::nDim));
       auto  Hdetj = Hj.Determinant();
       //const auto fragIDj = fragIDs(nodeListj, j);
       CHECK(mj > 0.0);
@@ -386,6 +385,7 @@ if(this->correctVelocityGradient()){
       auto& DvDtj = DvDt_thread(nodeListj, j);
       auto& DepsDtj = DepsDt_thread(nodeListj, j);
       auto& DvDxj = DvDx_thread(nodeListj, j);
+      //auto& localMj = localM_thread(nodeListj, j);
       auto& localDvDxj = localDvDx_thread(nodeListj, j);
       auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
@@ -402,10 +402,14 @@ if(this->correctVelocityGradient()){
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
       // we'll need a couple damage defs
+      const auto rij = ri - rj;
+      const auto rhatij = rij.unitVector();
       //const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
+      const auto  Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
+      const auto  Dj = max(0.0, min(1.0, damage(nodeListj, j).dot(rhatij).magnitude()));
       const auto fSij = (sameMatij ? 1.0-abs(Di-Dj) : 0.0);
-      const auto fDi =  (sameMatij ? (1.0-Di) : 0.0 );
-      const auto fDj =  (sameMatij ? (1.0-Dj) : 0.0 );
+      const auto fDi =  (sameMatij ? (1.0-Di)*(1.0-Di) : 0.0 );
+      const auto fDj =  (sameMatij ? (1.0-Dj)*(1.0-Dj) : 0.0 );
 
       // Decoupling
       //-------------------------------------------------------
@@ -423,8 +427,6 @@ if(this->correctVelocityGradient()){
 
         // Kernels
         //--------------------------------------
-        const auto rij = ri - rj;
-        const auto rhatij = rij.unitVector();
         const auto Hij = 0.5*(Hi+Hj);
         const auto etaij = Hij*rij;
         const auto etai = Hi*rij;
@@ -544,16 +546,16 @@ if(this->correctVelocityGradient()){
           const auto uij = -min(ui-uj,0.0);
 
           // traction vectors to see if were applying damage to P-wave modulus
-          const auto normalTractioni = rhatij.dot(sigmai.dot(rhatij));
-          const auto normalTractionj = rhatij.dot(sigmaj.dot(rhatij));
+          //const auto normalTractioni = rhatij.dot(sigmai.dot(rhatij));
+          //const auto normalTractionj = rhatij.dot(sigmaj.dot(rhatij));
 
           // positive normal traction = state of tension -> apply damage weight
-          const auto fKi = (normalTractioni > 0.0 ?  fDi : 1.0);
-          const auto fKj = (normalTractionj > 0.0 ?  fDj : 1.0);
+          //const auto fKi = (normalTractioni > 0.0 ?  fDi : 1.0);
+          //const auto fKj = (normalTractionj > 0.0 ?  fDj : 1.0);
           
           // weights weights
-          const auto Ci =  (constructHLLC ? std::sqrt(rhoi*fKi*Ki) + rhoi*uij  : abs(fKi*Ki*volj*gWi) )  + tiny;
-          const auto Cj =  (constructHLLC ? std::sqrt(rhoj*fKj*Kj) + rhoj*uij  : abs(fKj*Kj*voli*gWj) )  + tiny;
+          const auto Ci =  (constructHLLC ? std::sqrt(rhoi*Ki) + rhoi*uij  : abs(Ki*volj*gWi) )  + tiny;
+          const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj) + rhoj*uij  : abs(Kj*voli*gWj) )  + tiny;
           const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : abs(mui*volj*gWi) ) + tiny;
           const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : abs(muj*voli*gWj) ) + tiny;
 
@@ -571,6 +573,8 @@ if(this->correctVelocityGradient()){
 
         // local velocity gradient for DSDt
         if (sameMatij) {
+          //localMi -= fSij * volj * rij.dyad(gradWi);
+          //localMj -= fSij * voli * rij.dyad(gradWj);
           localDvDxi -=  2.0*volj*((vi-vstar).dyad(gradWi));
           localDvDxj -=  2.0*voli*((vstar-vj).dyad(gradWj)); 
         }
@@ -650,13 +654,14 @@ if(this->correctVelocityGradient()){
       const auto& Si = S(nodeListi, i);
       const auto& mui = mu(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
+      //const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
       const auto& DvDti = DvDt(nodeListi,i);
-      auto& localMi = localM(nodeListi, i);
+      const auto& localMi = localM(nodeListi, i);
       auto& DepsDti = DepsDt(nodeListi,i);
       auto& DxDti = DxDt(nodeListi, i);
       auto& DrhoDti = DrhoDt(nodeListi, i);
@@ -712,6 +717,9 @@ if(this->correctVelocityGradient()){
                        max(0.0, min(1.0, damage(nodeListi, i).Trace()/Dimension::nDim)) :
                        0.0);
 
+      //const auto localMdeti = localMi.Determinant();
+      //const auto goodLocalM = ( localMdeti > 1.0e-2 and numNeighborsi > Dimension::pownu(2));
+      //localMi =  (goodLocalM ? localMi.Inverse() : Tensor::one);
       localDvDxi = localDvDxi*localMi;
 
       // Determine the deviatoric stress evolution.
