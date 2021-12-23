@@ -38,6 +38,14 @@ stages:
     - ./spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats tests/integration.ats
     #- source test.sh
 
+.build_and_test:
+  script:
+    - ml load "$LC_MODULES"
+    - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
+    - cd build_"$ARCH"-"$SPEC"/install/
+    - ./build_"$ARCH"-"$SPEC"/spheral -c "import Spheral"
+    - ./build_"$ARCH"-"$SPEC"/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/tests/integration.ats
+
 # ------------------------------------------------------------------------------
 
 .gcc_8_1_0_mvapich2:
@@ -61,40 +69,58 @@ stages:
 # ------------------------------------------------------------------------------
 
 # gcc8.1.0+mpi
-build:gcc_8_1_0_mvapich2:
-  extends: [.gcc_8_1_0_mvapich2, .build_and_install, .on_ruby]
+gcc_8_1_0_mvapich2:
+  extends: [.gcc_8_1_0_mvapich2, .build_and_test, .on_ruby]
   stage: r_build_and_install
   artifacts:
     paths:
-      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
-    expire_in: 1 day
-  
-ats:gcc_8_1_0_mvapich2:
-  extends: [.gcc_8_1_0_mvapich2, .run_test_suite, .on_ruby]
-  needs: ["build:gcc_8_1_0_mvapich2"]
-  stage: r_run_test_suite
-  artifacts:
-    paths:
-      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
+      - "*.logs/"
     expire_in: 1 day
 
-# gcc8.3.1+mpi
-build:gcc_8_3_1_mvapich2:
-  extends: [.gcc_8_3_1_mvapich2, .build_and_install, .on_ruby]
+gcc_8_3_1_mvapich2:
+  extends: [.gcc_8_3_1_mvapich2, .build_and_test, .on_ruby]
   stage: r_build_and_install
   artifacts:
     paths:
-      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/
+      - "*.logs/"
     expire_in: 1 day
   
-ats:gcc_8_3_1_mvapich2:
-  extends: [.gcc_8_3_1_mvapich2, .run_test_suite, .on_ruby]
-  needs: ["build:gcc_8_3_1_mvapich2"]
-  stage: r_run_test_suite
-  artifacts:
-    paths:
-      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/
-    expire_in: 1 day
+
+## gcc8.1.0+mpi
+#build:gcc_8_1_0_mvapich2:
+#  extends: [.gcc_8_1_0_mvapich2, .build_and_install, .on_ruby]
+#  stage: r_build_and_install
+#  artifacts:
+#    paths:
+#      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
+#    expire_in: 1 day
+#  
+#ats:gcc_8_1_0_mvapich2:
+#  extends: [.gcc_8_1_0_mvapich2, .run_test_suite, .on_ruby]
+#  needs: ["build:gcc_8_1_0_mvapich2"]
+#  stage: r_run_test_suite
+#  artifacts:
+#    paths:
+#      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
+#    expire_in: 1 day
+#
+## gcc8.3.1+mpi
+#build:gcc_8_3_1_mvapich2:
+#  extends: [.gcc_8_3_1_mvapich2, .build_and_install, .on_ruby]
+#  stage: r_build_and_install
+#  artifacts:
+#    paths:
+#      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/
+#    expire_in: 1 day
+#  
+#ats:gcc_8_3_1_mvapich2:
+#  extends: [.gcc_8_3_1_mvapich2, .run_test_suite, .on_ruby]
+#  needs: ["build:gcc_8_3_1_mvapich2"]
+#  stage: r_run_test_suite
+#  artifacts:
+#    paths:
+#      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/
+#    expire_in: 1 day
 
 update_mirror:
   extends: [.on_ruby]
