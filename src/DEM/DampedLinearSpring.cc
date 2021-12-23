@@ -99,6 +99,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // A few useful constants we'll use in the following loop.
   const double tiny = std::numeric_limits<double>::epsilon();
   //auto minContactTime = std::numeric_limits<double>::max();
+  const auto fourOverOnePlusBetaSquared = 4.0/(1.0+mBeta*mBeta);
+  const auto fourThirds = 4.0/3.0;
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -184,8 +186,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto Rij = (Ri*Rj)/(Ri+Rj);
 
         // normal force w/ Herzian spring constant
-        const auto c1 = 4.0/3.0*mYoungsModulus*std::sqrt(Rij);
-        const auto c2 = std::sqrt(4.0*mij*c1/(1.0+mBeta*mBeta));
+        const auto c1 = fourThirds*mYoungsModulus*std::sqrt(Rij);
+        const auto c2 = std::sqrt(mij*c1*fourOverOnePlusBetaSquared);
         const auto vn = vij.dot(rhatij);
 
         // normal force
