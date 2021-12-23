@@ -69,7 +69,7 @@ def main():
 
   # Get the host-config name and path.
   if not args.build_only and not args.host_config:
-    hostconfig="{0}-{1}-{2}".format(host, sys_type, args.spec)
+    hostconfig="{1}-{2}".format(host, sys_type, args.spec)
     hostconfig_path=os.path.join(project_dir, "{0}.cmake".format(hostconfig))
   else:
     hostconfig=(args.host_config).split("/")[-1].split(".cmake")[0]

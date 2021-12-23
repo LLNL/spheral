@@ -85,7 +85,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
           cache_spec = envspec
         else:
           cache_spec = self.spec.compiler.name + "@" + self.spec.compiler.version
-        return "{0}-{1}-{2}.cmake".format(
+        return "{1}-{2}.cmake".format(
             hostname,
             self._get_sys_type(self.spec),
             cache_spec
@@ -162,7 +162,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
         entries.append(cmake_cache_option('eigen_BUILD', False))
         entries.append(cmake_cache_path('eigen_DIR', spec['eigen'].prefix))
-        entries.append(cmake_cache_path('eigen_INCLUDES', spec['eigen'].prefix.include.eigen3))
+        entries.append(cmake_cache_path('eigen_INCLUDES','$<BUILD_INTERFACE:' + spec['eigen'].prefix.include.eigen3 + '>'))
 
         entries.append(cmake_cache_option('opensubdiv_BUILD', False))
         entries.append(cmake_cache_path('opensubdiv_DIR', spec['opensubdiv'].prefix))
