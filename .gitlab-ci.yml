@@ -42,8 +42,6 @@ stages:
   script:
     - ml load "$LC_MODULES"
     - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
-    - cd build_"$ARCH"-"$SPEC"/install/
-    - ./build_"$ARCH"-"$SPEC"/spheral -c "import Spheral"
     - ./build_"$ARCH"-"$SPEC"/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/tests/integration.ats
 
 # ------------------------------------------------------------------------------
