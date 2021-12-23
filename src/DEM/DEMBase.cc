@@ -126,7 +126,7 @@ dt(const DataBase<Dimension>& dataBase,
     Scalar DtVotei = (*contactItr)->timeStep(dataBase, state, derivs, time);
     DtVote = min(DtVotei, DtVote);
   }
-  auto minDt = make_pair(DtVote,("DEM vote or time step"));
+  auto minDt = make_pair(DtVote,("DEM vote for time step"));
   minDt.first*=this->mCfl;
   return minDt;
 }
@@ -140,9 +140,7 @@ DEMBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   TIME_DEMinitializeStartup.start();
-  //auto radius = dataBase.DEMParticleRadius();
-  //const auto H = dataBase.DEMHfield();
-  //computeParticleRadius(H,radius);
+
   TIME_DEMinitializeStartup.stop();
 
 }
