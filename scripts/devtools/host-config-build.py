@@ -53,7 +53,11 @@ def main():
   print(args)
 
   hostconfig=(args.host_config).split("/")[-1].split(".cmake")[0]
-  hostconfig_path=args.host_config
+  if os.path.isabs(args.host_config):
+    hostconfig_path=args.host_config
+  else:
+    hostconfig_path=os.path.abspath(args.host_config)
+    
 
   # Set up our directory structure paths.
   build_dir="{0}/build_{1}/build".format(source_dir, hostconfig)
