@@ -72,7 +72,7 @@ gcc_8_1_0_mvapich2:
   stage: r_build_and_install
   artifacts:
     paths:
-      - "*.logs/"
+      - "*.*.logs/"
     expire_in: 1 day
 
 gcc_8_3_1_mvapich2:
@@ -80,7 +80,7 @@ gcc_8_3_1_mvapich2:
   stage: r_build_and_install
   artifacts:
     paths:
-      - "*.logs/"
+      - "*.*.logs/"
     expire_in: 1 day
   
 
