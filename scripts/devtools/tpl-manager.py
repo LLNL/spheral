@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import os
@@ -83,12 +83,16 @@ def build_deps(args):
   for s in spec_list:
     print("** SPEC : {0}".format(s))
 
+  spack_config_dir_opt=""
+  if "SYS_TYPE" not in os.environ.keys():
+    spack_config_dir_opt="--spack-config-dir={0}".format(os.path.join(project_dir, "scripts/spack/configs/x86_64"))
+
   # We use uberenv to set up our spack instance with our respective package.yaml files
   # config.yaml and custom spack packages recipes.
   print("** Running uberenv...")
   prefix_opt="--prefix=" + args.spheral_spack_dir
   print("** Spheral Spack Dir : {0}".format(args.spheral_spack_dir))
-  sexe("python3 scripts/devtools/uberenv/uberenv.py --setup-only {0}".format(prefix_opt))
+  sexe("python3 scripts/devtools/uberenv/uberenv.py --setup-only {0} {1}".format(prefix_opt, spack_config_dir_opt))
 
   # We just want to use the spac instance directly to generate our TPLs, we don't want
   # to have the spack instance take over our environment.
