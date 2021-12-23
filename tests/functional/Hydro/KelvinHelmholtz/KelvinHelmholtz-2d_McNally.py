@@ -585,7 +585,7 @@ def mixingScale(cycle, t, dt):
      yprof = mpi.reduce([x.y for x in nodeL.positions().internalValues()], mpi.SUM)
      vely = mpi.reduce([v.y for v in nodeL.velocity().internalValues()], mpi.SUM)
      hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodeL.Hfield().internalValues()], mpi.SUM)
-     rhoprof = mpi.reduce(nodes.massDensity().internalValues(), mpi.SUM)
+     rhoprof = mpi.reduce(nodeL.massDensity().internalValues(), mpi.SUM)
      if mpi.rank == 0:
       for j in xrange (len(xprof)):
         ke.append(0.5*rhoprof[j]*vely[j]*vely[j])
