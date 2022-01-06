@@ -34,6 +34,9 @@ def parse_args():
       help='Dir of spack instance to handle tpls. This can point at \
             an existing spack dir or an empty on to create a new spack instance.')
 
+  parser.add_argument('--no-clean', type=bool, default=False,
+      help='Do not clean spack generated log files.')
+
   return parser.parse_args()
 
 
@@ -124,6 +127,9 @@ def build_deps(args):
     os.environ["SPEC"] = s
     sexe("{0} spec -I spheral@develop%{1}".format(spack_cmd, s))
     sexe("{0} dev-build --quiet -d {1} -u initconfig spheral@develop%{2} 2>&1 | tee -a \"dev-build-{2}-out.txt\"".format(spack_cmd, project_dir, s))
+
+  if not args.no_clean:
+    sexe("rm dev-build-* spack-build-* spack-configure-args.txt")
 
 #------------------------------------------------------------------------------
 
