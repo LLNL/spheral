@@ -121,16 +121,16 @@ packages:
     - spec: readline@7.0
       prefix: /collab/usr/gapps/python/build/spack-toss3.3/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/readline-7.0-e5jqqjmcjknidgwvi353pd6umpixzxr2
     buildable: false
-  py-decorator:
-    externals:
-    - spec: py-decorator@4.3.0
-      prefix: /collab/usr/gapps/python/build/spack-toss3.3/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/py-decorator-4.3.0-cilrjvyfwa5tfitrsinwjlkc5mtipgyw
-    buildable: false
-  py-setuptools:
-    externals:
-    - spec: py-setuptools@40.8.0
-      prefix: /collab/usr/gapps/python/build/spack-toss3.3/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/py-setuptools-40.8.0-7vtps5n5spf6mled2xfz3p5ukm76g6gz
-    buildable: false
+  #py-decorator:
+  #  externals:
+  #  - spec: py-decorator@4.3.0
+  #    prefix: /collab/usr/gapps/python/build/spack-toss3.3/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/py-decorator-4.3.0-cilrjvyfwa5tfitrsinwjlkc5mtipgyw
+  #  buildable: false
+  #py-setuptools:
+  #  externals:
+  #  - spec: py-setuptools@40.8.0
+  #    prefix: /collab/usr/gapps/python/build/spack-toss3.3/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/py-setuptools-40.8.0-7vtps5n5spf6mled2xfz3p5ukm76g6gz
+  #  buildable: false
   autoconf:
     externals:
     - spec: autoconf@2.69

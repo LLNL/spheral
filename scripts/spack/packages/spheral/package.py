@@ -60,7 +60,8 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
     extends('python@2.7.16 +zlib +shared +ssl', type='build')
 
-    depends_on('py-pip@9.0.1', type='build')
+    depends_on('py-pip@20.2', type='build')
+    depends_on('py-setuptools@44.1.0', type='build')
     depends_on('py-pybind11@2.4.3', type='build')
     depends_on('py-pyb11generator@1.0.12', type='build')
 
