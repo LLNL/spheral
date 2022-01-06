@@ -40,10 +40,11 @@ stages:
 
 .build_and_test:
   script:
-    - ml load "$LC_MODULES" && srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
+    - ml load "$LC_MODULES"
+    - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
     - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
 
-# ------------------------------------------------------------------------------
+      # ------------------------------------------------------------------------------
 
 .gcc_8_1_0_mvapich2:
   variables:
