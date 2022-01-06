@@ -54,28 +54,108 @@ packages:
     - spec: llvm@10.0.1
       prefix: /usr/tce/packages/clang/clang-10.0.1/
     buildable: false
-  opensubdiv:
+  #python:
+  #  externals:
+  #  - spec: python@2.7.16
+  #    prefix: /usr/tce/packages/python/python-2.7.16
+  #  buildable: false
+  #readline:
+  #  externals:
+  #  - spec: readline@7.0
+  #    prefix: /usr
+  #  buildable: false
+  readline:
     externals:
-    - spec: opensubdiv@3.4.3
-      prefix: /usr/workspace/wsrzd/davis291/spack/opt/spack/linux-rhel7-broadwell/gcc-8.3.1/opensubdiv-3.4.3-ct3kqiacszbxftmhl5c266ppmq2t3ayw
+    - spec: readline@7.0
+      prefix: /collab/usr/gapps/python/build/spack-coralea.3/opt/spack/linux-rhel7-ppc64le/gcc-4.9.3/readline-7.0-owal6z2zh5zotgvdmwow6sgdn6cqfn43
     buildable: false
-  python:
-    externals:
-    - spec: python@2.7.16
-      prefix: /usr/tce/packages/python/python-2.7.16
-    buildable: false
+  #py-decorator:
+  #  externals:
+  #  - spec: py-decorator@4.3.0
+  #    prefix: /collab/usr/gapps/python/build/spack-coralea.3/opt/spack/linux-rhel7-ppc64le/gcc-4.9.3/py-decorator-4.3.0-tsvd5vhnqcii2wdmqjvlqvjamc2riocp
+  #  buildable: false
+  #py-setuptools:
+  #  externals:
+  #  - spec: py-setuptools@40.8.0
+  #    prefix: /collab/usr/gapps/python/build/spack-coralea.3/opt/spack/linux-rhel7-ppc64le/gcc-4.9.3/py-setuptools-40.8.0-n7fktbvavdzv227nzwndoln24cdwy5ye
+  #  buildable: false
   autoconf:
     externals:
     - spec: autoconf@2.69
-      prefix: /bin
+      prefix: /usr
     buildable: false
   automake:
     externals:
     - spec: automake@1.13.4
-      prefix: /bin
+      prefix: /usr
     buildable: false
   libtool:
     externals:
     - spec: libtool@2.4.2
-      prefix: /bin
+      prefix: /usr
+    buildable: false
+  bzip2:
+    externals:
+    - spec: bzip2@1.0.6
+      prefix: /usr
+    buildable: false
+  expat:
+    externals:
+    - spec: expat@2.4.1
+      prefix: /usr
+    buildable: false
+  gdbm:
+    externals:
+    - spec: gdbm@1.19
+      prefix: /usr
+    buildable: false
+  gettext:
+    externals:
+    - spec: gettext@0.19
+      prefix: /usr
+    buildable: false
+  libffi:
+    externals:
+    - spec: libffi@3.3
+      prefix: /usr
+    buildable: false
+  openssl:
+    externals:
+    - spec: openssl@1.1.1
+      prefix: /usr
+    buildable: false
+  ossp-uuid:
+    externals:
+    - spec: ossp-uuid@1.62
+      prefix: /usr
+    buildable: false
+  sqlite:
+    externals:
+    - spec: sqlite@3.36.0
+      prefix: /usr
+    buildable: false
+  #perl:
+  #  externals:
+  #  - spec: perl@5.16.3
+  #    prefix: /usr
+  #  buildable: false
+  pkg-config:
+    externals:
+    - spec: pkg-config@0.27.1
+      prefix: /usr
+    buildable: false
+  #libpng:
+  #  externals:
+  #  - spec: libpng@1.6.37
+  #    prefix: /usr
+  #  buildable: false
+  #nasm:
+  #  externals:
+  #  - spec: nasm@2.10.07
+  #    prefix: /usr
+  #  buildable: false
+  tar:
+    externals:
+    - spec: tar@1.26
+      prefix: /usr
     buildable: false

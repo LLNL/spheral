@@ -32,7 +32,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
     # -------------------------------------------------------------------------
     # DEPENDS
     # -------------------------------------------------------------------------
-    depends_on('mpi', type=['build','run'], when='+mpi')
+    depends_on('mpi', when='+mpi')
     depends_on('cmake@3.10.0:', type='build')
 
     depends_on('zlib@1.2.11 -shared +pic', type='build')
@@ -96,6 +96,12 @@ class Spheral(CachedCMakePackage, PythonPackage):
         entries = super(Spheral, self).initconfig_compiler_entries()
         return entries
     
+    def initconfig_mpi_entries(self):
+        spec = self.spec
+        entries = []
+        if "+mpi" in spec:
+          entries = super(Spheral, self).initconfig_mpi_entries()
+        return entries
 
     def initconfig_hardware_entries(self):
         spec = self.spec
@@ -150,7 +156,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
         entries.append(cmake_cache_option('hdf5_BUILD', False))
         entries.append(cmake_cache_path('hdf5_DIR', spec['hdf5'].prefix))
-
+    
         entries.append(cmake_cache_option('conduit_BUILD', False))
         entries.append(cmake_cache_path('conduit_DIR', spec['conduit'].prefix))
 

@@ -6,8 +6,8 @@
         "clang@9.0.0^mvapich2"
       ]
     ,
-    "blueos_3_ppc641e_ib_p9": [
-        "gcc@8.3.1^mvapich2"
+    "blueos_3_ppc64le_ib_p9": [
+        "gcc@8.3.1^spectrum-mpi"
       ]
   }
 }
