@@ -5,8 +5,7 @@ variables:
   BUILD_ROOT: ${CI_PROJECT_DIR}
 
 stages:
-  - r_build_and_install
-  - l_build_and_install
+  - build_and_install
   - r_update_mirror
 
 # ------------------------------------------------------------------------------
@@ -89,25 +88,25 @@ stages:
 # ------------------------------------------------------------------------------
 
 # gcc8.1.0+mpi
-gcc_8_1_0_mvapich2:
+r_gcc_8_1_0_mvapich2:
   extends: [.gcc_8_1_0_mvapich2, .r_build_and_test, .on_ruby]
-  stage: r_build_and_install
+  stage: build_and_install
 
-gcc_8_3_1_mvapich2:
+r_gcc_8_3_1_mvapich2:
   extends: [.gcc_8_3_1_mvapich2, .r_build_and_test, .on_ruby]
-  stage: r_build_and_install
+  stage: build_and_install
 
-gcc_8_3_1_mvapich2:
+r_gcc_8_3_1_mvapich2:
   extends: [.gcc_8_3_1_mvapich2, .r_build_and_test, .on_ruby]
-  stage: r_build_and_install
+  stage: build_and_install
 
-clang_9_0_0_openmpi:
+r_clang_9_0_0_openmpi:
   extends: [.clang_9_0_0_openmpi, .r_build_and_test, .on_ruby]
-  stage: r_build_and_install
+  stage: build_and_install
 
-gcc_8_3_1_spectrum:
+l_gcc_8_3_1_spectrum:
   extends: [.gcc_8_3_1_spectrum, .l_build_and_test, .on_lassen]
-  stage: l_build_and_install
+  stage: build_and_install
   
 
 update_mirror:
