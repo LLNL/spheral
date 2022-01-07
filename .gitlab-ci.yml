@@ -5,8 +5,8 @@ variables:
   BUILD_ROOT: ${CI_PROJECT_DIR}
 
 stages:
-  - build_and_install
-  - r_run_test_suite
+  - r_build_and_install
+  - l_build_and_install
   - r_update_mirror
 
 # ------------------------------------------------------------------------------
@@ -39,31 +39,26 @@ stages:
       when: always
     - when: on_success
 
-
-#.build_and_install:
-#  script:
-#    - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
-
-.run_test_suite:
-  script:
-    - ml load "$LC_MODULES"
-    - cd build_"$HOST"-"$ARCH"-"$SPEC"/install/
-    - ./spheral -c "import Spheral"
-    - ./spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats tests/integration.ats
-    #- source test.sh
-
 .l_build_and_test:
   script:
     - ml load python/3.8.2
     - ml load "$LC_MODULES"
     - lalloc 1 ./scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
     - lalloc 1 ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
+  artifacts:
+    paths:
+      - "*logs/"
+    expire_in: 1 day
 
 .r_build_and_test:
   script:
     - ml load "$LC_MODULES"
     - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
     - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
+  artifacts:
+    paths:
+      - "*logs/"
+    expire_in: 1 day
 
       # ------------------------------------------------------------------------------
 
@@ -85,9 +80,9 @@ stages:
     LC_MODULES: "gcc/8.3.1"
     EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
 
-.clang_9_0_0_mvapich2:
+.clang_9_0_0_openmpi:
   variables:
-    SPEC: "clang@9.0.0^mvapich2"
+    SPEC: "clang@9.0.0^openmpi"
     LC_MODULES: "clang/9.0.0"
     EXTRA_CMAKE_ARGS: ""
 
@@ -96,64 +91,24 @@ stages:
 # gcc8.1.0+mpi
 gcc_8_1_0_mvapich2:
   extends: [.gcc_8_1_0_mvapich2, .r_build_and_test, .on_ruby]
-  stage: build_and_install
-  artifacts:
-    paths:
-      - "*.*.logs/"
-    expire_in: 1 day
+  stage: r_build_and_install
 
 gcc_8_3_1_mvapich2:
   extends: [.gcc_8_3_1_mvapich2, .r_build_and_test, .on_ruby]
-  stage: build_and_install
-  artifacts:
-    paths:
-      - "*.*.logs/"
-    expire_in: 1 day
+  stage: r_build_and_install
+
+gcc_8_3_1_mvapich2:
+  extends: [.gcc_8_3_1_mvapich2, .r_build_and_test, .on_ruby]
+  stage: r_build_and_install
+
+clang_9_0_0_openmpi:
+  extends: [.clang_9_0_0_openmpi, .r_build_and_test, .on_ruby]
+  stage: r_build_and_install
 
 gcc_8_3_1_spectrum:
   extends: [.gcc_8_3_1_spectrum, .l_build_and_test, .on_lassen]
-  stage: build_and_install
-  artifacts:
-    paths:
-      - "*.*.logs/"
-    expire_in: 1 day
+  stage: l_build_and_install
   
-
-## gcc8.1.0+mpi
-#build:gcc_8_1_0_mvapich2:
-#  extends: [.gcc_8_1_0_mvapich2, .build_and_install, .on_ruby]
-#  stage: build_and_install
-#  artifacts:
-#    paths:
-#      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
-#    expire_in: 1 day
-#  
-#ats:gcc_8_1_0_mvapich2:
-#  extends: [.gcc_8_1_0_mvapich2, .run_test_suite, .on_ruby]
-#  needs: ["build:gcc_8_1_0_mvapich2"]
-#  stage: r_run_test_suite
-#  artifacts:
-#    paths:
-#      - build_ruby-toss_3_x86_64_ib-gcc@8.1.0^mvapich2/install/
-#    expire_in: 1 day
-#
-## gcc8.3.1+mpi
-#build:gcc_8_3_1_mvapich2:
-#  extends: [.gcc_8_3_1_mvapich2, .build_and_install, .on_ruby]
-#  stage: build_and_install
-#  artifacts:
-#    paths:
-#      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/
-#    expire_in: 1 day
-#  
-#ats:gcc_8_3_1_mvapich2:
-#  extends: [.gcc_8_3_1_mvapich2, .run_test_suite, .on_ruby]
-#  needs: ["build:gcc_8_3_1_mvapich2"]
-#  stage: r_run_test_suite
-#  artifacts:
-#    paths:
-#      - build_ruby-toss_3_x86_64_ib-gcc@8.3.1^mvapich2/install/
-#    expire_in: 1 day
 
 update_mirror:
   extends: [.on_ruby]
