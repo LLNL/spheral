@@ -57,7 +57,7 @@ set(pip-runtime-modules
 
 # Only needed when we're allowing MPI parallelism
 if (ENABLE_MPI)
-  list(APPEND pip-runtime-modules mpi4py)
+  list(APPEND pip-runtime-modules mpi4py==3.0.3)
 endif()
 
 # Generate our requirements.txt file for runtime python dependencies
