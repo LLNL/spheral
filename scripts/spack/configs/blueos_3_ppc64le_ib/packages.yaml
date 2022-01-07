@@ -139,6 +139,11 @@ packages:
   #  - spec: perl@5.16.3
   #    prefix: /usr
   #  buildable: false
+  ncurses:
+    externals:
+    - spec: ncurses@5.9
+      prefix: /usr
+    buildable: false
   pkg-config:
     externals:
     - spec: pkg-config@0.27.1
