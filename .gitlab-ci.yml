@@ -32,8 +32,6 @@ stages:
   variables:
     HOST: "lassen"
     ARCH: "blueos_3_ppc64le_ib_p9"
-  before_scripts:
-    - ml load python/3.8.2
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_LASSEN == "OFF"' #run except if ...
       when: never
@@ -56,6 +54,7 @@ stages:
 
 .l_build_and_test:
   script:
+    - ml load python/3.8.2
     - ml load "$LC_MODULES"
     - lrun 1 ./scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
     - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
