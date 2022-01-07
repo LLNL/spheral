@@ -21,7 +21,7 @@ config:
     root: $spack/opt/spack
     projections:
       all: "${ARCHITECTURE}/${COMPILERNAME}-${COMPILERVER}/${PACKAGE}-${VERSION}-${HASH}"
-        #    padded_length: 128
+        padded_length: 128
 
 # Locations where templates should be found
   template_dirs:
