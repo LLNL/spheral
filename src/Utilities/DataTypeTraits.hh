@@ -7,6 +7,7 @@
 #ifndef DataTypeTraits_HH
 #define DataTypeTraits_HH
 
+#include <climits>
 #include <stdint.h>
 #include <vector>
 #include <set>
@@ -61,7 +62,13 @@ struct DataTypeTraits<char> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_CHAR; }
 #endif
+
+#if (CHAR_MIN==0)
   static axom::sidre::DataTypeId axomTypeID() { return axom::sidre::UINT8_ID; }
+#else
+  static axom::sidre::DataTypeId axomTypeID() { return axom::sidre::INT8_ID; }
+#endif
+
   using AxomType = char;
 };
 
@@ -167,7 +174,12 @@ struct DataTypeTraits<std::string> {
   static int numElements(const ElementType& x) { return x.size(); }
   static ElementType zero() { return ""; }
 
+#if (CHAR_MIN==0)
   static axom::sidre::DataTypeId axomTypeID() { return axom::sidre::UINT8_ID; }
+#else
+  static axom::sidre::DataTypeId axomTypeID() { return axom::sidre::INT8_ID; }
+#endif
+
   using AxomType = char;
 };
 
