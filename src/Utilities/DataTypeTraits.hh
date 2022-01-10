@@ -61,7 +61,7 @@ struct DataTypeTraits<char> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_CHAR; }
 #endif
-  static axom::sidre::DataTypeId axomTypeID() { return axom::sidre::INT8_ID; }
+  static axom::sidre::DataTypeId axomTypeID() { return axom::sidre::UINT8_ID; }
   using AxomType = char;
 };
 
@@ -167,7 +167,7 @@ struct DataTypeTraits<std::string> {
   static int numElements(const ElementType& x) { return x.size(); }
   static ElementType zero() { return ""; }
 
-  static axom::sidre::DataTypeId axomTypeID() { return axom::sidre::INT8_ID; }
+  static axom::sidre::DataTypeId axomTypeID() { return axom::sidre::UINT8_ID; }
   using AxomType = char;
 };
 
