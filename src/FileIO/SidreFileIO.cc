@@ -76,9 +76,9 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      const Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
-  for (u_int i = 0; i < field.size(); ++i)
-    std::cout << field[i] << " ";
-  std::cout << std::endl;
+  // for (u_int i = 0; i < field.size(); ++i)
+  //   std::cout << field[i] << " ";
+  // std::cout << std::endl;
 
   axom::Path myPath = axom::Path(path);
   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
@@ -90,7 +90,11 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
     auto *data = &(*field[i].begin());
     wholeField->createView(myPath.baseName() + std::to_string(i), dtype, num_elements, (void*)data);
   }
-  wholeField->print();
+  // wholeField->print();
+
+  // for (u_int i = 0; i < field.size(); ++i)
+  //   std::cout << sizeof(field[i]) << " ";
+  // std::cout << std::endl;
 }
 
 template <typename Dimension, typename DataType,
@@ -107,14 +111,18 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
   field.resizeField(size);
 
   for (int i = 0; i < size; ++i)
-    group->getView(myPath.baseName() + std::to_string(i))->setExternalDataPtr(static_cast<void*>(&field[i]));
+    group->getView(myPath.baseName() + std::to_string(i))->setExternalDataPtr(static_cast<void*>(&field[i][0]));
   dataStorePtr->getRoot()->loadExternalData(fileName);
 
-  group->print();
+  // group->print();
 
-  for (u_int i = 0; i < field.size(); ++i)
-    std::cout << sizeof(field[i]) << " ";
-  std::cout << std::endl;
+  // for (u_int i = 0; i < field.size(); ++i)
+  //   std::cout << field[i] << " ";
+  // std::cout << std::endl;
+
+  // for (u_int i = 0; i < field.size(); ++i)
+  //   std::cout << sizeof(field[i]) << " ";
+  // std::cout << std::endl;
 }
 
 //------------------------------------------------------------------------------
