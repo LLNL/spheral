@@ -46,7 +46,7 @@ stages:
     - lalloc 1 ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
   artifacts:
     paths:
-      - "**logs/"
+      - blueos_3_ppc64le_ib_p9*/
     expire_in: 1 day
 
 .r_build_and_test:
@@ -56,7 +56,7 @@ stages:
     - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
   artifacts:
     paths:
-      - "**logs/"
+      - toss_3_x86_64_ib*/
     expire_in: 1 day
 
       # ------------------------------------------------------------------------------
