@@ -44,9 +44,10 @@ stages:
     - ml load "$LC_MODULES"
     - lalloc 1 ./scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
     - lalloc 1 ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
+    - mv *logs/ test-output/
   artifacts:
     paths:
-      - blueos_3_ppc64le_ib_p9.*.logs/
+      - test-output/
     expire_in: 1 day
 
 .r_build_and_test:
@@ -54,9 +55,10 @@ stages:
     - ml load "$LC_MODULES"
     - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
     - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
+    - mv *logs/ test-output/
   artifacts:
     paths:
-      - toss_3_x86_64_ib.*.logs/
+      - test-output/
     expire_in: 1 day
 
       # ------------------------------------------------------------------------------
