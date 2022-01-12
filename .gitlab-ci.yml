@@ -68,25 +68,28 @@ stages:
     SPEC: "gcc@8.1.0^mvapich2"
     LC_MODULES: "gcc/8.1.0"
     EXTRA_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
-    EXTRA_TEST_ARGS: "--filter \"level<100\""
+    EXTRA_TEST_ARGS: "--filter \"'level<100'\""
 
 .gcc_8_3_1_mvapich2:
   variables:
     SPEC: "gcc@8.3.1^mvapich2"
     LC_MODULES: "gcc/8.3.1"
     EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
+    EXTRA_TEST_ARGS: ""
 
 .gcc_8_3_1_spectrum:
   variables:
     SPEC: "gcc@8.3.1^spectrum-mpi"
     LC_MODULES: "gcc/8.3.1"
     EXTRA_CMAKE_ARGS: ""
+    EXTRA_TEST_ARGS: ""
 
 .clang_9_0_0_openmpi:
   variables:
     SPEC: "clang@9.0.0^openmpi"
     LC_MODULES: "clang/9.0.0"
     EXTRA_CMAKE_ARGS: ""
+    EXTRA_TEST_ARGS: ""
 
 # ------------------------------------------------------------------------------
 
