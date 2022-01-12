@@ -1,0 +1,122 @@
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  ALLOC_NAME: ${CI_PROJECT_NAME}_ci_${CI_PIPELINE_ID}
+  BUILD_ROOT: ${CI_PROJECT_DIR}
+
+stages:
+  - build_and_install
+  - r_update_mirror
+
+# ------------------------------------------------------------------------------
+
+.on_ruby:
+  tags:
+    - shell
+    - ruby
+  variables:
+    HOST: "ruby"
+    ARCH: "toss_3_x86_64_ib"
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_RUBY == "OFF"' #run except if ...
+      when: never
+    - if: '$CI_JOB_NAME =~ /release_resources/'
+      when: always
+    - when: on_success
+
+.on_lassen:
+  tags:
+    - shell
+    - lassen
+  variables:
+    HOST: "lassen"
+    ARCH: "blueos_3_ppc64le_ib_p9"
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_LASSEN == "OFF"' #run except if ...
+      when: never
+    - if: '$CI_JOB_NAME =~ /release_resources/'
+      when: always
+    - when: on_success
+
+.l_build_and_test:
+  script:
+    - ml load python/3.8.2
+    - ml load "$LC_MODULES"
+    - lalloc 1 ./scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
+    - lalloc 1 ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
+    - mv *logs/ test-output/
+  artifacts:
+    paths:
+      - test-output/
+    expire_in: 1 day
+
+.r_build_and_test:
+  script:
+    - ml load "$LC_MODULES"
+    - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
+    - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
+    - mv *logs/ test-output/
+  artifacts:
+    paths:
+      - test-output/
+    expire_in: 1 day
+
+      # ------------------------------------------------------------------------------
+
+.gcc_8_1_0_mvapich2:
+  variables:
+    SPEC: "gcc@8.1.0^mvapich2"
+    LC_MODULES: "gcc/8.1.0"
+    EXTRA_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
+
+.gcc_8_3_1_mvapich2:
+  variables:
+    SPEC: "gcc@8.3.1^mvapich2"
+    LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
+
+.gcc_8_3_1_spectrum:
+  variables:
+    SPEC: "gcc@8.3.1^spectrum-mpi"
+    LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
+
+.clang_9_0_0_openmpi:
+  variables:
+    SPEC: "clang@9.0.0^openmpi"
+    LC_MODULES: "clang/9.0.0"
+    EXTRA_CMAKE_ARGS: ""
+
+# ------------------------------------------------------------------------------
+
+# gcc8.1.0+mpi
+r_gcc_8_1_0_mvapich2:
+  extends: [.gcc_8_1_0_mvapich2, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+r_gcc_8_3_1_mvapich2:
+  extends: [.gcc_8_3_1_mvapich2, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+r_gcc_8_3_1_mvapich2:
+  extends: [.gcc_8_3_1_mvapich2, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+r_clang_9_0_0_openmpi:
+  extends: [.clang_9_0_0_openmpi, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+l_gcc_8_3_1_spectrum:
+  extends: [.gcc_8_3_1_spectrum, .l_build_and_test, .on_lassen]
+  stage: build_and_install
+  
+
+update_mirror:
+  extends: [.on_ruby]
+  stage: r_update_mirror
+  script:
+    - srun -N 1 -c 36 -p pdebug -t 60 scripts/devtools/tpl-manager.py --spec-list="scripts/devtools/spec-list.json" --use-mirror=True --spheral-spack-dir=$PWD/mirror-update-tpls
+    - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/mirror-update-tpls --mirror-dir="/usr/WS2/davis291/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
+      when: always

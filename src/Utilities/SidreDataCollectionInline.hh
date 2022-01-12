@@ -7,7 +7,7 @@ namespace Spheral
 
 template <typename Dimension, typename DataType,
          typename std::enable_if<std::is_arithmetic<DataType>::value,
-                                 DataType>::type* = nullptr>
+                                 DataType>::type*>
 inline
 axom::sidre::Group *SidreDataCollection::sidreStoreField(const std::string &view_name, 
                                                          const Spheral::Field<Dimension, DataType> &field)
@@ -135,7 +135,7 @@ axom::sidre::Group *SidreDataCollection::sidreStoreField(const std::string &view
 //------------------------------------------------------------------------------
 template <typename Dimension, typename DataType,
          typename std::enable_if<!is_rank_n_tensor<DataType>::value && !std::is_arithmetic<DataType>::value,
-                                 DataType>::type* = nullptr>
+                                 DataType>::type*>
 inline
 axom::sidre::Group *SidreDataCollection::sidreStoreField(const std::string &view_name, 
                                                          const Spheral::Field<Dimension, DataType> &field)
@@ -156,7 +156,7 @@ axom::sidre::Group *SidreDataCollection::sidreStoreField(const std::string &view
 
 template <typename Dimension, typename DataType,
          typename std::enable_if<is_rank_n_tensor<DataType>::value && !std::is_arithmetic<DataType>::value,
-                                 DataType>::type* = nullptr>
+                                 DataType>::type*>
 inline
 axom::sidre::Group *SidreDataCollection::sidreStoreField(const std::string &view_name, 
                                                          const Spheral::Field<Dimension, DataType> &field)
