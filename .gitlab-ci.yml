@@ -42,8 +42,8 @@ stages:
   script:
     - ml load python/3.8.2
     - ml load "$LC_MODULES"
-    - lalloc 1 ./scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
-    - lalloc 1 ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
+    - lalloc 1 ./scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - lalloc 1 ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats "$EXTRA_TEST_ARGS"
     - mv *logs/ test-output/
   artifacts:
     paths:
@@ -53,8 +53,8 @@ stages:
 .r_build_and_test:
   script:
     - ml load "$LC_MODULES"
-    - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
-    - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
+    - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats "$EXTRA_TEST_ARGS"
     - mv *logs/ test-output/
   artifacts:
     paths:
@@ -68,6 +68,7 @@ stages:
     SPEC: "gcc@8.1.0^mvapich2"
     LC_MODULES: "gcc/8.1.0"
     EXTRA_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
+    EXTRA_TEST_ARGS: "--filter \"level<100\""
 
 .gcc_8_3_1_mvapich2:
   variables:
@@ -79,7 +80,7 @@ stages:
   variables:
     SPEC: "gcc@8.3.1^spectrum-mpi"
     LC_MODULES: "gcc/8.3.1"
-    EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
+    EXTRA_CMAKE_ARGS: ""
 
 .clang_9_0_0_openmpi:
   variables:
