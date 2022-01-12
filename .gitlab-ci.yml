@@ -54,7 +54,7 @@ stages:
   script:
     - ml load "$LC_MODULES"
     - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES"
-    - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats
+    - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats build_"$ARCH"-"$SPEC"/install/tests/integration.ats "$TEST_ARGS"
     - mv *logs/ test-output/
   artifacts:
     paths:
@@ -74,6 +74,13 @@ stages:
     SPEC: "gcc@8.3.1^mvapich2"
     LC_MODULES: "gcc/8.3.1"
     EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
+
+.gcc_8_3_1_~mpi:
+  variables:
+    SPEC: "gcc@8.3.1~mpi"
+    LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
+    TEST_ARGS: "--filter \"'np<2'\""
 
 .gcc_8_3_1_spectrum:
   variables:
@@ -102,6 +109,10 @@ r_gcc_8_3_1_mvapich2:
   extends: [.gcc_8_3_1_mvapich2, .r_build_and_test, .on_ruby]
   stage: build_and_install
 
+r_gcc_8_3_1_~mpi:
+  extends: [.gcc_8_3_1_~mpi, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
 r_clang_9_0_0_openmpi:
   extends: [.clang_9_0_0_openmpi, .r_build_and_test, .on_ruby]
   stage: build_and_install
@@ -118,5 +129,5 @@ update_mirror:
     - srun -N 1 -c 36 -p pdebug -t 60 scripts/devtools/tpl-manager.py --spec-list="scripts/devtools/spec-list.json" --use-mirror=True --spheral-spack-dir=$PWD/mirror-update-tpls
     - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/mirror-update-tpls --mirror-dir="/usr/WS2/davis291/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "develop"'
+    - if: '$CI_COMMIT_REF_NAME == "feature/gitlab-ci"'
       when: always
