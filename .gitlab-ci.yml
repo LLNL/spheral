@@ -80,7 +80,7 @@ stages:
     SPEC: "gcc@8.3.1~mpi"
     LC_MODULES: "gcc/8.3.1"
     EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
-    EXTRA_TEST_ARGS: "--filter \"'np<2'\""
+    EXTRA_TEST_ARGS: "--filter \"np<2\""
 
 .gcc_8_3_1_spectrum:
   variables:
