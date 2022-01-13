@@ -24,7 +24,7 @@ def parse_args():
       help='JSON file with a list of specs to build for, this will override --spec.')
 
   # Mirrors
-  parser.add_argument('--use-mirror', type=bool, default=True,
+  parser.add_argument('--no-mirror', action='store_true',
       help='Use a mirror with the spack instancedt.')
   parser.add_argument('--mirror-dir', type=str, default=default_mirror_dir,
       help='Dir of mirror to be used when --use-mirror is enabled.')
@@ -104,7 +104,7 @@ def build_deps(args):
   
   # Let's set up a mirror for our TPL builds, this will help in downloding tars for packages 
   # offline and for pulling in binaries of precompiled TPL specs.
-  if args.use_mirror:
+  if not args.no_mirror:
 
     print("** Setting up mirror")
     if args.mirror_dir:
