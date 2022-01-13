@@ -1,9 +1,7 @@
 packages:
   all:
-    # This defaults us to machine specific flags of ivybridge which allows
-    # us to run on broadwell as well
     target: [ppc64le]
-    compiler: [gcc, pgi, clang, xl]
+    compiler: [gcc, clang]
   cmake:
     version: [3.18.0, 3.20.2, 3.14.5]
     buildable: false
@@ -14,6 +12,7 @@ packages:
       prefix: /usr/tce/packages/cmake/cmake-3.18.0
     - spec: cmake@3.20.2
       prefix: /usr/tce/packages/cmake/cmake-3.20.2
+
   #cuda:
   #  version: [11.0.2, 10.1.243, 10.1.168, 9.2.148, 8.0]
   #  buildable: false
@@ -28,6 +27,7 @@ packages:
   #    prefix: /usr/tce/packages/cuda/cuda-9.2.148
   #  - spec: cuda@8.0~allow-unsupported-compilers
   #    prefix: /usr/tce/packages/cuda/cuda-8.0
+  
   spectrum-mpi:
     externals:
     - spec: spectrum-mpi@10.3.1.03rtm0%pgi@19.10
@@ -49,36 +49,18 @@ packages:
     - spec: spectrum-mpi@10.3.1.03rtm0%xl@beta2019.06.20
       prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-xl-beta-2019.06.20
     buildable: false
-  llvm:
+
+# ------ SYSTEM LIBS -------
+  ncurses:
     externals:
-    - spec: llvm@10.0.1
-      prefix: /usr/tce/packages/clang/clang-10.0.1/
+    - spec: ncurses@5.9
+      prefix: /usr
     buildable: false
-  #python:
-  #  externals:
-  #  - spec: python@2.7.16
-  #    prefix: /usr/tce/packages/python/python-2.7.16
-  #  buildable: false
-  #readline:
-  #  externals:
-  #  - spec: readline@7.0
-  #    prefix: /usr
-  #  buildable: false
   readline:
     externals:
     - spec: readline@7.0
       prefix: /collab/usr/gapps/python/build/spack-coralea.3/opt/spack/linux-rhel7-ppc64le/gcc-4.9.3/readline-7.0-owal6z2zh5zotgvdmwow6sgdn6cqfn43
     buildable: false
-  #py-decorator:
-  #  externals:
-  #  - spec: py-decorator@4.3.0
-  #    prefix: /collab/usr/gapps/python/build/spack-coralea.3/opt/spack/linux-rhel7-ppc64le/gcc-4.9.3/py-decorator-4.3.0-tsvd5vhnqcii2wdmqjvlqvjamc2riocp
-  #  buildable: false
-  #py-setuptools:
-  #  externals:
-  #  - spec: py-setuptools@40.8.0
-  #    prefix: /collab/usr/gapps/python/build/spack-coralea.3/opt/spack/linux-rhel7-ppc64le/gcc-4.9.3/py-setuptools-40.8.0-n7fktbvavdzv227nzwndoln24cdwy5ye
-  #  buildable: false
   autoconf:
     externals:
     - spec: autoconf@2.69
@@ -134,31 +116,11 @@ packages:
     - spec: sqlite@3.36.0
       prefix: /usr
     buildable: false
-  #perl:
-  #  externals:
-  #  - spec: perl@5.16.3
-  #    prefix: /usr
-  #  buildable: false
-  ncurses:
-    externals:
-    - spec: ncurses@5.9
-      prefix: /usr
-    buildable: false
   pkg-config:
     externals:
     - spec: pkg-config@0.27.1
       prefix: /usr
     buildable: false
-  #libpng:
-  #  externals:
-  #  - spec: libpng@1.6.37
-  #    prefix: /usr
-  #  buildable: false
-  #nasm:
-  #  externals:
-  #  - spec: nasm@2.10.07
-  #    prefix: /usr
-  #  buildable: false
   tar:
     externals:
     - spec: tar@1.26
