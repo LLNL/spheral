@@ -22,26 +22,31 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      const std::string& path)
 {
   dataStorePtr->getRoot()->print();
-  for (u_int i = 0; i < field.size(); ++i)
-    std::cout << field[i] << " ";
-  std::cout << std::endl;
+  // for (u_int i = 0; i < field.size(); ++i)
+  //   std::cout << field[i] << " ";
+  // std::cout << std::endl;
 
   std::cout << "Trying to store a field of scalars, path: " << path << std::endl;
 
   axom::Path myPath = axom::Path(path);
   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
-  std::cout << "Before create Group" << std::endl;
   axom::sidre::Group* wholeField = dataStorePtr->getRoot()->createGroup(myPath.dirName());
-  // wholeField->print();
-  std::cout << "After create Group" << std::endl;
+  if (!wholeField)
+    wholeField = dataStorePtr->getRoot()->getGroup(myPath.dirName());
   axom::IndexType num_elements = 1;
+  dataStorePtr->print();
+  std::cout << "This is what wholeField points to: " << wholeField << std::endl;
+  std::cout << "This is what wholeField should point to: " << dataStorePtr->getRoot()->getGroup(myPath.dirName()) << std::endl;
 
   for (u_int i = 0; i < field.size(); ++i)
   {
+    std::cout << "This is before creating the View for i=" << i << std::endl;
+    std::cout << "This is before creating the View field[i] = " << field[i] << std::endl;
     const DataType *data = &(field[i]);
     wholeField->createView(myPath.baseName() + std::to_string(i), dtype, num_elements, (void*)data);
+    std::cout << "This is after creating the View for i=" << i << std::endl;
   }
-  //wholeField->print();
+  dataStorePtr->print();
 }
 
 template <typename Dimension, typename DataType,
@@ -55,15 +60,17 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
   axom::Path myPath = axom::Path(path);
   axom::sidre::Group* group = dataStorePtr->getRoot()->getGroup(myPath.dirName());
   int size = group->getNumViews();
+  if(myPath.baseName() + std::to_string(0) != group->getView(0)->getName())
+    --size;
   field.resizeField(size);
   for (int i = 0; i < size; ++i)
     group->getView(myPath.baseName() + std::to_string(i))->setExternalDataPtr(static_cast<void*>(&field[i]));
   dataStorePtr->getRoot()->loadExternalData(fileName);
 
-  //dataStorePtr->getRoot()->print();
-  for (u_int i = 0; i < field.size(); ++i)
-    std::cout << field[i] << " ";
-  std::cout << std::endl;
+  dataStorePtr->getRoot()->print();
+  // for (u_int i = 0; i < field.size(); ++i)
+  //   std::cout << field[i] << " ";
+  // std::cout << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -83,6 +90,8 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
   axom::Path myPath = axom::Path(path);
   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
   axom::sidre::Group* wholeField = dataStorePtr->getRoot()->createGroup(myPath.dirName());
+  if (!wholeField)
+    wholeField = dataStorePtr->getRoot()->getGroup(myPath.dirName());
   axom::IndexType num_elements = DataTypeTraits<DataType>::numElements(field[0]);
 
   for (u_int i = 0; i < field.size(); ++i)
@@ -90,7 +99,7 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
     auto *data = &(*field[i].begin());
     wholeField->createView(myPath.baseName() + std::to_string(i), dtype, num_elements, (void*)data);
   }
-  // wholeField->print();
+  dataStorePtr->print();
 
   // for (u_int i = 0; i < field.size(); ++i)
   //   std::cout << sizeof(field[i]) << " ";
@@ -108,6 +117,8 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
   axom::Path myPath = axom::Path(path);
   axom::sidre::Group* group = dataStorePtr->getRoot()->getGroup(myPath.dirName());
   int size = group->getNumViews();
+  if(myPath.baseName() + std::to_string(0) != group->getView(0)->getName())
+    --size;
   field.resizeField(size);
 
   for (int i = 0; i < size; ++i)
@@ -124,10 +135,6 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
   //   std::cout << sizeof(field[i]) << " ";
   // std::cout << std::endl;
 }
-
-//------------------------------------------------------------------------------
-// Specialize to read/write a Field<ThirdRankTensor>
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -196,8 +203,6 @@ bool SidreFileIO::pathExists(const std::string pathName) const
   return mDataStorePtr->getRoot()->hasView(pathName);
 }
 
-//
-
 //------------------------------------------------------------------------------
 // Write an unsigned to the file.
 //------------------------------------------------------------------------------
@@ -243,6 +248,7 @@ void SidreFileIO::write(const double& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::string& value, const std::string pathName)
 {
+  std::cout << "Creating view with value: " << value << " /// and path: " << pathName << std::endl;
   mDataStorePtr->getRoot()->createViewString(pathName, value);
 }
 
@@ -259,7 +265,9 @@ void SidreFileIO::write(const std::vector<int>& value, const std::string pathNam
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::vector<double>& value, const std::string pathName)
 {
+  std::cout << "Im expecting this to be called WRITE.\n";
   mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, value.size(), (void*)(&(*value.begin())));
+  mDataStorePtr->print();
 }
 
 //------------------------------------------------------------------------------
@@ -447,10 +455,12 @@ void SidreFileIO::read(std::vector<int>& value, const std::string pathName) cons
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::vector<double>& value, const std::string pathName) const
 {
+  std::cout << "Im expecting this to be called READ.\n";
   int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
   value.resize(size);
   mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
   mDataStorePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->print();
 }
 
 //------------------------------------------------------------------------------
@@ -681,7 +691,6 @@ void SidreFileIO::read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std:
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<1>, int>& value, const std::string pathName) const
 {
-  std::cout << "This is the Read field-int call.\n";
   sidreReadField(mDataStorePtr, value, pathName, mFileName);
 }
 
