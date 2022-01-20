@@ -465,7 +465,6 @@ void SidreFileIO::read(std::vector<double>& value, const std::string pathName) c
   std::cout << "This is the size in READ: " << size << std::endl;
   value.resize(size);
   mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(value.data());
-  mDataStorePtr->print();
   mDataStorePtr->getRoot()->loadExternalData(mFileName);
 
   mDataStorePtr->print();
