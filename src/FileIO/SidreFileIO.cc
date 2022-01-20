@@ -15,8 +15,8 @@ namespace Spheral
 // Specialize to read/write a Field<scalar>
 //------------------------------------------------------------------------------
 template <typename Dimension, typename DataType,
-         typename std::enable_if<std::is_arithmetic<DataType>::value,
-                                 DataType>::type* = nullptr>
+          typename std::enable_if<std::is_arithmetic<DataType>::value,
+                                  DataType>::type* = nullptr>
 void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      const Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
@@ -50,8 +50,8 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
 }
 
 template <typename Dimension, typename DataType,
-         typename std::enable_if<std::is_arithmetic<DataType>::value,
-                                 DataType>::type* = nullptr>
+          typename std::enable_if<std::is_arithmetic<DataType>::value,
+                                  DataType>::type* = nullptr>
 void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      Spheral::Field<Dimension, DataType>& field,
                      const std::string& path,
@@ -77,8 +77,8 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
 // Specialize to read/write a Field<Vector, Tensor, SymTensor>
 //------------------------------------------------------------------------------
 template <typename Dimension, typename DataType,
-         typename std::enable_if<!std::is_arithmetic<DataType>::value,
-                                 DataType>::type* = nullptr>
+          typename std::enable_if<!std::is_arithmetic<DataType>::value,
+                                  DataType>::type* = nullptr>
 void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      const Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
@@ -107,8 +107,8 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
 }
 
 template <typename Dimension, typename DataType,
-         typename std::enable_if<!std::is_arithmetic<DataType>::value,
-                                 DataType>::type* = nullptr>
+          typename std::enable_if<!std::is_arithmetic<DataType>::value,
+                                  DataType>::type* = nullptr>
 void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      Spheral::Field<Dimension, DataType>& field,
                      const std::string& path,
@@ -266,7 +266,10 @@ void SidreFileIO::write(const std::vector<int>& value, const std::string pathNam
 void SidreFileIO::write(const std::vector<double>& value, const std::string pathName)
 {
   std::cout << "Im expecting this to be called WRITE.\n";
-  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, value.size(), (void*)(&(*value.begin())));
+  for (int i = 0; i < value.size(); ++i)
+    std::cout << value[i] << " ";
+  std::cout << std::endl;
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, value.size(), (void*)value.data());
   mDataStorePtr->print();
 }
 
@@ -436,6 +439,7 @@ void SidreFileIO::read(double& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::string& value, const std::string pathName) const
 {
+  std::cout << "Read call for std::string.\n";
   value = mDataStorePtr->getRoot()->getView(pathName)->getString();
 }
 
@@ -456,11 +460,18 @@ void SidreFileIO::read(std::vector<int>& value, const std::string pathName) cons
 void SidreFileIO::read(std::vector<double>& value, const std::string pathName) const
 {
   std::cout << "Im expecting this to be called READ.\n";
+
   int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
+  std::cout << "This is the size in READ: " << size << std::endl;
   value.resize(size);
-  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(static_cast<void*>(&value[0]));
-  mDataStorePtr->getRoot()->loadExternalData(mFileName);
+  mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(value.data());
   mDataStorePtr->print();
+  mDataStorePtr->getRoot()->loadExternalData(mFileName);
+
+  mDataStorePtr->print();
+  for (int i = 0; i < size; ++i)
+    std::cout << value[i] << " ";
+  std::cout << std::endl;
 }
 
 //------------------------------------------------------------------------------
