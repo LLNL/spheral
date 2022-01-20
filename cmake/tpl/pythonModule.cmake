@@ -3,13 +3,20 @@ include(${SPHERAL_ROOT_DIR}/cmake/tpl/util/Install_Python_distutils_library.cmak
 #
 # Buildtime Python Module Dependencies
 #
-set(PYTHONENV )
+set(PYTHONENV ${pip_DIR})
 
 set(pip_build_modules
     setuptools
-    wheel
+    #wheel
+    decorator==4.4.2
     virtualenv==20.2.2
     pyb11generator==1.0.12)
+
+if (ENABLE_DOCS)
+  list(APPEND pip_build_modules
+    sphinx==1.8.5
+    sphinx_rtd_theme==0.5.0)
+endif()
 
 foreach(lib ${pip_build_modules})
   string(REGEX REPLACE "[\=]+[^ ]*" "" lib_name_str ${lib})
@@ -39,8 +46,6 @@ set(pip-runtime-modules
     matplotlib==2.2.5
     decorator==4.4.2
     h5py==2.10.0
-    sphinx==1.8.5
-    sphinx_rtd_theme==0.5.0
     docutils==0.17.1
     twine==1.15.0
     cython==0.29.21
@@ -52,7 +57,7 @@ set(pip-runtime-modules
 
 # Only needed when we're allowing MPI parallelism
 if (ENABLE_MPI)
-  list(APPEND pip-runtime-modules mpi4py)
+  list(APPEND pip-runtime-modules mpi4py==3.0.3)
 endif()
 
 # Generate our requirements.txt file for runtime python dependencies

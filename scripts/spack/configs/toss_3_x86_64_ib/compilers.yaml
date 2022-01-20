@@ -13,54 +13,6 @@ compilers:
     environment: {}
     extra_rpaths: []
 - compiler:
-    spec: intel@18.0.2
-    paths:
-      cc: /usr/tce/packages/intel/intel-18.0.2/bin/icc
-      cxx: /usr/tce/packages/intel/intel-18.0.2/bin/icpc
-      f77: /usr/tce/packages/intel/intel-18.0.2/bin/ifort
-      fc: /usr/tce/packages/intel/intel-18.0.2/bin/ifort
-    flags:
-      cflags: -gcc-name=/usr/tce/packages/gcc/gcc-7.3.0/bin/gcc
-      cxxflags: -gcc-name=/usr/tce/packages/gcc/gcc-7.3.0/bin/g++
-      fflags: -gcc-name=/usr/tce/packages/gcc/gcc-7.3.0/bin/gcc
-    operating_system: rhel7
-    target: x86_64
-    modules: []
-    environment: {}
-    extra_rpaths: []
-- compiler:
-    spec: intel@19.0.4
-    paths:
-      cc: /usr/tce/packages/intel/intel-19.0.4/bin/icc
-      cxx: /usr/tce/packages/intel/intel-19.0.4/bin/icpc
-      f77: /usr/tce/packages/intel/intel-19.0.4/bin/ifort
-      fc: /usr/tce/packages/intel/intel-19.0.4/bin/ifort
-    flags:
-      cflags: -gcc-name=/usr/tce/packages/gcc/gcc-7.1.0/bin/gcc
-      cxxflags: -gcc-name=/usr/tce/packages/gcc/gcc-7.1.0/bin/g++
-      fflags: -gcc-name=/usr/tce/packages/gcc/gcc-7.1.0/bin/g++
-    operating_system: rhel7
-    target: x86_64
-    modules: []
-    environment: {}
-    extra_rpaths: []
-- compiler:
-    spec: intel@19.1.0
-    paths:
-      cc: /usr/tce/packages/intel/intel-19.1.0/bin/icc
-      cxx: /usr/tce/packages/intel/intel-19.1.0/bin/icpc
-      f77: /usr/tce/packages/intel/intel-19.1.0/bin/ifort
-      fc: /usr/tce/packages/intel/intel-19.1.0/bin/ifort
-    flags:
-      cflags: -gcc-name=/usr/tce/packages/gcc/gcc-8.1.0/bin/gcc
-      cxxflags: -gcc-name=/usr/tce/packages/gcc/gcc-8.1.0/bin/g++
-      fflags: -gcc-name=/usr/tce/packages/gcc/gcc-8.1.0/bin/gcc
-    operating_system: rhel7
-    target: x86_64
-    modules: []
-    environment: {}
-    extra_rpaths: []
-- compiler:
     spec: gcc@8.1.0
     paths:
       cc: /usr/tce/packages/gcc/gcc-8.1.0/bin/gcc

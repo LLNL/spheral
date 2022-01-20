@@ -32,7 +32,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
     # -------------------------------------------------------------------------
     # DEPENDS
     # -------------------------------------------------------------------------
-    depends_on('mpi', type=['build','run'], when='+mpi')
+    depends_on('mpi', when='+mpi')
     depends_on('cmake@3.10.0:', type='build')
 
     depends_on('zlib@1.2.11 -shared +pic', type='build')
@@ -58,11 +58,15 @@ class Spheral(CachedCMakePackage, PythonPackage):
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope', type='build')
 
-    extends('python@2.7.16 +zlib +shared', type='build')
+    extends('python@2.7.16 +zlib +shared +ssl', type='build')
 
-    depends_on('py-pip@9.0.1', type='build')
+    depends_on('py-pip@20.2', type='build')
+    depends_on('py-setuptools@44.1.0', type='build')
     depends_on('py-pybind11@2.4.3', type='build')
     depends_on('py-pyb11generator@1.0.12', type='build')
+
+    depends_on('py-sphinx@1.8.5', type='build', when='+docs')
+    depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
 
     def _get_sys_type(self, spec):
         sys_type = spec.architecture
@@ -82,7 +86,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
           cache_spec = envspec
         else:
           cache_spec = self.spec.compiler.name + "@" + self.spec.compiler.version
-        return "{0}-{1}-{2}.cmake".format(
+        return "{1}-{2}.cmake".format(
             hostname,
             self._get_sys_type(self.spec),
             cache_spec
@@ -93,6 +97,12 @@ class Spheral(CachedCMakePackage, PythonPackage):
         entries = super(Spheral, self).initconfig_compiler_entries()
         return entries
     
+    def initconfig_mpi_entries(self):
+        spec = self.spec
+        entries = []
+        if "+mpi" in spec:
+          entries = super(Spheral, self).initconfig_mpi_entries()
+        return entries
 
     def initconfig_hardware_entries(self):
         spec = self.spec
@@ -147,7 +157,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
         entries.append(cmake_cache_option('hdf5_BUILD', False))
         entries.append(cmake_cache_path('hdf5_DIR', spec['hdf5'].prefix))
-
+    
         entries.append(cmake_cache_option('conduit_BUILD', False))
         entries.append(cmake_cache_path('conduit_DIR', spec['conduit'].prefix))
 
@@ -159,13 +169,14 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
         entries.append(cmake_cache_option('eigen_BUILD', False))
         entries.append(cmake_cache_path('eigen_DIR', spec['eigen'].prefix))
-        entries.append(cmake_cache_path('eigen_INCLUDES', spec['eigen'].prefix.include.eigen3))
+        entries.append(cmake_cache_path('eigen_INCLUDES','$<BUILD_INTERFACE:' + spec['eigen'].prefix.include.eigen3 + '>'))
 
         entries.append(cmake_cache_option('opensubdiv_BUILD', False))
         entries.append(cmake_cache_path('opensubdiv_DIR', spec['opensubdiv'].prefix))
 
         entries.append(cmake_cache_option('pip_BUILD', False))
         entries.append(cmake_cache_path('pip_DIR', spec['py-pip'].prefix + '/lib/python2.7/site-packages/'))
+        entries.append(cmake_cache_path('PIP_EXE', spec['py-pip'].prefix + '/bin/pip'))
 
         entries.append(cmake_cache_option('setuptools_BUILD', False))
         entries.append(cmake_cache_path('setuptools_DIR', spec['py-setuptools'].prefix + '/lib/python2.7/site-packages/'))
@@ -173,8 +184,19 @@ class Spheral(CachedCMakePackage, PythonPackage):
         entries.append(cmake_cache_option('pybind11_BUILD', False))
         entries.append(cmake_cache_path('pybind11_DIR', spec['py-pybind11'].prefix))
 
+        entries.append(cmake_cache_option('decorator_BUILD', False))
+        entries.append(cmake_cache_path('decorator_DIR', spec['py-decorator'].prefix + '/lib/python2.7/site-packages/'))
+
         entries.append(cmake_cache_option('pyb11generator_BUILD', False))
         entries.append(cmake_cache_path('pyb11generator_DIR', spec['py-pyb11generator'].prefix + '/lib/python2.7/site-packages/'))
+
+        if "+docs" in spec:
+            entries.append(cmake_cache_option('sphinx_BUILD', False))
+            entries.append(cmake_cache_path('sphinx_DIR', spec['py-sphinx'].prefix + '/lib/python2.7/site-packages/'))
+            entries.append(cmake_cache_path('SPHINX_EXEC', spec['py-sphinx'].prefix + '/bin/sphinx-build'))
+            entries.append(cmake_cache_option('sphinx_rtd_theme_BUILD', False))
+            entries.append(cmake_cache_path('sphinx_rtd_theme_DIR', spec['py-sphinx-rtd-theme'].prefix + '/lib/python2.7/site-packages/'))
+
 
         entries.append(cmake_cache_option('polytope_BUILD', False))
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))

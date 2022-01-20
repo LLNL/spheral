@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import os
@@ -24,7 +24,7 @@ def parse_args():
       help='JSON file with a list of specs to build for, this will override --spec.')
 
   # Mirrors
-  parser.add_argument('--use-mirror', type=bool, default=True,
+  parser.add_argument('--no-mirror', action='store_true',
       help='Use a mirror with the spack instancedt.')
   parser.add_argument('--mirror-dir', type=str, default=default_mirror_dir,
       help='Dir of mirror to be used when --use-mirror is enabled.')
@@ -33,6 +33,9 @@ def parse_args():
   parser.add_argument('--spheral-spack-dir', type=str, default=default_spheral_spack_dir,
       help='Dir of spack instance to handle tpls. This can point at \
             an existing spack dir or an empty on to create a new spack instance.')
+
+  parser.add_argument('--no-clean', type=bool, default=False,
+      help='Do not clean spack generated log files.')
 
   return parser.parse_args()
 
@@ -83,12 +86,16 @@ def build_deps(args):
   for s in spec_list:
     print("** SPEC : {0}".format(s))
 
+  spack_config_dir_opt=""
+  if "SYS_TYPE" not in os.environ.keys():
+    spack_config_dir_opt="--spack-config-dir={0}".format(os.path.join(project_dir, "scripts/spack/configs/x86_64"))
+
   # We use uberenv to set up our spack instance with our respective package.yaml files
   # config.yaml and custom spack packages recipes.
   print("** Running uberenv...")
   prefix_opt="--prefix=" + args.spheral_spack_dir
   print("** Spheral Spack Dir : {0}".format(args.spheral_spack_dir))
-  sexe("python3 scripts/devtools/uberenv/uberenv.py --setup-only {0}".format(prefix_opt))
+  sexe("python3 scripts/devtools/uberenv/uberenv.py --setup-only {0} {1}".format(prefix_opt, spack_config_dir_opt))
 
   # We just want to use the spac instance directly to generate our TPLs, we don't want
   # to have the spack instance take over our environment.
@@ -97,7 +104,7 @@ def build_deps(args):
   
   # Let's set up a mirror for our TPL builds, this will help in downloding tars for packages 
   # offline and for pulling in binaries of precompiled TPL specs.
-  if args.use_mirror:
+  if not args.no_mirror:
 
     print("** Setting up mirror")
     if args.mirror_dir:
@@ -118,7 +125,11 @@ def build_deps(args):
   for s in spec_list:
     print("** Building TPL's and generating host-config for {0} ...".format(s))
     os.environ["SPEC"] = s
-    sexe("{0} dev-build -d {1} -u initconfig spheral@develop%{2} 2>&1 | tee -a \"dev-build-{2}-out.txt\"".format(spack_cmd, project_dir, s))
+    sexe("{0} spec -I spheral@develop%{1}".format(spack_cmd, s))
+    sexe("{0} dev-build --quiet -d {1} -u initconfig spheral@develop%{2} 2>&1 | tee -a \"dev-build-{2}-out.txt\"".format(spack_cmd, project_dir, s))
+
+  if not args.no_clean:
+    sexe("rm dev-build-* spack-build-* spack-configure-args.txt")
 
 #------------------------------------------------------------------------------
 
