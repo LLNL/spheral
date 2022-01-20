@@ -145,7 +145,6 @@ class FacetedSurfaceASPHHydro(Physics):
                  epsTensile = 0.3,
                  nTensile = 4.0,
                  damageRelieveRubble = False,
-                 negativePressureInDamage = False,
                  strengthInDamage = False,
                  xmin = Vector(-1e100, -1e100, -1e100),
                  xmax = Vector( 1e100,  1e100,  1e100)):
@@ -174,7 +173,6 @@ class FacetedSurfaceASPHHydro(Physics):
                                        epsTensile = epsTensile,
                                        nTensile = nTensile,
                                        damageRelieveRubble = damageRelieveRubble,
-                                       negativePressureInDamage = negativePressureInDamage,
                                        strengthInDamage = strengthInDamage,
                                        xmin = xmin,
                                        xmax = xmax)
