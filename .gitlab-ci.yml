@@ -61,7 +61,7 @@ stages:
 
 # ------------------------------------------------------------------------------
 
-.gcc_8_1_0_mvapich2:
+.gcc_8_1_0_mvapich2_Debug:
   variables:
     SPEC: "gcc@8.1.0^mvapich2"
     LC_MODULES: "gcc/8.1.0"
@@ -96,7 +96,7 @@ stages:
     EXTRA_CMAKE_ARGS: ""
     EXTRA_TEST_ARGS: ""
 
-.clang_9_0_0_openmpi:
+.clang_9_0_0_mvapich2:
   variables:
     SPEC: "clang@9.0.0^mvapich2"
     LC_MODULES: "clang/9.0.0"
@@ -106,12 +106,8 @@ stages:
 # ------------------------------------------------------------------------------
 
 # gcc8.1.0+mpi
-r_gcc_8_1_0_mvapich2:
-  extends: [.gcc_8_1_0_mvapich2, .r_build_and_test, .on_ruby]
-  stage: build_and_install
-
-r_gcc_8_3_1_mvapich2:
-  extends: [.gcc_8_3_1_mvapich2, .r_build_and_test, .on_ruby]
+r_gcc_8_1_0_mvapich2_Debug:
+  extends: [.gcc_8_1_0_mvapich2_Debug, .r_build_and_test, .on_ruby]
   stage: build_and_install
 
 r_gcc_8_3_1_mvapich2:
@@ -122,15 +118,15 @@ r_gcc_8_3_1_~mpi:
   extends: [.gcc_8_3_1_~mpi, .r_build_and_test, .on_ruby]
   stage: build_and_install
 
-r_clang_9_0_0_openmpi:
-  extends: [.clang_9_0_0_openmpi, .r_build_and_test, .on_ruby]
+r_clang_9_0_0_mvapich2:
+  extends: [.clang_9_0_0_mvapich2, .r_build_and_test, .on_ruby]
   stage: build_and_install
 
 l_gcc_8_3_1_spectrum:
   extends: [.gcc_8_3_1_spectrum, .l_build_and_test, .on_lassen]
   stage: build_and_install
   
-l_gcc_8_3_1_~mpi:
+l_gcc_8_3_1_~mpi_Debug:
   extends: [.gcc_8_3_1_~mpi_Debug, .l_build_and_test, .on_lassen]
   stage: build_and_install
 
