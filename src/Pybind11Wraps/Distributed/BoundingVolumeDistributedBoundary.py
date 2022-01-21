@@ -31,10 +31,9 @@ volumes of domains."""
 
     # The instance attribute.  We expose this as a property of the class.
     @PYB11static
-    @PYB11cppname("instancePtr")
-    @PYB11returnpolicy("take_ownership")
+    @PYB11returnpolicy("reference")
     def instance(self):
-        return "BoundingVolumeDistributedBoundary<%(Dimension)s>*"
+        return "BoundingVolumeDistributedBoundary<%(Dimension)s>&"
 
     #...........................................................................
     # Virtual methods

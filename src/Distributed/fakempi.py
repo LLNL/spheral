@@ -8,6 +8,9 @@ MIN = -1
 MAX = -2
 SUM = -3
 
+def is_fake_mpi():
+    return True
+
 def reduce(var, op):
     return var
 
@@ -25,3 +28,4 @@ def bcast(obj, root=0):
 
 def barrier():
     return
+

@@ -4,7 +4,8 @@
 
 from Spheral import *
 from SpheralTestUtilities import *
-import os, shutil, time
+import os, shutil, time, sys
+import mpi
 
 title("distributed connectivity")
 
@@ -36,6 +37,12 @@ elif dimension == 2:
     from Spheral2d import *
 else:
     from Spheral3d import *
+
+#-------------------------------------------------------------------------------
+# This test only has any meaning if we're testing an MPI enabled build
+#-------------------------------------------------------------------------------
+if mpi.is_fake_mpi():
+    sys.exit(0)
 
 #-------------------------------------------------------------------------------
 # Set up the output directories
