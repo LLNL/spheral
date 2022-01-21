@@ -1,77 +1,70 @@
 #-------------------------------------------------------------------------------
-# The cylindrical Sedov test case (2-D).
+# The cylindrical Sedov test case (1-D).
 #-------------------------------------------------------------------------------
 import os, sys, shutil
-from Spheral2d import *
+from Spheral1d import *
 from SpheralTestUtilities import *
 from SpheralGnuPlotUtilities import *
-from GenerateNodeDistribution2d import *
-from CubicNodeGenerator import GenerateSquareNodeDistribution
 
 import mpi
 
-title("2-D integrated hydro test -- planar Sedov problem")
+title("1-D integrated hydro test -- planar Sedov problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(seed = "lattice",
-
-            thetaFactor = 0.5,
-            azimuthalOffsetFraction = 0.0,
+commandLine(# discretization & domain
             nRadial = 50,
-            nTheta = 50,
             rmin = 0.0,
             rmax = 1.0,
-            nPerh = 1.51,
-            order = 5,
 
+            # material properties
             rho0 = 1.0,
             eps0 = 0.0,
-            smallPressure = False,
             Espike = 1.0,
             smoothSpike = True,
             topHatSpike = False,
             smoothSpikeScale = 0.5,
             gamma = 5.0/3.0,
             mu = 1.0,
+            smallPressure = False,
             rhomin = 1e-10,
 
-            # kernel
+            #Kernel 
             HUpdate = IdealH,
+            nPerh = 1.51,
+            order = 5, 
             hmin = 1e-15,
             hmax = 1.0,
 
-            # hydros
+            # hydro type
             crksph = False,
             psph = False,
-            fsisph = False,
             gsph = False,
+            fsisph = False,
 
             # hydro options
             solid = False,
-            asph = False,
-            XSPH = False,    
-            evolveTotalEnergy = False,    
+            asph = False,                       # Selects the H update algorithm -- can be used with CRK, PSPH, SPH, etc.
+            XSPH = False,
+            evolveTotalEnergy = False,          # Only for SPH variants -- evolve total rather than specific energy
             compatibleEnergy = True,
             gradhCorrection = True,
             correctVelocityGradient = True,
-            densityUpdate = RigorousSumDensity, 
+            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             filter = 0.0,
-
+            
             # crksph options
             correctionOrder = LinearOrder,
-            volumeType = RKSumVolume,
 
             # gsph options
             RiemannGradientType = RiemannGradient, # (RiemannGradient,SPHGradient,HydroAccelerationGradient,OnlyDvDxGradient,MixedMethodGradient)
             linearReconstruction = True,
 
-            # Artifical Viscosity
+            # artificial viscosity options
             boolReduceViscosity = False,
             nh = 5.0,
             aMin = 0.1,
             aMax = 2.0,
-            Qhmult = 1.0,
             boolCullenViscosity = False,
             alphMax = 2.0,
             alphMin = 0.02,
@@ -80,10 +73,10 @@ commandLine(seed = "lattice",
             betaE = 1.0,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
-    
-            # Integration
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
-            cfl = 0.25,
+            
+            # integration
+            cfl = 0.5,
+            useVelocityMagnitudeForDt = False,
             steps = None,
             goalTime = None,
             goalRadius = 0.8,
@@ -91,23 +84,19 @@ commandLine(seed = "lattice",
             dtMin = 1.0e-8,
             dtMax = None,
             dtGrowth = 2.0,
+            dtverbose = False,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            useVelocityMagnitudeForDt = False,
 
             # IO
-            vizCycle = None,
-            vizTime = 0.1,
             restoreCycle = -1,
             restartStep = 1000,
 
-            graphics = False,
-            useVoronoiOutput = False,
+            graphics = True,
             clearDirectories = False,
-            dataDirBase = "dumps-cylindrical-Sedov",
+            dataDirBase = "dumps-planar-Sedov",
             outputFile = "None",
-            serialDump=True,
             )
 
 if smallPressure:
@@ -116,15 +105,13 @@ if smallPressure:
     print "WARNING: smallPressure specified, so setting eps0=%g" % eps0
 
 assert not(boolReduceViscosity and boolCullenViscosity)
-assert thetaFactor in (0.5, 1.0, 2.0)
 assert not(gsph and (boolReduceViscosity or boolCullenViscosity))
 assert not(fsisph and not solid)
-theta = thetaFactor * pi
 
 # Figure out what our goal time should be.
 import SedovAnalyticSolution
 h0 = 1.0/nRadial*nPerh
-answer = SedovAnalyticSolution.SedovSolution(nDim = 2,
+answer = SedovAnalyticSolution.SedovSolution(nDim = 1,
                                              gamma = gamma,
                                              rho0 = rho0,
                                              E0 = Espike,
@@ -138,10 +125,7 @@ vs, r2, v2, rho2, P2 = answer.shockState(goalTime)
 print "Predicted shock position %g at goal time %g." % (r2, goalTime)
 
 # Scale the spike energy according to the boundary conditions we're using.
-if thetaFactor == 0.5:
-    Espike *= 0.25
-elif thetaFactor == 1.0:
-    Espike *= 0.5
+Espike *= 0.5
 
 #-------------------------------------------------------------------------------
 # Path names.
@@ -150,10 +134,10 @@ if crksph:
     hydroname = "CRKSPH"
 elif psph:
     hydroname = "PSPH"
-elif fsisph:
-    hydroname = "FSISPH"
 elif gsph:
     hydroname = "GSPH"
+elif fsisph:
+    hydroname = "FSISPH"
 else:
     hydroname = "SPH"
 if asph:
@@ -166,11 +150,9 @@ dataDir = os.path.join(dataDirBase,
                        "densityUpdate=%s" % densityUpdate,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
-                       "seed=%s" % seed,
-                       "nr=%i_nt=%i" % (nRadial, nTheta))
+                       "nr=%i" % nRadial)
 restartDir = os.path.join(dataDir, "restarts")
-vizDir = os.path.join(dataDir, "visit")
-restartBaseName = os.path.join(restartDir, "Sedov-cylindrical-2d-%i" % nRadial)
+restartBaseName = os.path.join(restartDir, "Sedov-planar-1d-%i" % nRadial)
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -181,8 +163,6 @@ if mpi.rank == 0:
         shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
-    if not os.path.exists(vizDir):
-        os.makedirs(vizDir)
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
@@ -195,8 +175,8 @@ eos = GammaLawGasMKS(gamma, mu)
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 WT = TableKernel(NBSplineKernel(order), 1000)
-output("WT")
 kernelExtent = WT.kernelExtent
+output("WT")
 
 #-------------------------------------------------------------------------------
 # Create a NodeList and associated Neighbor object.
@@ -205,12 +185,13 @@ if solid:
     nodeListConstructor = makeSolidNodeList
 else:
     nodeListConstructor = makeFluidNodeList
+
 nodes1 = nodeListConstructor("nodes1", eos, 
-                           hmin = hmin,
-                           hmax = hmax,
-                           kernelExtent = kernelExtent,
-                           nPerh = nPerh,
-                           rhoMin = rhomin)
+                             hmin = hmin,
+                             hmax = hmax,
+                             nPerh = nPerh,
+                             kernelExtent = kernelExtent,
+                             rhoMin = rhomin)
 
 #-------------------------------------------------------------------------------
 # Set the node properties.
@@ -220,42 +201,8 @@ vel = nodes1.velocity()
 mass = nodes1.mass()
 eps = nodes1.specificThermalEnergy()
 H = nodes1.Hfield()
-if thetaFactor == 0.5:
-    xmin = (0.0, 0.0)
-    xmax = (1.0, 1.0)
-elif thetaFactor == 1.0:
-    xmin = (-1.0, 0.0)
-    xmax = (1.0, 1.0)
-else:
-    xmin = (-1.0, -1.0)
-    xmax = (1.0, 1.0)
-
-if seed == "square":
-    generator = GenerateSquareNodeDistribution(nRadial,
-                                               nTheta,
-                                               rho0,
-                                               xmin = xmin,
-                                               xmax = xmax,
-                                               nNodePerh = nPerh,
-                                               SPH = (not ASPH))
-else:
-    generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
-                                           rmin = rmin,
-                                           rmax = rmax,
-                                           xmin = xmin,
-                                           xmax = xmax,
-                                           theta = theta,
-                                           azimuthalOffsetFraction = azimuthalOffsetFraction,
-                                           nNodePerh = nPerh,
-                                           SPH = (not ASPH))
-
-if mpi.procs > 1:
-    from VoronoiDistributeNodes import distributeNodes2d
-    #from PeanoHilbertDistributeNodes import distributeNodes2d
-else:
-    from DistributeNodes import distributeNodes2d
-
-distributeNodes2d((nodes1, generator))
+from DistributeNodes import distributeNodesInRange1d
+distributeNodesInRange1d([(nodes1, nRadial, rho0, (0.0, rmax))])
 output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
 output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
 output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
@@ -331,7 +278,8 @@ elif fsisph:
                    cfl = cfl,
                    interfaceMethod = ModulusInterface,
                    sumDensityNodeLists=[nodes1],                       
-                   densityStabilizationCoefficient = 0.00,
+                   densityStabilizationCoefficient = 0.1,
+                   specificThermalEnergyDiffusionCoefficient = 0.1,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
@@ -380,12 +328,10 @@ else:
                 ASPH = asph)
 
 packages = [hydro]
-
 output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.XSPH")
-output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
 if not gsph:
@@ -413,20 +359,15 @@ if not gsph:
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
 xPlane0 = Plane(Vector(0.0, 0.0), Vector(1.0, 0.0))
-yPlane0 = Plane(Vector(0.0, 0.0), Vector(0.0, 1.0))
 xbc0 = ReflectingBoundary(xPlane0)
-ybc0 = ReflectingBoundary(yPlane0)
 
 for p in packages:
-    if thetaFactor in (0.5, ):
-        p.appendBoundary(xbc0)
-    if thetaFactor in (0.5, 1.0):
-        p.appendBoundary(ybc0)
+    p.appendBoundary(xbc0)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the one physics package.
 #-------------------------------------------------------------------------------
-integrator = IntegratorConstructor(db)
+integrator = CheapSynchronousRK2Integrator(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
 integrator.lastDt = dt
@@ -435,34 +376,22 @@ if dtMin:
 if dtMax:
     integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
-integrator.allowDtCheck = True
+integrator.verbose = dtverbose
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
 output("integrator.dtGrowth")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
-output("integrator.allowDtCheck")
 
 #-------------------------------------------------------------------------------
 # Build the controller.
 #-------------------------------------------------------------------------------
-vizMethod = None
-if useVoronoiOutput:
-    import SpheralVoronoiSiloDump
-    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
-                            volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            restoreCycle = restoreCycle,
-                            vizMethod = vizMethod,
-                            vizBaseName = "Sedov-cylindrical-2d-%ix%i" % (nRadial, nTheta),
-                            vizDir = vizDir,
-                            vizStep = vizCycle,
-                            vizTime = vizTime,
-                            SPH = (not ASPH))
+                            restoreCycle = restoreCycle)
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -471,7 +400,6 @@ output("control")
 if steps is None:
     control.advance(goalTime, maxSteps)
     if restoreCycle != control.totalSteps:
-        control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
         control.dropRestartFile()
 else:
     control.step(steps)
@@ -488,9 +416,7 @@ print "Energy conservation: ", ((control.conserve.EHistory[-1] -
 rmin, rmax = 0.0, 0.95
 r = mpi.allreduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
 xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
-yprof = mpi.allreduce([x.y for x in nodes1.positions().internalValues()], mpi.SUM)
 rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
-mass = mpi.allreduce(list(nodes1.mass().internalValues()), mpi.SUM)
 v = mpi.allreduce([x.magnitude() for x in nodes1.velocity().internalValues()], mpi.SUM)
 eps = mpi.allreduce(list(nodes1.specificThermalEnergy().internalValues()), mpi.SUM)
 Pf = ScalarField("pressure", nodes1)
@@ -500,28 +426,13 @@ A = mpi.allreduce([Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pf.internalValues(), n
 
 Hinverse = db.newFluidSymTensorFieldList()
 db.fluidHinverse(Hinverse)
-hrfl = db.newFluidScalarFieldList()
-htfl = db.newFluidScalarFieldList()
-for Hfield, hrfield, htfield in zip(Hinverse,
-                                    hrfl,
-                                    htfl):
-    n = Hfield.numElements
-    assert hrfield.numElements == n
-    assert htfield.numElements == n
-    positions = Hfield.nodeList().positions()
-    for i in xrange(n):
-        runit = positions[i].unitVector()
-        tunit = Vector(-(positions[i].y), positions[i].x).unitVector()
-        hrfield[i] = (Hfield[i]*runit).magnitude()
-        htfield[i] = (Hfield[i]*tunit).magnitude()
-hr = mpi.allreduce(list(hrfl[0].internalValues()), mpi.SUM)
-ht = mpi.allreduce(list(htfl[0].internalValues()), mpi.SUM)
+hr = mpi.allreduce([x.xx for x in Hinverse[0].internalValues()], mpi.SUM)
 
 Aans = None
 if mpi.rank == 0:
     from SpheralGnuPlotUtilities import multiSort
     import Pnorm
-    multiSort(r, rho, v, eps, P, A, hr, ht)
+    multiSort(r, rho, v, eps, P, A, hr)
     rans, vans, epsans, rhoans, Pans, Aans, hans = answer.solution(control.time(), r)
     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
     #f = open("MCTesting.txt", "a")
@@ -549,48 +460,27 @@ Aans = mpi.bcast(Aans, 0)
 if outputFile != "None" and mpi.rank == 0:
     outputFile = os.path.join(dataDir, outputFile)
     f = open(outputFile, "w")
-    f.write(("# " + 17*"%16s " + "\n") % ("r", "x", "y", "rho", "m", "P", "v", "eps", "A", "hr", "ht",
+    f.write(("# " + 14*"%15s " + "\n") % ("r", "x", "rho", "P", "v", "eps", "A", "hr",
                                           "rhoans", "Pans", "vans", "epsans", "Aans", "hrans"))
-    for (ri, xi, yi, rhoi, mi, Pi, vi, epsi, Ai, hri, hti, 
-         rhoansi, Pansi, vansi, epsansi, Aansi, hansi)  in zip(r, xprof, yprof, rho, mass, P, v, eps, A, hr, ht,
+    for (ri, xi, rhoi, Pi, vi, epsi, Ai, hri, 
+         rhoansi, Pansi, vansi, epsansi, Aansi, hansi)  in zip(r, xprof, rho, P, v, eps, A, hr,
                                                                rhoans, Pans, vans, epsans, Aans, hans):
-         f.write((17*"%17.12e " + "\n") % (ri, xi, yi, rhoi, mi, Pi, vi, epsi, Ai, hri, hti, 
+         f.write((14*"%16.12e " + "\n") % (ri, xi, rhoi, Pi, vi, epsi, Ai, hri, 
                                            rhoansi, Pansi, vansi, epsansi, Aansi, hansi))
     f.close()
-
-if serialDump:
-    procs = mpi.procs
-    rank = mpi.rank
-    serialData = []
-    i,j = 0,0
-    nodeSet = []
-    nodeSet.append(nodes1)
-    for i in xrange(procs):
-        for nodeL in nodeSet:
-            if rank == i:
-                for j in xrange(nodeL.numInternalNodes):
-                    serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
-    serialData = mpi.reduce(serialData,mpi.SUM)
-    if rank == 0:
-        f = open(dataDir + "/serialDump.ascii",'w')
-        for i in xrange(len(serialData)):
-            f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
-        f.close()
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
 #-------------------------------------------------------------------------------
 if graphics:
-    rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
     plotAnswer(answer, control.time(),
                rhoPlot, velPlot, epsPlot, PPlot, HPlot)
-    plots = [(rPlot, "Sedov-cylindrical-positions.png"),
-             (rhoPlot, "Sedov-cylindrical-rho.png"),
-             (velPlot, "Sedov-cylindrical-vel.png"),
-             (epsPlot, "Sedov-cylindrical-eps.png"),
-             (PPlot, "Sedov-cylindrical-P.png"),
-             (HPlot, "Sedov-cylindrical-h.png")]
+    plots = [(rhoPlot, "Sedov-planar-rho.png"),
+             (velPlot, "Sedov-planar-vel.png"),
+             (epsPlot, "Sedov-planar-eps.png"),
+             (PPlot, "Sedov-planar-P.png"),
+             (HPlot, "Sedov-planar-h.png")]
 
     # Plot the specific entropy.
     AsimData = Gnuplot.Data(xprof, A,
@@ -607,12 +497,10 @@ if graphics:
     Aplot.replot(AansData)
     Aplot.title("Specific entropy")
     Aplot.refresh()
-    plots.append((Aplot, "Sedov-cylindrical-entropy.png"))
+    plots.append((Aplot, "Sedov-planar-entropy.png"))
 
     if boolCullenViscosity:
         cullAlphaPlot = plotFieldList(q.ClMultiplier(),
-                                      xFunction = "%s.magnitude()",
-                                      plotStyle = "points",
                                       winTitle = "Cullen alpha")
         plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png")]
 

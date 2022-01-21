@@ -4,7 +4,7 @@
 #
 # Solid FSISPH
 #
-#ATS:t100 = test(        SELF, "--clearDirectories True --checkError True --goalTime 5.0 --nrSpecimen 15 ", label="Diametral Compression Test FSISPH -- 2-D", np=1)
+#ATS:t100 = test(        SELF, "--clearDirectories True --checkError True --goalTime 5.0 --fsisph True --nrSpecimen 15 ", label="Diametral Compression Test FSISPH -- 2-D", np=1)
 
 from Spheral2d import *
 import sys, os
@@ -18,6 +18,12 @@ from findLastRestart import *
 from CompositeNodeDistribution import *
 from GenerateNodeDistribution2d import *
 from LatticeSampler import *
+from HerzianSolution import HerzianSolution
+
+if mpi.procs > 1:
+    from PeanoHilbertDistributeNodes import distributeNodes2d as distributeNodes
+else:
+    from DistributeNodes import distributeNodes2d as distributeNodes
 
 # Note -- all units in (cm, gm, microsec)
 
@@ -27,7 +33,7 @@ commandLine(
 
     # ats settings
     checkError=True,             # check error rel to analytic
-    tol = 1.0,                   # error toleration (%) average tensile stress
+    tol = 10.0,                  # error toleration (%) average tensile stress
     leaveNoTrace=True,           # delete output dirs
 
     # Specimen
@@ -66,9 +72,12 @@ commandLine(
     strengthInDamage = False,       # this isn't ready right now
     strainType = BenzAsphaugStrain, # (BenzAsphaugStrain, PseudoPlasticStrain, MeloshRyanAsphaugStrain, PlasticStrain, PseudoPlasticStrain)
 
+    # hydro selection
+    crksph = False,
+    fsisph = False,
+
     # Hydro parameters
     cfl = 0.35,   
-    SPHType = "FSISPH",                  # (CRKSPH,PSPH,SPH,FSISPH)
     correctVelocityGradient=True,        # linear order velocity gradient for PSPH SPH or FSISPH
     asph = False,                        # turns on elliptic kernels
     xsph = False,                        # updates position based on averaged velocity
@@ -121,6 +130,7 @@ commandLine(
     historyfreq = 1000,       # how often we write to the history file
 
     # Output
+    graphics = False,
     vizDerivs = False,                   # output derivatives in viz dump
     vizTime = 10.0,                      # usec -- visit output 
     vizCycle = None,                     # can also output visit silo files based on cycles
@@ -138,11 +148,10 @@ title("2d diametral compression test.")
 
 eosChoice = eosChoice.lower()
 strengthModel = strengthModel.lower()
-SPHType = SPHType.lower()
 SpecimenDistribution = SpecimenDistribution.lower()
 
 # valid options for things
-assert SPHType in (["crksph","sph","fsisph"])
+assert not (fsisph and crksph)
 assert eosChoice in (["gruneisen","tillotson"])
 assert strengthModel in (["constant", "collins"]) 
 assert SpecimenDistribution in (["lattice","conformal"])
@@ -157,17 +166,13 @@ assert fsiSurfaceCoefficient >= 0.0
 assert useDamage
 
 #--------------------------------------------------------------------------------
-# Dependent imports
-#--------------------------------------------------------------------------------
-if mpi.procs > 1:
-    from PeanoHilbertDistributeNodes import distributeNodes2d as distributeNodes
-else:
-    from DistributeNodes import distributeNodes2d as distributeNodes
-
-#--------------------------------------------------------------------------------
 # Path and File Name
 #--------------------------------------------------------------------------------
-hydroname = SPHType
+hydroname = "SPH"
+if crksph:
+    hydroname = "CRK"+hydroname
+elif fsisph:
+    hydroname = "FSI"+hydroname
 if asph:
     hydroname = "A" + hydroname
 
@@ -342,7 +347,7 @@ nodeListSet = [nodesSpecimen,nodesDriver,nodesBase]
 # Driver
 #-----------------------------
 radRatio = int(rClamp/rSpecimen)
-generatorDriver = GenerateNodeDistribution2d(nRadial = nrSpecimen*radRatio, nTheta = nrSpecimen*radRatio,
+generatorDriver = GenerateNodeDistribution2d(nRadial = int(nrSpecimen*radRatio), nTheta = int(nrSpecimen*radRatio),
                                                         rho = rho0Clamps,
                                                         distributionType = "constantDTheta",
                                                         theta = 2.0*pi,
@@ -352,7 +357,7 @@ generatorDriver = GenerateNodeDistribution2d(nRadial = nrSpecimen*radRatio, nThe
                                                         offset=[0.0,(1.0+radRatio)*rSpecimen],
                                                         nNodePerh = nPerh)
 
-generatorBase = GenerateNodeDistribution2d(nRadial = nrSpecimen*radRatio, nTheta = nrSpecimen*radRatio,
+generatorBase = GenerateNodeDistribution2d(nRadial = int(nrSpecimen*radRatio), nTheta = int(nrSpecimen*radRatio),
                                                         rho = rho0Clamps,
                                                         distributionType = "constantDTheta",
                                                         theta = 2.0*pi,
@@ -396,7 +401,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 packages=[]
 
-if SPHType=="crksph":
+if crksph:
     hydro = CRKSPH(dataBase = db,
                    cfl = cfl,
                    useVelocityMagnitudeForDt = False,
@@ -407,7 +412,7 @@ if SPHType=="crksph":
                    XSPH = xsph,
                    ASPH = asph)
 
-elif SPHType=="fsisph": 
+elif fsisph: 
     q = CRKSPHMonaghanGingoldViscosity(Cl,Cq)   
     hydro = FSISPH(dataBase = db,
                    Q=q,
@@ -427,9 +432,8 @@ elif SPHType=="fsisph":
                    nTensile = nTensile,
                    strengthInDamage=False,
                    damageRelieveRubble=False)
-    packages += [hydro.slideSurfaces]
 
-elif SPHType == "sph":
+else:
     hydro = SPH(dataBase = db,
                 W = WT,
                 cfl = cfl,
@@ -442,8 +446,6 @@ elif SPHType == "sph":
                 HUpdate=HEvolution,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
-else:
-    raise RuntimeError, "invalid SPHType"
 
 if not epsilon2 is None:
     hydro.Q.epsilon2=epsilon2              
@@ -528,7 +530,7 @@ output("integrator.verbose")
 output("integrator.allowDtCheck")
 
 #-------------------------------------------------------------------------------
-# PeriodicWork function to zap the net x velocity.
+# PeriodicWork:  zap the net x velocity.
 #-------------------------------------------------------------------------------
 class removeTransverseVelocity:
     def __init__(self,nodes):
@@ -549,7 +551,7 @@ killVelx = removeTransverseVelocity(nodesSpecimen)
 periodicWork = [(killVelx.apply,1)]
 
 #-------------------------------------------------------------------------------
-# PeriodicWork function to squeeze the specimen
+# PeriodicWork: squeeze the specimen
 #-------------------------------------------------------------------------------
 class Squeezer:
     def __init__(self,nodes,vNodes,criterion):
@@ -585,7 +587,7 @@ periodicWork += [(immovableObject.squeeze,1)]
 
 
 #-------------------------------------------------------------------------------
-# writeOut our strain and oxx
+# PeriodicWork: writeOut our strain and oxx
 #-------------------------------------------------------------------------------
 class loadCurveStorage:
 
@@ -675,6 +677,9 @@ LCS = loadCurveStorage(compressionSpeed,
 periodicWork += [(LCS.storeLoadCurve ,1)]
 
 
+#-------------------------------------------------------------------------------
+# PeriodicWork: Sampling function
+#-------------------------------------------------------------------------------
 header_label='"x(km)" "y(km)" "z(km)"  "P (psi)" "Sxx" "Syy" "Sxy"'
 P = hydro.pressure
 Sigma =db.solidDeviatoricStress
@@ -687,9 +692,6 @@ def eulerianSampleVars(j,i):
 
 res_clip = 2.0*rSpecimen/float(nrSpecimen)
 
-#-------------------------------------------------------------------------------
-# Sampling function
-#-------------------------------------------------------------------------------
 samplers = [] # list of sample types (currently only line segments are supported)
 LSxx = LineSegment(p0=Vector(0.0,-rSpecimen), p1=Vector(0.0,rSpecimen),
            resolution=rSpecimen/float(nrSpecimen),
@@ -708,23 +710,7 @@ samplers.append(LSyy)
 Sample = Sample(db, eulerianSampleVars, samplers )
 periodicWork += [(Sample.sample,100)]
 
-#-------------------------------------------------------------------------------
-# Print total energy
-#-------------------------------------------------------------------------------
-def printTotalEnergy(cycle,time,dt):
-    Etot=0.0
-    mass00=db.solidMass
-    vel00=db.solidVelocity
-    eps00=db.solidSpecificThermalEnergy
-    nodeLists = db.nodeLists()
-    for nodelisti in range(db.numNodeLists):
 
-        for i in range(nodeLists[nodelisti].numInternalNodes):
-            Etot += mass00(nodelisti,i)*(0.5*vel00(nodelisti,i).magnitude2()+eps00(nodelisti,i))
-    Etot = mpi.allreduce(Etot,mpi.SUM)
-    print(" TOTAL ENERGY : %.15f" % Etot)
-
-periodicWork += [(printTotalEnergy,5)]
 #-------------------------------------------------------------------------------
 # Build the controller.
 #-------------------------------------------------------------------------------
@@ -757,15 +743,17 @@ else:
 # Comparison to analytic solution.
 #-------------------------------------------------------------------------------
 
-Sigmaxx=LSyy.DATA_Tot[:,5]-LSyy.DATA_Tot[:,3]
+# sampled force 
+#-------------------
+Sigmaxx= LSyy.DATA_Tot[:,5]-LSyy.DATA_Tot[:,3]
 x_sample = LSyy.DATA_Tot[:,0]
 y_sample = LSyy.DATA_Tot[:,1]
 z_sample = LSyy.DATA_Tot[:,2]
 xdiff = x_sample[:-1]-x_sample[1:]
-force2 = sum((0.5*Sigmaxx[1:]+0.5*Sigmaxx[:-1])*xdiff)
-print "Force from Sampling %g " % force2
+forceSampled = sum((0.5*Sigmaxx[1:]+0.5*Sigmaxx[:-1])*xdiff)
 
-# analytic eqn
+
+# plane strain estimate of force
 #--------------------------------
 Kc = rho0Clamps*cS0Clamps**2
 Ks = rho0Specimen*c0Specimen**2
@@ -776,40 +764,16 @@ Estar = 1.0/oneOverEstar
 
 delta = compressionSpeed*goalTime
 
-force = pi/4.0*Estar*delta
-Pmax = sqrt(force*Estar/pi/rSpecimen)
-print "Force from Displacement: %g" % force
-print "Pstar: %g" % Pmax
+forceEstimated = pi/4.0*Estar*delta
 
-def analyticSigmaxx(X,Y):
+print "   "
+print "Force from Displacement: %g" % forceEstimated
+print "Force from Sampling    : %g" % forceSampled
+print "   "
 
-    sigma0 = 2.0*force2/(pi)
-    sigmax = [0]*len(X)
-    R = rSpecimen
-    for i in range(len(X)):
-        sigmax[i] = sigma0*(0.5/R - ( (X[i]*X[i]*(R-Y[i]))/(X[i]*X[i]+(R-Y[i])**2)**2.0 + 
-                                      (X[i]*X[i]*(R+Y[i]))/(X[i]*X[i]+(R+Y[i])**2)**2.0 ))
-    return sigmax
-
-def analyticSigmayy(X,Y):
-
-    sigma0 = 2.0*force2/(pi)
-    sigmay = [0]*len(X)
-    R = rSpecimen
-    for i in range(len(X)):
-        sigmay[i] = sigma0*(0.5/R - ( ((R-Y[i]))**3.0/(X[i]*X[i]+(R-Y[i])**2)**2.0 + 
-                                      ((R+Y[i]))**3.0/(X[i]*X[i]+(R+Y[i])**2)**2.0 ))
-    return sigmay
-
-def analyticSigmaxy(X,Y):
-
-    sigma0 = 2.0*force2/(pi)
-    sigmay = [0]*len(X)
-    R = rSpecimen
-    for i in range(len(X)):
-        sigmay[i] = sigma0*( ( (X[i]*(R-Y[i]))**2.0/(X[i]*X[i]+(R-Y[i])**2) + 
-                               (X[i]*(R+Y[i]))**2.0/(X[i]*X[i]+(R+Y[i])**2) ))
-    return sigmay
+# analytic herzian soln for stress field
+#----------------------------------------
+analyticSolution = HerzianSolution(forceSampled,rSpecimen)
 
 # numerical Solution
 #--------------------------------
@@ -819,18 +783,19 @@ Syy = []
 Sxy = []
 Y = []
 X = []
-pressure = hydro.pressure
-sigma = db.solidDeviatoricStress
-pos = db.globalPosition
+
+pressure = hydro.pressure.fieldForNodeList(nodesSpecimen)
 
 for i in range(nodesSpecimen.numInternalNodes):
-    if abs(pos(2,i).x)<2.0*rSpecimen/nrSpecimen and abs(pos(2,i).y)<0.75*rSpecimen:
-        P.append(float(pressure(2,i)))
-        Sxx.append(float(sigma(2,i).xx-P[-1]))
-        Syy.append(float(sigma(2,i).yy-P[-1]))
-        Sxy.append(float(sigma(2,i).xy))
-        X.append(float(pos(2,i).x))
-        Y.append(float(pos(2,i).y))
+    pos = nodesSpecimen.positions()
+    S = nodesSpecimen.deviatoricStress()
+    if abs(pos[i].x)<2.0*rSpecimen/float(nrSpecimen) and abs(pos[i].y)<0.75*rSpecimen:
+        P.append(float(pressure[i]))
+        Sxx.append(float(S[i].xx-P[-1]))
+        Syy.append(float(S[i].yy-P[-1]))
+        Sxy.append(float(S[i].xy))
+        X.append(float(pos[i].x))
+        Y.append(float(pos[i].y))
     
 
 Preduced = mpi.allreduce(P,mpi.SUM)
@@ -839,10 +804,25 @@ Sxyreduced = mpi.allreduce(Sxy,mpi.SUM)
 Syyreduced = mpi.allreduce(Syy,mpi.SUM)
 Yreduced = mpi.allreduce(Y,mpi.SUM)
 Xreduced = mpi.allreduce(X,mpi.SUM)
-Sxxanalytic = analyticSigmaxx(Xreduced,Yreduced)
-Syyanalytic = analyticSigmayy(Xreduced,Yreduced)
+Sxxanalytic = analyticSolution.sigmaxx(Xreduced,Yreduced)
+Syyanalytic = analyticSolution.sigmayy(Xreduced,Yreduced)
 
-if mpi.rank==1:
+if mpi.rank==0:
+    if graphics:
+        import matplotlib.pyplot as plt
+        
+        fig, ax = plt.subplots(figsize=(6, 6), dpi=200)
+        FS = 14
+        factor = 1e5 # cgus -> MPa
+        ax.plot(Yreduced,[entry*factor for entry in Sxxreduced],'c.',label='$\sigma_{xx}$ -- FSISPH')
+        ax.plot(Yreduced,[entry*factor for entry in Sxxanalytic],'b--',label='$\sigma_{xx}$ -- Analytic')
+        ax.plot(Yreduced,[entry*factor for entry in Syyreduced],'y.',label='$\sigma_{yy}$ -- FSISPH')
+        ax.plot(Yreduced,[entry*factor for entry in Syyanalytic],'k-',label='$\sigma_{yy}$ -- Analytic')
+        ax.legend(fontsize=FS)
+        plt.xlabel(r'y-$cm$',fontsize=FS)
+        plt.ylabel(r'Stress-$MPa$',fontsize=FS)
+        plt.savefig('DiametralCompression-yaxis.png')
+        plt.show()
 
     if checkError:
 
@@ -856,20 +836,6 @@ if mpi.rank==1:
     if leaveNoTrace:
         os.system("rm -rf "+baseDir)
 
-# if mpi.rank==1:
-#     import matplotlib.pyplot as plt
 
-#     fig, ax = plt.subplots()
-
-
-
-#     ax.plot(Yreduced,Sxxreduced,'bo',label='$\sigma_{xx}$ -- FSISPH',markerfacecolor='c')
-#     ax.plot(Yreduced,Sxxanalytic,'b.',label='$\sigma_{xx}$ -- Analytic')
-#     ax.plot(Yreduced,Syyreduced,'rs',label='$\sigma_{yy}$ -- FSISPH',markerfacecolor='m')
-#     ax.plot(Yreduced,Syyanalytic,'r.',label='$\sigma_{yy}$ -- Analytic')
-#     ax.legend()
-#     plt.xlabel('y',fontsize=12)
-#     plt.ylabel('Cauchy Stress Eigen Values',fontsize=12)
-#     plt.show()
-
-
+    
+    
