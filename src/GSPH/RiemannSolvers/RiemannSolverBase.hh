@@ -11,7 +11,8 @@ enum class GradientType {
   HydroAccelerationGradient = 1,
   SPHGradient = 2,
   MixedMethodGradient = 3,
-  OnlyDvDxGradient = 4
+  OnlyDvDxGradient = 4,
+  LocalDvDxGradient = 5
 };
 
 template<typename Dimension> class State;

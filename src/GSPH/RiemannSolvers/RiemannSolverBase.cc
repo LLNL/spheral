@@ -68,6 +68,7 @@ initialize(const DataBase<Dimension>& dataBase,
     const auto& DpDx0 = derivs.fields( GSPHFieldNames::pressureGradient, Vector::zero);
     const auto& DpDxRaw0 = derivs.fields( GSPHFieldNames::pressureGradient+"RAW", Vector::zero);
     const auto& DvDx0 = derivs.fields( HydroFieldNames::velocityGradient,Tensor::zero);
+    const auto& localDvDx0 = derivs.fields( HydroFieldNames::internalVelocityGradient,Tensor::zero);
     const auto& DvDxRaw0 = derivs.fields( HydroFieldNames::velocityGradient+"RAW",Tensor::zero);
     const auto& DvDt0 = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
     const auto& rho0 = state.fields(HydroFieldNames::massDensity, 0.0);
@@ -82,6 +83,7 @@ initialize(const DataBase<Dimension>& dataBase,
       const auto ni = nodeList->numInternalNodes();
       #pragma omp parallel for
       for (auto i = 0u; i < ni; ++i) {
+        const auto localDvDxi = localDvDx0(nodeListi,i);
         const auto DvDxi = DvDx0(nodeListi,i);
         const auto DvDxRawi = DvDxRaw0(nodeListi,i);
         const auto DpDxi = DpDx0(nodeListi,i);
@@ -110,6 +112,10 @@ initialize(const DataBase<Dimension>& dataBase,
           case GradientType::OnlyDvDxGradient: // raw gradients
             mDvDx(nodeListi,i) = DvDxi;
             mDpDx(nodeListi,i) = Vector::zero;
+            break;
+          case GradientType::LocalDvDxGradient: // local velocity gradient 
+            mDvDx(nodeListi,i) = localDvDxi;
+            mDpDx(nodeListi,i) = DpDxi;
             break;
           default : 
             mDvDx(nodeListi,i) = Tensor::zero;

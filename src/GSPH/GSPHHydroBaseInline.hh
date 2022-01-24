@@ -426,6 +426,14 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 GSPHHydroBase<Dimension>::
+volume() const {
+  return mVolume;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+GSPHHydroBase<Dimension>::
 pressure() const {
   return mPressure;
 }
@@ -495,13 +503,13 @@ M() const {
   return mM;
 }
 
-// template<typename Dimension>
-// inline
-// const FieldList<Dimension, typename Dimension::Tensor>&
-// GSPHHydroBase<Dimension>::
-// localM() const {
-//   return mLocalM;
-// }
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Tensor>&
+GSPHHydroBase<Dimension>::
+localM() const {
+  return mLocalM;
+}
 
 template<typename Dimension>
 inline
@@ -551,13 +559,13 @@ DvDx() const {
   return mDvDx;
 }
 
-// template<typename Dimension>
-// inline
-// const FieldList<Dimension, typename Dimension::Tensor>&
-// GSPHHydroBase<Dimension>::
-// internalDvDx() const {
-//   return mInternalDvDx;
-// }
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Tensor>&
+GSPHHydroBase<Dimension>::
+internalDvDx() const {
+  return mInternalDvDx;
+}
 
 template<typename Dimension>
 inline

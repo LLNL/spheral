@@ -11,6 +11,11 @@
 
 namespace Spheral {
 
+enum class GSPHMethod {
+  DensityBased = 0,
+  MFM = 1,
+};
+
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class SmoothingScaleBase;
@@ -103,12 +108,18 @@ public:
 
 
   //Evaluate Derivatives sub--routines
+  // void
+  // evaluateSpatialGradients(const typename Dimension::Scalar time,
+  //                    const typename Dimension::Scalar dt,
+  //                    const DataBase<Dimension>& dataBase,
+  //                    const State<Dimension>& state,
+  //                          StateDerivatives<Dimension>& derivatives) const;
   void
-  evaluateSpatialGradients(const typename Dimension::Scalar time,
-                         const typename Dimension::Scalar dt,
-                         const DataBase<Dimension>& dataBase,
-                         const State<Dimension>& state,
-                               StateDerivatives<Dimension>& derivatives) const;
+  computeMCorrection(const typename Dimension::Scalar time,
+                     const typename Dimension::Scalar dt,
+                     const DataBase<Dimension>& dataBase,
+                     const State<Dimension>& state,
+                           StateDerivatives<Dimension>& derivatives) const;
 
   // Finalize the derivatives.
   virtual
@@ -116,7 +127,7 @@ public:
                            const Scalar dt,
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const override;
+                                 StateDerivatives<Dimension>& derivs) const override;
 
   // Apply boundary conditions to the physics specific fields.
   virtual
@@ -202,6 +213,7 @@ public:
 
   // The state field lists we're maintaining.
   const FieldList<Dimension, int>&       timeStepMask() const;
+  const FieldList<Dimension, Scalar>&    volume() const;
   const FieldList<Dimension, Scalar>&    pressure() const;
   const FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldList<Dimension, SymTensor>& Hideal() const;
@@ -211,22 +223,23 @@ public:
   const FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Tensor>&    M() const;
-  //const FieldList<Dimension, Tensor>&    localM() const;
+  const FieldList<Dimension, Tensor>&    localM() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    DvDt() const;
   const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
   const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
   const FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
-  //const FieldList<Dimension, Tensor>&    internalDvDx() const;
+  const FieldList<Dimension, Tensor>&    internalDvDx() const;
   const FieldList<Dimension, Vector>&    DpDx() const;
   const FieldList<Dimension, Vector>&    DpDxRaw() const;
   const FieldList<Dimension, Tensor>&    DvDxRaw() const;
+  
   const std::vector<Vector>&             pairAccelerations() const;
   const std::vector<Scalar>&             pairDepsDt() const;
 
-  const FieldList<Dimension, Vector>& riemannDpDx() const;
-  const FieldList<Dimension, Tensor>& riemannDvDx() const;
+  const FieldList<Dimension, Vector>&    riemannDpDx() const;
+  const FieldList<Dimension, Tensor>&    riemannDvDx() const;
 
   
   //****************************************************************************
@@ -277,6 +290,7 @@ private:
 
   // Our fields.
   FieldList<Dimension, int>       mTimeStepMask;
+  FieldList<Dimension, Scalar>    mVolume;
   FieldList<Dimension, Scalar>    mPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
 
@@ -289,8 +303,8 @@ private:
   FieldList<Dimension, Scalar>    mXSPHWeightSum;
   FieldList<Dimension, Vector>    mXSPHDeltaV;
 
+  FieldList<Dimension, Tensor>    mLocalM;
   FieldList<Dimension, Tensor>    mM;
-  //FieldList<Dimension, Tensor>    mLocalM;
 
   FieldList<Dimension, Vector>    mDxDt;
   FieldList<Dimension, Vector>    mDvDt;
@@ -298,8 +312,8 @@ private:
   FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
   FieldList<Dimension, SymTensor> mDHDt;
 
+  FieldList<Dimension, Tensor>    mInternalDvDx;
   FieldList<Dimension, Tensor>    mDvDx;
-  //FieldList<Dimension, Tensor>    mInternalDvDx;
   FieldList<Dimension, Tensor>    mDvDxRaw;
   FieldList<Dimension, Vector>    mDpDx;
   FieldList<Dimension, Vector>    mDpDxRaw;

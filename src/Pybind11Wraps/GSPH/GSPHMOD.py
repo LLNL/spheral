@@ -47,6 +47,8 @@ GradientType = PYB11enum(("RiemannGradient",
                           "MixedMethodGradient",
                           "OnlyDvDxGradient"), export_values = True)
 
+GSPHMethod = PYB11enum(("DensityBased",
+                        "MFM"), export_values = True)
 #-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
