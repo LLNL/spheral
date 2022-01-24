@@ -1,6 +1,8 @@
 include_directories(.)
 
 set(GSPH_inst
+    computeSPHVolume
+    computeSumVolume
     GSPHHydroBase
     GSPHSpecificThermalEnergyPolicy
     Limiters/LimiterBase
@@ -21,6 +23,8 @@ set(GSPH_sources
     GSPHFieldNames.cc)
 
 set(GSPH_headers
+    computeSPHVolume.hh
+    computeSumVolume.hh
     GSPHFieldNames.hh
     GSPHHydroBase.hh
     GSPHSpecificThermalEnergyPolicy.hh
@@ -44,7 +48,7 @@ add_subdirectory(RiemannSolvers)
 
 instantiate(GSPH_inst GSPH_sources)
 
-spheral_install_python_files( GSPHHydros.py)
+spheral_install_python_files(GSPHHydros.py)
 
 spheral_add_cxx_library(GSPH)
 
