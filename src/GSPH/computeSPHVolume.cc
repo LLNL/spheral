@@ -25,7 +25,7 @@ computeSPHVolume(const FieldList<Dimension, typename Dimension::Scalar>& mass,
     const auto n = volume[nodeListi]->numInternalElements();
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
-      volume(nodeListi,i) +=  mass(nodeListi,i)/std::max(massDensity(nodeListi,i),tiny);
+      volume(nodeListi,i) =  mass(nodeListi,i)/std::max(massDensity(nodeListi,i),tiny);
     }
   }   
 }     // function

@@ -20,6 +20,9 @@ computeSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
   REQUIRE(volume.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
 
+  // start fresh
+  volume.Zero();
+
   // Some useful variables.
   const auto W0 = W.kernelValue(0.0, 1.0);
 
@@ -71,7 +74,9 @@ computeSumVolume(const ConnectivityMap<Dimension>& connectivityMap,
     const auto n = volume[nodeListi]->numInternalElements();
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
-      volume(nodeListi,i) +=  1.0/(volume(nodeListi,i)+W0);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      volume(nodeListi,i) =  1.0/(volume(nodeListi,i)+Hdeti*W0);
     }
   }   
 }     // function
