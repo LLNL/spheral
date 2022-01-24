@@ -3,6 +3,7 @@ include_directories(.)
 set(GSPH_inst
     computeSPHVolume
     computeSumVolume
+    computeMFMDensity
     GSPHHydroBase
     GSPHSpecificThermalEnergyPolicy
     Limiters/LimiterBase
@@ -25,6 +26,7 @@ set(GSPH_sources
 set(GSPH_headers
     computeSPHVolume.hh
     computeSumVolume.hh
+    computeMFMDensity.hh
     GSPHFieldNames.hh
     GSPHHydroBase.hh
     GSPHSpecificThermalEnergyPolicy.hh
