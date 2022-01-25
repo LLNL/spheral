@@ -39,7 +39,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
     depends_on('boost@1.74.0 -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -serialization -test -thread -timer -wave +pic', type='build')
 
-    # TODO: ANEOS
+    depends_on('m-aneos')
     # TODO: qhull spack package seems to be broken...
     #depends_on('qhull@2020.2', type='build')
     #TODO: Polyclipper package.
@@ -151,6 +151,9 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
         entries.append(cmake_cache_option('boost_BUILD', False))
         entries.append(cmake_cache_path('boost_DIR', spec['boost'].prefix))
+
+        entries.append(cmake_cache_option('aneos_BUILD', False))
+        entries.append(cmake_cache_path('aneos_DIR', spec['m-aneos'].prefix))
 
         #entries.append(cmake_cache_option('qhull_BUILD', False))
         #entries.append(cmake_cache_path('qhull_DIR', spec['qhull'].prefix))
