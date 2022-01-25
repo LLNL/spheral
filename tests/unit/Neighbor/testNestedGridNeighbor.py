@@ -9,6 +9,7 @@ from NeighborTestBase import *
 # NestedGridNeighbor doesn't do ghost->ghost connectivity, so the overlap
 # neighbor tests will choke.
 del NeighborTestBase.testConnectivityMapOverlapNeighbors
+del NeighborTestBase.testConnectivityComputeIntersection
 
 #===============================================================================
 # Radom node distribution -- 1-D.

@@ -1,10 +1,11 @@
-#ATS:t0 = test(      SELF,       label="test distributed connectivity (1 proc)")
-#ATS:t2 = testif(t0, SELF, np=2, label="test distributed connectivity (2 proc)")
-#ATS:t4 = testif(t0, SELF, np=4, label="test distributed connectivity (4 proc)")
+#ATS:t0 = test(      SELF,       dist=1, label="test distributed connectivity (1 proc)")
+#ATS:t2 = testif(t0, SELF, np=2, dist=1, label="test distributed connectivity (2 proc)")
+#ATS:t4 = testif(t0, SELF, np=4, dist=1, label="test distributed connectivity (4 proc)")
 
 from Spheral import *
 from SpheralTestUtilities import *
-import os, shutil, time
+import os, shutil, time, sys
+import mpi
 
 title("distributed connectivity")
 
@@ -36,6 +37,12 @@ elif dimension == 2:
     from Spheral2d import *
 else:
     from Spheral3d import *
+
+#-------------------------------------------------------------------------------
+# This test only has any meaning if we're testing an MPI enabled build
+#-------------------------------------------------------------------------------
+if mpi.is_fake_mpi():
+    sys.exit(0)
 
 #-------------------------------------------------------------------------------
 # Set up the output directories
