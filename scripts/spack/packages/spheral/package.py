@@ -39,7 +39,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
     depends_on('boost@1.74.0 -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -serialization -test -thread -timer -wave +pic', type='build')
 
-    depends_on('qhull@2019.1', type='build')
+    depends_on('qhull@2020.1', type='build')
     depends_on('m-aneos')
     #TODO: Polyclipper package.
     depends_on('eigen@3.3.7', type='build')
