@@ -41,7 +41,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
     depends_on('qhull@2020.1', type='build')
     depends_on('m-aneos')
-    #TODO: Polyclipper package.
+    depends_on('py-polyclipper')
     depends_on('eigen@3.3.7', type='build')
     depends_on('hdf5@1.8.19 ~mpi +hl', type='build')
     depends_on('silo@4.10.2 +hdf5', type='build')
@@ -198,6 +198,9 @@ class Spheral(CachedCMakePackage, PythonPackage):
             entries.append(cmake_cache_option('sphinx_rtd_theme_BUILD', False))
             entries.append(cmake_cache_path('sphinx_rtd_theme_DIR', spec['py-sphinx-rtd-theme'].prefix + '/lib/python2.7/site-packages/'))
 
+
+        entries.append(cmake_cache_option('polyclipper_BUILD', False))
+        entries.append(cmake_cache_path('polyclipper_DIR', spec['py-polyclipper'].prefix))
 
         entries.append(cmake_cache_option('polytope_BUILD', False))
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))
