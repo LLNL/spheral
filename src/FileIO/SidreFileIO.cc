@@ -176,7 +176,12 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
   mFileName = fileName;
 
   if (access == AccessType::Read)
+  {
     mDataStorePtr->getRoot()->load(fileName);
+
+    std::cout << "This is the datastore after it is loaded.\n";
+    mDataStorePtr->print();
+  }
 
   VERIFY2(mDataStorePtr != 0, "SidreFileIO ERROR: unable to open " << fileName);
   mFileOpen = true;
@@ -189,7 +194,10 @@ void SidreFileIO::close()
 {
   if (mDataStorePtr != 0)
   {
-    mDataStorePtr->getRoot()->save(mFileName, "sidre_hdf5");
+    std::cout << "This is the datastore before it is saved.\n";
+    mDataStorePtr->print();
+
+    //mDataStorePtr->getRoot()->save(mFileName, "sidre_hdf5");
     mDataStorePtr.reset();
   }
   mFileOpen = false;
@@ -270,6 +278,10 @@ void SidreFileIO::write(const std::vector<double>& value, const std::string path
     std::cout << value[i] << " ";
   std::cout << std::endl;
   mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, value.size(), (void*)value.data());
+  mDataStorePtr->print();
+
+  mDataStorePtr->getRoot()->save(mFileName, "sidre_hdf5");
+  std::cout << "This is after the save call inside of write.\n";
   mDataStorePtr->print();
 }
 
