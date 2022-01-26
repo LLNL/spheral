@@ -39,11 +39,9 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
     depends_on('boost@1.74.0 -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -serialization -test -thread -timer -wave +pic', type='build')
 
+    depends_on('qhull@2020.1', type='build')
     depends_on('m-aneos')
-    # TODO: qhull spack package seems to be broken...
-    #depends_on('qhull@2020.2', type='build')
     #TODO: Polyclipper package.
-
     depends_on('eigen@3.3.7', type='build')
     depends_on('hdf5@1.8.19 ~mpi +hl', type='build')
     depends_on('silo@4.10.2 +hdf5', type='build')
@@ -152,11 +150,11 @@ class Spheral(CachedCMakePackage, PythonPackage):
         entries.append(cmake_cache_option('boost_BUILD', False))
         entries.append(cmake_cache_path('boost_DIR', spec['boost'].prefix))
 
+        entries.append(cmake_cache_option('qhull_BUILD', False))
+        entries.append(cmake_cache_path('qhull_DIR', spec['qhull'].prefix))
+
         entries.append(cmake_cache_option('aneos_BUILD', False))
         entries.append(cmake_cache_path('aneos_DIR', spec['m-aneos'].prefix))
-
-        #entries.append(cmake_cache_option('qhull_BUILD', False))
-        #entries.append(cmake_cache_path('qhull_DIR', spec['qhull'].prefix))
 
         entries.append(cmake_cache_option('hdf5_BUILD', False))
         entries.append(cmake_cache_path('hdf5_DIR', spec['hdf5'].prefix))
