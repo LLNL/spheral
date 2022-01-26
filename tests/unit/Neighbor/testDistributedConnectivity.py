@@ -1,6 +1,6 @@
-#ATS:t0 = test(      SELF,       label="test distributed connectivity (1 proc)")
-#ATS:t2 = testif(t0, SELF, np=2, label="test distributed connectivity (2 proc)")
-#ATS:t4 = testif(t0, SELF, np=4, label="test distributed connectivity (4 proc)")
+#ATS:t0 = test(      SELF,       dist=1, label="test distributed connectivity (1 proc)")
+#ATS:t2 = testif(t0, SELF, np=2, dist=1, label="test distributed connectivity (2 proc)")
+#ATS:t4 = testif(t0, SELF, np=4, dist=1, label="test distributed connectivity (4 proc)")
 
 from Spheral import *
 from SpheralTestUtilities import *
