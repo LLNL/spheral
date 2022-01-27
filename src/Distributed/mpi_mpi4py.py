@@ -43,6 +43,12 @@ sys.stdout = __mpi_stdoutfile__
 """, globalscope)
 
 #-------------------------------------------------------------------------------
+# Allow us to be discriminated against as not the fake MPI package
+#-------------------------------------------------------------------------------
+def is_fake_mpi():
+    return False
+
+#-------------------------------------------------------------------------------
 # A common helper to convert vector_of_* types to lists for communication
 #-------------------------------------------------------------------------------
 def __listify(obj):

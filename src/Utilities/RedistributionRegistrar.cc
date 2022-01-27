@@ -40,27 +40,6 @@ struct CompareWeakPtr: public std::binary_function<std::weak_ptr<T>, std::weak_p
 };
 
 //------------------------------------------------------------------------------
-// Get the instance.
-//------------------------------------------------------------------------------
-RedistributionRegistrar&
-RedistributionRegistrar::
-instance() {
-  return *RedistributionRegistrar::instancePtr();
-}
-
-//------------------------------------------------------------------------------
-// Get the instance (pointer).
-//------------------------------------------------------------------------------
-RedistributionRegistrar*
-RedistributionRegistrar::
-instancePtr() {
-   if (mInstancePtr == 0) mInstancePtr = new RedistributionRegistrar;
-   CHECK(mInstancePtr != 0);
-   mInstancePtr->removeExpiredPointers();
-   return mInstancePtr;
-}
-
-//------------------------------------------------------------------------------
 // Register a RedistributionNotificationHandle.
 //------------------------------------------------------------------------------
 void
@@ -156,8 +135,3 @@ RedistributionRegistrar::
 }
 
 }
-
-//------------------------------------------------------------------------------
-// Initialize the static instance pointer.
-//-----------------------------------------------------------------------------
-Spheral::RedistributionRegistrar* Spheral::RedistributionRegistrar::mInstancePtr = 0;
