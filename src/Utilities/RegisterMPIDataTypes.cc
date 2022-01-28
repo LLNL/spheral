@@ -13,17 +13,6 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Get the instance.
-//------------------------------------------------------------------------------
-RegisterMPIDataTypes&
-RegisterMPIDataTypes::
-instance() {
-   if (mInstancePtr == 0) mInstancePtr = new RegisterMPIDataTypes;
-   CHECK(mInstancePtr != 0);
-   return *mInstancePtr;
-}
-
-//------------------------------------------------------------------------------
 // Constructor (private).
 //------------------------------------------------------------------------------
 RegisterMPIDataTypes::
@@ -109,9 +98,11 @@ RegisterMPIDataTypes() {
 
 }
 
+//------------------------------------------------------------------------------
+// Destructor (private)
+//------------------------------------------------------------------------------
+RegisterMPIDataTypes::
+~RegisterMPIDataTypes() {
 }
 
-//------------------------------------------------------------------------------
-// Initialize the static instance pointer.
-//-----------------------------------------------------------------------------
-Spheral::RegisterMPIDataTypes* Spheral::RegisterMPIDataTypes::mInstancePtr = 0;
+}

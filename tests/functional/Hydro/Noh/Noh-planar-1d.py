@@ -281,7 +281,7 @@ output("nodes1.nodesPerSmoothingScale")
 # Set the node properties.
 #-------------------------------------------------------------------------------
 from GenerateNodeDistribution1d import GenerateNodeDistribution1d
-from DistributeNodes import distributeNodes1d
+from SortAndDivideRedistributeNodes import distributeNodes1d
 gen = GenerateNodeDistribution1d(n = nx1,
                                  rho = rho1,
                                  xmin = x0,

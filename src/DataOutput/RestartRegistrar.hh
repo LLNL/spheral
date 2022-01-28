@@ -32,7 +32,6 @@ public:
 
   // Get the instance.
   static RestartRegistrar& instance();
-  static RestartRegistrar* instancePtr();
 
   // Methods for registering a RestartHandle.
   void registerRestartHandle(std::shared_ptr<RestartHandle> restartHandlePtr,
@@ -67,9 +66,6 @@ private:
   typedef std::vector<unsigned> PriorityContainer;
   typedef PriorityContainer::const_iterator const_priority_iterator;
   typedef PriorityContainer::iterator priority_iterator;
-
-  // The one and only instance.
-  static RestartRegistrar* mInstancePtr;
 
   // The list of RestartHandles and their priorities.
   RestartHandleContainer mRestartHandles;
