@@ -37,8 +37,6 @@ if (ENABLE_WARNINGS_AS_ERRORS)
   endif()
   add_compile_options(${CXX_WARNING_FLAGS})
   message("-- treating warnings as errors with compile flags ${CXX_WARNING_FLAGS}")
-  # add_compile_options($<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:"-Wall;-Wextra;-pedantic;-Werror;-Wl,--fatal-warnings">
-  #                     $<CXX_COMPILER_ID:MSVC>:"/W4;/WX">)
 endif()
 
 # We build some Fortran code from outside sources (like the Helmholtz EOS) that
