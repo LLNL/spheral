@@ -14,12 +14,13 @@ module load cmake/3.14.5
 module load gcc/8.3.1
 
 cmake \
-  ${SRC_DIR} \
+  ../.. \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-8.3.1/bin/g++ \
-  -C ${HOST_CONFIGS_DIR}/lc-builds/toss3/gcc8.3.1_tpl.cmake \
-  -DBLT_CXX_STD=c++14 \
+  -C ${HOST_CONFIGS_DIR}/lc-builds/blueos/gcc8.3.1_tpl.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_MPI=Off \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
-  $CMAKE_ARGS \
+  -DENABLE_STATIC_CXXONLY=On \
+  "$@" \
+  #-DSPHERAL_TPL_DIR=/usr/workspace/wsrzd/davis291/SPHERAL/blueos_Spheral_gcc8_noMPI/install/tpl \

@@ -1,10 +1,10 @@
-#ATS:t0 = test(SELF,       "--nr 10 --numViz 0 --graphics None --timeStepChoice AccelerationRatio --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --checkRef True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
+#ATS:t0 = test(SELF,       "--nr 10 --numViz 0 --graphics None --timeStepChoice AccelerationRatio --steps=40 --restartStep 20  --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --checkRef True", np=1, dist=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) INITIAL RUN")
 #
-#ATS:t1 = testif(t0, SELF, "--nr 10 --numViz 0 --graphics None --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --checkRef True --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
+#ATS:t1 = testif(t0, SELF, "--nr 10 --numViz 0 --graphics None --timeStepChoice AccelerationRatio --steps 20 --restartStep 100 --dataDir 'Collisionless_Sphere_Collapse_AccelerationRatio' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_AccelerationRatio_data.gnu' --checkRef True --restoreCycle 20 --checkRestart True", np=1, dist=1, label="Collisionless sphere gravitational collapse restart test (serial, acceleration ratio) RESTARTED CHECK")
 #
-#ATS:t2 = test(SELF,       "--nr 10 --numViz 0 --graphics None --timeStepChoice DynamicalTime --steps=40 --restartStep 20   --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.gnu' --checkRef True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) INITIAL RUN")
+#ATS:t2 = test(SELF,       "--nr 10 --numViz 0 --graphics None --timeStepChoice DynamicalTime --steps=40 --restartStep 20   --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories True --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.gnu' --checkRef True", np=1, dist=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) INITIAL RUN")
 #
-#ATS:t3 = testif(t2, SELF, "--nr 10 --numViz 0 --graphics None --timeStepChoice DynamicalTime --steps 20 --restartStep 100  --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.gnu' --checkRef True --restoreCycle 20 --checkRestart True", np=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) RESTARTED CHECK")
+#ATS:t3 = testif(t2, SELF, "--nr 10 --numViz 0 --graphics None --timeStepChoice DynamicalTime --steps 20 --restartStep 100  --dataDir 'Collisionless_Sphere_Collapse_DynamicalTime' --clearDirectories False --outputFile 'Collisionless_sphere_collapse_DynamicalTime_data.gnu' --checkRef True --restoreCycle 20 --checkRestart True", np=1, dist=1, label="Collisionless sphere gravitational collapse restart test (serial, dynamical time) RESTARTED CHECK")
 
 #-------------------------------------------------------------------------------
 # Create a spherical distribution of collisionless points, which will of course 
@@ -57,7 +57,7 @@ commandLine(
     outputFile = "Collisionless_sphere_collapse.gnu",
     checkRestart = False,
     checkRef = False,
-    tol = 1.0e-5,
+    tol = 5.0e-5,
     )
 
 # Reference values for tests
@@ -65,7 +65,7 @@ if timeStepChoice == AccelerationRatio:
     coefsRef = np.array([ 8.33175998e+00,  1.24358171e-12, -2.83895427e-23])
     sigmaPhiRef = 9.25853628363647
 elif timeStepChoice == DynamicalTime:
-    coefsRef = np.array([ 8.29012807e+00,  1.20195868e-12, -2.60750402e-23])
+    coefsRef = np.array([ 8.29009280e+00,  1.20192051e-12, -2.60731358e-23])
     sigmaPhiRef = 8.968145544554178
 
 # Convert to MKS units.
