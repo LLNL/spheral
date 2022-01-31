@@ -113,7 +113,7 @@ r_test_service_user:
     LLNL_SERVICE_USER: sphapp
   script:
     - whoami
-    - srun -N 1 -c 36 -p -debug -t 60 echo "hello world."
+    - srun -N 1 -c 36 -p -pdebug -t 60 echo "hello world."
 
 l_test_service_user:
   extends: [.on_lassen]
