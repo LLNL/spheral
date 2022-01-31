@@ -6,7 +6,7 @@ variables:
 
 stages:
   - build_and_install
-  - r_update_mirror
+  - update_mirror
 
 # ------------------------------------------------------------------------------
 
@@ -130,9 +130,19 @@ l_gcc_8_3_1_~mpi_Debug:
   extends: [.gcc_8_3_1_~mpi_Debug, .l_build_and_test, .on_lassen]
   stage: build_and_install
 
-update_mirror:
+l_update_mirror:
+  extends: [.on_lassen]
+  stage: update_mirror
+  script:
+    - lalloc 1 ./scripts/devtools/tpl-manager.py --spec-list="scripts/devtools/spec-list.json" --spheral-spack-dir=$PWD/mirror-update-tpls
+    - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/mirror-update-tpls --mirror-dir="/usr/WS2/davis291/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "feature/gitlab-ci"'
+      when: always
+
+r_update_mirror:
   extends: [.on_ruby]
-  stage: r_update_mirror
+  stage: update_mirror
   script:
     - srun -N 1 -c 36 -p pdebug -t 60 scripts/devtools/tpl-manager.py --spec-list="scripts/devtools/spec-list.json" --spheral-spack-dir=$PWD/mirror-update-tpls
     - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/mirror-update-tpls --mirror-dir="/usr/WS2/davis291/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
