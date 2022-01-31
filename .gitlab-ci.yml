@@ -5,7 +5,6 @@ variables:
   BUILD_ROOT: ${CI_PROJECT_DIR}
 
 stages:
-  - s_user
   - build_and_install
   - update_mirror
 
@@ -18,6 +17,7 @@ stages:
   variables:
     HOST: "ruby"
     ARCH: "toss_3_x86_64_ib"
+    LLNL_SERVICE_USER: sphapp
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_RUBY == "OFF"' #run except if ...
       when: never
@@ -32,6 +32,7 @@ stages:
   variables:
     HOST: "lassen"
     ARCH: "blueos_3_ppc64le_ib_p9"
+    LLNL_SERVICE_USER: sphapp
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_LASSEN == "OFF"' #run except if ...
       when: never
@@ -106,24 +107,6 @@ stages:
 
 # ------------------------------------------------------------------------------
 
-r_test_service_user:
-  extends: [.on_ruby]
-  stage: s_user
-  variables:
-    LLNL_SERVICE_USER: sphapp
-  script:
-    - whoami
-    - srun -N 1 -c 36 -p pdebug -t 60 echo "hello world."
-
-l_test_service_user:
-  extends: [.on_lassen]
-  stage: s_user
-  variables:
-    LLNL_SERVICE_USER: sphapp
-  script:
-    - whoami
-    - lalloc 1 echo "hello world."
-
 # gcc8.1.0+mpi
 r_gcc_8_1_0_mvapich2_Debug:
   extends: [.gcc_8_1_0_mvapich2_Debug, .r_build_and_test, .on_ruby]
@@ -154,7 +137,7 @@ l_update_mirror:
   stage: update_mirror
   script:
     - lalloc 1 ./scripts/devtools/tpl-manager.py --spec-list="scripts/devtools/spec-list.json" --spheral-spack-dir=$PWD/mirror-update-tpls
-    - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/mirror-update-tpls --mirror-dir="/usr/WS2/davis291/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
+    - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/mirror-update-tpls --mirror-dir="/usr/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "feature/gitlab-ci"'
       when: always
@@ -164,7 +147,7 @@ r_update_mirror:
   stage: update_mirror
   script:
     - srun -N 1 -c 36 -p pdebug -t 60 scripts/devtools/tpl-manager.py --spec-list="scripts/devtools/spec-list.json" --spheral-spack-dir=$PWD/mirror-update-tpls
-    - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/mirror-update-tpls --mirror-dir="/usr/WS2/davis291/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
+    - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/mirror-update-tpls --mirror-dir="/usr/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "feature/gitlab-ci"'
       when: always
