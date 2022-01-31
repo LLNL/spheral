@@ -5,6 +5,7 @@ variables:
   BUILD_ROOT: ${CI_PROJECT_DIR}
 
 stages:
+  - s_user
   - build_and_install
   - update_mirror
 
@@ -104,6 +105,24 @@ stages:
     EXTRA_TEST_ARGS: ""
 
 # ------------------------------------------------------------------------------
+
+r_test_service_user:
+  extends: [.on_ruby]
+  stage: s_user
+  variables:
+    LLNL_SERVICE_USER: sphapp
+  script:
+    - whoami
+    - srun -N 1 -c 36 -p -debug -t 60 echo "hello world."
+
+l_test_service_user:
+  extends: [.on_lassen]
+  stage: s_user
+  variables:
+    LLNL_SERVICE_USER: sphapp
+  script:
+    - whoami
+    - lalloc 1 echo "hello world."
 
 # gcc8.1.0+mpi
 r_gcc_8_1_0_mvapich2_Debug:
