@@ -4,7 +4,10 @@
 Obtaining, building, and installing Spheral
 ###############################################
 
-Spheral minimally requires a C++11 compliant compiler.  If you use git to clone the Spheral source note Spheral includes a git submodule: `BLT <https://github.com/LLNL/blt>`_.  In order to ensure such submodules are properly downloaded when cloning Spheral be sure to use the ``--recurse-submodules`` or ``--recursive`` git options:
+Cloning Spheral
+===============
+
+Spheral minimally requires a C++11 compliant compiler.  If you use git to clone the Spheral source note Spheral includes a git submodules: `BLT <https://github.com/LLNL/blt>`_ and `Uberenv <https://github.com/LLNL/uberenv>`_.  In order to ensure such submodules are properly downloaded when cloning Spheral be sure to use the ``--recurse-submodules`` or ``--recursive`` git options:
 
 ::
 
@@ -16,30 +19,193 @@ If you forget to use the ``--recursive`` argument or if you checkout from a diff
 
   git submodule update --init --recursive
 
-Basic Build
------------
+A Two Stage Build System
+========================
 
-The default build will try to build Spheral with Python and MPI support. This will be enough to run Spheral from the locally built python and pass the test suite.
+The Spheral build system works in two stages. 
+ - First: Building and setting up Third Party Libraries (TPL)s.
+ - Second: Building and installing Spheral.
 
-I like to keep my build & install files separate from the git cloned source, so I usually build in a completely separate directory as follows:
+Setting up Spheral TPLs
+=======================
+
+Spheral uses `Spack <https://github.com/llnl/spack>`_ under the hood to handle Third Party Library dependencies. Spack will track dependencies between TPLs and version constraints of those TPLs as the project develops. Spack is also particularly good at handling TPL setup across various configurations of compilers and build time options.
+
+tpl-manager.py
+--------------
+
+To handle setting up a Spack instance for Spheral with the appropriate TPLs we supply a tool called ``tpl-manager`` located at ``scripts/devtools/tpl-manager.py`` . TPL manager can be used in two ways; it can be used to build TPL's for a single compiler configuration (ideal for users) or to setup the full range of TPLs for all of our supported compiler configurations (this is ideal for developers).
+
+``tpl-manager`` will generate `CMake host-config <https://llnl-blt.readthedocs.io/en/develop/tutorial/host_configs.html>`_ files that can be used to configure your builds to use the TPLs installed by ``tpl-manager``.
+
+.. note::
+   You do not need to use ``tpl-manager`` to setup TPLs for Spheral. TPLs can be built individually and passed to the Spheral CMake system or built through your own spack installation. See `Custom TPL Installation`_ and `Custom Spack Installation`_ for more details.
+
+Single Spec Builds
+------------------
+
+Installing TPLs for a single spec you can use ``--spec`` in your ``tpl-manager`` command:
 
 ::
 
-  git clone --recursive https://github.com/jmikeowen/Spheral
+  .scripts/devtools/tpl-manager.py --spec gcc@8.3.1
+
+This will install the Spheral Spack instance into the adjacent directory to your Spheral root dir. You can use ``--spheral-spack-dir``, if you would like to setup the spack instance somewhere else. 
+
+Above we are telling ``tpl-manager`` to build our TPLs with gcc at version 8.3.1 by default this will build with ``mpi`` support by default however we can disable ``mpi`` support by appending ``~mpi`` to our spec.
+
+.. note::
+   For more information on ``spec`` syntax please see the spack documentation on `specs-dependencies <https://spack.readthedocs.io/en/latest/basic_usage.html#specs-dependencies>`_.
+
+Developer tpl-manager.py features
+---------------------------------
+
+Setup Full TPL List
+...................
+
+The simplest way to have ``tpl-manager`` build all TPLs for all supported Spheral configurations is by running this command from your Spheral root directory:
+
+::
+
+  ./scripts/devtools/tpl-manager.py --spec-list scripts/devtools/spec-list.json
+
+spec-list.json
+..............
+
+``spec-list.json`` contains a list of specs supported for common development system types. You can add or edit the specs in this file to build a variety of TPLs for various compiler combinations. The specs are grouped by the ``$SYS_TYPE`` environment variable for LC machines and will default to x86_64 for eveything else.
+
+Mirrors
+.......
+
+A mirror is not necessary however Spack mirrors are useful as they provide a way to cache downloaded tar files of TPLs and even store zipped binaries of previously built libraries. This is extremely useful on machines where regular development happens such as LLNL TOSS and BlueOS systems. By default ``tpl-manager`` tries to load a Spack mirror from ``/usr/gapps/Spheral/spheral-spack-tpls/mirror``. As this is the predefined mirror location for LC machines. If this is not available, or you would like to use another mirror you can set ``--mirror-dir``. You can also disable mirrors entirely by setting ``--no-mirror``.
+
+Help
+----
+
+``tpl-manager`` supports ``-h`` or ``--help`` if you need to reference the available options.
+
+
+Basic Spheral Build (host-config-build.py)
+==========================================
+
+After running ``tpl-manager`` you will see files in your Spheral root dir following the format ``<sys_type>-<spec>.cmake``. For example if you run ``tpl-manager`` with ``spec-list.json`` on a toss_3_x86_64_ib system you will see:
+
+::
+
+  toss_3_x86_64_ib-clang@9.0.0^mvapich2.cmake
+  toss_3_x86_64_ib-gcc@8.1.0^mvapich2.cmake
+  toss_3_x86_64_ib-gcc@8.3.1^mvapich2.cmake
+
+However if you ran ``tpl-manager`` with only a single ``--spec`` e.g. ``gcc@8.1.0^mvapcich2``, you will only see:
+
+::
+
+  toss_3_x86_64_ib-gcc@8.1.0^mvapich2.cmake
+
+The default build will try to build Spheral with Python and MPI support. This will be enough to run Spheral from the locally built python and pass the test suite.
+
+.. note::
+  A basic build & install from this point would look as follows:
+
+  ::
+    
+    ./scripts/devtools/host-config-build.py --host-config toss_3_x86_64_ib-gcc@8.1.0^mvapich2.cmake
+    cd build_toss_3_x86_64_ib-gcc@8.1.0^mvapich2/build
+    make -j <N> install
+    cd ../install/
+    ./spheral -c "import Spheral"
+
+  The following sections detail these commands further.
+
+host-config-build.py
+--------------------
+
+A new devtool that takes the place of the previous build scripts in ``scripts/lc-builds/...`` is the ``host-config-build`` tool. Located at ``scripts/devtools/host-config-build.py``. ``host-config-build`` takes one of these generated host-config files from ``tpl-manager`` to setup your CMake build with the appropriate TPLs. ``host-config-build`` by default also sets up a basic build/install directory structure. 
+
+::
+
+  ./scripts/devtools/host-config-build.py --host-config toss_3_x86_64_ib-gcc@8.1.0^mvapich2.cmake"
+
+``--host-config`` is a **required** argument of the tool, by default this will create two directories in the format of:
+
+::
+
+  build_<host-config-name>/build
+  build_<host-config-name>/install
+
+If you wish your build directory to live somewhere else, run ``host-config-build`` from that directory and use ``--source-dir`` to point at the root Spheral dir. You can set up a custom install location by passing ``--install-dir`` if you do not like creating build/install trees inside your source dir.
+
+Build & Install
+---------------
+
+::
+
+  cd build_toss_3_x86_64_ib-gcc@8.1.0^mvapich2/build
+  make -j <N> install
+
+
+After running ``host-config-build`` you can enter the ``build`` directory and ``make -j N install`` to build and install Spheral. You can build and develop as you would normally from this directory alternatively the ``host-config-build.py`` tools also provides arguments to automate the build/install process of Spheral if you desire. 
+
+--build
+.......
+
+If you would like the script to handle running a build and install for you ``--build`` exists. This will configure your CMake as usual and then launch a build and install. 
+
+--lc-modules
+............
+
+If you use build you may need some system modules in your environment during the build and install step. you can pass these to ``host-config-build`` with ``--lc-modules`` as so:
+
+::
+
+  ./scripts/devtools/host-config-build.py --host-config toss_3_x86_64_ib-gcc@8.1.0^mvapich2.cmake --build --lc-modules "gcc/8.1.0"
+
+If ``--build`` is not passed ``--lc-modules`` will not do anything, you will need to ensure the correct modules are in your path before building manually.
+
+Customize CMake Options
+-----------------------
+
+With ``host-config-build`` we are still able to pass and override CMake arguments (See: `Spheral / CMake Configurations`_). To do this add your CMake ``-D<XXXXX>`` options to your ``host-config-build`` arguments. This is particularly useful if you want to change the ``CMAKE_BUILD_TYPE`` or use a TPL that was not installed by ``tpl-manager``.
+
+The example below show how you would take our ``gcc@8.1.0^mvapich2`` host-config used above, and configure with ``Release`` and a custom ``PYB11Generator`` install.
+
+::
+
+  ./scripts/devtools/host-config-build.py --host-config toss_3_x86_64_ib-gcc@8.1.0^mvapich2.cmake" -DCMAKE_BUILD_TYPE=Release -Dpyb11generator_DIR=<PYB11generator_install_prefix>/lib/python2.7/site-packages/
+
+Help
+----
+
+``host-config-build`` supports ``-h`` or ``--help`` if you need to reference the available options.
+
+
+Basic Spheral Build (Manual)
+============================
+
+``host-config-build.py`` is a tool for convenience if you are comfortable with using CMake and wish to setup your own build/install directory structure that is still very easy to do.
+
+::
+
   mkdir -p Spheral_release/BUILD && cd Spheral_release/BUILD
-  cmake -DCMAKE_INSTALL_PREFIX=`cd ..; pwd` ../../Spheral
+  cmake -C ../../Spheral/toss_3_x86_64_ib-gcc@8.1.0^mvapich2.cmake \
+        -DCMAKE_INSTALL_PREFIX=`cd ..; pwd` ../../Spheral
   make -j<N> install
   ../spheral -c "import Spheral"
 
-In this example we performed our build in the directory ``Spheral_release/BUILD``, and installed all binaries and libraries in ``Spheral_release``.  Note this includes the TPL libraries, which are downloaded under ``Spheral_release/BUILD`` and installed to ``Spheral_release``.  The final line is simply a test that the installed Python client can load the Spheral Python modules.
+In this example we performed our build in the directory ``Spheral_release/BUILD``, and installed all binaries and libraries in ``Spheral_release``. The final line is simply a test that the installed Python client can load the Spheral Python modules.
 
-The somewhat obtuse command ``-DCMAKE_INSTALL_PREFIX=`chdir ..; pwd``` just specifies the install directory as the full path to ``Spheral_release``.  Alternatively you can specify this path explicitly, such as ``-DCMAKE_INSTALL_PREFIX=/usr/local/Spheral_release``, if that were the correct path.
+The CMake command ``-C ../../Spheral/toss_3_x86_64_ib-gcc@8.1.0^mvapich2.cmake`` is how we tell the Spheral CMake system to use the TPLs we installed with ``tpl-manager.py`` for ``gcc v8.1.0``.
+
+The somewhat obtuse command ``-DCMAKE_INSTALL_PREFIX=`chdir ..; pwd``` just specifies the install directory as the full path to ``Spheral_release``. Alternatively you can specify this path explicitly, such as ``-DCMAKE_INSTALL_PREFIX=/usr/local/Spheral_release``, if that were the correct path.
 
 .. note::
    Although Spheral is simply a set of Python modules, it installs in a Python virtual environment, so the script ``spheral`` installed at the top level of the install tree is designed to load the virtual environment on invocation, and then unload it on completion.
 
 .. note::
    Many users of CMake like to place the build directory as a subdirectory of the cloned code, so many examples you'll see online use "``cmake ..``".  All that matters really is that the final path on the CMake command line point to the top of the source tree.
+
+Spheral / CMake Configurations
+==============================
 
 C++ Only Build
 --------------
@@ -53,45 +219,50 @@ Third party libraries and Spheral
 
 Upon first install third party libraries (TPL) tar files and source will be installed through an external network. TPLs are cached within the Spheral build directory tree for future builds off network. To completely turn off installation of TPL's use ``-DBUILD_TPLS=Off``.
 
-For just the C++ compiled Spheral a number of TPLs are required (and automatically installed by default):
+For just the C++ compiled Spheral a number of TPLs are required:
 
+- Zlib
 - Boost
 - Python
 - Eigen
-- Pybind11
 - Polytope
 - HDF5
 - Silo
 - Qhull
-- ANEOS
+- M-ANEOS
 - Opensubdiv
+- Polyclipper
+- Conduit
+- Axom
 
-There are also a number of Python packages that are automatically installed during the third party build, including:
+There are also a number of libraries / python packages that are required for compiling the python bindings and executing Spheral at runtime:
 
+- Python
+- pip
+- setuptools
+- pybind11
+- pyb11generator
+- sphinx
+- sphinx_rtd_theme
 - Scipy
 - Sobol
 - Cython
 - Twine
-- sphinx_rtd_theme
 - h5py
 - decorator
 - Matplotlib
 - mpi4py
 - Numpy-stl
 
-By default the Spheral TPLs are installed to the path specified on the CMake command line with ``-DCMAKE_INSTALL_PREFIX=<full path>``.
+Custom TPL Installation
+.......................
 
-To pass a custom path to a TPL build use the ``-D<TPL-Name-Here>_DIR=<full path>`` option. CMake will assume the directory passed has the same structure as if it were built the library itself.  For example, to specify a preinstalled version of Boost:
+You can build the Spheral TPLs manually or even with your own spack installation to bypass the use of ``tpl-manager.py``. Custom built TPL installations can be passed to Spheral's CMake with ``-D<tpl-name>_DIR=<tpl-install-prefix>``.
 
 ::
 
   cmake -DBOOST_DIR=$HOME/my_boost_build_dir ...
 
-To force a download and build from a specific TAR for a TPL use ``-D<TPL-Name-Here>_URL=<url path>``. This can be either a local file path or URL:
-
-::
-
-   cmake -DBOOST_URL=https://my.tarfiles.com/boost/boost-1.2.3.4.tar ...
 
 OpenMP/MPI
 ----------
@@ -107,7 +278,7 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
   Choose the type of build -- for more information see the `CMake documentation <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>`_.
 
 ``CMAKE_INSTALL_PREFIX``
-  The top-level path for installing Spheral include files, libraries, and any Python modules or documentation.  This is synonymous with and replaces the older ``SPHERAL_INSTALL_DIR``.
+  The top-level path for installing Spheral include files, libraries, and any Python modules or documentation.
 
 ``ENABLE_CXXONLY`` (On, *Off*)
   Do not build python wrappers for Spheral.
@@ -115,18 +286,8 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 ``ENABLE_STATIC_CXXONLY`` (On, *Off*)
   Do not build python wrappers for Spheral. Build static library files for Spheral.
 
-``BUILD_TPLS`` (*On*, Off)
-  Option to install TPLs or not during configuration stage.
-
 ``<TPL-Name-Here>_DIR``
   Directory of previously built TPL.
-
-``<TPL-Name-Here>_URL`` 
-  URL or local path to zip/tar file of TPL to download and install.
-  Defaults to CMake defined URL/cache,  see cmake/InstallLibraries.cmake
-
-``<TPL-Name-Here>_BUILD`` (*On*, Off)
-  Tell the build system to build or not to build the given TPL. A ``<TPL>_DIR`` must be provided, otherwise it will search a default directory.
 
 ``ENABLE_OPENMP`` (*On*, Off)
   Support for OpenMP.
@@ -154,9 +315,6 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 
 ``ENABLE_TIMER`` (*On*, Off)
   Enable timer information from Spheral.
-
-``BOOST_HEADER_ONLY`` (On, *Off*)
-  Specify that the Boost third party library will be header only, no compiled libs.
 
 ``DBC_MODE`` (None, All, Pre)
   Set the compile time design by contract (DBC) mode for Spheral.  Design by contract statements are very useful developer tools, whereby the developer can insert tests in the code as they write it.  These statements are both useful for tracking down bugs with fine-grained testing throughout the code, as well as useful documentation in the code about what sort of conditions are expected to hold.
@@ -196,14 +354,17 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 ``SPHINX_THEME_DIR``
   Where to look for Sphinx themes.
 
+Appendecies
+===========
+
 Linux Ubuntu Notes
 ------------------
 
 When building on any system a few basic utilities are assumed to be installed.  It's impossible to cover all the possible build environments, but a common case is a Linux Ubuntu install.  In our experience we need at least the following packages beyond the base system default, which can be easily accomplished using ``apt install``)::
 
-    sudo apt install cmake g++ gfortran zlib1g-dev libssl-dev libbz2-dev libreadline-dev build-essential libncurses5-dev libgdbm-dev libnss3-dev libffi-dev wget tk tk-dev libsqlite3-dev texlive-latex-recommended texlive-latex-extra dvipng
+    sudo apt install git autotools-dev autoconf pkg-config uuid gettext libgdbm-dev libexpat-dev cmake g++ gfortran zlib1g-dev libssl-dev libbz2-dev libreadline-dev build-essential libncurses5-dev libgdbm-dev libnss3-dev libffi-dev wget tk tk-dev libsqlite3-dev texlive-latex-recommended texlive-latex-extra dvipng
 
-Most of these requirements are for building a full-featured Python installation.  If you also want to build the MPI parallel enabled version of Spheral you need an MPI implementation such as OpenMPI or MPICH -- OpenMPI for instance can be installed by adding the Ubuntu package ``openmpi-bin`` to the above list.
+Most of these requirements are for building a full-featured Python installation.  If you also want to build the MPI parallel enabled version of Spheral you need an MPI implementation such as OpenMPI or MPICH -- OpenMPI for instance can be installed by adding the Ubuntu package ``mpich`` or ``openmpi-bin`` to the above list.
 
 Checking/updating CMake version
 ...............................
@@ -238,50 +399,38 @@ For the most part using an Ubuntu based WSL environment works just using the Ubu
     [wsl2]
     swap=32GB
 
-Build Scripts & LC Notes
-------------------------
+Custom Spack Installation
+-------------------------
 
-Scripts for building on LC systems can be found in ``scripts/lc-builds/``. These scripts build some of the more common configurations on LC machines. They have the added benefit of utilizing pre installed TPLs on LC. The pre-installed TPL loactions are passed using the configuration CMake files found in ``host-config/``.  
-By default the scripts are designed to be run from the spheral root directory, a full build and test looks as follows::
+Building Spheral TPLs with your own Spack installation will require deeper knowledge of `how Spack works <https://spack.readthedocs.io/en/latest/>`_. All of the steps to set up Spheral with your own spack installation are not detailed here, however you will want to at least:
 
-    cd <Spheral_Root_Dir>
-    ./scripts/lc-builds/toss3_gcc-8.3.1-release-mpi-python.sh
-    cd lc_toss3-gcc-8.3.1-rel-mpi-py/build
-    make -j install
-    ../install/atstest ../../tests/integration.ats
+ - Point your spack instances `repo <https://spack.readthedocs.io/en/latest/repositories.html?highlight=repo#spack-repo>`_ at the ``scripts/spack/packages/`` dir. This contains all of our changes to spack packages that have not yet made it to upstream Spack.
+ - You will want to model your ``compiler.yaml`` and ``packages.yaml`` files off of those found in ``scripts/spack/configs/`` (`Spack Configuration Files <https://spack.readthedocs.io/en/latest/configuration.html#configuration>`_).
+   
+Further notes on setting up Spack and how it is used with the Spheral dev-tools scripts can be found in `Development Documentation: Spheral Spack / Uberenv <Development_Documentation.html#spheral-spack-uberenv>`_.
 
-The build scripts support a couple of named arguments. 
+Other Distros
+-------------
 
- ===================== ===============================================
- Arguments             Brief description
- ===================== ===============================================
- -s                    Spheral source directory. Useful when building
-                       from a directory other than Spheral's root 
-                       directory.
- -i                    Installation directory. This overwrites the 
-                       scripts default installation directory from
-                       ``<script_name>/install`` to a user provided
-                       directory.
- ===================== ===============================================
+To build Spheral TPLs on an x86_64 Linux OS that isn`t Ubuntu 20.04 you will need to edit the file ``scripts/spack/configs/x86_64/compilers.yaml``. For example an Arch based Manjaro distro`s ``compilers.yaml`` looks like this.
 
-An example of a scirpt build and test using these arguments is shown below::
+::
 
-    cd <Other_Directory>
-    <Script_Dir>/toss3_gcc-8.3.1-release-mpi-python.sh -s <Spheral_Root_Dir> -i <Install_Dir>
-    cd lc_toss3-gcc-8.3.1-rel-mpi-py/build
-    make -j install
-    <Install_Dir>/atstest <Spheral_Root_Dir>/tests/integration.ats
+  compilers:
+  - compiler:
+      spec: gcc@11.1.0
+      paths:
+        cc: /usr/bin/gcc
+        cxx: /usr/bin/g++
+        f77: /usr/bin/gfortran
+        fc: /usr/bin/gfortran
+      flags: {}
+      operating_system: manjaro21
+      target: x86_64
+      modules: []
+      environment: {}
+      extra_rpaths: []
 
-When using the build scripts, additional CMake arguments can be passed. This can be useful for a variety of reasons; below are a few examples altering how the scripts find / build TPLs for Spheral with CMake arguments.
+Most notably you will need to edit the ``spec`` of your compiler, ``paths``, and ``operating_system``.
 
-To *SEARCH* for an installed TPL somewhere else::
-
-    ./scripts/lc-builds/toss3_gcc8.3.1-release-mpi-python.sh -Dboost_DIR=<Full_Path_To_Boost_Install>
-
-To *BUILD* a local version of a TPL to the default installation location::
-
-    ./scripts/lc-builds/toss3_gcc8.3.1-release-mpi-python.sh -Dboost_BUILD=On -Dboost_DIR=""
-
-To *BUILD* a local version of a TPL to a custom installation location::
-
-    ./scripts/lc-builds/toss3_gcc8.3.1-release-mpi-python.sh -Dboost_BUILD=On -Dboost_DIR=<Local_Dir_To_Install>
+Please also ensure that the packages listed in `Linux Ubuntu Notes`_ are installed on your system through your respective package manager.

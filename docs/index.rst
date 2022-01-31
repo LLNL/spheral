@@ -11,8 +11,8 @@ Welcome to Spheral's documentation!
    :caption: Contents:
 
    intro.rst
+   quickstart.rst
    building.rst
-   Developer_Workflow.rst
    Development_Documentation.rst
 
 Indices and tables
