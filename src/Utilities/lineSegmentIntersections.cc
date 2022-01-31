@@ -21,7 +21,7 @@ namespace bg = boost::geometry;
 
 BOOST_GEOMETRY_REGISTER_POINT_2D_GET_SET(Spheral::Dim<2>::Vector, double, bg::cs::cartesian, 
                                          Spheral::Dim<2>::Vector::x, Spheral::Dim<2>::Vector::y, 
-                                         Spheral::Dim<2>::Vector::x, Spheral::Dim<2>::Vector::y);
+                                         Spheral::Dim<2>::Vector::x, Spheral::Dim<2>::Vector::y)
 
 using std::vector;
 using std::string;
