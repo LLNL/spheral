@@ -110,6 +110,7 @@ function(spheral_add_pybind11_library package_name)
                   )
   add_dependencies(${MODULE_NAME} ${spheral_py_depends} ${spheral_depends})
   target_compile_options(${MODULE_NAME} PRIVATE
+                         "-Wno-error"
                          "-Wno-unused-local-typedefs"
                          "-Wno-self-assign-overloaded"
                          "-Wno-overloaded-virtual"
@@ -121,7 +122,7 @@ function(spheral_add_pybind11_library package_name)
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(${MODULE_NAME} PROPERTIES
-                        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${boost_DIR}/lib;${python_DIR}/lib"
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${boost_DIR}/lib;${python_DIR}/lib"
                         )
 
 endfunction()

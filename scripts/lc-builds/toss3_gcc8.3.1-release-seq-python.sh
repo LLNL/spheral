@@ -18,6 +18,7 @@ cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-8.3.1/bin/g++ \
   -C ${HOST_CONFIGS_DIR}/lc-builds/toss3/gcc8.3.1_tpl.cmake \
+  -DBLT_CXX_STD=c++14 \
   -DENABLE_OPENMP=On \
   -DENABLE_MPI=Off \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \

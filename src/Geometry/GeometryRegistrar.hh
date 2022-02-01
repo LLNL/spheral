@@ -30,7 +30,6 @@ public:
 
 private:
   //--------------------------- Private Interface --------------------------//
-  static GeometryRegistrar* mInstancePtr;
   static CoordinateType mCoords;
 
   // No public constructors, destructor, or assignment.
@@ -41,5 +40,7 @@ private:
 };
 
 }
+
+#include "GeometryRegistrarInline.hh"
 
 #endif

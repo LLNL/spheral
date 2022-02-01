@@ -40,6 +40,7 @@ set(pip-modules
     h5py==2.10.0
     sphinx==1.8.5
     sphinx_rtd_theme==0.5.0
+    docutils==0.17.1
     twine==1.15.0
     cython==0.29.21
     sobol==0.9
