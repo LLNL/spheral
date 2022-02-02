@@ -91,7 +91,7 @@ isSlideSurface(const int nodeListi,
                const int nodeListj) const {
     const auto oneDimIndex = mNumNodeLists * nodeListi + nodeListj;
     return mIsSlideSurface[oneDimIndex];
-};
+}
 
 //------------------------------------------------------------------------------
 // return correction factor [0,1] for the artificial viscosity pressure
@@ -206,7 +206,7 @@ const auto& connectivityMap = dataBase.connectivityMap();
 
 
   
-};
+}
 
 
 //------------------------------------------------------------------------------
@@ -223,7 +223,7 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mSurfaceNormals); 
   state.enroll(mSurfaceFraction);
   state.enroll(mSurfaceSmoothness);               
-};
+}
 
 
 //------------------------------------------------------------------------------
@@ -238,7 +238,7 @@ registerState(DataBase<Dimension>& dataBase,
 //    const typename Dimension::Scalar /*currentTime*/) const{
 
 //    return make_pair(std::numeric_limits<double>::max(), this->label());
-// };
+// }
 
 
 
