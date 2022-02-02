@@ -15,7 +15,7 @@ stages:
     - shell
     - ruby
   variables:
-    HOST: "ruby"
+    HOSTNAME: "ruby"
     ARCH: "toss_3_x86_64_ib"
     LLNL_SERVICE_USER: sphapp
   rules:
@@ -30,7 +30,7 @@ stages:
     - shell
     - lassen
   variables:
-    HOST: "lassen"
+    HOSTNAME: "lassen"
     ARCH: "blueos_3_ppc64le_ib_p9"
     LLNL_SERVICE_USER: sphapp
   rules:

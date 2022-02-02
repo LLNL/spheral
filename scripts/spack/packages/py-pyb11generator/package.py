@@ -18,4 +18,4 @@ class PyPyb11generator(PythonPackage):
 
     extends('python@2.7:2.8', type=['build', 'run'])
     depends_on('py-setuptools', type=('build', 'run'))
-    depends_on('py-decorator')
+    depends_on('py-decorator', type=('build', 'run'))

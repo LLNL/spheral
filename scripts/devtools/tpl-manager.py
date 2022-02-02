@@ -125,8 +125,8 @@ def build_deps(args):
   for s in spec_list:
     print("** Building TPL's and generating host-config for {0} ...".format(s))
     os.environ["SPEC"] = s
-    sexe("{0} spec -I spheral@develop%{1}".format(spack_cmd, s))
-    sexe("{0} dev-build --quiet -d {1} -u initconfig spheral@develop%{2} 2>&1 | tee -a \"dev-build-{2}-out.txt\"".format(spack_cmd, project_dir, s))
+    if sexe("{0} spec -I spheral@develop%{1}".format(spack_cmd, s), echo=True) : sys.exit(1)
+    if sexe("{0} dev-build --deprecated --quiet -d {1} -u initconfig spheral@develop%{2} 2>&1 | tee -a \"dev-build-{2}-out.txt\"".format(spack_cmd, project_dir, s), echo=True) : sys.exit(1)
 
   if not args.no_clean:
     sexe("rm dev-build-* spack-build-* spack-configure-args.txt")
