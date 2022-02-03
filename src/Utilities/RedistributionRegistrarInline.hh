@@ -1,6 +1,17 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// Get the instance.
+//------------------------------------------------------------------------------
+inline
+RedistributionRegistrar&
+RedistributionRegistrar::
+instance() {
+  static RedistributionRegistrar theInstance;
+  return theInstance;
+}
+
+//------------------------------------------------------------------------------
 // The non-const iterators.
 //------------------------------------------------------------------------------
 inline

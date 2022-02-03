@@ -4,7 +4,7 @@ include(ExternalProject)
 # Configure CMake
 #-------------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wno-undefined-var-template")
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wno-unused-parameter -Wno-missing-include-dirs") # -Wno-undefined-var-template 
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 if (NOT CMAKE_MODULE_PATH)
@@ -24,9 +24,25 @@ message("-- compiler warnings ${ENABLE_WARNINGS}")
 
 option(ENABLE_UNUSED_VARIABLE_WARNINGS "show unused variable compiler warnings" ON)
 if (NOT ENABLE_UNUSED_VARIABLE_WARNINGS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wno-unused-parameter")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable")
 endif()
 message("-- compiler unused variable warnings ${ENABLE_UNUSED_VARIABLE_WARNINGS}")
+
+option(ENABLE_WARNINGS_AS_ERRORS "make warnings errors" OFF)
+if (ENABLE_WARNINGS_AS_ERRORS)
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    set(CXX_WARNING_FLAGS /W4 /WX)
+  else()
+    set(CXX_WARNING_FLAGS -Wall -Wextra -pedantic -Werror -Wl,--fatal-warnings)
+  endif()
+  add_compile_options(${CXX_WARNING_FLAGS})
+  message("-- treating warnings as errors with compile flags ${CXX_WARNING_FLAGS}")
+endif()
+
+# We build some Fortran code from outside sources (like the Helmholtz EOS) that
+# cause building errors if the compiler is too picky...
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w")
+message("-- Fortran flags: ${CMAKE_Fortran_FLAGS}")
 
 #-------------------------------------------------------------------------------
 # Configure and Include blt

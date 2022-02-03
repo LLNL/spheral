@@ -33,10 +33,6 @@ public:
 #endif
 
 private:
-
-  // The one and only instance.
-  static RegisterMPIDataTypes* mInstancePtr;
-
   RegisterMPIDataTypes();
   RegisterMPIDataTypes(const RegisterMPIDataTypes&);
   RegisterMPIDataTypes& operator=(const RegisterMPIDataTypes&);
@@ -44,6 +40,8 @@ private:
 };
 
 }
+
+#include "RegisterMPIDataTypesInline.hh"
 
 #endif
 

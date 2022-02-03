@@ -11,15 +11,17 @@ mkdir -p ${BUILD_SUFFIX}/install
 mkdir -p ${BUILD_SUFFIX}/build && cd ${BUILD_SUFFIX}/build
 
 module load cmake/3.14.5
-module load gcc/8.3.1
+module load xl/2021.03.11
 
 cmake \
   ${SRC_DIR} \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-8.3.1/bin/g++ \
-  -C ${HOST_CONFIGS_DIR}/lc-builds/toss3/gcc8.3.1_tpl.cmake \
-  -DBLT_CXX_STD=c++14 \
-  -DENABLE_OPENMP=On \
+  -DCMAKE_CXX_COMPILER=/usr/tce/packages/xl/xl-2021.03.11/bin/xlc++ \
+  -DCMAKE_Fortran_COMPILER=/usr/tce/packages/xl/xl-2021.03.11/bin/xlf \
+  -DENABLE_OPENMP=Off \
   -DENABLE_MPI=Off \
+  -DENABLE_ANEOS=Off \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+  -DENABLE_STATIC_CXXONLY=On \
   $CMAKE_ARGS \
+  #-C ${HOST_CONFIGS_DIR}/lc-builds/toss3/gcc8.3.1_tpl.cmake \
