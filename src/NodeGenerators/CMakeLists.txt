@@ -64,6 +64,7 @@ spheral_install_python_files(
   SEAGenerator.py
   FacetedVolumeRejecters.py
   SphericalGenerator.py
+  GenerateSphericalNodeProfile1d.py
   )
 
 spheral_add_cxx_library(NodeGenerators)
