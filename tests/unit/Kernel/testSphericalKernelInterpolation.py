@@ -55,23 +55,22 @@ for W in (W1,):
     field0 = ScalarField1d("Initial field", nodes, F0)
 
     # Interpolate to the new field
-    field1 = ScalarField1d("Interpolated field (gather)", nodes, 0.0)
-    field2 = ScalarField1d("Interpolated field (scatter)", nodes, 0.0)
-    rho1 = ScalarField1d("Interpolated rho (gather)", nodes, 0.0)
-    rho2 = ScalarField1d("Interpolated rho (scatter)", nodes, 0.0)
+    field1 = ScalarField1d("Interpolated field", nodes)
+    grad_field1 = VectorField1d("Interpolated gradient", nodes)
+    rho1 = ScalarField1d("Interpolated rho (gather)", nodes)
 
     def pair_sum(i, j):
         ri, mi, rhoi, Hi = pos[i], mass[i], rho[i], H[i]
         rj, mj, rhoj, Hj = pos[j], mass[j], rho[j], H[j]
-        Wiji = W(Hi*rj, Hi*ri, Hi.Determinant())
         Wijj = W(Hj*rj, Hj*ri, Hj.Determinant())
-        field1[i] += mj/rhoj * field0[j] * Wiji
-        field2[i] += mj/rhoj * field0[j] * Wijj
-        rho1[i] += mj * Wiji
-        rho2[i] += mj * Wijj
+        gradWijj = W.grad(Hj*rj, Hj*ri, Hj.Determinant())
+        field1[i] += mj/rhoj * field0[j] * Wijj
+        grad_field1[i] += mj/rhoj * field0[j] * gradWijj
+        rho1[i] += mj * Wijj
 
     for pair in pairs:
         pair_sum(pair.i_node, pair.j_node)
+        pair_sum(pair.j_node, pair.i_node)
     for i in xrange(nodes.numInternalNodes):
         pair_sum(i, i)
 
@@ -79,8 +78,11 @@ for W in (W1,):
     fig1 = plt.figure()
     rvals = [posi.x for posi in pos.internalValues()]
     plt.plot(rvals, field0.internalValues(), label="Actual")
-    plt.plot(rvals, field1.internalValues(), label="Gather interpolated")
-    plt.plot(rvals, field2.internalValues(), label="Scatter interpolated")
+    plt.plot(rvals, field1.internalValues(), label="Scatter interpolated")
+    plt.legend()
+
+    fig2 = plt.figure()
+    plt.plot(rvals, [grad_field1[i].x for i in xrange(nodes.numInternalNodes)], label="Numerical gradient")
     plt.legend()
 
 plt.show()

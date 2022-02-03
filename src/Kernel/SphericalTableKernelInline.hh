@@ -36,7 +36,7 @@ SphericalTableKernel::grad(const Dim<1>::Vector& etaj,
   CHECK(ei > 0.0);
   CHECK(ej > 0.0);
   const auto min_bound = std::abs(ej - ei);
-  if (min_bound > metamax) return 0.0;
+  if (min_bound > metamax) return Dim<1>::Vector::zero;
   const auto max_bound = std::min(metamax, ei + ej);
   const auto A = (ei + ej >= metamax ?
                   0.0 :
@@ -59,7 +59,7 @@ SphericalTableKernel::kernelAndGradValue(const Dim<1>::Vector& etaj,
   CHECK(ei > 0.0);
   CHECK(ej > 0.0);
   const auto min_bound = std::abs(ej - ei);
-  if (min_bound > metamax) return std::make_pair(0.0, 0.0);
+  if (min_bound > metamax) return std::make_pair(0.0, Dim<1>::Vector::zero);
   const auto max_bound = std::min(metamax, ei + ej);
   const auto A = (ei + ej >= metamax ?
                   0.0 :
