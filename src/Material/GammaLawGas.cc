@@ -228,8 +228,8 @@ soundSpeed(const Scalar /*massDensity*/,
 }
 
 //------------------------------------------------------------------------------
-// Calculate an individual bulk modulus.  
-// This is just the pressure for a gamma law gas.
+// Calculate an isentropic bulk modulus.  
+// This is just the specific heat ratio times pressure for a gamma law gas.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
@@ -237,7 +237,7 @@ GammaLawGas<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return pressure(massDensity, specificThermalEnergy);
+  return mGamma*pressure(massDensity, specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------
