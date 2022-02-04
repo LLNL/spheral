@@ -87,7 +87,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
   auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto  localM = derivatives.fields("local" + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
@@ -97,7 +97,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   auto  DSDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  auto& pairDepsDt = derivatives.getAny(FSIFieldNames::pairDepsDt, vector<Scalar>());
+  auto& pairDepsDt = derivatives.getAny(HydroFieldNames::pairWork, vector<Scalar>());
   
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -543,7 +543,7 @@ if(this->correctVelocityGradient()){
           const auto uj = vj.dot(rhatij);
           const auto wi = vi - ui*rhatij;
           const auto wj = vj - uj*rhatij;
-          const auto uij = -min(ui-uj,0.0);
+          //const auto uij = -min(ui-uj,0.0);
 
           // traction vectors to see if were applying damage to P-wave modulus
           //const auto normalTractioni = rhatij.dot(sigmai.dot(rhatij));
@@ -554,8 +554,8 @@ if(this->correctVelocityGradient()){
           //const auto fKj = (normalTractionj > 0.0 ?  fDj : 1.0);
           
           // weights weights
-          const auto Ci =  (constructHLLC ? std::sqrt(rhoi*Ki) + rhoi*uij  : abs(Ki*volj*gWi) )  + tiny;
-          const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj) + rhoj*uij  : abs(Kj*voli*gWj) )  + tiny;
+          const auto Ci =  (constructHLLC ? std::sqrt(rhoi*Ki)  : abs(Ki*volj*gWi) )  + tiny;
+          const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj)  : abs(Kj*voli*gWj) )  + tiny;
           const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : abs(mui*volj*gWi) ) + tiny;
           const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : abs(muj*voli*gWj) ) + tiny;
 

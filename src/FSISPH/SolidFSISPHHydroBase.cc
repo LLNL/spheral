@@ -6,6 +6,7 @@
 #include "SPH/SPHHydroBase.hh"                 
 #include "SPH/SolidSPHHydroBase.hh"
 
+#include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -28,7 +29,6 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/Timer.hh"
 
-#include "FSISPH/FSISpecificThermalEnergyPolicy.hh"
 #include "FSISPH/SolidFSISPHHydroBase.hh"
 #include "FSISPH/FSIFieldNames.hh"
 #include "FSISPH/computeFSISPHSumMassDensity.hh"
@@ -224,7 +224,7 @@ registerState(DataBase<Dimension>& dataBase,
   if(this->compatibleEnergyEvolution()){
     auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
     CHECK(specificThermalEnergy.numFields() == dataBase.numFluidNodeLists());
-    PolicyPointer epsPolicy(new FSISpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer epsPolicy(new CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>(dataBase));
     state.enroll(specificThermalEnergy, epsPolicy);
   }
   
@@ -256,7 +256,7 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   dataBase.resizeFluidFieldList(mDepsDx, Vector::zero, FSIFieldNames::specificThermalEnergyGradient, false);
 
   // enroll 
-  derivs.enrollAny(FSIFieldNames::pairDepsDt,  mPairDepsDt);
+  derivs.enrollAny(HydroFieldNames::pairWork,  mPairDepsDt);
   derivs.enroll(mDPDx);
   derivs.enroll(mDepsDx);
   
