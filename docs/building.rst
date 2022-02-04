@@ -48,7 +48,7 @@ Installing TPLs for a single spec you can use ``--spec`` in your ``tpl-manager``
 
 ::
 
-  .scripts/devtools/tpl-manager.py --spec gcc@8.3.1
+  ./scripts/devtools/tpl-manager.py --spec gcc@8.3.1
 
 This will install the Spheral Spack instance into the adjacent directory to your Spheral root dir. You can use ``--spheral-spack-dir`` if you would like to setup the spack instance somewhere else. 
 
