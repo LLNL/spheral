@@ -87,7 +87,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
   auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto  localM = derivatives.fields("local" + HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
@@ -301,7 +301,8 @@ if(this->correctVelocityGradient()){
     int i, j, nodeListi, nodeListj;
     Scalar Wi, gWi, Wj, gWj, PLineari, PLinearj, epsLineari, epsLinearj;
     Tensor QPiij, QPiji;
-    SymTensor sigmai, sigmaj, sigmarhoi, sigmarhoj;
+    SymTensor sigmai, sigmaj;
+    Vector sigmarhoi, sigmarhoj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
@@ -521,10 +522,10 @@ if(this->correctVelocityGradient()){
         //---------------------------------------------------------------
         const auto rhoirhoj = 1.0/(rhoi*rhoj);
         const auto sf = (sameMatij ? 1.0 : 1.0 + surfaceForceCoeff*abs((rhoi-rhoj)/(rhoi+rhoj+tiny)));
-        sigmarhoi = sf*((rhoirhoj*sigmai-0.5*QPiij));
-        sigmarhoj = sf*((rhoirhoj*sigmaj-0.5*QPiji));
+        sigmarhoi = sf*((rhoirhoj*sigmai-0.5*QPiij))*gradWiMi;
+        sigmarhoj = sf*((rhoirhoj*sigmaj-0.5*QPiji))*gradWjMj;
       
-        const auto deltaDvDt = sigmarhoi*gradWiMi + sigmarhoj*gradWjMj;
+        const auto deltaDvDt = sigmarhoi + sigmarhoj;
 
         if (freeParticle) {
           DvDti += mj*deltaDvDt;
@@ -543,21 +544,12 @@ if(this->correctVelocityGradient()){
           const auto uj = vj.dot(rhatij);
           const auto wi = vi - ui*rhatij;
           const auto wj = vj - uj*rhatij;
-          //const auto uij = -min(ui-uj,0.0);
-
-          // traction vectors to see if were applying damage to P-wave modulus
-          //const auto normalTractioni = rhatij.dot(sigmai.dot(rhatij));
-          //const auto normalTractionj = rhatij.dot(sigmaj.dot(rhatij));
-
-          // positive normal traction = state of tension -> apply damage weight
-          //const auto fKi = (normalTractioni > 0.0 ?  fDi : 1.0);
-          //const auto fKj = (normalTractionj > 0.0 ?  fDj : 1.0);
           
           // weights weights
-          const auto Ci =  (constructHLLC ? std::sqrt(rhoi*Ki)  : abs(Ki*volj*gWi) )  + tiny;
-          const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj)  : abs(Kj*voli*gWj) )  + tiny;
-          const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : abs(mui*volj*gWi) ) + tiny;
-          const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : abs(muj*voli*gWj) ) + tiny;
+          const auto Ci =  (constructHLLC ? std::sqrt(rhoi*Ki)  : Ki  ) + tiny;
+          const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj)  : Kj  ) + tiny;
+          const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : mui ) + tiny;
+          const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : muj ) + tiny;
 
           const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
           const auto weightUj = 1.0 - weightUi;
@@ -573,8 +565,6 @@ if(this->correctVelocityGradient()){
 
         // local velocity gradient for DSDt
         if (sameMatij) {
-          //localMi -= fSij * volj * rij.dyad(gradWi);
-          //localMj -= fSij * voli * rij.dyad(gradWj);
           localDvDxi -=  2.0*volj*((vi-vstar).dyad(gradWi));
           localDvDxj -=  2.0*voli*((vstar-vj).dyad(gradWj)); 
         }
@@ -588,15 +578,13 @@ if(this->correctVelocityGradient()){
         }
 
         // global velocity gradient
-        auto deltaDvDxi = 2.0*(vi-vstar).dyad(gradWiMi);
-        auto deltaDvDxj = 2.0*(vstar-vj).dyad(gradWjMj);
-        DvDxi -= volj*deltaDvDxi;
-        DvDxj -= voli*deltaDvDxj;
+        DvDxi -= 2.0*volj*(vi-vstar).dyad(gradWiMi);
+        DvDxj -= 2.0*voli*(vstar-vj).dyad(gradWjMj);
 
         // energy conservation
         // ----------------------------------------------------------
-        const auto deltaDepsDti = sigmarhoi.doubledot(deltaDvDxi);
-        const auto deltaDepsDtj = sigmarhoj.doubledot(deltaDvDxj);
+        const auto deltaDepsDti = 2.0*sigmarhoi.dot(vi-vstar);
+        const auto deltaDepsDtj = 2.0*sigmarhoj.dot(vstar-vj);
 
         DepsDti -= mj*deltaDepsDti;
         DepsDtj -= mi*deltaDepsDtj;
