@@ -25,11 +25,19 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 DampedLinearSpring<Dimension>::
-DampedLinearSpring(Scalar YoungsModulus,
-                   Scalar restitutionCoefficient):
-                   mRestitutionCoefficient(restitutionCoefficient),
-                   mYoungsModulus(YoungsModulus) {
-      mBeta = 3.14159/std::log(restitutionCoefficient);
+DampedLinearSpring(const DataBase<Dimension>& dataBase,
+                   const Scalar normalSpringConstant,
+                   const Scalar restitutionCoefficient):
+                   mNormalSpringConstant(normalSpringConstant),
+                   mRestitutionCoefficient(restitutionCoefficient){
+      
+      const auto pi = 3.14159265358979323846;
+      const auto mass = dataBase.DEMMass();
+      const auto minMass = mass.min();
+
+      mBeta = pi/std::log(restitutionCoefficient);
+      mTimeStep = pi*std::sqrt(0.5*minMass/normalSpringConstant * (1.0 + 1.0/(mBeta*mBeta)));
+
 }
 
 //------------------------------------------------------------------------------
@@ -41,47 +49,16 @@ DampedLinearSpring<Dimension>::
 
 
 //------------------------------------------------------------------------------
-// time step 
+// time step -- constant for this contact model
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
 DampedLinearSpring<Dimension>::
-timeStep(const DataBase<Dimension>& dataBase,
-         const State<Dimension>& state,
+timeStep(const DataBase<Dimension>& /*dataBase*/,
+         const State<Dimension>& /*state*/,
          const StateDerivatives<Dimension>& /*derivs*/,
          const typename Dimension::Scalar /*currentTime*/) const{
-  
-  const auto& mass = state.fields(HydroFieldNames::mass, 0.0); 
-  const auto& radius = state.fields(DEMFieldNames::particleRadius,0.0);
-
-  const auto numNodeLists = dataBase.numNodeLists();
-  const auto Y2eff = 16.0/9.0*mYoungsModulus*mYoungsModulus;        
-  const auto pi = 3.14159265358979323846;
-  auto minContactTime = std::numeric_limits<double>::max();
-
-  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-  const auto& nodeList = mass[nodeListi]->nodeList();
-  const auto ni = nodeList.numInternalNodes();
-
-  #pragma omp parallel
-  {
-    auto minContactTime_thread = std::numeric_limits<double>::max();
-    #pragma omp parallel for
-      for (auto i = 0u; i < ni; ++i) {
-          const auto mi = mass(nodeListi,i);
-          const auto Ri = radius(nodeListi,i);
-          const auto k2 = Y2eff*Ri;
-          minContactTime_thread = min(minContactTime_thread,mi*mi/k2);
-      }
-
-    #pragma omp critical
-    if (minContactTime_thread < minContactTime) minContactTime = minContactTime_thread;
-
-    }
-  }
-
-  minContactTime = pi*std::pow(minContactTime,0.25);
-  return minContactTime;
+  return mTimeStep;
 };
 
 //------------------------------------------------------------------------------
@@ -97,10 +74,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     StateDerivatives<Dimension>& derivatives) const{
 
   // A few useful constants we'll use in the following loop.
-  const double tiny = std::numeric_limits<double>::epsilon();
-  //auto minContactTime = std::numeric_limits<double>::max();
-  const auto fourOverOnePlusBetaSquared = 4.0/(1.0+mBeta*mBeta);
-  const auto fourThirds = 4.0/3.0;
+  //const double tiny = std::numeric_limits<double>::epsilon();
+  const auto dampingConstTerms = 4.0*mNormalSpringConstant/(1.0+mBeta*mBeta);
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -140,7 +115,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
-    //auto minContactTimekk = std::numeric_limits<double>::max();
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -177,33 +151,28 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       
       // if so do the things
       if (delta > 0.0){
-
-        const auto vij = vi-vj;
+      
+        // lin of action for the contact
         const auto rhatij = rij.unitVector();
+
+        // velocity components
+        const auto vij = vi-vj;
+        const auto vn = vij.dot(rhatij);
+        const auto vt = vij - vn*rhatij;
 
         // effective quantities
         const auto mij = (mi*mj)/(mi+mj);
-        const auto Rij = (Ri*Rj)/(Ri+Rj);
 
         // normal force w/ Herzian spring constant
-        const auto c1 = fourThirds*mYoungsModulus*std::sqrt(Rij);
-        const auto c2 = std::sqrt(mij*c1*fourOverOnePlusBetaSquared);
-        const auto vn = vij.dot(rhatij);
+        const auto normalDampingConstant = std::sqrt(mij*dampingConstTerms);
 
         // normal force
-        const auto f = c1*delta - c2*vn;
+        const auto f = mNormalSpringConstant*delta - normalDampingConstant*vn;
         DvDti += f/mi*rhatij;
         DvDtj -= f/mj*rhatij;
-      }
-
-      //minContactTimekk = min(c1/mij,minContactTimekk);
-      
+      }  
     } // loop over pairs
-
-    // Reduce the thread values to the master.
     threadReduceFieldLists<Dimension>(threadStack);
-    //#pragma omp critical
-    //  if (minContactTimekk < minContactTime) minContactTime = minContactTimekk;
   }   // OpenMP parallel region
 
   

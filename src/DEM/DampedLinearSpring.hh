@@ -14,8 +14,6 @@ namespace Spheral {
 template<typename Dimension> class DataBase;
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-//template<typename Dimension, typename DataType> class Field;
-//template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
 template<typename Dimension>
@@ -27,8 +25,9 @@ public:
   typedef typename Dimension::Vector Vector;
 
   // Constructors.
-  DampedLinearSpring(Scalar YoungsModulus,
-                     Scalar restitutionCoefficient);
+  DampedLinearSpring(const DataBase<Dimension>& dataBase,
+                     const Scalar normalSpringConstant,
+                     const Scalar restitutionCoefficient);
 
   // Destructor.
   ~DampedLinearSpring();
@@ -48,14 +47,17 @@ public:
   
 
   //****************************************************************************
-  Scalar YoungsModulus() const;
-  void   YoungsModulus(Scalar x);
+  Scalar normalSpringConstant() const;
+  void   normalSpringConstant(Scalar x);
 
   Scalar restitutionCoefficient() const;
   void   restitutionCoefficient(Scalar x);
 
   Scalar beta() const;
   void   beta(Scalar x);
+
+  Scalar timeStep() const;
+  void   timeStep(Scalar x);
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -64,9 +66,10 @@ private:
   DampedLinearSpring(const DampedLinearSpring&);
   DampedLinearSpring& operator=(const DampedLinearSpring&);
 
-  Scalar mYoungsModulus;
+  Scalar mNormalSpringConstant;
   Scalar mRestitutionCoefficient;
   Scalar mBeta;
+  Scalar mTimeStep;
 };
 
 }

@@ -16,9 +16,9 @@ class DampedLinearSpring(ContactModelBase):
 
     #...........................................................................
     # Constructors
-    def pyinit(self,
-               YoungsModulus = "Scalar",
-               RestitutionCoefficient = "Scalar"):
+    def pyinit(dataBase = "const DataBase<%(Dimension)s>&",
+               YoungsModulus = "const Scalar",
+               RestitutionCoefficient = "const Scalar"):
         "Damped linear spring contact model constructor"
 
     #...........................................................................
@@ -44,7 +44,7 @@ class DampedLinearSpring(ContactModelBase):
 
     #...........................................................................
     # Attributes
-    YoungsModulus = PYB11property("Scalar", "YoungsModulus", "YoungsModulus", doc="Effective Young's modulus used to derive spring constant")
+    normalSpringConstant = PYB11property("Scalar", "normalSpringConstant", "normalSpringConstant", doc="linear spring constant for compression")
     resitutionCoefficient = PYB11property("Scalar", "restitutionCoefficient", "restitutionCoefficient", doc="ratio of incoming to outgoing velocity used to calculate damping coefficient")
-    beta = PYB11property("Scalar", "beta", "beta", doc="fill me in")
-    
+    beta = PYB11property("Scalar", "beta", "beta", doc="a damping parameter")
+    timeStep = PYB11property("Scalar", "timeStep", "timeStep", doc="the time step")
