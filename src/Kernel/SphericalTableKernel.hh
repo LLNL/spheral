@@ -70,7 +70,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
-  InterpolatorType mInterp;
+  InterpolatorType mInterp, mGradInterp;
   TableKernel<Dim<3>> mKernel;
   Scalar metamax;
 };

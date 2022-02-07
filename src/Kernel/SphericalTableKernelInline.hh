@@ -23,29 +23,6 @@ SphericalTableKernel::operator()(const Dim<1>::Vector& etaj,
 }
 
 //------------------------------------------------------------------------------
-// Lookup the grad kernel for (rj/h, ri/h) = (etaj, etai)
-//------------------------------------------------------------------------------
-inline
-Dim<1>::Vector
-SphericalTableKernel::grad(const Dim<1>::Vector& etaj,
-                           const Dim<1>::Vector& etai,
-                           const Dim<1>::Scalar  Hdeti) const {
-  REQUIRE(Hdeti >= 0.0);
-  const auto ei = std::max(1e-10, etai[0]);
-  const auto ej = std::max(1e-10, etaj[0]);
-  CHECK(ei > 0.0);
-  CHECK(ej > 0.0);
-  const auto min_bound = std::abs(ej - ei);
-  if (min_bound > metamax) return Dim<1>::Vector::zero;
-  const auto max_bound = std::min(metamax, ei + ej);
-  const auto A = (ei + ej >= metamax ?
-                  0.0 :
-                  max_bound*mKernel.kernelValue(max_bound, Hdeti));
-  const auto B = (ej - ei)*mKernel.kernelValue(min_bound, Hdeti);
-  return Vector(2.0*M_PI/(ei*ej)*FastMath::cube(Hdeti)*(A - B - Hdeti/ej*mInterp(min_bound, max_bound)));
-}
-
-//------------------------------------------------------------------------------
 // Simultaneously lookup (W,  grad W) for (rj/h, ri/h) = (etaj, etai)
 //------------------------------------------------------------------------------
 inline
@@ -59,7 +36,7 @@ SphericalTableKernel::kernelAndGradValue(const Dim<1>::Vector& etaj,
   CHECK(ei > 0.0);
   CHECK(ej > 0.0);
   const auto min_bound = std::abs(ej - ei);
-  if (min_bound > metamax) return std::make_pair(0.0, Dim<1>::Vector::zero);
+  if (min_bound > metamax) return std::make_pair(0.0, Vector::zero);
   const auto max_bound = std::min(metamax, ei + ej);
   const auto A = (ei + ej >= metamax ?
                   0.0 :
