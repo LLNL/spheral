@@ -11,9 +11,17 @@ import matplotlib.pyplot as plt
 commandLine(n = 100,
             nPerh = 4.0,
             F0 = 2.0,
+            a = 0.0,
+            b = 0.0,
             r0 = 0.0,
             r1 = 1.0)
 
+def F(r):
+    return F0 + a*r + b*r*r
+
+def gradF(r):
+    return a + 2.0*b*r
+    
 # Build the SphericalKernel
 WT1 = TableKernel3d(BSplineKernel3d(), 500)
 WT2 = TableKernel3d(WendlandC4Kernel3d(), 500)
@@ -53,6 +61,8 @@ for W in (W1,):
 
     # Create our constant Field
     field0 = ScalarField1d("Initial field", nodes, F0)
+    for i in xrange(nodes.numInternalNodes):
+        field0[i] = F(pos[i].x)
 
     # Interpolate to the new field
     field1 = ScalarField1d("Interpolated field", nodes)
@@ -77,11 +87,12 @@ for W in (W1,):
     # Plot the results
     fig1 = plt.figure()
     rvals = [posi.x for posi in pos.internalValues()]
-    plt.plot(rvals, field0.internalValues(), label="Actual")
+    plt.plot(rvals, field0.internalValues(), label="Analytic field")
     plt.plot(rvals, field1.internalValues(), label="Scatter interpolated")
     plt.legend()
 
     fig2 = plt.figure()
+    plt.plot(rvals, [gradF(pos[i].x) for i in xrange(nodes.numInternalNodes)], label="Analytic gradient")
     plt.plot(rvals, [grad_field1[i].x for i in xrange(nodes.numInternalNodes)], label="Numerical gradient")
     plt.legend()
 
