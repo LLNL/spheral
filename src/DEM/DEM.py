@@ -49,7 +49,7 @@ def DEM(dataBase,
 
     # use a course c2 kernel by default (this is just for the neighbor search)
     if W is None:
-        W = eval("TableKernel%i(WendlandC2Kernel2%i(), 10)" % (ndim,ndim))
+        W = eval("TableKernel%id(WendlandC2Kernel2%id(), 10)" % (ndim,ndim))
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin
