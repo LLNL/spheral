@@ -40,9 +40,8 @@ class DEMNodeList(NodeList):
         "The angular velocity field"
         return "const VectorField&"
 
-
     @PYB11pycppname("angularVelocity")
-    def angularVelocity(self, val="const VectorField&"):
+    def setangularVelocity(self, val="const VectorField&"):
         "Set the angular velocity"
         return "void"
 
@@ -54,28 +53,9 @@ class DEMNodeList(NodeList):
 
 
     @PYB11pycppname("particleRadius")
-    def particleRadius(self, val="const ScalarField&"):
+    def setparticleRadius(self, val="const ScalarField&"):
         "Set the particle radii"
         return "void"
-
-    #@PYB11virtual
-    #@PYB11const
-    #def volume(self, result="ScalarField&"):
-    #    "Compute the current volume, storing the result in the argument ScalarField."
-    #    return "void"
-
-    #@PYB11virtual
-    #@PYB11const
-    #def linearMomentum(self, result="VectorField&"):
-    #    "Compute the current linear momentum, storing the result in the argument ScalarField."
-    #    return "void"
-
-    #@PYB11virtual
-    #@PYB11const
-    #def totalEnergy(self, result="ScalarField&"):
-    #    "Compute the current total energy, storing the result in the argument ScalarField."
-    #    return "void"
-
 
     #...........................................................................
     # Comparison
@@ -87,8 +67,7 @@ class DEMNodeList(NodeList):
 
     #...........................................................................
     # Properties
-    #rhoMin = PYB11property("Scalar", "rhoMin", "rhoMin", doc="The minimum allowed mass density.")
-    #rhoMax = PYB11property("Scalar", "rhoMax", "rhoMax", doc="The maximum allowed mass density.")
+
 
 #-------------------------------------------------------------------------------
 # Inject the restart methods
