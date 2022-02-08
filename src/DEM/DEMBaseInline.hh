@@ -43,16 +43,16 @@ template<typename Dimension>
 inline
 typename Dimension::Scalar
 DEMBase<Dimension>::
-cfl() const {
-  return mCfl;
+stepsPerCollision() const {
+  return mStepsPerCollision;
 }
 
 template<typename Dimension>
 inline
 void
 DEMBase<Dimension>::
-cfl(typename Dimension::Scalar x) {
-  mCfl = x;
+stepsPerCollision(typename Dimension::Scalar x) {
+  mStepsPerCollision = x;
 }
 
 //------------------------------------------------------------------------------

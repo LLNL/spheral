@@ -19,7 +19,7 @@ class DEMBase(Physics):
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
-               cfl = "const double",
+               stepsPerCollision = "const double",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "DEMBase constructor"
@@ -128,7 +128,7 @@ class DEMBase(Physics):
                          returnpolicy="reference_internal",
                          doc="Optional maximum coordinate for bounding box for use generating the mesh for the Voronoi mass density update.")
     
-    cfl = PYB11property("Scalar", "cfl", "cfl", doc="The Courant-Friedrichs-Lewy timestep limit multiplier")
+    stepsPerCollision = PYB11property("Scalar", "stepsPerCollision", "stepsPerCollision", doc="number of steps resolving the collision time scale")
     
     timeStepMask =   PYB11property("const FieldList<%(Dimension)s, int>&",      "timeStepMask",   returnpolicy="reference_internal")
     DxDt =           PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DxDt",           returnpolicy="reference_internal")

@@ -12,14 +12,14 @@ class %(classname)s%(dim)s(DEMBase%(dim)s):
     def __init__(self,
                  dataBase,
                  W,
-                 cfl = 0.25,
+                 stepsPerCollision = 25,
                  xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
                  xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
 
         DEMBase%(dim)s.__init__(self,
                                 dataBase,
                                 W,
-                                cfl,
+                                stepsPerCollision,
                                 xmin,
                                 xmax)
         return
@@ -37,11 +37,12 @@ for dim in dims:
 #-------------------------------------------------------------------------------
 def DEM(dataBase,
         W = None,
-        cfl = 0.05,
+        stepsPerCollision = 25,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100)):
 
-    assert dataBase.numDEMNodeLists == dataBase.numNodeLists
+    assert dataBase.numDEMNodeLists == dataBase.numNodeLists, "all nodelists must be dem nodelists"
+    assert stepsPerCollision > 10, "stepsPerCollision too low, reccomended is 25-50"
 
     ndim = dataBase.nDim
 
@@ -49,14 +50,14 @@ def DEM(dataBase,
 
     # use a course c2 kernel by default (this is just for the neighbor search)
     if W is None:
-        W = eval("TableKernel%id(WendlandC2Kernel2%id(), 10)" % (ndim,ndim))
+        W = eval("TableKernel%id(WendlandC2Kernel%id(), 10)" % (ndim,ndim))
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
     kwargs = {"dataBase" : dataBase,
               "W" : W,
-              "cfl" : cfl,
+              "stepsPerCollision" : stepsPerCollision,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
 

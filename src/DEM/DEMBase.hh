@@ -38,7 +38,7 @@ public:
   // Constructors.
   DEMBase(DataBase<Dimension>& dataBase,
           const TableKernel<Dimension>& W,
-          const double cfl,
+          const double stepsPerCollision,
           const Vector& xmin,
           const Vector& xmax);
 
@@ -129,8 +129,8 @@ public:
   void xmin(const Vector& x);
   void xmax(const Vector& x);
 
-  Scalar cfl() const;
-  void   cfl(Scalar x);
+  Scalar stepsPerCollision() const;
+  void   stepsPerCollision(Scalar x);
 
   // Access the stored interpolation kernels.
   const TableKernel<Dimension>& kernel() const;
@@ -154,7 +154,8 @@ protected:
   const TableKernel<Dimension>& mKernel;
   std::vector<ContactModelBase<Dimension>*>  mContactModels;
 
-  Scalar mCfl;               // ratio of time step to min contact time
+  // number of steps per collision time-scale
+  Scalar mStepsPerCollision;              
 
   // Optional bounding box for generating the mesh.
   Vector mxmin, mxmax;

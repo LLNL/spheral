@@ -79,13 +79,13 @@ template<typename Dimension>
 DEMBase<Dimension>::
 DEMBase(DataBase<Dimension>& dataBase,
         const TableKernel<Dimension>& W,
-        const double cfl,
+        const double stepsPerCollision,
         const Vector& xmin,
         const Vector& xmax):
   Physics<Dimension>(),
   mKernel(W),
   mContactModels(0),
-  mCfl(cfl),
+  mStepsPerCollision(stepsPerCollision),
   mxmin(xmin),
   mxmax(xmax),
   mTimeStepMask(FieldStorageType::CopyFields),
@@ -127,7 +127,7 @@ dt(const DataBase<Dimension>& dataBase,
     DtVote = min(DtVotei, DtVote);
   }
   auto minDt = make_pair(DtVote,("DEM vote for time step"));
-  minDt.first*=this->mCfl;
+  minDt.first/=this->stepsPerCollision();
   return minDt;
 }
 
