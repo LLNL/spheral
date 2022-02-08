@@ -143,7 +143,7 @@ l_update_mirror:
     - find /usr/gapps/Spheral/spheral-spack-tpls/ -type f -exec chmod go+rx {} \;
     - find /usr/gapps/Spheral/spheral-spack-tpls/ -type d -exec chmod go+rx {} \;
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "feature/gitlab-ci"'
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
       when: always
 
 r_update_mirror:
@@ -155,5 +155,5 @@ r_update_mirror:
     - find /usr/gapps/Spheral/spheral-spack-tpls/ -type f -exec chmod go+rx {} \;
     - find /usr/gapps/Spheral/spheral-spack-tpls/ -type d -exec chmod go+rx {} \;
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "feature/gitlab-ci"'
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
       when: always
