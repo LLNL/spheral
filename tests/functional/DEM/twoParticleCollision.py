@@ -1,59 +1,62 @@
-#ATS:DEM0 = test(        SELF, "--clearDirectories True  --checkError True  --restartStpe 10 --step 50", label="DEM idividual particle collision -- 1-D (serial)")
+#ATS:DEM0 = test(        SELF, "--clearDirectories True  --checkError True  --restartStep 10 --steps 100", label="DEM idividual particle collision -- 1-D (serial)")
 #ATS:DEM1 = testif(DEM0, SELF, "--clearDirectories False --checkError False  --restartStep 10 --restoreCycle 10 --steps 10 --checkRestart True", label="DEM idividual particle collision -- 1-D (serial) RESTART CHECK")
 
-import shutil
+import os, sys, shutil, mpi
 from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
-#from SpheralGnuPlotUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution2d import *
 
-import mpi
-import DistributeNodes
+if mpi.procs > 1:
+    from PeanoHilbertDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
-title("Testing Out DEM Machinery")
+title("DEM Restitution Coefficient Test")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(vImpact = 1.0,
-            youngsModulus=10000.0,
-            restitutionCoefficient=0.8,
-            radius = 1.00,
-            nPerh = 1.00,
+commandLine(vImpact = 1.0,                 # impact velocity
+            normalSpringConstant=10000.0,  # spring constant for LDS model
+            restitutionCoefficient=0.8,    # restitution coefficient to get damping const
+            radius = 0.5,                  # particle radius
+            nPerh = 1.01,                  # this should basically always be 1 for DEM
 
+            # integration
             IntegratorConstructor = CheapSynchronousRK2Integrator,
+            stepsPerCollision = 50,  # replaces CFL for DEM
             goalTime = None,
-            steps = 50,
-            vizCycle = 1,
-            vizTime = None,
             dt = 1e-8,
             dtMin = 1.0e-8, 
             dtMax = 0.1,
             dtGrowth = 2.0,
+            steps = 100,
             maxSteps = None,
             statsStep = 10,
-            smoothIters = 0,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
-            cfl = 0.05,
-
-            useVoronoiOutput = False,
+            
+            # output control
+            vizCycle = None,
+            vizTime = None,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 1000,
             redistributeStep = 500,
             dataDir = "dumps-DEM-2d",
-            
-            serialDump = False, #whether to dump a serial ascii file at the end for viz
 
+            # ats parameters
             checkError = False,
             checkRestart = False,
             restitutionErrorThreshold = 0.01, # relative error
             )
 
+#-------------------------------------------------------------------------------
+# file things
+#-------------------------------------------------------------------------------
 testName = "DEM-twoParticleCollision-2d"
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
@@ -63,7 +66,6 @@ vizBaseName = testName
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -80,6 +82,12 @@ if restoreCycle is None:
     restoreCycle = findLastRestart(restartBaseName)
 
 #-------------------------------------------------------------------------------
+# This doesn't really matter kernel filler for neighbor algo
+#-------------------------------------------------------------------------------
+WT = TableKernel(WendlandC2Kernel(), 1000)
+print WT.kernelExtent
+
+#-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
 units = CGuS()
@@ -87,7 +95,8 @@ nodes1 = makeDEMNodeList("nodeList1",
                           hmin = 1.0e-30,
                           hmax = 1.0e30,
                           hminratio = 100.0,
-                          nPerh = nPerh)
+                          nPerh = nPerh,
+                          kernelExtent = WT.kernelExtent)
 nodeSet = [nodes1]
 for nodes in nodeSet:
     output("nodes.name")
@@ -107,10 +116,6 @@ if restoreCycle is None:
                                             xmax = (1.0,  0.5),
                                             nNodePerh = nPerh)
 
-    if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-    else:
-        from DistributeNodes import distributeNodes2d
 
     distributeNodes2d((nodes1, generator1))
 
@@ -119,6 +124,12 @@ if restoreCycle is None:
     velocity[0] = Vector(vImpact,0.0)
     velocity[1] = Vector(-vImpact,0.0)
     
+    omega = nodes1.angularVelocity()
+    particleRadius = nodes1.particleRadius()
+
+    particleRadius[0] = radius
+    particleRadius[1] = radius
+
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -130,20 +141,15 @@ output("db.numNodeLists")
 output("db.numDEMNodeLists")
 output("db.numFluidNodeLists")
 
-#-------------------------------------------------------------------------------
-# This doesn't really matter kernel filler for neighbor algo
-#-------------------------------------------------------------------------------
-WT = TableKernel(WendlandC2Kernel(), 1000)
 
 #-------------------------------------------------------------------------------
 # DEM
 #-------------------------------------------------------------------------------
-DLS = DampedLinearSpring(youngsModulus,
+DLS = DampedLinearSpring(db,
+                         normalSpringConstant,
                          restitutionCoefficient)
-hydro = DEM(db, 
-            WT, 
-            cfl = cfl)
 
+hydro = DEM(db,W=WT,stepsPerCollision = 50)
 hydro.appendContactModel(DLS)
 
 packages = [hydro]
@@ -192,9 +198,6 @@ control = SpheralController(integrator, WT,
                             SPH = SPH)
 output("control")
 
-
-
-
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
@@ -227,8 +230,10 @@ if checkError:
     #-------------------------------------------------------------
     vijPostImpact = velocity[0].x - velocity[1].x
     vijPreImpact = 2.0*vImpact
-
     restitutionEff = vijPostImpact/vijPreImpact
+    print (H[0])
+    print (H[1])
+    print (velocity[0].x)
     restitutionError = abs(restitutionEff + restitutionCoefficient)/restitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
         raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
