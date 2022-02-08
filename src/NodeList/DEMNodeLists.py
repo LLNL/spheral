@@ -14,13 +14,13 @@ def makeDEMNodeList%(dim)s(name,
                            hmin = 1.0e-20,
                            hmax = 1.0e20,
                            hminratio = 0.1,
-                           nPerh = 2.01,
+                           nPerh = 1.01,
                            maxNumNeighbors = 500,
 
                            # Neighboring stuff
                            NeighborType = TreeNeighbor%(dim)s,
                            searchType = GatherScatter,
-                           kernelExtent = 2.0,
+                           kernelExtent = 1.0,
 
                            # Parameters only for NestedGridNeighbor (deprecated)
                            # numGridLevels = 31,
