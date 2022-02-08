@@ -39,11 +39,11 @@ SphericalTableKernel::grad(const Dim<1>::Vector& etaj,
   const auto min_bound = std::abs(ej - ei);
   if (min_bound > metamax) return Vector::zero;
   const auto max_bound = std::min(metamax, ei + ej);
-  const auto A = (ei + ej >= metamax ?
+  const auto B = (ei + ej >= metamax ?
                   0.0 :
                   max_bound*mKernel.kernelValue(max_bound, 1.0));
-  const auto B = min_bound*mKernel.kernelValue(min_bound, 1.0)*(ei > ej ? 1.0 : -1.0);
-  return Vector(2.0*M_PI/(ei*ej)*FastMath::pow4(Hdeti)*(A - B - 1.0/ei*mInterp(min_bound, max_bound)));
+  const auto A = min_bound*mKernel.kernelValue(min_bound, 1.0)*(ei > ej ? 1.0 : -1.0);
+  return Vector(2.0*M_PI/(ei*ej)*FastMath::pow4(Hdeti)*(B - A - 1.0/ei*mInterp(min_bound, max_bound)));
 }
 
 //------------------------------------------------------------------------------
@@ -62,14 +62,14 @@ SphericalTableKernel::kernelAndGradValue(const Dim<1>::Vector& etaj,
   const auto min_bound = std::abs(ej - ei);
   if (min_bound > metamax) return std::make_pair(0.0, Vector::zero);
   const auto max_bound = std::min(metamax, ei + ej);
-  const auto A = (ei + ej >= metamax ?
+  const auto B = (ei + ej >= metamax ?
                   0.0 :
                   max_bound*mKernel.kernelValue(max_bound, 1.0));
-  const auto B = min_bound*mKernel.kernelValue(min_bound, 1.0)*(ei > ej ? 1.0 : -1.0);
+  const auto A = min_bound*mKernel.kernelValue(min_bound, 1.0)*(ei > ej ? 1.0 : -1.0);
   const auto pre = 2.0*M_PI/(ei*ej)*FastMath::cube(Hdeti);
   const auto interpVal = mInterp(min_bound, max_bound);
   return std::make_pair(pre*interpVal,
-                        Vector(pre*Hdeti*(A - B - interpVal/ei)));
+                        Vector(pre*Hdeti*(B - A - interpVal/ei)));
 }
 
 //------------------------------------------------------------------------------
