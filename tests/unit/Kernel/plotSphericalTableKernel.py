@@ -45,7 +45,7 @@ ax = fig1.add_subplot(gs[0,0])
 for eta in etavals:
     r = h*eta
     rp = rprange(r, h)
-    yvals = np.array([W(Vector1d(rpi/h), Vector1d(r/h), 1.0/h) for rpi in rp])
+    yvals = np.array([W(Vector1d(r/h), Vector1d(rpi/h), 1.0/h) for rpi in rp])
     yvals *= r*r
     ax.plot((rp - r)/h, yvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
@@ -70,7 +70,7 @@ ax = fig1.add_subplot(gs[1,:])
 for eta in etavals:
     r = h*eta
     rp = rprange(r, h)
-    yvals = np.array([error(W3S1(rpi, r, h), W(Vector1d(rpi/h), Vector1d(r/h), 1.0/h))for rpi in rp])
+    yvals = np.array([error(W3S1(rpi, r, h), W(Vector1d(r/h), Vector1d(rpi/h), 1.0/h))for rpi in rp])
     ax.semilogy((rp - r)/h, yvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$|\langle W_{3S1}(r^\prime, r, h) \rangle/W_{3S1}(r^\prime, r, h) - 1|$")
@@ -87,7 +87,7 @@ ax = fig20.add_subplot(gs[0,0])
 for eta in etavals:
     r = h*eta
     rp = rprange(r, h)
-    gyvals = np.array([W.grad(Vector1d(rpi/h), Vector1d(r/h), 1.0/h).x for rpi in rp])
+    gyvals = np.array([W.grad(Vector1d(r/h), Vector1d(rpi/h), 1.0/h).x for rpi in rp])
     gyvals *= r*r
     ax.plot((rp - r)/h, gyvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
@@ -114,7 +114,7 @@ for eta in etavals:
     r = h*eta
     rp = rprange(r, h, etastep=0.05)
     rpfine = rprange(r, h, etastep=0.001)
-    gyvals = np.array([W.grad(Vector1d(rpi/h), Vector1d(r/h), 1.0/h).x for rpi in rp])
+    gyvals = np.array([W.grad(Vector1d(r/h), Vector1d(rpi/h), 1.0/h).x for rpi in rp])
     yvals0 = np.array([W3S1(rpi, r, h) for rpi in rpfine])
     gyvals0 = np.gradient(yvals0, rpfine)
     errvals = np.array([error(gyvals0[50*i], gyvals[i]) for i in xrange(len(gyvals))])
