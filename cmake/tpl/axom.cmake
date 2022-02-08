@@ -4,7 +4,7 @@ set(AXOM_URL "https://github.com/LLNL/axom/releases/download/v0.3.3/${AXOM_DIST}
 set(AXOM_CACHE "${CACHE_DIR}/${AXOM_DIST}")
 
 set(${lib_name}_libs 
-    libaxom.so 
+    libaxom.a 
    )
 
 if(${lib_name}_BUILD)
