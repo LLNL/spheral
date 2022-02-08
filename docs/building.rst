@@ -7,7 +7,7 @@ Obtaining, building, and installing Spheral
 Cloning Spheral
 ===============
 
-Spheral minimally requires a C++11 compliant compiler.  If you use git to clone the Spheral source note Spheral includes git submodules: `BLT <https://github.com/LLNL/blt>`_ and `Uberenv <https://github.com/LLNL/uberenv>`_.  In order to ensure such submodules are properly downloaded when cloning Spheral be sure to use the ``--recurse-submodules`` or ``--recursive`` git options:
+Spheral minimally requires a C++11 compliant compiler.  If you use git to clone the Spheral source be aware Spheral includes git submodules: `BLT <https://github.com/LLNL/blt>`_ and `Uberenv <https://github.com/LLNL/uberenv>`_.  In order to ensure such submodules are properly downloaded when cloning Spheral be sure to use the ``--recurse-submodules`` or ``--recursive`` git options:
 
 ::
 
@@ -41,6 +41,9 @@ To handle setting up a Spack instance for Spheral with the appropriate TPLs we s
 .. note::
    You do not need to use ``tpl-manager`` to setup TPLs for Spheral. TPLs can be built individually and passed to the Spheral CMake system or built through your own spack installation. See `Custom TPL Installation`_ and `Custom Spack Installation`_ for more details.
 
+.. warning::
+   If running on LC be sure to launch tpl-manager in a resource allocation, as tpl-manager will take advantage of parallel builds when compiling tpls.
+
 Single Spec Builds
 ------------------
 
@@ -48,7 +51,7 @@ Installing TPLs for a single spec you can use ``--spec`` in your ``tpl-manager``
 
 ::
 
-  .scripts/devtools/tpl-manager.py --spec gcc@8.3.1
+  ./scripts/devtools/tpl-manager.py --spec gcc@8.3.1
 
 This will install the Spheral Spack instance into the adjacent directory to your Spheral root dir. You can use ``--spheral-spack-dir`` if you would like to setup the spack instance somewhere else. 
 
@@ -57,11 +60,13 @@ Above we are telling ``tpl-manager`` to build our TPLs with gcc at version 8.3.1
 .. note::
    For more information on ``spec`` syntax please see the spack documentation on `specs-dependencies <https://spack.readthedocs.io/en/latest/basic_usage.html#specs-dependencies>`_.
 
+.. note::
+   ``gcc@8.3.1`` is the recommended compiler for building Spheral on LC (Livermore Computing). If you are not building Spheral on an LC machine you will need to check you compiler version with ``gcc --version`` and adjust as appropriate. You may also need to edit the compilers.yaml file as detailed in `Other Distros / Compilers <building.html#other-distros-compilers-1>`_.
+
 Developer tpl-manager.py features
 ---------------------------------
 
-.. note::
-   Much of this discussion centers around using ``tpl-manager.py`` on LC (Livermore Computing) machines, as this is where much Spheral development occurs.  ``spack`` and ``tpl-manager.py`` are not tied to this environment however.  It is simple enough to use ``tpl-manager.py`` in your own environment as needed, however you must be aware of which compilers and libraries (MPI, OpenMP, etc.) you wish to utilize.
+Much of this discussion centers around using ``tpl-manager.py`` on LC (Livermore Computing) machines, as this is where most Spheral development occurs.  ``spack`` and ``tpl-manager.py`` are not tied to this environment however.  It is simple enough to use ``tpl-manager.py`` in your own environment as needed, however you must be aware of which compilers and libraries (MPI, OpenMP, etc.) you wish to utilize.
 
 Setup Full TPL List
 ...................
@@ -159,6 +164,9 @@ After running ``host-config-build`` you can enter the ``build`` directory and ``
 
 If you would like the script to handle running a build and install for you ``--build`` exists. This will configure your CMake as usual and then launch a build and install. 
 
+.. warning::
+   If running on LC and using ``--build`` be sure to launch in a resource allocation, as ``--build`` will take advantage of parallel compilation.
+
 --lc-modules
 ............
 
@@ -226,8 +234,6 @@ By default Spheral builds the libraries as shared objects.  If instead you would
 
 Third party libraries and Spheral
 ---------------------------------
-
-Upon first install third party libraries (TPL) tar files and source will be installed through an external network. TPLs are cached within the Spheral build directory tree for future builds off network. To completely turn off installation of TPL's use ``-DBUILD_TPLS=Off``.
 
 For just the C++ compiled Spheral a number of TPLs are required:
 
@@ -419,10 +425,10 @@ Building Spheral TPLs with your own Spack installation will require deeper knowl
    
 Further notes on setting up Spack and how it is used with the Spheral dev-tools scripts can be found in `Development Documentation: Spheral Spack / Uberenv <Development_Documentation.html#spheral-spack-uberenv>`_.
 
-Other Distros
--------------
+Other Distros / Compilers
+-------------------------
 
-To build Spheral TPLs on an x86_64 Linux OS that isn`t Ubuntu 20.04 you will need to edit the file ``scripts/spack/configs/x86_64/compilers.yaml``. For example an Arch based Manjaro distro`s ``compilers.yaml`` looks like this.
+To build Spheral TPLs on an x86_64 Linux OS that isn`t Ubuntu 20.04 and/or with a compiler that is not ``gcc 9.3.0`` you will need to edit the file ``scripts/spack/configs/x86_64/compilers.yaml``. For example an Arch based Manjaro distro`s ``compilers.yaml`` looks like this.
 
 ::
 

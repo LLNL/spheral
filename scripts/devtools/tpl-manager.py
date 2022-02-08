@@ -10,7 +10,9 @@ import json
 
 project_dir=os.path.abspath(os.path.join(os.path.realpath(__file__), "../../../"))
 default_mirror_dir="/usr/gapps/Spheral/spheral-spack-tpls/mirror"
-default_spheral_spack_dir=os.path.join(os.getcwd(), "../spheral-spack-tpls")
+
+default_spheral_spack_dir=os.path.join(project_dir, "../spheral-spack-tpls")
+upstream_dir="/usr/gapps/Spheral/spheral-spack-tpls/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeho/"
 
 uberenv_path = os.path.join(project_dir, "scripts/devtools/uberenv/uberenv.py")
 uberenv_project_json = os.path.join(os.getcwd(), ".uberenv_config.json")
@@ -94,6 +96,11 @@ def build_deps(args):
   if "SYS_TYPE" not in os.environ.keys():
     spack_config_dir_opt="--spack-config-dir={0}".format(os.path.join(project_dir, "scripts/spack/configs/x86_64"))
 
+  spack_upstream_opt=""
+  if os.path.isdir(upstream_dir):
+    spack_upstream_opt="--upstream {0}".format(upstream_dir)
+
+
   # We use uberenv to set up our spack instance with our respective package.yaml files
   # config.yaml and custom spack packages recipes.
   print("** Running uberenv...")
@@ -101,7 +108,7 @@ def build_deps(args):
   uberenv_project_json_opt="--project-json={0}".format(uberenv_project_json)
 
   print("** Spheral Spack Dir : {0}".format(args.spheral_spack_dir))
-  sexe("python3 {0} --setup-only {1} {2} {3}".format(uberenv_path, prefix_opt, uberenv_project_json_opt, spack_config_dir_opt))
+  sexe("python3 {0} --setup-only {1} {2} {3}".format(uberenv_path, prefix_opt, spack_config_dir_opt, spack_upstream_opt), echo=True)
 
   # We just want to use the spac instance directly to generate our TPLs, we don't want
   # to have the spack instance take over our environment.
@@ -120,11 +127,11 @@ def build_deps(args):
 
     if sexe("{0} mirror list | grep spheral-tpl".format(spack_cmd), ret_output=True):
       print("** Spheral-tpl mirror found, removing...")
-      sexe("{0} mirror rm spheral-tpl".format(spack_cmd))
+      sexe("{0} mirror rm spheral-tpl".format(spack_cmd), echo=True)
 
     print("** Adding Spheral-tpl mirror...")
-    sexe("{0} mirror add spheral-tpl {1}".format(spack_cmd, args.mirror_dir))
-    sexe("{0} gpg trust `find {1} -name \"*.pub\"`".format(spack_cmd, args.mirror_dir))
+    sexe("{0} mirror add spheral-tpl {1}".format(spack_cmd, args.mirror_dir), echo=True)
+    sexe("{0} gpg trust `find {1} -name \"*.pub\"`".format(spack_cmd, args.mirror_dir), echo=True)
 
   with open(uberenv_project_json) as f:
     package_name=json.loads(f.read())["package_name"]

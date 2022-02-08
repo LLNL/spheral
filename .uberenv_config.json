@@ -3,7 +3,7 @@
   "package_version" : "develop",
   "package_source_dir" : "../../..",
   "spack_url" : "https://github.com/spack/spack",
-  "spack_commit" : "d6d29f7c091f926b621973243bf91093f86abc94",
+  "spack_commit" : "457fe842f05edb5d17160b0ecf32aeca9d46113c",
   "spack_configs_path" : "scripts/spack/configs",
   "spack_packages_path" : "scripts/spack/packages"
 }

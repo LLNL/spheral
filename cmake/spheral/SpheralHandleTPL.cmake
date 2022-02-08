@@ -107,7 +107,10 @@ function(Spheral_Handle_TPL lib_name dep_list)
   # Include the actual <tpl>.cmake file
   include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
 
-  list(APPEND ${lib_name}_INCLUDES $<BUILD_INTERFACE:${${lib_name}_DIR}/include>)
+  if (NOT DEFINED ${lib_name}_NO_INCLUDES)
+    list(APPEND ${lib_name}_INCLUDES $<BUILD_INTERFACE:${${lib_name}_DIR}/include>)
+    #message("-- including path ${lib_name} : ${lib_name}_INCLUDES")
+  endif()
 
   # Generate full path to lib file for output list
   set(${lib_name}_LIBRARIES )
