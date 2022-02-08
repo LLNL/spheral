@@ -241,6 +241,17 @@ public:
   virtual void read(FieldList<Dim<1>, std::vector<Dim<1>::SymTensor>>& value, const std::string pathName) const       { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<1>, std::vector<Dim<1>::ThirdRankTensor>>& value, const std::string pathName) const { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<1>, std::vector<int>>& value, const std::string pathName) const                     { this->readFieldList(value, pathName); }
+
+  // Trying to make special Spheral types work
+  virtual void write(const std::vector<Dim<1>::Vector>& value, const std::string pathName) { this->writeVector(value, pathName); }
+  virtual void write(const std::vector<Dim<1>::Tensor>& value, const std::string pathName) { this->writeVector(value, pathName); }
+  virtual void write(const std::vector<Dim<1>::SymTensor>& value, const std::string pathName) { this->writeVector(value, pathName); }
+  virtual void write(const std::vector<Dim<1>::ThirdRankTensor>& value, const std::string pathName) { this->writeVector(value, pathName); }
+
+  virtual void read(std::vector<Dim<1>::Vector>& value, const std::string pathName) const { this->readVector(value, pathName); }
+  virtual void read(std::vector<Dim<1>::Tensor>& value, const std::string pathName) const { this->readVector(value, pathName); }
+  virtual void read(std::vector<Dim<1>::SymTensor>& value, const std::string pathName) const { this->readVector(value, pathName); }
+  virtual void read(std::vector<Dim<1>::ThirdRankTensor>& value, const std::string pathName) const { this->readVector(value, pathName); }
 #endif
 
 #ifdef SPHERAL2D
@@ -296,6 +307,17 @@ public:
   virtual void read(FieldList<Dim<2>, std::vector<Dim<2>::SymTensor>>& value, const std::string pathName) const       { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<2>, std::vector<Dim<2>::ThirdRankTensor>>& value, const std::string pathName) const { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<2>, std::vector<int>>& value, const std::string pathName) const                     { this->readFieldList(value, pathName); }
+
+  // Trying to make special Spheral types work
+  virtual void write(const std::vector<Dim<2>::Vector>& value, const std::string pathName) { this->writeVector(value, pathName); }
+  virtual void write(const std::vector<Dim<2>::Tensor>& value, const std::string pathName) { this->writeVector(value, pathName); }
+  virtual void write(const std::vector<Dim<2>::SymTensor>& value, const std::string pathName) { this->writeVector(value, pathName); }
+  virtual void write(const std::vector<Dim<2>::ThirdRankTensor>& value, const std::string pathName) { this->writeVector(value, pathName); }
+
+  virtual void read(std::vector<Dim<2>::Vector>& value, const std::string pathName) const { this->readVector(value, pathName); }
+  virtual void read(std::vector<Dim<2>::Tensor>& value, const std::string pathName) const { this->readVector(value, pathName); }
+  virtual void read(std::vector<Dim<2>::SymTensor>& value, const std::string pathName) const { this->readVector(value, pathName); }
+  virtual void read(std::vector<Dim<2>::ThirdRankTensor>& value, const std::string pathName) const { this->readVector(value, pathName); }
 #endif
 
 #ifdef SPHERAL3D
@@ -351,6 +373,17 @@ public:
   virtual void read(FieldList<Dim<3>, std::vector<Dim<3>::SymTensor>>& value, const std::string pathName) const       { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<3>, std::vector<Dim<3>::ThirdRankTensor>>& value, const std::string pathName) const { this->readFieldList(value, pathName); }
   virtual void read(FieldList<Dim<3>, std::vector<int>>& value, const std::string pathName) const                     { this->readFieldList(value, pathName); }
+
+  // Trying to make special Spheral types work
+  virtual void write(const std::vector<Dim<3>::Vector>& value, const std::string pathName) { this->writeVector(value, pathName); }
+  virtual void write(const std::vector<Dim<3>::Tensor>& value, const std::string pathName) { this->writeVector(value, pathName); }
+  virtual void write(const std::vector<Dim<3>::SymTensor>& value, const std::string pathName) { this->writeVector(value, pathName); }
+  virtual void write(const std::vector<Dim<3>::ThirdRankTensor>& value, const std::string pathName) { this->writeVector(value, pathName); }
+
+  virtual void read(std::vector<Dim<3>::Vector>& value, const std::string pathName) const { this->readVector(value, pathName); }
+  virtual void read(std::vector<Dim<3>::Tensor>& value, const std::string pathName) const { this->readVector(value, pathName); }
+  virtual void read(std::vector<Dim<3>::SymTensor>& value, const std::string pathName) const { this->readVector(value, pathName); }
+  virtual void read(std::vector<Dim<3>::ThirdRankTensor>& value, const std::string pathName) const { this->readVector(value, pathName); }
 #endif
 
   // Read/write planes using the primitive methods.
@@ -372,7 +405,8 @@ public:
   void read(uniform_random& value, const std::string pathName) const;
 
   // Write/read a vector<DataType> if DataType is a primitive we already know about.
-  template<typename DataType> void write(const std::vector<DataType>& x, const std::string pathName);
+  template<typename DataType,
+  typename std::enable_if<!std::is_same<std::vector<Dim<1>::Tensor>, DataType>::value>::type> void write(const std::vector<DataType>& x, const std::string pathName);
   template<typename DataType> void read(std::vector<DataType>& x, const std::string pathName) const;
 
   // Helper functions to split/join a string up into substrings delimited by '/'.

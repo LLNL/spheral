@@ -197,7 +197,7 @@ void SidreFileIO::close()
     std::cout << "This is the datastore before it is saved.\n";
     mDataStorePtr->print();
 
-    //mDataStorePtr->getRoot()->save(mFileName, "sidre_hdf5");
+    mDataStorePtr->getRoot()->save(mFileName, "sidre_hdf5");
     mDataStorePtr.reset();
   }
   mFileOpen = false;
@@ -256,7 +256,6 @@ void SidreFileIO::write(const double& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::string& value, const std::string pathName)
 {
-  std::cout << "Creating view with value: " << value << " /// and path: " << pathName << std::endl;
   mDataStorePtr->getRoot()->createViewString(pathName, value);
 }
 
@@ -451,7 +450,6 @@ void SidreFileIO::read(double& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::string& value, const std::string pathName) const
 {
-  std::cout << "Read call for std::string.\n";
   value = mDataStorePtr->getRoot()->getView(pathName)->getString();
 }
 
@@ -951,6 +949,86 @@ void SidreFileIO::read(Field<Dim<3>, unsigned>& value, const std::string pathNam
 {
   sidreReadField(mDataStorePtr, value, pathName, mFileName);
 }
+
+
+// Trying stuff
+
+// template<> inline void SidreFileIO::write<Dim<1>::Tensor> (const std::vector<Dim<1>::Tensor>& x, const std::string pathName) { std::cout << "This Finally Works!\n"; }
+// template<> inline void SidreFileIO::read<Dim<1>::Tensor> (std::vector<Dim<1>::Tensor>& x, const std::string pathName) const { std::cout << "Im so happy!\n"; }
+
+  // template<typename DataType>
+  // inline
+  // void
+  // SidreFileIO::write(const std::vector<DataType>& x, const std::string pathName) {
+  //   std::vector<char> buf;
+  //   packElement(x, buf);
+  //   std::string bufstr(buf.begin(), buf.end());
+  //   this->write(bufstr, pathName);
+  // }
+
+  // // Specialize for some types that can be treated as arrays of doubles more efficiently/portably
+  // //..............................................................................
+  // template<typename Value>
+  // inline
+  // void
+  // SidreFileIO::writeVector(const std::vector<Value>& x, const std::string pathName) {
+  //   std::cout << "We are in writeVector in SidreFileIO.\n";
+  //   const auto n = x.size();
+  //   const auto ne = Value::numElements;
+  //   std::vector<double> buf(n*ne);
+  //   for (auto i = 0u; i < n; ++i) std::copy(x[i].begin(), x[i].end(), &buf[i*ne]);
+  //   this->write(buf, pathName);
+  // }
+  // template<> inline void FileIO::write<Dim<1>::Vector>         (const std::vector<Dim<1>::Vector>& x,          const std::string pathName) { this->writeVector(x, pathName); }
+  // template<> inline void FileIO::write<Dim<1>::Tensor>         (const std::vector<Dim<1>::Tensor>& x,          const std::string pathName) { this->writeVector(x, pathName); }
+  // template<> inline void FileIO::write<Dim<1>::SymTensor>      (const std::vector<Dim<1>::SymTensor>& x,       const std::string pathName) { this->writeVector(x, pathName); }
+  // template<> inline void FileIO::write<Dim<1>::ThirdRankTensor>(const std::vector<Dim<1>::ThirdRankTensor>& x, const std::string pathName) { this->writeVector(x, pathName); }
+  // template<> inline void FileIO::write<Dim<2>::Vector>         (const std::vector<Dim<2>::Vector>& x,          const std::string pathName) { this->writeVector(x, pathName); }
+  // template<> inline void FileIO::write<Dim<2>::Tensor>         (const std::vector<Dim<2>::Tensor>& x,          const std::string pathName) { this->writeVector(x, pathName); }
+  // template<> inline void FileIO::write<Dim<2>::SymTensor>      (const std::vector<Dim<2>::SymTensor>& x,       const std::string pathName) { this->writeVector(x, pathName); }
+  // template<> inline void FileIO::write<Dim<2>::ThirdRankTensor>(const std::vector<Dim<2>::ThirdRankTensor>& x, const std::string pathName) { this->writeVector(x, pathName); }
+  // template<> inline void FileIO::write<Dim<3>::Vector>         (const std::vector<Dim<3>::Vector>& x,          const std::string pathName) { this->writeVector(x, pathName); }
+  // template<> inline void FileIO::write<Dim<3>::Tensor>         (const std::vector<Dim<3>::Tensor>& x,          const std::string pathName) { this->writeVector(x, pathName); }
+  // template<> inline void FileIO::write<Dim<3>::SymTensor>      (const std::vector<Dim<3>::SymTensor>& x,       const std::string pathName) { this->writeVector(x, pathName); }
+  // template<> inline void FileIO::write<Dim<3>::ThirdRankTensor>(const std::vector<Dim<3>::ThirdRankTensor>& x, const std::string pathName) { this->writeVector(x, pathName); }
+
+// //------------------------------------------------------------------------------
+// // Write a vector<Dim<1>::Tensor> to the file.
+// //------------------------------------------------------------------------------
+// template<typename Value>
+// void SidreFileIO::write(const std::vector<Value>& value, const std::string pathName)
+// {
+//   std::cout << "Im expecting this to be called WRITE for vector<Value>.\n";
+//   // for (int i = 0; i < value.size(); ++i)
+//   //   std::cout << value[i] << " ";
+//   // std::cout << std::endl;
+//   // mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, value.size(), (void*)value.data());
+//   // mDataStorePtr->print();
+
+//   // mDataStorePtr->getRoot()->save(mFileName, "sidre_hdf5");
+//   // std::cout << "This is after the save call inside of write.\n";
+//   // mDataStorePtr->print();
+// }
+
+// //------------------------------------------------------------------------------
+// // Read a vector<Dim<1>::Tensor> from the file.
+// //------------------------------------------------------------------------------
+// template<typename Value>
+// void SidreFileIO::read(std::vector<Value>& value, const std::string pathName) const
+// {
+//   std::cout << "Im expecting this to be called READ for vector<Value>.\n";
+
+//   // int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
+//   // std::cout << "This is the size in READ: " << size << std::endl;
+//   // value.resize(size);
+//   // mDataStorePtr->getRoot()->getView(pathName)->setExternalDataPtr(value.data());
+//   // mDataStorePtr->getRoot()->loadExternalData(mFileName);
+
+//   // mDataStorePtr->print();
+//   // for (int i = 0; i < size; ++i)
+//   //   std::cout << value[i] << " ";
+//   // std::cout << std::endl;
+// }
 #endif
 
 
