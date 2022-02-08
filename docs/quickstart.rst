@@ -17,7 +17,11 @@ The following commands can be used to configure and build Spheral on Ubuntu 20.0
   cd build_linux-ubuntu20.04-gcc@9.3.0/build
   make -j install
 
+.. note::
+   This command sequence assumes gcc is installed at version 9.3.0 (current version for ubuntu 20.04). Please check your gcc version with ``gcc --version``.
+
+
 These commands are explained in further detail in `Obtaining, building, and installing Spheral <building.html>`_.
 
 .. note::
-  To build on a distro that is not Ubuntu 20.04 please also see `Other Distros <building.html#other-distros>`_.
+  To build with a different compiler, or on a distro other than Ubuntu 20.04 please also see `Other Distros / Compilers <building.html#other-distros-compilers-1>`_.
