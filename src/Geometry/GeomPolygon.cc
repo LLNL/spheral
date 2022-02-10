@@ -529,6 +529,7 @@ GeomPolygon::
 contains(const GeomPolygon::Vector& point,
          const bool countBoundary,
          const double tol) const {
+  if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
   if (mConvex) {
     return this->convexContains(point, countBoundary, tol);
   } else {
@@ -545,7 +546,6 @@ GeomPolygon::
 convexContains(const GeomPolygon::Vector& point,
                const bool countBoundary,
                const double tol) const {
-  if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
   vector<Facet>::const_iterator facetItr = mFacets.begin();
   bool result = true;
   if (countBoundary) {
@@ -852,8 +852,7 @@ GeomPolygon&
 GeomPolygon::
 operator+=(const GeomPolygon::Vector& rhs) {
   for (auto& v: mVertices) v += rhs;
-  mXmin += rhs;
-  mXmax += rhs;
+  this->setBoundingBox();
   return *this;
 }
 
@@ -931,6 +930,17 @@ operator/(const double rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// transform
+//------------------------------------------------------------------------------
+GeomPolygon&
+GeomPolygon::
+transform(const typename GeomPolygon::Tensor& t) {
+  for (auto& v: mVertices) v = t*v;
+  this->setBoundingBox();
+  return *this;
+}
+
+//------------------------------------------------------------------------------
 // ==
 //------------------------------------------------------------------------------
 bool
@@ -963,6 +973,7 @@ GeomPolygon::
 setBoundingBox() {
   boundingBox(mVertices, mXmin, mXmax);
   mConvex = this->convex();
+  for (auto& f: mFacets) f.computeNormal();
 }
 
 //------------------------------------------------------------------------------

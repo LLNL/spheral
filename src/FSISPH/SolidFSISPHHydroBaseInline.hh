@@ -83,7 +83,24 @@ interfaceMethod() const {
 }
 
 //------------------------------------------------------------------------------
-// swtich to turn on density sum for different nodeLists
+// return our kernel method
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+kernelAveragingMethod(KernelAveragingMethod x) {
+  mKernelAveragingMethod = x;
+}
+template<typename Dimension>
+inline
+KernelAveragingMethod
+SolidFSISPHHydroBase<Dimension>::
+kernelAveragingMethod() const {
+  return mKernelAveragingMethod;
+}
+//------------------------------------------------------------------------------
+// switch to turn on density sum for different nodeLists
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -115,7 +132,9 @@ sumDensityNodeLists() const {
   return mSumDensityNodeLists;
 }
 
-
+//------------------------------------------------------------------------------
+// Return ref to our pair-wise energy derivs
+//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const std::vector<typename Dimension::Scalar>&
@@ -124,6 +143,31 @@ pairDepsDt() const {
   return mPairDepsDt;
 }
 
+//------------------------------------------------------------------------------
+// Return the pressure gradient field list ref
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+DPDx() const {
+  return mDPDx;
+}
+
+//------------------------------------------------------------------------------
+// Return the specific thermal energy gradient field list ref
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+DepsDx() const {
+  return mDepsDx;
+}
+
+//------------------------------------------------------------------------------
+// Ref to the slide surface obj
+//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 SlideSurface<Dimension>&

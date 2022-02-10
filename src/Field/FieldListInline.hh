@@ -10,7 +10,7 @@
 #include "Utilities/allReduce.hh"
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include <mpi.h>
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/packElement.hh"
 #include "Distributed/Communicator.hh"
@@ -1848,7 +1848,7 @@ operator*(const FieldList<Dimension, DataType>& lhs,
   REQUIRE(lhs.numFields() == rhs.numFields());
   FieldList<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType> result;
   result.copyFields();
-  for (int i = 0; i < lhs.numFields(); ++i) {
+  for (auto i = 0u; i < lhs.numFields(); ++i) {
     CHECK2(lhs[i]->nodeListPtr() == rhs[i]->nodeListPtr(), lhs[i]->nodeListPtr()->name() << " != " << rhs[i]->nodeListPtr()->name());
     result.appendField((*(lhs[i])) * (*(rhs[i])));
   }

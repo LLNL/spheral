@@ -4,61 +4,6 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Constructors, destructor.
-//------------------------------------------------------------------------------
-// We really don't want the default constructor, but it's required to have 
-// std::vectors of these.
-inline
-GeomFacet2d::
-GeomFacet2d():
-  mVerticesPtr(0),
-  mPoints(2, 0),
-  mNormal(1.0, 0.0) {
-  VERIFY(false);
-}
-
-inline
-GeomFacet2d::
-GeomFacet2d(const std::vector<GeomFacet2d::Vector>& vertices,
-            const unsigned point1,
-            const unsigned point2):
-  mVerticesPtr(&vertices),
-  mPoints(2),
-  mNormal(vertices[point2].y() - vertices[point1].y(),
-          vertices[point1].x() - vertices[point2].x()) {
-  mPoints[0] = point1;
-  mPoints[1] = point2;
-  // REQUIRE((this->point2() - this->point1()).magnitude2() > 0.0);
-  REQUIRE(fuzzyEqual((this->point2() - this->point1()).unitVector().dot(mNormal), 0.0, 1.0e-6));
-  REQUIRE((this->point2() - this->point1()).unitVector().cross(mNormal).z() <= 0.0);
-}
-
-inline
-GeomFacet2d::
-GeomFacet2d(const GeomFacet2d& rhs):
-  mVerticesPtr(rhs.mVerticesPtr),
-  mPoints(rhs.mPoints),
-  mNormal(rhs.mNormal) {
-}
-
-inline
-GeomFacet2d&
-GeomFacet2d::
-operator=(const GeomFacet2d& rhs) {
-  if (this != &rhs) {
-    mVerticesPtr = rhs.mVerticesPtr;
-    mPoints = rhs.mPoints;
-    mNormal = rhs.mNormal;
-  }
-  return *this;
-}
-
-inline
-GeomFacet2d::
-~GeomFacet2d() {
-}
-
-//------------------------------------------------------------------------------
 // Is the given point above, below, or colinear with the facet?
 // Returns 1, -1, 0 respectively.
 //------------------------------------------------------------------------------

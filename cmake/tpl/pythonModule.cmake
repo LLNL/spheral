@@ -1,78 +1,78 @@
-# General rule for installing pip modules. Downloads necessary tar/wheel files to the cache dir
-# then installs in the future from these files so that offline builds are possible.
+include(${SPHERAL_ROOT_DIR}/cmake/tpl/util/Install_Python_distutils_library.cmake)
+
 #
-# NOTE:
-# Since we are still on Python 2.7.*, we have to make a few compromises here:
-#   1. We lock the exact versions of PIP packages we're using to the older known Python 2 friendly versions.
-#   2. We removed the --upgrade option from the PIP install command.
-# Hopefully once we move to Python 3 we can relax this stringent version locking and just stay up to date.
+# Buildtime Python Module Dependencies
+#
+set(PYTHONENV ${pip_DIR})
 
-macro(Install_PipModules lib_list)
-  set(${lib_list}_stamp_file "${CACHE_DIR}/.${lib_list}_pip_download.stamp")
-  add_custom_command(
-    OUTPUT ${${lib_list}_stamp_file}
-    COMMAND echo "-- pip downloading ${lib_list}"
-    COMMAND ${PYTHON_EXE} ${PIP_EXE} ${OUT_PROTOCOL_PIP} download --no-binary :all -d ${CACHE_DIR} ${${lib_list}}
-    COMMAND touch ${${lib_list}_stamp_file}
-  )
-  add_custom_target(
-    ${lib_list}
-    COMMAND echo "-- pip installing ${lib_list}"
-    COMMAND ${PYTHON_EXE} ${PIP_EXE} ${OUT_PROTOCOL_PIP} install ${${lib_list}} --no-index --find-links ${CACHE_DIR}
-    DEPENDS pip-install ${${lib_list}_DEPENDS} ${${lib_list}_stamp_file}
-  )
-endmacro()
-
-# Pip setup modules these need to be 
-# installed before everything else
-set(pip-setup-modules
+set(pip_build_modules
     setuptools
-    wheel)
+    decorator==4.4.2
+    virtualenv==20.2.2
+    pyb11generator==1.0.12)
 
-# General pip modules, anything from PyPi can 
-# be added to this list to install
-set(pip-modules
+if (ENABLE_DOCS)
+  list(APPEND pip_build_modules
+    sphinx==1.8.5
+    sphinx_rtd_theme==0.5.0)
+endif()
+
+foreach(lib ${pip_build_modules})
+  string(REGEX REPLACE "[\=]+[^ ]*" "" lib_name_str ${lib})
+
+  # Initialize our libr}ies with the TPL system. This builds up our PYTHONENV variable...
+  Spheral_Handle_TPL(${lib_name_str} spheral_depends)
+  list(APPEND PYTHONENV ${${lib_name_str}_DIR})
+endforeach()
+
+# Create the final build time python environment string.
+string(REPLACE ";" ":" BUILDTIME_PYTHONENV_STR "${PYTHONENV}")
+
+
+# Run the actual installer for the modules.
+foreach(lib ${pip_build_modules})
+  Install_Pip_Module(${lib})
+endforeach()
+
+
+#
+# Runtime Python Module Dependencies
+#
+set(pip-runtime-modules
     numpy==1.16.6
     numpy-stl==2.11.2
-    PYB11Generator==1.0.12
     matplotlib==2.2.5
     decorator==4.4.2
     h5py==2.10.0
-    sphinx==1.8.5
-    sphinx_rtd_theme==0.5.0
+    docutils==0.17.1
     twine==1.15.0
     cython==0.29.21
     sobol==0.9
     scipy==1.2.3
     pipreqs==0.4.10
     importlib_metadata==2.1.1
-    virtualenv==20.2.2)
+    )
 
 # Only needed when we're allowing MPI parallelism
 if (ENABLE_MPI)
-  list(APPEND pip-modules mpi4py)
+  list(APPEND pip-runtime-modules mpi4py==3.0.3)
 endif()
 
-# Custom python modules to install that need their
-# own install process these will be installed last 
-# as their own dedicated targets
+# Generate our requirements.txt file for runtime python dependencies
+string(REPLACE ";" "\n" pip_rutime_modules_str "${pip-runtime-modules}")
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/tpl/util/requirements.in"
+  "${CMAKE_BINARY_DIR}/scripts/requirements.txt"
+  )
+
+
+#
+# Custom Runtime Python Module Dependencies
+#
 set(pip-custom-modules
     gnuplot
     ats)
 
-# pip modules need to depend on the pip-setup-modules 
-# being installed before the others
-set(pip-modules_DEPENDS pip-setup-modules)
-set(pip-modules_stamp_file_DEPENDS pip-setup-modules)
-
-if(pip_BUILD)
-  # Run install macro for PyPi modules
-  Install_PipModules(pip-setup-modules)
-  Install_PipModules(pip-modules)
-
-  # Run install for custom modules with thier own .cmake file
-  foreach(lib_name ${pip-custom-modules})
-    include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
-  endforeach()
-endif()
-
+foreach(lib_name ${pip-custom-modules})
+  include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
+endforeach()

@@ -12,7 +12,7 @@
 #define __Spheral_waitAllWithDeadlockDetection__
 
 #include <string>
-#include "mpi.h"
+#include <mpi.h>
 
 namespace Spheral {
 void 

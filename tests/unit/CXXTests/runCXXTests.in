@@ -1,0 +1,2 @@
+### List of all c++ tests to be run in ats
+source(@TEST_LIST@)

@@ -6,7 +6,7 @@
 //
 // Created by JMO, Tue Jan 19 09:22:37 PST 2010
 //----------------------------------------------------------------------------//
-#include "mpi.h"
+#include <mpi.h>
 
 #include "DistributedBoundary.hh"
 #include "BoundingVolumeDistributedBoundary.hh"
@@ -36,31 +36,6 @@ using std::max;
 using std::abs;
 
 namespace Spheral {
-
-// Static initialization of singleton instance.
-template <typename Dimension>
-BoundingVolumeDistributedBoundary<Dimension>*
-BoundingVolumeDistributedBoundary<Dimension>::mInstance = 0;
-
-//------------------------------------------------------------------------------
-// Singleton instance method.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-BoundingVolumeDistributedBoundary<Dimension>&
-BoundingVolumeDistributedBoundary<Dimension>::
-instance() {
-  if (mInstance == 0) {
-    mInstance = new BoundingVolumeDistributedBoundary();
-  } // end if
-  return *mInstance;
-}
-
-template<typename Dimension>
-BoundingVolumeDistributedBoundary<Dimension>*
-BoundingVolumeDistributedBoundary<Dimension>::
-instancePtr() {
-  return &(instance());
-}
 
 //------------------------------------------------------------------------------
 // Constructor.

@@ -9,7 +9,7 @@
 #define DistributedBoundary_HH
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include <mpi.h>
 #endif
 
 #include "Boundary/Boundary.hh"

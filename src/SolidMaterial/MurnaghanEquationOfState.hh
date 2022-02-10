@@ -26,16 +26,17 @@ public:
 
   // Constructors, destructors.
   MurnaghanEquationOfState(const double referenceDensity,
-                          const double etamin,
-                          const double etamax,
-                          const double n,
-                          const double K,
-                          const double atomicWeight,
-                          const PhysicalConstants& constants,
-                          const double externalPressure,
-                          const double minimumPressure,
-                          const double maximumPressure,
-                          const MaterialPressureMinType minPressureType);
+                           const double etamin,
+                           const double etamax,
+                           const double n,
+                           const double K,
+                           const double atomicWeight,
+                           const PhysicalConstants& constants,
+                           const double externalPressure,
+                           const double minimumPressure,
+                           const double maximumPressure,
+                           const double minimumPressureDamage,
+                           const MaterialPressureMinType minPressureType);
   ~MurnaghanEquationOfState();
 
   // We require any equation of state to define the following properties.

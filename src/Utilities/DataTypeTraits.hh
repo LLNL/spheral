@@ -7,6 +7,7 @@
 #ifndef DataTypeTraits_HH
 #define DataTypeTraits_HH
 
+#include <climits>
 #include <stdint.h>
 #include <vector>
 #include <set>
@@ -24,7 +25,7 @@
 
 #ifdef USE_MPI
 extern "C" {
-#include "mpi.h"
+#include <mpi.h>
 }
 #endif
 
@@ -61,7 +62,13 @@ struct DataTypeTraits<char> {
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return MPI_CHAR; }
 #endif
+
+#if (CHAR_MIN==0)
+  static axom::sidre::DataTypeId axomTypeID() { return axom::sidre::UINT8_ID; }
+#else
   static axom::sidre::DataTypeId axomTypeID() { return axom::sidre::INT8_ID; }
+#endif
+
   using AxomType = char;
 };
 
@@ -167,7 +174,12 @@ struct DataTypeTraits<std::string> {
   static int numElements(const ElementType& x) { return x.size(); }
   static ElementType zero() { return ""; }
 
+#if (CHAR_MIN==0)
+  static axom::sidre::DataTypeId axomTypeID() { return axom::sidre::UINT8_ID; }
+#else
   static axom::sidre::DataTypeId axomTypeID() { return axom::sidre::INT8_ID; }
+#endif
+
   using AxomType = char;
 };
 
@@ -242,6 +254,8 @@ struct DataTypeTraits<std::pair<Value1, Value2> > {
   static bool fixedSize() { return true; }
   static int numElements(const std::pair<Value1, Value2>&) { return 2; }
   static std::pair<Value1, Value2> zero() { return std::make_pair(Value1(), Value2()); }
+  static axom::sidre::DataTypeId axomTypeID() { VERIFY2(false, "axom interface not checked for std::pair<T1,T2>"); return DataTypeTraits<Value1>::axomTypeID(); }
+  using AxomType = typename DataTypeTraits<Value1>::AxomType;
 };
 
 //------------------------------------------------------------------------------

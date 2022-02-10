@@ -21,35 +21,10 @@
 #include <list>
 #include <algorithm>
 
-#include "mpi.h"
+#include <mpi.h>
 
 
 namespace Spheral {
-
-// Static initialization of singleton instance.
-template <typename Dimension>
-NestedGridDistributedBoundary<Dimension>*
-NestedGridDistributedBoundary<Dimension>::mInstance = 0;
-
-//------------------------------------------------------------------------------
-// Singleton instance method.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-NestedGridDistributedBoundary<Dimension>&
-NestedGridDistributedBoundary<Dimension>::
-instance() {
-  if (mInstance == 0) {
-    mInstance = new NestedGridDistributedBoundary();
-  } // end if
-  return *mInstance;
-}
-
-template<typename Dimension>
-NestedGridDistributedBoundary<Dimension>*
-NestedGridDistributedBoundary<Dimension>::
-instancePtr() {
-  return &(instance());
-}
 
 //------------------------------------------------------------------------------
 // Default constructor.

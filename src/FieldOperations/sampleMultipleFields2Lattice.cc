@@ -23,7 +23,7 @@
 #include "Utilities/DBC.hh"
 
 #ifdef USE_MPI
-#include "mpi.h"
+#include <mpi.h>
 #include "Distributed/TreeDistributedBoundary.hh"
 #include "Distributed/Communicator.hh"
 #endif
