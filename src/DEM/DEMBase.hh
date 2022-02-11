@@ -6,7 +6,6 @@
 
 #include <string>
 #include "Physics/Physics.hh"
-//#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
@@ -25,6 +24,7 @@ class DEMBase: public Physics<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
+  //typedef typename Dimension::AngularVector AngularVector;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
@@ -161,10 +161,10 @@ protected:
   Vector mxmin, mxmax;
 
   // Some internal scratch fields.
-  FieldList<Dimension, int>       mTimeStepMask;
-  FieldList<Dimension, Vector>    mDxDt;
-  FieldList<Dimension, Vector>    mDvDt;
-  FieldList<Dimension, Vector>    mDomegaDt;
+  FieldList<Dimension, int>           mTimeStepMask;
+  FieldList<Dimension, Vector>        mDxDt;
+  FieldList<Dimension, Vector>        mDvDt;
+  FieldList<Dimension, Vector> mDomegaDt;
 
   // The restart registration.
   RestartRegistrationType mRestart;

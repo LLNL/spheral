@@ -21,6 +21,48 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// couple explicit things for dimension templating
+//------------------------------------------------------------------------------
+
+// moment of interia
+// inline
+// Dim<1>::Scalar
+// momentOfInteria(const Dim<1>::Scalar m, const Dim<1>::Scalar R) {
+//   return 1.0;
+// }
+
+// inline
+// Dim<2>::Scalar
+// momentOfInteria(const Dim<2>::Scalar m, const Dim<2>::Scalar R) {
+//   return 0.5*m*R*R;
+// }
+
+inline
+Dim<3>::Scalar
+momentOfInteria(const Dim<3>::Scalar m, const Dim<3>::Scalar R) {
+  return 0.4*m*R*R;
+}
+
+// vel due to rotation
+// inline
+// Dim<1>::Vector
+// crossproduct(const Dim<1>::Vector v1, const Dim<1>::Vector v2) {
+//   return Dimension::Vector::zero;
+// }
+
+// inline
+// Dim<2>::Vector
+// crossproduct(const Dim<2>::Vector v1, const Dim<2>::Vector v2) {
+//   return Vector();
+// }
+
+// inline
+// Dim<3>::Vector
+// crossproduct(const Dim<3>::Vector v1, const Dim<3>::Vector v2) {
+//   return rotation.cross(direction);
+// }
+
+//------------------------------------------------------------------------------
 // Default constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -115,6 +157,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
+    auto DomegaDt_thread = DomegaDt.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -128,18 +171,22 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
+      const auto& omegai = omega(nodeListi, i);
       const auto& Ri = radius(nodeListi, i);
       
       auto& DvDti = DvDt_thread(nodeListi, i);
+      auto& DomegaDti = DomegaDt_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
+      const auto& omegaj = omega(nodeListj, j);
       const auto& Rj = radius(nodeListj, j);
 
       auto& DvDtj = DvDt_thread(nodeListj, j);
-      
+      auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
+
       CHECK(mi > 0.0);
       CHECK(mj > 0.0);
       CHECK(Ri > 0.0);
@@ -147,29 +194,41 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // are we overlapping ? 
       const auto rij = ri-rj;
-      const auto delta = (Ri+Rj) - std::sqrt(rij.dot(rij)); 
+      const auto rijMag = rij.magnitude();
+      const auto delta = (Ri+Rj) - rijMag; 
       
       // if so do the things
       if (delta > 0.0){
       
-        // lin of action for the contact
+        // line of action for the contact
         const auto rhatij = rij.unitVector();
 
-        // velocity components
-        const auto vij = vi-vj;
+        //total relative velocity
+        //const auto li = (Ri*Ri-Rj*Rj + rijMag*rijMag)/(2.0*rijMag);
+        //const auto lj = rijMag-li;
+
+        const auto vij = vi-vj;//+ lj*() - li*(rhatij.cross(omegai));
         const auto vn = vij.dot(rhatij);
         const auto vt = vij - vn*rhatij;
 
         // effective quantities
         const auto mij = (mi*mj)/(mi+mj);
+        
+        // moments of interia
+        const auto Ii = momentOfInteria(mi,Ri);
+        const auto Ij = momentOfInteria(mj,Rj);
 
         // normal force w/ Herzian spring constant
         const auto normalDampingConstant = std::sqrt(mij*dampingConstTerms);
 
         // normal force
         const auto f = mNormalSpringConstant*delta - normalDampingConstant*vn;
+        //const auto M = 
+
         DvDti += f/mi*rhatij;
         DvDtj -= f/mj*rhatij;
+
+        //DomegaDti += M/I;
       }  
     } // loop over pairs
     threadReduceFieldLists<Dimension>(threadStack);
