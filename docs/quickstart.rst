@@ -7,7 +7,7 @@ The following commands can be used to configure and build Spheral on Ubuntu 20.0
 ::
 
   sudo apt update
-  sudp apt upgrade
+  sudo apt upgrade
   sudo apt install build-essential git gfortran mpich autotools-dev autoconf sqlite pkg-config uuid gettext cmake libncurses4-dev libgdbm-dev libffi-dev libssl-dev libexpat-dev libreadline-dev
   mkdir -p SPHERAL && cd SPHERAL
   git clone --recursive -b feature/gitlab-ci https://github.com/llnl/spheral
