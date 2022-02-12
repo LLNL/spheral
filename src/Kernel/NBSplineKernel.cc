@@ -16,11 +16,11 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 double
-NBSplineKernel<Dimension>::kernelValue(double eta, const double Hdet) const {
-  REQUIRE(eta >= 0.0);
+NBSplineKernel<Dimension>::kernelValue(double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-  if (eta >= this->kernelExtent()) {
+  if (etaij >= this->kernelExtent()) {
     return 0.0;
 
   } else {
@@ -32,7 +32,7 @@ NBSplineKernel<Dimension>::kernelValue(double eta, const double Hdet) const {
     double result = 0.0;
     for (int i = 0; i <= k; ++i) {
       result += pow(-1.0, i)*binomialCoefficient(k, i)*
-        oneSidedPowerFunction(eta - i + halfk, k1);
+        oneSidedPowerFunction(etaij - i + halfk, k1);
     }
     result *= this->volumeNormalization()*Hdet/factorial(k1);
     return result;
@@ -44,11 +44,11 @@ NBSplineKernel<Dimension>::kernelValue(double eta, const double Hdet) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 double
-NBSplineKernel<Dimension>::gradValue(double eta, const double Hdet) const {
-  REQUIRE(eta >= 0.0);
+NBSplineKernel<Dimension>::gradValue(double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-  if (eta >= this->kernelExtent()) {
+  if (etaij >= this->kernelExtent()) {
     return 0.0;
 
   } else {
@@ -60,7 +60,7 @@ NBSplineKernel<Dimension>::gradValue(double eta, const double Hdet) const {
     double result = 0.0;
     for (int i = 0; i <= k; ++i) {
       result += pow(-1.0, i)*binomialCoefficient(k, i)*
-        oneSidedPowerFunction(eta - i + halfk, k2);
+        oneSidedPowerFunction(etaij - i + halfk, k2);
     }
     result *= this->volumeNormalization()*Hdet/factorial(k2);
     return result;
@@ -72,11 +72,11 @@ NBSplineKernel<Dimension>::gradValue(double eta, const double Hdet) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 double
-NBSplineKernel<Dimension>::grad2Value(double eta, const double Hdet) const {
-  REQUIRE(eta >= 0.0);
+NBSplineKernel<Dimension>::grad2Value(double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-  if (eta >= this->kernelExtent()) {
+  if (etaij >= this->kernelExtent()) {
     return 0.0;
 
   } else {
@@ -88,7 +88,7 @@ NBSplineKernel<Dimension>::grad2Value(double eta, const double Hdet) const {
     double result = 0.0;
     for (int i = 0; i <= k; ++i) {
       result += pow(-1.0, i)*binomialCoefficient(k, i)*
-        oneSidedPowerFunction(eta - i + halfk, k3);
+        oneSidedPowerFunction(etaij - i + halfk, k3);
     }
     result *= this->volumeNormalization()*Hdet/factorial(k3);
     return result;
