@@ -12,7 +12,6 @@ inline
 Descendant&
 Kernel<Dimension, Descendant>::asDescendant() const {
   return static_cast<Descendant&>(const_cast<Kernel<Dimension, Descendant>&>(*this));
-//   return static_cast<Descendant&>(*this);
 }
 
 //------------------------------------------------------------------------------
@@ -66,39 +65,19 @@ Kernel<Dimension, Descendant>::operator=(const Kernel<Dimension, Descendant>& rh
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::operator()(const typename Dimension::Vector& eta, 
-                                          const typename Dimension::SymTensor& H) const {
-  REQUIRE(valid());
-  return kernelValue(eta.magnitude(), H.Determinant());
-}
-
-template<typename Dimension, typename Descendant>
-inline
-double
-Kernel<Dimension, Descendant>::operator()(const typename Dimension::Vector& eta, 
+Kernel<Dimension, Descendant>::operator()(const double& etaij, 
                                           const typename Dimension::Scalar& Hdet) const {
-  REQUIRE(valid());
-  return kernelValue(eta.magnitude(), Hdet);
+  REQUIRE(etaij >= 0.0);
+  return kernelValue(etaij, Hdet);
 }
 
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::operator()(const double& etaMagnitude, 
-                                          const typename Dimension::SymTensor& H) const {
-  REQUIRE(valid());
-  REQUIRE(etaMagnitude >= 0.0);
-  return kernelValue(etaMagnitude, H.Determinant());
-}
-
-template<typename Dimension, typename Descendant>
-inline
-double
-Kernel<Dimension, Descendant>::operator()(const double& etaMagnitude, 
+Kernel<Dimension, Descendant>::operator()(const typename Dimension::Vector& etaj,
+                                          const typename Dimension::Vector& etai,
                                           const typename Dimension::Scalar& Hdet) const {
-  REQUIRE(valid());
-  REQUIRE(etaMagnitude >= 0.0);
-  return kernelValue(etaMagnitude, Hdet);
+  return kernelValue((etai - etaj).magnitude(), Hdet);
 }
 
 //------------------------------------------------------------------------------
@@ -107,39 +86,19 @@ Kernel<Dimension, Descendant>::operator()(const double& etaMagnitude,
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::grad(const typename Dimension::Vector& eta,
-                                    const typename Dimension::SymTensor& H) const {
-  REQUIRE(valid());
-  return gradValue(eta.magnitude(), H.Determinant());
-}
-
-template<typename Dimension, typename Descendant>
-inline
-double
-Kernel<Dimension, Descendant>::grad(const typename Dimension::Vector& eta,
+Kernel<Dimension, Descendant>::grad(const double& etaij,
                                     const typename Dimension::Scalar& Hdet) const {
-  REQUIRE(valid());
-  return gradValue(eta.magnitude(), Hdet);
+  REQUIRE(etaij >= 0.0);
+  return gradValue(etaij, Hdet);
 }
 
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::grad(const double& etaMagnitude,
-                                    const typename Dimension::SymTensor& H) const {
-  REQUIRE(valid());
-  REQUIRE(etaMagnitude >= 0.0);
-  return gradValue(etaMagnitude, H.Determinant());
-}
-
-template<typename Dimension, typename Descendant>
-inline
-double
-Kernel<Dimension, Descendant>::grad(const double& etaMagnitude,
+Kernel<Dimension, Descendant>::grad(const typename Dimension::Vector& etaj,
+                                    const typename Dimension::Vector& etai,
                                     const typename Dimension::Scalar& Hdet) const {
-  REQUIRE(valid());
-  REQUIRE(etaMagnitude >= 0.0);
-  return gradValue(etaMagnitude, Hdet);
+  return gradValue((etai - etaj).magnitude(), Hdet);
 }
 
 //------------------------------------------------------------------------------
@@ -148,80 +107,19 @@ Kernel<Dimension, Descendant>::grad(const double& etaMagnitude,
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::grad2(const typename Dimension::Vector& eta,
-                                     const typename Dimension::SymTensor& H) const {
-  REQUIRE(valid());
-  return grad2Value(eta.magnitude(), H.Determinant());
-}
-
-template<typename Dimension, typename Descendant>
-inline
-double
-Kernel<Dimension, Descendant>::grad2(const typename Dimension::Vector& eta,
+Kernel<Dimension, Descendant>::grad2(const double& etaij,
                                      const typename Dimension::Scalar& Hdet) const {
-  REQUIRE(valid());
-  return grad2Value(eta.magnitude(), Hdet);
+  REQUIRE(etaij >= 0.0);
+  return grad2Value(etaij, Hdet);
 }
 
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::grad2(const double& etaMagnitude,
-                                     const typename Dimension::SymTensor& H) const {
-  REQUIRE(valid());
-  REQUIRE(etaMagnitude >= 0.0);
-  return grad2Value(etaMagnitude, H.Determinant());
-}
-
-template<typename Dimension, typename Descendant>
-inline
-double
-Kernel<Dimension, Descendant>::grad2(const double& etaMagnitude,
+Kernel<Dimension, Descendant>::grad2(const typename Dimension::Vector& etaj,
+                                     const typename Dimension::Vector& etai,
                                      const typename Dimension::Scalar& Hdet) const {
-  REQUIRE(valid());
-  REQUIRE(etaMagnitude >= 0.0);
-  return grad2Value(etaMagnitude, Hdet);
-}
-
-//------------------------------------------------------------------------------
-// Return the gradient with respect to h value for a given normalized distance.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename Descendant>
-inline
-double
-Kernel<Dimension, Descendant>::gradh(const typename Dimension::Vector& eta,
-                                     const typename Dimension::SymTensor& H) const {
-  REQUIRE(valid());
-  return gradhValue(eta.magnitude(), H.Determinant());
-}
-
-template<typename Dimension, typename Descendant>
-inline
-double
-Kernel<Dimension, Descendant>::gradh(const typename Dimension::Vector& eta,
-                                     const typename Dimension::Scalar& Hdet) const {
-  REQUIRE(valid());
-  return gradhValue(eta.magnitude(), Hdet);
-}
-
-template<typename Dimension, typename Descendant>
-inline
-double
-Kernel<Dimension, Descendant>::gradh(const double& etaMagnitude,
-                                     const typename Dimension::SymTensor& H) const {
-  REQUIRE(valid());
-  REQUIRE(etaMagnitude >= 0.0);
-  return gradhValue(etaMagnitude, H.Determinant());
-}
-
-template<typename Dimension, typename Descendant>
-inline
-double
-Kernel<Dimension, Descendant>::gradh(const double& etaMagnitude,
-                                     const typename Dimension::Scalar& Hdet) const {
-  REQUIRE(valid());
-  REQUIRE(etaMagnitude >= 0.0);
-  return gradhValue(etaMagnitude, Hdet);
+  return grad2Value((etai - etaj).magnitude(), Hdet);
 }
 
 //------------------------------------------------------------------------------
@@ -231,9 +129,8 @@ Kernel<Dimension, Descendant>::gradh(const double& etaMagnitude,
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::kernelValue(double etaMagnitude, const double Hdet) const {
-  REQUIRE(valid());
-  return asDescendant().kernelValue(etaMagnitude, Hdet);
+Kernel<Dimension, Descendant>::kernelValue(double etaij, const double Hdet) const {
+  return asDescendant().kernelValue(etaij, Hdet);
 }
 
 //------------------------------------------------------------------------------
@@ -243,9 +140,8 @@ Kernel<Dimension, Descendant>::kernelValue(double etaMagnitude, const double Hde
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::gradValue(double etaMagnitude, const double Hdet) const {
-  REQUIRE(valid());
-  return asDescendant().gradValue(etaMagnitude, Hdet);
+Kernel<Dimension, Descendant>::gradValue(double etaij, const double Hdet) const {
+  return asDescendant().gradValue(etaij, Hdet);
 }
 
 //------------------------------------------------------------------------------
@@ -255,20 +151,8 @@ Kernel<Dimension, Descendant>::gradValue(double etaMagnitude, const double Hdet)
 template<typename Dimension, typename Descendant>
 inline
 double
-Kernel<Dimension, Descendant>::grad2Value(double etaMagnitude, const double Hdet) const {
-  REQUIRE(valid());
-  return asDescendant().grad2Value(etaMagnitude, Hdet);
-}
-
-//------------------------------------------------------------------------------
-// Compute the gradient with respect to h.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename Descendant>
-inline
-double
-Kernel<Dimension, Descendant>::gradhValue(double etaMagnitude, const double Hdet) const {
-  REQUIRE(valid());
-  return -etaMagnitude * Dimension::rootnu(Hdet) * asDescendant().gradValue(etaMagnitude, Hdet);
+Kernel<Dimension, Descendant>::grad2Value(double etaij, const double Hdet) const {
+  return asDescendant().grad2Value(etaij, Hdet);
 }
 
 //------------------------------------------------------------------------------
@@ -331,16 +215,6 @@ inline
 void
 Kernel<Dimension, Descendant>::setInflectionPoint(double x) {
   mInflectionPoint = x;
-}
-
-//------------------------------------------------------------------------------
-// Test if the kernel is valid.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename Descendant>
-inline
-bool
-Kernel<Dimension, Descendant>::valid() const {
-  return (volumeNormalization() > 0.0 && kernelExtent() > 0.0);
 }
 
 }

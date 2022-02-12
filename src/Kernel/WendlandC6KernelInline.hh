@@ -46,17 +46,17 @@ WendlandC6Kernel<Dimension>::~WendlandC6Kernel() {
 template<typename Dimension>
 inline
 double
-WendlandC6Kernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+WendlandC6Kernel<Dimension>::kernelValue(double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-    double eta2 = etaMagnitude*etaMagnitude;
+    double eta2 = etaij*etaij;
     if(Dimension::nDim == 1)
-      return this->volumeNormalization()*Hdet*(pow(1.0-etaMagnitude,7)*
-                                             (1.0+7.0*etaMagnitude+19.0*eta2+21.0*etaMagnitude*eta2))*(etaMagnitude < 1.0);
+      return this->volumeNormalization()*Hdet*(pow(1.0-etaij,7)*
+                                             (1.0+7.0*etaij+19.0*eta2+21.0*etaij*eta2))*(etaij < 1.0);
     else
-      return this->volumeNormalization()*Hdet*(pow(1.0-etaMagnitude,8)*
-                                             (1.0+8.0*etaMagnitude+25.0*eta2+32.0*etaMagnitude*eta2))*(etaMagnitude < 1.0);
+      return this->volumeNormalization()*Hdet*(pow(1.0-etaij,8)*
+                                             (1.0+8.0*etaij+25.0*eta2+32.0*etaij*eta2))*(etaij < 1.0);
 
 }
 
@@ -66,17 +66,17 @@ WendlandC6Kernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet)
 template<typename Dimension>
 inline
 double
-WendlandC6Kernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+WendlandC6Kernel<Dimension>::gradValue(double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-    double eta2 = etaMagnitude*etaMagnitude;
+    double eta2 = etaij*etaij;
     if(Dimension::nDim == 1)
-      return this->volumeNormalization()*Hdet*(-6.0*pow(1.0-etaMagnitude,6)*etaMagnitude*
-                                             (3.0+18.0*etaMagnitude+35.0*eta2))*(etaMagnitude < 1.0);
+      return this->volumeNormalization()*Hdet*(-6.0*pow(1.0-etaij,6)*etaij*
+                                             (3.0+18.0*etaij+35.0*eta2))*(etaij < 1.0);
     else
-      return  this->volumeNormalization()*Hdet*(22.0*pow(etaMagnitude-1.0,7)*
-                                              etaMagnitude*(16.0*eta2+7.0*etaMagnitude+1.0))*(etaMagnitude < 1.0);
+      return  this->volumeNormalization()*Hdet*(22.0*pow(etaij-1.0,7)*
+                                              etaij*(16.0*eta2+7.0*etaij+1.0))*(etaij < 1.0);
 
 
 }
@@ -87,18 +87,18 @@ WendlandC6Kernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) c
 template<typename Dimension>
 inline
 double
-WendlandC6Kernel<Dimension>::grad2Value(double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+WendlandC6Kernel<Dimension>::grad2Value(double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
 
-    const double eta2 = etaMagnitude*etaMagnitude;
+    const double eta2 = etaij*etaij;
     if(Dimension::nDim == 1)
-      return this->volumeNormalization()*Hdet*(-18.0*pow(etaMagnitude-1.0,5)*
-                                             (105.0*eta2*etaMagnitude+13.0*eta2-5.0*etaMagnitude-1.0))*(etaMagnitude < 1.0);
+      return this->volumeNormalization()*Hdet*(-18.0*pow(etaij-1.0,5)*
+                                             (105.0*eta2*etaij+13.0*eta2-5.0*etaij-1.0))*(etaij < 1.0);
     else
-      return this->volumeNormalization()*Hdet*(22.0*pow(etaMagnitude-1.0,6)*
-                                               (160.0*eta2*etaMagnitude+15.0*eta2-6.0*etaMagnitude-1.0))*(etaMagnitude < 1.0);
+      return this->volumeNormalization()*Hdet*(22.0*pow(etaij-1.0,6)*
+                                               (160.0*eta2*etaij+15.0*eta2-6.0*etaij-1.0))*(etaij < 1.0);
 
 }
 

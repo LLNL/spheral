@@ -42,19 +42,19 @@ public:
   // void augment(const KernelType& kernel);
 
   // Return the kernel weight for a given normalized distance or position.
-  double kernelValue(const double etaMagnitude, const double Hdet) const;
+  double kernelValue(const double etaij, const double Hdet) const;
 
   // Return the gradient value for a given normalized distance or position.
-  double gradValue(const double etaMagnitude, const double Hdet) const;
+  double gradValue(const double etaij, const double Hdet) const;
 
   // Return the second derivative value for a given normalized distance or position.
-  double grad2Value(const double etaMagnitude, const double Hdet) const;
+  double grad2Value(const double etaij, const double Hdet) const;
 
   // Simultaneously return the kernel value and first derivative.
-  std::pair<double, double> kernelAndGradValue(const double etaMagnitude, const double Hdet) const;
+  std::pair<double, double> kernelAndGradValue(const double etaij, const double Hdet) const;
 
   // Look up the kernel and first derivative for a set.
-  void kernelAndGradValues(const std::vector<double>& etaMagnitudes,
+  void kernelAndGradValues(const std::vector<double>& etaijs,
                            const std::vector<double>& Hdets,
                            std::vector<double>& kernelValues,
                            std::vector<double>& gradValues) const;
@@ -68,11 +68,11 @@ public:
 
   // Look up the f1 and f2 RZ corrections.
   // Note these methods are only supported for 2D kernels -- other dimensions throw an error.
-  double f1(const double etaMagnitude) const;
-  double f2(const double etaMagnitude) const;
-  double gradf1(const double etaMagnitude) const;
-  double gradf2(const double etaMagnitude) const;
-  void f1Andf2(const double etaMagnitude,
+  double f1(const double etaij) const;
+  double f2(const double etaij) const;
+  double gradf1(const double etaij) const;
+  double gradf2(const double etaij) const;
+  void f1Andf2(const double etaij,
                double& f1,
                double& f2,
                double& gradf1,
@@ -84,9 +84,6 @@ public:
 
   // Number of points in our lookup data
   size_t numPoints() const;
-
-  // Test if the kernel is currently valid.
-  virtual bool valid() const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

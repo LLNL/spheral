@@ -447,15 +447,4 @@ setNperhValues(const bool scaleTo1D) {
 
 }
 
-//------------------------------------------------------------------------------
-// Determine if the kernel is in a valid, ready to use state.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-bool
-TableKernel<Dimension>::
-valid() const {
-  return (Kernel<Dimension, TableKernel<Dimension>>::valid() and
-          mNumPoints > 0);
-}
-
 }

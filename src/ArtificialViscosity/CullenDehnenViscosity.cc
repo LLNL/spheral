@@ -415,8 +415,8 @@ finalizeDerivatives(const Scalar /*time*/,
 
               // Symmetrized kernel weight and gradient.
               const Vector rij = ri - rj;
-              const Scalar Wi = W(Hi*rij, Hdeti);
-              const Scalar Wj = W(Hj*rij, Hdetj);
+              const Scalar Wi = W((Hi*rij).magnitude(), Hdeti);
+              const Scalar Wj = W((Hj*rij).magnitude(), Hdetj);
 
               // Compute R.
               Ri += sgn(divvj)*mj*Wi;

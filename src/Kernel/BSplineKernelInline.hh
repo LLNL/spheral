@@ -46,15 +46,15 @@ BSplineKernel<Dimension>::~BSplineKernel() {
 template<typename Dimension>
 inline
 double
-BSplineKernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+BSplineKernel<Dimension>::kernelValue(double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-  if (etaMagnitude < 1.0) {
-    double eta2 = etaMagnitude*etaMagnitude;
-    return this->volumeNormalization()*Hdet*(1.0 - 1.5*eta2 + 0.75*eta2*etaMagnitude);
-  } else if (etaMagnitude < 2.0) {
-    return this->volumeNormalization()*Hdet*0.25*FastMath::pow3(2.0 - etaMagnitude);
+  if (etaij < 1.0) {
+    double eta2 = etaij*etaij;
+    return this->volumeNormalization()*Hdet*(1.0 - 1.5*eta2 + 0.75*eta2*etaij);
+  } else if (etaij < 2.0) {
+    return this->volumeNormalization()*Hdet*0.25*FastMath::pow3(2.0 - etaij);
   } else {
     return 0.0;
   }
@@ -66,14 +66,14 @@ BSplineKernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet) co
 template<typename Dimension>
 inline
 double
-BSplineKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+BSplineKernel<Dimension>::gradValue(double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-  if (etaMagnitude < 1.0) {
-    return  -this->volumeNormalization()*Hdet*(3.0 - 2.25*etaMagnitude)*etaMagnitude;
-  } else if (etaMagnitude < 2.0) {
-    return -this->volumeNormalization()*Hdet*0.75*FastMath::pow2(2.0 - etaMagnitude);
+  if (etaij < 1.0) {
+    return  -this->volumeNormalization()*Hdet*(3.0 - 2.25*etaij)*etaij;
+  } else if (etaij < 2.0) {
+    return -this->volumeNormalization()*Hdet*0.75*FastMath::pow2(2.0 - etaij);
   } else {
     return 0.0;
   }
@@ -85,14 +85,14 @@ BSplineKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) cons
 template<typename Dimension>
 inline
 double
-BSplineKernel<Dimension>::grad2Value(double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+BSplineKernel<Dimension>::grad2Value(double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
-  if (etaMagnitude < 1.0) {
-    return  -this->volumeNormalization()*Hdet*(3 - 4.5*etaMagnitude);
-  } else if (etaMagnitude < 2.0) {
-    return this->volumeNormalization()*Hdet*1.5*(2 - etaMagnitude);
+  if (etaij < 1.0) {
+    return  -this->volumeNormalization()*Hdet*(3 - 4.5*etaij);
+  } else if (etaij < 2.0) {
+    return this->volumeNormalization()*Hdet*1.5*(2 - etaij);
   } else {
     return 0.0;
   }

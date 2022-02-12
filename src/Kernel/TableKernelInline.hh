@@ -10,11 +10,11 @@ namespace Spheral {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::kernelValue(const double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+TableKernel<Dimension>::kernelValue(const double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
-  if (etaMagnitude < this->mKernelExtent) {
-    return Hdet*mInterp(etaMagnitude);
+  if (etaij < this->mKernelExtent) {
+    return Hdet*mInterp(etaij);
   } else {
     return 0.0;
   }
@@ -26,11 +26,11 @@ TableKernel<Dimension>::kernelValue(const double etaMagnitude, const double Hdet
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::gradValue(const double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+TableKernel<Dimension>::gradValue(const double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
-  if (etaMagnitude < this->mKernelExtent) {
-    return Hdet*mGradInterp(etaMagnitude);
+  if (etaij < this->mKernelExtent) {
+    return Hdet*mGradInterp(etaij);
   } else {
     return 0.0;
   }
@@ -42,11 +42,11 @@ TableKernel<Dimension>::gradValue(const double etaMagnitude, const double Hdet) 
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::grad2Value(const double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+TableKernel<Dimension>::grad2Value(const double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
-  if (etaMagnitude < this->mKernelExtent) {
-    return Hdet*mGrad2Interp(etaMagnitude);
+  if (etaij < this->mKernelExtent) {
+    return Hdet*mGrad2Interp(etaij);
   } else {
     return 0.0;
   }
@@ -58,13 +58,13 @@ TableKernel<Dimension>::grad2Value(const double etaMagnitude, const double Hdet)
 template<typename Dimension>
 inline
 std::pair<double, double>
-TableKernel<Dimension>::kernelAndGradValue(const double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+TableKernel<Dimension>::kernelAndGradValue(const double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
-  if (etaMagnitude < this->mKernelExtent) {
-    const auto i0 = mInterp.lowerBound(etaMagnitude);
-    return std::make_pair(Hdet*mInterp(etaMagnitude, i0),
-                          Hdet*mGradInterp(etaMagnitude, i0));
+  if (etaij < this->mKernelExtent) {
+    const auto i0 = mInterp.lowerBound(etaij);
+    return std::make_pair(Hdet*mInterp(etaij, i0),
+                          Hdet*mGradInterp(etaij, i0));
   } else {
     return std::make_pair(0.0, 0.0);
   }
@@ -76,17 +76,17 @@ TableKernel<Dimension>::kernelAndGradValue(const double etaMagnitude, const doub
 template<typename Dimension>
 inline
 void
-TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaMagnitudes,
+TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaijs,
                                             const std::vector<double>& Hdets,
                                             std::vector<double>& kernelValues,
                                             std::vector<double>& gradValues) const {
   // Preconditions.
-  const auto n = etaMagnitudes.size();
+  const auto n = etaijs.size();
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(Hdets.size() == n);
     for (auto i = 0u; i < n; ++i) {
-      REQUIRE(etaMagnitudes[i] >= 0.0);
+      REQUIRE(etaijs[i] >= 0.0);
       REQUIRE(Hdets[i] >= 0.0);
     }
   }
@@ -98,9 +98,9 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaMagnit
 
   // Fill those suckers in.
   for (auto i = 0u; i < n; ++i) {
-    const auto i0 = mInterp.lowerBound(etaMagnitudes[i]);
-    kernelValues[i] = Hdets[i]*mInterp(etaMagnitudes[i], i0);
-    gradValues[i] = Hdets[i]*mGradInterp(etaMagnitudes[i], i0);
+    const auto i0 = mInterp.lowerBound(etaijs[i]);
+    kernelValues[i] = Hdets[i]*mInterp(etaijs[i], i0);
+    gradValues[i] = Hdets[i]*mGradInterp(etaijs[i], i0);
   }
 }
 
@@ -110,17 +110,17 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaMagnit
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::f1(const double /*etaMagnitude*/) const {
+TableKernel<Dimension>::f1(const double /*etaij*/) const {
   VERIFY2(false, "TableKernel::f1 lookup only valid for 2D kernels.");
 }
 
 template<>
 inline
 double
-TableKernel<Dim<2> >::f1(const double etaMagnitude) const {
-  REQUIRE(etaMagnitude >= 0.0);
-  if (etaMagnitude < this->mKernelExtent) {
-    return mf1Interp(etaMagnitude);
+TableKernel<Dim<2> >::f1(const double etaij) const {
+  REQUIRE(etaij >= 0.0);
+  if (etaij < this->mKernelExtent) {
+    return mf1Interp(etaij);
   } else {
     return 1.0;
   }
@@ -132,16 +132,16 @@ TableKernel<Dim<2> >::f1(const double etaMagnitude) const {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::f2(const double /*etaMagnitude*/) const {
+TableKernel<Dimension>::f2(const double /*etaij*/) const {
   VERIFY2(false, "TableKernel::f2 lookup only valid for 2D kernels.");
 }
 
 template<>
 inline
 double
-TableKernel<Dim<2> >::f2(const double etaMagnitude) const {
-  REQUIRE(etaMagnitude >= 0.0);
-  return mf2Interp(etaMagnitude);
+TableKernel<Dim<2> >::f2(const double etaij) const {
+  REQUIRE(etaij >= 0.0);
+  return mf2Interp(etaij);
 }
 
 //------------------------------------------------------------------------------
@@ -150,16 +150,16 @@ TableKernel<Dim<2> >::f2(const double etaMagnitude) const {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::gradf1(const double /*etaMagnitude*/) const {
+TableKernel<Dimension>::gradf1(const double /*etaij*/) const {
   VERIFY2(false, "TableKernel::gradf1 lookup only valid for 2D kernels.");
 }
 
 template<>
 inline
 double
-TableKernel<Dim<2> >::gradf1(const double etaMagnitude) const {
-  REQUIRE(etaMagnitude >= 0.0);
-  return mf1Interp.prime(etaMagnitude);
+TableKernel<Dim<2> >::gradf1(const double etaij) const {
+  REQUIRE(etaij >= 0.0);
+  return mf1Interp.prime(etaij);
 }
 
 //------------------------------------------------------------------------------
@@ -168,16 +168,16 @@ TableKernel<Dim<2> >::gradf1(const double etaMagnitude) const {
 template<typename Dimension>
 inline
 double
-TableKernel<Dimension>::gradf2(const double /*etaMagnitude*/) const {
+TableKernel<Dimension>::gradf2(const double /*etaij*/) const {
   VERIFY2(false, "TableKernel::gradf2 lookup only valid for 2D kernels.");
 }
 
 template<>
 inline
 double
-TableKernel<Dim<2> >::gradf2(const double etaMagnitude) const {
-  REQUIRE(etaMagnitude >= 0.0);
-  return mf2Interp.prime(etaMagnitude);
+TableKernel<Dim<2> >::gradf2(const double etaij) const {
+  REQUIRE(etaij >= 0.0);
+  return mf2Interp.prime(etaij);
 }
 
 //------------------------------------------------------------------------------
@@ -186,7 +186,7 @@ TableKernel<Dim<2> >::gradf2(const double etaMagnitude) const {
 template<typename Dimension>
 inline
 void
-TableKernel<Dimension>::f1Andf2(const double /*etaMagnitude*/,
+TableKernel<Dimension>::f1Andf2(const double /*etaij*/,
                                 double& /*f1*/,
                                 double& /*f2*/,
                                 double& /*gradf1*/,
@@ -197,17 +197,17 @@ TableKernel<Dimension>::f1Andf2(const double /*etaMagnitude*/,
 template<>
 inline
 void
-TableKernel<Dim<2> >::f1Andf2(const double etaMagnitude,
+TableKernel<Dim<2> >::f1Andf2(const double etaij,
                               double& f1,
                               double& f2,
                               double& gradf1,
                               double& gradf2) const {
-  REQUIRE(etaMagnitude >= 0.0);
-  if (etaMagnitude < this->mKernelExtent) {
-    f1 = mf1Interp(etaMagnitude);
-    f2 = mf2Interp(etaMagnitude);
-    gradf1 = mf1Interp.prime(etaMagnitude);
-    gradf2 = mf2Interp.prime(etaMagnitude);
+  REQUIRE(etaij >= 0.0);
+  if (etaij < this->mKernelExtent) {
+    f1 = mf1Interp(etaij);
+    f2 = mf2Interp(etaij);
+    gradf1 = mf1Interp.prime(etaij);
+    gradf2 = mf2Interp.prime(etaij);
   } else {
     f1 = 1.0;
     f2 = 1.0;

@@ -11,7 +11,6 @@
 #ifndef __Spheral_SphericalTableKernel_hh__
 #define __Spheral_SphericalTableKernel_hh__
 
-#include "Kernel.hh"
 #include "TableKernel.hh"
 #include "Utilities/BiQuadraticInterpolator.hh"
 #include "Geometry/Dimension.hh"
@@ -50,22 +49,10 @@ public:
   Vector grad(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
   std::pair<double, Vector> kernelAndGradValue(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
 
-  // Return the kernel weight for a given normalized distance or position.
-  double kernelValue(const double etaMagnitude, const double Hdet) const;
-
-  // Return the gradient value for a given normalized distance or position.
-  double gradValue(const double etaMagnitude, const double Hdet) const;
-
-  // Return the second derivative value for a given normalized distance or position.
-  double grad2Value(const double etaMagnitude, const double Hdet) const;
-
   // Access our internal data.
   const InterpolatorType& Winterpolator() const;
   const TableKernel<Dim<3>>& kernel() const;
   Scalar etamax() const;
-
-  // Test if the kernel is currently valid.
-  virtual bool valid() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//

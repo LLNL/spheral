@@ -259,8 +259,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                             //const Scalar deltaPij   = min(fabs(Pij),fabs(Pij+DPij)); 
                             const Scalar deltaPij   = abs(Pij);
                             const Scalar vsigij     = sqrt(deltaPij/rhoij);
-                            const Vector gradWij    = 0.5*(Hi*etaiNorm*W.grad(etai, Hi) +
-                                                           Hj*etajNorm*W.grad(etaj, Hj));
+                            const Vector gradWij    = 0.5*(Hi*etaiNorm*W.grad(etai.magnitude(), Hi.Determinant()) +
+                                                           Hj*etajNorm*W.grad(etaj.magnitude(), Hj.Determinant()));
 
                             // store max vsig back to i and j
                             vsigi = max(vsigi,vsigij);

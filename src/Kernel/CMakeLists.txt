@@ -32,8 +32,6 @@ set(Kernel_headers
     ExpInvKernelInline.hh
     GaussianKernel.hh
     GaussianKernelInline.hh
-    HKernel.hh
-    HKernelInline.hh
     HatKernel.hh
     HatKernelInline.hh
     Kernel.hh

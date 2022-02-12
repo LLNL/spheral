@@ -89,12 +89,4 @@ SphericalTableKernel::operator=(const SphericalTableKernel& rhs) {
   return *this;
 }
 
-//------------------------------------------------------------------------------
-// Assignment
-//------------------------------------------------------------------------------
-bool
-SphericalTableKernel::valid() const {
-  return true;
-}
-
 }

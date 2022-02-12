@@ -92,12 +92,12 @@ PiGaussianKernel<Dimension>::~PiGaussianKernel() {
 template<typename Dimension>
 inline
 double
-PiGaussianKernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+PiGaussianKernel<Dimension>::kernelValue(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
   CHECK(mK > 0.0);
   CHECK(mKV > 0.0);
-  return this->volumeNormalization()*mKV*Hdet*exp(-mK*pow(etaMagnitude, 4));
+  return this->volumeNormalization()*mKV*Hdet*exp(-mK*pow(etaij, 4));
 }
 
 //------------------------------------------------------------------------------
@@ -106,12 +106,12 @@ PiGaussianKernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet)
 template<typename Dimension>
 inline
 double
-PiGaussianKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+PiGaussianKernel<Dimension>::gradValue(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
   CHECK(mK > 0.0);
   CHECK(mKV > 0.0);
-  return -4.0*mK*pow(etaMagnitude, 3)*kernelValue(etaMagnitude, Hdet);
+  return -4.0*mK*pow(etaij, 3)*kernelValue(etaij, Hdet);
 }
 
 //------------------------------------------------------------------------------
@@ -120,13 +120,13 @@ PiGaussianKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) c
 template<typename Dimension>
 inline
 double
-PiGaussianKernel<Dimension>::grad2Value(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+PiGaussianKernel<Dimension>::grad2Value(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
   CHECK(mK > 0.0);
   CHECK(mKV > 0.0);
-  return 4.0*mK*etaMagnitude*etaMagnitude*(4.0*mK*pow(etaMagnitude, 4) - 3.0)*
-    kernelValue(etaMagnitude, Hdet);
+  return 4.0*mK*etaij*etaij*(4.0*mK*pow(etaij, 4) - 3.0)*
+    kernelValue(etaij, Hdet);
 }
 
 //------------------------------------------------------------------------------

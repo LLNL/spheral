@@ -30,34 +30,20 @@ public:
   Kernel& operator=(const Kernel& rhs);
 
   //======================================================================
-  // Return the kernel weight for a given normalized distance or position.
-  double operator()(const Vector& eta, const SymTensor& H) const;
-  double operator()(const Vector& eta, const Scalar& Hdet) const;
-  double operator()(const double& etaMagnitude, const SymTensor& H) const;
-  double operator()(const double& etaMagnitude, const Scalar& Hdet) const;
+  // Return the kernel weight
+  double operator()(const double& etaij, const Scalar& Hdet) const;
+  double operator()(const Vector& etaj, const Vector& etai, const Scalar& Hdet) const;
 
   //======================================================================
   // Return the gradient value for a given normalized distance or position.
-  double grad(const Vector& eta, const SymTensor& H) const;
-  double grad(const Vector& eta, const Scalar& Hdet) const;
-  double grad(const double& etaMagnitude, const SymTensor& H) const;
-  double grad(const double& etaMagnitude, const Scalar& Hdet) const;
+  double grad(const double& etaij, const Scalar& Hdet) const;
+  double grad(const Vector& etaj, const Vector& etai, const Scalar& Hdet) const;
 
   //======================================================================
   // Return the second derivative of the kernel for a given normalized distance
   //  or position.
-  double grad2(const Vector& eta, const SymTensor& H) const;
-  double grad2(const Vector& eta, const Scalar& Hdet) const;
-  double grad2(const double& etaMagnitude, const SymTensor& H) const;
-  double grad2(const double& etaMagnitude, const Scalar& Hdet) const;
-
-  //======================================================================
-  // Return the gradient with respect to h for a given normalized distance
-  // or position.
-  double gradh(const Vector& eta, const SymTensor& H) const;
-  double gradh(const Vector& eta, const Scalar& Hdet) const;
-  double gradh(const double& etaMagnitude, const SymTensor& H) const;
-  double gradh(const double& etaMagnitude, const Scalar& Hdet) const;
+  double grad2(const double& etaij, const Scalar& Hdet) const;
+  double grad2(const Vector& etaj, const Vector& etai, const Scalar& Hdet) const;
 
   //======================================================================
   // Get the volume normalization constant.
@@ -75,16 +61,9 @@ public:
   // All Kernels are required to define the "kernelValue", "gradValue",
   // and "grad2Value" methods, with the same call signatures 
   // as these functions.
-  double kernelValue(double etaMagnitude, const double Hdet) const;
-  double gradValue(double etaMagnitude, const double Hdet) const;
-  double grad2Value(double etaMagnitude, const double Hdet) const;
-
-  // Compute the gradient with respect to h, which we can do in terms of
-  // the already provided gradient method.
-  double gradhValue(double etaMagnitude, const double Hdet) const;
-
-  // Test if the Kernel is in a valid state.
-  virtual bool valid() const;
+  double kernelValue(double etaij, const double Hdet) const;
+  double gradValue(double etaij, const double Hdet) const;
+  double grad2Value(double etaij, const double Hdet) const;
 
 protected:
   //--------------------------- Protected Interface ---------------------------//

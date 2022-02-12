@@ -73,27 +73,6 @@ SphericalTableKernel::kernelAndGradValue(const Dim<1>::Vector& etaj,
 }
 
 //------------------------------------------------------------------------------
-// kernelValue, gradValue, grad2Value -- pass through to the base TableKernel
-//------------------------------------------------------------------------------
-inline
-double 
-SphericalTableKernel::kernelValue(const double etaMagnitude, const double Hdet) const {
-  return mKernel.kernelValue(etaMagnitude, Hdet);
-}
-
-inline
-double 
-SphericalTableKernel::gradValue(const double etaMagnitude, const double Hdet) const {
-  return mKernel.gradValue(etaMagnitude, Hdet);
-}
-
-inline
-typename Dim<1>::Scalar
-SphericalTableKernel::grad2Value(const double etaMagnitude, const double Hdet) const {
-  return mKernel.grad2Value(etaMagnitude, Hdet);
-}
-
-//------------------------------------------------------------------------------
 // Data accessors
 //------------------------------------------------------------------------------
 inline
