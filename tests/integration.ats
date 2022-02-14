@@ -67,7 +67,7 @@ source("unit/Mesh/testLineMesh.py")
 # source("unit/Mesh/testPolyhedralMesh.py")  # Suspended until we fix the polytope with Spheral issues.
 
 # MPI python interface unit tests
-source("unit/PythonMPIInterfaces/testMPI4PYasPYMPI.py")
+source("unit/Distributed/testMPI4PYasPYMPI.py")
 
 # C++ unit tests.
 source("functional/CXXTests/test_r3d_utils.py")

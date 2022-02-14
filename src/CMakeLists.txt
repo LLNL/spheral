@@ -45,15 +45,8 @@ list(APPEND _packages
 
 if(NOT ENABLE_CXXONLY)
   list(APPEND _packages 
-    PythonMPIInterfaces
     SimulationControl
     Pybind11Wraps
-    )
-endif()
-
-if(NOT ENABLE_MPI)
-  list(REMOVE_ITEM _packages
-    Distributed
     )
 endif()
 
@@ -65,6 +58,5 @@ include_directories(${extra_packages_DIR})
 foreach(e_package ${extra_packages})
   add_subdirectory(${extra_packages_DIR}/${e_package} ${CMAKE_CURRENT_BINARY_DIR}/${e_package})
 endforeach()
-
 
 install(EXPORT ${PROJECT_NAME}-targets DESTINATION Spheral/lib/cmake)

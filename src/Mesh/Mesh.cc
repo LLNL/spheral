@@ -746,7 +746,7 @@ generateDomainInfo() {
   // Hash the node positions.  We want these sorted by key as well
   // to make testing if a key is present fast.
   vector<Key> nodeHashes;
-  unordered_map<Key, unsigned> key2nodeID;
+  boost::unordered_map<Key, unsigned> key2nodeID;
   nodeHashes.reserve(numNodes());
   for (unsigned i = 0; i != numNodes(); ++i) {
     nodeHashes.push_back(hashPosition(mNodePositions[i], xmin, xmax, boxInv));
@@ -845,7 +845,7 @@ generateDomainInfo() {
 
   // Determine which process owns each shared node.  We use the convention that the process
   // with the lowest rank wins.
-  unordered_map<unsigned, unsigned> nodeOwner;
+  boost::unordered_map<unsigned, unsigned> nodeOwner;
   for (unsigned k = 0; k != mNeighborDomains.size(); ++k) {
     for (unsigned j = 0; j != mSharedNodes[k].size(); ++j) {
       CHECK(k < mSharedNodes.size() and j < mSharedNodes[k].size());
