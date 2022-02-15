@@ -8,6 +8,8 @@
 
 #include "FileIO.hh"
 
+#include <vector>
+
 namespace Spheral
 {
 
@@ -145,15 +147,15 @@ public:
   // We have to forward the templated write/read methods to the base class due to
   // function hiding.
   // Write/read a vector<Value> if Value is a primitive we already know about.
-  // template<typename Value> void write(const std::vector<Value>& x, const std::string pathName) { SidreFileIO::write(x, pathName); }//std::cout << "This does what I expect write.\n"; }
-  // template<typename Value> void read(std::vector<Value>& x, const std::string pathName) const { SidreFileIO::read(x, pathName); }//std::cout << "This does what I expect read.\n"; }
+  // template<typename Value> void write(const std::vector<Value>& x, const std::string pathName) { FileIO::write(x, pathName); }//std::cout << "This does what I expect write.\n"; }
+  // template<typename Value> void read(std::vector<Value>& x, const std::string pathName) const { FileIO::read(x, pathName); }//std::cout << "This does what I expect read.\n"; }
 
   // // void write(const std::vector<Dim<1>::Tensor>& x, const std::string pathName) { std::cout << "This does what I expect write.\n"; }
 
 
   // template<typename Value> void write(const Field<Dim<1>, Value>& x, const std::string pathName) { FileIO::write(x, pathName); }
   // template<typename Value> void write(const FieldList<Dim<1>, Value>& x, const std::string pathName) { FileIO::write(x, pathName); }
-  // template<typename Value> void read(Field<Dim<1>, Value>& x, const std::string pathName) { FileIO::read(x, pathName); }
+  // template<typename Value> void read(Field<Dim<1>, Value>& x, const std::string pathName) const { FileIO::read(x, pathName); }
   // template<typename Value> void read(FieldList<Dim<1>, Value>& x, const std::string pathName) { FileIO::read(x, pathName); }
 
   // template<typename Value> void write(const Field<Dim<2>, Value>& x, const std::string pathName) { FileIO::write(x, pathName); }
