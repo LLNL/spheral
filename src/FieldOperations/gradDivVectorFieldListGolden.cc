@@ -59,7 +59,7 @@ gradDivVectorFieldListGolden
   }
 
   // Remember the square of the kernel extent.
-  const Scalar cutoff = kernel.kernelExtent();
+  const Scalar cutoff2 = FastMath::pow2(kernel.kernelExtent());
 
   // Loop over all the elements in the input FieldList.
   for (InternalNodeIterator<Dimension> nodeItr = fieldList.internalNodeBegin();
@@ -124,8 +124,8 @@ gradDivVectorFieldListGolden
             const Scalar etaiMag = etai.magnitude();
             const Scalar etajMag = etai.magnitude();
 
-            if (etai.magnitude2() < cutoff ||
-                etaj.magnitude2() < cutoff) {
+            if (etai.magnitude2() < cutoff2 ||
+                etaj.magnitude2() < cutoff2) {
               const Vector etaiNorm = etai.unitVector();
               const Vector etajNorm = etaj.unitVector();
               const Vector Hetai = Hi*etaiNorm;
