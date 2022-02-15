@@ -454,7 +454,7 @@ newDEMFieldList(const DataType value,
     result.appendNewField(name, **nodeListItr, value);
   }
 
-  ENSURE(result.numFields() == numDEMNodeLists());
+  ENSURE((int)result.numFields() == numDEMNodeLists());
   return result;
 }
 
@@ -554,7 +554,7 @@ resizeDEMFieldList(FieldList<Dimension, DataType>& fieldList,
   VERIFY((fieldList.storageType() == FieldStorageType::CopyFields));
 
   // First check if it's necessary to resize the FieldList.
-  bool reinitialize = fieldList.numFields() != numDEMNodeLists();
+  bool reinitialize = (int)fieldList.numFields() != numDEMNodeLists();
   ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
   typename FieldList<Dimension, DataType>::const_iterator itr = fieldList.begin();
   while (!reinitialize && 
@@ -574,7 +574,7 @@ resizeDEMFieldList(FieldList<Dimension, DataType>& fieldList,
     fieldList = value;
   }
 
-  ENSURE(fieldList.numFields() == numDEMNodeLists());
+  ENSURE((int)fieldList.numFields() == numDEMNodeLists());
 }
 
 
