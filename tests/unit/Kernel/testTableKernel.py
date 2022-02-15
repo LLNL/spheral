@@ -36,11 +36,25 @@ class TestTableKernel(unittest.TestCase):
         return
 
     #===========================================================================
+    # kernelExtent
+    #===========================================================================
+    def testWextent(self):
+        for W, WT in self.kernelPairs:
+            assert W.kernelExtent == WT.kernelExtent
+
+    #===========================================================================
+    # inflectionPoint
+    #===========================================================================
+    def testWinflectionPoint(self):
+        for W, WT in self.kernelPairs:
+            assert W.inflectionPoint == WT.inflectionPoint
+
+    #===========================================================================
     # Check that the table kernel accurately reflects the real kernels values.
     #===========================================================================
     def testWlookup(self):
         for W, WT in self.kernelPairs:
-            deta = W.kernelExtent()/(self.nsamples - 1)
+            deta = W.kernelExtent/(self.nsamples - 1)
             for i in xrange(self.nsamples):
                 eta = i*deta
                 self.failUnless(fuzzyEqual(WT.kernelValue(eta, 1.0),
@@ -61,14 +75,14 @@ class TestTableKernel(unittest.TestCase):
     #===========================================================================
     def testMonotonicity(self):
         for W in self.tableKernels:
-            nperh = W.nperh()
-            Wsum = W.Wsum()
+            nperh = W.nperhValues
+            Wsum = W.WsumValues
             assert len(nperh) == len(Wsum)
             for i in xrange(len(nperh) - 1):
                 self.failUnless(nperh[i] < nperh[i + 1],
                                 "Failed monotonicity test in nperh table: %f %f" %
                                 (nperh[i], nperh[i + 1]))
-                self.failUnless(Wsum[i] < Wsum[i + 1],
+                self.failUnless(Wsum[i] <= Wsum[i + 1],
                                 "Failed monotonicity test in Wsum table: %f %f" %
                                 (Wsum[i], Wsum[i + 1]))
         return
@@ -78,25 +92,24 @@ class TestTableKernel(unittest.TestCase):
     #===========================================================================
     def testWsumValues1d(self):
         W = self.WT1
-        assert len(W.nperh()) == len(W.Wsum())
-        for nperh, Wsum in zip(W.nperh(), W.Wsum()):
-            deta = 1.0/nperh
-            nx = int(W.kernelExtent()*nperh) + 1
-            testSum = 0.0
-            for ix in xrange(nx):
-                eta = ix*deta
-                delta = W.kernelValue(eta, 1.0)
-                if ix > 0:
-                    delta *= 2.0
-                testSum += delta
-            self.failUnless(fuzzyEqual(Wsum, testSum, self.Wsumtol),
-                            "Wsum failure: %g != %g: " %
-                            (Wsum, testSum))
-            self.failUnless(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
-                                       nperh,
-                                       self.Wsumtol),
-                            "Lookup n per h failure: %g %g %g" %
-                            (testSum, W.equivalentNodesPerSmoothingScale(testSum), nperh))
+        assert len(W.nperhValues) == len(W.WsumValues)
+        for nperh, Wsum in zip(W.nperhValues, W.WsumValues):
+            if Wsum > 0.0:
+                deta = 1.0/nperh
+                etax = deta
+                testSum = 0.0
+                while etax < W.kernelExtent:
+                    delta = 2.0*abs(W.gradValue(etax, 1.0))
+                    testSum += delta
+                    etax += deta
+                self.failUnless(fuzzyEqual(Wsum, testSum, self.Wsumtol),
+                                "Wsum failure: %g != %g: " %
+                                (Wsum, testSum))
+                self.failUnless(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
+                                           nperh,
+                                           self.Wsumtol),
+                                "Lookup n per h failure: %g %g %g" %
+                                (testSum, W.equivalentNodesPerSmoothingScale(testSum), nperh))
         return
 
     #===========================================================================
@@ -104,30 +117,33 @@ class TestTableKernel(unittest.TestCase):
     #===========================================================================
     def testWsumValues2d(self):
         W = self.WT2
-        assert len(W.nperh()) == len(W.Wsum())
-        for nperh, Wsum in zip(W.nperh(), W.Wsum()):
-            deta = 1.0/nperh
-            nx = int(W.kernelExtent()*nperh) + 1
-            testSum = 0.0
-            for iy in xrange(nx):
-                etay = iy*deta
-                for ix in xrange(nx):
-                    etax = ix*deta
-                    eta = sqrt(etax*etax + etay*etay)
-                    delta = W.kernelValue(eta, 1.0)
-                    if ix > 0:
-                        delta *= 2.0
-                    if iy > 0:
-                        delta *= 2.0
-                    testSum += delta
-            self.failUnless(fuzzyEqual(Wsum, testSum, self.Wsumtol),
-                            "Wsum failure: %g != %g: " %
-                            (Wsum, testSum))
-            self.failUnless(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
-                                       nperh,
-                                       self.Wsumtol),
-                            "Lookup n per h failure: %g %g %g" %
-                            (testSum, W.equivalentNodesPerSmoothingScale(testSum), nperh))
+        assert len(W.nperhValues) == len(W.WsumValues)
+        for nperh, Wsum in zip(W.nperhValues, W.WsumValues):
+            if Wsum > 0.0:
+                deta = 1.0/nperh
+                testSum = 0.0
+                etay = 0.0
+                while etay < W.kernelExtent:
+                    etax = 0.0
+                    while etax < W.kernelExtent:
+                        eta = Vector2d(etax, etay)
+                        delta = abs(W.gradValue(eta.magnitude(), 1.0))
+                        if etax > 0.0:
+                            delta *= 2.0
+                        if etay > 0.0:
+                            delta *= 2.0
+                        testSum += delta
+                        etax += deta
+                    etay += deta
+                testSum = sqrt(testSum)
+                self.failUnless(fuzzyEqual(Wsum, testSum, self.Wsumtol),
+                                "Wsum failure: %g != %g: " %
+                                (Wsum, testSum))
+                self.failUnless(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
+                                           nperh,
+                                           self.Wsumtol),
+                                "Lookup n per h failure: %g %g %g" %
+                                (testSum, W.equivalentNodesPerSmoothingScale(testSum), nperh))
                              
         return
 
@@ -136,34 +152,38 @@ class TestTableKernel(unittest.TestCase):
     #===========================================================================
     def testWsumValues3d(self):
         W = self.WT3
-        assert len(W.nperh()) == len(W.Wsum())
-        for nperh, Wsum in zip(W.nperh(), W.Wsum()):
-            deta = 1.0/nperh
-            nx = int(W.kernelExtent()*nperh) + 1
-            testSum = 0.0
-            for iz in xrange(nx):
-                etaz = iz*deta
-                for iy in xrange(nx):
-                    etay = iy*deta
-                    for ix in xrange(nx):
-                        etax = ix*deta
-                        eta = sqrt(etax*etax + etay*etay + etaz*etaz)
-                        delta = W.kernelValue(eta, 1.0)
-                        if ix > 0:
-                            delta *= 2.0
-                        if iy > 0:
-                            delta *= 2.0
-                        if iz > 0:
-                            delta *= 2.0
-                        testSum += delta
-            self.failUnless(fuzzyEqual(Wsum, testSum, self.Wsumtol),
-                            "Wsum failure: %g != %g: " %
-                            (Wsum, testSum))
-            self.failUnless(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
-                                       nperh,
-                                       self.Wsumtol),
-                            "Lookup n per h failure: %g %g %g" %
-                            (testSum, W.equivalentNodesPerSmoothingScale(testSum), nperh))
+        assert len(W.nperhValues) == len(W.WsumValues)
+        for nperh, Wsum in zip(W.nperhValues, W.WsumValues):
+            if Wsum > 0.0:
+                deta = 1.0/nperh
+                testSum = 0.0
+                etaz = 0.0
+                while etaz < W.kernelExtent:
+                    etay = 0.0
+                    while etay < W.kernelExtent:
+                        etax = 0.0
+                        while etax < W.kernelExtent:
+                            eta = Vector3d(etax, etay, etaz)
+                            delta = abs(W.gradValue(eta.magnitude(), 1.0))
+                            if etax > 0.0:
+                                delta *= 2.0
+                            if etay > 0.0:
+                                delta *= 2.0
+                            if etaz > 0.0:
+                                delta *= 2.0
+                            testSum += delta
+                            etax += deta
+                        etay += deta
+                    etaz += deta
+                testSum = testSum**(1.0/3.0)
+                self.failUnless(fuzzyEqual(Wsum, testSum, self.Wsumtol),
+                                "Wsum failure: %g != %g: " %
+                                (Wsum, testSum))
+                self.failUnless(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
+                                           nperh,
+                                           self.Wsumtol),
+                                "Lookup n per h failure: %g %g %g" %
+                                (testSum, W.equivalentNodesPerSmoothingScale(testSum), nperh))
                              
         return
 
