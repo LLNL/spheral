@@ -23,6 +23,7 @@ Kernel<Dimension, Descendant>::Kernel():
   mVolumeNormalization(0.0),
   mKernelExtent(0.0),
   mInflectionPoint(0.0) {
+  std::cerr << "Kernel::Kernel(): " << mKernelExtent << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -34,6 +35,7 @@ Kernel<Dimension, Descendant>::Kernel(const Kernel& rhs):
   mVolumeNormalization(rhs.mVolumeNormalization),
   mKernelExtent(rhs.mKernelExtent),
   mInflectionPoint(rhs.mInflectionPoint) {
+  std::cerr << "Kernel::Kernel(Kernel): " << mKernelExtent << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -56,6 +58,7 @@ Kernel<Dimension, Descendant>::operator=(const Kernel<Dimension, Descendant>& rh
     mKernelExtent = rhs.kernelExtent();
     mInflectionPoint = rhs.inflectionPoint();
   }
+  std::cerr << "Kernel::operator=: " << mKernelExtent << std::endl;
   return *this;
 }
 
@@ -194,6 +197,7 @@ inline
 void
 Kernel<Dimension, Descendant>::setKernelExtent(double extent) {
   REQUIRE(extent > 0.0);
+  std::cerr << "Kernel::setKernelExtent: " << extent << std::endl;
   mKernelExtent = extent;
 }
 

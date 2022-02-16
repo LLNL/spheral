@@ -230,6 +230,8 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mf1Interp(),
   mf2Interp() {
 
+  cerr << "TableKernel::TableKernel()" << endl;
+
   // Pre-conditions.
   VERIFY(numPoints > 0);
   VERIFY(hmult > 0.0);
@@ -278,8 +280,7 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   // Set the table of n per h values.
   this->setNperhValues();
 
-  // That should be it, so we should have left the kernel in a valid state.
-  ENSURE(valid());
+  cerr << "--> " << kernel.kernelExtent() << " " << hmult << " " << this->kernelExtent() << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -299,6 +300,7 @@ TableKernel(const TableKernel<Dimension>& rhs):
   mMaxNperh(rhs.mMaxNperh),
   mf1Interp(rhs.mf1Interp),
   mf2Interp(rhs.mf2Interp) {
+  cerr << "TableKernel::TableKernel(TableKernel)" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -307,6 +309,7 @@ TableKernel(const TableKernel<Dimension>& rhs):
 template<typename Dimension>
 TableKernel<Dimension>::
 ~TableKernel() {
+  cerr << "TableKernel::~TableKernel()" << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -316,6 +319,7 @@ template<typename Dimension>
 TableKernel<Dimension>&
 TableKernel<Dimension>::
 operator=(const TableKernel<Dimension>& rhs) {
+  cerr << "TableKernel::opertor=(TableKernel)" << endl;
   if (this != &rhs) {
     Kernel<Dimension, TableKernel<Dimension>>::operator=(rhs);
     mInterp = rhs.mInterp;
