@@ -1,5 +1,5 @@
-#ATS:test(SELF,       dist=1, label="sampleMultipleFields2Lattice 2D unit tests (serial)")
-#ATS:test(SELF, np=4, dist=1, label="sampleMultipleFields2Lattice 2D unit tests (4 proc)")
+#ATS:test(SELF,       label="sampleMultipleFields2Lattice 2D unit tests (serial)")
+#ATS:test(SELF, np=4, label="sampleMultipleFields2Lattice 2D unit tests (4 proc)")
 
 import unittest
 

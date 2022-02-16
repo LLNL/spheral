@@ -108,7 +108,7 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   const unsigned numVertices0 = verts0.size();
   const unsigned numFaces0 = facetVerts0.size();
   // float g_verts[numVertices0][3];
-  int g_vertsperface[numFaces0];
+  vector<int> g_vertsperface(numFaces0);
   unsigned vertsPerFaceSum = 0;
   {
     // for (unsigned i = 0; i != numVertices0; ++i) {
@@ -121,7 +121,7 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
       vertsPerFaceSum += facetVerts0[i].size();
     }
   }
-  int g_vertIndices[vertsPerFaceSum];
+  vector<int> g_vertIndices(vertsPerFaceSum);
   {
     unsigned j = 0;
     for (const auto& inds: facetVerts0) {
@@ -161,8 +161,8 @@ GeomPolyhedron refinePolyhedron(const GeomPolyhedron& poly0,
   Descriptor desc;
   desc.numVertices  = numVertices0;
   desc.numFaces     = numFaces0;
-  desc.numVertsPerFace = g_vertsperface;
-  desc.vertIndicesPerFace  = g_vertIndices;
+  desc.numVertsPerFace = &g_vertsperface[0];
+  desc.vertIndicesPerFace  = &g_vertIndices[0];
 
   // Instantiate a FarTopologyRefiner from the descriptor
   Far::TopologyRefiner * refiner = Far::TopologyRefinerFactory<Descriptor>::Create(desc,

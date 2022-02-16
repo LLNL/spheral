@@ -142,8 +142,6 @@ private:
 
   // No public constructors, destructor, or assignment.
   NodeListRegistrar();
-  NodeListRegistrar(const NodeListRegistrar&);
-  NodeListRegistrar& operator=(const NodeListRegistrar&);
   ~NodeListRegistrar();
 
   // Grant friendship to NodeLists to register and unregister themselves.
@@ -153,6 +151,10 @@ private:
   void registerNodeList(FluidNodeList<Dimension>& nodeList);
   void unregisterNodeList(NodeList<Dimension>& nodeList);
   void unregisterNodeList(FluidNodeList<Dimension>& nodeList);
+
+public:
+  NodeListRegistrar(const NodeListRegistrar&) = delete;
+  NodeListRegistrar& operator=(const NodeListRegistrar&) = delete;
 
 };
 

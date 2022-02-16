@@ -147,6 +147,7 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
   CHECK(valid());
   setPressure(bulkModulus, massDensity, specificThermalEnergy);
   bulkModulus += mExternalPressure;
+  bulkModulus *= mGamma;
 }
 
 //------------------------------------------------------------------------------

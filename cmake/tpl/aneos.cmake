@@ -6,6 +6,7 @@ set(ANEOS_SRC_DIR "${ANEOS_PREFIX}/src/aneos/src")
 set(ANEOS_DEST_DIR "${${lib_name}_DIR}/lib")
 set(ANEOS_INPUT_SRC_DIR "${ANEOS_PREFIX}/src/aneos/input")
 set(ANEOS_INPUT_DEST_DIR "${${lib_name}_DIR}/input")
+set(ANEOS_NO_INCLUDES On)   # ANEOS does not produce any include header files
 
 #set(${lib_name}_INCLUDES aneos.h)
 set(${lib_name}_libs libaneos.a)
