@@ -157,7 +157,8 @@ public:
                              int**          nodecounts,
                              int**          celltofaces,
                              int**          facecounts,
-                             int**          faceflags);
+                             int**          faceflags,
+                             double**       volumes);
 
   static void fillVolume(const int*     nnodes,
                          const int*     nfaces,
@@ -252,6 +253,7 @@ private:
   std::vector<double> mXcoord, mYcoord, mZcoord;
   std::vector<int> mFaceToNodes, mCellToFaces;
   std::vector<int> mNodeCounts, mFaceCounts, mFaceFlags;
+  std::vector<double> mVolumes;
 
   // No public constructors, destructor, or assignment.
   SpheralPseudoScript();

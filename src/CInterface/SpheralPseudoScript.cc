@@ -1267,7 +1267,8 @@ polyhedralMesh(int*           nnodes,
                int**          nodecounts,
                int**          celltofaces,
                int**          facecounts,
-               int**          faceflags) {
+               int**          faceflags,
+               double**       volumes) {
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -1327,6 +1328,7 @@ polyhedralMesh(int*           nnodes,
   me.mNodeCounts.resize(numFaces, 0);
   me.mFaceCounts.resize(numCells, 0);
   me.mFaceFlags.resize(numFaces, 0);
+  me.mVolumes.resize(numCells, 0);
   int vertcounter = 0;
   int facecounter = 0;
   int cellcounter = 0;
@@ -1360,6 +1362,7 @@ polyhedralMesh(int*           nnodes,
       }
       flagcounter += facets.size();
       me.mFaceCounts[cellcounter] = facets.size();
+      me.mVolumes[cellcounter] = celli.volume();
       ++cellcounter;
     }
   }
@@ -1371,6 +1374,7 @@ polyhedralMesh(int*           nnodes,
   nodecounts[0] = me.mNodeCounts.data();
   facecounts[0] = me.mFaceCounts.data();
   faceflags[0] = me.mFaceFlags.data();
+  volumes[0] = me.mVolumes.data();
 }
 
 //------------------------------------------------------------------------------
