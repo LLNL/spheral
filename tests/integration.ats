@@ -15,6 +15,7 @@ source("unit/Geometry/testPolyClipper2d.py")
 source("unit/Geometry/testPolyClipper3d.py")
 
 # Kernel unit tests
+source("unit/Kernel/testTableKernel.py")
 source("unit/Kernel/testBicubicSphericalKernel.py")
 
 # Boundary unit tests
