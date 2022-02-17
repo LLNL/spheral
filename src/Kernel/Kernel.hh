@@ -24,7 +24,7 @@ public:
   // Constructors, destructors.
   Kernel();
   Kernel(const Kernel& rhs);
-  ~Kernel();
+  virtual ~Kernel();
 
   // Assignment.
   Kernel& operator=(const Kernel& rhs);

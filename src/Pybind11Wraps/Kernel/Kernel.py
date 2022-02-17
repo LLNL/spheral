@@ -11,20 +11,22 @@ class Kernel:
     typedef typename %(Dimension)s::SymTensor SymTensor;
 """
 
+    @PYB11pyname("__call__")
+    @PYB11cppname("operator()")
     @PYB11const
-    def __call__(self,
-                 etaij = "const double&",
-                 Hdet = "const double&"):
+    def __call__etaij(self,
+                      etaij = "const double&",
+                      Hdet = "const double&"):
         "Return the kernel value at the given normalized radius, where etaij = magnitude(H*(posi - posj)), Hdet = ||H||"
         return "double"
 
     @PYB11pyname("__call__")
     @PYB11cppname("operator()")
     @PYB11const
-    def __call__2(self,
-                  etaj = "const Vector&",
-                  etai = "const Vector&",
-                  Hdet = "const double&"):
+    def __call__etaj_etai(self,
+                          etaj = "const Vector&",
+                          etai = "const Vector&",
+                          Hdet = "const double&"):
         "Return the kernel value for points at etaj and etai, where etaj = H*posj, etai = H*posi, Hdet = ||H||"
         return "double"
 

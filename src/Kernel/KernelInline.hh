@@ -23,7 +23,6 @@ Kernel<Dimension, Descendant>::Kernel():
   mVolumeNormalization(0.0),
   mKernelExtent(0.0),
   mInflectionPoint(0.0) {
-  std::cerr << "Kernel::Kernel(): " << mKernelExtent << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -35,7 +34,6 @@ Kernel<Dimension, Descendant>::Kernel(const Kernel& rhs):
   mVolumeNormalization(rhs.mVolumeNormalization),
   mKernelExtent(rhs.mKernelExtent),
   mInflectionPoint(rhs.mInflectionPoint) {
-  std::cerr << "Kernel::Kernel(Kernel): " << mKernelExtent << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -58,7 +56,6 @@ Kernel<Dimension, Descendant>::operator=(const Kernel<Dimension, Descendant>& rh
     mKernelExtent = rhs.kernelExtent();
     mInflectionPoint = rhs.inflectionPoint();
   }
-  std::cerr << "Kernel::operator=: " << mKernelExtent << std::endl;
   return *this;
 }
 
@@ -71,7 +68,7 @@ double
 Kernel<Dimension, Descendant>::operator()(const double& etaij, 
                                           const typename Dimension::Scalar& Hdet) const {
   REQUIRE(etaij >= 0.0);
-  return kernelValue(etaij, Hdet);
+  return asDescendant().kernelValue(etaij, Hdet);
 }
 
 template<typename Dimension, typename Descendant>
@@ -80,7 +77,7 @@ double
 Kernel<Dimension, Descendant>::operator()(const typename Dimension::Vector& etaj,
                                           const typename Dimension::Vector& etai,
                                           const typename Dimension::Scalar& Hdet) const {
-  return kernelValue((etai - etaj).magnitude(), Hdet);
+  return asDescendant().kernelValue((etai - etaj).magnitude(), Hdet);
 }
 
 //------------------------------------------------------------------------------
@@ -92,7 +89,7 @@ double
 Kernel<Dimension, Descendant>::grad(const double& etaij,
                                     const typename Dimension::Scalar& Hdet) const {
   REQUIRE(etaij >= 0.0);
-  return gradValue(etaij, Hdet);
+  return asDescendant().gradValue(etaij, Hdet);
 }
 
 template<typename Dimension, typename Descendant>
@@ -101,7 +98,7 @@ double
 Kernel<Dimension, Descendant>::grad(const typename Dimension::Vector& etaj,
                                     const typename Dimension::Vector& etai,
                                     const typename Dimension::Scalar& Hdet) const {
-  return gradValue((etai - etaj).magnitude(), Hdet);
+  return asDescendant().gradValue((etai - etaj).magnitude(), Hdet);
 }
 
 //------------------------------------------------------------------------------
@@ -113,7 +110,7 @@ double
 Kernel<Dimension, Descendant>::grad2(const double& etaij,
                                      const typename Dimension::Scalar& Hdet) const {
   REQUIRE(etaij >= 0.0);
-  return grad2Value(etaij, Hdet);
+  return asDescendant().grad2Value(etaij, Hdet);
 }
 
 template<typename Dimension, typename Descendant>
@@ -122,7 +119,7 @@ double
 Kernel<Dimension, Descendant>::grad2(const typename Dimension::Vector& etaj,
                                      const typename Dimension::Vector& etai,
                                      const typename Dimension::Scalar& Hdet) const {
-  return grad2Value((etai - etaj).magnitude(), Hdet);
+  return asDescendant().grad2Value((etai - etaj).magnitude(), Hdet);
 }
 
 //------------------------------------------------------------------------------
@@ -197,7 +194,6 @@ inline
 void
 Kernel<Dimension, Descendant>::setKernelExtent(double extent) {
   REQUIRE(extent > 0.0);
-  std::cerr << "Kernel::setKernelExtent: " << extent << std::endl;
   mKernelExtent = extent;
 }
 
