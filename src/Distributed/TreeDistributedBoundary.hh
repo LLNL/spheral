@@ -32,7 +32,6 @@ public:
 
   // This method returns the singleton instance of the object.
   static TreeDistributedBoundary& instance();
-  static TreeDistributedBoundary* instancePtr();
 
   // Destructor.
   virtual ~TreeDistributedBoundary();
@@ -44,9 +43,6 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  // Singleton instance pointer.
-  static TreeDistributedBoundary* mInstance;
-
   // Disabled methods.
   TreeDistributedBoundary();
   TreeDistributedBoundary(const TreeDistributedBoundary&);
@@ -61,6 +57,8 @@ private:
 };
 
 }
+
+#include "TreeDistributedBoundaryInline.hh"
 
 #else
 

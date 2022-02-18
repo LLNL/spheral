@@ -7,7 +7,6 @@ set(PYTHONENV ${pip_DIR})
 
 set(pip_build_modules
     setuptools
-    #wheel
     decorator==4.4.2
     virtualenv==20.2.2
     pyb11generator==1.0.12)
@@ -28,7 +27,6 @@ endforeach()
 
 # Create the final build time python environment string.
 string(REPLACE ";" ":" BUILDTIME_PYTHONENV_STR "${PYTHONENV}")
-message("${BUILDTIME_PYTHONENV_STR}")
 
 
 # Run the actual installer for the modules.

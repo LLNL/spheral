@@ -78,8 +78,7 @@ def main():
   print("~ Build Dir:        {0}".format(build_dir))
   print("~ Install Dir:      {0}".format(install_dir))
   print("~ Source Dir:       {0}".format(source_dir))
-  if args.build:
-    print("~ Cmake cmd:        {0}".format(cmake_cmd))
+  print("~ Cmake cmd:        {0}".format(cmake_cmd))
   print("~ Extra CMake Args: {0}".format(cmake_extra_args))
   print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
   print("")

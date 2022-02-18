@@ -35,7 +35,6 @@ set(python_BUILD ON CACHE BOOL "Option to build python")
 set(pip_BUILD ON CACHE BOOL "Option to build pip")
 
 set(setuptools_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")
-set(wheel_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")
 set(decorator_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")
 set(sphinx_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")
 set(sphinx_rtd_theme_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")

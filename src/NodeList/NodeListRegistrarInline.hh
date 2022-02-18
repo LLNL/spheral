@@ -14,8 +14,8 @@ inline
 NodeListRegistrar<Dimension>&
 NodeListRegistrar<Dimension>::
 instance() {
-  static NodeListRegistrar mInstance;
-  return mInstance;
+  static NodeListRegistrar theInstance;
+  return theInstance;
 }
 
 //------------------------------------------------------------------------------

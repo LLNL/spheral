@@ -33,31 +33,6 @@ using std::abs;
 
 namespace Spheral {
 
-// Static initialization of singleton instance.
-template <typename Dimension>
-TreeDistributedBoundary<Dimension>*
-TreeDistributedBoundary<Dimension>::mInstance = 0;
-
-//------------------------------------------------------------------------------
-// Singleton instance method.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-TreeDistributedBoundary<Dimension>&
-TreeDistributedBoundary<Dimension>::
-instance() {
-  if (mInstance == 0) {
-    mInstance = new TreeDistributedBoundary();
-  } // end if
-  return *mInstance;
-}
-
-template<typename Dimension>
-TreeDistributedBoundary<Dimension>*
-TreeDistributedBoundary<Dimension>::
-instancePtr() {
-  return &(instance());
-}
-
 //------------------------------------------------------------------------------
 // Default constructor.
 //------------------------------------------------------------------------------

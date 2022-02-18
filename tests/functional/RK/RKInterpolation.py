@@ -26,9 +26,9 @@
 #ATS:test(SELF, "--dimension 2 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01 --tolerance 1.e-10 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 2D sextic")
 #ATS:test(SELF, "--dimension 3 --correctionOrder SexticOrder --funcType sextic --nPerh 7.01 --tolerance 1.e-10 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 3D sextic")
 
-#ATS:test(SELF, "--dimension 1 --correctionOrder SepticOrder --funcType septic --nx 12 --nPerh 8.01 --tolerance 1.e-8 --testHessian True", label="RK interpolation - 1D septic")
-#ATS:test(SELF, "--dimension 2 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-8 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 2D septic")
-#ATS:test(SELF, "--dimension 3 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 1.e-8 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 3D septic")
+#ATS:test(SELF, "--dimension 1 --correctionOrder SepticOrder --funcType septic --nx 12 --nPerh 8.01 --tolerance 2.e-8 --testHessian True", label="RK interpolation - 1D septic")
+#ATS:test(SELF, "--dimension 2 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 2.e-8 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 2D septic")
+#ATS:test(SELF, "--dimension 3 --correctionOrder SepticOrder --funcType septic --nPerh 8.01 --tolerance 2.e-8 --testHessian True --numToCheck 10", level=100, label="RK interpolation - 3D septic")
 
 #-------------------------------------------------------------------------------
 # Test of interpolation for reproducing kernels

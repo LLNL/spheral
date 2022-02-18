@@ -39,21 +39,19 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
     depends_on('boost@1.74.0 -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -serialization -test -thread -timer -wave +pic', type='build')
 
-    # TODO: ANEOS
-    # TODO: qhull spack package seems to be broken...
-    #depends_on('qhull@2020.2', type='build')
-    #TODO: Polyclipper package.
-
+    depends_on('qhull@2020.1', type='build')
+    depends_on('m-aneos')
+    depends_on('py-polyclipper')
     depends_on('eigen@3.3.7', type='build')
     depends_on('hdf5@1.8.19 ~mpi +hl', type='build')
     depends_on('silo@4.10.2 +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
-    depends_on('conduit@develop +mpi +hdf5 -test', type=['build','run'], when='+mpi')
-    depends_on('conduit@develop ~mpi +hdf5 -test', type=['build','run'], when='~mpi')
+    depends_on('conduit@0.8.2 +mpi +hdf5 -test', type='build', when='+mpi')
+    depends_on('conduit@0.8.2 ~mpi +hdf5 -test', type='build', when='~mpi')
 
-    depends_on('axom@0.5.0 +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type=['build','run'], when='+mpi')
-    depends_on('axom@0.5.0 ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type=['build','run'], when='~mpi')
+    depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
+    depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope', type='build')
@@ -152,8 +150,11 @@ class Spheral(CachedCMakePackage, PythonPackage):
         entries.append(cmake_cache_option('boost_BUILD', False))
         entries.append(cmake_cache_path('boost_DIR', spec['boost'].prefix))
 
-        #entries.append(cmake_cache_option('qhull_BUILD', False))
-        #entries.append(cmake_cache_path('qhull_DIR', spec['qhull'].prefix))
+        entries.append(cmake_cache_option('qhull_BUILD', False))
+        entries.append(cmake_cache_path('qhull_DIR', spec['qhull'].prefix))
+
+        entries.append(cmake_cache_option('aneos_BUILD', False))
+        entries.append(cmake_cache_path('aneos_DIR', spec['m-aneos'].prefix))
 
         entries.append(cmake_cache_option('hdf5_BUILD', False))
         entries.append(cmake_cache_path('hdf5_DIR', spec['hdf5'].prefix))
@@ -197,6 +198,9 @@ class Spheral(CachedCMakePackage, PythonPackage):
             entries.append(cmake_cache_option('sphinx_rtd_theme_BUILD', False))
             entries.append(cmake_cache_path('sphinx_rtd_theme_DIR', spec['py-sphinx-rtd-theme'].prefix + '/lib/python2.7/site-packages/'))
 
+
+        entries.append(cmake_cache_option('polyclipper_BUILD', False))
+        entries.append(cmake_cache_path('polyclipper_DIR', spec['py-polyclipper'].prefix))
 
         entries.append(cmake_cache_option('polytope_BUILD', False))
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))

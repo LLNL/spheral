@@ -14,7 +14,7 @@ default_spheral_spack_dir=os.path.join(project_dir, "../spheral-spack-tpls")
 tpl_manager_cmd=os.path.join(project_dir, "scripts/devtools/tpl-manager.py")
 host_congfig_build_cmd=os.path.join(project_dir, "scripts/devtools/host-config-build.py")
 
-host=os.environ.get("HOSTNAME").translate(None, digits)
+host=os.environ.get("LCSCHEDCLUSTER")
 sys_type=os.environ.get("SYS_TYPE")
 
 #------------------------------------------------------------------------------

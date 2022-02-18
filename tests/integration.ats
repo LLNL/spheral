@@ -52,46 +52,45 @@
 # FileIO tests
 source("unit/FileIO/testGzipFileIO.py")
 source("unit/FileIO/testSiloFileIO.py")
-source("unit/FileIO/testSidreFileIO.py")
 
-## Utilities tests
-#source("unit/Utilities/testSegmentSegmentIntersection.py")
-#source("unit/Utilities/testDistances3d.py")
-#source("unit/Utilities/testSegmentIntersectPolygonEdges.py")
-#source("unit/Utilities/testSegmentIntersectPolyhedronEdges.py")
-#source("unit/Utilities/testSimpsonsIntegration.py")
-#source("unit/Utilities/test_uniform_random.py")
-#
-## Mesh tests.
-#source("unit/Mesh/testLineMesh.py")
-## source("unit/Mesh/testPolygonalMesh.py")   # Suspended until we fix the polytope with Spheral issues.
-## source("unit/Mesh/testPolyhedralMesh.py")  # Suspended until we fix the polytope with Spheral issues.
-#
-## MPI python interface unit tests
-#source("unit/PythonMPIInterfaces/testMPI4PYasPYMPI.py")
-#
-## C++ unit tests.
-#source("functional/CXXTests/test_r3d_utils.py")
-#source("unit/CXXTests/runCXXTests.ats")
-#
-## Hydro tests
-#source("functional/Hydro/HydroTests.ats")
-#
-## Gravity tests
-#source("functional/Gravity/CollisionlessSphereCollapse.py")
-#
-## Strength tests.
-##source("functional/Strength/PlateImpact/PlateImpact-1d.py")
-#source("functional/Strength/CollidingPlates/CollidingPlates-1d.py")
-#source("functional/Strength/DiametralCompression/DiametralCompression.py")
-#
-## Damage tests.
-#source("functional/Damage/TensileRod/TensileRod-1d.py")
-#
-## Surface detection test
-## Susending this until we fix the test for the up to date surface detection method.
-## source("functional/Surfaces/Surface.py")
-#
-## RK tests
-#source("functional/RK/RKInterpolation.py")
-#source("functional/RK/testVoronoiVolume.py")
+# Utilities tests
+source("unit/Utilities/testSegmentSegmentIntersection.py")
+source("unit/Utilities/testDistances3d.py")
+source("unit/Utilities/testSegmentIntersectPolygonEdges.py")
+source("unit/Utilities/testSegmentIntersectPolyhedronEdges.py")
+source("unit/Utilities/testSimpsonsIntegration.py")
+source("unit/Utilities/test_uniform_random.py")
+
+# Mesh tests.
+source("unit/Mesh/testLineMesh.py")
+# source("unit/Mesh/testPolygonalMesh.py")   # Suspended until we fix the polytope with Spheral issues.
+# source("unit/Mesh/testPolyhedralMesh.py")  # Suspended until we fix the polytope with Spheral issues.
+
+# MPI python interface unit tests
+source("unit/Distributed/testMPI4PYasPYMPI.py")
+
+# C++ unit tests.
+source("functional/CXXTests/test_r3d_utils.py")
+source("unit/CXXTests/runCXXTests.ats")
+
+# Hydro tests
+source("functional/Hydro/HydroTests.ats")
+
+# Gravity tests
+source("functional/Gravity/CollisionlessSphereCollapse.py")
+
+# Strength tests.
+#source("functional/Strength/PlateImpact/PlateImpact-1d.py")
+source("functional/Strength/CollidingPlates/CollidingPlates-1d.py")
+source("functional/Strength/DiametralCompression/DiametralCompression.py")
+
+# Damage tests.
+source("functional/Damage/TensileRod/TensileRod-1d.py")
+
+# Surface detection test
+# Susending this until we fix the test for the up to date surface detection method.
+# source("functional/Surfaces/Surface.py")
+
+# RK tests
+source("functional/RK/RKInterpolation.py")
+source("functional/RK/testVoronoiVolume.py")
