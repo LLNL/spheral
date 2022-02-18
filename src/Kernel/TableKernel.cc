@@ -330,6 +330,18 @@ operator=(const TableKernel<Dimension>& rhs) {
 }
 
 //------------------------------------------------------------------------------
+// Equivalence
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+TableKernel<Dimension>::
+operator==(const TableKernel<Dimension>& rhs) const {
+  return ((mInterp == rhs.mInterp) and
+          (mGradInterp == rhs.mGradInterp) and
+          (mGrad2Interp == rhs.mGrad2Interp));
+}
+
+//------------------------------------------------------------------------------
 // Determine the number of nodes per smoothing scale implied by the given
 // sum of kernel values.
 //------------------------------------------------------------------------------

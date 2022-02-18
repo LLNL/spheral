@@ -29,6 +29,9 @@ public:
                   const double xmax,
                   const std::vector<double>& yvals);
 
+  // Comparisons
+  bool operator==(const QuadraticInterpolator& rhs) const;
+
   // Interpolate for the y value
   double operator()(const double x) const;
   double prime(const double x) const;    // First derivative

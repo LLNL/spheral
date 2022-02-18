@@ -1,3 +1,4 @@
+#ATS:test(SELF, label="TableKernel unit tests")
 from math import *
 import unittest
 

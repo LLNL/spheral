@@ -53,6 +53,23 @@ TableKernel<Dimension>::grad2Value(const double etaij, const double Hdet) const 
 }
 
 //------------------------------------------------------------------------------
+// Return the kernel and gradient for a given normalized distance.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+std::tuple<double, double, typename Dimension::Vector>
+TableKernel<Dimension>::kernelAndGrad(const typename Dimension::Vector& etaj,
+                                      const typename Dimension::Vector& etai,
+                                      const typename Dimension::SymTensor& H) const {
+  const auto etaji = etaj - etai;
+  const auto etajiMag = etaji.magnitude();
+  const auto Hdet = H.Determinant();
+  double Wval, gWval;
+  std::tie(Wval, gWval) = this->kernelAndGradValue(etajiMag, Hdet);
+  return std::make_tuple(Wval, gWval, H*etaji.unitVector()*gWval);
+}
+
+//------------------------------------------------------------------------------
 // Return the kernel and gradient value for a given normalized distance.
 //------------------------------------------------------------------------------
 template<typename Dimension>

@@ -11,6 +11,7 @@
 #include "Utilities/QuadraticInterpolator.hh"
 
 #include <vector>
+#include <tuple>
 
 namespace Spheral {
 
@@ -37,9 +38,8 @@ public:
   // Assignment.
   TableKernel& operator=(const TableKernel& rhs);
 
-  // // Linearly combine with another kernel.
-  // template<typename KernelType>
-  // void augment(const KernelType& kernel);
+  // Equivalence
+  bool operator==(const TableKernel& rhs) const;
 
   // Return the kernel weight for a given normalized distance or position.
   double kernelValue(const double etaij, const double Hdet) const;
@@ -51,6 +51,7 @@ public:
   double grad2Value(const double etaij, const double Hdet) const;
 
   // Simultaneously return the kernel value and first derivative.
+  std::tuple<double, double, Vector> kernelAndGrad(const Vector& etaj, const Vector& etai, const SymTensor& H) const;
   std::pair<double, double> kernelAndGradValue(const double etaij, const double Hdet) const;
 
   // Look up the kernel and first derivative for a set.

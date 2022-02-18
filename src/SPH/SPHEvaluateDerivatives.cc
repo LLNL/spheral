@@ -21,6 +21,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // The kernels and such.
   const auto& W = this->kernel();
   const auto& WQ = this->PiKernel();
+  const auto oneKernel = false; // (W == WQ);
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
@@ -110,6 +111,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   {
     // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
+    Vector gradWi, gradWj, gradWQi, gradWQj;
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
     Tensor QPiij, QPiji;
 
@@ -202,31 +204,29 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // Flag if this is a contiguous material pair or not.
       const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
 
-      // Node displacement.
-      const auto rij = ri - rj;
-      const auto etai = Hi*rij;
-      const auto etaj = Hj*rij;
-      const auto etaMagi = etai.magnitude();
-      const auto etaMagj = etaj.magnitude();
-      CHECK(etaMagi >= 0.0);
-      CHECK(etaMagj >= 0.0);
+      // Normalized node coordinates
+      const auto etaii = Hi*ri;
+      const auto etaji = Hi*rj;
+      const auto etaij = Hj*ri;
+      const auto etajj = Hj*rj;
 
       // Symmetrized kernel weight and gradient.
-      std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
-      std::tie(WQi, gWQi) = WQ.kernelAndGradValue(etaMagi, Hdeti);
-      const auto Hetai = Hi*etai.unitVector();
-      const auto gradWi = gWi*Hetai;
-      const auto gradWQi = gWQi*Hetai;
-
-      std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
-      std::tie(WQj, gWQj) = WQ.kernelAndGradValue(etaMagj, Hdetj);
-      const auto Hetaj = Hj*etaj.unitVector();
-      const auto gradWj = gWj*Hetaj;
-      const auto gradWQj = gWQj*Hetaj;
+      std::tie(Wi, gWi, gradWi) = W.kernelAndGrad(etaii, etaji, Hi);
+      std::tie(Wj, gWj, gradWj) = W.kernelAndGrad(etaij, etajj, Hj);
+      if (oneKernel) {
+        WQi = Wi;
+        WQj = Wj;
+        gradWQi = gradWi;
+        gradWQj = gradWj;
+      } else {
+        std::tie(WQi, gWQi, gradWQi) = WQ.kernelAndGrad(etaii, etaji, Hi);
+        std::tie(WQj, gWQj, gradWQj) = WQ.kernelAndGrad(etaij, etajj, Hj);
+      }
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
       const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
+      const auto rij = ri - rj;
       const auto rij2 = rij.magnitude2();
       const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
       weightedNeighborSumi +=     fweightij*std::abs(gWi);
@@ -245,8 +245,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      ri, etai, vi, rhoi, ci, Hi,
-                                      rj, etaj, vj, rhoj, cj, Hj);
+                                      ri, etaii - etaji, vi, rhoi, ci, Hi,
+                                      rj, etaij - etajj, vj, rhoj, cj, Hj);
       const auto Qacci = 0.5*(QPiij*gradWQi);
       const auto Qaccj = 0.5*(QPiji*gradWQj);
       // const auto workQi = 0.5*(QPiij*vij).dot(gradWQi);

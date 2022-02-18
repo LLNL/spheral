@@ -7,8 +7,8 @@ from PYB11Generator import *
 class Kernel:
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
+    using Vector = typename %(Dimension)s::Vector;
+    using SymTensor = typename %(Dimension)s::SymTensor;
 """
 
     @PYB11pyname("__call__")
@@ -241,7 +241,10 @@ class NBSplineKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class TableKernel(Kernel):
-    PYB11typedefs=""
+    PYB11typedefs="""
+    using Vector = typename %(Dimension)s::Vector;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+"""
 
     #...........................................................................
     # Constructors
@@ -331,14 +334,25 @@ class TableKernel(Kernel):
 
     #...........................................................................
     # Methods
-
-    @PYB11pycppname("kernelAndGradValues")
     @PYB11const
-    def kernelAndGradValues1(self,
-                             etaij = "const std::vector<double>&",
-                             Hdets = "const std::vector<double>&",
-                             kernelValues = "std::vector<double>&",
-                             gradValues = "std::vector<double>&"):
+    def kernelAndGrad(self,
+                      etaj = "const Vector&",
+                      etai = "const Vector&",
+                      H = "const SymTensor&"):
+        return "std::tuple<double, double, Vector>"
+
+    @PYB11const
+    def kernelAndGradValue(self,
+                           etaij = "const double",
+                           Hdet = "const double"):
+        return "std::pair<double, double>"
+
+    @PYB11const
+    def kernelAndGradValues(self,
+                            etaij = "const std::vector<double>&",
+                            Hdets = "const std::vector<double>&",
+                            kernelValues = "std::vector<double>&",
+                            gradValues = "std::vector<double>&"):
         return "void"
 
     @PYB11const
