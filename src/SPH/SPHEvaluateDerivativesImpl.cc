@@ -4,13 +4,16 @@ namespace Spheral {
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
+template<typename KernelType>
 void
 SPHHydroBase<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar /*time*/,
-                    const typename Dimension::Scalar /*dt*/,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivatives) const {
+evaluateDerivativesImpl(const typename Dimension::Scalar time,
+                        const typename Dimension::Scalar dt,
+                        const DataBase<Dimension>& dataBase,
+                        const State<Dimension>& state,
+                        StateDerivatives<Dimension>& derivatives,
+                        const KernelType& W,
+                        const KernelType& WQ) const {
   TIME_SPHevalDerivs.start();
   TIME_SPHevalDerivs_initial.start();
 
@@ -19,9 +22,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto& Q = this->artificialViscosity();
 
   // The kernels and such.
-  const auto& W = this->kernel();
-  const auto& WQ = this->PiKernel();
-  const auto oneKernel = false; // (W == WQ);
+  const auto oneKernel = (W == WQ);
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;

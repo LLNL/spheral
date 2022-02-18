@@ -217,6 +217,16 @@ public:
 
 protected:
   //---------------------------  Protected Interface ---------------------------//
+  // The templated derivative method, allowing us to use different types of kernels
+  template<typename KernelType>
+  void evaluateDerivativesImpl(const Scalar time,
+                               const Scalar dt,
+                               const DataBase<Dimension>& dataBase,
+                               const State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivatives,
+                               const KernelType& W,
+                               const KernelType& WQ) const;
+
   // The interpolation kernels.
   const TableKernel<Dimension>& mKernel;
   const TableKernel<Dimension>& mPiKernel;

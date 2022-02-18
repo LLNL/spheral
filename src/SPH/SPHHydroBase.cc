@@ -659,6 +659,26 @@ initialize(const typename Dimension::Scalar time,
 }
 
 //------------------------------------------------------------------------------
+// evaluateDerivatives
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SPHHydroBase<Dimension>::
+evaluateDerivatives(const typename Dimension::Scalar time,
+                    const typename Dimension::Scalar dt,
+                    const DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivs) const {
+  this->evaluateDerivativesImpl(time,
+                                dt,
+                                dataBase,
+                                state,
+                                derivs,
+                                mKernel,
+                                mPiKernel);
+}
+
+//------------------------------------------------------------------------------
 // Finalize the derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
