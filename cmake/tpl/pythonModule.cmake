@@ -66,6 +66,10 @@ configure_file(
   )
 
 
+install(FILES 
+  "${CMAKE_BINARY_DIR}/scripts/requirements.txt"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
+  )
 #
 # Custom Runtime Python Module Dependencies
 #
