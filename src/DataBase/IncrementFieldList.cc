@@ -186,5 +186,9 @@ wildCardDerivs(const bool val) {
   mWildCardDerivs = val;
 }
 
+
+template class IncrementFieldList<Dim<1>, Dim<3>::Vector>;
+template class IncrementFieldList<Dim<2>, Dim<3>::Vector>;
+
 }
 

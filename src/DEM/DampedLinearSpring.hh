@@ -6,6 +6,8 @@
 #ifndef __Spheral_DampedLinearSpring_hh__
 #define __Spheral_DampedLinearSpring_hh__
 
+#include "Geometry/Dimension.hh"
+#include "DEM/DEMDimension.hh"
 #include "ContactModelBase.hh"
 #include <string>
 

@@ -644,6 +644,7 @@ will get the new value regardless of resetValues."""
     DEMMass = PYB11property("FieldList<%(Dimension)s, Scalar>")
     DEMPosition = PYB11property("FieldList<%(Dimension)s, Vector>")
     DEMVelocity = PYB11property("FieldList<%(Dimension)s, Vector>")
+    DEMParticleRadius = PYB11property("FieldList<%(Dimension)s, Scalar>")
     DEMHfield = PYB11property("FieldList<%(Dimension)s, SymTensor>")
 
     globalNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")

@@ -18,6 +18,7 @@ class DEMNodeList(NodeList):
     typedef typename %(Dimension)s::SymTensor SymTensor;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
     typedef Field<%(Dimension)s, Vector> VectorField;
+    typedef Field<%(Dimension)s, Vector3d> Vector3dField;
     typedef Field<%(Dimension)s, Tensor> TensorField;
     typedef Field<%(Dimension)s, SymTensor> SymTensorField;
 """
@@ -33,17 +34,6 @@ class DEMNodeList(NodeList):
                maxNumNeighbors = ("int", "500")):
         "Constructor for a DEMNodeList class."
         return
-
-    @PYB11const
-    @PYB11returnpolicy("reference_internal")
-    def angularVelocity(self):
-        "The angular velocity field"
-        return "const VectorField&"
-
-    @PYB11pycppname("angularVelocity")
-    def setangularVelocity(self, val="const VectorField&"):
-        "Set the angular velocity"
-        return "void"
 
     @PYB11const
     @PYB11returnpolicy("reference_internal")

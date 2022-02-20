@@ -1378,20 +1378,6 @@ DataBase<Dimension>::DEMVelocity() const {
   return result;
 }
 
-//------------------------------------------------------------------------------
-// Return the DEM angular velocity field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-FieldList<Dimension, typename Dimension::Vector>
-DataBase<Dimension>::DEMAngularVelocity() const {
-  REQUIRE(valid());
-  FieldList<Dimension, Vector> result;
-  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
-       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
-    result.appendField((*nodeListItr)->angularVelocity());
-  }
-  return result;
-}
 
 //------------------------------------------------------------------------------
 // Return the DEM HField.

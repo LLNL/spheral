@@ -6,6 +6,7 @@
 
 #include <string>
 #include "Physics/Physics.hh"
+#include "DEM/DEMDimension.hh"
 
 namespace Spheral {
 
@@ -24,10 +25,10 @@ class DEMBase: public Physics<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
-  //typedef typename Dimension::AngularVector AngularVector;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
+  typedef typename DEMDimension<Dimension>::AngularVector RotationType;
 
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
@@ -139,7 +140,8 @@ public:
   const FieldList<Dimension, int>&    timeStepMask() const;
   const FieldList<Dimension, Vector>& DxDt() const;
   const FieldList<Dimension, Vector>& DvDt() const;
-  const FieldList<Dimension, Vector>& DomegaDt() const;
+  const FieldList<Dimension, RotationType>& omega() const;
+  const FieldList<Dimension, RotationType>& DomegaDt() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -161,10 +163,11 @@ protected:
   Vector mxmin, mxmax;
 
   // Some internal scratch fields.
-  FieldList<Dimension, int>           mTimeStepMask;
-  FieldList<Dimension, Vector>        mDxDt;
-  FieldList<Dimension, Vector>        mDvDt;
-  FieldList<Dimension, Vector> mDomegaDt;
+  FieldList<Dimension, int>      mTimeStepMask;
+  FieldList<Dimension, Vector>   mDxDt;
+  FieldList<Dimension, Vector>   mDvDt;
+  FieldList<Dimension, RotationType> mOmega;
+  FieldList<Dimension, RotationType> mDomegaDt;
 
   // The restart registration.
   RestartRegistrationType mRestart;

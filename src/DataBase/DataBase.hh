@@ -7,6 +7,7 @@
 #ifndef DataBase_HH
 #define DataBase_HH
 
+#include "Geometry/Dimension.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "NodeList/SolidNodeList.hh"
@@ -260,7 +261,6 @@ public:
   FieldList<Dimension, Scalar> DEMMass() const;
   FieldList<Dimension, Vector> DEMPosition() const;
   FieldList<Dimension, Vector> DEMVelocity() const;
-  FieldList<Dimension, Vector> DEMAngularVelocity() const;
   FieldList<Dimension, SymTensor> DEMHfield() const;
   FieldList<Dimension, Scalar> DEMParticleRadius() const;
 

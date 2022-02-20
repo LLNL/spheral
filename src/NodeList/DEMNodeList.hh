@@ -6,6 +6,7 @@
 #define __Spheral_DEMNodeList__
 
 #include "NodeList.hh"
+#include "Geometry/Dimension.hh"
 
 #include <float.h>
 #include <string>
@@ -38,19 +39,9 @@ public:
   // Destructor
   virtual ~DEMNodeList();
 
-  // Access the fluid state variables.
-  Field<Dimension, Vector>& angularVelocity();
-  const Field<Dimension, Vector>& angularVelocity() const;
-  void angularVelocity(const Field<Dimension, Vector>& angularVelocity);
-
   Field<Dimension, Scalar>& particleRadius();
   const Field<Dimension, Scalar>& particleRadius() const;
   void particleRadius(const Field<Dimension, Scalar>& particleRadius);
-
-  // These are quantities which are not stored, but can be computed.
-//   virtual void volume(Field<Dimension, Scalar>& field) const;
-//   virtual void linearMomentum(Field<Dimension, Vector>& field) const;
-//   virtual void totalEnergy(Field<Dimension, Scalar>& field) const;
 
 
   //****************************************************************************
@@ -64,7 +55,6 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
 #ifndef __GCCXML__
-  Field<Dimension, Vector> mAngularVelocity;
   Field<Dimension, Scalar> mParticleRadius;
 #endif
 

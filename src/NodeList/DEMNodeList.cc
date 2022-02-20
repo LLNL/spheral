@@ -41,7 +41,6 @@ DEMNodeList(string name,
               const Scalar nPerh,
               const int maxNumNeighbors):
   NodeList<Dimension>(name, numInternal, numGhost, hmin, hmax, hminratio, nPerh, maxNumNeighbors),
-  mAngularVelocity(DEMFieldNames::angularVelocity, *this),
   mParticleRadius(DEMFieldNames::particleRadius, *this){
 }
 
@@ -52,18 +51,6 @@ template<typename Dimension>
 DEMNodeList<Dimension>::
 ~DEMNodeList() {
 }
-
-//------------------------------------------------------------------------------
-// Set the angular velocity
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DEMNodeList<Dimension>::
-angularVelocity(const Field<Dimension, typename Dimension::Vector>& omega) {
-  mAngularVelocity = omega;
-  mAngularVelocity.name(DEMFieldNames::angularVelocity);
-}
-
 
 //------------------------------------------------------------------------------
 // Set the particle radii
@@ -133,7 +120,6 @@ dumpState(FileIO& file, const string& pathName) const {
   NodeList<Dimension>::dumpState(file, pathName);
 
   // Dump each of the internal fields of the DEMNodeList.
-  file.write(mAngularVelocity, pathName + "/angularVelocity");
   file.write(mParticleRadius, pathName + "/particleRadius");
 }
 
@@ -149,7 +135,6 @@ restoreState(const FileIO& file, const string& pathName) {
   NodeList<Dimension>::restoreState(file, pathName);
 
   // Restore each of the internal fields of the DEMNodeList.
-  file.read(mAngularVelocity, pathName + "/angularVelocity");
   file.read(mParticleRadius, pathName + "/particleRadius");
 }  
 

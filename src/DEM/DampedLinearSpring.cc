@@ -1,8 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
 // Physics -- dampled linear spring contact model Spheral++
 //----------------------------------------------------------------------------//
-#include "DampedLinearSpring.hh"
-
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/DataBase.hh"
@@ -11,6 +9,8 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DEM/DEMFieldNames.hh"
+#include "DEM/DEMDimension.hh"
+#include "DEM/DampedLinearSpring.hh"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -131,7 +131,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const auto omega = state.fields(DEMFieldNames::angularVelocity, Vector::zero);
+  const auto omega = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   const auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
 
   CHECK(mass.size() == numNodeLists);
@@ -143,7 +143,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   //auto  T    = derivatives.getany("minContactTime",0.0);
   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + DEMFieldNames::angularVelocity, Vector::zero);
+  auto  DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
 
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -157,7 +157,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
-    auto DomegaDt_thread = DomegaDt.threadCopy(threadStack);
+    //auto DomegaDt_thread = DomegaDt.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -175,7 +175,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto& Ri = radius(nodeListi, i);
       
       auto& DvDti = DvDt_thread(nodeListi, i);
-      auto& DomegaDti = DomegaDt_thread(nodeListi, i);
+      auto& DomegaDti = DomegaDt(nodeListi, i);
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
@@ -185,7 +185,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto& Rj = radius(nodeListj, j);
 
       auto& DvDtj = DvDt_thread(nodeListj, j);
-      auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
+      auto& DomegaDtj = DomegaDt(nodeListj, j);
 
       CHECK(mi > 0.0);
       CHECK(mj > 0.0);

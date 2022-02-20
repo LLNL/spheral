@@ -7,7 +7,8 @@ set(DEM_inst
     computeParticleRadius)
 
 set(DEM_sources
-    DEMFieldNames.cc)
+    DEMFieldNames.cc
+    DEMDimension.cc)
 
 instantiate(DEM_inst DEM_sources)
 
@@ -15,6 +16,7 @@ set(DEM_headers
     DEMBase.hh
     ContactModelBase.hh
     DampedLinearSpring.hh
+    DEMDimension.hh
     computeParticleRadius.hh
     DEMFieldNames.hh)
 

@@ -95,10 +95,18 @@ DvDt() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename DEMDimension<Dimension>::AngularVector>&
 DEMBase<Dimension>::
 DomegaDt() const {
   return mDomegaDt;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename DEMDimension<Dimension>::AngularVector>&
+DEMBase<Dimension>::
+omega() const {
+  return mOmega;
 }
 
 //------------------------------------------------------------------------------
