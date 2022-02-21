@@ -6,7 +6,7 @@ from DEMBase import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralDEM")
-class LinearSpringDEM(DEMBase):
+class HerzianDEM(DEMBase):
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -15,7 +15,7 @@ class LinearSpringDEM(DEMBase):
 """
     
     def pyinit(dataBase = "const DataBase<%(Dimension)s>&",
-               normalSpringConstant = "const Scalar",
+               YoungsModulus = "const Scalar",
                restitutionCoefficient = "const Scalar",
                stepsPerCollision = "const Scalar",
                xmin = "const Vector&",
@@ -41,8 +41,7 @@ class LinearSpringDEM(DEMBase):
         "calculate the derivatives for Linear Spring DEM."
         return "void"
 
-    normalSpringConstant = PYB11property("Scalar", "normalSpringConstant", "normalSpringConstant", doc="linear spring constant")
+    YoungsModulus = PYB11property("Scalar", "YoungsModulus", "YoungsModulus", doc="elastic modulus")
     restitutionCoefficient = PYB11property("Scalar", "restitutionCoefficient", "restitutionCoefficient", doc="linear restitution coefficient")
     beta = PYB11property("Scalar", "beta", "beta", doc="a damping parameter")
-    timeStep = PYB11property("Scalar", "timeStep", "timeStep", doc="constant time-step for this model")
-  
+    

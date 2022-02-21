@@ -2,10 +2,10 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "DEM/DampedLinearSpring.cc"
+#include "DEM/HerzianDEM.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class DampedLinearSpring< Dim< %(ndim)s > >;
+  template class HerzianDEM< Dim< %(ndim)s > >;
 }
 """

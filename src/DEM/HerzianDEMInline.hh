@@ -3,14 +3,14 @@ namespace Spheral {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-DampedLinearSpring<Dimension>::
+HerzianDEM<Dimension>::
 YoungsModulus() const {
   return mYoungsModulus;
 }
 template<typename Dimension>
 inline
 void
-DampedLinearSpring<Dimension>::
+HerzianDEM<Dimension>::
 YoungsModulus(typename Dimension::Scalar x) {
   mYoungsModulus = x;
 }
@@ -20,14 +20,14 @@ YoungsModulus(typename Dimension::Scalar x) {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-DampedLinearSpring<Dimension>::
+HerzianDEM<Dimension>::
 restitutionCoefficient() const {
   return mRestitutionCoefficient;
 }
 template<typename Dimension>
 inline
 void
-DampedLinearSpring<Dimension>::
+HerzianDEM<Dimension>::
 restitutionCoefficient(typename Dimension::Scalar x) {
   mRestitutionCoefficient = x;
 }
@@ -37,14 +37,14 @@ restitutionCoefficient(typename Dimension::Scalar x) {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-DampedLinearSpring<Dimension>::
+HerzianDEM<Dimension>::
 beta() const {
   return mBeta;
 }
 template<typename Dimension>
 inline
 void
-DampedLinearSpring<Dimension>::
+HerzianDEM<Dimension>::
 beta(typename Dimension::Scalar x) {
   mBeta = x;
 }

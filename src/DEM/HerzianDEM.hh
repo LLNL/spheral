@@ -1,12 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
-// DampedLinearSpring -- contact model based on damped linear springs
+// HerzianDEM -- contact model based on damped linear springs
 //                       Cundall & Strack Geotechnique, vol. 29, no. 1,
 //                       pp. 47-65, 1979.
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_DampedLinearSpring_hh__
-#define __Spheral_DampedLinearSpring_hh__
+#ifndef __Spheral_HerzianDEM_hh__
+#define __Spheral_HerzianDEM_hh__
 
-#include "ContactModelBase.hh"
+#include "DEMBase.hh"
 #include <string>
 
 namespace Spheral {
@@ -14,31 +14,31 @@ namespace Spheral {
 template<typename Dimension> class DataBase;
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-//template<typename Dimension, typename DataType> class Field;
-//template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
 template<typename Dimension>
-class DampedLinearSpring : public ContactModelBase<Dimension> {
+class HerzianDEM : public DEMBase<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
 
-  // Constructors.
-  DampedLinearSpring(Scalar YoungsModulus,
-                     Scalar restitutionCoefficient);
+  typedef typename DEMBase<Dimension>::TimeStepType TimeStepType;
+  
+  HerzianDEM(const DataBase<Dimension>& dataBase,
+             const Scalar YoungsModulus,
+             const Scalar restitutionCoefficient,
+             const Scalar stepsPerCollision,
+             const Vector& xmin,
+             const Vector& xmax);
 
-  // Destructor.
-  ~DampedLinearSpring();
+  ~HerzianDEM();
 
-  //***************************************************************************
-  // Required methods from contact model
-  virtual Scalar timeStep(const DataBase<Dimension>& dataBase,
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                                typename Dimension::Scalar time) const override;
+                          const Scalar time) const override;
 
   virtual void   evaluateDerivatives(const Scalar time,
                                      const Scalar dt,
@@ -60,9 +60,9 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
-  DampedLinearSpring();
-  DampedLinearSpring(const DampedLinearSpring&);
-  DampedLinearSpring& operator=(const DampedLinearSpring&);
+  HerzianDEM();
+  HerzianDEM(const HerzianDEM&);
+  HerzianDEM& operator=(const HerzianDEM&);
 
   Scalar mYoungsModulus;
   Scalar mRestitutionCoefficient;
@@ -71,13 +71,13 @@ private:
 
 }
 
-#include "DampedLinearSpringInline.hh"
+#include "HerzianDEM.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class DampedLinearSpring;
+  template<typename Dimension> class HerzianDEM;
 }
 
 #endif

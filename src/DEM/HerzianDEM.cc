@@ -1,7 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
 // Physics -- dampled linear spring contact model Spheral++
 //----------------------------------------------------------------------------//
-#include "DampedLinearSpring.hh"
+#include "DEM/HerzianDEM.hh"
 
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -11,6 +11,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DEM/DEMFieldNames.hh"
+#include "DEM/DEMDimension.hh"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -24,11 +25,16 @@ namespace Spheral {
 // Default constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-DampedLinearSpring<Dimension>::
-DampedLinearSpring(Scalar YoungsModulus,
-                   Scalar restitutionCoefficient):
-                   mRestitutionCoefficient(restitutionCoefficient),
-                   mYoungsModulus(YoungsModulus) {
+HerzianDEM<Dimension>::
+HerzianDEM(const DataBase<Dimension>& dataBase,
+           const Scalar YoungsModulus,
+           const Scalar restitutionCoefficient,
+           const Scalar stepsPerCollision,
+           const Vector& xmin,
+           const Vector& xmax):
+  DEMBase<Dimension>(dataBase,stepsPerCollision,xmin,xmax),
+  mYoungsModulus(YoungsModulus),
+  mRestitutionCoefficient(restitutionCoefficient) {
       mBeta = 3.14159/std::log(restitutionCoefficient);
 }
 
@@ -36,20 +42,20 @@ DampedLinearSpring(Scalar YoungsModulus,
 // Destructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-DampedLinearSpring<Dimension>::
-~DampedLinearSpring() {}
+HerzianDEM<Dimension>::
+~HerzianDEM() {}
 
 
 //------------------------------------------------------------------------------
 // time step 
 //------------------------------------------------------------------------------
 template<typename Dimension>
-typename Dimension::Scalar
-DampedLinearSpring<Dimension>::
-timeStep(const DataBase<Dimension>& dataBase,
-         const State<Dimension>& state,
-         const StateDerivatives<Dimension>& /*derivs*/,
-         const typename Dimension::Scalar /*currentTime*/) const{
+typename HerzianDEM<Dimension>::TimeStepType
+HerzianDEM<Dimension>::
+dt(const DataBase<Dimension>& dataBase,
+   const State<Dimension>& state,
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const Scalar /*currentTime*/) const {
   
   const auto& mass = state.fields(HydroFieldNames::mass, 0.0); 
   const auto& radius = state.fields(DEMFieldNames::particleRadius,0.0);
@@ -77,11 +83,11 @@ timeStep(const DataBase<Dimension>& dataBase,
     #pragma omp critical
     if (minContactTime_thread < minContactTime) minContactTime = minContactTime_thread;
 
-    }
+  }
   }
 
   minContactTime = pi*std::pow(minContactTime,0.25);
-  return minContactTime;
+  return std::make_pair(minContactTime/this->stepsPerCollision(),"Herzian DEM vote for time-step");
 };
 
 //------------------------------------------------------------------------------
@@ -89,15 +95,15 @@ timeStep(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-DampedLinearSpring<Dimension>::
+HerzianDEM<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const typename Dimension::Scalar /*dt*/,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivatives) const{
+                          StateDerivatives<Dimension>& derivatives) const{
 
   // A few useful constants we'll use in the following loop.
-  const double tiny = std::numeric_limits<double>::epsilon();
+  //const double tiny = std::numeric_limits<double>::epsilon();
   //auto minContactTime = std::numeric_limits<double>::max();
   const auto fourOverOnePlusBetaSquared = 4.0/(1.0+mBeta*mBeta);
   const auto Y = 4.0/3.0*mYoungsModulus;
@@ -114,7 +120,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const auto omega = state.fields(DEMFieldNames::angularVelocity, Vector::zero);
+  const auto omega = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   const auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
 
   CHECK(mass.size() == numNodeLists);
@@ -123,10 +129,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(radius.size() == numNodeLists);
   CHECK(omega.size() == numNodeLists);
 
-  //auto  T    = derivatives.getany("minContactTime",0.0);
-  auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position, Vector::zero);
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + DEMFieldNames::angularVelocity, Vector::zero);
+  auto  DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
 
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -140,7 +145,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
-    //auto minContactTimekk = std::numeric_limits<double>::max();
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -191,19 +195,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto vn = vij.dot(rhatij);
 
         // normal force
-        const auto f = c1*delta - c2*vn;
+        const auto f = c1*std::sqrt(delta*delta*delta) - c2*vn;
         DvDti += f/mi*rhatij;
         DvDtj -= f/mj*rhatij;
       }
-
-      //minContactTimekk = min(c1/mij,minContactTimekk);
-      
     } // loop over pairs
-
     // Reduce the thread values to the master.
     threadReduceFieldLists<Dimension>(threadStack);
-    //#pragma omp critical
-    //  if (minContactTimekk < minContactTime) minContactTime = minContactTimekk;
   }   // OpenMP parallel region
 
   

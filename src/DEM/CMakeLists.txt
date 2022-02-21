@@ -2,6 +2,7 @@ include_directories(.)
 
 set(DEM_inst 
     DEMBase
+    HerzianDEM
     LinearSpringDEM)
 
 set(DEM_sources
@@ -11,6 +12,7 @@ set(DEM_sources
 instantiate(DEM_inst DEM_sources)
 
 set(DEM_headers 
+    HerzianDEM.hh
     LinearSpringDEM.hh
     DEMBase.hh
     DEMDimension.hh
