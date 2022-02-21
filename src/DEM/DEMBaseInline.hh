@@ -109,48 +109,33 @@ omega() const {
   return mOmega;
 }
 
-//------------------------------------------------------------------------------
-// Access the physics packages.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const std::vector<ContactModelBase<Dimension>*>&
-DEMBase<Dimension>::contactModels() const {
-  return mContactModels;
-}
 
 //------------------------------------------------------------------------------
-// Provide iterators over over the physics packages.
+// moment of interia specializations
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<>
 inline
-typename std::vector<ContactModelBase<Dimension>*>::iterator
-DEMBase<Dimension>::contactModelsBegin() {
-  return mContactModels.begin();
+Dim<1>::Scalar
+DEMBase<Dim<1>>::
+momentOfInertia(const Dim<1>::Scalar m, const Dim<1>::Scalar R) {
+  return 0.5*m*R*R;
 }
 
-template<typename Dimension>
+template<>
 inline
-typename std::vector<ContactModelBase<Dimension>*>::iterator
-DEMBase<Dimension>::contactModelsEnd() {
-  return mContactModels.end();
+Dim<2>::Scalar
+DEMBase<Dim<2>>::
+momentOfInertia(const Dim<2>::Scalar m, const Dim<2>::Scalar R) {
+  return 0.5*m*R*R;
 }
 
-//------------------------------------------------------------------------------
-// Provide const iterators over over the physics packages.
-//------------------------------------------------------------------------------
-template<typename Dimension>
+template<>
 inline
-typename std::vector<ContactModelBase<Dimension>*>::const_iterator
-DEMBase<Dimension>::contactModelsBegin() const {
-  return mContactModels.begin();
+Dim<3>::Scalar
+DEMBase<Dim<3>>::
+momentOfInertia(const Dim<3>::Scalar m, const Dim<3>::Scalar R) {
+  return 0.4*m*R*R;
 }
 
-template<typename Dimension>
-inline
-typename std::vector<ContactModelBase<Dimension>*>::const_iterator
-DEMBase<Dimension>::contactModelsEnd() const {
-  return mContactModels.end();
-}
 
 }

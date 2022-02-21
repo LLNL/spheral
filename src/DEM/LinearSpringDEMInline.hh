@@ -6,14 +6,14 @@ namespace Spheral {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-DampedLinearSpring<Dimension>::
+LinearSpringDEM<Dimension>::
 normalSpringConstant() const {
   return mNormalSpringConstant;
 }
 template<typename Dimension>
 inline
 void
-DampedLinearSpring<Dimension>::
+LinearSpringDEM<Dimension>::
 normalSpringConstant(typename Dimension::Scalar x) {
   mNormalSpringConstant = x;
 }
@@ -25,14 +25,14 @@ normalSpringConstant(typename Dimension::Scalar x) {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-DampedLinearSpring<Dimension>::
+LinearSpringDEM<Dimension>::
 restitutionCoefficient() const {
   return mRestitutionCoefficient;
 }
 template<typename Dimension>
 inline
 void
-DampedLinearSpring<Dimension>::
+LinearSpringDEM<Dimension>::
 restitutionCoefficient(typename Dimension::Scalar x) {
   mRestitutionCoefficient = x;
 }
@@ -44,14 +44,14 @@ restitutionCoefficient(typename Dimension::Scalar x) {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-DampedLinearSpring<Dimension>::
+LinearSpringDEM<Dimension>::
 beta() const {
   return mBeta;
 }
 template<typename Dimension>
 inline
 void
-DampedLinearSpring<Dimension>::
+LinearSpringDEM<Dimension>::
 beta(typename Dimension::Scalar x) {
   mBeta = x;
 }
@@ -62,14 +62,14 @@ beta(typename Dimension::Scalar x) {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-DampedLinearSpring<Dimension>::
+LinearSpringDEM<Dimension>::
 timeStep() const {
   return mTimeStep;
 }
 template<typename Dimension>
 inline
 void
-DampedLinearSpring<Dimension>::
+LinearSpringDEM<Dimension>::
 timeStep(typename Dimension::Scalar x) {
   mTimeStep = x;
 }

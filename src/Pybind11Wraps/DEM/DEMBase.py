@@ -18,7 +18,7 @@ class DEMBase(Physics):
   typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
     
-    def pyinit(dataBase = "DataBase<%(Dimension)s>&",
+    def pyinit(dataBase = "const DataBase<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                stepsPerCollision = "const double",
                xmin = "const Vector&",
@@ -27,14 +27,6 @@ class DEMBase(Physics):
 
     #...........................................................................
     # Virtual methods
-    @PYB11virtual
-    @PYB11const
-    def dt(dataBase = "const DataBase<%(Dimension)s>&", 
-           state = "const State<%(Dimension)s>&",
-           derivs = "const StateDerivatives<%(Dimension)s>&",
-           currentTime = "const Scalar"):
-        "Vote on a time step."
-        return "TimeStepType"
 
     @PYB11virtual
     def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
@@ -70,15 +62,6 @@ class DEMBase(Physics):
         "Initialize the DEM before we start a derivative evaluation."
         return "void"
                        
-    @PYB11virtual
-    @PYB11const
-    def evaluateDerivatives(time = "const Scalar",
-                            dt = "const Scalar",
-                            dataBase = "const DataBase<%(Dimension)s>&",
-                            state = "const State<%(Dimension)s>&",
-                            derivs = "StateDerivatives<%(Dimension)s>&"):
-        """Evaluate the derivatives for DEM fields."""
-        return "void"
 
     @PYB11virtual
     @PYB11const
@@ -102,24 +85,6 @@ class DEMBase(Physics):
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
-    def appendContactModel(self, package="ContactModelBase<%(Dimension)s>&"):
-        "Add a Physics contact model."
-        return "void"
-
-    def resetContactModels(self, packages="std::vector<ContactModelBase<%(Dimension)s>*>&"):
-        "Reset the list of contact models."
-        return "void"
-
-    @PYB11const
-    def haveContactModel(self, package="const ContactModelBase<%(Dimension)s>&"):
-        "Test if the given contact model is listed in the integrator."
-        return "bool"
-
-    @PYB11const
-    @PYB11returnpolicy("reference_internal")
-    def contactModels(self):
-        "The set of contact models registered with the DEM package"
-        return "const std::vector<ContactModelBase<%(Dimension)s>*>&"
     #...........................................................................
     # Properties
     xmin = PYB11property("const Vector&", "xmin", "xmin",
@@ -141,3 +106,4 @@ class DEMBase(Physics):
 # Inject methods
 #-------------------------------------------------------------------------------
 PYB11inject(RestartMethods, DEMBase)
+

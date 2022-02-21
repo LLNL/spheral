@@ -10,7 +10,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "DEM/DEMFieldNames.hh"
 #include "DEM/DEMDimension.hh"
-#include "DEM/DampedLinearSpring.hh"
+#include "DEM/LinearSpringDEM.hh"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -66,13 +66,18 @@ momentOfInteria(const Dim<3>::Scalar m, const Dim<3>::Scalar R) {
 // Default constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-DampedLinearSpring<Dimension>::
-DampedLinearSpring(const DataBase<Dimension>& dataBase,
+LinearSpringDEM<Dimension>::
+LinearSpringDEM(const DataBase<Dimension>& dataBase,
                    const Scalar normalSpringConstant,
-                   const Scalar restitutionCoefficient):
+                   const Scalar restitutionCoefficient,
+                   const Scalar stepsPerCollision,
+                   const TableKernel<Dimension>& W,
+                   const Vector& xmin,
+                   const Vector& xmax):
+                   DEMBase<Dimension>(dataBase,W,stepsPerCollision,xmin,xmax),
                    mNormalSpringConstant(normalSpringConstant),
                    mRestitutionCoefficient(restitutionCoefficient){
-      
+     
       const auto pi = 3.14159265358979323846;
       const auto mass = dataBase.DEMMass();
       const auto minMass = mass.min();
@@ -86,21 +91,21 @@ DampedLinearSpring(const DataBase<Dimension>& dataBase,
 // Destructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-DampedLinearSpring<Dimension>::
-~DampedLinearSpring() {}
+LinearSpringDEM<Dimension>::
+~LinearSpringDEM() {}
 
 
 //------------------------------------------------------------------------------
-// time step -- constant for this contact model
+// time step -- constant for this model
 //------------------------------------------------------------------------------
 template<typename Dimension>
-typename Dimension::Scalar
-DampedLinearSpring<Dimension>::
-timeStep(const DataBase<Dimension>& /*dataBase*/,
-         const State<Dimension>& /*state*/,
-         const StateDerivatives<Dimension>& /*derivs*/,
-         const typename Dimension::Scalar /*currentTime*/) const{
-  return mTimeStep;
+typename LinearSpringDEM<Dimension>::TimeStepType
+LinearSpringDEM<Dimension>::
+dt(const DataBase<Dimension>& /*dataBase*/,
+   const State<Dimension>& /*state*/,
+   const StateDerivatives<Dimension>& /*derivs*/,
+   const typename Dimension::Scalar /*currentTime*/) const{
+  return make_pair(mTimeStep,("DEM vote for time step"));
 };
 
 //------------------------------------------------------------------------------
@@ -108,7 +113,7 @@ timeStep(const DataBase<Dimension>& /*dataBase*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-DampedLinearSpring<Dimension>::
+LinearSpringDEM<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const typename Dimension::Scalar /*dt*/,
                     const DataBase<Dimension>& dataBase,

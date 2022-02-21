@@ -27,7 +27,6 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/Timer.hh"
 
-#include "DEM/ContactModelBase.hh"
 #include "DEM/DEMBase.hh"
 #include "DEM/DEMDimension.hh"
 //#include "DEM/computeParticleRadius.hh"
@@ -78,14 +77,13 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 DEMBase<Dimension>::
-DEMBase(DataBase<Dimension>& dataBase,
+DEMBase(const DataBase<Dimension>& dataBase,
         const TableKernel<Dimension>& W,
-        const double stepsPerCollision,
+        const Scalar stepsPerCollision,
         const Vector& xmin,
         const Vector& xmax):
   Physics<Dimension>(),
   mKernel(W),
-  mContactModels(0),
   mStepsPerCollision(stepsPerCollision),
   mxmin(xmin),
   mxmax(xmax),
@@ -114,25 +112,25 @@ DEMBase<Dimension>::
 //------------------------------------------------------------------------------
 // Determine the timestep requirements for a hydro step.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-typename DEMBase<Dimension>::TimeStepType
-DEMBase<Dimension>::
-dt(const DataBase<Dimension>& dataBase,
-   const State<Dimension>& state,
-   const StateDerivatives<Dimension>& derivs,
-   const typename Dimension::Scalar time) const {
+// template<typename Dimension>
+// typename DEMBase<Dimension>::TimeStepType
+// DEMBase<Dimension>::
+// dt(const DataBase<Dimension>& dataBase,
+//    const State<Dimension>& state,
+//    const StateDerivatives<Dimension>& derivs,
+//    const typename Dimension::Scalar time) const {
    
-  auto DtVote = std::numeric_limits<double>::max();
-  for (typename DEMBase<Dimension>::ConstContactModelIterator contactItr = contactModelsBegin();
-       contactItr != contactModelsEnd();
-       ++contactItr) {
-    Scalar DtVotei = (*contactItr)->timeStep(dataBase, state, derivs, time);
-    DtVote = min(DtVotei, DtVote);
-  }
-  auto minDt = make_pair(DtVote,("DEM vote for time step"));
-  minDt.first/=this->stepsPerCollision();
-  return minDt;
-}
+//   auto DtVote = std::numeric_limits<double>::max();
+//   // for (typename DEMBase<Dimension>::ConstContactModelIterator contactItr = contactModelsBegin();
+//   //      contactItr != contactModelsEnd();
+//   //      ++contactItr) {
+//   //   Scalar DtVotei = (*contactItr)->timeStep(dataBase, state, derivs, time);
+//   //   DtVote = min(DtVotei, DtVote);
+//   // }
+//   auto minDt = make_pair(DtVote,("DEM vote for time step"));
+//   minDt.first/=this->stepsPerCollision();
+//   return minDt;
+// }
 
 //------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
@@ -234,23 +232,7 @@ initialize(const typename Dimension::Scalar /*time*/,
   TIME_DEMinitialize.stop();
 }
 
-//------------------------------------------------------------------------------
-// Finalize the derivatives.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DEMBase<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivs) const {
-  TIME_DEMevalDerivs.start();
-  for (auto contactItr = contactModelsBegin(); contactItr != contactModelsEnd(); ++contactItr) {
-    (*contactItr)->evaluateDerivatives(time, dt, dataBase, state, derivs);
-  }
-  TIME_DEMevalDerivs.stop();
-}
+
 //------------------------------------------------------------------------------
 // Finalize the derivatives.
 //------------------------------------------------------------------------------
@@ -317,44 +299,6 @@ enforceBoundaries(State<Dimension>& state,
   }
   TIME_DEMenforceBounds.stop();
 }
-
-
-
-//------------------------------------------------------------------------------
-// Add a contact model
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DEMBase<Dimension>::
-appendContactModel(ContactModelBase<Dimension>& contactModel) {
-  if (!haveContactModel(contactModel)) {
-    mContactModels.push_back(&contactModel);
-  } else {
-    cerr << "Warning: attempt to append contact model " << &contactModel
-         << "to DEM package " << this << " which already has it." << endl;
-  }
-}
-
-//------------------------------------------------------------------------------
-// Reset the contact models to a new set
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DEMBase<Dimension>::
-resetContactModels(std::vector<ContactModelBase<Dimension>*>& contactModels) {
-  mContactModels = contactModels;
-}
-
-//------------------------------------------------------------------------------
-// Test if the given contact model is listed in the DEMBase.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-bool
-DEMBase<Dimension>::
-haveContactModel(const ContactModelBase<Dimension>& contactModel) const {
-  return count(mContactModels.begin(), mContactModels.end(), &contactModel) > 0;
-}
-
 
 //------------------------------------------------------------------------------
 // Dump the current state to the given file.

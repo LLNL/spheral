@@ -33,25 +33,15 @@ public:
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
-  typedef typename std::vector<ContactModelBase<Dimension>*>::iterator ContactModelIterator;
-  typedef typename std::vector<ContactModelBase<Dimension>*>::const_iterator ConstContactModelIterator;
-  
   // Constructors.
-  DEMBase(DataBase<Dimension>& dataBase,
+  DEMBase(const DataBase<Dimension>& dataBase,
           const TableKernel<Dimension>& W,
-          const double stepsPerCollision,
+          const Scalar stepsPerCollision,
           const Vector& xmin,
           const Vector& xmax);
 
   // Destructor.
   virtual ~DEMBase();
-
-  // We require all Physics packages to provide a method returning their vote
-  // for the next time step.
-  virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
-                          const State<Dimension>& state,
-                          const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const;
 
   // Tasks we do once on problem startup.
   virtual
@@ -80,14 +70,6 @@ public:
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) override;
                        
-  // Evaluate the derivatives for the principle hydro variables:
-  // mass density, velocity, and specific thermal energy.
-  virtual
-  void evaluateDerivatives(const Scalar time,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const override;
 
   // Finalize the derivatives.
   virtual
@@ -107,21 +89,6 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
   
-    // Add a Physics package.
-  void appendContactModel(ContactModelBase<Dimension>& contactModels);
-  void resetContactModels(std::vector<ContactModelBase<Dimension>*>& contactModels);
-  bool haveContactModel(const ContactModelBase<Dimension>& package) const;
-
-    // Access the list of physics packages.
-  const std::vector<ContactModelBase<Dimension>*>& contactModels() const;
-
-  // Provide standard iterator methods over the physics package list.
-  ContactModelIterator contactModelsBegin();
-  ContactModelIterator contactModelsEnd();
-
-  ConstContactModelIterator contactModelsBegin() const;
-  ConstContactModelIterator contactModelsEnd() const;
-
 
   // Optionally we can provide a bounding box for use generating the mesh
   // for the Voronoi mass density update.
@@ -136,12 +103,16 @@ public:
   // Access the stored interpolation kernels.
   const TableKernel<Dimension>& kernel() const;
 
-  // The state field lists we're maintaining.
+  // access for fieldLists
   const FieldList<Dimension, int>&    timeStepMask() const;
   const FieldList<Dimension, Vector>& DxDt() const;
   const FieldList<Dimension, Vector>& DvDt() const;
   const FieldList<Dimension, RotationType>& omega() const;
   const FieldList<Dimension, RotationType>& DomegaDt() const;
+
+  // inlined and specialized for different dimensions
+  virtual Scalar momentOfInertia(const Scalar massi,
+                                 const Scalar particleRadiusi);
 
   //****************************************************************************
   // Methods required for restarting.
@@ -154,7 +125,6 @@ protected:
   //---------------------------  Protected Interface ---------------------------//
   // The interpolation kernels.
   const TableKernel<Dimension>& mKernel;
-  std::vector<ContactModelBase<Dimension>*>  mContactModels;
 
   // number of steps per collision time-scale
   Scalar mStepsPerCollision;              
