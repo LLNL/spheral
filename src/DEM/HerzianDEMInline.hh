@@ -41,6 +41,7 @@ HerzianDEM<Dimension>::
 beta() const {
   return mBeta;
 }
+
 template<typename Dimension>
 inline
 void

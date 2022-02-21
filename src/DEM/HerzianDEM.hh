@@ -7,7 +7,6 @@
 #define __Spheral_HerzianDEM_hh__
 
 #include "DEMBase.hh"
-#include <string>
 
 namespace Spheral {
 
@@ -58,20 +57,20 @@ public:
   void   beta(Scalar x);
 
 private:
+  Scalar mYoungsModulus;
+  Scalar mRestitutionCoefficient;
+  Scalar mBeta;
+
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
   HerzianDEM();
   HerzianDEM(const HerzianDEM&);
   HerzianDEM& operator=(const HerzianDEM&);
-
-  Scalar mYoungsModulus;
-  Scalar mRestitutionCoefficient;
-  Scalar mBeta;
 };
 
 }
 
-#include "HerzianDEM.hh"
+#include "HerzianDEMInline.hh"
 
 #else
 

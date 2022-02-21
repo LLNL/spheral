@@ -15,7 +15,7 @@ class HerzianDEM(DEMBase):
 """
     
     def pyinit(dataBase = "const DataBase<%(Dimension)s>&",
-               YoungsModulus = "const Scalar",
+               normalSpringConstant = "const Scalar",
                restitutionCoefficient = "const Scalar",
                stepsPerCollision = "const Scalar",
                xmin = "const Vector&",
@@ -41,7 +41,7 @@ class HerzianDEM(DEMBase):
         "calculate the derivatives for Linear Spring DEM."
         return "void"
 
-    YoungsModulus = PYB11property("Scalar", "YoungsModulus", "YoungsModulus", doc="elastic modulus")
+    YoungsModulus = PYB11property("Scalar", "YoungsModulus", "YoungsModulus", doc="linear restitution coefficient")
     restitutionCoefficient = PYB11property("Scalar", "restitutionCoefficient", "restitutionCoefficient", doc="linear restitution coefficient")
     beta = PYB11property("Scalar", "beta", "beta", doc="a damping parameter")
-    
+
