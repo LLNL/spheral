@@ -1,5 +1,6 @@
 #ATS:DEM0 = test(        SELF, "--clearDirectories True  --checkError True  --restartStep 10 --steps 100", label="DEM idividual particle collision -- 1-D (serial)")
 #ATS:DEM1 = testif(DEM0, SELF, "--clearDirectories False --checkError False  --restartStep 10 --restoreCycle 10 --steps 10 --checkRestart True", label="DEM idividual particle collision -- 1-D (serial) RESTART CHECK")
+#ATS:DEM2 = test(        SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM idividual particle collision -- 1-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
@@ -149,6 +150,9 @@ hydro = DEM(db,
             restitutionCoefficient,
             stepsPerCollision = 50)
 
+print hydro.normalSpringConstant
+print hydro.restitutionCoefficient
+print hydro.stepsPerCollision
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
@@ -222,12 +226,13 @@ if checkRestart:
         print "Restart check PASSED."
 
 if checkError:
-
     # check our restitution coefficient is correct
     #-------------------------------------------------------------
     vijPostImpact = velocity[0].x - velocity[1].x
     vijPreImpact = 2.0*vImpact
     restitutionEff = vijPostImpact/vijPreImpact
+    print restitutionEff
+    print vijPostImpact
     restitutionError = abs(restitutionEff + restitutionCoefficient)/restitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
         raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
