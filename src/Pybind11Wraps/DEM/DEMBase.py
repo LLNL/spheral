@@ -19,7 +19,6 @@ class DEMBase(Physics):
 """
     
     def pyinit(dataBase = "const DataBase<%(Dimension)s>&",
-               W = "const TableKernel<%(Dimension)s>&",
                stepsPerCollision = "const double",
                xmin = "const Vector&",
                xmax = "const Vector&"):
@@ -85,6 +84,11 @@ class DEMBase(Physics):
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
+    @PYB11virtual
+    @PYB11const
+    def momentOfInertia(massi = "const Scalar",
+                        partialRadiusi = "const Scalar"):
+        return "Scalar"
     #...........................................................................
     # Properties
     xmin = PYB11property("const Vector&", "xmin", "xmin",

@@ -78,12 +78,10 @@ namespace Spheral {
 template<typename Dimension>
 DEMBase<Dimension>::
 DEMBase(const DataBase<Dimension>& dataBase,
-        const TableKernel<Dimension>& W,
         const Scalar stepsPerCollision,
         const Vector& xmin,
         const Vector& xmax):
   Physics<Dimension>(),
-  mKernel(W),
   mStepsPerCollision(stepsPerCollision),
   mxmin(xmin),
   mxmax(xmax),

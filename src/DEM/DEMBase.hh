@@ -12,7 +12,6 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension> class ContactModelBase;
 template<typename Dimension, typename DataType> class Field;
@@ -35,7 +34,6 @@ public:
 
   // Constructors.
   DEMBase(const DataBase<Dimension>& dataBase,
-          const TableKernel<Dimension>& W,
           const Scalar stepsPerCollision,
           const Vector& xmin,
           const Vector& xmax);
@@ -100,9 +98,6 @@ public:
   Scalar stepsPerCollision() const;
   void   stepsPerCollision(Scalar x);
 
-  // Access the stored interpolation kernels.
-  const TableKernel<Dimension>& kernel() const;
-
   // access for fieldLists
   const FieldList<Dimension, int>&    timeStepMask() const;
   const FieldList<Dimension, Vector>& DxDt() const;
@@ -112,7 +107,7 @@ public:
 
   // inlined and specialized for different dimensions
   virtual Scalar momentOfInertia(const Scalar massi,
-                                 const Scalar particleRadiusi);
+                                 const Scalar particleRadiusi) const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -123,8 +118,6 @@ public:
 
 protected:
   //---------------------------  Protected Interface ---------------------------//
-  // The interpolation kernels.
-  const TableKernel<Dimension>& mKernel;
 
   // number of steps per collision time-scale
   Scalar mStepsPerCollision;              

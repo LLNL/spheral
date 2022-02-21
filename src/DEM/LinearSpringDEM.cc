@@ -21,62 +21,19 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// couple explicit things for dimension templating
-//------------------------------------------------------------------------------
-
-// moment of interia
-// inline
-// Dim<1>::Scalar
-// momentOfInteria(const Dim<1>::Scalar m, const Dim<1>::Scalar R) {
-//   return 1.0;
-// }
-
-// inline
-// Dim<2>::Scalar
-// momentOfInteria(const Dim<2>::Scalar m, const Dim<2>::Scalar R) {
-//   return 0.5*m*R*R;
-// }
-
-inline
-Dim<3>::Scalar
-momentOfInteria(const Dim<3>::Scalar m, const Dim<3>::Scalar R) {
-  return 0.4*m*R*R;
-}
-
-// vel due to rotation
-// inline
-// Dim<1>::Vector
-// crossproduct(const Dim<1>::Vector v1, const Dim<1>::Vector v2) {
-//   return Dimension::Vector::zero;
-// }
-
-// inline
-// Dim<2>::Vector
-// crossproduct(const Dim<2>::Vector v1, const Dim<2>::Vector v2) {
-//   return Vector();
-// }
-
-// inline
-// Dim<3>::Vector
-// crossproduct(const Dim<3>::Vector v1, const Dim<3>::Vector v2) {
-//   return rotation.cross(direction);
-// }
-
-//------------------------------------------------------------------------------
 // Default constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
 LinearSpringDEM<Dimension>::
 LinearSpringDEM(const DataBase<Dimension>& dataBase,
-                   const Scalar normalSpringConstant,
-                   const Scalar restitutionCoefficient,
-                   const Scalar stepsPerCollision,
-                   const TableKernel<Dimension>& W,
-                   const Vector& xmin,
-                   const Vector& xmax):
-                   DEMBase<Dimension>(dataBase,W,stepsPerCollision,xmin,xmax),
-                   mNormalSpringConstant(normalSpringConstant),
-                   mRestitutionCoefficient(restitutionCoefficient){
+                const Scalar normalSpringConstant,
+                const Scalar restitutionCoefficient,
+                const Scalar stepsPerCollision,
+                const Vector& xmin,
+                const Vector& xmax):
+                  DEMBase<Dimension>(dataBase,stepsPerCollision,xmin,xmax),
+                  mNormalSpringConstant(normalSpringConstant),
+                  mRestitutionCoefficient(restitutionCoefficient){
      
       const auto pi = 3.14159265358979323846;
       const auto mass = dataBase.DEMMass();
@@ -220,8 +177,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto mij = (mi*mj)/(mi+mj);
         
         // moments of interia
-        const auto Ii = momentOfInteria(mi,Ri);
-        const auto Ij = momentOfInteria(mj,Rj);
+        const auto Ii = this->momentOfInertia(mi,Ri);
+        const auto Ij = this->momentOfInertia(mj,Rj);
 
         // normal force w/ Herzian spring constant
         const auto normalDampingConstant = std::sqrt(mij*dampingConstTerms);

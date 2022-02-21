@@ -56,17 +56,6 @@ stepsPerCollision(typename Dimension::Scalar x) {
 }
 
 //------------------------------------------------------------------------------
-// Access the main kernel used for (A)SPH field estimates.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const TableKernel<Dimension>&
-DEMBase<Dimension>::
-kernel() const {
-  return mKernel;
-}
-
-//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -117,7 +106,7 @@ template<>
 inline
 Dim<1>::Scalar
 DEMBase<Dim<1>>::
-momentOfInertia(const Dim<1>::Scalar m, const Dim<1>::Scalar R) {
+momentOfInertia(const Dim<1>::Scalar m, const Dim<1>::Scalar R) const {
   return 0.5*m*R*R;
 }
 
@@ -125,7 +114,7 @@ template<>
 inline
 Dim<2>::Scalar
 DEMBase<Dim<2>>::
-momentOfInertia(const Dim<2>::Scalar m, const Dim<2>::Scalar R) {
+momentOfInertia(const Dim<2>::Scalar m, const Dim<2>::Scalar R) const {
   return 0.5*m*R*R;
 }
 
@@ -133,7 +122,7 @@ template<>
 inline
 Dim<3>::Scalar
 DEMBase<Dim<3>>::
-momentOfInertia(const Dim<3>::Scalar m, const Dim<3>::Scalar R) {
+momentOfInertia(const Dim<3>::Scalar m, const Dim<3>::Scalar R) const {
   return 0.4*m*R*R;
 }
 

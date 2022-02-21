@@ -73,4 +73,6 @@ LinearSpringDEM<Dimension>::
 timeStep(typename Dimension::Scalar x) {
   mTimeStep = x;
 }
+
+
 }

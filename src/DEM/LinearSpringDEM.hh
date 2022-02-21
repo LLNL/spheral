@@ -32,7 +32,6 @@ public:
                   const Scalar normalSpringConstant,
                   const Scalar restitutionCoefficient,
                   const Scalar stepsPerCollision,
-                  const TableKernel<Dimension>& W,
                   const Vector& xmin,
                   const Vector& xmax);
 
