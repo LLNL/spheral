@@ -55,7 +55,7 @@ def LinearSpringDEM(dataBase,
     xmax = (ndim,) + xmax
     kwargs = {"dataBase" : dataBase,
               "normalSpringConstant" : normalSpringConstant,
-              "restitutionCoefficient" : resitutionCoefficient,
+              "restitutionCoefficient" : restitutionCoefficient,
               "stepsPerCollision" : stepsPerCollision,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}

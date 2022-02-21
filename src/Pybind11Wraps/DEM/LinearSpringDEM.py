@@ -18,7 +18,7 @@ class LinearSpringDEM(DEMBase):
 """
     
     def pyinit(dataBase = "const DataBase<%(Dimension)s>&",
-               normalSpringonstant = "const Scalar",
+               normalSpringConstant = "const Scalar",
                restitutionCoefficient = "const Scalar",
                stepsPerCollision = "const Scalar",
                xmin = "const Vector&",

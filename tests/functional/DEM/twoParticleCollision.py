@@ -21,7 +21,7 @@ title("DEM Restitution Coefficient Test")
 commandLine(vImpact = 1.0,                 # impact velocity
             normalSpringConstant=10000.0,  # spring constant for LDS model
             restitutionCoefficient=0.8,    # restitution coefficient to get damping const
-            radius = 0.5,                  # particle radius
+            radius = 0.25,                 # particle radius
             nPerh = 1.01,                  # this should basically always be 1 for DEM
 
             # integration
@@ -40,7 +40,7 @@ commandLine(vImpact = 1.0,                 # impact velocity
             dtverbose = False,
             
             # output control
-            vizCycle = None,
+            vizCycle = 10,#None,
             vizTime = None,
             clearDirectories = False,
             restoreCycle = None,
@@ -123,8 +123,7 @@ if restoreCycle is None:
     velocity = nodes1.velocity()
     velocity[0] = Vector(vImpact,0.0)
     velocity[1] = Vector(-vImpact,0.0)
-    
-    omega = nodes1.angularVelocity()
+
     particleRadius = nodes1.particleRadius()
 
     particleRadius[0] = radius
@@ -145,12 +144,10 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # DEM
 #-------------------------------------------------------------------------------
-DLS = DampedLinearSpring(db,
-                         normalSpringConstant,
-                         restitutionCoefficient)
-
-hydro = DEM(db,W=WT,stepsPerCollision = 50)
-hydro.appendContactModel(DLS)
+hydro = DEM(db,
+            normalSpringConstant,
+            restitutionCoefficient,
+            stepsPerCollision = 50)
 
 packages = [hydro]
 
@@ -231,9 +228,6 @@ if checkError:
     vijPostImpact = velocity[0].x - velocity[1].x
     vijPreImpact = 2.0*vImpact
     restitutionEff = vijPostImpact/vijPreImpact
-    print (H[0])
-    print (H[1])
-    print (velocity[0].x)
     restitutionError = abs(restitutionEff + restitutionCoefficient)/restitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
         raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
