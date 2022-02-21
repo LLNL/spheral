@@ -53,6 +53,26 @@ class TestTableKernel(unittest.TestCase):
     #===========================================================================
     # Check that the table kernel accurately reflects the real kernels values.
     #===========================================================================
+    def testW_simultaneous_vals(self):
+        for WT, Vector, SymTensor in ((self.WT1, Vector1d, SymTensor1d),
+                                      (self.WT2, Vector2d, SymTensor2d),
+                                      (self.WT3, Vector3d, SymTensor3d)):
+            deta = WT.kernelExtent/(self.nsamples - 1)
+            for i in xrange(self.nsamples):
+                eta = i*deta
+                Wval, gradWval, Wsumval = WT.kernelAndGrad(Vector(eta), Vector.zero, SymTensor.one)
+                print " ---> ", gradWval
+                print " ---> ", WT.gradValue(eta, 1.0)
+                self.failUnless(fuzzyEqual(Wval, WT.kernelValue(eta, 1.0), self.W0tol), 
+                                "TableKernel value does match single lookup within tolerance:  %g %g" %
+                                (Wval, WT.kernelValue(eta, 1.0)))
+                self.failUnless(fuzzyEqual(gradWval.magnitude(), WT.gradValue(eta, 1.0), self.W1tol),
+                                "TableKernel grad value does match single lookup within tolerance:  %s %s" %
+                                (gradWval, WT.gradValue(eta, 1.0)))
+
+    #===========================================================================
+    # Check that the table kernel accurately reflects the real kernels values.
+    #===========================================================================
     def testWlookup(self):
         for W, WT in self.kernelPairs:
             deta = W.kernelExtent/(self.nsamples - 1)
@@ -66,10 +86,6 @@ class TestTableKernel(unittest.TestCase):
                                            W.gradValue(eta, 1.0), self.W1tol),
                                 "TableKernel grad value does match original within tolerance:  %g %g" %
                                 (WT.gradValue(eta, 1.0), W.gradValue(eta, 1.0)))
-                self.failUnless(fuzzyEqual(WT.grad2Value(eta, 1.0),
-                                           W.grad2Value(eta, 1.0), self.W2tol),
-                                "TableKernel grad2 value does match original within tolerance:  %g %g" %
-                                (WT.grad2Value(eta, 1.0), W.grad2Value(eta, 1.0)))
 
     #===========================================================================
     # Confirm that the nperh and Wsum values are monotonic.

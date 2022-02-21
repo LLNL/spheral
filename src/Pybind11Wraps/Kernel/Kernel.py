@@ -335,14 +335,18 @@ class TableKernel(Kernel):
     #...........................................................................
     # Methods
     @PYB11const
+    @PYB11implementation("""[](const TableKernel<%(Dimension)s>& self, const Vector& etaj, const Vector& etai, const SymTensor& H) -> py::tuple {
+        double W, deltaWsum;
+        Vector gradW;
+        self.kernelAndGrad(etaj, etai, H, W, gradW, deltaWsum);
+        return py::make_tuple(W, gradW, deltaWsum);
+      }""")
     def kernelAndGrad(self,
                       etaj = "const Vector&",
                       etai = "const Vector&",
-                      H = "const SymTensor&",
-                      W = "double&",
-                      gradW = "Vector&",
-                      deltaWsum = "double&"):
-        return "void"
+                      H = "const SymTensor&"):
+        "Simultaneously compute the W(etaj, etai), gradW(etaj, etai), deltaWsum(etaj, etai) -- returns a tuple of those results."
+        return "py::tuple"
 
     @PYB11const
     def kernelAndGradValue(self,
