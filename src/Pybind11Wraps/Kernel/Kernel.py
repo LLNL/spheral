@@ -338,8 +338,11 @@ class TableKernel(Kernel):
     def kernelAndGrad(self,
                       etaj = "const Vector&",
                       etai = "const Vector&",
-                      H = "const SymTensor&"):
-        return "std::tuple<double, double, Vector>"
+                      H = "const SymTensor&",
+                      W = "double&",
+                      gradW = "Vector&",
+                      deltaWsum = "double&"):
+        return "void"
 
     @PYB11const
     def kernelAndGradValue(self,

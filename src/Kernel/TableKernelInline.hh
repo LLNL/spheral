@@ -57,16 +57,26 @@ TableKernel<Dimension>::grad2Value(const double etaij, const double Hdet) const 
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-std::tuple<double, double, typename Dimension::Vector>
+void
 TableKernel<Dimension>::kernelAndGrad(const typename Dimension::Vector& etaj,
                                       const typename Dimension::Vector& etai,
-                                      const typename Dimension::SymTensor& H) const {
+                                      const typename Dimension::SymTensor& H,
+                                      typename Dimension::Scalar& W,
+                                      typename Dimension::Vector& gradW,
+                                      typename Dimension::Scalar& deltaWsum) const {
   const auto etaji = etaj - etai;
   const auto etajiMag = etaji.magnitude();
   const auto Hdet = H.Determinant();
-  double Wval, gWval;
-  std::tie(Wval, gWval) = this->kernelAndGradValue(etajiMag, Hdet);
-  return std::make_tuple(Wval, gWval, H*etaji.unitVector()*gWval);
+  if (etajiMag < this->mKernelExtent) {
+    const auto i0 = mInterp.lowerBound(etajiMag);
+    W = Hdet*mInterp(etajiMag, i0);
+    deltaWsum = Hdet*mGradInterp(etajiMag, i0);
+    gradW = H*etaji.unitVector()*deltaWsum;
+  } else {
+    W = 0.0;
+    deltaWsum = 0.0;
+    gradW.Zero();
+  }
 }
 
 //------------------------------------------------------------------------------

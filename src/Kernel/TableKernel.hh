@@ -11,7 +11,6 @@
 #include "Utilities/QuadraticInterpolator.hh"
 
 #include <vector>
-#include <tuple>
 
 namespace Spheral {
 
@@ -51,8 +50,11 @@ public:
   double grad2Value(const double etaij, const double Hdet) const;
 
   // Simultaneously return the kernel value and first derivative.
-  std::tuple<double, double, Vector> kernelAndGrad(const Vector& etaj, const Vector& etai, const SymTensor& H) const;
-  std::pair<double, double> kernelAndGradValue(const double etaij, const double Hdet) const;
+  void kernelAndGrad(const Vector& etaj, const Vector& etai, const SymTensor& H,
+                     Scalar& W,
+                     Vector& gradW,
+                     Scalar& deltaWsum) const;
+  std::pair<double, double> kernelAndGradValue(const double etaij, const double Hdet) const;  // deprecate
 
   // Look up the kernel and first derivative for a set.
   void kernelAndGradValues(const std::vector<double>& etaijs,

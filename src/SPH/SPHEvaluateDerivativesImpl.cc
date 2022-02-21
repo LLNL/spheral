@@ -212,16 +212,16 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       const auto etajj = Hj*rj;
 
       // Symmetrized kernel weight and gradient.
-      std::tie(Wi, gWi, gradWi) = W.kernelAndGrad(etaii, etaji, Hi);
-      std::tie(Wj, gWj, gradWj) = W.kernelAndGrad(etaij, etajj, Hj);
+      W.kernelAndGrad(etaii, etaji, Hi, Wi, gradWi, gWi);
+      W.kernelAndGrad(etaij, etajj, Hj, Wj, gradWj, gWj);
       if (oneKernel) {
         WQi = Wi;
         WQj = Wj;
         gradWQi = gradWi;
         gradWQj = gradWj;
       } else {
-        std::tie(WQi, gWQi, gradWQi) = WQ.kernelAndGrad(etaii, etaji, Hi);
-        std::tie(WQj, gWQj, gradWQj) = WQ.kernelAndGrad(etaij, etajj, Hj);
+        WQ.kernelAndGrad(etaii, etaji, Hi, WQi, gradWQi, gWQi);
+        WQ.kernelAndGrad(etaij, etajj, Hj, WQj, gradWQj, gWQj);
       }
 
       // Zero'th and second moment of the node distribution -- used for the
