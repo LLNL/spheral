@@ -86,7 +86,6 @@ if restoreCycle is None:
 # This doesn't really matter kernel filler for neighbor algo
 #-------------------------------------------------------------------------------
 WT = TableKernel(WendlandC2Kernel(), 1000)
-print WT.kernelExtent
 
 #-------------------------------------------------------------------------------
 # Make the NodeList.
@@ -148,11 +147,8 @@ output("db.numFluidNodeLists")
 hydro = DEM(db,
             normalSpringConstant,
             restitutionCoefficient,
-            stepsPerCollision = 50)
+            stepsPerCollision = stepsPerCollision)
 
-print hydro.normalSpringConstant
-print hydro.restitutionCoefficient
-print hydro.stepsPerCollision
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
