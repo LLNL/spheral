@@ -1,18 +1,16 @@
-#ATS:DEM0 = test(        SELF, "--clearDirectories True  --checkError True  --restartStep 10 --steps 100", label="DEM idividual particle collision -- 1-D (serial)")
-#ATS:DEM1 = testif(DEM0, SELF, "--clearDirectories False --checkError False  --restartStep 10 --restoreCycle 10 --steps 10 --checkRestart True", label="DEM idividual particle collision -- 1-D (serial) RESTART CHECK")
-#ATS:DEM2 = test(        SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM idividual particle collision -- 1-D (serial)")
+#ATS:DEM1d = test(        SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM idividual particle collision -- 1-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
-from Spheral2d import *
+from Spheral1d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
-from GenerateNodeDistribution2d import *
+from GenerateNodeDistribution1d import *
 
 if mpi.procs > 1:
-    from PeanoHilbertDistributeNodes import distributeNodes2d
+    from PeanoHilbertDistributeNodes import distributeNodes1d
 else:
-    from DistributeNodes import distributeNodes2d
+    from DistributeNodes import distributeNodes1d
 
 title("DEM Restitution Coefficient Test")
 
@@ -47,7 +45,7 @@ commandLine(vImpact = 1.0,                 # impact velocity
             restoreCycle = None,
             restartStep = 1000,
             redistributeStep = 500,
-            dataDir = "dumps-DEM-2d",
+            dataDir = "dumps-DEM-1d",
 
             # ats parameters
             checkError = False,
@@ -58,7 +56,7 @@ commandLine(vImpact = 1.0,                 # impact velocity
 #-------------------------------------------------------------------------------
 # file things
 #-------------------------------------------------------------------------------
-testName = "DEM-twoParticleCollision-2d"
+testName = "DEM-twoParticleCollision-1d"
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
@@ -109,15 +107,14 @@ for nodes in nodeSet:
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    generator1 = GenerateNodeDistribution2d(2, 1,
+    generator1 = GenerateNodeDistribution1d(2,
                                             rho = 1.0,
-                                            distributionType = "lattice",
-                                            xmin = (0.0,  0.0),
-                                            xmax = (1.0,  0.5),
+                                            xmin = 0.0,
+                                            xmax = 1.0,
                                             nNodePerh = nPerh)
 
 
-    distributeNodes2d((nodes1, generator1))
+    distributeNodes1d((nodes1, generator1))
 
     # initial conditions
     velocity = nodes1.velocity()
