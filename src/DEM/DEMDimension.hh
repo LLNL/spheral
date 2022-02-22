@@ -15,20 +15,29 @@ namespace Spheral {
     public:
       typedef Dim<1>::Scalar AngularVector;
       static const Dim<1>::Scalar zero;
+      Dim<1>::Scalar cross(const Dim<1>::Scalar v1, const Dim<1>::Scalar v2) const;
   };
   template<>
   class DEMDimension<Dim<2>>{
     public:
       typedef Dim<2>::Scalar AngularVector;
       static const Dim<2>::Scalar zero;
+
+      AngularVector  cross(const Dim<2>::Vector v1, const Dim<2>::Vector v2) const;
+      Dim<2>::Vector cross(const AngularVector  v1, const Dim<2>::Vector v2) const;
+      Dim<2>::Vector cross(const Dim<2>::Vector v1, const AngularVector  v2) const;
   };
   template<>
   class DEMDimension<Dim<3>>{
     public:
       typedef Dim<3>::Vector AngularVector;
       static const Dim<3>::Vector zero;
+      Dim<3>::Vector  cross(const Dim<3>::Vector v1, const Dim<3>::Vector v2) const;
   };
 }
+
+#include "DEMDimensionInline.hh"
+
 #else
 
 // Forward declaration.
