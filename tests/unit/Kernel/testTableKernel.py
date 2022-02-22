@@ -60,15 +60,15 @@ class TestTableKernel(unittest.TestCase):
             deta = WT.kernelExtent/(self.nsamples - 1)
             for i in xrange(self.nsamples):
                 eta = i*deta
-                Wval, gradWval, Wsumval = WT.kernelAndGrad(Vector(eta), Vector.zero, SymTensor.one)
-                print " ---> ", gradWval
-                print " ---> ", WT.gradValue(eta, 1.0)
-                self.failUnless(fuzzyEqual(Wval, WT.kernelValue(eta, 1.0), self.W0tol), 
+                H = 0.5*SymTensor.one
+                Hdet = H.Determinant()
+                Wval, gradWval, deltaWsum = WT.kernelAndGrad(Vector(eta), Vector.zero, H)
+                self.failUnless(fuzzyEqual(Wval, WT.kernelValue(eta, Hdet), self.W0tol), 
                                 "TableKernel value does match single lookup within tolerance:  %g %g" %
-                                (Wval, WT.kernelValue(eta, 1.0)))
-                self.failUnless(fuzzyEqual(gradWval.magnitude(), WT.gradValue(eta, 1.0), self.W1tol),
+                                (Wval, WT.kernelValue(eta, Hdet)))
+                self.failUnless(fuzzyEqual((gradWval - H*Vector(eta).unitVector()*WT.gradValue(eta, Hdet)).magnitude(), 0.0, self.W1tol),
                                 "TableKernel grad value does match single lookup within tolerance:  %s %s" %
-                                (gradWval, WT.gradValue(eta, 1.0)))
+                                (gradWval, WT.gradValue(eta, Hdet)))
 
     #===========================================================================
     # Check that the table kernel accurately reflects the real kernels values.
