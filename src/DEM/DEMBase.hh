@@ -109,6 +109,10 @@ public:
   virtual Scalar momentOfInertia(const Scalar massi,
                                  const Scalar particleRadiusi) const;
 
+  // // inlined and specialized for different dimensions
+  // virtual Vector cross(const Vector contactDirection,
+  //                      const RotationType angularVelocity) const;
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "DEMBase" ; }

@@ -108,29 +108,6 @@ DEMBase<Dimension>::
 
 
 //------------------------------------------------------------------------------
-// Determine the timestep requirements for a hydro step.
-//------------------------------------------------------------------------------
-// template<typename Dimension>
-// typename DEMBase<Dimension>::TimeStepType
-// DEMBase<Dimension>::
-// dt(const DataBase<Dimension>& dataBase,
-//    const State<Dimension>& state,
-//    const StateDerivatives<Dimension>& derivs,
-//    const typename Dimension::Scalar time) const {
-   
-//   auto DtVote = std::numeric_limits<double>::max();
-//   // for (typename DEMBase<Dimension>::ConstContactModelIterator contactItr = contactModelsBegin();
-//   //      contactItr != contactModelsEnd();
-//   //      ++contactItr) {
-//   //   Scalar DtVotei = (*contactItr)->timeStep(dataBase, state, derivs, time);
-//   //   DtVote = min(DtVotei, DtVote);
-//   // }
-//   auto minDt = make_pair(DtVote,("DEM vote for time step"));
-//   minDt.first/=this->stepsPerCollision();
-//   return minDt;
-// }
-
-//------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
 //------------------------------------------------------------------------------
 template<typename Dimension>
