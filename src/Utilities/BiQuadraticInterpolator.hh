@@ -63,6 +63,9 @@ public:
   double ystep() const;                       // y step size
   const std::vector<double>& coeffs() const;  // the fitting coefficients
   
+  // Comparison
+  bool operator==(const BiQuadraticInterpolator& rhs) const;
+
 private:
   //--------------------------- Private Interface --------------------------//
   // Member data

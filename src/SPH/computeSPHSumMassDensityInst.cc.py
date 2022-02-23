@@ -7,12 +7,12 @@ text = """
 #include "Kernel/TableKernel.hh"
 
 namespace Spheral {
-  template void computeSPHSumMassDensity(const ConnectivityMap<%(Dimension)s>&, 
-                                         const TableKernel<%(Dimension)s>&, 
+  template void computeSPHSumMassDensity(const ConnectivityMap<%(Dim)s>&, 
+                                         const TableKernel<%(Dim)s>&, 
                                          const bool,
-                                         const FieldList<%(Dimension)s, %(Dimension)s::Vector>&,
-                                         const FieldList<Dim<%(ndim)s, %(Dimension)s::Scalar>&,
-                                         const FieldList<Dim<%(ndim)s >, %(Dimension)s::SymTensor>&,
-                                         FieldList<%(Dimension)s, %(Dimension)s::Scalar>&);
+                                         const FieldList<%(Dim)s, %(Dim)s::Vector>&,
+                                         const FieldList<%(Dim)s, %(Dim)s::Scalar>&,
+                                         const FieldList<%(Dim)s, %(Dim)s::SymTensor>&,
+                                         FieldList<%(Dim)s, %(Dim)s::Scalar>&);
 }
 """

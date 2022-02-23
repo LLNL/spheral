@@ -39,6 +39,9 @@ public:
   // Assignment.
   SphericalTableKernel& operator=(const SphericalTableKernel& rhs);
 
+  // Comparisons
+  bool operator==(const SphericalTableKernel& rhs) const;
+
   // These methods taking a Vector eta and Vector position are the special methods
   // allowing this kernel to implement the asymmetric sampling as a function of r.
   // Arguments:

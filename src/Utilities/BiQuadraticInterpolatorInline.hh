@@ -299,4 +299,21 @@ BiQuadraticInterpolator::coeffs() const {
   return mcoeffs;
 }
 
+//------------------------------------------------------------------------------
+// operator==
+//------------------------------------------------------------------------------
+inline
+bool
+BiQuadraticInterpolator::operator==(const BiQuadraticInterpolator& rhs) const {
+  return ((mnx1 == rhs.mnx1) and
+          (mny1 == rhs.mny1) and
+          (mxmin == rhs.mxmin) and
+          (mxmax == rhs.mxmax) and
+          (mymin == rhs.mymin) and
+          (mymax == rhs.mymax) and
+          (mxstep == rhs.mxstep) and
+          (mystep == rhs.mystep) and
+          (mcoeffs == rhs.mcoeffs));
+}
+
 }

@@ -78,10 +78,6 @@ extern Timer TIME_SPHfinalizeDerivs;
 extern Timer TIME_SPHghostBounds;
 extern Timer TIME_SPHupdateVol;
 extern Timer TIME_SPHenforceBounds;
-extern Timer TIME_SPHevalDerivs;
-extern Timer TIME_SPHevalDerivs_initial;
-extern Timer TIME_SPHevalDerivs_pairs;
-extern Timer TIME_SPHevalDerivs_final;
 
 namespace Spheral {
 

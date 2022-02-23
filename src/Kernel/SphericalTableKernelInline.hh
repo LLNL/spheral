@@ -4,6 +4,16 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// operator==
+//------------------------------------------------------------------------------
+inline
+bool
+SphericalTableKernel::operator==(const SphericalTableKernel& rhs) const {
+  return ((mInterp == rhs.mInterp) and
+          (metamax == rhs.metamax));
+}
+
+//------------------------------------------------------------------------------
 // Lookup the kernel for (rj/h, ri/h) = (etaj, etai)
 //------------------------------------------------------------------------------
 inline

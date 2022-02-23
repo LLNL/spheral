@@ -1,4 +1,20 @@
+#include "Utilities/Timer.hh"
+#include "DataBase/IncrementFieldList.hh"
+#include "DataBase/ReplaceFieldList.hh"
+#include "DataBase/IncrementBoundedFieldList.hh"
+#include "DataBase/ReplaceBoundedFieldList.hh"
+#include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/CompositeFieldListPolicy.hh"
+#include "ArtificialViscosity/ArtificialViscosity.hh"
+
 namespace Spheral {
+
+// Declare timers
+extern Timer TIME_SPHevalDerivs;
+extern Timer TIME_SPHevalDerivs_initial;
+extern Timer TIME_SPHevalDerivs_pairs;
+extern Timer TIME_SPHevalDerivs_final;
 
 //------------------------------------------------------------------------------
 // Determine the principle derivatives.
@@ -26,7 +42,6 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
-  const Scalar W0 = W(0.0, 1.0);
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -342,6 +357,7 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
+      const auto  etaii = Hi*ri;
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -364,8 +380,9 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
 
       // Add the self-contribution to density sum.
-      rhoSumi += mi*W0*Hdeti;
-      normi += mi/rhoi*W0*Hdeti;
+      const auto W0 = W(etaii, Hdeti);
+      rhoSumi += mi*W0;
+      normi += mi/rhoi*W0;
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
