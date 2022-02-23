@@ -17,6 +17,7 @@
 #include <string>
 
 #include "SPHHydroBase.hh"
+#include "Kernel/SphericalTableKernel.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
@@ -37,8 +38,8 @@ public:
   SPHHydroBaseSpherical(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                         DataBase<Dimension>& dataBase,
                         ArtificialViscosity<Dimension>& Q,
-                        const TableKernel<Dimension>& W,
-                        const TableKernel<Dimension>& WPi,
+                        const SphericalTableKernel& W,
+                        const SphericalTableKernel& WPi,
                         const double filter,
                         const double cfl,
                         const bool useVelocityMagnitudeForDt,
@@ -58,19 +59,15 @@ public:
   // Destructor.
   virtual ~SPHHydroBaseSpherical();
 
-  // Tasks we do once on problem startup.
-  virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+  // Register the state Hydro expects to use and evolve.
+  virtual 
+  void registerState(DataBase<Dimension>& dataBase,
+                     State<Dimension>& state) override;
 
-  // // Register the state Hydro expects to use and evolve.
-  // virtual 
-  // void registerState(DataBase<Dimension>& dataBase,
-  //                    State<Dimension>& state) override;
-
-  // // This method is called once at the beginning of a timestep, after all state registration.
-  // virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
-  //                                State<Dimension>& state,
-  //                                StateDerivatives<Dimension>& derivs) override;
+  // This method is called once at the beginning of a timestep, after all state registration.
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
 
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
@@ -81,20 +78,25 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
 
-  // // Apply boundary conditions to the physics specific fields.
-  // virtual
-  // void applyGhostBoundaries(State<Dimension>& state,
-  //                           StateDerivatives<Dimension>& derivs) override;
+  // Apply boundary conditions to the physics specific fields.
+  virtual
+  void applyGhostBoundaries(State<Dimension>& state,
+                            StateDerivatives<Dimension>& derivs) override;
 
-  // // Enforce boundary conditions for the physics specific fields.
-  // virtual
-  // void enforceBoundaries(State<Dimension>& state,
-  //                        StateDerivatives<Dimension>& derivs) override;
+  // Enforce boundary conditions for the physics specific fields.
+  virtual
+  void enforceBoundaries(State<Dimension>& state,
+                         StateDerivatives<Dimension>& derivs) override;
                
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "SPHHydroBaseSpherical" ; }
   //****************************************************************************
+
+  // Access the stored interpolation kernels.
+  // These hide the base class "kernel" methods which return vanilla TableKernels.
+  const SphericalTableKernel& kernel() const;
+  const SphericalTableKernel& PiKernel() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -102,6 +104,10 @@ private:
   SPHHydroBaseSpherical();
   SPHHydroBaseSpherical(const SPHHydroBaseSpherical&);
   SPHHydroBaseSpherical& operator=(const SPHHydroBaseSpherical&);
+
+  // The specialized kernels
+  const SphericalTableKernel& mKernel;
+  const SphericalTableKernel& mPiKernel;
 };
 
 }

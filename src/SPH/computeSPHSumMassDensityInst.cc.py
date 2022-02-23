@@ -4,14 +4,15 @@ text = """
 //------------------------------------------------------------------------------
 #include "SPH/computeSPHSumMassDensity.cc"
 #include "Geometry/Dimension.hh"
+#include "Kernel/TableKernel.hh"
 
 namespace Spheral {
-  template void computeSPHSumMassDensity(const ConnectivityMap<Dim< %(ndim)s > >&, 
-                                         const TableKernel<Dim< %(ndim)s > >&, 
+  template void computeSPHSumMassDensity(const ConnectivityMap<%(Dimension)s>&, 
+                                         const TableKernel<%(Dimension)s>&, 
                                          const bool,
-                                         const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
-                                         const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&,
-                                         const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::SymTensor>&,
-                                         FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&);
+                                         const FieldList<%(Dimension)s, %(Dimension)s::Vector>&,
+                                         const FieldList<Dim<%(ndim)s, %(Dimension)s::Scalar>&,
+                                         const FieldList<Dim<%(ndim)s >, %(Dimension)s::SymTensor>&,
+                                         FieldList<%(Dimension)s, %(Dimension)s::Scalar>&);
 }
 """

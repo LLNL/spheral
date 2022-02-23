@@ -45,20 +45,25 @@ public:
   //  etaj : Vector normalized coordinate: etaj = H*posj
   //  etai : Vector normalized coordinate: etai = H*posi
   //  Hdet  : Determinant of the H tensor used to compute eta
-  double operator()(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
-  Vector grad(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
-  std::pair<double, Vector> kernelAndGradValue(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
+  double operator()(const Vector& etaj, const Vector& etai, const Scalar Hdet) const;
+  Vector grad(const Vector& etaj, const Vector& etai, const SymTensor& H) const;
+  void kernelAndGrad(const Vector& etaj, const Vector& etai, const SymTensor& H,
+                     Scalar& W,
+                     Vector& gradW,
+                     Scalar& deltaWsum) const;
 
   // Access our internal data.
   const InterpolatorType& Winterpolator() const;
-  const TableKernel<Dim<3>>& kernel() const;
+  const TableKernel<Dim<3>>& baseKernel3d() const;
+  const TableKernel<Dim<1>>& baseKernel1d() const;
   Scalar etamax() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
   InterpolatorType mInterp;
-  TableKernel<Dim<3>> mKernel;
+  TableKernel<Dim<3>> mBaseKernel3d;
+  TableKernel<Dim<1>> mBaseKernel1d;  // Only for use with the IdealH algorithm
   Scalar metamax;
 };
 

@@ -13,11 +13,12 @@ set(SPH_inst
 
 set(SPH_sources )
 
-# if(ENABLE_1D)
-#   list(APPEND SPH_sources
-#        SolidSPHHydroBaseR.cc
-#       )
-# endif()
+if(ENABLE_1D)
+  list(APPEND SPH_sources
+       SphericalSPHInst.cc
+       SPHHydroBaseSpherical.cc
+      )
+endif()
 
 if(ENABLE_2D)
   list(APPEND SPH_sources

@@ -57,7 +57,8 @@ SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
           std::max(size_t(200), kernel.numPoints()),
           std::max(size_t(200), kernel.numPoints()),
           W3S1Func(kernel)),
-  mKernel(kernel),
+  mBaseKernel3d(kernel),
+  mBaseKernel1d(TableKernel<Dim<1>>(kernel, kernel.numPoints())),
   metamax(kernel.kernelExtent()) {
 }
 
@@ -66,7 +67,8 @@ SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
 //------------------------------------------------------------------------------
 SphericalTableKernel::SphericalTableKernel(const SphericalTableKernel& rhs):
   mInterp(rhs.mInterp),
-  mKernel(rhs.mKernel),
+  mBaseKernel3d(rhs.mBaseKernel3d),
+  mBaseKernel1d(rhs.mBaseKernel1d),
   metamax(rhs.metamax) {
 }
 
@@ -83,10 +85,18 @@ SphericalTableKernel&
 SphericalTableKernel::operator=(const SphericalTableKernel& rhs) {
   if (this != &rhs) {
     mInterp = rhs.mInterp;
-    mKernel = rhs.mKernel;
+    mBaseKernel3d = rhs.mBaseKernel3d;
+    mBaseKernel1d = rhs.mBaseKernel1d;
     metamax = rhs.metamax;
   }
   return *this;
 }
 
 }
+
+// We need to instantiate the special TableKernel constructor we use
+#include "TableKernel.cc"
+namespace Spheral {
+template TableKernel<Dim<1>>::TableKernel(const TableKernel<Dim<3>>&, const unsigned, const double);
+}
+

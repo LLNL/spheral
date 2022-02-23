@@ -456,6 +456,9 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   // mass density.
   switch(densityUpdate()) {
 
+  case MassDensityType::IntegrateDensity:
+    break;
+
   case MassDensityType::RigorousSumDensity:
   case MassDensityType::CorrectedSumDensity:
     {
@@ -530,6 +533,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
     }
     break;
+
   default:
     break;
   }
