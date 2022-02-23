@@ -73,27 +73,6 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      const Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
-  // for (u_int i = 0; i < field.size(); ++i)
-  //   std::cout << field[i] << " ";
-  // std::cout << std::endl;
-
-  // axom::Path myPath = axom::Path(path);
-  // axom::sidre::DataTypeId dtype = field.getAxomTypeID();
-  // axom::sidre::Group* wholeField = dataStorePtr->getRoot()->createGroup(myPath.dirName());
-  // if (!wholeField)
-  //   wholeField = dataStorePtr->getRoot()->getGroup(myPath.dirName());
-  // axom::IndexType num_elements = DataTypeTraits<DataType>::numElements(field[0]);
-
-  // for (u_int i = 0; i < field.size(); ++i)
-  // {
-  //   auto *data = &(*field[i].begin());
-  //   wholeField->createView(myPath.baseName() + std::to_string(i), dtype, num_elements, (void*)data);
-  // }
-  // dataStorePtr->print();
-
-  // // for (u_int i = 0; i < field.size(); ++i)
-  // //   std::cout << sizeof(field[i]) << " ";
-  // // std::cout << std::endl;
   int size = field.numElements();
   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
   std::vector<double> fieldData(size * DataType::numElements);
@@ -101,15 +80,12 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
   {
     std::copy(field(i).begin(), field(i).end(), &fieldData[i * DataType::numElements]);
   }
-  // for (u_int i = 0; i < fieldData.size(); ++i)
-  //   std::cout << fieldData[i] << " ";
-  // std::cout << std::endl;
 
   axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
                                           ->allocate(dtype, size * DataType::numElements)
                                           ->copyBytesIntoBuffer((void*)fieldData.data(), sizeof(double) * (size * DataType::numElements));
   dataStorePtr->getRoot()->createView(path, dtype, size * DataType::numElements, buff);
-  dataStorePtr->print();
+  // dataStorePtr->print();
 }
 
 template <typename Dimension, typename DataType,
@@ -120,39 +96,15 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      const std::string& path)
 {
   double* data = dataStorePtr->getRoot()->getView(path)->getArray();
-  // for (int i = 0; i < 10; ++i)
-  //   std::cout << data[i] << " ";
-  // std::cout << std::endl;
-  int counter = 0; //change this out, can use DataType::numElements * n + J
+  // int counter = 0; //change this out, can use DataType::numElements * i + J
   for (int i = 0; i < (dataStorePtr->getRoot()->getView(path)->getNumElements() / (DataType::numElements)); ++i)
     for (int j = 0; j < int(DataType::numElements); ++j)
     {
-      field[i][j] = data[counter];
-      ++counter;
+      field[i][j] = data[(i * (DataType::numElements)) + j];
+      // ++counter;
     }
-  for (u_int i = 0; i < field.size(); ++i)
-    std::cout << field[i] << " ";
-  std::cout << std::endl;
-
-  // axom::Path myPath = axom::Path(path);
-  // axom::sidre::Group* group = dataStorePtr->getRoot()->getGroup(myPath.dirName());
-  // int size = group->getNumViews();
-  // if(myPath.baseName() + std::to_string(0) != group->getView(0)->getName())
-  //   --size;
-  // field.resizeField(size);
-
-  // for (int i = 0; i < size; ++i)
-  //   group->getView(myPath.baseName() + std::to_string(i))->setExternalDataPtr(static_cast<void*>(&field[i][0]));
-  // dataStorePtr->getRoot()->loadExternalData(fileName);
-
-  // group->print();
-
   // for (u_int i = 0; i < field.size(); ++i)
   //   std::cout << field[i] << " ";
-  // std::cout << std::endl;
-
-  // for (u_int i = 0; i < field.size(); ++i)
-  //   std::cout << sizeof(field[i]) << " ";
   // std::cout << std::endl;
 }
 
