@@ -1,7 +1,8 @@
 #ATS:for testDim in ("1d", "2d"): # , "3d"):
-#ATS:    for HydroChoice in ("SPHHydro", "ASPHHydro", "SolidSPHHydro", "SolidASPHHydro", "PSPHHydro", "APSPHHydro"):
-#ATS:        test(SELF, "--graphics False --nx1 10 --nx2 10 --testCase linear --testDim %s --HydroChoice %s" % (testDim, HydroChoice), 
-#ATS:             label="%s linear gradient correction test -- %s (serial)" % (HydroChoice, testDim))
+#ATS:    for HydroChoice in ("SPH", "ASPH", "PSPH", "PASPH"):
+#ATS:        for solid in (False, True):
+#ATS:            test(SELF, "--graphics False --nx1 10 --nx2 10 --testCase linear --testDim %s --HydroChoice %s --solid %s" % (testDim, HydroChoice, solid), 
+#ATS:                 label="%s linear gradient correction test -- %s (solid=%s) (serial)" % (HydroChoice, testDim, solid))
 #-------------------------------------------------------------------------------
 # Unit test of the linear velocity gradient correction for SPH.
 #-------------------------------------------------------------------------------
@@ -29,7 +30,8 @@ commandLine(
     hmax = 10.0,
 
     # What hydro operator should we test?
-    HydroChoice = "SPHHydro",
+    HydroChoice = "SPH",
+    solid = False,
     gradhCorrection = False,
 
     # Should we randomly perturb the positions?
@@ -72,7 +74,7 @@ assert testDim in ("1d", "2d", "3d")
 #-------------------------------------------------------------------------------
 # Appropriately set generic object names based on the test dimensionality.
 #-------------------------------------------------------------------------------
-exec("from SolidSpheral%s import *" % testDim)
+exec("from Spheral%s import *" % testDim)
 HydroConstructor = eval(HydroChoice)
 
 #-------------------------------------------------------------------------------
@@ -97,10 +99,16 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes1 = makeSolidNodeList("nodes1", eos,
-                           hmin = hmin,
-                           hmax = hmax,
-                           nPerh = nPerh)
+if solid:
+    nodes1 = makeSolidNodeList("nodes1", eos,
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh)
+else:
+    nodes1 = makeFluidNodeList("nodes1", eos,
+                               hmin = hmin,
+                               hmax = hmax,
+                               nPerh = nPerh)
 output("nodes1")
 output("nodes1.hmin")
 output("nodes1.hmax")
@@ -233,7 +241,7 @@ for i in xrange(nodes1.numInternalNodes):
 db.updateConnectivityMap(True)
 cm = db.connectivityMap()
 q = MonaghanGingoldViscosity(1.0, 1.0)
-if "PSPH" in HydroChoice:
+if HydroChoice in ("PSPH", "PASPH"):
     hydro = HydroConstructor(dataBase = db,
                              Q = q,
                              W = WT,

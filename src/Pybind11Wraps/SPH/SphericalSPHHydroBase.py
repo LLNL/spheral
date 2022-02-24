@@ -7,6 +7,7 @@ from SPHHydroBase import *
 @PYB11template()            # Override the fact SPHHydroBase is templated
 @PYB11template_dict({"Dimension" : "Dim<1>"})
 @PYB11module("SpheralSPH")
+@PYB11dynamic_attr
 class SphericalSPHHydroBase(SPHHydroBase):
 
     PYB11typedefs = """
