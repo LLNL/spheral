@@ -12,7 +12,7 @@ project_dir=os.path.abspath(os.path.join(os.path.realpath(__file__), "../../../"
 default_mirror_dir="/usr/gapps/Spheral/spheral-spack-tpls/mirror"
 
 default_spheral_spack_dir=os.path.join(os.getcwd(), "../spheral-spack-tpls")
-upstream_dir="/usr/gapps/Spheral/spheral-spack-tpls/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeho/"
+upstream_dir="/usr/WS2/wciuser/Spheral/spheral-spack-tpls/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_p/"
 
 uberenv_path = os.path.join(project_dir, "scripts/devtools/uberenv/uberenv.py")
 uberenv_project_json = os.path.join(os.getcwd(), ".uberenv_config.json")
