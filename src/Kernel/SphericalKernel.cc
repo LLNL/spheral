@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SphericalTableKernel
+// SphericalKernel
 //
 // Take a 3D Kernel and build a specialized 1D tabulated version appropriate
 // for use with the spherical SPH algorithm described in
@@ -9,7 +9,7 @@
 // Created by JMO, Wed Dec  2 16:41:20 PST 2020
 //----------------------------------------------------------------------------//
 
-#include "SphericalTableKernel.hh"
+#include "SphericalKernel.hh"
 #include "Utilities/simpsonsIntegration.hh"
 #include "Utilities/DBC.hh"
 
@@ -51,7 +51,7 @@ struct W3S1Func {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
+SphericalKernel::SphericalKernel(const TableKernel<Dim<3>>& kernel):
   mInterp(0.0, kernel.kernelExtent(),
           0.0, kernel.kernelExtent(),
           std::max(size_t(200), kernel.numPoints()),
@@ -65,7 +65,7 @@ SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
 //------------------------------------------------------------------------------
 // Copy constructor
 //------------------------------------------------------------------------------
-SphericalTableKernel::SphericalTableKernel(const SphericalTableKernel& rhs):
+SphericalKernel::SphericalKernel(const SphericalKernel& rhs):
   mInterp(rhs.mInterp),
   mBaseKernel3d(rhs.mBaseKernel3d),
   mBaseKernel1d(rhs.mBaseKernel1d),
@@ -75,14 +75,14 @@ SphericalTableKernel::SphericalTableKernel(const SphericalTableKernel& rhs):
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-SphericalTableKernel::~SphericalTableKernel() {
+SphericalKernel::~SphericalKernel() {
 }
 
 //------------------------------------------------------------------------------
 // Assignment
 //------------------------------------------------------------------------------
-SphericalTableKernel&
-SphericalTableKernel::operator=(const SphericalTableKernel& rhs) {
+SphericalKernel&
+SphericalKernel::operator=(const SphericalKernel& rhs) {
   if (this != &rhs) {
     mInterp = rhs.mInterp;
     mBaseKernel3d = rhs.mBaseKernel3d;

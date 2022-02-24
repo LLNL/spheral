@@ -9,10 +9,10 @@ from SpheralTestUtilities import fuzzyEqual
 # Build the SphericalKernel
 WT = TableKernel3d(BSplineKernel3d(), 500)
 t0 = time.time()
-W = SphericalTableKernel(WT)
+W = SphericalKernel(WT)
 t1 = time.time()
 etamax = W.etamax
-print("Required %0.4f sec to construct SphericalTableKernel"% (t1 - t0))
+print("Required %0.4f sec to construct SphericalKernel"% (t1 - t0))
 
 # The r/h distance from the origin for point i (the central point we're probing around)
 etavals_i = ((i + 1)*0.1 for i in xrange(100))

@@ -8,7 +8,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 inline
 bool
-SphericalTableKernel::operator==(const SphericalTableKernel& rhs) const {
+SphericalKernel::operator==(const SphericalKernel& rhs) const {
   return ((mInterp == rhs.mInterp) and
           (metamax == rhs.metamax));
 }
@@ -18,7 +18,7 @@ SphericalTableKernel::operator==(const SphericalTableKernel& rhs) const {
 //------------------------------------------------------------------------------
 inline
 double
-SphericalTableKernel::operator()(const Dim<1>::Vector& etaj,
+SphericalKernel::operator()(const Dim<1>::Vector& etaj,
                                  const Dim<1>::Vector& etai,
                                  const Dim<1>::Scalar  Hdet) const {
   REQUIRE(Hdet >= 0.0);
@@ -38,7 +38,7 @@ SphericalTableKernel::operator()(const Dim<1>::Vector& etaj,
 //------------------------------------------------------------------------------
 inline
 Dim<1>::Vector
-SphericalTableKernel::grad(const Dim<1>::Vector& etaj,
+SphericalKernel::grad(const Dim<1>::Vector& etaj,
                            const Dim<1>::Vector& etai,
                            const Dim<1>::SymTensor& H) const {
   const auto Hdet = H.Determinant();
@@ -62,7 +62,7 @@ SphericalTableKernel::grad(const Dim<1>::Vector& etaj,
 //------------------------------------------------------------------------------
 inline
 void
-SphericalTableKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
+SphericalKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
                                     const Dim<1>::Vector& etai,
                                     const Dim<1>::SymTensor& H,
                                     Dim<1>::Scalar& W,
@@ -97,26 +97,26 @@ SphericalTableKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
 // Data accessors
 //------------------------------------------------------------------------------
 inline
-const typename SphericalTableKernel::InterpolatorType&
-SphericalTableKernel::Winterpolator() const {
+const typename SphericalKernel::InterpolatorType&
+SphericalKernel::Winterpolator() const {
   return mInterp;
 }
 
 inline
 const TableKernel<Dim<3>>&
-SphericalTableKernel::baseKernel3d() const {
+SphericalKernel::baseKernel3d() const {
   return mBaseKernel3d;
 }
 
 inline
 const TableKernel<Dim<1>>&
-SphericalTableKernel::baseKernel1d() const {
+SphericalKernel::baseKernel1d() const {
   return mBaseKernel1d;
 }
 
 inline
 double
-SphericalTableKernel::etamax() const {
+SphericalKernel::etamax() const {
   return metamax;
 }
 

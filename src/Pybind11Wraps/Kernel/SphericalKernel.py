@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 
-class SphericalTableKernel:
+class SphericalKernel:
 
     PYB11typedefs = """
     using Scalar = Dim<1>::Scalar;
@@ -16,7 +16,7 @@ class SphericalTableKernel:
         "Construct a tabulated Spherical kernel based on an orindary 3D TableKernel."
 
     def pyinit_copy(self,
-                    rhs = "const SphericalTableKernel&"):
+                    rhs = "const SphericalKernel&"):
         "Copy constructor"
 
     @PYB11const
@@ -36,7 +36,7 @@ class SphericalTableKernel:
         return "Vector"
 
     @PYB11const
-    @PYB11implementation("""[](const SphericalTableKernel& self, const Vector& etaj, const Vector& etai, const SymTensor& H) -> py::tuple {
+    @PYB11implementation("""[](const SphericalKernel& self, const Vector& etaj, const Vector& etai, const SymTensor& H) -> py::tuple {
         double W, deltaWsum;
         Vector gradW;
         self.kernelAndGrad(etaj, etai, H, W, gradW, deltaWsum);

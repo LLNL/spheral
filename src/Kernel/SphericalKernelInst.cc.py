@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "Kernel/SphericalTableKernel.cc"
+#include "Kernel/SphericalKernel.cc"
 #include "Geometry/Dimension.hh"
 
 #include "Kernel/BSplineKernel.hh"
@@ -39,7 +39,7 @@ for Wname in ("BSplineKernel",
               "WendlandC6Kernel",
               "ExpInvKernel"):
     text += """
-  template SphericalTableKernel::SphericalTableKernel(const %(Wname)s<Dim<3>>&);
+  template SphericalKernel::SphericalKernel(const %(Wname)s<Dim<3>>&);
 """ % {"Wname" : Wname}
 
 text += """

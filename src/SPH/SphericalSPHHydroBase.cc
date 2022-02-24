@@ -76,8 +76,8 @@ SphericalSPHHydroBase::
 SphericalSPHHydroBase(const SmoothingScaleBase<Dim<1>>& smoothingScaleMethod,
                       DataBase<Dimension>& dataBase,
                       ArtificialViscosity<Dim<1>>& Q,
-                      const SphericalTableKernel& W,
-                      const SphericalTableKernel& WPi,
+                      const SphericalKernel& W,
+                      const SphericalKernel& WPi,
                       const double filter,
                       const double cfl,
                       const bool useVelocityMagnitudeForDt,
@@ -297,7 +297,7 @@ enforceBoundaries(State<Dim<1>>& state,
 //------------------------------------------------------------------------------
 // Access the main kernel used for (A)SPH field estimates.
 //------------------------------------------------------------------------------
-const SphericalTableKernel&
+const SphericalKernel&
 SphericalSPHHydroBase::
 kernel() const {
   return mKernel;
@@ -306,7 +306,7 @@ kernel() const {
 //------------------------------------------------------------------------------
 // Access the kernel used for artificial viscosity gradients.
 //------------------------------------------------------------------------------
-const SphericalTableKernel&
+const SphericalKernel&
 SphericalSPHHydroBase::
 PiKernel() const {
   return mPiKernel;

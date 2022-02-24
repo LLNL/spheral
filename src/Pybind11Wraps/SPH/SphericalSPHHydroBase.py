@@ -20,8 +20,8 @@ class SphericalSPHHydroBase(SPHHydroBase):
     def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
                dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
-               W = "const SphericalTableKernel&",
-               WPi = "const SphericalTableKernel&",
+               W = "const SphericalKernel&",
+               WPi = "const SphericalKernel&",
                filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
@@ -85,5 +85,5 @@ mass density, velocity, and specific thermal energy."""
 
     #...........................................................................
     # Properties
-    kernel = PYB11property("const SphericalTableKernel&", "kernel", doc="The interpolation kernel")
-    PiKernel = PYB11property("const SphericalTableKernel&", "PiKernel", doc="The interpolation kernel for the artificial viscosity")
+    kernel = PYB11property("const SphericalKernel&", "kernel", doc="The interpolation kernel")
+    PiKernel = PYB11property("const SphericalKernel&", "PiKernel", doc="The interpolation kernel for the artificial viscosity")

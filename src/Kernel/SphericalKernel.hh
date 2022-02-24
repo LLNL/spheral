@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SphericalTableKernel
+// SphericalKernel
 //
 // Take a 3D Kernel and build a specialized 1D tabulated version appropriate
 // for use with the spherical SPH algorithm described in
@@ -8,8 +8,8 @@
 //
 // Created by JMO, Wed Dec  2 16:41:20 PST 2020
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SphericalTableKernel_hh__
-#define __Spheral_SphericalTableKernel_hh__
+#ifndef __Spheral_SphericalKernel_hh__
+#define __Spheral_SphericalKernel_hh__
 
 #include "TableKernel.hh"
 #include "Utilities/BiQuadraticInterpolator.hh"
@@ -17,7 +17,7 @@
 
 namespace Spheral {
 
-class SphericalTableKernel {
+class SphericalKernel {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -30,17 +30,17 @@ public:
   // Constructor.
   // Takes a normal 3D TableKernel and constructs the integral form appropriate
   // for 1D spherical coordinates.
-  SphericalTableKernel(const TableKernel<Dim<3>>& kernel);
-  SphericalTableKernel(const SphericalTableKernel& rhs);
+  SphericalKernel(const TableKernel<Dim<3>>& kernel);
+  SphericalKernel(const SphericalKernel& rhs);
 
   // Destructor.
-  virtual ~SphericalTableKernel();
+  virtual ~SphericalKernel();
 
   // Assignment.
-  SphericalTableKernel& operator=(const SphericalTableKernel& rhs);
+  SphericalKernel& operator=(const SphericalKernel& rhs);
 
   // Comparisons
-  bool operator==(const SphericalTableKernel& rhs) const;
+  bool operator==(const SphericalKernel& rhs) const;
 
   // These methods taking a Vector eta and Vector position are the special methods
   // allowing this kernel to implement the asymmetric sampling as a function of r.
@@ -72,13 +72,13 @@ private:
 
 }
 
-#include "SphericalTableKernelInline.hh"
+#include "SphericalKernelInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  class SphericalTableKernel;
+  class SphericalKernel;
 }
 
 #endif

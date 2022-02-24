@@ -16,9 +16,9 @@ h = 0.1
 
 # WT = TableKernel3d(BSplineKernel3d(), 500)
 # t0 = time.time()
-# W = SphericalTableKernel(WT)
+# W = SphericalKernel(WT)
 # t1 = time.time()
-# print("Required %0.4f sec to construct SphericalTableKernel"% (t1 - t0))
+# print("Required %0.4f sec to construct SphericalKernel"% (t1 - t0))
 
 # # Plot the overall W surface
 # x = np.arange(0.1, 2.5, 2.5/99)
@@ -50,7 +50,7 @@ for eta in etavals:
     ax.plot((rp - r)/h, yvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$r^2 \langle W_{3S1}(r^\prime, r, h)/h$ \rangle")
-ax.set_title("SphericalTableKernel approximation")
+ax.set_title("SphericalKernel approximation")
 legend = ax.legend(loc="upper right", shadow=True)
 
 # Analytic kernel
@@ -82,7 +82,7 @@ ax.set_title("Error")
 fig20 = plt.figure(tight_layout=True, figsize=(10,8))
 gs = gridspec.GridSpec(nrows = 2, ncols = 2, height_ratios = [2,1], figure=fig1)
 
-# Plot SphericalTableKernel gradient
+# Plot SphericalKernel gradient
 ax = fig20.add_subplot(gs[0,0])
 for eta in etavals:
     r = h*eta
@@ -92,7 +92,7 @@ for eta in etavals:
     ax.plot((rp - r)/h, gyvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$r^2 \; \langle \partial_r W_{3S1}(r^\prime, r, h) \rangle$")
-ax.set_title("SphericalTableKernel gradient approximation")
+ax.set_title("SphericalKernel gradient approximation")
 legend = ax.legend(loc="upper right", shadow=True)
 
 # Numpy gradient estimate

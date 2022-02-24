@@ -17,7 +17,7 @@
 #include <string>
 
 #include "SPHHydroBase.hh"
-#include "Kernel/SphericalTableKernel.hh"
+#include "Kernel/SphericalKernel.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
@@ -38,8 +38,8 @@ public:
   SphericalSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                         DataBase<Dimension>& dataBase,
                         ArtificialViscosity<Dimension>& Q,
-                        const SphericalTableKernel& W,
-                        const SphericalTableKernel& WPi,
+                        const SphericalKernel& W,
+                        const SphericalKernel& WPi,
                         const double filter,
                         const double cfl,
                         const bool useVelocityMagnitudeForDt,
@@ -95,8 +95,8 @@ public:
 
   // Access the stored interpolation kernels.
   // These hide the base class "kernel" methods which return vanilla TableKernels.
-  const SphericalTableKernel& kernel() const;
-  const SphericalTableKernel& PiKernel() const;
+  const SphericalKernel& kernel() const;
+  const SphericalKernel& PiKernel() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -106,8 +106,8 @@ private:
   SphericalSPHHydroBase& operator=(const SphericalSPHHydroBase&);
 
   // The specialized kernels
-  const SphericalTableKernel& mKernel;
-  const SphericalTableKernel& mPiKernel;
+  const SphericalKernel& mKernel;
+  const SphericalKernel& mPiKernel;
 };
 
 }
