@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SPHHydroBaseSpherical -- An SPH/ASPH hydrodynamic package for Spheral++,
+// SphericalSPHHydroBase -- An SPH/ASPH hydrodynamic package for Spheral++,
 //                          specialized for 1D Spherical (r) geometry.
 //
 // Note this version is currently abusing our ordinary 1D geometric types,
@@ -47,7 +47,7 @@
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
 
-#include "SPHHydroBaseSpherical.hh"
+#include "SphericalSPHHydroBase.hh"
 
 #include <limits.h>
 #include <float.h>
@@ -72,8 +72,8 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
-SPHHydroBaseSpherical::
-SPHHydroBaseSpherical(const SmoothingScaleBase<Dim<1>>& smoothingScaleMethod,
+SphericalSPHHydroBase::
+SphericalSPHHydroBase(const SmoothingScaleBase<Dim<1>>& smoothingScaleMethod,
                       DataBase<Dimension>& dataBase,
                       ArtificialViscosity<Dim<1>>& Q,
                       const SphericalTableKernel& W,
@@ -120,15 +120,15 @@ SPHHydroBaseSpherical(const SmoothingScaleBase<Dim<1>>& smoothingScaleMethod,
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-SPHHydroBaseSpherical::
-~SPHHydroBaseSpherical() {
+SphericalSPHHydroBase::
+~SphericalSPHHydroBase() {
 }
 
 //------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
 void
-SPHHydroBaseSpherical::
+SphericalSPHHydroBase::
 registerState(DataBase<Dim<1>>& dataBase,
               State<Dim<1>>& state) {
 
@@ -154,7 +154,7 @@ registerState(DataBase<Dim<1>>& dataBase,
 // Finalize the hydro.
 //------------------------------------------------------------------------------
 void
-SPHHydroBaseSpherical::
+SphericalSPHHydroBase::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
@@ -205,7 +205,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 void
-SPHHydroBaseSpherical::
+SphericalSPHHydroBase::
 evaluateDerivatives(const Dim<1>::Scalar time,
                     const Dim<1>::Scalar dt,
                     const DataBase<Dim<1>>& dataBase,
@@ -225,7 +225,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 // Apply the ghost boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-SPHHydroBaseSpherical::
+SphericalSPHHydroBase::
 applyGhostBoundaries(State<Dim<1>>& state,
                      StateDerivatives<Dim<1>>& derivs) {
 
@@ -263,7 +263,7 @@ applyGhostBoundaries(State<Dim<1>>& state,
 // Enforce the boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-SPHHydroBaseSpherical::
+SphericalSPHHydroBase::
 enforceBoundaries(State<Dim<1>>& state,
                   StateDerivatives<Dim<1>>& derivs) {
 
@@ -298,7 +298,7 @@ enforceBoundaries(State<Dim<1>>& state,
 // Access the main kernel used for (A)SPH field estimates.
 //------------------------------------------------------------------------------
 const SphericalTableKernel&
-SPHHydroBaseSpherical::
+SphericalSPHHydroBase::
 kernel() const {
   return mKernel;
 }
@@ -307,7 +307,7 @@ kernel() const {
 // Access the kernel used for artificial viscosity gradients.
 //------------------------------------------------------------------------------
 const SphericalTableKernel&
-SPHHydroBaseSpherical::
+SphericalSPHHydroBase::
 PiKernel() const {
   return mPiKernel;
 }

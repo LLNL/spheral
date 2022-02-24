@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SPHHydroBaseSpherical -- An SPH/ASPH hydrodynamic package for Spheral++,
+// SphericalSPHHydroBase -- An SPH/ASPH hydrodynamic package for Spheral++,
 //                          specialized for 1D Spherical (r) geometry.
 //
 // Based on the algorithm described in
@@ -11,8 +11,8 @@
 //
 // Created by JMO, Tue Dec 22 10:04:21 PST 2020
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SPHHydroBaseSpherical_hh__
-#define __Spheral_SPHHydroBaseSpherical_hh__
+#ifndef __Spheral_SphericalSPHHydroBase_hh__
+#define __Spheral_SphericalSPHHydroBase_hh__
 
 #include <string>
 
@@ -22,7 +22,7 @@
 
 namespace Spheral {
 
-class SPHHydroBaseSpherical: public SPHHydroBase<Dim<1>> {
+class SphericalSPHHydroBase: public SPHHydroBase<Dim<1>> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -35,7 +35,7 @@ public:
   typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  SPHHydroBaseSpherical(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+  SphericalSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                         DataBase<Dimension>& dataBase,
                         ArtificialViscosity<Dimension>& Q,
                         const SphericalTableKernel& W,
@@ -57,7 +57,7 @@ public:
                         const Vector& xmax);
 
   // Destructor.
-  virtual ~SPHHydroBaseSpherical();
+  virtual ~SphericalSPHHydroBase();
 
   // Register the state Hydro expects to use and evolve.
   virtual 
@@ -90,7 +90,7 @@ public:
                
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "SPHHydroBaseSpherical" ; }
+  virtual std::string label() const override { return "SphericalSPHHydroBase" ; }
   //****************************************************************************
 
   // Access the stored interpolation kernels.
@@ -101,9 +101,9 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
-  SPHHydroBaseSpherical();
-  SPHHydroBaseSpherical(const SPHHydroBaseSpherical&);
-  SPHHydroBaseSpherical& operator=(const SPHHydroBaseSpherical&);
+  SphericalSPHHydroBase();
+  SphericalSPHHydroBase(const SphericalSPHHydroBase&);
+  SphericalSPHHydroBase& operator=(const SphericalSPHHydroBase&);
 
   // The specialized kernels
   const SphericalTableKernel& mKernel;
@@ -116,7 +116,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  class SPHHydroBaseSpherical;
+  class SphericalSPHHydroBase;
 }
 
 #endif

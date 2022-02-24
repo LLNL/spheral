@@ -22,6 +22,7 @@ PYB11includes += ['"SPH/SPHHydroBase.hh"',
                   '"SPH/computeSPHOmegaGradhCorrection.hh"',
                   '"SPH/SPHHydroBaseRZ.hh"',
                   '"SPH/SPHHydroBaseGSRZ.hh"',
+                  '"SPH/SphericalSPHHydroBase.hh"',
                   '"SPH/SolidSPHHydroBase.hh"',
                   '"SPH/SolidSPHHydroBaseRZ.hh"',
                   '"FileIO/FileIO.hh"',
@@ -68,6 +69,9 @@ computeSPHSumMassDensity%(ndim)id = PYB11TemplateFunction(computeSPHSumMassDensi
 computeSPHOmegaGradhCorrection%(ndim)id = PYB11TemplateFunction(computeSPHOmegaGradhCorrection, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
+
+if 1 in dims:
+    from SphericalSPHHydroBase import *
 
 if 2 in dims:
     from SPHHydroBaseRZ import *
