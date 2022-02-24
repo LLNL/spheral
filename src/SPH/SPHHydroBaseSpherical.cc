@@ -9,6 +9,7 @@
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 #include "computeSPHSumMassDensity.hh"
+#include "correctSPHSumMassDensity.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computeSPHOmegaGradhCorrection.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -164,35 +165,35 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   case MassDensityType::IntegrateDensity:
     break;
 
-  case MassDensityType::RigorousSumDensity:
-  case MassDensityType::CorrectedSumDensity:
-    {
-      const auto& connectivityMap = dataBase.connectivityMap();
-      const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-      const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-      const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-      auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-      computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-      // if (densityUpdate() == MassDensityType::CorrectedSumDensity) {
-      //   correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
-      //   for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-      //   for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-      // }
-    }
-    break;
+  // case MassDensityType::RigorousSumDensity:
+  // case MassDensityType::CorrectedSumDensity:
+  //   {
+  //     const auto& connectivityMap = dataBase.connectivityMap();
+  //     const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+  //     const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+  //     const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  //     auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  //     computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
+  //     for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+  //     for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  //     if (densityUpdate() == MassDensityType::CorrectedSumDensity) {
+  //       correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
+  //       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+  //       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  //     }
+  //   }
+  //   break;
 
-  case MassDensityType::SumDensity:
-    {
-      auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-      const auto massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
-                                                HydroFieldNames::massDensity, 0.0);
-      massDensity.assignFields(massDensitySum);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-    }
-    break;
+  // case MassDensityType::SumDensity:
+  //   {
+  //     auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  //     const auto massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+  //                                               HydroFieldNames::massDensity, 0.0);
+  //     massDensity.assignFields(massDensitySum);
+  //     for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+  //     for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  //   }
+  //   break;
 
   default:
     VERIFY2(false, "Unsupported mass density definition for Spherical SPH");
@@ -216,7 +217,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
                                 state,
                                 derivs,
                                 mKernel,
-                                mPiKernel);
+                                mPiKernel,
+                                mKernel.baseKernel1d());
 }
 
 //------------------------------------------------------------------------------

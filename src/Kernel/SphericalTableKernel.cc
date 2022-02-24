@@ -58,7 +58,7 @@ SphericalTableKernel::SphericalTableKernel(const TableKernel<Dim<3>>& kernel):
           std::max(size_t(200), kernel.numPoints()),
           W3S1Func(kernel)),
   mBaseKernel3d(kernel),
-  mBaseKernel1d(TableKernel<Dim<1>>(kernel, kernel.numPoints())),
+  mBaseKernel1d(kernel, kernel.numPoints()),
   metamax(kernel.kernelExtent()) {
 }
 

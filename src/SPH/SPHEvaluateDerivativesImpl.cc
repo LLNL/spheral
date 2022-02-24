@@ -29,7 +29,8 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
                         const State<Dimension>& state,
                         StateDerivatives<Dimension>& derivatives,
                         const KernelType& W,
-                        const KernelType& WQ) const {
+                        const KernelType& WQ,
+                        const TableKernel<Dimension>& WT) const {
   TIME_SPHevalDerivs.start();
   TIME_SPHevalDerivs_initial.start();
 
@@ -114,11 +115,6 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
 
   // Size up the pair-wise accelerations before we start.
   if (mCompatibleEnergyEvolution) pairAccelerations.resize(npairs);
-
-  // The scale for the tensile correction.
-  const auto& nodeList = mass[0]->nodeList();
-  const auto  nPerh = nodeList.nodesPerSmoothingScale();
-  const auto  WnPerh = W(1.0/nPerh, 1.0);
   TIME_SPHevalDerivs_initial.stop();
 
   // Walk all the interacting pairs.
@@ -164,11 +160,9 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       const auto& Hi = H(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
       const auto& omegai = omega(nodeListi, i);
-      const auto  Hdeti = Hi.Determinant();
       const auto  safeOmegai = safeInv(omegai, tiny);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
-      CHECK(Hdeti > 0.0);
 
       auto& rhoSumi = rhoSum_thread(nodeListi, i);
       auto& normi = normalization_thread(nodeListi, i);
@@ -195,11 +189,9 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       const auto& Hj = H(nodeListj, j);
       const auto& cj = soundSpeed(nodeListj, j);
       const auto& omegaj = omega(nodeListj, j);
-      const auto  Hdetj = Hj.Determinant();
       const auto  safeOmegaj = safeInv(omegaj, tiny);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
-      CHECK(Hdetj > 0.0);
 
       auto& rhoSumj = rhoSum_thread(nodeListj, j);
       auto& normj = normalization_thread(nodeListj, j);
@@ -278,19 +270,11 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       viscousWorki += mj*workQi;
       viscousWorkj += mi*workQj;
 
-      // Determine an effective pressure including a term to fight the tensile instability.
-//             const auto fij = epsTensile*pow(Wi/(Hdeti*WnPerh), nTensile);
-      const auto fij = mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
-      const auto Ri = fij*(Pi < 0.0 ? -Pi : 0.0);
-      const auto Rj = fij*(Pj < 0.0 ? -Pj : 0.0);
-      const auto Peffi = Pi + Ri;
-      const auto Peffj = Pj + Rj;
-
       // Acceleration.
       CHECK(rhoi > 0.0);
       CHECK(rhoj > 0.0);
-      const auto Prhoi = safeOmegai*Peffi/(rhoi*rhoi);
-      const auto Prhoj = safeOmegaj*Peffj/(rhoj*rhoj);
+      const auto Prhoi = safeOmegai*Pi/(rhoi*rhoi);
+      const auto Prhoj = safeOmegaj*Pj/(rhoj*rhoj);
       const auto deltaDvDt = Prhoi*gradWi + Prhoj*gradWj + Qacci + Qaccj;
       DvDti -= mj*deltaDvDt;
       DvDtj += mi*deltaDvDt;
@@ -380,7 +364,7 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
 
       // Add the self-contribution to density sum.
-      const auto W0 = W(etaii, Hdeti);
+      const auto W0 = W(etaii, etaii, Hdeti);
       rhoSumi += mi*W0;
       normi += mi/rhoi*W0;
 
@@ -415,7 +399,7 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (mXSPH) {
-        XSPHWeightSumi += Hdeti*mi/rhoi*W0;
+        XSPHWeightSumi += mi/rhoi*W0;
         CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
         DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
       } else {
@@ -434,7 +418,7 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
                                                         ri,
                                                         weightedNeighborSumi,
                                                         massSecondMomenti,
-                                                        W,
+                                                        WT,
                                                         hmin,
                                                         hmax,
                                                         hminratio,

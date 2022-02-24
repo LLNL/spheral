@@ -14,6 +14,7 @@ namespace Spheral {
                                                                const State<%(Dim)s>&,
                                                                StateDerivatives<%(Dim)s>&,
                                                                const TableKernel<%(Dim)s>&,
+                                                               const TableKernel<%(Dim)s>&,
                                                                const TableKernel<%(Dim)s>&) const;
 }
 """

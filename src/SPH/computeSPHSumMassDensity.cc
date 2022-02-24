@@ -26,6 +26,7 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
   // Pre-conditions.
   const auto numNodeLists = massDensity.size();
+  CONTRACT_VAR(numNodeLists);
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(mass.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
@@ -43,12 +44,12 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       const auto  mi = mass(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
-      const auto  etai = Hi*posi;
-      massDensity(nodeListi, i) = mi*W(etai, etai, Hdeti);
+      const auto  etaii = Hi*posi;
+      massDensity(nodeListi, i) = mi*W(etaii, etaii, Hdeti);
     }
   }
 
-  // Now the pair contributions.
+  // Walk the pairs and sum their contributions.  Note pairs include the self-interaction.
 #pragma omp parallel
   {
     int i, j, nodeListi, nodeListj;

@@ -675,7 +675,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                 state,
                                 derivs,
                                 mKernel,
-                                mPiKernel);
+                                mPiKernel,
+                                mKernel);
 }
 
 //------------------------------------------------------------------------------

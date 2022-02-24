@@ -225,7 +225,8 @@ protected:
                                const State<Dimension>& state,
                                StateDerivatives<Dimension>& derivatives,
                                const KernelType& W,
-                               const KernelType& WQ) const;
+                               const KernelType& WQ,
+                               const TableKernel<Dimension>& WT) const;
 
   // The interpolation kernels.
   const TableKernel<Dimension>& mKernel;

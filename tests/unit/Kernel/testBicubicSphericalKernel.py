@@ -147,7 +147,7 @@ class TestSphericalKernel(unittest.TestCase):
                 W3S1fine = np.array([W3S1(rj, ri, hi) for rj in rjfine])
                 gradW3S1fine = np.gradient(W3S1fine, rjfine)
                 for j, rj in enumerate(rprange(ri, hi, etastep=0.05)):
-                    gradWij = W.grad(Vector(ri/hi), Vector(rj/hi), 1.0/hi).x
+                    gradWij = W.grad(Vector(ri/hi), Vector(rj/hi), SymTensor(1.0/hi)).x
                     gradW0 = gradW3S1fine[50*j]
                     self.failUnless(error(gradW0, gradWij) < gradWtol(rj/hi, ri/hi, etamax),
                                     "Kernel gradient value outside tolerance @ (%g, %g, %g): %g != %g, %g !<= %g" % (rj, ri, hi, gradW0, gradWij, error(gradW0, gradWij), gradWtol(rj/hi, ri/hi, etamax)))
@@ -161,7 +161,7 @@ class TestSphericalKernel(unittest.TestCase):
                 ri = hi*etai
                 for rj in rprange(ri, hi, etastep=0.05):
                     Wij0 = W(Vector(rj/hi), Vector(ri/hi), 1.0/hi)
-                    gradWij0 = W.grad(Vector(rj/hi), Vector(ri/hi), 1.0/hi).x
+                    gradWij0 = W.grad(Vector(rj/hi), Vector(ri/hi), SymTensor(1.0/hi)).x
                     Wij1, gradWij1 = W.kernelAndGradValue(Vector(rj/hi), Vector(ri/hi), 1.0/hi)
                     self.failUnless(self_error(Wij0, Wij1, self_tol) < self_tol,
                                     "Kernel value lookup inconsistent @ (%g, %g, %g): %g != %g, %g !<= %g" % (rj, ri, hi, Wij0, Wij1, self_error(Wij0, Wij1, self_tol), self_tol))
