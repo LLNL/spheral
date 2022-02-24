@@ -330,7 +330,9 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
     const auto ni = nodeList.numInternalNodes();
-#pragma omp parallel for
+    Scalar Wi, gWi;
+    Vector gradWi;
+#pragma omp parallel for firstprivate(Wi, gWi, gradWi)
     for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
@@ -338,7 +340,10 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
+      const auto& Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
+      const auto& omegai = omega(nodeListi, i);
+      const auto  safeOmegai = safeInv(omegai, tiny);
       const auto  Hdeti = Hi.Determinant();
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       const auto  etaii = Hi*ri;
@@ -363,10 +368,18 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
 
+      // Kernel weight and gradient
+      W.kernelAndGrad(etaii, etaii, Hi, Wi, gradWi, gWi);
+
       // Add the self-contribution to density sum.
-      const auto W0 = W(etaii, etaii, Hdeti);
-      rhoSumi += mi*W0;
-      normi += mi/rhoi*W0;
+      rhoSumi += mi*Wi;
+      normi += mi/rhoi*Wi;
+
+      // Acceleration
+      const auto Prhoi = safeOmegai*Pi/(rhoi*rhoi);
+      const auto deltaDvDt = 2.0*Prhoi*gradWi;
+      DvDti -= mi*deltaDvDt;
+      // if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
@@ -399,7 +412,7 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (mXSPH) {
-        XSPHWeightSumi += mi/rhoi*W0;
+        XSPHWeightSumi += mi/rhoi*Wi;
         CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
         DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
       } else {
