@@ -28,6 +28,7 @@ def SPH(W,
         strengthInDamage = False,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
+        etaMinAxis = 0.1,
         ASPH = False):
 
     # Check if we're running solid or fluid hydro
@@ -41,10 +42,10 @@ def SPH(W,
 
     # Pick the appropriate C++ constructor from dimensionality and coordinates
     ndim = dataBase.nDim
-    if GeometryRegistrar.coords == CoordinateType.Spherical:
+    if GeometryRegistrar.coords() == CoordinateType.Spherical:
         assert ndim == 1
         constructor = SphericalSPHHydroBase
-    elif GeometryRegistrar.coords == CoordinateType.RZ:
+    elif GeometryRegistrar.coords() == CoordinateType.RZ:
         assert ndim == 2
         if nsolid > 0:
             constructor = SolidSPHHydroBaseRZ
@@ -103,10 +104,16 @@ def SPH(W,
                        "damageRelieveRubble"      : damageRelieveRubble,
                        "strengthInDamage"         : strengthInDamage})
 
-    # Build and return the thing.
+    # Build the SPH hydro
     result = constructor(**kwargs)
     result.Q = Q
     result._smoothingScaleMethod = smoothingScaleMethod
+
+    # If we're using area-weighted RZ, we need to reflect from the axis
+    if GeometryRegistrar.coords() == CoordinateType.RZ:
+        result.zaxisBC = AxisBoundaryRZ(etaMinAxis)
+        result.appendBoundary(result.zaxisBC)
+
     return result
 
 #-------------------------------------------------------------------------------
