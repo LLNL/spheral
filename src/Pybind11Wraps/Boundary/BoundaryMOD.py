@@ -26,6 +26,7 @@ PYB11includes += ['"Boundary/Boundary.hh"',
                   '"Boundary/SphericalBoundary.hh"',
                   '"Boundary/CylindricalBoundary.hh"',
                   '"Boundary/AxisBoundaryRZ.hh"',
+                  '"Boundary/SphericalOriginBoundary.hh"',
                   '"Boundary/CRKSPHVoidBoundary.hh"',
                   '"Boundary/InflowOutflowBoundary.hh"',
                   '"Boundary/mapPositionThroughPlanes.hh"',
@@ -107,6 +108,9 @@ findNodesTouchingThroughPlanes%(ndim)id = PYB11TemplateFunction(findNodesTouchin
 
 ''' % {"ndim"      : ndim,
        "Dimension" : ("Dim<" + str(ndim) +">")})
+
+if 1 in dims:
+    from SphericalOriginBoundary import *
 
 if 2 in dims:
     ConstantYVelocityBoundary2d = PYB11TemplateClass(ConstantYVelocityBoundary, template_parameters="Dim<2>")

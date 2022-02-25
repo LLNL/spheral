@@ -121,16 +121,19 @@ def SPH(W,
     result.Q = Q
     result._smoothingScaleMethod = smoothingScaleMethod
 
+    # In spherical coordatinates, preserve our locally constructed spherical kernels
+    # and add the origin enforcement boundary
+    if GeometryRegistrar.coords() == CoordinateType.Spherical:
+        result.originBC = SphericalOriginBoundary()
+        result.appendBoundary(result.originBC)
+        result._W3S1 = W
+        result._WPi3S1 = WPi
+        result._WGrad3S1 = WGrad
+
     # If we're using area-weighted RZ, we need to reflect from the axis
     if GeometryRegistrar.coords() == CoordinateType.RZ:
         result.zaxisBC = AxisBoundaryRZ(etaMinAxis)
         result.appendBoundary(result.zaxisBC)
-
-    # In spherical coordatinates, preserve our locally constructed spherical kernels
-    if GeometryRegistrar.coords() == CoordinateType.Spherical:
-        result._W3S1 = W
-        result._WPi3S1 = WPi
-        result._WGrad3S1 = WGrad
 
     return result
 
