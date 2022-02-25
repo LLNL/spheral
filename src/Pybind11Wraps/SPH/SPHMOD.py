@@ -36,9 +36,9 @@ PYB11namespaces = ["Spheral"]
 #-------------------------------------------------------------------------------
 # Methods
 #-------------------------------------------------------------------------------
-@PYB11template("Dimension")
+@PYB11template("Dimension", "KernelType")
 def computeSPHSumMassDensity(connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
-                             W = "const TableKernel<%(Dimension)s>&",
+                             W = "const %(KernelType)s&",
                              sumOverAllNodeLists = "const bool",
                              position = "const FieldList<%(Dimension)s, typename %(Dimension)s::Vector>&",
                              mass = "const FieldList<%(Dimension)s, typename %(Dimension)s::Scalar>&",
@@ -65,13 +65,14 @@ SPHHydroBase%(ndim)id = PYB11TemplateClass(SPHHydroBase, template_parameters="%(
 PSPHHydroBase%(ndim)id = PYB11TemplateClass(PSPHHydroBase, template_parameters="%(Dimension)s")
 SolidSPHHydroBase%(ndim)id = PYB11TemplateClass(SolidSPHHydroBase, template_parameters="%(Dimension)s")
 
-computeSPHSumMassDensity%(ndim)id = PYB11TemplateFunction(computeSPHSumMassDensity, template_parameters="%(Dimension)s")
+computeSPHSumMassDensity%(ndim)id = PYB11TemplateFunction(computeSPHSumMassDensity, template_parameters=("%(Dimension)s", "TableKernel<%(Dimension)s>"))
 computeSPHOmegaGradhCorrection%(ndim)id = PYB11TemplateFunction(computeSPHOmegaGradhCorrection, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
 if 1 in dims:
     from SphericalSPHHydroBase import *
+    computeSPHSumMassDensity1d_spherical = PYB11TemplateFunction(computeSPHSumMassDensity, template_parameters=("Dim<1>", "SphericalKernel"), pyname="computeSPHSumMassDensity1d")
 
 if 2 in dims:
     from SPHHydroBaseRZ import *

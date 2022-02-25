@@ -45,6 +45,18 @@ def SPH(W,
     if GeometryRegistrar.coords() == CoordinateType.Spherical:
         assert ndim == 1
         constructor = SphericalSPHHydroBase
+
+        # Build the spherical kernels
+        print("Constructing Spherical kernels...")
+        W3S1 = SphericalKernel(W)
+        W = W3S1
+        if WPi:
+            WPi3S1 = SphericalKernel(WPi)
+            WPi = WPi3S1
+        if WGrad:
+            WGrad3S1 = SphericalKernel(WGrad)
+            WGrad = WGrad3S1
+
     elif GeometryRegistrar.coords() == CoordinateType.RZ:
         assert ndim == 2
         if nsolid > 0:
@@ -113,6 +125,12 @@ def SPH(W,
     if GeometryRegistrar.coords() == CoordinateType.RZ:
         result.zaxisBC = AxisBoundaryRZ(etaMinAxis)
         result.appendBoundary(result.zaxisBC)
+
+    # In spherical coordatinates, preserve our locally constructed spherical kernels
+    if GeometryRegistrar.coords() == CoordinateType.Spherical:
+        result._W3S1 = W
+        result._WPi3S1 = WPi
+        result._WGrad3S1 = WGrad
 
     return result
 

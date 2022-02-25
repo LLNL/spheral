@@ -165,35 +165,35 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   case MassDensityType::IntegrateDensity:
     break;
 
-  // case MassDensityType::RigorousSumDensity:
-  // case MassDensityType::CorrectedSumDensity:
-  //   {
-  //     const auto& connectivityMap = dataBase.connectivityMap();
-  //     const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-  //     const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-  //     const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  //     auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  //     computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
-  //     for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-  //     for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  //     if (densityUpdate() == MassDensityType::CorrectedSumDensity) {
-  //       correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
-  //       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-  //       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  //     }
-  //   }
-  //   break;
+  case MassDensityType::RigorousSumDensity:
+  case MassDensityType::CorrectedSumDensity:
+    {
+      const auto& connectivityMap = dataBase.connectivityMap();
+      const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+      const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+      const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+      auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+      computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      if (densityUpdate() == MassDensityType::CorrectedSumDensity) {
+        correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
+        for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+        for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      }
+    }
+    break;
 
-  // case MassDensityType::SumDensity:
-  //   {
-  //     auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  //     const auto massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
-  //                                               HydroFieldNames::massDensity, 0.0);
-  //     massDensity.assignFields(massDensitySum);
-  //     for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-  //     for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  //   }
-  //   break;
+  case MassDensityType::SumDensity:
+    {
+      auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+      const auto massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+                                                HydroFieldNames::massDensity, 0.0);
+      massDensity.assignFields(massDensitySum);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+    }
+    break;
 
   default:
     VERIFY2(false, "Unsupported mass density definition for Spherical SPH");
@@ -236,7 +236,7 @@ applyGhostBoundaries(State<Dim<1>>& state,
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = mass[nodeListi]->numElements();
     for (auto i = 0u; i < n; ++i) {
-      const auto dA = FastMath::pow2(pos(nodeListi, i).y());
+      const auto dA = FastMath::pow2(pos(nodeListi, i).x());
       CHECK(dA > 0.0);
       mass(nodeListi, i) /= dA;
     }
@@ -252,7 +252,7 @@ applyGhostBoundaries(State<Dim<1>>& state,
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = mass[nodeListi]->numElements();
     for (auto i = 0u; i < n; ++i) {
-      const auto dA = FastMath::pow2(pos(nodeListi, i).y());
+      const auto dA = FastMath::pow2(pos(nodeListi, i).x());
       CHECK(dA > 0.0);
       mass(nodeListi, i) *= dA;
     }
@@ -274,7 +274,7 @@ enforceBoundaries(State<Dim<1>>& state,
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = mass[nodeListi]->numElements();
     for (auto i = 0u; i < n; ++i) {
-      const auto dA = FastMath::pow2(pos(nodeListi, i).y());
+      const auto dA = FastMath::pow2(pos(nodeListi, i).x());
       CHECK(dA > 0.0);
       mass(nodeListi, i) /= dA;
     }
@@ -287,7 +287,7 @@ enforceBoundaries(State<Dim<1>>& state,
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto n = mass[nodeListi]->numElements();
     for (auto i = 0u; i < n; ++i) {
-      const auto dA = FastMath::pow2(pos(nodeListi, i).y());
+      const auto dA = FastMath::pow2(pos(nodeListi, i).x());
       CHECK(dA > 0.0);
       mass(nodeListi, i) *= dA;
     }
