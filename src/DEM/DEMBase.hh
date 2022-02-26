@@ -13,10 +13,10 @@ namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
-template<typename Dimension> class ContactModelBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
+class RedistributionNotificationHandle;
 
 template<typename Dimension>
 class DEMBase: public Physics<Dimension> {
@@ -31,7 +31,8 @@ public:
 
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
-
+  typedef std::shared_ptr<RedistributionNotificationHandle> RedistributionRegistrationType;
+  
   // Constructors.
   DEMBase(const DataBase<Dimension>& dataBase,
           const Scalar stepsPerCollision,
@@ -98,20 +99,53 @@ public:
   Scalar stepsPerCollision() const;
   void   stepsPerCollision(Scalar x);
 
-  // access for fieldLists
+  // access for node fieldLists
   const FieldList<Dimension, int>&    timeStepMask() const;
   const FieldList<Dimension, Vector>& DxDt() const;
   const FieldList<Dimension, Vector>& DvDt() const;
   const FieldList<Dimension, RotationType>& omega() const;
   const FieldList<Dimension, RotationType>& DomegaDt() const;
 
-  // inlined and specialized for different dimensions
-  virtual Scalar momentOfInertia(const Scalar massi,
-                                 const Scalar particleRadiusi) const;
+  // access for pair fieldLists
+  const FieldList<Dimension, int>& uniqueIndices() const;
+  const FieldList<Dimension, std::vector<int>>& isActiveContact() const;
+  const FieldList<Dimension, std::vector<int>>& neighborIndices() const;
+  const FieldList<Dimension, std::vector<Vector>>& shearDisplacement() const;
+  const FieldList<Dimension, std::vector<Vector>>& DDtShearDisplacement() const;
+  const FieldList<Dimension, std::vector<Scalar>>& equilibriumOverlap() const;
+  
+  // special methods for the pair fields
+  void resizePairDerivativeFields(const DataBase<Dimension>& dataBase,
+                                  const State<Dimension>& state,
+                                        StateDerivatives<Dimension>& derivs) const;
 
-  // // inlined and specialized for different dimensions
-  // virtual Vector cross(const Vector contactDirection,
-  //                      const RotationType angularVelocity) const;
+  void initializeBeforeRedistribution();
+  void finalizeAfterRedistribution();
+
+  void setEquilibriumOverlap();
+
+  void addContacts(const DataBase<Dimension>& dataBase,
+                         State<Dimension>& state,
+                         StateDerivatives<Dimension>& derivs);
+
+  std::vector<int> storageNodeSelection(int nodeListi,
+                                        int i,
+                                        int nodeListj,
+                                        int j) const;
+
+  std::vector<int> partnerNodeSelection(int nodeListi,
+                                        int i,
+                                        int nodeListj,
+                                        int j) const;
+
+  std::vector<int> findContactIndex(int nodeListi,
+                                    int i,
+                                    int nodeListj,
+                                    int j) const;
+
+  // inlined and specialized for different dimensions
+  Scalar momentOfInertia(const Scalar massi,
+                         const Scalar particleRadiusi) const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -129,15 +163,24 @@ protected:
   // Optional bounding box for generating the mesh.
   Vector mxmin, mxmax;
 
-  // Some internal scratch fields.
+  // fields attached to the nodes
   FieldList<Dimension, int>      mTimeStepMask;
   FieldList<Dimension, Vector>   mDxDt;
   FieldList<Dimension, Vector>   mDvDt;
   FieldList<Dimension, RotationType> mOmega;
   FieldList<Dimension, RotationType> mDomegaDt;
 
+  // fields attached to the pair interactions
+  FieldList<Dimension,int> mUniqueIndices;
+  FieldList<Dimension,std::vector<int>> mIsActiveContact;
+  FieldList<Dimension,std::vector<int>> mNeighborIndices;
+  FieldList<Dimension,std::vector<Vector>> mShearDisplacement;
+  FieldList<Dimension,std::vector<Vector>> mDDtShearDisplacement;
+  FieldList<Dimension,std::vector<Scalar>> mEquilibriumOverlap;
+
   // The restart registration.
   RestartRegistrationType mRestart;
+  RedistributionRegistrationType mRedistribute;
 
 private:
   //--------------------------- Private Interface ---------------------------//

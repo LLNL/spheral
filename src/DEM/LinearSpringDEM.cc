@@ -77,6 +77,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const{
 
+  //this->resizePairDerivativeFields(dataBase,state,derivatives);
+
   // A few useful constants we'll use in the following loop.
   //const double tiny = std::numeric_limits<double>::epsilon();
   const auto dampingConstTerms = 4.0*mNormalSpringConstant/(1.0+mBeta*mBeta);
@@ -95,6 +97,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto omega = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   const auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
+  const auto equilibriumOverlap = state.fields(DEMFieldNames::equilibriumOverlap, std::vector<Scalar>());
 
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -119,7 +122,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
-    //auto DomegaDt_thread = DomegaDt.threadCopy(threadStack);
+    auto DomegaDt_thread = DomegaDt.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -129,15 +132,17 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       nodeListi = pairs[kk].i_list;
       nodeListj = pairs[kk].j_list;
       
+      const auto pairIndexSet = this->findContactIndex(nodeListi,i,nodeListj,j);
+      const auto overlapij = equilibriumOverlap(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]];
+
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& omegai = omega(nodeListi, i);
       const auto& Ri = radius(nodeListi, i);
-      
       auto& DvDti = DvDt_thread(nodeListi, i);
-      auto& DomegaDti = DomegaDt(nodeListi, i);
+      auto& DomegaDti = DomegaDt_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
@@ -147,7 +152,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto& Rj = radius(nodeListj, j);
 
       auto& DvDtj = DvDt_thread(nodeListj, j);
-      auto& DomegaDtj = DomegaDt(nodeListj, j);
+      auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
 
       CHECK(mi > 0.0);
       CHECK(mj > 0.0);
@@ -157,24 +162,39 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // are we overlapping ? 
       const auto rij = ri-rj;
       const auto rijMag = rij.magnitude();
-      const auto delta = (Ri+Rj) - rijMag; 
+      const auto delta0 = (Ri+Rj) - rijMag;  // raw delta
       
       // if so do the things
-      if (delta > 0.0){
-      
+      if (delta0 > 0.0){
+
+        // effective delta
+        const auto delta = delta0 - overlapij;
+
         // line of action for the contact
         const auto rhatij = rij.unitVector();
 
-        //total relative velocity
-        //const auto li = (Ri*Ri-Rj*Rj + rijMag*rijMag)/(2.0*rijMag);
-        //const auto lj = rijMag-li;
-
-        const auto vij = vi-vj;//+ lj*() - li*(rhatij.cross(omegai));
-        const auto vn = vij.dot(rhatij);
-        const auto vt = vij - vn*rhatij;
+        // effective radii
+        const auto li = (Ri*Ri-Rj*Rj + rijMag*rijMag)/(2.0*rijMag);
+        const auto lj = rijMag-li;
 
         // effective quantities
         const auto mij = (mi*mj)/(mi+mj);
+        const auto Rij = (Ri*Rj)/(Ri+Rj);
+        const auto lij = (li*lj)/(li+lj);
+
+        // this is super ugly right now and should change down the line...
+        const auto vroti =  DEMDimension<Dimension>::cross(rhatij,omegai);
+        const auto vrotj = -DEMDimension<Dimension>::cross(rhatij,omegaj);
+        const auto vij = vi-vj + li*vroti - lj*vrotj;
+
+        const auto vn = vij.dot(rhatij);
+        const auto vt = vij - vn*rhatij;
+
+        // rolling velocity
+        const auto vr = -lij*(vroti + vrotj);
+        
+        // torsion
+        const auto torsion = lij*rhatij*DEMDimension<Dimension>::dot(omegai-omegaj,rhatij);
         
         // moments of interia
         const auto Ii = this->momentOfInertia(mi,Ri);

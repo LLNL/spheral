@@ -84,7 +84,6 @@ class DEMBase(Physics):
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
-    @PYB11virtual
     @PYB11const
     def momentOfInertia(massi = "const Scalar",
                         partialRadiusi = "const Scalar"):
@@ -105,6 +104,10 @@ class DEMBase(Physics):
     DvDt =         PYB11property("const FieldList<%(Dimension)s, Vector>&", "DvDt", returnpolicy="reference_internal")
     DomegaDt =     PYB11property("const FieldList<%(Dimension)s, RotationType>&","DomegaDt", returnpolicy="reference_internal")
     omega =        PYB11property("const FieldList<%(Dimension)s, RotationType>&","omega", returnpolicy="reference_internal")
+    
+    uniqueIndices = PYB11property("const FieldList<%(Dimension)s, int>&","uniqueIndices", returnpolicy="reference_internal")
+    equilibriumOverlap = PYB11property("const FieldList<%(Dimension)s, vector<Scalar>>&","equilibriumOverlap", returnpolicy="reference_internal")
+    neighborIndices = PYB11property("const FieldList<%(Dimension)s, vector<int>>&","neighborIndices", returnpolicy="reference_internal")
     
 #-------------------------------------------------------------------------------
 # Inject methods

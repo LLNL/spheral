@@ -99,6 +99,59 @@ omega() const {
 }
 
 
+
+//------------------------------------------------------------------------------
+// Pair things
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension, int>&
+DEMBase<Dimension>::
+uniqueIndices() const {
+  return mUniqueIndices;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, vector<int>>&
+DEMBase<Dimension>::
+isActiveContact() const {
+  return mIsActiveContact;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, vector<int>>&
+DEMBase<Dimension>::
+neighborIndices() const {
+  return mNeighborIndices;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, vector<typename Dimension::Vector>>&
+DEMBase<Dimension>::
+shearDisplacement() const {
+  return mShearDisplacement;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, vector<typename Dimension::Vector>>&
+DEMBase<Dimension>::
+DDtShearDisplacement() const {
+  return mDDtShearDisplacement;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, vector<typename Dimension::Scalar>>&
+DEMBase<Dimension>::
+equilibriumOverlap() const {
+  return mEquilibriumOverlap;
+}
+
+
 //------------------------------------------------------------------------------
 // moment of interia specializations
 //------------------------------------------------------------------------------
