@@ -71,7 +71,6 @@ commandLine(KernelConstructor = NBSplineKernel3d,
             smallPressure = False, #If set to True eps is not zero but small. 
             x0 = 0.0,
             x1 = 1.0,
-            xwall = 0.0,
             nPerh = 1.35,
 
             vr0 = -1.0, 
@@ -290,13 +289,18 @@ nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
 nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
 
 # Set node velocities
+# Set the velocity of the node closest to the origin to zero to kick things off
 pos = nodes1.positions()
 vel = nodes1.velocity()
+imin, rmin = -1, 1e10
 for ix in xrange(nodes1.numNodes):
-    if pos[ix].x > xwall:
-        vel[ix].x = vr0 + vrSlope*pos[ix].x
-    else:
-        vel[ix].x = -vr0 + vrSlope*pos[ix].x
+    vel[ix].x = vr0 + vrSlope*pos[ix].x
+    if pos[ix].x < rmin:
+        imin = ix
+        rmin = pos[ix].x
+rmin_global = mpi.allreduce(rmin, mpi.MIN)
+if rmin == rmin_global:
+    vel[imin].x = 0.0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -437,10 +441,6 @@ if inflow:
     right_inflow = InflowOutflowBoundary(db, Plane(Vector(x1), Vector(-1)))
     bcs.append(right_inflow)
     packages.append(right_inflow)
-    if x0 != xwall:
-        left_inflow = InflowOutflowBoundary(db, Plane(Vector(x0), Vector(1)))
-        bcs.append(left_inflow)
-        packages.append(left_inflow)
 
 for p in packages:
     for bc in bcs:
