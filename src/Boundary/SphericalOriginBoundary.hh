@@ -29,6 +29,10 @@ public:
   SphericalOriginBoundary();
   virtual ~SphericalOriginBoundary();
 
+  // Override the ghost node methods to not make ghost nodes
+  virtual void setGhostNodes(NodeList<Dimension>& nodeList) override;
+  virtual void updateGhostNodes(NodeList<Dimension>& nodeList) override;
+
   // Find the set of nodes in violation of this boundary in the given NodeList.
   virtual void setViolationNodes(NodeList<Dimension>& nodeList) override;
   virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;

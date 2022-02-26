@@ -27,6 +27,17 @@ class SphericalOriginBoundary(Boundary):
     #...........................................................................
     # Methods
     @PYB11virtual
+    def setGhostNodes(self,
+                      nodeList = "NodeList<%(Dimension)s>&"):
+        return "void"
+
+    @PYB11virtual
+    def updateGhostNodes(self,
+                         nodeList = "NodeList<%(Dimension)s>&"):
+        return "void"
+
+
+    @PYB11virtual
     def setViolationNodes(self, nodeList="NodeList<%(Dimension)s>&"):
         return "void"
 

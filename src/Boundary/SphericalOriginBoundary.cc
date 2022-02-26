@@ -36,6 +36,21 @@ SphericalOriginBoundary::~SphericalOriginBoundary() {
 }
 
 //------------------------------------------------------------------------------
+// Determine the set of ghost nodes for the boundary condition.
+//------------------------------------------------------------------------------
+void
+SphericalOriginBoundary::setGhostNodes(NodeList<Dimension>& nodeList) {
+  this->addNodeList(nodeList);
+}
+
+//------------------------------------------------------------------------------
+// Update the ghost nodes
+//------------------------------------------------------------------------------
+void
+SphericalOriginBoundary::updateGhostNodes(NodeList<Dimension>& nodeList) {
+}
+
+//------------------------------------------------------------------------------
 // Find the set of nodes in the given NodeList that violate this boundary
 // condition.  In this case violation is being "behind" the entrance plane,
 // where behind is defined in terms of the plane normal.
@@ -76,12 +91,9 @@ SphericalOriginBoundary::updateViolationNodes(NodeList<Dim<1>>& nodeList) {
 
   // Loop over these nodes, and reset their positions to valid values.
   auto& pos = nodeList.positions();
-  auto& vel = nodeList.velocity();
   for (auto i: vNodes) {
     auto& posi = pos(i);
-    auto& veli = vel(i);
     posi.x(-(posi.x()));
-    veli.x(std::abs(veli.x()));
   }
 }    
 
