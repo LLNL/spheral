@@ -1,9 +1,9 @@
 #-------------------------------------------------------------------------------
-# Test spherical interpolation of a constant field using the spherical kernel
+# Test interpolation of a constant field using the TableKernel
 #-------------------------------------------------------------------------------
 from Spheral import *
 from SpheralTestUtilities import fuzzyEqual
-from GenerateSphericalNodeProfile1d import *
+from GenerateNodeProfile import *
 from SortAndDivideRedistributeNodes import *
 import matplotlib.pyplot as plt
 
@@ -23,14 +23,8 @@ def gradF(r):
     return a + 2.0*b*r
     
 # Build the SphericalKernel
-WT1 = TableKernel3d(BSplineKernel3d(), 500)
-WT2 = TableKernel3d(WendlandC4Kernel3d(), 500)
-t0 = time.time()
-W1 = SphericalKernel(WT1)
-print("Required %0.4f sec to construct SphericalKernel(Cubic B spline)"% (time.time() - t0))
-# t0 = time.time()
-# W2 = SphericalKernel(WT2)
-# print("Required %0.4f sec to construct SphericalKernel(Wendland C4)"% (time.time() - t0))
+W1 = TableKernel1d(BSplineKernel1d(), 500)
+W2 = TableKernel1d(WendlandC4Kernel1d(), 500)
 
 for W in (W1,):
 
@@ -40,12 +34,12 @@ for W in (W1,):
                                 hmin = 1e-10,
                                 hmax = 1e10,
                                 nPerh = nPerh,
-                                kernelExtent = W.etamax)
-    gen = GenerateSphericalNodeProfile1d(nr = n,
-                                         rho = 1.0,
-                                         xmin = r0,
-                                         xmax = r1,
-                                         nNodePerh = nPerh)
+                                kernelExtent = W.kernelExtent)
+    gen = GenerateNodeProfile1d(nx = n,
+                                rho = 1.0,
+                                xmin = r0,
+                                xmax = r1,
+                                nNodePerh = nPerh)
     distributeNodes1d((nodes, gen))
     pos = nodes.positions()
     mass = nodes.mass()
@@ -73,8 +67,6 @@ for W in (W1,):
         ri, mi, rhoi, Hi = pos[i], mass[i], rho[i], H[i]
         rj, mj, rhoj, Hj = pos[j], mass[j], rho[j], H[j]
         Wijj, gradWijj, deltaWsum = W.kernelAndGrad(Hj*rj, Hj*ri, Hj)
-        #Wijj = W(Hj*rj, Hj*ri, Hj.Determinant())
-        #gradWijj = W.grad(Hj*rj, Hj*ri, Hj.Determinant())
         field1[i] += mj/rhoj * field0[j] * Wijj
         grad_field1[i] += mj/rhoj * field0[j] * gradWijj
         rho1[i] += mj * Wijj

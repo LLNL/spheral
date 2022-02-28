@@ -64,14 +64,14 @@ TableKernel<Dimension>::kernelAndGrad(const typename Dimension::Vector& etaj,
                                       typename Dimension::Scalar& W,
                                       typename Dimension::Vector& gradW,
                                       typename Dimension::Scalar& deltaWsum) const {
-  const auto etaji = etaj - etai;
-  const auto etajiMag = etaji.magnitude();
+  const auto etaij = etai - etaj;
+  const auto etaijMag = etaij.magnitude();
   const auto Hdet = H.Determinant();
-  if (etajiMag < this->mKernelExtent) {
-    const auto i0 = mInterp.lowerBound(etajiMag);
-    W = Hdet*mInterp(etajiMag, i0);
-    deltaWsum = Hdet*mGradInterp(etajiMag, i0);
-    gradW = H*etaji.unitVector()*deltaWsum;
+  if (etaijMag < this->mKernelExtent) {
+    const auto i0 = mInterp.lowerBound(etaijMag);
+    W = Hdet*mInterp(etaijMag, i0);
+    deltaWsum = Hdet*mGradInterp(etaijMag, i0);
+    gradW = H*etaij.unitVector()*deltaWsum;
   } else {
     W = 0.0;
     deltaWsum = 0.0;
