@@ -50,6 +50,7 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/NodeCoupling.hh"',
                   '"Utilities/QuadraticInterpolator.hh"',
                   '"Utilities/BiQuadraticInterpolator.hh"',
+                  '"Utilities/BiLinearInterpolator.hh"',
                   '"Utilities/uniform_random.hh"',
                   '<algorithm>']
 
@@ -85,6 +86,7 @@ from DomainNode import *
 from NodeCoupling import *
 from QuadraticInterpolator import *
 from BiQuadraticInterpolator import *
+from BiLinearInterpolator import *
 from uniform_random import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))

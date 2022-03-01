@@ -48,6 +48,8 @@ set(Utilities_headers
     QuadraticInterpolatorInline.hh
     BiQuadraticInterpolator.hh
     BiQuadraticInterpolatorInline.hh
+    BiLinearInterpolator.hh
+    BiLinearInterpolatorInline.hh
     DataTypeTraits.hh
     DomainNode.hh
     DomainNodeInline.hh
