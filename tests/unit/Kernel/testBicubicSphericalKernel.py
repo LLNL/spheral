@@ -47,44 +47,44 @@ def W3S1(rj, ri, h):
             result = 0.8 - D(sigdiff)
     return result/(h*rj*ri)
 
-#-------------------------------------------------------------------------------
-# The analytic gradient of the quadratic bi-cubic spline from Omang et al.
-#-------------------------------------------------------------------------------
-def gradW3S1(rj, ri, h):
-    def C(q):
-        return q*q - 0.75*q**4 + 0.3*q**5
-    def D(q):
-        return 2.0*(q*q - q**3) + 0.75*q**4 - 0.1*q**5
-    def gradC(q):
-        return 2.0*q - 3.0*q**3 + 1.5*q**4
-    def gradD(q):
-        return 4.0*q - 6.0*q**2 + 3.0*q**3 - 0.5*q**4
-    sigj = rj/h
-    sigi = ri/h
-    sigdiff = abs(sigj - sigi)
-    sigplus = sigj + sigi
+# #-------------------------------------------------------------------------------
+# # The analytic gradient of the quadratic bi-cubic spline from Omang et al.
+# #-------------------------------------------------------------------------------
+# def gradW3S1(rj, ri, h):
+#     def C(q):
+#         return q*q - 0.75*q**4 + 0.3*q**5
+#     def D(q):
+#         return 2.0*(q*q - q**3) + 0.75*q**4 - 0.1*q**5
+#     def gradC(q):
+#         return 2.0*q - 3.0*q**3 + 1.5*q**4
+#     def gradD(q):
+#         return 4.0*q - 6.0*q**2 + 3.0*q**3 - 0.5*q**4
+#     sigj = rj/h
+#     sigi = ri/h
+#     sigdiff = abs(sigj - sigi)
+#     sigplus = sigj + sigi
 
-    # \partial_rj
-    if sigj > sigi:
-        sgnfac = -1.0
-    else:
-        sgnfac = 1.0
-    #sgnfac = 1.0
+#     # \partial_rj
+#     if sigj > sigi:
+#         sgnfac = -1.0
+#     else:
+#         sgnfac = 1.0
+#     #sgnfac = 1.0
 
-    if sigplus <= 1.0:
-        return -W3S1(rj, ri, h)/rj + (gradC(sigplus) - sgnfac*gradC(sigdiff))/(h*h*ri*rj)
+#     if sigplus <= 1.0:
+#         return -W3S1(rj, ri, h)/rj + (gradC(sigplus) - sgnfac*gradC(sigdiff))/(h*h*ri*rj)
 
-    elif sigplus <= 2.0:
-        if sigdiff < 1.0:
-            return -W3S1(rj, ri, h)/rj + (gradD(sigplus) - sgnfac*gradC(sigdiff))/(h*h*ri*rj)
-        else:
-            return -W3S1(rj, ri, h)/rj + (gradD(sigplus) - sgnfac*gradD(sigdiff))/(h*h*ri*rj)
+#     elif sigplus <= 2.0:
+#         if sigdiff < 1.0:
+#             return -W3S1(rj, ri, h)/rj + (gradD(sigplus) - sgnfac*gradC(sigdiff))/(h*h*ri*rj)
+#         else:
+#             return -W3S1(rj, ri, h)/rj + (gradD(sigplus) - sgnfac*gradD(sigdiff))/(h*h*ri*rj)
 
-    else:
-        if sigdiff < 1.0:
-            return -W3S1(rj, ri, h)/rj - sgnfac*gradC(sigdiff)/(h*h*ri*rj)
-        else:
-            return -W3S1(rj, ri, h)/rj - sgnfac*gradD(sigdiff)/(h*h*ri*rj)
+#     else:
+#         if sigdiff < 1.0:
+#             return -W3S1(rj, ri, h)/rj - sgnfac*gradC(sigdiff)/(h*h*ri*rj)
+#         else:
+#             return -W3S1(rj, ri, h)/rj - sgnfac*gradD(sigdiff)/(h*h*ri*rj)
 
 #-------------------------------------------------------------------------------
 # Return a useful r_j range for a given r_i

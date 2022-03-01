@@ -95,6 +95,18 @@ ax.set_ylabel(r"$r^2 \; \langle \partial_r W_{3S1}(r^\prime, r, h) \rangle$")
 ax.set_title("SphericalKernel gradient approximation")
 legend = ax.legend(loc="upper right", shadow=True)
 
+# # Analytic gradient
+# ax = fig20.add_subplot(gs[0,1])
+# for eta in etavals:
+#     r = h*eta
+#     rp = rprange(r, h)
+#     gyvals = np.array([gradW3S1(rpi, r, h) for rpi in rp])
+#     gyvals *= r*r
+#     ax.plot((rp - r)/h, gyvals, label = r"$r/h=%g$" % eta)
+# ax.set_xlabel(r"$(r^\prime - r)/h$")
+# ax.set_ylabel(r"$r^2 \; \partial_r W_{3S1}(r^\prime, r, h)/h$")
+# ax.set_title("Analytic gradient")
+
 # Numpy gradient estimate
 ax = fig20.add_subplot(gs[0,1])
 for eta in etavals:
