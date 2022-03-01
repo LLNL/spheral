@@ -53,12 +53,12 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
     class QuadraticFunctor(ScalarScalarScalarFunctor):
         def __init__(self,
                      c00, c01, c02,
-                     c10, c11, 
-                     c20):
+                     c10, c11, c12,
+                     c20, c21, c22):
             ScalarScalarScalarFunctor.__init__(self)
             self.c = np.array([[c00, c01, c02],
-                               [c10, c11, 0.0],
-                               [c20, 0.0, 0.0]])
+                               [c10, c11, c12],
+                               [c20, c21, c22]])
             return
 
         def __call__(self, x, y):
@@ -70,14 +70,14 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
     class CubicFunctor(ScalarScalarScalarFunctor):
         def __init__(self,
                      c00, c01, c02, c03,
-                     c10, c11, c12, 
-                     c20, c21,
-                     c30):
+                     c10, c11, c12, c13,
+                     c20, c21, c22, c23,
+                     c30, c31, c32, c33):
             ScalarScalarScalarFunctor.__init__(self)
             self.c = np.array([[c00, c01, c02, c03],
-                               [c10, c11, c12, 0.0],
-                               [c20, c21, 0.0, 0.0],
-                               [c30, 0.0, 0.0, 0.0]])
+                               [c10, c11, c12, c13],
+                               [c20, c21, c22, c23],
+                               [c30, c31, c32, c33]])
             return
 
         def __call__(self, x, y):
@@ -94,16 +94,51 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                                           rangen.uniform(-10.0, 10.0),
                                           rangen.uniform(-10.0, 10.0),
                                           rangen.uniform(-10.0, 10.0),
+                                          rangen.uniform(-10.0, 10.0),
+                                          rangen.uniform(-10.0, 10.0),
+                                          rangen.uniform(-10.0, 10.0),
                                           rangen.uniform(-10.0, 10.0))
                 xmin, ymin = -100.0, -100.0
                 xmax, ymax =  100.0,  100.0
                 Finterp = BiQuadraticInterpolator(xmin, xmax, ymin, ymax, nx, ny, F)
-                assert fuzzyEqual(Finterp.coeffs[0], F.c[0][0])
-                assert fuzzyEqual(Finterp.coeffs[1], F.c[1][0])
-                assert fuzzyEqual(Finterp.coeffs[2], F.c[0][1])
-                assert fuzzyEqual(Finterp.coeffs[3], F.c[1][1])
-                assert fuzzyEqual(Finterp.coeffs[4], F.c[2][0])
-                assert fuzzyEqual(Finterp.coeffs[5], F.c[0][2])
+
+                # # Plotting fun
+                # x = np.arange(xmin, 1.001*xmax, (xmax - xmin)/100)
+                # y = np.arange(ymin, 1.001*ymax, (ymax - ymin)/100)
+                # x, y = np.meshgrid(x, y)
+                # NX, NY = x.shape
+                # z0 = np.array([[F(x[j][i], y[j][i]) for j in xrange(NY)] for i in xrange(NX)])
+                # z1 = np.array([[Finterp(x[j][i], y[j][i]) for j in xrange(NY)] for i in xrange(NX)])
+                # zdiff = z1 - z0
+                
+                # fig0 = plt.figure()
+                # ax0 = fig0.add_subplot(111, projection='3d')
+                # surf0 = ax0.plot_surface(x, y, z0, cmap=cm.coolwarm,
+                #                          linewidth=0, antialiased=False)
+                # fig1 = plt.figure()
+                # ax1 = fig1.add_subplot(111, projection='3d')
+                # surf1 = ax1.plot_surface(x, y, z1, cmap=cm.coolwarm,
+                #                          linewidth=0, antialiased=False)
+                # fig2 = plt.figure()
+                # ax2 = fig2.add_subplot(111, projection='3d')
+                # surf2 = ax2.plot_surface(x, y, zdiff, cmap=cm.coolwarm,
+                #                          linewidth=0, antialiased=False)
+                # plt.show()
+                # # Plotting fun
+
+                # print "Coeffs: ", list(Finterp.coeffs)
+                # print "Ans   : ", F.c
+
+                tol_coeff = 1.0e-4
+                self.failUnless(fuzzyEqual(Finterp.coeffs[0], F.c[0][0], tol_coeff), "%g != %g" % (Finterp.coeffs[0], F.c[0][0]))
+                self.failUnless(fuzzyEqual(Finterp.coeffs[1], F.c[1][0], tol_coeff), "%g != %g" % (Finterp.coeffs[1], F.c[1][0]))
+                self.failUnless(fuzzyEqual(Finterp.coeffs[2], F.c[0][1], tol_coeff), "%g != %g" % (Finterp.coeffs[2], F.c[0][1]))
+                self.failUnless(fuzzyEqual(Finterp.coeffs[3], F.c[1][1], tol_coeff), "%g != %g" % (Finterp.coeffs[3], F.c[1][1]))
+                self.failUnless(fuzzyEqual(Finterp.coeffs[4], F.c[2][0], tol_coeff), "%g != %g" % (Finterp.coeffs[4], F.c[2][0]))
+                self.failUnless(fuzzyEqual(Finterp.coeffs[5], F.c[2][1], tol_coeff), "%g != %g" % (Finterp.coeffs[5], F.c[2][1]))
+                self.failUnless(fuzzyEqual(Finterp.coeffs[6], F.c[0][2], tol_coeff), "%g != %g" % (Finterp.coeffs[6], F.c[0][2]))
+                self.failUnless(fuzzyEqual(Finterp.coeffs[7], F.c[1][2], tol_coeff), "%g != %g" % (Finterp.coeffs[7], F.c[1][2]))
+                self.failUnless(fuzzyEqual(Finterp.coeffs[8], F.c[2][2], tol_coeff), "%g != %g" % (Finterp.coeffs[8], F.c[2][2]))
                 for x, y in xygen(self.n, xmin, xmax, ymin, ymax):
                     self.failUnless(fuzzyEqual(Finterp(x, y), F(x, y)),
                                     "Interpolation off: %g != %g" % (Finterp(x, y), F(x, y)))
@@ -124,6 +159,12 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                                       rangen.uniform(-10.0, 10.0),
                                       rangen.uniform(-10.0, 10.0),
                                       rangen.uniform(-10.0, 10.0),
+                                      rangen.uniform(-10.0, 10.0),
+                                      rangen.uniform(-10.0, 10.0),
+                                      rangen.uniform(-10.0, 10.0),
+                                      rangen.uniform(-10.0, 10.0),
+                                      rangen.uniform(-10.0, 10.0),
+                                      rangen.uniform(-10.0, 10.0),
                                       rangen.uniform(-10.0, 10.0))
                 xmin, ymin = -100.0, -100.0
                 xmax, ymax =  100.0,  100.0
@@ -133,30 +174,6 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                 # Compute a tolerance based on the range of the function
                 z0 = np.array([F(xmin, ymin), F(xmax, ymin), F(xmax, ymax), F(xmin, ymax)])
                 tol = 1.0e-6*(z0.max() - z0.min())
-
-                # # Plotting fun
-                # x = np.arange(xmin, 1.001*xmax, (xmax - xmin)/100)
-                # y = np.arange(ymin, 1.001*ymax, (ymax - ymin)/100)
-                # x, y = np.meshgrid(x, y)
-                # NX, NY = x.shape
-                # z0 = np.array([[F(x[j][i], y[j][i]) for j in xrange(NY)] for i in xrange(NX)])
-                # z1 = np.array([[Finterp(x[j][i], y[j][i]) for j in xrange(NY)] for i in xrange(NX)])
-                # zdiff = z1 - z0
-                #
-                # fig0 = plt.figure()
-                # ax0 = fig0.add_subplot(111, projection='3d')
-                # surf0 = ax0.plot_surface(x, y, z0, cmap=cm.coolwarm,
-                #                          linewidth=0, antialiased=False)
-                # fig1 = plt.figure()
-                # ax1 = fig1.add_subplot(111, projection='3d')
-                # surf1 = ax1.plot_surface(x, y, z1, cmap=cm.coolwarm,
-                #                          linewidth=0, antialiased=False)
-                # fig2 = plt.figure()
-                # ax2 = fig2.add_subplot(111, projection='3d')
-                # surf2 = ax2.plot_surface(x, y, zdiff, cmap=cm.coolwarm,
-                #                          linewidth=0, antialiased=False)
-                # plt.show()
-                # # Plotting fun
 
                 for x, y in xygen(self.n, xmin, xmax, ymin, ymax):
                     self.failUnless(fuzzyEqual(Finterp(x, y), F(x, y), tol),

@@ -3,7 +3,7 @@
 //
 // Encapsulates the algorithm and data for parabolic interpolation in 2D
 // Assumes the results is interpolated as
-//   <F(x,y)> = c0 + c1*x + c2*y + c3*x*y + c4*x^2 + c5*y^2
+//   <F(x,y)> = c0 + c1*x + c2*y + c3*x*y + c4*x^2 + c5*x^2*y + c6*y^2 + c7*x*y^2 + c8*x^2*y^2
 //
 // Created by JMO, Thu Dec 10 14:48:01 PST 2020
 //----------------------------------------------------------------------------//
