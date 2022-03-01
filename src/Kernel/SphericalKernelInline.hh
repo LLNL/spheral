@@ -22,8 +22,8 @@ SphericalKernel::operator()(const Dim<1>::Vector& etaj,
                                  const Dim<1>::Vector& etai,
                                  const Dim<1>::Scalar  Hdet) const {
   REQUIRE(Hdet >= 0.0);
-  const auto ei = std::max(1e-10, etai[0]);
-  const auto ej = std::max(1e-10, etaj[0]);
+  const auto ei = std::max(1e-8, std::abs(etai[0]));
+  const auto ej = std::max(1e-8, std::abs(etaj[0]));
   CHECK(ei > 0.0);
   CHECK(ej > 0.0);
   const auto min_bound = std::abs(ej - ei);
@@ -43,8 +43,8 @@ SphericalKernel::grad(const Dim<1>::Vector& etaj,
                            const Dim<1>::SymTensor& H) const {
   const auto Hdet = H.Determinant();
   REQUIRE(Hdet >= 0.0);
-  const auto ei = std::max(1e-10, etai[0]);
-  const auto ej = std::max(1e-10, etaj[0]);
+  const auto ei = std::max(1e-8, std::abs(etai[0]));
+  const auto ej = std::max(1e-8, std::abs(etaj[0]));
   CHECK(ei > 0.0);
   CHECK(ej > 0.0);
   const auto min_bound = std::abs(ej - ei);
@@ -70,8 +70,8 @@ SphericalKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
                                     Dim<1>::Scalar& deltaWsum) const {
   const auto Hdet = H.Determinant();
   REQUIRE(Hdet >= 0.0);
-  const auto ei = std::max(1e-10, etai[0]);
-  const auto ej = std::max(1e-10, etaj[0]);
+  const auto ei = std::max(1e-8, std::abs(etai[0]));
+  const auto ej = std::max(1e-8, std::abs(etaj[0]));
   CHECK(ei > 0.0);
   CHECK(ej > 0.0);
   const auto min_bound = std::abs(ej - ei);

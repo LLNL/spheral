@@ -189,7 +189,7 @@ strength = NullStrength()
 #-------------------------------------------------------------------------------
 # Interpolation ernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel3d(WendlandC4Kernel3d(), 1000)
+WT = TableKernel3d(WendlandC4Kernel3d(), 500)
 kernelExtent = WT.kernelExtent
 output("WT")
 
