@@ -1,0 +1,159 @@
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  ALLOC_NAME: ${CI_PROJECT_NAME}_ci_${CI_PIPELINE_ID}
+  BUILD_ROOT: ${CI_PROJECT_DIR}
+
+stages:
+  - build_and_install
+  - update_mirror
+
+# ------------------------------------------------------------------------------
+
+.on_ruby:
+  tags:
+    - shell
+    - ruby
+  variables:
+    HOSTNAME: "ruby"
+    ARCH: "toss_3_x86_64_ib"
+    LLNL_SERVICE_USER: sphapp
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_RUBY == "OFF"' #run except if ...
+      when: never
+    - if: '$CI_JOB_NAME =~ /release_resources/'
+      when: always
+    - when: on_success
+
+.on_lassen:
+  tags:
+    - shell
+    - lassen
+  variables:
+    HOSTNAME: "lassen"
+    ARCH: "blueos_3_ppc64le_ib_p9"
+    LLNL_SERVICE_USER: sphapp
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_LASSEN == "OFF"' #run except if ...
+      when: never
+    - if: '$CI_JOB_NAME =~ /release_resources/'
+      when: always
+    - when: on_success
+
+.l_build_and_test:
+  script:
+    - whoami
+    - ml load python/3.8.2
+    - ml load "$LC_MODULES"
+    - lalloc 1 ./scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - lalloc 1 ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --logs test-logs --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats "$EXTRA_TEST_ARGS" build_"$ARCH"-"$SPEC"/install/tests/integration.ats
+  artifacts:
+    when: always
+    paths:
+      - test-logs/
+
+.r_build_and_test:
+  script:
+    - whoami
+    - ml load "$LC_MODULES"
+    - srun -N 1 -c 36 -p pdebug -t 60 scripts/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --logs test-logs --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats "$EXTRA_TEST_ARGS" build_"$ARCH"-"$SPEC"/install/tests/integration.ats
+  artifacts:
+    when: always
+    paths:
+      - test-logs/
+
+# ------------------------------------------------------------------------------
+
+.gcc_8_1_0_mvapich2_Debug:
+  variables:
+    SPEC: "gcc@8.1.0^mvapich2"
+    LC_MODULES: "gcc/8.1.0"
+    EXTRA_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
+    EXTRA_TEST_ARGS: "--filter \"level<100\""
+
+.gcc_8_3_1_mvapich2:
+  variables:
+    SPEC: "gcc@8.3.1^mvapich2"
+    LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
+    EXTRA_TEST_ARGS: ""
+
+.gcc_8_3_1_~mpi:
+  variables:
+    SPEC: "gcc@8.3.1~mpi"
+    LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
+    EXTRA_TEST_ARGS: "--filter \"np<2\""
+
+.gcc_8_3_1_~mpi_Debug:
+  variables:
+    SPEC: "gcc@8.3.1~mpi"
+    LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
+    EXTRA_TEST_ARGS: "--filter \"level<100\" --filter \"np<2\""
+
+.gcc_8_3_1_spectrum:
+  variables:
+    SPEC: "gcc@8.3.1^spectrum-mpi"
+    LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: ""
+    EXTRA_TEST_ARGS: ""
+
+.clang_9_0_0_mvapich2:
+  variables:
+    SPEC: "clang@9.0.0^mvapich2"
+    LC_MODULES: "clang/9.0.0"
+    EXTRA_CMAKE_ARGS: ""
+    EXTRA_TEST_ARGS: ""
+
+# ------------------------------------------------------------------------------
+
+# gcc8.1.0+mpi
+r_gcc_8_1_0_mvapich2_Debug:
+  extends: [.gcc_8_1_0_mvapich2_Debug, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+r_gcc_8_3_1_mvapich2:
+  extends: [.gcc_8_3_1_mvapich2, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+r_gcc_8_3_1_~mpi:
+  extends: [.gcc_8_3_1_~mpi, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+r_clang_9_0_0_mvapich2:
+  extends: [.clang_9_0_0_mvapich2, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+l_gcc_8_3_1_spectrum:
+  extends: [.gcc_8_3_1_spectrum, .l_build_and_test, .on_lassen]
+  stage: build_and_install
+  
+l_gcc_8_3_1_~mpi_Debug:
+  extends: [.gcc_8_3_1_~mpi_Debug, .l_build_and_test, .on_lassen]
+  stage: build_and_install
+
+l_update_mirror:
+  extends: [.on_lassen]
+  stage: update_mirror
+  script:
+    - lalloc 1 ./scripts/devtools/tpl-manager.py --spec-list="scripts/devtools/spec-list.json" --spheral-spack-dir=$PWD/mirror-update-tpls
+    - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/mirror-update-tpls --mirror-dir="/usr/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
+    - find /usr/gapps/Spheral/spheral-spack-tpls/ -type f -exec chmod go+rx {} \;
+    - find /usr/gapps/Spheral/spheral-spack-tpls/ -type d -exec chmod go+rx {} \;
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
+      when: always
+
+r_update_mirror:
+  extends: [.on_ruby]
+  stage: update_mirror
+  script:
+    - srun -N 1 -c 36 -p pdebug -t 60 scripts/devtools/tpl-manager.py --spec-list="scripts/devtools/spec-list.json" --spheral-spack-dir=$PWD/mirror-update-tpls
+    - ./scripts/devtools/update-mirror.py --spheral-spack-dir=$PWD/mirror-update-tpls --mirror-dir="/usr/gapps/Spheral/spheral-spack-tpls/mirror" --secret-key-dir="~/private_gpg_backup/"
+    - find /usr/gapps/Spheral/spheral-spack-tpls/ -type f -exec chmod go+rx {} \;
+    - find /usr/gapps/Spheral/spheral-spack-tpls/ -type d -exec chmod go+rx {} \;
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
+      when: always

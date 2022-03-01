@@ -2,7 +2,9 @@ set(PIP_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(PIP_DIST pip-9.0.1-py2.py3-none-any.whl)
 set(PIP_URL "https://pypi.python.org/packages/b6/ac/7015eb97dc749283ffdec1c3a88ddb8ae03b8fad0f0e611408f196358da3/pip-9.0.1-py2.py3-none-any.whl")
 set(PIP_CACHE ${CACHE_DIR}/${PIP_DIST})
-set(PIP_EXE ${PYTHON_INSTALL_DIR}/bin/pip2.7)
+if (NOT DEFINED PIP_EXE)
+  set(PIP_EXE ${PYTHON_INSTALL_DIR}/bin/pip2.7)
+endif()
 
 if(${lib_name}_BUILD)
 
@@ -31,7 +33,7 @@ endif()
 
 add_custom_target(
   ${lib_name}-install
-  COMMAND ${PYTHON_EXE} ${PIP_EXE} -V &> pip-version.log
+  COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH="${setuptools_DIR}:${pip_DIR}" ${PYTHON_EXE} ${PIP_EXE} -V &> pip-version.log
   DEPENDS ${${lib_name}-install-dep}
 )
 
