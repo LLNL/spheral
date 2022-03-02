@@ -14,7 +14,8 @@ commandLine(n = 100,
             a = 0.0,
             b = 0.0,
             r0 = 0.0,
-            r1 = 1.0)
+            r1 = 1.0,
+            r2 = 1.2)
 
 def F(r):
     return F0 + a*r + b*r*r
@@ -41,16 +42,28 @@ for W in (W1,):
                                 hmax = 1e10,
                                 nPerh = nPerh,
                                 kernelExtent = W.etamax)
-    gen = GenerateSphericalNodeProfile1d(nr = n,
+    gen = GenerateSphericalNodeProfile1d(nr = int(n * r2/r1),
                                          rho = 1.0,
                                          xmin = r0,
-                                         xmax = r1,
+                                         xmax = r2,
                                          nNodePerh = nPerh)
     distributeNodes1d((nodes, gen))
     pos = nodes.positions()
     mass = nodes.mass()
     rho = nodes.massDensity()
     H = nodes.Hfield()
+
+    # Make ghost nodes from everything past r1
+    ghostvals = [(posi.x, massi, rhoi, Hi.xx) for (posi, massi, rhoi, Hi) in zip(pos, mass, rho, H) if posi.x > r1]
+    numGhost = len(ghostvals)
+    numInternal = nodes.numInternalNodes - numGhost
+    nodes.numInternalNodes = numInternal
+    nodes.numGhostNodes = numGhost
+    for i in xrange(numGhost):
+        pos[numInternal + i].x = ghostvals[i][0]
+        mass[numInternal + i] = ghostvals[i][1]
+        rho[numInternal + i] = ghostvals[i][2]
+        H[numInternal + i].xx = ghostvals[i][3]
 
     # Build the DataBase and connectivity
     db = DataBase1d()
@@ -61,7 +74,7 @@ for W in (W1,):
 
     # Create our constant Field
     field0 = ScalarField1d("Initial field", nodes, F0)
-    for i in xrange(nodes.numInternalNodes):
+    for i in xrange(nodes.numNodes):
         field0[i] = F(pos[i].x)
 
     # Interpolate to the new field
