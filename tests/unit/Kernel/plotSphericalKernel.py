@@ -35,6 +35,19 @@ h = 0.1
 #                         linewidth=0, antialiased=False)
 
 #-------------------------------------------------------------------------------
+# Plot what the interpolation space looks like
+#-------------------------------------------------------------------------------
+fig0 = plt.figure(tight_layout=True, figsize=(8,8))
+x = np.arange(0.0, W.baseKernel3d.kernelExtent, W.baseKernel3d.kernelExtent/100)
+y = np.arange(0.0, W.baseKernel3d.kernelExtent, W.baseKernel3d.kernelExtent/100)
+x, y = np.meshgrid(x, y)
+NX, NY = x.shape
+z0 = np.array([[W.Winterpolator(x[j][i], y[j][i]) for j in xrange(NY)] for i in xrange(NX)])
+ax0 = fig0.add_subplot(111, projection='3d')
+surf0 = ax0.plot_surface(x, y, z0, cmap=cm.coolwarm,
+                         linewidth=0, antialiased=False)
+
+#-------------------------------------------------------------------------------
 # Reproduce Fig 1 from Omang, M., Borve, S., & Trulsen, J. (2006)
 #-------------------------------------------------------------------------------
 fig1 = plt.figure(tight_layout=True, figsize=(10,8))

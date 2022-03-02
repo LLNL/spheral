@@ -117,6 +117,8 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
   if (mCompatibleEnergyEvolution) pairAccelerations.resize(npairs);
   TIME_SPHevalDerivs_initial.stop();
 
+  Vector gradP0;   // BLAGO
+
   // Walk all the interacting pairs.
   TIME_SPHevalDerivs_pairs.start();
 #pragma omp parallel
@@ -155,8 +157,8 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
-      const auto& rhoi = massDensity(nodeListi, i);
-      const auto& Pi = pressure(nodeListi, i);
+      const auto& rhoi = 1.0; // massDensity(nodeListi, i);
+      const auto& Pi = 1.0; //pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
       const auto& omegai = 1.0; // omega(nodeListi, i);
@@ -282,7 +284,8 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
 
       const bool barf = (i == 0 or j == 0);
       if (barf) {
-        cerr << " --> (" << i << " " << j << ") " << Prhoi << " " << Prhoj << " : " << Qacci << " " << Qaccj << " : " << gradWi << " " << gradWj << " : " << deltaDvDt << " " << DvDti << endl;
+        gradP0 += mj/rhoj*Pj*gradWj;
+        cerr << " --> (" << i << " " << j << ") " << Prhoi << " " << Prhoj << " : " << Qacci << " " << Qaccj << " : " << gradWi << " " << gradWj << " : " << deltaDvDt << " " << DvDti << " " << gradP0 << endl;
       }
 
       // Specific thermal energy evolution.
@@ -387,7 +390,8 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       // if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
       if (i == 0) {
-        cerr << " --> (" << i << " " << i << ") " << Prhoi << " : " << gradWi << " : " << deltaDvDt << " " << DvDti << endl;
+        gradP0 += mi/rhoi*Pi*gradWi;
+        cerr << " --> (" << i << " " << i << ") " << Prhoi << " : " << gradWi << " : " << deltaDvDt << " " << DvDti << " " << gradP0 << endl;
       }
 
       // Finish the gradient of the velocity.

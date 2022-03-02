@@ -53,7 +53,7 @@ SphericalKernel::grad(const Dim<1>::Vector& etaj,
   const auto B = (ei + ej >= metamax ?
                   0.0 :
                   max_bound*mBaseKernel3d.kernelValue(max_bound, 1.0));
-  const auto A = min_bound*mBaseKernel3d.kernelValue(min_bound, 1.0)*(ei > ej ? 1.0 : -1.0);
+  const auto A = min_bound*mBaseKernel3d.kernelValue(min_bound, 1.0)*sgn0(ei - ej);
   return Vector(2.0*M_PI/(ei*ej)*FastMath::pow4(Hdet)*(B - A - 1.0/ei*mInterp(min_bound, max_bound)));
 }
 
@@ -84,7 +84,7 @@ SphericalKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
     const auto B = (ei + ej >= metamax ?
                     0.0 :
                     max_bound*mBaseKernel3d.kernelValue(max_bound, 1.0));
-    const auto A = min_bound*mBaseKernel3d.kernelValue(min_bound, 1.0)*(ei > ej ? 1.0 : -1.0);
+    const auto A = min_bound*mBaseKernel3d.kernelValue(min_bound, 1.0)*sgn0(ei - ej);
     const auto pre = 2.0*M_PI/(ei*ej)*FastMath::cube(Hdet);
     const auto interpVal = mInterp(min_bound, max_bound);
     W = pre*interpVal;
