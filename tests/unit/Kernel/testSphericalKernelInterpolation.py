@@ -44,8 +44,8 @@ for W in (W1,):
                                 kernelExtent = W.etamax)
     gen = GenerateSphericalNodeProfile1d(nr = int(n * r2/r1),
                                          rho = 1.0,
-                                         xmin = r0,
-                                         xmax = r2,
+                                         rmin = r0,
+                                         rmax = r2,
                                          nNodePerh = nPerh)
     distributeNodes1d((nodes, gen))
     pos = nodes.positions()
