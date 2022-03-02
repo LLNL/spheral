@@ -1,11 +1,12 @@
 #-------------------------------------------------------------------------------
 # Test spherical interpolation of a constant field using the spherical kernel
 #-------------------------------------------------------------------------------
-from Spheral import *
+from SphericalSpheral import *
 from SpheralTestUtilities import fuzzyEqual
 from GenerateSphericalNodeProfile1d import *
 from SortAndDivideRedistributeNodes import *
 import matplotlib.pyplot as plt
+from math import *
 
 # Command line arguments
 commandLine(n = 100,
@@ -82,15 +83,39 @@ for W in (W1,):
     grad_field1 = VectorField1d("Interpolated gradient", nodes)
     rho1 = ScalarField1d("Interpolated rho (gather)", nodes)
 
+    def sgn0(x):
+        if x == 0.0:
+            return 0
+        elif x > 0.0:
+            return 1.0
+        else:
+            return -1.0
+
+    # Local implementation of gradW for development purposes
+    def gradW(etaj, etai, Hj):
+        Hdet = Hj.Determinant()
+        Hdet3 = Hdet**3
+        ei = max(1.0e-10, abs(etai[0]));
+        ej = max(1.0e-10, abs(etaj[0]));
+        a = abs(ej - ei);
+        b = min(W.etamax, ei + ej);
+        A = a*W.baseKernel3d.kernelValue(a, 1.0)*sgn0(ei - ej)
+        if ei + ej >= W.etamax:
+            B = 0.0
+        else:
+            B = b*W.baseKernel3d.kernelValue(b, 1.0)
+        return Vector(2.0*pi*Hdet*Hdet3/(ei*ej)*(B - A - 1.0/ei*W.Winterpolator(a, b)))
+
     def pair_sum(i, j):
         ri, mi, rhoi, Hi = pos[i], mass[i], rho[i], H[i]
         rj, mj, rhoj, Hj = pos[j], mass[j], rho[j], H[j]
         Wijj, gradWijj, deltaWsum = W.kernelAndGrad(Hj*rj, Hj*ri, Hj)
-        #Wijj = W(Hj*rj, Hj*ri, Hj.Determinant())
-        #gradWijj = W.grad(Hj*rj, Hj*ri, Hj.Determinant())
+        #gradWijj = gradW(Hj*rj, Hj*ri, Hj)
         field1[i] += mj/rhoj * field0[j] * Wijj
         grad_field1[i] += mj/rhoj * field0[j] * gradWijj
         rho1[i] += mj * Wijj
+        if i == 0:
+            print " --> (", i, j, ") : ", mj/rhoj, Wijj, gradWijj
 
     for pair in pairs:
         pair_sum(pair.i_node, pair.j_node)
