@@ -77,7 +77,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const{
 
-  //this->resizePairDerivativeFields(dataBase,state,derivatives);
+  this->resizePairDerivativeFields(dataBase,state,derivatives);
 
   // A few useful constants we'll use in the following loop.
   //const double tiny = std::numeric_limits<double>::epsilon();
@@ -98,17 +98,19 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto omega = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   const auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
   const auto equilibriumOverlap = state.fields(DEMFieldNames::equilibriumOverlap, std::vector<Scalar>());
-
+  const auto shearDisplacement = state.fields(DEMFieldNames::shearDisplacement, std::vector<Vector>());
+  const auto neighborIds = state.fields(DEMFieldNames::neighborIndices, std::vector<int>());
+  
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
   CHECK(radius.size() == numNodeLists);
   CHECK(omega.size() == numNodeLists);
 
-  //auto  T    = derivatives.getany("minContactTime",0.0);
-  auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
+  auto DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  auto DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
+  auto DDtShearDisplacement = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() +  DEMFieldNames::shearDisplacement, std::vector<Vector>());
 
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -132,17 +134,18 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       nodeListi = pairs[kk].i_list;
       nodeListj = pairs[kk].j_list;
       
+      // stored pair-wise values
       const auto pairIndexSet = this->findContactIndex(nodeListi,i,nodeListj,j);
       const auto overlapij = equilibriumOverlap(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]];
-
+      const auto sij = shearDisplacement(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]];
+      const auto numContacts = neighborIds(pairIndexSet[0],pairIndexSet[1]).size();
+      
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& omegai = omega(nodeListi, i);
       const auto& Ri = radius(nodeListi, i);
-      auto& DvDti = DvDt_thread(nodeListi, i);
-      auto& DomegaDti = DomegaDt_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
@@ -151,6 +154,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto& omegaj = omega(nodeListj, j);
       const auto& Rj = radius(nodeListj, j);
 
+      // Get the derivs from node i
+      auto& DvDti = DvDt_thread(nodeListi, i);
+      auto& DomegaDti = DomegaDt_thread(nodeListi, i);
+
+      // Get the derivs from node j
       auto& DvDtj = DvDt_thread(nodeListj, j);
       auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
 
@@ -210,6 +218,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         DvDti += f/mi*rhatij;
         DvDtj -= f/mj*rhatij;
 
+        // if our derive fields aren't the right size resize
+        // right now we're assuming all are the same size
+        DDtShearDisplacement(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]]=vt;
+        
         //DomegaDti += M/I;
       }  
     } // loop over pairs

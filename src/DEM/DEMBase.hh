@@ -114,6 +114,14 @@ public:
   const FieldList<Dimension, std::vector<Vector>>& DDtShearDisplacement() const;
   const FieldList<Dimension, std::vector<Scalar>>& equilibriumOverlap() const;
   
+  // access a single element in our state pair fields
+  const Vector& shearDisplacement(const int nodeListi,
+                                  const int nodei,
+                                  const int contacti) const;
+  const Scalar  equilibriumOverlap(const int nodeListi,
+                                   const int nodei,
+                                   const int contacti) const;
+
   // special methods for the pair fields
   void resizePairDerivativeFields(const DataBase<Dimension>& dataBase,
                                   const State<Dimension>& state,
@@ -127,7 +135,9 @@ public:
   void addContacts(const DataBase<Dimension>& dataBase,
                          State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs);
-
+  void kullInactiveContacts(const DataBase<Dimension>& dataBase,
+                                  State<Dimension>& state,
+                                  StateDerivatives<Dimension>& derivs);
   std::vector<int> storageNodeSelection(int nodeListi,
                                         int i,
                                         int nodeListj,
@@ -171,12 +181,12 @@ protected:
   FieldList<Dimension, RotationType> mDomegaDt;
 
   // fields attached to the pair interactions
-  FieldList<Dimension,int> mUniqueIndices;
-  FieldList<Dimension,std::vector<int>> mIsActiveContact;
-  FieldList<Dimension,std::vector<int>> mNeighborIndices;
-  FieldList<Dimension,std::vector<Vector>> mShearDisplacement;
-  FieldList<Dimension,std::vector<Vector>> mDDtShearDisplacement;
-  FieldList<Dimension,std::vector<Scalar>> mEquilibriumOverlap;
+  FieldList<Dimension,int> mUniqueIndices;                         // each nodes global unqiue index
+  mutable FieldList<Dimension,std::vector<int>> mNeighborIndices;  // tracks unique indices of contacts-we upate these 
+  FieldList<Dimension,std::vector<Scalar>> mEquilibriumOverlap;    // nonzero values for composite particles
+  FieldList<Dimension,std::vector<Vector>> mShearDisplacement;     // displacement for friction spring
+  FieldList<Dimension,std::vector<int>> mIsActiveContact;          // tracks if a interfaction is still active
+  FieldList<Dimension,std::vector<Vector>> mDDtShearDisplacement;  // derivative to evolve frictional spring displacement
 
   // The restart registration.
   RestartRegistrationType mRestart;
