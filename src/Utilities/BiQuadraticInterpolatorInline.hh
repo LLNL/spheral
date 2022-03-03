@@ -64,8 +64,8 @@ BiQuadraticInterpolator::initialize(const double xmin,
   // Size stuff up.
   REQUIRE(nx > 2u);
   REQUIRE(ny > 2u);
-  mnx1 = nx - 2u;
-  mny1 = ny - 2u;
+  mnx1 = nx - 1u;
+  mny1 = ny - 1u;
   mcoeffs.resize(9*mnx1*mny1);
 
   // Figure out the sampling steps.
@@ -73,8 +73,8 @@ BiQuadraticInterpolator::initialize(const double xmin,
   mxmax = xmax;
   mymin = ymin;
   mymax = ymax;
-  mxstep = (xmax - xmin)/(nx - 1u);
-  mystep = (ymax - ymin)/(ny - 1u);
+  mxstep = (xmax - xmin)/mnx1;
+  mystep = (ymax - ymin)/mny1;
 
   // Fit the coefficients
   double x1, x2, x3, y1, y2, y3;
@@ -82,12 +82,12 @@ BiQuadraticInterpolator::initialize(const double xmin,
   Eigen::VectorXd b(9), c(9);
   for (auto i = 0u; i < mnx1; ++i) {
     for (auto j = 0u; j < mny1; ++j) {
-      x1 = xmin + i      *mxstep;
-      x2 = xmin + (i + 1)*mxstep;
-      x3 = xmin + (i + 2)*mxstep;
-      y1 = ymin + j      *mystep;
-      y2 = ymin + (j + 1)*mystep;
-      y3 = ymin + (j + 2)*mystep;
+      x1 = xmin + i*mxstep;
+      x2 = x1 + 0.5*mxstep;
+      x3 = x1 +     mxstep;
+      y1 = ymin + j*mystep;
+      y2 = y1 + 0.5*mystep;
+      y3 = y1 +     mystep;
       A << 1.0, x1, y1, x1*y1, x1*x1, x1*x1*y1, y1*y1, x1*y1*y1, x1*x1*y1*y1,
            1.0, x2, y1, x2*y1, x2*x2, x2*x2*y1, y1*y1, x2*y1*y1, x2*x2*y1*y1,
            1.0, x3, y1, x3*y1, x3*x3, x3*x3*y1, y1*y1, x3*y1*y1, x3*x3*y1*y1,
