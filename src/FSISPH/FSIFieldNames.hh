@@ -14,7 +14,6 @@ struct FSIFieldNames {
   static const std::string interfaceNormals;
   static const std::string interfaceFraction;
   static const std::string interfaceSmoothness;
-  static const std::string pairDepsDt;
 };
 
 }
