@@ -27,14 +27,14 @@ def gradF(r):
 # Build the SphericalKernel
 WT1 = TableKernel3d(BSplineKernel3d(), 500)
 WT2 = TableKernel3d(WendlandC4Kernel3d(), 500)
+#t0 = time.time()
+#W1 = SphericalKernel(WT1)
+#print("Required %0.4f sec to construct SphericalKernel(Cubic B spline)"% (time.time() - t0))
 t0 = time.time()
-W1 = SphericalKernel(WT1)
-print("Required %0.4f sec to construct SphericalKernel(Cubic B spline)"% (time.time() - t0))
-# t0 = time.time()
-# W2 = SphericalKernel(WT2)
-# print("Required %0.4f sec to construct SphericalKernel(Wendland C4)"% (time.time() - t0))
+W2 = SphericalKernel(WT2)
+print("Required %0.4f sec to construct SphericalKernel(Wendland C4)"% (time.time() - t0))
 
-for W in (W1,):
+for W in (W2,):
 
     # Generate some points
     eos = GammaLawGasMKS1d(2.0, 1.0)
@@ -84,9 +84,15 @@ for W in (W1,):
     rho1 = ScalarField1d("Interpolated rho (gather)", nodes)
 
     def sgn0(x):
-        if x == 0.0:
+        if abs(x) < 1e-8:
             return 0
         elif x > 0.0:
+            return 1.0
+        else:
+            return -1.0
+
+    def sgn(x):
+        if x > 0.0:
             return 1.0
         else:
             return -1.0
@@ -100,22 +106,19 @@ for W in (W1,):
         a = abs(ej - ei);
         b = min(W.etamax, ei + ej);
         A = a*W.baseKernel3d.kernelValue(a, 1.0)*sgn0(ei - ej)
-        if ei + ej >= W.etamax:
-            B = 0.0
-        else:
-            B = b*W.baseKernel3d.kernelValue(b, 1.0)
+        B = b*W.baseKernel3d.kernelValue(b, 1.0)
         return Vector(2.0*pi*Hdet*Hdet3/(ei*ej)*(B - A - 1.0/ei*W.Winterpolator(a, b)))
 
     def pair_sum(i, j):
         ri, mi, rhoi, Hi = pos[i], mass[i], rho[i], H[i]
         rj, mj, rhoj, Hj = pos[j], mass[j], rho[j], H[j]
         Wijj, gradWijj, deltaWsum = W.kernelAndGrad(Hj*rj, Hj*ri, Hj)
-        #gradWijj = gradW(Hj*rj, Hj*ri, Hj)
+        gradWijj = gradW(Hj*rj, Hj*ri, Hj)
         field1[i] += mj/rhoj * field0[j] * Wijj
         grad_field1[i] += mj/rhoj * field0[j] * gradWijj
         rho1[i] += mj * Wijj
         if i == 0:
-            print " --> (", i, j, ") : ", mj/rhoj, Wijj, gradWijj
+            print " --> (", i, j, ") : ", mj/rhoj, Wijj, gradWijj, " ::: ", grad_field1[i]
 
     for pair in pairs:
         pair_sum(pair.i_node, pair.j_node)
