@@ -27,8 +27,7 @@ public:
   // Constructors.
   template<typename KernelType>
   TableKernel(const KernelType& kernel,
-              const unsigned numPoints = 100u,
-              const double hmult = 1.0);
+              const unsigned numPoints = 100u);
   TableKernel(const TableKernel<Dimension>& rhs);
 
   // Destructor.
@@ -69,18 +68,6 @@ public:
   // Return the equivalent W sum implied by the given number of nodes per smoothing scale.
   double equivalentWsum(const double nPerh) const;
 
-  // Look up the f1 and f2 RZ corrections.
-  // Note these methods are only supported for 2D kernels -- other dimensions throw an error.
-  double f1(const double etaij) const;
-  double f2(const double etaij) const;
-  double gradf1(const double etaij) const;
-  double gradf2(const double etaij) const;
-  void f1Andf2(const double etaij,
-               double& f1,
-               double& f2,
-               double& gradf1,
-               double& gradf2) const;
-
   // Allow read only access to the tabular data.
   const std::vector<double>& nperhValues() const;
   const std::vector<double>& WsumValues() const;
@@ -98,9 +85,6 @@ private:
   // Data for the nperh lookup algorithm.
   std::vector<double> mNperhValues, mWsumValues;
   double mMinNperh, mMaxNperh;
-
-  // Data for tabulating the RZ f1 and f2 corrections.
-  InterpolatorType mf1Interp, mf2Interp;
 
   // Initialize the table relating Wsum to nodes per smoothing scale.
   void setNperhValues(const bool scaleTo1D = false);

@@ -22,7 +22,6 @@ endif()
 
 if(ENABLE_2D)
   list(APPEND SPH_sources
-       SPHHydroBaseGSRZ.cc
        SPHHydroBaseRZ.cc
        SolidSPHHydroBaseRZ.cc
       )
@@ -41,7 +40,6 @@ set(SPH_headers
     PSPHHydroBase.hh
     PSPHHydroBaseInline.hh
     SPHHydroBase.hh
-    SPHHydroBaseGSRZ.hh
     SPHHydroBaseInline.hh
     SPHHydroBaseRZ.hh
     SphericalSPHHydroBase.hh

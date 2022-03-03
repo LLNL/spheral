@@ -208,6 +208,30 @@ gradf1Integral(const KernelType& W,
                                                                      numbins);
 }
 
+//------------------------------------------------------------------------------
+// Functors for building interpolation of kernel
+//------------------------------------------------------------------------------
+template<typename KernelType>
+struct Wlookup {
+  const KernelType& mW;
+  Wlookup(const KernelType& W): mW(W) {}
+  double operator()(const double x) const { return mW(x, 1.0); }
+};
+
+template<typename KernelType>
+struct gradWlookup {
+  const KernelType& mW;
+  gradWlookup(const KernelType& W): mW(W) {}
+  double operator()(const double x) const { return mW.grad(x, 1.0); }
+};
+
+template<typename KernelType>
+struct grad2Wlookup {
+  const KernelType& mW;
+  grad2Wlookup(const KernelType& W): mW(W) {}
+  double operator()(const double x) const { return mW.grad2(x, 1.0); }
+};
+
 }  // anonymous
 
 //------------------------------------------------------------------------------
@@ -216,64 +240,24 @@ gradf1Integral(const KernelType& W,
 template<typename Dimension>
 template<typename KernelType>
 TableKernel<Dimension>::TableKernel(const KernelType& kernel,
-                                    const unsigned numPoints,
-                                    const double hmult):
+                                    const unsigned numPoints):
   Kernel<Dimension, TableKernel<Dimension> >(),
-  mInterp(),
-  mGradInterp(),
-  mGrad2Interp(),
+  mInterp(0.0, kernel.kernelExtent(), numPoints, Wlookup<KernelType>(kernel)),
+  mGradInterp(0.0, kernel.kernelExtent(), numPoints, gradWlookup<KernelType>(kernel)),
+  mGrad2Interp(0.0, kernel.kernelExtent(), numPoints, grad2Wlookup<KernelType>(kernel)),
   mNumPoints(numPoints),
   mNperhValues(),
   mWsumValues(),
   mMinNperh(0.25),
-  mMaxNperh(10.0),
-  mf1Interp(),
-  mf2Interp() {
+  mMaxNperh(10.0) {
 
   // Pre-conditions.
   VERIFY(numPoints > 0);
-  VERIFY(hmult > 0.0);
 
   // Set the volume normalization and kernel extent.
   this->setVolumeNormalization(1.0); // (kernel.volumeNormalization() / Dimension::pownu(hmult));  // We now build this into the tabular kernel values.
-  this->setKernelExtent(hmult * kernel.kernelExtent());
-  this->setInflectionPoint(hmult * kernel.inflectionPoint());
-
-  // Set the number of points and table step size.
-  const double etamax = this->kernelExtent();
-  const double stepSize = etamax/(numPoints - 1);
-  CHECK(stepSize > 0.0);
-
-  // Set the fitting coefficients.
-  // Note that we will go ahead and fold the normalization constants in here, 
-  // so we don't have to multiply by them in the value lookups.
-  std::vector<double> kernelValues(numPoints), gradValues(numPoints), grad2Values(numPoints);
-  const double correction = 1.0/Dimension::pownu(hmult);
-  const double deta = stepSize/hmult;
-  for (auto i = 0u; i < numPoints; ++i) {
-    CHECK(i*stepSize >= 0.0);
-    kernelValues[i] = correction*kernel(i*deta, 1.0);
-    gradValues[i] = correction*kernel.grad(i*deta, 1.0);
-    grad2Values[i] = correction*kernel.grad2(i*deta, 1.0);
-  }
-  mInterp.initialize(0.0, etamax, kernelValues);
-  mGradInterp.initialize(0.0, etamax, gradValues);
-  mGrad2Interp.initialize(0.0, etamax, grad2Values);
-
-  // If we're a 2D kernel we set the RZ correction information.
-  if (Dimension::nDim == 2) {
-    std::vector<double> f1Values(numPoints), f2Values(numPoints);
-    const auto K1d = 0.5/simpsonsIntegration<volfunc<TableKernel<Dimension>>, double, double>(volfunc<TableKernel<Dimension>>(*this), 0.0, etamax, numPoints);
-    for (auto i = 0u; i < numPoints; ++i) {
-      CHECK(i*stepSize >= 0.0);
-      const double zeta = i*stepSize;
-      f1Values[i] = f1Integral(*this, zeta, numPoints)/K1d;
-      f2Values[i] = f2Integral(*this, zeta, numPoints)/K1d;
-      // gradf1Values[i] = -f1Values[i]*f1Values[i]*gradf1Integral(*this, zeta, numPoints)*K1d;
-    }
-    mf1Interp.initialize(0.0, etamax, f1Values);
-    mf2Interp.initialize(0.0, etamax, f2Values);
-  }
+  this->setKernelExtent(kernel.kernelExtent());
+  this->setInflectionPoint(kernel.inflectionPoint());
 
   // Set the table of n per h values.
   this->setNperhValues();
@@ -293,9 +277,7 @@ TableKernel(const TableKernel<Dimension>& rhs):
   mNperhValues(rhs.mNperhValues),
   mWsumValues( rhs.mWsumValues),
   mMinNperh(rhs.mMinNperh),
-  mMaxNperh(rhs.mMaxNperh),
-  mf1Interp(rhs.mf1Interp),
-  mf2Interp(rhs.mf2Interp) {
+  mMaxNperh(rhs.mMaxNperh) {
 }
 
 //------------------------------------------------------------------------------
@@ -323,8 +305,6 @@ operator=(const TableKernel<Dimension>& rhs) {
     mWsumValues =  rhs.mWsumValues;
     mMinNperh = rhs.mMinNperh;
     mMaxNperh = rhs.mMaxNperh;
-    mf1Interp = rhs.mf1Interp;
-    mf2Interp = rhs.mf2Interp;
   }
   return *this;
 }

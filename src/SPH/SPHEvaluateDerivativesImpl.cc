@@ -157,11 +157,11 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
-      const auto& rhoi = 1.0; // massDensity(nodeListi, i);
-      const auto& Pi = 1.0; //pressure(nodeListi, i);
+      const auto& rhoi = massDensity(nodeListi, i);
+      const auto& Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
-      const auto& omegai = 1.0; // omega(nodeListi, i);
+      const auto& omegai = omega(nodeListi, i);
       const auto  safeOmegai = safeInv(omegai, tiny);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -190,7 +190,7 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       const auto& Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto& cj = soundSpeed(nodeListj, j);
-      const auto& omegaj = 1.0; // omega(nodeListj, j);
+      const auto& omegaj = omega(nodeListj, j);
       const auto  safeOmegaj = safeInv(omegaj, tiny);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
@@ -282,11 +282,11 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       DvDtj += mi*deltaDvDt;
       if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
-      const bool barf = (i == 0 or j == 0);
-      if (barf) {
-        gradP0 += mj/rhoj*Pj*gradWj;
-        cerr << " --> (" << i << " " << j << ") " << Prhoi << " " << Prhoj << " : " << Qacci << " " << Qaccj << " : " << gradWi << " " << gradWj << " : " << deltaDvDt << " " << DvDti << " " << gradP0 << endl;
-      }
+      // const bool barf = (i == 0 or j == 0);
+      // if (barf) {
+      //   gradP0 += mj/rhoj*Pj*gradWj;
+      //   cerr << " --> (" << i << " " << j << ") " << Prhoi << " " << Prhoj << " : " << Qacci << " " << Qaccj << " : " << gradWi << " " << gradWj << " : " << deltaDvDt << " " << DvDti << " " << gradP0 << endl;
+      // }
 
       // Specific thermal energy evolution.
       // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
@@ -350,7 +350,7 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
-      const auto& omegai = 1.0; // omega(nodeListi, i);
+      const auto& omegai = omega(nodeListi, i);
       const auto  safeOmegai = safeInv(omegai, tiny);
       const auto  Hdeti = Hi.Determinant();
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
@@ -389,10 +389,10 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       DvDti -= mi*deltaDvDt;
       // if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
-      if (i == 0) {
-        gradP0 += mi/rhoi*Pi*gradWi;
-        cerr << " --> (" << i << " " << i << ") " << Prhoi << " : " << gradWi << " : " << deltaDvDt << " " << DvDti << " " << gradP0 << endl;
-      }
+      // if (i == 0) {
+      //   gradP0 += mi/rhoi*Pi*gradWi;
+      //   cerr << " --> (" << i << " " << i << ") " << Prhoi << " : " << gradWi << " : " << deltaDvDt << " " << DvDti << " " << gradP0 << endl;
+      // }
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);

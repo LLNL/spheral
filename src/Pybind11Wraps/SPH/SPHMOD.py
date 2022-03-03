@@ -21,7 +21,6 @@ PYB11includes += ['"SPH/SPHHydroBase.hh"',
                   '"SPH/computeSPHSumMassDensity.hh"',
                   '"SPH/computeSPHOmegaGradhCorrection.hh"',
                   '"SPH/SPHHydroBaseRZ.hh"',
-                  '"SPH/SPHHydroBaseGSRZ.hh"',
                   '"SPH/SphericalSPHHydroBase.hh"',
                   '"SPH/SolidSPHHydroBase.hh"',
                   '"SPH/SolidSPHHydroBaseRZ.hh"',
@@ -76,5 +75,4 @@ if 1 in dims:
 
 if 2 in dims:
     from SPHHydroBaseRZ import *
-    from SPHHydroBaseGSRZ import *
     from SolidSPHHydroBaseRZ import *

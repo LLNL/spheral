@@ -97,6 +97,6 @@ SphericalKernel::operator=(const SphericalKernel& rhs) {
 // We need to instantiate the special TableKernel constructor we use
 #include "TableKernel.cc"
 namespace Spheral {
-template TableKernel<Dim<1>>::TableKernel(const TableKernel<Dim<3>>&, const unsigned, const double);
+template TableKernel<Dim<1>>::TableKernel(const TableKernel<Dim<3>>&, const unsigned);
 }
 
