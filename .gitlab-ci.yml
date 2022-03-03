@@ -5,7 +5,7 @@ variables:
   BUILD_ROOT: ${CI_PROJECT_DIR}
 
 stages:
-#  - build_and_install
+  - build_and_install
   - update_mirror
 
 # ------------------------------------------------------------------------------
@@ -109,30 +109,29 @@ stages:
 
 # ------------------------------------------------------------------------------
 
-# gcc8.1.0+mpi
-#r_gcc_8_1_0_mvapich2_Debug:
-#  extends: [.gcc_8_1_0_mvapich2_Debug, .r_build_and_test, .on_ruby]
-#  stage: build_and_install
-#
-#r_gcc_8_3_1_mvapich2:
-#  extends: [.gcc_8_3_1_mvapich2, .r_build_and_test, .on_ruby]
-#  stage: build_and_install
-#
-#r_gcc_8_3_1_~mpi:
-#  extends: [.gcc_8_3_1_~mpi, .r_build_and_test, .on_ruby]
-#  stage: build_and_install
-#
-#r_clang_9_0_0_mvapich2:
-#  extends: [.clang_9_0_0_mvapich2, .r_build_and_test, .on_ruby]
-#  stage: build_and_install
-#
-#l_gcc_8_3_1_spectrum:
-#  extends: [.gcc_8_3_1_spectrum, .l_build_and_test, .on_lassen]
-#  stage: build_and_install
-#  
-#l_gcc_8_3_1_~mpi_Debug:
-#  extends: [.gcc_8_3_1_~mpi_Debug, .l_build_and_test, .on_lassen]
-#  stage: build_and_install
+r_gcc_8_1_0_mvapich2_Debug:
+  extends: [.gcc_8_1_0_mvapich2_Debug, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+r_gcc_8_3_1_mvapich2:
+  extends: [.gcc_8_3_1_mvapich2, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+r_gcc_8_3_1_~mpi:
+  extends: [.gcc_8_3_1_~mpi, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+r_clang_9_0_0_mvapich2:
+  extends: [.clang_9_0_0_mvapich2, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+l_gcc_8_3_1_spectrum:
+  extends: [.gcc_8_3_1_spectrum, .l_build_and_test, .on_lassen]
+  stage: build_and_install
+  
+l_gcc_8_3_1_~mpi_Debug:
+  extends: [.gcc_8_3_1_~mpi_Debug, .l_build_and_test, .on_lassen]
+  stage: build_and_install
 
 l_update_mirror:
   extends: [.on_lassen]
@@ -142,7 +141,7 @@ l_update_mirror:
     - ml load mpifileutils
     - lalloc 1 lrun -n 20 dchmod --mode go+rx /usr/WS2/wciuser/Spheral/spheral-spack-tpls/
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "feature/llnl-gitlab-ci"'
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
       when: always
 
 r_update_mirror:
@@ -153,5 +152,5 @@ r_update_mirror:
     - ml load mpifileutils
     - srun -n 20 dchmod --mode go+rx /usr/WS2/wciuser/Spheral/spheral-spack-tpls/
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "feature/llnl-gitlab-ci"'
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
       when: always
