@@ -6,7 +6,7 @@ variables:
 
 stages:
   - build_and_install
-  - update_mirror
+  - update_tpls
 
 # ------------------------------------------------------------------------------
 
@@ -133,9 +133,9 @@ l_gcc_8_3_1_~mpi_Debug:
   extends: [.gcc_8_3_1_~mpi_Debug, .l_build_and_test, .on_lassen]
   stage: build_and_install
 
-l_update_mirror:
+l_update_tpls:
   extends: [.on_lassen]
-  stage: update_mirror
+  stage: update_tpls
   script:
     - lalloc 1 ./scripts/devtools/tpl-manager.py --spec-list="scripts/devtools/spec-list.json" --spheral-spack-dir=/usr/WS2/wciuser/Spheral/spheral-spack-tpls
     - ml load mpifileutils
@@ -144,13 +144,13 @@ l_update_mirror:
     - if: '$CI_COMMIT_REF_NAME == "develop"'
       when: always
 
-r_update_mirror:
+r_update_tpls:
   extends: [.on_ruby]
-  stage: update_mirror
+  stage: update_tpls
   script:
     - srun -N 1 -c 36 -p pdebug -t 60 scripts/devtools/tpl-manager.py --spec-list="scripts/devtools/spec-list.json" --spheral-spack-dir=/usr/WS2/wciuser/Spheral/spheral-spack-tpls
     - ml load mpifileutils
-    - srun -n 20 dchmod --mode go+rx /usr/WS2/wciuser/Spheral/spheral-spack-tpls/
+    - srun -N 1 -p pdebug -n 20 -t 10 dchmod --mode go+rx /usr/WS2/wciuser/Spheral/spheral-spack-tpls/
   rules:
     - if: '$CI_COMMIT_REF_NAME == "develop"'
       when: always
