@@ -7,9 +7,9 @@ dims = spheralDimensions()
 # The generic SPHHydro pattern.
 #-------------------------------------------------------------------------------
 def SPH(W,
-        dataBase = None,
         WPi = None,
         WGrad = None,
+        dataBase = None,
         Q = None,
         filter = 0.0,
         cfl = 0.25,

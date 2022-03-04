@@ -81,7 +81,7 @@ commandLine(nr1 = 400,
             boolHopkinsCorrection = True,
             HopkinsConductivity = False,
             hmin = 1e-10,
-            hmax = 1.0,
+            hmax = 1.0e10,
             cfl = 0.5,
             XSPH = False,
             epsilonTensile = 0.0,
@@ -117,7 +117,7 @@ commandLine(nr1 = 400,
 
             useRefinement = False,
 
-            clearDirectories = False,
+            clearDirectories = True,
             restoreCycle = -1,
             restartStep = 10000,
             dataDirBase = "dumps-Sod-spherical",
@@ -189,9 +189,9 @@ strength = NullStrength()
 #-------------------------------------------------------------------------------
 # Interpolation ernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel3d(WendlandC4Kernel3d(), 500)
-kernelExtent = WT.kernelExtent
-output("WT")
+W = WendlandC4Kernel3d()
+kernelExtent = W.kernelExtent
+output("W")
 
 #-------------------------------------------------------------------------------
 # Make the NodeLists.
@@ -246,32 +246,32 @@ from VoronoiDistributeNodes import distributeNodes1d
 if numNodeLists == 1:
     gen = GenerateSphericalNodeProfile1d(nr = nr1 + nr2,
                                          rho = rho_initial,
-                                         xmin = x0,
-                                         xmax = x2,
+                                         rmin = x0,
+                                         rmax = x2,
                                          nNodePerh = nPerh)
     distributeNodes1d((nodes1, gen))
 else:
     if hsmooth > 0:
         gen1 = GenerateSphericalNodeProfile1d(nr = nr1,
                                               rho = rho_initial,
-                                              xmin = x0,
-                                              xmax = x1,
+                                              rmin = x0,
+                                              rmax = x1,
                                               nNodePerh = nPerh)
         gen2 = GenerateSphericalNodeProfile1d(nr = nr2,
                                               rho = rho_initial,
-                                              xmin = x1,
-                                              xmax = x2,
+                                              rmin = x1,
+                                              rmax = x2,
                                               nNodePerh = nPerh)
     else:
         gen1 = GenerateSphericalNodeProfile1d(nr = nr1,
                                               rho = rho1,
-                                              xmin = x0,
-                                              xmax = x1,
+                                              rmin = x0,
+                                              rmax = x1,
                                               nNodePerh = nPerh)
         gen2 = GenerateSphericalNodeProfile1d(nr = nr2,
                                               rho = rho2,
-                                              xmin = x1,
-                                              xmax = x2,
+                                              rmin = x1,
+                                              rmax = x2,
                                               nNodePerh = nPerh)
     distributeNodes1d((nodes1, gen1),
                       (nodes2, gen2))
@@ -314,7 +314,7 @@ if crksph:
                    HUpdate = HUpdate)
 elif psph:
     hydro = PSPH(dataBase = db,
-                 W = WT,
+                 W = W,
                  cfl = cfl,
                  compatibleEnergyEvolution = compatibleEnergy,
                  evolveTotalEnergy = evolveTotalEnergy,
@@ -327,7 +327,7 @@ elif fsisph:
     if numNodeLists == 2:
         sumDensityNodeLists += [nodes2]
     hydro = FSISPH(dataBase = db,
-                   W = WT,
+                   W = W,
                    filter = filter,
                    cfl = cfl,
                    sumDensityNodeLists=sumDensityNodeLists,                       
@@ -344,7 +344,7 @@ elif gsph:
     solver = HLLC(limiter,waveSpeed,True,RiemannGradient)
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
-                W = WT,
+                W = W,
                 cfl=cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient=correctVelocityGradient,
@@ -356,7 +356,7 @@ elif gsph:
                 nTensile = nTensile)
 else:
     hydro = SPH(dataBase = db,
-                W = WT,
+                W = W,
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 evolveTotalEnergy = evolveTotalEnergy,
@@ -399,25 +399,6 @@ if not gsph:
     output("q.epsilon2")
     output("q.linearInExpansion")
     output("q.quadraticInExpansion")
-
-    #-------------------------------------------------------------------------------
-    # Construct the MMRV physics object.
-    #-------------------------------------------------------------------------------
-    if boolReduceViscosity:
-        evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
-        packages.append(evolveReducingViscosityMultiplier)
-    elif boolCullenViscosity:
-        evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
-        packages.append(evolveCullenViscosityMultiplier)
-
-#-------------------------------------------------------------------------------
-# Construct the Artificial Conduction physics object.
-#-------------------------------------------------------------------------------
-if bArtificialConduction:
-    #q.reducingViscosityCorrection = True
-    ArtyCond = ArtificialConduction(WT,arCondAlpha)
-    
-    packages.append(ArtyCond)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -477,7 +458,7 @@ if sumInitialDensity and control.totalSteps == 0:
     mass = db.fluidMass
     H = db.fluidHfield
     rho = db.fluidMassDensity
-    computeSPHSumMassDensity(cm, WT, True, pos, mass, H, rho)
+    computeSPHSumMassDensity(cm, W, True, pos, mass, H, rho)
     for nodes in nodeSet:
         pos = nodes.positions()
         eps = nodes.specificThermalEnergy()

@@ -249,7 +249,7 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mNperhValues(),
   mWsumValues(),
   mMinNperh(0.25),
-  mMaxNperh(10.0) {
+  mMaxNperh(64.0) {
 
   // Pre-conditions.
   VERIFY(numPoints > 0);
