@@ -126,7 +126,7 @@ DEMBase<Dimension>::
 }
 
 //------------------------------------------------------------------------------
-// get all of our state fields up to date with the number of contacts
+// get all of our state pair-fields up to date with the number of contacts
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -180,7 +180,7 @@ DEMBase<Dimension>::
 kullInactiveContacts(const DataBase<Dimension>& dataBase,
                            State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs){
-  
+  cout << "KULL" <<end;
   auto eqOverlap = state.fields(DEMFieldNames::equilibriumOverlap, vector<Scalar>());
   auto shearDisp = state.fields(DEMFieldNames::shearDisplacement, vector<Vector>());
   auto neighborIds = state.fields(DEMFieldNames::neighborIndices, vector<int>());
@@ -280,7 +280,7 @@ findContactIndex(int nodeListi,
   const auto contactIndexPtr = std::find(neighborContacts.begin(),neighborContacts.end(),uniqueIndex);
   const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);
 
-  // these contacts should all exist
+  // these contacts should all exist by the time this method is called
   if (contactIndexPtr == neighborContacts.end())std::cout<<"Oopsie doodle" << std::endl;
 
   std::vector<int> storageIndices = {storageNodeListIndex,storageNodeIndex,storageContactIndex};
@@ -337,7 +337,7 @@ resizePairDerivativeFields(const DataBase<Dimension>& dataBase,
   const auto numNodeLists = dataBase.numNodeLists();
   const auto nodeListPts = dataBase.DEMNodeListPtrs();
 
-  const auto neighborIds = state.fields(DEMFieldNames::neighborIndices, std::vector<Vector>());
+  const auto neighborIds = state.fields(DEMFieldNames::neighborIndices, std::vector<int>());
 
   auto DsDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::shearDisplacement, std::vector<Vector>());
 
@@ -399,8 +399,8 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeDEMFieldList(mOmega, DEMDimension<Dimension>::zero, DEMFieldNames::angularVelocity, false);
   dataBase.resizeDEMFieldList(mUniqueIndices, 0, DEMFieldNames::uniqueIndices, false);
   dataBase.resizeDEMFieldList(mIsActiveContact, vector<int>(), DEMFieldNames::isActiveContact, false);
-  dataBase.resizeDEMFieldList(mNeighborIndices, vector<int>(), DEMFieldNames::uniqueIndices, false);
-  dataBase.resizeDEMFieldList(mShearDisplacement, vector<Vector>(), DEMFieldNames::uniqueIndices, false);
+  dataBase.resizeDEMFieldList(mNeighborIndices, vector<int>(), DEMFieldNames::neighborIndices, false);
+  dataBase.resizeDEMFieldList(mShearDisplacement, vector<Vector>(), DEMFieldNames::shearDisplacement, false);
   dataBase.resizeDEMFieldList(mEquilibriumOverlap, vector<Scalar>(), DEMFieldNames::uniqueIndices, false);
 
   auto position = dataBase.DEMPosition();
@@ -486,6 +486,9 @@ initialize(const Scalar  time,
   const auto contactTime = dt*this->stepsPerCollision();
   const auto lastModulo = std::fmod(time-dt, contactTime);
   const auto thisModulo = std::fmod(time,    contactTime);
+  cout << lastModulo << endl;
+  cout << thisModulo << endl;
+ 
   if (thisModulo < lastModulo) this->kullInactiveContacts(dataBase,state,derivs);
 
 }

@@ -138,7 +138,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto pairIndexSet = this->findContactIndex(nodeListi,i,nodeListj,j);
       const auto overlapij = equilibriumOverlap(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]];
       const auto sij = shearDisplacement(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]];
-      const auto numContacts = neighborIds(pairIndexSet[0],pairIndexSet[1]).size();
+      //const auto numContacts = neighborIds(pairIndexSet[0],pairIndexSet[1]).size();
       
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
@@ -156,11 +156,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Get the derivs from node i
       auto& DvDti = DvDt_thread(nodeListi, i);
-      auto& DomegaDti = DomegaDt_thread(nodeListi, i);
+      //auto& DomegaDti = DomegaDt_thread(nodeListi, i);
 
       // Get the derivs from node j
       auto& DvDtj = DvDt_thread(nodeListj, j);
-      auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
+      //auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
 
       CHECK(mi > 0.0);
       CHECK(mj > 0.0);
@@ -187,7 +187,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
         // effective quantities
         const auto mij = (mi*mj)/(mi+mj);
-        const auto Rij = (Ri*Rj)/(Ri+Rj);
+        //const auto Rij = (Ri*Rj)/(Ri+Rj);
         const auto lij = (li*lj)/(li+lj);
 
         // this is super ugly right now and should change down the line...
