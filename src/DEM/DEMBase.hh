@@ -167,6 +167,9 @@ public:
 protected:
   //---------------------------  Protected Interface ---------------------------//
 
+  int mCyclesSinceLastKulling;
+  int mKullFrequency;
+  
   // number of steps per collision time-scale
   Scalar mStepsPerCollision;              
 

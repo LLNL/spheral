@@ -1,5 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
 // DEMBase -- The DEM package for Spheral++.
+//
+//  NOT ADDING IF CONTACT IN ITITALIZED LIKE IN THE 2 PARTICLE TEST
+//
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 
@@ -82,6 +85,8 @@ DEMBase(const DataBase<Dimension>& dataBase,
         const Vector& xmin,
         const Vector& xmax):
   Physics<Dimension>(),
+  mCyclesSinceLastKulling(0),
+  mKullFrequency((int)stepsPerCollision),
   mStepsPerCollision(stepsPerCollision),
   mxmin(xmin),
   mxmax(xmax),
@@ -180,7 +185,7 @@ DEMBase<Dimension>::
 kullInactiveContacts(const DataBase<Dimension>& dataBase,
                            State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs){
-  cout << "KULL" <<end;
+  std::cout << "KULL" <<std::endl;
   auto eqOverlap = state.fields(DEMFieldNames::equilibriumOverlap, vector<Scalar>());
   auto shearDisp = state.fields(DEMFieldNames::shearDisplacement, vector<Vector>());
   auto neighborIds = state.fields(DEMFieldNames::neighborIndices, vector<int>());
@@ -247,12 +252,17 @@ kullInactiveContacts(const DataBase<Dimension>& dataBase,
         shearDispi[activeContactCount] = shearDispi[contacti];
         neighborIdsi[activeContactCount] = neighborIdsi[contacti];
         if (isActivei[contacti]==1) activeContactCount++;
+        cout << isActivei[contacti] << endl;
+        cout << contacti  << endl;
       }
-
+      cout << "activeCount" << endl;
+      cout << activeContactCount  << endl;
       // remove the excess inactive entries
       eqOverlapi.resize(activeContactCount);
       shearDispi.resize(activeContactCount);
       neighborIdsi.resize(activeContactCount);
+      cout << eqOverlapi.size() << endl;
+      cout << "endActiveCount" << endl;
     }
   }
 
@@ -412,6 +422,7 @@ registerState(DataBase<Dimension>& dataBase,
   PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
   PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,true));
   PolicyPointer angularVelocityPolicy(new IncrementFieldList<Dimension, RotationType>());
+  PolicyPointer shearDisplacementPolicy(new IncrementPairFieldList<Dimension, std::vector<Vector>>());
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);
@@ -424,7 +435,7 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mIsActiveContact);
   state.enroll(mUniqueIndices);
   state.enroll(mNeighborIndices);
-  state.enroll(mShearDisplacement);
+  state.enroll(mShearDisplacement, shearDisplacementPolicy);
   state.enroll(mEquilibriumOverlap);
 
   TIME_DEMregister.stop();
@@ -481,15 +492,11 @@ initialize(const Scalar  time,
 
   // update our state pair fields for the current connectivity
   this->addContacts(dataBase,state,derivs);
-
-  // every collision time scale clean things up
-  const auto contactTime = dt*this->stepsPerCollision();
-  const auto lastModulo = std::fmod(time-dt, contactTime);
-  const auto thisModulo = std::fmod(time,    contactTime);
-  cout << lastModulo << endl;
-  cout << thisModulo << endl;
- 
-  if (thisModulo < lastModulo) this->kullInactiveContacts(dataBase,state,derivs);
+  
+  mCyclesSinceLastKulling++;
+  if (mCyclesSinceLastKulling % mKullFrequency == 0){ 
+    this->kullInactiveContacts(dataBase,state,derivs);
+  }
 
 }
 

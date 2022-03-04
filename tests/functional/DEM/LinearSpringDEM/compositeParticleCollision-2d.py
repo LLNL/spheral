@@ -155,12 +155,14 @@ hydro = DEM(db,
             stepsPerCollision = stepsPerCollision)
 
 eqOverlap=hydro.equilibriumOverlap
-neighborIDs = hydro.neighborIndices
+neighborIndices = hydro.neighborIndices
 uniqueIndices = hydro.uniqueIndices
-neighborIDs[0][0]=vector_of_int([uniqueIndices(0,1)])
+shearDisplacement = hydro.shearDisplacement
+DDtShearDisplacement = hydro.DDtShearDisplacement
+neighborIndices[0][0]=vector_of_int([uniqueIndices(0,1)])
 eqOverlap[0][0]=vector_of_double([0.25])
 
-print(neighborIDs(0,0))
+print(neighborIndices(0,0))
 print eqOverlap(0,0)
 print eqOverlap(0,0)
 print uniqueIndices(0,0)
@@ -195,8 +197,11 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 def printFunc(cycle,time,dt):
-    print eqOverlap(0,0)
-    print eqOverlap(0,1)
+    print [eqOverlap(0,0),eqOverlap(0,1),eqOverlap(0,2)]
+    print [uniqueIndices(0,0),uniqueIndices(0,1),uniqueIndices(0,2)]
+    print [neighborIndices(0,0),neighborIndices(0,1),neighborIndices(0,2)]
+    print [shearDisplacement(0,0),shearDisplacement(0,1),shearDisplacement(0,2)]
+    print [DDtShearDisplacement(0,0),DDtShearDisplacement(0,1),DDtShearDisplacement(0,2)]
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------

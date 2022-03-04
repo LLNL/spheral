@@ -99,11 +99,11 @@ class DEMBase(Physics):
     
     stepsPerCollision = PYB11property("Scalar", "stepsPerCollision", "stepsPerCollision", doc="number of steps resolving the collision time scale")
     
-    timeStepMask = PYB11property("const FieldList<%(Dimension)s, int>&", "timeStepMask", returnpolicy="reference_internal")
-    DxDt =         PYB11property("const FieldList<%(Dimension)s, Vector>&","DxDt", returnpolicy="reference_internal")
-    DvDt =         PYB11property("const FieldList<%(Dimension)s, Vector>&", "DvDt", returnpolicy="reference_internal")
-    DomegaDt =     PYB11property("const FieldList<%(Dimension)s, RotationType>&","DomegaDt", returnpolicy="reference_internal")
-    omega =        PYB11property("const FieldList<%(Dimension)s, RotationType>&","omega", returnpolicy="reference_internal")
+    timeStepMask =  PYB11property("const FieldList<%(Dimension)s, int>&", "timeStepMask", returnpolicy="reference_internal")
+    DxDt =          PYB11property("const FieldList<%(Dimension)s, Vector>&","DxDt", returnpolicy="reference_internal")
+    DvDt =          PYB11property("const FieldList<%(Dimension)s, Vector>&", "DvDt", returnpolicy="reference_internal")
+    DomegaDt =      PYB11property("const FieldList<%(Dimension)s, RotationType>&","DomegaDt", returnpolicy="reference_internal")
+    omega =         PYB11property("const FieldList<%(Dimension)s, RotationType>&","omega", returnpolicy="reference_internal")
     uniqueIndices = PYB11property("const FieldList<%(Dimension)s, int>&","uniqueIndices", returnpolicy="reference_internal")
 
     equilibriumOverlap = PYB11property("const FieldList<%(Dimension)s, vector<Scalar>>&","equilibriumOverlap", returnpolicy="reference_internal")
