@@ -13,6 +13,22 @@
 #include "Utilities/simpsonsIntegration.hh"
 #include "Utilities/DBC.hh"
 
+#include "Kernel/BSplineKernel.hh"
+#include "Kernel/NBSplineKernel.hh"
+#include "Kernel/W4SplineKernel.hh"
+#include "Kernel/GaussianKernel.hh"
+#include "Kernel/SuperGaussianKernel.hh"
+#include "Kernel/PiGaussianKernel.hh"
+#include "Kernel/HatKernel.hh"
+#include "Kernel/SincKernel.hh"
+#include "Kernel/NSincPolynomialKernel.hh"
+#include "Kernel/QuarticSplineKernel.hh"
+#include "Kernel/QuinticSplineKernel.hh"
+#include "Kernel/WendlandC2Kernel.hh"
+#include "Kernel/WendlandC4Kernel.hh"
+#include "Kernel/WendlandC6Kernel.hh"
+#include "Kernel/ExpInvKernel.hh"
+
 namespace Spheral {
 
 namespace {  // anonymous
@@ -20,16 +36,18 @@ namespace {  // anonymous
 //------------------------------------------------------------------------------
 // Functor for doing our volume integration of the kernel  
 //------------------------------------------------------------------------------
+template<typename KernelType>
 struct W3S1Func {
-  const TableKernel<Dim<3>>& mW;
+  const KernelType& mW;
   double metaMax;
-  W3S1Func(const TableKernel<Dim<3>>& W): mW(W), metaMax(mW.kernelExtent()) {}
+  size_t mn;
+  W3S1Func(const KernelType& W, const size_t n): mW(W), metaMax(mW.kernelExtent()), mn(n) {}
 
   // Define a local nested functor we'll use to do the volume integral for
   // an (etaj, etai) lookup.
   struct VolFunc {
-    const TableKernel<Dim<3>>& mW;
-    VolFunc(const TableKernel<Dim<3>>& W): mW(W) {}
+    const KernelType& mW;
+    VolFunc(const KernelType& W): mW(W) {}
     double operator()(const double q) const {
       CHECK(q >= 0.0);
       return q * mW(q, 1.0);
@@ -42,7 +60,7 @@ struct W3S1Func {
     return simpsonsIntegration<VolFunc, double, double>(VolFunc(mW),
                                                         low,
                                                         high,
-                                                        std::max(size_t(1000), mW.numPoints()));
+                                                        mn);
   }
 };
 
@@ -51,14 +69,16 @@ struct W3S1Func {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-SphericalKernel::SphericalKernel(const TableKernel<Dim<3>>& kernel):
+template<typename KernelType>
+SphericalKernel::SphericalKernel(const KernelType& kernel,
+                                 const unsigned numIntegral,
+                                 const unsigned numKernel):
   mInterp(0.0, kernel.kernelExtent(),
           0.0, kernel.kernelExtent(),
-          std::max(size_t(200), kernel.numPoints()),
-          std::max(size_t(200), kernel.numPoints()),
-          W3S1Func(kernel)),
-  mBaseKernel3d(kernel),
-  mBaseKernel1d(kernel, kernel.numPoints()),
+          numKernel, numKernel, 
+          W3S1Func<KernelType>(kernel, numIntegral)),
+  mBaseKernel3d(kernel, numKernel),
+  mBaseKernel1d(kernel, numKernel),
   metamax(kernel.kernelExtent()) {
 }
 
@@ -91,6 +111,23 @@ SphericalKernel::operator=(const SphericalKernel& rhs) {
   }
   return *this;
 }
+
+// Constructor instantiations
+template SphericalKernel::SphericalKernel<TableKernel<Dim<3>>>          (const TableKernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<BSplineKernel<Dim<3>>>        (const BSplineKernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<NBSplineKernel<Dim<3>>>       (const NBSplineKernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<W4SplineKernel<Dim<3>>>       (const W4SplineKernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<GaussianKernel<Dim<3>>>       (const GaussianKernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<SuperGaussianKernel<Dim<3>>>  (const SuperGaussianKernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<PiGaussianKernel<Dim<3>>>     (const PiGaussianKernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<HatKernel<Dim<3>>>            (const HatKernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<SincKernel<Dim<3>>>           (const SincKernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<NSincPolynomialKernel<Dim<3>>>(const NSincPolynomialKernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<QuarticSplineKernel<Dim<3>>>  (const QuarticSplineKernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<QuinticSplineKernel<Dim<3>>>  (const QuinticSplineKernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<WendlandC2Kernel<Dim<3>>>     (const WendlandC2Kernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<WendlandC4Kernel<Dim<3>>>     (const WendlandC4Kernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<WendlandC6Kernel<Dim<3>>>     (const WendlandC6Kernel<Dim<3>>&, const unsigned, const unsigned);
 
 }
 

@@ -25,13 +25,11 @@ def gradF(r):
     return a + 2.0*b*r
     
 # Build the SphericalKernel
-WT1 = TableKernel3d(BSplineKernel3d(), 500)
-WT2 = TableKernel3d(WendlandC4Kernel3d(), 500)
 #t0 = time.time()
-#W1 = SphericalKernel(WT1)
+#W1 = SphericalKernel(BSplineKernel3d(), 1000, 200)
 #print("Required %0.4f sec to construct SphericalKernel(Cubic B spline)"% (time.time() - t0))
 t0 = time.time()
-W2 = SphericalKernel(WT2)
+W2 = SphericalKernel(WendlandC4Kernel3d(), 1000, 200)
 print("Required %0.4f sec to construct SphericalKernel(Wendland C4)"% (time.time() - t0))
 
 for W in (W2,):

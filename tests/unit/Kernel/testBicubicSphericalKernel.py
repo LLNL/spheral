@@ -7,9 +7,8 @@ from Spheral1d import *
 from SpheralTestUtilities import fuzzyEqual
 
 # Build the SphericalKernel
-WT = TableKernel3d(BSplineKernel3d(), 500)
 t0 = time.time()
-W = SphericalKernel(WT)
+W = SphericalKernel(BSplineKernel3d(), 1000, 200)
 t1 = time.time()
 etamax = W.etamax
 print("Required %0.4f sec to construct SphericalKernel"% (t1 - t0))
