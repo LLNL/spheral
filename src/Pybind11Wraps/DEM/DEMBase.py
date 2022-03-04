@@ -104,10 +104,13 @@ class DEMBase(Physics):
     DvDt =         PYB11property("const FieldList<%(Dimension)s, Vector>&", "DvDt", returnpolicy="reference_internal")
     DomegaDt =     PYB11property("const FieldList<%(Dimension)s, RotationType>&","DomegaDt", returnpolicy="reference_internal")
     omega =        PYB11property("const FieldList<%(Dimension)s, RotationType>&","omega", returnpolicy="reference_internal")
-    
     uniqueIndices = PYB11property("const FieldList<%(Dimension)s, int>&","uniqueIndices", returnpolicy="reference_internal")
+
     equilibriumOverlap = PYB11property("const FieldList<%(Dimension)s, vector<Scalar>>&","equilibriumOverlap", returnpolicy="reference_internal")
     neighborIndices = PYB11property("const FieldList<%(Dimension)s, vector<int>>&","neighborIndices", returnpolicy="reference_internal")
+    shearDisplacement = PYB11property("const FieldList<%(Dimension)s, vector<Vector>>&","shearDisplacement", returnpolicy="reference_internal")
+    DDtShearDisplacement = PYB11property("const FieldList<%(Dimension)s, vector<Vector>>&","DDtShearDisplacement", returnpolicy="reference_internal")
+    isActiveContact = PYB11property("const FieldList<%(Dimension)s, vector<int>>&","isActiveContact", returnpolicy="reference_internal")
     
 #-------------------------------------------------------------------------------
 # Inject methods
