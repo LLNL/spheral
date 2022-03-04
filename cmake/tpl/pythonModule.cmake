@@ -61,11 +61,15 @@ endif()
 # Generate our requirements.txt file for runtime python dependencies
 string(REPLACE ";" "\n" pip_rutime_modules_str "${pip-runtime-modules}")
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/tpl/util/requirements.in"
+  "${SPHERAL_ROOT_DIR}/cmake/tpl/util/requirements.in"
   "${CMAKE_BINARY_DIR}/scripts/requirements.txt"
   )
 
 
+install(FILES 
+  "${CMAKE_BINARY_DIR}/scripts/requirements.txt"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
+  )
 #
 # Custom Runtime Python Module Dependencies
 #
