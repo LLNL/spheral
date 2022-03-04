@@ -8,10 +8,14 @@ import json
 
 #------------------------------------------------------------------------------
 
-project_dir=os.getcwd()
+project_dir=os.path.abspath(os.path.join(os.path.realpath(__file__), "../../../"))
 default_mirror_dir="/usr/gapps/Spheral/spheral-spack-tpls/mirror"
-default_spheral_spack_dir=os.path.join(project_dir, "../spheral-spack-tpls")
-upstream_dir="/usr/gapps/Spheral/spheral-spack-tpls/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeho/"
+
+default_spheral_spack_dir=os.path.join(os.getcwd(), "../spheral-spack-tpls")
+upstream_dir="/usr/WS2/wciuser/Spheral/spheral-spack-tpls/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_p/"
+
+uberenv_path = os.path.join(project_dir, "scripts/devtools/uberenv/uberenv.py")
+uberenv_project_json = os.path.join(os.getcwd(), ".uberenv_config.json")
 
 #------------------------------------------------------------------------------
 
@@ -73,6 +77,7 @@ def build_deps(args):
   print("~~~~~ Building Dependencies")
   print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
   print("")
+  print("{0}".format(project_dir))
 
 
   # Figure out what specs this script is building TPLs for.
@@ -100,8 +105,10 @@ def build_deps(args):
   # config.yaml and custom spack packages recipes.
   print("** Running uberenv...")
   prefix_opt="--prefix=" + args.spheral_spack_dir
+  uberenv_project_json_opt="--project-json={0}".format(uberenv_project_json)
+
   print("** Spheral Spack Dir : {0}".format(args.spheral_spack_dir))
-  sexe("python3 scripts/devtools/uberenv/uberenv.py --setup-only {0} {1} {2}".format(prefix_opt, spack_config_dir_opt, spack_upstream_opt), echo=True)
+  sexe("python3 {0} --setup-only {1} {2} {3} {4}".format(uberenv_path, prefix_opt, uberenv_project_json_opt, spack_config_dir_opt, spack_upstream_opt), echo=True)
 
   # We just want to use the spac instance directly to generate our TPLs, we don't want
   # to have the spack instance take over our environment.
@@ -126,13 +133,15 @@ def build_deps(args):
     sexe("{0} mirror add spheral-tpl {1}".format(spack_cmd, args.mirror_dir), echo=True)
     sexe("{0} gpg trust `find {1} -name \"*.pub\"`".format(spack_cmd, args.mirror_dir), echo=True)
 
+  with open(uberenv_project_json) as f:
+    package_name=json.loads(f.read())["package_name"]
 
   # Loop through the specs we want TPLs for and build/install/get them as necessary.
   for s in spec_list:
-    print("** Building TPL's and generating host-config for {0} ...".format(s))
+    print("** Building TPL's and generating host-config for {0}%{1} ...".format(package_name,s))
     os.environ["SPEC"] = s
-    if sexe("{0} spec -I spheral@develop%{1}".format(spack_cmd, s), echo=True) : sys.exit(1)
-    if sexe("{0} dev-build --deprecated --quiet -d {1} -u initconfig spheral@develop%{2} 2>&1 | tee -a \"dev-build-{2}-out.txt\"".format(spack_cmd, project_dir, s), echo=True) : sys.exit(1)
+    if sexe("{0} spec -I {1}@develop%{2}".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
+    if sexe("{0} dev-build --deprecated --quiet -d {1} -u initconfig {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
 
   if not args.no_clean:
     sexe("rm dev-build-* spack-build-* spack-configure-args.txt")
