@@ -9,14 +9,14 @@ import matplotlib.pyplot as plt
 from math import *
 
 # Command line arguments
-commandLine(n = 100,
+commandLine(n = 200,
             nPerh = 4.0,
             F0 = 2.0,
             a = 0.0,
             b = 0.0,
             r0 = 0.0,
             r1 = 1.0,
-            r2 = 1.2)
+            r2 = 2.0)
 
 def F(r):
     return F0 + a*r + b*r*r
@@ -51,6 +51,13 @@ for W in (W2,):
     mass = nodes.mass()
     rho = nodes.massDensity()
     H = nodes.Hfield()
+
+    # # Scale the H's with reference to the origin
+    # W0 = W.baseKernel1d(0.0, 1.0)
+    # for i in xrange(nodes.numInternalNodes):
+    #     etai = (H[i]*pos[i]).x
+    #     f = 1.0 + max(1.0, 64.0/nPerh)*W.baseKernel1d(0.01*etai, 1.0)/W0
+    #     H[i] /= f
 
     # Make ghost nodes from everything past r1
     ghostvals = [(posi.x, massi, rhoi, Hi.xx) for (posi, massi, rhoi, Hi) in zip(pos, mass, rho, H) if posi.x > r1]
@@ -111,7 +118,7 @@ for W in (W2,):
         ri, mi, rhoi, Hi = pos[i], mass[i], rho[i], H[i]
         rj, mj, rhoj, Hj = pos[j], mass[j], rho[j], H[j]
         Wijj, gradWijj, deltaWsum = W.kernelAndGrad(Hj*rj, Hj*ri, Hj)
-        gradWijj = gradW(Hj*rj, Hj*ri, Hj)
+        #gradWijj = gradW(Hj*rj, Hj*ri, Hj)
         field1[i] += mj/rhoj * field0[j] * Wijj
         grad_field1[i] += mj/rhoj * field0[j] * gradWijj
         rho1[i] += mj * Wijj
