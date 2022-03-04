@@ -16,7 +16,9 @@ commandLine(n = 200,
             b = 0.0,
             r0 = 0.0,
             r1 = 1.0,
-            r2 = 2.0)
+            r2 = 2.0,
+            numIntegral = 1000,
+            numKernel = 200)
 
 def F(r):
     return F0 + a*r + b*r*r
@@ -26,10 +28,10 @@ def gradF(r):
     
 # Build the SphericalKernel
 #t0 = time.time()
-#W1 = SphericalKernel(BSplineKernel3d(), 1000, 200)
+#W1 = SphericalKernel(BSplineKernel3d(), numIntegral, numKernel)
 #print("Required %0.4f sec to construct SphericalKernel(Cubic B spline)"% (time.time() - t0))
 t0 = time.time()
-W2 = SphericalKernel(WendlandC4Kernel3d(), 1000, 200)
+W2 = SphericalKernel(WendlandC4Kernel3d(), numIntegral, numKernel)
 print("Required %0.4f sec to construct SphericalKernel(Wendland C4)"% (time.time() - t0))
 
 for W in (W2,):
