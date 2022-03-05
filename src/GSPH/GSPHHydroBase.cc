@@ -3,10 +3,9 @@
 //
 // Created by JMO, Mon Jul 19 22:11:09 PDT 2010
 //----------------------------------------------------------------------------//
+#include "Physics/Physics.hh"
 #include "FileIO/FileIO.hh"
 #include "NodeList/SmoothingScaleBase.hh"
-#include "Hydro/HydroFieldNames.hh"
-#include "Physics/Physics.hh"
 #include "SPH/computeSPHSumMassDensity.hh"
 
 #include "DataBase/DataBase.hh"
@@ -20,8 +19,10 @@
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
 
+#include "Hydro/HydroFieldNames.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/SpecificThermalEnergyPolicy.hh"
+#include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
@@ -35,10 +36,8 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/Timer.hh"
 
-#include "FSISPH/FSIFieldNames.hh"
 #include "GSPH/GSPHFieldNames.hh"
 #include "GSPH/GSPHHydroBase.hh"
-#include "GSPH/GSPHSpecificThermalEnergyPolicy.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 #ifdef _OPENMP
@@ -282,7 +281,7 @@ registerState(DataBase<Dimension>& dataBase,
   // conditional for energy method
   if (mCompatibleEnergyEvolution) {
     
-    PolicyPointer thermalEnergyPolicy(new GSPHSpecificThermalEnergyPolicy<Dimension>(dataBase));
+    PolicyPointer thermalEnergyPolicy(new CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>(dataBase));
     PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
                                                                            HydroFieldNames::specificThermalEnergy,
                                                                            true));
@@ -364,7 +363,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mM);
   //derivs.enroll(mLocalM);
   derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
-  derivs.enrollAny(FSIFieldNames::pairDepsDt, mPairDepsDt);
+  derivs.enrollAny(HydroFieldNames::pairWork, mPairDepsDt);
   TIME_GSPHregisterDerivs.stop();
 }
 
@@ -636,7 +635,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  auto& pairDepsDt = derivatives.getAny(FSIFieldNames::pairDepsDt, vector<Scalar>());
+  auto& pairDepsDt = derivatives.getAny(HydroFieldNames::pairWork, vector<Scalar>());
   auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);

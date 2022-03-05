@@ -8,7 +8,7 @@ import subprocess
 
 #------------------------------------------------------------------------------
 
-project_dir=os.getcwd()
+project_dir=os.path.abspath(os.path.join(os.path.realpath(__file__), "../../../"))
 default_spheral_spack_dir=os.path.join(project_dir, "../spheral-spack-tpls")
 
 tpl_manager_cmd=os.path.join(project_dir, "scripts/devtools/tpl-manager.py")
@@ -70,7 +70,7 @@ def main():
   # Get the host-config name and path.
   if not args.build_only and not args.host_config:
     hostconfig="{1}-{2}".format(host, sys_type, args.spec)
-    hostconfig_path=os.path.join(project_dir, "{0}.cmake".format(hostconfig))
+    hostconfig_path=os.path.join(os.getcwd(), "{0}.cmake".format(hostconfig))
   else:
     hostconfig=(args.host_config).split("/")[-1].split(".cmake")[0]
     hostconfig_path=args.host_config
