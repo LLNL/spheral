@@ -100,7 +100,7 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                                           rangen.uniform(-10.0, 10.0))
                 xmin, ymin = -100.0, -100.0
                 xmax, ymax =  100.0,  100.0
-                Finterp = BiQuadraticInterpolator(xmin, xmax, ymin, ymax, nx, ny, F)
+                Finterp = BiQuadraticInterpolator(xmin, xmax, ymin, ymax, nx, ny, F, False, False)
 
                 # # Plotting fun
                 # x = np.arange(xmin, 1.001*xmax, (xmax - xmin)/100)

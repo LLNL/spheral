@@ -20,7 +20,9 @@ Assumes the results is interpolated as
                 ymax = "const double",
                 nx = "const size_t",
                 ny = "const size_t",
-                F = "const Spheral::PythonBoundFunctors::Spheral2ArgFunctor<double, double, double>&"):
+                F = "const Spheral::PythonBoundFunctors::Spheral2ArgFunctor<double, double, double>&",
+                xlog = ("const bool", "false"),
+                ylog = ("const bool", "false")):
         "Returns an interpolator for yvals sampled in x in [xmin, xmax]"
         return
 
@@ -33,7 +35,9 @@ Assumes the results is interpolated as
                     ymax = "const double",
                     nx = "const size_t",
                     ny = "const size_t",
-                    F = "const %(Func)s&"):
+                    F = "const %(Func)s&",
+                    xlog = ("const bool", "false"),
+                    ylog = ("const bool", "false")):
         "Initializes the interpolator for interpolating the given function"
         return "void"
 
@@ -96,3 +100,5 @@ Assumes the results is interpolated as
     xstep = PYB11property(doc="delta x between tabulated values")
     ystep = PYB11property(doc="delta y between tabulated values")
     coeffs = PYB11property(doc="the fitting coefficients")
+    xlog = PYB11property(doc="Use logarithmic spacing in x")
+    ylog = PYB11property(doc="Use logarithmic spacing in y")

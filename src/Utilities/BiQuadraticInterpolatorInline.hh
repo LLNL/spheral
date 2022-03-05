@@ -1,6 +1,7 @@
 #include "Utilities/DBC.hh"
 #include <Eigen/Dense>
 #include <iostream>
+#include <cmath>
 
 namespace Spheral {
 
@@ -30,7 +31,11 @@ BiQuadraticInterpolator::BiQuadraticInterpolator(const double xmin,
                                                  const double ymax,
                                                  const size_t nx,
                                                  const size_t ny,
-                                                 const Func& F):
+                                                 const Func& F,
+                                                 const bool xlog,
+                                                 const bool ylog):
+  mxlog(),
+  mylog(),
   mnx1(),
   mny1(),
   mxmin(),
@@ -59,13 +64,17 @@ BiQuadraticInterpolator::initialize(const double xmin,
                                     const double ymax,
                                     const size_t nx,
                                     const size_t ny,
-                                    const Func& F) {
+                                    const Func& F,
+                                    const bool xlog,
+                                    const bool ylog) {
 
   // Size stuff up.
   REQUIRE(nx > 2u);
   REQUIRE(ny > 2u);
   mnx1 = nx - 1u;
   mny1 = ny - 1u;
+  mxlog = xlog;
+  mylog = ylog;
   mcoeffs.resize(9*mnx1*mny1);
 
   // Figure out the sampling steps.
@@ -75,6 +84,8 @@ BiQuadraticInterpolator::initialize(const double xmin,
   mymax = ymax;
   mxstep = (xmax - xmin)/mnx1;
   mystep = (ymax - ymin)/mny1;
+  // mxstep = (xmax - xmin)/(xlog ? 1.0 : mnx1);
+  // mystep = (ymax - ymin)/(ylog ? 1.0 : mny1);
 
   // Fit the coefficients
   double x1, x2, x3, y1, y2, y3;
@@ -88,6 +99,12 @@ BiQuadraticInterpolator::initialize(const double xmin,
       y1 = ymin + j*mystep;
       y2 = y1 + 0.5*mystep;
       y3 = y1 +     mystep;
+      // x1 = coord(xmin, mxstep, i,      mnx1, xlog);
+      // x3 = coord(xmin, mxstep, i + 1u, mnx1, xlog);
+      // x2 = 0.5*(x1 + x3);
+      // y1 = coord(ymin, mystep, j,      mny1, ylog);
+      // y3 = coord(ymin, mystep, j + 1u, mny1, ylog);
+      // y2 = 0.5*(y1 + y3);
       A << 1.0, x1, y1, x1*y1, x1*x1, x1*x1*y1, y1*y1, x1*y1*y1, x1*x1*y1*y1,
            1.0, x2, y1, x2*y1, x2*x2, x2*x2*y1, y1*y1, x2*y1*y1, x2*x2*y1*y1,
            1.0, x3, y1, x3*y1, x3*x3, x3*x3*y1, y1*y1, x3*y1*y1, x3*x3*y1*y1,
@@ -116,7 +133,9 @@ BiQuadraticInterpolator::initialize(const double xmin,
              << "(" << x1 << " " << y3 << ") : " << b[6] << "\n"
              << "(" << x2 << " " << y3 << ") : " << b[7] << "\n"
              << "(" << x3 << " " << y3 << ") : " << b[8] << "\n");
-      c = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+      c = A.inverse()*b;
+      // c = A.fullPivHouseholderQr().solve(b);
+      // c = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
       // std::cerr << "------------------------------------------------------------------------------\n"
       //           << "x00: " << x00 << "\n"
       //           << "x10: " << x10 << "\n"
@@ -244,6 +263,19 @@ size_t
 BiQuadraticInterpolator::lowerBound(const double x, const double y) const {
   const auto result = 9u*(mnx1*std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep)) +
                                std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep)));
+  // size_t ix, iy;
+  // if (mxlog) {
+  //   ix = std::min(mnx1 - 1u, size_t(mnx1 + log(std::min(1.0, std::max(0.0, (x - mxmin)/mxstep)))));
+  // } else {
+  //   ix = std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep));
+  // }
+  // if (mylog) {
+  //   iy = std::min(mny1 - 1u, size_t(mny1 + log(std::min(1.0, std::max(0.0, (y - mymin)/mystep)))));
+  // } else {
+  //   iy = std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep));
+  // }
+  // CHECK(ix < mnx1 and iy < mny1);
+  // const auto result = 9u*(mnx1*iy + ix);
   ENSURE(result <= 9u*mnx1*mny1);
   return result;
 }
@@ -294,6 +326,18 @@ BiQuadraticInterpolator::ystep() const {
 }
 
 inline
+bool
+BiQuadraticInterpolator::xlog() const {
+  return mxlog;
+}
+
+inline
+bool
+BiQuadraticInterpolator::ylog() const {
+  return mylog;
+}
+
+inline
 const std::vector<double>&
 BiQuadraticInterpolator::coeffs() const {
   return mcoeffs;
@@ -314,6 +358,24 @@ BiQuadraticInterpolator::operator==(const BiQuadraticInterpolator& rhs) const {
           (mxstep == rhs.mxstep) and
           (mystep == rhs.mystep) and
           (mcoeffs == rhs.mcoeffs));
+}
+
+//------------------------------------------------------------------------------
+// Compute the coordinate value
+//------------------------------------------------------------------------------
+inline
+double
+BiQuadraticInterpolator::coord(const double xmin,
+                               const double dx,
+                               const size_t ix,
+                               const size_t nx,
+                               const bool xlog) const {
+  REQUIRE(ix <= nx);
+  if (xlog) {
+    return xmin + dx*exp(ix - nx);
+  } else {
+    return xmin + ix*dx;
+  }
 }
 
 }

@@ -25,7 +25,9 @@ public:
                           const double ymax,
                           const size_t nx,
                           const size_t ny,
-                          const Func& F);
+                          const Func& F,
+                          const bool xlog = false,
+                          const bool ylog = false);
   BiQuadraticInterpolator();
   ~BiQuadraticInterpolator();
 
@@ -37,7 +39,9 @@ public:
                   const double ymax,
                   const size_t nx,
                   const size_t ny,
-                  const Func& F);
+                  const Func& F,
+                  const bool xlog = false,
+                  const bool ylog = false);
 
   // Interpolate for the F(x,y) value
   double operator()(const double x, const double y) const;
@@ -61,6 +65,8 @@ public:
   double ymax() const;                        // Maximum y coordinate for table              
   double xstep() const;                       // x step size
   double ystep() const;                       // y step size
+  bool xlog() const;                          // Are we using log spacing in x?
+  bool ylog() const;                          // Are we using log spacing in y?
   const std::vector<double>& coeffs() const;  // the fitting coefficients
   
   // Comparison
@@ -69,9 +75,15 @@ public:
 private:
   //--------------------------- Private Interface --------------------------//
   // Member data
+  bool mxlog, mylog;
   size_t mnx1, mny1;
   double mxmin, mxmax, mymin, mymax, mxstep, mystep;
   std::vector<double> mcoeffs;
+
+  // Compute a coordinate value depending on whether we're using log-space
+  double coord(const double xmin, const double dx,
+               const size_t ix, const size_t nx,
+               const bool xlog) const;
 };
 
 }
