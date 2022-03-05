@@ -625,4 +625,21 @@ specificThermalEnergyDiffusionCoefficient() const {
   return mSpecificThermalEnergyDiffusionCoefficient;
 }
 
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Vector>&
+GSPHHydroBase<Dimension>::
+riemannDpDx() const {
+  return mRiemannSolver.DpDx();
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Tensor>&
+GSPHHydroBase<Dimension>::
+riemannDvDx() const {
+  return mRiemannSolver.DvDx();
+}
+
 }
