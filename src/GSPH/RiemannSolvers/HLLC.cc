@@ -159,6 +159,90 @@ interfaceState(const int i,
   }
 }// Scalar interface class
 
+
+//========================================================
+// Interface State scalar
+//========================================================
+template<typename Dimension>
+void
+HLLC<Dimension>::
+interfaceState(const int i,
+               const int j,
+               const int nodelisti,
+               const int nodelistj,
+               const typename Dimension::Vector& ri,
+               const typename Dimension::Vector& rj,
+               const typename Dimension::Scalar& rhoi,   
+               const typename Dimension::Scalar& rhoj, 
+               const typename Dimension::Scalar& ci,   
+               const typename Dimension::Scalar& cj,
+               const typename Dimension::Scalar& Pi,    
+               const typename Dimension::Scalar& Pj,
+               const typename Dimension::Vector& vi,    
+               const typename Dimension::Vector& vj,
+               const typename Dimension::Vector& DpDxi,
+               const typename Dimension::Vector& DpDxj,
+               const typename Dimension::Tensor& DvDxi,
+               const typename Dimension::Tensor& DvDxj,
+                     typename Dimension::Scalar& Pstar,
+                     typename Dimension::Vector& vstar,
+                     typename Dimension::Scalar& /*rhostari*/,
+                     typename Dimension::Scalar& /*rhostarj*/) const{
+
+  Scalar Si, Sj;
+
+  const auto tiny = std::numeric_limits<Scalar>::epsilon();
+
+  const auto& waveSpeedObject = this->waveSpeed();
+
+  const auto rij = ri - rj;
+  const auto rhatij = rij.unitVector();
+
+  vstar = 0.5*(vi+vj);
+  Pstar = 0.5*(Pi+Pj);
+
+  if (ci > tiny or cj > tiny){
+
+
+    // default to nodal values
+    auto v1i = vi;
+    auto v1j = vj;
+
+    auto p1i = Pi;
+    auto p1j = Pj;
+
+    // linear reconstruction
+    if(this->linearReconstruction()){
+
+      // gradients along line of action
+      this->linearReconstruction(ri,rj, Pi,Pj, DpDxi,DpDxj,
+                                 p1i,p1j);
+      this->linearReconstruction(ri,rj, vi,vj, DvDxi,DvDxj,
+                                 v1i,v1j);
+  
+    }
+
+    const auto ui = v1i.dot(rhatij);
+    const auto uj = v1j.dot(rhatij);
+    const auto wi = v1i - ui*rhatij;
+    const auto wj = v1j - uj*rhatij;
+
+    waveSpeedObject.waveSpeed(rhoi,rhoj,ci,cj,ui,uj,Si,Sj);
+
+    const auto denom = safeInv(Si - Sj);
+
+    const auto ustar = (Si*ui - Sj*uj - p1i + p1j )*denom;
+    const auto wstar = (Si*wi - Sj*wj)*denom;
+    vstar = ustar*rhatij + wstar;
+    Pstar = Sj * (ustar-uj) + p1j;
+
+  }else{ // if ci & cj too small punt to normal av
+    const auto uij = std::min((vi-vj).dot(rhatij),0.0);
+    Pstar += 0.25 * (rhoi+rhoj) * (uij*uij);
+  }
+}// Scalar interface class
+
+
 template<typename Dimension>
 void
 HLLC<Dimension>::
