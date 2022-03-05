@@ -129,7 +129,7 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                 # print "Coeffs: ", list(Finterp.coeffs)
                 # print "Ans   : ", F.c
 
-                tol_coeff = 1.0e-4
+                tol_coeff = 1e-2
                 self.failUnless(fuzzyEqual(Finterp.coeffs[0], F.c[0][0], tol_coeff), "%g != %g" % (Finterp.coeffs[0], F.c[0][0]))
                 self.failUnless(fuzzyEqual(Finterp.coeffs[1], F.c[1][0], tol_coeff), "%g != %g" % (Finterp.coeffs[1], F.c[1][0]))
                 self.failUnless(fuzzyEqual(Finterp.coeffs[2], F.c[0][1], tol_coeff), "%g != %g" % (Finterp.coeffs[2], F.c[0][1]))

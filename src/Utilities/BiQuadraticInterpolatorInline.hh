@@ -133,9 +133,9 @@ BiQuadraticInterpolator::initialize(const double xmin,
              << "(" << x1 << " " << y3 << ") : " << b[6] << "\n"
              << "(" << x2 << " " << y3 << ") : " << b[7] << "\n"
              << "(" << x3 << " " << y3 << ") : " << b[8] << "\n");
-      c = A.inverse()*b;
+      c = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+      // c = A.inverse()*b;
       // c = A.fullPivHouseholderQr().solve(b);
-      // c = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
       // std::cerr << "------------------------------------------------------------------------------\n"
       //           << "x00: " << x00 << "\n"
       //           << "x10: " << x10 << "\n"
