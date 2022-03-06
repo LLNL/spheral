@@ -5,7 +5,6 @@ set(GSPH_inst
     computeSumVolume
     computeMFMDensity
     GSPHHydroBase
-    GSPHSpecificThermalEnergyPolicy
     Limiters/LimiterBase
     Limiters/VanLeerLimiter
     Limiters/SuperbeeLimiter
@@ -29,7 +28,6 @@ set(GSPH_headers
     computeMFMDensity.hh
     GSPHFieldNames.hh
     GSPHHydroBase.hh
-    GSPHSpecificThermalEnergyPolicy.hh
     Limiters/LimiterBase.hh
     Limiters/VanLeerLimiter.hh
     Limiters/SuperbeeLimiter.hh

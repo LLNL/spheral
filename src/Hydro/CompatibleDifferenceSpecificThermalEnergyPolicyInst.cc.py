@@ -3,9 +3,9 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "FSISPH/FSISpecificThermalEnergyPolicy.cc"
+#include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.cc"
 
 namespace Spheral {
-  template class FSISpecificThermalEnergyPolicy<Dim< %(ndim)s > >;
+  template class CompatibleDifferenceSpecificThermalEnergyPolicy<Dim< %(ndim)s > >;
 }
 """

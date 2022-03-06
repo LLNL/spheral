@@ -3,13 +3,9 @@ packages:
     target: [ppc64le]
     compiler: [gcc, clang]
   cmake:
-    version: [3.18.0, 3.20.2, 3.14.5]
+    version: [3.20.2]
     buildable: false
     externals:
-    - spec: cmake@3.14.5
-      prefix: /usr/tce/packages/cmake/cmake-3.14.5
-    - spec: cmake@3.18.0
-      prefix: /usr/tce/packages/cmake/cmake-3.18.0
     - spec: cmake@3.20.2
       prefix: /usr/tce/packages/cmake/cmake-3.20.2
 
@@ -126,3 +122,16 @@ packages:
     - spec: tar@1.26
       prefix: /usr
     buildable: false
+
+#---- Extension Dependencies
+
+  hwloc:
+    externals:
+    - spec: hwloc@5.7.5
+      prefix: /usr
+    buildable: false
+  netlib-lapack:
+    buildable: false
+    externals:
+    - spec: netlib-lapack@3.9.0
+      prefix: /usr/gapps/bdiv/blueos_3_ppc64le_ib_p9/gcc-8-cuda-10/lapack/3.9.0

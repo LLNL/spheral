@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// FSISpecificThermalEnergyPolicy -- An implementation of UpdatePolicyBase 
+// CompatibleDifferenceSpecificThermalEnergyPolicy -- An implementation of UpdatePolicyBase 
 // specialized for the updating the specific thermal energy as a dependent 
 // quantity.
 // 
@@ -9,8 +9,7 @@
 // difference between the conservative  and consistent formulations is added 
 // back in.
 //----------------------------------------------------------------------------//
-#include "FSISPH/FSISpecificThermalEnergyPolicy.hh"
-#include "FSISPH/FSIFieldNames.hh"
+#include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
@@ -41,8 +40,8 @@ namespace Spheral {
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FSISpecificThermalEnergyPolicy<Dimension>::
-FSISpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
+CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>::
+CompatibleDifferenceSpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
   IncrementFieldList<Dimension, typename Dimension::Scalar>(),
   mDataBasePtr(&dataBase) {
 }
@@ -51,8 +50,8 @@ FSISpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-FSISpecificThermalEnergyPolicy<Dimension>::
-~FSISpecificThermalEnergyPolicy() {
+CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>::
+~CompatibleDifferenceSpecificThermalEnergyPolicy() {
 }
 
 //------------------------------------------------------------------------------
@@ -60,7 +59,7 @@ FSISpecificThermalEnergyPolicy<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-FSISpecificThermalEnergyPolicy<Dimension>::
+CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
@@ -83,7 +82,7 @@ update(const KeyType& key,
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  const auto& pairDepsDt = derivs.getAny(FSIFieldNames::pairDepsDt, vector<Scalar>());
+  const auto& pairDepsDt = derivs.getAny(HydroFieldNames::pairWork, vector<Scalar>());
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
@@ -163,11 +162,11 @@ update(const KeyType& key,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 bool
-FSISpecificThermalEnergyPolicy<Dimension>::
+CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const FSISpecificThermalEnergyPolicy<Dimension>* rhsPtr = dynamic_cast<const FSISpecificThermalEnergyPolicy<Dimension>*>(&rhs);
+  const CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>* rhsPtr = dynamic_cast<const CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>*>(&rhs);
   if (rhsPtr == 0) {
     return false;
   } else {
