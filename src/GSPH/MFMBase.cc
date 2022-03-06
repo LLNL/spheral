@@ -396,7 +396,7 @@ dt(const DataBase<Dimension>& dataBase,
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  rho = state.fields(HydroFieldNames::massDensity, 0.0);
-  const auto  eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const auto  eps = state.fields(HydroFieldNames::specificThermalEnergy, Scalar());
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto  cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto  DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
