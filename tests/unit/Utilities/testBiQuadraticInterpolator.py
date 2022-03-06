@@ -35,9 +35,9 @@ def xygen(n, xmin, xmax, ymin, ymax):
         count += 1
 
 #===============================================================================
-# TestQuadraticInterpolator
+# TestQuadraticInterpolatorBase
 #===============================================================================
-class TestBiQuadraticInterpolator(unittest.TestCase):
+class TestBiQuadraticInterpolatorBase:
 
     #===========================================================================
     # Set up
@@ -45,6 +45,8 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
     def setUp(self):
         self.ntests = 20
         self.n = 1000
+        self.xmin, self.ymin = -100.0, -100.0
+        self.xmax, self.ymax =  100.0,  100.0
         return
 
     #===========================================================================
@@ -98,9 +100,7 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                                           rangen.uniform(-10.0, 10.0),
                                           rangen.uniform(-10.0, 10.0),
                                           rangen.uniform(-10.0, 10.0))
-                xmin, ymin = -100.0, -100.0
-                xmax, ymax =  100.0,  100.0
-                Finterp = BiQuadraticInterpolator(xmin, xmax, ymin, ymax, nx, ny, F, False, False)
+                Finterp = self.generateInterpolator(nx, ny, F)
 
                 # # Plotting fun
                 # x = np.arange(xmin, 1.001*xmax, (xmax - xmin)/100)
@@ -139,7 +139,7 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                 self.failUnless(fuzzyEqual(Finterp.coeffs[6], F.c[0][2], tol_coeff), "%g != %g" % (Finterp.coeffs[6], F.c[0][2]))
                 self.failUnless(fuzzyEqual(Finterp.coeffs[7], F.c[1][2], tol_coeff), "%g != %g" % (Finterp.coeffs[7], F.c[1][2]))
                 self.failUnless(fuzzyEqual(Finterp.coeffs[8], F.c[2][2], tol_coeff), "%g != %g" % (Finterp.coeffs[8], F.c[2][2]))
-                for x, y in xygen(self.n, xmin, xmax, ymin, ymax):
+                for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
                     self.failUnless(fuzzyEqual(Finterp(x, y), F(x, y)),
                                     "Interpolation off: %g != %g" % (Finterp(x, y), F(x, y)))
 
@@ -166,20 +166,114 @@ class TestBiQuadraticInterpolator(unittest.TestCase):
                                       rangen.uniform(-10.0, 10.0),
                                       rangen.uniform(-10.0, 10.0),
                                       rangen.uniform(-10.0, 10.0))
-                xmin, ymin = -100.0, -100.0
-                xmax, ymax =  100.0,  100.0
-                Finterp = BiQuadraticInterpolator(xmin, xmax, ymin, ymax, nx, ny, F)
+                Finterp = self.generateInterpolator(nx, ny, F)
                 # sys.stderr.write("(%i, %i): %s\n" % (nx, ny, Finterp))
                 
                 # Compute a tolerance based on the range of the function
-                z0 = np.array([F(xmin, ymin), F(xmax, ymin), F(xmax, ymax), F(xmin, ymax)])
+                z0 = np.array([F(self.xmin, self.ymin), F(self.xmax, self.ymin), F(self.xmax, self.ymax), F(self.xmin, self.ymax)])
                 tol = 1.0e-6*(z0.max() - z0.min())
 
-                for x, y in xygen(self.n, xmin, xmax, ymin, ymax):
+                for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
                     self.failUnless(fuzzyEqual(Finterp(x, y), F(x, y), tol),
                                     "Interpolation off @ (%g,%g): %g != %g, err=%g" %
                                     (x, y, Finterp(x, y), F(x, y), 2.0*abs((F(x, y) - Finterp(x, y))/(F(x, y) + Finterp(x, y)))) + "\nCoefficients: " + str(F.c))
 
 
+#===============================================================================
+# TestQuadraticInterpolatorLinearSpacing
+#===============================================================================
+class TestBiQuadraticInterpolatorLinearSpacing(TestBiQuadraticInterpolatorBase,
+                                               unittest.TestCase):
+
+    #===========================================================================
+    # Generate a BiQuadraticInterpolator
+    #===========================================================================
+    def generateInterpolator(self,
+                             nx,
+                             ny,
+                             func):
+        return BiQuadraticInterpolator(xmin = self.xmin,
+                                       xmax = self.xmax,
+                                       ymin = self.ymin,
+                                       ymax = self.ymax,
+                                       nx = nx,
+                                       ny = ny,
+                                       F = func,
+                                       xlog = False,
+                                       ylog = False)
+
+#===============================================================================
+# TestQuadraticInterpolatorXlog
+#===============================================================================
+class TestBiQuadraticInterpolatorXlog(TestBiQuadraticInterpolatorBase,
+                                      unittest.TestCase):
+
+    #===========================================================================
+    # Generate a BiQuadraticInterpolator
+    #===========================================================================
+    def generateInterpolator(self,
+                             nx,
+                             ny,
+                             func):
+        return BiQuadraticInterpolator(xmin = self.xmin,
+                                       xmax = self.xmax,
+                                       ymin = self.ymin,
+                                       ymax = self.ymax,
+                                       nx = nx,
+                                       ny = ny,
+                                       F = func,
+                                       xlog = True,
+                                       ylog = False)
+
+#===============================================================================
+# TestQuadraticInterpolatorYlog
+#===============================================================================
+class TestBiQuadraticInterpolatorYlog(TestBiQuadraticInterpolatorBase,
+                                      unittest.TestCase):
+
+    #===========================================================================
+    # Generate a BiQuadraticInterpolator
+    #===========================================================================
+    def generateInterpolator(self,
+                             nx,
+                             ny,
+                             func):
+        return BiQuadraticInterpolator(xmin = self.xmin,
+                                       xmax = self.xmax,
+                                       ymin = self.ymin,
+                                       ymax = self.ymax,
+                                       nx = nx,
+                                       ny = ny,
+                                       F = func,
+                                       xlog = False,
+                                       ylog = True)
+
+#===============================================================================
+# TestQuadraticInterpolatorXYlog
+#===============================================================================
+class TestBiQuadraticInterpolatorXYlog(TestBiQuadraticInterpolatorBase,
+                                       unittest.TestCase):
+
+    #===========================================================================
+    # Generate a BiQuadraticInterpolator
+    #===========================================================================
+    def generateInterpolator(self,
+                             nx,
+                             ny,
+                             func):
+        return BiQuadraticInterpolator(xmin = self.xmin,
+                                       xmax = self.xmax,
+                                       ymin = self.ymin,
+                                       ymax = self.ymax,
+                                       nx = nx,
+                                       ny = ny,
+                                       F = func,
+                                       xlog = True,
+                                       ylog = True)
+
+#===============================================================================
+# Run the tests
+#===============================================================================
 if __name__ == "__main__":
     unittest.main()
+

@@ -82,10 +82,10 @@ BiQuadraticInterpolator::initialize(const double xmin,
   mxmax = xmax;
   mymin = ymin;
   mymax = ymax;
-  mxstep = (xmax - xmin)/mnx1;
-  mystep = (ymax - ymin)/mny1;
-  // mxstep = (xmax - xmin)/(xlog ? 1.0 : mnx1);
-  // mystep = (ymax - ymin)/(ylog ? 1.0 : mny1);
+  // mxstep = (xmax - xmin)/mnx1;
+  // mystep = (ymax - ymin)/mny1;
+  mxstep = (xmax - xmin)/(xlog ? 1.0 : mnx1);
+  mystep = (ymax - ymin)/(ylog ? 1.0 : mny1);
 
   // Fit the coefficients
   double x1, x2, x3, y1, y2, y3;
@@ -93,18 +93,18 @@ BiQuadraticInterpolator::initialize(const double xmin,
   Eigen::VectorXd b(9), c(9);
   for (auto i = 0u; i < mnx1; ++i) {
     for (auto j = 0u; j < mny1; ++j) {
-      x1 = xmin + i*mxstep;
-      x2 = x1 + 0.5*mxstep;
-      x3 = x1 +     mxstep;
-      y1 = ymin + j*mystep;
-      y2 = y1 + 0.5*mystep;
-      y3 = y1 +     mystep;
-      // x1 = coord(xmin, mxstep, i,      mnx1, xlog);
-      // x3 = coord(xmin, mxstep, i + 1u, mnx1, xlog);
-      // x2 = 0.5*(x1 + x3);
-      // y1 = coord(ymin, mystep, j,      mny1, ylog);
-      // y3 = coord(ymin, mystep, j + 1u, mny1, ylog);
-      // y2 = 0.5*(y1 + y3);
+      // x1 = xmin + i*mxstep;
+      // x2 = x1 + 0.5*mxstep;
+      // x3 = x1 +     mxstep;
+      // y1 = ymin + j*mystep;
+      // y2 = y1 + 0.5*mystep;
+      // y3 = y1 +     mystep;
+      x1 = coord(xmin, mxstep, i,      mnx1, xlog);
+      x3 = coord(xmin, mxstep, i + 1u, mnx1, xlog);
+      x2 = 0.5*(x1 + x3);
+      y1 = coord(ymin, mystep, j,      mny1, ylog);
+      y3 = coord(ymin, mystep, j + 1u, mny1, ylog);
+      y2 = 0.5*(y1 + y3);
       A << 1.0, x1, y1, x1*y1, x1*x1, x1*x1*y1, y1*y1, x1*y1*y1, x1*x1*y1*y1,
            1.0, x2, y1, x2*y1, x2*x2, x2*x2*y1, y1*y1, x2*y1*y1, x2*x2*y1*y1,
            1.0, x3, y1, x3*y1, x3*x3, x3*x3*y1, y1*y1, x3*y1*y1, x3*x3*y1*y1,
@@ -261,21 +261,16 @@ BiQuadraticInterpolator::prime2_yy(const double xi, const double yi) const {
 inline
 size_t
 BiQuadraticInterpolator::lowerBound(const double x, const double y) const {
-  const auto result = 9u*(mnx1*std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep)) +
-                               std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep)));
-  // size_t ix, iy;
-  // if (mxlog) {
-  //   ix = std::min(mnx1 - 1u, size_t(mnx1 + log(std::min(1.0, std::max(0.0, (x - mxmin)/mxstep)))));
-  // } else {
-  //   ix = std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep));
-  // }
-  // if (mylog) {
-  //   iy = std::min(mny1 - 1u, size_t(mny1 + log(std::min(1.0, std::max(0.0, (y - mymin)/mystep)))));
-  // } else {
-  //   iy = std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep));
-  // }
-  // CHECK(ix < mnx1 and iy < mny1);
-  // const auto result = 9u*(mnx1*iy + ix);
+  // const auto result = 9u*(mnx1*std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep)) +
+  //                              std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep)));
+  const size_t ix = (mxlog ?
+                     std::min(mnx1 - 1u, size_t(mnx1 + log(std::min(1.0, std::max(0.0, (x - mxmin)/mxstep))))) :
+                     std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep)));
+  const size_t iy = (mylog ?
+                     std::min(mny1 - 1u, size_t(mny1 + log(std::min(1.0, std::max(0.0, (y - mymin)/mystep))))) :
+                     std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep)));
+  CHECK(ix < mnx1 and iy < mny1);
+  const auto result = 9u*(mnx1*iy + ix);
   ENSURE(result <= 9u*mnx1*mny1);
   return result;
 }
