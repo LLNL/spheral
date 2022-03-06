@@ -3,9 +3,10 @@
 //
 // Created by JMO, Mon Jul 19 22:11:09 PDT 2010
 //----------------------------------------------------------------------------//
-#include "Physics/Physics.hh"
 #include "FileIO/FileIO.hh"
 #include "NodeList/SmoothingScaleBase.hh"
+#include "Hydro/HydroFieldNames.hh"
+#include "Physics/Physics.hh"
 #include "SPH/computeSPHSumMassDensity.hh"
 
 #include "DataBase/DataBase.hh"
@@ -19,10 +20,9 @@
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
 
-#include "Hydro/HydroFieldNames.hh"
+#include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/SpecificThermalEnergyPolicy.hh"
-#include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
