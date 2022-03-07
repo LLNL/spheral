@@ -21,7 +21,8 @@ set(Kernel_inst
 
 
 set(Kernel_sources
-    SphericalKernel.cc)
+    SphericalKernel.cc
+    SphericalBiCubicSplineKernel.cc)
 
 instantiate(Kernel_inst Kernel_sources)
 
@@ -54,6 +55,8 @@ set(Kernel_headers
     TableKernelInline.hh
     SphericalKernel.hh
     SphericalKernelInline.hh
+    SphericalBiCubicSplineKernel.hh
+    SphericalBiCubicSplineKernelInline.hh
     VolumeIntegrationFunctions.hh
     W4SplineKernel.hh
     W4SplineKernelInline.hh
