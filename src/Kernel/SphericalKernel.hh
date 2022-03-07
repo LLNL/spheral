@@ -32,10 +32,9 @@ public:
   // for 1D spherical coordinates.
   template<typename KernelType> SphericalKernel(const KernelType& kernel,
                                                 const unsigned numIntegral = 1000u,
-                                                const unsigned numKernel = 200u);
+                                                const unsigned numKernel = 200u,
+                                                const bool useInterpolation = true);
   SphericalKernel(const SphericalKernel& rhs);
-
-  // Take an arbitrary Kernel
 
   // Destructor.
   virtual ~SphericalKernel();
@@ -64,6 +63,8 @@ public:
   const TableKernel<Dim<3>>& baseKernel3d() const;
   const TableKernel<Dim<1>>& baseKernel1d() const;
   Scalar etamax() const;
+  bool useInterpolation() const;
+  void useInterpolation(const bool x);
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -72,6 +73,12 @@ private:
   TableKernel<Dim<3>> mBaseKernel3d;
   TableKernel<Dim<1>> mBaseKernel1d;  // Only for use with the IdealH algorithm
   Scalar metamax;
+  unsigned mNumIntegral;
+  bool mUseInterpolation;
+
+  // Look up/compute the integral correction
+  double integralCorrection(const double a, const double b) const;
+
 };
 
 }

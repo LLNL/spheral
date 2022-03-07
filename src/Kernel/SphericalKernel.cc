@@ -72,14 +72,18 @@ struct W3S1Func {
 template<typename KernelType>
 SphericalKernel::SphericalKernel(const KernelType& kernel,
                                  const unsigned numIntegral,
-                                 const unsigned numKernel):
+                                 const unsigned numKernel,
+                                 const bool useInterpolation):
   mInterp(0.0, kernel.kernelExtent(),
           0.0, kernel.kernelExtent(),
           numKernel, numKernel, 
-          W3S1Func<KernelType>(kernel, numIntegral)),
+          W3S1Func<KernelType>(kernel, numIntegral),
+          false, false),
   mBaseKernel3d(kernel, numKernel),
   mBaseKernel1d(kernel, numKernel),
-  metamax(kernel.kernelExtent()) {
+  metamax(kernel.kernelExtent()),
+  mNumIntegral(numIntegral),
+  mUseInterpolation(useInterpolation) {
 }
 
 //------------------------------------------------------------------------------
@@ -89,7 +93,9 @@ SphericalKernel::SphericalKernel(const SphericalKernel& rhs):
   mInterp(rhs.mInterp),
   mBaseKernel3d(rhs.mBaseKernel3d),
   mBaseKernel1d(rhs.mBaseKernel1d),
-  metamax(rhs.metamax) {
+  metamax(rhs.metamax),
+  mNumIntegral(rhs.mNumIntegral),
+  mUseInterpolation(rhs.mUseInterpolation) {
 }
 
 //------------------------------------------------------------------------------
@@ -108,26 +114,117 @@ SphericalKernel::operator=(const SphericalKernel& rhs) {
     mBaseKernel3d = rhs.mBaseKernel3d;
     mBaseKernel1d = rhs.mBaseKernel1d;
     metamax = rhs.metamax;
+    mNumIntegral = rhs.mNumIntegral;
+    mUseInterpolation = rhs.mUseInterpolation;
   }
   return *this;
 }
 
+//------------------------------------------------------------------------------
+// Lookup the kernel for (rj/h, ri/h) = (etaj, etai)
+//------------------------------------------------------------------------------
+double
+SphericalKernel::operator()(const Dim<1>::Vector& etaj,
+                            const Dim<1>::Vector& etai,
+                            const Dim<1>::Scalar  Hdet) const {
+  REQUIRE(Hdet >= 0.0);
+  const auto ei = std::max(1e-10, std::abs(etai[0]));
+  const auto ej = std::max(1e-10, std::abs(etaj[0]));
+  CHECK(ei > 0.0);
+  CHECK(ej > 0.0);
+  const auto a = std::abs(ej - ei);            // Lower integration limit
+  if (a > metamax) return 0.0;
+  const auto b = std::min(metamax, ei + ej);   // Upper integration limit
+  return 2.0*M_PI/(ei*ej)*FastMath::cube(Hdet)*integralCorrection(a, b);
+}
+
+//------------------------------------------------------------------------------
+// Lookup the grad kernel for (rj/h, ri/h) = (etaj, etai)
+// Using the Leibniz integral rule to differentiate this integral.
+//------------------------------------------------------------------------------
+Dim<1>::Vector
+SphericalKernel::grad(const Dim<1>::Vector& etaj,
+                      const Dim<1>::Vector& etai,
+                      const Dim<1>::SymTensor& H) const {
+  const auto Hdet = H.Determinant();
+  REQUIRE(Hdet >= 0.0);
+  const auto ei = std::max(1e-10, std::abs(etai[0]));
+  const auto ej = std::max(1e-10, std::abs(etaj[0]));
+  CHECK(ei > 0.0);
+  CHECK(ej > 0.0);
+  const auto a = std::abs(ej - ei);            // Lower integration limit
+  if (a > metamax) return Vector::zero;
+  const auto b = std::min(metamax, ei + ej);   // Upper integration limit
+  const auto A = a*mBaseKernel3d.kernelValue(a, 1.0)*sgn0(ei - ej);
+  const auto B = (ei + ej >= metamax ?
+                  0.0 :
+                  b*mBaseKernel3d.kernelValue(b, 1.0));
+  return Vector(2.0*M_PI/(ei*ej)*FastMath::pow4(Hdet)*(B - A - 1.0/ei*integralCorrection(a, b)));
+}
+
+//------------------------------------------------------------------------------
+// Simultaneously lookup (W,  grad W) for (rj/h, ri/h) = (etaj, etai)
+//------------------------------------------------------------------------------
+void
+SphericalKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
+                               const Dim<1>::Vector& etai,
+                               const Dim<1>::SymTensor& H,
+                               Dim<1>::Scalar& W,
+                               Dim<1>::Vector& gradW,
+                               Dim<1>::Scalar& deltaWsum) const {
+  const auto Hdet = H.Determinant();
+  REQUIRE(Hdet >= 0.0);
+  const auto ei = std::max(1e-10, std::abs(etai[0]));
+  const auto ej = std::max(1e-10, std::abs(etaj[0]));
+  CHECK(ei > 0.0);
+  CHECK(ej > 0.0);
+  const auto a = std::abs(ej - ei);            // Lower integration limit
+  if (a > metamax) {
+    W = 0.0;
+    gradW.Zero();
+    deltaWsum = 0.0;
+  } else {
+    const auto b = std::min(metamax, ei + ej); // Upper integration limit
+    const auto B = (ei + ej >= metamax ?
+                    0.0 :
+                    b*mBaseKernel3d.kernelValue(b, 1.0));
+    const auto A = a*mBaseKernel3d.kernelValue(a, 1.0)*sgn0(ei - ej);
+    const auto pre = 2.0*M_PI/(ei*ej)*FastMath::cube(Hdet);
+    const auto interpVal = integralCorrection(a, b);
+    W = pre*interpVal;
+    gradW = Vector(pre*Hdet*(B - A - interpVal/ei));
+    deltaWsum = mBaseKernel1d.gradValue((etaj - etai).magnitude(), Hdet);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Return the integral correction
+//------------------------------------------------------------------------------
+inline
+double
+SphericalKernel::integralCorrection(const double a,
+                                    const double b) const {
+  return (mUseInterpolation ?
+          mInterp(a, b) :
+          W3S1Func<TableKernel<Dim<3>>>(mBaseKernel3d, mNumIntegral)(a, b));
+}
+
 // Constructor instantiations
-template SphericalKernel::SphericalKernel<TableKernel<Dim<3>>>          (const TableKernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<BSplineKernel<Dim<3>>>        (const BSplineKernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<NBSplineKernel<Dim<3>>>       (const NBSplineKernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<W4SplineKernel<Dim<3>>>       (const W4SplineKernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<GaussianKernel<Dim<3>>>       (const GaussianKernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<SuperGaussianKernel<Dim<3>>>  (const SuperGaussianKernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<PiGaussianKernel<Dim<3>>>     (const PiGaussianKernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<HatKernel<Dim<3>>>            (const HatKernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<SincKernel<Dim<3>>>           (const SincKernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<NSincPolynomialKernel<Dim<3>>>(const NSincPolynomialKernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<QuarticSplineKernel<Dim<3>>>  (const QuarticSplineKernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<QuinticSplineKernel<Dim<3>>>  (const QuinticSplineKernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<WendlandC2Kernel<Dim<3>>>     (const WendlandC2Kernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<WendlandC4Kernel<Dim<3>>>     (const WendlandC4Kernel<Dim<3>>&, const unsigned, const unsigned);
-template SphericalKernel::SphericalKernel<WendlandC6Kernel<Dim<3>>>     (const WendlandC6Kernel<Dim<3>>&, const unsigned, const unsigned);
+template SphericalKernel::SphericalKernel<TableKernel<Dim<3>>>          (const TableKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<BSplineKernel<Dim<3>>>        (const BSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<NBSplineKernel<Dim<3>>>       (const NBSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<W4SplineKernel<Dim<3>>>       (const W4SplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<GaussianKernel<Dim<3>>>       (const GaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<SuperGaussianKernel<Dim<3>>>  (const SuperGaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<PiGaussianKernel<Dim<3>>>     (const PiGaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<HatKernel<Dim<3>>>            (const HatKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<SincKernel<Dim<3>>>           (const SincKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<NSincPolynomialKernel<Dim<3>>>(const NSincPolynomialKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<QuarticSplineKernel<Dim<3>>>  (const QuarticSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<QuinticSplineKernel<Dim<3>>>  (const QuinticSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<WendlandC2Kernel<Dim<3>>>     (const WendlandC2Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<WendlandC4Kernel<Dim<3>>>     (const WendlandC4Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel<WendlandC6Kernel<Dim<3>>>     (const WendlandC6Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
 
 }
 

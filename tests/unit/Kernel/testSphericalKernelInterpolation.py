@@ -17,6 +17,8 @@ commandLine(n = 200,
             r0 = 0.0,
             r1 = 1.0,
             r2 = 2.0,
+            hmin = 1e-10,
+            hmax = 1e10,
             numIntegral = 1000,
             numKernel = 200)
 
@@ -31,7 +33,7 @@ def gradF(r):
 #W1 = SphericalKernel(BSplineKernel3d(), numIntegral, numKernel)
 #print("Required %0.4f sec to construct SphericalKernel(Cubic B spline)"% (time.time() - t0))
 t0 = time.time()
-W2 = SphericalKernel(WendlandC4Kernel3d(), numIntegral, numKernel)
+W2 = SphericalKernel(WendlandC4Kernel3d(), numIntegral, numKernel, False)
 print("Required %0.4f sec to construct SphericalKernel(Wendland C4)"% (time.time() - t0))
 
 for W in (W2,):
@@ -39,8 +41,8 @@ for W in (W2,):
     # Generate some points
     eos = GammaLawGasMKS1d(2.0, 1.0)
     nodes = makeFluidNodeList1d("nodes", eos, 
-                                hmin = 1e-10,
-                                hmax = 1e10,
+                                hmin = hmin,
+                                hmax = hmax,
                                 nPerh = nPerh,
                                 kernelExtent = W.etamax)
     gen = GenerateSphericalNodeProfile1d(nr = int(n * r2/r1),
