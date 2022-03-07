@@ -1,17 +1,18 @@
 set(POLYTOPE_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${lib_name})
 set(POLYTOPE_CACHE "${CACHE_DIR}/0.6.2.tar.gz")
 set(POLYTOPE_URL "https://github.com/pbtoast/polytope/archive/0.6.2.tar.gz")
-set(POLTOPE_SRC_DIR ${POLYTOPE_PREFIX}/src/boost)
+set(POLYTOPE_SRC_DIR ${POLYTOPE_PREFIX}/src/polytope)
 
 set(${lib_name}_libs libpolytope.a)
 
-set(POLYTOPE_DEPENDS boost)
+set(POLYTOPE_DEPENDS ${boost_build_dep})
 set(POLYTOPE_USE_PYTHON On)
 
 if(ENABLE_CXXONLY)
   set(POLYTOPE_USE_PYTHON Off)
 else()
-  list(APPEND POLYTOPE_DEPENDS python-install pip-modules ${spheral_py_depends})
+  #list(APPEND POLYTOPE_DEPENDS python-install pip-modules ${spheral_py_depends})
+  list(APPEND POLYTOPE_DEPENDS python-install pyb11generator ${spheral_py_depends})
 endif()
 
 if(${lib_name}_BUILD)
@@ -27,16 +28,18 @@ if(${lib_name}_BUILD)
     URL ${POLYTOPE_URL}
     URL_HASH "MD5=${POLYTOPE_MD5}"
     DOWNLOAD_DIR ${CACHE_DIR}
-    CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+    CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${BUILDTIME_PYTHONENV_STR}
+    ${CMAKE_COMMAND} ${POLYTOPE_SRC_DIR}
+               -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR} 
-               -DPYBIND11_INCLUDE_DIRS=${PYBIND11_INSTALL_DIR}/include
+               -DPYBIND11_INCLUDE_DIRS=${pybind11_DIR}/include
                -DUSE_PYTHON=${POLYTOPE_USE_PYTHON}
                -DPYTHON_EXE=${PYTHON_EXE}
-               -DBoost_INCLUDE_DIR=${BOOST_INSTALL_DIR}/include
+               -DBoost_INCLUDE_DIR=${boost_DIR}/include
                -DTESTING=Off
                DEPENDS ${POLYTOPE_DEPENDS}
-
+    BUILD_COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${BUILDTIME_PYTHONENV_STR} make install
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
     LOG_CONFIGURE ${OUT_PROTOCOL_EP}
     LOG_BUILD ${OUT_PROTOCOL_EP}
