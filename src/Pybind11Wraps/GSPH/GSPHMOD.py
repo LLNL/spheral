@@ -47,13 +47,12 @@ GradientType = PYB11enum(("RiemannGradient",
                           "MixedMethodGradient",
                           "OnlyDvDxGradient"), export_values = True)
 
-GSPHMethod = PYB11enum(("DensityBased",
-                        "MFM"), export_values = True)
 #-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
 for ndim in dims:
     exec('''
+GenericRiemannHydro%(ndim)id = PYB11TemplateClass(GenericRiemannHydro, template_parameters="%(Dimension)s")
 GSPHHydroBase%(ndim)id = PYB11TemplateClass(GSPHHydroBase, template_parameters="%(Dimension)s")
 WaveSpeedBase%(ndim)id = PYB11TemplateClass(WaveSpeedBase, template_parameters="%(Dimension)s")
 AcousticWaveSpeed%(ndim)id = PYB11TemplateClass(AcousticWaveSpeed, template_parameters="%(Dimension)s")

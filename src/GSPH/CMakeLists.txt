@@ -4,7 +4,9 @@ set(GSPH_inst
     computeSPHVolume
     computeSumVolume
     computeMFMDensity
+    GenericRiemannHydro
     GSPHHydroBase
+    MFMHydroBase
     Limiters/LimiterBase
     Limiters/VanLeerLimiter
     Limiters/SuperbeeLimiter
@@ -27,7 +29,9 @@ set(GSPH_headers
     computeSumVolume.hh
     computeMFMDensity.hh
     GSPHFieldNames.hh
+    GenericRiemannHydro.hh
     GSPHHydroBase.hh
+    MFMHydroBase.hh
     Limiters/LimiterBase.hh
     Limiters/VanLeerLimiter.hh
     Limiters/SuperbeeLimiter.hh

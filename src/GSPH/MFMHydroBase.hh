@@ -1,8 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
-// GSPHHydroBase -- The Godunov SPH hydrodynamic package for Spheral++.
+// MFMHydroBase -- The MFM  package for Spheral++ (ala Hopkins 2015)
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_GSPHHydroBase_hh__
-#define __Spheral_GSPHHydroBase_hh__
+#ifndef __Spheral_MFMHydroBase_hh__
+#define __Spheral_MFMHydroBase_hh__
 
 #include <string>
 
@@ -21,7 +21,7 @@ template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
 template<typename Dimension>
-class GSPHHydroBase: public GenericRiemannHydro<Dimension> {
+class MFMHydroBase: public GenericRiemannHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -35,7 +35,7 @@ public:
   typedef typename GenericRiemannHydro<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+  MFMHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                DataBase<Dimension>& dataBase,
                RiemannSolverBase<Dimension>& riemannSolver,
                const TableKernel<Dimension>& W,
@@ -54,7 +54,7 @@ public:
                const Vector& xmax);
 
   // Destructor.
-  virtual ~GSPHHydroBase();
+  virtual ~MFMHydroBase();
 
   // Tasks we do once on problem startup.
   virtual
@@ -92,7 +92,6 @@ public:
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
-
   void
   computeMCorrection(const typename Dimension::Scalar time,
                      const typename Dimension::Scalar dt,
@@ -118,30 +117,28 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
-  //****************************************************************************
+    //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "GSPHHydroBase" ; }
+  virtual std::string label() const override { return "MFMHydroBase" ; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
-  //****************************************************************************
-  
+  //****************************************************************************           
 private:
-
   // No default constructor, copying, or assignment.
-  GSPHHydroBase();
-  GSPHHydroBase(const GSPHHydroBase&);
-  GSPHHydroBase& operator=(const GSPHHydroBase&);
+  MFMHydroBase();
+  MFMHydroBase(const MFMHydroBase&);
+  MFMHydroBase& operator=(const MFMHydroBase&);
 };
 
 }
 
-#include "GSPHHydroBaseInline.hh"
+#include "MFMHydroBaseInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class GSPHHydroBase;
+  template<typename Dimension> class MFMHydroBase;
 }
 
 #endif

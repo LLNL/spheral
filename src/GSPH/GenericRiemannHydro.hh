@@ -1,13 +1,13 @@
 //---------------------------------Spheral++----------------------------------//
-// MFMBase -- The MFM  package for Spheral++ (ala Hopkins 2015)
+// GenericRiemannHydro -- The SPH/ASPH hydrodynamic package for Spheral++.
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_MFMBase_hh__
-#define __Spheral_MFMBase_hh__
+#ifndef __Spheral_GenericRiemannHydro_hh__
+#define __Spheral_GenericRiemannHydro_hh__
 
 #include <string>
 
-#include "Physics/Physics.hh"
 #include "Physics/GenericHydro.hh"
+#include "Physics/Physics.hh"
 
 namespace Spheral {
 
@@ -22,7 +22,7 @@ template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
 template<typename Dimension>
-class MFMBase: public Physics<Dimension> {
+class GenericRiemannHydro: public Physics<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -36,7 +36,7 @@ public:
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  MFMBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+  GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                DataBase<Dimension>& dataBase,
                RiemannSolverBase<Dimension>& riemannSolver,
                const TableKernel<Dimension>& W,
@@ -55,7 +55,7 @@ public:
                const Vector& xmax);
 
   // Destructor.
-  virtual ~MFMBase();
+  virtual ~GenericRiemannHydro();
 
     // We require all Physics packages to provide a method returning their vote
   // for the next time step.
@@ -80,9 +80,9 @@ public:
 
   
   // This method is called once at the beginning of a timestep, after all state registration.
-  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
-                                 State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs) override;
+  // virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+  //                                State<Dimension>& state,
+  //                                StateDerivatives<Dimension>& derivs) override;
 
   // Initialize the Hydro before we start a derivative evaluation.
   virtual
@@ -94,12 +94,7 @@ public:
                        
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
-  virtual
-  void evaluateDerivatives(const Scalar time,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const override;
+
 
 
   //Evaluate Derivatives sub--routines
@@ -109,12 +104,12 @@ public:
   //                    const DataBase<Dimension>& dataBase,
   //                    const State<Dimension>& state,
   //                          StateDerivatives<Dimension>& derivatives) const;
-  void
-  computeMCorrection(const typename Dimension::Scalar time,
-                     const typename Dimension::Scalar dt,
-                     const DataBase<Dimension>& dataBase,
-                     const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
+  // void
+  // computeMCorrection(const typename Dimension::Scalar time,
+  //                    const typename Dimension::Scalar dt,
+  //                    const DataBase<Dimension>& dataBase,
+  //                    const State<Dimension>& state,
+  //                          StateDerivatives<Dimension>& derivatives) const;
 
   // Finalize the derivatives.
   virtual
@@ -239,7 +234,7 @@ public:
   
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "MFMBase" ; }
+  virtual std::string label() const override { return "GenericRiemannHydro" ; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
@@ -318,20 +313,20 @@ private:
   std::vector<Scalar>             mPairDepsDt;
 
   // No default constructor, copying, or assignment.
-  MFMBase();
-  MFMBase(const MFMBase&);
-  MFMBase& operator=(const MFMBase&);
+  GenericRiemannHydro();
+  GenericRiemannHydro(const GenericRiemannHydro&);
+  GenericRiemannHydro& operator=(const GenericRiemannHydro&);
 };
 
 }
 
-#include "MFMBaseInline.hh"
+#include "GenericRiemannHydroInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class MFMBase;
+  template<typename Dimension> class GenericRiemannHydro;
 }
 
 #endif

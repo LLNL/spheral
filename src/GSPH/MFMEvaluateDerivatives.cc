@@ -4,15 +4,15 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-GSPHHydroBase<Dimension>::
+MFMHydroBase<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar time,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                           StateDerivatives<Dimension>& derivatives) const {
-  TIME_GSPHevalDerivs.start();
 
   const auto& riemannSolver = this->riemannSolver();
+
   const auto& smoothingScale = this->smoothingScaleMethod();
   
   // A few useful constants we'll use in the following loop.
@@ -250,24 +250,23 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // get our basis function and interface area vectors
       //--------------------------------------------------------
-      psii = volj*Wi;
-      psij = voli*Wj;
-      gradPsii = volj * Mi.Transpose()*gradWi;
-      gradPsij = voli * Mj.Transpose()*gradWj;
+      psii = voli*Wi;
+      psij = volj*Wj;
+      gradPsii =  voli * Mi.Transpose()*gradWi;
+      gradPsij =  volj * Mj.Transpose()*gradWj;
 
-      const auto Ai = voli*gradPsii;
-      const auto Aj = volj*gradPsij;
-
+      const auto Astar = voli*gradPsii + volj*gradPsij;
+      
       // acceleration
       //------------------------------------------------------
-      const auto deltaDvDt = Pstar*(Ai+Aj);
+      const auto deltaDvDt = Pstar*Astar;
       DvDti -= deltaDvDt;
       DvDtj += deltaDvDt;
 
       // energy
       //------------------------------------------------------
-      const auto deltaDepsDti = 2.0*Pstar*Ai.dot(vi-vstar);
-      const auto deltaDepsDtj = 2.0*Pstar*Aj.dot(vstar-vj);
+      const auto deltaDepsDti = Pstar*Astar.dot(vi-vstar);
+      const auto deltaDepsDtj = Pstar*Astar.dot(vstar-vj);
 
       DepsDti += deltaDepsDti;
       DepsDtj += deltaDepsDtj;
@@ -355,7 +354,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& localMi = localM(nodeListi, i);
       auto& DHDti = DHDt(nodeListi, i);
       auto& Hideali = Hideal(nodeListi, i);
-      //auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
@@ -409,7 +407,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     } // nodes loop
   } // nodeLists loop
 
-  TIME_GSPHevalDerivs.stop();
 } // eval derivs method 
 
 
@@ -418,7 +415,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-GSPHHydroBase<Dimension>::
+MFMHydroBase<Dimension>::
 computeMCorrection(const typename Dimension::Scalar /*time*/,
                    const typename Dimension::Scalar /*dt*/,
                    const DataBase<Dimension>& dataBase,
@@ -467,8 +464,6 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       nodeListj = pairs[kk].j_list;
       
       // Get the state for node i.
-      // const auto  mi = mass(nodeListi,i);
-      // const auto  rhoi = massDensity(nodeListi,i);
       const auto& ri = position(nodeListi, i);
       const auto  voli = volume(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
@@ -480,8 +475,6 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       auto& Mi = M_thread(nodeListi, i);
 
       // Get the state for node j
-      // const auto  mj = mass(nodeListj,j);
-      // const auto  rhoj = massDensity(nodeListj,j);
       const auto& rj = position(nodeListj, j);
       const auto  volj = volume(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
@@ -492,7 +485,6 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
 
       auto& Mj = M_thread(nodeListj, j);
 
-      // Node displacement.
       const auto rij = ri - rj;
 
       const auto etai = Hi*rij;
@@ -502,7 +494,6 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       CHECK(etaMagi >= 0.0);
       CHECK(etaMagj >= 0.0);
 
-      // Symmetrized kernel weight and gradient.
       const auto gWi = W.gradValue(etaMagi, Hdeti);
       const auto Hetai = Hi*etai.unitVector();
       const auto gradWi = gWi*Hetai;
@@ -511,12 +502,9 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       const auto Hetaj = Hj*etaj.unitVector();
       const auto gradWj = gWj*Hetaj;
 
-      const auto gradPsii = volj*gradWi;
-      const auto gradPsij = voli*gradWj;
+      const auto gradPsii = voli*gradWi;
+      const auto gradPsij = volj*gradWj;
 
-      //const auto gradPsii = voli*gradWi;
-      //const auto gradPsij = volj*gradWj;
-      // Linear gradient correction term.
       Mi -= rij.dyad(gradPsii);
       Mj -= rij.dyad(gradPsij);
       

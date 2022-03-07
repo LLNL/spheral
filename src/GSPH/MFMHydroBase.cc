@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// GSPHHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
+// MFMHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
 //
 // Created by JMO, Mon Jul 19 22:11:09 PDT 2010
 //----------------------------------------------------------------------------//
@@ -30,6 +30,7 @@
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
+
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
@@ -37,8 +38,9 @@
 
 #include "GSPH/GenericRiemannHydro.hh"
 #include "GSPH/GSPHFieldNames.hh"
-#include "GSPH/GSPHHydroBase.hh"
-#include "GSPH/computeSPHVolume.hh"
+#include "GSPH/MFMHydroBase.hh"
+#include "GSPH/computeSumVolume.hh"
+#include "GSPH/computeMFMDensity.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 #ifdef _OPENMP
@@ -65,27 +67,14 @@ using std::min;
 using std::max;
 using std::abs;
 
-// Declare timers
-extern Timer TIME_GSPH;
-extern Timer TIME_GSPHinitializeStartup;
-extern Timer TIME_GSPHregister;
-extern Timer TIME_GSPHregisterDerivs;
-extern Timer TIME_GSPHpreStepInitialize;
-extern Timer TIME_GSPHinitialize;
-extern Timer TIME_GSPHfinalizeDerivs;
-extern Timer TIME_GSPHghostBounds;
-extern Timer TIME_GSPHenforceBounds;
-extern Timer TIME_GSPHevalDerivs;
-
-
 namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-GSPHHydroBase<Dimension>::
-GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+MFMHydroBase<Dimension>::
+MFMHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              DataBase<Dimension>& dataBase,
              RiemannSolverBase<Dimension>& riemannSolver,
              const TableKernel<Dimension>& W,
@@ -126,8 +115,8 @@ GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
 // Destructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-GSPHHydroBase<Dimension>::
-~GSPHHydroBase() {
+MFMHydroBase<Dimension>::
+~MFMHydroBase() {
 }
 
 //------------------------------------------------------------------------------
@@ -135,11 +124,9 @@ GSPHHydroBase<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-GSPHHydroBase<Dimension>::
+MFMHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
-  TIME_GSPHinitializeStartup.start();
   GenericRiemannHydro<Dimension>::initializeProblemStartup(dataBase);
-  TIME_GSPHinitializeStartup.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -147,12 +134,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-GSPHHydroBase<Dimension>::
+MFMHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-  TIME_GSPHregister.start();
   GenericRiemannHydro<Dimension>::registerState(dataBase,state);
-  TIME_GSPHregister.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -160,12 +145,10 @@ registerState(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-GSPHHydroBase<Dimension>::
+MFMHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
-  TIME_GSPHregisterDerivs.start();
   GenericRiemannHydro<Dimension>::registerDerivatives(dataBase,derivs);
-  TIME_GSPHregisterDerivs.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -173,11 +156,10 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-GSPHHydroBase<Dimension>::
+MFMHydroBase<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-  TIME_GSPHpreStepInitialize.start();
   GenericRiemannHydro<Dimension>::preStepInitialize(dataBase,state,derivs);
 
   if(this->densityUpdate() == MassDensityType::RigorousSumDensity){
@@ -190,7 +172,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
     for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
-  TIME_GSPHpreStepInitialize.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -198,32 +179,34 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-GSPHHydroBase<Dimension>::
+MFMHydroBase<Dimension>::
 initialize(const typename Dimension::Scalar time,
            const typename Dimension::Scalar dt,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
-  TIME_GSPHinitialize.start();
 
   GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
 
+  // plop into an intialize volume function
+  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-  const auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+        auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
         auto  volume = state.fields(HydroFieldNames::volume, 0.0);
 
-  computeSPHVolume(mass,massDensity,volume);
+  computeSumVolume(dataBase.connectivityMap(),this->kernel(),position,H,volume);
+  computeMFMDensity(mass,volume,massDensity);
   
   for (auto boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr){
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
+    (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
   }
   for (auto boundaryItr = this->boundaryBegin(); 
        boundaryItr < this->boundaryEnd(); 
        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-
-  TIME_GSPHinitialize.stop();
   
 }
 
@@ -232,15 +215,15 @@ initialize(const typename Dimension::Scalar time,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-GSPHHydroBase<Dimension>::
+MFMHydroBase<Dimension>::
 finalizeDerivatives(const typename Dimension::Scalar time,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-  TIME_GSPHfinalizeDerivs.start();
+
   GenericRiemannHydro<Dimension>::finalizeDerivatives(time,dt,dataBase,state,derivs);
-  TIME_GSPHfinalizeDerivs.stop();
+
 }
 
 //------------------------------------------------------------------------------
@@ -248,14 +231,11 @@ finalizeDerivatives(const typename Dimension::Scalar time,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-GSPHHydroBase<Dimension>::
+MFMHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
-  TIME_GSPHghostBounds.start();
 
   GenericRiemannHydro<Dimension>::applyGhostBoundaries(state,derivs);
-
-  TIME_GSPHghostBounds.stop();
 }
 
 //------------------------------------------------------------------------------
@@ -263,14 +243,10 @@ applyGhostBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-GSPHHydroBase<Dimension>::
+MFMHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-  TIME_GSPHenforceBounds.start();
-
   GenericRiemannHydro<Dimension>::enforceBoundaries(state,derivs);
-
-  TIME_GSPHenforceBounds.stop();
 }
 
 
@@ -279,7 +255,7 @@ enforceBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-GSPHHydroBase<Dimension>::
+MFMHydroBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   GenericRiemannHydro<Dimension>::dumpState(file,pathName);
 }
@@ -289,9 +265,10 @@ dumpState(FileIO& file, const string& pathName) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-GSPHHydroBase<Dimension>::
+MFMHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   GenericRiemannHydro<Dimension>::restoreState(file,pathName);
 }
 
 }
+
