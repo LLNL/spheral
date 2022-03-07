@@ -8,7 +8,7 @@ from SpheralTestUtilities import fuzzyEqual
 
 # Build the SphericalKernel
 t0 = time.time()
-W = SphericalKernel(BSplineKernel3d(), 1000, 200, False)
+W = SphericalKernel(BSplineKernel3d())
 #W = SphericalBiCubicSplineKernel()
 t1 = time.time()
 etamax = W.etamax
