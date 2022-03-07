@@ -38,3 +38,19 @@ compilers:
     modules: []
     environment: {}
     extra_rpaths: []
+- compiler:
+    spec: oneapi@2021.2.0
+    paths:
+      cc: /usr/tce/packages/intel/intel-oneapi.2021.2/bin/icx
+      cxx: /usr/tce/packages/intel/intel-oneapi.2021.2/bin/icpx
+      f77: /usr/tce/packages/intel/intel-2021.2/bin/ifort
+      fc: /usr/tce/packages/intel/intel-2021.2/bin/ifort
+    flags:
+      cflags: --gcc-toolchain=/usr/tce/packages/gcc/gcc-8.1.0/bin/gcc
+      cxxflags: --gcc-toolchain=/usr/tce/packages/gcc/gcc-8.1.0/bin/g++
+      fflags: --gcc-name=/usr/tce/packages/gcc/gcc-8.1.0/bin/gcc
+    operating_system: rhel7
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
