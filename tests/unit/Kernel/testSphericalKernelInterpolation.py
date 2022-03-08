@@ -30,15 +30,15 @@ def gradF(r):
     return a + 2.0*b*r
     
 # Build the SphericalKernel
-#t0 = time.time()
-#W1 = SphericalKernel(BSplineKernel3d(), numIntegral, numKernel, useInterpolation)
-#print("Required %0.4f sec to construct SphericalKernel(Cubic B spline)"% (time.time() - t0))
 t0 = time.time()
-W2 = SphericalKernel(WendlandC4Kernel3d(), numIntegral, numKernel, useInterpolation)
-print("Required %0.4f sec to construct SphericalKernel(Wendland C4)"% (time.time() - t0))
+W1 = SphericalKernel(BSplineKernel3d(), numIntegral, numKernel, useInterpolation)
+print("Required %0.4f sec to construct SphericalKernel(Cubic B spline)"% (time.time() - t0))
+# t0 = time.time()
+# W2 = SphericalKernel(WendlandC4Kernel3d(), numIntegral, numKernel, useInterpolation)
+# print("Required %0.4f sec to construct SphericalKernel(Wendland C4)"% (time.time() - t0))
 W3 = SphericalBiCubicSplineKernel()
 
-for W in (W2,):
+for W in (W3,):
 
     # Generate some points
     eos = GammaLawGasMKS1d(2.0, 1.0)
@@ -57,13 +57,6 @@ for W in (W2,):
     mass = nodes.mass()
     rho = nodes.massDensity()
     H = nodes.Hfield()
-
-    # # Scale the H's with reference to the origin
-    # W0 = W.baseKernel1d(0.0, 1.0)
-    # for i in xrange(nodes.numInternalNodes):
-    #     etai = (H[i]*pos[i]).x
-    #     f = 1.0 + max(1.0, 64.0/nPerh)*W.baseKernel1d(0.01*etai, 1.0)/W0
-    #     H[i] /= f
 
     # Make ghost nodes from everything past r1
     ghostvals = [(posi.x, massi, rhoi, Hi.xx) for (posi, massi, rhoi, Hi) in zip(pos, mass, rho, H) if posi.x > r1]
@@ -93,43 +86,21 @@ for W in (W2,):
     field1 = ScalarField1d("Interpolated field", nodes)
     grad_field1 = VectorField1d("Interpolated gradient", nodes)
     rho1 = ScalarField1d("Interpolated rho (gather)", nodes)
-
-    def sgn0(x):
-        if abs(x) < 1e-8:
-            return 0
-        elif x > 0.0:
-            return 1.0
-        else:
-            return -1.0
-
-    def sgn(x):
-        if x > 0.0:
-            return 1.0
-        else:
-            return -1.0
-
-    # Local implementation of gradW for development purposes
-    def gradW(etaj, etai, Hj):
-        Hdet = Hj.Determinant()
-        Hdet3 = Hdet**3
-        ei = max(1.0e-10, abs(etai[0]));
-        ej = max(1.0e-10, abs(etaj[0]));
-        a = abs(ej - ei);
-        b = min(W.etamax, ei + ej);
-        A = a*W.baseKernel3d.kernelValue(a, 1.0)*sgn0(ei - ej)
-        B = b*W.baseKernel3d.kernelValue(b, 1.0)
-        return Vector(2.0*pi*Hdet*Hdet3/(ei*ej)*(B - A - 1.0/ei*W.Winterpolator(a, b)))
+    grad_sum = ScalarField1d("grad sum", nodes)
 
     def pair_sum(i, j):
         ri, mi, rhoi, Hi = pos[i], mass[i], rho[i], H[i]
         rj, mj, rhoj, Hj = pos[j], mass[j], rho[j], H[j]
         Wijj, gradWijj, deltaWsum = W.kernelAndGrad(Hj*rj, Hj*ri, Hj)
-        #gradWijj = gradW(Hj*rj, Hj*ri, Hj)
         field1[i] += mj/rhoj * field0[j] * Wijj
         grad_field1[i] += mj/rhoj * field0[j] * gradWijj
         rho1[i] += mj * Wijj
         if i == 0:
             print " --> (", i, j, ") : ", mj/rhoj, Wijj, gradWijj, " ::: ", grad_field1[i]
+        # if i == j:
+        #     frac = abs(grad_sum[i]/gradWijj.x)
+        #     print "    Necessary Correction : ", frac
+        # grad_sum[i] += gradWijj.x
 
     for pair in pairs:
         pair_sum(pair.i_node, pair.j_node)

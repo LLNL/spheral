@@ -84,22 +84,23 @@ gradW3S1(const double rj,
   const auto sigdiff = std::abs(sigj - sigi);
   const auto sigplus = sigj + sigi;
   const auto sgndiff = sgn0(sigi - sigj);
-
+  auto result = 0.0;
   if (sigplus <= 1.0) {
-    return -W3S1(rj, ri, h)/ri + (gradC(sigplus) - gradC(sigdiff)*sgndiff)/(h*h*ri*rj);
+    result = -W3S1(rj, ri, h)/ri + (gradC(sigplus) - gradC(sigdiff)*sgndiff)/(h*h*ri*rj);
   } else if (sigplus <= 2.0) {
     if (sigdiff < 1.0) {
-      return -W3S1(rj, ri, h)/ri + (gradD(sigplus) - gradC(sigdiff)*sgndiff)/(h*h*ri*rj);
-    } else {
-      return -W3S1(rj, ri, h)/ri + (gradD(sigplus) - gradD(sigdiff)*sgndiff)/(h*h*ri*rj);
+      result = -W3S1(rj, ri, h)/ri + (gradD(sigplus) - gradC(sigdiff)*sgndiff)/(h*h*ri*rj);
+    } else if (sigdiff < 2.0) {
+      result = -W3S1(rj, ri, h)/ri + (gradD(sigplus) - gradD(sigdiff)*sgndiff)/(h*h*ri*rj);
     }
   } else {
     if (sigdiff < 1.0) {
-      return -W3S1(rj, ri, h)/ri - gradC(sigdiff)*sgndiff/(h*h*ri*rj);
-    } else {
-      return -W3S1(rj, ri, h)/ri - gradD(sigdiff)*sgndiff/(h*h*ri*rj);
+      result = -W3S1(rj, ri, h)/ri - gradC(sigdiff)*sgndiff/(h*h*ri*rj);
+    } else if (sigdiff < 2.0) {
+      result = -W3S1(rj, ri, h)/ri - gradD(sigdiff)*sgndiff/(h*h*ri*rj);
     }
   }
+  return result;
 }
 
 }            // anonymous
@@ -179,16 +180,10 @@ SphericalBiCubicSplineKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
                                             Dim<1>::Scalar& deltaWsum) const {
   const auto Hdet = H.Determinant();
   REQUIRE(Hdet >= 0.0);
-  if (std::abs(etaj.x() - etai.x()) > metamax) {
-    W = 0.0;
-    gradW.Zero();
-    deltaWsum = 0.0;
-  } else {
-    const auto h = 1.0/Hdet;
-    W = W3S1(h*etaj.x(), h*etai.x(), h);
-    gradW.x(gradW3S1(h*etaj.x(), h*etai.x(), h));
-    deltaWsum = mBaseKernel1d.gradValue((etaj - etai).magnitude(), Hdet);
-  }
+  const auto h = 1.0/Hdet;
+  W = W3S1(h*etaj.x(), h*etai.x(), h);
+  gradW.x(gradW3S1(h*etaj.x(), h*etai.x(), h));
+  deltaWsum = mBaseKernel1d.gradValue((etaj - etai).magnitude(), Hdet);
 }
 
 }
