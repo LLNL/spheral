@@ -29,7 +29,7 @@
 #include "classes.hh"
 #include "headers.hh"
 
-#include "mpi.h"
+#include <mpi.h>
 
 namespace Spheral {
 namespace GravitySpace {

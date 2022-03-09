@@ -5,15 +5,15 @@
 # in MaterialPropertiesLib.py.
 #-------------------------------------------------------------------------------
 from spheralDimensions import spheralDimensions
-dims = spheralDimensions()
+from CaptureStdout import helpString
+from SpheralCompiledPackages import PhysicalConstants, PressureFloor, ZeroPressure
+from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
+dims = spheralDimensions()
 for dim in dims:
     exec("""
 from SpheralCompiledPackages import TillotsonEquationOfState%(dim)sd as RealTillotsonEquationOfState%(dim)sd
 """ % {"dim" : dim})
-
-from SpheralCompiledPackages import PhysicalConstants, PressureFloor, ZeroPressure
-from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
 #-------------------------------------------------------------------------------
 # Define a string providing the help for building a TillotsonEquationOfState.
@@ -22,23 +22,24 @@ expectedUsageString = """
 TillotsonEquationOfState can be constructed one of two ways:
 
 1.  Using canned material values stored in our internal data base.  Expected arguments:
-        materialName        : Label for the material in data base
-        etamin              : Lower bound for rho/rho0                           
-        etamax              : Upper bound for rho/rho0                           
-        units               : Units the user wants to work in                    
-        etamin_solid        : Optional more restrictive lower bound for rho/rho0 in solid phase
-        etamax_solid        : Optional more restrictive upper bound for rho/rho0 in solid phase
-        externalPressure    : Optional external pressure                         
-        minimumPressure     : Optional minimum pressure                          
-        maximumPressure     : Optional maximum pressure                          
-        minPressureType     : Optional behavior at minimumPressure (PressureFloor, ZeroPressure)
+        materialName          : Label for the material in data base                               
+        etamin                : Lower bound for rho/rho0                                          
+        etamax                : Upper bound for rho/rho0                                          
+        units                 : Units the user wants to work in                                   
+        etamin_solid          : Optional more restrictive lower bound for rho/rho0 in solid phase 
+        etamax_solid          : Optional more restrictive upper bound for rho/rho0 in solid phase 
+        externalPressure      : Optional external pressure                                        
+        minimumPressure       : Optional minimum pressure                                         
+        maximumPressure       : Optional maximum pressure                                         
+        minimumPressureDamage : Optional minimum pressure in damage (default 0.0)
+        minPressureType       : Optional behavior at minimumPressure (PressureFloor, ZeroPressure)
 
 2.  You can directly set all the Tillotson parameters explicitly, as
-        referenceDensity    : reference material mass density
-        etamin              : minimum allowed ratio rho/rho0
-        etamax              : maximum allowed ratio rho/rho0
-        etamin_solid        : minimum allowed ratio rho/rho0 (solid phase)
-        etamax_solid        : maximum allowed ratio rho/rho0 (solid phase)
+        referenceDensity      : reference material mass density             
+        etamin                : minimum allowed ratio rho/rho0              
+        etamax                : maximum allowed ratio rho/rho0              
+        etamin_solid          : minimum allowed ratio rho/rho0 (solid phase)
+        etamax_solid          : maximum allowed ratio rho/rho0 (solid phase)
         a
         b
         A
@@ -50,10 +51,11 @@ TillotsonEquationOfState can be constructed one of two ways:
         epsVapor
         atomicWeight
         units
-        externalPressure    : Optional external pressure                         
-        minimumPressure     : Optional minimum pressure                          
-        maximumPressure     : Optional maximum pressure                          
-        minPressureType     : Optional behavior at minimumPressure (PressureFloor, ZeroPressure)
+        externalPressure      : Optional external pressure                         
+        minimumPressure       : Optional minimum pressure                          
+        maximumPressure       : Optional maximum pressure                          
+        minimumPressureDamage : Optional minimum pressure in damage (default 0.0)
+        minPressureType       : Optional behavior at minimumPressure (PressureFloor, ZeroPressure)
 """
 
 #-------------------------------------------------------------------------------
@@ -70,12 +72,13 @@ def _TillotsonFactory(*args,
 
     # The arguments that need to be passed to this method.
     expectedArgs = ["materialName", "etamin", "etamax", "units"]
-    optionalKwArgs = {"etamin_solid"     : 0.0,
-                      "etamax_solid"     : 1e200,
-                      "externalPressure" : 0.0,
-                      "minimumPressure"  : -1e200,
-                      "maximumPressure"  :  1e200,
-                      "minPressureType"  : PressureFloor}
+    optionalKwArgs = {"etamin_solid"          : 0.0,   
+                      "etamax_solid"          : 1e200, 
+                      "externalPressure"      : 0.0,   
+                      "minimumPressure"       : -1e200,
+                      "maximumPressure"       :  1e200,
+                      "minimumPressureDamage" : 0.0,
+                      "minPressureType"       : PressureFloor}
 
     # The base units for parameters in this file.
     CGS = PhysicalConstants(0.01,    # Length in m
@@ -140,6 +143,7 @@ def _TillotsonFactory(*args,
         passargs.extend([externalPressure,
                          minimumPressure,
                          maximumPressure,
+                         minimumPressureDamage,
                          minPressureType])
         passkwargs = {}
 
@@ -164,5 +168,5 @@ def TillotsonEquationOfState%(dim)sd(*args, **kwargs):
     kwargs["TillConstructor"] = RealTillotsonEquationOfState%(dim)sd
     return _TillotsonFactory(*args, **kwargs)
 
-TillotsonEquationOfState%(dim)sd.__doc__ = expectedUsageString
+TillotsonEquationOfState%(dim)sd.__doc__ = expectedUsageString + "\\n\\n" + helpString(RealTillotsonEquationOfState%(dim)sd)
 """ % {"dim" : dim})

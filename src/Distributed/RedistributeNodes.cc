@@ -19,7 +19,7 @@
 
 #include "Utilities/DBC.hh"
 
-#include "mpi.h"
+#include <mpi.h>
 
 #include <algorithm>
 #include <vector>

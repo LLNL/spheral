@@ -1,0 +1,137 @@
+packages:
+  all:
+    target: [ppc64le]
+    compiler: [gcc, clang]
+  cmake:
+    version: [3.20.2]
+    buildable: false
+    externals:
+    - spec: cmake@3.20.2
+      prefix: /usr/tce/packages/cmake/cmake-3.20.2
+
+  #cuda:
+  #  version: [11.0.2, 10.1.243, 10.1.168, 9.2.148, 8.0]
+  #  buildable: false
+  #  externals:
+  #  - spec: cuda@11.0.2~allow-unsupported-compilers
+  #    prefix: /usr/tce/packages/cuda/cuda-11.0.2
+  #  - spec: cuda@10.1.243~allow-unsupported-compilers
+  #    prefix: /usr/tce/packages/cuda/cuda-10.1.243
+  #  - spec: cuda@10.1.168+allow-unsupported-compilers
+  #    prefix: /usr/tce/packages/cuda/cuda-10.1.168
+  #  - spec: cuda@9.2.148~allow-unsupported-compilers
+  #    prefix: /usr/tce/packages/cuda/cuda-9.2.148
+  #  - spec: cuda@8.0~allow-unsupported-compilers
+  #    prefix: /usr/tce/packages/cuda/cuda-8.0
+  
+  spectrum-mpi:
+    externals:
+    - spec: spectrum-mpi@10.3.1.03rtm0%pgi@19.10
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-pgi-19.10
+    - spec: spectrum-mpi@10.3.1.03rtm0%pgi@20.4
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-pgi-20.4
+    - spec: spectrum-mpi@10.3.1.03rtm0%gcc@8.3.1
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-8.3.1
+    - spec: spectrum-mpi@10.3.1.03rtm0%gcc@4.9.3
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-4.9.3
+    - spec: spectrum-mpi@10.3.1.03rtm0%clang@9.0.0
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-clang-9.0.0
+    - spec: spectrum-mpi@10.3.1.03rtm0%clang@9.0.0-ibm
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-clang-ibm-2019.10.03
+    - spec: spectrum-mpi@10.3.1.03rtm0%clang@10.0.1-ibm
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-clang-ibm-10.0.1
+    - spec: spectrum-mpi@10.3.1.03rtm0%xl@16.1.1.7
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-xl-2020.03.18
+    - spec: spectrum-mpi@10.3.1.03rtm0%xl@beta2019.06.20
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-xl-beta-2019.06.20
+    buildable: false
+
+# ------ SYSTEM LIBS -------
+  ncurses:
+    externals:
+    - spec: ncurses@5.9
+      prefix: /usr
+    buildable: false
+  readline:
+    externals:
+    - spec: readline@7.0
+      prefix: /collab/usr/gapps/python/build/spack-coralea.3/opt/spack/linux-rhel7-ppc64le/gcc-4.9.3/readline-7.0-owal6z2zh5zotgvdmwow6sgdn6cqfn43
+    buildable: false
+  autoconf:
+    externals:
+    - spec: autoconf@2.69
+      prefix: /usr
+    buildable: false
+  automake:
+    externals:
+    - spec: automake@1.13.4
+      prefix: /usr
+    buildable: false
+  libtool:
+    externals:
+    - spec: libtool@2.4.2
+      prefix: /usr
+    buildable: false
+  bzip2:
+    externals:
+    - spec: bzip2@1.0.6
+      prefix: /usr
+    buildable: false
+  expat:
+    externals:
+    - spec: expat@2.4.1
+      prefix: /usr
+    buildable: false
+  gdbm:
+    externals:
+    - spec: gdbm@1.19
+      prefix: /usr
+    buildable: false
+  gettext:
+    externals:
+    - spec: gettext@0.19
+      prefix: /usr
+    buildable: false
+  libffi:
+    externals:
+    - spec: libffi@3.3
+      prefix: /usr
+    buildable: false
+  openssl:
+    externals:
+    - spec: openssl@1.1.1
+      prefix: /usr
+    buildable: false
+  ossp-uuid:
+    externals:
+    - spec: ossp-uuid@1.62
+      prefix: /usr
+    buildable: false
+  sqlite:
+    externals:
+    - spec: sqlite@3.36.0
+      prefix: /usr
+    buildable: false
+  pkg-config:
+    externals:
+    - spec: pkg-config@0.27.1
+      prefix: /usr
+    buildable: false
+  tar:
+    externals:
+    - spec: tar@1.26
+      prefix: /usr
+    buildable: false
+
+#---- Extension Dependencies
+
+  hwloc:
+    externals:
+    - spec: hwloc@5.7.5
+      prefix: /usr
+    buildable: false
+  netlib-lapack:
+    buildable: false
+    externals:
+    - spec: netlib-lapack@3.9.0
+      prefix: /usr/gapps/bdiv/blueos_3_ppc64le_ib_p9/gcc-8-cuda-10/lapack/3.9.0

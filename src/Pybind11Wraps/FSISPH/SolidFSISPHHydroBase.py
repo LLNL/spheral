@@ -27,8 +27,10 @@ class SolidFSISPHHydroBase(SolidSPHHydroBase):
                cfl = "const double",
                surfaceForceCoefficient = "const double",
                densityStabilizationCoefficient = "const double",
-               densityDiffusionCoefficient = "const double",
                specificThermalEnergyDiffusionCoefficient = "const double",
+               xsphCoefficient = "const double",
+               interfaceMethod = "const InterfaceMethod",
+               kernelAveragingMethod = "const KernelAveragingMethod",
                sumDensityNodeLists = "std::vector<int>",
                useVelocityMagnitudeForDt = "const bool",
                compatibleEnergyEvolution = "const bool",
@@ -41,7 +43,6 @@ class SolidFSISPHHydroBase(SolidSPHHydroBase):
                epsTensile = "const double",
                nTensile = "const double",
                damageRelieveRubble = "const bool",
-               negativePressureInDamage = "const bool",
                strengthInDamage = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
@@ -97,20 +98,24 @@ mass density, velocity, and specific thermal energy."""
     slideSurfaces = PYB11property("SlideSurface<%(Dimension)s>&", "slideSurface", doc="The slide surface object")
     
     surfaceForceCoefficient = PYB11property("double", "surfaceForceCoefficient", "surfaceForceCoefficient",
-                           doc="additional force between different materials ala Monaghan 2013.")
+                                            doc="additional force between different materials ala Monaghan 2013.")
     
     densityStabilizationCoefficient = PYB11property("double", "densityStabilizationCoefficient", "densityStabilizationCoefficient", 
-                                          doc="coefficient used to adjust velocity gradient to prevent unstable rho.")
-    
-    densityDiffusionCoefficient = PYB11property("double", "densityDiffusionCoefficient", "densityDiffusionCoefficient", 
-                                          doc="coefficient used to diffuse density amongst like nodes.")
+                                                    doc="coefficient used to adjust velocity gradient to prevent unstable rho.")
     
     specificThermalEnergyDiffusionCoefficient = PYB11property("double", "specificThermalEnergyDiffusionCoefficient", "specificThermalEnergyDiffusionCoefficient", 
-                                          doc="coefficient used to diffuse specificThermalEnergy amongst like nodes.")
+                                                              doc="coefficient used to diffuse specificThermalEnergy amongst like nodes.")
+    
+    xsphCoefficient = PYB11property("double", "xsphCoefficient", "xsphCoefficient", 
+                                    doc="coefficient to dial magnitude of xsph.")
     
     sumDensityNodeLists = PYB11property("std::vector<int>", "sumDensityNodeLists", "sumDensityNodeLists", 
-                                              doc="control if rigorous density sum is applied to individual node lists.")
+                                        doc="control if rigorous density sum is applied to individual node lists.")
     
+    interfaceMethod = PYB11property("InterfaceMethod", "interfaceMethod", "interfaceMethod",
+                                    doc="Flag to select how we want construct material interfaces")
+    kernelAveragingMethod = PYB11property("KernelAveragingMethod", "kernelAveragingMethod", "kernelAveragingMethod",
+                                    doc="Flag to select our kernel type")
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------

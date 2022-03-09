@@ -1,5 +1,6 @@
 #include "Utilities/DBC.hh"
 #include "Utilities/SpheralFunctions.hh"
+#include "NodeList/SolidNodeList.hh"
 
 namespace Spheral {
 
@@ -15,11 +16,13 @@ SolidEquationOfState(const double referenceDensity,
                      const PhysicalConstants& constants,
                      const double minimumPressure,
                      const double maximumPressure,
+                     const double minimumPressureDamage,
                      const MaterialPressureMinType minPressureType):
   EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
   mReferenceDensity(referenceDensity),
   mEtaMin(etamin),
-  mEtaMax(etamax) {
+  mEtaMax(etamax),
+  mMinimumPressureDamage(minimumPressureDamage) {
   REQUIRE(distinctlyGreaterThan(mReferenceDensity, 0.0));
   REQUIRE(mEtaMin <= mEtaMax);
 }
@@ -88,6 +91,25 @@ void
 SolidEquationOfState<Dimension>::
 etamax(double x) {
   mEtaMax = x;
+}
+
+//------------------------------------------------------------------------------
+// Access the min damaged pressure
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+double
+SolidEquationOfState<Dimension>::
+minimumPressureDamage() const {
+  return mMinimumPressureDamage;
+}
+
+template<typename Dimension>
+inline
+void
+SolidEquationOfState<Dimension>::
+minimumPressureDamage(double x) {
+  mMinimumPressureDamage = x;
 }
 
 //------------------------------------------------------------------------------

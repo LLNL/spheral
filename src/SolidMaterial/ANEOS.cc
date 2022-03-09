@@ -9,12 +9,14 @@
 //----------------------------------------------------------------------------//
 #include "ANEOS.hh"
 #include "Field/Field.hh"
-#include "Utilities/bisectSearch.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
+#include "Utilities/bisectRoot.hh"
 #include "Utilities/DBC.hh"
 
+#include "boost/multi_array.hpp"
 #include <iostream>
+#include <ctime>
 using std::vector;
 using std::string;
 using std::pair;
@@ -50,6 +52,258 @@ namespace Spheral {
 //           &mat);
 // }
 
+namespace { // anonymous
+
+//------------------------------------------------------------------------------
+// A functor to compute eps(rho, T) for use building the interpolation table
+//------------------------------------------------------------------------------
+class epsFunc {
+public:
+  epsFunc(int matNum, double rhoConv, double Tconv, double Econv):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mEconv(Econv) {};
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = y/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return eps * mEconv;
+  }
+
+public:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mEconv;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
+// A functor to compute T(rho, eps) for use building the interpolation table
+//------------------------------------------------------------------------------
+class Tfunc {
+public:
+  Tfunc(double Tmin, 
+        double Tmax,
+        const QuadraticInterpolator& epsMinInterp,
+        const QuadraticInterpolator& epsMaxInterp,
+        const BiQuadraticInterpolator& epsInterp,
+        const epsFunc& Feps,
+        const bool verbose = false):
+    mTmin(Tmin),
+    mTmax(Tmax),
+    mEpsMinInterp(epsMinInterp),
+    mEpsMaxInterp(epsMaxInterp),
+    mEpsInterp(epsInterp),
+    mFeps(Feps),
+    mVerbose(verbose) {}
+
+  double operator()(const double rho, const double eps) const {
+    if (eps < mEpsMinInterp(rho)) {
+      return mTmin;
+    } else if (eps > mEpsMaxInterp(rho)) {
+      return mTmax;
+    } else {
+      const auto FT = Trho_func(rho, eps, mEpsInterp);
+      const auto FTmin = FT(mTmin), FTmax = FT(mTmax);
+      if (FTmin*FTmax > 0.0) {
+        return abs(FTmin) < abs(FTmax) ? mTmin : mTmax;
+      }
+      // cerr << " **> (" << rho << " " << eps << ") [" << mEpsMinInterp(rho) << " " << mEpsMaxInterp(rho) << "] " << FT(mTmin) << " " << FT(mTmax) << endl;
+      return bisectRoot(Trho_func(rho, eps, mEpsInterp),
+                        mTmin, mTmax,
+                        1.0e-15, 200u);
+    }
+  }
+
+private:
+  double mTmin, mTmax;
+  const QuadraticInterpolator& mEpsMinInterp, mEpsMaxInterp;
+  const BiQuadraticInterpolator& mEpsInterp;
+  const epsFunc& mFeps;
+  bool mVerbose;
+
+  // We need to make a single argument functor for eps(T) given a fixed rho
+  class Trho_func {
+    double mrho, meps;
+    const BiQuadraticInterpolator& mEpsInterp;
+  public:
+    Trho_func(const double rho,
+              const double eps,
+              const BiQuadraticInterpolator& epsInterp):
+      mrho(rho),
+      meps(eps),
+      mEpsInterp(epsInterp) {}
+    double operator()(const double T) const { return mEpsInterp(mrho, T) - meps; }
+  };
+};
+
+//------------------------------------------------------------------------------
+// A wrapper around the T(rho, eps) interpolator with safe limiting
+//------------------------------------------------------------------------------
+class Textrapolator {
+public:
+  Textrapolator(const double Tmin,
+                const double Tmax,
+                const QuadraticInterpolator& epsMinInterp,
+                const QuadraticInterpolator& epsMaxInterp,
+                const BiQuadraticInterpolator& Tinterp):
+    mTmin(Tmin),
+    mTmax(Tmax),
+    mEpsMinInterp(epsMinInterp),
+    mEpsMaxInterp(epsMaxInterp),
+    mTinterp(Tinterp) {}
+
+  double operator()(const double rho, const double eps) const {
+    if (eps < mEpsMinInterp(rho)) {
+      return mTmin;
+    } else if (eps > mEpsMaxInterp(rho)) {
+      return mTmax;
+    } else {
+      return mTinterp(rho, eps);
+    }
+  }
+
+private:
+  double mTmin, mTmax;
+  const QuadraticInterpolator& mEpsMinInterp, mEpsMaxInterp;
+  const BiQuadraticInterpolator& mTinterp;
+};
+
+//------------------------------------------------------------------------------
+// P(rho, eps)
+//------------------------------------------------------------------------------
+class Pfunc {
+public:
+  Pfunc(int matNum, double rhoConv, double Tconv, double Pconv,
+        const Textrapolator& Textra):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mPconv(Pconv),
+    mTextra(Textra) {}
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = mTextra(x, y)/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    if (P != P) P = 0.0;   // Hack for ANEOS giving us a NaN
+    return P * mPconv;
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mPconv;
+  const Textrapolator& mTextra;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
+// cV(rho, T)
+//------------------------------------------------------------------------------
+class cVfunc {
+public:
+  cVfunc(int matNum, double rhoConv, double Tconv, double cVconv):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mCVconv(cVconv) {}
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = y/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    if (cV != cV) cV = 1.0e-30;   // Hack for ANEOS giving us a NaN
+    return cV * mCVconv;
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mCVconv;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
+// cs(rho, eps)
+//------------------------------------------------------------------------------
+class csfunc {
+public:
+  csfunc(int matNum, double rhoConv, double Tconv, double velConv,
+         const Textrapolator& Textra):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mVelConv(velConv),
+    mTextra(Textra) {}
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = mTextra(x, y)/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    if (cs != cs) cs = 1.0e-30;   // Hack for ANEOS giving us a NaN
+    return cs * mVelConv;
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mVelConv;
+  const Textrapolator& mTextra;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
+// DPDrho(rho, eps)
+//------------------------------------------------------------------------------
+class Kfunc {
+public:
+  Kfunc(int matNum, double rhoConv, double Tconv, double Pconv,
+        const Textrapolator& Textra):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mPconv(Pconv),
+    mTextra(Textra) {}
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = mTextra(x, y)/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    if (DPDR != DPDR) DPDR = 0.0;   // Hack for ANEOS giving us a NaN
+    return std::abs(rho * DPDR * mPconv);
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mPconv;
+  const Textrapolator& mTextra;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
+// s(rho, eps) (entropy)
+//------------------------------------------------------------------------------
+class sfunc {
+public:
+  sfunc(int matNum, double rhoConv, double Tconv, double Sconv,
+        const Textrapolator& Textra):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mSconv(Sconv),
+    mTextra(Textra) {}
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = mTextra(x, y)/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    if (S != S) S = 0.0;   // Hack for ANEOS giving us a NaN
+    return S * mSconv;
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mSconv;
+  const Textrapolator& mTextra;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+} // anonymous
+
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
@@ -66,14 +320,18 @@ ANEOS(const int materialNumber,
       const double externalPressure,
       const double minimumPressure,
       const double maximumPressure,
-      const MaterialPressureMinType minPressureType):
+      const double minimumPressureDamage,
+      const MaterialPressureMinType minPressureType,
+      const bool useInterpolation):
   SolidEquationOfState<Dimension>(get_aneos_referencedensity_(const_cast<int*>(&materialNumber)),  // not in the right units yet!
                                   0.0,                                           // dummy etamin
                                   std::numeric_limits<double>::max(),            // dummy etamax
                                   constants,
                                   minimumPressure,
                                   maximumPressure,
+                                  minimumPressureDamage,
                                   minPressureType),
+  mUseInterpolation(useInterpolation),
   mMaterialNumber(materialNumber),
   mNumRhoVals(numRhoVals),
   mNumTvals(numTvals),
@@ -81,8 +339,18 @@ ANEOS(const int materialNumber,
   mRhoMax(rhoMax),
   mTmin(Tmin),
   mTmax(Tmax),
+  mEpsMin(std::numeric_limits<double>::max()),
+  mEpsMax(std::numeric_limits<double>::min()),
   mExternalPressure(externalPressure),
-  mSTEvals(boost::extents[numRhoVals][numTvals]),
+  mEpsMinInterp(),
+  mEpsMaxInterp(),
+  mEpsInterp(),
+  mTinterp(),
+  mPinterp(),
+  mCVinterp(),
+  mCSinterp(),
+  mKinterp(),
+  mSinterp(),
   mANEOSunits(0.01,   // cm expressed as meters.
               0.001,  // g expressed in kg.
               1.0),   // sec in secs.
@@ -130,21 +398,82 @@ ANEOS(const int materialNumber,
   // Fix the reference density.
   this->referenceDensity(this->referenceDensity() * mRhoConv);
 
-  // Build our lookup table to find eps(rho, T).
-  const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
-  const double dT = (mTmax - mTmin)/(mNumTvals - 1);
-  double Ti, rhoi, Pi, Si, CVi, DPDTi, DPDRi, csi;
+  // Build the interpolator for the mininum specific energy along the min density line.
+  // Also find the maximum specific energy.
+  const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
+  const auto drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1u);
+  const auto dT = (mTmax - mTmin)/(mNumTvals - 1u);
   CHECK(drho > 0.0);
-  CHECK(dT > 0.0);
-  for (unsigned i = 0; i != mNumRhoVals; ++i) {
-    rhoi = min(mRhoMin + i*drho, mRhoMax) / mRhoConv;
-    for (unsigned j = 0; j != mNumTvals; ++j) {
-      Ti = min(mTmin + j*dT, mTmax) / mTconv;
-      call_aneos_(&mMaterialNumber, &Ti, &rhoi,
-                  &Pi, &mSTEvals[i][j], &Si, &CVi, &DPDTi, &DPDRi, &csi);
-      mSTEvals[i][j] = mSTEvals[i][j] * mEconv;
+  vector<double> epsMinVals(mNumRhoVals), epsMaxVals(mNumRhoVals);
+  for (auto i = 0u; i < mNumRhoVals; ++i) {
+
+    // ANEOS seems to often have ranges of constant return values for low temperatures.  We're
+    // looking for where the EOS starts to actually have structure.
+    auto j = 0u;
+    auto eps0 = Feps(mRhoMin + i*drho, mTmin);
+    while (j++ < mNumTvals and
+           abs(eps0*safeInv(Feps(mRhoMin + i*drho, mTmin + j*dT)) - 1.0) < 1.0e-8) {
+      eps0 = Feps(mRhoMin + i*drho, mTmin + j*dT);
     }
+    epsMinVals[i] = eps0;
+    epsMaxVals[i] = Feps(mRhoMin + i*drho, mTmax);
+    mEpsMin = min(mEpsMin, epsMinVals[i]);
+    mEpsMax = max(mEpsMax, epsMaxVals[i]);
   }
+  mEpsMinInterp.initialize(mTmin, mTmax, epsMinVals);
+  mEpsMaxInterp.initialize(mTmin, mTmax, epsMaxVals);
+
+  // Build the biquadratic interpolation function for eps(rho, T)
+  auto t0 = clock();
+  mEpsInterp.initialize(mRhoMin, mRhoMax,
+                        mTmin, mTmax,
+                        mNumRhoVals, mNumTvals, Feps);
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build epsInterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+
+  // Now the hard inversion method for looking up T(rho, eps)
+  t0 = clock();
+  const auto Ftemp = Tfunc(mTmin, mTmax, mEpsMinInterp, mEpsMaxInterp, mEpsInterp, Feps);
+  mTinterp.initialize(mRhoMin, mRhoMax,
+                      mEpsMin, mEpsMax,
+                      mNumRhoVals, mNumTvals, Ftemp);
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build Tinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+
+  // And finally the interpolators for most of our derived quantities
+  t0 = clock();
+  const auto Textra = Textrapolator(mTmin, mTmax, mEpsMinInterp, mEpsMaxInterp, mTinterp);
+  const auto Fpres = Pfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
+  mPinterp.initialize(mRhoMin, mRhoMax,
+                      mEpsMin, mEpsMax,
+                      mNumRhoVals, mNumTvals, Fpres);
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build Pinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+
+  t0 = clock();
+  const auto Fcv = cVfunc(mMaterialNumber, mRhoConv, mTconv, mCVconv);
+  mCVinterp.initialize(mRhoMin, mRhoMax,
+                       mTmin, mTmax,
+                       mNumRhoVals, mNumTvals, Fcv);
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build CVinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+
+  t0 = clock();
+  const auto Fcs = csfunc(mMaterialNumber, mRhoConv, mTconv, mVelConv, Textra);
+  mCSinterp.initialize(mRhoMin, mRhoMax,
+                       mEpsMin, mEpsMax,
+                       mNumRhoVals, mNumTvals, Fcs);
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build CSinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+
+  t0 = clock();
+  const auto FK = Kfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
+  mKinterp.initialize(mRhoMin, mRhoMax,
+                      mEpsMin, mEpsMax,
+                      mNumRhoVals, mNumTvals, FK);
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build Kinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+
+  t0 = clock();
+  const auto Fs = sfunc(mMaterialNumber, mRhoConv, mTconv, mSconv, Textra);
+  mSinterp.initialize(mRhoMin, mRhoMax,
+                      mEpsMin, mEpsMax,
+                      mNumRhoVals, mNumTvals, Fs);
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build Sinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -161,11 +490,13 @@ ANEOS<Dimension>::
 template<typename Dimension>
 void
 ANEOS<Dimension>::
-setPressure(Field<Dimension, Scalar>& Pressure,
+setPressure(Field<Dimension, Scalar>& pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != (int)Pressure.size(); ++i) {
-    Pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
   }
 }
 
@@ -178,7 +509,9 @@ ANEOS<Dimension>::
 setTemperature(Field<Dimension, Scalar>& temperature,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != (int)temperature.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     temperature(i) = this->temperature(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -192,7 +525,9 @@ ANEOS<Dimension>::
 setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
                          const Field<Dimension, Scalar>& massDensity,
                          const Field<Dimension, Scalar>& temperature) const {
-  for (int i = 0; i != (int)specificThermalEnergy.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     specificThermalEnergy(i) = this->specificThermalEnergy(massDensity(i), temperature(i));
   }
 }
@@ -206,7 +541,9 @@ ANEOS<Dimension>::
 setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
                 const Field<Dimension, Scalar>& massDensity,
                 const Field<Dimension, Scalar>& temperature) const {
-  for (int i = 0; i != (int)specificHeat.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     specificHeat(i) = this->specificHeat(massDensity(i), temperature(i));
   }
 }
@@ -220,7 +557,9 @@ ANEOS<Dimension>::
 setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
               const Field<Dimension, Scalar>& massDensity,
               const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != (int)soundSpeed.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     soundSpeed(i) = this->soundSpeed(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -234,18 +573,23 @@ ANEOS<Dimension>::
 setGammaField(Field<Dimension, Scalar>& gamma,
 	      const Field<Dimension, Scalar>& massDensity,
 	      const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  int n = massDensity.numElements();
-  if (n > 0) {
-    Field<Dimension, Scalar> T("temperature", gamma.nodeList()),
-                            cv("cv", gamma.nodeList());
-    this->setTemperature(T, massDensity, specificThermalEnergy);
-    this->setSpecificHeat(cv, massDensity, specificThermalEnergy);
-    Scalar nDen;
-    for (int i = 0; i != n; ++i) {
-      nDen = massDensity(i)/mAtomicWeight;
-      gamma(i) = 1.0 + mConstants.molarGasConstant()*nDen*safeInvVar(cv(i));
-    }
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    gamma(i) = this->gamma(massDensity(i), specificThermalEnergy(i));
   }
+  // int n = massDensity.numElements();
+  // if (n > 0) {
+  //   Field<Dimension, Scalar> T("temperature", gamma.nodeList()),
+  //                           cv("cv", gamma.nodeList());
+  //   this->setTemperature(T, massDensity, specificThermalEnergy);
+  //   this->setSpecificHeat(cv, massDensity, specificThermalEnergy);
+  //   Scalar nDen;
+  //   for (int i = 0; i != n; ++i) {
+  //     nDen = massDensity(i)/mAtomicWeight;
+  //     gamma(i) = 1.0 + mConstants.molarGasConstant()*nDen*safeInvVar(cv(i));
+  //   }
+  // }
 }
 
 //------------------------------------------------------------------------------
@@ -257,7 +601,9 @@ ANEOS<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != (int)bulkModulus.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     bulkModulus(i)=this->bulkModulus(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -271,7 +617,9 @@ ANEOS<Dimension>::
 setEntropy(Field<Dimension, Scalar>& entropy,
            const Field<Dimension, Scalar>& massDensity,
            const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  for (int i = 0; i != (int)entropy.size(); ++i) {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     entropy(i)=this->entropy(massDensity(i), specificThermalEnergy(i));
   }
 }
@@ -284,51 +632,36 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
-
-  // That's it.
-  Pi *= mPconv;
-  return this->applyPressureLimits(Pi - mExternalPressure);
+  double P;
+  if (mUseInterpolation) {
+    P = mPinterp(massDensity, specificThermalEnergy);
+  } else {
+    auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double eps, S, cV, DPDT, DPDR, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    P *= mPconv;
+  }
+  return this->applyPressureLimits(P - mExternalPressure);
 }
 
 //------------------------------------------------------------------------------
 // Calculate an individual temperature.
-// We employ an interpolated inverse lookup in our local table of specific
-// thermal energies.  Based on the assumption we're looking up eps in the table
-// using bilinear interpolation in (rho, T), and backing out T.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
 ANEOS<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  // const double logeps = log(specificThermalEnergy);
-  const double drho = (mRhoMax - mRhoMin)/(mNumRhoVals - 1);
-  const double dT = (mTmax - mTmin)/(mNumTvals - 1);
-  const unsigned irho0 = min(mNumRhoVals - 2, unsigned(max(0.0, (massDensity - mRhoMin)/drho))),
-                 irho1 = irho0 + 1;
-  const_slice_type rho0_slice = mSTEvals[boost::indices[irho0][range(0, mNumTvals)]];
-  const unsigned iT0 = max(0, min(int(mNumTvals - 2), 
-                                  bisectSearch(rho0_slice.begin(), rho0_slice.end(), specificThermalEnergy))),
-                 iT1 = iT0 + 1;
-  const double u = max(0.0, min(1.0, (massDensity - mRhoMin - irho0*drho)/drho));
-  double num = specificThermalEnergy - (1.0 - u)*mSTEvals[irho0][iT0] - u*mSTEvals[irho0][iT1];
-  double den = (1.0 - u)*(mSTEvals[irho1][iT0] - mSTEvals[irho0][iT0]) + u*(mSTEvals[irho1][iT1] - mSTEvals[irho0][iT1]);
-  if (irho0 == 0 or irho1 == mNumRhoVals - 1 or iT0 == 0 or iT1 == mNumTvals - 1) num = 0.0;   // Avoid extrapolating off the T table.
-  CHECK(den != 0.0);
-  const double t = max(0.0, min(1.0, num*safeInv(den, 1.0e-100)));
-  // cerr << "Looking up temperature : " << massDensity << " " << specificThermalEnergy << endl
-  //      << "                         " << mRhoMin << " " << mRhoMax << " : " << mTmin << " " << mTmax << endl
-  //      << "                         " << irho0 << " " << iT0 << endl
-  //      << "                         " << mSTEvals[irho0][iT0] << " " << mSTEvals[irho0][iT1] << " " << mSTEvals[irho1][iT0] << " " << mSTEvals[irho1][iT1] << endl
-  //      << "                         " << u << " " << t << endl
-  //      << "                         " << num << " " << den << endl
-  //      << "                         " << mTmin + (iT0 + t)*dT << endl;
-  return mTmin + (iT0 + t)*dT;
+  const auto Textra = Textrapolator(mTmin, mTmax, mEpsMinInterp, mEpsMaxInterp, mTinterp);
+  if (mUseInterpolation) {
+    return Textra(massDensity, specificThermalEnergy);
+  } else {
+    const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
+    const auto Ftemp = Tfunc(mTmin, mTmax, mEpsMinInterp, mEpsMaxInterp, mEpsInterp, Feps, true);
+    return Ftemp(massDensity, specificThermalEnergy);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -339,12 +672,16 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificThermalEnergy(const Scalar massDensity,
                       const Scalar temperature) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = temperature / mTconv;
-  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
-  return Ei * mEconv;
+  if (mUseInterpolation) {
+    return mEpsInterp(massDensity, temperature);
+  } else {
+    auto T = temperature/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double P, eps, S, cV, DPDT, DPDR, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return eps * mEconv;
+  }    
 }
 
 //------------------------------------------------------------------------------
@@ -355,13 +692,16 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 specificHeat(const Scalar massDensity,
              const Scalar temperature) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = max(mTmin, min(mTmax, temperature)) / mTconv;
-  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
-  const auto nDen = massDensity/mAtomicWeight;
-  return max(1.0e-1*mConstants.molarGasConstant()*nDen, CVi * mCVconv);
+  if (mUseInterpolation) {
+    return max(1.0e-20, mCVinterp(massDensity, temperature));
+  } else {
+    auto T = temperature/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double P, eps, S, cV, DPDT, DPDR, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return max(1.0e-20, cV * mCVconv);
+  }    
 }
 
 //------------------------------------------------------------------------------
@@ -372,13 +712,16 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
-  return csi * mVelConv;
-  // return sqrt(max(1e-10, DPDRi)) * mVelConv;
+  if (mUseInterpolation) {
+    return mCSinterp(massDensity, specificThermalEnergy);
+  } else {
+    auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double P, eps, S, cV, DPDT, DPDR, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return cs * mVelConv;
+  }    
 }
 
 //------------------------------------------------------------------------------
@@ -389,10 +732,11 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 gamma(const Scalar massDensity,
       const Scalar specificThermalEnergy) const {
-  const double Ti = this->temperature(massDensity, specificThermalEnergy);
-  const double cvi = this->specificHeat(massDensity, Ti);
-  const double nDen = massDensity/mAtomicWeight;
-  return 1.0 + mConstants.molarGasConstant()*nDen*safeInvVar(cvi);
+  const auto Ti = mTinterp(massDensity, specificThermalEnergy);     // this->temperature(massDensity, specificThermalEnergy);
+  const auto cvi = this->specificHeat(massDensity, Ti);
+  // return 1.0 + mConstants.molarGasConstant()*safeInvVar(cvi);
+  const auto nDen = massDensity/mAtomicWeight;
+  return 1.0 + mConstants.molarGasConstant()*nDen*safeInv(cvi, 1.0e-10);
 }
 
 //------------------------------------------------------------------------------
@@ -403,12 +747,26 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
-  return std::abs(rhoi * DPDRi * mPconv);
+  if (mUseInterpolation) {
+    const auto eps0 = mEpsMinInterp(massDensity);
+    const auto eps1 = mEpsMaxInterp(massDensity);
+    double K;
+    if (specificThermalEnergy <= eps0) {
+      K = mKinterp(massDensity, eps0);
+    } else if (specificThermalEnergy >= eps1) {
+      K = mKinterp(massDensity, eps1);
+    } else {
+      K = mKinterp(massDensity, specificThermalEnergy);
+    }
+    return std::abs(K);
+  } else {
+    auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double P, eps, S, cV, DPDT, DPDR, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return  std::abs(rho*DPDR) * mPconv;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -419,15 +777,16 @@ typename Dimension::Scalar
 ANEOS<Dimension>::
 entropy(const Scalar massDensity,
         const Scalar specificThermalEnergy) const {
-  double Ti, rhoi, Pi, Ei, Si, CVi, DPDTi, DPDRi, csi;
-  rhoi = max(mRhoMin, min(mRhoMax, massDensity)) / mRhoConv;
-  Ti = this->temperature(massDensity, specificThermalEnergy) / mTconv;
-  call_aneos_(const_cast<int*>(&mMaterialNumber), &Ti, &rhoi,
-              &Pi, &Ei, &Si, &CVi, &DPDTi, &DPDRi, &csi);
-
-  // That's it.
-  Si *= mSconv;
-  return Si;
+  if (mUseInterpolation) {
+    return max(1.0e-20, mSinterp(massDensity, specificThermalEnergy));
+  } else {
+    auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double P, eps, S, cV, DPDT, DPDR, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    return max(1.0e-20, S * mSconv);
+  }    
 }
 
 //------------------------------------------------------------------------------
@@ -493,10 +852,24 @@ Tmax() const {
 }
 
 template<typename Dimension>
-const boost::multi_array<double, 2>&
+double
 ANEOS<Dimension>::
-specificThermalEnergyVals() const {
-  return mSTEvals;
+epsMin() const {
+  return mEpsMin;
+}
+
+template<typename Dimension>
+double
+ANEOS<Dimension>::
+epsMax() const {
+  return mEpsMax;
+}
+
+template<typename Dimension>
+bool
+ANEOS<Dimension>::
+useInterpolation() const {
+  return mUseInterpolation;
 }
 
 //------------------------------------------------------------------------------

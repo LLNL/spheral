@@ -4,6 +4,7 @@ set(Geometry_inst
    )
 
 set(Geometry_sources
+    GeometryRegistrar.cc
     Dimension.cc
     EigenStruct.cc
     Geom3Vector.cc
@@ -19,12 +20,13 @@ set(Geometry_sources
     buildEigenVector.cc
     computeEigenValues.cc
     PolyClipperUtilities.cc
-    fakemain.cc
    )
 
 instantiate(Geometry_inst Geometry_sources)
 
 set(Geometry_headers
+    GeometryRegistrar.hh
+    GeometryRegistrarInline.hh
     Box1d.hh
     Box1dInline.hh
     CellFaceFlag.hh

@@ -1,4 +1,5 @@
 if (NOT ENABLE_CXXONLY)
+  
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/spheral-setup-venv.in"
     "${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh"

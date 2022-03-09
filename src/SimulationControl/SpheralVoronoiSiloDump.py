@@ -431,7 +431,7 @@ def dumpPhysicsState(stateThingy,
         mass = state.scalarFields(HydroFieldNames.mass)
         for nodes in mass.nodeListPtrs():
             dataBase.appendNodeList(nodes)
-        dataBase.updateConnectivityMap(False, False)
+        dataBase.updateConnectivityMap(False, False, False)
 
     assert state is not None and dataBase is not None
 
@@ -447,6 +447,7 @@ def dumpPhysicsState(stateThingy,
         bc.finalizeGhostBoundary()
         for nodes in dataBase.nodeLists():
             nodes.neighbor().updateNodes()
+    dataBase.updateConnectivityMap(False, False, False)
 
     # Did the user specify any data to be dumped?
     if not fields:

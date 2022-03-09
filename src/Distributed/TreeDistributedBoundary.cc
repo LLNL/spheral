@@ -4,7 +4,7 @@
 //
 // Created by JMO, Mon Aug 27 21:57:51 PDT 2001
 //----------------------------------------------------------------------------//
-#include "mpi.h"
+#include <mpi.h>
 
 #include "DistributedBoundary.hh"
 #include "TreeDistributedBoundary.hh"
@@ -32,31 +32,6 @@ using std::max;
 using std::abs;
 
 namespace Spheral {
-
-// Static initialization of singleton instance.
-template <typename Dimension>
-TreeDistributedBoundary<Dimension>*
-TreeDistributedBoundary<Dimension>::mInstance = 0;
-
-//------------------------------------------------------------------------------
-// Singleton instance method.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-TreeDistributedBoundary<Dimension>&
-TreeDistributedBoundary<Dimension>::
-instance() {
-  if (mInstance == 0) {
-    mInstance = new TreeDistributedBoundary();
-  } // end if
-  return *mInstance;
-}
-
-template<typename Dimension>
-TreeDistributedBoundary<Dimension>*
-TreeDistributedBoundary<Dimension>::
-instancePtr() {
-  return &(instance());
-}
 
 //------------------------------------------------------------------------------
 // Default constructor.

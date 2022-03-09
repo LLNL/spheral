@@ -16,6 +16,7 @@ set(Utilities_inst
 
 set(Utilities_sources
     DBC.cc
+    QuadraticInterpolator.cc
     Process.cc
     KeyTraits.cc
     PeanoHilbertTransform.cc
@@ -43,6 +44,10 @@ set(Utilities_headers
     Bessel.hh
     CounterClockwiseComparator.hh
     DBC.hh
+    QuadraticInterpolator.hh
+    QuadraticInterpolatorInline.hh
+    BiQuadraticInterpolator.hh
+    BiQuadraticInterpolatorInline.hh
     DataTypeTraits.hh
     DomainNode.hh
     DomainNodeInline.hh
@@ -62,6 +67,7 @@ set(Utilities_headers
     RedistributionRegistrar.hh
     RedistributionRegistrarInline.hh
     RegisterMPIDataTypes.hh
+    RegisterMPIDataTypesInline.hh
     SafeIndexMap.hh
     SidreDataCollection.hh
     SpheralFunctions.hh

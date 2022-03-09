@@ -26,12 +26,14 @@ set(NodeGenerators_headers
 
 spheral_install_python_files(
   NodeGeneratorBase.py
+  GenerateNodeDistribution1d.py
   RejecterBase.py
   GenerateNodeDistribution2d.py
   GenerateNodeDistribution3d.py
   CompositeNodeDistribution.py
   distributeNodesGeneric.py
   DistributeNodes.py
+  SortAndDivideRedistributeNodes.py
   ParMETISDistributeNodes.py
   MortonOrderDistributeNodes.py
   PeanoHilbertDistributeNodes.py
@@ -61,6 +63,7 @@ spheral_install_python_files(
   RecursivePrimitiveRefinementGenerator.py
   SEAGenerator.py
   FacetedVolumeRejecters.py
+  SphericalGenerator.py
   )
 
 spheral_add_cxx_library(NodeGenerators)

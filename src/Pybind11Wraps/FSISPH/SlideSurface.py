@@ -2,11 +2,10 @@
 # FSISPHHydroBase
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from Physics import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralFSISPH")
-class SlideSurface(Physics):
+class SlideSurface:
     "SlideSurface -- basic SPH slide surface feature"
 
     PYB11typedefs = """
@@ -18,61 +17,23 @@ class SlideSurface(Physics):
   typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
     
-    def pyinit(W = "const TableKernel<%(Dimension)s>&",
-               contactTypes = "const vector<int>"):
+    def pyinit(contactTypes = "const vector<int>"):
         "Slide surface constructor"
 
                
     #...........................................................................
     # Virtual methods
     @PYB11virtual
-    @PYB11const
-    def evaluateDerivatives(time = "const Scalar",
-                            dt = "const Scalar",
-                            dataBase = "const DataBase<%(Dimension)s>&",
-                            state = "const State<%(Dimension)s>&",
-                            derivs = "StateDerivatives<%(Dimension)s>&"):
-        "non-op eval derivs."
-        return "void"
-    
-    @PYB11virtual
-    @PYB11const
-    def dt(dataBase = "const DataBase<%(Dimension)s>&",
-           state = "const State<%(Dimension)s>&",
-           derivs = "const StateDerivatives<%(Dimension)s>&",
-           currentTime = "const Scalar"):
-        "non-op"
-        return "TimeStepType"
-
-
-    @PYB11virtual
     def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
         "register the surface normals w/ the database"
         return "void"
-
-
-    @PYB11virtual
-    def initialize(time = "const Scalar",
-                   dt = "const Scalar",
-                   dataBase = "const DataBase<%(Dimension)s>&",
-                   state = "State<%(Dimension)s>&",
-                   derivs = "StateDerivatives<%(Dimension)s>&"):
-        "calculates surface normals"
-        return "void"
-
     
     @PYB11virtual
     def registerState(dataBase = "DataBase<%(Dimension)s>&",
                       state = "State<%(Dimension)s>&"):
-        "register the surface normals"
+        "register the surface normals, frac, and smoothness"
         return "void"
 
-
-    @PYB11virtual
-    def registerDerivatives(dataBase = "DataBase<%(Dimension)s>&",
-                            derivs = "StateDerivatives<%(Dimension)s>&"):
-        "non-op place filler"
-        return "void"
 
     @PYB11const
     def isSlideSurface(nodeListi = "const int",
@@ -90,13 +51,11 @@ class SlideSurface(Physics):
         "returns true if slide surface between nodelisti and j"
         return "Scalar"
 
-    @PYB11virtual
-    @PYB11const
-    def label(self):
-        return "std::string"
     #...........................................................................
     # Properties
     surfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "surfaceNormals", returnpolicy="reference_internal")
+    surfaceFraction = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "surfaceFraction", returnpolicy="reference_internal")
+    surfaceSmoothness = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "surfaceSmoothness", returnpolicy="reference_internal")
     numNodeLists = PYB11property("int", "numNodeLists", "numNodeLists", doc="number of nodelists.")
     isActive = PYB11property("bool", "isActive", "isActive", doc="switch if we have a slide.")
     

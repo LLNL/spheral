@@ -8,17 +8,26 @@
 #ifndef __Spheral_GeomPolyhedron__
 #define __Spheral_GeomPolyhedron__
 
-#include <vector>
 #include "GeomVector.hh"
+#include "GeomTensor.hh"
 #include "GeomFacet3d.hh"
+
+#include "axom/config.hpp"                          // compile time definitions
+#include "axom/core.hpp"                            // for execution_space traits
+#include "axom/mint.hpp"                            // for mint classes and functions
+#include "axom/quest.hpp"                           // axom surface queries (containment)
+
+#include <vector>
+#include <memory>
 
 namespace Spheral {
 
 class GeomPolyhedron {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef GeomVector<3> Vector;
-  typedef GeomFacet3d Facet;
+  using Vector = GeomVector<3>;
+  using Tensor = GeomTensor<3>;
+  using Facet = GeomFacet3d;
 
   //----------------------------------------------------------------------------
   // Constructors, assignment, destructor.
@@ -88,8 +97,7 @@ public:
   // Reconstruct the internal data given a set of vertices and the vertex
   // indicies that define the facets.
   void reconstruct(const std::vector<Vector>& vertices,
-                   const std::vector<std::vector<unsigned> >& facetVertices,
-                   const std::vector<Vector>& facetNormals);
+                   const std::vector<std::vector<unsigned> >& facetVertices);
 
   // Compute the volume.
   double volume() const;
@@ -115,6 +123,9 @@ public:
   GeomPolyhedron operator*(const double rhs) const;
   GeomPolyhedron operator/(const double rhs) const;
 
+  // Apply a tensor transformation
+  GeomPolyhedron& transform(const Tensor& t);
+
   // Comparisons.
   bool operator==(const GeomPolyhedron& rhs) const;
   bool operator!=(const GeomPolyhedron& rhs) const;
@@ -130,6 +141,7 @@ public:
 
   // Decompose the polyhedron into tetrahedra.
   void decompose(std::vector<GeomPolyhedron>& subcells) const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   std::vector<Vector> mVertices;
@@ -139,8 +151,14 @@ private:
   Vector mXmin, mXmax, mCentroid;
   double mRinterior2;
   bool mConvex;
+  mutable axom::quest::InOutOctree<3>::SurfaceMesh* mSurfaceMeshPtr;
+  mutable axom::quest::InOutOctree<3>* mSurfaceMeshQueryPtr;
+  mutable axom::quest::SignedDistance<3>* mSignedDistancePtr;
 
   static FILE* mDevnull;
+
+  // Construct the Axom representation
+  void buildAxomData() const;
 };
 
 std::ostream& operator<<(std::ostream& os, const GeomPolyhedron& polygon);

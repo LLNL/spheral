@@ -86,7 +86,7 @@ public:
                              std::vector<int>& coarseNeighbors) const override;
 
   // Reassign the grid cell info for a given set of nodes.
-  virtual void updateNodes() override;;
+  virtual void updateNodes() override;
   virtual void updateNodes(const std::vector<int>& nodeIDs) override;
 
   // Function to determine the appropriate gridlevel for a node.
