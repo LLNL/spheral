@@ -46,6 +46,7 @@ public:
                const bool evolveTotalEnergy,
                const bool XSPH,
                const bool correctVelocityGradient,
+               const GradientType gradType,
                const MassDensityType densityUpdate,
                const HEvolutionType HUpdate,
                const double epsTensile,

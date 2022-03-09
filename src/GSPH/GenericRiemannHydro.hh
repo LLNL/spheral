@@ -11,6 +11,14 @@
 
 namespace Spheral {
 
+enum class GradientType {
+  RiemannGradient = 0,
+  HydroAccelerationGradient = 1,
+  SPHGradient = 2,
+  MixedMethodGradient = 3,
+  SPHSameTimeGradient = 4
+};
+
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class SmoothingScaleBase;
@@ -47,6 +55,7 @@ public:
                const bool evolveTotalEnergy,
                const bool XSPH,
                const bool correctVelocityGradient,
+               const GradientType gradType,
                const MassDensityType densityUpdate,
                const HEvolutionType HUpdate,
                const double epsTensile,
@@ -139,6 +148,9 @@ public:
   // The object defining how we evolve smoothing scales.
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
 
+  GradientType gradientType() const;
+  void gradientType(GradientType x);
+
   // Flag for our density update
   MassDensityType densityUpdate() const;
   void densityUpdate(MassDensityType type);
@@ -213,23 +225,24 @@ public:
   const FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Tensor>&    M() const;
-  const FieldList<Dimension, Tensor>&    localM() const;
+  //const FieldList<Dimension, Tensor>&    localM() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    DvDt() const;
   const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
   const FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
-  const FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const FieldList<Dimension, Vector>&    DpDx() const;
-  const FieldList<Dimension, Vector>&    DpDxRaw() const;
-  const FieldList<Dimension, Tensor>&    DvDxRaw() const;
+  //const FieldList<Dimension, Tensor>&    internalDvDx() const;
+  //const FieldList<Dimension, Vector>&    DpDx() const;
+  //const FieldList<Dimension, Vector>&    DpDxRaw() const;
+  //const FieldList<Dimension, Tensor>&    DvDxRaw() const;
   
   const std::vector<Vector>&             pairAccelerations() const;
   const std::vector<Scalar>&             pairDepsDt() const;
 
   const FieldList<Dimension, Vector>&    riemannDpDx() const;
   const FieldList<Dimension, Tensor>&    riemannDvDx() const;
-
+  const FieldList<Dimension, Vector>&    newRiemannDpDx() const;
+  const FieldList<Dimension, Tensor>&    newRiemannDvDx() const;
   
   //****************************************************************************
   // Methods required for restarting.
@@ -253,9 +266,10 @@ private:
   RiemannSolverBase<Dimension>& mRiemannSolver;
   const TableKernel<Dimension>& mKernel;
   const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
+  GradientType mGradientType;
   MassDensityType mDensityUpdate;
   HEvolutionType mHEvolution;
-
+  
    // A bunch of switches.
   bool mCompatibleEnergyEvolution;    
   bool mEvolveTotalEnergy;           
@@ -292,7 +306,7 @@ private:
   FieldList<Dimension, Scalar>    mXSPHWeightSum;
   FieldList<Dimension, Vector>    mXSPHDeltaV;
 
-  FieldList<Dimension, Tensor>    mLocalM;
+  //FieldList<Dimension, Tensor>    mLocalM;
   FieldList<Dimension, Tensor>    mM;
 
   FieldList<Dimension, Vector>    mDxDt;
@@ -300,11 +314,12 @@ private:
   FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
   FieldList<Dimension, SymTensor> mDHDt;
 
-  FieldList<Dimension, Tensor>    mInternalDvDx;
+  //FieldList<Dimension, Tensor>    mInternalDvDx;
   FieldList<Dimension, Tensor>    mDvDx;
-  FieldList<Dimension, Tensor>    mDvDxRaw;
-  FieldList<Dimension, Vector>    mDpDx;
-  FieldList<Dimension, Vector>    mDpDxRaw;
+  FieldList<Dimension, Vector>    mRiemannDpDx;
+  FieldList<Dimension, Tensor>    mRiemannDvDx;
+  FieldList<Dimension, Vector>    mNewRiemannDpDx;
+  FieldList<Dimension, Tensor>    mNewRiemannDvDx;
   //FieldList<Dimension, Vector>    mDrhoDx;
 
   std::vector<Vector>             mPairAccelerations;

@@ -30,12 +30,10 @@ GHLLC<Dimension>::
 GHLLC(LimiterBase<Dimension>& slopeLimiter,
      WaveSpeedBase<Dimension>& waveSpeed,
      const bool linearReconstruction,
-     const GradientType gradType,
      const typename Dimension::Vector gravitationalAcceleration):
   HLLC<Dimension>(slopeLimiter,
                   waveSpeed,
-                  linearReconstruction,
-                  gradType),
+                  linearReconstruction),
   mGravitationalAcceleration(gravitationalAcceleration){
 
 }

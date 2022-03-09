@@ -41,24 +41,7 @@ linearReconstruction(bool x) {
   mLinearReconstruction=x;
 }
 
-//------------------------------------------------------------------------------
-// set/get gradient type
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-GradientType
-RiemannSolverBase<Dimension>::
-gradientType() const {
-  return mGradientType;
-}
 
-template<typename Dimension>
-inline
-void
-RiemannSolverBase<Dimension>::
-gradientType(GradientType x) {
-  mGradientType=x;
-}
 //------------------------------------------------------------------------------
 // field getters
 //------------------------------------------------------------------------------

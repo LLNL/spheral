@@ -97,6 +97,7 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              const bool evolveTotalEnergy,
              const bool XSPH,
              const bool correctVelocityGradient,
+             const GradientType gradType,
              const MassDensityType densityUpdate,
              const HEvolutionType HUpdate,
              const double epsTensile,
@@ -108,6 +109,7 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mRiemannSolver(riemannSolver),
   mKernel(W),
   mSmoothingScaleMethod(smoothingScaleMethod),
+  mGradientType(gradType),
   mDensityUpdate(densityUpdate),
   mHEvolution(HUpdate),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
@@ -147,17 +149,21 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mMassSecondMoment(FieldStorageType::CopyFields),
   mXSPHWeightSum(FieldStorageType::CopyFields),
   mXSPHDeltaV(FieldStorageType::CopyFields),
-  mLocalM(FieldStorageType::CopyFields),
+  //mLocalM(FieldStorageType::CopyFields),
   mM(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
   mDvDt(FieldStorageType::CopyFields),
   mDspecificThermalEnergyDt(FieldStorageType::CopyFields),
   mDHDt(FieldStorageType::CopyFields),
-  mInternalDvDx(FieldStorageType::CopyFields),
+  //mInternalDvDx(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields),
-  mDvDxRaw(FieldStorageType::CopyFields),
-  mDpDx(FieldStorageType::CopyFields),
-  mDpDxRaw(FieldStorageType::CopyFields),
+  //mDvDxRaw(FieldStorageType::CopyFields),
+  //mDpDx(FieldStorageType::CopyFields),
+  //mDpDxRaw(FieldStorageType::CopyFields),
+  mRiemannDpDx(FieldStorageType::CopyFields),
+  mRiemannDvDx(FieldStorageType::CopyFields),
+  mNewRiemannDpDx(FieldStorageType::CopyFields),
+  mNewRiemannDvDx(FieldStorageType::CopyFields),
   mPairAccelerations(),
   mPairDepsDt() {
 
@@ -172,24 +178,25 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
   mXSPHWeightSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::XSPHWeightSum);
   mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
-  mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local" + HydroFieldNames::M_SPHCorrection);
+  //mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local" + HydroFieldNames::M_SPHCorrection);
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
   mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position);
   mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
   mDspecificThermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy);
   mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::H);
-  mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
+  //mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
-  mDvDxRaw = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient+"RAW");
-  mDpDx = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::pressureGradient);
-  mDpDxRaw = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::pressureGradient+"RAW");
+  mRiemannDpDx = dataBase.newFluidFieldList(Vector::zero,GSPHFieldNames::RiemannPressureGradient);
+  mRiemannDvDx = dataBase.newFluidFieldList(Tensor::zero,GSPHFieldNames::RiemannVelocityGradient);
+  mNewRiemannDpDx = dataBase.newFluidFieldList(Vector::zero,ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient);
+  mNewRiemannDvDx = dataBase.newFluidFieldList(Tensor::zero,ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient);
+  //mDvDxRaw = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient+"RAW");
+  //mDpDx = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::pressureGradient);
+  //mDpDxRaw = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::pressureGradient+"RAW");
   mPairAccelerations.clear();
   mPairDepsDt.clear();
 
-  auto& DpDx = mRiemannSolver.DpDx();
-  auto& DvDx = mRiemannSolver.DvDx();
-  DpDx = dataBase.newFluidFieldList(Vector::zero,GSPHFieldNames::RiemannPressureGradient);
-  DvDx = dataBase.newFluidFieldList(Tensor::zero,GSPHFieldNames::RiemannVelocityGradient);
+
 }
 
 //------------------------------------------------------------------------------
@@ -210,6 +217,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
 
+  // for now initialize with SPH volume to make sure things are defined
   const auto mass = dataBase.fluidMass();
   const auto massDensity = dataBase.fluidMassDensity();
   computeSPHVolume(mass,massDensity,mVolume);
@@ -230,6 +238,8 @@ registerState(DataBase<Dimension>& dataBase,
           "SPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
 
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
+  dataBase.resizeFluidFieldList(mRiemannDpDx, Vector::zero, GSPHFieldNames::RiemannPressureGradient, false);
+  dataBase.resizeFluidFieldList(mRiemannDvDx, Tensor::zero, GSPHFieldNames::RiemannVelocityGradient, false);
 
   auto mass = dataBase.fluidMass();
   auto massDensity = dataBase.fluidMassDensity();
@@ -238,8 +248,8 @@ registerState(DataBase<Dimension>& dataBase,
   auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   auto velocity = dataBase.fluidVelocity();
   
-  auto& DpDx = mRiemannSolver.DpDx();
-  auto& DvDx = mRiemannSolver.DvDx();
+  // auto& DpDx = mRiemannSolver.DpDx();
+  // auto& DvDx = mRiemannSolver.DvDx();
 
   std::shared_ptr<CompositeFieldListPolicy<Dimension, SymTensor> > Hpolicy(new CompositeFieldListPolicy<Dimension, SymTensor>());
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -268,8 +278,8 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(position, positionPolicy);
   state.enroll(mPressure, pressurePolicy);
   state.enroll(mSoundSpeed, csPolicy);
-  state.enroll(DpDx);
-  state.enroll(DvDx);
+  state.enroll(mRiemannDpDx);
+  state.enroll(mRiemannDvDx);
 
   // conditional for energy method
   if (mCompatibleEnergyEvolution) {
@@ -310,9 +320,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // Create the scratch fields.
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
   // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
-  dataBase.resizeFluidFieldList(mDpDx, Vector::zero, GSPHFieldNames::pressureGradient, false);
-  dataBase.resizeFluidFieldList(mDpDxRaw, Vector::zero, GSPHFieldNames::pressureGradient+"RAW", false);
-  dataBase.resizeFluidFieldList(mDvDxRaw, Tensor::zero, HydroFieldNames::velocityGradient+"RAW", false);
+  //dataBase.resizeFluidFieldList(mDpDx, Vector::zero, GSPHFieldNames::pressureGradient, false);
+  dataBase.resizeFluidFieldList(mNewRiemannDpDx, Vector::zero, ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient, false);
+  dataBase.resizeFluidFieldList(mNewRiemannDvDx, Tensor::zero, ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient, false);
   dataBase.resizeFluidFieldList(mHideal, SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
@@ -323,9 +333,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDspecificThermalEnergyDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, false);
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
-  dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
+  //dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
   dataBase.resizeFluidFieldList(mM, Tensor::zero, HydroFieldNames::M_SPHCorrection, false);
-  dataBase.resizeFluidFieldList(mLocalM, Tensor::zero, "local" + HydroFieldNames::M_SPHCorrection, false);
+  //dataBase.resizeFluidFieldList(mLocalM, Tensor::zero, "local" + HydroFieldNames::M_SPHCorrection, false);
 
   // Check if someone already registered DxDt.
   if (not derivs.registered(mDxDt)) {
@@ -334,9 +344,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   }
   // Check that no-one else is trying to control the hydro vote for DvDt.
   CHECK(not derivs.registered(mDvDt));
-  derivs.enroll(mDpDx);
-  derivs.enroll(mDpDxRaw);
-  derivs.enroll(mDvDxRaw);
+  //derivs.enroll(mDpDx);
+  derivs.enroll(mNewRiemannDpDx);
+  derivs.enroll(mNewRiemannDvDx);
   derivs.enroll(mDvDt);
   derivs.enroll(mHideal);
   derivs.enroll(mNormalization);
@@ -347,9 +357,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDspecificThermalEnergyDt);
   derivs.enroll(mDHDt);
   derivs.enroll(mDvDx);
-  derivs.enroll(mInternalDvDx);
+  //derivs.enroll(mInternalDvDx);
   derivs.enroll(mM);
-  derivs.enroll(mLocalM);
+  //derivs.enroll(mLocalM);
   derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
   derivs.enrollAny(HydroFieldNames::pairWork, mPairDepsDt);
 }
@@ -533,16 +543,49 @@ initialize(const typename Dimension::Scalar time,
                  StateDerivatives<Dimension>& derivs) {
 
   auto& riemannSolver = this->riemannSolver();
-  const auto& W = this->kernel();
+  // const auto& W = this->kernel();
 
-  riemannSolver.initialize(dataBase, 
-                           state,
-                           derivs,
-                           this->boundaryBegin(),
-                           this->boundaryEnd(),
-                           time, 
-                           dt,
-                           W);
+  // riemannSolver.initialize(dataBase, 
+  //                          state,
+  //                          derivs,
+  //                          ,
+  //                          this->boundaryEnd(),
+  //                          time, 
+  //                          dt,
+  //                          W);
+
+  if(riemannSolver.linearReconstruction()){
+    const auto& connectivityMap = dataBase.connectivityMap();
+    const auto& nodeLists = connectivityMap.nodeLists();
+    const auto numNodeLists = nodeLists.size();
+
+    // copy from previous time step
+    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+      const auto& nodeList = nodeLists[nodeListi];
+      const auto ni = nodeList->numInternalNodes();
+      #pragma omp parallel for
+      for (auto i = 0u; i < ni; ++i) {
+        const auto DvDxi = mNewRiemannDvDx(nodeListi,i);
+        const auto DpDxi = mNewRiemannDpDx(nodeListi,i);
+
+        mRiemannDvDx(nodeListi,i) = DvDxi;
+        mRiemannDpDx(nodeListi,i) = DpDxi;
+            
+        }
+      } 
+
+    for (auto boundItr =this->boundaryBegin();
+              boundItr != this->boundaryEnd();
+            ++boundItr) {
+      (*boundItr)->applyFieldListGhostBoundary(mRiemannDvDx);
+      (*boundItr)->applyFieldListGhostBoundary(mRiemannDpDx);
+    }
+
+    for (auto boundItr = this->boundaryBegin();
+              boundItr != this->boundaryEnd();
+            ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  
+  } // if LinearReconstruction
   
 }
 
@@ -675,9 +718,10 @@ dumpState(FileIO& file, const string& pathName) const {
   // spatial derivs
   file.write(mM, pathName + "/M");
   file.write(mDvDx, pathName + "/DvDx");
-  file.write(mDpDx, pathName + "/DpDx");
-  file.write(mDvDxRaw, pathName + "/DvDxRaw");
-  file.write(mDpDxRaw, pathName + "/DpDxRaw");
+  file.write(mRiemannDvDx, pathName + "/riemannDvDx");
+  file.write(mRiemannDpDx, pathName + "/riemannDpDx");
+  file.write(mNewRiemannDvDx, pathName + "/newRiemannDvDx");
+  file.write(mNewRiemannDpDx, pathName + "/newRiemannDpDx");
   
 
 }
@@ -710,9 +754,10 @@ restoreState(const FileIO& file, const string& pathName) {
   // spatial derivs
   file.read(mM, pathName + "/M");
   file.read(mDvDx, pathName + "/DvDx");
-  file.read(mDpDx, pathName + "/DpDx");
-  file.read(mDvDxRaw, pathName + "/DvDxRaw");
-  file.read(mDpDxRaw, pathName + "/DpDxRaw");
+  file.read(mRiemannDvDx, pathName + "/riemannDvDx");
+  file.read(mRiemannDpDx, pathName + "/riemannDpDx");
+  file.read(mNewRiemannDvDx, pathName + "/newRiemannDvDx");
+  file.read(mNewRiemannDpDx, pathName + "/newRiemannDpDx");
 
 }
 

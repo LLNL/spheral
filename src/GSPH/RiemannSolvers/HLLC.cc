@@ -27,12 +27,10 @@ template<typename Dimension>
 HLLC<Dimension>::
 HLLC(LimiterBase<Dimension>& slopeLimiter,
      WaveSpeedBase<Dimension>& waveSpeed,
-     const bool linearReconstruction,
-     const GradientType gradType):
+     const bool linearReconstruction):
   RiemannSolverBase<Dimension>(slopeLimiter,
                                waveSpeed,
-                               linearReconstruction,
-                               gradType){
+                               linearReconstruction){
 
 }
 

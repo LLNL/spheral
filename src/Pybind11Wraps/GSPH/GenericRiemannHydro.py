@@ -28,6 +28,7 @@ class GenericRiemannHydro(Physics):
                evolveTotalEnergy = "const bool",
                XSPH = "const bool",
                correctVelocityGradient = "const bool",
+               gradType = "const GradientType",
                densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
                epsTensile = "const double",
@@ -141,6 +142,8 @@ class GenericRiemannHydro(Physics):
                                           doc="coefficient used to diffuse specificThermalEnergy amongst like nodes.")
     riemannSolver = PYB11property("RiemannSolverBase<%(Dimension)s>&", "riemannSolver",returnpolicy="reference_internal",doc="The object defining the interface state construction.")
     kernel = PYB11property("const TableKernel<%(Dimension)s>&", "kernel", doc="The interpolation kernel")
+    gradientType = PYB11property("GradientType", "gradientType", "gradientType",
+                                 doc="Enum to selecting different gradients we can use")
     densityUpdate = PYB11property("MassDensityType", "densityUpdate", "densityUpdate",
                                   doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
     HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution",
@@ -177,17 +180,18 @@ class GenericRiemannHydro(Physics):
     XSPHWeightSum =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "XSPHWeightSum",        returnpolicy="reference_internal")
     XSPHDeltaV =                   PYB11property("const FieldList<%(Dimension)s, Vector>&",   "XSPHDeltaV",           returnpolicy="reference_internal")
     M =                            PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "M",                    returnpolicy="reference_internal")
-    #localM =                       PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "localM",               returnpolicy="reference_internal")
     DxDt =                         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DxDt",                 returnpolicy="reference_internal")
     DvDt =                         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DvDt",                 returnpolicy="reference_internal")
-    #DmassDensityDt =               PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "DmassDensityDt",       returnpolicy="reference_internal")
     DspecificThermalEnergyDt =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "DspecificThermalEnergyDt", returnpolicy="reference_internal")
     DHDt =                         PYB11property("const FieldList<%(Dimension)s, SymTensor>&","DHDt",                 returnpolicy="reference_internal")
     DvDx =                         PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "DvDx",                 returnpolicy="reference_internal")
-    #internalDvDx =                 PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "internalDvDx",         returnpolicy="reference_internal")
-    pairAccelerations =            PYB11property("const std::vector<Vector>&", "pairAccelerations", returnpolicy="reference_internal")
-    DpDx =                         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DpDx",                 returnpolicy="reference_internal")
-    #lastDpDx =                     PYB11property("const FieldList<%(Dimension)s, Vector>&",   "lastDpDx",             returnpolicy="reference_internal")
+    
+    pairAccelerations = PYB11property("const std::vector<Vector>&", "pairAccelerations", returnpolicy="reference_internal")
+    pairDepsDt = PYB11property("const std::vector<Scalar>&", "pairDepsDt", returnpolicy="reference_internal")
+    riemannDpDx = PYB11property("const FieldList<%(Dimension)s, Vector>&","riemannDpDx",returnpolicy="reference_internal")
+    newRiemannDpDx = PYB11property("const FieldList<%(Dimension)s, Vector>&","newRiemannDpDx",returnpolicy="reference_internal")
+    riemannDvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&","riemannDvDx",returnpolicy="reference_internal")
+    newRiemannDvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&","newRiemannDvDx",returnpolicy="reference_internal")
     
     # useVelocityMagnitudeForDt = PYB11property("bool", "useVelocityMagnitudeForDt", "useVelocityMagnitudeForDt", doc="Should the pointwise velocity magnitude be used to limit the timestep?")
     # minMasterNeighbor = PYB11property("int", "minMasterNeighbor", doc="minimum number of master neighbors found")

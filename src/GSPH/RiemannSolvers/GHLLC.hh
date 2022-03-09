@@ -29,7 +29,6 @@ public:
   GHLLC(LimiterBase<Dimension>& slopeLimiter,
        WaveSpeedBase<Dimension>& waveSpeedBase,
        const bool linearReconstruction,
-       const GradientType gradType,
        const Vector gravitationalAcceleration);
 
   ~GHLLC();

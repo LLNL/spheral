@@ -27,8 +27,7 @@ public:
 
   HLLC(LimiterBase<Dimension>& slopeLimiter,
        WaveSpeedBase<Dimension>& waveSpeedBase,
-       const bool linearReconstruction,
-       const GradientType gradType);
+       const bool linearReconstruction);
 
   ~HLLC();
 
@@ -75,7 +74,7 @@ public:
                             Scalar& Pstar,
                             Vector& vstar,
                             Scalar& rhostari,
-                            Scalar& rhostarj) const;
+                            Scalar& rhostarj) const override;
 
 
   virtual

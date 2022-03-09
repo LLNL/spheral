@@ -28,6 +28,7 @@ class MFMHydroBase(GenericRiemannHydro):
                evolveTotalEnergy = "const bool",
                XSPH = "const bool",
                correctVelocityGradient = "const bool",
+               gradType = "const GradientType",
                densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
                epsTensile = "const double",

@@ -207,9 +207,28 @@ GenericRiemannHydro<Dimension>::riemannSolver() const {
   return mRiemannSolver;
 }
 
+
 //------------------------------------------------------------------------------
-// Choose whether we want to sum for mass density, or integrate the continuity
-// equation.
+// set/get gradient type
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+GradientType
+GenericRiemannHydro<Dimension>::
+gradientType() const {
+  return mGradientType;
+}
+
+template<typename Dimension>
+inline
+void
+GenericRiemannHydro<Dimension>::
+gradientType(GradientType x) {
+  mGradientType=x;
+}
+
+//------------------------------------------------------------------------------
+// set/get for how we evolve our density
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -503,13 +522,13 @@ M() const {
   return mM;
 }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Tensor>&
-GenericRiemannHydro<Dimension>::
-localM() const {
-  return mLocalM;
-}
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension, typename Dimension::Tensor>&
+// GenericRiemannHydro<Dimension>::
+// localM() const {
+//   return mLocalM;
+// }
 
 template<typename Dimension>
 inline
@@ -551,37 +570,37 @@ DvDx() const {
   return mDvDx;
 }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Tensor>&
-GenericRiemannHydro<Dimension>::
-internalDvDx() const {
-  return mInternalDvDx;
-}
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension, typename Dimension::Tensor>&
+// GenericRiemannHydro<Dimension>::
+// internalDvDx() const {
+//   return mInternalDvDx;
+// }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-GenericRiemannHydro<Dimension>::
-DpDx() const {
-  return mDpDx;
-}
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension, typename Dimension::Vector>&
+// GenericRiemannHydro<Dimension>::
+// DpDx() const {
+//   return mDpDx;
+// }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-GenericRiemannHydro<Dimension>::
-DpDxRaw() const {
-  return mDpDxRaw;
-}
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension, typename Dimension::Vector>&
+// GenericRiemannHydro<Dimension>::
+// DpDxRaw() const {
+//   return mDpDxRaw;
+// }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Tensor>&
-GenericRiemannHydro<Dimension>::
-DvDxRaw() const {
-  return mDvDxRaw;
-}
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension, typename Dimension::Tensor>&
+// GenericRiemannHydro<Dimension>::
+// DvDxRaw() const {
+//   return mDvDxRaw;
+// }
 
 
 
@@ -600,7 +619,13 @@ GenericRiemannHydro<Dimension>::
 pairAccelerations() const {
   return mPairAccelerations;
 }
-
+template<typename Dimension>
+inline
+const std::vector<typename Dimension::Scalar>&
+GenericRiemannHydro<Dimension>::
+pairDepsDt() const {
+  return mPairDepsDt;
+}
 
 template<typename Dimension>
 inline
@@ -623,7 +648,7 @@ inline
 const FieldList<Dimension, typename Dimension::Vector>&
 GenericRiemannHydro<Dimension>::
 riemannDpDx() const {
-  return mRiemannSolver.DpDx();
+  return mRiemannDpDx;
 }
 
 template<typename Dimension>
@@ -631,7 +656,23 @@ inline
 const FieldList<Dimension, typename Dimension::Tensor>&
 GenericRiemannHydro<Dimension>::
 riemannDvDx() const {
-  return mRiemannSolver.DvDx();
+  return mRiemannDvDx;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Vector>&
+GenericRiemannHydro<Dimension>::
+newRiemannDpDx() const {
+  return mNewRiemannDpDx;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Tensor>&
+GenericRiemannHydro<Dimension>::
+newRiemannDvDx() const {
+  return mNewRiemannDvDx;
 }
 
 }
