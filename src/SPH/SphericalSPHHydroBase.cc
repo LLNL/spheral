@@ -211,14 +211,14 @@ evaluateDerivatives(const Dim<1>::Scalar time,
                     const DataBase<Dim<1>>& dataBase,
                     const State<Dim<1>>& state,
                     StateDerivatives<Dim<1>>& derivs) const {
-  this->evaluateDerivativesImpl(time,
-                                dt,
-                                dataBase,
-                                state,
-                                derivs,
-                                mKernel,
-                                mPiKernel,
-                                mKernel.baseKernel1d());
+  // this->evaluateDerivativesImpl(time,
+  //                               dt,
+  //                               dataBase,
+  //                               state,
+  //                               derivs,
+  //                               mKernel,
+  //                               mPiKernel,
+  //                               mKernel.baseKernel1d());
 }
 
 //------------------------------------------------------------------------------
