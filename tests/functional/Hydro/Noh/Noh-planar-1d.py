@@ -167,25 +167,25 @@ commandLine(KernelConstructor = NBSplineKernel,
             writeOutputLabel = True,
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0713445       ,
-            L2rho =   0.0193689       ,
-            Linfrho = 2.31211         ,
+            L1rho =   0.0713056,
+            L2rho =   0.0193612,
+            Linfrho = 2.31169,
 
-            L1P =     0.0246952       ,
-            L2P =     0.0072287       ,
-            LinfP =   0.966204        ,
+            L1P =     0.0246888,
+            L2P =     0.00722737,
+            LinfP =   0.966104,
 
-            L1v =     0.0386543       ,
-            L2v =     0.0104419       ,
-            Linfv =   0.945782        ,
+            L1v =     0.0386536,
+            L2v =     0.0104417,
+            Linfv =   0.94579,
 
-            L1eps =   0.0140886       ,
-            L2eps =   0.00398204      ,
-            Linfeps = 0.437577        ,
+            L1eps =   0.0140883,
+            L2eps =   0.00398203,
+            Linfeps = 0.437588,
 
-            L1h =     0.000547739     ,
-            L2h =     0.000131918     ,
-            Linfh =   0.00916578      ,
+            L1h =     0.000547618,
+            L2h =     0.000131808,
+            Linfh =   0.00916473,
 
             tol = 1.0e-5,
 
@@ -789,8 +789,6 @@ if mpi.rank == 0 :
                                                                                             Linf,
                                                                                             Linfexpect)
                     failure = True
-                if failure:
-                    raise ValueError, "Error bounds violated."
 
             if fsisph or gsph: # for fsi check if the norms are order of mag same as sph 
             
@@ -809,8 +807,9 @@ if mpi.rank == 0 :
                                                                                             Linf,
                                                                                             Linfexpect)
                     failure = True
-                if failure:
-                    raise ValueError, "Error bounds violated."
+
+    if checkError and failure:
+        raise ValueError, "Error bounds violated."
   
     if normOutputFile != "None":
        f.write("\n")
