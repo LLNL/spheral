@@ -229,25 +229,6 @@ initialize(const typename Dimension::Scalar time,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
   GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs); 
-    // plop into an intialize volume function
-    const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-    const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-          auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-          auto  volume = state.fields(HydroFieldNames::volume, 0.0);
-
-    computeSumVolume(dataBase.connectivityMap(),this->kernel(),position,H,volume);
-    computeMFMDensity(mass,volume,massDensity);
-  
-    for (auto boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr){
-      (*boundaryItr)->applyFieldListGhostBoundary(volume);
-      (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-    }
-    for (auto boundaryItr = this->boundaryBegin(); 
-         boundaryItr < this->boundaryEnd(); 
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 }
 
 //------------------------------------------------------------------------------

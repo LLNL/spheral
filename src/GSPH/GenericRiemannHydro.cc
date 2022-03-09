@@ -209,6 +209,10 @@ GenericRiemannHydro<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
+
+  const auto mass = dataBase.fluidMass();
+  const auto massDensity = dataBase.fluidMassDensity();
+  computeSPHVolume(mass,massDensity,mVolume);
 }
 
 //------------------------------------------------------------------------------
