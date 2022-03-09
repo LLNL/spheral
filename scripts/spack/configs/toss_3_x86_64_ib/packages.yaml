@@ -49,9 +49,9 @@ packages:
     - spec: mvapich2@2.3.1%gcc@4.9.3~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
         file_systems=lustre,nfs,ufs process_managers=slurm
       prefix: /usr/tce/packages/mvapich2/mvapich2-2.3-gcc-4.9.3
-    - spec: mvapich2@2.3.6%oneapi@2021.2.0~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
+    - spec: mvapich2@2.3 %oneapi@2022.1 arch=linux-rhel7-x86_64
         file_systems=lustre,nfs,ufs process_managers=slurm
-      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3.6-intel-oneapi.2021.2
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3.6-intel-oneapi.2022.1
     buildable: false
 
 # ------ SYSTEM LIBS -------
