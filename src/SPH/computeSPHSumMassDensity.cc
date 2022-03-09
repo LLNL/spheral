@@ -49,10 +49,10 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
     }
   }
 
-  // Walk the pairs and sum their contributions.  Note pairs include the self-interaction.
+  // Walk the pairs and sum their contributions.
 #pragma omp parallel
   {
-    int i, j, nodeListi, nodeListj;
+    size_t i, j, nodeListi, nodeListj;
     auto massDensity_thread = massDensity.threadCopy();
 
 #pragma omp for

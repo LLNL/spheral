@@ -760,9 +760,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // Size up the pair-wise accelerations before we start.
   if (mCompatibleEnergyEvolution) pairAccelerations.resize(npairs);
+  
+// The scale for the tensile correction.
+  const auto& nodeList = mass[0]->nodeList();
+  const auto  nPerh = nodeList.nodesPerSmoothingScale();
+  const auto  WnPerh = W(1.0/nPerh, 1.0);TIME_SPHevalDerivs_initial.stop();
   TIME_SPHevalDerivs_initial.stop();
-
-  Vector gradP0;   // BLAGO
 
   // Walk all the interacting pairs.
   TIME_SPHevalDerivs_pairs.start();
@@ -808,8 +811,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& ci = soundSpeed(nodeListi, i);
       const auto& omegai = omega(nodeListi, i);
       const auto  safeOmegai = safeInv(omegai, tiny);
+      const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
+      CHECK(Hdeti > 0.0);
 
       auto& rhoSumi = rhoSum_thread(nodeListi, i);
       auto& normi = normalization_thread(nodeListi, i);
@@ -917,11 +922,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       viscousWorki += mj*workQi;
       viscousWorkj += mi*workQj;
 
-      // Acceleration.
+      // Determine an effective pressure including a term to fight the tensile instability.
+//             const auto fij = epsTensile*pow(Wi/(Hdeti*WnPerh), nTensile);
+      const auto fij = mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
+      const auto Ri = fij*(Pi < 0.0 ? -Pi : 0.0);
+      const auto Rj = fij*(Pj < 0.0 ? -Pj : 0.0);
+      const auto Peffi = Pi + Ri;
+      const auto Peffj = Pj + Rj;
+
+      //Acceleration.
       CHECK(rhoi > 0.0);
       CHECK(rhoj > 0.0);
-      const auto Prhoi = safeOmegai*Pi/(rhoi*rhoi);
-      const auto Prhoj = safeOmegaj*Pj/(rhoj*rhoj);
+      const auto Prhoi = safeOmegai*Peffi/(rhoi*rhoi);
+      const auto Prhoj = safeOmegaj*Peffj/(rhoj*rhoj);
       const auto deltaDvDt = Prhoi*gradWi + Prhoj*gradWj + Qacci + Qaccj;
       DvDti -= mj*deltaDvDt;
       DvDtj += mi*deltaDvDt;
@@ -988,7 +1001,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
-      const auto  etaii = Hi*ri;
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -1045,7 +1057,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (mXSPH) {
-        XSPHWeightSumi += mi/rhoi*W0;
+        XSPHWeightSumi += Hdeti*mi/rhoi*W0;
         CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
         DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
       } else {
