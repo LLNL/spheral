@@ -147,7 +147,7 @@ registerState(DataBase<Dimension>& dataBase,
   GenericRiemannHydro<Dimension>::registerState(dataBase,state);
   
   auto massDensity = dataBase.fluidMassDensity();
-  auto vol = this->volume();
+  auto volume = state.fields(HydroFieldNames::volume, 0.0);
 
   std::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > volumePolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
   for (auto itr = dataBase.fluidNodeListBegin();
@@ -166,7 +166,7 @@ registerState(DataBase<Dimension>& dataBase,
   
   // normal state variables
   state.enroll(massDensity, rhoPolicy);
-  state.enroll(vol, volumePolicy);
+  state.enroll(volume, volumePolicy);
 }
 
 //------------------------------------------------------------------------------
@@ -213,7 +213,8 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     }
     for (auto boundaryItr = this->boundaryBegin(); 
          boundaryItr < this->boundaryEnd(); 
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();}
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -227,7 +228,26 @@ initialize(const typename Dimension::Scalar time,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
-  GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);  
+  GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs); 
+    // plop into an intialize volume function
+    const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+    const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+          auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+          auto  volume = state.fields(HydroFieldNames::volume, 0.0);
+
+    computeSumVolume(dataBase.connectivityMap(),this->kernel(),position,H,volume);
+    computeMFMDensity(mass,volume,massDensity);
+  
+    for (auto boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr){
+      (*boundaryItr)->applyFieldListGhostBoundary(volume);
+      (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+    }
+    for (auto boundaryItr = this->boundaryBegin(); 
+         boundaryItr < this->boundaryEnd(); 
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 }
 
 //------------------------------------------------------------------------------

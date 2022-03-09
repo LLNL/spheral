@@ -431,10 +431,8 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
   const auto numNodeLists = nodeLists.size();
 
   // Get the state and derivative FieldLists. 
-  // const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto volume = state.fields(HydroFieldNames::volume, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
-  // const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -469,7 +467,6 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
-      //CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
       auto& Mi = M_thread(nodeListi, i);
@@ -480,7 +477,6 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       const auto& Hj = H(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       CHECK(mj > 0.0);
-      //CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
       auto& Mj = M_thread(nodeListj, j);

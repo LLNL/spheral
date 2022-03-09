@@ -157,7 +157,7 @@ registerState(DataBase<Dimension>& dataBase,
   GenericRiemannHydro<Dimension>::registerState(dataBase,state);
 
   auto massDensity = dataBase.fluidMassDensity();
-  auto vol = this->volume();
+  auto volume = state.fields(HydroFieldNames::volume, 0.0);
 
   std::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > rhoPolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
   for (auto itr = dataBase.fluidNodeListBegin();
@@ -168,12 +168,12 @@ registerState(DataBase<Dimension>& dataBase,
   }
 
   PolicyPointer volumePolicy(new ReplaceWithRatioPolicy<Dimension,Scalar>(HydroFieldNames::mass,
-                                                                          HydroFieldNames::massDensity,
-                                                                          HydroFieldNames::massDensity));
+                                                                        HydroFieldNames::massDensity,
+                                                                        HydroFieldNames::massDensity));
   
   // normal state variables
   state.enroll(massDensity, rhoPolicy);
-  state.enroll(vol, volumePolicy);
+  state.enroll(volume, volumePolicy);
 
   TIME_GSPHregister.stop();
 }
