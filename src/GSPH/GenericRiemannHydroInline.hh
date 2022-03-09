@@ -40,162 +40,162 @@ useVelocityMagnitudeForDt(bool x) {
 //------------------------------------------------------------------------------
 // Return the master neighboring statistics.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-int
-GenericRiemannHydro<Dimension>::minMasterNeighbor() const {
-  return mMinMasterNeighbor;
-}
+// template<typename Dimension>
+// inline
+// int
+// GenericRiemannHydro<Dimension>::minMasterNeighbor() const {
+//   return mMinMasterNeighbor;
+// }
 
-template<typename Dimension>
-inline
-int
-GenericRiemannHydro<Dimension>::maxMasterNeighbor() const {
-  return mMaxMasterNeighbor;
-}
+// template<typename Dimension>
+// inline
+// int
+// GenericRiemannHydro<Dimension>::maxMasterNeighbor() const {
+//   return mMaxMasterNeighbor;
+// }
 
-template<typename Dimension>
-inline
-double
-GenericRiemannHydro<Dimension>::averageMasterNeighbor() const {
-  return double(mSumMasterNeighbor)/(mNormMasterNeighbor + FLT_MIN);
-}
+// template<typename Dimension>
+// inline
+// double
+// GenericRiemannHydro<Dimension>::averageMasterNeighbor() const {
+//   return double(mSumMasterNeighbor)/(mNormMasterNeighbor + FLT_MIN);
+// }
 
 //------------------------------------------------------------------------------
 // Return the coarse neighboring statistics.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-int
-GenericRiemannHydro<Dimension>::minCoarseNeighbor() const {
-  return mMinCoarseNeighbor;
-}
+// template<typename Dimension>
+// inline
+// int
+// GenericRiemannHydro<Dimension>::minCoarseNeighbor() const {
+//   return mMinCoarseNeighbor;
+// }
 
-template<typename Dimension>
-inline
-int
-GenericRiemannHydro<Dimension>::maxCoarseNeighbor() const {
-  return mMaxCoarseNeighbor;
-}
+// template<typename Dimension>
+// inline
+// int
+// GenericRiemannHydro<Dimension>::maxCoarseNeighbor() const {
+//   return mMaxCoarseNeighbor;
+// }
 
-template<typename Dimension>
-inline
-double
-GenericRiemannHydro<Dimension>::averageCoarseNeighbor() const {
-  return double(mSumCoarseNeighbor)/(mNormCoarseNeighbor + FLT_MIN);
-}
+// template<typename Dimension>
+// inline
+// double
+// GenericRiemannHydro<Dimension>::averageCoarseNeighbor() const {
+//   return double(mSumCoarseNeighbor)/(mNormCoarseNeighbor + FLT_MIN);
+// }
 
 //------------------------------------------------------------------------------
 // Return the refine neighboring statistics.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-int
-GenericRiemannHydro<Dimension>::minRefineNeighbor() const {
-  return mMinRefineNeighbor;
-}
+// template<typename Dimension>
+// inline
+// int
+// GenericRiemannHydro<Dimension>::minRefineNeighbor() const {
+//   return mMinRefineNeighbor;
+// }
 
-template<typename Dimension>
-inline
-int
-GenericRiemannHydro<Dimension>::maxRefineNeighbor() const {
-  return mMaxRefineNeighbor;
-}
+// template<typename Dimension>
+// inline
+// int
+// GenericRiemannHydro<Dimension>::maxRefineNeighbor() const {
+//   return mMaxRefineNeighbor;
+// }
 
-template<typename Dimension>
-inline
-double
-GenericRiemannHydro<Dimension>::averageRefineNeighbor() const {
-  return double(mSumRefineNeighbor)/(mNormRefineNeighbor + FLT_MIN);
-}
+// template<typename Dimension>
+// inline
+// double
+// GenericRiemannHydro<Dimension>::averageRefineNeighbor() const {
+//   return double(mSumRefineNeighbor)/(mNormRefineNeighbor + FLT_MIN);
+// }
 
 //------------------------------------------------------------------------------
 // Return the actual neighboring statistics.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-int
-GenericRiemannHydro<Dimension>::minActualNeighbor() const {
-  return mMinActualNeighbor;
-}
+// template<typename Dimension>
+// inline
+// int
+// GenericRiemannHydro<Dimension>::minActualNeighbor() const {
+//   return mMinActualNeighbor;
+// }
 
-template<typename Dimension>
-inline
-int
-GenericRiemannHydro<Dimension>::maxActualNeighbor() const {
-  return mMaxActualNeighbor;
-}
+// template<typename Dimension>
+// inline
+// int
+// GenericRiemannHydro<Dimension>::maxActualNeighbor() const {
+//   return mMaxActualNeighbor;
+// }
 
-template<typename Dimension>
-inline
-double
-GenericRiemannHydro<Dimension>::averageActualNeighbor() const {
-  return double(mSumActualNeighbor)/(mNormActualNeighbor + FLT_MIN);
-}
+// template<typename Dimension>
+// inline
+// double
+// GenericRiemannHydro<Dimension>::averageActualNeighbor() const {
+//   return double(mSumActualNeighbor)/(mNormActualNeighbor + FLT_MIN);
+// }
 
 //------------------------------------------------------------------------------
 // Update the master neighboring statistics.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-GenericRiemannHydro<Dimension>::
-updateMasterNeighborStats(int numMaster) const {
-  if (numMaster > 0) {
-    mMinMasterNeighbor = std::min(mMinMasterNeighbor, numMaster);
-    mMaxMasterNeighbor = std::max(mMaxMasterNeighbor, numMaster);
-    mSumMasterNeighbor += numMaster;
-    mNormMasterNeighbor++;
-  }
-}
+// template<typename Dimension>
+// inline
+// void
+// GenericRiemannHydro<Dimension>::
+// updateMasterNeighborStats(int numMaster) const {
+//   if (numMaster > 0) {
+//     mMinMasterNeighbor = std::min(mMinMasterNeighbor, numMaster);
+//     mMaxMasterNeighbor = std::max(mMaxMasterNeighbor, numMaster);
+//     mSumMasterNeighbor += numMaster;
+//     mNormMasterNeighbor++;
+//   }
+// }
 
 //------------------------------------------------------------------------------
 // Update the coarse neighboring statistics.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-GenericRiemannHydro<Dimension>::
-updateCoarseNeighborStats(int numNeighbor) const {
-  if (numNeighbor > 0) {
-    mMinCoarseNeighbor = std::min(mMinCoarseNeighbor, numNeighbor);
-    mMaxCoarseNeighbor = std::max(mMaxCoarseNeighbor, numNeighbor);
-    mSumCoarseNeighbor += numNeighbor;
-    mNormCoarseNeighbor++;
-  }
-}
+// template<typename Dimension>
+// inline
+// void
+// GenericRiemannHydro<Dimension>::
+// updateCoarseNeighborStats(int numNeighbor) const {
+//   if (numNeighbor > 0) {
+//     mMinCoarseNeighbor = std::min(mMinCoarseNeighbor, numNeighbor);
+//     mMaxCoarseNeighbor = std::max(mMaxCoarseNeighbor, numNeighbor);
+//     mSumCoarseNeighbor += numNeighbor;
+//     mNormCoarseNeighbor++;
+//   }
+// }
 
 //------------------------------------------------------------------------------
 // Update the refine neighboring statistics.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-GenericRiemannHydro<Dimension>::
-updateRefineNeighborStats(int numNeighbor) const {
-  if (numNeighbor > 0) {
-    mMinRefineNeighbor = std::min(mMinRefineNeighbor, numNeighbor);
-    mMaxRefineNeighbor = std::max(mMaxRefineNeighbor, numNeighbor);
-    mSumRefineNeighbor += numNeighbor;
-    mNormRefineNeighbor++;
-  }
-}
+// template<typename Dimension>
+// inline
+// void
+// GenericRiemannHydro<Dimension>::
+// updateRefineNeighborStats(int numNeighbor) const {
+//   if (numNeighbor > 0) {
+//     mMinRefineNeighbor = std::min(mMinRefineNeighbor, numNeighbor);
+//     mMaxRefineNeighbor = std::max(mMaxRefineNeighbor, numNeighbor);
+//     mSumRefineNeighbor += numNeighbor;
+//     mNormRefineNeighbor++;
+//   }
+// }
 
 //------------------------------------------------------------------------------
 // Update the actual neighboring statistics.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-GenericRiemannHydro<Dimension>::
-updateActualNeighborStats(int numNeighbor) const {
-  if (numNeighbor > 0) {
-    mMinActualNeighbor = std::min(mMinActualNeighbor, numNeighbor);
-    mMaxActualNeighbor = std::max(mMaxActualNeighbor, numNeighbor);
-    mSumActualNeighbor += numNeighbor;
-    mNormActualNeighbor++;
-  }
-}
+// template<typename Dimension>
+// inline
+// void
+// GenericRiemannHydro<Dimension>::
+// updateActualNeighborStats(int numNeighbor) const {
+//   if (numNeighbor > 0) {
+//     mMinActualNeighbor = std::min(mMinActualNeighbor, numNeighbor);
+//     mMaxActualNeighbor = std::max(mMaxActualNeighbor, numNeighbor);
+//     mSumActualNeighbor += numNeighbor;
+//     mNormActualNeighbor++;
+//   }
+// }
 
 //------------------------------------------------------------------------------
 // get out reimann solver obj
@@ -525,14 +525,6 @@ const FieldList<Dimension, typename Dimension::Vector>&
 GenericRiemannHydro<Dimension>::
 DvDt() const {
   return mDvDt;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-GenericRiemannHydro<Dimension>::
-DmassDensityDt() const {
-  return mDmassDensityDt;
 }
 
 template<typename Dimension>

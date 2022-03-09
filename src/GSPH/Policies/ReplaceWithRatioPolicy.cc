@@ -2,7 +2,7 @@
 // ReplaceWithRatioPolicy -- replaces one fieldlist with the ratio of two
 // fieldlists from the state.
 //----------------------------------------------------------------------------//
-#include "ReplaceWithRatioPolicy.hh"
+#include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"

@@ -7,6 +7,8 @@ set(GSPH_inst
     GenericRiemannHydro
     GSPHHydroBase
     MFMHydroBase
+    Policies/PureReplaceFieldList
+    Policies/ReplaceWithRatioPolicy
     Limiters/LimiterBase
     Limiters/VanLeerLimiter
     Limiters/SuperbeeLimiter
@@ -32,6 +34,8 @@ set(GSPH_headers
     GenericRiemannHydro.hh
     GSPHHydroBase.hh
     MFMHydroBase.hh
+    Policies/PureReplaceFieldList.hh
+    Policies/ReplaceWithRatioPolicy.hh
     Limiters/LimiterBase.hh
     Limiters/VanLeerLimiter.hh
     Limiters/SuperbeeLimiter.hh
@@ -49,6 +53,7 @@ set(GSPH_headers
 add_subdirectory(Limiters)
 add_subdirectory(WaveSpeeds)
 add_subdirectory(RiemannSolvers)
+add_subdirectory(Policies)
 
 instantiate(GSPH_inst GSPH_sources)
 

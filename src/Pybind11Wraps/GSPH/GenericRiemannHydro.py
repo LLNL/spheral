@@ -111,31 +111,32 @@ class GenericRiemannHydro(Physics):
         return "void"
 
 
-    #...........................................................................
-    # Protected methods from GenericHydro
-    @PYB11protected
-    @PYB11const
-    def updateMasterNeighborStats(self, numMaster="int"):
-        return "void"
+    # #...........................................................................
+    # # Protected methods from GenericHydro
+    # @PYB11protected
+    # @PYB11const
+    # def updateMasterNeighborStats(self, numMaster="int"):
+    #     return "void"
 
-    @PYB11protected
-    @PYB11const
-    def updateCoarseNeighborStats(self, numCoarse="int"):
-        return "void"
+    # @PYB11protected
+    # @PYB11const
+    # def updateCoarseNeighborStats(self, numCoarse="int"):
+    #     return "void"
 
-    @PYB11protected
-    @PYB11const
-    def updateRefineNeighborStats(self, numRefine="int"):
-        return "void"
+    # @PYB11protected
+    # @PYB11const
+    # def updateRefineNeighborStats(self, numRefine="int"):
+    #     return "void"
 
-    @PYB11protected
-    @PYB11const
-    def updateActualNeighborStats(self, numActual="int"):
-        return "void"
+    # @PYB11protected
+    # @PYB11const
+    # def updateActualNeighborStats(self, numActual="int"):
+    #     return "void"
 
 
     #...........................................................................
     # Properties
+    cfl = PYB11property("Scalar", "cfl", "cfl", doc="The Courant-Friedrichs-Lewy timestep limit multiplier")
     specificThermalEnergyDiffusionCoefficient = PYB11property("Scalar", "specificThermalEnergyDiffusionCoefficient", "specificThermalEnergyDiffusionCoefficient", 
                                           doc="coefficient used to diffuse specificThermalEnergy amongst like nodes.")
     riemannSolver = PYB11property("RiemannSolverBase<%(Dimension)s>&", "riemannSolver",returnpolicy="reference_internal",doc="The object defining the interface state construction.")
@@ -179,7 +180,7 @@ class GenericRiemannHydro(Physics):
     #localM =                       PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "localM",               returnpolicy="reference_internal")
     DxDt =                         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DxDt",                 returnpolicy="reference_internal")
     DvDt =                         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DvDt",                 returnpolicy="reference_internal")
-    DmassDensityDt =               PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "DmassDensityDt",       returnpolicy="reference_internal")
+    #DmassDensityDt =               PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "DmassDensityDt",       returnpolicy="reference_internal")
     DspecificThermalEnergyDt =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "DspecificThermalEnergyDt", returnpolicy="reference_internal")
     DHDt =                         PYB11property("const FieldList<%(Dimension)s, SymTensor>&","DHDt",                 returnpolicy="reference_internal")
     DvDx =                         PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "DvDx",                 returnpolicy="reference_internal")
@@ -188,22 +189,19 @@ class GenericRiemannHydro(Physics):
     DpDx =                         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DpDx",                 returnpolicy="reference_internal")
     #lastDpDx =                     PYB11property("const FieldList<%(Dimension)s, Vector>&",   "lastDpDx",             returnpolicy="reference_internal")
     
-    #...........................................................................
-    # Attributes -- Generic Hydro
-    cfl = PYB11property("Scalar", "cfl", "cfl", doc="The Courant-Friedrichs-Lewy timestep limit multiplier")
-    useVelocityMagnitudeForDt = PYB11property("bool", "useVelocityMagnitudeForDt", "useVelocityMagnitudeForDt", doc="Should the pointwise velocity magnitude be used to limit the timestep?")
-    minMasterNeighbor = PYB11property("int", "minMasterNeighbor", doc="minimum number of master neighbors found")
-    maxMasterNeighbor = PYB11property("int", "maxMasterNeighbor", doc="maximum number of master neighbors found")
-    averageMasterNeighbor = PYB11property("double", "averageMasterNeighbor", doc="average number of master neighbors found")
-    minCoarseNeighbor = PYB11property("int", "minCoarseNeighbor", doc="minimum number of coarse neighbors found")
-    maxCoarseNeighbor = PYB11property("int", "maxCoarseNeighbor", doc="maximum number of coarse neighbors found")
-    averageCoarseNeighbor = PYB11property("double", "averageCoarseNeighbor", doc="average number of coarse neighbors found")
-    minRefineNeighbor = PYB11property("int", "minRefineNeighbor", doc="minimum number of refine neighbors found")
-    maxRefineNeighbor = PYB11property("int", "maxRefineNeighbor", doc="maximum number of refine neighbors found")
-    averageRefineNeighbor = PYB11property("double", "averageRefineNeighbor", doc="average number of refine neighbors found")
-    minActualNeighbor = PYB11property("int", "minActualNeighbor", doc="minimum number of actual neighbors found")
-    maxActualNeighbor = PYB11property("int", "maxActualNeighbor", doc="maximum number of actual neighbors found")
-    averageActualNeighbor = PYB11property("double", "averageActualNeighbor", doc="average number of actual neighbors found")
+    # useVelocityMagnitudeForDt = PYB11property("bool", "useVelocityMagnitudeForDt", "useVelocityMagnitudeForDt", doc="Should the pointwise velocity magnitude be used to limit the timestep?")
+    # minMasterNeighbor = PYB11property("int", "minMasterNeighbor", doc="minimum number of master neighbors found")
+    # maxMasterNeighbor = PYB11property("int", "maxMasterNeighbor", doc="maximum number of master neighbors found")
+    # averageMasterNeighbor = PYB11property("double", "averageMasterNeighbor", doc="average number of master neighbors found")
+    # minCoarseNeighbor = PYB11property("int", "minCoarseNeighbor", doc="minimum number of coarse neighbors found")
+    # maxCoarseNeighbor = PYB11property("int", "maxCoarseNeighbor", doc="maximum number of coarse neighbors found")
+    # averageCoarseNeighbor = PYB11property("double", "averageCoarseNeighbor", doc="average number of coarse neighbors found")
+    # minRefineNeighbor = PYB11property("int", "minRefineNeighbor", doc="minimum number of refine neighbors found")
+    # maxRefineNeighbor = PYB11property("int", "maxRefineNeighbor", doc="maximum number of refine neighbors found")
+    # averageRefineNeighbor = PYB11property("double", "averageRefineNeighbor", doc="average number of refine neighbors found")
+    # minActualNeighbor = PYB11property("int", "minActualNeighbor", doc="minimum number of actual neighbors found")
+    # maxActualNeighbor = PYB11property("int", "maxActualNeighbor", doc="maximum number of actual neighbors found")
+    # averageActualNeighbor = PYB11property("double", "averageActualNeighbor", doc="average number of actual neighbors found")
 
 #-------------------------------------------------------------------------------
 # Inject methods

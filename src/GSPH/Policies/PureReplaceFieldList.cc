@@ -2,7 +2,7 @@
 // PureReplaceFieldList -- replaces one fieldlist with another arbitrary 
 // field list based on a user specificed key
 //----------------------------------------------------------------------------//
-#include "PureReplaceFieldList.hh"
+#include "GSPH/Policies/PureReplaceFieldList.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"

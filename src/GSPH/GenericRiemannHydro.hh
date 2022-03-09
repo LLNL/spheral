@@ -185,21 +185,21 @@ public:
   void xmax(const Vector& x);
   
   // Return the cumulative neighboring statistics.
-  int minMasterNeighbor() const;
-  int maxMasterNeighbor() const;
-  double averageMasterNeighbor() const;
+  // int minMasterNeighbor() const;
+  // int maxMasterNeighbor() const;
+  // double averageMasterNeighbor() const;
 
-  int minCoarseNeighbor() const;
-  int maxCoarseNeighbor() const;
-  double averageCoarseNeighbor() const;
+  // int minCoarseNeighbor() const;
+  // int maxCoarseNeighbor() const;
+  // double averageCoarseNeighbor() const;
 
-  int minRefineNeighbor() const;
-  int maxRefineNeighbor() const;
-  double averageRefineNeighbor() const;
+  // int minRefineNeighbor() const;
+  // int maxRefineNeighbor() const;
+  // double averageRefineNeighbor() const;
 
-  int minActualNeighbor() const;
-  int maxActualNeighbor() const;
-  double averageActualNeighbor() const;
+  // int minActualNeighbor() const;
+  // int maxActualNeighbor() const;
+  // double averageActualNeighbor() const;
 
   // The state field lists we're maintaining.
   const FieldList<Dimension, int>&       timeStepMask() const;
@@ -216,7 +216,6 @@ public:
   const FieldList<Dimension, Tensor>&    localM() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    DvDt() const;
-  const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
   const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
   const FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
@@ -243,10 +242,10 @@ protected:
   //--------------------------- Protected Interface ---------------------------//
   RestartRegistrationType mRestart;
 
-  void updateMasterNeighborStats(int numMaster) const;
-  void updateCoarseNeighborStats(int numNeighbor) const;
-  void updateRefineNeighborStats(int numNeighbor) const;
-  void updateActualNeighborStats(int numNeighbor) const;
+  // void updateMasterNeighborStats(int numMaster) const;
+  // void updateCoarseNeighborStats(int numNeighbor) const;
+  // void updateRefineNeighborStats(int numNeighbor) const;
+  // void updateActualNeighborStats(int numNeighbor) const;
 
   
 private:
@@ -269,14 +268,14 @@ private:
   Scalar mCfl; 
   Vector mxmin, mxmax;
             
-  mutable int mMinMasterNeighbor, mMaxMasterNeighbor, mSumMasterNeighbor;
-  mutable int mMinCoarseNeighbor, mMaxCoarseNeighbor, mSumCoarseNeighbor;
-  mutable int mMinRefineNeighbor, mMaxRefineNeighbor, mSumRefineNeighbor;
-  mutable int mMinActualNeighbor, mMaxActualNeighbor, mSumActualNeighbor;
-  mutable int mNormMasterNeighbor;
-  mutable int mNormCoarseNeighbor;
-  mutable int mNormRefineNeighbor;
-  mutable int mNormActualNeighbor;
+  // mutable int mMinMasterNeighbor, mMaxMasterNeighbor, mSumMasterNeighbor;
+  // mutable int mMinCoarseNeighbor, mMaxCoarseNeighbor, mSumCoarseNeighbor;
+  // mutable int mMinRefineNeighbor, mMaxRefineNeighbor, mSumRefineNeighbor;
+  // mutable int mMinActualNeighbor, mMaxActualNeighbor, mSumActualNeighbor;
+  // mutable int mNormMasterNeighbor;
+  // mutable int mNormCoarseNeighbor;
+  // mutable int mNormRefineNeighbor;
+  // mutable int mNormActualNeighbor;
 
   // Our fields.
   FieldList<Dimension, int>       mTimeStepMask;
@@ -298,7 +297,6 @@ private:
 
   FieldList<Dimension, Vector>    mDxDt;
   FieldList<Dimension, Vector>    mDvDt;
-  FieldList<Dimension, Scalar>    mDmassDensityDt;
   FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
   FieldList<Dimension, SymTensor> mDHDt;
 

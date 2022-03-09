@@ -36,11 +36,11 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/Timer.hh"
 
-#include "GSPH/GenericRiemannHydro.hh"
-#include "GSPH/GSPHFieldNames.hh"
 #include "GSPH/MFMHydroBase.hh"
+#include "GSPH/GSPHFieldNames.hh"
 #include "GSPH/computeSumVolume.hh"
 #include "GSPH/computeMFMDensity.hh"
+#include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 #ifdef _OPENMP
@@ -107,7 +107,11 @@ MFMHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                                  epsTensile,
                                  nTensile,
                                  xmin,
-                                 xmax) {
+                                 xmax),
+  mDvolumeDt(FieldStorageType::CopyFields){
+    
+    mDvolumeDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume);
+
 
 }
 
@@ -137,7 +141,32 @@ void
 MFMHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
+
+  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+
   GenericRiemannHydro<Dimension>::registerState(dataBase,state);
+  
+  auto massDensity = dataBase.fluidMassDensity();
+  auto vol = this->volume();
+
+  std::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > volumePolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
+  for (auto itr = dataBase.fluidNodeListBegin();
+       itr != dataBase.fluidNodeListEnd();
+       ++itr) {
+    auto massi = (*itr)->mass();
+    auto minVolume = massi.min()/(*itr)->rhoMax();
+    auto maxVolume = massi.max()/(*itr)->rhoMin();
+    volumePolicy->push_back(new IncrementBoundedState<Dimension, Scalar>(minVolume,
+                                                                         maxVolume));
+  }
+
+  PolicyPointer rhoPolicy(new ReplaceWithRatioPolicy<Dimension,Scalar>(HydroFieldNames::mass,
+                                                                       HydroFieldNames::volume,
+                                                                       HydroFieldNames::volume));
+  
+  // normal state variables
+  state.enroll(massDensity, rhoPolicy);
+  state.enroll(vol, volumePolicy);
 }
 
 //------------------------------------------------------------------------------
@@ -149,6 +178,9 @@ MFMHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   GenericRiemannHydro<Dimension>::registerDerivatives(dataBase,derivs);
+
+  dataBase.resizeFluidFieldList(mDvolumeDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume, false);
+  derivs.enroll(mDvolumeDt);
 }
 
 //------------------------------------------------------------------------------
@@ -163,15 +195,25 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   GenericRiemannHydro<Dimension>::preStepInitialize(dataBase,state,derivs);
 
   if(this->densityUpdate() == MassDensityType::RigorousSumDensity){
-    const auto& connectivityMap = dataBase.connectivityMap();
+    // plop into an intialize volume function
     const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-    const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
     const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    computeSPHSumMassDensity(connectivityMap, this->kernel(), true, position, mass, H, massDensity);
-    for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-    for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  }
+    const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+          auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+          auto  volume = state.fields(HydroFieldNames::volume, 0.0);
+
+    computeSumVolume(dataBase.connectivityMap(),this->kernel(),position,H,volume);
+    computeMFMDensity(mass,volume,massDensity);
+  
+    for (auto boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr){
+      (*boundaryItr)->applyFieldListGhostBoundary(volume);
+      (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+    }
+    for (auto boundaryItr = this->boundaryBegin(); 
+         boundaryItr < this->boundaryEnd(); 
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();}
 }
 
 //------------------------------------------------------------------------------
@@ -185,29 +227,7 @@ initialize(const typename Dimension::Scalar time,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
-
-  GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
-
-  // plop into an intialize volume function
-  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-        auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-        auto  volume = state.fields(HydroFieldNames::volume, 0.0);
-
-  computeSumVolume(dataBase.connectivityMap(),this->kernel(),position,H,volume);
-  computeMFMDensity(mass,volume,massDensity);
-  
-  for (auto boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr){
-    (*boundaryItr)->applyFieldListGhostBoundary(volume);
-    (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-  }
-  for (auto boundaryItr = this->boundaryBegin(); 
-       boundaryItr < this->boundaryEnd(); 
-       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-  
+  GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);  
 }
 
 //------------------------------------------------------------------------------
@@ -221,9 +241,7 @@ finalizeDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-
   GenericRiemannHydro<Dimension>::finalizeDerivatives(time,dt,dataBase,state,derivs);
-
 }
 
 //------------------------------------------------------------------------------
@@ -234,7 +252,6 @@ void
 MFMHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
-
   GenericRiemannHydro<Dimension>::applyGhostBoundaries(state,derivs);
 }
 
@@ -258,6 +275,8 @@ void
 MFMHydroBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   GenericRiemannHydro<Dimension>::dumpState(file,pathName);
+
+  file.write(mDvolumeDt, pathName + "/DvolumeDt");
 }
 
 //------------------------------------------------------------------------------
@@ -268,6 +287,8 @@ void
 MFMHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   GenericRiemannHydro<Dimension>::restoreState(file,pathName);
+
+  file.read(mDvolumeDt, pathName + "/DvolumeDt");
 }
 
 }

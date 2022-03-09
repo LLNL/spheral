@@ -1,11 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
 // GSPHHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
-//
-// Created by JMO, Mon Jul 19 22:11:09 PDT 2010
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 #include "NodeList/SmoothingScaleBase.hh"
-#include "Hydro/HydroFieldNames.hh"
 #include "SPH/computeSPHSumMassDensity.hh"
 
 #include "DataBase/DataBase.hh"
@@ -19,6 +16,7 @@
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
 
+#include "Hydro/HydroFieldNames.hh"
 #include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/SpecificThermalEnergyPolicy.hh"
@@ -35,10 +33,10 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/Timer.hh"
 
-#include "GSPH/GenericRiemannHydro.hh"
-#include "GSPH/GSPHFieldNames.hh"
 #include "GSPH/GSPHHydroBase.hh"
+#include "GSPH/GSPHFieldNames.hh"
 #include "GSPH/computeSPHVolume.hh"
+#include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 #ifdef _OPENMP
@@ -118,8 +116,10 @@ GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                                  epsTensile,
                                  nTensile,
                                  xmin,
-                                 xmax) {
+                                 xmax),
+  mDmassDensityDt(FieldStorageType::CopyFields){
 
+    mDmassDensityDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity);
 }
 
 //------------------------------------------------------------------------------
@@ -151,7 +151,30 @@ GSPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   TIME_GSPHregister.start();
+
+  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+
   GenericRiemannHydro<Dimension>::registerState(dataBase,state);
+
+  auto massDensity = dataBase.fluidMassDensity();
+  auto vol = this->volume();
+
+  std::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > rhoPolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
+  for (auto itr = dataBase.fluidNodeListBegin();
+       itr != dataBase.fluidNodeListEnd();
+       ++itr) {
+    rhoPolicy->push_back(new IncrementBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
+                                                                      (*itr)->rhoMax()));
+  }
+
+  PolicyPointer volumePolicy(new ReplaceWithRatioPolicy<Dimension,Scalar>(HydroFieldNames::mass,
+                                                                          HydroFieldNames::massDensity,
+                                                                          HydroFieldNames::massDensity));
+  
+  // normal state variables
+  state.enroll(massDensity, rhoPolicy);
+  state.enroll(vol, volumePolicy);
+
   TIME_GSPHregister.stop();
 }
 
@@ -164,7 +187,12 @@ GSPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   TIME_GSPHregisterDerivs.start();
+
   GenericRiemannHydro<Dimension>::registerDerivatives(dataBase,derivs);
+
+  dataBase.resizeFluidFieldList(mDmassDensityDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, false);
+  derivs.enroll(mDmassDensityDt);
+
   TIME_GSPHregisterDerivs.stop();
 }
 
@@ -185,10 +213,21 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
     const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
     const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+          auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+          auto  volume = state.fields(HydroFieldNames::volume, 0.0);
+
     computeSPHSumMassDensity(connectivityMap, this->kernel(), true, position, mass, H, massDensity);
-    for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-    for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+    computeSPHVolume(mass,massDensity,volume);
+  
+    for (auto boundaryItr = this->boundaryBegin(); 
+              boundaryItr < this->boundaryEnd(); 
+              ++boundaryItr){
+      (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      (*boundaryItr)->applyFieldListGhostBoundary(volume);
+    }
+    for (auto boundaryItr = this->boundaryBegin(); 
+              boundaryItr < this->boundaryEnd(); 
+              ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
   TIME_GSPHpreStepInitialize.stop();
 }
@@ -208,20 +247,20 @@ initialize(const typename Dimension::Scalar time,
 
   GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
 
-  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-  const auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-        auto  volume = state.fields(HydroFieldNames::volume, 0.0);
+  // const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+  // const auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  //       auto  volume = state.fields(HydroFieldNames::volume, 0.0);
 
-  computeSPHVolume(mass,massDensity,volume);
+  // computeSPHVolume(mass,massDensity,volume);
   
-  for (auto boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr){
-    (*boundaryItr)->applyFieldListGhostBoundary(volume);
-  }
-  for (auto boundaryItr = this->boundaryBegin(); 
-       boundaryItr < this->boundaryEnd(); 
-       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  // for (auto boundaryItr = this->boundaryBegin(); 
+  //      boundaryItr != this->boundaryEnd();
+  //      ++boundaryItr){
+  //   (*boundaryItr)->applyFieldListGhostBoundary(volume);
+  // }
+  // for (auto boundaryItr = this->boundaryBegin(); 
+  //      boundaryItr < this->boundaryEnd(); 
+  //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
   TIME_GSPHinitialize.stop();
   
@@ -282,6 +321,8 @@ void
 GSPHHydroBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   GenericRiemannHydro<Dimension>::dumpState(file,pathName);
+
+  file.write(mDmassDensityDt, pathName + "/DmassDensityDt");
 }
 
 //------------------------------------------------------------------------------
@@ -292,6 +333,8 @@ void
 GSPHHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   GenericRiemannHydro<Dimension>::restoreState(file,pathName);
+
+  file.read(mDmassDensityDt, pathName + "/DmassDensityDt");
 }
 
 }

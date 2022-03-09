@@ -118,6 +118,9 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
+
+  const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "GSPHHydroBase" ; }
@@ -127,6 +130,8 @@ public:
   
 private:
 
+  FieldList<Dimension, Scalar>    mDmassDensityDt;
+  
   // No default constructor, copying, or assignment.
   GSPHHydroBase();
   GSPHHydroBase(const GSPHHydroBase&);

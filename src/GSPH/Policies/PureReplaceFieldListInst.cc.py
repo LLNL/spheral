@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "GSPH/PureReplaceFieldList.cc"
+#include "GSPH/Policies/PureReplaceFieldList.cc"
 
 namespace Spheral {
   template class PureReplaceFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;

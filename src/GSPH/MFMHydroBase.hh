@@ -117,13 +117,18 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
-    //****************************************************************************
+  const FieldList<Dimension,Scalar>& DvolumeDt() const;
+
+  //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "MFMHydroBase" ; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************           
 private:
+
+  FieldList<Dimension, Scalar> mDvolumeDt;
+
   // No default constructor, copying, or assignment.
   MFMHydroBase();
   MFMHydroBase(const MFMHydroBase&);

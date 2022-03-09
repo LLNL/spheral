@@ -62,7 +62,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DvolDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume, 0.0);
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
@@ -82,7 +82,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
-  CHECK(DrhoDt.size() == numNodeLists);
+  CHECK(DvolDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DepsDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
@@ -116,7 +116,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
     auto DepsDt_thread = DepsDt.threadCopy(threadStack);
-    auto DrhoDt_thread = DrhoDt.threadCopy(threadStack);
+    auto DvolDt_thread = DvolDt.threadCopy(threadStack);
     auto DvDx_thread = DvDx.threadCopy(threadStack);
     auto DpDx_thread = DpDx.threadCopy(threadStack);
     auto DpDxRaw_thread = DpDxRaw.threadCopy(threadStack);
@@ -337,16 +337,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& mi = mass(nodeListi, i);
       const auto& voli = volume(nodeListi,i);
       const auto& vi = velocity(nodeListi, i);
-      const auto& rhoi = massDensity(nodeListi, i);
+      //const auto& rhoi = massDensity(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
-      CHECK(rhoi > 0.0);
+      //CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
       auto& normi = normalization(nodeListi, i);
       auto& DxDti = DxDt(nodeListi, i);
-      auto& DrhoDti = DrhoDt(nodeListi, i);
+      auto& DvolDti = DvolDt(nodeListi, i);
       auto& DvDti = DvDt(nodeListi, i);
       auto& DepsDti = DepsDt(nodeListi, i);
       auto& DvDxi = DvDx(nodeListi, i);
@@ -363,7 +363,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       normi += voli*Hdeti*W0;
 
-      DrhoDti = - rhoi * DvDxi.Trace() ;
+      DvolDti = voli * DvDxi.Trace() ;
 
       // If needed finish the total energy derivative.
       if (totalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
@@ -386,24 +386,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // The H tensor evolution.
       DHDti = smoothingScale.smoothingScaleDerivative(Hi,
-                                                             ri,
-                                                             DvDxi,
-                                                             hmin,
-                                                             hmax,
-                                                             hminratio,
-                                                             nPerh);
+                                                      ri,
+                                                      DvDxi,
+                                                      hmin,
+                                                      hmax,
+                                                      hminratio,
+                                                      nPerh);
       Hideali = smoothingScale.newSmoothingScale(Hi,
-                                                        ri,
-                                                        weightedNeighborSumi,
-                                                        massSecondMomenti,
-                                                        W,
-                                                        hmin,
-                                                        hmax,
-                                                        hminratio,
-                                                        nPerh,
-                                                        connectivityMap,
-                                                        nodeListi,
-                                                        i);
+                                                 ri,
+                                                 weightedNeighborSumi,
+                                                 massSecondMomenti,
+                                                 W,
+                                                 hmin,
+                                                 hmax,
+                                                 hminratio,
+                                                 nPerh,
+                                                 connectivityMap,
+                                                 nodeListi,
+                                                 i);
     } // nodes loop
   } // nodeLists loop
 
@@ -469,7 +469,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
-      CHECK(rhoi > 0.0);
+      //CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
       auto& Mi = M_thread(nodeListi, i);
@@ -480,7 +480,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       const auto& Hj = H(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       CHECK(mj > 0.0);
-      CHECK(rhoj > 0.0);
+      //CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
       auto& Mj = M_thread(nodeListj, j);
