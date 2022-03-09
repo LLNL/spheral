@@ -388,7 +388,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
-      const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
+      //const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& voli = volume(nodeListi,i);
