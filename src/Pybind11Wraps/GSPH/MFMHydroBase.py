@@ -7,7 +7,7 @@ from RestartMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralGSPH")
-class GSPHHydroBase(GenericRiemannHydro):
+class MFMHydroBase(GenericRiemannHydro):
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -106,9 +106,9 @@ mass density, velocity, and specific thermal energy."""
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
-    DmassDensityDt = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DmassDensityDt", returnpolicy="reference_internal")
+    DvolumeDt = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DvolumeDt", returnpolicy="reference_internal")
     
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, GSPHHydroBase)
+PYB11inject(RestartMethods, MFMHydroBase)
