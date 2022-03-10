@@ -46,14 +46,11 @@ compilers:
       f77: /usr/tce/packages/intel/intel-oneapi.2022.1/bin/ifx
       fc: /usr/tce/packages/intel/intel-oneapi.2022.1/bin/ifx
     flags:
-      cflags: --gcc-toolchain=/usr/tce/packages/gcc/gcc-10.2.1/rh -std=gnu11 -O2 -fPIC
-      cxxflags: --gcc-toolchain=/usr/tce/packages/gcc/gcc-10.2.1/rh -std=c++11 -O2 -fPIC
-      fflags: --gcc-toolchain=/usr/tce/packages/gcc/gcc-10.2.1/rh -O2 -fPIC
+      cflags: --gcc-toolchain=/usr/tce/packages/gcc/gcc-10.2.1/rh
+      cxxflags: --gcc-toolchain=/usr/tce/packages/gcc/gcc-10.2.1/rh
+      fflags: --gcc-toolchain=/usr/tce/packages/gcc/gcc-10.2.1/rh
     operating_system: rhel7
     target: x86_64
-    modules:
-    - intel/oneapi.2022.1
-    environment:
-      set:
-        SPACK_TARGET_ARGS: ""
+    modules: []
+    environment: {}
     extra_rpaths: []
