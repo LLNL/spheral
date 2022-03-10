@@ -56,11 +56,12 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
+  std::cout << "This is the name of the path that I'm trying to use: " << path << std::endl;
+  dataStorePtr->getRoot()->getView(path)->print();
+
   DataType* data = dataStorePtr->getRoot()->getView(path)->getArray();
   for (int i = 0; i < dataStorePtr->getRoot()->getView(path)->getNumElements(); ++i)
     field[i] = data[i];
-
-  //field[0] = dataStorePtr->getRoot()->getView(path)->getArray();
 }
 
 //------------------------------------------------------------------------------
@@ -76,16 +77,14 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
   int size = field.numElements();
   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
   std::vector<double> fieldData(size * DataType::numElements);
+
   for (int i = 0; i < size; ++i)
-  {
     std::copy(field(i).begin(), field(i).end(), &fieldData[i * DataType::numElements]);
-  }
 
   axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
                                           ->allocate(dtype, size * DataType::numElements)
                                           ->copyBytesIntoBuffer((void*)fieldData.data(), sizeof(double) * (size * DataType::numElements));
   dataStorePtr->getRoot()->createView(path, dtype, size * DataType::numElements, buff);
-  // dataStorePtr->print();
 }
 
 template <typename Dimension, typename DataType,
@@ -96,16 +95,10 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      const std::string& path)
 {
   double* data = dataStorePtr->getRoot()->getView(path)->getArray();
-  // int counter = 0; //change this out, can use DataType::numElements * i + J
+
   for (int i = 0; i < (dataStorePtr->getRoot()->getView(path)->getNumElements() / (DataType::numElements)); ++i)
     for (int j = 0; j < int(DataType::numElements); ++j)
-    {
       field[i][j] = data[(i * (DataType::numElements)) + j];
-      // ++counter;
-    }
-  // for (u_int i = 0; i < field.size(); ++i)
-  //   std::cout << field[i] << " ";
-  // std::cout << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -141,7 +134,7 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
 {
   VERIFY2(mDataStorePtr == 0 and mFileOpen == false,
           "ERROR: attempt to reopen SidreFileIO object.");
-
+  // std::cout << "Before creating the pointer in open()." << std::endl;
   mDataStorePtr = std::make_shared<axom::sidre::DataStore>();
 
   // Need this member var because save() needs to know the name too.
@@ -149,11 +142,15 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
 
   if (access == AccessType::Read)
   {
+    // std::cout << "Loading the pointer in open() if access == READ." << std::endl;
     mDataStorePtr->getRoot()->load(fileName);
   }
 
   VERIFY2(mDataStorePtr != 0, "SidreFileIO ERROR: unable to open " << fileName);
   mFileOpen = true;
+
+  // mDataStorePtr->print();
+  // std::cout << "This is the value of mDataStorePtr during open = " << mDataStorePtr << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -161,12 +158,22 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
 //------------------------------------------------------------------------------
 void SidreFileIO::close()
 {
+  // std::cout << "This is the value of mDataStorePtr during close = " << mDataStorePtr.get() << std::endl;
   if (mDataStorePtr != 0)
   {
-    mDataStorePtr->getRoot()->save(mFileName, "sidre_hdf5");
+    // if (access() != AccessType::Read)
+    // {
+      // std::cout << "Before printing mDataStorePtr in close()." << std::endl;
+      // mDataStorePtr->print();
+      // std::cout << "Saving and reseting the pointer in close()." << std::endl;
+      mDataStorePtr->getRoot()->save(mFileName);
+    // }
+    // std::cout << "after saving the file in close()." << std::endl;
     mDataStorePtr.reset();
+    // std::cout << "after reseting the pointer in close()." << std::endl;
   }
   mFileOpen = false;
+  // std::cout << "At the end of the close()." << std::endl;
 }
 
 //------------------------------------------------------------------------------

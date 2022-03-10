@@ -588,6 +588,7 @@ class SpheralController:
             file = self.restartFileConstructor(fileName, Read)
         RestartRegistrar.instance().restoreState(file)
         print "Finished: required %0.2f seconds" % (time.clock() - start)
+        print "This is after the finished print of loadRestartFile()."
 
         # Reset neighboring.
         db = self.integrator.dataBase
@@ -604,6 +605,7 @@ class SpheralController:
 
         file.close()
         del file
+        print "This is the end of loadRestartFile()."
         return
 
     #--------------------------------------------------------------------------
