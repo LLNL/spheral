@@ -55,7 +55,7 @@ message("-- Fortran flags: ${CMAKE_Fortran_FLAGS}")
 # PYB11 Target Flags
 #-------------------------------------------------------------------------------
 set(SPHERAL_PYB11_TARGET_FLAGS
-  "-Wno-unused-local-typedef"
+  "-Wno-unused-local-typedefs"
   "-Wno-self-assign-overloaded"
   "-Wno-overloaded-virtual"
   "-Wno-delete-non-abstract-non-virtual-dtor")
