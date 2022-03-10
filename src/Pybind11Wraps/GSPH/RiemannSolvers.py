@@ -25,8 +25,8 @@ class RiemannSolverBase:
     waveSpeed = PYB11property("WaveSpeedBase<%(Dimension)s>&", "waveSpeed",returnpolicy="reference_internal", doc="wave speed object")
     limiter = PYB11property("LimiterBase<%(Dimension)s>&", "limiter",returnpolicy="reference_internal", doc="slope limiter object")
 
-    DpDx = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DpDx",returnpolicy="reference_internal")
-    DvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "DvDx",returnpolicy="reference_internal")
+    #DpDx = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DpDx",returnpolicy="reference_internal")
+    #DvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "DvDx",returnpolicy="reference_internal")
     
 #PYB11inject(RiemannSolverBaseAbstractMethods, RiemannSolverBase, pure_virtual=True)
 

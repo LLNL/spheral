@@ -33,6 +33,26 @@ public:
 
   ~GHLLC();
 
+  // virtual
+  // void interfaceState(const int i,
+  //                     const int j,
+  //                     const int nodelisti,
+  //                     const int nodelistj,
+  //                     const Vector& ri,
+  //                     const Vector& rj,
+  //                     const Scalar& rhoi,   
+  //                     const Scalar& rhoj, 
+  //                     const Scalar& ci,   
+  //                     const Scalar& cj, 
+  //                     const Scalar& sigmai,    
+  //                     const Scalar& sigmaj,
+  //                     const Vector& vi,    
+  //                     const Vector& vj,
+  //                           Scalar& Pstar,
+  //                           Vector& vstar,
+  //                           Scalar& rhostari,
+  //                           Scalar& rhostarj) const override;
+
   virtual
   void interfaceState(const int i,
                       const int j,
@@ -48,11 +68,14 @@ public:
                       const Scalar& sigmaj,
                       const Vector& vi,    
                       const Vector& vj,
+                      const Vector& DpDxi,
+                      const Vector& DpDxj,
+                      const Tensor& DvDxi,
+                      const Tensor& DvDxj,
                             Scalar& Pstar,
                             Vector& vstar,
                             Scalar& rhostari,
                             Scalar& rhostarj) const override;
-
 
   virtual
   void interfaceState(const int i,

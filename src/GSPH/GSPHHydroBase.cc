@@ -249,21 +249,6 @@ initialize(const typename Dimension::Scalar time,
 
   GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
 
-  // const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-  // const auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  //       auto  volume = state.fields(HydroFieldNames::volume, 0.0);
-
-  // computeSPHVolume(mass,massDensity,volume);
-  
-  // for (auto boundaryItr = this->boundaryBegin(); 
-  //      boundaryItr != this->boundaryEnd();
-  //      ++boundaryItr){
-  //   (*boundaryItr)->applyFieldListGhostBoundary(volume);
-  // }
-  // for (auto boundaryItr = this->boundaryBegin(); 
-  //      boundaryItr < this->boundaryEnd(); 
-  //      ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-
   TIME_GSPHinitialize.stop();
   
 }

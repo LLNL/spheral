@@ -196,7 +196,6 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mPairAccelerations.clear();
   mPairDepsDt.clear();
 
-
 }
 
 //------------------------------------------------------------------------------
@@ -247,9 +246,6 @@ registerState(DataBase<Dimension>& dataBase,
   auto position = dataBase.fluidPosition();
   auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   auto velocity = dataBase.fluidVelocity();
-  
-  // auto& DpDx = mRiemannSolver.DpDx();
-  // auto& DvDx = mRiemannSolver.DvDx();
 
   std::shared_ptr<CompositeFieldListPolicy<Dimension, SymTensor> > Hpolicy(new CompositeFieldListPolicy<Dimension, SymTensor>());
   for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
@@ -548,7 +544,7 @@ initialize(const typename Dimension::Scalar time,
   // riemannSolver.initialize(dataBase, 
   //                          state,
   //                          derivs,
-  //                          ,
+  //                          this->boundaryBegin(),
   //                          this->boundaryEnd(),
   //                          time, 
   //                          dt,

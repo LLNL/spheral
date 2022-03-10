@@ -44,25 +44,25 @@ public:
                   const Scalar dt,
                   const TableKernel<Dimension>& W);
 
-  virtual
-  void interfaceState(const int i,
-                      const int j,
-                      const int nodelisti,
-                      const int nodelistj,
-                      const Vector& ri,
-                      const Vector& rj,
-                      const Scalar& rhoi,   
-                      const Scalar& rhoj, 
-                      const Scalar& ci,   
-                      const Scalar& cj, 
-                      const Scalar& Pi,    
-                      const Scalar& Pj,
-                      const Vector& vi,    
-                      const Vector& vj,
-                            Scalar& Pstar,
-                            Vector& vstar,
-                            Scalar& rhostari,
-                            Scalar& rhostarj) const;
+  // virtual
+  // void interfaceState(const int i,
+  //                     const int j,
+  //                     const int nodelisti,
+  //                     const int nodelistj,
+  //                     const Vector& ri,
+  //                     const Vector& rj,
+  //                     const Scalar& rhoi,   
+  //                     const Scalar& rhoj, 
+  //                     const Scalar& ci,   
+  //                     const Scalar& cj, 
+  //                     const Scalar& Pi,    
+  //                     const Scalar& Pj,
+  //                     const Vector& vi,    
+  //                     const Vector& vj,
+  //                           Scalar& Pstar,
+  //                           Vector& vstar,
+  //                           Scalar& rhostari,
+  //                           Scalar& rhostarj) const;
 
     virtual
   void interfaceState(const int i,
@@ -141,11 +141,11 @@ public:
                                   Vector& ytildej) const;
 
   // we'll want the ability to modify these (make better)
-  FieldList<Dimension,Vector>& DpDx();
-  FieldList<Dimension,Tensor>& DvDx();
+  // FieldList<Dimension,Vector>& DpDx();
+  // FieldList<Dimension,Tensor>& DvDx();
 
-  const FieldList<Dimension,Vector>& DpDx() const;
-  const FieldList<Dimension,Tensor>& DvDx() const;
+  // const FieldList<Dimension,Vector>& DpDx() const;
+  // const FieldList<Dimension,Tensor>& DvDx() const;
 
 private:
   
@@ -154,8 +154,8 @@ private:
   bool mLinearReconstruction;
   //GradientType mGradientType;
 
-  FieldList<Dimension, Vector> mDpDx;
-  FieldList<Dimension, Tensor> mDvDx;
+  // FieldList<Dimension, Vector> mDpDx;
+  // FieldList<Dimension, Tensor> mDvDx;
 
 };
 

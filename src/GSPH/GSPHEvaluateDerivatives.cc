@@ -420,7 +420,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       normi += voli*Hdeti*W0;
 
-      DrhoDti = - rhoi * DvDxi.Trace() ;
+      DrhoDti = - rhoi * DvDxi.Trace();
 
       // If needed finish the total energy derivative.
       if (totalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
@@ -434,12 +434,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       if (xsph){
         DxDti += XSPHDeltaVi/max(tiny, normi);
       } 
-
-      // in case we want to use local DvDx for Rieman Gradient
-      //const auto localMdeti = localMi.Determinant();
-      //const auto goodLocalM = ( localMdeti > 1.0e-2 and numNeighborsi > Dimension::pownu(2));
-      //localMi =  (goodLocalM ? localMi.Inverse() : Tensor::one);
-      //localDvDxi = localDvDxi*localMi;
 
       // The H tensor evolution.
       DHDti = smoothingScale.smoothingScaleDerivative(Hi,
@@ -530,30 +524,22 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
       const auto& voli = volume(nodeListi, i);
-      const auto& vi = velocity(nodeListi, i);
-      const auto& Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
       CHECK(Hdeti > 0.0);
 
       auto& Mi = M_thread(nodeListi, i);
-      auto& newRiemannDpDxi = newRiemannDpDx_thread(nodeListi, i);
-      auto& newRiemannDvDxi = newRiemannDvDx_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
       const auto& volj = volume(nodeListj, j);
-      const auto& vj = velocity(nodeListj, j);
-      const auto& Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       CHECK(mj > 0.0);
       CHECK(Hdetj > 0.0);
 
       auto& Mj = M_thread(nodeListj, j);
-      auto& newRiemannDpDxj = newRiemannDpDx_thread(nodeListj, j);
-      auto& newRiemannDvDxj = newRiemannDvDx_thread(nodeListj, j);
 
       const auto rij = ri - rj;
 
@@ -580,6 +566,15 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       Mj -= rij.dyad(gradPsij);
       // // based on nodal values
       if (gradType == GradientType::SPHSameTimeGradient){
+        const auto& vi = velocity(nodeListi, i);
+        const auto& Pi = pressure(nodeListi, i);
+        const auto& vj = velocity(nodeListj, j);
+        const auto& Pj = pressure(nodeListj, j);
+        auto& newRiemannDpDxi = newRiemannDpDx_thread(nodeListi, i);
+        auto& newRiemannDvDxi = newRiemannDvDx_thread(nodeListi, i);
+        auto& newRiemannDpDxj = newRiemannDpDx_thread(nodeListj, j);
+        auto& newRiemannDvDxj = newRiemannDvDx_thread(nodeListj, j);
+
         newRiemannDpDxi -= (Pi-Pj)*gradPsii;
         newRiemannDpDxj -= (Pi-Pj)*gradPsij;
 
@@ -601,8 +596,6 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
     for (auto i = 0u; i < ni; ++i) {
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       auto& Mi = M(nodeListi, i);
-      auto& newRiemannDpDxi = newRiemannDpDx(nodeListi, i);
-      auto& newRiemannDvDxi = newRiemannDvDx(nodeListi, i);
 
       const auto Mdeti = std::abs(Mi.Determinant());
 
@@ -612,6 +605,9 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       Mi = ( goodM ? Mi.Inverse() : Tensor::one);
 
       if (gradType == GradientType::SPHSameTimeGradient){
+        auto& newRiemannDpDxi = newRiemannDpDx(nodeListi, i);
+        auto& newRiemannDvDxi = newRiemannDvDx(nodeListi, i);
+
         newRiemannDpDxi = Mi.Transpose()*newRiemannDpDxi;
         newRiemannDvDxi = newRiemannDvDxi*Mi;
       }
