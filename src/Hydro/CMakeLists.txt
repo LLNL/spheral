@@ -1,6 +1,7 @@
 include_directories(.)
 set(Hydro_inst
     EntropyPolicy
+    CompatibleDifferenceSpecificThermalEnergyPolicy
     NonSymmetricSpecificThermalEnergyPolicy
     PositionPolicy
     PressurePolicy
@@ -34,6 +35,7 @@ set(Hydro_headers
     HydroInline.hh
     MashCorrectionPolicy.hh
     MeshScaledMassDensityPolicy.hh
+    CompatibleDifferenceSpecificThermalEnergyPolicy.hh
     NonSymmetricSpecificThermalEnergyPolicy.hh
     PositionPolicy.hh
     PressurePolicy.hh
