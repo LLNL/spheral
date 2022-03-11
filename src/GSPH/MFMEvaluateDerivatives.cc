@@ -450,7 +450,6 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
   CHECK(velocity.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
-  CHECK(massDensity.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
 
   auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
