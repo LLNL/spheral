@@ -371,7 +371,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Tweak the artificial viscosity.
 #-------------------------------------------------------------------------------
-if not gsph:
+if not (gsph or mfm):
     q = hydro.Q
     if not Cl is None:
         q.Cl = Cl

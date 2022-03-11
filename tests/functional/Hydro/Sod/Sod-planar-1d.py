@@ -22,7 +22,7 @@
 # MFM
 #
 #ATS:mfm1 = test(         SELF, "--mfm True --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with MFM -- 1-D (serial)")
-#ATS:mfm2 = testif(gsph1, SELF, "--mfm True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with MFM -- 1-D (serial) RESTART CHECK")
+#ATS:mfm2 = testif(mfm1,  SELF, "--mfm True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with MFM -- 1-D (serial) RESTART CHECK")
 #
 import os, sys
 import shutil
@@ -418,7 +418,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Tweak the artificial viscosity.
 #-------------------------------------------------------------------------------
-if not gsph:
+if not (gsph or mfm):
     q = hydro.Q
     if not Cl is None:
         q.Cl = Cl
