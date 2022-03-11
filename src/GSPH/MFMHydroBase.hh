@@ -1,6 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// MFMHydroBase -- The MFM  package for Spheral++ (ala Hopkins 2015)
+// MFMHydroBase -- spheralized verions of "Meshless Finite Mass" 
+//   Hopkins P.F. (2015) "A New Class of Accurate, Mesh-Free Hydrodynamic 
+//   Simulation Methods," MNRAS, 450(1):53-110
+//
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_MFMHydroBase_hh__
 #define __Spheral_MFMHydroBase_hh__
 

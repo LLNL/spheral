@@ -1,6 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
-// GSPHFieldNames -- A collection of standard Field names for the GSPH 
-// physics package.
+// GSPHFieldNames -- A collection of Field names specialized for GSPH module
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
 
 #include "GSPHFieldNames.hh"

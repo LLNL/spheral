@@ -1,7 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
-// PureReplaceFieldList -- An implementation of FieldListUpdatePolicyBase appropriate for
-// when 'ya just want to replace the state value with the new.
+// PureReplaceFieldList -- replaces one fieldlists values with those of 
+//                         another specified by its key
+//
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_PureReplaceFieldList_hh__
 #define __Spheral_PureReplaceFieldList_hh__
 

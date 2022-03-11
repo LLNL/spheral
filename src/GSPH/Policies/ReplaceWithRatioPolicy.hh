@@ -1,6 +1,9 @@
 //---------------------------------Spheral++----------------------------------//
 // ReplaceWithRatioPolicy -- replaces with ratio of two other state fields
+//
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_ReplaceWithRatioPolicy_hh__
 #define __Spheral_ReplaceWithRatioPolicy_hh__
 

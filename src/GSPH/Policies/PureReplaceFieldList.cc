@@ -1,7 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
-// PureReplaceFieldList -- replaces one fieldlist with another arbitrary 
-// field list based on a user specificed key
+// PureReplaceFieldList -- replaces one fieldlists values with those of 
+//                         another specified by its key
+//
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
+
 #include "GSPH/Policies/PureReplaceFieldList.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/State.hh"

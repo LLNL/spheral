@@ -1,5 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
-// RiemannSolverBase
+// RiemannSolverBase -- base class for our riemann solvers 
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_RiemannSolverBase_hh__
 #define __Spheral_RiemannSolverBase_hh__

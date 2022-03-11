@@ -1,6 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
-// GenericRiemannHydro -- The SPH/ASPH hydrodynamic package for Spheral++.
+// GenericRiemannHydro --  pure virtual class for hydros using a Riemann
+//                        solver
+//
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_GenericRiemannHydro_hh__
 #define __Spheral_GenericRiemannHydro_hh__
 
@@ -101,25 +105,6 @@ public:
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) override;
                        
-  // Evaluate the derivatives for the principle hydro variables:
-  // mass density, velocity, and specific thermal energy.
-
-
-
-  //Evaluate Derivatives sub--routines
-  // void
-  // evaluateSpatialGradients(const typename Dimension::Scalar time,
-  //                    const typename Dimension::Scalar dt,
-  //                    const DataBase<Dimension>& dataBase,
-  //                    const State<Dimension>& state,
-  //                          StateDerivatives<Dimension>& derivatives) const;
-  // void
-  // computeMCorrection(const typename Dimension::Scalar time,
-  //                    const typename Dimension::Scalar dt,
-  //                    const DataBase<Dimension>& dataBase,
-  //                    const State<Dimension>& state,
-  //                          StateDerivatives<Dimension>& derivatives) const;
-
   // Finalize the derivatives.
   virtual
   void finalizeDerivatives(const Scalar time,
@@ -195,23 +180,6 @@ public:
   const Vector& xmax() const;
   void xmin(const Vector& x);
   void xmax(const Vector& x);
-  
-  // Return the cumulative neighboring statistics.
-  // int minMasterNeighbor() const;
-  // int maxMasterNeighbor() const;
-  // double averageMasterNeighbor() const;
-
-  // int minCoarseNeighbor() const;
-  // int maxCoarseNeighbor() const;
-  // double averageCoarseNeighbor() const;
-
-  // int minRefineNeighbor() const;
-  // int maxRefineNeighbor() const;
-  // double averageRefineNeighbor() const;
-
-  // int minActualNeighbor() const;
-  // int maxActualNeighbor() const;
-  // double averageActualNeighbor() const;
 
   // The state field lists we're maintaining.
   const FieldList<Dimension, int>&       timeStepMask() const;
@@ -225,16 +193,11 @@ public:
   const FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Tensor>&    M() const;
-  //const FieldList<Dimension, Tensor>&    localM() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    DvDt() const;
   const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
   const FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
-  //const FieldList<Dimension, Tensor>&    internalDvDx() const;
-  //const FieldList<Dimension, Vector>&    DpDx() const;
-  //const FieldList<Dimension, Vector>&    DpDxRaw() const;
-  //const FieldList<Dimension, Tensor>&    DvDxRaw() const;
   
   const std::vector<Vector>&             pairAccelerations() const;
   const std::vector<Scalar>&             pairDepsDt() const;
@@ -254,11 +217,6 @@ public:
 protected:
   //--------------------------- Protected Interface ---------------------------//
   RestartRegistrationType mRestart;
-
-  // void updateMasterNeighborStats(int numMaster) const;
-  // void updateCoarseNeighborStats(int numNeighbor) const;
-  // void updateRefineNeighborStats(int numNeighbor) const;
-  // void updateActualNeighborStats(int numNeighbor) const;
 
   
 private:
@@ -281,15 +239,6 @@ private:
   Scalar mSpecificThermalEnergyDiffusionCoefficient; 
   Scalar mCfl; 
   Vector mxmin, mxmax;
-            
-  // mutable int mMinMasterNeighbor, mMaxMasterNeighbor, mSumMasterNeighbor;
-  // mutable int mMinCoarseNeighbor, mMaxCoarseNeighbor, mSumCoarseNeighbor;
-  // mutable int mMinRefineNeighbor, mMaxRefineNeighbor, mSumRefineNeighbor;
-  // mutable int mMinActualNeighbor, mMaxActualNeighbor, mSumActualNeighbor;
-  // mutable int mNormMasterNeighbor;
-  // mutable int mNormCoarseNeighbor;
-  // mutable int mNormRefineNeighbor;
-  // mutable int mNormActualNeighbor;
 
   // Our fields.
   FieldList<Dimension, int>       mTimeStepMask;
@@ -306,7 +255,6 @@ private:
   FieldList<Dimension, Scalar>    mXSPHWeightSum;
   FieldList<Dimension, Vector>    mXSPHDeltaV;
 
-  //FieldList<Dimension, Tensor>    mLocalM;
   FieldList<Dimension, Tensor>    mM;
 
   FieldList<Dimension, Vector>    mDxDt;
@@ -314,13 +262,11 @@ private:
   FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
   FieldList<Dimension, SymTensor> mDHDt;
 
-  //FieldList<Dimension, Tensor>    mInternalDvDx;
   FieldList<Dimension, Tensor>    mDvDx;
   FieldList<Dimension, Vector>    mRiemannDpDx;
   FieldList<Dimension, Tensor>    mRiemannDvDx;
   FieldList<Dimension, Vector>    mNewRiemannDpDx;
   FieldList<Dimension, Tensor>    mNewRiemannDvDx;
-  //FieldList<Dimension, Vector>    mDrhoDx;
 
   std::vector<Vector>             mPairAccelerations;
   std::vector<Scalar>             mPairDepsDt;

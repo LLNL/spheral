@@ -1,3 +1,7 @@
+//---------------------------------Spheral++----------------------------------//
+// Compute the volume from m/rho
+//----------------------------------------------------------------------------//
+
 #include "GSPH/computeSPHVolume.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"

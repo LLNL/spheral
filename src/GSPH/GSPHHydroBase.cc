@@ -1,36 +1,28 @@
 //---------------------------------Spheral++----------------------------------//
-// GSPHHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
+// GSPHHydroBase -- The Godunov SPH hydrodynamic package for Spheral++.
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
+
 #include "FileIO/FileIO.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "SPH/computeSPHSumMassDensity.hh"
+#include "Hydro/HydroFieldNames.hh"
 
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/ReplaceFieldList.hh"
-#include "DataBase/IncrementBoundedFieldList.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
 #include "DataBase/IncrementBoundedState.hh"
-#include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
-
-#include "Hydro/HydroFieldNames.hh"
-#include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
-#include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
-#include "Hydro/SpecificThermalEnergyPolicy.hh"
-#include "Hydro/PositionPolicy.hh"
-#include "Hydro/PressurePolicy.hh"
-#include "Hydro/SoundSpeedPolicy.hh"
 
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
-#include "Utilities/safeInv.hh"
-#include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/Timer.hh"
 
 #include "GSPH/GSPHHydroBase.hh"
@@ -43,25 +35,11 @@
 #include "omp.h"
 #endif
 
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
 #include <sstream>
 
-using std::vector;
 using std::string;
-using std::pair;
-using std::to_string;
-using std::make_pair;
-using std::cout;
-using std::cerr;
-using std::endl;
 using std::min;
 using std::max;
-using std::abs;
 
 // Declare timers
 extern Timer TIME_GSPH;

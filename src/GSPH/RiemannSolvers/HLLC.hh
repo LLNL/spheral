@@ -1,10 +1,16 @@
 //---------------------------------Spheral++----------------------------------//
-// HLLC
+// HLLC -- approximate riemann solver
+//   Toro E.F., Spruce M., Speares W., (1994) "Restoration of the Contact Surface in
+//   the HLL-Riemann Solver," Shock Waves, 4:25-34
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_HLLC_hh__
 #define __Spheral_HLLC_hh__
 
 #include "RiemannSolverBase.hh"
+
 namespace Spheral {
 
 template<typename Dimension> class State;

@@ -1,3 +1,7 @@
+//---------------------------------Spheral++----------------------------------//
+// Compute volume from inverse of the kernel summation
+//----------------------------------------------------------------------------//
+
 #include "GSPH/computeSumVolume.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"

@@ -1,6 +1,9 @@
 //---------------------------------Spheral++----------------------------------//
 // GSPHHydroBase -- The Godunov SPH hydrodynamic package for Spheral++.
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_GSPHHydroBase_hh__
 #define __Spheral_GSPHHydroBase_hh__
 

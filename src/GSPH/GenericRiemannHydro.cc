@@ -1,25 +1,24 @@
 //---------------------------------Spheral++----------------------------------//
-// GenericRiemannHydro -- The SPH/ASPH hydrodynamic package for Spheral++.
+// GenericRiemannHydro -- pure virtual class for hydros using a Riemann
+//                        solver
 //
-// Created by JMO, Mon Jul 19 22:11:09 PDT 2010
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
+
 #include "FileIO/FileIO.hh"
 #include "NodeList/SmoothingScaleBase.hh"
-#include "Hydro/HydroFieldNames.hh"
 #include "Physics/Physics.hh"
-#include "SPH/computeSPHSumMassDensity.hh"
 
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/ReplaceFieldList.hh"
-#include "DataBase/IncrementBoundedFieldList.hh"
-#include "DataBase/ReplaceBoundedFieldList.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
 
+#include "Hydro/HydroFieldNames.hh"
 #include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/SpecificThermalEnergyPolicy.hh"
@@ -31,16 +30,12 @@
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
-#include "Utilities/Timer.hh"
 
 #include "GSPH/GSPHFieldNames.hh"
 #include "GSPH/GenericRiemannHydro.hh"
-#include "GSPH/computeSumVolume.hh"
 #include "GSPH/computeSPHVolume.hh"
-#include "GSPH/computeMFMDensity.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 #ifdef _OPENMP
@@ -48,11 +43,7 @@
 #endif
 
 #include <limits.h>
-#include <float.h>
-#include <algorithm>
 #include <fstream>
-#include <map>
-#include <vector>
 #include <sstream>
 
 using std::vector;
@@ -60,12 +51,6 @@ using std::string;
 using std::pair;
 using std::to_string;
 using std::make_pair;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::min;
-using std::max;
-using std::abs;
 
 
 namespace {
@@ -123,22 +108,6 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mCfl(cfl),
   mxmin(xmin),
   mxmax(xmax),
-  // mMinMasterNeighbor(INT_MAX),
-  // mMaxMasterNeighbor(0),
-  // mSumMasterNeighbor(0),
-  // mMinCoarseNeighbor(INT_MAX),
-  // mMaxCoarseNeighbor(0),
-  // mSumCoarseNeighbor(0),
-  // mMinRefineNeighbor(INT_MAX),
-  // mMaxRefineNeighbor(0),
-  // mSumRefineNeighbor(0),
-  // mMinActualNeighbor(INT_MAX),
-  // mMaxActualNeighbor(0),
-  // mSumActualNeighbor(0),
-  // mNormMasterNeighbor(0),
-  // mNormCoarseNeighbor(0),
-  // mNormRefineNeighbor(0),
-  // mNormActualNeighbor(0),
   mTimeStepMask(FieldStorageType::CopyFields),
   mVolume(FieldStorageType::CopyFields),
   mPressure(FieldStorageType::CopyFields),
@@ -149,17 +118,12 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mMassSecondMoment(FieldStorageType::CopyFields),
   mXSPHWeightSum(FieldStorageType::CopyFields),
   mXSPHDeltaV(FieldStorageType::CopyFields),
-  //mLocalM(FieldStorageType::CopyFields),
   mM(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
   mDvDt(FieldStorageType::CopyFields),
   mDspecificThermalEnergyDt(FieldStorageType::CopyFields),
   mDHDt(FieldStorageType::CopyFields),
-  //mInternalDvDx(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields),
-  //mDvDxRaw(FieldStorageType::CopyFields),
-  //mDpDx(FieldStorageType::CopyFields),
-  //mDpDxRaw(FieldStorageType::CopyFields),
   mRiemannDpDx(FieldStorageType::CopyFields),
   mRiemannDvDx(FieldStorageType::CopyFields),
   mNewRiemannDpDx(FieldStorageType::CopyFields),
@@ -178,21 +142,16 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
   mXSPHWeightSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::XSPHWeightSum);
   mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
-  //mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local" + HydroFieldNames::M_SPHCorrection);
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
   mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position);
   mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
   mDspecificThermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy);
   mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::H);
-  //mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mRiemannDpDx = dataBase.newFluidFieldList(Vector::zero,GSPHFieldNames::RiemannPressureGradient);
   mRiemannDvDx = dataBase.newFluidFieldList(Tensor::zero,GSPHFieldNames::RiemannVelocityGradient);
   mNewRiemannDpDx = dataBase.newFluidFieldList(Vector::zero,ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient);
   mNewRiemannDvDx = dataBase.newFluidFieldList(Tensor::zero,ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient);
-  //mDvDxRaw = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient+"RAW");
-  //mDpDx = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::pressureGradient);
-  //mDpDxRaw = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::pressureGradient+"RAW");
   mPairAccelerations.clear();
   mPairDepsDt.clear();
 
@@ -313,10 +272,8 @@ void
 GenericRiemannHydro<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
+  
   // Create the scratch fields.
-  // Note we deliberately do not zero out the derivatives here!  This is because the previous step
-  // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
-  //dataBase.resizeFluidFieldList(mDpDx, Vector::zero, GSPHFieldNames::pressureGradient, false);
   dataBase.resizeFluidFieldList(mNewRiemannDpDx, Vector::zero, ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient, false);
   dataBase.resizeFluidFieldList(mNewRiemannDvDx, Tensor::zero, ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient, false);
   dataBase.resizeFluidFieldList(mHideal, SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, false);
@@ -329,10 +286,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDspecificThermalEnergyDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, false);
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
-  //dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
   dataBase.resizeFluidFieldList(mM, Tensor::zero, HydroFieldNames::M_SPHCorrection, false);
-  //dataBase.resizeFluidFieldList(mLocalM, Tensor::zero, "local" + HydroFieldNames::M_SPHCorrection, false);
-
+  
   // Check if someone already registered DxDt.
   if (not derivs.registered(mDxDt)) {
     dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, false);
@@ -340,7 +295,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   }
   // Check that no-one else is trying to control the hydro vote for DvDt.
   CHECK(not derivs.registered(mDvDt));
-  //derivs.enroll(mDpDx);
   derivs.enroll(mNewRiemannDpDx);
   derivs.enroll(mNewRiemannDvDx);
   derivs.enroll(mDvDt);
@@ -353,9 +307,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDspecificThermalEnergyDt);
   derivs.enroll(mDHDt);
   derivs.enroll(mDvDx);
-  //derivs.enroll(mInternalDvDx);
   derivs.enroll(mM);
-  //derivs.enroll(mLocalM);
   derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
   derivs.enrollAny(HydroFieldNames::pairWork, mPairDepsDt);
 }

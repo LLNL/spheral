@@ -1,3 +1,6 @@
+//---------------------------------Spheral++----------------------------------//
+// RiemannSolverBase
+//----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
@@ -21,9 +24,9 @@
 
 namespace Spheral {
 
-//========================================================
+//------------------------------------------------------------------------------
 // Constructor
-//========================================================
+//------------------------------------------------------------------------------
 template<typename Dimension>
 RiemannSolverBase<Dimension>::
 RiemannSolverBase(LimiterBase<Dimension>& slopeLimiter,
@@ -36,17 +39,16 @@ RiemannSolverBase(LimiterBase<Dimension>& slopeLimiter,
   //mDvDx(FieldStorageType::CopyFields){
 }
 
-//========================================================
+//------------------------------------------------------------------------------
 // Destructor
-//========================================================
+//------------------------------------------------------------------------------
 template<typename Dimension>
 RiemannSolverBase<Dimension>::
 ~RiemannSolverBase(){}
 
-//========================================================
-// initialize derivs -- we'll stowe copies of some spatial 
-// derivs. the basic set up will be pressure and velocity
-//========================================================
+//------------------------------------------------------------------------------
+// non-op
+//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 RiemannSolverBase<Dimension>::
@@ -139,9 +141,9 @@ initialize(const DataBase<Dimension>& dataBase,
 } // initialize method
 
 
-//========================================================
+//------------------------------------------------------------------------------
 // reconstruct from limited gradient
-//========================================================
+//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 RiemannSolverBase<Dimension>::
@@ -178,9 +180,9 @@ linearReconstruction(const typename Dimension::Vector& ri,
   ytildej = yj + phi * Dyj;
 }
 
-//========================================================
+//------------------------------------------------------------------------------
 // reconstruct from limited gradient
-//========================================================
+//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 RiemannSolverBase<Dimension>::
@@ -222,9 +224,9 @@ linearReconstruction(const typename Dimension::Vector& ri,
   ytildej = yj + phi * Dyj;
 }
 
-//========================================================
+//------------------------------------------------------------------------------
 // default to non-op
-//========================================================
+//------------------------------------------------------------------------------
 // template<typename Dimension>
 // void
 // RiemannSolverBase<Dimension>::
@@ -277,9 +279,9 @@ interfaceState(const int /*i*/,
 
 }
 
-//========================================================
+//------------------------------------------------------------------------------
 // default to non-op
-//========================================================
+//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 RiemannSolverBase<Dimension>::

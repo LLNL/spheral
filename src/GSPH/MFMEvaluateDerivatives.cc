@@ -144,6 +144,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& ci = soundSpeed(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
+      CHECK(voli > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
@@ -174,6 +175,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  Hdetj = Hj.Determinant();
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
+      CHECK(volj > 0.0);
       CHECK(Hdetj > 0.0);
 
       auto& normj = normalization_thread(nodeListj,j);
@@ -186,9 +188,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj,j);
       const auto& Mj = M(nodeListj,j);
-
-      // Flag if this is a contiguous material pair or not.
-      //const bool sameMatij =  (nodeListi == nodeListj);
 
       // Node displacement.
       const auto rij = ri - rj;
@@ -447,7 +446,9 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  CHECK(mass.size() == numNodeLists);
+  CHECK(volume.size() == numNodeLists);
+  CHECK(velocity.size() == numNodeLists);
+  CHECK(pressure.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(massDensity.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
@@ -457,6 +458,8 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
   auto  newRiemannDvDx = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient,Tensor::zero);
   
   CHECK(M.size() == numNodeLists);
+  CHECK(newRiemannDpDx.size() == numNodeLists);
+  CHECK(newRiemannDvDx.size() == numNodeLists);
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
@@ -484,7 +487,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       const auto& voli = volume(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
-      CHECK(mi > 0.0);
+      CHECK(voli > 0.0);
       CHECK(Hdeti > 0.0);
 
       auto& Mi = M_thread(nodeListi, i);
@@ -494,7 +497,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       const auto& volj = volume(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
-      CHECK(mj > 0.0);
+      CHECK(volj > 0.0);
       CHECK(Hdetj > 0.0);
 
       auto& Mj = M_thread(nodeListj, j);

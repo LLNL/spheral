@@ -1,7 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
 // ReplaceWithRatioPolicy -- replaces one fieldlist with the ratio of two
 // fieldlists from the state.
+//
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
+
 #include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/State.hh"
@@ -10,6 +13,7 @@
 #include "Utilities/DBC.hh"
 
 #include <limits.h>
+
 namespace Spheral {
 
 //------------------------------------------------------------------------------

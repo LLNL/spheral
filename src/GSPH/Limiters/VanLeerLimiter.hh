@@ -3,7 +3,10 @@
 //   Van Leer, B. (1979), "Towards the ultimate conservative difference scheme 
 //   V. A second order sequel to Godunov's method", J. Comput. Phys., 32 (1): 
 //   101–136
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_VanLeerLimiter_hh__
 #define __Spheral_VanLeerLimiter_hh__
 

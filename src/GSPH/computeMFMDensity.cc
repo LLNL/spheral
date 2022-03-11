@@ -1,3 +1,7 @@
+//---------------------------------Spheral++----------------------------------//
+// Compute the density from m/V
+//----------------------------------------------------------------------------//
+
 #include "GSPH/computeMFMDensity.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"

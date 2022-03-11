@@ -1,40 +1,28 @@
 //---------------------------------Spheral++----------------------------------//
-// MFMHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
+// MFMHydroBase -- spheralized verions of "Meshless Finite Mass" 
+//   Hopkins P.F. (2015) "A New Class of Accurate, Mesh-Free Hydrodynamic 
+//   Simulation Methods," MNRAS, 450(1):53-110
 //
-// Created by JMO, Mon Jul 19 22:11:09 PDT 2010
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
+
 #include "FileIO/FileIO.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "SPH/computeSPHSumMassDensity.hh"
 
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/ReplaceFieldList.hh"
-#include "DataBase/IncrementBoundedFieldList.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
 #include "DataBase/IncrementBoundedState.hh"
-#include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
-
-#include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
-#include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
-#include "Hydro/SpecificThermalEnergyPolicy.hh"
-#include "Hydro/PositionPolicy.hh"
-#include "Hydro/PressurePolicy.hh"
-#include "Hydro/SoundSpeedPolicy.hh"
 
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
-
-#include "Utilities/timingUtilities.hh"
-#include "Utilities/safeInv.hh"
-#include "Utilities/globalBoundingVolumes.hh"
-#include "Utilities/Timer.hh"
 
 #include "GSPH/MFMHydroBase.hh"
 #include "GSPH/GSPHFieldNames.hh"
@@ -47,25 +35,11 @@
 #include "omp.h"
 #endif
 
-#include <limits.h>
-#include <float.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
 #include <sstream>
 
-using std::vector;
 using std::string;
-using std::pair;
-using std::to_string;
-using std::make_pair;
-using std::cout;
-using std::cerr;
-using std::endl;
 using std::min;
 using std::max;
-using std::abs;
 
 namespace Spheral {
 
