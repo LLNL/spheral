@@ -61,6 +61,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
+  CHECK(riemannDpDx.size() == numNodeLists);
+  CHECK(riemannDvDx.size() == numNodeLists);
 
   // Derivative FieldLists.
   const auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
@@ -70,35 +72,30 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  //auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  //auto  localM = derivatives.fields("local"+HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto& pairDepsDt = derivatives.getAny(HydroFieldNames::pairWork, vector<Scalar>());
-  //auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
-  //auto  DpDx = derivatives.fields(GSPHFieldNames::pressureGradient,Vector::zero);
   auto  newRiemannDpDx = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient,Vector::zero);
   auto  newRiemannDvDx = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient,Tensor::zero);
   
+  CHECK(M.size() == numNodeLists);
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DvolDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DepsDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
-  //CHECK(localDvDx.size() == numNodeLists);
-  //CHECK(localM.size() == numNodeLists);
   CHECK(DHDt.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
-  //CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
-  CHECK(DpDx.size() == numNodeLists);
+  CHECK(newRiemannDpDx.size() == numNodeLists);
+  CHECK(newRiemannDvDx.size() == numNodeLists);
 
   if (compatibleEnergy){
     pairAccelerations.resize(npairs);
@@ -120,14 +117,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
     auto DepsDt_thread = DepsDt.threadCopy(threadStack);
-    //auto DvolDt_thread = DvolDt.threadCopy(threadStack);
     auto DvDx_thread = DvDx.threadCopy(threadStack);
-    //auto DpDx_thread = DpDx.threadCopy(threadStack);
     auto newRiemannDpDx_thread = newRiemannDpDx.threadCopy(threadStack);
     auto newRiemannDvDx_thread = newRiemannDvDx.threadCopy(threadStack);
-    //auto localDvDx_thread = localDvDx.threadCopy(threadStack);
-    //auto localM_thread = localDvDx.threadCopy(threadStack);
-    //auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread =  XSPHDeltaV.threadCopy(threadStack);
     auto normalization_thread = normalization.threadCopy(threadStack);
     
@@ -158,15 +150,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& normi = normalization_thread(nodeListi,i);
       auto& DepsDti = DepsDt_thread(nodeListi, i);
       auto& DvDti = DvDt_thread(nodeListi, i);
-      //auto& DpDxi = DpDx_thread(nodeListi,i);
       auto& newRiemannDpDxi = newRiemannDpDx_thread(nodeListi,i);
       auto& newRiemannDvDxi = newRiemannDvDx_thread(nodeListi,i);
       auto& DvDxi = DvDx_thread(nodeListi, i);
-      //auto& localDvDxi = localDvDx_thread(nodeListi, i);
-      //auto& localMi = localM_thread(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
-      //auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi,i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi,i);
       const auto& Mi = M(nodeListi,i);
 
@@ -193,15 +181,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& DepsDtj = DepsDt_thread(nodeListj, j);
       auto& newRiemannDpDxj = newRiemannDpDx_thread(nodeListj,j);
       auto& newRiemannDvDxj = newRiemannDvDx_thread(nodeListj,j);
-      //auto& DpDxj = DpDx_thread(nodeListj,j);
-      //auto& DpDxRawj = DpDxRaw_thread(nodeListj,j);
-      //auto& DvDxRawj = DvDxRaw_thread(nodeListj,j);
       auto& DvDxj = DvDx_thread(nodeListj, j);
-      //auto& localDvDxj = localDvDx_thread(nodeListj, j);
-      //auto& localMj = localM_thread(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
-      //auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj,j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj,j);
       const auto& Mj = M(nodeListj,j);
 
@@ -341,22 +323,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           break;
           // do nada    
         }
-      // if(sameMatij){
-      //   localMi -= rij.dyad(gradPsii);
-      //   localMj -= rij.dyad(gradPsij);
-      //   localDvDxi -= deltaDvDxi;
-      //   localDvDxj -= deltaDvDxj;
-      // }
-
-      // DpDxi -= 2.0*(Peffi-Pstar)*gradPsii;
-      // DpDxj -= 2.0*(Pstar-Peffj)*gradPsij;
-
-      // // based on nodal values
-      // DvDxRawi -= (vi-vj).dyad(gradPsii);
-      // DvDxRawj -= (vi-vj).dyad(gradPsij);
-
-      // DpDxRawi -= (Pi-Pj)*gradPsii;
-      // DpDxRawj -= (Pi-Pj)*gradPsij;
 
       // XSPH
       //-----------------------------------------------------------
@@ -386,16 +352,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
-      //const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& voli = volume(nodeListi,i);
       const auto& vi = velocity(nodeListi, i);
-      //const auto& rhoi = massDensity(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
-      //CHECK(rhoi > 0.0);
+      CHECK(voli > 0.0);
       CHECK(Hdeti > 0.0);
 
       auto& normi = normalization(nodeListi, i);
@@ -404,8 +368,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& DvDti = DvDt(nodeListi, i);
       auto& DepsDti = DepsDt(nodeListi, i);
       auto& DvDxi = DvDx(nodeListi, i);
-      //auto& localDvDxi = localDvDx(nodeListi, i);
-      //auto& localMi = localM(nodeListi, i);
       auto& DHDti = DHDt(nodeListi, i);
       auto& Hideali = Hideal(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);

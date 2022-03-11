@@ -129,7 +129,7 @@ update(const KeyType& key,
   FieldList<Dimension, Value> f = state.fields(fieldKey, Value());
   const FieldList<Dimension, Value> numer = state.fields(mNumerator, Value());
   const FieldList<Dimension, Value> denom = state.fields(mDenomenator, Value());
-  CHECK(f.size() == df.size());
+  CHECK(numer.size() == denom.size());
 
   // Loop over the internal values of the field.
   const unsigned numNodeLists = f.size();
