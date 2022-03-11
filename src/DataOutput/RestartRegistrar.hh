@@ -50,16 +50,16 @@ public:
   const_iterator end() const;
 
   // Generate unique labels for each of the restartable things.
-  std::vector<std::string> uniqueLabels() const;
+  std::vector<std::string> uniqueLabels();
 
   // Print out the current ordering and labels for the restart objects.
-  void printLabels() const;
+  void printLabels();
 
   // Cause all registered objects to write their state to the file.
-  void dumpState(FileIO& file) const;
+  void dumpState(FileIO& file);
 
   // Cause all registered objects to restore their state from the file.
-  void restoreState(const FileIO& file) const;
+  void restoreState(const FileIO& file);
 
 private:
   //------------------------===== Private Interface =====----------------------//
