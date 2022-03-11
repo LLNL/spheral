@@ -323,7 +323,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           break;
           // do nada    
         }
-
+  
       // XSPH
       //-----------------------------------------------------------
       if (xsph) {
