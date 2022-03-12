@@ -49,8 +49,9 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/DomainNode.hh"',
                   '"Utilities/NodeCoupling.hh"',
                   '"Utilities/QuadraticInterpolator.hh"',
-                  '"Utilities/BiQuadraticInterpolator.hh"',
                   '"Utilities/BiLinearInterpolator.hh"',
+                  '"Utilities/BiQuadraticInterpolator.hh"',
+                  '"Utilities/BiCubicInterpolator.hh"',
                   '"Utilities/uniform_random.hh"',
                   '<algorithm>']
 
@@ -85,13 +86,15 @@ from Timer import *
 from DomainNode import *
 from NodeCoupling import *
 from QuadraticInterpolator import *
-from BiQuadraticInterpolator import *
 from BiLinearInterpolator import *
+from BiQuadraticInterpolator import *
+from BiCubicInterpolator import *
 from uniform_random import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
 ScalarScalarScalarFunctor = PYB11TemplateClass(Spheral2ArgFunctor, template_parameters=("double", "double", "double"))
+ScalarSCalarSymTensor2dFunctor = PYB11TemplateClass(Spheral2ArgFunctor, template_parameters=("double", "double", "Dim<2>::SymTensor"))
 
 @PYB11template("Vector")
 @PYB11implementation("[](std::vector<%(Vector)s>& positions) { %(Vector)s xmin, xmax; boundingBox(positions, xmin, xmax); return py::make_tuple(xmin, xmax); }")

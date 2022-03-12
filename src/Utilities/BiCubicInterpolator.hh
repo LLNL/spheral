@@ -1,38 +1,48 @@
 //---------------------------------Spheral++----------------------------------//
-// BiQuadraticInterpolator
+// BiCubicInterpolator
 //
-// Encapsulates the algorithm and data for parabolic interpolation in 2D
+// Encapsulates the algorithm and data for cubic interpolation in 2D
 // Assumes the results is interpolated as
-//   <F(x,y)> = c0 + c1*x + c2*y + c3*x*y + c4*x^2 + c5*x^2*y + c6*y^2 + c7*x*y^2 + c8*x^2*y^2
+//   <F(x,y)> = [1 x x^2 x^3][c00 c01 c02 c03][1]
+//                           [c10 c11 c12 c13][y]
+//                           [c20 c21 c22 c23][y^2]
+//                           [c30 c31 c32 c33][y^3]
+// Assumes we provide functors for F and gradF for fitting, where
+//      F(x,y) -> double
+//  gradF(x,y) -> Dim<2>::SymTensor
 //
-// Created by JMO, Thu Dec 10 14:48:01 PST 2020
+// See https://en.wikipedia.org/wiki/Bicubic_interpolation
+//
+// Created by JMO, Thu Mar 10 16:24:45 PST 2022
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_BiQuadraticInterpolator__
-#define __Spheral_BiQuadraticInterpolator__
+#ifndef __Spheral_BiCubicInterpolator__
+#define __Spheral_BiCubicInterpolator__
 
+#include "Utilities/FastMath.hh"
 #include <vector>
 
 namespace Spheral {
 
-class BiQuadraticInterpolator {
+class BiCubicInterpolator {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
-  template<typename Func>
-  BiQuadraticInterpolator(const double xmin,
-                          const double xmax,
-                          const double ymin,
-                          const double ymax,
-                          const size_t nx,
-                          const size_t ny,
-                          const Func& F,
-                          const bool xlog = false,
-                          const bool ylog = false);
-  BiQuadraticInterpolator();
-  ~BiQuadraticInterpolator();
+  template<typename Func, typename GradFunc>
+  BiCubicInterpolator(const double xmin,
+                      const double xmax,
+                      const double ymin,
+                      const double ymax,
+                      const size_t nx,
+                      const size_t ny,
+                      const Func& F,
+                      const GradFunc& gradF,
+                      const bool xlog = false,
+                      const bool ylog = false);
+  BiCubicInterpolator();
+  ~BiCubicInterpolator();
 
   // Initialize for interpolating the given function
-  template<typename Func>
+  template<typename Func, typename GradFunc>
   void initialize(const double xmin,
                   const double xmax,
                   const double ymin,
@@ -40,6 +50,7 @@ public:
                   const size_t nx,
                   const size_t ny,
                   const Func& F,
+                  const GradFunc& gradF,
                   const bool xlog = false,
                   const bool ylog = false);
 
@@ -70,7 +81,7 @@ public:
   const std::vector<double>& coeffs() const;  // the fitting coefficients
   
   // Comparison
-  bool operator==(const BiQuadraticInterpolator& rhs) const;
+  bool operator==(const BiCubicInterpolator& rhs) const;
 
 private:
   //--------------------------- Private Interface --------------------------//
@@ -84,26 +95,17 @@ private:
   double coord(const double xmin, const double dx,
                const size_t ix, const size_t nx,
                const bool xlog) const;
-
-  // Similar to above, but compute the relative normalized coordinate inside
-  // a grid patch for the fit (range [0,1]).
-  void eta_coords(const double xi, const double yi,
-                  double& etax,
-                  double& etay,
-                  size_t& ix,
-                  size_t& iy,
-                  size_t& i0) const;
 };
 
 }
 
-#include "BiQuadraticInterpolatorInline.hh"
+#include "BiCubicInterpolatorInline.hh"
 
 #else
 
 // Forward declaration
 namespace Spheral {
-  class BiQuadraticInterpolator;
+  class BiCubicInterpolator;
 }
 
 #endif

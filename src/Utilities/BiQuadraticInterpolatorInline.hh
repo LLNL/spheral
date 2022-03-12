@@ -42,7 +42,7 @@ BiQuadraticInterpolator::BiQuadraticInterpolator(const double xmin,
   mxmax(),
   mxstep(),
   mcoeffs() {
-  this->initialize(xmin, xmax, ymin, ymax, nx, ny, F);
+  this->initialize(xmin, xmax, ymin, ymax, nx, ny, F, xlog, ylog);
 }
 
 //------------------------------------------------------------------------------
@@ -82,38 +82,35 @@ BiQuadraticInterpolator::initialize(const double xmin,
   mxmax = xmax;
   mymin = ymin;
   mymax = ymax;
-  // mxstep = (xmax - xmin)/mnx1;
-  // mystep = (ymax - ymin)/mny1;
   mxstep = (xmax - xmin)/(xlog ? 1.0 : mnx1);
   mystep = (ymax - ymin)/(ylog ? 1.0 : mny1);
 
+  // We can predetermine A based on a unit square
+  const double dx1 = 0.0, dx2 = 0.5, dx3 = 1.0;
+  const double dy1 = 0.0, dy2 = 0.5, dy3 = 1.0;
+  Eigen::MatrixXd A(9, 9);
+  A << 1.0, dx1, dy1, dx1*dy1, dx1*dx1, dx1*dx1*dy1, dy1*dy1, dx1*dy1*dy1, dx1*dx1*dy1*dy1,
+       1.0, dx2, dy1, dx2*dy1, dx2*dx2, dx2*dx2*dy1, dy1*dy1, dx2*dy1*dy1, dx2*dx2*dy1*dy1,
+       1.0, dx3, dy1, dx3*dy1, dx3*dx3, dx3*dx3*dy1, dy1*dy1, dx3*dy1*dy1, dx3*dx3*dy1*dy1,
+       1.0, dx1, dy2, dx1*dy2, dx1*dx1, dx1*dx1*dy2, dy2*dy2, dx1*dy2*dy2, dx1*dx1*dy2*dy2,
+       1.0, dx2, dy2, dx2*dy2, dx2*dx2, dx2*dx2*dy2, dy2*dy2, dx2*dy2*dy2, dx2*dx2*dy2*dy2,
+       1.0, dx3, dy2, dx3*dy2, dx3*dx3, dx3*dx3*dy2, dy2*dy2, dx3*dy2*dy2, dx3*dx3*dy2*dy2,
+       1.0, dx1, dy3, dx1*dy3, dx1*dx1, dx1*dx1*dy3, dy3*dy3, dx1*dy3*dy3, dx1*dx1*dy3*dy3,
+       1.0, dx2, dy3, dx2*dy3, dx2*dx2, dx2*dx2*dy3, dy3*dy3, dx2*dy3*dy3, dx2*dx2*dy3*dy3,
+       1.0, dx3, dy3, dx3*dy3, dx3*dx3, dx3*dx3*dy3, dy3*dy3, dx3*dy3*dy3, dx3*dx3*dy3*dy3;
+  const auto Ainv = A.inverse();
+  
   // Fit the coefficients
   double x1, x2, x3, y1, y2, y3;
-  Eigen::MatrixXd A(9, 9);
   Eigen::VectorXd b(9), c(9);
   for (auto i = 0u; i < mnx1; ++i) {
     for (auto j = 0u; j < mny1; ++j) {
-      // x1 = xmin + i*mxstep;
-      // x2 = x1 + 0.5*mxstep;
-      // x3 = x1 +     mxstep;
-      // y1 = ymin + j*mystep;
-      // y2 = y1 + 0.5*mystep;
-      // y3 = y1 +     mystep;
       x1 = coord(xmin, mxstep, i,      mnx1, xlog);
       x3 = coord(xmin, mxstep, i + 1u, mnx1, xlog);
       x2 = 0.5*(x1 + x3);
       y1 = coord(ymin, mystep, j,      mny1, ylog);
       y3 = coord(ymin, mystep, j + 1u, mny1, ylog);
       y2 = 0.5*(y1 + y3);
-      A << 1.0, x1, y1, x1*y1, x1*x1, x1*x1*y1, y1*y1, x1*y1*y1, x1*x1*y1*y1,
-           1.0, x2, y1, x2*y1, x2*x2, x2*x2*y1, y1*y1, x2*y1*y1, x2*x2*y1*y1,
-           1.0, x3, y1, x3*y1, x3*x3, x3*x3*y1, y1*y1, x3*y1*y1, x3*x3*y1*y1,
-           1.0, x1, y2, x1*y2, x1*x1, x1*x1*y2, y2*y2, x1*y2*y2, x1*x1*y2*y2,
-           1.0, x2, y2, x2*y2, x2*x2, x2*x2*y2, y2*y2, x2*y2*y2, x2*x2*y2*y2,
-           1.0, x3, y2, x3*y2, x3*x3, x3*x3*y2, y2*y2, x3*y2*y2, x3*x3*y2*y2,
-           1.0, x1, y3, x1*y3, x1*x1, x1*x1*y3, y3*y3, x1*y3*y3, x1*x1*y3*y3,
-           1.0, x2, y3, x2*y3, x2*x2, x2*x2*y3, y3*y3, x2*y3*y3, x2*x2*y3*y3,
-           1.0, x3, y3, x3*y3, x3*x3, x3*x3*y3, y3*y3, x3*y3*y3, x3*x3*y3*y3;
       b << F(x1, y1),
            F(x2, y1),
            F(x3, y1),
@@ -133,19 +130,17 @@ BiQuadraticInterpolator::initialize(const double xmin,
              << "(" << x1 << " " << y3 << ") : " << b[6] << "\n"
              << "(" << x2 << " " << y3 << ") : " << b[7] << "\n"
              << "(" << x3 << " " << y3 << ") : " << b[8] << "\n");
-      c = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+      c = Ainv*b;
+      // c = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
       // c = A.inverse()*b;
       // c = A.fullPivHouseholderQr().solve(b);
       // std::cerr << "------------------------------------------------------------------------------\n"
-      //           << "x00: " << x00 << "\n"
-      //           << "x10: " << x10 << "\n"
-      //           << "x20: " << x20 << "\n"
-      //           << "x01: " << x01 << "\n"
-      //           << "x11: " << x11 << "\n"
-      //           << "x21: " << x21 << "\n"
-      //           << "x02: " << x02 << "\n"
-      //           << "x12: " << x12 << "\n"
-      //           << "x22: " << x22 << "\n"
+      //           << "x1 : " << x1 << "\n"
+      //           << "x2 : " << x2 << "\n"
+      //           << "x3 : " << x3 << "\n"
+      //           << "y1 : " << y1 << "\n"
+      //           << "y2 : " << y2 << "\n"
+      //           << "y3 : " << y3 << "\n"
       //           << "A:\n" << A << "\n"
       //           << "b:\n" << b << "\n"
       //           << "c:\n" << c << "\n";
@@ -170,9 +165,11 @@ inline
 double
 BiQuadraticInterpolator::operator()(const double xi,
                                     const double yi) const {
-  const auto x = std::max(mxmin, std::min(mxmax, xi));
-  const auto y = std::max(mymin, std::min(mymax, yi));
-  const auto i0 = lowerBound(x, y);
+  double x, y;
+  size_t ix, iy, i0;
+  eta_coords(xi, yi, x, y, ix, iy, i0);
+  const auto x2 = x*x;
+  const auto y2 = y*y;
   // std::cerr << "================================================================================\n"
   //           << "mxlog, mylog : " << mxlog << " " << mylog << "\n"
   //           << "pos   : " << pos << "\n"
@@ -180,7 +177,15 @@ BiQuadraticInterpolator::operator()(const double xi,
   //           << "i0    : " << i0 << "\n"
   //           << "coeffs: " << mcoeffs[i0] << " " << mcoeffs[i0 + 1] << " " << mcoeffs[i0 + 2] << " " << mcoeffs[i0 + 3] << " " << mcoeffs[i0 + 4] << " " << mcoeffs[i0 + 5] << "\n"
   //           << "F(x,y): " << mcoeffs[i0] + mcoeffs[i0 + 1]*x + mcoeffs[i0 + 2]*y + mcoeffs[i0 + 3]*x*y + mcoeffs[i0 + 4]*x*x + mcoeffs[i0 + 5]*y*y << "\n";
-  return mcoeffs[i0] + mcoeffs[i0 + 1]*x + mcoeffs[i0 + 2]*y + mcoeffs[i0 + 3]*x*y + mcoeffs[i0 + 4]*x*x  + mcoeffs[i0 + 5]*x*x*y + mcoeffs[i0 + 6]*y*y + mcoeffs[i0 + 7]*x*y*y + mcoeffs[i0 + 8]*x*x*y*y;
+  return (mcoeffs[i0    ] +
+          mcoeffs[i0 + 1]*x +
+          mcoeffs[i0 + 2]*y +
+          mcoeffs[i0 + 3]*x*y +
+          mcoeffs[i0 + 4]*x2 +
+          mcoeffs[i0 + 5]*x2*y +
+          mcoeffs[i0 + 6]*y2 +
+          mcoeffs[i0 + 7]*x*y2 +
+          mcoeffs[i0 + 8]*x2*y2);
 }
 
 //------------------------------------------------------------------------------
@@ -189,10 +194,15 @@ BiQuadraticInterpolator::operator()(const double xi,
 inline
 double
 BiQuadraticInterpolator::prime_x(const double xi, const double yi) const {
-  const auto x = std::max(mxmin, std::min(mxmax, xi));
-  const auto y = std::max(mymin, std::min(mymax, yi));
-  const auto i0 = lowerBound(x, y);
-  return mcoeffs[i0 + 1] + mcoeffs[i0 + 3]*y + 2.0*mcoeffs[i0 + 4]*x + 2.0*mcoeffs[i0 + 5]*x*y + mcoeffs[i0 + 7]*y*y + 2.0*mcoeffs[i0 + 8]*x*y*y;
+  double x, y;
+  size_t ix, iy, i0;
+  eta_coords(xi, yi, x, y, ix, iy, i0);
+  return (mcoeffs[i0 + 1] +
+          mcoeffs[i0 + 3]*y +
+          mcoeffs[i0 + 4]*2.0*x +
+          mcoeffs[i0 + 5]*2.0*x*y +
+          mcoeffs[i0 + 7]*y*y +
+          mcoeffs[i0 + 8]*2.0*x*y*y);
 }
 
 //------------------------------------------------------------------------------
@@ -201,10 +211,15 @@ BiQuadraticInterpolator::prime_x(const double xi, const double yi) const {
 inline
 double
 BiQuadraticInterpolator::prime_y(const double xi, const double yi) const {
-  const auto x = std::max(mxmin, std::min(mxmax, xi));
-  const auto y = std::max(mymin, std::min(mymax, yi));
-  const auto i0 = lowerBound(x, y);
-  return mcoeffs[i0 + 2] + mcoeffs[i0 + 3]*x + mcoeffs[i0 + 5]*x*x + 2.0*mcoeffs[i0 + 6]*y + 2.0*mcoeffs[i0 + 7]*x*y + 2.0*mcoeffs[i0 + 8]*x*x*y;
+  double x, y;
+  size_t ix, iy, i0;
+  eta_coords(xi, yi, x, y, ix, iy, i0);
+  return (mcoeffs[i0 + 2] +
+          mcoeffs[i0 + 3]*x +
+          mcoeffs[i0 + 5]*x*x +
+          mcoeffs[i0 + 6]*2.0*y +
+          mcoeffs[i0 + 7]*2.0*x*y +
+          mcoeffs[i0 + 8]*2.0*x*x*y);
 }
 
 //------------------------------------------------------------------------------
@@ -213,10 +228,12 @@ BiQuadraticInterpolator::prime_y(const double xi, const double yi) const {
 inline
 double
 BiQuadraticInterpolator::prime2_xx(const double xi, const double yi) const {
-  const auto x = std::max(mxmin, std::min(mxmax, xi));
-  const auto y = std::max(mymin, std::min(mymax, yi));
-  const auto i0 = lowerBound(x, y);
-  return 2.0*(mcoeffs[i0 + 4] + mcoeffs[i0 + 5]*y + mcoeffs[i0 + 8]*y*y);
+  double x, y;
+  size_t ix, iy, i0;
+  eta_coords(xi, yi, x, y, ix, iy, i0);
+  return 2.0*(mcoeffs[i0 + 4] +
+              mcoeffs[i0 + 5]*y +
+              mcoeffs[i0 + 8]*y*y);
 }
 
 //------------------------------------------------------------------------------
@@ -225,22 +242,13 @@ BiQuadraticInterpolator::prime2_xx(const double xi, const double yi) const {
 inline
 double
 BiQuadraticInterpolator::prime2_xy(const double xi, const double yi) const {
-  const auto x = std::max(mxmin, std::min(mxmax, xi));
-  const auto y = std::max(mymin, std::min(mymax, yi));
-  const auto i0 = lowerBound(x, y);
-  return mcoeffs[i0 + 3] + 2.0*mcoeffs[i0 + 5]*x + 2.0*mcoeffs[i0 + 7]*y + 4.0*mcoeffs[i0 + 8]*x*y;
-}
-
-//------------------------------------------------------------------------------
-// Interpolate for the gradient2 (yx)
-//------------------------------------------------------------------------------
-inline
-double
-BiQuadraticInterpolator::prime2_yx(const double xi, const double yi) const {
-  const auto x = std::max(mxmin, std::min(mxmax, xi));
-  const auto y = std::max(mymin, std::min(mymax, yi));
-  const auto i0 = lowerBound(x, y);
-  return mcoeffs[i0 + 3] + 2.0*mcoeffs[i0 + 5]*x + 2.0*mcoeffs[i0 + 7]*y + 4.0*mcoeffs[i0 + 8]*x*y;
+  double x, y;
+  size_t ix, iy, i0;
+  eta_coords(xi, yi, x, y, ix, iy, i0);
+  return (mcoeffs[i0 + 3] +
+          mcoeffs[i0 + 5]*2.0*x +
+          mcoeffs[i0 + 7]*2.0*y +
+          mcoeffs[i0 + 8]*4.0*x*y);
 }
 
 //------------------------------------------------------------------------------
@@ -249,30 +257,30 @@ BiQuadraticInterpolator::prime2_yx(const double xi, const double yi) const {
 inline
 double
 BiQuadraticInterpolator::prime2_yy(const double xi, const double yi) const {
-  const auto x = std::max(mxmin, std::min(mxmax, xi));
-  const auto y = std::max(mymin, std::min(mymax, yi));
-  const auto i0 = lowerBound(x, y);
-  return 2.0*(mcoeffs[i0 + 6] + mcoeffs[i0 + 7]*x + mcoeffs[i0 + 8]*x*x);
+  double x, y;
+  size_t ix, iy, i0;
+  eta_coords(xi, yi, x, y, ix, iy, i0);
+  return 2.0*(mcoeffs[i0 + 6] +
+              mcoeffs[i0 + 7]*x +
+              mcoeffs[i0 + 8]*x*x);
 }
 
 //------------------------------------------------------------------------------
-// Return the lower bound entry in the table for the given x coordinate
+// Return the lower bound entry in the table for the given (x,y) position
 //------------------------------------------------------------------------------
 inline
-size_t
-BiQuadraticInterpolator::lowerBound(const double x, const double y) const {
-  // const auto result = 9u*(mnx1*std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep)) +
-  //                              std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep)));
-  const size_t ix = (mxlog ?
-                     std::min(mnx1 - 1u, size_t(mnx1 + log(std::min(1.0, std::max(0.0, (x - mxmin)/mxstep))))) :
-                     std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep)));
-  const size_t iy = (mylog ?
-                     std::min(mny1 - 1u, size_t(mny1 + log(std::min(1.0, std::max(0.0, (y - mymin)/mystep))))) :
-                     std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep)));
+void
+BiQuadraticInterpolator::lowerBound(const double x, const double y,
+                                    size_t& ix, size_t& iy, size_t& i) const {
+  ix = (mxlog ?
+        std::min(mnx1 - 1u, size_t(std::max(0.0, mnx1 + log(std::min(1.0, std::max(1e-10, (x - mxmin)/mxstep)))))) :
+        std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep)));
+  iy = (mylog ?
+        std::min(mny1 - 1u, size_t(std::max(0.0, mny1 + log(std::min(1.0, std::max(1e-10, (y - mymin)/mystep)))))) :
+        std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep)));
   CHECK(ix < mnx1 and iy < mny1);
-  const auto result = 9u*(mnx1*iy + ix);
-  ENSURE(result <= 9u*mnx1*mny1);
-  return result;
+  i = 9u*(mnx1*iy + ix);
+  ENSURE(i <= 9u*mnx1*mny1);
 }
 
 //------------------------------------------------------------------------------
@@ -356,7 +364,7 @@ BiQuadraticInterpolator::operator==(const BiQuadraticInterpolator& rhs) const {
 }
 
 //------------------------------------------------------------------------------
-// Compute the coordinate value
+// Compute the coordinate value for a grid point
 //------------------------------------------------------------------------------
 inline
 double
@@ -367,10 +375,34 @@ BiQuadraticInterpolator::coord(const double xmin,
                                const bool xlog) const {
   REQUIRE(ix <= nx);
   if (xlog) {
-    return xmin + dx*exp(ix - nx);
+    return xmin + dx*exp(int(ix) - int(nx));
   } else {
     return xmin + ix*dx;
   }
+}
+
+//------------------------------------------------------------------------------
+// Similar to above, but compute the relative normalized coordinate inside
+// a grid patch for the fit (range [0,1]).
+//------------------------------------------------------------------------------
+inline
+void
+BiQuadraticInterpolator::eta_coords(const double xi,
+                                    const double yi,
+                                    double& etax,
+                                    double& etay,
+                                    size_t& ix,
+                                    size_t& iy,
+                                    size_t& i0) const {
+  const auto xb = std::max(mxmin, std::min(mxmax, xi));
+  const auto yb = std::max(mymin, std::min(mymax, yi));
+  lowerBound(xb, yb, ix, iy, i0);
+  const auto x0 = coord(mxmin, mxstep, ix, mnx1, mxlog);
+  const auto y0 = coord(mymin, mystep, iy, mny1, mylog);
+  const auto dx = (mxlog ? coord(mxmin, mxstep, ix + 1u, mnx1, mxlog) - x0 : mxstep);
+  const auto dy = (mylog ? coord(mymin, mystep, iy + 1u, mny1, mylog) - y0 : mystep);
+  etax = std::max(0.0, std::min(1.0, (xb - x0)/dx));
+  etay = std::max(0.0, std::min(1.0, (yb - y0)/dy));
 }
 
 }
