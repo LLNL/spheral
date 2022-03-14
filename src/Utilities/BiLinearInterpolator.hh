@@ -10,34 +10,27 @@
 #ifndef __Spheral_BiLinearInterpolator__
 #define __Spheral_BiLinearInterpolator__
 
+#include "Utilities/XYInterpolator.hh"
 #include <vector>
 
 namespace Spheral {
 
-class BiLinearInterpolator {
+class BiLinearInterpolator: public XYInterpolator {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
   template<typename Func>
   BiLinearInterpolator(const double xmin,
-                          const double xmax,
-                          const double ymin,
-                          const double ymax,
-                          const size_t nx,
-                          const size_t ny,
-                          const Func& F);
+                       const double xmax,
+                       const double ymin,
+                       const double ymax,
+                       const size_t nx,
+                       const size_t ny,
+                       const Func& F,
+                       const bool xlog,
+                       const bool ylog);
   BiLinearInterpolator();
-  ~BiLinearInterpolator();
-
-  // Initialize for interpolating the given function
-  template<typename Func>
-  void initialize(const double xmin,
-                  const double xmax,
-                  const double ymin,
-                  const double ymax,
-                  const size_t nx,
-                  const size_t ny,
-                  const Func& F);
+  virtual ~BiLinearInterpolator();
 
   // Interpolate for the F(x,y) value
   double operator()(const double x, const double y) const;
@@ -51,12 +44,6 @@ public:
 
   // Allow read access the internal data representation
   size_t size() const;                        // The size of the tabulated coefficient arrays
-  double xmin() const;                        // Minimum x coordinate for table              
-  double xmax() const;                        // Maximum x coordinate for table              
-  double ymin() const;                        // Minimum y coordinate for table              
-  double ymax() const;                        // Maximum y coordinate for table              
-  double xstep() const;                       // x step size
-  double ystep() const;                       // y step size
   const std::vector<double>& coeffs() const;  // the fitting coefficients
   
   // Comparison
@@ -65,8 +52,6 @@ public:
 private:
   //--------------------------- Private Interface --------------------------//
   // Member data
-  size_t mnx1, mny1;
-  double mxmin, mxmax, mymin, mymax, mxstep, mystep;
   std::vector<double> mcoeffs;
 };
 

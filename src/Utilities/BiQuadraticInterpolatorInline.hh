@@ -15,7 +15,7 @@ BiQuadraticInterpolator::BiQuadraticInterpolator():
 }
 
 //------------------------------------------------------------------------------
-// Construct with tabulated data
+// Construct by sampling the given functor
 //------------------------------------------------------------------------------
 template<typename Func>
 BiQuadraticInterpolator::BiQuadraticInterpolator(const double xmin,
@@ -34,22 +34,21 @@ BiQuadraticInterpolator::BiQuadraticInterpolator(const double xmin,
   mcoeffs.resize(9*mnx1*mny1);
 
   // We can predetermine A based on a unit square
-  const double dx1 = 0.0, dx2 = 0.5, dx3 = 1.0;
-  const double dy1 = 0.0, dy2 = 0.5, dy3 = 1.0;
+  double x1 = 0.0, x2 = 0.5, x3 = 1.0;
+  double y1 = 0.0, y2 = 0.5, y3 = 1.0;
   Eigen::MatrixXd A(9, 9);
-  A << 1.0, dx1, dy1, dx1*dy1, dx1*dx1, dx1*dx1*dy1, dy1*dy1, dx1*dy1*dy1, dx1*dx1*dy1*dy1,
-       1.0, dx2, dy1, dx2*dy1, dx2*dx2, dx2*dx2*dy1, dy1*dy1, dx2*dy1*dy1, dx2*dx2*dy1*dy1,
-       1.0, dx3, dy1, dx3*dy1, dx3*dx3, dx3*dx3*dy1, dy1*dy1, dx3*dy1*dy1, dx3*dx3*dy1*dy1,
-       1.0, dx1, dy2, dx1*dy2, dx1*dx1, dx1*dx1*dy2, dy2*dy2, dx1*dy2*dy2, dx1*dx1*dy2*dy2,
-       1.0, dx2, dy2, dx2*dy2, dx2*dx2, dx2*dx2*dy2, dy2*dy2, dx2*dy2*dy2, dx2*dx2*dy2*dy2,
-       1.0, dx3, dy2, dx3*dy2, dx3*dx3, dx3*dx3*dy2, dy2*dy2, dx3*dy2*dy2, dx3*dx3*dy2*dy2,
-       1.0, dx1, dy3, dx1*dy3, dx1*dx1, dx1*dx1*dy3, dy3*dy3, dx1*dy3*dy3, dx1*dx1*dy3*dy3,
-       1.0, dx2, dy3, dx2*dy3, dx2*dx2, dx2*dx2*dy3, dy3*dy3, dx2*dy3*dy3, dx2*dx2*dy3*dy3,
-       1.0, dx3, dy3, dx3*dy3, dx3*dx3, dx3*dx3*dy3, dy3*dy3, dx3*dy3*dy3, dx3*dx3*dy3*dy3;
+  A << 1.0, x1, y1, x1*y1, x1*x1, x1*x1*y1, y1*y1, x1*y1*y1, x1*x1*y1*y1,
+       1.0, x2, y1, x2*y1, x2*x2, x2*x2*y1, y1*y1, x2*y1*y1, x2*x2*y1*y1,
+       1.0, x3, y1, x3*y1, x3*x3, x3*x3*y1, y1*y1, x3*y1*y1, x3*x3*y1*y1,
+       1.0, x1, y2, x1*y2, x1*x1, x1*x1*y2, y2*y2, x1*y2*y2, x1*x1*y2*y2,
+       1.0, x2, y2, x2*y2, x2*x2, x2*x2*y2, y2*y2, x2*y2*y2, x2*x2*y2*y2,
+       1.0, x3, y2, x3*y2, x3*x3, x3*x3*y2, y2*y2, x3*y2*y2, x3*x3*y2*y2,
+       1.0, x1, y3, x1*y3, x1*x1, x1*x1*y3, y3*y3, x1*y3*y3, x1*x1*y3*y3,
+       1.0, x2, y3, x2*y3, x2*x2, x2*x2*y3, y3*y3, x2*y3*y3, x2*x2*y3*y3,
+       1.0, x3, y3, x3*y3, x3*x3, x3*x3*y3, y3*y3, x3*y3*y3, x3*x3*y3*y3;
   const auto Ainv = A.inverse();
   
   // Fit the coefficients
-  double x1, x2, x3, y1, y2, y3;
   Eigen::VectorXd b(9), c(9);
   for (auto i = 0u; i < mnx1; ++i) {
     for (auto j = 0u; j < mny1; ++j) {
@@ -92,7 +91,7 @@ BiQuadraticInterpolator::BiQuadraticInterpolator(const double xmin,
       //           << "A:\n" << A << "\n"
       //           << "b:\n" << b << "\n"
       //           << "c:\n" << c << "\n";
-      const auto k = 9*(i + j*mnx1);
+      const auto k = 9u*(i + j*mnx1);
       mcoeffs[k    ] = c(0);
       mcoeffs[k + 1] = c(1);
       mcoeffs[k + 2] = c(2);
