@@ -10,14 +10,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 inline
 BiQuadraticInterpolator::BiQuadraticInterpolator():
-  mnx1(),
-  mny1(),
-  mxmin(),
-  mxmax(),
-  mymin(),
-  mymax(),
-  mxstep(),
-  mystep(),
+  XYInterpolator(),
   mcoeffs() {
 }
 
@@ -34,56 +27,11 @@ BiQuadraticInterpolator::BiQuadraticInterpolator(const double xmin,
                                                  const Func& F,
                                                  const bool xlog,
                                                  const bool ylog):
-  mxlog(),
-  mylog(),
-  mnx1(),
-  mny1(),
-  mxmin(),
-  mxmax(),
-  mxstep(),
+  XYInterpolator(xmin, xmax, ymin, ymax, nx, ny, xlog, ylog),
   mcoeffs() {
-  this->initialize(xmin, xmax, ymin, ymax, nx, ny, F, xlog, ylog);
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-inline
-BiQuadraticInterpolator::~BiQuadraticInterpolator() {
-}
-
-//------------------------------------------------------------------------------
-// Initialize the interpolation to fit the given data
-//------------------------------------------------------------------------------
-template<typename Func>
-inline
-void
-BiQuadraticInterpolator::initialize(const double xmin,
-                                    const double xmax,
-                                    const double ymin,
-                                    const double ymax,
-                                    const size_t nx,
-                                    const size_t ny,
-                                    const Func& F,
-                                    const bool xlog,
-                                    const bool ylog) {
 
   // Size stuff up.
-  REQUIRE(nx > 2u);
-  REQUIRE(ny > 2u);
-  mnx1 = nx - 1u;
-  mny1 = ny - 1u;
-  mxlog = xlog;
-  mylog = ylog;
   mcoeffs.resize(9*mnx1*mny1);
-
-  // Figure out the sampling steps.
-  mxmin = xmin;
-  mxmax = xmax;
-  mymin = ymin;
-  mymax = ymax;
-  mxstep = (xmax - xmin)/(xlog ? 1.0 : mnx1);
-  mystep = (ymax - ymin)/(ylog ? 1.0 : mny1);
 
   // We can predetermine A based on a unit square
   const double dx1 = 0.0, dx2 = 0.5, dx3 = 1.0;
@@ -156,6 +104,31 @@ BiQuadraticInterpolator::initialize(const double xmin,
       mcoeffs[k + 8] = c(8);
     }
   }
+}
+
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+inline
+BiQuadraticInterpolator::~BiQuadraticInterpolator() {
+}
+
+//------------------------------------------------------------------------------
+// Initialize the interpolation to fit the given data
+//------------------------------------------------------------------------------
+template<typename Func>
+inline
+void
+BiQuadraticInterpolator::initialize(const double xmin,
+                                    const double xmax,
+                                    const double ymin,
+                                    const double ymax,
+                                    const size_t nx,
+                                    const size_t ny,
+                                    const Func& F,
+                                    const bool xlog,
+                                    const bool ylog) {
+
 }
 
 //------------------------------------------------------------------------------
