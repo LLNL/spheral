@@ -425,54 +425,54 @@ ANEOS(const int materialNumber,
 
   // Build the biquadratic interpolation function for eps(rho, T)
   auto t0 = clock();
-  mEpsInterp.initialize(mRhoMin, mRhoMax,
-                        mTmin, mTmax,
-                        mNumRhoVals, mNumTvals, Feps);
+  mEpsInterp = BiQuadraticInterpolator(mRhoMin, mRhoMax,
+                                       mTmin, mTmax,
+                                       mNumRhoVals, mNumTvals, Feps);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build epsInterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   // Now the hard inversion method for looking up T(rho, eps)
   t0 = clock();
   const auto Ftemp = Tfunc(mTmin, mTmax, mEpsMinInterp, mEpsMaxInterp, mEpsInterp, Feps);
-  mTinterp.initialize(mRhoMin, mRhoMax,
-                      mEpsMin, mEpsMax,
-                      mNumRhoVals, mNumTvals, Ftemp);
+  mTinterp = BiQuadraticInterpolator(mRhoMin, mRhoMax,
+                                     mEpsMin, mEpsMax,
+                                     mNumRhoVals, mNumTvals, Ftemp);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Tinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   // And finally the interpolators for most of our derived quantities
   t0 = clock();
   const auto Textra = Textrapolator(mTmin, mTmax, mEpsMinInterp, mEpsMaxInterp, mTinterp);
   const auto Fpres = Pfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
-  mPinterp.initialize(mRhoMin, mRhoMax,
-                      mEpsMin, mEpsMax,
-                      mNumRhoVals, mNumTvals, Fpres);
+  mPinterp = BiQuadraticInterpolator(mRhoMin, mRhoMax,
+                                     mEpsMin, mEpsMax,
+                                     mNumRhoVals, mNumTvals, Fpres);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Pinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fcv = cVfunc(mMaterialNumber, mRhoConv, mTconv, mCVconv);
-  mCVinterp.initialize(mRhoMin, mRhoMax,
-                       mTmin, mTmax,
-                       mNumRhoVals, mNumTvals, Fcv);
+  mCVinterp = BiQuadraticInterpolator(mRhoMin, mRhoMax,
+                                      mTmin, mTmax,
+                                      mNumRhoVals, mNumTvals, Fcv);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build CVinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fcs = csfunc(mMaterialNumber, mRhoConv, mTconv, mVelConv, Textra);
-  mCSinterp.initialize(mRhoMin, mRhoMax,
-                       mEpsMin, mEpsMax,
-                       mNumRhoVals, mNumTvals, Fcs);
+  mCSinterp = BiQuadraticInterpolator(mRhoMin, mRhoMax,
+                                      mEpsMin, mEpsMax,
+                                      mNumRhoVals, mNumTvals, Fcs);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build CSinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto FK = Kfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
-  mKinterp.initialize(mRhoMin, mRhoMax,
-                      mEpsMin, mEpsMax,
-                      mNumRhoVals, mNumTvals, FK);
+  mKinterp = BiQuadraticInterpolator(mRhoMin, mRhoMax,
+                                     mEpsMin, mEpsMax,
+                                     mNumRhoVals, mNumTvals, FK);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Kinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fs = sfunc(mMaterialNumber, mRhoConv, mTconv, mSconv, Textra);
-  mSinterp.initialize(mRhoMin, mRhoMax,
-                      mEpsMin, mEpsMax,
-                      mNumRhoVals, mNumTvals, Fs);
+  mSinterp = BiQuadraticInterpolator(mRhoMin, mRhoMax,
+                                     mEpsMin, mEpsMax,
+                                     mNumRhoVals, mNumTvals, Fs);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Sinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 }
 

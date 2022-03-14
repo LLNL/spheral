@@ -32,18 +32,6 @@ public:
   BiQuadraticInterpolator();
   virtual ~BiQuadraticInterpolator();
 
-  // Initialize for interpolating the given function
-  template<typename Func>
-  void initialize(const double xmin,
-                  const double xmax,
-                  const double ymin,
-                  const double ymax,
-                  const size_t nx,
-                  const size_t ny,
-                  const Func& F,
-                  const bool xlog = false,
-                  const bool ylog = false);
-
   // Interpolate for the F(x,y) value
   double operator()(const double x, const double y) const;
 

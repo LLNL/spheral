@@ -22,7 +22,6 @@ public:
                  const double ymax,
                  const size_t nx,
                  const size_t ny,
-                 const Func& F,
                  const bool xlog,
                  const bool ylog);
   XYInterpolator();

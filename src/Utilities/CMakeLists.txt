@@ -46,6 +46,8 @@ set(Utilities_headers
     DBC.hh
     QuadraticInterpolator.hh
     QuadraticInterpolatorInline.hh
+    XYInterpolator.hh
+    XYInterpolatorInline.hh
     BiLinearInterpolator.hh
     BiLinearInterpolatorInline.hh
     BiQuadraticInterpolator.hh

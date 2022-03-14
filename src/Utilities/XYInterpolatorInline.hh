@@ -22,6 +22,7 @@ XYInterpolator::XYInterpolator():
 //------------------------------------------------------------------------------
 // Construct with limits
 //------------------------------------------------------------------------------
+inline
 XYInterpolator::XYInterpolator(const double xmin,
                                const double xmax,
                                const double ymin,
@@ -32,8 +33,8 @@ XYInterpolator::XYInterpolator(const double xmin,
                                const bool ylog):
   mxlog(xlog),
   mylog(ylog),
-  mnx1(std::max(2u, nx1) - 1u),
-  mny1(std::max(2u, ny1) - 1u),
+  mnx1(std::max(size_t(2u), nx) - 1u),
+  mny1(std::max(size_t(2u), ny) - 1u),
   mxmin(xmin),
   mxmax(xmax),
   mymin(ymin),
