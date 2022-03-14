@@ -56,8 +56,8 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
-  std::cout << "This is the name of the path that I'm trying to use: " << path << std::endl;
-  dataStorePtr->getRoot()->getView(path)->print();
+  // std::cout << "This is the name of the path that I'm trying to use: " << path << std::endl;
+  // dataStorePtr->getRoot()->getView(path)->print();
 
   DataType* data = dataStorePtr->getRoot()->getView(path)->getArray();
   for (int i = 0; i < dataStorePtr->getRoot()->getView(path)->getNumElements(); ++i)
