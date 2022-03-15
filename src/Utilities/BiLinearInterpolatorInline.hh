@@ -9,8 +9,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 inline
 BiLinearInterpolator::BiLinearInterpolator():
-  XYInterpolator(),
-  mcoeffs() {
+  XYInterpolator() {
 }
 
 //------------------------------------------------------------------------------
@@ -26,11 +25,7 @@ BiLinearInterpolator::BiLinearInterpolator(const double xmin,
                                            const Func& F,
                                            const bool xlog,
                                            const bool ylog):
-  XYInterpolator(xmin, xmax, ymin, ymax, nx, ny, xlog, ylog),
-  mcoeffs() {
-
-  // Size stuff up.
-  mcoeffs.resize(4*mnx1*mny1);
+  XYInterpolator(1u, xmin, xmax, ymin, ymax, nx, ny, xlog, ylog) {
 
   // We can predetermine A based on a unit square
   double x1 = 0.0, x2 = 1.0;
@@ -46,16 +41,22 @@ BiLinearInterpolator::BiLinearInterpolator(const double xmin,
   Eigen::VectorXd b(4), c(4);
   for (auto i = 0u; i < mnx1; ++i) {
     for (auto j = 0u; j < mny1; ++j) {
-      x1 = coord(xmin, mxstep, i,      mnx1, xlog);
-      x2 = coord(xmin, mxstep, i + 1u, mnx1, xlog);
-      y1 = coord(ymin, mystep, j,      mny1, ylog);
-      y2 = coord(ymin, mystep, j + 1u, mny1, ylog);
+      x1 = xcoord(i);
+      x2 = xcoord(i + 1u);
+      y1 = ycoord(j);
+      y2 = ycoord(j + 1u);
       c << F(x1, y1),
            F(x1, y2),
            F(x2, y1),
            F(x2, y2);
       b = Ainv * c;
-      const auto k = 4u*(i + j*mnx1);
+      // std::cerr << " --> A: " << A << std::endl
+      //           << "  A^-1: " << Ainv << std::endl
+      //           << "     c: " << c << std::endl
+      //           << "     b: " << b << std::endl
+      //           << " x1,x2: " << x1 << " " << x2 << std::endl
+      //           << " y1,y2: " << y1 << " " << y2 << std::endl;
+      const auto k = mncoeffs*(i + j*mnx1);
       mcoeffs[k    ] = b(0);
       mcoeffs[k + 1] = b(1);
       mcoeffs[k + 2] = b(2);
@@ -118,31 +119,6 @@ BiLinearInterpolator::prime_y(const double xi, const double yi) const {
   eta_coords(xi, yi, x, y, ix, iy, i0);
   return (mcoeffs[i0 + 2] +
           mcoeffs[i0 + 3]*x);
-}
-
-//------------------------------------------------------------------------------
-// Data accessors
-//------------------------------------------------------------------------------
-inline
-size_t
-BiLinearInterpolator::size() const {
-  return mcoeffs.size();
-}
-
-inline
-const std::vector<double>&
-BiLinearInterpolator::coeffs() const {
-  return mcoeffs;
-}
-
-//------------------------------------------------------------------------------
-// operator==
-//------------------------------------------------------------------------------
-inline
-bool
-BiLinearInterpolator::operator==(const BiLinearInterpolator& rhs) const {
-  return (XYInterpolator::operator==(rhs) and
-          (mcoeffs == rhs.mcoeffs));
 }
 
 }

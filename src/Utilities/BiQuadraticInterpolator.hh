@@ -41,18 +41,6 @@ public:
   double prime2_xx(const double x, const double y) const;
   double prime2_xy(const double x, const double y) const;
   double prime2_yy(const double x, const double y) const;
-
-  // Allow read access the internal data representation
-  size_t size() const;                        // The size of the tabulated coefficient arrays
-  const std::vector<double>& coeffs() const;  // the fitting coefficients
-  
-  // Comparison
-  bool operator==(const BiQuadraticInterpolator& rhs) const;
-
-private:
-  //--------------------------- Private Interface --------------------------//
-  // Member data
-  std::vector<double> mcoeffs;
 };
 
 }

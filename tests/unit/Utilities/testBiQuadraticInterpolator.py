@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
+from testBiLinearInterpolator import xygen, PolynomialFunctor
+
 # Create a global random number generator.
 import random
 rangen = random.Random()
@@ -48,42 +50,6 @@ class TestBiQuadraticInterpolatorBase:
         self.xmin, self.ymin = -100.0, -100.0
         self.xmax, self.ymax =  100.0,  100.0
         return
-
-    #===========================================================================
-    # A quadratic answer object
-    #===========================================================================
-    class QuadraticFunctor(ScalarScalarScalarFunctor):
-        def __init__(self,
-                     c00, c01, c02,
-                     c10, c11, c12,
-                     c20, c21, c22):
-            ScalarScalarScalarFunctor.__init__(self)
-            self.c = np.array([[c00, c01, c02],
-                               [c10, c11, c12],
-                               [c20, c21, c22]])
-            return
-
-        def __call__(self, x, y):
-            return npP2D(x, y, self.c)
-
-    #===========================================================================
-    # A cubic answer object
-    #===========================================================================
-    class CubicFunctor(ScalarScalarScalarFunctor):
-        def __init__(self,
-                     c00, c01, c02, c03,
-                     c10, c11, c12, c13,
-                     c20, c21, c22, c23,
-                     c30, c31, c32, c33):
-            ScalarScalarScalarFunctor.__init__(self)
-            self.c = np.array([[c00, c01, c02, c03],
-                               [c10, c11, c12, c13],
-                               [c20, c21, c22, c23],
-                               [c30, c31, c32, c33]])
-            return
-
-        def __call__(self, x, y):
-            return npP2D(x, y, self.c)
 
     #===========================================================================
     # Analytic coordinate of a grid point
@@ -125,15 +91,7 @@ class TestBiQuadraticInterpolatorBase:
     #===========================================================================
     def test_lowerBound(self):
         for (nx, ny) in ((2, 2), (3, 3), (10, 10), (3, 20)):
-            F = self.QuadraticFunctor(rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0))
+            F = PolynomialFunctor(2, -10.0, 10.0)
             Finterp = self.generateInterpolator(nx, ny, F)
             for itest in xrange(self.ntests):
                 x = rangen.uniform(self.xmin, self.xmax)
@@ -179,15 +137,7 @@ class TestBiQuadraticInterpolatorBase:
     def test_interp_quadratic(self):
         for (nx, ny) in ((2, 2), (3, 3), (10, 10), (3, 20)):
             for itest in xrange(self.ntests):
-                F = self.QuadraticFunctor(rangen.uniform(-10.0, 10.0),
-                                          rangen.uniform(-10.0, 10.0),
-                                          rangen.uniform(-10.0, 10.0),
-                                          rangen.uniform(-10.0, 10.0),
-                                          rangen.uniform(-10.0, 10.0),
-                                          rangen.uniform(-10.0, 10.0),
-                                          rangen.uniform(-10.0, 10.0),
-                                          rangen.uniform(-10.0, 10.0),
-                                          rangen.uniform(-10.0, 10.0))
+                F = PolynomialFunctor(2, -10.0, 10.0)
                 Finterp = self.generateInterpolator(nx, ny, F)
 
                 # print "Coeffs: ", list(Finterp.coeffs)
@@ -211,22 +161,7 @@ class TestBiQuadraticInterpolatorBase:
     def test_interp_cubic(self):
         for (nx, ny) in ((2, 2), (3, 3), (10, 10), (3, 20)):
             for itest in xrange(self.ntests):
-                F = self.CubicFunctor(rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0),
-                                      rangen.uniform(-10.0, 10.0))
+                F = PolynomialFunctor(3, -10.0, 10.0)
                 Finterp = self.generateInterpolator(nx, ny, F)
                 # sys.stderr.write("(%i, %i): %s\n" % (nx, ny, Finterp))
                 

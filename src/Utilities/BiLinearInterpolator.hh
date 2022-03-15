@@ -11,7 +11,6 @@
 #define __Spheral_BiLinearInterpolator__
 
 #include "Utilities/XYInterpolator.hh"
-#include <vector>
 
 namespace Spheral {
 
@@ -41,18 +40,6 @@ public:
 
   // Return the lower bound index in the table of coefficients for the given position
   size_t lowerBound(const double x, const double y) const;
-
-  // Allow read access the internal data representation
-  size_t size() const;                        // The size of the tabulated coefficient arrays
-  const std::vector<double>& coeffs() const;  // the fitting coefficients
-  
-  // Comparison
-  bool operator==(const BiLinearInterpolator& rhs) const;
-
-private:
-  //--------------------------- Private Interface --------------------------//
-  // Member data
-  std::vector<double> mcoeffs;
 };
 
 }

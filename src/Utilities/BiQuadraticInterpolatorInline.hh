@@ -10,8 +10,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 inline
 BiQuadraticInterpolator::BiQuadraticInterpolator():
-  XYInterpolator(),
-  mcoeffs() {
+  XYInterpolator() {
 }
 
 //------------------------------------------------------------------------------
@@ -27,11 +26,7 @@ BiQuadraticInterpolator::BiQuadraticInterpolator(const double xmin,
                                                  const Func& F,
                                                  const bool xlog,
                                                  const bool ylog):
-  XYInterpolator(xmin, xmax, ymin, ymax, nx, ny, xlog, ylog),
-  mcoeffs() {
-
-  // Size stuff up.
-  mcoeffs.resize(9*mnx1*mny1);
+  XYInterpolator(2u, xmin, xmax, ymin, ymax, nx, ny, xlog, ylog) {
 
   // We can predetermine A based on a unit square
   double x1 = 0.0, x2 = 0.5, x3 = 1.0;
@@ -91,7 +86,7 @@ BiQuadraticInterpolator::BiQuadraticInterpolator(const double xmin,
       //           << "A:\n" << A << "\n"
       //           << "b:\n" << b << "\n"
       //           << "c:\n" << c << "\n";
-      const auto k = 9u*(i + j*mnx1);
+      const auto k = mncoeffs*(i + j*mnx1);
       mcoeffs[k    ] = c(0);
       mcoeffs[k + 1] = c(1);
       mcoeffs[k + 2] = c(2);
@@ -217,31 +212,6 @@ BiQuadraticInterpolator::prime2_yy(const double xi, const double yi) const {
   return 2.0*(mcoeffs[i0 + 6] +
               mcoeffs[i0 + 7]*x +
               mcoeffs[i0 + 8]*x*x);
-}
-
-//------------------------------------------------------------------------------
-// Data accessors
-//------------------------------------------------------------------------------
-inline
-size_t
-BiQuadraticInterpolator::size() const {
-  return mcoeffs.size();
-}
-
-inline
-const std::vector<double>&
-BiQuadraticInterpolator::coeffs() const {
-  return mcoeffs;
-}
-
-//------------------------------------------------------------------------------
-// operator==
-//------------------------------------------------------------------------------
-inline
-bool
-BiQuadraticInterpolator::operator==(const BiQuadraticInterpolator& rhs) const {
-  return (XYInterpolator::operator==(rhs) and
-          (mcoeffs == rhs.mcoeffs));
 }
 
 }

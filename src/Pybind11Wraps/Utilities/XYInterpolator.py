@@ -12,6 +12,7 @@ class XYInterpolator:
         return
 
     def pyinit1(self,
+                order = "const size_t",
                 xmin = "const double",
                 xmax = "const double",
                 ymin = "const double",
@@ -44,3 +45,5 @@ class XYInterpolator:
     ystep = PYB11property(doc="delta y between tabulated values")
     xlog = PYB11property(doc="Use logarithmic spacing in x")
     ylog = PYB11property(doc="Use logarithmic spacing in y")
+    size = PYB11property(doc="The size of the tabulated coefficient arrays")
+    coeffs = PYB11property(doc="the fitting coefficients")

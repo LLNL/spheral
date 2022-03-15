@@ -9,21 +9,26 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 inline
 XYInterpolator::XYInterpolator():
+  mxlog(),
+  mylog(),
   mnx1(),
   mny1(),
+  mncoeffs(),
   mxmin(),
   mxmax(),
   mymin(),
   mymax(),
   mxstep(),
-  mystep() {
+  mystep(),
+  mcoeffs() {
 }
 
 //------------------------------------------------------------------------------
 // Construct with limits
 //------------------------------------------------------------------------------
 inline
-XYInterpolator::XYInterpolator(const double xmin,
+XYInterpolator::XYInterpolator(const size_t order,
+                               const double xmin,
                                const double xmax,
                                const double ymin,
                                const double ymax,
@@ -35,15 +40,21 @@ XYInterpolator::XYInterpolator(const double xmin,
   mylog(ylog),
   mnx1(std::max(size_t(2u), nx) - 1u),
   mny1(std::max(size_t(2u), ny) - 1u),
+  mncoeffs((order + 1u)*(order + 1u)),
   mxmin(xmin),
   mxmax(xmax),
   mymin(ymin),
   mymax(ymax),
   mxstep(),
-  mystep() {
+  mystep(),
+  mcoeffs() {
+
   // Figure out the sampling steps.
   mxstep = (xmax - xmin)/(xlog ? 1.0 : mnx1);
   mystep = (ymax - ymin)/(ylog ? 1.0 : mny1);
+
+  // Size coefficients array
+  mcoeffs.resize(mncoeffs*mnx1*mny1);
 }
 
 //------------------------------------------------------------------------------
@@ -59,7 +70,7 @@ XYInterpolator::~XYInterpolator() {
 inline
 void
 XYInterpolator::lowerBound(const double x, const double y,
-                                    size_t& ix, size_t& iy, size_t& i) const {
+                           size_t& ix, size_t& iy, size_t& i) const {
   ix = (mxlog ?
         std::min(mnx1 - 1u, size_t(std::max(0.0, mnx1 + log(std::min(1.0, std::max(1e-10, (x - mxmin)/mxstep)))))) :
         std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep)));
@@ -67,8 +78,8 @@ XYInterpolator::lowerBound(const double x, const double y,
         std::min(mny1 - 1u, size_t(std::max(0.0, mny1 + log(std::min(1.0, std::max(1e-10, (y - mymin)/mystep)))))) :
         std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep)));
   CHECK(ix < mnx1 and iy < mny1);
-  i = 9u*(mnx1*iy + ix);
-  ENSURE(i <= 9u*mnx1*mny1);
+  i = mncoeffs*(mnx1*iy + ix);
+  ENSURE(i <= mncoeffs*mnx1*mny1);
 }
 
 //------------------------------------------------------------------------------
@@ -122,20 +133,36 @@ XYInterpolator::ylog() const {
   return mylog;
 }
 
+inline
+size_t
+XYInterpolator::size() const {
+  return mcoeffs.size();
+}
+
+inline
+const std::vector<double>&
+XYInterpolator::coeffs() const {
+  return mcoeffs;
+}
+
 //------------------------------------------------------------------------------
 // operator==
 //------------------------------------------------------------------------------
 inline
 bool
 XYInterpolator::operator==(const XYInterpolator& rhs) const {
-  return ((mnx1 == rhs.mnx1) and
+  return ((mxlog == rhs.mxlog) and
+          (mylog == rhs.mylog) and
+          (mnx1 == rhs.mnx1) and
           (mny1 == rhs.mny1) and
+          (mncoeffs == rhs.mncoeffs) and
           (mxmin == rhs.mxmin) and
           (mxmax == rhs.mxmax) and
           (mymin == rhs.mymin) and
           (mymax == rhs.mymax) and
           (mxstep == rhs.mxstep) and
-          (mystep == rhs.mystep));
+          (mystep == rhs.mystep) and
+          (mcoeffs == rhs.mcoeffs));
 }
 
 //------------------------------------------------------------------------------
@@ -157,6 +184,24 @@ XYInterpolator::coord(const double xmin,
 }
 
 //------------------------------------------------------------------------------
+// Compute the x-coordinate for a grid point
+//------------------------------------------------------------------------------
+inline
+double
+XYInterpolator::xcoord(const size_t ix) const {
+  return coord(mxmin, mxstep, ix, mnx1, mxlog);
+}
+
+//------------------------------------------------------------------------------
+// Compute the y-coordinate for a grid point
+//------------------------------------------------------------------------------
+inline
+double
+XYInterpolator::ycoord(const size_t iy) const {
+  return coord(mymin, mystep, iy, mny1, mylog);
+}
+
+//------------------------------------------------------------------------------
 // Similar to above, but compute the relative normalized coordinate inside
 // a grid patch for the fit (range [0,1]).
 //------------------------------------------------------------------------------
@@ -172,12 +217,13 @@ XYInterpolator::eta_coords(const double xi,
   const auto xb = std::max(mxmin, std::min(mxmax, xi));
   const auto yb = std::max(mymin, std::min(mymax, yi));
   lowerBound(xb, yb, ix, iy, i0);
-  const auto x0 = coord(mxmin, mxstep, ix, mnx1, mxlog);
-  const auto y0 = coord(mymin, mystep, iy, mny1, mylog);
+  const auto x0 = xcoord(ix);
+  const auto y0 = ycoord(iy);
   const auto dx = (mxlog ? coord(mxmin, mxstep, ix + 1u, mnx1, mxlog) - x0 : mxstep);
   const auto dy = (mylog ? coord(mymin, mystep, iy + 1u, mny1, mylog) - y0 : mystep);
   etax = std::max(0.0, std::min(1.0, (xb - x0)/dx));
   etay = std::max(0.0, std::min(1.0, (yb - y0)/dy));
+  // std::cerr << "(" << xi << " " << yi << ") : (" << x0 << " " << y0 << ") : " << dx << " " << dy << " : (" << etax << " " << etay << ")" << std::endl;
 }
 
 }

@@ -16,7 +16,8 @@ class XYInterpolator {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
-  XYInterpolator(const double xmin,
+  XYInterpolator(const size_t order,
+                 const double xmin,
                  const double xmax,
                  const double ymin,
                  const double ymax,
@@ -24,6 +25,7 @@ public:
                  const size_t ny,
                  const bool xlog,
                  const bool ylog);
+                 
   XYInterpolator();
   virtual ~XYInterpolator();
 
@@ -40,6 +42,8 @@ public:
   double ystep() const;                       // y step size
   bool xlog() const;                          // Are we using log spacing in x?
   bool ylog() const;                          // Are we using log spacing in y?
+  size_t size() const;                        // The size of the tabulated coefficient arrays
+  const std::vector<double>& coeffs() const;  // the fitting coefficients
   
   // Comparison
   bool operator==(const XYInterpolator& rhs) const;
@@ -48,13 +52,16 @@ protected:
   //--------------------------- Protected Interface --------------------------//
   // Member data
   bool mxlog, mylog;
-  size_t mnx1, mny1;
+  size_t mnx1, mny1, mncoeffs;
   double mxmin, mxmax, mymin, mymax, mxstep, mystep;
+  std::vector<double> mcoeffs;
 
   // Compute a coordinate value depending on whether we're using log-space
   double coord(const double xmin, const double dx,
                const size_t ix, const size_t nx,
                const bool xlog) const;
+  double xcoord(const size_t ix) const;
+  double ycoord(const size_t iy) const;
 
   // Similar to above, but compute the relative normalized coordinate inside
   // a grid patch for the fit (range [0,1]).

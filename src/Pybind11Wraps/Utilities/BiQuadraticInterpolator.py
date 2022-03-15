@@ -24,7 +24,7 @@ Assumes the results is interpolated as
                 F = "const Spheral::PythonBoundFunctors::Spheral2ArgFunctor<double, double, double>&",
                 xlog = ("const bool", "false"),
                 ylog = ("const bool", "false")):
-        "Returns an interpolator for yvals sampled in x in [xmin, xmax]"
+        "Returns an interpolator for ([xmin, xmax], [ymin, ymax])"
         return
 
     @PYB11const
@@ -68,7 +68,3 @@ Assumes the results is interpolated as
                   y = "const double"):
         """Returns the interpolated value \\\partial_yy <F>(x,y)"""
         return "double"
-
-    # Attributes
-    size = PYB11property(doc="The size of the tabulated coefficient arrays")
-    coeffs = PYB11property(doc="the fitting coefficients")
