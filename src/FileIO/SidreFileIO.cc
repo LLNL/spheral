@@ -56,7 +56,7 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
-  // std::cout << "This is the name of the path that I'm trying to use: " << path << std::endl;
+  std::cout << "This is the name of the path that I'm trying to use: " << path << std::endl;
   // dataStorePtr->getRoot()->getView(path)->print();
 
   DataType* data = dataStorePtr->getRoot()->getView(path)->getArray();
@@ -134,7 +134,7 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
 {
   VERIFY2(mDataStorePtr == 0 and mFileOpen == false,
           "ERROR: attempt to reopen SidreFileIO object.");
-  // std::cout << "Before creating the pointer in open()." << std::endl;
+  std::cout << "Before creating the pointer in open()." << std::endl;
   mDataStorePtr = std::make_shared<axom::sidre::DataStore>();
 
   // Need this member var because save() needs to know the name too.
@@ -150,7 +150,7 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
   mFileOpen = true;
 
   // mDataStorePtr->print();
-  // std::cout << "This is the value of mDataStorePtr during open = " << mDataStorePtr << std::endl;
+  std::cout << "This is the value of mDataStorePtr during open = " << mDataStorePtr << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -158,14 +158,14 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
 //------------------------------------------------------------------------------
 void SidreFileIO::close()
 {
-  // std::cout << "This is the value of mDataStorePtr during close = " << mDataStorePtr.get() << std::endl;
+  std::cout << "This is the value of mDataStorePtr during close = " << mDataStorePtr.get() << std::endl;
   if (mDataStorePtr != 0)
   {
     // if (access() != AccessType::Read)
     // {
       // std::cout << "Before printing mDataStorePtr in close()." << std::endl;
       // mDataStorePtr->print();
-      // std::cout << "Saving and reseting the pointer in close()." << std::endl;
+      std::cout << "Saving and reseting the pointer in close()." << std::endl;
       mDataStorePtr->getRoot()->save(mFileName);
     // }
     // std::cout << "after saving the file in close()." << std::endl;
@@ -173,7 +173,7 @@ void SidreFileIO::close()
     // std::cout << "after reseting the pointer in close()." << std::endl;
   }
   mFileOpen = false;
-  // std::cout << "At the end of the close()." << std::endl;
+  std::cout << "At the end of the close()." << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -229,6 +229,10 @@ void SidreFileIO::write(const double& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::string& value, const std::string pathName)
 {
+  if (value.size() == 0)
+    std::cout << "This probably isn't supposed to happen!!! This is happening when I am trying to write: " << pathName << std::endl;
+  if (pathName == "RKCorrections/rkCorrections_0/Field0")
+    std::cout << "This is the string Im writing for the path with issues: " << value << std::endl;
   mDataStorePtr->getRoot()->createViewString(pathName, value);
 }
 
@@ -409,6 +413,11 @@ void SidreFileIO::read(double& value, const std::string pathName) const
 void SidreFileIO::read(std::string& value, const std::string pathName) const
 {
   value = mDataStorePtr->getRoot()->getView(pathName)->getString();
+  if (value.size() == 0)
+  {
+    std::cout << "This probably isn't supposed to happen!!! This is happening when I am trying to read: " << pathName << std::endl;
+    mDataStorePtr->getRoot()->getView(pathName)->print();
+  }
 }
 
 //------------------------------------------------------------------------------
