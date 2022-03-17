@@ -229,11 +229,17 @@ void SidreFileIO::write(const double& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::string& value, const std::string pathName)
 {
-  if (value.size() == 0)
-    std::cout << "This probably isn't supposed to happen!!! This is happening when I am trying to write: " << pathName << std::endl;
+  // if (value.size() == 0)
+  //   std::cout << "This probably isn't supposed to happen!!! This is happening when I am trying to write: " << pathName << std::endl;
+  // if (pathName == "RKCorrections/rkCorrections_0/Field0")
+  //   std::cout << "This is the string Im writing for the path with issues" << std::endl;
+  // mDataStorePtr->getRoot()->createViewString(pathName, value);
+  axom::sidre::Buffer* buff = mDataStorePtr->createBuffer()
+                                           ->allocate(axom::sidre::INT8_ID, value.size())
+                                           ->copyBytesIntoBuffer((void*)value.data(), sizeof(char) * (value.size()));
+  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::INT8_ID, value.size(), buff);
   if (pathName == "RKCorrections/rkCorrections_0/Field0")
-    std::cout << "This is the string Im writing for the path with issues: " << value << std::endl;
-  mDataStorePtr->getRoot()->createViewString(pathName, value);
+    mDataStorePtr->getRoot()->getGroup("RKCorrections/rkCorrections_0")->print();
 }
 
 //------------------------------------------------------------------------------
@@ -412,12 +418,17 @@ void SidreFileIO::read(double& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::string& value, const std::string pathName) const
 {
-  value = mDataStorePtr->getRoot()->getView(pathName)->getString();
-  if (value.size() == 0)
-  {
-    std::cout << "This probably isn't supposed to happen!!! This is happening when I am trying to read: " << pathName << std::endl;
-    mDataStorePtr->getRoot()->getView(pathName)->print();
-  }
+  // value = mDataStorePtr->getRoot()->getView(pathName)->getString();
+
+  int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
+  value.resize(size);
+  char* data = mDataStorePtr->getRoot()->getView(pathName)->getArray();
+  value.assign(data, data + size);
+  // if (value.size() == 0)
+  // {
+  //   std::cout << "This probably isn't supposed to happen!!! This is happening when I am trying to read: " << pathName << std::endl;
+  //   mDataStorePtr->getRoot()->getView(pathName)->print();
+  // }
 }
 
 //------------------------------------------------------------------------------
