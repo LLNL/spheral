@@ -10,15 +10,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 inline
 BiCubicInterpolator::BiCubicInterpolator():
-  mnx1(),
-  mny1(),
-  mxmin(),
-  mxmax(),
-  mymin(),
-  mymax(),
-  mxstep(),
-  mystep(),
-  mcoeffs() {
+  XYInterpolator() {
 }
 
 //------------------------------------------------------------------------------
@@ -35,63 +27,12 @@ BiCubicInterpolator::BiCubicInterpolator(const double xmin,
                                          const GradFunc& gradF,
                                          const bool xlog,
                                          const bool ylog):
-  mxlog(),
-  mylog(),
-  mnx1(),
-  mny1(),
-  mxmin(),
-  mxmax(),
-  mxstep(),
-  mcoeffs() {
-  this->initialize(xmin, xmax, ymin, ymax, nx, ny, F, gradF, xlog, ylog);
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-inline
-BiCubicInterpolator::~BiCubicInterpolator() {
-}
-
-//------------------------------------------------------------------------------
-// Initialize the interpolation to fit the given data
-//------------------------------------------------------------------------------
-template<typename Func, typename GradFunc>
-inline
-void
-BiCubicInterpolator::initialize(const double xmin,
-                                const double xmax,
-                                const double ymin,
-                                const double ymax,
-                                const size_t nx,
-                                const size_t ny,
-                                const Func& F,
-                                const GradFunc& gradF,
-                                const bool xlog,
-                                const bool ylog) {
-
-  // Size stuff up.
-  REQUIRE(nx > 1u);
-  REQUIRE(ny > 1u);
-  mnx1 = nx - 1u;
-  mny1 = ny - 1u;
-  mxlog = xlog;
-  mylog = ylog;
-  mcoeffs.resize(16*mnx1*mny1);
-
-  // Figure out the sampling steps.
-  mxmin = xmin;
-  mxmax = xmax;
-  mymin = ymin;
-  mymax = ymax;
-  mxstep = (xmax - xmin)/(xlog ? 1.0 : mnx1);
-  mystep = (ymax - ymin)/(ylog ? 1.0 : mny1);
+  XYInterpolator(3u, xmin, xmax, ymin, ymax, nx, ny, xlog, ylog) {
 
   // Fit the coefficients
   double x0, x1, y0, y1;
   Dim<2>::SymTensor gradF00, gradF01, gradF10, gradF11;
   Eigen::MatrixXd Ainv(16, 16);
-  Eigen::VectorXd b(16), c(16);
   Ainv <<  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
            0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
           -3,  3,  0,  0, -2, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -109,12 +50,14 @@ BiCubicInterpolator::initialize(const double xmin,
           -6,  6,  6, -6, -4, -2,  4,  2, -3,  3, -3,  3, -2, -1, -2, -1, 
            4, -4, -4,  4,  2,  2, -2, -2,  2, -2,  2, -2,  1,  1,  1,  1;
 
+  // Fit the coefficients
+  Eigen::VectorXd b(16), c(16);
   for (auto i = 0u; i < mnx1; ++i) {
     for (auto j = 0u; j < mny1; ++j) {
-      x0 = coord(xmin, mxstep, i,      mnx1, xlog);
-      x1 = coord(xmin, mxstep, i + 1u, mnx1, xlog);
-      y0 = coord(ymin, mystep, j,      mny1, ylog);
-      y1 = coord(ymin, mystep, j + 1u, mny1, ylog);
+      x0 = xcoord(i);
+      x1 = xcoord(i + 1u);
+      y0 = ycoord(j);
+      y1 = ycoord(j + 1u);
       gradF00 = gradF(x0, y0);
       gradF01 = gradF(x0, y1);
       gradF10 = gradF(x1, y0);
@@ -159,18 +102,22 @@ BiCubicInterpolator::initialize(const double xmin,
 }
 
 //------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+inline
+BiCubicInterpolator::~BiCubicInterpolator() {
+}
+
+//------------------------------------------------------------------------------
 // Interpolate for the given coordinate.
 //------------------------------------------------------------------------------
 inline
 double
 BiCubicInterpolator::operator()(const double xi,
                                 const double yi) const {
-  const auto xb = std::max(mxmin, std::min(mxmax, xi));
-  const auto yb = std::max(mymin, std::min(mymax, yi));
+  double x, y;
   size_t ix, iy, i0;
-  lowerBound(xb, yb, ix, iy, i0);
-  const auto x = xb - coord(mxmin, mxstep, ix, mnx1, mxlog);
-  const auto y = yb - coord(mymin, mystep, iy, mny1, mylog);
+  eta_coords(xi, yi, x, y, ix, iy, i0);
   const auto x2 = x*x, x3 = x*x*x;
   const auto y2 = y*y, y3 = y*y*y;
   return (mcoeffs[i0]               +          // c00
@@ -197,7 +144,23 @@ BiCubicInterpolator::operator()(const double xi,
 inline
 double
 BiCubicInterpolator::prime_x(const double xi, const double yi) const {
-  return 0.0;
+  double x, y;
+  size_t ix, iy, i0;
+  eta_coords(xi, yi, x, y, ix, iy, i0);
+  const auto x2 = x*x;
+  const auto y2 = y*y, y3 = y*y*y;
+  return (mcoeffs[i0 +  1]              +          // c10
+          mcoeffs[i0 +  2]*2.0*x        +          // c20
+          mcoeffs[i0 +  3]*3.0*x2       +          // c30
+          mcoeffs[i0 +  5]        * y   +          // c11
+          mcoeffs[i0 +  6]*2.0*x  * y   +          // c21
+          mcoeffs[i0 +  7]*3.0*x2 * y   +          // c31
+          mcoeffs[i0 +  9]        * y2  +          // c12
+          mcoeffs[i0 + 10]*2.0*x  * y2  +          // c22
+          mcoeffs[i0 + 11]*3.0*x2 * y2  +          // c32
+          mcoeffs[i0 + 13]        * y3  +          // c13
+          mcoeffs[i0 + 14]*2.0*x  * y3  +          // c23
+          mcoeffs[i0 + 15]*3.0*x2 * y3);           // c33
 }
 
 //------------------------------------------------------------------------------
@@ -206,7 +169,23 @@ BiCubicInterpolator::prime_x(const double xi, const double yi) const {
 inline
 double
 BiCubicInterpolator::prime_y(const double xi, const double yi) const {
-  return 0.0;
+  double x, y;
+  size_t ix, iy, i0;
+  eta_coords(xi, yi, x, y, ix, iy, i0);
+  const auto x2 = x*x, x3 = x*x*x;
+  const auto y2 = y*y;
+  return (mcoeffs[i0 +  4]              +          // c01
+          mcoeffs[i0 +  5]*x            +          // c11
+          mcoeffs[i0 +  6]*x2           +          // c21
+          mcoeffs[i0 +  7]*x3           +          // c31
+          mcoeffs[i0 +  8]    * 2.0*y   +          // c02
+          mcoeffs[i0 +  9]*x  * 2.0*y   +          // c12
+          mcoeffs[i0 + 10]*x2 * 2.0*y   +          // c22
+          mcoeffs[i0 + 11]*x3 * 2.0*y   +          // c32
+          mcoeffs[i0 + 12]    * 3.0*y2  +          // c03
+          mcoeffs[i0 + 13]*x  * 3.0*y2  +          // c13
+          mcoeffs[i0 + 14]*x2 * 3.0*y2  +          // c23
+          mcoeffs[i0 + 15]*x3 * 3.0*y2);           // c33
 }
 
 //------------------------------------------------------------------------------
@@ -215,7 +194,18 @@ BiCubicInterpolator::prime_y(const double xi, const double yi) const {
 inline
 double
 BiCubicInterpolator::prime2_xx(const double xi, const double yi) const {
-  return 0.0;
+  double x, y;
+  size_t ix, iy, i0;
+  eta_coords(xi, yi, x, y, ix, iy, i0);
+  const auto y2 = y*y, y3 = y*y*y;
+  return (mcoeffs[i0 +  2]*2.0         +          // c20
+          mcoeffs[i0 +  3]*6.0*x       +          // c30
+          mcoeffs[i0 +  6]*2.0         +          // c21
+          mcoeffs[i0 +  7]*6.0*x * y   +          // c31
+          mcoeffs[i0 + 10]*2.0   * y2  +          // c22
+          mcoeffs[i0 + 11]*6.0*x * y2  +          // c32
+          mcoeffs[i0 + 14]*2.0   * y3  +          // c23
+          mcoeffs[i0 + 15]*6.0*x * y3);           // c33
 }
 
 //------------------------------------------------------------------------------
@@ -224,7 +214,20 @@ BiCubicInterpolator::prime2_xx(const double xi, const double yi) const {
 inline
 double
 BiCubicInterpolator::prime2_xy(const double xi, const double yi) const {
-  return 0.0;
+  double x, y;
+  size_t ix, iy, i0;
+  eta_coords(xi, yi, x, y, ix, iy, i0);
+  const auto x2 = x*x;
+  const auto y2 = y*y;
+  return (mcoeffs[i0 +  5]   +                         // c11
+          mcoeffs[i0 +  6]*2.0*x            +          // c21
+          mcoeffs[i0 +  7]*3.0*x            +          // c31
+          mcoeffs[i0 +  9]        * 2.0*y   +          // c12
+          mcoeffs[i0 + 10]*2.0*x  * 2.0*y   +          // c22
+          mcoeffs[i0 + 11]*3.0*x2 * 2.0*y   +          // c32
+          mcoeffs[i0 + 13]        * 3.0*y2  +          // c13
+          mcoeffs[i0 + 14]*2.0*x  * 3.0*y2  +          // c23
+          mcoeffs[i0 + 15]*3.0*x2 * 3.0*y2);           // c33
 }
 
 //------------------------------------------------------------------------------
@@ -233,123 +236,18 @@ BiCubicInterpolator::prime2_xy(const double xi, const double yi) const {
 inline
 double
 BiCubicInterpolator::prime2_yy(const double xi, const double yi) const {
-  return 0.0;
-}
-
-//------------------------------------------------------------------------------
-// Return the lower bound entry in the table for the given (x,y) position
-//------------------------------------------------------------------------------
-inline
-void
-BiCubicInterpolator::lowerBound(const double x, const double y,
-                                size_t& ix, size_t& iy, size_t& i) const {
-  ix = (mxlog ?
-        std::min(mnx1 - 1u, size_t(mnx1 + log(std::min(1.0, std::max(0.0, (x - mxmin)/mxstep))))) :
-        std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep)));
-  iy = (mylog ?
-        std::min(mny1 - 1u, size_t(mny1 + log(std::min(1.0, std::max(0.0, (y - mymin)/mystep))))) :
-        std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep)));
-  CHECK(ix < mnx1 and iy < mny1);
-  i = 16u*(mnx1*iy + ix);
-  ENSURE(i <= 16u*mnx1*mny1);
-}
-
-//------------------------------------------------------------------------------
-// Data accessors
-//------------------------------------------------------------------------------
-inline
-size_t
-BiCubicInterpolator::size() const {
-  return mcoeffs.size();
-}
-
-inline
-double
-BiCubicInterpolator::xmin() const {
-  return mxmin;
-}
-
-inline
-double
-BiCubicInterpolator::xmax() const {
-  return mxmax;
-}
-
-inline
-double
-BiCubicInterpolator::ymin() const {
-  return mymin;
-}
-
-inline
-double
-BiCubicInterpolator::ymax() const {
-  return mymax;
-}
-
-inline
-double
-BiCubicInterpolator::xstep() const {
-  return mxstep;
-}
-
-inline
-double
-BiCubicInterpolator::ystep() const {
-  return mystep;
-}
-
-inline
-bool
-BiCubicInterpolator::xlog() const {
-  return mxlog;
-}
-
-inline
-bool
-BiCubicInterpolator::ylog() const {
-  return mylog;
-}
-
-inline
-const std::vector<double>&
-BiCubicInterpolator::coeffs() const {
-  return mcoeffs;
-}
-
-//------------------------------------------------------------------------------
-// operator==
-//------------------------------------------------------------------------------
-inline
-bool
-BiCubicInterpolator::operator==(const BiCubicInterpolator& rhs) const {
-  return ((mnx1 == rhs.mnx1) and
-          (mny1 == rhs.mny1) and
-          (mxmin == rhs.mxmin) and
-          (mxmax == rhs.mxmax) and
-          (mymin == rhs.mymin) and
-          (mymax == rhs.mymax) and
-          (mxstep == rhs.mxstep) and
-          (mystep == rhs.mystep) and
-          (mcoeffs == rhs.mcoeffs));
-}
-
-//------------------------------------------------------------------------------
-// Compute the coordinate value
-//------------------------------------------------------------------------------
-inline
-double
-BiCubicInterpolator::coord(const double xmin,
-                           const double dx,
-                           const size_t ix,
-                           const size_t nx,
-                           const bool xlog) const {
-  REQUIRE(ix <= nx);
-  if (xlog) {
-    return xmin + dx*exp(ix - nx);
-  } else {
-    return xmin + ix*dx;
-  }
+  double x, y;
+  size_t ix, iy, i0;
+  eta_coords(xi, yi, x, y, ix, iy, i0);
+  const auto x2 = x*x, x3 = x*x*x;
+  return (mcoeffs[i0 +  8]    * 2.0    +          // c02
+          mcoeffs[i0 +  9]*x  * 2.0    +          // c12
+          mcoeffs[i0 + 10]*x2 * 2.0    +          // c22
+          mcoeffs[i0 + 11]*x3 * 2.0    +          // c32
+          mcoeffs[i0 + 12]    * 6.0*y  +          // c03
+          mcoeffs[i0 + 13]*x  * 6.0*y  +          // c13
+          mcoeffs[i0 + 14]*x2 * 6.0*y  +          // c23
+          mcoeffs[i0 + 15]*x3 * 6.0*y);           // c33
 }
 
 }

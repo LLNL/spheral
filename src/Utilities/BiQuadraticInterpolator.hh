@@ -11,7 +11,6 @@
 #define __Spheral_BiQuadraticInterpolator__
 
 #include "Utilities/XYInterpolator.hh"
-#include <vector>
 
 namespace Spheral {
 
