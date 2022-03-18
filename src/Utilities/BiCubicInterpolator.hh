@@ -26,6 +26,16 @@ class BiCubicInterpolator: public XYInterpolator {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
+  template<typename Func>
+  BiCubicInterpolator(const double xmin,
+                      const double xmax,
+                      const double ymin,
+                      const double ymax,
+                      const size_t nx,
+                      const size_t ny,
+                      const Func& F,
+                      const bool xlog = false,
+                      const bool ylog = false);
   template<typename Func, typename GradFunc>
   BiCubicInterpolator(const double xmin,
                       const double xmax,

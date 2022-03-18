@@ -15,7 +15,7 @@ class TestBiCubicInterpolator(XYInterpolatorTestingBase,
     # setUp
     #===========================================================================
     def setUp(self):
-        self.order = 2
+        self.order = 3
         self.tol = {1 : 1e-10,
                     2 : 1e-6,
                     3 : 1e-6}
@@ -42,7 +42,7 @@ class TestBiCubicInterpolator(XYInterpolatorTestingBase,
                                    nx = nx,
                                    ny = ny,
                                    F = func,
-                                   gradF = gradFunc,
+                                   #gradF = gradFunc,
                                    xlog = xlog,
                                    ylog = ylog)
 

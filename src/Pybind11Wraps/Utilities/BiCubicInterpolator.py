@@ -32,6 +32,19 @@ See https://en.wikipedia.org/wiki/Bicubic_interpolation"""
                 nx = "const size_t",
                 ny = "const size_t",
                 F = "const Spheral::PythonBoundFunctors::Spheral2ArgFunctor<double, double, double>&",
+                xlog = ("const bool", "false"),
+                ylog = ("const bool", "false")):
+        "Returns an interpolator for z-vals sampled in (x,y) in ([xmin, xmax], [ymin, ymax])"
+        return
+
+    def pyinit2(self,
+                xmin = "const double",
+                xmax = "const double",
+                ymin = "const double",
+                ymax = "const double",
+                nx = "const size_t",
+                ny = "const size_t",
+                F = "const Spheral::PythonBoundFunctors::Spheral2ArgFunctor<double, double, double>&",
                 gradF = "const Spheral::PythonBoundFunctors::Spheral2ArgFunctor<double, double, Dim<2>::SymTensor>&",
                 xlog = ("const bool", "false"),
                 ylog = ("const bool", "false")):
