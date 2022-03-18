@@ -33,6 +33,23 @@ public:
   void lowerBound(const double x, const double y,
                   size_t& ix, size_t& iy, size_t& i0) const;
 
+  // Compute a coordinate value depending on whether we're using log-space
+  double coord(const size_t ix, const size_t nx,
+               const double xmin, const double dx,
+               const double A, const double B,
+               const bool xlog) const;
+  double xcoord(const size_t ix) const;
+  double ycoord(const size_t iy) const;
+
+  // Similar to above, but compute the relative normalized coordinate inside
+  // a grid patch for the fit (range [0,1]).
+  void eta_coords(const double xi, const double yi,
+                  double& etax,
+                  double& etay,
+                  size_t& ix,
+                  size_t& iy,
+                  size_t& i0) const;
+
   // Allow read access the internal data representation
   double xmin() const;                        // Minimum x coordinate for table
   double xmax() const;                        // Maximum x coordinate for table
@@ -40,6 +57,10 @@ public:
   double ymax() const;                        // Maximum y coordinate for table
   double xstep() const;                       // x step size
   double ystep() const;                       // y step size
+  double Ax() const;                          // A for x log stepping
+  double Bx() const;                          // B for x log stepping
+  double Ay() const;                          // A for y log stepping
+  double By() const;                          // B for y log stepping
   bool xlog() const;                          // Are we using log spacing in x?
   bool ylog() const;                          // Are we using log spacing in y?
   size_t size() const;                        // The size of the tabulated coefficient arrays
@@ -53,24 +74,9 @@ protected:
   // Member data
   bool mxlog, mylog;
   size_t mnx1, mny1, mncoeffs;
-  double mxmin, mxmax, mymin, mymax, mxstep, mystep;
+  double mxmin, mxmax, mymin, mymax, mxstep, mystep, mAx, mBx, mAy, mBy;
   std::vector<double> mcoeffs;
 
-  // Compute a coordinate value depending on whether we're using log-space
-  double coord(const double xmin, const double dx,
-               const size_t ix, const size_t nx,
-               const bool xlog) const;
-  double xcoord(const size_t ix) const;
-  double ycoord(const size_t iy) const;
-
-  // Similar to above, but compute the relative normalized coordinate inside
-  // a grid patch for the fit (range [0,1]).
-  void eta_coords(const double xi, const double yi,
-                  double& etax,
-                  double& etay,
-                  size_t& ix,
-                  size_t& iy,
-                  size_t& i0) const;
 };
 
 }

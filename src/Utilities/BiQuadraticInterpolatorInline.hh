@@ -47,11 +47,11 @@ BiQuadraticInterpolator::BiQuadraticInterpolator(const double xmin,
   Eigen::VectorXd b(9), c(9);
   for (auto i = 0u; i < mnx1; ++i) {
     for (auto j = 0u; j < mny1; ++j) {
-      x1 = coord(xmin, mxstep, i,      mnx1, xlog);
-      x3 = coord(xmin, mxstep, i + 1u, mnx1, xlog);
+      x1 = xcoord(i);
+      x3 = xcoord(i + 1u);
       x2 = 0.5*(x1 + x3);
-      y1 = coord(ymin, mystep, j,      mny1, ylog);
-      y3 = coord(ymin, mystep, j + 1u, mny1, ylog);
+      y1 = ycoord(j);
+      y3 = ycoord(j + 1u);
       y2 = 0.5*(y1 + y3);
       b << F(x1, y1),
            F(x2, y1),

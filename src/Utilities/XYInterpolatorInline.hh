@@ -20,6 +20,10 @@ XYInterpolator::XYInterpolator():
   mymax(),
   mxstep(),
   mystep(),
+  mAx(),
+  mBx(),
+  mAy(),
+  mBy(),
   mcoeffs() {
 }
 
@@ -45,13 +49,21 @@ XYInterpolator::XYInterpolator(const size_t order,
   mxmax(xmax),
   mymin(ymin),
   mymax(ymax),
-  mxstep(),
-  mystep(),
+  mxstep(0.0),
+  mystep(0.0),
+  mAx(0.0),
+  mBx(0.0),
+  mAy(0.0),
+  mBy(0.0),
   mcoeffs() {
 
-  // Figure out the sampling steps.
-  mxstep = (xmax - xmin)/(xlog ? 1.0 : mnx1);
-  mystep = (ymax - ymin)/(ylog ? 1.0 : mny1);
+  // Figure out the sampling steps.  Note A and B are for logarithmic stepping.
+  mxstep = (xmax - xmin)/mnx1;
+  mystep = (ymax - ymin)/mny1;
+  mBx = (xmax - xmin)/(1.0 - exp(-double(mnx1)));
+  mAx = xmax - mBx;
+  mBy = (ymax - ymin)/(1.0 - exp(-double(mny1)));
+  mAy = ymax - mBy;
 
   // Size coefficients array
   mcoeffs.resize(mncoeffs*mnx1*mny1);
@@ -72,10 +84,10 @@ void
 XYInterpolator::lowerBound(const double x, const double y,
                            size_t& ix, size_t& iy, size_t& i) const {
   ix = (mxlog ?
-        std::min(mnx1 - 1u, size_t(std::max(0.0, mnx1 + log(std::min(1.0, std::max(1e-10, (x - mxmin)/mxstep)))))) :
+        std::min(mnx1 - 1u, size_t(std::max(0.0, mnx1 + log((x - mAx)/mBx)))) :
         std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep)));
   iy = (mylog ?
-        std::min(mny1 - 1u, size_t(std::max(0.0, mny1 + log(std::min(1.0, std::max(1e-10, (y - mymin)/mystep)))))) :
+        std::min(mny1 - 1u, size_t(std::max(0.0, mny1 + log((y - mAy)/mBy)))) :
         std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep)));
   CHECK(ix < mnx1 and iy < mny1);
   i = mncoeffs*(mnx1*iy + ix);
@@ -122,6 +134,30 @@ XYInterpolator::ystep() const {
 }
 
 inline
+double
+XYInterpolator::Ax() const {
+  return mAx;
+}  
+
+inline
+double
+XYInterpolator::Bx() const {
+  return mBx;
+}  
+
+inline
+double
+XYInterpolator::Ay() const {
+  return mAy;
+}  
+
+inline
+double
+XYInterpolator::By() const {
+  return mBy;
+}  
+
+inline
 bool
 XYInterpolator::xlog() const {
   return mxlog;
@@ -162,6 +198,10 @@ XYInterpolator::operator==(const XYInterpolator& rhs) const {
           (mymax == rhs.mymax) and
           (mxstep == rhs.mxstep) and
           (mystep == rhs.mystep) and
+          (mAx == rhs.mAx) and 
+          (mBx == rhs.mBx) and 
+          (mAy == rhs.mAy) and 
+          (mBy == rhs.mBy) and 
           (mcoeffs == rhs.mcoeffs));
 }
 
@@ -170,17 +210,17 @@ XYInterpolator::operator==(const XYInterpolator& rhs) const {
 //------------------------------------------------------------------------------
 inline
 double
-XYInterpolator::coord(const double xmin,
-                      const double dx,
-                      const size_t ix,
+XYInterpolator::coord(const size_t ix,
                       const size_t nx,
+                      const double xmin,
+                      const double dx,
+                      const double A,
+                      const double B,
                       const bool xlog) const {
   REQUIRE(ix <= nx);
-  if (xlog) {
-    return xmin + dx*exp(int(ix) - int(nx));
-  } else {
-    return xmin + ix*dx;
-  }
+  return (xlog ?
+          A + B*exp(double(ix) - double(nx)) :
+          xmin + ix*dx);
 }
 
 //------------------------------------------------------------------------------
@@ -189,7 +229,7 @@ XYInterpolator::coord(const double xmin,
 inline
 double
 XYInterpolator::xcoord(const size_t ix) const {
-  return coord(mxmin, mxstep, ix, mnx1, mxlog);
+  return coord(ix, mnx1, mxmin, mxstep, mAx, mBx, mxlog);
 }
 
 //------------------------------------------------------------------------------
@@ -198,7 +238,7 @@ XYInterpolator::xcoord(const size_t ix) const {
 inline
 double
 XYInterpolator::ycoord(const size_t iy) const {
-  return coord(mymin, mystep, iy, mny1, mylog);
+  return coord(iy, mny1, mymin, mystep, mAy, mBy, mylog);
 }
 
 //------------------------------------------------------------------------------
@@ -219,11 +259,11 @@ XYInterpolator::eta_coords(const double xi,
   lowerBound(xb, yb, ix, iy, i0);
   const auto x0 = xcoord(ix);
   const auto y0 = ycoord(iy);
-  const auto dx = (mxlog ? coord(mxmin, mxstep, ix + 1u, mnx1, mxlog) - x0 : mxstep);
-  const auto dy = (mylog ? coord(mymin, mystep, iy + 1u, mny1, mylog) - y0 : mystep);
+  const auto dx = (mxlog ? xcoord(ix + 1u) - x0 : mxstep);
+  const auto dy = (mylog ? ycoord(iy + 1u) - y0 : mystep);
   etax = std::max(0.0, std::min(1.0, (xb - x0)/dx));
   etay = std::max(0.0, std::min(1.0, (yb - y0)/dy));
-  // std::cerr << "(" << xi << " " << yi << ") : (" << x0 << " " << y0 << ") : " << dx << " " << dy << " : (" << etax << " " << etay << ")" << std::endl;
+  // std::cerr << "XYInterpolator::eta_coords: (" << xi << " " << yi << ") : (" << x0 << " " << y0 << ") : " << dx << " " << dy << " : (" << etax << " " << etay << ")" << std::endl;
 }
 
 }
