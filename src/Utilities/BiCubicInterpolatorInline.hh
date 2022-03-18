@@ -50,6 +50,16 @@ BiCubicInterpolator::BiCubicInterpolator(const double xmin,
           -6,  6,  6, -6, -4, -2,  4,  2, -3,  3, -3,  3, -2, -1, -2, -1, 
            4, -4, -4,  4,  2,  2, -2, -2,  2, -2,  2, -2,  1,  1,  1,  1;
 
+  // Eigen::MatrixXd A(4,4), B(4,4), C(4,4), c(4,4);
+  // A <<  1,  0,  0,  0,
+  //       0,  0,  1,  0,
+  //      -3,  3, -2, -1,
+  //       2, -2,  1,  1;
+  // C <<  1,  0, -3,  2,
+  //       0,  0,  3, -2,
+  //       0,  1, -2,  1,
+  //       0,  0, -1,  1;
+
   // Fit the coefficients
   double dx, dy, dxy;
   Eigen::VectorXd b(16), c(16);
@@ -74,24 +84,31 @@ BiCubicInterpolator::BiCubicInterpolator(const double xmin,
       gradF11.xx((F(x1 + dx, y1)      - F(x1 - dx, y1))     /(2.0*dx));
       gradF11.xy((F(x1 + dx, y1 + dy) - F(x1 - dx, y1 - dy))/(2.0*dxy));
       gradF11.yy((F(x1,      y1 + dy) - F(x1,      y1 - dx))/(2.0*dx));
+      dx = x1 - x0;
+      dy = y1 - y0;
       b << F(x0, y0),
            F(x1, y0),
            F(x0, y1),
            F(x1, x1),
-           gradF00.xx(),  // partial_x
-           gradF01.xx(),  // partial_x
-           gradF01.xx(),  // partial_x
-           gradF11.xx(),  // partial_x
-           gradF00.yy(),  // partial_y
-           gradF01.yy(),  // partial_y
-           gradF01.yy(),  // partial_y
-           gradF11.yy(),  // partial_y
-           gradF00.xy(),  // partial_xy
-           gradF01.xy(),  // partial_xy
-           gradF01.xy(),  // partial_xy
-           gradF11.xy();  // partial_xy
+           gradF00.xx() * dx,     // partial_x
+           gradF01.xx() * dx,     // partial_x
+           gradF01.xx() * dx,     // partial_x
+           gradF11.xx() * dx,     // partial_x
+           gradF00.yy() * dy,     // partial_y
+           gradF01.yy() * dy,     // partial_y
+           gradF01.yy() * dy,     // partial_y
+           gradF11.yy() * dy,     // partial_y
+           gradF00.xy() * dx*dy,  // partial_xy
+           gradF01.xy() * dx*dy,  // partial_xy
+           gradF01.xy() * dx*dy,  // partial_xy
+           gradF11.xy() * dx*dy;  // partial_xy
       CHECK(b == b);
       c = Ainv*b;
+      // B << F(x0, y0),    F(x0, y1),    gradF00.yy(), gradF01.yy(),
+      //      F(x1, y0),    F(x1, y1),    gradF10.yy(), gradF11.yy(),
+      //      gradF00.xx(), gradF01.xx(), gradF00.xy(), gradF01.xy(),
+      //      gradF10.xx(), gradF11.xx(), gradF10.xy(), gradF11.xy();
+      // c = A*B*C;
       const auto k = 16*(i + j*mnx1);
       mcoeffs[k     ] = c(0);
       mcoeffs[k +  1] = c(1);
@@ -152,12 +169,15 @@ BiCubicInterpolator::BiCubicInterpolator(const double xmin,
 
   // Fit the coefficients
   Eigen::VectorXd b(16), c(16);
+  double dx, dy;
   for (auto i = 0u; i < mnx1; ++i) {
     for (auto j = 0u; j < mny1; ++j) {
       x0 = xcoord(i);
       x1 = xcoord(i + 1u);
       y0 = ycoord(j);
       y1 = ycoord(j + 1u);
+      dx = x1 - x0;
+      dy = y1 - y0;
       gradF00 = gradF(x0, y0);
       gradF01 = gradF(x0, y1);
       gradF10 = gradF(x1, y0);
@@ -166,20 +186,21 @@ BiCubicInterpolator::BiCubicInterpolator(const double xmin,
            F(x1, y0),
            F(x0, y1),
            F(x1, x1),
-           gradF00.xx(),  // partial_x
-           gradF10.xx(),  // partial_x
-           gradF01.xx(),  // partial_x
-           gradF11.xx(),  // partial_x
-           gradF00.yy(),  // partial_y
-           gradF10.yy(),  // partial_y
-           gradF01.yy(),  // partial_y
-           gradF11.yy(),  // partial_y
-           gradF00.xy(),  // partial_xy
-           gradF10.xy(),  // partial_xy
-           gradF01.xy(),  // partial_xy
-           gradF11.xy();  // partial_xy
+           gradF00.xx() * dx,     // partial_x
+           gradF10.xx() * dx,     // partial_x
+           gradF01.xx() * dx,     // partial_x
+           gradF11.xx() * dx,     // partial_x
+           gradF00.yy() * dy,     // partial_y
+           gradF10.yy() * dy,     // partial_y
+           gradF01.yy() * dy,     // partial_y
+           gradF11.yy() * dy,     // partial_y
+           gradF00.xy() * dx*dy,  // partial_xy
+           gradF10.xy() * dx*dy,  // partial_xy
+           gradF01.xy() * dx*dy,  // partial_xy
+           gradF11.xy() * dx*dy;  // partial_xy
       CHECK(b == b);
       c = Ainv*b;
+      // std::cerr << "BiCubicInterpolator: \n  b=" << b << "\n  c=" << c << std::endl;
       const auto k = 16*(i + j*mnx1);
       mcoeffs[k     ] = c(0);
       mcoeffs[k +  1] = c(1);
