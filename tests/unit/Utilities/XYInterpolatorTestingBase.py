@@ -48,15 +48,16 @@ class GradPolynomialFunctor(ScalarScalarSymTensor2dFunctor):
         ScalarScalarSymTensor2dFunctor.__init__(self)
         self.Fpoly = Fpoly
         self.c = Fpoly.c
+        self.order = Fpoly.order
         return
 
     def __call__(self, x, y):
-        ndim = self.c.shape[0]
-        result = SymTensor2d()
-        for i in xrange(ndim):
+        result = SymTensor2d(self.c[1,0], 0.0,
+                             0.0, self.c[0,1])
+        for i in xrange(1, self.order + 1):
             x2i = x**i
             x2i1 = x**(i-1)
-            for j in xrange(ndim):
+            for j in xrange(1, self.order + 1):
                 y2j = y**j
                 y2j1 = y**(j-1)
                 result.xx += self.c[i,j]*i*x2i1*y2j
@@ -176,7 +177,7 @@ class XYInterpolatorTestingBase:
                             if not passing:
                                 self.plotem(x, y, F, Finterp)
                             self.failUnless(passing,
-                                            "Interpolation off: %g != %g, err=%g" % (Finterp(x, y), F(x, y), abs(Finterp(x,y) - F(x,y))/(abs(F(x,y)) + 1e-10)))
+                                            "Interpolation off @ (%g,%g) (xlog=,ylog=)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), abs(Finterp(x,y) - F(x,y))/(abs(F(x,y)) + 1e-10)))
 
     #===========================================================================
     # Interpolate a quadratic function 
