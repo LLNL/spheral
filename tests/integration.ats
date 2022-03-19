@@ -63,6 +63,7 @@ source("unit/Utilities/testSimpsonsIntegration.py")
 source("unit/Utilities/test_uniform_random.py")
 source("unit/Utilities/testBiLinearInterpolator.py")
 source("unit/Utilities/testBiQuadraticInterpolator.py")
+source("unit/Utilities/testBiCubicInterpolator.py")
 
 # Mesh tests.
 source("unit/Mesh/testLineMesh.py")
