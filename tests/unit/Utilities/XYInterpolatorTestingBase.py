@@ -48,21 +48,20 @@ class GradPolynomialFunctor(ScalarScalarSymTensor2dFunctor):
         ScalarScalarSymTensor2dFunctor.__init__(self)
         self.Fpoly = Fpoly
         self.c = Fpoly.c
-        self.order = Fpoly.order
+        self.order1 = Fpoly.order + 1
         return
 
     def __call__(self, x, y):
-        result = SymTensor2d(self.c[1,0], 0.0,
-                             0.0, self.c[0,1])
-        for i in xrange(1, self.order + 1):
-            x2i = x**i
-            x2i1 = x**(i-1)
-            for j in xrange(1, self.order + 1):
-                y2j = y**j
-                y2j1 = y**(j-1)
-                result.xx += self.c[i,j]*i*x2i1*y2j
-                result.xy += self.c[i,j]*i*j*x2i1*y2j1
-                result.yy += self.c[i,j]*j*x2i*y2j1
+        result = SymTensor2d()
+        for i in xrange(1, self.order1):
+            for j in xrange(self.order1):
+                result.xx = result.xx + self.c[i,j] * i * x**(i-1) * y**j
+        for i in xrange(self.order1):
+            for j in xrange(1, self.order1):
+                result.yy = result.yy + self.c[i,j] * j * x**i * y**(j - 1)
+        for i in xrange(1, self.order1):
+            for j in xrange(1, self.order1):
+                result.xy = result.xy + self.c[i,j] * i * j * x**(i - 1) * y**(j - 1)
         return result
 
 #===============================================================================
@@ -191,10 +190,6 @@ class XYInterpolatorTestingBase:
                         Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
                         tol = self.tol[2] / sqrt(nx*ny)
                         for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
-                            # if Finterp.xlog:
-                            #     x = max(x, self.coord_ans(Finterp.xstep, 0, nx - 1, True))
-                            # if Finterp.ylog:
-                            #     y = max(y, self.coord_ans(Finterp.ystep, 0, ny - 1, True))
                             passing = fuzzyEqual(Finterp(x, y), F(x, y), tol)
                             if not passing:
                                 self.plotem(x, y, F, Finterp)
@@ -215,10 +210,6 @@ class XYInterpolatorTestingBase:
                         # sys.stderr.write("(%i, %i): %s\n" % (nx, ny, Finterp))
 
                         for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
-                            # if Finterp.xlog:
-                            #     x = max(x, self.coord_ans(Finterp.xstep, 0, nx - 1, True))
-                            # if Finterp.ylog:
-                            #     y = max(y, self.coord_ans(Finterp.ystep, 0, ny - 1, True))
                             passing = fuzzyEqual(Finterp(x, y), F(x, y), tol)
                             if not passing:
                                 self.plotem(x, y, F, Finterp)

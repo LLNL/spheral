@@ -36,17 +36,6 @@ public:
                       const Func& F,
                       const bool xlog = false,
                       const bool ylog = false);
-  template<typename Func, typename GradFunc>
-  BiCubicInterpolator(const double xmin,
-                      const double xmax,
-                      const double ymin,
-                      const double ymax,
-                      const size_t nx,
-                      const size_t ny,
-                      const Func& F,
-                      const GradFunc& gradF,
-                      const bool xlog = false,
-                      const bool ylog = false);
   BiCubicInterpolator();
   virtual ~BiCubicInterpolator();
 

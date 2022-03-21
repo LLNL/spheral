@@ -40,9 +40,9 @@ BiLinearInterpolator::BiLinearInterpolator(const double xmin,
   // Fit the coefficients
   Eigen::VectorXd b(4), c(4);
   for (auto i = 0u; i < mnx1; ++i) {
+    x1 = xcoord(i);
+    x2 = xcoord(i + 1u);
     for (auto j = 0u; j < mny1; ++j) {
-      x1 = xcoord(i);
-      x2 = xcoord(i + 1u);
       y1 = ycoord(j);
       y2 = ycoord(j + 1u);
       c << F(x1, y1),

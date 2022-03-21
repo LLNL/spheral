@@ -46,10 +46,10 @@ BiQuadraticInterpolator::BiQuadraticInterpolator(const double xmin,
   // Fit the coefficients
   Eigen::VectorXd b(9), c(9);
   for (auto i = 0u; i < mnx1; ++i) {
+    x1 = xcoord(i);
+    x3 = xcoord(i + 1u);
+    x2 = 0.5*(x1 + x3);
     for (auto j = 0u; j < mny1; ++j) {
-      x1 = xcoord(i);
-      x3 = xcoord(i + 1u);
-      x2 = 0.5*(x1 + x3);
       y1 = ycoord(j);
       y3 = ycoord(j + 1u);
       y2 = 0.5*(y1 + y3);
