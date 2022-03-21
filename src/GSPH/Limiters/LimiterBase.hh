@@ -1,6 +1,9 @@
 //---------------------------------Spheral++----------------------------------//
 // LimiterBase -- base class for scalar slope limiters
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_LimiterBase_hh__
 #define __Spheral_LimiterBase_hh__
 

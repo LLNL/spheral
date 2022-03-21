@@ -48,10 +48,17 @@
 #ATS:t504 = test(        SELF, "--gsph True --gsphReconstructionGradient=SPHGradient --graphics None --clearDirectories True --checkError True --restartStep 20", label="Planar Noh problem with GSPH and SPHGradient -- 1-D (serial)")
 #ATS:t505 = testif(t504, SELF, "--gsph True --gsphReconstructionGradient=SPHGradient --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with GSPH and SPHGradient -- 1-D (serial) RESTART CHECK")
 
+# MFM
+#
+#ATS:t600 = test(        SELF, "--mfm True --gsphReconstructionGradient=RiemannGradient --graphics None --clearDirectories True --checkError False --restartStep 20", label="Planar Noh problem with MFM  -- 1-D (serial)")
+#ATS:t601 = testif(t600, SELF, "--mfm True --gsphReconstructionGradient=RiemannGradient --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with MFM -- 1-D (serial) RESTART CHECK")
 
-import os, shutil
+import os, shutil, sys
 from SolidSpheral1d import *
 from SpheralTestUtilities import *
+
+from GenerateNodeDistribution1d import GenerateNodeDistribution1d
+from SortAndDivideRedistributeNodes import distributeNodes1d
 
 title("1-D integrated hydro test -- planar Noh problem")
 
@@ -84,6 +91,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             psph = False,
             fsisph = False,
             gsph = False,
+            mfm = False,
             crktype = "default",        # one of ("default", "variant")
             gsphReconstructionGradient = RiemannGradient, #one of (RiemannGradient, HydroAccelerationGradient, SPHGradient, MixedGradient, OnlyDvDxGradient)
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
@@ -211,6 +219,8 @@ elif fsisph:
     hydroname = "FSISPH"
 elif gsph:
     hydroname = os.path.join("GSPH",str(gsphReconstructionGradient))
+elif mfm:
+    hydroname = os.path.join("MFM",str(gsphReconstructionGradient))
 elif psph:
     hydroname = "PSPH"
 else:
@@ -232,7 +242,6 @@ dx = (x1 - x0)/nx1
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -280,8 +289,6 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from GenerateNodeDistribution1d import GenerateNodeDistribution1d
-from SortAndDivideRedistributeNodes import distributeNodes1d
 gen = GenerateNodeDistribution1d(n = nx1,
                                  rho = rho1,
                                  xmin = x0,
@@ -373,8 +380,7 @@ elif gsph:
     waveSpeed = DavisWaveSpeed()
     solver = HLLC(limiter,
                   waveSpeed,
-                  True,                           # False - first order , True - second order
-                  gsphReconstructionGradient)     # what gradient are we using in reconstruction
+                  True)
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
                 W = WT,
@@ -384,6 +390,27 @@ elif gsph:
                 correctVelocityGradient=correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
                 XSPH = XSPH,
+                gradientType = gsphReconstructionGradient,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+elif mfm:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,
+                  waveSpeed,
+                  True)
+    hydro = MFM(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                gradientType = gsphReconstructionGradient,
                 densityUpdate=densityUpdate,
                 HUpdate = IdealH,
                 epsTensile = epsilonTensile,
@@ -419,7 +446,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
-if not gsph:
+if not (gsph or mfm):
     q = hydro.Q
     if not Cl is None:
         q.Cl = Cl
@@ -773,7 +800,7 @@ if mpi.rank == 0 :
         hD.append([L1,L2,Linf])
 
         if checkError:
-            if not crksph and not psph and not fsisph and not gsph: # if sph use the known error norms
+            if not crksph and not psph and not fsisph and not gsph and not mfm: # if sph use the known error norms
                 if not fuzzyEqual(L1, L1expect, tol):
                     print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                           L1,
@@ -790,7 +817,7 @@ if mpi.rank == 0 :
                                                                                             Linfexpect)
                     failure = True
 
-            if fsisph or gsph: # for fsi check if the norms are order of mag same as sph 
+            if fsisph or gsph or mfm: # for fsi check if the norms are order of mag same as sph 
             
                 if L1 > 2.0*L1expect:
                     print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,

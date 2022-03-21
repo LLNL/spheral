@@ -3,14 +3,19 @@
 #
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
-import os, shutil
+
+import os, shutil, sys
 from math import *
 from SolidSpheral3d import *
 from SpheralTestUtilities import *
 from GenerateNodeDistribution3d import *
 
 import mpi
-import DistributeNodes
+
+if mpi.procs > 1:
+    from PeanoHilbertDistributeNodes import distributeNodes3d
+else:
+    from DistributeNodes import distributeNodes3d
 
 title("3-D integrated hydro test -- spherical Noh problem")
 
@@ -49,6 +54,7 @@ commandLine(order = 5,
             psph = False,
             fsisph = False,
             gsph = False,
+            mfm = False,
 
             asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             boolReduceViscosity = False,
@@ -123,7 +129,7 @@ commandLine(order = 5,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
-assert not(gsph and (boolReduceViscosity and boolCullenViscosity))
+assert not((gsph or mfm) and (boolReduceViscosity and boolCullenViscosity))
 assert not(fsisph and not solid)
 
 if smallPressure:
@@ -140,6 +146,8 @@ elif fsisph:
     hydroname = "FSISPH"
 elif gsph:
     hydroname = "GSPH"
+elif gsph:
+    hydroname = "MFM"
 else:
     hydroname = "SPH"
 if asph:
@@ -167,7 +175,6 @@ else:
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -224,12 +231,6 @@ generator = GenerateNodeDistribution3d(nx, ny, nz, rho0, seed,
                                        xmax = (x1, y1, z1),
                                        nNodePerh = nPerh,
                                        SPH = True)
-
-if mpi.procs > 1:
-    #from VoronoiDistributeNodes import distributeNodes3d
-    from PeanoHilbertDistributeNodes import distributeNodes3d
-else:
-    from DistributeNodes import distributeNodes3d
 
 distributeNodes3d((nodes1, generator))
 output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
@@ -298,7 +299,7 @@ elif fsisph:
 elif gsph:
     limiter = VanLeerLimiter()
     waveSpeed = DavisWaveSpeed()
-    solver = HLLC(limiter,waveSpeed,True,RiemannGradient)
+    solver = HLLC(limiter,waveSpeed,True)
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
                 W = WT,
@@ -307,6 +308,24 @@ elif gsph:
                 correctVelocityGradient=correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
                 XSPH = XSPH,
+                gradientType = RiemannGradient,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+elif mfm:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,True)
+    hydro = MFM(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                gradientType = RiemannGradient,
                 densityUpdate=densityUpdate,
                 HUpdate = IdealH,
                 epsTensile = epsilonTensile,
@@ -354,7 +373,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
-if not gsph:
+if not (gsph or mfm):
     q = hydro.Q
     if Cl:
         q.Cl = Cl

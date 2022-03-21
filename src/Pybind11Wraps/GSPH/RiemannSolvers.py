@@ -16,20 +16,17 @@ class RiemannSolverBase:
 
     def pyinit(slopeLimiter = "LimiterBase<%(Dimension)s>&",
                waveSpeed = "WaveSpeedBase<%(Dimension)s>&",
-               linearReconstruction = "const bool",
-               gradType = "const GradientType"):
+               linearReconstruction = "const bool"):
         "slope limiter constructor"
 
 
     linearReconstruction = PYB11property("bool", "linearReconstruction", "linearReconstruction", doc="linear reconstruction of L and R state for riemann problem") 
-    gradientType = PYB11property("GradientType", "gradientType", "gradientType",
-                                 doc="Enum to selecting different gradients we can use")
 
     waveSpeed = PYB11property("WaveSpeedBase<%(Dimension)s>&", "waveSpeed",returnpolicy="reference_internal", doc="wave speed object")
     limiter = PYB11property("LimiterBase<%(Dimension)s>&", "limiter",returnpolicy="reference_internal", doc="slope limiter object")
 
-    DpDx = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DpDx",returnpolicy="reference_internal")
-    DvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "DvDx",returnpolicy="reference_internal")
+    #DpDx = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DpDx",returnpolicy="reference_internal")
+    #DvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "DvDx",returnpolicy="reference_internal")
     
 #PYB11inject(RiemannSolverBaseAbstractMethods, RiemannSolverBase, pure_virtual=True)
 
@@ -47,8 +44,7 @@ class HLLC(RiemannSolverBase):
 
     def pyinit(slopeLimiter = "LimiterBase<%(Dimension)s>&",
                waveSpeed = "WaveSpeedBase<%(Dimension)s>&",
-               linearReconstruction = "const bool",
-               gradType = "const GradientType"):
+               linearReconstruction = "const bool"):
         "slope limiter constructor"
 
 #-------------------------------------------------------------------------------
@@ -66,7 +62,6 @@ class GHLLC(HLLC):
     def pyinit(slopeLimiter = "LimiterBase<%(Dimension)s>&",
                waveSpeed = "WaveSpeedBase<%(Dimension)s>&",
                linearReconstruction = "const bool",
-               gradType = "const GradientType",
                gravitationalAcceleration = "const Vector"):
         "slope limiter constructor"
 
