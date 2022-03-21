@@ -1,9 +1,10 @@
 #ATS:test(SELF, label="TableKernel unit tests")
-from math import *
-import unittest
-
 from Spheral import *
 from SpheralTestUtilities import fuzzyEqual
+
+from math import *
+import unittest
+import random
 
 #===============================================================================
 # Main testing class.
@@ -135,7 +136,7 @@ class TestTableKernel(unittest.TestCase):
     def testWsumValues2d(self):
         W = self.WT2
         assert len(W.nperhValues) == len(W.WsumValues)
-        for nperh, Wsum in zip(W.nperhValues, W.WsumValues):
+        for nperh, Wsum in random.sample(zip(W.nperhValues, W.WsumValues), 10):
             if Wsum > 0.0:
                 deta = 1.0/nperh
                 testSum = 0.0
@@ -170,7 +171,7 @@ class TestTableKernel(unittest.TestCase):
     def testWsumValues3d(self):
         W = self.WT3
         assert len(W.nperhValues) == len(W.WsumValues)
-        for nperh, Wsum in zip(W.nperhValues, W.WsumValues):
+        for nperh, Wsum in random.sample(zip(W.nperhValues, W.WsumValues), 10):
             if Wsum > 0.0:
                 deta = 1.0/nperh
                 testSum = 0.0

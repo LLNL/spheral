@@ -61,8 +61,7 @@ eos = IsothermalEquationOfStateMKS(cs2, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 100000)
-WTPi = TableKernel(BSplineKernel(), 10000)
+WT = TableKernel(BSplineKernel(), 100)
 
 #-------------------------------------------------------------------------------
 # Make the NodeList.
