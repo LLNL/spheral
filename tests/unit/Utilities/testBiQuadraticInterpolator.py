@@ -16,8 +16,8 @@ class TestBiQuadraticInterpolator(XYInterpolatorTestingBase,
     #===========================================================================
     def setUp(self):
         self.order = 2
-        self.tol = {1 : 1e-10,
-                    2 : 1e-6,
+        self.tol = {1 : 1e-4,
+                    2 : 1e-4,
                     3 : 100.0}
         self.ntests = 20
         self.n = 100
