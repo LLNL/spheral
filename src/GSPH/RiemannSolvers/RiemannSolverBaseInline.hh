@@ -41,61 +41,44 @@ linearReconstruction(bool x) {
   mLinearReconstruction=x;
 }
 
-//------------------------------------------------------------------------------
-// set/get gradient type
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-GradientType
-RiemannSolverBase<Dimension>::
-gradientType() const {
-  return mGradientType;
-}
 
-template<typename Dimension>
-inline
-void
-RiemannSolverBase<Dimension>::
-gradientType(GradientType x) {
-  mGradientType=x;
-}
 //------------------------------------------------------------------------------
 // field getters
 //------------------------------------------------------------------------------
 
 
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Vector>&
-RiemannSolverBase<Dimension>::
-DpDx() {
-  return mDpDx;
-}
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Vector>&
+// RiemannSolverBase<Dimension>::
+// DpDx() {
+//   return mDpDx;
+// }
 
-template<typename Dimension>
-inline
-FieldList<Dimension, typename Dimension::Tensor>&
-RiemannSolverBase<Dimension>::
-DvDx() {
-  return mDvDx;
-}
+// template<typename Dimension>
+// inline
+// FieldList<Dimension, typename Dimension::Tensor>&
+// RiemannSolverBase<Dimension>::
+// DvDx() {
+//   return mDvDx;
+// }
 
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-RiemannSolverBase<Dimension>::
-DpDx() const {
-  return mDpDx;
-}
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension, typename Dimension::Vector>&
+// RiemannSolverBase<Dimension>::
+// DpDx() const {
+//   return mDpDx;
+// }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Tensor>&
-RiemannSolverBase<Dimension>::
-DvDx() const {
-  return mDvDx;
-}
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension, typename Dimension::Tensor>&
+// RiemannSolverBase<Dimension>::
+// DvDx() const {
+//   return mDvDx;
+// }
 
 
 }

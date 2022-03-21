@@ -60,6 +60,7 @@ commandLine(nx1 = 1000,     # number of nodes
             psph = False,     # pressure based sph
             fsisph = False,   # multimaterial patching method
             gsph = False,     # Convolution-free godunov-SPH
+            mfm = False,      # moving finite mass -- hopkins 2015
 
             # FSI parameters
             fsiRhoStabilizeCoeff = 0.0,         # diffusion operating through the vel-gradient
@@ -136,7 +137,7 @@ commandLine(nx1 = 1000,     # number of nodes
 
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert not (fsisph and not solid)              # only implemented for solid
-assert (fsisph + crksph + psph + gsph <= 1)    # only one hydro selection
+assert (mfm + fsisph + crksph + psph + gsph <= 1)    # only one hydro selection
 
 if crksph:
     hydroname = os.path.join("CRKSPH",
@@ -148,6 +149,8 @@ elif fsisph:
     hydroname = "FSISPH"
 elif gsph:
     hydroname = os.path.join("GSPH",str(gsphReconstructionGradient))
+elif mfm:
+    hydroname = os.path.join("MFM",str(gsphReconstructionGradient))
 else:
     hydroname = "SPH"
 if solid:
@@ -317,10 +320,7 @@ elif fsisph:
 elif gsph:
     limiter = VanLeerLimiter()
     waveSpeed = DavisWaveSpeed()
-    solver = HLLC(limiter,
-                  waveSpeed,
-                  linearReconstruction,           # False - first order , True - second order
-                  gsphReconstructionGradient)     # what gradient are we using in reconstruction
+    solver = HLLC(limiter,waveSpeed,linearReconstruction)
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
                 W = WT,
@@ -329,6 +329,24 @@ elif gsph:
                 correctVelocityGradient=correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
                 XSPH = XSPH,
+                gradientType = gsphReconstructionGradient,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+elif mfm:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,linearReconstruction)
+    hydro = MFM(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                gradientType = gsphReconstructionGradient,
                 densityUpdate=densityUpdate,
                 HUpdate = IdealH,
                 epsTensile = epsilonTensile,
@@ -353,7 +371,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Tweak the artificial viscosity.
 #-------------------------------------------------------------------------------
-if not gsph:
+if not (gsph or mfm):
     q = hydro.Q
     if not Cl is None:
         q.Cl = Cl

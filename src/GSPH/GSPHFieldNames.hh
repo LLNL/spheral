@@ -1,7 +1,9 @@
 //---------------------------------Spheral++----------------------------------//
-// HydroFieldNames -- A collection of standard Field names for the hydro 
-// physics package.
+// GSPHFieldNames -- A collection of Field names specialized for GSPH module
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
+
 #ifndef _Spheral_GSPHFieldNames_
 #define _Spheral_GSPHFieldNames_
 
