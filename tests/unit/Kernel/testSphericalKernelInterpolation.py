@@ -95,8 +95,9 @@ for W in (W3,):
         field1[i] += mj/rhoj * field0[j] * Wijj
         grad_field1[i] += mj/rhoj * field0[j] * gradWijj
         rho1[i] += mj * Wijj
+        grad_sum[i] += mj * gradWijj.x
         if i == 0:
-            print " --> (", i, j, ") : ", mj/rhoj, Wijj, gradWijj, " ::: ", grad_field1[i]
+            print " --> (", i, j, ") : ", mj/rhoj, Wijj, gradWijj, " ::: ", grad_field1[i], grad_sum[i]
         # if i == j:
         #     frac = abs(grad_sum[i]/gradWijj.x)
         #     print "    Necessary Correction : ", frac
