@@ -235,11 +235,16 @@ void SidreFileIO::write(const std::string& value, const std::string pathName)
   //   std::cout << "This is the string Im writing for the path with issues" << std::endl;
   // mDataStorePtr->getRoot()->createViewString(pathName, value);
 
-  // Will mostlikely need to add the logic that Mike D added in DataTypeTraits for different compilers
+  #if (CHAR_MIN==0)
+    axom::sidre::DataTypeId axomType = axom::sidre::UINT8_ID;
+  #else
+    axom::sidre::DataTypeId axomType = axom::sidre::INT8_ID;
+  #endif
+
   axom::sidre::Buffer* buff = mDataStorePtr->createBuffer()
-                                           ->allocate(axom::sidre::INT8_ID, value.size())
+                                           ->allocate(axomType, value.size())
                                            ->copyBytesIntoBuffer((void*)value.data(), sizeof(char) * (value.size()));
-  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::INT8_ID, value.size(), buff);
+  mDataStorePtr->getRoot()->createView(pathName, axomType, value.size(), buff);
   // if (pathName == "RKCorrections/rkCorrections_0/Field0")
   //   mDataStorePtr->getRoot()->getGroup("RKCorrections/rkCorrections_0")->print();
 }
@@ -426,11 +431,6 @@ void SidreFileIO::read(std::string& value, const std::string pathName) const
   value.resize(size);
   char* data = mDataStorePtr->getRoot()->getView(pathName)->getArray();
   value.assign(data, data + size);
-  // if (value.size() == 0)
-  // {
-  //   std::cout << "This probably isn't supposed to happen!!! This is happening when I am trying to read: " << pathName << std::endl;
-  //   mDataStorePtr->getRoot()->getView(pathName)->print();
-  // }
 }
 
 //------------------------------------------------------------------------------
