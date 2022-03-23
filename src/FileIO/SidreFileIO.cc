@@ -12,6 +12,28 @@ namespace Spheral
 {
 
 //------------------------------------------------------------------------------
+// Specialize to read/write a std::string/std::vector type
+//------------------------------------------------------------------------------
+template <typename DataType>
+void sidreWriteVec(std::shared_ptr<axom::sidre::DataStore> dataStorePtr, const DataType& value, const std::string& path)
+{
+  axom::sidre::DataTypeId dtype = DataTypeTraits<DataType>::axomTypeID();
+  axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
+                                           ->allocate(dtype, value.size())
+                                           ->copyBytesIntoBuffer((void*)value.data(), sizeof(DataType) * (value.size()));
+  dataStorePtr->getRoot()->createView(path, dtype, value.size(), buff);
+}
+
+template <typename DataType>
+void sidreReadVec(std::shared_ptr<axom::sidre::DataStore> dataStorePtr, DataType& value, const std::string& path)
+{
+  int size = dataStorePtr->getRoot()->getView(path)->getNumElements();
+  value.resize(size);
+  DataType::value_type* data = dataStorePtr->getRoot()->getView(path)->getArray();
+  value.assign(data, data + size);
+}
+
+//------------------------------------------------------------------------------
 // Specialize to read/write a Geometric type
 //------------------------------------------------------------------------------
 template <typename DataType>
@@ -247,6 +269,8 @@ void SidreFileIO::write(const std::string& value, const std::string pathName)
   mDataStorePtr->getRoot()->createView(pathName, axomType, value.size(), buff);
   // if (pathName == "RKCorrections/rkCorrections_0/Field0")
   //   mDataStorePtr->getRoot()->getGroup("RKCorrections/rkCorrections_0")->print();
+
+  // sidreWriteVec(mDataStorePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -254,10 +278,12 @@ void SidreFileIO::write(const std::string& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::vector<int>& value, const std::string pathName)
 {
-  axom::sidre::Buffer* buff = mDataStorePtr->createBuffer()
-                                           ->allocate(axom::sidre::INT_ID, value.size())
-                                           ->copyBytesIntoBuffer((void*)value.data(), sizeof(int) * (value.size()));
-  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::INT_ID, value.size(), buff);
+  // axom::sidre::Buffer* buff = mDataStorePtr->createBuffer()
+  //                                          ->allocate(axom::sidre::INT_ID, value.size())
+  //                                          ->copyBytesIntoBuffer((void*)value.data(), sizeof(int) * (value.size()));
+  // mDataStorePtr->getRoot()->createView(pathName, axom::sidre::INT_ID, value.size(), buff);
+
+  sidreWriteVec(mDataStorePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -265,10 +291,12 @@ void SidreFileIO::write(const std::vector<int>& value, const std::string pathNam
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::vector<double>& value, const std::string pathName)
 {
-  axom::sidre::Buffer* buff = mDataStorePtr->createBuffer()
-                                           ->allocate(axom::sidre::DOUBLE_ID, value.size())
-                                           ->copyBytesIntoBuffer((void*)value.data(), sizeof(double) * (value.size()));
-  mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, value.size(), buff);
+  // axom::sidre::Buffer* buff = mDataStorePtr->createBuffer()
+  //                                          ->allocate(axom::sidre::DOUBLE_ID, value.size())
+  //                                          ->copyBytesIntoBuffer((void*)value.data(), sizeof(double) * (value.size()));
+  // mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, value.size(), buff);
+
+  sidreWriteVec(mDataStorePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -438,10 +466,11 @@ void SidreFileIO::read(std::string& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::vector<int>& value, const std::string pathName) const
 {
-  int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
-  value.resize(size);
-  int* data = mDataStorePtr->getRoot()->getView(pathName)->getArray();
-  value.assign(data, data + size);
+  // int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
+  // value.resize(size);
+  // int* data = mDataStorePtr->getRoot()->getView(pathName)->getArray();
+  // value.assign(data, data + size);
+  sidreReadVec(mDataStorePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -449,10 +478,11 @@ void SidreFileIO::read(std::vector<int>& value, const std::string pathName) cons
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::vector<double>& value, const std::string pathName) const
 {
-  int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
-  value.resize(size);
-  double* data = mDataStorePtr->getRoot()->getView(pathName)->getArray();
-  value.assign(data, data + size);
+  // int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
+  // value.resize(size);
+  // double* data = mDataStorePtr->getRoot()->getView(pathName)->getArray();
+  // value.assign(data, data + size);
+  sidreReadVec(mDataStorePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
