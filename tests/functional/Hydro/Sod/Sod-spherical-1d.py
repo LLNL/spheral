@@ -30,8 +30,8 @@ title("1-D integrated hydro test -- spherical Sod problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nr1 = 300,
-            nr2 = 300,
+commandLine(nr1 = 800,
+            nr2 = 100,
             rho1 = 1.0,
             rho2 = 0.125,
             P1 = 1.0,
@@ -48,7 +48,7 @@ commandLine(nr1 = 300,
             hsmooth = 0.0,             # Optionally smooth initial discontinuity, expressed as particle spacings
             sumInitialDensity = False, # Optionally sum the initial density before setting the pressure and such
 
-            nPerh = 6.00,
+            nPerh = 4.00,
 
             mu = 1.0,
             
@@ -82,7 +82,7 @@ commandLine(nr1 = 300,
             HopkinsConductivity = False,
             hmin = 1e-10,
             hmax = 1.0e10,
-            cfl = 0.5,
+            cfl = 0.25,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
