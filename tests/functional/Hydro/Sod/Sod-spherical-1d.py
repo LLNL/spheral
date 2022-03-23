@@ -242,13 +242,26 @@ def specificEnergy(xi, rhoi, gammai):
 # Set the node properties.
 #-------------------------------------------------------------------------------
 from GenerateSphericalNodeProfile1d import GenerateSphericalNodeProfile1d
+from GenerateSphericalNodeDistribution1d import GenerateSphericalNodeDistribution1d
+from CompositeNodeDistribution import CompositeNodeDistribution
 from VoronoiDistributeNodes import distributeNodes1d
 if numNodeLists == 1:
-    gen = GenerateSphericalNodeProfile1d(nr = nr1 + nr2,
-                                         rho = rho_initial,
-                                         rmin = x0,
-                                         rmax = x2,
-                                         nNodePerh = nPerh)
+    # gen = GenerateSphericalNodeProfile1d(nr = nr1 + nr2,
+    #                                      rho = rho_initial,
+    #                                      rmin = x0,
+    #                                      rmax = x2,
+    #                                      nNodePerh = nPerh)
+    gen1 = GenerateSphericalNodeDistribution1d(nr = nr1,
+                                               rho = rho_initial,
+                                               rmin = x0,
+                                               rmax = x1,
+                                               nNodePerh = nPerh)
+    gen2 = GenerateSphericalNodeDistribution1d(nr = nr2,
+                                               rho = rho_initial,
+                                               rmin = x1,
+                                               rmax = x2,
+                                               nNodePerh = nPerh)
+    gen = CompositeNodeDistribution(gen1, gen2)
     distributeNodes1d((nodes1, gen))
 else:
     if hsmooth > 0:
