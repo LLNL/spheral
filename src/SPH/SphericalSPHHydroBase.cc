@@ -312,7 +312,11 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   const auto  npairs = pairs.size();
 
   // Size up the pair-wise accelerations before we start.
-  if (mCompatibleEnergyEvolution) pairAccelerations.resize(npairs);
+  if (mCompatibleEnergyEvolution) {
+    const auto nnodes = dataBase.numFluidInternalNodes();
+    pairAccelerations.resize(2u*npairs + nnodes);
+  }
+
   
   // // The scale for the tensile correction.
   // const auto& nodeList = mass[0]->nodeList();
@@ -492,9 +496,14 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       CHECK(rhoj > 0.0);
       const auto Prhoi = safeOmegai*Pi/(rhoi*rhoi);
       const auto Prhoj = safeOmegaj*Pj/(rhoj*rhoj);
-      DvDti -= mj*((Prhoi*gradWji + Prhoj*gradWjj) + Qaccji + Qaccjj);
-      DvDtj -= mi*((Prhoj*gradWij + Prhoi*gradWii) + Qaccij + Qaccii);
-      // if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
+      const auto deltaDvDti = -mj*((Prhoi*gradWji + Prhoj*gradWjj) + Qaccji + Qaccjj);
+      const auto deltaDvDtj = -mi*((Prhoj*gradWij + Prhoi*gradWii) + Qaccij + Qaccii);
+      DvDti += deltaDvDti;
+      DvDtj += deltaDvDtj;
+      if (mCompatibleEnergyEvolution) {
+        pairAccelerations[2*kk] = deltaDvDti;
+        pairAccelerations[2*kk+1] = deltaDvDtj;
+      }
 
       // const bool barf = (i == 0 or j == 0);
       // if (barf) {
@@ -602,7 +611,9 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
       // Self-interaction for momentum (cause curvilinear coordinates are weird)
       const auto Prhoi = safeOmegai*Pi/(rhoi*rhoi);
-      DvDti -= 2.0*mi*Prhoi*gradWii;
+      const auto deltaDvDti = -2.0*mi*Prhoi*gradWii;
+      DvDti += deltaDvDti;
+      if (mCompatibleEnergyEvolution) pairAccelerations[2*npairs + i] = deltaDvDti;
 
       // const bool barf = (i == 0);
       // if (barf) {
