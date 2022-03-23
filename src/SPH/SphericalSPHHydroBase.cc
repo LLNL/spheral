@@ -239,6 +239,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   const auto& W = mKernel;
   const auto& WQ = mPiKernel;
   const auto  oneKernel = (W == WQ);
+  const auto  etaMax = W.etamax();
 
   // A few useful constants we'll use in the following loop.
   const auto tiny = 1.0e-30;
@@ -451,8 +452,12 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       const auto rij = ri - rj;
       const auto rij2 = rij.magnitude2();
       const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
-      weightedNeighborSumi +=     fweightij*std::abs(gWii);
-      weightedNeighborSumj += 1.0/fweightij*std::abs(gWij);
+      weightedNeighborSumi +=     fweightij*std::abs(gWii) * (etaii > etaMax ? 1.0 :
+                                                              etaii < etaji ? 2.0 :
+                                                              0.0);
+      weightedNeighborSumj += 1.0/fweightij*std::abs(gWij) * (etajj > etaMax ? 1.0 :
+                                                              etajj < etaij ? 2.0 :
+                                                              0.0);
 
       // Contribution to the sum density.
       if (nodeListi == nodeListj) {

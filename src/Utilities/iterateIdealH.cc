@@ -39,6 +39,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
 
+  const auto etaMax = W.kernelExtent();
+
   // Start the timing.
   const auto t0 = clock();
 
@@ -168,10 +170,15 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           const auto  mj = m(nodeListj, j);
           const auto  rhoj = rho(nodeListj, j);
 
+          xij = posi - posj;
+          etai = Hi*xij;
+          etaj = Hj*xij;
+          thpt = xij.selfdyad()/(xij.magnitude2() + 1.0e-10);
+
           // Compute the node-node weighting
-          auto fweightij = 1.0;
+          auto fweightij = 1.0, fispherical = 1.0, fjspherical = 1.0;
           if (nodeListi != nodeListj) {
-            if (GeometryRegistrar::coords() == CoordinateType::RZ){
+            if (GeometryRegistrar::coords() == CoordinateType::RZ) {
               ri = abs(posi.y());
               rj = abs(posj.y());
               mRZi = mi/(2.0*M_PI*ri);
@@ -180,12 +187,18 @@ iterateIdealH(DataBase<Dimension>& dataBase,
             } else {
               fweightij = mj*rhoi/(mi*rhoj);
             }
+          } else if (GeometryRegistrar::coords() == CoordinateType::Spherical) {
+            const auto eii = Hi.xx()*posi.x();
+            const auto eji = Hi.xx()*posj.x();
+            const auto ejj = Hj.xx()*posj.x();
+            const auto eij = Hj.xx()*posi.x();
+            fispherical = (eii > etaMax ? 1.0 :
+                           eii < eji ? 2.0 :
+                           0.0);
+            fjspherical = (ejj > etaMax ? 1.0 :
+                           ejj < eij ? 2.0 :
+                           0.0);
           }
-                                        
-          xij = posi - posj;
-          etai = Hi*xij;
-          etaj = Hj*xij;
-          thpt = xij.selfdyad()/(xij.magnitude2() + 1.0e-10);
 
           std::tie(Wi, gWi) = W.kernelAndGradValue(etai.magnitude(), 1.0);
           gradWi = gWi*Hi*etai.unitVector();
@@ -194,8 +207,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           gradWj = gWj*Hj*etaj.unitVector();
 
           // Increment the moments
-          zerothMoment_thread(nodeListi, i) += fweightij*    std::abs(gWi);
-          zerothMoment_thread(nodeListj, j) += 1.0/fweightij*std::abs(gWj);
+          zerothMoment_thread(nodeListi, i) += fweightij*    std::abs(gWi) * fispherical;
+          zerothMoment_thread(nodeListj, j) += 1.0/fweightij*std::abs(gWj) * fjspherical;
           secondMoment_thread(nodeListi, i) += fweightij*    gradWi.magnitude2()*thpt;
           secondMoment_thread(nodeListj, j) += 1.0/fweightij*gradWj.magnitude2()*thpt;
         }
