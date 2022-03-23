@@ -2,7 +2,10 @@
 // MinModLimiter 
 //   Roe, P.L. (1986), "Characteristic-based schemes for the Euler equations", 
 //   Annu. Rev. Fluid Mech., 18: 337–365
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_MinModLimiter_hh__
 #define __Spheral_MinModLimiter_hh__
 

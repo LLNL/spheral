@@ -122,7 +122,8 @@ removeExpiredPointers() {
 //------------------------------------------------------------------------------
 vector<string>
 RestartRegistrar::
-uniqueLabels() const {
+uniqueLabels() {
+  this->removeExpiredPointers();
   vector<string> result;
   unsigned counter = 0;
   for (const_iterator itr = this->begin();
@@ -147,7 +148,8 @@ uniqueLabels() const {
 //------------------------------------------------------------------------------
 void
 RestartRegistrar::
-printLabels() const {
+printLabels() {
+  this->removeExpiredPointers();
   const vector<string> labels = this->uniqueLabels();
   for (std::vector<std::string>::const_iterator itr = labels.begin();
        itr != labels.end();
@@ -161,7 +163,8 @@ printLabels() const {
 //------------------------------------------------------------------------------
 void
 RestartRegistrar::
-dumpState(FileIO& file) const {
+dumpState(FileIO& file) {
+  this->removeExpiredPointers();
   const vector<string> labels = this->uniqueLabels();
   CHECK(labels.size() == mRestartHandles.size());
   for (size_t i = 0; i != labels.size(); ++i) {
@@ -174,7 +177,8 @@ dumpState(FileIO& file) const {
 //------------------------------------------------------------------------------
 void
 RestartRegistrar::
-restoreState(const FileIO& file) const {
+restoreState(const FileIO& file) {
+  this->removeExpiredPointers();
   const vector<string> labels = this->uniqueLabels();
   CHECK(labels.size() == mRestartHandles.size());
   for (auto i = 0u; i != labels.size(); ++i) {
