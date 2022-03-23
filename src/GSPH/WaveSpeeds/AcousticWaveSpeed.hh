@@ -1,6 +1,9 @@
 //---------------------------------Spheral++----------------------------------//
-// AcousticWaveSpeed
+// AcousticWaveSpeed -- simple acoustic wave speed
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_AcousticWaveSpeed_hh__
 #define __Spheral_AcousticWaveSpeed_hh__
 

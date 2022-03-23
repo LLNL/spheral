@@ -1,6 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// DavisWaveSpeed
+// DavisWaveSpeed 
+//   Davis S., (1988) "Simplified Second-Order Godunov-Type Methods" Siam. Sci. 
+//   Stat. Comput., 9(3):445-473
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_DavisWaveSpeed_hh__
 #define __Spheral_DavisWaveSpeed_hh__
 

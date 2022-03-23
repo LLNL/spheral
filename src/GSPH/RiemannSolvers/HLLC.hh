@@ -1,10 +1,16 @@
 //---------------------------------Spheral++----------------------------------//
-// HLLC
+// HLLC -- approximate riemann solver
+//   Toro E.F., Spruce M., Speares W., (1994) "Restoration of the Contact Surface in
+//   the HLL-Riemann Solver," Shock Waves, 4:25-34
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_HLLC_hh__
 #define __Spheral_HLLC_hh__
 
 #include "RiemannSolverBase.hh"
+
 namespace Spheral {
 
 template<typename Dimension> class State;
@@ -27,11 +33,31 @@ public:
 
   HLLC(LimiterBase<Dimension>& slopeLimiter,
        WaveSpeedBase<Dimension>& waveSpeedBase,
-       const bool linearReconstruction,
-       const GradientType gradType);
+       const bool linearReconstruction);
 
   ~HLLC();
 
+  // virtual
+  // void interfaceState(const int i,
+  //                     const int j,
+  //                     const int nodelisti,
+  //                     const int nodelistj,
+  //                     const Vector& ri,
+  //                     const Vector& rj,
+  //                     const Scalar& rhoi,   
+  //                     const Scalar& rhoj, 
+  //                     const Scalar& ci,   
+  //                     const Scalar& cj, 
+  //                     const Scalar& sigmai,    
+  //                     const Scalar& sigmaj,
+  //                     const Vector& vi,    
+  //                     const Vector& vj,
+  //                           Scalar& Pstar,
+  //                           Vector& vstar,
+  //                           Scalar& rhostari,
+  //                           Scalar& rhostarj) const override;
+  
+  // ^ temporary class to wrap the above ^
   virtual
   void interfaceState(const int i,
                       const int j,
@@ -47,6 +73,10 @@ public:
                       const Scalar& sigmaj,
                       const Vector& vi,    
                       const Vector& vj,
+                      const Vector& DpDxi,
+                      const Vector& DpDxj,
+                      const Tensor& DvDxi,
+                      const Tensor& DvDxj,
                             Scalar& Pstar,
                             Vector& vstar,
                             Scalar& rhostari,
