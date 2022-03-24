@@ -15,8 +15,8 @@
 #
 # Ordinary SPH restart check for SidreFileIO
 #
-#ATS:t6 = test(      SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20 --restartFileConst SidreFileIO", label="Planar Noh problem -- 1-D (serial)")
-#ATS:t7 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restartFileConst SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK")
+#ATS:t10 = test(       SELF, "--graphics None --clearDirectories True  --checkError True   --dataDir 'dumps-planar-sidre' --restartStep 20 --restartFileConstructor SidreFileIO", label="Planar Noh problem -- 1-D (serial) with Sidre")
+#ATS:t11 = testif(t10, SELF, "--graphics None --clearDirectories False --checkError False  --dataDir 'dumps-planar-sidre' --restartStep 20 --restartFileConstructor SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK with Sidre")
 #
 # Ordinary solid SPH
 #
@@ -174,6 +174,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             restartStep = 10000,
             dataDirBase = "dumps-planar-Noh",
             restartBaseName = "Noh-planar-1d",
+            restartFileConstructor = SiloFileIO,
             outputFile = "None",
             comparisonFile = "None",
             normOutputFile = "None",
@@ -578,7 +579,7 @@ control = SpheralController(integrator,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            restartFileConstructor = restartFileConst,
+                            restartFileConstructor = restartFileConstructor,
                             restoreCycle = restoreCycle,
                             timerName = timerName
                             )
