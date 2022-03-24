@@ -512,11 +512,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // }
 
       // Specific thermal energy evolution.
-      // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
-      DepsDti += mj*(Prhoi*(vj.dot(gradWii) + vi.dot(gradWjj)) + workQi);
-      DepsDtj += mi*(Prhoj*(vi.dot(gradWjj) + vj.dot(gradWii)) + workQj);
-      // DepsDti += mj*(Prhoi*vij.dot(gradWji) + workQi);
-      // DepsDtj += mi*(Prhoj*vij.dot(gradWij) + workQj);
+      DepsDti += mj*((Prhoi + 0.5*QPiij.xx())*(vj.dot(gradWii) + vi.dot(gradWjj)));
+      DepsDtj += mi*((Prhoj + 0.5*QPiji.xx())*(vi.dot(gradWjj) + vj.dot(gradWii)));
 
       // Velocity gradient.
       // const auto deltaDvDxi = mj*vij.dyad(gradWji);
