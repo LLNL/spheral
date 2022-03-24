@@ -20,7 +20,7 @@ void sidreWriteVec(std::shared_ptr<axom::sidre::DataStore> dataStorePtr, const D
   axom::sidre::DataTypeId dtype = DataTypeTraits<DataType>::axomTypeID();
   axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
                                            ->allocate(dtype, value.size())
-                                           ->copyBytesIntoBuffer((void*)value.data(), sizeof(DataType) * (value.size()));
+                                           ->copyBytesIntoBuffer((void*)value.data(), sizeof(typename DataType::value_type) * (value.size()));
   dataStorePtr->getRoot()->createView(path, dtype, value.size(), buff);
 }
 
@@ -29,7 +29,7 @@ void sidreReadVec(std::shared_ptr<axom::sidre::DataStore> dataStorePtr, DataType
 {
   int size = dataStorePtr->getRoot()->getView(path)->getNumElements();
   value.resize(size);
-  DataType::value_type* data = dataStorePtr->getRoot()->getView(path)->getArray();
+  typename DataType::value_type* data = dataStorePtr->getRoot()->getView(path)->getArray();
   value.assign(data, data + size);
 }
 
@@ -78,9 +78,6 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
-  // std::cout << "This is the name of the path that I'm trying to use: " << path << std::endl;
-  // dataStorePtr->getRoot()->getView(path)->print();
-
   DataType* data = dataStorePtr->getRoot()->getView(path)->getArray();
   for (int i = 0; i < dataStorePtr->getRoot()->getView(path)->getNumElements(); ++i)
     field[i] = data[i];
@@ -156,23 +153,15 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
 {
   VERIFY2(mDataStorePtr == 0 and mFileOpen == false,
           "ERROR: attempt to reopen SidreFileIO object.");
-  // std::cout << "Before creating the pointer in open()." << std::endl;
   mDataStorePtr = std::make_shared<axom::sidre::DataStore>();
 
-  // Need this member var because save() needs to know the name too.
   mFileName = fileName;
 
   if (access == AccessType::Read)
-  {
-    // std::cout << "Loading the pointer in open() if access == READ." << std::endl;
     mDataStorePtr->getRoot()->load(fileName);
-  }
 
   VERIFY2(mDataStorePtr != 0, "SidreFileIO ERROR: unable to open " << fileName);
   mFileOpen = true;
-
-  // mDataStorePtr->print();
-  // std::cout << "This is the value of mDataStorePtr during open = " << mDataStorePtr << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -180,22 +169,12 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
 //------------------------------------------------------------------------------
 void SidreFileIO::close()
 {
-  // std::cout << "This is the value of mDataStorePtr during close = " << mDataStorePtr.get() << std::endl;
   if (mDataStorePtr != 0)
   {
-    // if (access() != AccessType::Read)
-    // {
-      // std::cout << "Before printing mDataStorePtr in close()." << std::endl;
-      // mDataStorePtr->print();
-      // std::cout << "Saving and reseting the pointer in close()." << std::endl;
-      mDataStorePtr->getRoot()->save(mFileName);
-    // }
-    // std::cout << "after saving the file in close()." << std::endl;
+    mDataStorePtr->getRoot()->save(mFileName);
     mDataStorePtr.reset();
-    // std::cout << "after reseting the pointer in close()." << std::endl;
   }
   mFileOpen = false;
-  // std::cout << "At the end of the close()." << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -251,26 +230,8 @@ void SidreFileIO::write(const double& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::string& value, const std::string pathName)
 {
-  // if (value.size() == 0)
-  //   std::cout << "This probably isn't supposed to happen!!! This is happening when I am trying to write: " << pathName << std::endl;
-  // if (pathName == "RKCorrections/rkCorrections_0/Field0")
-  //   std::cout << "This is the string Im writing for the path with issues" << std::endl;
   // mDataStorePtr->getRoot()->createViewString(pathName, value);
-
-  #if (CHAR_MIN==0)
-    axom::sidre::DataTypeId axomType = axom::sidre::UINT8_ID;
-  #else
-    axom::sidre::DataTypeId axomType = axom::sidre::INT8_ID;
-  #endif
-
-  axom::sidre::Buffer* buff = mDataStorePtr->createBuffer()
-                                           ->allocate(axomType, value.size())
-                                           ->copyBytesIntoBuffer((void*)value.data(), sizeof(char) * (value.size()));
-  mDataStorePtr->getRoot()->createView(pathName, axomType, value.size(), buff);
-  // if (pathName == "RKCorrections/rkCorrections_0/Field0")
-  //   mDataStorePtr->getRoot()->getGroup("RKCorrections/rkCorrections_0")->print();
-
-  // sidreWriteVec(mDataStorePtr, value, pathName);
+  sidreWriteVec(mDataStorePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -278,11 +239,6 @@ void SidreFileIO::write(const std::string& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::vector<int>& value, const std::string pathName)
 {
-  // axom::sidre::Buffer* buff = mDataStorePtr->createBuffer()
-  //                                          ->allocate(axom::sidre::INT_ID, value.size())
-  //                                          ->copyBytesIntoBuffer((void*)value.data(), sizeof(int) * (value.size()));
-  // mDataStorePtr->getRoot()->createView(pathName, axom::sidre::INT_ID, value.size(), buff);
-
   sidreWriteVec(mDataStorePtr, value, pathName);
 }
 
@@ -291,11 +247,6 @@ void SidreFileIO::write(const std::vector<int>& value, const std::string pathNam
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::vector<double>& value, const std::string pathName)
 {
-  // axom::sidre::Buffer* buff = mDataStorePtr->createBuffer()
-  //                                          ->allocate(axom::sidre::DOUBLE_ID, value.size())
-  //                                          ->copyBytesIntoBuffer((void*)value.data(), sizeof(double) * (value.size()));
-  // mDataStorePtr->getRoot()->createView(pathName, axom::sidre::DOUBLE_ID, value.size(), buff);
-
   sidreWriteVec(mDataStorePtr, value, pathName);
 }
 
@@ -454,11 +405,7 @@ void SidreFileIO::read(double& value, const std::string pathName) const
 void SidreFileIO::read(std::string& value, const std::string pathName) const
 {
   // value = mDataStorePtr->getRoot()->getView(pathName)->getString();
-
-  int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
-  value.resize(size);
-  char* data = mDataStorePtr->getRoot()->getView(pathName)->getArray();
-  value.assign(data, data + size);
+  sidreReadVec(mDataStorePtr, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -466,10 +413,6 @@ void SidreFileIO::read(std::string& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::vector<int>& value, const std::string pathName) const
 {
-  // int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
-  // value.resize(size);
-  // int* data = mDataStorePtr->getRoot()->getView(pathName)->getArray();
-  // value.assign(data, data + size);
   sidreReadVec(mDataStorePtr, value, pathName);
 }
 
@@ -478,10 +421,6 @@ void SidreFileIO::read(std::vector<int>& value, const std::string pathName) cons
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::vector<double>& value, const std::string pathName) const
 {
-  // int size = mDataStorePtr->getRoot()->getView(pathName)->getNumElements();
-  // value.resize(size);
-  // double* data = mDataStorePtr->getRoot()->getView(pathName)->getArray();
-  // value.assign(data, data + size);
   sidreReadVec(mDataStorePtr, value, pathName);
 }
 
