@@ -15,8 +15,8 @@
 #
 # Ordinary SPH restart check for SidreFileIO
 #
-#ATS:t0 = test(      SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20 --restartFileConst SidreFileIO", label="Planar Noh problem -- 1-D (serial)")
-#ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restartFileConst SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK")
+#ATS:t6 = test(      SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20 --restartFileConst SidreFileIO", label="Planar Noh problem -- 1-D (serial)")
+#ATS:t7 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restartFileConst SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK")
 #
 # Ordinary solid SPH
 #
