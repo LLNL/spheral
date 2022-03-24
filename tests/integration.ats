@@ -4,50 +4,50 @@
 # (using the ATS) before pushing changes to that public repot!
 #-------------------------------------------------------------------------------
 
-## Geometry unit tests
-#source("unit/Geometry/testVector.py")
-#source("unit/Geometry/testTensor.py")
-#source("unit/Geometry/testInnerOuterProduct.py")
-#source("unit/Geometry/testEigen3d.py")
-#source("unit/Geometry/testPolygon.py")
-#source("unit/Geometry/testPolyhedron.py")
-#source("unit/Geometry/testPolyClipper2d.py")
-#source("unit/Geometry/testPolyClipper3d.py")
-#
-## Kernel unit tests
-#source("unit/Kernel/testBicubicSphericalKernel.py")
-#
-## Boundary unit tests
-#source("unit/Boundary/testPeriodicBoundary-1d.py")
-#source("unit/Boundary/testPeriodicBoundary-2d.py")
-#
-## SPH unit tests
-#source("unit/SPH/testLinearVelocityGradient.py")
-#
-## SVPH unit tests
-#source("unit/SVPH/testSVPHInterpolation-1d.py")
-## source("unit/SVPH/testSVPHInterpolation-2d.py")
-#
-## Field unit tests
-#source("unit/Field/testField.py")
-#
-## Neighbor unit tests
-#source("unit/Neighbor/testNestedGridNeighbor.py")
-#source("unit/Neighbor/testTreeNeighbor.py")
-#source("unit/Neighbor/testDistributedConnectivity.py")
-#
-## Distributed unit tests
-#source("unit/Distributed/distributedUnitTests.py")
-#
-## Material unit tests.
-#source("unit/Material/testEOS.py")
-#source("unit/SolidMaterial/testTillotsonEquationOfState.py")
-#source("functional/Material/UnitConversion.py")
-#
-## Test the sampling to lattice method.
-#source("unit/FieldOperations/testSampleMultipleFields2Lattice1d.py")
-#source("unit/FieldOperations/testSampleMultipleFields2Lattice2d.py")
-#source("unit/FieldOperations/testSampleMultipleFields2Lattice3d.py")
+# Geometry unit tests
+source("unit/Geometry/testVector.py")
+source("unit/Geometry/testTensor.py")
+source("unit/Geometry/testInnerOuterProduct.py")
+source("unit/Geometry/testEigen3d.py")
+source("unit/Geometry/testPolygon.py")
+source("unit/Geometry/testPolyhedron.py")
+source("unit/Geometry/testPolyClipper2d.py")
+source("unit/Geometry/testPolyClipper3d.py")
+
+# Kernel unit tests
+source("unit/Kernel/testBicubicSphericalKernel.py")
+
+# Boundary unit tests
+source("unit/Boundary/testPeriodicBoundary-1d.py")
+source("unit/Boundary/testPeriodicBoundary-2d.py")
+
+# SPH unit tests
+source("unit/SPH/testLinearVelocityGradient.py")
+
+# SVPH unit tests
+source("unit/SVPH/testSVPHInterpolation-1d.py")
+# source("unit/SVPH/testSVPHInterpolation-2d.py")
+
+# Field unit tests
+source("unit/Field/testField.py")
+
+# Neighbor unit tests
+source("unit/Neighbor/testNestedGridNeighbor.py")
+source("unit/Neighbor/testTreeNeighbor.py")
+source("unit/Neighbor/testDistributedConnectivity.py")
+
+# Distributed unit tests
+source("unit/Distributed/distributedUnitTests.py")
+
+# Material unit tests.
+source("unit/Material/testEOS.py")
+source("unit/SolidMaterial/testTillotsonEquationOfState.py")
+source("functional/Material/UnitConversion.py")
+
+# Test the sampling to lattice method.
+source("unit/FieldOperations/testSampleMultipleFields2Lattice1d.py")
+source("unit/FieldOperations/testSampleMultipleFields2Lattice2d.py")
+source("unit/FieldOperations/testSampleMultipleFields2Lattice3d.py")
 
 # FileIO tests
 source("unit/FileIO/testGzipFileIO.py")

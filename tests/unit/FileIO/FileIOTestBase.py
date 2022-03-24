@@ -1760,3 +1760,22 @@ class FileIOTestBase:
                         "%s != %s in Vector3d OBJECT test" % (str(x1), str(x0)))
         self.removeFile("TestVector3d")
         return
+
+    #---------------------------------------------------------------------------
+    # writeObject(RKCorrections)
+    #---------------------------------------------------------------------------
+    def testWriteObjectRKCorrections(self):
+        x0 = RKCorrections(g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax),
+                      g.uniform(self.doublemin, self.doublemax))
+        x1 = RKCorrections()
+        f = self.constructor("TestRKCorrections", Write)
+        f.writeObject(x0, "FileIOTestBase/RKCorrections")
+        f.close()
+        f = self.constructor("TestRKCorrections", Read)
+        x1 = f.readObject("FileIOTestBase/RKCorrections")
+        f.close()
+        self.failUnless(x1 == x0,
+                        "%s != %s in RKCorrections OBJECT test" % (str(x1), str(x0)))
+        self.removeFile("TestRKCorrections")
+        return

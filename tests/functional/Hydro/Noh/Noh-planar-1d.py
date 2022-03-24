@@ -595,7 +595,6 @@ if not steps is None:
         state0.copyState()
         print control.totalSteps
         control.loadRestartFile(control.totalSteps)
-        print "This is after the loadRestartFile() call inside of the test."
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
             raise ValueError, "The restarted state does not match!"
