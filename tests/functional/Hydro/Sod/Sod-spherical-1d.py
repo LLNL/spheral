@@ -252,12 +252,12 @@ if numNodeLists == 1:
     #                                      rmax = x2,
     #                                      nNodePerh = nPerh)
     gen1 = GenerateSphericalNodeDistribution1d(nr = nr1,
-                                               rho = rho_initial,
+                                               rho = rho1,
                                                rmin = x0,
                                                rmax = x1,
                                                nNodePerh = nPerh)
     gen2 = GenerateSphericalNodeDistribution1d(nr = nr2,
-                                               rho = rho_initial,
+                                               rho = rho2,
                                                rmin = x1,
                                                rmax = x2,
                                                nNodePerh = nPerh)
