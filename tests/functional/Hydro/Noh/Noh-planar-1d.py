@@ -13,6 +13,11 @@
 #ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem -- 1-D (serial reproducing test setup)")
 #ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem -- 1-D (4 proc reproducing test)")
 #
+# Ordinary SPH restart check for SidreFileIO
+#
+#ATS:t0 = test(      SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20 --restartFileConst SidreFileIO", label="Planar Noh problem -- 1-D (serial)")
+#ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restartFileConst SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK")
+#
 # Ordinary solid SPH
 #
 #ATS:t100 = test(        SELF, "--solid True --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar Noh problem with solid SPH -- 1-D (serial)")
@@ -573,7 +578,7 @@ control = SpheralController(integrator,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            restartFileConstructor = SidreFileIO,
+                            restartFileConstructor = restartFileConst,
                             restoreCycle = restoreCycle,
                             timerName = timerName
                             )
