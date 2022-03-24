@@ -244,7 +244,7 @@ def specificEnergy(xi, rhoi, gammai):
 from GenerateSphericalNodeProfile1d import GenerateSphericalNodeProfile1d
 from GenerateSphericalNodeDistribution1d import GenerateSphericalNodeDistribution1d
 from CompositeNodeDistribution import CompositeNodeDistribution
-from VoronoiDistributeNodes import distributeNodes1d
+from PeanoHilbertDistributeNodes import distributeNodes1d
 if numNodeLists == 1:
     # gen = GenerateSphericalNodeProfile1d(nr = nr1 + nr2,
     #                                      rho = rho_initial,
