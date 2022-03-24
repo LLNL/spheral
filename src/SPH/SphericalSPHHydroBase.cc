@@ -516,15 +516,15 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       DepsDtj += mi*((Prhoj + 0.5*QPiji.xx())*(vi.dot(gradWjj) + vj.dot(gradWii)));
 
       // Velocity gradient.
-      // const auto deltaDvDxi = mj*vij.dyad(gradWji);
-      // const auto deltaDvDxj = mi*vij.dyad(gradWij);
-      const auto deltaDvDxi = mj*(vj.dyad(gradWii) + vi.dyad(gradWjj));
-      const auto deltaDvDxj = mi*(vi.dyad(gradWjj) + vj.dyad(gradWii));
-      DvDxi -= deltaDvDxi; 
-      DvDxj -= deltaDvDxj;
+      const auto deltaDvDxi = mj*(vi.dyad(gradWji) + vj.dyad(gradWjj));
+      const auto deltaDvDxj = mi*(vj.dyad(gradWij) + vi.dyad(gradWii));
+      // const auto deltaDvDxi = mj*(vj.dyad(gradWji) + vi.dyad(gradWjj));
+      // const auto deltaDvDxj = mi*(vi.dyad(gradWij) + vj.dyad(gradWii));
+      DvDxi += deltaDvDxi; 
+      DvDxj += deltaDvDxj;
       if (sameMatij) {
-        localDvDxi -= deltaDvDxi; 
-        localDvDxj -= deltaDvDxj;
+        localDvDxi += deltaDvDxi; 
+        localDvDxj += deltaDvDxj;
       }
 
       // Estimate of delta v (for XSPH).
@@ -537,11 +537,13 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Linear gradient correction term.
-      Mi -= mj*rij.dyad(gradWji);
-      Mj -= mi*rij.dyad(gradWij);
+      const auto deltaMi = mj*(ri.dyad(gradWji) + rj.dyad(gradWjj));
+      const auto deltaMj = mi*(rj.dyad(gradWij) + ri.dyad(gradWii));
+      Mi += deltaMi;
+      Mj += deltaMj;
       if (sameMatij) {
-        localMi -= mj*rij.dyad(gradWji);
-        localMj -= mi*rij.dyad(gradWij);
+        localMi += deltaMi;
+        localMj += deltaMj;
       }
 
     } // loop over pairs
@@ -624,8 +626,11 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
       const auto deltaDvDxi = 2.0*mi*vi.dyad(gradWii);
-      DvDxi -= deltaDvDxi;
-      localDvDxi -= deltaDvDxi;
+      const auto deltaMi = 2.0*mi*ri.dyad(gradWii);
+      DvDxi += deltaDvDxi;
+      localDvDxi += deltaDvDxi;
+      Mi += deltaMi;
+      localMi += deltaMi;
       if (this->mCorrectVelocityGradient and
           std::abs(Mi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {

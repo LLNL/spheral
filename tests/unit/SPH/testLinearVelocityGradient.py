@@ -68,13 +68,17 @@ commandLine(
     plotSPH = True,
 )
 
+testDim = testDim.lower()
 assert testCase in ("linear", "quadratic", "step")
-assert testDim in ("1d", "2d", "3d")
+assert testDim in ("1d", "2d", "3d", "spherical")
 
 #-------------------------------------------------------------------------------
 # Appropriately set generic object names based on the test dimensionality.
 #-------------------------------------------------------------------------------
-exec("from Spheral%s import *" % testDim)
+if testDim == "spherical":
+    from SphericalSpheral import *
+else:
+    exec("from Spheral%s import *" % testDim)
 HydroConstructor = eval(HydroChoice)
 
 #-------------------------------------------------------------------------------
@@ -92,7 +96,10 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(BSplineKernel(), 1000)
+if testDim == "spherical":
+    WT = TableKernel3d(BSplineKernel3d(), 1000)
+else:
+    WT = TableKernel(BSplineKernel(), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -159,8 +166,25 @@ elif testDim == "3d":
     gen = CompositeNodeDistribution(gen1, gen2)
     distributeNodes3d((nodes1, gen))
 
+elif testDim == "spherical":
+    from PeanoHilbertDistributeNodes import distributeNodes1d
+    from GenerateSphericalNodeDistribution1d import GenerateSphericalNodeDistribution1d
+    from CompositeNodeDistribution import CompositeNodeDistribution
+    gen1 = GenerateSphericalNodeDistribution1d(nr = nx1,
+                                               rho = rho1,
+                                               rmin = x0,
+                                               rmax = x1,
+                                               nNodePerh = nPerh)
+    gen2 = GenerateSphericalNodeDistribution1d(nr = nx2,
+                                               rho = rho2,
+                                               rmin = x1,
+                                               rmax = x2,
+                                               nNodePerh = nPerh)
+    gen = CompositeNodeDistribution(gen1, gen2)
+    distributeNodes1d((nodes1, gen))
+
 else:
-    raise ValueError, "Only tests cases for 1d,2d and 3d." 
+    raise ValueError, "Only tests cases for 1d, 2d, 3d, and Spherical." 
 
 output("nodes1.numNodes")
 
@@ -184,7 +208,7 @@ for i in xrange(nodes1.numInternalNodes):
         dx = dx1
     else:
         dx = dx2
-    if testDim == "1d":
+    if testDim in ("1d", "spherical"):
         pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
     elif testDim == "2d":
         pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
@@ -202,19 +226,6 @@ output("db")
 output("db.appendNodeList(nodes1)")
 output("db.numNodeLists")
 output("db.numFluidNodeLists")
-
-#-------------------------------------------------------------------------------
-# Iterate the h to convergence if requested.
-#-------------------------------------------------------------------------------
-if iterateH:
-    bounds = vector_of_Boundary()
-    method = SPHSmoothingScale()
-    iterateIdealH(db,
-                  bounds,
-                  WT,
-                  method,
-                  maxHIterations,
-                  Htolerance)
 
 #-------------------------------------------------------------------------------
 # Initialize the velocity.
@@ -235,23 +246,43 @@ for i in xrange(nodes1.numInternalNodes):
                 f[i][j] = 2*y0
 
 #-------------------------------------------------------------------------------
-# Invoke the SPH evaluateDerivatives, which will put velocity gradients in the 
-# derivatives state object.
+# Build 
 #-------------------------------------------------------------------------------
-db.updateConnectivityMap(True)
-cm = db.connectivityMap()
-q = MonaghanGingoldViscosity(1.0, 1.0)
 if HydroChoice in ("PSPH", "PASPH"):
     hydro = HydroConstructor(dataBase = db,
-                             Q = q,
                              W = WT,
                              correctVelocityGradient = False)
 else:
     hydro = HydroConstructor(dataBase = db,
-                             Q = q,
                              W = WT,
                              gradhCorrection = gradhCorrection,
                              correctVelocityGradient = False)
+
+#-------------------------------------------------------------------------------
+# Iterate the h to convergence if requested.
+#-------------------------------------------------------------------------------
+if iterateH:
+    bounds = vector_of_Boundary()
+    method = SPHSmoothingScale()
+    if testDim == "spherical":
+        iterateIdealH(db,
+                      bounds,
+                      hydro.kernel.baseKernel1d,
+                      method,
+                      maxHIterations,
+                      Htolerance)
+    else:
+        iterateIdealH(db,
+                      bounds,
+                      WT,
+                      method,
+                      maxHIterations,
+                      Htolerance)
+
+#-------------------------------------------------------------------------------
+# Invoke the SPH evaluateDerivatives, which will put velocity gradients in the 
+# derivatives state object.
+#-------------------------------------------------------------------------------
 integrator = CheapSynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(hydro)
 hydro.initializeProblemStartup(db)
