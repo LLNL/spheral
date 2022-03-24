@@ -27,7 +27,7 @@
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
-//#include "Hydro/SphericalNonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
@@ -149,22 +149,22 @@ SphericalSPHHydroBase::
 registerState(DataBase<Dim<1>>& dataBase,
               State<Dim<1>>& state) {
 
-  // typedef State<Dimension>::PolicyPointer PolicyPointer;
+  using PolicyPointer = State<Dimension>::PolicyPointer;
 
   // The base class does most of it.
   SPHHydroBase<Dim<1>>::registerState(dataBase, state);
 
-  // // Are we using the compatible energy evolution scheme?
-  // // If so we need to override the ordinary energy registration with a specialized version.
-  // if (mCompatibleEnergyEvolution) {
-  //   FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-  //   PolicyPointer thermalEnergyPolicy(new SphericalNonSymmetricSpecificThermalEnergyPolicy(dataBase));
-  //   state.enroll(specificThermalEnergy, thermalEnergyPolicy);
+  // Are we using the compatible energy evolution scheme?
+  // If so we need to override the ordinary energy registration with a specialized version.
+  if (mCompatibleEnergyEvolution) {
+    FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dim<1>>(dataBase));
+    state.enroll(specificThermalEnergy, thermalEnergyPolicy);
 
-  //   // Get the policy for the position, and add the specific energy as a dependency.
-  //   PolicyPointer positionPolicy = state.policy(state.buildFieldKey(HydroFieldNames::position, UpdatePolicyBase<Dimension>::wildcard()));
-  //   positionPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
-  // }
+    // Get the policy for the position, and add the specific energy as a dependency.
+    PolicyPointer positionPolicy = state.policy(state.buildFieldKey(HydroFieldNames::position, UpdatePolicyBase<Dimension>::wildcard()));
+    positionPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
+  }
 }
 
 //------------------------------------------------------------------------------
