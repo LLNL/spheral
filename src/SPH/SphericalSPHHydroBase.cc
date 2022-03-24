@@ -516,10 +516,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       DepsDtj += mi*((Prhoj + 0.5*QPiji.xx())*(vi.dot(gradWjj) + vj.dot(gradWii)));
 
       // Velocity gradient.
-      const auto deltaDvDxi = mj*(vi.dyad(gradWji) + vj.dyad(gradWjj));
-      const auto deltaDvDxj = mi*(vj.dyad(gradWij) + vi.dyad(gradWii));
-      // const auto deltaDvDxi = mj*(vj.dyad(gradWji) + vi.dyad(gradWjj));
-      // const auto deltaDvDxj = mi*(vi.dyad(gradWij) + vj.dyad(gradWii));
+      const auto deltaDvDxi = -mj*vij.dyad(gradWjj);
+      const auto deltaDvDxj =  mi*vij.dyad(gradWii);
       DvDxi += deltaDvDxi; 
       DvDxj += deltaDvDxj;
       if (sameMatij) {
@@ -537,8 +535,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Linear gradient correction term.
-      const auto deltaMi = mj*(ri.dyad(gradWji) + rj.dyad(gradWjj));
-      const auto deltaMj = mi*(rj.dyad(gradWij) + ri.dyad(gradWii));
+      const auto deltaMi = -mj*rij.dyad(gradWjj);
+      const auto deltaMj =  mi*rij.dyad(gradWii);
       Mi += deltaMi;
       Mj += deltaMj;
       if (sameMatij) {
@@ -625,12 +623,6 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
-      const auto deltaDvDxi = 2.0*mi*vi.dyad(gradWii);
-      const auto deltaMi = 2.0*mi*ri.dyad(gradWii);
-      DvDxi += deltaDvDxi;
-      localDvDxi += deltaDvDxi;
-      Mi += deltaMi;
-      localMi += deltaMi;
       if (this->mCorrectVelocityGradient and
           std::abs(Mi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {

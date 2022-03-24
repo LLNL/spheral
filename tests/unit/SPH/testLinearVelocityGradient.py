@@ -1,8 +1,10 @@
-#ATS:for testDim in ("1d", "2d"): # , "3d"):
+#ATS:for testDim in ("1d", "2d", "3d"):
 #ATS:    for HydroChoice in ("SPH", "ASPH", "PSPH", "PASPH"):
 #ATS:        for solid in (False, True):
 #ATS:            test(SELF, "--graphics False --nx1 10 --nx2 10 --testCase linear --testDim %s --HydroChoice %s --solid %s" % (testDim, HydroChoice, solid), 
 #ATS:                 label="%s linear gradient correction test -- %s (solid=%s) (serial)" % (HydroChoice, testDim, solid))
+#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testCase linear --testDim Spherical --HydroChoice SPH --solid False", 
+#ATS:     label="SPH linear gradient correction test -- Spherical (solid=False) (serial)")
 #-------------------------------------------------------------------------------
 # Unit test of the linear velocity gradient correction for SPH.
 #-------------------------------------------------------------------------------
