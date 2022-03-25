@@ -135,7 +135,7 @@ SidreFileIO::SidreFileIO(const std::string fileName, AccessType access):
   mDataStorePtr(0)
 {
   open(fileName, access);
-  //ENSURE(mFileOpen && mDataStorePtr != 0);
+  ENSURE(mFileOpen && mDataStorePtr != 0);
 }
 
 //------------------------------------------------------------------------------
