@@ -4,9 +4,7 @@
 // Created by Mikhail Zakharchanka, 11/4/2021
 //----------------------------------------------------------------------------//
 #include "SidreFileIO.hh"
-#include "Utilities/SidreDataCollection.hh"
 #include "axom/core/Path.hpp"
-#include <iostream>
 
 namespace Spheral
 {
