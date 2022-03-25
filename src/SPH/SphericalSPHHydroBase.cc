@@ -642,7 +642,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Evaluate the continuity equation.
-      DrhoDti = -rhoi*DvDxi.Trace();
+      DrhoDti = -rhoi*(DvDxi.xx() + 2.0*vi.x()*safeInv(ri.x()));
 
       // If needed finish the total energy derivative.
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
