@@ -512,9 +512,9 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // }
 
       // Specific thermal energy evolution and continuity equation
-      const auto divij = vj.dot(gradWii) + vi.dot(gradWjj);
-      DepsDti += mj*(Prhoi + 0.5*QPiij.xx())*divij;
-      DepsDtj += mi*(Prhoj + 0.5*QPiji.xx())*divij;
+      // const auto divij = vj.dot(gradWii) + vi.dot(gradWjj);
+      DepsDti += mj*(Prhoi + 0.5*QPiij.xx())*vij.dot(gradWjj);
+      DepsDtj -= mi*(Prhoj + 0.5*QPiji.xx())*vij.dot(gradWii);
 
       // Velocity gradient.
       const auto deltaDvDxi = -mj*vij.dyad(gradWjj);
