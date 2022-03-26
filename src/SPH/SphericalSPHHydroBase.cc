@@ -160,10 +160,6 @@ registerState(DataBase<Dim<1>>& dataBase,
     FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
     PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dim<1>>(dataBase));
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
-
-    // Get the policy for the position, and add the specific energy as a dependency.
-    PolicyPointer positionPolicy = state.policy(state.buildFieldKey(HydroFieldNames::position, UpdatePolicyBase<Dimension>::wildcard()));
-    positionPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
   }
 }
 
@@ -283,7 +279,6 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   auto  Hideal = derivs.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  auto  viscousWork = derivs.fields(HydroFieldNames::viscousWork, 0.0);
   auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
@@ -302,7 +297,6 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   CHECK(Hideal.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
-  CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
@@ -312,16 +306,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   const auto  npairs = pairs.size();
 
   // Size up the pair-wise accelerations before we start.
-  if (mCompatibleEnergyEvolution) {
-    const auto nnodes = dataBase.numFluidInternalNodes();
-    pairAccelerations.resize(2u*npairs + nnodes);
-  }
-
-  
-  // // The scale for the tensile correction.
-  // const auto& nodeList = mass[0]->nodeList();
-  // const auto  nPerh = nodeList.nodesPerSmoothingScale();
-  // const auto  WnPerh = W(1.0/nPerh, 1.0);
+  const auto nnodes = dataBase.numFluidInternalNodes();
+  if (mCompatibleEnergyEvolution) pairAccelerations.resize(2u*npairs + nnodes);
   TIME_SPHevalDerivs_initial.stop();
 
   Vector gradSum_check;
@@ -349,7 +335,6 @@ evaluateDerivatives(const Dim<1>::Scalar time,
     auto localM_thread = localM.threadCopy(threadStack);
     auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
     auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
-    auto viscousWork_thread = viscousWork.threadCopy(threadStack);
     auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
@@ -384,7 +369,6 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       auto& localMi = localM_thread(nodeListi, i);
       auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
       auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
-      auto& viscousWorki = viscousWork_thread(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
@@ -412,7 +396,6 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       auto& localMj = localM_thread(nodeListj, j);
       auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
       auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
-      auto& viscousWorkj = viscousWork_thread(nodeListj, j);
       auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
@@ -476,28 +459,20 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
                                       ri, etaii - etaji, vi, rhoi, ci, Hi,
                                       rj, etaij - etajj, vj, rhoj, cj, Hj);
-      const auto Qaccii = 0.5*(QPiij*gradWQii);
-      const auto Qaccij = 0.5*(QPiji*gradWQij);
-      const auto Qaccji = 0.5*(QPiij*gradWQji);
-      const auto Qaccjj = 0.5*(QPiji*gradWQjj);
-      const auto workQi = vij.dot(0.5*(Qaccji + Qaccjj));
-      const auto workQj = vij.dot(0.5*(Qaccii + Qaccij));
       const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
       const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
       maxViscousPressurei = max(maxViscousPressurei, Qi);
       maxViscousPressurej = max(maxViscousPressurej, Qj);
       effViscousPressurei += mj*Qi*WQii/rhoj;
       effViscousPressurej += mi*Qj*WQij/rhoi;
-      viscousWorki += mj*workQi;
-      viscousWorkj += mi*workQj;
 
       //Acceleration.
       CHECK(rhoi > 0.0);
       CHECK(rhoj > 0.0);
       const auto Prhoi = safeOmegai*Pi/(rhoi*rhoi);
       const auto Prhoj = safeOmegaj*Pj/(rhoj*rhoj);
-      const auto deltaDvDti = -mj*((Prhoi*gradWji + Prhoj*gradWjj) + Qaccji + Qaccjj);
-      const auto deltaDvDtj = -mi*((Prhoj*gradWij + Prhoi*gradWii) + Qaccij + Qaccii);
+      const auto deltaDvDti = -mj*(Prhoi*gradWji + Prhoj*gradWjj + 0.5*(QPiij*gradWQji + QPiji*gradWQjj));
+      const auto deltaDvDtj = -mi*(Prhoj*gradWij + Prhoi*gradWii + 0.5*(QPiji*gradWQij + QPiij*gradWQii));
       DvDti += deltaDvDti;
       DvDtj += deltaDvDtj;
       if (mCompatibleEnergyEvolution) {
@@ -505,14 +480,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
         pairAccelerations[2*kk+1] = deltaDvDtj;
       }
 
-      // const bool barf = (i == 0 or j == 0);
-      // if (barf) {
-      //   gradSum_check += mj*gradWjj;
-      //   cerr << "(" << i << " " << j << "): " << Pi << " " << Pj << " : " << " " << Prhoi << " " << Prhoj << " : " << Qaccji << " " << Qaccjj << " : " << gradWji << " " << gradWjj << " : " << DvDti << " : " << gradSum_check << endl;
-      // }
-
-      // Specific thermal energy evolution and continuity equation
-      // const auto divij = vj.dot(gradWii) + vi.dot(gradWjj);
+      // Specific thermal energy evolution
       DepsDti += mj*(Prhoi + 0.5*QPiij.xx())*vij.dot(gradWjj);
       DepsDtj -= mi*(Prhoj + 0.5*QPiji.xx())*vij.dot(gradWii);
 
@@ -555,6 +523,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
   // Finish up the derivatives for each point.
   TIME_SPHevalDerivs_final.start();
+  size_t offset = 2u*npairs;
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
@@ -611,16 +580,11 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       const auto Prhoi = safeOmegai*Pi/(rhoi*rhoi);
       const auto deltaDvDti = -2.0*mi*Prhoi*gradWii;
       DvDti += deltaDvDti;
-      if (mCompatibleEnergyEvolution) pairAccelerations[2*npairs + i] = deltaDvDti;
-
-      // const bool barf = (i == 0);
-      // if (barf) {
-      //   gradSum_check += mi*gradWii;
-      //   cerr << "(" << i << " " << i << "): " << Pi << " " << Pi << " : " << " " << Prhoi << " " << Prhoi << " : " << gradWii << " " << gradWii << " : " << DvDti << " : " << gradSum_check << endl;
-      // }
+      if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
 
       // Specific thermal energy
-      DepsDti += 2.0*mi*Prhoi*vi.dot(gradWii);
+      DepsDti -= 2.0*Pi*vi.x()*safeInv(ri.x());
+      // DepsDti += 2.0*mi*Prhoi*vi.dot(gradWii) - 2.0*Pi*vi.x()*safeInv(ri.x());
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
@@ -680,7 +644,9 @@ evaluateDerivatives(const Dim<1>::Scalar time,
                                                         nodeListi,
                                                         i);
     }
+    offset += ni;
   }
+  CHECK(offset == 2u*npairs + nnodes);
   TIME_SPHevalDerivs_final.stop();
   TIME_SPHevalDerivs.stop();
 }

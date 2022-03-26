@@ -11,10 +11,11 @@
 //----------------------------------------------------------------------------//
 #include "NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "HydroFieldNames.hh"
+#include "entropyWeightingFunction.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "DataBase/DataBase.hh"
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/FieldUpdatePolicyBase.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
@@ -35,23 +36,6 @@ using std::min;
 using std::max;
 
 namespace Spheral {
-
-// namespace {
-
-// inline double weighting(const double wi,
-//                         const double wj,
-//                         const double Eij) {
-//   const int si = isgn0(wi);
-//   const int sj = isgn0(wj);
-//   const int sij = isgn0(wij);
-//   if (sij == 0 or (si == 0 and sj == 0))             return 0.5;
-//   if (si == sj and sj == sij)                        return wi/(wi + wj);  // All the same sign and non-zero
-//   if (si == sj)                                      return 0.5;
-//   if (si == sij)                                     return 1.0;
-//   return 0.0;
-// }
-
-// }
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -136,7 +120,7 @@ update(const KeyType& key,
       const auto nodeListj = pairs[kk].j_list;
 
       // State for node i.
-      const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
+      const auto  weighti = 0.5; // abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& ai = acceleration(nodeListi, i);
@@ -144,7 +128,7 @@ update(const KeyType& key,
       const auto& pacci = pairAccelerations[2*kk];
 
       // State for node j.
-      const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
+      const auto  weightj = 0.5; // abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
       const auto  mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& aj = acceleration(nodeListj, j);
@@ -154,9 +138,7 @@ update(const KeyType& key,
       const auto dEij = -(mi*vi12.dot(pacci) + mj*vj12.dot(paccj));
       const auto wi = weighti/(weighti + weightj);
       CHECK(wi >= 0.0 and wi <= 1.0);
-      // const auto wi = entropyWeighting(si, sj, duij);
-      // CHECK2(fuzzyEqual(wi + entropyWeighting(sj, si, dEij/mj), 1.0, 1.0e-10),
-      //        wi << " " << entropyWeighting(sj, si, dEij/mj) << " " << (wi + entropyWeighting(sj, si, dEij/mj)));
+
       DepsDt_thread(nodeListi, i) += wi*dEij/mi;
       DepsDt_thread(nodeListj, j) += (1.0 - wi)*dEij/mj;
 
@@ -193,12 +175,6 @@ update(const KeyType& key,
     }
     offset += n;
   }
-      // Now we can update the energy.
-      // if (poisoned(nodeListi, i) == 0) {
-      //   eps(nodeListi, i) += DepsDti*multiplier;
-      // } else {
-      //   eps(nodeListi, i) += DepsDt0(nodeListi, i)*multiplier;
-      // }
 }
 
 //------------------------------------------------------------------------------
