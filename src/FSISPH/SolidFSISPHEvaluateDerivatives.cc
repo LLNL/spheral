@@ -49,7 +49,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto  numNodeLists = nodeLists.size();
   const auto  numPairs = pairs.size();
-  const auto  nPerh = nodeLists[0].nodesPerSmoothingScale();
+  const auto  nPerh = nodeLists[0]->nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Get the state and derivative FieldLists.
@@ -65,7 +65,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   //const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
-  //const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
+  const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
 
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -79,7 +79,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
   //CHECK(fragIDs.size() == numNodeLists);
-  //CHECK(pTypes.size() == numNodeLists);
+  CHECK(pTypes.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto  normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
@@ -334,7 +334,7 @@ if(this->correctVelocityGradient()){
       const auto& Pi = pressure(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
       const auto& Si = S(nodeListi, i);
-      //const auto& pTypei = pTypes(nodeListi, i);
+      const auto& pTypei = pTypes(nodeListi, i);
       const auto  voli = mi/rhoi;
       const auto  mui = max(mu(nodeListi,i),tiny);
       const auto  Ki = max(tiny,rhoi*ci*ci)+4.0/3.0*mui;
@@ -369,7 +369,7 @@ if(this->correctVelocityGradient()){
       const auto& Pj = pressure(nodeListj, j);
       const auto& cj = soundSpeed(nodeListj, j);
       const auto& Sj = S(nodeListj, j);
-      //const auto& pTypej = pTypes(nodeListj, j);
+      const auto& pTypej = pTypes(nodeListj, j);
       const auto  volj = mj/rhoj;
       const auto  muj = max(mu(nodeListj,j),tiny);
       const auto  Kj = max(tiny,rhoj*cj*cj)+4.0/3.0*muj;
