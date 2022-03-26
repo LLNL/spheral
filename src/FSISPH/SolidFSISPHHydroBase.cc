@@ -32,6 +32,7 @@
 #include "FSISPH/SolidFSISPHHydroBase.hh"
 #include "FSISPH/FSIFieldNames.hh"
 #include "FSISPH/computeFSISPHSumMassDensity.hh"
+#include "FSISPH/computeHWeightedFSISPHSumMassDensity.hh"
 #include "FSISPH/SlideSurface.hh"
 
 
@@ -280,7 +281,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto& H = state.fields(HydroFieldNames::H, SymTensor::zero);
       const auto& W = this->kernel();
             auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-      computeFSISPHSumMassDensity(connectivityMap, W, mSumDensityNodeLists, position, mass, H, massDensity);
+      computeHWeightedFSISPHSumMassDensity(connectivityMap, W, mSumDensityNodeLists, position, mass, H, massDensity);
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
