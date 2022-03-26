@@ -4,6 +4,7 @@ set(FSISPH_inst
     computeSurfaceSmoothness
     computeSurfaceNormals
     computeFSISPHSumMassDensity
+    computeHWeightedFSISPHSumMassDensity
     SlideSurface
     )
 
@@ -19,6 +20,7 @@ set(FSISPH_headers
     computeSurfaceSmoothness.hh
     computeSurfaceNormals.hh
     computeFSISPHSumMassDensity.hh
+    computeHWeightedFSISPHSumMassDensity.hh
     FSIFieldNames.hh
     SlideSurface.hh
     )
