@@ -158,7 +158,7 @@ initialize(const DataBase<Dimension>& dataBase,
            const typename Dimension::Scalar /*dt*/,
            const TableKernel<Dimension>& W) {
 
-const auto& connectivityMap = dataBase.connectivityMap();
+  const auto& connectivityMap = dataBase.connectivityMap();
   const auto& position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto& mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto& massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
