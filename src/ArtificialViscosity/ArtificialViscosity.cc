@@ -114,8 +114,8 @@ initialize(const DataBase<Dimension>& dataBase,
   // Note we set the last argument here to false, which ensures that if these Fields already exist we don't overwrite
   // their values.  This is needed 'cause some physics options (like the Morris & Monaghan time evolved Q or 
   // Cullen & Dehnen) need to evolve these parameters.
-  dataBase.resizeFluidFieldList(mClMultiplier, 1.0, HydroFieldNames::ArtificialViscousClMultiplier, true);
-  dataBase.resizeFluidFieldList(mCqMultiplier, 1.0, HydroFieldNames::ArtificialViscousCqMultiplier, true);
+  dataBase.resizeFluidFieldList(mClMultiplier, 1.0, HydroFieldNames::ArtificialViscousClMultiplier, false);
+  dataBase.resizeFluidFieldList(mCqMultiplier, 1.0, HydroFieldNames::ArtificialViscousCqMultiplier, false);
 
   // If we are applying the Balsara shear flow correction term, calculate the
   // per node multiplier.
