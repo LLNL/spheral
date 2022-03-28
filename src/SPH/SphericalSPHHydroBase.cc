@@ -584,7 +584,6 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
       // Specific thermal energy
       DepsDti -= 2.0*Pi*vi.x()*safeInv(ri.x());
-      // DepsDti += 2.0*mi*Prhoi*vi.dot(gradWii) - 2.0*Pi*vi.x()*safeInv(ri.x());
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
