@@ -167,7 +167,7 @@ update(const KeyType& key,
         const auto& vi = velocity(nodeListi, i);
         const auto& ai = acceleration(nodeListi, i);
         const auto  vi12 = vi + ai*hdt;
-        const auto duii = -2.0*vi12.dot(pairAccelerations[offset + i]);
+        const auto duii = -vi12.dot(pairAccelerations[offset + i]);
         DepsDt(nodeListi, i) += duii;
       }
 
