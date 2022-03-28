@@ -17,6 +17,8 @@
 #
 #ATS:t10 = test(       SELF, "--graphics None --clearDirectories True  --checkError True   --dataDir 'dumps-planar-sidre' --restartStep 20 --restartFileConstructor SidreFileIO", label="Planar Noh problem -- 1-D (serial) with Sidre")
 #ATS:t11 = testif(t10, SELF, "--graphics None --clearDirectories False --checkError False  --dataDir 'dumps-planar-sidre' --restartStep 20 --restartFileConstructor SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK with Sidre")
+#ATS:t12 = test(       SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-sidre-parrallel' --restartStep 20 --restartFileConstructor SidreFileIO", np=2, label="Planar Noh problem -- 1-D (parallel)")
+#ATS:t13 = testif(t12, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-sidre-parrallel' --restartStep 20 --restartFileConstructor SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK")
 #
 # Ordinary solid SPH
 #
