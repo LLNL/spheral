@@ -143,8 +143,8 @@ commandLine(KernelConstructor = NBSplineKernel3d,
             correctionOrder = LinearOrder,
             volumeType = RKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-            compatibleEnergy = False,
-            gradhCorrection = True,
+            compatibleEnergy = True,
+            gradhCorrection = False,
             correctVelocityGradient = True,
             domainIndependent = True,
             cullGhostNodes = True,
@@ -278,8 +278,8 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 gen = GenerateSphericalNodeProfile1d(nr = nx1,
                                      rho = rho1,
-                                     xmin = x0,
-                                     xmax = x1,
+                                     rmin = x0,
+                                     rmax = x1,
                                      nNodePerh = nPerh)
 distributeNodes1d((nodes1, gen))
 output("nodes1.numNodes")
@@ -295,12 +295,12 @@ vel = nodes1.velocity()
 imin, rmin = -1, 1e10
 for ix in xrange(nodes1.numNodes):
     vel[ix].x = vr0 + vrSlope*pos[ix].x
-    if pos[ix].x < rmin:
-        imin = ix
-        rmin = pos[ix].x
-rmin_global = mpi.allreduce(rmin, mpi.MIN)
-if rmin == rmin_global:
-    vel[imin].x = 0.0
+#     if pos[ix].x < rmin:
+#         imin = ix
+#         rmin = pos[ix].x
+# rmin_global = mpi.allreduce(rmin, mpi.MIN)
+# if rmin == rmin_global:
+#     vel[imin].x = 0.0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
