@@ -33,6 +33,7 @@
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Hydro/EntropyPolicy.hh"
+#include "Hydro/SphericalPositionPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
 #include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
@@ -56,6 +57,7 @@
 #include <fstream>
 #include <map>
 #include <vector>
+#include <memory>
 using std::vector;
 using std::map;
 using std::string;
@@ -67,6 +69,7 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+using std::make_shared;
 
 // Declare timers
 extern Timer TIME_SPH;
@@ -149,21 +152,19 @@ SphericalSPHHydroBase::
 registerState(DataBase<Dim<1>>& dataBase,
               State<Dim<1>>& state) {
 
-  using PolicyPointer = State<Dimension>::PolicyPointer;
-
   // The base class does most of it.
   SPHHydroBase<Dim<1>>::registerState(dataBase, state);
 
   // Re-regsiter the position update to prevent things going through the origin
-  FieldList<Dimension, Vector> position = dataBase.fluidPosition();
-  PolicyPointer positionPolicy(new IncrementBoundedFieldList<Dimension, Vector>(Vector(1e-2)));
+    auto position = dataBase.fluidPosition();
+  auto positionPolicy = make_shared<SphericalPositionPolicy>();
   state.enroll(position, positionPolicy);
 
   // Are we using the compatible energy evolution scheme?
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
-    FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new NonSymmetricSpecificThermalEnergyPolicy<Dim<1>>(dataBase));
+    auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+    auto thermalEnergyPolicy = make_shared<NonSymmetricSpecificThermalEnergyPolicy<Dim<1>>>(dataBase);
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
   }
 }
@@ -579,12 +580,13 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       double Wii, gWii, WQii, gWQii;
       Vector gradWii, gradWQii;
       W.kernelAndGrad(etaii, etaii, Hi, Wii, gradWii, gWii);
-      if (oneKernel) {
-        WQii = Wii;
-        gradWQii = gradWii;
-      } else {
-        WQ.kernelAndGrad(etaii, etaii, Hi, WQii, gradWQii, gWQii);
-      }
+      WQ.kernelAndGrad(Vector::zero, etaii, Hi, WQii, gradWQii, gWQii);
+      // if (oneKernel) {
+      //   WQii = Wii;
+      //   gradWQii = gradWii;
+      // } else {
+      //   WQ.kernelAndGrad(etaii, etaii, Hi, WQii, gradWQii, gWQii);
+      // }
 
       // Add the self-contribution to density sum.
       rhoSumi += mi*Wii;
@@ -595,7 +597,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       if (etaii.x() < etaMax) {
         std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListi, i,
                                         ri, etaii, vi, rhoi, ci, Hi,
-                                        Vector::zero, -etaii, Vector::zero, rhoi, ci, Hi);
+                                        Vector::zero, etaii, -vi, rhoi, ci, Hi);
         const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
         maxViscousPressurei = max(maxViscousPressurei, Qi);
         effViscousPressurei += mi*Qi*WQii/rhoi;
@@ -606,6 +608,10 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       const auto deltaDvDti = -mi*(2.0*Prhoi*gradWii + QPiij*gradWQii);
       DvDti += deltaDvDti;
       if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
+      if (i == 0) {
+        const auto veli = velocity(nodeListi, i);
+        std::cerr << "   " << ri << " " << veli << " " << Pi << " " << rhoi << " " << Prhoi << " " << gradWii << " : " << QPiij << " " << gradWQii << " : " << deltaDvDti << " " << DvDti << std::endl;
+      }
 
       // Specific thermal energy
       DepsDti += 0.5*mi*QPiij.xx()*vi.dot(gradWii) - 2.0*Pi*vi.x()*safeInv(ri.x());
@@ -735,13 +741,8 @@ enforceBoundaries(State<Dim<1>>& state,
     }
   }
 
-  const auto vel = state.fields(HydroFieldNames::velocity, Vector::zero);
-  std::cerr << "Before enforce: " << pos(0,0) << " " << vel(0,0) << std::endl;
-
   // Apply ordinary SPH BCs.
   SPHHydroBase<Dim<1>>::enforceBoundaries(state, derivs);
-
-  std::cerr << "  After enforce: " << pos(0,0) << " " << vel(0,0) << std::endl;
 
   // Scale back to mass.
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
