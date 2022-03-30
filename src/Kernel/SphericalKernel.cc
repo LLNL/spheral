@@ -128,14 +128,14 @@ SphericalKernel::operator()(const Dim<1>::Vector& etaj,
                             const Dim<1>::Vector& etai,
                             const Dim<1>::Scalar  Hdet) const {
   REQUIRE(Hdet >= 0.0);
-  const auto ei = std::max(1e-10, std::abs(etai[0]));
-  const auto ej = std::max(1e-10, std::abs(etaj[0]));
+  const auto ei = std::max(1e-5, etai[0]);
+  const auto ej = std::max(1e-5, etaj[0]);
   CHECK(ei > 0.0);
   CHECK(ej > 0.0);
   const auto a = std::abs(ej - ei);            // Lower integration limit
   if (a > metamax) return 0.0;
   const auto b = std::min(metamax, ei + ej);   // Upper integration limit
-  return 2.0*M_PI/(ei*ej)*FastMath::cube(Hdet)*integralCorrection(a, b);
+  return 2.0*M_PI/(ei*ej)*FastMath::cube(Hdet)*integralCorrection(a, b, ei, ej);
 }
 
 //------------------------------------------------------------------------------
@@ -148,8 +148,8 @@ SphericalKernel::grad(const Dim<1>::Vector& etaj,
                       const Dim<1>::SymTensor& H) const {
   const auto Hdet = H.Determinant();
   REQUIRE(Hdet >= 0.0);
-  const auto ei = std::max(1e-10, std::abs(etai[0]));
-  const auto ej = std::max(1e-10, std::abs(etaj[0]));
+  const auto ei = std::max(1e-5, etai[0]);
+  const auto ej = std::max(1e-5, etaj[0]);
   CHECK(ei > 0.0);
   CHECK(ej > 0.0);
   const auto a = std::abs(ej - ei);            // Lower integration limit
@@ -159,7 +159,7 @@ SphericalKernel::grad(const Dim<1>::Vector& etaj,
   const auto B = (ei + ej >= metamax ?
                   0.0 :
                   b*mBaseKernel3d.kernelValue(b, 1.0));
-  return Vector(2.0*M_PI/(ei*ej)*FastMath::pow4(Hdet)*(B - A - 1.0/ei*integralCorrection(a, b)));
+  return Vector(2.0*M_PI/(ei*ej)*FastMath::pow4(Hdet)*(B - A - 1.0/ei*integralCorrection(a, b, ei, ej)));
 }
 
 //------------------------------------------------------------------------------
@@ -174,8 +174,8 @@ SphericalKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
                                Dim<1>::Scalar& deltaWsum) const {
   const auto Hdet = H.Determinant();
   REQUIRE(Hdet >= 0.0);
-  const auto ei = std::max(1e-10, std::abs(etai[0]));
-  const auto ej = std::max(1e-10, std::abs(etaj[0]));
+  const auto ei = std::max(1e-5, etai[0]);
+  const auto ej = std::max(1e-5, etaj[0]);
   CHECK(ei > 0.0);
   CHECK(ej > 0.0);
   const auto a = std::abs(ej - ei);            // Lower integration limit
@@ -190,7 +190,7 @@ SphericalKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
                     b*mBaseKernel3d.kernelValue(b, 1.0));
     const auto A = a*mBaseKernel3d.kernelValue(a, 1.0)*sgn0(ei - ej);
     const auto pre = 2.0*M_PI/(ei*ej)*FastMath::cube(Hdet);
-    const auto interpVal = integralCorrection(a, b);
+    const auto interpVal = integralCorrection(a, b, ei, ej);
     W = pre*interpVal;
     gradW = Vector(pre*Hdet*(B - A - interpVal/ei));
     deltaWsum = mBaseKernel1d.gradValue((etaj - etai).magnitude(), Hdet);
@@ -203,8 +203,10 @@ SphericalKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
 inline
 double
 SphericalKernel::integralCorrection(const double a,
-                                    const double b) const {
-  return (mUseInterpolation ?
+                                    const double b,
+                                    const double ei,
+                                    const double ej) const {
+  return (mUseInterpolation and ei > 1.0 and ej > 1.0 ?
           mInterp(a, b) :
           W3S1Func<TableKernel<Dim<3>>>(mBaseKernel3d, mNumIntegral)(a, b));
 }

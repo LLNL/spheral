@@ -12,7 +12,7 @@
 #define __Spheral_SphericalKernel_hh__
 
 #include "TableKernel.hh"
-#include "Utilities/BiCubicInterpolator.hh"
+#include "Utilities/BiQuadraticInterpolator.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
@@ -21,7 +21,7 @@ class SphericalKernel {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  using InterpolatorType = BiCubicInterpolator;
+  using InterpolatorType = BiQuadraticInterpolator;
   using Scalar = Dim<1>::Scalar;
   using Vector = Dim<1>::Vector;
   using Tensor = Dim<1>::Tensor;
@@ -31,7 +31,7 @@ public:
   // Takes a normal 3D TableKernel and constructs the integral form appropriate
   // for 1D spherical coordinates.
   template<typename KernelType> SphericalKernel(const KernelType& kernel,
-                                                const unsigned numIntegral = 1000u,
+                                                const unsigned numIntegral = 5000u,
                                                 const unsigned numKernel = 200u,
                                                 const bool useInterpolation = true);
   SphericalKernel(const SphericalKernel& rhs);
@@ -77,7 +77,8 @@ private:
   bool mUseInterpolation;
 
   // Look up/compute the integral correction
-  double integralCorrection(const double a, const double b) const;
+  double integralCorrection(const double a, const double b,
+                            const double ei, const double ej) const;
 
 };
 
