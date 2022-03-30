@@ -597,8 +597,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       Tensor QPiij = Tensor::zero, QPiji = Tensor::zero;
       if (etaii.x() < etaMax) {
         std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListi, i,
-                                        ri, 2.0*etaii, vi, rhoi, ci, Hi,
-                                        -ri, -2.0*etaii, -vi, rhoi, ci, Hi);
+                                        ri,            etaii, vi,           rhoi, ci, Hi,
+                                        Vector::zero, -etaii, Vector::zero, rhoi, ci, Hi);
         const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
         maxViscousPressurei = max(maxViscousPressurei, Qi);
         effViscousPressurei += mi*Qi*WQii/rhoi;
