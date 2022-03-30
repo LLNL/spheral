@@ -11,7 +11,7 @@ from testBicubicSphericalKernel import W3S1, gradW3S1, rprange, error, W
 import time
 
 # The set of r/h values from the origin we'll test
-etavals = (0.5, 1.5, 2.5, 3.5, 10.0, 20.0)
+etavals = (1e-5, 1e-2, 2e-2, 0.5, 1.5, 2.5, 3.5, 10.0, 20.0)
 h = 0.1
 
 #-------------------------------------------------------------------------------
