@@ -477,8 +477,9 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       CHECK(rhoj > 0.0);
       const auto Prhoi = safeOmegai*Pi/(rhoi*rhoi);
       const auto Prhoj = safeOmegaj*Pj/(rhoj*rhoj);
-      const auto deltaDvDti = -mj*(Prhoi*gradWji + Prhoj*gradWjj + 0.5*(QPiij*gradWQji + QPiji*gradWQjj));
-      const auto deltaDvDtj = -mi*(Prhoj*gradWij + Prhoi*gradWii + 0.5*(QPiji*gradWQij + QPiij*gradWQii));
+      const auto fQi = ri.x()*safeInv(ri.x() + rj.x());
+      const auto deltaDvDti = -mj*(Prhoi*gradWji + Prhoj*gradWjj + 0.5*fQi        *(QPiij*gradWQji + QPiji*gradWQjj));
+      const auto deltaDvDtj = -mi*(Prhoj*gradWij + Prhoi*gradWii + 0.5*(1.0 - fQi)*(QPiji*gradWQij + QPiij*gradWQii));
       DvDti += deltaDvDti;
       DvDtj += deltaDvDtj;
       if (mCompatibleEnergyEvolution) {
@@ -596,8 +597,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       Tensor QPiij = Tensor::zero, QPiji = Tensor::zero;
       if (etaii.x() < etaMax) {
         std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListi, i,
-                                        ri, etaii, vi, rhoi, ci, Hi,
-                                        Vector::zero, etaii, -vi, rhoi, ci, Hi);
+                                        ri, 2.0*etaii, vi, rhoi, ci, Hi,
+                                        -ri, -2.0*etaii, -vi, rhoi, ci, Hi);
         const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
         maxViscousPressurei = max(maxViscousPressurei, Qi);
         effViscousPressurei += mi*Qi*WQii/rhoi;
@@ -605,7 +606,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
       // Self-interaction for momentum (cause curvilinear coordinates are weird)
       const auto Prhoi = safeOmegai*Pi/(rhoi*rhoi);
-      const auto deltaDvDti = -mi*(2.0*Prhoi*gradWii + QPiij*gradWQii);
+      const auto deltaDvDti = -mi*(2.0*Prhoi*gradWii + 0.5*QPiij*gradWQii);
       DvDti += deltaDvDti;
       if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
       if (i == 0) {
@@ -614,7 +615,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Specific thermal energy
-      DepsDti += 0.5*mi*QPiij.xx()*vi.dot(gradWii) - 2.0*Pi*vi.x()*safeInv(ri.x());
+      const auto hi = 1.0/Hi.xx();
+      DepsDti += 0.5*mi*QPiij.xx()*vi.dot(gradWii) - 2.0*Pi*vi.x()*safeInv(ri.x(), 0.1*hi);
       // DepsDti -= 2.0*Pi*vi.x()*safeInv(ri.x());
 
       // Finish the gradient of the velocity.
@@ -637,7 +639,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Evaluate the continuity equation.
-      DrhoDti = -rhoi*(DvDxi.xx() + 2.0*vi.x()*safeInv(ri.x()));
+      DrhoDti = -rhoi*(DvDxi.xx() + 2.0*vi.x()*safeInv(ri.x(), 0.1*hi));
 
       // If needed finish the total energy derivative.
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
