@@ -54,6 +54,8 @@ CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
   mCullAlpha2(FieldStorageType::CopyFields),
   mDalphaDt(FieldStorageType::CopyFields),
   mAlphaLocal(FieldStorageType::CopyFields),
+  mR(FieldStorageType::CopyFields),
+  mVsig(FieldStorageType::CopyFields),
   malphMax(alphMax),
   malphMin(alphMin),
   mbetaC(betaC),
@@ -75,152 +77,6 @@ CullenDehnenViscosity<Dimension>::
 }
 
     
-// Accessor Fns
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-alphMax(Scalar val)
-{
-    malphMax = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-alphMin(Scalar val)
-{
-    malphMin = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-betaE(Scalar val)
-{
-    mbetaE = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-betaD(Scalar val)
-{
-    mbetaD = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-betaC(Scalar val)
-{
-    mbetaC = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-fKern(Scalar val)
-{
-    mfKern = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-boolHopkins(bool val)
-{
-    mboolHopkins = val;
-}
-
-//------------------------------------------------------------------------------
-// Access the main kernel
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const TableKernel<Dimension>&
-CullenDehnenViscosity<Dimension>::kernel() const {
-  return mKernel;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-CullenDehnenViscosity<Dimension>::PrevDvDt() const {
-   return mPrevDvDt;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CullenDehnenViscosity<Dimension>::PrevDivV() const {
-   return mPrevDivV;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CullenDehnenViscosity<Dimension>::PrevDivV2() const {
-   return mPrevDivV2;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CullenDehnenViscosity<Dimension>::CullAlpha() const {
-   return mCullAlpha;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CullenDehnenViscosity<Dimension>::CullAlpha2() const {
-   return mCullAlpha2;
-}
-
-template<typename Dimension>
-typename Dimension::Scalar
-CullenDehnenViscosity<Dimension>::
-alphMax() const{return malphMax;}
-
-template<typename Dimension>
-typename Dimension::Scalar
-CullenDehnenViscosity<Dimension>::
-alphMin() const{return malphMin;}
-
-template<typename Dimension>
-typename Dimension::Scalar
-CullenDehnenViscosity<Dimension>::
-betaE() const{return mbetaE;}
-
-template<typename Dimension>
-typename Dimension::Scalar
-CullenDehnenViscosity<Dimension>::
-betaD() const{return mbetaD;}
-
-template<typename Dimension>
-typename Dimension::Scalar
-CullenDehnenViscosity<Dimension>::
-betaC() const{return mbetaC;}
-
-template<typename Dimension>
-typename Dimension::Scalar
-CullenDehnenViscosity<Dimension>::
-fKern() const{return mfKern;}
-
-template<typename Dimension>
-bool CullenDehnenViscosity<Dimension>::
-boolHopkins() const{return mboolHopkins;}
-
-template<typename Dimension>
-const FieldList<Dimension, typename Dimension::Scalar>&
-CullenDehnenViscosity<Dimension>::
-DalphaDt() const{ return mDalphaDt;}
-
-template<typename Dimension>
-const FieldList<Dimension, typename Dimension::Scalar>&
-CullenDehnenViscosity<Dimension>::
-alphaLocal() const{ return mAlphaLocal;}
-    
 //------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
 //------------------------------------------------------------------------------
@@ -235,6 +91,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mCullAlpha2 = dataBase.newFluidFieldList(1.0, "mCullAlpha2");
   mDalphaDt = dataBase.newFluidFieldList(0.0, "Cullen alpha delta");
   mAlphaLocal = dataBase.newFluidFieldList(0.0, "Cullen alpha local");
+  mR = dataBase.newFluidFieldList(0.0,"mR");
+  mVsig = dataBase.newFluidFieldList(0.0,"mVsig");
 
   FieldList<Dimension, Scalar>& rvQ = myq.CqMultiplier();
   FieldList<Dimension, Scalar>& rvL = myq.ClMultiplier();
@@ -275,12 +133,22 @@ registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   dataBase.resizeFluidFieldList(mPrevDivV2, 0.0, "mPrevDivV2", false);
   dataBase.resizeFluidFieldList(mCullAlpha2, 1.0, "mCullAlpha2", false);
+  dataBase.resizeFluidFieldList(mDalphaDt, 0.0, "mDalphaDt", false);
+  dataBase.resizeFluidFieldList(mAlphaLocal, 1.0, "mAlphaLocal", false);
+  dataBase.resizeFluidFieldList(mR, 0.0, "mR", false);
+  dataBase.resizeFluidFieldList(mVsig, 1.0, "mVsig", false);
+
   derivs.enroll(mPrevDivV2);
   derivs.enroll(mCullAlpha2);
   derivs.enroll(mDalphaDt);
   derivs.enroll(mAlphaLocal);
+  derivs.enroll(mR);
+  derivs.enroll(mVsig);
 }
 
+//------------------------------------------------------------------------------
+// eval derivs
+//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
@@ -304,26 +172,35 @@ finalizeDerivatives(const Scalar /*time*/,
                     StateDerivatives<Dimension>& derivs) const {
 
   // The kernels
-  const TableKernel<Dimension>& W = this->kernel();
-  const Scalar kernelExtent = W.kernelExtent();
+  const auto& W = this->kernel();
+  const auto kernelExtent = W.kernelExtent();
 
   // The connectivity.
-  const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-  const vector<const NodeList<Dimension>*>& nodeLists = connectivityMap.nodeLists();
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto& nodeLists = connectivityMap.nodeLists();
   const size_t numNodeLists = nodeLists.size();
     
-  //State Fluid Lists
-  const FieldList<Dimension, Scalar> reducingViscosityMultiplierQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
 
-  const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const auto reducingViscosityMultiplierQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const auto prevDivV = state.fields("mPrevDivV", 0.0);
+  const auto alpha0 = state.fields("mCullAlpha", 0.0);
+
+  const auto DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  auto DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  auto prevDvDt = state.fields("mPrevDvDt", Vector::zero);
+  auto alpha_local = derivs.fields("Cullen alpha local", 0.0);
+  auto DalphaDt = derivs.fields("Cullen alpha delta", 0.0);
+  auto R = dataBase.newFluidFieldList(0.0, "mR");
+  auto vsig = dataBase.newFluidFieldList(0.0, "mVsig");
+  auto alpha_tmp = derivs.fields("mCullAlpha2", 0.0);
   
-  FieldList<Dimension, Vector> prevDvDt = state.fields("mPrevDvDt", Vector::zero);
-
+  
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -334,12 +211,9 @@ finalizeDerivatives(const Scalar /*time*/,
   CHECK(reducingViscosityMultiplierQ.size() == numNodeLists);
 
   // Derivative FieldLists.
-  FieldList<Dimension, Scalar> alpha_local = derivs.fields("Cullen alpha local", 0.0);
-  FieldList<Dimension, Scalar> DalphaDt = derivs.fields("Cullen alpha delta", 0.0);
-
+  
   // We're using the hydro derivatives.
-  const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
-  FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  
 
   // Apply boundaries to DvDx.
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
@@ -352,8 +226,7 @@ finalizeDerivatives(const Scalar /*time*/,
        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
   // We need to compute the R factor, which involves walking the neighbors.  We can simultaneously compute the signal velocity.
-  FieldList<Dimension, Scalar> R = dataBase.newFluidFieldList(0.0, "Cullen R limiter");
-  FieldList<Dimension, Scalar> vsig = dataBase.newFluidFieldList(0.0, "Cullen signal velocity");
+  
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     //const int firstGhostNodei = DvDx[nodeListi]->nodeList().firstGhostNode();
 
@@ -364,16 +237,16 @@ finalizeDerivatives(const Scalar /*time*/,
       const int i = *iItr;
 
       // Get the state for node i.
-      const Vector& ri = position(nodeListi, i);
-      const Vector& vi = velocity(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Hdeti = Hi.Determinant();
-      const Scalar mi = mass(nodeListi, i);
-      const Scalar rhoi = massDensity(nodeListi, i);
-      const Scalar divvi = DvDx(nodeListi, i).Trace();
-      const Scalar csi = soundSpeed(nodeListi, i);
-      Scalar& Ri = R(nodeListi, i);
-      Scalar& vsigi = vsig(nodeListi, i);
+      const auto& ri = position(nodeListi, i);
+      const auto& vi = velocity(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto Hdeti = Hi.Determinant();
+      const auto mi = mass(nodeListi, i);
+      const auto rhoi = massDensity(nodeListi, i);
+      const auto divvi = DvDx(nodeListi, i).Trace();
+      const auto csi = soundSpeed(nodeListi, i);
+      auto& Ri = R(nodeListi, i);
+      auto& vsigi = vsig(nodeListi, i);
 
       // Neighbors!
       const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
@@ -403,27 +276,27 @@ finalizeDerivatives(const Scalar /*time*/,
                                                          firstGhostNodej)) {
 
               // Get the state for node i.
-              const Vector& rj = position(nodeListj, j);
-              const Vector& vj = velocity(nodeListj, j);
-              const SymTensor& Hj = H(nodeListj, j);
-              const Scalar Hdetj = Hj.Determinant();
-              const Scalar mj = mass(nodeListj, j);
-              const Scalar divvj = DvDx(nodeListj, j).Trace();
-              const Scalar csj = soundSpeed(nodeListj, j);
-              Scalar& Rj = R(nodeListj, j);
-              Scalar& vsigj = vsig(nodeListj, j);
+              const auto& rj = position(nodeListj, j);
+              const auto& vj = velocity(nodeListj, j);
+              const auto& Hj = H(nodeListj, j);
+              const auto Hdetj = Hj.Determinant();
+              const auto mj = mass(nodeListj, j);
+              const auto divvj = DvDx(nodeListj, j).Trace();
+              const auto csj = soundSpeed(nodeListj, j);
+              auto& Rj = R(nodeListj, j);
+              auto& vsigj = vsig(nodeListj, j);
 
               // Symmetrized kernel weight and gradient.
-              const Vector rij = ri - rj;
-              const Scalar Wi = W(Hi*rij, Hdeti);
-              const Scalar Wj = W(Hj*rij, Hdetj);
+              const auto rij = ri - rj;
+              const auto Wi = W(Hi*rij, Hdeti);
+              const auto Wj = W(Hj*rij, Hdetj);
 
               // Compute R.
               Ri += sgn(divvj)*mj*Wi;
               Rj += sgn(divvi)*mi*Wj;
 
               // Check the signal velocity.
-              const Scalar vsigij = 0.5*(csi + csj) - std::min(0.0, (vi - vj).dot(rij.unitVector()));
+              const auto vsigij = 0.5*(csi + csj) - std::min(0.0, (vi - vj).dot(rij.unitVector()));
               vsigi = std::max(vsigi, vsigij);
               vsigj = std::max(vsigj, vsigij);
             }
@@ -441,39 +314,37 @@ finalizeDerivatives(const Scalar /*time*/,
   //   mCullAlpha  -> alpha0
   //   mCullAlpha2 -> alpha_tmp.
   //   alpha_local -> alpha
-  const FieldList<Dimension, Scalar> prevDivV = state.fields("mPrevDivV", 0.0);
-  const FieldList<Dimension, Scalar> alpha0 = state.fields("mCullAlpha", 0.0);
-  FieldList<Dimension, Scalar> alpha_tmp = derivs.fields("mCullAlpha2", 0.0);
+  
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const size_t n = DvDx[nodeListi]->numInternalElements();
     for (size_t i = 0; i != n; ++i) {
-      const SymTensor& Hi = H(nodeListi, i);
-      const Scalar Ri = R(nodeListi, i);
-      const Scalar vsigi = vsig(nodeListi, i);
-      const Tensor DvDxi = DvDx(nodeListi, i);
-      const Scalar divvi = DvDxi.Trace();
-      const Scalar divai = (divvi - prevDivV(nodeListi, i))*safeInvVar(dt);
-      const Tensor Si = DvDxi.Symmetric() - divvi/Dimension::nDim * Tensor::one;
-      const Scalar alphai = reducingViscosityMultiplierQ(nodeListi, i);
-      Scalar& alpha_locali = alpha_local(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto Ri = R(nodeListi, i);
+      const auto vsigi = vsig(nodeListi, i);
+      const auto DvDxi = DvDx(nodeListi, i);
+      const auto divvi = DvDxi.Trace();
+      const auto divai = (divvi - prevDivV(nodeListi, i))*safeInvVar(dt);
+      const auto Si = DvDxi.Symmetric() - divvi/Dimension::nDim * Tensor::one;
+      const auto alphai = reducingViscosityMultiplierQ(nodeListi, i);
+      auto& alpha_locali = alpha_local(nodeListi, i);
       if (mboolHopkins) {
-        const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
-        const Scalar alpha0i = alpha0(nodeListi, i);
-        Scalar& alpha_tmpi = alpha_tmp(nodeListi, i);
+        const auto hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
+        const auto alpha0i = alpha0(nodeListi, i);
+        auto& alpha_tmpi = alpha_tmp(nodeListi, i);
         alpha_tmpi = ((divvi >= 0.0 or divai >= 0.0) ?
                       0.0 :
                       malphMax*std::abs(divai)*safeInvVar(std::abs(divai) + mbetaC*vsigi*vsigi/FastMath::pow2(mfKern*hi)));
-        const Scalar thpt = FastMath::pow2(mbetaE*FastMath::pow4(1.0 - Ri)*divvi);
+        const auto thpt = FastMath::pow2(mbetaE*FastMath::pow4(1.0 - Ri)*divvi);
         // const Scalar taui = hi/kernelExtent*safeInvVar(2.0*mbetaD*vsigi);
         alpha_locali = std::max(malphMin, thpt*alpha0i*safeInvVar(thpt + (Si*Si.Transpose()).Trace()));
         // We abuse DalphaDt here to store the new value for alpha0 in the Hopkins approximation.
         DalphaDt(nodeListi, i) = alpha_tmpi + std::max(0.0, alpha0i - alpha_tmpi)*exp(-mbetaD*dt*abs(vsigi)/(2.0*mfKern*hi));
       } else {
-        const Scalar hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
-        const Scalar thpt = FastMath::pow2(2.0*FastMath::pow4(1.0 - Ri)*divvi);
-        const Scalar zetai = thpt*safeInvVar(thpt + (Si*Si.Transpose()).Trace());
-        const Scalar Ai = zetai*std::max(-divai, 0.0);
-        const Scalar taui = hi*safeInvVar(2.0*mbetaD*vsigi);
+        const auto hi = kernelExtent*Dimension::nDim/Hi.Trace();  // Harmonic averaging.
+        const auto thpt = FastMath::pow2(2.0*FastMath::pow4(1.0 - Ri)*divvi);
+        const auto zetai = thpt*safeInvVar(thpt + (Si*Si.Transpose()).Trace());
+        const auto Ai = zetai*std::max(-divai, 0.0);
+        const auto taui = hi*safeInvVar(2.0*mbetaD*vsigi);
         DalphaDt(nodeListi, i) = std::min(0.0, alpha_locali - alphai)*safeInv(taui);
         alpha_locali = std::max(alphai, malphMax*hi*hi*Ai*safeInvVar(vsigi*vsigi + hi*hi*Ai));
       }
@@ -492,11 +363,13 @@ finalize(const typename Dimension::Scalar /*time*/,
          DataBase<Dimension>& /*dataBase*/,
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
-  FieldList<Dimension, Vector> prevDvDt = state.fields("mPrevDvDt", Vector::zero);
-  const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+
+  auto prevDvDt = state.fields("mPrevDvDt", Vector::zero);
+  auto prevDivV = state.fields("mPrevDivV", 0.0);
+  const auto DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  const auto DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  
   prevDvDt.assignFields(DvDt);
-  FieldList<Dimension, Scalar> prevDivV = state.fields("mPrevDivV", 0.0);
-  const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   const unsigned numNodeLists = DvDx.numFields();
   CHECK(prevDivV.numFields() == numNodeLists);
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
