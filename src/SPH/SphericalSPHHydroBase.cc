@@ -611,8 +611,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // }
 
       // Specific thermal energy
-      DepsDti += 0.5*mi*QPiij.xx()*vi.dot(gradWii) - 2.0*Pi*vi.x()*safeInv(ri.x(), 0.1*hi);
-      // DepsDti -= 2.0*Pi*vi.x()*safeInv(ri.x());
+      DepsDti += 0.5*mi*QPiij.xx()*vi.dot(gradWii) - 2.0*Pi*vi.x()*safeInvVar(ri.x(), 0.1*hi);
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
@@ -634,7 +633,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Evaluate the continuity equation.
-      DrhoDti = -rhoi*(DvDxi.xx() + 2.0*vi.x()*safeInv(ri.x(), 0.1*hi));
+      DrhoDti = -rhoi*(DvDxi.xx() + 2.0*vi.x()*safeInvVar(ri.x(), 0.1*hi));
 
       // If needed finish the total energy derivative.
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
