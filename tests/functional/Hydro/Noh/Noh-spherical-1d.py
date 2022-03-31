@@ -292,15 +292,8 @@ nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
 # Set the velocity of the node closest to the origin to zero to kick things off
 pos = nodes1.positions()
 vel = nodes1.velocity()
-imin, rmin = -1, 1e10
 for ix in xrange(nodes1.numNodes):
     vel[ix].x = vr0 + vrSlope*pos[ix].x
-#     if pos[ix].x < rmin:
-#         imin = ix
-#         rmin = pos[ix].x
-# rmin_global = mpi.allreduce(rmin, mpi.MIN)
-# if rmin == rmin_global:
-#     vel[imin].x = 0.0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list

@@ -572,7 +572,6 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       auto& Mi = M(nodeListi, i);
       auto& localMi = localM(nodeListi, i);
       auto& maxViscousPressurei = maxViscousPressure(nodeListi, i);
-      auto& effViscousPressurei = effViscousPressure(nodeListi, i);
       auto& DHDti = DHDt(nodeListi, i);
       auto& Hideali = Hideal(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
@@ -581,49 +580,15 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
       // Symmetrized kernel weight and gradient.
       const auto etaii = Hi*ri;
-      const Vector etaQii = etaii; // std::max(0.1, etaii[0]);
+      const Vector etaQii = std::max(0.1, etaii[0]);
       double Wii, gWii, WQii, gWQii;
       Vector gradWii, gradWQii;
       W.kernelAndGrad(etaii, etaii, Hi, Wii, gradWii, gWii);
+      WQ.kernelAndGrad(etaQii, etaQii, Hi, WQii, gradWQii, gWQii);
 
       // Add the self-contribution to density sum.
       rhoSumi += mi*Wii;
       normi += mi/rhoi*Wii;
-
-      // Compute the pair-wise artificial viscosity.
-      Tensor QPiij, QPiji;
-      if (etaii.x() < etaMax) {
-        WQ.kernelAndGrad(etaQii, etaQii, Hi, WQii, gradWQii, gWQii);
-        std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListi, i,
-                                        ri,            etaQii, vi,           rhoi, ci, Hi,
-                                        Vector::zero, -etaQii, Vector::zero, rhoi, ci, Hi);
-        const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
-        maxViscousPressurei = max(maxViscousPressurei, Qi);
-        effViscousPressurei += mi*Qi*WQii/rhoi;
-      }
-
-      // Self-interaction for momentum (cause curvilinear coordinates are weird)
-      const auto Prhoi = safeOmegai*Pi/(rhoi*rhoi);
-      const auto deltaDvDti = -mi*(2.0*Prhoi*gradWii + 0.5*QPiij*gradWQii);
-
-      // // Before we actually increment the acceleration, see if we need to add an additional term
-      // // to prevent points passing through the origin.
-      // // const auto DvDti_trial = DvDti[0] + deltaDvDti[0];
-      // // const auto deltari = std::max(0.0, -(vi[0] + DvDti_trial)*dt - 0.5*ri[0]);
-      // const auto deltari = std::max(0.0, -(vi[0]*dt + ri[0] - 0.5*hi/nPerh));
-      // deltaDvDti[0] += 0.1*deltari/(dt*dt);
-
-      DvDti += deltaDvDti;
-      if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
-      if (i == 0) {
-        const auto veli = velocity(nodeListi, i);
-        std::cerr << "   " << ri << " " << veli << " " << Pi << " " << rhoi << " " << Prhoi << " " << gradWii << " : " << QPiij << " " << gradWQii << " : " << deltaDvDti << " " << DvDti << std::endl;
-      }
-
-      // Specific thermal energy
-      DepsDti -= vi.dot(deltaDvDti) + 2.0*Pi*vi.x()*safeInvVar(ri.x(), 0.01*hi);
-      // DepsDti += vi.dot(deltaDvDti) + 0.5*deltaDvDti.dot(deltaDvDti)*dt - 2.0*Pi*vi.x()*safeInvVar(ri.x(), 0.1*hi);
-      // DepsDti += 0.5*mi*QPiij.xx()*vi.dot(gradWii) - 2.0*Pi*vi.x()*safeInvVar(ri.x(), 0.1*hi);
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
@@ -646,6 +611,28 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
       // Evaluate the continuity equation.
       DrhoDti = -rhoi*(DvDxi.xx() + 2.0*vi.x()*safeInvVar(ri.x(), 0.1*hi));
+
+      // If we're in range of the origin, compute an effective Q.
+      Scalar Qi = 0.0;
+      if (etaii.x() < etaMax) {
+        const auto divv = -std::min(0.0, DvDxi.Trace() + 2.0*vi.x()*safeInvVar(ri.x(), 0.01*hi));
+        Qi = 2.0*rhoi*hi*divv*(hi*divv + ci);
+        maxViscousPressurei = std::max(maxViscousPressurei, Qi);
+      }
+
+      // Self-interaction for momentum (cause curvilinear coordinates are weird)
+      const auto deltaDvDti = -mi*safeOmegai/(rhoi*rhoi)*(2.0*Pi*gradWii + Qi*gradWQii);
+      DvDti += deltaDvDti;
+      if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
+      // if (i == 0) {
+      //   const auto veli = velocity(nodeListi, i);
+      //   std::cerr << "   " << ri << " " << veli << " " << Pi << " " << Qi << " " << rhoi << " " << gradWii << " " << gradWQii << " : " << deltaDvDti << " " << DvDti << std::endl;
+      // }
+
+      // Specific thermal energy
+      DepsDti -= vi.dot(deltaDvDti) + 2.0*Pi*vi.x()*safeInvVar(ri.x(), 0.01*hi);
+      // DepsDti += vi.dot(deltaDvDti) + 0.5*deltaDvDti.dot(deltaDvDti)*dt - 2.0*Pi*vi.x()*safeInvVar(ri.x(), 0.1*hi);
+      // DepsDti += 0.5*mi*QPiij.xx()*vi.dot(gradWii) - 2.0*Pi*vi.x()*safeInvVar(ri.x(), 0.1*hi);
 
       // If needed finish the total energy derivative.
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
