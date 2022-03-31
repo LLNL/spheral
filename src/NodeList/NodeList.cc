@@ -645,7 +645,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mName, pathName + "/name");
 
   // Read and reset the number of internal nodes.
-  int numNodes;
+  unsigned numNodes;
   file.read(numNodes, pathName + "/numNodes");
   numInternalNodes(numNodes);
 
