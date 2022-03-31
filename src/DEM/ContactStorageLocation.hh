@@ -22,13 +22,13 @@ namespace Spheral{
   struct ContactStorageLocation{
 
     ContactStorageLocation(const int nodeListi,
-                          const int i,
-                          const int uniqueIndexi,
-                          const int numInternalElementsi,
-                          const int nodeListj,
-                          const int j,
-                          const int uniqueIndexj,
-                          const int numInternalElementsj);
+                           const int i,
+                           const int uniqueIndexi,
+                           const int numInternalElementsi,
+                           const int nodeListj,
+                           const int j,
+                           const int uniqueIndexj,
+                           const int numInternalElementsj);
     ContactIndex storageLocation;
     ContactIndex pairLocation;               
   }

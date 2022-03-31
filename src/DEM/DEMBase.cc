@@ -164,13 +164,15 @@ addContacts(const DataBase<Dimension>& dataBase,
  
     // get our contact indices 
     const auto neighborContacts = neighborIds(storageNodeListIndex,storageNodeIndex);
-    const auto  contactIndexPtr = std::find(neighborContacts.begin(),neighborContacts.end(),uniqueIndex);
+    const auto contactIndexPtr = std::find(neighborContacts.begin(),neighborContacts.end(),uniqueIndex);
 
     // add the contact if it is new
     if (contactIndexPtr == neighborContacts.end()){
+
       neighborIds(storageNodeListIndex,storageNodeIndex).push_back(uniqueIndex);
       eqOverlap(storageNodeListIndex,storageNodeIndex).push_back(0.0);
       shearDisp(storageNodeListIndex,storageNodeIndex).push_back(Vector::zero);
+      
     }
   }
 

@@ -34,6 +34,10 @@ ContactStorageLocation::ContactStorageLocation(const int nodeListi,
 
     const auto selectNodei = (i < numInternalNodesi) and (uniqueIndexi < uniqueIndexj or j > numInternalNodesj);
 
+    auto& neighborContacts = mNeighborIndices(storageNodeListIndex,storageNodeIndex);
+    const auto contactIndexPtr = std::find(neighborContacts.begin(),neighborContacts.end(),uniqueIndex);
+    const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);
+
     int storageNodeListIndex, storageNodeIndex, uniqueIndex;
     if (selectNodei) {
       storageLocation.nodeListIndex = nodeListi;
