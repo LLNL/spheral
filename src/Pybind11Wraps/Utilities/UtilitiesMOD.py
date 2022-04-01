@@ -49,6 +49,7 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/DomainNode.hh"',
                   '"Utilities/NodeCoupling.hh"',
                   '"Utilities/QuadraticInterpolator.hh"',
+                  '"Utilities/MonotonicCubicInterpolator.hh"',
                   '"Utilities/XYInterpolator.hh"',
                   '"Utilities/BiLinearInterpolator.hh"',
                   '"Utilities/BiQuadraticInterpolator.hh"',
@@ -87,6 +88,7 @@ from Timer import *
 from DomainNode import *
 from NodeCoupling import *
 from QuadraticInterpolator import *
+from MonotonicCubicInterpolator import *
 from XYInterpolator import *
 from BiLinearInterpolator import *
 from BiQuadraticInterpolator import *
