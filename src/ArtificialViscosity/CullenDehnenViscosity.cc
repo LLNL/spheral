@@ -132,8 +132,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   dataBase.resizeFluidFieldList(mPrevDivV2, 0.0, "mPrevDivV2", false);
   dataBase.resizeFluidFieldList(mCullAlpha2, 1.0, "mCullAlpha2", false);
-  dataBase.resizeFluidFieldList(mPrevDivV2, 0.0, "mDalphaDt", false);
-  dataBase.resizeFluidFieldList(mCullAlpha2, 0.0, "mAlphaLocal", false);
+  dataBase.resizeFluidFieldList(mDalphaDt, 0.0, "mDalphaDt", false);
+  dataBase.resizeFluidFieldList(mAlphaLocal, 0.0, "mAlphaLocal", false);
   dataBase.resizeFluidFieldList(mR, 0.0, "mR", false);
   dataBase.resizeFluidFieldList(mVsig, 0.0, "mVsig", false);
   derivs.enroll(mPrevDivV2);
