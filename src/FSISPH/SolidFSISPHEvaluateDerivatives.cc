@@ -568,7 +568,7 @@ if(this->correctVelocityGradient()){
           localDvDxi -=  2.0*volj*((vi-vstar).dyad(gradWi));
           localDvDxj -=  2.0*voli*((vstar-vj).dyad(gradWj)); 
         }
-
+        
         // diffuse to stabilize things
         if (stabilizeDensity and (ci>tiny and cj>tiny)){
           linearReconstruction(ri,rj,Pi,Pj,DPDxi,DPDxj,PLineari,PLinearj);
@@ -716,7 +716,7 @@ if(this->correctVelocityGradient()){
       //const auto localMdeti = localMi.Determinant();
       //const auto goodLocalM = ( localMdeti > 1.0e-2 and numNeighborsi > Dimension::pownu(2));
       //localMi =  (goodLocalM ? localMi.Inverse() : Tensor::one);
-      localDvDxi = localDvDxi*localMi;
+      if(this->correctVelocityGradient()) localDvDxi = localDvDxi*localMi;
 
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
