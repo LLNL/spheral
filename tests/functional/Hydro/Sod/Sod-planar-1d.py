@@ -3,6 +3,8 @@
 #
 #ATS:sph1 = test(        SELF, "--crksph False --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with SPH -- 1-D (serial)")
 #ATS:sph2 = testif(sph1, SELF, "--crksph False --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with SPH -- 1-D (serial) RESTART CHECK")
+#ATS:sphCD = test(        SELF, "--boolReduceViscosity --crksph False --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with SPH and Morris-Monaghan Artificial Viscosity Limiter -- 1-D (serial)")
+#ATS:sphMMR = test(        SELF, "--boolCullenViscosity --crksph False --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with SPH and Cullen-Dehnen Artificial Viscosity Limiter  -- 1-D (serial)")
 #
 # CRK
 #
@@ -24,6 +26,7 @@
 #ATS:mfm1 = test(         SELF, "--mfm True --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with MFM -- 1-D (serial)")
 #ATS:mfm2 = testif(mfm1,  SELF, "--mfm True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with MFM -- 1-D (serial) RESTART CHECK")
 #
+
 import os, sys
 import shutil
 from SolidSpheral1d import *
