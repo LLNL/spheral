@@ -478,8 +478,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       const auto Prhoi = safeOmegai*Pi/(rhoi*rhoi);
       const auto Prhoj = safeOmegaj*Pj/(rhoj*rhoj);
       const auto fQi = ri.x()*safeInv(ri.x() + rj.x());
-      const auto deltaDvDti = -mj*(Prhoi*gradWji + Prhoj*gradWjj + 0.5*fQi        *(QPiij*gradWQji + QPiji*gradWQjj));
-      const auto deltaDvDtj = -mi*(Prhoj*gradWij + Prhoi*gradWii + 0.5*(1.0 - fQi)*(QPiji*gradWQij + QPiij*gradWQii));
+      const auto deltaDvDti = -mj*(Prhoi*gradWji + Prhoj*gradWjj + fQi        *(QPiij*gradWQji + QPiji*gradWQjj));
+      const auto deltaDvDtj = -mi*(Prhoj*gradWij + Prhoi*gradWii + (1.0 - fQi)*(QPiji*gradWQij + QPiij*gradWQii));
       DvDti += deltaDvDti;
       DvDtj += deltaDvDtj;
       if (mCompatibleEnergyEvolution) {
@@ -490,8 +490,10 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // Specific thermal energy evolution
       // DepsDti -= vi.dot(deltaDvDti);
       // DepsDtj -= vj.dot(deltaDvDtj);
-      DepsDti += mj*(Prhoi + 0.5*QPiij.xx())*vij.dot(gradWjj);
-      DepsDtj -= mi*(Prhoj + 0.5*QPiji.xx())*vij.dot(gradWii);
+      // DepsDti += mj*(Prhoi + fQi        *QPiij.xx())*vij.dot(gradWjj);
+      // DepsDtj -= mi*(Prhoj + (1.0 - fQi)*QPiji.xx())*vij.dot(gradWii);
+      DepsDti += mj*(Prhoi + 0.5*QPiij.xx())*(vj.dot(gradWij) + vi.dot(gradWjj));
+      DepsDtj += mi*(Prhoj + 0.5*QPiji.xx())*(vi.dot(gradWji) + vj.dot(gradWii));
 
       // Velocity gradient.
       const auto deltaDvDxi = -mj*vij.dyad(gradWjj);
@@ -580,7 +582,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
       // Symmetrized kernel weight and gradient.
       const auto etaii = Hi*ri;
-      const Vector etaQii = std::max(0.1, etaii[0]);
+      const Vector etaQii = std::max(0.01, etaii[0]);
       double Wii, gWii, WQii, gWQii;
       Vector gradWii, gradWQii;
       W.kernelAndGrad(etaii, etaii, Hi, Wii, gradWii, gWii);
