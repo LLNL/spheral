@@ -230,10 +230,10 @@ registerState(DataBase<Dimension>& dataBase,
   }
   
   // override our pressure policy we need neg pressure to decouple
-  FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
-  CHECK(pressure.numFields() == dataBase.numFluidNodeLists());
-  PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
-  state.enroll(pressure, pressurePolicy);
+  // FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
+  // CHECK(pressure.numFields() == dataBase.numFluidNodeLists());
+  // PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
+  // state.enroll(pressure, pressurePolicy);
   
 
   TIME_SolidFSISPHregisterState.stop();

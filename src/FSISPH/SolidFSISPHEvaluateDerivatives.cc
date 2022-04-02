@@ -405,26 +405,26 @@ if(this->correctVelocityGradient()){
       // we'll need a couple damage defs
       const auto rij = ri - rj;
       const auto rhatij = rij.unitVector();
-      //const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
+      //const auto fSij = (sameMatij ? pairs[kk].f_couple : 0.0);
       const auto  Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
       const auto  Dj = max(0.0, min(1.0, damage(nodeListj, j).dot(rhatij).magnitude()));
       const auto fSij = (sameMatij ? 1.0-abs(Di-Dj) : 0.0);
-      const auto fDi =  (sameMatij ? (1.0-Di)*(1.0-Di) : 0.0 );
-      const auto fDj =  (sameMatij ? (1.0-Dj)*(1.0-Dj) : 0.0 );
+      const auto fDi =  (sameMatij ? max((1.0-Di)*(1.0-Di),tiny) : 1.0 );
+      const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 1.0 );
 
       // Decoupling
       //-------------------------------------------------------
       // we need to test if these nodes are allowed to interact
-      const auto isExpanding = (ri-rj).dot(vi-vj) > 0.0;
-      const auto cantSupportTension = (fDi<0.01) or (fDj<0.01);
-      const auto isInTension = (Pi<0.0) or (Pj<0.0);
+      //const auto isExpanding = (ri-rj).dot(vi-vj) > 0.0;
+      //const auto cantSupportTension = (fDi<0.01) or (fDj<0.01);
+      //const auto isInTension = (Pi<0.0) or (Pj<0.0);
 
-      const auto decouple =  isExpanding and (cantSupportTension and isInTension);
+      //const auto decouple =  isExpanding and (cantSupportTension and isInTension);
 
       const auto constructInterface = (fSij < 0.99) and activateConstruction;
       const auto negligableShearWave = max(mui,muj) < 1.0e-5*min(Ki,Kj);
 
-      if (!decouple){
+      //if (!decouple){
 
         // Kernels
         //--------------------------------------
@@ -497,11 +497,11 @@ if(this->correctVelocityGradient()){
         maxViscousPressurej = max(maxViscousPressurej, rhoi*rhoj * QPiji.diagonalElements().maxAbsElement());
 
         // stress tensor
-        const auto Peffi = (Pi<0.0 ? fDi : 1.0) * Pi;
-        const auto Peffj = (Pj<0.0 ? fDj : 1.0) * Pj;
+        //const auto Peffi = (Pi<0.0 ? fDi : 1.0) * Pi;
+        //const auto Peffj = (Pj<0.0 ? fDj : 1.0) * Pj;
 
-        sigmai = fDi * Si - Peffi * SymTensor::one;
-        sigmaj = fDj * Sj - Peffj * SymTensor::one;
+        sigmai = Si - Pi * SymTensor::one;
+        sigmaj = Sj - Pj * SymTensor::one;
 
         // Compute the tensile correction to add to the stress as described in 
         // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -546,10 +546,10 @@ if(this->correctVelocityGradient()){
           const auto wj = vj - uj*rhatij;
           
           // weights weights
-          const auto Ci =  (constructHLLC ? std::sqrt(rhoi*Ki)  : Ki  ) + tiny;
-          const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj)  : Kj  ) + tiny;
-          const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : mui ) + tiny;
-          const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : muj ) + tiny;
+          const auto Ci =  fDi*(constructHLLC ? std::sqrt(rhoi*Ki)  : Ki  ) + tiny;
+          const auto Cj =  fDj*(constructHLLC ? std::sqrt(rhoj*Kj)  : Kj  ) + tiny;
+          const auto Csi = fDi*(constructHLLC ? std::sqrt(rhoi*mui) : mui ) + tiny;
+          const auto Csj = fDj*(constructHLLC ? std::sqrt(rhoj*muj) : muj ) + tiny;
 
           const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
           const auto weightUj = 1.0 - weightUi;
@@ -620,7 +620,7 @@ if(this->correctVelocityGradient()){
           XSPHDeltaVj -= 2.0*voli*Wj*(vj-vstar);
         }
 
-      } // if damageDecouple 
+      //} // if damageDecouple 
     } // loop over pairs
     threadReduceFieldLists<Dimension>(threadStack);
   } // OpenMP parallel region
