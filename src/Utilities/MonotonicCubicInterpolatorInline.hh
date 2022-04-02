@@ -46,9 +46,10 @@ inline
 double
 MonotonicCubicInterpolator::operator()(const double x,
                                        const size_t i0) const {
-  REQUIRE(i0 < 2u*mN);
+  REQUIRE(i0 <= mN - 2u);
   const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
-  return h00(t)*mVals[i0] + h10(t)*mVals[mN + i0] + h01(t)*mVals[i0 + 1u] + h11(t)*mVals[mN + i0 + 1u];
+  return (h00(t)*mVals[i0] + h01(t)*mVals[i0 + 1u] + 
+          mXstep*(h10(t)*mVals[mN + i0] + h11(t)*mVals[mN + i0 + 1u]));
 }
 
 //------------------------------------------------------------------------------
@@ -57,8 +58,8 @@ MonotonicCubicInterpolator::operator()(const double x,
 inline
 size_t
 MonotonicCubicInterpolator::lowerBound(const double x) const {
-  const auto result = std::min(mN - 1u, size_t(std::max(0.0, x - mXmin)/mXstep));
-  ENSURE(result <= mN - 1u);
+  const auto result = std::min(mN - 2u, size_t(std::max(0.0, x - mXmin)/mXstep));
+  ENSURE(result <= mN - 2u);
   return result;
 }
 

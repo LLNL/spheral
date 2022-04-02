@@ -83,41 +83,42 @@ estimateMonotoneGradients() {
   // Compute the slope between tabulated values.
   std::vector<double> d(mN - 1u);
   const auto dxInv = 1.0/mXstep;
-  for (auto k = 0u; k < mN - 2u; ++k) d[k] = (mVals[k + 1u] - mVals[k])*dxInv;
+  for (auto k = 0u; k < mN - 1u; ++k) d[k] = (mVals[k + 1u] - mVals[k])*dxInv;
 
   // Initialize the tabulated gradient values using these mid-point estimates --
   // check for extrema as we go.
   mVals[mN] = d[0];
   mVals[2u*mN - 1u] = d[mN - 2u];
   std::vector<bool> mask(mN, false);
-  for (auto k = 1u; k < mN - 2u; ++k) {
+  for (auto k = 1u; k < mN - 1u; ++k) {
     if (not mask[k]) {
-      if (fuzzyEqual(mVals[k], mVals[k + 1u])) {  // Leave these gradients as zero
+      if (mVals[k] == mVals[k + 1u]) {  // Leave these gradients as zero
         mask[k] = true;
         mask[k + 1u] = true;
       } else {
-        mVals[mN + k] = (d[k - 1u]*d[k] <= 0.0 ?
-                         0.0 :
-                         0.5*(d[k] + d[k + 1u]));
+        mVals[mN + k] = 0.5*(d[k] + d[k + 1u]);
+        // mVals[mN + k] = (d[k - 1u]*d[k] <= 0.0 ?
+        //                  0.0 :
+        //                  0.5*(d[k] + d[k + 1u]));
       }
     }
   }
 
-  // Apply limiting to the remaining unmasked gradients
-  for (auto k = 0u; k < mN - 2u; ++k) {
-    if (not mask[k] and std::abs(d[k]) > 0.0) {
-      const auto alpha = mVals[mN + k]*safeInv(d[k]);
-      const auto beta = mVals[mN + k + 1u]*safeInv(d[k]);
-      if (alpha < 0.0) {
-        mVals[mN + k] = 0.0;
-      } else if (beta < 0.0) {
-        mVals[mN + k + 1u] = 0.0;
-      }
-      const auto tau = 3.0*safeInv(sqrt(alpha*alpha + beta*beta));
-      mVals[mN + k] *= tau*alpha*d[k];
-      mVals[mN + k + 1u] *= tau*beta*d[k];
-    }
-  }
+  // // Apply limiting to the remaining unmasked gradients
+  // for (auto k = 0u; k < mN - 2u; ++k) {
+  //   if (not mask[k] and std::abs(d[k]) > 0.0) {
+  //     const auto alpha = mVals[mN + k]*safeInv(d[k]);
+  //     const auto beta = mVals[mN + k + 1u]*safeInv(d[k]);
+  //     if (alpha < 0.0) {
+  //       mVals[mN + k] = 0.0;
+  //     } else if (beta < 0.0) {
+  //       mVals[mN + k + 1u] = 0.0;
+  //     }
+  //     const auto tau = 3.0*safeInv(sqrt(alpha*alpha + beta*beta));
+  //     mVals[mN + k] *= tau*alpha*d[k];
+  //     mVals[mN + k + 1u] *= tau*beta*d[k];
+  //   }
+  // }
 }
 
 }
