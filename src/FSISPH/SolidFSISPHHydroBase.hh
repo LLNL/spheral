@@ -150,6 +150,7 @@ public:
   KernelAveragingMethod kernelAveragingMethod() const;
   void kernelAveragingMethod(KernelAveragingMethod method);
 
+  const FieldList<Dimension, Scalar>& pressureRaw() const;
   const FieldList<Dimension, Vector>& DPDx() const;
   const FieldList<Dimension, Vector>& DepsDx() const;
 
@@ -172,6 +173,7 @@ private:
   
   std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
  
+  FieldList<Dimension, Scalar> mPressureRaw;           // straight eos Pressure no limiting tension 
   FieldList<Dimension, Vector> mDPDx;                  // pressure gradient     
   FieldList<Dimension, Vector> mDepsDx;                // specific thermal energy gradient    
     

@@ -62,6 +62,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
+  const auto K = state.fields(SolidFieldNames::bulkModulus, 0.0);
   const auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   //const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
@@ -337,7 +338,7 @@ if(this->correctVelocityGradient()){
       const auto& pTypei = pTypes(nodeListi, i);
       const auto  voli = mi/rhoi;
       const auto  mui = max(mu(nodeListi,i),tiny);
-      const auto  Ki = max(tiny,rhoi*ci*ci)+4.0/3.0*mui;
+      const auto  Ki = max(tiny,K(nodeListi,i))+4.0/3.0*mui;
       auto  Hdeti = Hi.Determinant();
       //const auto fragIDi = fragIDs(nodeListi, i);
       CHECK(mi > 0.0);
@@ -372,7 +373,7 @@ if(this->correctVelocityGradient()){
       const auto& pTypej = pTypes(nodeListj, j);
       const auto  volj = mj/rhoj;
       const auto  muj = max(mu(nodeListj,j),tiny);
-      const auto  Kj = max(tiny,rhoj*cj*cj)+4.0/3.0*muj;
+      const auto  Kj = max(tiny,K(nodeListj,j))+4.0/3.0*muj;
       auto  Hdetj = Hj.Determinant();
       //const auto fragIDj = fragIDs(nodeListj, j);
       CHECK(mj > 0.0);
@@ -409,8 +410,10 @@ if(this->correctVelocityGradient()){
       const auto  Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
       const auto  Dj = max(0.0, min(1.0, damage(nodeListj, j).dot(rhatij).magnitude()));
       const auto fSij = (sameMatij ? 1.0-abs(Di-Dj) : 0.0);
-      const auto fDi =  (sameMatij ? max((1.0-Di)*(1.0-Di),tiny) : 1.0 );
-      const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 1.0 );
+      const auto fDi = (sameMatij ? max(1.0-(Di-Dj),1.0) : 1.0);
+      const auto fDj = (sameMatij ? max(1.0-(Dj-Di),1.0) : 1.0);
+      //const auto fDi =  (sameMatij ? max((1.0-Di)*(1.0-Di),tiny) : 1.0 );
+      //const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 1.0 );
 
       // Decoupling
       //-------------------------------------------------------
@@ -496,12 +499,13 @@ if(this->correctVelocityGradient()){
         maxViscousPressurei = max(maxViscousPressurei, rhoi*rhoj * QPiij.diagonalElements().maxAbsElement());
         maxViscousPressurej = max(maxViscousPressurej, rhoi*rhoj * QPiji.diagonalElements().maxAbsElement());
 
-        // stress tensor
-        //const auto Peffi = (Pi<0.0 ? fDi : 1.0) * Pi;
-        //const auto Peffj = (Pj<0.0 ? fDj : 1.0) * Pj;
-
-        sigmai = Si - Pi * SymTensor::one;
-        sigmaj = Sj - Pj * SymTensor::one;
+        // stress tensor (for now no stress or tension between materials)
+        const auto Peffi = (Pi<0.0 and differentMatij ? 0.0 : 1.0) * Pi;
+        const auto Peffj = (Pj<0.0 and differentMatij ? 0.0 : 1.0) * Pj;
+        const auto Seffi = (differentMatij ? 0.0 : 1.0) * Si;
+        const auto Seffj = (differentMatij ? 0.0 : 1.0) * Sj;
+        sigmai = Seffi - Peffi * SymTensor::one;
+        sigmaj = Seffj - Peffj * SymTensor::one;
 
         // Compute the tensile correction to add to the stress as described in 
         // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -548,8 +552,8 @@ if(this->correctVelocityGradient()){
           // weights weights
           const auto Ci =  fDi*(constructHLLC ? std::sqrt(rhoi*Ki)  : Ki  ) + tiny;
           const auto Cj =  fDj*(constructHLLC ? std::sqrt(rhoj*Kj)  : Kj  ) + tiny;
-          const auto Csi = fDi*(constructHLLC ? std::sqrt(rhoi*mui) : mui ) + tiny;
-          const auto Csj = fDj*(constructHLLC ? std::sqrt(rhoj*muj) : muj ) + tiny;
+          const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : mui ) + tiny;
+          const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : muj ) + tiny;
 
           const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
           const auto weightUj = 1.0 - weightUi;

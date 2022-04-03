@@ -165,6 +165,19 @@ DepsDx() const {
   return mDepsDx;
 }
 
+
+
+//------------------------------------------------------------------------------
+// Pressure without Pmin
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+pressureRaw() const {
+  return mPressureRaw;
+}
+
 //------------------------------------------------------------------------------
 // Ref to the slide surface obj
 //------------------------------------------------------------------------------

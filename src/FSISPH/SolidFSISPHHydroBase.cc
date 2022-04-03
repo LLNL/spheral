@@ -165,6 +165,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mApplySelectDensitySum(false),
   mSumDensityNodeLists(sumDensityNodeLists),
   mPairDepsDt(),
+  mPressureRaw(FieldStorageType::CopyFields),
   mDPDx(FieldStorageType::CopyFields),
   mDepsDx(FieldStorageType::CopyFields){
     mPairDepsDt.clear();
@@ -177,6 +178,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
       } 
     }
  
+    mPressureRaw = dataBase.newFluidFieldList(0.0, FSIFieldNames::rawPressure);
     mDPDx = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::pressureGradient);
     mDepsDx = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::specificThermalEnergyGradient);
   }
@@ -229,11 +231,10 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(specificThermalEnergy, epsPolicy);
   }
   
-  // override our pressure policy we need neg pressure to decouple
-  // FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
-  // CHECK(pressure.numFields() == dataBase.numFluidNodeLists());
-  // PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
-  // state.enroll(pressure, pressurePolicy);
+  // We want to know what our raw eos pressure is to know when Pmin is active
+  CHECK(pressure.numFields() == dataBase.numFluidNodeLists());
+  PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
+  state.enroll(mPressureRaw, pressurePolicy);
   
 
   TIME_SolidFSISPHregisterState.stop();

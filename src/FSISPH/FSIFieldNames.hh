@@ -9,6 +9,7 @@
 namespace Spheral {
 
 struct FSIFieldNames {
+  static const std::string rawPressure;
   static const std::string pressureGradient;
   static const std::string specificThermalEnergyGradient;
   static const std::string interfaceNormals;
