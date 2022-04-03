@@ -21,15 +21,46 @@ MonotonicCubicInterpolator::MonotonicCubicInterpolator(const double xmin,
   mVals(2u*n) {
 
   // Preconditions
-  VERIFY2(n > 1u, "MonotonicCubicInterpolator requires n > 1 : n=" << n);
+  VERIFY2(n > 2u, "MonotonicCubicInterpolator requires n >= 3 without a gradient function : n=" << n);
   VERIFY2(xmax > xmin, "MonotonicCubicInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
 
   // Compute the function values
   for (auto i = 0u; i < mN; ++i) mVals[i] = F(xmin + i*mXstep);
 
-  // Estimate the gradients at our lattice points using the Catmull-Rom spline definition, and
-  // then limit them to be monotone.
-  this->estimateMonotoneGradients();
+  // Estimate the gradients at each interpolation node
+  const auto dx = 0.05*mXstep;
+  for (auto i = 0u; i < mN; ++i) {
+    const auto xi = xmin + i*mXstep;
+    mVals[mN + i] = (F(xi + dx) - F(xi - dx))/(2.0*dx);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Construct to fit the given function with it's gradient
+//------------------------------------------------------------------------------
+template<typename Func, typename GradFunc>
+inline
+MonotonicCubicInterpolator::MonotonicCubicInterpolator(const double xmin,
+                                                       const double xmax,
+                                                       const size_t n,
+                                                       const Func& F,
+                                                       const GradFunc& Fgrad):
+  mN(n),
+  mXmin(xmin),
+  mXmax(xmax),
+  mXstep((xmax - xmin)/(n - 1u)),
+  mVals(2u*n) {
+
+  // Preconditions
+  VERIFY2(n > 1u, "MonotonicCubicInterpolator requires n >= 2 : n=" << n);
+  VERIFY2(xmax > xmin, "MonotonicCubicInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
+
+  // Compute the function and gradient values
+  for (auto i = 0u; i < mN; ++i) {
+    const auto xi = xmin + i*mXstep;
+    mVals[i] = F(xi);
+    mVals[mN + i] = Fgrad(xi);
+  }
 }
 
 //------------------------------------------------------------------------------

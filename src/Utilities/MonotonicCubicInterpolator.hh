@@ -22,12 +22,21 @@ public:
                              const double xmax,
                              const size_t n,
                              const Func& F);
+  template<typename Func, typename GradFunc>
+  MonotonicCubicInterpolator(const double xmin,
+                             const double xmax,
+                             const size_t n,
+                             const Func& F,
+                             const GradFunc& Fgrad);
   MonotonicCubicInterpolator();
   ~MonotonicCubicInterpolator();
 
   // Alternatively initialize from tabulated values
   void initialize(const double xmin, const double xmax,
                   const std::vector<double>& yvals);
+
+  // Force interpolation to be monotonic (may introduce structure between tabulated points)
+  void makeMonotonic();
 
   // Comparisons
   bool operator==(const MonotonicCubicInterpolator& rhs) const;
@@ -60,8 +69,6 @@ private:
   size_t mN;
   double mXmin, mXmax, mXstep;
   std::vector<double> mVals;
-
-  void estimateMonotoneGradients();
 };
 
 }

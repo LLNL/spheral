@@ -44,9 +44,13 @@ MonotonicCubicInterpolator::initialize(const double xmin,
   // Copy the function values
   std::copy(yvals.begin(), yvals.end(), mVals.begin());
 
-  // Estimate the gradients at our lattice points using the Catmull-Rom spline definition, and
-  // then limit them to be monotone.
-  this->estimateMonotoneGradients();
+  // Estimate the gradients at our lattice points
+  const auto dxInv = 1.0/mXstep;
+  for (auto i = 1u; i < mN - 1u; ++i) {
+    mVals[mN + i] = 0.5*(mVals[i + 1u] - mVals[i - 1u])*dxInv;
+  }
+  mVals[mN] = (mVals[1] - mVals[0])*dxInv;
+  mVals[2u*mN - 1u] = (mVals[mN - 1u] - mVals[mN - 2u])*dxInv;
 }
 
 //------------------------------------------------------------------------------
@@ -75,50 +79,49 @@ operator==(const MonotonicCubicInterpolator& rhs) const {
 //------------------------------------------------------------------------------
 void
 MonotonicCubicInterpolator::
-estimateMonotoneGradients() {
+makeMonotonic() {
 
   // Initialize gradients to zero
   std::fill(mVals.begin() + mN, mVals.end(), 0.0);
 
   // Compute the slope between tabulated values.
-  std::vector<double> d(mN - 1u);
+  std::vector<double> cgrad(mN - 1u);
   const auto dxInv = 1.0/mXstep;
-  for (auto k = 0u; k < mN - 1u; ++k) d[k] = (mVals[k + 1u] - mVals[k])*dxInv;
+  for (auto k = 0u; k < mN - 1u; ++k) cgrad[k] = (mVals[k + 1u] - mVals[k])*dxInv;
 
-  // Initialize the tabulated gradient values using these mid-point estimates --
-  // check for extrema as we go.
-  mVals[mN] = d[0];
-  mVals[2u*mN - 1u] = d[mN - 2u];
-  std::vector<bool> mask(mN, false);
+  // Initialize the tabulated gradient values using these mid-point estimates
+  mVals[mN] = cgrad[0];
+  mVals[2u*mN - 1u] = cgrad[mN - 2u];
   for (auto k = 1u; k < mN - 1u; ++k) {
-    if (not mask[k]) {
-      if (mVals[k] == mVals[k + 1u]) {  // Leave these gradients as zero
-        mask[k] = true;
-        mask[k + 1u] = true;
-      } else {
-        mVals[mN + k] = 0.5*(d[k] + d[k + 1u]);
-        // mVals[mN + k] = (d[k - 1u]*d[k] <= 0.0 ?
-        //                  0.0 :
-        //                  0.5*(d[k] + d[k + 1u]));
-      }
+    mVals[mN + k] = (cgrad[k - 1u]*cgrad[k] <= 0.0 ?
+                     0.0 :
+                     0.5*(cgrad[k - 1u] + cgrad[k]));
+  }
+
+  // Mask out points where we must keep a zero slope
+  std::vector<bool> mask(mN, false);
+  for (auto k = 0u; k < mN - 1u; ++k) {
+    if (mVals[mN + k] == 0.0) {
+      mVals[mN + k + 1u] = 0.0;
+      mask[k] = true;
+      mask[k + 1u] = true;
     }
   }
 
-  // // Apply limiting to the remaining unmasked gradients
-  // for (auto k = 0u; k < mN - 2u; ++k) {
-  //   if (not mask[k] and std::abs(d[k]) > 0.0) {
-  //     const auto alpha = mVals[mN + k]*safeInv(d[k]);
-  //     const auto beta = mVals[mN + k + 1u]*safeInv(d[k]);
-  //     if (alpha < 0.0) {
-  //       mVals[mN + k] = 0.0;
-  //     } else if (beta < 0.0) {
-  //       mVals[mN + k + 1u] = 0.0;
-  //     }
-  //     const auto tau = 3.0*safeInv(sqrt(alpha*alpha + beta*beta));
-  //     mVals[mN + k] *= tau*alpha*d[k];
-  //     mVals[mN + k + 1u] *= tau*beta*d[k];
-  //   }
-  // }
+  // Limit the remaining unmasked slopes
+  for (auto k = 0u; k < mN - 1u; ++k) {
+    if (not mask[k]) {
+      const auto alpha = mVals[mN + k]*safeInv(cgrad[k]);
+      const auto beta = mVals[mN + k + 1u]*safeInv(cgrad[k]);
+      if (alpha < 0.0 or beta < 0.0) {
+        mVals[mN + k] = 0.0;
+      } else {
+        const auto tau = 3.0*safeInv(sqrt(alpha*alpha + beta*beta));
+        mVals[mN + k] = tau*alpha*cgrad[k];
+        mVals[mN + k + 1u] = tau*beta*cgrad[k];
+      }
+    }
+  }
 }
 
 }

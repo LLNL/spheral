@@ -19,11 +19,25 @@ class MonotonicCubicInterpolator:
         "Constructs an interpolator based on the given function"
         return
 
+    def pyinit_gradfunc(self,
+                        xmin = "const double",
+                        xmax = "const double",
+                        n = "const size_t",
+                        F = "const PythonBoundFunctors::SpheralFunctor<double, double>&",
+                        Fgrad = "const PythonBoundFunctors::SpheralFunctor<double, double>&"):
+        "Constructs an interpolator based on the given function and its gradient"
+        return
+
     def initialize(self,
                    xmin = "const double",
                    xmax = "const double",
                    yvals = "const std::vector<double>&"):
         "Initializes the interpolator for yvals sampled in x in [xmin, xmax]"
+
+    def makeMonotonic(self):
+        """Force interpolation to be monotonic.  This generally degrades accuracy, and can introduce structure between
+tabulated knots (although that structure should still be monotonic between the tabulated function values)."""
+        return "void"
 
     @PYB11const
     def __call__(self,
