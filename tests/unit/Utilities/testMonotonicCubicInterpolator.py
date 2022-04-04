@@ -98,7 +98,8 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
     # Set up
     #===========================================================================
     def setUp(self):
-        self.ntests = 100000
+        self.nfunc = 100
+        self.nsamples = 1000
         self.n = 100
         return
 
@@ -132,19 +133,20 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
     def test_quad_interp(self):
         xmin = -10.0
         xmax =  40.0
-        A = rangen.uniform(-100.0, 100.0)
-        B = rangen.uniform(-100.0, 100.0)
-        C = rangen.uniform(-100.0, 100.0)
-        func = Fquad(A, B, C)
-        F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
-        tol = 1.0e-10
-        for x in xgen(self.ntests, xmin, xmax):
-            passing = err(F(x), func(x)) < tol
-            if not passing:
-                print F.vals
-                self.plotem(x, xmin, xmax, func, F)
-            self.failUnless(passing,
-                            "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
+        for ifunc in xrange(self.nfunc):
+            A = rangen.uniform(-100.0, 100.0)
+            B = rangen.uniform(-100.0, 100.0)
+            C = rangen.uniform(-100.0, 100.0)
+            func = Fquad(A, B, C)
+            F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
+            tol = 1.0e-10
+            for x in xgen(self.nsamples, xmin, xmax):
+                passing = err(F(x), func(x)) < tol
+                if not passing:
+                    print F.vals
+                    self.plotem(x, xmin, xmax, func, F)
+                self.failUnless(passing,
+                                "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
 
     #===========================================================================
     # Interpolate a quadratic function (func + gradient)
@@ -152,19 +154,20 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
     def test_quad_interp_with_grad(self):
         xmin = -10.0
         xmax =  40.0
-        A = rangen.uniform(-100.0, 100.0)
-        B = rangen.uniform(-100.0, 100.0)
-        C = rangen.uniform(-100.0, 100.0)
-        func = Fquad(A, B, C)
-        F = MonotonicCubicInterpolator(xmin, xmax, self.n, func, Fgrad(func))
-        tol = 1.0e-10
-        for x in xgen(self.ntests, xmin, xmax):
-            passing = err(F(x), func(x)) < tol
-            if not passing:
-                print F.vals
-                self.plotem(x, xmin, xmax, func, F)
-            self.failUnless(passing,
-                            "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
+        for ifunc in xrange(self.nfunc):
+            A = rangen.uniform(-100.0, 100.0)
+            B = rangen.uniform(-100.0, 100.0)
+            C = rangen.uniform(-100.0, 100.0)
+            func = Fquad(A, B, C)
+            F = MonotonicCubicInterpolator(xmin, xmax, self.n, func, Fgrad(func))
+            tol = 1.0e-10
+            for x in xgen(self.nsamples, xmin, xmax):
+                passing = err(F(x), func(x)) < tol
+                if not passing:
+                    print F.vals
+                    self.plotem(x, xmin, xmax, func, F)
+                self.failUnless(passing,
+                                "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
 
     #===========================================================================
     # Interpolate a quadratic function monotonically
@@ -172,20 +175,21 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
     def test_quad_interp_monotonic(self):
         xmin = -10.0
         xmax =  40.0
-        A = rangen.uniform(-100.0, 100.0)
-        B = rangen.uniform(-100.0, 100.0)
-        C = rangen.uniform(-100.0, 100.0)
-        func = Fquad(A, B, C)
-        F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
-        F.makeMonotonic()
-        tol = 2.0
-        for x in xgen(self.ntests, xmin, xmax):
-            passing = err(F(x), func(x)) < tol
-            if not passing:
-                print F.vals
-                self.plotem(x, xmin, xmax, func, F)
-            self.failUnless(passing,
-                            "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
+        for ifunc in xrange(self.nfunc):
+            A = rangen.uniform(-100.0, 100.0)
+            B = rangen.uniform(-100.0, 100.0)
+            C = rangen.uniform(-100.0, 100.0)
+            func = Fquad(A, B, C)
+            F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
+            F.makeMonotonic()
+            tol = 2.0
+            for x in xgen(self.nsamples, xmin, xmax):
+                passing = err(F(x), func(x)) < tol
+                if not passing:
+                    print F.vals
+                    self.plotem(x, xmin, xmax, func, F)
+                self.failUnless(passing,
+                                "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
 
     #===========================================================================
     # Interpolate a cubic function (func only)
@@ -193,20 +197,21 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
     def test_cubic_interp(self):
         xmin = -10.0
         xmax =  40.0
-        A = rangen.uniform(-100.0, 100.0)
-        B = rangen.uniform(-100.0, 100.0)
-        C = rangen.uniform(-100.0, 100.0)
-        D = rangen.uniform(-100.0, 100.0)
-        func = Fcubic(A, B, C, D)
-        F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
-        tol = 1.0e-2
-        for x in xgen(self.ntests, xmin, xmax):
-            passing = err(F(x), func(x)) < tol
-            if not passing:
-                print F.vals
-                self.plotem(x, xmin, xmax, func, F)
-            self.failUnless(passing,
-                            "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
+        for ifunc in xrange(self.nfunc):
+            A = rangen.uniform(-100.0, 100.0)
+            B = rangen.uniform(-100.0, 100.0)
+            C = rangen.uniform(-100.0, 100.0)
+            D = rangen.uniform(-100.0, 100.0)
+            func = Fcubic(A, B, C, D)
+            F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
+            tol = 5.0e-5
+            for x in xgen(self.nsamples, xmin, xmax):
+                passing = err(F(x), func(x)) < tol
+                if not passing:
+                    print F.vals
+                    self.plotem(x, xmin, xmax, func, F)
+                self.failUnless(passing,
+                                "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
 
     #===========================================================================
     # Interpolate a cubic function (func + gradient)
@@ -214,66 +219,21 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
     def test_cubic_interp_with_grad(self):
         xmin = -10.0
         xmax =  40.0
-        A = rangen.uniform(-100.0, 100.0)
-        B = rangen.uniform(-100.0, 100.0)
-        C = rangen.uniform(-100.0, 100.0)
-        D = rangen.uniform(-100.0, 100.0)
-        func = Fcubic(A, B, C, D)
-        F = MonotonicCubicInterpolator(xmin, xmax, self.n, func, Fgrad(func))
-        tol = 1.0e-10
-        for x in xgen(self.ntests, xmin, xmax):
-            passing = err(F(x), func(x)) < tol
-            if not passing:
-                print F.vals
-                self.plotem(x, xmin, xmax, func, F)
-            self.failUnless(passing,
-                            "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
-
-    #===========================================================================
-    # Interpolate a quintic function (func only)
-    #===========================================================================
-    def test_quintic_interp(self):
-        xmin = -10.0
-        xmax =  40.0
-        A = rangen.uniform(-100.0, 100.0)
-        B = rangen.uniform(-100.0, 100.0)
-        C = rangen.uniform(-100.0, 100.0)
-        D = rangen.uniform(-100.0, 100.0)
-        E = rangen.uniform(-100.0, 100.0)
-        F = rangen.uniform(-100.0, 100.0)
-        func = Fquintic(A, B, C, D, E, F)
-        F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
-        tol = 1.0
-        for x in xgen(self.ntests, xmin, xmax):
-            passing = err(F(x), func(x)) < tol
-            if not passing:
-                print F.vals
-                self.plotem(x, xmin, xmax, func, F)
-            self.failUnless(passing,
-                            "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
-
-    #===========================================================================
-    # Interpolate a quintic function (func + gradient)
-    #===========================================================================
-    def test_quintic_interp_with_grad(self):
-        xmin = -10.0
-        xmax =  40.0
-        A = rangen.uniform(-100.0, 100.0)
-        B = rangen.uniform(-100.0, 100.0)
-        C = rangen.uniform(-100.0, 100.0)
-        D = rangen.uniform(-100.0, 100.0)
-        E = rangen.uniform(-100.0, 100.0)
-        F = rangen.uniform(-100.0, 100.0)
-        func = Fquintic(A, B, C, D, E, F)
-        F = MonotonicCubicInterpolator(xmin, xmax, self.n, func, Fgrad(func))
-        tol = 1.0e-1
-        for x in xgen(self.ntests, xmin, xmax):
-            passing = err(F(x), func(x)) < tol
-            if not passing:
-                print F.vals
-                self.plotem(x, xmin, xmax, func, F)
-            self.failUnless(passing,
-                            "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
+        for ifunc in xrange(self.nfunc):
+            A = rangen.uniform(-100.0, 100.0)
+            B = rangen.uniform(-100.0, 100.0)
+            C = rangen.uniform(-100.0, 100.0)
+            D = rangen.uniform(-100.0, 100.0)
+            func = Fcubic(A, B, C, D)
+            F = MonotonicCubicInterpolator(xmin, xmax, self.n, func, Fgrad(func))
+            tol = 1.0e-9
+            for x in xgen(self.nsamples, xmin, xmax):
+                passing = err(F(x), func(x)) < tol
+                if not passing:
+                    print F.vals
+                    self.plotem(x, xmin, xmax, func, F)
+                self.failUnless(passing,
+                                "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
 
 if __name__ == "__main__":
     unittest.main()

@@ -28,7 +28,7 @@ MonotonicCubicInterpolator::MonotonicCubicInterpolator(const double xmin,
   for (auto i = 0u; i < mN; ++i) mVals[i] = F(xmin + i*mXstep);
 
   // Estimate the gradients at each interpolation node
-  const auto dx = 0.05*mXstep;
+  const auto dx = 0.001*mXstep;
   for (auto i = 0u; i < mN; ++i) {
     const auto xi = xmin + i*mXstep;
     mVals[mN + i] = (F(xi + dx) - F(xi - dx))/(2.0*dx);
