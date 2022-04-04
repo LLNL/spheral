@@ -121,7 +121,7 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
                 print F.vals
                 self.plotem(x, xmin, xmax, func, F)
             self.failUnless(passing,
-                            "Error interpolating F(x): %g != %g" % (F(x), func(x)))
+                            "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), abs(F(x) - func(x))/(1e-30 + abs(F(x)) + abs(func(x)))))
 
     #===========================================================================
     # Interpolate a quadratic function (func + gradient)
@@ -141,28 +141,28 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
                 print F.vals
                 self.plotem(x, xmin, xmax, func, F)
             self.failUnless(passing,
-                            "Error interpolating F(x): %g != %g" % (F(x), func(x)))
+                            "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), abs(F(x) - func(x))/(1e-30 + abs(F(x)) + abs(func(x)))))
 
-    # #===========================================================================
-    # # Interpolate a quadratic function monotonically
-    # #===========================================================================
-    # def test_quad_interp_monotonic(self):
-    #     xmin = -10.0
-    #     xmax =  40.0
-    #     A = rangen.uniform(-100.0, 100.0)
-    #     B = rangen.uniform(-100.0, 100.0)
-    #     C = rangen.uniform(-100.0, 100.0)
-    #     func = Fquad(A, B, C)
-    #     F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
-    #     F.makeMonotonic()
-    #     tol = 1.0e-10
-    #     for x in xgen(self.ntests, xmin, xmax):
-    #         passing = fuzzyEqual(F(x), func(x), tol)
-    #         if not passing:
-    #             print F.vals
-    #             self.plotem(x, xmin, xmax, func, F)
-    #         self.failUnless(passing,
-    #                         "Error interpolating F(x): %g != %g" % (F(x), func(x)))
+    #===========================================================================
+    # Interpolate a quadratic function monotonically
+    #===========================================================================
+    def test_quad_interp_monotonic(self):
+        xmin = -10.0
+        xmax =  40.0
+        A = rangen.uniform(-100.0, 100.0)
+        B = rangen.uniform(-100.0, 100.0)
+        C = rangen.uniform(-100.0, 100.0)
+        func = Fquad(A, B, C)
+        F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
+        F.makeMonotonic()
+        tol = 1.0e-0
+        for x in xgen(self.ntests, xmin, xmax):
+            passing = fuzzyEqual(F(x), func(x), tol)
+            if not passing:
+                print F.vals
+                self.plotem(x, xmin, xmax, func, F)
+            self.failUnless(passing,
+                            "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), abs(F(x) - func(x))/(1e-30 + abs(F(x)) + abs(func(x)))))
 
     #===========================================================================
     # Interpolate a cubic function (func only)
