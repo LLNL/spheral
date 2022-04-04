@@ -1,11 +1,11 @@
 #-------------------------------------------------------------------------------
-# MonotonicCubicInterpolator
+# CubicHermiteInterpolator
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 
-class MonotonicCubicInterpolator:
+class CubicHermiteInterpolator:
 
-    "A monotonic form of cubic Hermite interpolation."
+    "An (optionally monotonic) form of cubic Hermite interpolation."
 
     def pyinit(self):
         "Default constuctor -- returns a non-functional interpolator until initialized"

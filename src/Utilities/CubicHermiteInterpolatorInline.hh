@@ -10,10 +10,10 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Func>
 inline
-MonotonicCubicInterpolator::MonotonicCubicInterpolator(const double xmin,
-                                                       const double xmax,
-                                                       const size_t n,
-                                                       const Func& F):
+CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
+                                                   const double xmax,
+                                                   const size_t n,
+                                                   const Func& F):
   mN(n),
   mXmin(xmin),
   mXmax(xmax),
@@ -21,8 +21,8 @@ MonotonicCubicInterpolator::MonotonicCubicInterpolator(const double xmin,
   mVals(2u*n) {
 
   // Preconditions
-  VERIFY2(n > 2u, "MonotonicCubicInterpolator requires n >= 3 without a gradient function : n=" << n);
-  VERIFY2(xmax > xmin, "MonotonicCubicInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
+  VERIFY2(n > 2u, "CubicHermiteInterpolator requires n >= 3 without a gradient function : n=" << n);
+  VERIFY2(xmax > xmin, "CubicHermiteInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
 
   // Compute the function values
   for (auto i = 0u; i < mN; ++i) mVals[i] = F(xmin + i*mXstep);
@@ -40,11 +40,11 @@ MonotonicCubicInterpolator::MonotonicCubicInterpolator(const double xmin,
 //------------------------------------------------------------------------------
 template<typename Func, typename GradFunc>
 inline
-MonotonicCubicInterpolator::MonotonicCubicInterpolator(const double xmin,
-                                                       const double xmax,
-                                                       const size_t n,
-                                                       const Func& F,
-                                                       const GradFunc& Fgrad):
+CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
+                                                   const double xmax,
+                                                   const size_t n,
+                                                   const Func& F,
+                                                   const GradFunc& Fgrad):
   mN(n),
   mXmin(xmin),
   mXmax(xmax),
@@ -52,8 +52,8 @@ MonotonicCubicInterpolator::MonotonicCubicInterpolator(const double xmin,
   mVals(2u*n) {
 
   // Preconditions
-  VERIFY2(n > 1u, "MonotonicCubicInterpolator requires n >= 2 : n=" << n);
-  VERIFY2(xmax > xmin, "MonotonicCubicInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
+  VERIFY2(n > 1u, "CubicHermiteInterpolator requires n >= 2 : n=" << n);
+  VERIFY2(xmax > xmin, "CubicHermiteInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
 
   // Compute the function and gradient values
   for (auto i = 0u; i < mN; ++i) {
@@ -68,14 +68,14 @@ MonotonicCubicInterpolator::MonotonicCubicInterpolator(const double xmin,
 //------------------------------------------------------------------------------
 inline
 double
-MonotonicCubicInterpolator::operator()(const double x) const {
+CubicHermiteInterpolator::operator()(const double x) const {
   const auto i0 = lowerBound(x);
   return this->operator()(x, i0);
 }
 
 inline
 double
-MonotonicCubicInterpolator::operator()(const double x,
+CubicHermiteInterpolator::operator()(const double x,
                                        const size_t i0) const {
   REQUIRE(i0 <= mN - 2u);
   const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
@@ -88,7 +88,7 @@ MonotonicCubicInterpolator::operator()(const double x,
 //------------------------------------------------------------------------------
 inline
 size_t
-MonotonicCubicInterpolator::lowerBound(const double x) const {
+CubicHermiteInterpolator::lowerBound(const double x) const {
   const auto result = std::min(mN - 2u, size_t(std::max(0.0, x - mXmin)/mXstep));
   ENSURE(result <= mN - 2u);
   return result;
@@ -99,25 +99,25 @@ MonotonicCubicInterpolator::lowerBound(const double x) const {
 //------------------------------------------------------------------------------
 inline
 double
-MonotonicCubicInterpolator::h00(const double t) const {
+CubicHermiteInterpolator::h00(const double t) const {
   return (2.0*t - 3.0)*t*t + 1.0;
 }
 
 inline
 double
-MonotonicCubicInterpolator::h10(const double t) const {
+CubicHermiteInterpolator::h10(const double t) const {
   return (t - 2.0)*t*t + t;
 }
 
 inline
 double
-MonotonicCubicInterpolator::h01(const double t) const {
+CubicHermiteInterpolator::h01(const double t) const {
   return (3.0 - 2.0*t)*t*t;
 }
 
 inline
 double
-MonotonicCubicInterpolator::h11(const double t) const {
+CubicHermiteInterpolator::h11(const double t) const {
   return (t - 1.0)*t*t;
 }
 
@@ -126,31 +126,31 @@ MonotonicCubicInterpolator::h11(const double t) const {
 //------------------------------------------------------------------------------
 inline
 size_t
-MonotonicCubicInterpolator::N() const {
+CubicHermiteInterpolator::N() const {
   return mN;
 }
 
 inline
 double
-MonotonicCubicInterpolator::xmin() const {
+CubicHermiteInterpolator::xmin() const {
   return mXmin;
 }
 
 inline
 double
-MonotonicCubicInterpolator::xmax() const {
+CubicHermiteInterpolator::xmax() const {
   return mXmax;
 }
 
 inline
 double
-MonotonicCubicInterpolator::xstep() const {
+CubicHermiteInterpolator::xstep() const {
   return mXstep;
 }
 
 inline
 const std::vector<double>&
-MonotonicCubicInterpolator::vals() const {
+CubicHermiteInterpolator::vals() const {
   return mVals;
 }
 

@@ -17,7 +17,7 @@ set(Utilities_inst
 set(Utilities_sources
     DBC.cc
     QuadraticInterpolator.cc
-    MonotonicCubicInterpolator.cc
+    CubicHermiteInterpolator.cc
     Process.cc
     KeyTraits.cc
     PeanoHilbertTransform.cc
@@ -47,8 +47,8 @@ set(Utilities_headers
     DBC.hh
     QuadraticInterpolator.hh
     QuadraticInterpolatorInline.hh
-    MonotonicCubicInterpolator.hh
-    MonotonicCubicInterpolatorInline.hh
+    CubicHermiteInterpolator.hh
+    CubicHermiteInterpolatorInline.hh
     XYInterpolator.hh
     XYInterpolatorInline.hh
     BiLinearInterpolator.hh

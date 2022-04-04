@@ -1,11 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// MonotonicCubicInterpolator
+// CubicHermiteInterpolator
 //
-// A monotonic form of cubic Hermite interpolation.
+// An (optionally monotonic) form of cubic Hermite interpolation.
 //
 // Created by JMO, Fri Apr  1 14:22:04 PDT 2022
 //----------------------------------------------------------------------------//
-#include "MonotonicCubicInterpolator.hh"
+#include "CubicHermiteInterpolator.hh"
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/safeInv.hh"
 
@@ -17,7 +17,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Default constructor
 //------------------------------------------------------------------------------
-MonotonicCubicInterpolator::MonotonicCubicInterpolator():
+CubicHermiteInterpolator::CubicHermiteInterpolator():
   mN(),
   mXmin(),
   mXmax(),
@@ -29,12 +29,12 @@ MonotonicCubicInterpolator::MonotonicCubicInterpolator():
 // Initialize the interpolation to fit the given tabluated data
 //------------------------------------------------------------------------------
 void
-MonotonicCubicInterpolator::initialize(const double xmin,
-                                       const double xmax,
-                                       const std::vector<double>& yvals) {
+CubicHermiteInterpolator::initialize(const double xmin,
+                                     const double xmax,
+                                     const std::vector<double>& yvals) {
   mN = yvals.size();
-  VERIFY2(mN > 2u, "MonotonicCubicInterpolator::initialize requires at least 3 unique values to fit");
-  VERIFY2(xmax > xmin, "MonotonicCubicInterpolator::initialize requires a positive domain: [" << xmin << " " << xmax << "]");
+  VERIFY2(mN > 2u, "CubicHermiteInterpolator::initialize requires at least 3 unique values to fit");
+  VERIFY2(xmax > xmin, "CubicHermiteInterpolator::initialize requires a positive domain: [" << xmin << " " << xmax << "]");
 
   mXmin = xmin;
   mXmax = xmax;
@@ -56,15 +56,15 @@ MonotonicCubicInterpolator::initialize(const double xmin,
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-MonotonicCubicInterpolator::~MonotonicCubicInterpolator() {
+CubicHermiteInterpolator::~CubicHermiteInterpolator() {
 }
 
 //------------------------------------------------------------------------------
 // Equivalence
 //------------------------------------------------------------------------------
 bool
-MonotonicCubicInterpolator::
-operator==(const MonotonicCubicInterpolator& rhs) const {
+CubicHermiteInterpolator::
+operator==(const CubicHermiteInterpolator& rhs) const {
   return ((mN == rhs.mN) and
           (mXmin == rhs.mXmin) and
           (mXmax == rhs.mXmax) and
@@ -78,7 +78,7 @@ operator==(const MonotonicCubicInterpolator& rhs) const {
 // https://en.wikipedia.org/wiki/Monotone_cubic_interpolation
 //------------------------------------------------------------------------------
 void
-MonotonicCubicInterpolator::
+CubicHermiteInterpolator::
 makeMonotonic() {
 
   // Initialize gradients to zero

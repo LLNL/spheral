@@ -1,35 +1,35 @@
 //---------------------------------Spheral++----------------------------------//
-// MonotonicCubicInterpolator
+// CubicHermiteInterpolator
 //
-// A monotonic form of cubic Hermite interpolation.
+// An (optionally monotonic) form of cubic Hermite interpolation.
 //
 // Created by JMO, Fri Apr  1 14:22:04 PDT 2022
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_MonotonicCubicInterpolator__
-#define __Spheral_MonotonicCubicInterpolator__
+#ifndef __Spheral_CubicHermiteInterpolator__
+#define __Spheral_CubicHermiteInterpolator__
 
 #include <cstddef>
 #include <vector>
 
 namespace Spheral {
 
-class MonotonicCubicInterpolator {
+class CubicHermiteInterpolator {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
   template<typename Func>
-  MonotonicCubicInterpolator(const double xmin,
+  CubicHermiteInterpolator(const double xmin,
                              const double xmax,
                              const size_t n,
                              const Func& F);
   template<typename Func, typename GradFunc>
-  MonotonicCubicInterpolator(const double xmin,
+  CubicHermiteInterpolator(const double xmin,
                              const double xmax,
                              const size_t n,
                              const Func& F,
                              const GradFunc& Fgrad);
-  MonotonicCubicInterpolator();
-  ~MonotonicCubicInterpolator();
+  CubicHermiteInterpolator();
+  ~CubicHermiteInterpolator();
 
   // Alternatively initialize from tabulated values
   void initialize(const double xmin, const double xmax,
@@ -39,7 +39,7 @@ public:
   void makeMonotonic();
 
   // Comparisons
-  bool operator==(const MonotonicCubicInterpolator& rhs) const;
+  bool operator==(const CubicHermiteInterpolator& rhs) const;
 
   // Interpolate for the y value
   double operator()(const double x) const;
@@ -73,13 +73,13 @@ private:
 
 }
 
-#include "MonotonicCubicInterpolatorInline.hh"
+#include "CubicHermiteInterpolatorInline.hh"
 
 #else
 
 // Forward declaration
 namespace Spheral {
-  class MonotonicCubicInterpolator;
+  class CubicHermiteInterpolator;
 }
 
 #endif

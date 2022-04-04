@@ -1,4 +1,4 @@
-#ATS:test(SELF, label="MonotonicCubicInterpolator unit tests")
+#ATS:test(SELF, label="CubicHermiteInterpolator unit tests")
 
 from Spheral import *
 from SpheralTestUtilities import *
@@ -90,9 +90,9 @@ class Fgrad(ScalarScalarFunctor):
         return self.F.prime(x)
 
 #===============================================================================
-# TestMonotonicCubicInterpolator
+# TestCubicHermiteInterpolator
 #===============================================================================
-class TestMonotonicCubicInterpolator(unittest.TestCase):
+class TestCubicHermiteInterpolator(unittest.TestCase):
 
     #===========================================================================
     # Set up
@@ -138,8 +138,8 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
             B = rangen.uniform(-100.0, 100.0)
             C = rangen.uniform(-100.0, 100.0)
             func = Fquad(A, B, C)
-            F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
-            tol = 1.0e-10
+            F = CubicHermiteInterpolator(xmin, xmax, self.n, func)
+            tol = 5.0e-9
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
                 if not passing:
@@ -159,7 +159,7 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
             B = rangen.uniform(-100.0, 100.0)
             C = rangen.uniform(-100.0, 100.0)
             func = Fquad(A, B, C)
-            F = MonotonicCubicInterpolator(xmin, xmax, self.n, func, Fgrad(func))
+            F = CubicHermiteInterpolator(xmin, xmax, self.n, func, Fgrad(func))
             tol = 1.0e-10
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
@@ -170,7 +170,7 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
 
     #===========================================================================
-    # Interpolate a quadratic function monotonically
+    # Interpolate a quadratic function 
     #===========================================================================
     def test_quad_interp_monotonic(self):
         xmin = -10.0
@@ -180,7 +180,7 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
             B = rangen.uniform(-100.0, 100.0)
             C = rangen.uniform(-100.0, 100.0)
             func = Fquad(A, B, C)
-            F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
+            F = CubicHermiteInterpolator(xmin, xmax, self.n, func)
             F.makeMonotonic()
             tol = 2.0
             for x in xgen(self.nsamples, xmin, xmax):
@@ -203,8 +203,8 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
             C = rangen.uniform(-100.0, 100.0)
             D = rangen.uniform(-100.0, 100.0)
             func = Fcubic(A, B, C, D)
-            F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
-            tol = 5.0e-5
+            F = CubicHermiteInterpolator(xmin, xmax, self.n, func)
+            tol = 5.0e-4
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
                 if not passing:
@@ -225,7 +225,7 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
             C = rangen.uniform(-100.0, 100.0)
             D = rangen.uniform(-100.0, 100.0)
             func = Fcubic(A, B, C, D)
-            F = MonotonicCubicInterpolator(xmin, xmax, self.n, func, Fgrad(func))
+            F = CubicHermiteInterpolator(xmin, xmax, self.n, func, Fgrad(func))
             tol = 1.0e-9
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
