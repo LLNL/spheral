@@ -170,7 +170,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
 
     #===========================================================================
-    # Interpolate a quadratic function 
+    # Interpolate a quadratic function enforcing monotonicity
     #===========================================================================
     def test_quad_interp_monotonic(self):
         xmin = -10.0
@@ -182,7 +182,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             func = Fquad(A, B, C)
             F = CubicHermiteInterpolator(xmin, xmax, self.n, func)
             F.makeMonotonic()
-            tol = 2.0
+            tol = 2.0         # Tolerance has to be way looser when using monotonicity
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
                 if not passing:
@@ -190,6 +190,13 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
+                i0 = F.lowerBound(x)
+                passing = (F(x) - F.vals[i0])*(F(x) - F.vals[i0 + 1]) <= 0.0
+                if not passing:
+                    print F.vals
+                    self.plotem(x, xmin, xmax, func, F)
+                self.failUnless(passing,
+                                "Failing monotonicity test: F(%g) = %g not in [%g, %g]" % (x, F(x), F.vals[i0], F.vals[i0 + 1]))
 
     #===========================================================================
     # Interpolate a cubic function (func only)
@@ -234,6 +241,36 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
+
+    #===========================================================================
+    # Interpolate a cubic function enforcing monotonicity
+    #===========================================================================
+    def test_cubic_interp_monotonic(self):
+        xmin = -10.0
+        xmax =  40.0
+        for ifunc in xrange(self.nfunc):
+            A = rangen.uniform(-100.0, 100.0)
+            B = rangen.uniform(-100.0, 100.0)
+            C = rangen.uniform(-100.0, 100.0)
+            D = rangen.uniform(-100.0, 100.0)
+            func = Fcubic(A, B, C, D)
+            F = CubicHermiteInterpolator(xmin, xmax, self.n, func)
+            F.makeMonotonic()
+            tol = 2.0         # Tolerance has to be way looser when using monotonicity
+            for x in xgen(self.nsamples, xmin, xmax):
+                passing = err(F(x), func(x)) < tol
+                if not passing:
+                    print F.vals
+                    self.plotem(x, xmin, xmax, func, F)
+                self.failUnless(passing,
+                                "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
+                i0 = F.lowerBound(x)
+                passing = (F(x) - F.vals[i0])*(F(x) - F.vals[i0 + 1]) <= 0.0
+                if not passing:
+                    print F.vals
+                    self.plotem(x, xmin, xmax, func, F)
+                self.failUnless(passing,
+                                "Failing monotonicity test: F(%g) = %g not in [%g, %g]" % (x, F(x), F.vals[i0], F.vals[i0 + 1]))
 
 if __name__ == "__main__":
     unittest.main()

@@ -79,8 +79,14 @@ CubicHermiteInterpolator::operator()(const double x,
                                        const size_t i0) const {
   REQUIRE(i0 <= mN - 2u);
   const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
-  return (h00(t)*mVals[i0] + h01(t)*mVals[i0 + 1u] + 
-          mXstep*(h10(t)*mVals[mN + i0] + h11(t)*mVals[mN + i0 + 1u]));
+  const auto t2 = t*t;
+  const auto t3 = t*t2;
+  return ((2.0*t3 - 3.0*t2 + 1.0)*mVals[i0] +          // h00
+          (-2.0*t3 + 3.0*t2)*mVals[i0 + 1] +           // h01
+          mXstep*((t3 - 2.0*t2 + t)*mVals[mN + i0] +   // h10
+                  (t3 - t2)*mVals[mN + i0 + 1u]));     // h11
+  // return (h00(t)*mVals[i0] + h01(t)*mVals[i0 + 1u] + 
+  //         mXstep*(h10(t)*mVals[mN + i0] + h11(t)*mVals[mN + i0 + 1u]));
 }
 
 //------------------------------------------------------------------------------
