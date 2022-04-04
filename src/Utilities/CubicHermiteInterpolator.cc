@@ -89,37 +89,43 @@ makeMonotonic() {
   const auto dxInv = 1.0/mXstep;
   for (auto k = 0u; k < mN - 1u; ++k) cgrad[k] = (mVals[k + 1u] - mVals[k])*dxInv;
 
+  // Helper function for indexing the gradent values
+  auto gradVal = [&](const size_t i) -> double& { return mVals[mN + i]; };
+
   // Initialize the tabulated gradient values using these mid-point estimates
-  mVals[mN] = cgrad[0];
-  mVals[2u*mN - 1u] = cgrad[mN - 2u];
+  gradVal(0) = cgrad[0];
+  gradVal(mN - 1u) = cgrad.back();
   for (auto k = 1u; k < mN - 1u; ++k) {
-    mVals[mN + k] = (cgrad[k - 1u]*cgrad[k] <= 0.0 ?
-                     0.0 :
-                     0.5*(cgrad[k - 1u] + cgrad[k]));
+    gradVal(k) = (cgrad[k - 1u]*cgrad[k] <= 0.0 ?
+                  0.0 :
+                  0.5*(cgrad[k - 1u] + cgrad[k]));
   }
 
-  // Mask out points where we must keep a zero slope
+  // Mask out points where we must keep a zero slope, and 
+  // limit the remaining unmasked slopes
   std::vector<bool> mask(mN, false);
   for (auto k = 0u; k < mN - 1u; ++k) {
-    if (mVals[mN + k] == 0.0) {
-      mVals[mN + k + 1u] = 0.0;
+    if (mask[k]) {
+      gradVal(k) = 0.0;
+    } else if (gradVal(k) == 0.0) {
       mask[k] = true;
       mask[k + 1u] = true;
-    }
-  }
-
-  // Limit the remaining unmasked slopes
-  for (auto k = 0u; k < mN - 1u; ++k) {
-    if (not mask[k]) {
-      const auto alpha = mVals[mN + k]*safeInv(cgrad[k]);
-      const auto beta = mVals[mN + k + 1u]*safeInv(cgrad[k]);
-      if (alpha < 0.0 or beta < 0.0) {
-        mVals[mN + k] = 0.0;
-      } else {
-        const auto tau = 3.0*safeInv(sqrt(alpha*alpha + beta*beta));
-        mVals[mN + k] = tau*alpha*cgrad[k];
-        mVals[mN + k + 1u] = tau*beta*cgrad[k];
+    } else {
+      auto alpha = gradVal(k)*safeInv(cgrad[k]);
+      auto beta = gradVal(k + 1u)*safeInv(cgrad[k]);
+      if (alpha < 0.0) {
+        alpha = 0.0;
+        gradVal(k) = 0.0;
       }
+      if (beta < 0.0) {
+        beta = 0.0;
+        gradVal(k + 1u) = 0.0;
+      }
+      if (alpha > 3.0) gradVal(k) = 3.0*cgrad[k];
+      if (beta > 3.0) gradVal(k + 1u) = 3.0*cgrad[k];
+      // const auto tau = 2.99/sqrt(alpha*alpha + beta*beta);
+      // gradVal(k) = tau*alpha*cgrad[k];
+      // gradVal(k + 1u) = tau*beta*cgrad[k];
     }
   }
 }
