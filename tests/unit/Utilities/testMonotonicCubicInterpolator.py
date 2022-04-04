@@ -54,9 +54,9 @@ class Fcubic(ScalarScalarFunctor):
     def __call__(self, x):
         return self.A + self.B*x + self.C*x*x + self.D*x*x*x
     def prime(self, x):
-        return self.B + 2.0*self.C*x + 3.0*self.C*x*x
+        return self.B + 2.0*self.C*x + 3.0*self.D*x*x
     def prime2(self, x):
-        return 2.0*self.C + 6.0*self.C*x
+        return 2.0*self.C + 6.0*self.D*x
 
 class Fgrad(ScalarScalarFunctor):
     def __init__(self, F):
@@ -143,6 +143,27 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
             self.failUnless(passing,
                             "Error interpolating F(x): %g != %g" % (F(x), func(x)))
 
+    # #===========================================================================
+    # # Interpolate a quadratic function monotonically
+    # #===========================================================================
+    # def test_quad_interp_monotonic(self):
+    #     xmin = -10.0
+    #     xmax =  40.0
+    #     A = rangen.uniform(-100.0, 100.0)
+    #     B = rangen.uniform(-100.0, 100.0)
+    #     C = rangen.uniform(-100.0, 100.0)
+    #     func = Fquad(A, B, C)
+    #     F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
+    #     F.makeMonotonic()
+    #     tol = 1.0e-10
+    #     for x in xgen(self.ntests, xmin, xmax):
+    #         passing = fuzzyEqual(F(x), func(x), tol)
+    #         if not passing:
+    #             print F.vals
+    #             self.plotem(x, xmin, xmax, func, F)
+    #         self.failUnless(passing,
+    #                         "Error interpolating F(x): %g != %g" % (F(x), func(x)))
+
     #===========================================================================
     # Interpolate a cubic function (func only)
     #===========================================================================
@@ -155,7 +176,7 @@ class TestMonotonicCubicInterpolator(unittest.TestCase):
         D = rangen.uniform(-100.0, 100.0)
         func = Fcubic(A, B, C, D)
         F = MonotonicCubicInterpolator(xmin, xmax, self.n, func)
-        tol = 1.0e-10
+        tol = 1.0e-2
         for x in xgen(self.ntests, xmin, xmax):
             passing = fuzzyEqual(F(x), func(x), tol)
             if not passing:
