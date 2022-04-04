@@ -81,9 +81,6 @@ void
 CubicHermiteInterpolator::
 makeMonotonic() {
 
-  // Initialize gradients to zero
-  std::fill(mVals.begin() + mN, mVals.end(), 0.0);
-
   // Compute the slope between tabulated values.
   std::vector<double> cgrad(mN - 1u);
   const auto dxInv = 1.0/mXstep;
@@ -92,13 +89,10 @@ makeMonotonic() {
   // Helper function for indexing the gradent values
   auto gradVal = [&](const size_t i) -> double& { return mVals[mN + i]; };
 
-  // Initialize the tabulated gradient values using these mid-point estimates
-  gradVal(0) = cgrad[0];
-  gradVal(mN - 1u) = cgrad.back();
+  // Check for extrema (places where the centered gradient changes sign), and zero
+  // out the gradient there
   for (auto k = 1u; k < mN - 1u; ++k) {
-    gradVal(k) = (cgrad[k - 1u]*cgrad[k] <= 0.0 ?
-                  0.0 :
-                  0.5*(cgrad[k - 1u] + cgrad[k]));
+    if (cgrad[k - 1u]*cgrad[k] <= 0.0) gradVal(k) = 0.0;
   }
 
   // Mask out points where we must keep a zero slope, and 
@@ -129,5 +123,59 @@ makeMonotonic() {
     }
   }
 }
+
+
+// void
+// CubicHermiteInterpolator::
+// makeMonotonic() {
+
+//   // Initialize gradients to zero
+//   std::fill(mVals.begin() + mN, mVals.end(), 0.0);
+
+//   // Compute the slope between tabulated values.
+//   std::vector<double> cgrad(mN - 1u);
+//   const auto dxInv = 1.0/mXstep;
+//   for (auto k = 0u; k < mN - 1u; ++k) cgrad[k] = (mVals[k + 1u] - mVals[k])*dxInv;
+
+//   // Helper function for indexing the gradent values
+//   auto gradVal = [&](const size_t i) -> double& { return mVals[mN + i]; };
+
+//   // Initialize the tabulated gradient values using these mid-point estimates
+//   gradVal(0) = cgrad[0];
+//   gradVal(mN - 1u) = cgrad.back();
+//   for (auto k = 1u; k < mN - 1u; ++k) {
+//     gradVal(k) = (cgrad[k - 1u]*cgrad[k] <= 0.0 ?
+//                   0.0 :
+//                   0.5*(cgrad[k - 1u] + cgrad[k]));
+//   }
+
+//   // Mask out points where we must keep a zero slope, and 
+//   // limit the remaining unmasked slopes
+//   std::vector<bool> mask(mN, false);
+//   for (auto k = 0u; k < mN - 1u; ++k) {
+//     if (mask[k]) {
+//       gradVal(k) = 0.0;
+//     } else if (gradVal(k) == 0.0) {
+//       mask[k] = true;
+//       mask[k + 1u] = true;
+//     } else {
+//       auto alpha = gradVal(k)*safeInv(cgrad[k]);
+//       auto beta = gradVal(k + 1u)*safeInv(cgrad[k]);
+//       if (alpha < 0.0) {
+//         alpha = 0.0;
+//         gradVal(k) = 0.0;
+//       }
+//       if (beta < 0.0) {
+//         beta = 0.0;
+//         gradVal(k + 1u) = 0.0;
+//       }
+//       if (alpha > 3.0) gradVal(k) = 3.0*cgrad[k];
+//       if (beta > 3.0) gradVal(k + 1u) = 3.0*cgrad[k];
+//       // const auto tau = 2.99/sqrt(alpha*alpha + beta*beta);
+//       // gradVal(k) = tau*alpha*cgrad[k];
+//       // gradVal(k + 1u) = tau*beta*cgrad[k];
+//     }
+//   }
+// }
 
 }
