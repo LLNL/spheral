@@ -97,6 +97,8 @@ makeMonotonic() {
 
   // Mask out points where we must keep a zero slope, and 
   // limit the remaining unmasked slopes
+  gradVal(0) = cgrad.front();
+  gradVal(mN - 1) = cgrad.back();
   std::vector<bool> mask(mN, false);
   for (auto k = 0u; k < mN - 1u; ++k) {
     if (mask[k]) {
@@ -115,8 +117,8 @@ makeMonotonic() {
         beta = 0.0;
         gradVal(k + 1u) = 0.0;
       }
-      if (alpha > 3.0) gradVal(k) = 3.0*cgrad[k];
-      if (beta > 3.0) gradVal(k + 1u) = 3.0*cgrad[k];
+      if (alpha > 3.0) gradVal(k) = 2.99*cgrad[k];
+      if (beta > 3.0) gradVal(k + 1u) = 2.99*cgrad[k];
       // const auto tau = 2.99/sqrt(alpha*alpha + beta*beta);
       // gradVal(k) = tau*alpha*cgrad[k];
       // gradVal(k + 1u) = tau*beta*cgrad[k];
