@@ -23,6 +23,13 @@ enum class KernelAveragingMethod {
   AverageInterfaceKernels = 2,
 };
 
+enum class SlideSurfaceMethod {
+  SimpleSlide = 0,
+  ReorientViscositySlide = 1,
+  ReorientInteractionSlide = 2,
+  NoSlide = 4,
+};
+
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class SmoothingScaleBase;
@@ -150,6 +157,9 @@ public:
   KernelAveragingMethod kernelAveragingMethod() const;
   void kernelAveragingMethod(KernelAveragingMethod method);
 
+  SlideSurfaceMethod slideSurfaceMethod() const;
+  void slideSurfaceMethod(SlideSurfaceMethod method);
+
   const FieldList<Dimension, Scalar>& pressureRaw() const;
   const FieldList<Dimension, Vector>& DPDx() const;
   const FieldList<Dimension, Vector>& DepsDx() const;
@@ -167,6 +177,7 @@ private:
   double mXSPHCoefficient;                            // controls amount of xsph-ing
   InterfaceMethod mInterfaceMethod;                   // switch for material interface method
   KernelAveragingMethod mKernelAveragingMethod;       // how do we handle our kernels?
+  SlideSurfaceMethod mSlideSurfaceMethod;
 
   bool   mApplySelectDensitySum;                      // switch for density sum
   std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists

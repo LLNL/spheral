@@ -195,7 +195,7 @@ if(this->correctVelocityGradient()){
       
       // Kernels
       //--------------------------------------
-      const auto rij = ri - rj;
+            auto rij = ri - rj;
       const auto Pij = Pi - Pj;
       const auto epsij = epsi - epsj;
 
@@ -225,6 +225,15 @@ if(this->correctVelocityGradient()){
 
       gradWi *= mj/rhoj;
       gradWj *= mi/rhoi;
+
+      const auto isSlide = slides.isSlideSurface(nodeListi,nodeListj);
+      if (isSlide and mSlideSurfaceMethod==SlideSurfaceMethod::ReorientInteractionSlide){
+        const auto ssij = 1.0;//slides.pairwiseSurfaceSmoothness(nodeListi,i,nodeListj,j);
+        const auto nij  = slides.weightedPairwiseSurfaceNormal(nodeListi,i,nodeListj,j, 1.0, 1.0);
+        gradWi = ssij * gradWi.dot(nij) * nij + (1.0-ssij)*gradWi;
+        gradWj = ssij * gradWj.dot(nij) * nij + (1.0-ssij)*gradWj;
+        //rij = ssij * rij.dot(nij) * nij + (1.0-ssij)*rij;
+      }
 
       // spatial gradients and correction
       //---------------------------------------------------------------
@@ -405,7 +414,7 @@ if(this->correctVelocityGradient()){
 
       // we'll need a couple damage defs
       const auto rij = ri - rj;
-      const auto rhatij = rij.unitVector();
+            auto rhatij = rij.unitVector();
       //const auto fSij = (sameMatij ? pairs[kk].f_couple : 0.0);
       const auto  Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
       const auto  Dj = max(0.0, min(1.0, damage(nodeListj, j).dot(rhatij).magnitude()));
@@ -418,16 +427,16 @@ if(this->correctVelocityGradient()){
       // Decoupling
       //-------------------------------------------------------
       // we need to test if these nodes are allowed to interact
-      //const auto isExpanding = (ri-rj).dot(vi-vj) > 0.0;
+      const auto isExpanding = (ri-rj).dot(vi-vj) > 0.0;
       //const auto cantSupportTension = (fDi<0.01) or (fDj<0.01);
-      //const auto isInTension = (Pi<0.0) or (Pj<0.0);
+      const auto isInTension = (Pi<0.0) or (Pj<0.0);
 
-      //const auto decouple =  isExpanding and (cantSupportTension and isInTension);
+      const auto decouple =  isExpanding and (differentMatij and isInTension);
 
       const auto constructInterface = (fSij < 0.99) and activateConstruction;
       const auto negligableShearWave = max(mui,muj) < 1.0e-5*min(Ki,Kj);
 
-      //if (!decouple){
+      if (!decouple){
 
         // Kernels
         //--------------------------------------
@@ -465,9 +474,10 @@ if(this->correctVelocityGradient()){
           gradWj = gradWij;
         }
 
+        
         if(this->correctVelocityGradient()){
-         gradWiMi = Mi.Transpose()*gradWi;
-         gradWjMj = Mj.Transpose()*gradWj;
+          gradWiMi = Mi.Transpose()*gradWi;
+          gradWjMj = Mj.Transpose()*gradWj;
         }
 
         // Zero'th and second moment of the node distribution -- used for the
@@ -480,21 +490,56 @@ if(this->correctVelocityGradient()){
         massSecondMomenti += gradWi.magnitude2()*thpt;
         massSecondMomentj += gradWj.magnitude2()*thpt;
 
+
+        Vector gradWiMiQ = gradWiMi;
+        Vector gradWjMjQ = gradWjMj;
+        Vector etaijQ = etaij;
+        if(mSlideSurfaceMethod==SlideSurfaceMethod::ReorientInteractionSlide){ 
+          if (slides.isSlideSurface(nodeListi,nodeListj)){
+            const auto ssij = 1.0;//slides.pairwiseSurfaceSmoothness(nodeListi,i,nodeListj,j);
+            const auto nij  = slides.weightedPairwiseSurfaceNormal(nodeListi,i,nodeListj,j,1.0,1.0);
+            const auto gradni =  ssij * gradWi.dot(nij) * nij + (1.0-ssij)*gradWi;
+            const auto gradnj =  ssij * gradWj.dot(nij) * nij + (1.0-ssij)*gradWj;
+            etaijQ = ssij * etaij.magnitude() * nij + (1.0-ssij)*etaij; 
+            rhatij = nij.unitVector(); 
+            gradWi=gradni;
+            gradWj=gradnj;
+            gradWiMiQ = gradni;
+            gradWjMjQ = gradnj;
+            gradWiMi = gradni;
+            gradWjMj = gradnj;
+          }
+        }
+
         // Stress state
         //---------------------------------------------------------------
         const auto rhoij = 0.5*(rhoi+rhoj); 
         const auto cij = 0.5*(ci+cj); 
         const auto vij = vi - vj;
         
-        // artificial viscosity
-        std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                        ri, etaij, vi, rhoij, cij, Hij,  
-                                        rj, etaij, vj, rhoij, cij, Hij); 
-        
-        const auto slideCorrection = slides.slideCorrection(nodeListi, i, nodeListj, j,vi,vj);
 
-        QPiij *= slideCorrection;
-        QPiji *= slideCorrection;
+        if (mSlideSurfaceMethod==SlideSurfaceMethod::ReorientViscositySlide){ // reorient AV force normal to surface
+          if (slides.isSlideSurface(nodeListi,nodeListj)){
+            const auto ssij = slides.pairwiseSurfaceSmoothness(nodeListi,i,nodeListj,j);
+            const auto nij  = slides.weightedPairwiseSurfaceNormal(nodeListi,i,nodeListj,j,1.0,1.0);
+            const auto gradni =  ssij * gradWiMi.dot(nij) * nij + (1.0-ssij)*gradWiMi;
+            const auto gradnj =  ssij * gradWjMj.dot(nij) * nij + (1.0-ssij)*gradWjMj;
+            gradWiMiQ = gradni;
+            gradWjMjQ = gradnj;
+            etaijQ = ssij * etaij.magnitude() * nij + (1.0-ssij)*etaij;
+          }
+        }
+        std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
+                                        ri, etaijQ, vi, rhoij, cij, Hij,  
+                                        rj, etaijQ, vj, rhoij, cij, Hij); 
+
+        if (mSlideSurfaceMethod==SlideSurfaceMethod::SimpleSlide){ // normal slide
+          const auto slideCorrection = slides.slideCorrection(nodeListi, i, nodeListj, j,vi,vj);
+          QPiij *= slideCorrection;
+          QPiji *= slideCorrection;
+        }
+        // artificial viscosity
+        
 
         maxViscousPressurei = max(maxViscousPressurei, rhoi*rhoj * QPiij.diagonalElements().maxAbsElement());
         maxViscousPressurej = max(maxViscousPressurej, rhoi*rhoj * QPiji.diagonalElements().maxAbsElement());
@@ -520,8 +565,8 @@ if(this->correctVelocityGradient()){
         //---------------------------------------------------------------
         const auto rhoirhoj = 1.0/(rhoi*rhoj);
         const auto sf = (sameMatij ? 1.0 : 1.0 + surfaceForceCoeff*abs((rhoi-rhoj)/(rhoi+rhoj+tiny)));
-        sigmarhoi = sf*((rhoirhoj*sigmai-0.5*QPiij))*gradWiMi;
-        sigmarhoj = sf*((rhoirhoj*sigmaj-0.5*QPiji))*gradWjMj;
+        sigmarhoi = sf*(rhoirhoj*sigmai*gradWiMi-0.5*QPiij*gradWiMiQ);
+        sigmarhoj = sf*(rhoirhoj*sigmaj*gradWjMj-0.5*QPiji*gradWjMjQ);
 
         if (averageKernelij){
           const auto sigmarhoij = 0.5*(sigmarhoi+sigmarhoj);
@@ -624,7 +669,7 @@ if(this->correctVelocityGradient()){
           XSPHDeltaVj -= 2.0*voli*Wj*(vj-vstar);
         }
 
-      //} // if damageDecouple 
+      } // if damageDecouple 
     } // loop over pairs
     threadReduceFieldLists<Dimension>(threadStack);
   } // OpenMP parallel region

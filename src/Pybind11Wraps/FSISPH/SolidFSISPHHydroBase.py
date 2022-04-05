@@ -116,6 +116,8 @@ mass density, velocity, and specific thermal energy."""
                                     doc="Flag to select how we want construct material interfaces")
     kernelAveragingMethod = PYB11property("KernelAveragingMethod", "kernelAveragingMethod", "kernelAveragingMethod",
                                     doc="Flag to select our kernel type")
+    slideSurfaceMethod = PYB11property("SlideSurfaceMethod", "slideSurfaceMethod", "slideSurfaceMethod",
+                                    doc="Flag to select our kernel type")
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------

@@ -17,7 +17,11 @@ class SlideSurface:
   typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
     
-    def pyinit(contactTypes = "const vector<int>"):
+    def pyinit(dataBase = "DataBase<%(Dimension)s>&",
+               contactTypes = "const vector<int>",
+               surfaceNormalMethod = "const SurfaceNormalMethod",
+               normalsAreSmoothed = "const bool",
+               gradientsAreCorrected = "const bool"):
         "Slide surface constructor"
 
                
@@ -58,5 +62,7 @@ class SlideSurface:
     surfaceSmoothness = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "surfaceSmoothness", returnpolicy="reference_internal")
     numNodeLists = PYB11property("int", "numNodeLists", "numNodeLists", doc="number of nodelists.")
     isActive = PYB11property("bool", "isActive", "isActive", doc="switch if we have a slide.")
-    
-
+    normalsAreSmoothed = PYB11property("bool", "normalsAreSmoothed", "normalsAreSmoothed", doc="do we want to smooth our normals.")
+    gradientsAreCorrected = PYB11property("bool", "gradientsAreCorrected", "gradientsAreCorrected", doc="switch to correct kernel gradients in interface normal calculation.")
+    surfaceNormalMethod = PYB11property("SurfaceNormalMethod", "surfaceNormalMethod", "surfaceNormalMethod",
+                                    doc="Flag to select what material we use for normal calculation, same, diff, all")

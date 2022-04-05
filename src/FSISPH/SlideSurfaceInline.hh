@@ -69,6 +69,43 @@ isActive() const {
 }
 
 //------------------------------------------------------------------------------
+// set/get bool to turn normal smoothing on or off
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+SlideSurface<Dimension>::
+normalsAreSmoothed(const bool x) {
+  mNormalsAreSmoothed = x;
+}
+template<typename Dimension>
+inline
+bool
+SlideSurface<Dimension>::
+normalsAreSmoothed() const {
+  return mNormalsAreSmoothed;
+}
+
+//------------------------------------------------------------------------------
+// set/get bool to turn off gradient correction for normal calculation
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+SlideSurface<Dimension>::
+gradientsAreCorrected(const bool x) {
+  mGradientsAreCorrected = x;
+}
+template<typename Dimension>
+inline
+bool
+SlideSurface<Dimension>::
+gradientsAreCorrected() const {
+  return mGradientsAreCorrected;
+}
+
+
+//------------------------------------------------------------------------------
 // set/get number of node lists
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -85,4 +122,24 @@ SlideSurface<Dimension>::
 numNodeLists() const {
   return mNumNodeLists;
 }
+
+
+//------------------------------------------------------------------------------
+// set/get our method of calculating surface normals
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+SlideSurface<Dimension>::
+surfaceNormalMethod(const SurfaceNormalMethod x) {
+  mSurfaceNormalMethod = x;
+}
+template<typename Dimension>
+inline
+SurfaceNormalMethod
+SlideSurface<Dimension>::
+surfaceNormalMethod() const {
+  return mSurfaceNormalMethod;
+}
+
 }
