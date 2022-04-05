@@ -243,7 +243,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             D = rangen.uniform(-100.0, 100.0)
             func = Fcubic(A, B, C, D)
             F = CubicHermiteInterpolator(xmin, xmax, self.n, func)
-            tol = 5.0e-4
+            tol = 5.0e-3
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
                 if not passing:
