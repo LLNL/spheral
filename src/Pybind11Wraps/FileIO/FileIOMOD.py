@@ -19,6 +19,7 @@ PYB11includes += ['"NodeList/NodeList.hh"',
                   '"Field/FieldList.hh"',
                   '"FileIO/FileIO.hh"',
                   '"FileIO/FlatFileIO.hh"',
+                  '"FileIO/SidreFileIO.hh"',
                   '"FileIO/SiloFileIO.hh"',
                   '"FileIO/PyFileIO.hh"',
                   '"FileIO/vectorstringUtilities.hh"']
@@ -150,6 +151,7 @@ FlatFileFormat = PYB11enum(("ascii", "binary"), export_values=True,
 #-------------------------------------------------------------------------------
 from FileIO import *
 from FlatFileIO import *
+from SidreFileIO import *
 from SiloFileIO import *
 from PyFileIO import *
 
