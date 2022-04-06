@@ -47,14 +47,14 @@ class NohSolution:
         h = []
 
         # The current postion of the shock.
-        rshock = time/3.0
+        rshock = time/3.0*self.v0
 
         # Fill in the state values for each value of r.
         for ri in r:
             if abs(ri) <= rshock:
                 v.append(0.0)
-                u.append(0.5)
-                rho.append(2.0**(2*self.nDim))
+                u.append(0.5*self.v0**2)
+                rho.append(self.rho0*2.0**(2*self.nDim))
                 h.append(self.h0*(self.rho0/rho[-1])**(1.0/self.nDim))
             else:
                 v.append(self.v0)
