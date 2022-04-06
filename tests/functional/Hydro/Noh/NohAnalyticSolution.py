@@ -59,7 +59,7 @@ class NohSolution:
             else:
                 v.append(self.v0)
                 u.append(0.0)
-                rho.append(self.rho0*(1.0 + time/(abs(ri) + 1.0e-10))**(self.nDim - 1))
+                rho.append(self.rho0*(1.0 - self.v0 * time/(abs(ri) + 1.0e-10))**(self.nDim - 1))
                 h.append(self.h0)
             P.append((self.gamma - 1.0)*u[-1]*rho[-1])
 
@@ -73,7 +73,7 @@ class NohSolution:
         r, v, u, rho, P, h = self.solution(time)
 
         # The current postion of the shock.
-        rshock = time/3.0
+        rshock = -time/3.0*self.v0
 
         # For each position, compute them h's.
         hr = []
