@@ -47,7 +47,7 @@ class NohSolution:
         h = []
 
         # The current postion of the shock.
-        rshock = time/3.0*self.v0
+        rshock = -time/3.0*self.v0
 
         # Fill in the state values for each value of r.
         for ri in r:
