@@ -75,9 +75,9 @@ class XYInterpolatorTestingBase:
     def coord_ans(self, ix, nx, xmin, xmax, xlog):
         assert ix <= nx
         if xlog:
-            return self.xmin + dx*exp(ix - nx)
+            return xmin + dx*exp(ix - nx)
         else:
-            return self.xmin + ix*dx
+            return xmin + ix*dx
 
     #===========================================================================
     # Analytic normalized coordinate
@@ -99,38 +99,17 @@ class XYInterpolatorTestingBase:
             Ax = xmax - Bx
             ix = nx + int(log((x - Ax)/Bx))
         else:
-            ix = int((x - self.xmin)/(xmax - xmin)*nx)
+            ix = int((x - xmin)/(xmax - xmin)*nx)
         if ylog:
             By = (ymax - ymin)/(1.0 - exp(-ny))
             Ay = ymax - By
             iy = ny + int(log((y - Ay)/By))
         else:
-            iy = int((y - self.ymin)/(ymax - ymin)*ny)
+            iy = int((y - ymin)/(ymax - ymin)*ny)
         ix = min(nx, max(0, ix))
         iy = min(ny, max(0, iy))
         i0 = (self.order+1)*(self.order+1)*(nx*iy + ix)
         return ix, iy, i0
-
-    #===========================================================================
-    # lowerBound
-    #===========================================================================
-    def test_lowerBound(self):
-        for xlog in (False,):# True):
-            for ylog in (False,):# True):
-                for (nx, ny) in ((2, 2), (3, 3), (10, 10), (3, 20)):
-                    F = PolynomialFunctor(2, -10.0, 10.0)
-                    Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
-                    for itest in xrange(self.ntests):
-                        x = rangen.uniform(self.xmin, self.xmax)
-                        y = rangen.uniform(self.ymin, self.ymax)
-                        ix0, iy0, i0 = self.lowerBound_ans(x, y,
-                                                           self.xmin, self.xmax,
-                                                           self.ymin, self.ymax,
-                                                           nx - 1, ny - 1,
-                                                           xlog, ylog)
-                        ix, iy, i = Finterp.lowerBound(x, y)
-                        self.failUnless((ix == ix0) and (iy == iy0) and (i == i0),
-                                        "(nx,ny) = (%i,%i), (x,y) = (%g,%g)\n  lowerBound lookup: %i %i %i\n  lowerBound answer: %i %i %i" % (nx, ny, x, y, ix, iy, i, ix0, iy0, i0))
 
     #===========================================================================
     # Plotting fun
@@ -159,6 +138,47 @@ class XYInterpolatorTestingBase:
         plt.show()
 
     #===========================================================================
+    # lowerBound
+    #===========================================================================
+    def test_lowerBound(self):
+        for xlog in (False,):# True):
+            for ylog in (False,):# True):
+                for (nx, ny) in ((2, 2), (3, 3), (10, 10), (3, 20)):
+                    F = PolynomialFunctor(2, -10.0, 10.0)
+                    Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
+                    for itest in xrange(self.ntests):
+                        x = rangen.uniform(self.xmin, self.xmax)
+                        y = rangen.uniform(self.ymin, self.ymax)
+                        ix0, iy0, i0 = self.lowerBound_ans(x, y,
+                                                           self.xmin, self.xmax,
+                                                           self.ymin, self.ymax,
+                                                           nx - 1, ny - 1,
+                                                           xlog, ylog)
+                        ix, iy, i = Finterp.lowerBound(x, y)
+                        self.failUnless((ix == ix0) and (iy == iy0) and (i == i0),
+                                        "(nx,ny) = (%i,%i), (x,y) = (%g,%g)\n  lowerBound lookup: %i %i %i\n  lowerBound answer: %i %i %i" % (nx, ny, x, y, ix, iy, i, ix0, iy0, i0))
+
+    #===========================================================================
+    # Interpolate a linear function
+    #===========================================================================
+    def test_interp_linear(self):
+        for xlog in (False, True):
+            xlog, ylog = False, False
+            nx, ny = 4, 4
+            self.xmin, self.xmax = 0.0, 1.0*(nx - 1)
+            self.ymin, self.ymax = 0.0, 1.0*(ny - 1)
+            F = PolynomialFunctor(1, -10.0, 10.0)
+            Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
+            tol = self.tol[1] / sqrt(nx*ny)
+            for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
+                passing = fuzzyEqual(Finterp(x, y), F(x, y), tol)
+                if not passing:
+                    print "F.coeffs: ", Finterp.coeffs
+                    self.plotem(x, y, F, Finterp)
+                self.failUnless(passing,
+                                "Interpolation off @ (%g,%g) (xlog=,ylog=)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), abs(Finterp(x,y) - F(x,y))/(abs(F(x,y)) + 1e-10)))
+
+    #===========================================================================
     # Interpolate a linear function
     #===========================================================================
     def test_interp_linear(self):
@@ -167,11 +187,9 @@ class XYInterpolatorTestingBase:
                 for (nx, ny) in ((2, 2), (3, 3), (10, 10), (3, 20)):
                     for itest in xrange(self.ntests):
                         F = PolynomialFunctor(1, -10.0, 10.0)
-                        xmin, ymin = -100.0, -100.0
-                        xmax, ymax =  100.0,  100.0
                         Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
                         tol = self.tol[1] / sqrt(nx*ny)
-                        for x, y in xygen(self.n, xmin, xmax, ymin, ymax):
+                        for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
                             passing = fuzzyEqual(Finterp(x, y), F(x, y), tol)
                             if not passing:
                                 self.plotem(x, y, F, Finterp)

@@ -36,6 +36,17 @@ public:
                       const Func& F,
                       const bool xlog = false,
                       const bool ylog = false);
+  template<typename Func, typename GradFunc>
+  BiCubicInterpolator(const double xmin,
+                      const double xmax,
+                      const double ymin,
+                      const double ymax,
+                      const size_t nx,
+                      const size_t ny,
+                      const Func& F,
+                      const GradFunc& Fgrad,
+                      const bool xlog = false,
+                      const bool ylog = false);
   BiCubicInterpolator();
   virtual ~BiCubicInterpolator();
 
@@ -48,6 +59,11 @@ public:
   double prime2_xx(const double x, const double y) const;
   double prime2_xy(const double x, const double y) const;
   double prime2_yy(const double x, const double y) const;
+
+  // Do the actual initialization using functions handed in
+  template<typename Func, typename GradFunc>
+  void initialize(const Func& F,
+                  const GradFunc& Fgrad);
 };
 
 }

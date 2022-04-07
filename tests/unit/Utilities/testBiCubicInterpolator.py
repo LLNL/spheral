@@ -42,7 +42,7 @@ class TestBiCubicInterpolator(XYInterpolatorTestingBase,
                                    nx = nx,
                                    ny = ny,
                                    F = func,
-                                   #gradF = gradFunc,
+                                   Fgrad = gradFunc,
                                    xlog = xlog,
                                    ylog = ylog)
 
