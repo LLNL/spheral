@@ -178,7 +178,7 @@ void SidreFileIO::close()
   {
 #ifdef USE_MPI
     int numFiles = 1;
-    // MPI_Comm_rank(Communicator::communicator(), &numFiles);
+    MPI_Comm_size(Communicator::communicator(), &numFiles);
     axom::sidre::IOManager writer(Communicator::communicator());
     writer.write(mDataStorePtr->getRoot(), numFiles, mFileName, "sidre_hdf5");
 #else
