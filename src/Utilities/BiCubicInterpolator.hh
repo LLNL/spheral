@@ -59,11 +59,6 @@ public:
   double prime2_xx(const double x, const double y) const;
   double prime2_xy(const double x, const double y) const;
   double prime2_yy(const double x, const double y) const;
-
-  // Do the actual initialization using functions handed in
-  template<typename Func, typename GradFunc>
-  void initialize(const Func& F,
-                  const GradFunc& Fgrad);
 };
 
 }

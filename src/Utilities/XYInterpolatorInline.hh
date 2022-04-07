@@ -84,10 +84,10 @@ void
 XYInterpolator::lowerBound(const double x, const double y,
                            size_t& ix, size_t& iy, size_t& i) const {
   ix = (mxlog ?
-        std::min(mnx1 - 1u, size_t(std::max(0.0, mnx1 + log((x - mAx)/mBx)))) :
+        std::min(mnx1 - 1u, size_t(std::max(0.0, double(mnx1) + log((x - mAx)/mBx)))) :
         std::min(mnx1 - 1u, size_t(std::max(0.0, x - mxmin)/mxstep)));
   iy = (mylog ?
-        std::min(mny1 - 1u, size_t(std::max(0.0, mny1 + log((y - mAy)/mBy)))) :
+        std::min(mny1 - 1u, size_t(std::max(0.0, double(mny1) + log((y - mAy)/mBy)))) :
         std::min(mny1 - 1u, size_t(std::max(0.0, y - mymin)/mystep)));
   CHECK(ix < mnx1 and iy < mny1);
   i = mncoeffs*(mnx1*iy + ix);

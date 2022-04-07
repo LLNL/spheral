@@ -34,7 +34,9 @@ See https://en.wikipedia.org/wiki/Bicubic_interpolation"""
                 F = "const Spheral::PythonBoundFunctors::Spheral2ArgFunctor<double, double, double>&",
                 xlog = ("const bool", "false"),
                 ylog = ("const bool", "false")):
-        "Returns an interpolator for z-vals sampled in (x,y) in ([xmin, xmax], [ymin, ymax])"
+        """Returns an interpolator for z-vals sampled in (x,y) in ([xmin, xmax], [ymin, ymax]).
+In this case without a gradient function, we sample a stencil of 16 values
+in each cell for fitting."""
         return
 
     def pyinit2(self,
@@ -48,7 +50,9 @@ See https://en.wikipedia.org/wiki/Bicubic_interpolation"""
                 Fgrad = "const Spheral::PythonBoundFunctors::Spheral2ArgFunctor<double, double, Dim<2>::SymTensor>&",
                 xlog = ("const bool", "false"),
                 ylog = ("const bool", "false")):
-        "Returns an interpolator for z-vals sampled in (x,y) in ([xmin, xmax], [ymin, ymax])"
+        """Returns an interpolator for z-vals sampled in (x,y) in ([xmin, xmax], [ymin, ymax]).
+Since this form has the gradient, we only need to sample the function at the
+four corners of each interpolation cell."""
         return
 
     @PYB11const

@@ -1,5 +1,6 @@
 from Spheral import *
 from SpheralTestUtilities import *
+from testCubicHermiteInterpolator import err
 
 import unittest
 import numpy as np
@@ -94,21 +95,23 @@ class XYInterpolatorTestingBase:
                        x, y,
                        xmin, xmax, ymin, ymax,
                        nx, ny, xlog, ylog):
+        nx1 = nx - 1
+        ny1 = ny - 1
         if xlog:
-            Bx = (xmax - xmin)/(1.0 - exp(-nx))
+            Bx = (xmax - xmin)/(1.0 - exp(-nx1))
             Ax = xmax - Bx
-            ix = nx + int(log((x - Ax)/Bx))
+            ix = int(nx1 + log((x - Ax)/Bx))
         else:
-            ix = int((x - xmin)/(xmax - xmin)*nx)
+            ix = int((x - xmin)/(xmax - xmin)*nx1)
         if ylog:
-            By = (ymax - ymin)/(1.0 - exp(-ny))
+            By = (ymax - ymin)/(1.0 - exp(-ny1))
             Ay = ymax - By
-            iy = ny + int(log((y - Ay)/By))
+            iy = int(ny1 + log((y - Ay)/By))
         else:
-            iy = int((y - ymin)/(ymax - ymin)*ny)
-        ix = min(nx, max(0, ix))
-        iy = min(ny, max(0, iy))
-        i0 = (self.order+1)*(self.order+1)*(nx*iy + ix)
+            iy = int((y - ymin)/(ymax - ymin)*ny1)
+        ix = min(nx1 - 1, max(0, ix))
+        iy = min(ny1 - 1, max(0, iy))
+        i0 = (self.order+1)*(self.order+1)*(nx1*iy + ix)
         return ix, iy, i0
 
     #===========================================================================
@@ -141,8 +144,8 @@ class XYInterpolatorTestingBase:
     # lowerBound
     #===========================================================================
     def test_lowerBound(self):
-        for xlog in (False,):# True):
-            for ylog in (False,):# True):
+        for xlog in (False, True):
+            for ylog in (False, True):
                 for (nx, ny) in ((2, 2), (3, 3), (10, 10), (3, 20)):
                     F = PolynomialFunctor(2, -10.0, 10.0)
                     Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
@@ -152,31 +155,12 @@ class XYInterpolatorTestingBase:
                         ix0, iy0, i0 = self.lowerBound_ans(x, y,
                                                            self.xmin, self.xmax,
                                                            self.ymin, self.ymax,
-                                                           nx - 1, ny - 1,
+                                                           nx, ny,
                                                            xlog, ylog)
                         ix, iy, i = Finterp.lowerBound(x, y)
-                        self.failUnless((ix == ix0) and (iy == iy0) and (i == i0),
-                                        "(nx,ny) = (%i,%i), (x,y) = (%g,%g)\n  lowerBound lookup: %i %i %i\n  lowerBound answer: %i %i %i" % (nx, ny, x, y, ix, iy, i, ix0, iy0, i0))
-
-    #===========================================================================
-    # Interpolate a linear function
-    #===========================================================================
-    def test_interp_linear(self):
-        for xlog in (False, True):
-            xlog, ylog = False, False
-            nx, ny = 4, 4
-            self.xmin, self.xmax = 0.0, 1.0*(nx - 1)
-            self.ymin, self.ymax = 0.0, 1.0*(ny - 1)
-            F = PolynomialFunctor(1, -10.0, 10.0)
-            Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
-            tol = self.tol[1] / sqrt(nx*ny)
-            for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
-                passing = fuzzyEqual(Finterp(x, y), F(x, y), tol)
-                if not passing:
-                    print "F.coeffs: ", Finterp.coeffs
-                    self.plotem(x, y, F, Finterp)
-                self.failUnless(passing,
-                                "Interpolation off @ (%g,%g) (xlog=,ylog=)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), abs(Finterp(x,y) - F(x,y))/(abs(F(x,y)) + 1e-10)))
+                        passing = (ix == ix0) and (iy == iy0) and (i == i0)
+                        self.failUnless(passing,
+                                        "lower bound failure: query=(ix=%i, iy=%i, i0=%i), ans=((ix=%i, iy=%i, i0=%i) @ (%g, %g), (nx,ny)=(%i,%i), (xlog,ylog)=(%s,%s)" % (ix, iy, i, ix0, iy0, i0, x, y, nx, ny, xlog, ylog))
 
     #===========================================================================
     # Interpolate a linear function
@@ -190,11 +174,11 @@ class XYInterpolatorTestingBase:
                         Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
                         tol = self.tol[1] / sqrt(nx*ny)
                         for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
-                            passing = fuzzyEqual(Finterp(x, y), F(x, y), tol)
+                            passing = err(Finterp(x, y), F(x, y)) < tol
                             if not passing:
                                 self.plotem(x, y, F, Finterp)
                             self.failUnless(passing,
-                                            "Interpolation off @ (%g,%g) (xlog=,ylog=)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), abs(Finterp(x,y) - F(x,y))/(abs(F(x,y)) + 1e-10)))
+                                            "Interpolation off @ (%g,%g) (xlog,ylog)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), err(Finterp(x,y), F(x,y))))
 
     #===========================================================================
     # Interpolate a quadratic function 
@@ -208,11 +192,11 @@ class XYInterpolatorTestingBase:
                         Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
                         tol = self.tol[2] / sqrt(nx*ny)
                         for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
-                            passing = fuzzyEqual(Finterp(x, y), F(x, y), tol)
+                            passing = err(Finterp(x, y), F(x, y)) < tol
                             if not passing:
                                 self.plotem(x, y, F, Finterp)
                             self.failUnless(passing,
-                                            "Interpolation off @(%g, %g) with grid (%i, %i): %g != %g" % (x, y, nx, ny, Finterp(x, y), F(x, y)))
+                                            "Interpolation off @ (%g,%g) (xlog,ylog)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), err(Finterp(x,y), F(x,y))))
 
     #===========================================================================
     # Interpolate a cubic function
@@ -228,9 +212,8 @@ class XYInterpolatorTestingBase:
                         # sys.stderr.write("(%i, %i): %s\n" % (nx, ny, Finterp))
 
                         for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
-                            passing = fuzzyEqual(Finterp(x, y), F(x, y), tol)
+                            passing = err(Finterp(x, y), F(x, y)) < tol
                             if not passing:
                                 self.plotem(x, y, F, Finterp)
                             self.failUnless(passing,
-                                            "Interpolation off @ (%g,%g): %g != %g, err=%g" %
-                                            (x, y, Finterp(x, y), F(x, y), 2.0*abs((F(x, y) - Finterp(x, y))/(F(x, y) + Finterp(x, y)))) + "\nCoefficients: " + str(F.c))
+                                            "Interpolation off @ (%g,%g) (xlog,ylog)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), err(Finterp(x,y), F(x,y))))
