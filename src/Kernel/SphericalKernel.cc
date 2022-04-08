@@ -55,11 +55,11 @@ struct W3S1Func {
   };
 
   // Now the lookup based on (etaj, etai) -- the (rprime/h, r/h) from the paper
-  double operator()(const double low, const double high) const {
-    if (low >= high) return 0.0;
+  double operator()(const double a, const double b) const {
+    if (a >= b) return 0.0;
     return simpsonsIntegration<VolFunc, double, double>(VolFunc(mW),
-                                                        low,
-                                                        high,
+                                                        a,
+                                                        b,
                                                         mn);
   }
 };
@@ -159,7 +159,7 @@ SphericalKernel::grad(const Dim<1>::Vector& etaj,
   const auto B = (ei + ej >= metamax ?
                   0.0 :
                   b*mBaseKernel3d.kernelValue(b, 1.0));
-  return Vector(2.0*M_PI/(ei*ej)*FastMath::pow4(Hdet)*(B - A - 1.0/ei*integralCorrection(a, b, ei, ej)));
+  return Vector(2.0*M_PI/(ei*ej)*FastMath::pow4(Hdet)*(B - A - integralCorrection(a, b, ei, ej)/ei));
 }
 
 //------------------------------------------------------------------------------
@@ -206,7 +206,7 @@ SphericalKernel::integralCorrection(const double a,
                                     const double b,
                                     const double ei,
                                     const double ej) const {
-  return (mUseInterpolation and ei > 1.0 and ej > 1.0 ?
+  return (mUseInterpolation and ei > 0.01 and ej > 0.01 ?
           mInterp(a, b) :
           W3S1Func<TableKernel<Dim<3>>>(mBaseKernel3d, mNumIntegral)(a, b));
 }

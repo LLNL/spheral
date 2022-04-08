@@ -12,7 +12,7 @@
 #define __Spheral_SphericalKernel_hh__
 
 #include "TableKernel.hh"
-#include "Utilities/BiQuadraticInterpolator.hh"
+#include "Utilities/BiCubicInterpolator.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
@@ -21,7 +21,7 @@ class SphericalKernel {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  using InterpolatorType = BiQuadraticInterpolator;
+  using InterpolatorType = BiCubicInterpolator;
   using Scalar = Dim<1>::Scalar;
   using Vector = Dim<1>::Vector;
   using Tensor = Dim<1>::Tensor;
