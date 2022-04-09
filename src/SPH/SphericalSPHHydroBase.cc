@@ -133,6 +133,7 @@ SphericalSPHHydroBase(const SmoothingScaleBase<Dim<1>>& smoothingScaleMethod,
                        nTensile,
                        xmin,
                        xmax),
+  mQself(2.0),
   mKernel(W),
   mPiKernel(WPi) {
 }
@@ -618,7 +619,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       Scalar Qi = 0.0;
       if (etaii.x() < etaMax) {
         const auto divv = -std::min(0.0, DvDxi.Trace() + 2.0*vi.x()*safeInvVar(ri.x(), 0.01*hi));
-        Qi = 2.0*rhoi*hi*divv*(hi*divv + ci);
+        Qi = mQself*rhoi*hi*divv*(hi*divv + ci);
         maxViscousPressurei = std::max(maxViscousPressurei, Qi);
       }
 
@@ -768,6 +769,21 @@ const SphericalKernel&
 SphericalSPHHydroBase::
 PiKernel() const {
   return mPiKernel;
+}
+
+//------------------------------------------------------------------------------
+// The self-Q multiplier
+//------------------------------------------------------------------------------
+double
+SphericalSPHHydroBase::
+Qself() const {
+  return mQself;
+}
+
+void
+SphericalSPHHydroBase::
+Qself(const double x) {
+  mQself = x;
 }
 
 }

@@ -88,3 +88,4 @@ mass density, velocity, and specific thermal energy."""
     # Properties
     kernel = PYB11property("const SphericalKernel&", "kernel", doc="The interpolation kernel")
     PiKernel = PYB11property("const SphericalKernel&", "PiKernel", doc="The interpolation kernel for the artificial viscosity")
+    Qself = PYB11property("double", "Qself", "Qself", doc="Multiplier for Q self-interaction near the origin")

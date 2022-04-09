@@ -98,12 +98,18 @@ public:
   const SphericalKernel& kernel() const;
   const SphericalKernel& PiKernel() const;
 
+  // We also have a funny self-Q term for interactions near the origin.
+  double Qself() const;
+  void Qself(const double x);
+
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
   SphericalSPHHydroBase();
   SphericalSPHHydroBase(const SphericalSPHHydroBase&);
   SphericalSPHHydroBase& operator=(const SphericalSPHHydroBase&);
+
+  double mQself;
 
   // The specialized kernels
   const SphericalKernel& mKernel;
