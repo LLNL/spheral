@@ -62,7 +62,7 @@ title("Spherical Noh test run in spherical coordinates")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(KernelConstructor = NBSplineKernel3d,
+commandLine(KernelConstructor = WendlandC4Kernel3d,
             order = 5,
 
             nx1 = 100,
@@ -71,7 +71,7 @@ commandLine(KernelConstructor = NBSplineKernel3d,
             smallPressure = False, #If set to True eps is not zero but small. 
             x0 = 0.0,
             x1 = 1.0,
-            nPerh = 1.35,
+            nPerh = 4.01,
 
             vr0 = -1.0, 
             vrSlope = 0.0,
@@ -110,6 +110,7 @@ commandLine(KernelConstructor = NBSplineKernel3d,
             Qhmult = 1.0,
             Cl = None, 
             Cq = None,
+            Qself = 2.0,
             etaCritFrac = None,
             linearInExpansion = None,
             quadraticInExpansion = None,
@@ -380,6 +381,8 @@ else:
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
+    hydro.Qself = Qself
+    output("hydro.Qself")
 output("hydro")
 try:
     output("hydro.kernel")

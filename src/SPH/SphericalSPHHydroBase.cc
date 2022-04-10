@@ -241,8 +241,10 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   // The kernels and such.
   const auto& W = mKernel;
   const auto& WQ = mPiKernel;
+  const auto& W1d = W.baseKernel1d();
   const auto  oneKernel = (W == WQ);
   const auto  etaMax = W.etamax();
+  const auto  W0 = W1d(0.0, 1.0);
 
   // A few useful constants we'll use in the following loop.
   const auto tiny = 1.0e-30;
@@ -618,7 +620,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // If we're in range of the origin, compute an effective Q.
       Scalar Qi = 0.0;
       if (etaii.x() < etaMax) {
-        const auto divv = -std::min(0.0, DvDxi.Trace() + 2.0*vi.x()*safeInvVar(ri.x(), 0.01*hi));
+        const auto divv = -std::min(0.0, DvDxi.Trace() + 2.0*vi.x()*safeInvVar(ri.x(), 0.1*hi)) * W1d(etaii.x(), 1.0)/W0;
+        // const auto divv = -std::min(0.0, vi.x()/std::max(0.1, etaii.x())*hi)*W.baseKernel1d()(etaii.x(), 1.0)/W0;
         Qi = mQself*rhoi*hi*divv*(hi*divv + ci);
         maxViscousPressurei = std::max(maxViscousPressurei, Qi);
       }
@@ -664,7 +667,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
                                                         ri,
                                                         weightedNeighborSumi,
                                                         SymTensor::zero,
-                                                        W.baseKernel1d(),
+                                                        W1d,
                                                         hmin,
                                                         hmax,
                                                         hminratio,
