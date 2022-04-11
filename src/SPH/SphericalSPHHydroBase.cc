@@ -562,6 +562,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       const auto  Hdeti = Hi.Determinant();
       const auto  hi = 1.0/Hdeti;
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
+      const auto  riInv = safeInvVar(ri.x(), 0.01*hi);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -615,12 +616,12 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Evaluate the continuity equation.
-      DrhoDti = -rhoi*(DvDxi.xx() + 2.0*vi.x()*safeInvVar(ri.x(), 0.1*hi));
+      DrhoDti = -rhoi*(DvDxi.xx() + 2.0*vi.x()*riInv);
 
       // If we're in range of the origin, compute an effective Q.
       Scalar Qi = 0.0;
       if (etaii.x() < etaMax) {
-        const auto divv = -std::min(0.0, DvDxi.Trace() + 2.0*vi.x()*safeInvVar(ri.x(), 0.1*hi)) * W1d(etaii.x(), 1.0)/W0;
+        const auto divv = -std::min(0.0, DvDxi.Trace() + 2.0*vi.x()*riInv) * W1d(etaii.x(), 1.0)/W0;
         // const auto divv = -std::min(0.0, vi.x()/std::max(0.1, etaii.x())*hi)*W.baseKernel1d()(etaii.x(), 1.0)/W0;
         Qi = mQself*rhoi*hi*divv*(hi*divv + ci);
         maxViscousPressurei = std::max(maxViscousPressurei, Qi);
@@ -636,9 +637,9 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // }
 
       // Specific thermal energy
-      DepsDti -= vi.dot(deltaDvDti) + 2.0*Pi*vi.x()*safeInvVar(ri.x(), 0.01*hi);
-      // DepsDti += vi.dot(deltaDvDti) + 0.5*deltaDvDti.dot(deltaDvDti)*dt - 2.0*Pi*vi.x()*safeInvVar(ri.x(), 0.1*hi);
-      // DepsDti += 0.5*mi*QPiij.xx()*vi.dot(gradWii) - 2.0*Pi*vi.x()*safeInvVar(ri.x(), 0.1*hi);
+      DepsDti -= vi.dot(deltaDvDti) + 2.0*Pi*vi.x()*riInv;
+      // DepsDti += vi.dot(deltaDvDti) + 0.5*deltaDvDti.dot(deltaDvDti)*dt - 2.0*Pi*vi.x()*riInv;
+      // DepsDti += 0.5*mi*QPiij.xx()*vi.dot(gradWii) - 2.0*Pi*vi.x()*riInv;
 
       // If needed finish the total energy derivative.
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);

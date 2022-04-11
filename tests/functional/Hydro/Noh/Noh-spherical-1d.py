@@ -127,7 +127,7 @@ commandLine(KernelConstructor = WendlandC4Kernel3d,
             nTensile = 4.0,
             filter = 0.0,
 
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
+            IntegratorConstructor = VerletIntegrator,
             goalTime = 0.6,
             steps = None,
             dt = 0.0001,
