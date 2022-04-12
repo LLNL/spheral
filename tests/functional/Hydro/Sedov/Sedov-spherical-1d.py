@@ -43,6 +43,7 @@ commandLine(nr = 100,
             gradhCorrection = True,
             correctVelocityGradient = True,
             densityUpdate = RigorousSumDensity, 
+            Qself = 2.0,
 
             # Integration
             IntegratorConstructor = VerletIntegrator,
@@ -52,7 +53,7 @@ commandLine(nr = 100,
             goalTime = None,
             goalRadius = 0.8,
             dt = 1e-8,
-            dtMin = 1.0e-8,
+            dtMin = 1.0e-10,
             dtMax = None,
             dtGrowth = 2.0,
             maxSteps = None,
@@ -234,12 +235,14 @@ hydro = SPH(dataBase = db,
             densityUpdate = densityUpdate,
             XSPH = XSPH,
             HUpdate = HUpdate)
+hydro.Qself = Qself
 output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.XSPH")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
+output("hydro.Qself")
 
 packages = [hydro]
 
