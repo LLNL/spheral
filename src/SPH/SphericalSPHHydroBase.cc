@@ -623,7 +623,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // If we're in range of the origin, compute an effective Q.
       Scalar Qi = 0.0;
       if (etaii.x() < etaMax) {
-        const auto divv = -std::min(0.0, vi.x()/std::max(0.01*hi, ri.x())) * W1d(etaii.x(), 1.0)/W0;
+        const auto divv = -std::min(0.0, vi.x()/std::max(0.01*hi, ri.x()));  // * W1d(etaii.x(), 1.0)/W0;
         // const auto divv = -std::min(0.0, 2.0*vi.x()*riInv) * W1d(etaii.x(), 1.0)/W0;
         // const auto divv = -std::min(0.0, DvDxi.Trace() + 2.0*vi.x()*riInv) * W1d(etaii.x(), 1.0)/W0;
         Qi = mQself*rhoi*hi*divv*(hi*divv + ci);

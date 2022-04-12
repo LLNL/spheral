@@ -281,9 +281,6 @@ output("control")
 #-------------------------------------------------------------------------------
 if steps is None:
     control.advance(goalTime, maxSteps)
-    if restoreCycle != control.totalSteps:
-        control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
-        control.dropRestartFile()
 else:
     control.step(steps)
 
