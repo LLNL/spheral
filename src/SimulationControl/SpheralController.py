@@ -52,7 +52,10 @@ class SpheralController:
                  printAllTimers = False):
         self.restart = RestartableObject(self)
         self.integrator = integrator
-        self.kernel = kernel
+        if isinstance(kernel, SphericalKernel):
+            self.kernel = kernel.baseKernel1d
+        else:
+            self.kernel = kernel
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
         self.SPH = SPH

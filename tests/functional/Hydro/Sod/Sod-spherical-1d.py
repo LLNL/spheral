@@ -438,7 +438,7 @@ output("integrator.rigorousBoundaries")
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator,
-                            kernel = hydro.kernel.baseKernel1d,
+                            kernel = hydro.kernel,
                             volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,

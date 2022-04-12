@@ -468,6 +468,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
                                       ri, etaii - etaji, vi, rhoi, ci, Hi,
                                       rj, etaij - etajj, vj, rhoj, cj, Hj);
+      // if (etaii.x() < etaMax) QPiij *= 1.0 - W1d(etaii.x(), 1.0)/W0;
+      // if (etajj.x() < etaMax) QPiji *= 1.0 - W1d(etajj.x(), 1.0)/W0;
       const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
       const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
       maxViscousPressurei = max(maxViscousPressurei, Qi);
@@ -621,8 +623,9 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // If we're in range of the origin, compute an effective Q.
       Scalar Qi = 0.0;
       if (etaii.x() < etaMax) {
-        const auto divv = -std::min(0.0, DvDxi.Trace() + 2.0*vi.x()*riInv) * W1d(etaii.x(), 1.0)/W0;
-        // const auto divv = -std::min(0.0, vi.x()/std::max(0.1, etaii.x())*hi)*W.baseKernel1d()(etaii.x(), 1.0)/W0;
+        const auto divv = -std::min(0.0, vi.x()/std::max(0.01*hi, ri.x())) * W1d(etaii.x(), 1.0)/W0;
+        // const auto divv = -std::min(0.0, 2.0*vi.x()*riInv) * W1d(etaii.x(), 1.0)/W0;
+        // const auto divv = -std::min(0.0, DvDxi.Trace() + 2.0*vi.x()*riInv) * W1d(etaii.x(), 1.0)/W0;
         Qi = mQself*rhoi*hi*divv*(hi*divv + ci);
         maxViscousPressurei = std::max(maxViscousPressurei, Qi);
       }
