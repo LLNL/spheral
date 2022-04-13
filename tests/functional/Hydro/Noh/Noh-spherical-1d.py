@@ -65,7 +65,7 @@ title("Spherical Noh test run in spherical coordinates")
 commandLine(KernelConstructor = WendlandC4Kernel3d,
             order = 5,
 
-            nx1 = 100,
+            nr = 100,
             rho1 = 1.0,
             eps1 = 0.0,
             smallPressure = False, #If set to True eps is not zero but small. 
@@ -222,9 +222,9 @@ dataDir = os.path.join(dataDirBase,
                        "Cullen=%s" % boolCullenViscosity,
                        "filter=%f" % filter)
 restartDir = os.path.join(dataDir, "restarts")
-restartBaseName = os.path.join(restartDir, "Noh-spherical-1d-%i" % nx1)
+restartBaseName = os.path.join(restartDir, "Noh-spherical-1d-%i" % nr)
 
-dx = (x1 - x0)/nx1
+dx = (x1 - x0)/nr
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -277,7 +277,7 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-gen = GenerateSphericalNodeProfile1d(nr = nx1,
+gen = GenerateSphericalNodeProfile1d(nr = nr,
                                      rho = rho1,
                                      rmin = x0,
                                      rmax = x1,
@@ -539,7 +539,7 @@ L1_tot = L1 / len(rho)
 if mpi.rank == 0 and outputFile != "None":
  print "L1=",L1_tot,"\n"
  with open("Converge.txt", "a") as myfile:
-    myfile.write("%s %s\n" % (nx1, L1_tot))
+    myfile.write("%s %s\n" % (nr, L1_tot))
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
@@ -684,7 +684,7 @@ if mpi.rank == 0 :
                                                '"vel L1"', '"vel L2"', '"vel Linf"',
                                                '"E L1"', '"E L2"', '"E Linf"',
                                                '"h L1"',   '"h L2"',   '"h Linf"'))
-       f.write("%5i " % nx1)
+       f.write("%5i " % nr)
     for (name, data, ans,
          L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
                                              ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
@@ -745,7 +745,7 @@ if mpi.rank == 0 :
     if normOutputFile != "None":
        f.write("\n")
                                              
-    # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+    # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nr,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
     #                                                                             hD[0][1],hD[1][1],hD[2][1],hD[3][1],
     #                                                                             hD[0][2],hD[1][2],hD[2][2],hD[3][2])
 
