@@ -83,7 +83,7 @@ commandLine(
     fcellPressure = 0.0,
 
     # artificial viscosity
-    Qconstructor = CRKSPHMonaghanGingoldViscosity,
+    Qconstructor = LimitedMonaghanGingoldViscosity,
     Cl = 1.0, 
     Cq = 0.75,
     boolReduceViscosity = False,
@@ -140,7 +140,7 @@ assert not(boolReduceViscosity and boolCullenViscosity)
 if svph:
     hydroname = "SVPH"
 elif crksph:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity
     hydroname = "CRKSPH"
 elif psph:
     hydroname = "PSPH"

@@ -1,12 +1,12 @@
 #-------------------------------------------------------------------------------
-# CRKSPHMonaghanGingoldViscosity
+# LimitedMonaghanGingoldViscosity
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from MonaghanGingoldViscosity import *
 from ArtificialViscosityAbstractMethods import *
 
 @PYB11template("Dimension")
-class CRKSPHMonaghanGingoldViscosity(MonaghanGingoldViscosity):
+class LimitedMonaghanGingoldViscosity(MonaghanGingoldViscosity):
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
@@ -25,7 +25,7 @@ class CRKSPHMonaghanGingoldViscosity(MonaghanGingoldViscosity):
                quadraticInExpansion = ("bool", "false"),
                etaCritFrac = ("double", "1.0"),
                etaFoldFrac = ("double", "0.2")):
-        "CRKSPHMonaghanGingoldViscosity constructor"
+        "LimitedMonaghanGingoldViscosity constructor"
 
 
     #...........................................................................
@@ -45,4 +45,4 @@ class CRKSPHMonaghanGingoldViscosity(MonaghanGingoldViscosity):
 #-------------------------------------------------------------------------------
 # Inject abstract interface
 #-------------------------------------------------------------------------------
-PYB11inject(ArtificialViscosityAbstractMethods, CRKSPHMonaghanGingoldViscosity, virtual=True, pure_virtual=False)
+PYB11inject(ArtificialViscosityAbstractMethods, LimitedMonaghanGingoldViscosity, virtual=True, pure_virtual=False)
