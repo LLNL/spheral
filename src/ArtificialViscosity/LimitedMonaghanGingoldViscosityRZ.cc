@@ -1,12 +1,13 @@
 //---------------------------------Spheral++----------------------------------//
 // Modified form of the standard SPH pair-wise viscosity due to Monaghan &
-// Gingold.  This form is specialized for use with CRKSPH.
+// Gingold.  This form is modified to use the velocity gradient to limit the
+// velocity jump at the mid-point between points.
 //
 // This form specialized for use with the area-weighted RZ formalism.
 //
 // Created by JMO, Sun May 22 10:45:30 PDT 2016
 //----------------------------------------------------------------------------//
-#include "CRKSPHMonaghanGingoldViscosityRZ.hh"
+#include "LimitedMonaghanGingoldViscosityRZ.hh"
 #include "Boundary/Boundary.hh"
 #include "DataOutput/Restart.hh"
 #include "Field/FieldList.hh"
@@ -19,9 +20,6 @@
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
-#include "CRKSPH/computeCRKSPHMoments.hh"
-#include "CRKSPH/computeCRKSPHCorrections.hh"
-#include "CRKSPH/gradientCRKSPH.hh"
 
 namespace Spheral {
 
@@ -81,14 +79,14 @@ double limiterSB(const double x) {
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
 //------------------------------------------------------------------------------
-CRKSPHMonaghanGingoldViscosityRZ::
-CRKSPHMonaghanGingoldViscosityRZ(const Scalar Clinear,
+LimitedMonaghanGingoldViscosityRZ::
+LimitedMonaghanGingoldViscosityRZ(const Scalar Clinear,
                                  const Scalar Cquadratic,
                                  const bool linearInExpansion,
                                  const bool quadraticInExpansion,
                                  const Scalar etaCritFrac,
                                  const Scalar etaFoldFrac):
-  CRKSPHMonaghanGingoldViscosity<Dim<2> >(Clinear,
+  LimitedMonaghanGingoldViscosity<Dim<2> >(Clinear,
                                           Cquadratic, 
                                           linearInExpansion,
                                           quadraticInExpansion,
@@ -99,8 +97,8 @@ CRKSPHMonaghanGingoldViscosityRZ(const Scalar Clinear,
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-CRKSPHMonaghanGingoldViscosityRZ::
-~CRKSPHMonaghanGingoldViscosityRZ() {
+LimitedMonaghanGingoldViscosityRZ::
+~LimitedMonaghanGingoldViscosityRZ() {
 }
 
 //------------------------------------------------------------------------------
@@ -108,7 +106,7 @@ CRKSPHMonaghanGingoldViscosityRZ::
 //------------------------------------------------------------------------------
 pair<Dim<2>::Tensor,
      Dim<2>::Tensor>
-CRKSPHMonaghanGingoldViscosityRZ::
+LimitedMonaghanGingoldViscosityRZ::
 Piij(const unsigned nodeListi, const unsigned i, 
      const unsigned nodeListj, const unsigned j,
      const Vector& xi,

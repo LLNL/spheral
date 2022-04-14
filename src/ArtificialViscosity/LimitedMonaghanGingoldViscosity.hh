@@ -1,18 +1,19 @@
 //---------------------------------Spheral++----------------------------------//
 // Modified form of the standard SPH pair-wise viscosity due to Monaghan &
-// Gingold.  This form is specialized for use with CRKSPH.
+// Gingold.  This form is modified to use the velocity gradient to limit the
+// velocity jump at the mid-point between points.
 //
 // Created by JMO, Thu Nov 20 14:13:18 PST 2014
 //----------------------------------------------------------------------------//
-#ifndef CRKSPHMonaghanGingoldViscosity_HH
-#define CRKSPHMonaghanGingoldViscosity_HH
+#ifndef LimitedMonaghanGingoldViscosity_HH
+#define LimitedMonaghanGingoldViscosity_HH
 
 #include "MonaghanGingoldViscosity.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class CRKSPHMonaghanGingoldViscosity: public MonaghanGingoldViscosity<Dimension> {
+class LimitedMonaghanGingoldViscosity: public MonaghanGingoldViscosity<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
@@ -25,7 +26,7 @@ public:
   typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
+  LimitedMonaghanGingoldViscosity(const Scalar Clinear,
                                  const Scalar Cquadratic,
                                  const bool linearInExpansion,
                                  const bool quadraticInExpansion,
@@ -33,7 +34,7 @@ public:
                                  const Scalar etaFoldFrac);
 
   // Destructor.
-  virtual ~CRKSPHMonaghanGingoldViscosity();
+  virtual ~LimitedMonaghanGingoldViscosity();
 
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
@@ -71,7 +72,7 @@ public:
   void etaFoldFrac(double val);
 
   // Restart methods.
-  virtual std::string label() const { return "CRKSPHMonaghanGingoldViscosity"; }
+  virtual std::string label() const { return "LimitedMonaghanGingoldViscosity"; }
 
 protected:
   //--------------------------- Private Interface ---------------------------//
@@ -80,9 +81,9 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  CRKSPHMonaghanGingoldViscosity();
-  CRKSPHMonaghanGingoldViscosity(const CRKSPHMonaghanGingoldViscosity&);
-  CRKSPHMonaghanGingoldViscosity& operator=(const CRKSPHMonaghanGingoldViscosity&) const;
+  LimitedMonaghanGingoldViscosity();
+  LimitedMonaghanGingoldViscosity(const LimitedMonaghanGingoldViscosity&);
+  LimitedMonaghanGingoldViscosity& operator=(const LimitedMonaghanGingoldViscosity&) const;
 };
 
 }
@@ -91,7 +92,7 @@ private:
 
 namespace Spheral {
   // Forward declaration.
-  template<typename Dimension> class CRKSPHMonaghanGingoldViscosity;
+  template<typename Dimension> class LimitedMonaghanGingoldViscosity;
 }
 
 #endif

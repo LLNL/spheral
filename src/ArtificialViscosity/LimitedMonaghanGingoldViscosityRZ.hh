@@ -1,20 +1,19 @@
 //---------------------------------Spheral++----------------------------------//
 // Modified form of the standard SPH pair-wise viscosity due to Monaghan &
-// Gingold.  This form is specialized for use with CRKSPH.
+// Gingold.  This form is modified to use the velocity gradient to limit the
+// velocity jump at the mid-point between points.
 //
-// This form specialized for use with the area-weighted RZ formalism.
-//
-// Created by JMO, Sun May 22 10:45:30 PDT 2016
+// Created by JMO, Thu Nov 20 14:13:18 PST 2014
 //----------------------------------------------------------------------------//
-#ifndef CRKSPHMonaghanGingoldViscosityRZ_HH
-#define CRKSPHMonaghanGingoldViscosityRZ_HH
+#ifndef LimitedMonaghanGingoldViscosityRZ_HH
+#define LimitedMonaghanGingoldViscosityRZ_HH
 
-#include "CRKSPHMonaghanGingoldViscosity.hh"
+#include "LimitedMonaghanGingoldViscosity.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
-class CRKSPHMonaghanGingoldViscosityRZ: public CRKSPHMonaghanGingoldViscosity<Dim<2> > {
+class LimitedMonaghanGingoldViscosityRZ: public LimitedMonaghanGingoldViscosity<Dim<2> > {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef Dim<2> Dimension;
@@ -28,7 +27,7 @@ public:
   typedef ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  CRKSPHMonaghanGingoldViscosityRZ(const Scalar Clinear,
+  LimitedMonaghanGingoldViscosityRZ(const Scalar Clinear,
                                    const Scalar Cquadratic,
                                    const bool linearInExpansion,
                                    const bool quadraticInExpansion,
@@ -36,7 +35,7 @@ public:
                                    const Scalar etaFoldFrac);
 
   // Destructor.
-  virtual ~CRKSPHMonaghanGingoldViscosityRZ();
+  virtual ~LimitedMonaghanGingoldViscosityRZ();
 
   // The required method to compute the artificial viscous P/rho^2.
   virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
@@ -55,13 +54,13 @@ public:
                                          const SymTensor& Hj) const;
 
   // Restart methods.
-  virtual std::string label() const { return "CRKSPHMonaghanGingoldViscosityRZ"; }
+  virtual std::string label() const { return "LimitedMonaghanGingoldViscosityRZ"; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  CRKSPHMonaghanGingoldViscosityRZ();
-  CRKSPHMonaghanGingoldViscosityRZ(const CRKSPHMonaghanGingoldViscosityRZ&);
-  CRKSPHMonaghanGingoldViscosityRZ& operator=(const CRKSPHMonaghanGingoldViscosityRZ&) const;
+  LimitedMonaghanGingoldViscosityRZ();
+  LimitedMonaghanGingoldViscosityRZ(const LimitedMonaghanGingoldViscosityRZ&);
+  LimitedMonaghanGingoldViscosityRZ& operator=(const LimitedMonaghanGingoldViscosityRZ&) const;
 };
 
 }
@@ -70,7 +69,7 @@ private:
 
 namespace Spheral {
   // Forward declaration.
-  class CRKSPHMonaghanGingoldViscosityRZ;
+  class LimitedMonaghanGingoldViscosityRZ;
 }
 
 #endif

@@ -1,10 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
 // Modified form of the standard SPH pair-wise viscosity due to Monaghan &
-// Gingold.  This form is specialized for use with CRKSPH.
+// Gingold.  This form is modified to use the velocity gradient to limit the
+// velocity jump at the mid-point between points.
 //
 // Created by JMO, Thu Nov 20 14:13:18 PST 2014
 //----------------------------------------------------------------------------//
-#include "CRKSPHMonaghanGingoldViscosity.hh"
+#include "LimitedMonaghanGingoldViscosity.hh"
 #include "Boundary/Boundary.hh"
 #include "DataOutput/Restart.hh"
 #include "Field/FieldList.hh"
@@ -106,8 +107,8 @@ double limiterVL(const double x) {
 // Construct with the given value for the linear and quadratic coefficients.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-CRKSPHMonaghanGingoldViscosity<Dimension>::
-CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
+LimitedMonaghanGingoldViscosity<Dimension>::
+LimitedMonaghanGingoldViscosity(const Scalar Clinear,
                                const Scalar Cquadratic,
                                const bool linearInExpansion,
                                const bool quadraticInExpansion,
@@ -126,8 +127,8 @@ CRKSPHMonaghanGingoldViscosity(const Scalar Clinear,
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-CRKSPHMonaghanGingoldViscosity<Dimension>::
-~CRKSPHMonaghanGingoldViscosity() {
+LimitedMonaghanGingoldViscosity<Dimension>::
+~LimitedMonaghanGingoldViscosity() {
 }
 
 //------------------------------------------------------------------------------
@@ -135,7 +136,7 @@ CRKSPHMonaghanGingoldViscosity<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHMonaghanGingoldViscosity<Dimension>::
+LimitedMonaghanGingoldViscosity<Dimension>::
 initialize(const DataBase<Dimension>& dataBase,
            const State<Dimension>& state,
            const StateDerivatives<Dimension>& derivs,
@@ -156,7 +157,7 @@ initialize(const DataBase<Dimension>& dataBase,
   // // If any points are flagged as surface, force zero velocity gradient.
   // if (state.fieldNameRegistered(HydroFieldNames::surfacePoint)) {
   //   const auto surface = state.fields(HydroFieldNames::surfacePoint, 0);
-  //   // const auto m0 = state.fields(HydroFieldNames::m0_CRKSPH, 0.0);
+  //   // const auto m0 = state.fields(HydroFieldNames::m0_Limited, 0.0);
   //   const auto numNodeLists = mGradVel.size();
   //   CHECK(surfacePoint.size() == numNodeLists);
   //   for (auto k = 0; k < numNodeLists; ++k) {
@@ -191,7 +192,7 @@ initialize(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 pair<typename Dimension::Tensor,
      typename Dimension::Tensor>
-CRKSPHMonaghanGingoldViscosity<Dimension>::
+LimitedMonaghanGingoldViscosity<Dimension>::
 Piij(const unsigned nodeListi, const unsigned i, 
      const unsigned nodeListj, const unsigned j,
      const Vector& xi,
@@ -315,14 +316,14 @@ Piij(const unsigned nodeListi, const unsigned i,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 double
-CRKSPHMonaghanGingoldViscosity<Dimension>::
+LimitedMonaghanGingoldViscosity<Dimension>::
 etaCritFrac() const {
   return mEtaCritFrac;
 }
 
 template<typename Dimension>
 void
-CRKSPHMonaghanGingoldViscosity<Dimension>::
+LimitedMonaghanGingoldViscosity<Dimension>::
 etaCritFrac(double val) {
   VERIFY(val >= 0.0);
   mEtaCritFrac = val;
@@ -333,14 +334,14 @@ etaCritFrac(double val) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 double
-CRKSPHMonaghanGingoldViscosity<Dimension>::
+LimitedMonaghanGingoldViscosity<Dimension>::
 etaFoldFrac() const {
   return mEtaFoldFrac;
 }
 
 template<typename Dimension>
 void
-CRKSPHMonaghanGingoldViscosity<Dimension>::
+LimitedMonaghanGingoldViscosity<Dimension>::
 etaFoldFrac(double val) {
   VERIFY(val > 0.0);
   mEtaFoldFrac = val;
