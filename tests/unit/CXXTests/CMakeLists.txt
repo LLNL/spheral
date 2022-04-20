@@ -3,7 +3,6 @@
 #------------------------------------------------------------------------------
 
 set(gtest_spheral_tests
-    testSidreStorage.cc
    )
 
 
@@ -43,7 +42,7 @@ foreach(test ${gtest_spheral_tests})
           )
   
   set_target_properties(${test_name} PROPERTIES
-                        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;"
+                        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${qhull_DIR}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib"
                         )
 endforeach()
 

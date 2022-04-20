@@ -70,7 +70,6 @@ set(Utilities_headers
     RegisterMPIDataTypes.hh
     RegisterMPIDataTypesInline.hh
     SafeIndexMap.hh
-    SidreDataCollection.hh
     SpheralFunctions.hh
     SurfaceNodeCoupling.hh
     Timer.hh

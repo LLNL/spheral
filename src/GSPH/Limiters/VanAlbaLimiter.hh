@@ -3,7 +3,10 @@
 //   Van Albada, G.D.; Van Leer, B.; Roberts, W.W. (1982), 
 //   "A comparative study of computational methods in cosmic gas dynamics", 
 //   Astronomy and Astrophysics, 108 (1): 76–84
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_VanAlbaLimiter_hh__
 #define __Spheral_VanAlbaLimiter_hh__
 

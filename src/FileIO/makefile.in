@@ -12,6 +12,7 @@ LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
 SRCTARGETS = \
 	$(srcdir)/FileIO.cc \
 	$(srcdir)/FlatFileIO.cc \
+	$(srcdir)/SidreFileIO.cc \
 	$(srcdir)/SiloFileIO.cc \
 	$(srcdir)/PyFileIO.cc \
 	$(srcdir)/vectorstringUtilities.cc

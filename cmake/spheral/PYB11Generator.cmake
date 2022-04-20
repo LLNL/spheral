@@ -23,6 +23,7 @@ macro(PYB11_GENERATE_BINDINGS PYB11_MODULE_NAME)
   # List directories in which spheral .py files can be found.
   set(PYTHON_ENV 
       ${EXTRA_PYB11_SPHERAL_ENV_VARS}
+      "${BUILDTIME_PYTHONENV_STR}:"
       "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps:"
       "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/${PYB11_MODULE_NAME}:"
       "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/polytope:"
@@ -60,11 +61,13 @@ macro(PYB11_GENERATE_BINDINGS PYB11_MODULE_NAME)
       "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/SolidMaterial:"
       "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/Strength:"
       "${SPHERAL_ROOT_DIR}/src/Pybind11Wraps/ArtificialConduction:"
-      "${CMAKE_BINARY_DIR}/src/SimulationControl")
+      "${CMAKE_BINARY_DIR}/src/SimulationControl"
+      )
 
   # Format list into a one line shell friendly format
   STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})
 
+  string(JOIN ":" PYTHON_ENV_STR ${PYTHON_ENV_STR} $ENV{PYTHONPATH})
 
   # Generating python stamp files to detect changes in PYB11_SOURCE and
   # its included modules
