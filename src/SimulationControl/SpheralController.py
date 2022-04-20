@@ -573,9 +573,14 @@ class SpheralController:
             fileName += ".gz"
         if self.restartFileConstructor is SiloFileIO:
             fileName += ".silo"
-        if not os.path.exists(fileName):
-            raise RuntimeError("File %s does not exist or is inaccessible." %
-                               fileName)
+        # This is the problem because .root is already added to the file when saved, but if controller doesn't know about .root then
+        # the if at the end of this chunk fails
+        # if self.restartFileConstructor is SidreFileIO:
+        #     fileName += ".root"
+        # I should test if Sidre throws an error if there is no file and then I can skip this test when using SidreFileIO
+        # if not os.path.exists(fileName):
+        #     raise RuntimeError("File %s does not exist or is inaccessible." %
+        #                        fileName)
 
         # Read that sucker.
         print 'Reading from restart file', fileName
