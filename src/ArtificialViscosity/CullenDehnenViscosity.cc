@@ -54,6 +54,8 @@ CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
   mCullAlpha2(FieldStorageType::CopyFields),
   mDalphaDt(FieldStorageType::CopyFields),
   mAlphaLocal(FieldStorageType::CopyFields),
+  mR(FieldStorageType::CopyFields),
+  mVsig(FieldStorageType::CopyFields),
   malphMax(alphMax),
   malphMin(alphMin),
   mbetaC(betaC),
@@ -73,154 +75,7 @@ template<typename Dimension>
 CullenDehnenViscosity<Dimension>::
 ~CullenDehnenViscosity() {
 }
-
-    
-// Accessor Fns
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-alphMax(Scalar val)
-{
-    malphMax = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-alphMin(Scalar val)
-{
-    malphMin = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-betaE(Scalar val)
-{
-    mbetaE = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-betaD(Scalar val)
-{
-    mbetaD = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-betaC(Scalar val)
-{
-    mbetaC = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-fKern(Scalar val)
-{
-    mfKern = val;
-}
-
-template<typename Dimension>
-void
-CullenDehnenViscosity<Dimension>::
-boolHopkins(bool val)
-{
-    mboolHopkins = val;
-}
-
-//------------------------------------------------------------------------------
-// Access the main kernel
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const TableKernel<Dimension>&
-CullenDehnenViscosity<Dimension>::kernel() const {
-  return mKernel;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-CullenDehnenViscosity<Dimension>::PrevDvDt() const {
-   return mPrevDvDt;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CullenDehnenViscosity<Dimension>::PrevDivV() const {
-   return mPrevDivV;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CullenDehnenViscosity<Dimension>::PrevDivV2() const {
-   return mPrevDivV2;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CullenDehnenViscosity<Dimension>::CullAlpha() const {
-   return mCullAlpha;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CullenDehnenViscosity<Dimension>::CullAlpha2() const {
-   return mCullAlpha2;
-}
-
-template<typename Dimension>
-typename Dimension::Scalar
-CullenDehnenViscosity<Dimension>::
-alphMax() const{return malphMax;}
-
-template<typename Dimension>
-typename Dimension::Scalar
-CullenDehnenViscosity<Dimension>::
-alphMin() const{return malphMin;}
-
-template<typename Dimension>
-typename Dimension::Scalar
-CullenDehnenViscosity<Dimension>::
-betaE() const{return mbetaE;}
-
-template<typename Dimension>
-typename Dimension::Scalar
-CullenDehnenViscosity<Dimension>::
-betaD() const{return mbetaD;}
-
-template<typename Dimension>
-typename Dimension::Scalar
-CullenDehnenViscosity<Dimension>::
-betaC() const{return mbetaC;}
-
-template<typename Dimension>
-typename Dimension::Scalar
-CullenDehnenViscosity<Dimension>::
-fKern() const{return mfKern;}
-
-template<typename Dimension>
-bool CullenDehnenViscosity<Dimension>::
-boolHopkins() const{return mboolHopkins;}
-
-template<typename Dimension>
-const FieldList<Dimension, typename Dimension::Scalar>&
-CullenDehnenViscosity<Dimension>::
-DalphaDt() const{ return mDalphaDt;}
-
-template<typename Dimension>
-const FieldList<Dimension, typename Dimension::Scalar>&
-CullenDehnenViscosity<Dimension>::
-alphaLocal() const{ return mAlphaLocal;}
-    
+ 
 //------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
 //------------------------------------------------------------------------------
@@ -235,6 +90,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mCullAlpha2 = dataBase.newFluidFieldList(1.0, "mCullAlpha2");
   mDalphaDt = dataBase.newFluidFieldList(0.0, "Cullen alpha delta");
   mAlphaLocal = dataBase.newFluidFieldList(0.0, "Cullen alpha local");
+  mR = dataBase.newFluidFieldList(0.0, "mR");
+  mVsig = dataBase.newFluidFieldList(0.0, "mVsig");
 
   FieldList<Dimension, Scalar>& rvQ = myq.CqMultiplier();
   FieldList<Dimension, Scalar>& rvL = myq.ClMultiplier();
@@ -275,10 +132,16 @@ registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   dataBase.resizeFluidFieldList(mPrevDivV2, 0.0, "mPrevDivV2", false);
   dataBase.resizeFluidFieldList(mCullAlpha2, 1.0, "mCullAlpha2", false);
+  dataBase.resizeFluidFieldList(mDalphaDt, 0.0, "mDalphaDt", false);
+  dataBase.resizeFluidFieldList(mAlphaLocal, 0.0, "mAlphaLocal", false);
+  dataBase.resizeFluidFieldList(mR, 0.0, "mR", false);
+  dataBase.resizeFluidFieldList(mVsig, 0.0, "mVsig", false);
   derivs.enroll(mPrevDivV2);
   derivs.enroll(mCullAlpha2);
   derivs.enroll(mDalphaDt);
   derivs.enroll(mAlphaLocal);
+  derivs.enroll(mR);
+  derivs.enroll(mVsig);
 }
 
 template<typename Dimension>
@@ -336,9 +199,11 @@ finalizeDerivatives(const Scalar /*time*/,
   // Derivative FieldLists.
   FieldList<Dimension, Scalar> alpha_local = derivs.fields("Cullen alpha local", 0.0);
   FieldList<Dimension, Scalar> DalphaDt = derivs.fields("Cullen alpha delta", 0.0);
+  FieldList<Dimension, Scalar> R = derivs.fields("mR", 0.0);
+  FieldList<Dimension, Scalar> vsig = derivs.fields("mVsig", 0.0);
 
   // We're using the hydro derivatives.
-  const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  const FieldList<Dimension, Vector> DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
 
   // Apply boundaries to DvDx.
@@ -351,9 +216,6 @@ finalizeDerivatives(const Scalar /*time*/,
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
-  // We need to compute the R factor, which involves walking the neighbors.  We can simultaneously compute the signal velocity.
-  FieldList<Dimension, Scalar> R = dataBase.newFluidFieldList(0.0, "Cullen R limiter");
-  FieldList<Dimension, Scalar> vsig = dataBase.newFluidFieldList(0.0, "Cullen signal velocity");
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     //const int firstGhostNodei = DvDx[nodeListi]->nodeList().firstGhostNode();
 
@@ -493,7 +355,7 @@ finalize(const typename Dimension::Scalar /*time*/,
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
   FieldList<Dimension, Vector> prevDvDt = state.fields("mPrevDvDt", Vector::zero);
-  const FieldList<Dimension, Vector> DvDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
+  const FieldList<Dimension, Vector> DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   prevDvDt.assignFields(DvDt);
   FieldList<Dimension, Scalar> prevDivV = state.fields("mPrevDivV", 0.0);
   const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);

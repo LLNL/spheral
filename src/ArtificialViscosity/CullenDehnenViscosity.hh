@@ -127,10 +127,11 @@ public:
   const FieldList<Dimension, Scalar>&    DalphaDt() const;
   const FieldList<Dimension, Scalar>&    alphaLocal() const;
   const FieldList<Dimension, Scalar>&    alpha0() const;
-    
+  const FieldList<Dimension, Scalar>&    R() const;
+  const FieldList<Dimension, Scalar>&    vsig() const; 
 private:
   //--------------------------- Private Interface ---------------------------//
-        
+
   CullenDehnenViscosity();
   CullenDehnenViscosity(const CullenDehnenViscosity&);
   CullenDehnenViscosity& operator=(const CullenDehnenViscosity&) const;
@@ -144,6 +145,9 @@ private:
   FieldList<Dimension, Scalar>    mDalphaDt;     // Time derivative of alpha
   FieldList<Dimension, Scalar>    mAlphaLocal;   // Alpha local to be filled in derivatives
   FieldList<Dimension, Scalar>    mAlpha0;       // The Hopkins form actually evolves alpha0
+  
+  FieldList<Dimension, Scalar>    mR;    //Will enroll as derivs fields
+  FieldList<Dimension, Scalar>    mVsig; //Will enroll as derivs fields
 
   Scalar malphMax, malphMin, mbetaC, mbetaD, mbetaE, mfKern;
   bool mboolHopkins;//Use Hopkins Reformulation
@@ -155,6 +159,8 @@ private:
 };
     
 }
+
+#include "CullenDehnenViscosityInline.hh"
 
 #else
 
