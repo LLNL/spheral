@@ -121,6 +121,14 @@ public:
                            const State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) const override;
 
+  virtual
+  void applyGhostBoundaries(State<Dimension>& state,
+                            StateDerivatives<Dimension>& derivs) override;
+
+  virtual
+  void enforceBoundaries(State<Dimension>& state,
+                         StateDerivatives<Dimension>& derivs) override;
+
   void linearReconstruction(const typename Dimension::Vector& ri,
                             const typename Dimension::Vector& rj,
                             const typename Dimension::Scalar& yi,
@@ -160,7 +168,11 @@ public:
   SlideSurfaceMethod slideSurfaceMethod() const;
   void slideSurfaceMethod(SlideSurfaceMethod method);
 
-  const FieldList<Dimension, Scalar>& pressureRaw() const;
+  const FieldList<Dimension, Scalar>& rawPressure() const;
+  //const FieldList<Dimension, Vector>& interfaceNormals() const;
+  //const FieldList<Dimension, Vector>& newInterfaceNormals() const;
+  //const FieldList<Dimension, Scalar>& interfaceSmoothness() const;
+  //const FieldList<Dimension, Scalar>& newInterfaceSmoothness() const;
   const FieldList<Dimension, Vector>& DPDx() const;
   const FieldList<Dimension, Vector>& DepsDx() const;
 
@@ -184,9 +196,13 @@ private:
   
   std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
  
-  FieldList<Dimension, Scalar> mPressureRaw;           // straight eos Pressure no limiting tension 
-  FieldList<Dimension, Vector> mDPDx;                  // pressure gradient     
-  FieldList<Dimension, Vector> mDepsDx;                // specific thermal energy gradient    
+  FieldList<Dimension, Scalar> mRawPressure;            // material interface normals
+  //FieldList<Dimension, Vector> mInterfaceNormals;       // material interface normals
+  //FieldList<Dimension, Vector> mNewInterfaceNormals;    // material interface normals
+  //FieldList<Dimension, Scalar> mInterfaceSmoothness;    // material interface smoothness
+  //FieldList<Dimension, Scalar> mNewInterfaceSmoothness; // material interface smoothness
+  FieldList<Dimension, Vector> mDPDx;                   // pressure gradient     
+  FieldList<Dimension, Vector> mDepsDx;                 // specific thermal energy gradient    
     
   
 

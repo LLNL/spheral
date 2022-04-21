@@ -139,11 +139,11 @@ pairwiseSurfaceSmoothness(const int nodeListi,
       const auto ssMax = max(mSurfaceSmoothness(nodeListi,i),mSurfaceSmoothness(nodeListj,j));
       const auto ssMin = min(mSurfaceSmoothness(nodeListi,i),mSurfaceSmoothness(nodeListj,j));
 
-      const auto ssijMax = ( 1.0 -  10.0*min(max(0.95-ssMax,0.0),0.10) ); // ramps down 0.98->0.88
-      const auto ssijMin = ( 1.0 -   5.0*min(max(0.85-ssMin,0.0),0.20) ); // ramps down 0.88->0.68
-      ssij = max(ssijMax*ssijMin,0.0);
+      //const auto ssijMax = ( 1.0 -  10.0*min(max(0.95-ssMax,0.0),0.10) ); // ramps down 0.98->0.88
+      //const auto ssijMin = ( 1.0 -   5.0*min(max(0.85-ssMin,0.0),0.20) ); // ramps down 0.88->0.68
+      //ssij = max(ssijMax*ssijMin,0.0);
       //const auto ssijAvg = 0.5*(ssMax+ssMin);
-      //ssij = ( 1.0 -  10.0*min(max(0.95-(ssMax+ssMin)/2.0,0.0),0.10) );//ssijMax*ssijMin;//
+      ssij = ( 1.0 - 10.0*min(max(0.95-(ssMax*ssMin),0.0),0.10) );//ssijMax*ssijMin;//
       //const auto maxFrac = max(mSurfaceFraction(nodeListi,i),mSurfaceFraction(nodeListj,j));
       //ssij = ( 1.0 -  5.0*min(max(maxFrac-0.4,0.0),0.20) );
     }
@@ -183,7 +183,7 @@ weightedPairwiseSurfaceNormal(const int nodeListi,
     if (this->isSlideSurface(nodeListi,nodeListj)){
 
       const auto tiny = std::numeric_limits<double>::epsilon();
-      const auto smoothnessThreshold = 0.9;
+      const auto smoothnessThreshold = 0.85;
 
       const auto ni = mSurfaceNormals(nodeListi,i);
       const auto nj = mSurfaceNormals(nodeListj,j);
@@ -403,8 +403,8 @@ computeSurfaceNormals(const TableKernel<Dimension>& W,
 
       if(this->gradientsAreCorrected()){
         const auto Mij = rij.dyad(gradWij);
-        M_thread(nodeListi,i) -= volj*Mij;
-        M_thread(nodeListj,j) -= voli*Mij;
+        M_thread(nodeListi,i) -= abs(materialCoeff) * volj*Mij;
+        M_thread(nodeListj,j) -= abs(materialCoeff) * voli*Mij;
       }
 
     }   // pair loop

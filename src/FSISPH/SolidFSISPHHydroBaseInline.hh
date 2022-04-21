@@ -184,18 +184,60 @@ DepsDx() const {
   return mDepsDx;
 }
 
-
-
 //------------------------------------------------------------------------------
-// Pressure without Pmin
+// our interface smoothness metric
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
-pressureRaw() const {
-  return mPressureRaw;
+rawPressure() const {
+  return mRawPressure;
 }
+
+// //------------------------------------------------------------------------------
+// // our interface smoothness metric
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension,  typename Dimension::Vector>&
+// SolidFSISPHHydroBase<Dimension>::
+// interfaceNormals() const {
+//   return mInterfaceNormals;
+// }
+
+// //------------------------------------------------------------------------------
+// // our interface smoothness metric
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension,  typename Dimension::Vector>&
+// SolidFSISPHHydroBase<Dimension>::
+// newInterfaceNormals() const {
+//   return mNewInterfaceNormals;
+// }
+
+// //------------------------------------------------------------------------------
+// // our interface smoothness metric
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension,  typename Dimension::Scalar>&
+// SolidFSISPHHydroBase<Dimension>::
+// interfaceSmoothness() const {
+//   return mInterfaceSmoothness;
+// }
+
+// //------------------------------------------------------------------------------
+// // our interface smoothness metric
+// //------------------------------------------------------------------------------
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension,  typename Dimension::Scalar>&
+// SolidFSISPHHydroBase<Dimension>::
+// newInterfaceSmoothness() const {
+//   return mNewInterfaceSmoothness;
+// }
 
 //------------------------------------------------------------------------------
 // Ref to the slide surface obj

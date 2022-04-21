@@ -24,6 +24,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // A few useful constants we'll use in the following loop.
+  const auto fullyDamagedThreshold=1.0e-2;
   const auto tiny = std::numeric_limits<double>::epsilon();
   const auto W0 = W(0.0, 1.0);
   const auto epsTensile = this->epsilonTensile();
@@ -53,6 +54,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Get the state and derivative FieldLists.
+  const auto interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
+  const auto interfaceNormals = state.fields(FSIFieldNames::interfaceNormals2, Vector::zero);
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
@@ -60,6 +63,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
+  const auto rawPressure = state.fields(FSIFieldNames::rawPressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   const auto K = state.fields(SolidFieldNames::bulkModulus, 0.0);
@@ -83,6 +87,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(pTypes.size() == numNodeLists);
 
   // Derivative FieldLists.
+  auto  newInterfaceSmoothness = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + FSIFieldNames::interfaceSmoothness, 0.0);
+  auto  newInterfaceNormals = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + FSIFieldNames::interfaceNormals2, Vector::zero);
   auto  normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
   auto  DepsDx = derivatives.fields(FSIFieldNames::specificThermalEnergyGradient, Vector::zero);
   auto  DPDx = derivatives.fields(FSIFieldNames::pressureGradient, Vector::zero);
@@ -156,6 +162,7 @@ if(this->correctVelocityGradient()){
 
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
+      const auto& vi = velocity(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& epsi = specificThermalEnergy(nodeListi, i);
       const auto& Pi = pressure(nodeListi, i);
@@ -168,6 +175,7 @@ if(this->correctVelocityGradient()){
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
+      const auto& vj = velocity(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
       const auto& epsj = specificThermalEnergy(nodeListj, j);
       const auto& Pj = pressure(nodeListj, j);
@@ -187,18 +195,19 @@ if(this->correctVelocityGradient()){
       auto& Mi = M_thread(nodeListi,i);
       auto& Mj = M_thread(nodeListj,j);
 
+      const auto rij = ri - rj;
+      const auto rhatij = rij.unitVector();
+      const auto Pij = Pi - Pj;
+      const auto epsij = epsi - epsj;
+
       // logic
       //---------------------------------------
       const auto sameMatij = (nodeListi == nodeListj);
       const auto differentMatij = (nodeListi!=nodeListj);
       const auto averageKernelij = ( (differentMatij and averageInterfaceKernels) or alwaysAverageKernels);
-      
+
       // Kernels
       //--------------------------------------
-            auto rij = ri - rj;
-      const auto Pij = Pi - Pj;
-      const auto epsij = epsi - epsj;
-
       const auto etai = Hi*rij;
       const auto etaj = Hj*rij;
       const auto etaMagi = etai.magnitude();
@@ -225,15 +234,6 @@ if(this->correctVelocityGradient()){
 
       gradWi *= mj/rhoj;
       gradWj *= mi/rhoi;
-
-      const auto isSlide = slides.isSlideSurface(nodeListi,nodeListj);
-      if (isSlide and mSlideSurfaceMethod==SlideSurfaceMethod::ReorientInteractionSlide){
-        const auto ssij = 1.0;//slides.pairwiseSurfaceSmoothness(nodeListi,i,nodeListj,j);
-        const auto nij  = slides.weightedPairwiseSurfaceNormal(nodeListi,i,nodeListj,j, 1.0, 1.0);
-        gradWi = ssij * gradWi.dot(nij) * nij + (1.0-ssij)*gradWi;
-        gradWj = ssij * gradWj.dot(nij) * nij + (1.0-ssij)*gradWj;
-        //rij = ssij * rij.dot(nij) * nij + (1.0-ssij)*rij;
-      }
 
       // spatial gradients and correction
       //---------------------------------------------------------------
@@ -282,8 +282,6 @@ if(this->correctVelocityGradient()){
 
       } 
     }
-
-  //localM.Zero();
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
        boundaryItr != this->boundaryEnd();
@@ -342,13 +340,14 @@ if(this->correctVelocityGradient()){
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& epsi = specificThermalEnergy(nodeListi,i);
       const auto& Pi = pressure(nodeListi, i);
+      const auto& rPi = rawPressure(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
       const auto& Si = S(nodeListi, i);
       const auto& pTypei = pTypes(nodeListi, i);
       const auto  voli = mi/rhoi;
       const auto  mui = max(mu(nodeListi,i),tiny);
       const auto  Ki = max(tiny,K(nodeListi,i))+4.0/3.0*mui;
-      auto  Hdeti = Hi.Determinant();
+      const auto  Hdeti = Hi.Determinant();
       //const auto fragIDi = fragIDs(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -377,13 +376,14 @@ if(this->correctVelocityGradient()){
       const auto& rhoj = massDensity(nodeListj, j);
       const auto& epsj = specificThermalEnergy(nodeListj,j);
       const auto& Pj = pressure(nodeListj, j);
+      const auto& rPj = rawPressure(nodeListj, j);
       const auto& cj = soundSpeed(nodeListj, j);
       const auto& Sj = S(nodeListj, j);
       const auto& pTypej = pTypes(nodeListj, j);
       const auto  volj = mj/rhoj;
       const auto  muj = max(mu(nodeListj,j),tiny);
       const auto  Kj = max(tiny,K(nodeListj,j))+4.0/3.0*muj;
-      auto  Hdetj = Hj.Determinant();
+      const auto  Hdetj = Hj.Determinant();
       //const auto fragIDj = fragIDs(nodeListj, j);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
@@ -414,26 +414,30 @@ if(this->correctVelocityGradient()){
 
       // we'll need a couple damage defs
       const auto rij = ri - rj;
-            auto rhatij = rij.unitVector();
-      //const auto fSij = (sameMatij ? pairs[kk].f_couple : 0.0);
-      const auto  Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
-      const auto  Dj = max(0.0, min(1.0, damage(nodeListj, j).dot(rhatij).magnitude()));
-      const auto fSij = (sameMatij ? 1.0-abs(Di-Dj) : 0.0);
-      const auto fDi = (sameMatij ? max(1.0-(Di-Dj),1.0) : 1.0);
-      const auto fDj = (sameMatij ? max(1.0-(Dj-Di),1.0) : 1.0);
-      //const auto fDi =  (sameMatij ? max((1.0-Di)*(1.0-Di),tiny) : 1.0 );
-      //const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 1.0 );
-
+      const auto rhatij = rij.unitVector();
+      
       // Decoupling
       //-------------------------------------------------------
-      // we need to test if these nodes are allowed to interact
+
+      // pairwise damage and pairwise nodal damage
+      const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
+      const auto Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
+      const auto Dj = max(0.0, min(1.0, damage(nodeListj, j).dot(rhatij).magnitude()));
+      const auto fDi =  (sameMatij ? max((1.0-Di)*(1.0-Di),tiny) : 0.0 );
+      const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 0.0 );
+
+      // is Pmin being activated
+      const auto pminActivei = (rPi<(Pi-rhoi*ci*ci*1e-5));
+      const auto pminActivej = (rPj<(Pj-rhoj*cj*cj*1e-5));
+      
+      // decoupling criteria
       const auto isExpanding = (ri-rj).dot(vi-vj) > 0.0;
-      //const auto cantSupportTension = (fDi<0.01) or (fDj<0.01);
-      const auto isInTension = (Pi<0.0) or (Pj<0.0);
+      const auto cantSupportTension = (fDi<fullyDamagedThreshold) or (fDj<fullyDamagedThreshold);
+      const auto isInTension = pminActivei or pminActivej;
+      const auto decouple =  isExpanding and (cantSupportTension and isInTension);
 
-      const auto decouple =  isExpanding and (differentMatij and isInTension);
-
-      const auto constructInterface = (fSij < 0.99) and activateConstruction;
+      // do we need to construct our interface velocity?
+      const auto constructInterface = (fDij < 0.99) and activateConstruction;
       const auto negligableShearWave = max(mui,muj) < 1.0e-5*min(Ki,Kj);
 
       if (!decouple){
@@ -474,7 +478,6 @@ if(this->correctVelocityGradient()){
           gradWj = gradWij;
         }
 
-        
         if(this->correctVelocityGradient()){
           gradWiMi = Mi.Transpose()*gradWi;
           gradWjMj = Mj.Transpose()*gradWj;
@@ -491,66 +494,28 @@ if(this->correctVelocityGradient()){
         massSecondMomentj += gradWj.magnitude2()*thpt;
 
 
-        Vector gradWiMiQ = gradWiMi;
-        Vector gradWjMjQ = gradWjMj;
-        Vector etaijQ = etaij;
-        if(mSlideSurfaceMethod==SlideSurfaceMethod::ReorientInteractionSlide){ 
-          if (slides.isSlideSurface(nodeListi,nodeListj)){
-            const auto ssij = 1.0;//slides.pairwiseSurfaceSmoothness(nodeListi,i,nodeListj,j);
-            const auto nij  = slides.weightedPairwiseSurfaceNormal(nodeListi,i,nodeListj,j,1.0,1.0);
-            const auto gradni =  ssij * gradWi.dot(nij) * nij + (1.0-ssij)*gradWi;
-            const auto gradnj =  ssij * gradWj.dot(nij) * nij + (1.0-ssij)*gradWj;
-            etaijQ = ssij * etaij.magnitude() * nij + (1.0-ssij)*etaij; 
-            rhatij = nij.unitVector(); 
-            gradWi=gradni;
-            gradWj=gradnj;
-            gradWiMiQ = gradni;
-            gradWjMjQ = gradnj;
-            gradWiMi = gradni;
-            gradWjMj = gradnj;
-          }
-        }
-
         // Stress state
         //---------------------------------------------------------------
         const auto rhoij = 0.5*(rhoi+rhoj); 
         const auto cij = 0.5*(ci+cj); 
         const auto vij = vi - vj;
         
-
-        if (mSlideSurfaceMethod==SlideSurfaceMethod::ReorientViscositySlide){ // reorient AV force normal to surface
-          if (slides.isSlideSurface(nodeListi,nodeListj)){
-            const auto ssij = slides.pairwiseSurfaceSmoothness(nodeListi,i,nodeListj,j);
-            const auto nij  = slides.weightedPairwiseSurfaceNormal(nodeListi,i,nodeListj,j,1.0,1.0);
-            const auto gradni =  ssij * gradWiMi.dot(nij) * nij + (1.0-ssij)*gradWiMi;
-            const auto gradnj =  ssij * gradWjMj.dot(nij) * nij + (1.0-ssij)*gradWjMj;
-            gradWiMiQ = gradni;
-            gradWjMjQ = gradnj;
-            etaijQ = ssij * etaij.magnitude() * nij + (1.0-ssij)*etaij;
-          }
-        }
         std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                        ri, etaijQ, vi, rhoij, cij, Hij,  
-                                        rj, etaijQ, vj, rhoij, cij, Hij); 
+                                        ri, etaij, vi, rhoij, cij, Hij,  
+                                        rj, etaij, vj, rhoij, cij, Hij); 
 
-        if (mSlideSurfaceMethod==SlideSurfaceMethod::SimpleSlide){ // normal slide
-          const auto slideCorrection = slides.slideCorrection(nodeListi, i, nodeListj, j,vi,vj);
-          QPiij *= slideCorrection;
-          QPiji *= slideCorrection;
-        }
-        // artificial viscosity
-        
+        // if (slides.isSlideSurface(nodeListi, nodeListj)){ 
+        //   const auto slideCorrection = slides.slideCorrection(nodeListi, i, nodeListj, j, vi, vj);
+        //   QPiij *= slideCorrection;
+        //   QPiji *= slideCorrection;
+        // }
 
         maxViscousPressurei = max(maxViscousPressurei, rhoi*rhoj * QPiij.diagonalElements().maxAbsElement());
         maxViscousPressurej = max(maxViscousPressurej, rhoi*rhoj * QPiji.diagonalElements().maxAbsElement());
 
         // stress tensor (for now no stress or tension between materials)
-        const auto Peffi = (Pi<0.0 and differentMatij ? 0.0 : 1.0) * Pi;
-        const auto Peffj = (Pj<0.0 and differentMatij ? 0.0 : 1.0) * Pj;
-        const auto Seffi = (differentMatij ? 0.0 : 1.0) * Si;
-        const auto Seffj = (differentMatij ? 0.0 : 1.0) * Sj;
-        sigmai = Seffi - Peffi * SymTensor::one;
-        sigmaj = Seffj - Peffj * SymTensor::one;
+        sigmai = fDij * Si - Pi * SymTensor::one;
+        sigmaj = fDij * Sj - Pj * SymTensor::one;
 
         // Compute the tensile correction to add to the stress as described in 
         // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -565,8 +530,8 @@ if(this->correctVelocityGradient()){
         //---------------------------------------------------------------
         const auto rhoirhoj = 1.0/(rhoi*rhoj);
         const auto sf = (sameMatij ? 1.0 : 1.0 + surfaceForceCoeff*abs((rhoi-rhoj)/(rhoi+rhoj+tiny)));
-        sigmarhoi = sf*(rhoirhoj*sigmai*gradWiMi-0.5*QPiij*gradWiMiQ);
-        sigmarhoj = sf*(rhoirhoj*sigmaj*gradWjMj-0.5*QPiji*gradWjMjQ);
+        sigmarhoi = sf*(rhoirhoj*sigmai-0.5*QPiij)*gradWiMi;
+        sigmarhoj = sf*(rhoirhoj*sigmaj-0.5*QPiji)*gradWjMj;
 
         if (averageKernelij){
           const auto sigmarhoij = 0.5*(sigmarhoi+sigmarhoj);
@@ -595,8 +560,8 @@ if(this->correctVelocityGradient()){
           const auto wj = vj - uj*rhatij;
           
           // weights weights
-          const auto Ci =  fDi*(constructHLLC ? std::sqrt(rhoi*Ki)  : Ki  ) + tiny;
-          const auto Cj =  fDj*(constructHLLC ? std::sqrt(rhoj*Kj)  : Kj  ) + tiny;
+          const auto Ci =  (constructHLLC ? std::sqrt(rhoi*Ki)  : Ki  ) + tiny;
+          const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj)  : Kj  ) + tiny;
           const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : mui ) + tiny;
           const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : muj ) + tiny;
 
@@ -608,7 +573,7 @@ if(this->correctVelocityGradient()){
           // get our eff pressure
           const auto ustar = weightUi*ui + weightUj*uj; 
           const auto wstar = weightWi*wi + weightWj*wj;
-          vstar = fSij * vstar + (1.0-fSij)*(ustar*rhatij + wstar);
+          vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
   
         }
 
@@ -644,7 +609,7 @@ if(this->correctVelocityGradient()){
           pairDepsDt[2*kk+1] = - deltaDepsDtj;
         }
         
-        // diffusion
+        // thermal diffusion
         //-----------------------------------------------------------
         if (sameMatij and diffuseEnergy){
           linearReconstruction(ri,rj,epsi,epsj,DepsDxi,DepsDxj,epsLineari,epsLinearj);
@@ -654,7 +619,6 @@ if(this->correctVelocityGradient()){
           pairDepsDt[2*kk+1] -= diffusion;
         }
 
-
         // normalization
         //-----------------------------------------------------------
         normi += volj*Wi;
@@ -663,8 +627,8 @@ if(this->correctVelocityGradient()){
         // XSPH
         //-----------------------------------------------------------
         if (XSPH) {
-          XSPHWeightSumi += volj*Wi;
-          XSPHWeightSumj += voli*Wj;
+          XSPHWeightSumi += (Pj < 0.0 ? 1.0 : 0.0) * volj*Wi;
+          XSPHWeightSumj += (Pi < 0.0 ? 1.0 : 0.0) * voli*Wj;
           XSPHDeltaVi -= 2.0*volj*Wi*(vi-vstar);
           XSPHDeltaVj -= 2.0*voli*Wj*(vj-vstar);
         }
@@ -694,9 +658,9 @@ if(this->correctVelocityGradient()){
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto& Si = S(nodeListi, i);
+      const auto& Pi = pressure(nodeListi, i);
       const auto& mui = mu(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
-      //const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -719,7 +683,7 @@ if(this->correctVelocityGradient()){
       auto& DSDti = DSDt(nodeListi, i);
       
       normi += Hdeti*mi/rhoi*W0;
-      
+
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
@@ -730,9 +694,10 @@ if(this->correctVelocityGradient()){
 
       DxDti = vi;
       if (XSPH) {
+        XSPHWeightSumi += (Pi < 0.0 ? 1.0 : 0.0) * Hdeti*mi/rhoi*W0;
+        XSPHWeightSumi = min(1.0, XSPHWeightSumi / max(normi,tiny));
         CHECK(XSPHWeightSumi >= 0.0);
-        XSPHWeightSumi += Hdeti*mi/rhoi*W0 + tiny;
-        DxDti += xsphCoeff*XSPHDeltaVi/XSPHWeightSumi;
+        DxDti += xsphCoeff*XSPHWeightSumi*XSPHDeltaVi/max(normi,tiny);
       }
 
     
@@ -757,14 +722,6 @@ if(this->correctVelocityGradient()){
                                                        nodeListi,
                                                        i);
 
-      // kill S when fully damaged
-      //const auto Di = (damageRelieveRubble ? 
-      //                 max(0.0, min(1.0, damage(nodeListi, i).Trace()/Dimension::nDim)) :
-      //                 0.0);
-
-      //const auto localMdeti = localMi.Determinant();
-      //const auto goodLocalM = ( localMdeti > 1.0e-2 and numNeighborsi > Dimension::pownu(2));
-      //localMi =  (goodLocalM ? localMi.Inverse() : Tensor::one);
       if(this->correctVelocityGradient()) localDvDxi = localDvDxi*localMi;
 
       // Determine the deviatoric stress evolution.
@@ -773,9 +730,6 @@ if(this->correctVelocityGradient()){
       const auto deviatoricDeformation = deformation - (deformation.Trace()*oneOverDimension)*SymTensor::one;
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
       DSDti += spinCorrection + 2.0*mui*deviatoricDeformation;
-
-      // In the presence of damage, add a term to reduce the stress on this point.
-      //if(Di>0.99) DSDti = (1.0 - Di)*DSDti - 0.125/dt*Di*Si;
       
     } //loop-nodes
   } //loop-nodeLists

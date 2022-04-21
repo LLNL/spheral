@@ -166,9 +166,14 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mApplySelectDensitySum(false),
   mSumDensityNodeLists(sumDensityNodeLists),
   mPairDepsDt(),
-  mPressureRaw(FieldStorageType::CopyFields),
+  mRawPressure(FieldStorageType::CopyFields),
+  //mInterfaceNormals(FieldStorageType::CopyFields),
+  //mNewInterfaceNormals(FieldStorageType::CopyFields),
+  //mInterfaceSmoothness(FieldStorageType::CopyFields),
+  //mNewInterfaceSmoothness(FieldStorageType::CopyFields),
   mDPDx(FieldStorageType::CopyFields),
   mDepsDx(FieldStorageType::CopyFields){
+
     mPairDepsDt.clear();
 
     // see if we're summing density for any nodelist
@@ -178,10 +183,15 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
         mApplySelectDensitySum = true;
       } 
     }
- 
-    mPressureRaw = dataBase.newFluidFieldList(0.0, FSIFieldNames::rawPressure);
+    
+    mRawPressure = dataBase.newFluidFieldList(0.0, FSIFieldNames::rawPressure);
+    //mInterfaceNormals = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::interfaceNormals2);
+    //mNewInterfaceNormals = dataBase.newFluidFieldList(Vector::zero, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals2);
+    //mInterfaceSmoothness = dataBase.newFluidFieldList(0.0, FSIFieldNames::interfaceSmoothness2);
+    //mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness2);
     mDPDx = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::pressureGradient);
     mDepsDx = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::specificThermalEnergyGradient);
+
   }
 
 //------------------------------------------------------------------------------
@@ -224,6 +234,10 @@ registerState(DataBase<Dimension>& dataBase,
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
   
+  dataBase.resizeFluidFieldList(mRawPressure, 0.0, FSIFieldNames::rawPressure, false);
+
+  PolicyPointer rawPressurePolicy(new PressurePolicy<Dimension>());
+
   // Override the specific thermal energy policy if compatible
   if(this->compatibleEnergyEvolution()){
     auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
@@ -231,12 +245,11 @@ registerState(DataBase<Dimension>& dataBase,
     PolicyPointer epsPolicy(new CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>(dataBase));
     state.enroll(specificThermalEnergy, epsPolicy);
   }
-  
-  // We want to know what our raw eos pressure is to know when Pmin is active
-  CHECK(pressure.numFields() == dataBase.numFluidNodeLists());
-  PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
-  state.enroll(mPressureRaw, pressurePolicy);
-  
+
+    
+  //state.enroll(mInterfaceNormals);
+  //state.enroll(mInterfaceSmoothness);
+  state.enroll(mRawPressure,rawPressurePolicy);
 
   TIME_SolidFSISPHregisterState.stop();
 }
@@ -257,12 +270,16 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   // make sure we're tracking the right number of node lists
   dataBase.resizeFluidFieldList(mDPDx, Vector::zero, FSIFieldNames::pressureGradient, false);
   dataBase.resizeFluidFieldList(mDepsDx, Vector::zero, FSIFieldNames::specificThermalEnergyGradient, false);
-
+  //dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals2, false);
+  //dataBase.resizeFluidFieldList(mNewInterfaceSmoothness, 0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness2, false);
+    
   // enroll 
   derivs.enrollAny(HydroFieldNames::pairWork,  mPairDepsDt);
   derivs.enroll(mDPDx);
   derivs.enroll(mDepsDx);
-  
+  //derivs.enroll(mNewInterfaceNormals);
+  //derivs.enroll(mNewInterfaceSmoothness);
+
   TIME_SolidFSISPHregisterDerivs.stop();
 }
 
@@ -358,6 +375,55 @@ finalizeDerivatives(const Scalar /*time*/,
 } // finalize
 
 
+//------------------------------------------------------------------------------
+// Apply the ghost boundary conditions for hydro state fields.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidFSISPHHydroBase<Dimension>::
+applyGhostBoundaries(State<Dimension>& state,
+                     StateDerivatives<Dimension>& derivs) {
+
+  SolidSPHHydroBase<Dimension>::applyGhostBoundaries(state,derivs);
+
+  //FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals2, Vector::zero);
+  //FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness2, 0.0);
+  FieldList<Dimension, Scalar> rawPressure = state.fields(FSIFieldNames::rawPressure, 0.0);
+
+
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    //(*boundaryItr)->applyFieldListGhostBoundary(interfaceNormals);
+    //(*boundaryItr)->applyFieldListGhostBoundary(interfaceSmoothness);
+    (*boundaryItr)->applyFieldListGhostBoundary(rawPressure);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Enforce the boundary conditions for hydro state fields.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidFSISPHHydroBase<Dimension>::
+enforceBoundaries(State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+
+  SolidSPHHydroBase<Dimension>::enforceBoundaries(state,derivs);
+
+  //FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals2, Vector::zero);
+  //FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness2, 0.0);
+  FieldList<Dimension, Scalar> rawPressure = state.fields(FSIFieldNames::rawPressure, 0.0);
+
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->enforceFieldListBoundary(rawPressure);
+    //(*boundaryItr)->enforceFieldListBoundary(interfaceNormals);
+    //(*boundaryItr)->enforceFieldListBoundary(interfaceSmoothness);
+  }
+
+}
 //------------------------------------------------------------------------------
 // method for limited linear reconstruction between nodes
 //------------------------------------------------------------------------------
