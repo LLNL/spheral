@@ -75,7 +75,7 @@ title("1-D integrated hydro test -- planar Noh problem")
 commandLine(KernelConstructor = NBSplineKernel,
             order = 5,
 
-            nx1 = 1000,
+            nx1 = 100,
             rho1 = 1.0,
             eps1 = 0.0,
             smallPressure = False, #If set to True eps is not zero but small. 
