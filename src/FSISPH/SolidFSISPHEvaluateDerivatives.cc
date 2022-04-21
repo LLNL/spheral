@@ -30,7 +30,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto epsTensile = this->epsilonTensile();
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
   const auto totalEnergy = this->evolveTotalEnergy();
-  // const auto damageRelieveRubble = this->damageRelieveRubble();
   const auto epsDiffusionCoeff = this->specificThermalEnergyDiffusionCoefficient();
   const auto rhoStabilizeCoeff = this->densityStabilizationCoefficient();
   const auto surfaceForceCoeff = this->surfaceForceCoefficient();
@@ -54,8 +53,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Get the state and derivative FieldLists.
-  const auto interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
-  const auto interfaceNormals = state.fields(FSIFieldNames::interfaceNormals2, Vector::zero);
+  //const auto interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
+  //const auto interfaceNormals = state.fields(FSIFieldNames::interfaceNormals2, Vector::zero);
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
@@ -87,8 +86,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(pTypes.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  newInterfaceSmoothness = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + FSIFieldNames::interfaceSmoothness, 0.0);
-  auto  newInterfaceNormals = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + FSIFieldNames::interfaceNormals2, Vector::zero);
+  //auto  newInterfaceSmoothness = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + FSIFieldNames::interfaceSmoothness, 0.0);
+  //auto  newInterfaceNormals = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + FSIFieldNames::interfaceNormals2, Vector::zero);
   auto  normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
   auto  DepsDx = derivatives.fields(FSIFieldNames::specificThermalEnergyGradient, Vector::zero);
   auto  DPDx = derivatives.fields(FSIFieldNames::pressureGradient, Vector::zero);
@@ -162,7 +161,6 @@ if(this->correctVelocityGradient()){
 
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
-      const auto& vi = velocity(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& epsi = specificThermalEnergy(nodeListi, i);
       const auto& Pi = pressure(nodeListi, i);
@@ -175,7 +173,6 @@ if(this->correctVelocityGradient()){
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
-      const auto& vj = velocity(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
       const auto& epsj = specificThermalEnergy(nodeListj, j);
       const auto& Pj = pressure(nodeListj, j);
@@ -196,7 +193,6 @@ if(this->correctVelocityGradient()){
       auto& Mj = M_thread(nodeListj,j);
 
       const auto rij = ri - rj;
-      const auto rhatij = rij.unitVector();
       const auto Pij = Pi - Pj;
       const auto epsij = epsi - epsj;
 
@@ -317,7 +313,6 @@ if(this->correctVelocityGradient()){
     auto DSDt_thread = DSDt.threadCopy(threadStack);
     auto DvDx_thread = DvDx.threadCopy(threadStack);
     auto localDvDx_thread = localDvDx.threadCopy(threadStack);
-    //auto localM_thread = localM.threadCopy(threadStack);
     auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
@@ -360,7 +355,6 @@ if(this->correctVelocityGradient()){
       auto& DvDti = DvDt_thread(nodeListi, i);
       auto& DepsDti = DepsDt_thread(nodeListi, i);
       auto& DvDxi = DvDx_thread(nodeListi, i);
-      //auto& localMi = localM_thread(nodeListi, i);
       auto& localDvDxi = localDvDx_thread(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
@@ -396,7 +390,6 @@ if(this->correctVelocityGradient()){
       auto& DvDtj = DvDt_thread(nodeListj, j);
       auto& DepsDtj = DepsDt_thread(nodeListj, j);
       auto& DvDxj = DvDx_thread(nodeListj, j);
-      //auto& localMj = localM_thread(nodeListj, j);
       auto& localDvDxj = localDvDx_thread(nodeListj, j);
       auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
@@ -421,26 +414,26 @@ if(this->correctVelocityGradient()){
 
       // pairwise damage and pairwise nodal damage
       const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
-      const auto Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
-      const auto Dj = max(0.0, min(1.0, damage(nodeListj, j).dot(rhatij).magnitude()));
-      const auto fDi =  (sameMatij ? max((1.0-Di)*(1.0-Di),tiny) : 0.0 );
-      const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 0.0 );
+      //const auto Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
+      //const auto Dj = max(0.0, min(1.0, damage(nodeListj, j).dot(rhatij).magnitude()));
+      //const auto fDi =  (sameMatij ? max((1.0-Di)*(1.0-Di),tiny) : 0.0 );
+      //const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 0.0 );
 
       // is Pmin being activated
-      const auto pminActivei = (rPi<(Pi-rhoi*ci*ci*1e-5));
-      const auto pminActivej = (rPj<(Pj-rhoj*cj*cj*1e-5));
+      //const auto pminActivei = (rPi<(Pi-rhoi*ci*ci*1e-5));
+      //const auto pminActivej = (rPj<(Pj-rhoj*cj*cj*1e-5));
       
       // decoupling criteria
-      const auto isExpanding = (ri-rj).dot(vi-vj) > 0.0;
-      const auto cantSupportTension = (fDi<fullyDamagedThreshold) or (fDj<fullyDamagedThreshold);
-      const auto isInTension = pminActivei or pminActivej;
-      const auto decouple =  isExpanding and (cantSupportTension and isInTension);
+      // const auto isExpanding = (ri-rj).dot(vi-vj) > 0.0;
+      // const auto cantSupportTension = (fDi<fullyDamagedThreshold) or (fDj<fullyDamagedThreshold);
+      // const auto isInTension = pminActivei or pminActivej;
+      // const auto decouple =  isExpanding and (cantSupportTension and isInTension);
 
       // do we need to construct our interface velocity?
       const auto constructInterface = (fDij < 0.99) and activateConstruction;
       const auto negligableShearWave = max(mui,muj) < 1.0e-5*min(Ki,Kj);
 
-      if (!decouple){
+      //if (!decouple){
 
         // Kernels
         //--------------------------------------
@@ -621,19 +614,19 @@ if(this->correctVelocityGradient()){
 
         // normalization
         //-----------------------------------------------------------
-        normi += volj*Wi;
-        normj += voli*Wj;
+        // normi += volj*Wi;
+        // normj += voli*Wj;
 
         // XSPH
         //-----------------------------------------------------------
-        if (XSPH) {
-          XSPHWeightSumi += (Pj < 0.0 ? 1.0 : 0.0) * volj*Wi;
-          XSPHWeightSumj += (Pi < 0.0 ? 1.0 : 0.0) * voli*Wj;
-          XSPHDeltaVi -= 2.0*volj*Wi*(vi-vstar);
-          XSPHDeltaVj -= 2.0*voli*Wj*(vj-vstar);
-        }
+        // if (XSPH) {
+        //   XSPHWeightSumi += (Pj < 0.0 ? 1.0 : 0.0) * volj*Wi;
+        //   XSPHWeightSumj += (Pi < 0.0 ? 1.0 : 0.0) * voli*Wj;
+        //   XSPHDeltaVi -= 2.0*volj*Wi*(vi-vstar);
+        //   XSPHDeltaVj -= 2.0*voli*Wj*(vj-vstar);
+        // }
 
-      } // if damageDecouple 
+      //} // if damageDecouple 
     } // loop over pairs
     threadReduceFieldLists<Dimension>(threadStack);
   } // OpenMP parallel region
@@ -682,7 +675,7 @@ if(this->correctVelocityGradient()){
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
       auto& DSDti = DSDt(nodeListi, i);
       
-      normi += Hdeti*mi/rhoi*W0;
+      // normi += Hdeti*mi/rhoi*W0;
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
@@ -693,12 +686,12 @@ if(this->correctVelocityGradient()){
       DrhoDti -=  rhoi*DvDxi.Trace();
 
       DxDti = vi;
-      if (XSPH) {
-        XSPHWeightSumi += (Pi < 0.0 ? 1.0 : 0.0) * Hdeti*mi/rhoi*W0;
-        XSPHWeightSumi = min(1.0, XSPHWeightSumi / max(normi,tiny));
-        CHECK(XSPHWeightSumi >= 0.0);
-        DxDti += xsphCoeff*XSPHWeightSumi*XSPHDeltaVi/max(normi,tiny);
-      }
+      // if (XSPH) {
+      //   XSPHWeightSumi += (Pi < 0.0 ? 1.0 : 0.0) * Hdeti*mi/rhoi*W0;
+      //   XSPHWeightSumi = min(1.0, XSPHWeightSumi / max(normi,tiny));
+      //   CHECK(XSPHWeightSumi >= 0.0);
+      //   DxDti += xsphCoeff*XSPHWeightSumi*XSPHDeltaVi/max(normi,tiny);
+      // }
 
     
       DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
