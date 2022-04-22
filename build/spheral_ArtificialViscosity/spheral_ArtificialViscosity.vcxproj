@@ -350,8 +350,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosityInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityRZ.cc" />
@@ -379,13 +379,13 @@
     <None Include="..\..\src\ArtificialViscosity\ArtificialViscosityList.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosity.hh">
+    <None Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosity.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityRZ.hh">
+    <None Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosityRZ.hh">
       <FileType>Document</FileType>
     </None>
-    <CustomBuild Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.py">
+    <CustomBuild Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosityInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2

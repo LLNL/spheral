@@ -1,10 +1,7 @@
 #ATS:for testDim in ("1d", "2d", "3d"):
 #ATS:    for HydroChoice in ("SPH", "ASPH", "PSPH", "PASPH"):
-#ATS:        for solid in (False, True):
-#ATS:            test(SELF, "--graphics False --nx1 10 --nx2 10 --testCase linear --testDim %s --HydroChoice %s --solid %s" % (testDim, HydroChoice, solid), 
-#ATS:                 label="%s linear gradient correction test -- %s (solid=%s) (serial)" % (HydroChoice, testDim, solid))
-#ATS:test(SELF, "--graphics False --nx1 10 --nx2 10 --testCase linear --testDim Spherical --HydroChoice SPH --solid False", 
-#ATS:     label="SPH linear gradient correction test -- Spherical (solid=False) (serial)")
+#ATS:        test(SELF, "--graphics False --nx1 10 --nx2 10 --testCase linear --testDim %s --HydroChoice %s" % (testDim, HydroChoice), 
+#ATS:             label="%s linear gradient correction test -- %s (serial)" % (HydroChoice, testDim))
 #-------------------------------------------------------------------------------
 # Unit test of the linear velocity gradient correction for SPH.
 #-------------------------------------------------------------------------------
@@ -33,7 +30,6 @@ commandLine(
 
     # What hydro operator should we test?
     HydroChoice = "SPH",
-    solid = False,
     gradhCorrection = False,
 
     # Should we randomly perturb the positions?

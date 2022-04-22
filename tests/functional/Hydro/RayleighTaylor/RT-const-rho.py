@@ -179,7 +179,7 @@ vizBaseName = "Rayleigh-Taylor-2d"
 # CRKSPH Switches to ensure consistency
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.

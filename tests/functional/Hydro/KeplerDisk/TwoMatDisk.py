@@ -182,7 +182,7 @@ elif CRKSPH:
         HydroConstructor = ACRKSPHHydro
     else:
         HydroConstructor = CRKSPHHydro
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity
 else:
     if ASPH:
         HydroConstructor = ASPHHydro
