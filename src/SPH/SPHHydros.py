@@ -69,7 +69,7 @@ class %(classname)s%(dim)s(SolidSPHHydroBase%(dim)s):
                  WPi = None,
                  WGrad = None,
                  filter = 0.0,
-                 cfl = 0.5,
+                 cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
                  evolveTotalEnergy = False,
@@ -187,7 +187,7 @@ class %(classname)s(SPHHydroBaseGSRZ):
                  W,
                  WPi = None,
                  filter = 0.0,
-                 cfl = 0.5,
+                 cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
                  evolveTotalEnergy = False,
@@ -246,7 +246,7 @@ class %(classname)s(SolidSPHHydroBaseRZ):
                  WPi = None,
                  WGrad = None,
                  filter = 0.0,
-                 cfl = 0.5,
+                 cfl = 0.25,
                  useVelocityMagnitudeForDt = False,
                  compatibleEnergyEvolution = True,
                  evolveTotalEnergy = False,
@@ -401,8 +401,8 @@ def SPH(dataBase,
 
     # Artificial viscosity.
     if not Q:
-        Cl = 1.0*(dataBase.maxKernelExtent/2.0)
-        Cq = 1.0*(dataBase.maxKernelExtent/2.0)**2
+        Cl = 2.0*(dataBase.maxKernelExtent/2.0)
+        Cq = 2.0*(dataBase.maxKernelExtent/2.0)**2
         Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # Build the constructor arguments

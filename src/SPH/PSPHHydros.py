@@ -101,9 +101,9 @@ def PSPH(dataBase,
 
     # Artificial viscosity.
     if not Q:
-        Cl = 1.0*(dataBase.maxKernelExtent/2.0)
-        Cq = 1.0*(dataBase.maxKernelExtent/2.0)**2
-        Q = eval("MonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
+        Cl = 2.0*(dataBase.maxKernelExtent/2.0)
+        Cq = 2.0*(dataBase.maxKernelExtent/2.0)**2
+        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # Build and return the thing.
     xmin = (ndim,) + xmin
