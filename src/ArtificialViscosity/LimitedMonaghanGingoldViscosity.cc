@@ -109,11 +109,11 @@ double limiterVL(const double x) {
 template<typename Dimension>
 LimitedMonaghanGingoldViscosity<Dimension>::
 LimitedMonaghanGingoldViscosity(const Scalar Clinear,
-                               const Scalar Cquadratic,
-                               const bool linearInExpansion,
-                               const bool quadraticInExpansion,
-                               const Scalar etaCritFrac,
-                               const Scalar etaFoldFrac):
+                                const Scalar Cquadratic,
+                                const bool linearInExpansion,
+                                const bool quadraticInExpansion,
+                                const Scalar etaCritFrac,
+                                const Scalar etaFoldFrac):
   MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, 
                                       linearInExpansion, quadraticInExpansion),
   mEtaCritFrac(etaCritFrac),
