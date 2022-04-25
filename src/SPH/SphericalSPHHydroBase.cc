@@ -244,7 +244,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   const auto& W1d = W.baseKernel1d();
   const auto  oneKernel = (W == WQ);
   const auto  etaMax = W.etamax();
-  const auto  W0 = W1d(0.0, 1.0);
+  // const auto  W0 = W1d(0.0, 1.0);
 
   // A few useful constants we'll use in the following loop.
   const auto tiny = 1.0e-30;
