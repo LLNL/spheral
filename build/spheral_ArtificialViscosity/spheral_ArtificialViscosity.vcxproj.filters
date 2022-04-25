@@ -18,10 +18,10 @@
     <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.2.cc">
+    <ClCompile Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosityInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.3.cc">
+    <ClCompile Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.2.cc">
@@ -59,10 +59,10 @@
     <None Include="..\..\src\ArtificialViscosity\ArtificialViscosityList.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosity.hh">
+    <None Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosity.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityRZ.hh">
+    <None Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosityRZ.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosity.hh">
@@ -85,7 +85,7 @@
     <CustomBuild Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\ArtificialViscosity\CRKSPHMonaghanGingoldViscosityInst.cc.py">
+    <CustomBuild Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosityInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.py">

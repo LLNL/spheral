@@ -183,25 +183,25 @@ commandLine(KernelConstructor = NBSplineKernel,
             writeOutputLabel = True,
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0713445       ,
-            L2rho =   0.0193689       ,
-            Linfrho = 2.31211         ,
-
-            L1P =     0.0246952       ,
-            L2P =     0.0072287       ,
-            LinfP =   0.966204        ,
-
-            L1v =     0.0386543       ,
-            L2v =     0.0104419       ,
-            Linfv =   0.945782        ,
-
-            L1eps =   0.0140886       ,
-            L2eps =   0.00398204      ,
-            Linfeps = 0.437577        ,
-
-            L1h =     0.000547739     ,
-            L2h =     0.000131918     ,
-            Linfh =   0.00916578      ,
+            L1rho =   0.0543413,   
+            L2rho =   0.0147691,   
+            Linfrho = 1.66503,     
+                                   
+            L1P =     0.0180769,   
+            L2P =     0.00545035,  
+            LinfP =   0.633995,    
+                                   
+            L1v =     0.0245764,   
+            L2v =     0.00844616,  
+            Linfv =   0.857868,    
+                                   
+            L1eps =   0.0106103,   
+            L2eps =   0.00337624,  
+            Linfeps = 0.356841,    
+                                   
+            L1h =     0.000437201, 
+            L2h =     0.000120092, 
+            Linfh =   0.00848983,  
 
             tol = 1.0e-5,
 
