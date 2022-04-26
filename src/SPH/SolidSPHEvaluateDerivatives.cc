@@ -335,10 +335,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Compute the tensile correction to add to the stress as described in 
       // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
-      const auto fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
-      const auto fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
-      const auto Ri = fi*tensileStressCorrection(sigmai);
-      const auto Rj = fj*tensileStressCorrection(sigmaj);
+      const auto Ri = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh))*tensileStressCorrection(sigmai);
+      const auto Rj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh))*tensileStressCorrection(sigmaj);
       sigmai += Ri;
       sigmaj += Rj;
 

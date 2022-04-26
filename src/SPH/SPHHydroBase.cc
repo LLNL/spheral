@@ -842,8 +842,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& cj = soundSpeed(nodeListj, j);
       const auto& omegaj = omega(nodeListj, j);
       const auto  safeOmegaj = safeInv(omegaj, tiny);
+      const auto  Hdetj = Hj.Determinant();
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
+      CHECK(Hdetj > 0.0);
 
       auto& rhoSumj = rhoSum_thread(nodeListj, j);
       auto& normj = normalization_thread(nodeListj, j);
@@ -923,10 +925,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       viscousWorkj += mi*workQj;
 
       // Determine an effective pressure including a term to fight the tensile instability.
-//             const auto fij = epsTensile*pow(Wi/(Hdeti*WnPerh), nTensile);
-      const auto fij = mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
-      const auto Ri = fij*(Pi < 0.0 ? -Pi : 0.0);
-      const auto Rj = fij*(Pj < 0.0 ? -Pj : 0.0);
+      const auto Ri = mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh))*(Pi < 0.0 ? -Pi : 0.0);
+      const auto Rj = mEpsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh))*(Pj < 0.0 ? -Pj : 0.0);
       const auto Peffi = Pi + Ri;
       const auto Peffj = Pj + Rj;
 
