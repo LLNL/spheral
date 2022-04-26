@@ -119,8 +119,8 @@ computePSPHCorrections(const ConnectivityMap<Dimension>& connectivityMap,
       const Vector rij = ri - rj;
       const Scalar etai = (Hi*rij).magnitude();
       const Scalar etaj = (Hj*rij).magnitude();
-      std::tie(Wi, gWi) = W.kernelAndGradValue(etai, Hdeti);
-      std::tie(Wj, gWj) = W.kernelAndGradValue(etaj, Hdetj);
+      W.kernelAndGradValue(etai, Hdeti, Wi, gWi);
+      W.kernelAndGradValue(etaj, Hdetj, Wj, gWj);
 
       const auto gradhi = invhi*(Dimension::nDim*Wi+etai*gWi);
       const auto gradhj = invhj*(Dimension::nDim*Wj+etaj*gWj);

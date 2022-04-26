@@ -16,7 +16,7 @@ class TestBiLinearInterpolator(XYInterpolatorTestingBase,
     #===========================================================================
     def setUp(self):
         self.order = 1
-        self.tol = {1 : 1e-10,
+        self.tol = {1 : 1e-9,
                     2 : 100.0,
                     3 : 100.0}
         self.ntests = 20

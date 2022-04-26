@@ -326,9 +326,9 @@ operator==(const TableKernel<Dimension>& rhs) const {
 // sum of kernel values.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
+typename Dimension::Scalar
 TableKernel<Dimension>::
-equivalentNodesPerSmoothingScale(const double Wsum) const {
+equivalentNodesPerSmoothingScale(const Scalar Wsum) const {
 
   // Find the lower bound in the tabulated Wsum's bracketing the input
   // value.
@@ -341,7 +341,7 @@ equivalentNodesPerSmoothingScale(const double Wsum) const {
         (Wsum >= mWsumValues[lb] and Wsum <= mWsumValues[ub]));
 
   // Now interpolate for the corresponding nodes per h (within bounds);
-  double result;
+  Scalar result;
   if (lb == -1) {
     result = mNperhValues[0];
   } else if (ub == n) {
@@ -362,9 +362,9 @@ equivalentNodesPerSmoothingScale(const double Wsum) const {
 // Determine the effective Wsum we would expect for the given n per h.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
+typename Dimension::Scalar
 TableKernel<Dimension>::
-equivalentWsum(const double nPerh) const {
+equivalentWsum(const Scalar nPerh) const {
 
   // Find the lower bound in the tabulated n per h's bracketing the input
   // value.
@@ -377,7 +377,7 @@ equivalentWsum(const double nPerh) const {
         (nPerh >= mNperhValues[lb] and nPerh <= mNperhValues[ub]));
 
   // Now interpolate for the corresponding Wsum.
-  double result;
+  Scalar result;
   if (lb == -1) {
     result = mWsumValues[0];
   } else if (ub == n) {
@@ -407,15 +407,15 @@ setNperhValues(const bool scaleTo1D) {
   REQUIRE(this->kernelExtent() > 0.0);
 
   // Size the Nperh array.
-  mWsumValues = vector<double>(mNumPoints);
-  mNperhValues = vector<double>(mNumPoints);
+  mWsumValues = vector<Scalar>(mNumPoints);
+  mNperhValues = vector<Scalar>(mNumPoints);
 
   // For the allowed range of n per h, sum up the kernel values.
-  const double dnperh = (mMaxNperh - mMinNperh)/(mNumPoints - 1u);
+  const Scalar dnperh = (mMaxNperh - mMinNperh)/(mNumPoints - 1u);
   for (auto i = 0u; i < mNumPoints; ++i) {
-    const double nperh = mMinNperh + i*dnperh;
+    const Scalar nperh = mMinNperh + i*dnperh;
     CHECK(nperh >= mMinNperh and nperh <= mMaxNperh);
-    const double deta = 1.0/nperh;
+    const Scalar deta = 1.0/nperh;
     mNperhValues[i] = nperh;
     if (scaleTo1D) {
       mWsumValues[i] = sumKernelValuesAs1D(*this, deta);

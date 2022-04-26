@@ -242,6 +242,7 @@ class NBSplineKernel(Kernel):
 PYB11template("Dimension")
 class TableKernel(Kernel):
     PYB11typedefs="""
+    using Scalar = typename %(Dimension)s::Scalar;
     using Vector = typename %(Dimension)s::Vector;
     using SymTensor = typename %(Dimension)s::SymTensor;
 """
@@ -322,7 +323,7 @@ class TableKernel(Kernel):
     # Methods
     @PYB11const
     @PYB11implementation("""[](const TableKernel<%(Dimension)s>& self, const Vector& etaj, const Vector& etai, const SymTensor& H) -> py::tuple {
-        double W, deltaWsum;
+        Scalar W, deltaWsum;
         Vector gradW;
         self.kernelAndGrad(etaj, etai, H, W, gradW, deltaWsum);
         return py::make_tuple(W, gradW, deltaWsum);
@@ -335,35 +336,40 @@ class TableKernel(Kernel):
         return "py::tuple"
 
     @PYB11const
+    @PYB11implementation("""[](const TableKernel<%(Dimension)s>& self, const Scalar& etaij, const Scalar& Hdet) -> py::tuple {
+        Scalar W, gW;
+        self.kernelAndGradValue(etaij, Hdet, W, gW);
+        return py::make_tuple(W, gW);
+      }""")
     def kernelAndGradValue(self,
-                           etaij = "const double",
-                           Hdet = "const double"):
-        return "std::pair<double, double>"
+                           etaij = "const Scalar",
+                           Hdet = "const Scalar"):
+        return "py::tuple"
 
     @PYB11const
     def kernelAndGradValues(self,
-                            etaij = "const std::vector<double>&",
-                            Hdets = "const std::vector<double>&",
-                            kernelValues = "std::vector<double>&",
-                            gradValues = "std::vector<double>&"):
+                            etaij = "const std::vector<Scalar>&",
+                            Hdets = "const std::vector<Scalar>&",
+                            kernelValues = "std::vector<Scalar>&",
+                            gradValues = "std::vector<Scalar>&"):
         return "void"
 
     @PYB11const
     def equivalentNodesPerSmoothingScale(self,
-                                         Wsum = "double"):
+                                         Wsum = "Scalar"):
         "Compute the nPerh that corresponds to the Wsum value"
-        return "double"
+        return "Scalar"
 
     @PYB11const
     def equivalentWsum(self,
-                       nPerh = "double"):
+                       nPerh = "Scalar"):
         "Compute the Wsum that corresponds to the  nPerh value"
-        return "double"
+        return "Scalar"
 
     #...........................................................................
     # Properties
-    nperhValues = PYB11property("const std::vector<double>&", returnpolicy="reference_internal", doc="The lookup table used for finding nperh")
-    WsumValues = PYB11property("const std::vector<double>&", returnpolicy="reference_internal", doc="The lookup table of Wsum values")
+    nperhValues = PYB11property("const std::vector<Scalar>&", returnpolicy="reference_internal", doc="The lookup table used for finding nperh")
+    WsumValues = PYB11property("const std::vector<Scalar>&", returnpolicy="reference_internal", doc="The lookup table of Wsum values")
     numPoints = PYB11property("size_t", doc="The number of points in the table")
 
 #-------------------------------------------------------------------------------

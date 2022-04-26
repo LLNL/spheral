@@ -440,8 +440,8 @@ if(this->correctVelocityGradient()){
         CHECK(etaMagj >= 0.0);
 
         // Symmetrized kernel weight and gradient.
-        std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
-        std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
+        W.kernelAndGradValue(etaMagi, Hdeti, Wi, gWi);
+        W.kernelAndGradValue(etaMagj, Hdetj, Wj, gWj);
         const auto Hetai = Hi*etai.unitVector();
         const auto Hetaj = Hj*etaj.unitVector();
         auto gradWi = gWi*Hetai;

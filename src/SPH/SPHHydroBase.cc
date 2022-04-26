@@ -761,7 +761,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Size up the pair-wise accelerations before we start.
   if (mCompatibleEnergyEvolution) pairAccelerations.resize(npairs);
   
-// The scale for the tensile correction.
+  // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);TIME_SPHevalDerivs_initial.stop();
@@ -866,29 +866,36 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Flag if this is a contiguous material pair or not.
       const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
 
-      // Normalized node coordinates
-      const auto etaii = Hi*ri;
-      const auto etaji = Hi*rj;
-      const auto etaij = Hj*ri;
-      const auto etajj = Hj*rj;
+      // Node displacement.
+      const auto rij = ri - rj;
+      const auto etai = Hi*rij;
+      const auto etaj = Hj*rij;
+      const auto etaMagi = etai.magnitude();
+      const auto etaMagj = etaj.magnitude();
+      const auto etaUnit = etai*safeInvVar(etaMagi);
+      CHECK(etaMagi >= 0.0);
+      CHECK(etaMagj >= 0.0);
 
       // Symmetrized kernel weight and gradient.
-      W.kernelAndGrad(etaji, etaii, Hi, Wi, gradWi, gWi);
-      W.kernelAndGrad(etajj, etaij, Hj, Wj, gradWj, gWj);
+      W.kernelAndGradValue(etaMagi, Hdeti, Wi, gWi);
+      W.kernelAndGradValue(etaMagj, Hdetj, Wj, gWj);
+      gradWi = gWi*Hi*etaUnit;
+      gradWj = gWj*Hj*etaUnit;
       if (oneKernel) {
         WQi = Wi;
         WQj = Wj;
         gradWQi = gradWi;
         gradWQj = gradWj;
       } else {
-        WQ.kernelAndGrad(etaji, etaii, Hi, WQi, gradWQi, gWQi);
-        WQ.kernelAndGrad(etajj, etaij, Hj, WQj, gradWQj, gWQj);
+        WQ.kernelAndGradValue(etaMagi, Hdeti, WQi, gWQi);
+        WQ.kernelAndGradValue(etaMagj, Hdetj, WQj, gWQj);
+        gradWQi = gWQi*Hi*etaUnit;
+        gradWQj = gWQj*Hj*etaUnit;
       }
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
       const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
-      const auto rij = ri - rj;
       const auto rij2 = rij.magnitude2();
       const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
       weightedNeighborSumi +=     fweightij*std::abs(gWi);
@@ -907,8 +914,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      ri, etaii - etaji, vi, rhoi, ci, Hi,
-                                      rj, etaij - etajj, vj, rhoj, cj, Hj);
+                                      ri, etai, vi, rhoi, ci, Hi,
+                                      rj, etaj, vj, rhoj, cj, Hj);
       const auto Qacci = 0.5*(QPiij*gradWQi);
       const auto Qaccj = 0.5*(QPiji*gradWQj);
       // const auto workQi = 0.5*(QPiij*vij).dot(gradWQi);

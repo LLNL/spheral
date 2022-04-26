@@ -40,37 +40,39 @@ public:
   bool operator==(const TableKernel& rhs) const;
 
   // Return the kernel weight for a given normalized distance or position.
-  double kernelValue(const double etaij, const double Hdet) const;
+  Scalar kernelValue(const Scalar etaij, const Scalar Hdet) const;
 
   // Return the gradient value for a given normalized distance or position.
-  double gradValue(const double etaij, const double Hdet) const;
+  Scalar gradValue(const Scalar etaij, const Scalar Hdet) const;
 
   // Return the second derivative value for a given normalized distance or position.
-  double grad2Value(const double etaij, const double Hdet) const;
+  Scalar grad2Value(const Scalar etaij, const Scalar Hdet) const;
 
   // Simultaneously return the kernel value and first derivative.
   void kernelAndGrad(const Vector& etaj, const Vector& etai, const SymTensor& H,
                      Scalar& W,
                      Vector& gradW,
                      Scalar& deltaWsum) const;
-  std::pair<double, double> kernelAndGradValue(const double etaij, const double Hdet) const;  // deprecate
+  void kernelAndGradValue(const Scalar etaij, const Scalar Hdet,
+                          Scalar& W,
+                          Scalar& gW) const;
 
   // Look up the kernel and first derivative for a set.
-  void kernelAndGradValues(const std::vector<double>& etaijs,
-                           const std::vector<double>& Hdets,
-                           std::vector<double>& kernelValues,
-                           std::vector<double>& gradValues) const;
+  void kernelAndGradValues(const std::vector<Scalar>& etaijs,
+                           const std::vector<Scalar>& Hdets,
+                           std::vector<Scalar>& kernelValues,
+                           std::vector<Scalar>& gradValues) const;
 
   // Return the equivalent number of nodes per smoothing scale implied by the given
   // sum of kernel values.
-  double equivalentNodesPerSmoothingScale(const double Wsum) const;
+  Scalar equivalentNodesPerSmoothingScale(const Scalar Wsum) const;
 
   // Return the equivalent W sum implied by the given number of nodes per smoothing scale.
-  double equivalentWsum(const double nPerh) const;
+  Scalar equivalentWsum(const Scalar nPerh) const;
 
   // Allow read only access to the tabular data.
-  const std::vector<double>& nperhValues() const;
-  const std::vector<double>& WsumValues() const;
+  const std::vector<Scalar>& nperhValues() const;
+  const std::vector<Scalar>& WsumValues() const;
 
   // Number of points in our lookup data
   size_t numPoints() const;
@@ -83,8 +85,8 @@ private:
   size_t mNumPoints;
 
   // Data for the nperh lookup algorithm.
-  std::vector<double> mNperhValues, mWsumValues;
-  double mMinNperh, mMaxNperh;
+  std::vector<Scalar> mNperhValues, mWsumValues;
+  Scalar mMinNperh, mMaxNperh;
 
   // Initialize the table relating Wsum to nodes per smoothing scale.
   void setNperhValues(const bool scaleTo1D = false);

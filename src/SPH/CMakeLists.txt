@@ -45,7 +45,6 @@ set(SPH_headers
     SphericalSPHHydroBase.hh
     SolidSPHHydroBase.hh
     SolidSPHHydroBaseInline.hh
-    SolidSPHHydroBaseR.hh
     SolidSPHHydroBaseRZ.hh
     computeHydrostaticEquilibriumPressure.hh
     computePSPHCorrections.hh

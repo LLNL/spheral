@@ -200,10 +200,9 @@ iterateIdealH(DataBase<Dimension>& dataBase,
                            0.0);
           }
 
-          std::tie(Wi, gWi) = W.kernelAndGradValue(etai.magnitude(), 1.0);
+          W.kernelAndGradValue(etai.magnitude(), 1.0, Wi, gWi);
+          W.kernelAndGradValue(etaj.magnitude(), 1.0, Wj, gWj);
           gradWi = gWi*Hi*etai.unitVector();
-
-          std::tie(Wj, gWj) = W.kernelAndGradValue(etaj.magnitude(), 1.0);
           gradWj = gWj*Hj*etaj.unitVector();
 
           // Increment the moments

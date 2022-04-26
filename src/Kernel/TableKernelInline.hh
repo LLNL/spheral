@@ -9,8 +9,8 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
-TableKernel<Dimension>::kernelValue(const double etaij, const double Hdet) const {
+typename Dimension::Scalar
+TableKernel<Dimension>::kernelValue(const Scalar etaij, const Scalar Hdet) const {
   REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
   if (etaij < this->mKernelExtent) {
@@ -25,8 +25,8 @@ TableKernel<Dimension>::kernelValue(const double etaij, const double Hdet) const
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
-TableKernel<Dimension>::gradValue(const double etaij, const double Hdet) const {
+typename Dimension::Scalar
+TableKernel<Dimension>::gradValue(const Scalar etaij, const Scalar Hdet) const {
   REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
   if (etaij < this->mKernelExtent) {
@@ -41,8 +41,8 @@ TableKernel<Dimension>::gradValue(const double etaij, const double Hdet) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-double
-TableKernel<Dimension>::grad2Value(const double etaij, const double Hdet) const {
+typename Dimension::Scalar
+TableKernel<Dimension>::grad2Value(const Scalar etaij, const Scalar Hdet) const {
   REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
   if (etaij < this->mKernelExtent) {
@@ -84,16 +84,18 @@ TableKernel<Dimension>::kernelAndGrad(const typename Dimension::Vector& etaj,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-std::pair<double, double>
-TableKernel<Dimension>::kernelAndGradValue(const double etaij, const double Hdet) const {
+void
+TableKernel<Dimension>::kernelAndGradValue(const Scalar etaij, const Scalar Hdet,
+                                           Scalar& Wi, Scalar& gWi) const {
   REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
   if (etaij < this->mKernelExtent) {
     const auto i0 = mInterp.lowerBound(etaij);
-    return std::make_pair(Hdet*mInterp(etaij, i0),
-                          Hdet*mGradInterp(etaij, i0));
+    Wi = Hdet*mInterp(etaij, i0);
+    gWi = Hdet*mGradInterp(etaij, i0);
   } else {
-    return std::make_pair(0.0, 0.0);
+    Wi = 0.0;
+    gWi = 0.0;
   }
 }
 
@@ -103,10 +105,10 @@ TableKernel<Dimension>::kernelAndGradValue(const double etaij, const double Hdet
 template<typename Dimension>
 inline
 void
-TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaijs,
-                                            const std::vector<double>& Hdets,
-                                            std::vector<double>& kernelValues,
-                                            std::vector<double>& gradValues) const {
+TableKernel<Dimension>::kernelAndGradValues(const std::vector<Scalar>& etaijs,
+                                            const std::vector<Scalar>& Hdets,
+                                            std::vector<Scalar>& kernelValues,
+                                            std::vector<Scalar>& gradValues) const {
   // Preconditions.
   const auto n = etaijs.size();
   BEGIN_CONTRACT_SCOPE
@@ -136,7 +138,7 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<double>& etaijs,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const std::vector<double>&
+const std::vector<typename Dimension::Scalar>&
 TableKernel<Dimension>::
 nperhValues() const {
   return mNperhValues;
@@ -144,7 +146,7 @@ nperhValues() const {
 
 template<typename Dimension>
 inline
-const std::vector<double>&
+const std::vector<typename Dimension::Scalar>&
 TableKernel<Dimension>::
 WsumValues() const {
   return mWsumValues;
