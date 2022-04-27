@@ -191,6 +191,18 @@ template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
+color() const {
+  return mColor;
+}
+
+
+//------------------------------------------------------------------------------
+// our interface smoothness metric
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
 rawPressure() const {
   return mRawPressure;
 }

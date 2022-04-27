@@ -95,6 +95,7 @@ mass density, velocity, and specific thermal energy."""
 
     #...........................................................................
     # Properties
+    color = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "color", returnpolicy="reference_internal")
     DepsDx = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DepsDx", returnpolicy="reference_internal")
     DPDx = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DPDx", returnpolicy="reference_internal")
     rawPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "rawPressure", returnpolicy="reference_internal")

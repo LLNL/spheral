@@ -167,6 +167,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mApplySelectDensitySum(false),
   mSumDensityNodeLists(sumDensityNodeLists),
   mPairDepsDt(),
+  mColor(FieldStorageType::CopyFields),
   mRawPressure(FieldStorageType::CopyFields),
   mDPDx(FieldStorageType::CopyFields),
   mDepsDx(FieldStorageType::CopyFields),
@@ -188,6 +189,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
       } 
     }
     
+    mColor = dataBase.newFluidFieldList(1.0, FSIFieldNames::color);
     mRawPressure = dataBase.newFluidFieldList(0.0, FSIFieldNames::rawPressure);
     mDPDx = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::pressureGradient);
     mDepsDx = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::specificThermalEnergyGradient);
@@ -234,6 +236,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
   
+  dataBase.resizeFluidFieldList(mColor, 1.0, FSIFieldNames::color, false);
   dataBase.resizeFluidFieldList(mRawPressure, 0.0, FSIFieldNames::rawPressure, false);
   dataBase.resizeFluidFieldList(mInterfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals,false);
   dataBase.resizeFluidFieldList(mInterfaceFraction, 0.0, FSIFieldNames::interfaceFraction,false); 
@@ -252,6 +255,7 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(specificThermalEnergy, epsPolicy);
   }
 
+  state.enroll(mColor);
   state.enroll(mRawPressure,rawPressurePolicy);
   state.enroll(mInterfaceNormals,interfaceNormalsPolicy); 
   state.enroll(mInterfaceFraction,interfaceFractionPolicy);
@@ -386,6 +390,7 @@ applyGhostBoundaries(State<Dimension>& state,
 
   SolidSPHHydroBase<Dimension>::applyGhostBoundaries(state,derivs);
 
+  FieldList<Dimension, Scalar> color = state.fields(FSIFieldNames::color, 0.0);
   FieldList<Dimension, Scalar> interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
   FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
@@ -394,6 +399,7 @@ applyGhostBoundaries(State<Dimension>& state,
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
+    (*boundaryItr)->applyFieldListGhostBoundary(color);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceFraction);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceNormals);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceSmoothness);
@@ -412,6 +418,7 @@ enforceBoundaries(State<Dimension>& state,
 
   SolidSPHHydroBase<Dimension>::enforceBoundaries(state,derivs);
 
+  FieldList<Dimension, Scalar> color = state.fields(FSIFieldNames::color, 0.0);
   FieldList<Dimension, Scalar> interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
   FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
@@ -420,6 +427,7 @@ enforceBoundaries(State<Dimension>& state,
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
+    (*boundaryItr)->enforceFieldListBoundary(color);
     (*boundaryItr)->enforceFieldListBoundary(interfaceFraction);
     (*boundaryItr)->enforceFieldListBoundary(interfaceNormals);
     (*boundaryItr)->enforceFieldListBoundary(interfaceSmoothness);

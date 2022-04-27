@@ -54,6 +54,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Get the state and derivative FieldLists.
+  const auto color = state.fields(FSIFieldNames::color, 0.0);
   const auto interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
   const auto interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   const auto interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
@@ -164,6 +165,7 @@ if(this->correctVelocityGradient()){
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
+      const auto& colori = color(nodeListi,i);
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& epsi = specificThermalEnergy(nodeListi, i);
@@ -176,6 +178,7 @@ if(this->correctVelocityGradient()){
       CHECK(Hdeti > 0.0);
 
       // Get the state for node j
+      const auto& colorj = color(nodeListj,j);
       const auto& rj = position(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
       const auto& epsj = specificThermalEnergy(nodeListj, j);
@@ -202,7 +205,7 @@ if(this->correctVelocityGradient()){
 
       // logic
       //---------------------------------------
-      const auto sameMatij = (nodeListi == nodeListj);
+      const auto sameMatij = (nodeListi == nodeListj and colori == colorj);
       const auto differentMatij = (nodeListi!=nodeListj);
       const auto averageKernelij = ( (differentMatij and averageInterfaceKernels) or alwaysAverageKernels);
 
@@ -336,6 +339,7 @@ if(this->correctVelocityGradient()){
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
+      const auto& colori = color(nodeListi,i);
       const auto& interfaceNormalsi = interfaceNormals(nodeListi,i);
       const auto& interfaceSmoothnessi = interfaceSmoothness(nodeListi,i);
       const auto& interfaceFractioni = interfaceFraction(nodeListi,i);
@@ -378,6 +382,7 @@ if(this->correctVelocityGradient()){
       auto& newInterfaceFractioni = newInterfaceFraction_thread(nodeListi,i);
 
       // Get the state for node j
+      const auto& colorj = color(nodeListj,j);
       const auto& interfaceNormalsj = interfaceNormals(nodeListj,j);
       const auto& interfaceSmoothnessj = interfaceSmoothness(nodeListj,j);
       const auto& interfaceFractionj = interfaceFraction(nodeListj,j);
@@ -419,20 +424,20 @@ if(this->correctVelocityGradient()){
       auto& newInterfaceSmoothnessj = newInterfaceSmoothness_thread(nodeListj,j);
       auto& newInterfaceFractionj = newInterfaceFraction_thread(nodeListj,j);
 
+      // line of action
+      const auto rij = ri - rj;
+      const auto rhatij = rij.unitVector();
+      
+      // decoupling and boolean switches
+      //-------------------------------------------------------
       // Flag if this is a contiguous material pair or not.
-      const auto sameMatij =  (nodeListi == nodeListj);// and fragIDi == fragIDj); 
-      const auto differentMatij = !sameMatij; // flip it and reverse it
+      const auto sameMatij =  (nodeListi == nodeListj and colori==colorj);
+      const auto differentMatij = !sameMatij; 
       const auto averageKernelij = ( (differentMatij and averageInterfaceKernels) or alwaysAverageKernels);
 
       // Flag if at least one particle is free (0).
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
-
-      // we'll need a couple damage defs
-      const auto rij = ri - rj;
-      const auto rhatij = rij.unitVector();
       
-      // Decoupling and a bunch of spa-get switches
-      //-------------------------------------------------------
       // pairwise damage and nodal damage
       const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
       const auto Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
@@ -440,21 +445,25 @@ if(this->correctVelocityGradient()){
       const auto fDi =  (sameMatij ? max((1.0-Di)*(1.0-Di),tiny) : 0.0 );
       const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 0.0 );
 
-      // is Pmin being activated or is there a tensile load at a material interface?
+      // is Pmin being activated (Pmin->zero for material interfaces)
       const auto pLimiti = (sameMatij ? (Pi-rhoi*ci*ci*1e-5) : 0.0);
       const auto pLimitj = (sameMatij ? (Pj-rhoj*cj*cj*1e-5) : 0.0);
       const auto pminActivei = (rPi < pLimiti);
       const auto pminActivej = (rPj < pLimitj);
       
-      // decoupling criteria
+      // decoupling criteria 
       const auto isExpanding = (ri-rj).dot(vi-vj) > 0.0;
-      const auto cantSupportTension = (fDi<fullyDamagedThreshold) or (fDj<fullyDamagedThreshold);
-      const auto isInTension = pminActivei or pminActivej;
-      const auto decouple =  isExpanding and (cantSupportTension and isInTension);
+      const auto isFullyDamaged = (fDi<fullyDamagedThreshold) or (fDj<fullyDamagedThreshold);
+      const auto isPastAdhesionThreshold = pminActivei or pminActivej;
+      const auto decouple = isExpanding and (isFullyDamaged and isPastAdhesionThreshold);
 
       // do we need to construct our interface velocity?
-      const auto constructInterface = (fDij < 0.99) and activateConstruction;
+      const auto constructInterface = (fDij < 1.0-fullyDamagedThreshold) and activateConstruction;
       const auto negligableShearWave = max(mui,muj) < 1.0e-5*min(Ki,Kj);
+
+      // do we reduce our deviatoric stress
+      const auto isTensile = (((Si+Sj)-(Pi+Pj)*SymTensor::one).dot(rhatij)).dot(rhatij) > 0;
+      const auto damageReduceStress = isTensile or differentMatij;
 
       // Kernels
       //--------------------------------------
@@ -554,12 +563,9 @@ if(this->correctVelocityGradient()){
         maxViscousPressurei = max(maxViscousPressurei, rhoi*rhoj * QPiij.diagonalElements().maxAbsElement());
         maxViscousPressurej = max(maxViscousPressurej, rhoi*rhoj * QPiji.diagonalElements().maxAbsElement());
 
-        // if there is tension we apply damage to the stress tensor
-        const auto tractionij = (((Si+Sj)-(Pi+Pj)*SymTensor::one).dot(rhatij)).dot(rhatij);
-
         // stress tensor
-        sigmai = (tractionij > 0.0 ?  fDij : 1.0) * Si - Pi * SymTensor::one;
-        sigmaj = (tractionij > 0.0 ?  fDij : 1.0) * Sj - Pj * SymTensor::one;
+        sigmai = (damageReduceStress ? fDij : 1.0) * Si - Pi * SymTensor::one;
+        sigmaj = (damageReduceStress ? fDij : 1.0) * Sj - Pj * SymTensor::one;
 
         // Compute the tensile correction to add to the stress as described in 
         // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
