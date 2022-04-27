@@ -22,7 +22,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // The kernels and such.
   const auto& W = this->kernel();
   const auto& smoothingScaleMethod = this->smoothingScaleMethod();
-  const auto  kernelExtent = W.kernelExtent();
+  //const auto  kernelExtent = W.kernelExtent();
 
   // A few useful constants we'll use in the following loop.
   const auto fullyDamagedThreshold=1.0e-2;
@@ -433,7 +433,7 @@ if(this->correctVelocityGradient()){
       
       // Decoupling and a bunch of spa-get switches
       //-------------------------------------------------------
-      // pairwise damage and pairwise nodal damage
+      // pairwise damage and nodal damage
       const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
       const auto Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
       const auto Dj = max(0.0, min(1.0, damage(nodeListj, j).dot(rhatij).magnitude()));
@@ -539,12 +539,12 @@ if(this->correctVelocityGradient()){
                                         rj, etaij, vj, rhoij, cij, Hij); 
 
         // slide correction
-        const auto interfaceNormalsij = 0.5*(interfaceNormalsj + interfaceNormalsi).unitVector();
+        const auto interfaceNormalsij = 0.5*(interfaceNormalsj - interfaceNormalsi).unitVector();
         if (slides.isSlideSurface(nodeListi,nodeListj)){
           const auto averageSurfaceSmoothness = 0.5*(interfaceSmoothnessi+interfaceSmoothnessj);
           const auto ssij = ( 1.0 - 10.0*min(max(0.95-(averageSurfaceSmoothness),0.0),0.10) );
           const auto vijhat = (vi-vj).unitVector();
-          const auto fSSij = max(-interfaceNormalsij.dot(vijhat),0.0);
+          const auto fSSij = abs(interfaceNormalsij.dot(vijhat));
           const auto slideCorr = (1.0-ssij) + (ssij)*fSSij*fSSij;      
           QPiij *= slideCorr;
           QPiji *= slideCorr;
@@ -554,7 +554,7 @@ if(this->correctVelocityGradient()){
         maxViscousPressurei = max(maxViscousPressurei, rhoi*rhoj * QPiij.diagonalElements().maxAbsElement());
         maxViscousPressurej = max(maxViscousPressurej, rhoi*rhoj * QPiji.diagonalElements().maxAbsElement());
 
-        // if there is positive traction we apply damage to the stress tensor
+        // if there is tension we apply damage to the stress tensor
         const auto tractionij = (((Si+Sj)-(Pi+Pj)*SymTensor::one).dot(rhatij)).dot(rhatij);
 
         // stress tensor
@@ -573,8 +573,6 @@ if(this->correctVelocityGradient()){
         // accelerations
         //---------------------------------------------------------------
         const auto rhoirhoj = 1.0/(rhoi*rhoj);
-        //const auto weightedEtaij = 1.0 - ((Ki*etai + Kj*etaj)/(Ki+Kj)).magnitude()*kernelExtent;
-        //const auto newSurfaceForceCoeff = 3.0*max(1.0/3.0 - weightedEtaij,0.0)*(1.0 - interfaceNormalsij.dot(rhatij));
         const auto sf = (sameMatij ? 1.0 : 1.0 + surfaceForceCoeff*abs((rhoi-rhoj)/(rhoi+rhoj+tiny)));
         sigmarhoi = sf*(rhoirhoj*sigmai-0.5*QPiij)*gradWiMi;
         sigmarhoj = sf*(rhoirhoj*sigmaj-0.5*QPiji)*gradWjMj;
@@ -674,8 +672,8 @@ if(this->correctVelocityGradient()){
         //-----------------------------------------------------------
         if (sameMatij and XSPH) {
           const auto fxsph  = (min(Pi,Pj) < 0.0 ? 1.0 : 0.0);
-          XSPHWeightSumi +=  fxsph*volj*Wi;
-          XSPHWeightSumj +=  fxsph*voli*Wj;
+          XSPHWeightSumi +=  volj*Wi;
+          XSPHWeightSumj +=  voli*Wj;
           XSPHDeltaVi -= fxsph*volj*Wi*(vi-vstar);
           XSPHDeltaVj -= fxsph*voli*Wj*(vj-vstar);
         }
@@ -737,36 +735,31 @@ if(this->correctVelocityGradient()){
       // finish our normalization
       normi += Hdeti*mi/rhoi*W0;
 
-      // finish our interface fields 
-      smoothedInterfaceNormalsi +=  interfaceFractioni * Hdeti*mi/rhoi*W0 * interfaceNormalsi;
-      //newInterfaceSmoothnessi += Hdeti*mi/rhoi*W0;
+      // finish our interface fields.
       newInterfaceSmoothnessi /= max(newInterfaceFractioni,tiny);
-      // if (newInterfaceFractioni > tiny){
-      //   newInterfaceNormalsi = newInterfaceNormalsi.unitVector();
-      // }else{
-      //   newInterfaceNormalsi = Vector::zero;
-      // }
-      const auto normalSmoothFraction = max(0.0, 10.0*min(interfaceFractioni,0.10));
+      smoothedInterfaceNormalsi +=  interfaceFractioni * Hdeti*mi/rhoi*W0 * interfaceNormalsi;
       if (newInterfaceFractioni > tiny){
+        const auto normalSmoothFraction = min(0.9,max(0.1, 20.0*min(interfaceFractioni,0.05)));
         newInterfaceNormalsi = (normalSmoothFraction * newInterfaceNormalsi.unitVector()+
                                 (1.0-normalSmoothFraction) * smoothedInterfaceNormalsi.unitVector()).unitVector();
       }else{
         newInterfaceNormalsi = Vector::zero;
       }
+
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
  
-      if (totalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
-
+    
       DrhoDti -=  rhoi*DvDxi.Trace();
+
+      if (totalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       DxDti = vi;
       if (XSPH) {
         XSPHWeightSumi += Hdeti*mi/rhoi*W0;
-        XSPHWeightSumi = min(1.0, XSPHWeightSumi / max(normi,tiny));
         CHECK(XSPHWeightSumi >= 0.0);
-        DxDti += xsphCoeff*XSPHWeightSumi*XSPHDeltaVi/max(normi,tiny);
+        DxDti += xsphCoeff*XSPHDeltaVi/max(XSPHWeightSumi,tiny);
       }
 
     
