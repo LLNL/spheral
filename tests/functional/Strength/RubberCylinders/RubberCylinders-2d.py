@@ -329,7 +329,7 @@ if crksph:
                    HUpdate = HUpdate,
                    ASPH = asph)
 
-elif fsisph:
+elif fsisph: # FSI branch of spheral
     hydro = FSISPH(dataBase = db,
                 W = WT,
                 cfl = cfl,

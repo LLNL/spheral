@@ -14,7 +14,7 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 PYB11includes += ['"ArtificialViscosity/ArtificialViscosity.hh"',
                   '"ArtificialViscosity/MonaghanGingoldViscosity.hh"',
-                  '"ArtificialViscosity/CRKSPHMonaghanGingoldViscosity.hh"',
+                  '"ArtificialViscosity/LimitedMonaghanGingoldViscosity.hh"',
                   '"ArtificialViscosity/MorrisMonaghanReducingViscosity.hh"',
                   '"ArtificialViscosity/CullenDehnenViscosity.hh"',
                   '"ArtificialViscosity/TensorMonaghanGingoldViscosity.hh"',
@@ -36,7 +36,7 @@ PYB11namespaces = ["Spheral"]
 from ArtificialViscosity import *
 from MonaghanGingoldViscosity import *
 from TensorMonaghanGingoldViscosity import *
-from CRKSPHMonaghanGingoldViscosity import *
+from LimitedMonaghanGingoldViscosity import *
 from MorrisMonaghanReducingViscosity import *
 from CullenDehnenViscosity import *
 from FiniteVolumeViscosity import *
@@ -49,7 +49,7 @@ for ndim in dims:
 ArtificialViscosity%(ndim)id = PYB11TemplateClass(ArtificialViscosity, template_parameters="%(Dimension)s")
 MonaghanGingoldViscosity%(ndim)id = PYB11TemplateClass(MonaghanGingoldViscosity, template_parameters="%(Dimension)s")
 TensorMonaghanGingoldViscosity%(ndim)id = PYB11TemplateClass(TensorMonaghanGingoldViscosity, template_parameters="%(Dimension)s")
-CRKSPHMonaghanGingoldViscosity%(ndim)id = PYB11TemplateClass(CRKSPHMonaghanGingoldViscosity, template_parameters="%(Dimension)s")
+LimitedMonaghanGingoldViscosity%(ndim)id = PYB11TemplateClass(LimitedMonaghanGingoldViscosity, template_parameters="%(Dimension)s")
 MorrisMonaghanReducingViscosity%(ndim)id = PYB11TemplateClass(MorrisMonaghanReducingViscosity, template_parameters="%(Dimension)s")
 CullenDehnenViscosity%(ndim)id = PYB11TemplateClass(CullenDehnenViscosity, template_parameters="%(Dimension)s")
 FiniteVolumeViscosity%(ndim)id = PYB11TemplateClass(FiniteVolumeViscosity, template_parameters="%(Dimension)s")

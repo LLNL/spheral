@@ -182,7 +182,7 @@ def FSISPH(dataBase,
     if not Q:
         Cl = 2.0*(dataBase.maxKernelExtent/2.0)
         Cq = 8.0*(dataBase.maxKernelExtent/2.0)**2
-        Q = eval("CRKSPHMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
+        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # slide surfaces.
     if not slides:

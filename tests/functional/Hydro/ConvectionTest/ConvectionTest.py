@@ -199,7 +199,7 @@ units = PhysicalConstants(1.0,1.0,1.0)
 # CRKSPH Switches to ensure consistency
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.

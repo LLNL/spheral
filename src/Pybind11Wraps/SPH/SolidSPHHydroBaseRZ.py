@@ -8,6 +8,7 @@ from RestartMethods import *
 @PYB11template()            # Override the fact SolidSPHHydroBase is templated
 @PYB11template_dict({"Dimension" : "Dim<2>"})
 @PYB11module("SpheralSPH")
+@PYB11dynamic_attr
 class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
 
     PYB11typedefs = """

@@ -121,7 +121,7 @@ if SVPH:
     else:
         HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity
     if ASPH:
         HydroConstructor = ACRKSPHHydro
     else:
