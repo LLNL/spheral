@@ -46,6 +46,7 @@ using std::vector;
 using std::string;
 using std::pair;
 using std::make_pair;
+using std::make_shared;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -251,8 +252,6 @@ registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   TIME_SolidSPHregister.start();
 
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-
   // Invoke SPHHydro's state.
   SPHHydroBase<Dimension>::registerState(dataBase, state);
 
@@ -289,22 +288,22 @@ registerState(DataBase<Dimension>& dataBase,
   }
 
   // Register the deviatoric stress and plastic strain to be evolved.
-  PolicyPointer deviatoricStressPolicy(new DeviatoricStressPolicy<Dimension>());
-  PolicyPointer plasticStrainPolicy(new PlasticStrainPolicy<Dimension>());
+  auto deviatoricStressPolicy = make_shared<DeviatoricStressPolicy<Dimension>>();
+  auto plasticStrainPolicy = make_shared<PlasticStrainPolicy<Dimension>>();
   state.enroll(S, deviatoricStressPolicy);
   state.enroll(ps, plasticStrainPolicy);
 
   // Register the bulk modulus, shear modulus, and yield strength.
-  PolicyPointer bulkModulusPolicy(new BulkModulusPolicy<Dimension>());
-  PolicyPointer shearModulusPolicy(new ShearModulusPolicy<Dimension>());
-  PolicyPointer yieldStrengthPolicy(new YieldStrengthPolicy<Dimension>());
+  auto bulkModulusPolicy = make_shared<BulkModulusPolicy<Dimension>>();
+  auto shearModulusPolicy = make_shared<ShearModulusPolicy<Dimension>>();
+  auto yieldStrengthPolicy = make_shared<YieldStrengthPolicy<Dimension>>();
   state.enroll(mBulkModulus, bulkModulusPolicy);
   state.enroll(mShearModulus, shearModulusPolicy);
   state.enroll(mYieldStrength, yieldStrengthPolicy);
 
   // Override the policies for the sound speed and pressure.
-  PolicyPointer csPolicy(new StrengthSoundSpeedPolicy<Dimension>());
-  PolicyPointer Ppolicy(new DamagedPressurePolicy<Dimension>());
+  auto csPolicy = make_shared<StrengthSoundSpeedPolicy<Dimension>>();
+  auto Ppolicy = make_shared<DamagedPressurePolicy<Dimension>>();
   state.enroll(cs, csPolicy);
   state.enroll(P, Ppolicy);
 
