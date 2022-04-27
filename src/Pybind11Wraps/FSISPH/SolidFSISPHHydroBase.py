@@ -95,29 +95,29 @@ mass density, velocity, and specific thermal energy."""
 
     #...........................................................................
     # Properties
+    DepsDx = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DepsDx", returnpolicy="reference_internal")
+    DPDx = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DPDx", returnpolicy="reference_internal")
+    rawPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "rawPressure", returnpolicy="reference_internal")
+    interfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "interfaceNormals", returnpolicy="reference_internal")
+    interfaceFraction = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "interfaceFraction", returnpolicy="reference_internal")
+    interfaceSmoothness = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "interfaceSmoothness", returnpolicy="reference_internal")
+    newInterfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "newInterfaceNormals", returnpolicy="reference_internal")
+    newInterfaceFraction = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "newInterfaceFraction", returnpolicy="reference_internal")
+    newInterfaceSmoothness = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "newInterfaceSmoothness", returnpolicy="reference_internal")
+    
     slideSurfaces = PYB11property("SlideSurface<%(Dimension)s>&", "slideSurface", doc="The slide surface object")
     
-    surfaceForceCoefficient = PYB11property("double", "surfaceForceCoefficient", "surfaceForceCoefficient",
-                                            doc="additional force between different materials ala Monaghan 2013.")
+    surfaceForceCoefficient = PYB11property("double", "surfaceForceCoefficient", "surfaceForceCoefficient",doc="additional force between different materials ala Monaghan 2013.")
+    densityStabilizationCoefficient = PYB11property("double", "densityStabilizationCoefficient", "densityStabilizationCoefficient",doc="coefficient used to adjust velocity gradient to prevent unstable rho.")
+    specificThermalEnergyDiffusionCoefficient = PYB11property("double", "specificThermalEnergyDiffusionCoefficient", "specificThermalEnergyDiffusionCoefficient",doc="coefficient used to diffuse specificThermalEnergy amongst like nodes.")
+    xsphCoefficient = PYB11property("double", "xsphCoefficient", "xsphCoefficient",doc="coefficient to dial magnitude of xsph.")
     
-    densityStabilizationCoefficient = PYB11property("double", "densityStabilizationCoefficient", "densityStabilizationCoefficient", 
-                                                    doc="coefficient used to adjust velocity gradient to prevent unstable rho.")
+    sumDensityNodeLists = PYB11property("std::vector<int>", "sumDensityNodeLists", "sumDensityNodeLists",doc="control if rigorous density sum is applied to individual node lists.")
     
-    specificThermalEnergyDiffusionCoefficient = PYB11property("double", "specificThermalEnergyDiffusionCoefficient", "specificThermalEnergyDiffusionCoefficient", 
-                                                              doc="coefficient used to diffuse specificThermalEnergy amongst like nodes.")
-    
-    xsphCoefficient = PYB11property("double", "xsphCoefficient", "xsphCoefficient", 
-                                    doc="coefficient to dial magnitude of xsph.")
-    
-    sumDensityNodeLists = PYB11property("std::vector<int>", "sumDensityNodeLists", "sumDensityNodeLists", 
-                                        doc="control if rigorous density sum is applied to individual node lists.")
-    
-    interfaceMethod = PYB11property("InterfaceMethod", "interfaceMethod", "interfaceMethod",
-                                    doc="Flag to select how we want construct material interfaces")
-    kernelAveragingMethod = PYB11property("KernelAveragingMethod", "kernelAveragingMethod", "kernelAveragingMethod",
-                                    doc="Flag to select our kernel type")
-    slideSurfaceMethod = PYB11property("SlideSurfaceMethod", "slideSurfaceMethod", "slideSurfaceMethod",
-                                    doc="Flag to select our kernel type")
+    interfaceMethod = PYB11property("InterfaceMethod", "interfaceMethod", "interfaceMethod",doc="Flag to select how we want construct material interfaces")
+    kernelAveragingMethod = PYB11property("KernelAveragingMethod", "kernelAveragingMethod", "kernelAveragingMethod",doc="Flag to select our kernel type")
+    slideSurfaceMethod = PYB11property("SlideSurfaceMethod", "slideSurfaceMethod", "slideSurfaceMethod",doc="Flag to select our kernel type")
+
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------

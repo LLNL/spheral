@@ -70,7 +70,14 @@ class SlideSurface {
                                  const int i, 
                                  const int nodeListj,
                                  const int j) const;
-    
+      
+    Scalar weightedPairwiseSurfaceSmoothness(const int nodeListi,
+                                             const int i, 
+                                             const int nodeListj,
+                                             const int j,
+                                             const Scalar weighti,
+                                             const Scalar weightj) const;
+
     Vector weightedPairwiseSurfaceNormal(const int nodeListi,
                                          const int i, 
                                          const int nodeListj,
@@ -90,10 +97,14 @@ class SlideSurface {
                     const Scalar /*time*/,
                     const Scalar /*dt*/,
                     const TableKernel<Dimension>& W);
-
+    
     virtual
     void registerState(DataBase<Dimension>& dataBase,
                        State<Dimension>& state);
+
+    virtual
+    void registerDerivatives(DataBase<Dimension>& dataBase,
+                             StateDerivatives<Dimension>& derivs);
 
     void computeSurfaceSmoothness(const TableKernel<Dimension>& W,
                                   const DataBase<Dimension>& dataBase,
@@ -111,6 +122,12 @@ class SlideSurface {
     const FieldList<Dimension, Scalar>& surfaceFraction() const;
     const FieldList<Dimension, Scalar>& surfaceSmoothness() const;
 
+    const FieldList<Dimension, Vector>& newSurfaceNormals() const;
+    const FieldList<Dimension, Vector>& newSmoothedSurfaceNormals() const;
+    const FieldList<Dimension, Scalar>& newSurfaceFraction() const;
+    const FieldList<Dimension, Scalar>& newSurfaceSmoothness() const;
+    const FieldList<Dimension, Scalar>& smoothnessNormalization() const;
+    
     std::vector<bool> isSlideSurface() const;
     void isSlideSurface(const std::vector<bool> x);
 
@@ -140,10 +157,16 @@ class SlideSurface {
     std::vector<bool> mIsSlideSurface;               // true if slide interaction between nodelists index --> numNodeList*nodeListi + nodeListj 
     SurfaceNormalMethod mSurfaceNormalMethod;        // what subset of nodes do we base the normal calc off of
 
-    FieldList<Dimension, Vector> mSurfaceNormals;    // surface normals between nodelists     
-    FieldList<Dimension, Scalar> mSurfaceFraction;   // fraction of dissimilar neighbor volume     
-    FieldList<Dimension, Scalar> mSurfaceSmoothness; // smoothness metric (0-1)    
-  
+    FieldList<Dimension, Vector> mSurfaceNormals;       // surface normals between nodelists     
+    FieldList<Dimension, Scalar> mSurfaceFraction;      // fraction of dissimilar neighbor volume     
+    FieldList<Dimension, Scalar> mSurfaceSmoothness;    // smoothness metric (0-1)    
+    
+    mutable FieldList<Dimension, Vector> mNewSurfaceNormals;    // surface normals between nodelists     
+    mutable FieldList<Dimension, Vector> mNewSmoothedSurfaceNormals;
+    mutable FieldList<Dimension, Scalar> mNewSurfaceFraction;   // fraction of dissimilar neighbor volume     
+    mutable FieldList<Dimension, Scalar> mNewSurfaceSmoothness; // smoothness metric (0-1)  
+    mutable FieldList<Dimension, Scalar> mSmoothnessNormalization; // smoothness metric (0-1)  
+
     SlideSurface();
     SlideSurface(const SlideSurface&);
     SlideSurface& operator=(const SlideSurface&);

@@ -33,6 +33,61 @@ surfaceSmoothness() const {
 }
 
 //------------------------------------------------------------------------------
+// next time step  surface normal field list ref
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SlideSurface<Dimension>::
+newSurfaceNormals() const {
+  return mNewSurfaceNormals;
+}
+
+//------------------------------------------------------------------------------
+// next time step  surface normal field list ref
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SlideSurface<Dimension>::
+newSmoothedSurfaceNormals() const {
+  return mNewSmoothedSurfaceNormals;
+}
+
+//------------------------------------------------------------------------------
+// next time step  surface fraction
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SlideSurface<Dimension>::
+newSurfaceFraction() const {
+  return mNewSurfaceFraction;
+}
+
+//------------------------------------------------------------------------------
+// next time step smoothness metric for mixing interfaces
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SlideSurface<Dimension>::
+newSurfaceSmoothness() const {
+  return mNewSurfaceSmoothness;
+}
+
+//------------------------------------------------------------------------------
+// next time step smoothness metric for mixing interfaces
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SlideSurface<Dimension>::
+smoothnessNormalization() const {
+  return mSmoothnessNormalization;
+}
+
+//------------------------------------------------------------------------------
 // set/get bool list of interactions 
 //------------------------------------------------------------------------------
 template<typename Dimension>

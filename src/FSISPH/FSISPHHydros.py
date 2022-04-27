@@ -187,7 +187,7 @@ def FSISPH(dataBase,
     # slide surfaces.
     if not slides:
         contactTypes = vector_of_int([0]*(dataBase.numNodeLists**2))
-        slides = eval("SlideSurface2d(dataBase,contactTypes,DifferentMaterialSurfaceNormals,False,False)")
+        slides = eval("SlideSurface%id(dataBase,contactTypes,DifferentMaterialSurfaceNormals,False,False)" % ndim)
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin

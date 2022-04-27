@@ -27,16 +27,16 @@ class SlideSurface:
                
     #...........................................................................
     # Virtual methods
-    @PYB11virtual
-    def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
-        "register the surface normals w/ the database"
-        return "void"
+    # @PYB11virtual
+    # def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
+    #     "register the surface normals w/ the database"
+    #     return "void"
     
-    @PYB11virtual
-    def registerState(dataBase = "DataBase<%(Dimension)s>&",
-                      state = "State<%(Dimension)s>&"):
-        "register the surface normals, frac, and smoothness"
-        return "void"
+    # @PYB11virtual
+    # def registerState(dataBase = "DataBase<%(Dimension)s>&",
+    #                   state = "State<%(Dimension)s>&"):
+    #     "register the surface normals, frac, and smoothness"
+    #     return "void"
 
 
     @PYB11const
@@ -57,9 +57,9 @@ class SlideSurface:
 
     #...........................................................................
     # Properties
-    surfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "surfaceNormals", returnpolicy="reference_internal")
-    surfaceFraction = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "surfaceFraction", returnpolicy="reference_internal")
-    surfaceSmoothness = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "surfaceSmoothness", returnpolicy="reference_internal")
+    #surfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "surfaceNormals", returnpolicy="reference_internal")
+    #surfaceFraction = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "surfaceFraction", returnpolicy="reference_internal")
+    #surfaceSmoothness = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "surfaceSmoothness", returnpolicy="reference_internal")
     numNodeLists = PYB11property("int", "numNodeLists", "numNodeLists", doc="number of nodelists.")
     isActive = PYB11property("bool", "isActive", "isActive", doc="switch if we have a slide.")
     normalsAreSmoothed = PYB11property("bool", "normalsAreSmoothed", "normalsAreSmoothed", doc="do we want to smooth our normals.")

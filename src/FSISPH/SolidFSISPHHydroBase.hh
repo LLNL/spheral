@@ -169,12 +169,15 @@ public:
   void slideSurfaceMethod(SlideSurfaceMethod method);
 
   const FieldList<Dimension, Scalar>& rawPressure() const;
-  //const FieldList<Dimension, Vector>& interfaceNormals() const;
-  //const FieldList<Dimension, Vector>& newInterfaceNormals() const;
-  //const FieldList<Dimension, Scalar>& interfaceSmoothness() const;
-  //const FieldList<Dimension, Scalar>& newInterfaceSmoothness() const;
   const FieldList<Dimension, Vector>& DPDx() const;
   const FieldList<Dimension, Vector>& DepsDx() const;
+  const FieldList<Dimension, Vector>& interfaceNormals() const;
+  const FieldList<Dimension, Scalar>& interfaceFraction() const;
+  const FieldList<Dimension, Scalar>& interfaceSmoothness() const;
+  const FieldList<Dimension, Vector>& newInterfaceNormals() const;
+  const FieldList<Dimension, Vector>& smoothedInterfaceNormals() const;
+  const FieldList<Dimension, Scalar>& newInterfaceFraction() const;
+  const FieldList<Dimension, Scalar>& newInterfaceSmoothness() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -196,15 +199,16 @@ private:
   
   std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
  
-  FieldList<Dimension, Scalar> mRawPressure;            // material interface normals
-  //FieldList<Dimension, Vector> mInterfaceNormals;       // material interface normals
-  //FieldList<Dimension, Vector> mNewInterfaceNormals;    // material interface normals
-  //FieldList<Dimension, Scalar> mInterfaceSmoothness;    // material interface smoothness
-  //FieldList<Dimension, Scalar> mNewInterfaceSmoothness; // material interface smoothness
-  FieldList<Dimension, Vector> mDPDx;                   // pressure gradient     
-  FieldList<Dimension, Vector> mDepsDx;                 // specific thermal energy gradient    
-    
-  
+  FieldList<Dimension, Scalar> mRawPressure;                  // material interface normals
+  FieldList<Dimension, Vector> mDPDx;                         // pressure gradient     
+  FieldList<Dimension, Vector> mDepsDx;                       // specific thermal energy gradient    
+  FieldList<Dimension, Vector> mInterfaceNormals;             // surface normals between nodelists     
+  FieldList<Dimension, Scalar> mInterfaceFraction;            // fraction of dissimilar neighbor volume     
+  FieldList<Dimension, Scalar> mInterfaceSmoothness;          // smoothness metric (0-1)    
+  FieldList<Dimension, Vector> mNewInterfaceNormals;          // surface normals between nodelists next time step    
+  FieldList<Dimension, Vector> mSmoothedInterfaceNormals;     // SPH interp of surface normal
+  FieldList<Dimension, Scalar> mNewInterfaceFraction;         // fraction of dissimilar neighbor volume     
+  FieldList<Dimension, Scalar> mNewInterfaceSmoothness;       // smoothness metric (0-1) next time step 
 
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();
