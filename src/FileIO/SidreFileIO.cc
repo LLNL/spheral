@@ -178,7 +178,7 @@ void SidreFileIO::close()
   {
 #ifdef USE_MPI
     int numFiles = 1;
-    // MPI_Comm_size(Communicator::communicator(), &numFiles);
+    MPI_Comm_size(Communicator::communicator(), &numFiles);
     std::cout << "This is the amount of files I am trying to write to: " << numFiles << std::endl;
     axom::sidre::IOManager writer(Communicator::communicator());
     writer.write(mDataStorePtr->getRoot(), numFiles, mFileName, "sidre_hdf5");
