@@ -568,13 +568,13 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       DepsDtj -= mi*(sigmarhoj.xx() - 0.5*QPiji.xx())*(vi.dot(gradWji) + vj.dot(gradWii));
 
       // Velocity gradient.
-      const auto deltaDvDxi = fDij * vij.dyad(gradWGjj);
-      const auto deltaDvDxj = fDij * vij.dyad(gradWGii);
-      DvDxi -= mj*deltaDvDxi;
-      DvDxj -= mi*deltaDvDxj;
+      const auto deltaDvDxi = -fDij * mj*vij.dyad(gradWGjj);
+      const auto deltaDvDxj =  fDij * mi*vij.dyad(gradWGii);
+      DvDxi += deltaDvDxi;
+      DvDxj += deltaDvDxj;
       if (sameMatij) {
-        localDvDxi -= mj*deltaDvDxi;
-        localDvDxj -= mi*deltaDvDxj;
+        localDvDxi += deltaDvDxi;
+        localDvDxj += deltaDvDxj;
       }
 
       // Estimate of delta v (for XSPH).
@@ -712,28 +712,6 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
         Qi = mQself*rhoi*hi*divv*(hi*divv + ci);
         maxViscousPressurei = std::max(maxViscousPressurei, Qi);
       }
-
-      // Finish the gradient of the velocity.
-      CHECK(rhoi > 0.0);
-      if (this->mCorrectVelocityGradient and
-          std::abs(Mi.Determinant()) > 1.0e-10 and
-          numNeighborsi > Dimension::pownu(2)) {
-        Mi = Mi.Inverse();
-        DvDxi = DvDxi*Mi;
-      } else {
-        DvDxi /= rhoi;
-      }
-      if (this->mCorrectVelocityGradient and
-          std::abs(localMi.Determinant()) > 1.0e-10 and
-          numNeighborsi > Dimension::pownu(2)) {
-        localMi = localMi.Inverse();
-        localDvDxi = localDvDxi*localMi;
-      } else {
-        localDvDxi /= rhoi;
-      }
-
-      // Evaluate the continuity equation.
-      DrhoDti = -rhoi*DvDxi.Trace();
 
       // Self-interaction for momentum (cause curvilinear coordinates are weird)
       const auto sigmai = Si - Pi * SymTensor::one;
