@@ -44,7 +44,10 @@ def SPH(W,
     ndim = dataBase.nDim
     if GeometryRegistrar.coords() == CoordinateType.Spherical:
         assert ndim == 1
-        constructor = SphericalSPHHydroBase
+        if nsolid > 0:
+            constructor = SolidSphericalSPHHydroBase
+        else:
+            constructor = SphericalSPHHydroBase
 
         # Build the spherical kernels
         print("Constructing Spherical kernels...")

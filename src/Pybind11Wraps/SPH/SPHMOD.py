@@ -12,6 +12,7 @@ dims = spheralDimensions()
 from SPHHydroBase import *
 from PSPHHydroBase import *
 from SolidSPHHydroBase import *
+from SolidSphericalSPHHydroBase import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -24,6 +25,7 @@ PYB11includes += ['"SPH/SPHHydroBase.hh"',
                   '"SPH/SphericalSPHHydroBase.hh"',
                   '"SPH/SolidSPHHydroBase.hh"',
                   '"SPH/SolidSPHHydroBaseRZ.hh"',
+                  '"SPH/SolidSphericalSPHHydroBase.hh"',
                   '"FileIO/FileIO.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"']
 
