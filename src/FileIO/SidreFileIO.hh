@@ -20,6 +20,7 @@ public:
   // Constructors.
   SidreFileIO();
   SidreFileIO(const std::string fileName, AccessType access);
+  SidreFileIO(int numFiles);
 
   // Destructor.
   virtual ~SidreFileIO();
@@ -152,8 +153,11 @@ private:
   // A pointer to the root of the sidre datastore associated with this object.
   std::shared_ptr<axom::sidre::DataStore> mDataStorePtr;
 
-  //save() function in sidre needs to have access to file name, also used for loadExternalData()
+  // write() function in sidre needs to have access to file name
   std::string mFileName;
+
+  // The number of restart files you want SPIO (sidre parallel IO) to write
+  int numRestartFiles = Process::getTotalNumberOfProcesses(); //MPI_Comm_size()
 
   // Don't allow assignment.
   SidreFileIO& operator=(const SidreFileIO& rhs);

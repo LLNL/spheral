@@ -21,6 +21,10 @@ class SidreFileIO(FileIO):
                 access = "AccessType"):
         "Save a file name and access to be used when openning the sidre datastore"
 
+    def pyinit2(self,
+                numFiles = "int"):
+        "Set amount of files for restart to be written to ( 0 < numFiles <= MPI_Comm_size() )"
+
     #...........................................................................
     # Override abstract methods
     @PYB11virtual

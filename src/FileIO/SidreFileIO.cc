@@ -137,6 +137,17 @@ SidreFileIO::SidreFileIO(const std::string fileName, AccessType access):
 }
 
 //------------------------------------------------------------------------------
+// Construct with a set number of restart files.
+//------------------------------------------------------------------------------
+SidreFileIO::SidreFileIO(int numFiles):
+  FileIO(),
+  mDataStorePtr(0)
+{
+  if (numFiles > 0 && numFiles <= Process::getTotalNumberOfProcesses())
+    numRestartFiles = numFiles;
+}
+
+//------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
 SidreFileIO::~SidreFileIO()
@@ -177,11 +188,8 @@ void SidreFileIO::close()
   if (mDataStorePtr != 0)
   {
 #ifdef USE_MPI
-    int numFiles = 1;
-    MPI_Comm_size(Communicator::communicator(), &numFiles);
-    std::cout << "This is the amount of files I am trying to write to: " << numFiles << std::endl;
     axom::sidre::IOManager writer(Communicator::communicator());
-    writer.write(mDataStorePtr->getRoot(), numFiles, mFileName, "sidre_hdf5");
+    writer.write(mDataStorePtr->getRoot(), numRestartFiles, mFileName, "sidre_hdf5");
 #else
     mDataStorePtr->getRoot()->save(mFileName);
     mDataStorePtr.reset();
