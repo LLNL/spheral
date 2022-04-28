@@ -410,7 +410,6 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       const auto  safeOmegai = 1.0; // safeInv(omega(nodeListi, i), tiny);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
-      CHECK(Hdeti > 0.0);
 
       auto& rhoSumi = rhoSum_thread(nodeListi, i);
       auto& DvDti = DvDt_thread(nodeListi, i);
