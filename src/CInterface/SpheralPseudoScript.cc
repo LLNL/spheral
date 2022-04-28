@@ -32,7 +32,7 @@
 #include "CRKSPH/SolidCRKSPHHydroBaseRZ.hh"
 #include "ArtificialViscosity/MonaghanGingoldViscosity.hh"
 #include "ArtificialViscosity/TensorMonaghanGingoldViscosity.hh"
-#include "ArtificialViscosity/CRKSPHMonaghanGingoldViscosity.hh"
+#include "ArtificialViscosity/LimitedMonaghanGingoldViscosity.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Damage/computeFragmentField.hh"
@@ -743,7 +743,7 @@ initialize(const bool     RZ,
     me.mSmoothingScaleMethodPtr.reset(new SPHSmoothingScale<Dimension>());
   }
   if (CRK) {
-    me.mQptr.reset(new CRKSPHMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false, 1.0, 0.2));
+    me.mQptr.reset(new LimitedMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false, 1.0, 0.2));
   } else {
     if (ScalarQ) {
       me.mQptr.reset(new MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false));
