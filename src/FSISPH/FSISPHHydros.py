@@ -128,7 +128,6 @@ def FSISPH(dataBase,
     # Build and return the thing.
     result = Constructor(**kwargs)
     result.Q = Q
-    result.slides = slides
     result._smoothingScaleMethod = smoothingScaleMethod
     
     return result
