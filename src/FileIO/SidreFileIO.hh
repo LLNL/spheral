@@ -21,6 +21,7 @@ public:
   SidreFileIO();
   SidreFileIO(const std::string fileName, AccessType access);
   SidreFileIO(int numFiles);
+  SidreFileIO(const std::string fileName, AccessType access, int numFiles);
 
   // Destructor.
   virtual ~SidreFileIO();

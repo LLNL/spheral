@@ -28,6 +28,7 @@ class SpheralController:
                  restartBaseName = "restart",
                  restartObjects = [],
                  restartFileConstructor = SiloFileIO,
+                 restartFileCount = 0,
                  restoreCycle = None,
                  initializeDerivatives = False,
                  vizBaseName = None,
@@ -55,6 +56,8 @@ class SpheralController:
         self.kernel = kernel
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
+        if restartFileConstructor is SidreFileIO: # FileCount only applies to SidreFileIO
+            self.restartFileCount = restartFileCount
         self.SPH = SPH
         self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
         self._break = False
@@ -552,7 +555,10 @@ class SpheralController:
         import time
         start = time.clock()
         fileName = self.restartBaseName + "_cycle%i" % self.totalSteps
-        file = self.restartFileConstructor(fileName, Create)
+        if self.restartFileConstructor is SidreFileIO:
+            file = self.restartFileConstructor(fileName, Create, self.restartFileCount)
+        else:
+            file = self.restartFileConstructor(fileName, Create)
         RestartRegistrar.instance().dumpState(file)
         print "Wrote restart file in %0.2f seconds" % (time.clock() - start)
 
@@ -573,6 +579,7 @@ class SpheralController:
             fileName += ".gz"
         if self.restartFileConstructor is SiloFileIO:
             fileName += ".silo"
+        # Need to fix this before pull request (Fix)
         # This is the problem because .root is already added to the file when saved, but if controller doesn't know about .root then
         # the if at the end of this chunk fails
         # if self.restartFileConstructor is SidreFileIO:
@@ -589,6 +596,8 @@ class SpheralController:
         if self.restartFileConstructor is GzipFileIO:
             file = self.restartFileConstructor(fileName, Read)
                                                #readToMemory = True)
+        elif self.restartFileConstructor is SidreFileIO:
+            file = self.restartFileConstructor(fileName, Read, self.restartFileCount)
         else:
             file = self.restartFileConstructor(fileName, Read)
         RestartRegistrar.instance().restoreState(file)

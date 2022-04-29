@@ -148,6 +148,19 @@ SidreFileIO::SidreFileIO(int numFiles):
 }
 
 //------------------------------------------------------------------------------
+// Construct and open the given file and set number of restart files
+//------------------------------------------------------------------------------
+SidreFileIO::SidreFileIO(const std::string fileName, AccessType access, int numFiles):
+  FileIO(fileName, access),
+  mDataStorePtr(0)
+{
+  open(fileName, access);
+  ENSURE(mFileOpen && mDataStorePtr != 0);
+  if (numFiles > 0 && numFiles <= Process::getTotalNumberOfProcesses())
+    numRestartFiles = numFiles;
+}
+
+//------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
 SidreFileIO::~SidreFileIO()

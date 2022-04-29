@@ -19,11 +19,17 @@ class SidreFileIO(FileIO):
     def pyinit1(self,
                 filename = "const std::string",
                 access = "AccessType"):
-        "Save a file name and access to be used when openning the sidre datastore"
+        "Construct a sidre datastore with a name and access"
 
     def pyinit2(self,
                 numFiles = "int"):
         "Set amount of files for restart to be written to ( 0 < numFiles <= MPI_Comm_size() )"
+
+    def pyinit3(self,
+                filename = "const std::string",
+                access = "AccessType",
+                numFiles = "int"):
+        "Construct a sidre datastore with a name and access and set number of restart files"
 
     #...........................................................................
     # Override abstract methods
