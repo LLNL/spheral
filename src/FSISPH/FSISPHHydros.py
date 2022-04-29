@@ -100,7 +100,7 @@ def FSISPH(dataBase,
         HUpdate = IdealH,
         epsTensile = 0.0,
         nTensile = 4.0,
-        damageRelieveRubble = True,
+        damageRelieveRubble = False,
         strengthInDamage = False,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
@@ -187,7 +187,7 @@ def FSISPH(dataBase,
     # slide surfaces.
     if not slides:
         contactTypes = vector_of_int([0]*(dataBase.numNodeLists**2))
-        slides = eval("SlideSurface%id(dataBase,contactTypes,DifferentMaterialSurfaceNormals,False,False)" % ndim)
+        slides = eval("SlideSurface%id(dataBase,contactTypes)" % ndim)
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin
