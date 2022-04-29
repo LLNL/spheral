@@ -6,7 +6,7 @@ namespace Spheral {
 template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar /*time*/,
+evaluateDerivatives(const typename Dimension::Scalar time,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
@@ -22,7 +22,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // The kernels and such.
   const auto& W = this->kernel();
   const auto& smoothingScaleMethod = this->smoothingScaleMethod();
-  //const auto  kernelExtent = W.kernelExtent();
 
   // A few useful constants we'll use in the following loop.
   const auto fullyDamagedThreshold=1.0e-2;
@@ -74,6 +73,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   //const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
 
+  CHECK(color.size() == numNodeLists);
+  CHECK(interfaceFraction.size() == numNodeLists);
+  CHECK(interfaceNormals.size() == numNodeLists);
+  CHECK(interfaceSmoothness.size() == numNodeLists);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -81,29 +84,31 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(specificThermalEnergy.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
+  CHECK(rawPressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(S.size() == numNodeLists);
+  CHECK(K.size() == numNodeLists);
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
   //CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
 
   // Derivative FieldLists.
+  const auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  const auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  const auto  DepsDx = derivatives.fields(FSIFieldNames::specificThermalEnergyGradient, Vector::zero);
+  const auto  DPDx = derivatives.fields(FSIFieldNames::pressureGradient, Vector::zero);
   auto  smoothedInterfaceNormals = derivatives.fields(FSIFieldNames::smoothedInterfaceNormals,Vector::zero);
   auto  newInterfaceFraction = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + FSIFieldNames::interfaceFraction, 0.0);
   auto  newInterfaceSmoothness = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + FSIFieldNames::interfaceSmoothness, 0.0);
   auto  newInterfaceNormals = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + FSIFieldNames::interfaceNormals, Vector::zero);
   auto  normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
-  auto  DepsDx = derivatives.fields(FSIFieldNames::specificThermalEnergyGradient, Vector::zero);
-  auto  DPDx = derivatives.fields(FSIFieldNames::pressureGradient, Vector::zero);
   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto  DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
@@ -115,6 +120,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto& pairDepsDt = derivatives.getAny(HydroFieldNames::pairWork, vector<Scalar>());
   
+  CHECK(smoothedInterfaceNormals.size() == numNodeLists);
+  CHECK(newInterfaceFraction.size() == numNodeLists);
+  CHECK(newInterfaceSmoothness.size() == numNodeLists);
+  CHECK(newInterfaceNormals.size() == numNodeLists);
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -139,167 +148,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     pairDepsDt.resize(2*numPairs);
   }
 
-//M corr needs to be calculated beforehand 
-//to be consistently applied to the acceleration
-//and the time derivative of internal energy
-if(this->correctVelocityGradient()){
-
-
-#pragma omp parallel
-  {
-    // Thread private  scratch variables.
-    int i, j, nodeListi, nodeListj;
-
-    typename SpheralThreads<Dimension>::FieldListStack threadStack;
-    auto M_thread = M.threadCopy(threadStack);
-    auto localM_thread = localM.threadCopy(threadStack);
-    auto DPDx_thread = DPDx.threadCopy(threadStack);
-    auto DepsDx_thread = DepsDx.threadCopy(threadStack);
-
-#pragma omp for
-    for (auto kk = 0u; kk < numPairs; ++kk) {
-
-      i = pairs[kk].i_node;
-      j = pairs[kk].j_node;
-      nodeListi = pairs[kk].i_list;
-      nodeListj = pairs[kk].j_list;
-
-      // Get the state for node i.
-      const auto& colori = color(nodeListi,i);
-      const auto& ri = position(nodeListi, i);
-      const auto& mi = mass(nodeListi, i);
-      const auto& epsi = specificThermalEnergy(nodeListi, i);
-      const auto& Pi = pressure(nodeListi, i);
-      const auto& rhoi = massDensity(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
-      const auto  Hdeti = Hi.Determinant();
-      CHECK(mi > 0.0);
-      CHECK(rhoi > 0.0);
-      CHECK(Hdeti > 0.0);
-
-      // Get the state for node j
-      const auto& colorj = color(nodeListj,j);
-      const auto& rj = position(nodeListj, j);
-      const auto& mj = mass(nodeListj, j);
-      const auto& epsj = specificThermalEnergy(nodeListj, j);
-      const auto& Pj = pressure(nodeListj, j);
-      const auto& rhoj = massDensity(nodeListj, j);
-      const auto& Hj = H(nodeListj, j);
-      const auto  Hdetj = Hj.Determinant();
-      CHECK(mj > 0.0);
-      CHECK(rhoj > 0.0);
-      CHECK(Hdetj > 0.0);
-
-      auto& DPDxi = DPDx_thread(nodeListi, i);
-      auto& DPDxj = DPDx_thread(nodeListj, j);
-      auto& DepsDxi = DepsDx_thread(nodeListi, i);
-      auto& DepsDxj = DepsDx_thread(nodeListj, j);
-      auto& localMi = localM_thread(nodeListi,i);
-      auto& localMj = localM_thread(nodeListj,j);
-      auto& Mi = M_thread(nodeListi,i);
-      auto& Mj = M_thread(nodeListj,j);
-
-      const auto rij = ri - rj;
-      const auto Pij = Pi - Pj;
-      const auto epsij = epsi - epsj;
-
-      // logic
-      //---------------------------------------
-      const auto sameMatij = (nodeListi == nodeListj and colori == colorj);
-      const auto differentMatij = (nodeListi!=nodeListj);
-      const auto averageKernelij = ( (differentMatij and averageInterfaceKernels) or alwaysAverageKernels);
-
-      // Kernels
-      //--------------------------------------
-      const auto etai = Hi*rij;
-      const auto etaj = Hj*rij;
-      const auto etaMagi = etai.magnitude();
-      const auto etaMagj = etaj.magnitude();
-      CHECK(etaMagi >= 0.0);
-      CHECK(etaMagj >= 0.0);
-
-      // Symmetrized kernel weight and gradient.
-      const auto gWi = W.gradValue(etaMagi, Hdeti);
-      const auto gWj = W.gradValue(etaMagj, Hdetj);
-      
-      const auto Hetai = Hi*etai.unitVector();
-      const auto Hetaj = Hj*etaj.unitVector();
-      
-      auto gradWi = gWi*Hetai;
-      auto gradWj = gWj*Hetaj;
-      
-      //Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
-      if(averageKernelij){
-        const auto gradWij = 0.5*(gradWi+gradWj);
-        gradWi = gradWij;
-        gradWj = gradWij;
-      }
-
-      gradWi *= mj/rhoj;
-      gradWj *= mi/rhoi;
-
-      // spatial gradients and correction
-      //---------------------------------------------------------------
-      const auto deltaRi = rij.dyad(gradWi);
-      const auto deltaRj = rij.dyad(gradWj);
-
-      Mi -= deltaRi;
-      Mj -= deltaRj;
-
-      DPDxi -= Pij*gradWi;
-      DPDxj -= Pij*gradWj;
-
-      if(sameMatij){
-        localMi -=  deltaRi;
-        localMj -=  deltaRj;
-        DepsDxi -= epsij*gradWi;
-        DepsDxj -= epsij*gradWj;
-      }
-    } // loop over pairs
-      // Reduce the thread values to the master.
-    threadReduceFieldLists<Dimension>(threadStack);
-  }   // OpenMP parallel region
-
-   
-    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-      const auto& nodeList = mass[nodeListi]->nodeList();
-      const auto ni = nodeList.numInternalNodes();
-#pragma omp parallel for
-      for (auto i = 0u; i < ni; ++i) {
-        const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
-        auto& Mi = M(nodeListi, i);
-        auto& localMi = localM(nodeListi, i);
-        auto& DepsDxi = DepsDx(nodeListi, i);
-        auto& DPDxi = DPDx(nodeListi, i);
-
-        const auto Mdeti = Mi.Determinant();
-        const auto goodM = ( Mdeti > 1.0e-2 and numNeighborsi > Dimension::pownu(2));
-        Mi =  (goodM ? Mi.Inverse() : Tensor::one);
-        
-        const auto localMdeti = localMi.Determinant();
-        const auto goodLocalM = ( localMdeti > 1.0e-2 and numNeighborsi > Dimension::pownu(2));
-        localMi =  (goodLocalM ? localMi.Inverse() : Tensor::one);
-
-        DPDxi = Mi.Transpose()*DPDxi;
-        DepsDxi = localMi.Transpose()*DepsDxi;
-
-      } 
-    }
-
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) {
-      (*boundaryItr)->applyFieldListGhostBoundary(M);
-      (*boundaryItr)->applyFieldListGhostBoundary(DPDx);
-      (*boundaryItr)->applyFieldListGhostBoundary(DepsDx);
-    }
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
-
-} // if correctVelocityGradient
-
-
+  this->computeMCorrection(time,dt,dataBase,state,derivatives);
 
 // Now we calculate  the hydro deriviatives
 // Walk all the interacting pairs.
@@ -548,13 +397,13 @@ if(this->correctVelocityGradient()){
                                         rj, etaij, vj, rhoij, cij, Hij); 
 
         // slide correction
-        const auto interfaceNormalsij = 0.5*(interfaceNormalsj - interfaceNormalsi).unitVector();
         if (slides.isSlideSurface(nodeListi,nodeListj)){
-          const auto averageSurfaceSmoothness = 0.5*(interfaceSmoothnessi+interfaceSmoothnessj);
-          const auto ssij = ( 1.0 - 10.0*min(max(0.95-(averageSurfaceSmoothness),0.0),0.10) );
-          const auto vijhat = (vi-vj).unitVector();
-          const auto fSSij = abs(interfaceNormalsij.dot(vijhat));
-          const auto slideCorr = (1.0-ssij) + (ssij)*fSSij*fSSij;      
+          const auto slideCorr = slides.slideCorrection(interfaceSmoothnessi,
+                                                        interfaceSmoothnessj,
+                                                        interfaceNormalsi,
+                                                        interfaceNormalsj,
+                                                        vi,
+                                                        vj);
           QPiij *= slideCorr;
           QPiji *= slideCorr;
         }
@@ -804,4 +653,212 @@ if(this->correctVelocityGradient()){
 } // evaluateDerivatives method
 
 
-}
+//------------------------------------------------------------------------------
+// EvalDerivs subroutine for spatial derivs
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidFSISPHHydroBase<Dimension>::
+computeMCorrection(const typename Dimension::Scalar /*time*/,
+                   const typename Dimension::Scalar /*dt*/,
+                   const DataBase<Dimension>& dataBase,
+                   const State<Dimension>& state,
+                         StateDerivatives<Dimension>& derivatives) const {
+
+  // The kernels and such.
+  const auto& W = this->kernel();
+
+  // A few useful constants we'll use in the following loop.
+  const auto alwaysAverageKernels = (mKernelAveragingMethod==KernelAveragingMethod::AlwaysAverageKernels);
+  const auto averageInterfaceKernels = (mKernelAveragingMethod==KernelAveragingMethod::AverageInterfaceKernels);
+
+  // The connectivity.
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto& nodeLists = connectivityMap.nodeLists();
+  const auto  numNodeLists = nodeLists.size();
+  const auto  numPairs = pairs.size();
+
+  // Get the state and derivative FieldLists.
+  const auto color = state.fields(FSIFieldNames::color, 0.0);
+  const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
+  
+  CHECK(color.size() == numNodeLists);
+  CHECK(mass.size() == numNodeLists);
+  CHECK(position.size() == numNodeLists);
+  CHECK(massDensity.size() == numNodeLists);
+  CHECK(specificThermalEnergy.size() == numNodeLists);
+  CHECK(H.size() == numNodeLists);
+  CHECK(pressure.size() == numNodeLists);
+
+  // Derivative FieldLists.
+  auto  DepsDx = derivatives.fields(FSIFieldNames::specificThermalEnergyGradient, Vector::zero);
+  auto  DPDx = derivatives.fields(FSIFieldNames::pressureGradient, Vector::zero);
+  auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  
+  CHECK(DepsDx.size() == numNodeLists);
+  CHECK(DPDx.size() == numNodeLists);
+  CHECK(M.size() == numNodeLists);
+  CHECK(localM.size() == numNodeLists);
+
+#pragma omp parallel
+  {
+    // Thread private  scratch variables.
+    int i, j, nodeListi, nodeListj;
+
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto M_thread = M.threadCopy(threadStack);
+    auto localM_thread = localM.threadCopy(threadStack);
+    auto DPDx_thread = DPDx.threadCopy(threadStack);
+    auto DepsDx_thread = DepsDx.threadCopy(threadStack);
+
+#pragma omp for
+    for (auto kk = 0u; kk < numPairs; ++kk) {
+
+      i = pairs[kk].i_node;
+      j = pairs[kk].j_node;
+      nodeListi = pairs[kk].i_list;
+      nodeListj = pairs[kk].j_list;
+
+      // Get the state for node i.
+      const auto& colori = color(nodeListi,i);
+      const auto& ri = position(nodeListi, i);
+      const auto& mi = mass(nodeListi, i);
+      const auto& epsi = specificThermalEnergy(nodeListi, i);
+      const auto& Pi = pressure(nodeListi, i);
+      const auto& rhoi = massDensity(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  Hdeti = Hi.Determinant();
+      CHECK(mi > 0.0);
+      CHECK(rhoi > 0.0);
+      CHECK(Hdeti > 0.0);
+
+      // Get the state for node j
+      const auto& colorj = color(nodeListj,j);
+      const auto& rj = position(nodeListj, j);
+      const auto& mj = mass(nodeListj, j);
+      const auto& epsj = specificThermalEnergy(nodeListj, j);
+      const auto& Pj = pressure(nodeListj, j);
+      const auto& rhoj = massDensity(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  Hdetj = Hj.Determinant();
+      CHECK(mj > 0.0);
+      CHECK(rhoj > 0.0);
+      CHECK(Hdetj > 0.0);
+
+      auto& DPDxi = DPDx_thread(nodeListi, i);
+      auto& DPDxj = DPDx_thread(nodeListj, j);
+      auto& DepsDxi = DepsDx_thread(nodeListi, i);
+      auto& DepsDxj = DepsDx_thread(nodeListj, j);
+      auto& localMi = localM_thread(nodeListi,i);
+      auto& localMj = localM_thread(nodeListj,j);
+      auto& Mi = M_thread(nodeListi,i);
+      auto& Mj = M_thread(nodeListj,j);
+
+      const auto rij = ri - rj;
+      const auto Pij = Pi - Pj;
+      const auto epsij = epsi - epsj;
+
+      // logic
+      //---------------------------------------
+      const auto sameMatij = (nodeListi == nodeListj and colori == colorj);
+      const auto differentMatij = (nodeListi!=nodeListj);
+      const auto averageKernelij = ( (differentMatij and averageInterfaceKernels) or alwaysAverageKernels);
+
+      // Kernels
+      //--------------------------------------
+      const auto etai = Hi*rij;
+      const auto etaj = Hj*rij;
+      const auto etaMagi = etai.magnitude();
+      const auto etaMagj = etaj.magnitude();
+      CHECK(etaMagi >= 0.0);
+      CHECK(etaMagj >= 0.0);
+
+      // Symmetrized kernel weight and gradient.
+      const auto gWi = W.gradValue(etaMagi, Hdeti);
+      const auto gWj = W.gradValue(etaMagj, Hdetj);
+      
+      const auto Hetai = Hi*etai.unitVector();
+      const auto Hetaj = Hj*etaj.unitVector();
+      
+      auto gradWi = gWi*Hetai;
+      auto gradWj = gWj*Hetaj;
+      
+      //Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
+      if(averageKernelij){
+        const auto gradWij = 0.5*(gradWi+gradWj);
+        gradWi = gradWij;
+        gradWj = gradWij;
+      }
+
+      gradWi *= mj/rhoj;
+      gradWj *= mi/rhoi;
+
+      // spatial gradients and correction
+      //---------------------------------------------------------------
+      const auto deltaRi = rij.dyad(gradWi);
+      const auto deltaRj = rij.dyad(gradWj);
+
+      Mi -= deltaRi;
+      Mj -= deltaRj;
+
+      DPDxi -= Pij*gradWi;
+      DPDxj -= Pij*gradWj;
+
+      if(sameMatij){
+        localMi -=  deltaRi;
+        localMj -=  deltaRj;
+        DepsDxi -= epsij*gradWi;
+        DepsDxj -= epsij*gradWj;
+      }
+    } // loop over pairs
+      // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+  }   // OpenMP parallel region
+
+   
+    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+      const auto& nodeList = mass[nodeListi]->nodeList();
+      const auto ni = nodeList.numInternalNodes();
+#pragma omp parallel for
+      for (auto i = 0u; i < ni; ++i) {
+        const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
+        auto& Mi = M(nodeListi, i);
+        auto& localMi = localM(nodeListi, i);
+        auto& DepsDxi = DepsDx(nodeListi, i);
+        auto& DPDxi = DPDx(nodeListi, i);
+
+        const auto Mdeti = Mi.Determinant();
+        const auto goodM = ( Mdeti > 1.0e-2 and numNeighborsi > Dimension::pownu(2));
+        Mi =  (goodM ? Mi.Inverse() : Tensor::one);
+        
+        const auto localMdeti = localMi.Determinant();
+        const auto goodLocalM = ( localMdeti > 1.0e-2 and numNeighborsi > Dimension::pownu(2));
+        localMi =  (goodLocalM ? localMi.Inverse() : Tensor::one);
+
+        DPDxi = Mi.Transpose()*DPDxi;
+        DepsDxi = localMi.Transpose()*DepsDxi;
+
+      } // for each node
+    }   // for each nodelist
+
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+      (*boundaryItr)->applyFieldListGhostBoundary(M);
+      (*boundaryItr)->applyFieldListGhostBoundary(DPDx);
+      (*boundaryItr)->applyFieldListGhostBoundary(DepsDx);
+    }
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+
+} // method 
+
+} // spheral namespace

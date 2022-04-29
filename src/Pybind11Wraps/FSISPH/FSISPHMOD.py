@@ -31,11 +31,6 @@ KernelAveragingMethod = PYB11enum(("NeverAverageKernels",
                                    "AlwaysAverageKernels",
                                    "AverageInterfaceKernels"), export_values = True)
 
-SurfaceNormalMethod = PYB11enum(("SameMaterialSurfaceNormals", 
-                                 "DifferentMaterialSurfaceNormals",
-                                 "AllMaterialSurfaceNormals",
-                                 "MassWeightedSurfaceNormals"), export_values = True)
-
 SlideSurfaceMethod = PYB11enum(("SimpleSlide", 
                                  "ReorientViscositySlide",
                                  "ReorientInteractionSlide",

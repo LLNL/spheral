@@ -23,15 +23,9 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 SlideSurfaceFactoryString = """
 def makeSlideSurfaces%(dim)s(dataBase,
-                             slideSurfaces=None,
-                             surfaceNormalMethod=DifferentMaterialSurfaceNormals,
-                             normalsAreSmoothed=False,
-                             gradientsAreCorrected=True):
+                             slideSurfaces=None):
 
         contactTypes = [0]*(dataBase.numNodeLists**2)
-        
-        if surfaceNormalMethod != DifferentMaterialSurfaceNormals:
-            normalsAreSmoothed=True
 
         if slideSurfaces:
             
@@ -49,10 +43,7 @@ def makeSlideSurfaces%(dim)s(dataBase,
                 contactTypes[nodeListi+dataBase.numNodeLists*nodeListj]=1
 
         result = SlideSurface%(dim)s(dataBase,
-                                     vector_of_int(contactTypes),
-                                     surfaceNormalMethod,
-                                     normalsAreSmoothed,
-                                     gradientsAreCorrected)
+                                     vector_of_int(contactTypes))
 
         return result
 """

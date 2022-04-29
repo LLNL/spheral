@@ -121,6 +121,12 @@ public:
                            const State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) const override;
 
+  void computeMCorrection(const typename Dimension::Scalar time,
+                          const typename Dimension::Scalar dt,
+                          const DataBase<Dimension>& dataBase,
+                          const State<Dimension>& state,
+                                StateDerivatives<Dimension>& derivatives) const;
+
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
                             StateDerivatives<Dimension>& derivs) override;
