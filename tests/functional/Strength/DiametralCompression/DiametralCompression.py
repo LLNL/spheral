@@ -413,7 +413,7 @@ if crksph:
                    ASPH = asph)
 
 elif fsisph: 
-    q = CRKSPHMonaghanGingoldViscosity(Cl,Cq)   
+    q = LimitedMonaghanGingoldViscosity(Cl,Cq)   
     hydro = FSISPH(dataBase = db,
                    Q=q,
                    W = WT,

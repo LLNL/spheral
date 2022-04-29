@@ -119,7 +119,7 @@ assert not(boolReduceViscosity and boolCullenViscosity)
 # Set the hydro choice.
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity
     if ASPH:
         HydroConstructor = ACRKSPHHydro
     else:

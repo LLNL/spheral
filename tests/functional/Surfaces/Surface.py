@@ -157,7 +157,7 @@ commandLine(lattice = True,
             )
 
 if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity2d
+    Qconstructor = LimitedMonaghanGingoldViscosity2d
     if ASPH:
         HydroConstructor = ACRKSPHHydro
     else:

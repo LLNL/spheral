@@ -99,7 +99,7 @@ restartBaseName = os.path.join(restartDir, "2p-%i" % 1)
 # CRKSPH Switches to ensure consistency
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
