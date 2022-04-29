@@ -19,7 +19,8 @@ class SpheralController:
     #--------------------------------------------------------------------------
     # Constuctor.
     #--------------------------------------------------------------------------
-    def __init__(self, integrator, kernel,
+    def __init__(self, integrator,
+                 kernel = None,
                  statsStep = 1,
                  printStep = 1,
                  garbageCollectionStep = 100,
@@ -52,15 +53,24 @@ class SpheralController:
                  printAllTimers = False):
         self.restart = RestartableObject(self)
         self.integrator = integrator
-        if isinstance(kernel, SphericalKernel):
-            self.kernel = kernel.baseKernel1d
-        else:
-            self.kernel = kernel
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
         self.SPH = SPH
         self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
         self._break = False
+
+        # Extract the interpolation kernel for iterating H and such
+        if kernel is None:
+            for package in integrator.physicsPackages():
+                if hasattr(package, "kernel"):
+                    kernel = package.kernel
+                    break
+        if kernel is None:
+            raise RuntimeError, "SpheralController: unable to extract an appropriate interpolation kernel, please provide in constructor arguments"
+        if isinstance(kernel, SphericalKernel):
+            self.kernel = kernel.baseKernel1d
+        else:
+            self.kernel = kernel
 
         if timerName == "":
             self.timerName = "time.table"
