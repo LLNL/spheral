@@ -582,7 +582,7 @@ initialize(const bool     RZ,
            const int      densityUpdate,
            const bool     sumMassDensity,
            const bool     useVelocityDt,
-           const bool     ScalarQ,
+           const int      Qoption,
            const int      distributedBoundary,
            const int      kernelType,
            const int      piKernelType,
@@ -742,15 +742,22 @@ initialize(const bool     RZ,
   } else {
     me.mSmoothingScaleMethodPtr.reset(new SPHSmoothingScale<Dimension>());
   }
-  if (CRK) {
+
+  // Set the artificial viscosity
+  switch(Qoption) {
+  case 0:
+    me.mQptr.reset(new MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false));
+    break;
+  case 1:
     me.mQptr.reset(new LimitedMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false, 1.0, 0.2));
-  } else {
-    if (ScalarQ) {
-      me.mQptr.reset(new MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, false, false));
-    } else {
-      me.mQptr.reset(new TensorMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic));
-    }
+    break;
+  case 2:
+    me.mQptr.reset(new TensorMonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic));
+    break;
+  default:
+    VERIFY2(false, "SpheralPsuedoScript::initialize: invalid Qoption " << Qoption);
   }
+
   me.mQptr->epsilon2(0.01);
   auto densityUpdateVal = static_cast<MassDensityType>(densityUpdate);
   me.mHydroPtr = HydroConstructor<Dimension>::newinstance(CRK,

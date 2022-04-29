@@ -59,7 +59,7 @@ public:
                          const int      densityUpdate,
                          const bool     sumMassDensity,
                          const bool     useVelocityDt,
-                         const bool     ScalarQ,
+                         const int      Qoption,
                          const int      distributedBoundary,
                          const int      kernelType,
                          const int      piKernelType,

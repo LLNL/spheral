@@ -110,7 +110,8 @@ SPHERALDLL_API   void spheral_set_communicator(MPI_Comm* comm);
                                                                     6=CorrectedSumDensity)
     sumMassDensity        : sum mass density over all NodeLists (0=false/1=true)
     useVelocityDt         : use the velocity magnitude to control time step (0=false/1=true)
-    ScalarQ               : flag selecting scalar or tensor viscosity (0=false/1=true)
+    Qoption               : flag selecting the artificial viscosity (0=MonaghanGingold, 1=LimitedMonaghanGingold,
+                                                                     2=TensorMonaghanGingold)
     distributedBoundary   : type of distributed boundary / neighbor method (0 or 1 = NestedGrid, 2 = Tree)
     kernelType            : select the generic interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
     piKernelType          : select the artificial viscosity interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
@@ -147,7 +148,7 @@ SPHERALDLL_API
                           const int      densityUpdate,
                           const int      sumMassDensity,
                           const int      useVelocityDt,
-                          const int      ScalarQ,
+                          const int      Qoption,
                           const int      distributedBoundary,
                           const int      kernelType,
                           const int      piKernelType,
