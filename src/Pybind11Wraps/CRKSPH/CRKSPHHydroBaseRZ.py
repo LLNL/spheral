@@ -7,6 +7,7 @@ from CRKSPHHydroBase import *
 @PYB11template()
 @PYB11template_dict({"Dimension" : "Dim<2>"})
 @PYB11module("SpheralCRKSPH")
+@PYB11dynamic_attr
 class CRKSPHHydroBaseRZ(CRKSPHHydroBase):
     "An area weighted RZ specialization of CRKSPH for cylindrical coordinates"
 

@@ -1,18 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
-// RiemannSolverBase
+// RiemannSolverBase -- base class for our riemann solvers 
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_RiemannSolverBase_hh__
 #define __Spheral_RiemannSolverBase_hh__
 
 namespace Spheral {
-
-enum class GradientType {
-  RiemannGradient = 0,
-  HydroAccelerationGradient = 1,
-  SPHGradient = 2,
-  MixedMethodGradient = 3,
-  OnlyDvDxGradient = 4
-};
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
@@ -38,8 +32,7 @@ public:
 
   RiemannSolverBase(LimiterBase<Dimension>& slopeLimiter,
                     WaveSpeedBase<Dimension>& waveSpeedBase,
-                    const bool linearReconstruction,
-                    const GradientType gradientType);
+                    const bool linearReconstruction);
 
   ~RiemannSolverBase();
 
@@ -53,7 +46,27 @@ public:
                   const Scalar dt,
                   const TableKernel<Dimension>& W);
 
-  virtual
+  // virtual
+  // void interfaceState(const int i,
+  //                     const int j,
+  //                     const int nodelisti,
+  //                     const int nodelistj,
+  //                     const Vector& ri,
+  //                     const Vector& rj,
+  //                     const Scalar& rhoi,   
+  //                     const Scalar& rhoj, 
+  //                     const Scalar& ci,   
+  //                     const Scalar& cj, 
+  //                     const Scalar& Pi,    
+  //                     const Scalar& Pj,
+  //                     const Vector& vi,    
+  //                     const Vector& vj,
+  //                           Scalar& Pstar,
+  //                           Vector& vstar,
+  //                           Scalar& rhostari,
+  //                           Scalar& rhostarj) const;
+
+    virtual
   void interfaceState(const int i,
                       const int j,
                       const int nodelisti,
@@ -64,10 +77,14 @@ public:
                       const Scalar& rhoj, 
                       const Scalar& ci,   
                       const Scalar& cj, 
-                      const Scalar& sigmai,    
-                      const Scalar& sigmaj,
+                      const Scalar& Pi,    
+                      const Scalar& Pj,
                       const Vector& vi,    
                       const Vector& vj,
+                      const Vector& DpDxi,    
+                      const Vector& DpDxj,
+                      const Tensor& DvDxi,    
+                      const Tensor& DvDxj,
                             Scalar& Pstar,
                             Vector& vstar,
                             Scalar& rhostari,
@@ -102,8 +119,8 @@ public:
   bool linearReconstruction() const;
   void linearReconstruction(bool x);
   
-  GradientType gradientType() const;
-  void gradientType(GradientType x);
+  // GradientType gradientType() const;
+  // void gradientType(GradientType x);
 
   virtual 
   void linearReconstruction(const Vector& ri,
@@ -126,21 +143,21 @@ public:
                                   Vector& ytildej) const;
 
   // we'll want the ability to modify these (make better)
-  FieldList<Dimension,Vector>& DpDx();
-  FieldList<Dimension,Tensor>& DvDx();
+  // FieldList<Dimension,Vector>& DpDx();
+  // FieldList<Dimension,Tensor>& DvDx();
 
-  const FieldList<Dimension,Vector>& DpDx() const;
-  const FieldList<Dimension,Tensor>& DvDx() const;
+  // const FieldList<Dimension,Vector>& DpDx() const;
+  // const FieldList<Dimension,Tensor>& DvDx() const;
 
 private:
   
   LimiterBase<Dimension>& mSlopeLimiter;   
   WaveSpeedBase<Dimension>& mWaveSpeed;
   bool mLinearReconstruction;
-  GradientType mGradientType;
+  //GradientType mGradientType;
 
-  FieldList<Dimension, Vector> mDpDx;
-  FieldList<Dimension, Tensor> mDvDx;
+  // FieldList<Dimension, Vector> mDpDx;
+  // FieldList<Dimension, Tensor> mDvDx;
 
 };
 

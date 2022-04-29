@@ -3,6 +3,8 @@
 #
 #ATS:sph1 = test(        SELF, "--crksph False --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with SPH -- 1-D (serial)")
 #ATS:sph2 = testif(sph1, SELF, "--crksph False --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with SPH -- 1-D (serial) RESTART CHECK")
+#ATS:sphCD = test(       SELF, "--boolReduceViscosity True --crksph False --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with SPH and Morris-Monaghan Artificial Viscosity Limiter -- 1-D (serial)")
+#ATS:sphMMR = test(      SELF, "--boolCullenViscosity True --crksph False --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with SPH and Cullen-Dehnen Artificial Viscosity Limiter  -- 1-D (serial)")
 #
 # CRK
 #
@@ -19,6 +21,12 @@
 #ATS:gsph1 = test(         SELF, "--gsph True --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with GSPH -- 1-D (serial)")
 #ATS:gsph2 = testif(gsph1, SELF, "--gsph True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with GSPH -- 1-D (serial) RESTART CHECK")
 #
+# MFM
+#
+#ATS:mfm1 = test(         SELF, "--mfm True --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with MFM -- 1-D (serial)")
+#ATS:mfm2 = testif(mfm1,  SELF, "--mfm True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with MFM -- 1-D (serial) RESTART CHECK")
+#
+
 import os, sys
 import shutil
 from SolidSpheral1d import *
@@ -57,6 +65,7 @@ commandLine(nx1 = 400,
             psph = False,
             fsisph = False,
             gsph = False,
+            mfm = False,
 
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             solid = False,    # If true, use the fluid limit of the solid hydro option
@@ -133,7 +142,8 @@ commandLine(nx1 = 400,
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
-assert not (GSPH and (boolReduceViscosity or boolCullenViscosity))
+assert not (gsph and (boolReduceViscosity or boolCullenViscosity))
+assert not (mfm and (boolReduceViscosity or boolCullenViscosity))
 assert not svph
 assert not (fsisph and not solid)
 assert numNodeLists in (1, 2)
@@ -150,17 +160,27 @@ elif fsisph:
     hydroname = "FSISPH"
 elif gsph:
     hydroname = "GSPH"
+elif mfm:
+    hydroname = "mfm"
 else:
     hydroname = "SPH"
 if solid:
     hydroname = "Solid" + hydroname
+
+
+if boolReduceViscosity:
+    viscosityLimiter="MorrisMonaghanViscosityLimiter"                               
+elif boolCullenViscosity:
+    viscosityLimiter="CullenDehnenViscosityLimiter"
+else:
+    viscosityLimiter = "NoViscosityLimiter"
 
 dataDir = os.path.join(dataDirBase, 
                        "numNodeLists=%i" % numNodeLists,
                        hydroname,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "Cullen=%s" % boolCullenViscosity,
+                       viscosityLimiter,
                        "Condc=%s" % HopkinsConductivity,
                        "filter=%f" % filter,
                        "%i" % (nx1 + nx2))
@@ -360,8 +380,24 @@ elif fsisph:
 elif gsph:
     limiter = VanLeerLimiter()
     waveSpeed = DavisWaveSpeed()
-    solver = HLLC(limiter,waveSpeed,True,RiemannGradient)
+    solver = HLLC(limiter,waveSpeed,True)
     hydro = GSPH(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+elif mfm:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,True)
+    hydro = MFM(dataBase = db,
                 riemannSolver = solver,
                 W = WT,
                 cfl=cfl,
@@ -393,7 +429,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Tweak the artificial viscosity.
 #-------------------------------------------------------------------------------
-if not gsph:
+if not (gsph or mfm):
     q = hydro.Q
     if not Cl is None:
         q.Cl = Cl

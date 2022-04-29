@@ -329,7 +329,7 @@ elif fsisph:
 elif gsph:
     limiter = VanLeerLimiter()
     waveSpeed = DavisWaveSpeed()
-    solver = HLLC(limiter,waveSpeed,linearReconstruction,RiemannGradientType)
+    solver = HLLC(limiter,waveSpeed,linearReconstruction)
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
                 W = WT,

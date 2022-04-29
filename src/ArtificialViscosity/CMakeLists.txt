@@ -1,7 +1,7 @@
 include_directories(.)
 set(ArtificialViscosity_inst
     ArtificialViscosity
-    CRKSPHMonaghanGingoldViscosity
+    LimitedMonaghanGingoldViscosity
     CullenDehnenViscosity
     FiniteVolumeViscosity
     IncrementCullenMultipliers
@@ -28,8 +28,8 @@ set(ArtificialViscosity_headers
     ArtificialViscosity.hh
     ArtificialViscosityInline.hh
     ArtificialViscosityList.hh
-    CRKSPHMonaghanGingoldViscosity.hh
-    CRKSPHMonaghanGingoldViscosityRZ.hh
+    LimitedMonaghanGingoldViscosity.hh
+    LimitedMonaghanGingoldViscosityRZ.hh
     CheapVonNeumanViscosity.hh
     CullenDehnenViscosity.hh
     FiniteVolumeViscosity.hh

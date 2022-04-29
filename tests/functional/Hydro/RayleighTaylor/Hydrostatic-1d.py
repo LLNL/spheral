@@ -111,7 +111,7 @@ commandLine(nx1 = 128,
 if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity
     HydroConstructor = CRKSPHHydro
 else:
     HydroConstructor = SPHHydro
