@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Spherical (2D RZ) version.
+# Spherical (1D R) version.
 # An idealized strength test test where an imploding shell is ultimately stopped
 # at a known radius due to plastic work dissipation.
 #
@@ -9,12 +9,12 @@ from math import *
 import shutil
 import mpi
 
-from SpheralRZ import *
+from SphericalSpheral import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from NodeHistory import NodeHistory
-from GenerateNodeDistribution2d import *
-from VoronoiDistributeNodes import distributeNodes2d
+from GenerateSphericalNodeProfile1d import *
+from SortAndDivideRedistributeNodes import distributeNodes1d
 
 #-------------------------------------------------------------------------------
 # Identify ourselves!
@@ -51,12 +51,9 @@ def F(alpha, lamb, R0, R1, n):
 # Generic problem parameters
 # All (cm, gm, usec) units.
 #-------------------------------------------------------------------------------
-commandLine(nr = 10,                     # Radial resolution of the shell in points
-            seed = "constantDTheta",     # "lattice" or "constantDTheta"
-            geometry = "quadrant",       # choose ("quadrant", "full").
+commandLine(nr = 20,                     # Radial resolution of the shell in points
 
-            kernelOrder = 5,
-            nPerh = 1.35,
+            nPerh = 4.01,
 
             # Material specific bounds on the mass density.
             etamin = 1e-3,
@@ -86,12 +83,12 @@ commandLine(nr = 10,                     # Radial resolution of the shell in poi
             filter = 0.0,
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
-            compatibleEnergy = False,
-            evolveTotalEnergy = True,
+            compatibleEnergy = True,
+            evolveTotalEnergy = False,
             gradhCorrection = False,
 
             # Time integration
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
+            IntegratorConstructor = VerletIntegrator,
             goalTime = 150.0,
             steps = None,
             dt = 1e-6,
@@ -111,12 +108,9 @@ commandLine(nr = 10,                     # Radial resolution of the shell in poi
             graphics = True,
 
             clearDirectories = False,
-            dataDirBase = "dumps-Verney-Be-RZ",
-            outputFile = "Verney-Be-RZ.gnu",
+            dataDirBase = "dumps-Verney-Be-R",
+            outputFile = "Verney-Be-R.gnu",
         )
-
-assert seed in ("lattice", "constantDTheta")
-assert geometry in ("quadrant", "full")
 
 # Material parameters for this test problem.
 rho0Be = 1.845
@@ -140,8 +134,6 @@ dataDir = os.path.join(dataDirBase,
                        hydroname,
                        "densityUpdate=%s" % densityUpdate,
                        "compatibleEnergy=%s_totalEnergy=%s" % (compatibleEnergy, evolveTotalEnergy),
-                       seed,
-                       geometry,
                        "nr=%i" % nr)
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
@@ -187,8 +179,8 @@ strengthModelBe = ConstantStrength(G0, Y0)
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(kernelOrder), 1000)
-output("WT")
+W = WendlandC4Kernel()
+output("W")
 
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
@@ -207,28 +199,12 @@ nodeSet = [nodesBe]
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 print "Generating node distribution."
-nx = int(R1/(R1 - R0) * nr + 0.5)
-if geometry == "quadrant":
-    xmin = (0.0, 0.0)
-    xmax = (R1, R1)
-    thetamax = 0.5*pi
-else:
-    xmin = (-R1, 0.0)
-    xmax = ( R1, R1)
-    nx = 2*nx
-    thetamax = pi
-if seed == "constantDTheta":
-    nx = nr
-
-gen = RZGenerator(GenerateNodeDistribution2d(nx, nx, rho0Be,
-                                             distributionType = seed,
-                                             xmin = xmin,
-                                             xmax = xmax,
-                                             theta = thetamax,
-                                             rmin = R0, 
-                                             rmax = R1))
-
-distributeNodes2d((nodesBe, gen))
+gen = GenerateSphericalNodeProfile1d(nr = nr,
+                                     rho = rho0Be,
+                                     rmin = R0,
+                                     rmax = R1,
+                                     nNodePerh = nPerh)
+distributeNodes1d((nodesBe, gen))
 output("mpi.reduce(nodesBe.numInternalNodes, mpi.MIN)")
 output("mpi.reduce(nodesBe.numInternalNodes, mpi.MAX)")
 output("mpi.reduce(nodesBe.numInternalNodes, mpi.SUM)")
@@ -238,8 +214,7 @@ pos = nodesBe.positions()
 vel = nodesBe.velocity()
 for i in xrange(nodesBe.numInternalNodes):
     ri = pos[i].magnitude()
-    rhat = pos[i].unitVector()
-    vel[i] = -u0 * (R0/ri)**2 * rhat
+    vel[i].x = -u0 * (R0/ri)**2
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -257,7 +232,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPH(dataBase = db,
-                   W = WT,
+                   W = W,
                    filter = filter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
@@ -267,7 +242,7 @@ if crksph:
                    HUpdate = HUpdate)
 else:
     hydro = SPH(dataBase = db,
-                W = WT,
+                W = W,
                 filter = filter,
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
@@ -308,14 +283,6 @@ output("q.limiter")
 output("q.epsilon2")
 output("q.linearInExpansion")
 output("q.quadraticInExpansion")
-
-#-------------------------------------------------------------------------------
-# Boundary conditions.
-#-------------------------------------------------------------------------------
-if geometry == "quadrant":
-    xPlane = Plane(Vector(0.0, 0.0), Vector(1.0, 0.0))
-    xbc = ReflectingBoundary(xPlane)
-    hydro.appendBoundary(xbc)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
@@ -387,7 +354,7 @@ for ishell in xrange(nshells):
 #-------------------------------------------------------------------------------
 # Build the controller.
 #-------------------------------------------------------------------------------
-control = SpheralController(integrator, WT,
+control = SpheralController(integrator, 
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
@@ -395,15 +362,9 @@ control = SpheralController(integrator, WT,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizTime = vizTime,
-                            vizStep = vizStep)
+                            vizStep = vizStep,
+                            periodicWork = [(hist.sample, sampleFreq) for hist in histories])
 output("control")
-
-#-------------------------------------------------------------------------------
-# Add the diagnostics to the controller.
-#-------------------------------------------------------------------------------
-for hist in histories:
-    control.appendPeriodicWork(hist.sample, sampleFreq)
-    hist.flushHistory()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
