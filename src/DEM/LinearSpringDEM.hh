@@ -60,6 +60,11 @@ public:
   Scalar timeStep() const;
   void   timeStep(Scalar x);
 
+  //****************************************************************************
+  // Methods required for restarting.
+  virtual std::string label() const override { return "LinearSpringDEM" ; }
+  //****************************************************************************
+
 private:
   //--------------------------- Private Interface ---------------------------//
   Scalar mNormalSpringConstant;

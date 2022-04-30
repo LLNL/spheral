@@ -187,7 +187,7 @@ DEMBase<Dimension>::
 kullInactiveContacts(const DataBase<Dimension>& dataBase,
                            State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs){
-  //std::cout << "KULL" <<std::endl;
+  std::cout << "KULL" <<std::endl;
   auto eqOverlap = state.fields(DEMFieldNames::equilibriumOverlap, vector<Scalar>());
   auto shearDisp = state.fields(DEMFieldNames::shearDisplacement, vector<Vector>());
   auto neighborIds = state.fields(DEMFieldNames::neighborIndices, vector<int>());
@@ -595,11 +595,14 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
+  cout << "dump-em" << endl;
+  file.write(mCyclesSinceLastKulling, pathName + "/cyclesSinceLastKulling");
+
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mOmega, pathName + "/omega");
   file.write(mDomegaDt, pathName + "/DomegaDt");
   file.write(mDxDt, pathName + "/DxDt");
-  file.write(mDxDt, pathName + "/DvDt");
+  file.write(mDvDt, pathName + "/DvDt");
   file.write(mUniqueIndices, pathName + "/uniqueIndices");
 
   file.write(mIsActiveContact, pathName + "/iActiveContact");
@@ -616,13 +619,16 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
+  cout << "restore" << endl;
+  file.read(mCyclesSinceLastKulling, pathName + "/cyclesSinceLastKulling");
+
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mOmega, pathName + "/omega");
   file.read(mDomegaDt, pathName + "/DomegaDt");
   file.read(mDxDt, pathName + "/DxDt");
-  file.read(mDxDt, pathName + "/DvDt");
+  file.read(mDvDt, pathName + "/DvDt");
   file.read(mUniqueIndices, pathName + "/uniqueIndices");
-  
+
   file.read(mIsActiveContact, pathName + "/iActiveContact");
   file.read(mNeighborIndices, pathName + "/neighborIndices");
   file.read(mShearDisplacement, pathName + "/shearDisplacement");
