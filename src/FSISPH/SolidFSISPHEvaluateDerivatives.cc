@@ -518,7 +518,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           pairDepsDt[2*kk+1] -= diffusion;
         }
 
-        // normalization -- used in XSPH correction
+        // normalization 
         //-----------------------------------------------------------
         normi += volj*Wi;
         normj += voli*Wj;
@@ -527,10 +527,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         //-----------------------------------------------------------
         if (sameMatij and XSPH) {
           const auto fxsph  = (min(Pi,Pj) < 0.0 ? 1.0 : 0.0);
-          XSPHWeightSumi +=  volj*Wi;
-          XSPHWeightSumj +=  voli*Wj;
-          XSPHDeltaVi -= fxsph*volj*Wi*(vi-vstar);
-          XSPHDeltaVj -= fxsph*voli*Wj*(vj-vstar);
+          XSPHWeightSumi += fxsph*volj*Wi;
+          XSPHWeightSumj += fxsph*voli*Wj;
+          XSPHDeltaVi -= volj*Wi*(vi-vstar);
+          XSPHDeltaVj -= voli*Wj*(vj-vstar);
         }
 
       } // if damageDecouple 
@@ -613,8 +613,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DxDti = vi;
       if (XSPH) {
         XSPHWeightSumi += Hdeti*mi/rhoi*W0;
-        CHECK(XSPHWeightSumi >= 0.0);
-        DxDti += xsphCoeff*XSPHDeltaVi/max(XSPHWeightSumi,tiny);
+        XSPHWeightSumi /= normi;
+        //CHECK(XSPHWeightSumi >= 0.0);
+        DxDti += xsphCoeff*XSPHDeltaVi/max(normi,tiny);
       }
 
     
