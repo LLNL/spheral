@@ -66,12 +66,7 @@ extern Timer TIME_DEMpreStepInitialize;
 extern Timer TIME_DEMinitialize;
 extern Timer TIME_DEMfinalizeDerivs;
 extern Timer TIME_DEMghostBounds;
-extern Timer TIME_DEMupdateVol;
 extern Timer TIME_DEMenforceBounds;
-extern Timer TIME_DEMevalDerivs;
-extern Timer TIME_DEMevalDerivs_initial;
-extern Timer TIME_DEMevalDerivs_pairs;
-extern Timer TIME_DEMevalDerivs_final;
 
 namespace Spheral {
 
