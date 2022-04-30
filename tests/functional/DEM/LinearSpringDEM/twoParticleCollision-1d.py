@@ -106,25 +106,24 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    generator1 = GenerateNodeDistribution1d(2,
-                                            rho = 1.0,
-                                            xmin = 0.0,
-                                            xmax = 1.0,
-                                            nNodePerh = nPerh)
+generator1 = GenerateNodeDistribution1d(2,
+                                        rho = 1.0,
+                                        xmin = 0.0,
+                                        xmax = 1.0,
+                                        nNodePerh = nPerh)
 
 
-    distributeNodes1d((nodes1, generator1))
+distributeNodes1d((nodes1, generator1))
 
-    # initial conditions
-    velocity = nodes1.velocity()
-    velocity[0] = Vector(vImpact,0.0)
-    velocity[1] = Vector(-vImpact,0.0)
+# initial conditions
+velocity = nodes1.velocity()
+velocity[0] = Vector(vImpact,0.0)
+velocity[1] = Vector(-vImpact,0.0)
 
-    particleRadius = nodes1.particleRadius()
+particleRadius = nodes1.particleRadius()
 
-    particleRadius[0] = radius
-    particleRadius[1] = radius
+particleRadius[0] = radius
+particleRadius[1] = radius
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list

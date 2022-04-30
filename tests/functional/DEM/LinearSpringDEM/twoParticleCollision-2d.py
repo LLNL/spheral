@@ -108,8 +108,8 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    generator1 = GenerateNodeDistribution2d(2, 1,
+
+generator1 = GenerateNodeDistribution2d(2, 1,
                                             rho = 1.0,
                                             distributionType = "lattice",
                                             xmin = (0.0,  0.0),
@@ -117,17 +117,17 @@ if restoreCycle is None:
                                             nNodePerh = nPerh)
 
 
-    distributeNodes2d((nodes1, generator1))
+distributeNodes2d((nodes1, generator1))
 
-    # initial conditions
-    velocity = nodes1.velocity()
-    velocity[0] = Vector(vImpact,0.0)
-    velocity[1] = Vector(-vImpact,0.0)
+# initial conditions
+velocity = nodes1.velocity()
+velocity[0] = Vector(-vImpact,0.0)
+velocity[1] = Vector(+vImpact,0.0)
 
-    particleRadius = nodes1.particleRadius()
+particleRadius = nodes1.particleRadius()
 
-    particleRadius[0] = radius
-    particleRadius[1] = radius
+particleRadius[0] = radius
+particleRadius[1] = radius
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -205,7 +205,6 @@ if not steps is None:
     control.step(steps)
 else:
     control.advance(goalTime, maxSteps)
-
 
 #-------------------------------------------------------------------------------
 # Great success?
