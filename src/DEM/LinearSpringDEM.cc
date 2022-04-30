@@ -31,16 +31,16 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
                 const Scalar stepsPerCollision,
                 const Vector& xmin,
                 const Vector& xmax):
-                  DEMBase<Dimension>(dataBase,stepsPerCollision,xmin,xmax),
-                  mNormalSpringConstant(normalSpringConstant),
-                  mRestitutionCoefficient(restitutionCoefficient){
+  DEMBase<Dimension>(dataBase,stepsPerCollision,xmin,xmax),
+  mNormalSpringConstant(normalSpringConstant),
+  mRestitutionCoefficient(restitutionCoefficient){
      
-      const auto pi = 3.14159265358979323846;
-      const auto mass = dataBase.DEMMass();
-      const auto minMass = mass.min();
+    const auto pi = 3.14159265358979323846;
+    const auto mass = dataBase.DEMMass();
+    const auto minMass = mass.min();
 
-      mBeta = pi/std::log(restitutionCoefficient);
-      mTimeStep = pi*std::sqrt(0.5*minMass/normalSpringConstant * (1.0 + 1.0/(mBeta*mBeta)));
+    mBeta = pi/std::log(restitutionCoefficient);
+    mTimeStep = pi*std::sqrt(0.5*minMass/normalSpringConstant * (1.0 + 1.0/(mBeta*mBeta)));
 
 }
 
@@ -218,8 +218,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         DvDti += f/mi*rhatij;
         DvDtj -= f/mj*rhatij;
 
-        // if our derive fields aren't the right size resize
-        // right now we're assuming all are the same size
         DDtShearDisplacement(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]]=vt;
         
         //DomegaDti += M/I;

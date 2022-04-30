@@ -21,6 +21,7 @@ namespace Spheral {
       static Dim<2>::Scalar dot(const Dim<1>::Vector vectori, const AngularVector angularVectori );
       static Dim<2>::Scalar dot(const AngularVector angularVectori, const Dim<1>::Vector vectori );
   };
+
   template<>
   class DEMDimension<Dim<2>>{
     public:
@@ -34,6 +35,7 @@ namespace Spheral {
       static Dim<2>::Scalar dot(const Dim<2>::Vector vectori, const AngularVector angularVectori );
       static Dim<2>::Scalar dot(const AngularVector angularVectori, const Dim<2>::Vector vectori );
   };
+
   template<>
   class DEMDimension<Dim<3>>{
     public:
@@ -42,6 +44,7 @@ namespace Spheral {
       static Dim<3>::Vector  cross(const Dim<3>::Vector v1, const Dim<3>::Vector v2);
       static Dim<3>::Scalar  dot(const Dim<3>::Vector v1, const Dim<3>::Vector v2 );
   };
+  
 }
 
 #include "DEMDimensionInline.hh"

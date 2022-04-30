@@ -2,7 +2,7 @@
 // DEMBase -- The DEM package for Spheral++.
 //
 //  NOT ADDING IF CONTACT IN ITITALIZED LIKE IN THE 2 PARTICLE TEST
-//
+//  WE're going to use allFields(dataType) to generalize our pairFielldList operations
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 
@@ -113,7 +113,7 @@ DEMBase(const DataBase<Dimension>& dataBase,
     mDomegaDt = dataBase.newDEMFieldList(DEMDimension<Dimension>::zero, IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity);
     
     mUniqueIndices = dataBase.newDEMFieldList(int(0),  DEMFieldNames::uniqueIndices);
-    mUniqueIndices += globalNodeIDs<Dimension>(dataBase.nodeListBegin(),dataBase.nodeListEnd()); // a little awk but using += to set values assuming initially zero
+    mUniqueIndices += globalNodeIDs<Dimension>(dataBase.nodeListBegin(),dataBase.nodeListEnd()); 
     mIsActiveContact = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::isActiveContact);
     mNeighborIndices = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::neighborIndices);
     mShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), DEMFieldNames::shearDisplacement);
@@ -187,7 +187,7 @@ DEMBase<Dimension>::
 kullInactiveContacts(const DataBase<Dimension>& dataBase,
                            State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs){
-  std::cout << "KULL" <<std::endl;
+  //std::cout << "KULL" <<std::endl;
   auto eqOverlap = state.fields(DEMFieldNames::equilibriumOverlap, vector<Scalar>());
   auto shearDisp = state.fields(DEMFieldNames::shearDisplacement, vector<Vector>());
   auto neighborIds = state.fields(DEMFieldNames::neighborIndices, vector<int>());
@@ -254,17 +254,17 @@ kullInactiveContacts(const DataBase<Dimension>& dataBase,
         shearDispi[activeContactCount] = shearDispi[contacti];
         neighborIdsi[activeContactCount] = neighborIdsi[contacti];
         if (isActivei[contacti]==1) activeContactCount++;
-        cout << isActivei[contacti] << endl;
-        cout << contacti  << endl;
+        //cout << isActivei[contacti] << endl;
+        //cout << contacti  << endl;
       }
-      cout << "activeCount" << endl;
-      cout << activeContactCount  << endl;
+      //cout << "activeCount" << endl;
+      //cout << activeContactCount  << endl;
       // remove the excess inactive entries
       eqOverlapi.resize(activeContactCount);
       shearDispi.resize(activeContactCount);
       neighborIdsi.resize(activeContactCount);
-      cout << eqOverlapi.size() << endl;
-      cout << "endActiveCount" << endl;
+      //cout << eqOverlapi.size() << endl;
+      //cout << "endActiveCount" << endl;
     }
   }
 
@@ -293,7 +293,7 @@ findContactIndex(int nodeListi,
   const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);
 
   // these contacts should all exist by the time this method is called
-  if (contactIndexPtr == neighborContacts.end())std::cout<<"Oopsie doodle" << std::endl;
+  if (contactIndexPtr == neighborContacts.end()) std::cout<<"Oopsie doodle" << std::endl;
 
   std::vector<int> storageIndices = {storageNodeListIndex,storageNodeIndex,storageContactIndex};
   return storageIndices; 
@@ -598,8 +598,11 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mOmega, pathName + "/omega");
   file.write(mDomegaDt, pathName + "/DomegaDt");
-
+  file.write(mDxDt, pathName + "/DxDt");
+  file.write(mDxDt, pathName + "/DvDt");
   file.write(mUniqueIndices, pathName + "/uniqueIndices");
+
+  file.write(mIsActiveContact, pathName + "/iActiveContact");
   file.write(mNeighborIndices, pathName + "/neighborIndices");
   file.write(mShearDisplacement, pathName + "/shearDisplacement");
   file.write(mDDtShearDisplacement, pathName + "/DDtShearDisplacement");
@@ -616,8 +619,11 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mOmega, pathName + "/omega");
   file.read(mDomegaDt, pathName + "/DomegaDt");
-
+  file.read(mDxDt, pathName + "/DxDt");
+  file.read(mDxDt, pathName + "/DvDt");
   file.read(mUniqueIndices, pathName + "/uniqueIndices");
+  
+  file.read(mIsActiveContact, pathName + "/iActiveContact");
   file.read(mNeighborIndices, pathName + "/neighborIndices");
   file.read(mShearDisplacement, pathName + "/shearDisplacement");
   file.read(mDDtShearDisplacement, pathName + "/DDtShearDisplacement");
