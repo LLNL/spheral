@@ -217,7 +217,16 @@ template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase){
+
   SolidSPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
+
+  auto nodeListi = 0;
+  for (auto itr = dataBase.solidNodeListBegin();
+       itr != dataBase.solidNodeListEnd();
+       ++itr, ++nodeListi) {
+    (*itr)->pressure(*mRawPressure[nodeListi]);
+  }
+  
 }
 
 //------------------------------------------------------------------------------
@@ -442,6 +451,9 @@ template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
+
+  SolidSPHHydroBase<Dimension>::dumpState(file, pathName);
+
   file.write(mColor, pathName + "/color");
   file.write(mRawPressure, pathName + "/rawEosPressure");
   file.write(mDPDx, pathName + "/DpDx");
@@ -463,6 +475,9 @@ template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
+
+  SolidSPHHydroBase<Dimension>::restoreState(file, pathName);
+
   file.read(mColor, pathName + "/color");
   file.read(mRawPressure, pathName + "/rawEosPressure");
   file.read(mDPDx, pathName + "/DpDx");
