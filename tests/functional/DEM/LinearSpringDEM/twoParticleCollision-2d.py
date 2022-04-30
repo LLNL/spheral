@@ -121,8 +121,8 @@ distributeNodes2d((nodes1, generator1))
 
 # initial conditions
 velocity = nodes1.velocity()
-velocity[0] = Vector(-vImpact,0.0)
-velocity[1] = Vector(+vImpact,0.0)
+velocity[0] = Vector( vImpact,0.0)
+velocity[1] = Vector(-vImpact,0.0)
 
 particleRadius = nodes1.particleRadius()
 
