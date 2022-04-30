@@ -1,6 +1,6 @@
-#ATS:DEM2d0 = test(          SELF, "--clearDirectories True  --checkError True  --restartStep 10 --steps 100", label="DEM idividual particle collision -- 1-D (serial)")
-#ATS:DEM2d1 = testif(DEM2d0, SELF, "--clearDirectories False --checkError False  --restartStep 10 --restoreCycle 10 --steps 10 --checkRestart True", label="DEM idividual particle collision -- 1-D (serial) RESTART CHECK")
-#ATS:DEM2d2 = test(          SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM idividual particle collision -- 1-D (serial)")
+#ATS:DEM2d0COMP = test(              SELF, "--clearDirectories True  --checkError True  --restartStep 10 --steps 100", label="DEM composite particle collision -- 2-D (serial)")
+#ATS:DEM2d1COMP = testif(DEM2d0COMP, SELF, "--clearDirectories False --checkError False  --restartStep 10 --restoreCycle 10 --steps 90 --checkRestart True", label="DEM composite particle collision -- 2-D (serial) RESTART CHECK")
+#ATS:DEM2d2COMP = test(              SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM composite particle collision -- 2-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
@@ -47,7 +47,7 @@ commandLine(vImpact = 1.0,                 # impact velocity
             restoreCycle = None,
             restartStep = 1000,
             redistributeStep = 500,
-            dataDir = "dumps-DEM-2d",
+            dataDir = "dumps-DEM-2d-CompositeParticleCollision",
 
             # ats parameters
             checkError = False,
@@ -58,7 +58,7 @@ commandLine(vImpact = 1.0,                 # impact velocity
 #-------------------------------------------------------------------------------
 # file things
 #-------------------------------------------------------------------------------
-testName = "DEM-twoParticleCollision-2d"
+testName = "DEM-CompositeParticleCollision-2d"
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
