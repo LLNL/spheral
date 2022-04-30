@@ -220,12 +220,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase){
 
   SolidSPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
 
-  auto nodeListi = 0;
-  for (auto itr = dataBase.solidNodeListBegin();
-       itr != dataBase.solidNodeListEnd();
-       ++itr, ++nodeListi) {
-    (*itr)->pressure(*mRawPressure[nodeListi]);
-  }
+  mRawPressure+=this->pressure();
   
 }
 
