@@ -178,6 +178,8 @@ public:
 protected:
   //---------------------------  Protected Interface ---------------------------//
 
+  const DataBase<Dimension>& mDataBase;
+
   int mCyclesSinceLastKulling;
   int mKullFrequency;
   
@@ -196,7 +198,7 @@ protected:
 
   // fields attached to the pair interactions
   FieldList<Dimension,int> mUniqueIndices;                         // each nodes global unqiue index
-  mutable FieldList<Dimension,std::vector<int>> mNeighborIndices;  // tracks unique indices of contacts-we upate these 
+  FieldList<Dimension,std::vector<int>> mNeighborIndices;          // tracks unique indices of contacts-we upate these 
   FieldList<Dimension,std::vector<Scalar>> mEquilibriumOverlap;    // nonzero values for composite particles
   FieldList<Dimension,std::vector<Vector>> mShearDisplacement;     // displacement for friction spring
   FieldList<Dimension,std::vector<int>> mIsActiveContact;          // tracks if a interfaction is still active

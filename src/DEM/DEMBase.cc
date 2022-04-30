@@ -85,6 +85,7 @@ DEMBase(const DataBase<Dimension>& dataBase,
         const Vector& xmin,
         const Vector& xmax):
   Physics<Dimension>(),
+  mDataBase(dataBase),
   mCyclesSinceLastKulling(0),
   mKullFrequency((int)stepsPerCollision),
   mStepsPerCollision(stepsPerCollision),
@@ -176,23 +177,6 @@ kullInactiveContactsFromStatePairFieldLists(State<Dimension>& state) const{
 
 }
 
-//------------------------------------------------------------------------------
-// REdistribution methods
-//------------------------------------------------------------------------------
-
-template<typename Dimension>
-void
-DEMBase<Dimension>::
-initializeBeforeRedistribution(){
-  std::cout << "HERE WE ARE BABY!"<< std::endl;
-}
-
-template<typename Dimension>
-void
-DEMBase<Dimension>::
-finalizeAfterRedistribution() {
-  std::cout << "SHABINGO!"<< std::endl;
-}
 
 //------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
@@ -434,6 +418,58 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 
+//------------------------------------------------------------------------------
+// REdistribution methods
+//------------------------------------------------------------------------------
+
+template<typename Dimension>
+void
+DEMBase<Dimension>::
+initializeBeforeRedistribution(){
+
+  //const auto  numNodeLists = mDataBase.numNodeLists();
+  //const auto  nodeListPtrs = mDataBase.DEMNodeListPtrs();
+  const auto& connectivityMap = mDataBase.connectivityMap();
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
+  // set all our active contacts to 1
+#pragma omp for
+  for (auto kk = 0u; kk < npairs; ++kk) {
+
+    const auto i = pairs[kk].i_node;
+    const auto j = pairs[kk].j_node;
+    const auto nodeListi = pairs[kk].i_list;
+    const auto nodeListj = pairs[kk].j_list;
+
+    const auto storageLocation = this->findContactIndex(nodeListi,i,nodeListj,j);
+    const auto storageNodeList = storageLocation[0];
+    const auto storageNode = storageLocation[1];
+    const auto storageContact = storageLocation[2];
+
+    const auto storageUniqueNode = mUniqueIndices(storageNodeList,storageNode);
+
+    int pairNodeList, pairNode;
+    if (nodeListi == storageNodeList){
+      pairNodeList = nodeListj;
+      pairNode = j;
+    } else{
+      pairNodeList = nodeListi;
+      pairNode = i;
+    }
+    mNeighborIndices(pairNodeList,pairNode).push_back(storageUniqueNode);
+    mShearDisplacement(pairNodeList,pairNode).push_back(mShearDisplacement(storageNodeList,storageNode)[storageContact]);
+    mEquilibriumOverlap(pairNodeList,pairNode).push_back(mEquilibriumOverlap(storageNodeList,storageNode)[storageContact]);
+    mDDtShearDisplacement(pairNodeList,pairNode).push_back(mDDtShearDisplacement(storageNodeList,storageNode)[storageContact]);
+  }
+}
+
+template<typename Dimension>
+void
+DEMBase<Dimension>::
+finalizeAfterRedistribution() {
+  std::cout << "SHABINGO!"<< std::endl;
+}
 
 //------------------------------------------------------------------------------
 // set the size of our pairFieldLists based on mNeighborIndices 
@@ -446,9 +482,9 @@ addContactsToPairFieldList(      Value1& pairFieldList,
                            const Value2& newValue) const {
 
   const auto  numNodeLists = pairFieldList.numFields();
-  const auto  nodeListPts = pairFieldList.nodeListPtrs();
+  const auto  nodeListPtrs = pairFieldList.nodeListPtrs();
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto ni = nodeListPts[nodeListi]->numInternalNodes();
+    const auto ni = nodeListPtrs[nodeListi]->numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
       const auto numContacts = mNeighborIndices(nodeListi,i).size();
@@ -468,10 +504,10 @@ DEMBase<Dimension>::
 kullInactiveContactsFromPairFieldList(Value& pairFieldList) const {
 
   const auto  numNodeLists = pairFieldList.numFields();
-  const auto  nodeListPts = pairFieldList.nodeListPtrs();                                     
+  const auto  nodeListPtrs = pairFieldList.nodeListPtrs();                                     
 
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto numNodes = nodeListPts[nodeListi]->numInternalNodes();
+    const auto numNodes = nodeListPtrs[nodeListi]->numInternalNodes();
 #pragma omp parallel for
     for (auto nodei = 0u; nodei < numNodes; ++nodei) {
       
@@ -552,14 +588,14 @@ kullInactiveContacts(const DataBase<Dimension>& dataBase,
   auto isActive = state.fields(DEMFieldNames::isActiveContact, vector<int>());
 
   const auto  numNodeLists = dataBase.numNodeLists();
-  const auto  nodeListPts = dataBase.DEMNodeListPtrs();
+  const auto  nodeListPtrs = dataBase.DEMNodeListPtrs();
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
 
   // initialize our tracker for contact activity as a vector of zeros
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto numNodes = nodeListPts[nodeListi]->numInternalNodes();
+    const auto numNodes = nodeListPtrs[nodeListi]->numInternalNodes();
 #pragma omp parallel for
     for (auto nodei = 0u; nodei < numNodes; ++nodei) {  
       const auto numContacts = neighborIds(nodeListi,nodei).size();
@@ -576,19 +612,16 @@ kullInactiveContacts(const DataBase<Dimension>& dataBase,
     const auto nodeListi = pairs[kk].i_list;
     const auto nodeListj = pairs[kk].j_list;
 
-    const auto dataLocation = this->storageNodeSelection(nodeListi,i,nodeListj,j);
-    const auto storageNodeListIndex = dataLocation[0];
-    const auto storageNodeIndex = dataLocation[1];
-    const auto uniqueIndex = dataLocation[2];
- 
-    // get our contact indices 
-    const auto neighborContacts = neighborIds(storageNodeListIndex,storageNodeIndex);
-    const auto  contactIndexPtr = std::find(neighborContacts.begin(),neighborContacts.end(),uniqueIndex);
-    const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);
+    const auto storageLocation = this->findContactIndex(nodeListi,i,nodeListj,j);
+    const auto nodeListStore = storageLocation[0];
+    const auto nodeStore = storageLocation[1];
+    const auto contactStore = storageLocation[2];
 
     // add the contact if it is new
-    if (contactIndexPtr == neighborContacts.end()) isActive(storageNodeListIndex,storageNodeIndex).push_back(1);
-    isActive(storageNodeListIndex,storageNodeIndex)[storageContactIndex] = 1;
+    if (contactStore == (int)isActive(nodeListStore,nodeStore).size()){
+      isActive(nodeListStore,nodeStore).push_back(1);
+    }
+    isActive(nodeListStore,nodeStore)[contactStore] = 1;
   }
 
   this->kullInactiveContactsFromPairFieldList(neighborIds);
