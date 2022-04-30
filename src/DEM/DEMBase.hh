@@ -88,6 +88,48 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
   
+  // methods needed to square our pair fieldlists before redistribution
+  void initializeBeforeRedistribution();
+  void finalizeAfterRedistribution();
+
+  // templated methods
+  template<typename Value1, typename Value2>
+  void addContactsToPairFieldList(Value1& pairFieldList, const Value2& newValue) const;
+
+  template<typename Value>
+  void kullInactiveContactsFromPairFieldList(Value& pairFieldList) const;
+  
+  //#############################################################################
+  // special methods for the pair fields if you add pairFieldLists 
+  // make sure to follow the pattern in these methods.
+  virtual
+  void resizeDerivativePairFieldLists(StateDerivatives<Dimension>& derivs) const;
+
+  virtual
+  void resizeStatePairFieldLists(State<Dimension>& state) const;
+
+  virtual 
+  void kullInactiveContactsFromStatePairFieldLists(State<Dimension>& state) const;
+  //#############################################################################
+
+  void addContacts(const DataBase<Dimension>& dataBase,
+                         State<Dimension>& state,
+                         StateDerivatives<Dimension>& derivs);
+
+  void kullInactiveContacts(const DataBase<Dimension>& dataBase,
+                                  State<Dimension>& state,
+                                  StateDerivatives<Dimension>& derivs);
+
+  // methods to find storage location for pairwise fields
+  std::vector<int> storageNodeSelection(int nodeListi,
+                                        int i,
+                                        int nodeListj,
+                                        int j) const;
+
+  std::vector<int> findContactIndex(int nodeListi,
+                                    int i,
+                                    int nodeListj,
+                                    int j) const;
 
   // Optionally we can provide a bounding box for use generating the mesh
   // for the Voronoi mass density update.
@@ -121,37 +163,6 @@ public:
   const Scalar  equilibriumOverlap(const int nodeListi,
                                    const int nodei,
                                    const int contacti) const;
-
-  // special methods for the pair fields
-  void resizePairDerivativeFields(const DataBase<Dimension>& dataBase,
-                                  const State<Dimension>& state,
-                                        StateDerivatives<Dimension>& derivs) const;
-
-  void initializeBeforeRedistribution();
-  void finalizeAfterRedistribution();
-
-  void setEquilibriumOverlap();
-
-  void addContacts(const DataBase<Dimension>& dataBase,
-                         State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
-  void kullInactiveContacts(const DataBase<Dimension>& dataBase,
-                                  State<Dimension>& state,
-                                  StateDerivatives<Dimension>& derivs);
-  std::vector<int> storageNodeSelection(int nodeListi,
-                                        int i,
-                                        int nodeListj,
-                                        int j) const;
-
-  std::vector<int> partnerNodeSelection(int nodeListi,
-                                        int i,
-                                        int nodeListj,
-                                        int j) const;
-
-  std::vector<int> findContactIndex(int nodeListi,
-                                    int i,
-                                    int nodeListj,
-                                    int j) const;
 
   // inlined and specialized for different dimensions
   Scalar momentOfInertia(const Scalar massi,

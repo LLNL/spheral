@@ -29,8 +29,7 @@ namespace Spheral{
                            const int j,
                            const int uniqueIndexj,
                            const int numInternalElementsj);
-    ContactIndex storageLocation;
-    ContactIndex pairLocation;               
+    ContactIndex storageLocation;              
   }
 }
 

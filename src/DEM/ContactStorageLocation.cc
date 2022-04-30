@@ -33,21 +33,26 @@ ContactStorageLocation::ContactStorageLocation(const int nodeListi,
   pairLocation(){
 
     const auto selectNodei = (i < numInternalNodesi) and (uniqueIndexi < uniqueIndexj or j > numInternalNodesj);
-
-    auto& neighborContacts = mNeighborIndices(storageNodeListIndex,storageNodeIndex);
-    const auto contactIndexPtr = std::find(neighborContacts.begin(),neighborContacts.end(),uniqueIndex);
-    const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);
-
     int storageNodeListIndex, storageNodeIndex, uniqueIndex;
     if (selectNodei) {
-      storageLocation.nodeListIndex = nodeListi;
-      storageLocation.nodeIndex = i;
-      uniqueIndex = uIDj;
+      storageNodeListIndex = nodeListi;
+      storageNodeIndex = i;
+      uniqueIndex = uniqueIndexj;
     } else{
       storageNodeListIndex = nodeListj;
       storageNodeIndex = j;
-      uniqueIndex = uIDi;
-  }    
+      uniqueIndex = uniqueIndexi;
+    }
+
+    // return the nodelist,node ids plus the unique index we'll search for
+    std::vector<int> storageIndices = {storageNodeListIndex,storageNodeIndex,uniqueIndex};
+    auto& neighborContacts = neighborIndices(storageNodeListIndex,storageNodeIndex);
+    const auto contactIndexPtr = std::find(neighborContacts.begin(),neighborContacts.end(),uniqueIndex);
+    const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);
+
+    storageLocation.nodeListIndex = storageNodeListIndex;
+    storageLocation.nodeIndex = storageNodeIndex;
+    storageLocation.contactIndex = storageContactIndex;
 }
 
 }

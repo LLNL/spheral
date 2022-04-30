@@ -77,7 +77,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const{
 
-  this->resizePairDerivativeFields(dataBase,state,derivatives);
+  this->resizeDerivativePairFieldLists(derivatives);
 
   // A few useful constants we'll use in the following loop.
   //const double tiny = std::numeric_limits<double>::epsilon();
