@@ -36,3 +36,14 @@ HerzianDEM%(ndim)id = PYB11TemplateClass(HerzianDEM, template_parameters="%(Dime
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
+#-------------------------------------------------------------------------------
+# Instantiate our types
+#-------------------------------------------------------------------------------
+class DEMFieldNames:
+    particleRadius = PYB11readonly(static=True, returnpolicy="copy")
+    angularVelocity = PYB11readonly(static=True, returnpolicy="copy")
+    uniqueIndices = PYB11readonly(static=True, returnpolicy="copy")
+    isActiveContact = PYB11readonly(static=True, returnpolicy="copy")
+    neighborIndices = PYB11readonly(static=True, returnpolicy="copy")
+    shearDisplacement = PYB11readonly(static=True, returnpolicy="copy")
+    equilibriumOverlap = PYB11readonly(static=True, returnpolicy="copy")
