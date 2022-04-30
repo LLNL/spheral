@@ -16,6 +16,7 @@ from HerzianDEM import *
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"DEM/DEMBase.hh"',
+                  '"DEM/DEMFieldNames.hh"',
                   '"DEM/LinearSpringDEM.hh"',
                   '"DEM/HerzianDEM.hh"',
                   '"FileIO/FileIO.hh"']
@@ -37,7 +38,7 @@ HerzianDEM%(ndim)id = PYB11TemplateClass(HerzianDEM, template_parameters="%(Dime
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
 #-------------------------------------------------------------------------------
-# Instantiate our types
+# expose our field names
 #-------------------------------------------------------------------------------
 class DEMFieldNames:
     particleRadius = PYB11readonly(static=True, returnpolicy="copy")
