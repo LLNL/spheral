@@ -1,4 +1,4 @@
-#ATS:DEM1d = test(        SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM idividual particle collision -- 1-D (serial)")
+#ATS:DEM1d = test(        SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM individual particle collision -- 1-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
