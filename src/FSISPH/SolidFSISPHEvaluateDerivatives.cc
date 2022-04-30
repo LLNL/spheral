@@ -681,7 +681,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
   const auto  numPairs = pairs.size();
 
   // Get the state and derivative FieldLists.
-  const auto color = state.fields(FSIFieldNames::color, 0.0);
+  const auto color = state.fields(FSIFieldNames::color, int(0));
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
