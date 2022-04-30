@@ -179,6 +179,8 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "SolidFSISPHHydroBase"; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const override;
+  virtual void restoreState(const FileIO& file, const std::string& pathName) override;
  //****************************************************************************
 
 private:

@@ -434,6 +434,48 @@ enforceBoundaries(State<Dimension>& state,
   }
 
 }
+
+//------------------------------------------------------------------------------
+// Dump the current state to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidFSISPHHydroBase<Dimension>::
+dumpState(FileIO& file, const string& pathName) const {
+  file.write(mColor, pathName + "/color");
+  file.write(mRawPressure, pathName + "/rawEosPressure");
+  file.write(mDPDx, pathName + "/DpDx");
+  file.write(mDepsDx, pathName + "/DepsDx");
+  file.write(mInterfaceNormals, pathName + "/interfaceNormals");
+  file.write(mInterfaceFraction, pathName + "/interfaceFraction");
+  file.write(mInterfaceSmoothness, pathName + "/interfaceSmoothness");
+  file.write(mNewInterfaceNormals, pathName + "/newInterfaceNormals");
+  file.write(mSmoothedInterfaceNormals, pathName + "/smoothedInterfaceNormals");
+  file.write(mNewInterfaceFraction, pathName + "/newInterfaceFraction");
+  file.write(mNewInterfaceSmoothness, pathName + "/newInterfaceSmoothness");
+}
+
+
+//------------------------------------------------------------------------------
+// Dump the current state to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidFSISPHHydroBase<Dimension>::
+restoreState(const FileIO& file, const string& pathName) {
+  file.read(mColor, pathName + "/color");
+  file.read(mRawPressure, pathName + "/rawEosPressure");
+  file.read(mDPDx, pathName + "/DpDx");
+  file.read(mDepsDx, pathName + "/DepsDx");
+  file.read(mInterfaceNormals, pathName + "/interfaceNormals");
+  file.read(mInterfaceFraction, pathName + "/interfaceFraction");
+  file.read(mInterfaceSmoothness, pathName + "/interfaceSmoothness");
+  file.read(mNewInterfaceNormals, pathName + "/newInterfaceNormals");
+  file.read(mSmoothedInterfaceNormals, pathName + "/smoothedInterfaceNormals");
+  file.read(mNewInterfaceFraction, pathName + "/newInterfaceFraction");
+  file.read(mNewInterfaceSmoothness, pathName + "/newInterfaceSmoothness");
+}
+
 //------------------------------------------------------------------------------
 // method for limited linear reconstruction between nodes
 //------------------------------------------------------------------------------
