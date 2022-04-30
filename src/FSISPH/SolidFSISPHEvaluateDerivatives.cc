@@ -53,7 +53,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Get the state and derivative FieldLists.
-  const auto color = state.fields(FSIFieldNames::color, 0.0);
+  const auto color = state.fields(FSIFieldNames::color, int(0));
   const auto interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
   const auto interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   const auto interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);

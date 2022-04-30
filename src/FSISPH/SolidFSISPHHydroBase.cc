@@ -189,7 +189,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
       } 
     }
     
-    mColor = dataBase.newFluidFieldList(1.0, FSIFieldNames::color);
+    mColor = dataBase.newFluidFieldList(int(1), FSIFieldNames::color);
     mRawPressure = dataBase.newFluidFieldList(0.0, FSIFieldNames::rawPressure);
     mDPDx = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::pressureGradient);
     mDepsDx = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::specificThermalEnergyGradient);
@@ -236,7 +236,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
   
-  dataBase.resizeFluidFieldList(mColor, 1.0, FSIFieldNames::color, false);
+  dataBase.resizeFluidFieldList(mColor, int(1), FSIFieldNames::color, false);
   dataBase.resizeFluidFieldList(mRawPressure, 0.0, FSIFieldNames::rawPressure, false);
   dataBase.resizeFluidFieldList(mInterfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals,false);
   dataBase.resizeFluidFieldList(mInterfaceFraction, 0.0, FSIFieldNames::interfaceFraction,false); 
@@ -390,7 +390,7 @@ applyGhostBoundaries(State<Dimension>& state,
 
   SolidSPHHydroBase<Dimension>::applyGhostBoundaries(state,derivs);
 
-  FieldList<Dimension, Scalar> color = state.fields(FSIFieldNames::color, 0.0);
+  FieldList<Dimension, int> color = state.fields(FSIFieldNames::color, int(0));
   FieldList<Dimension, Scalar> interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
   FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
@@ -418,7 +418,7 @@ enforceBoundaries(State<Dimension>& state,
 
   SolidSPHHydroBase<Dimension>::enforceBoundaries(state,derivs);
 
-  FieldList<Dimension, Scalar> color = state.fields(FSIFieldNames::color, 0.0);
+  FieldList<Dimension, int> color = state.fields(FSIFieldNames::color, int(0));
   FieldList<Dimension, Scalar> interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
   FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);

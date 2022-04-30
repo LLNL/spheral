@@ -189,7 +189,7 @@ DepsDx() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldList<Dimension,  typename Dimension::Scalar>&
+const FieldList<Dimension, int>&
 SolidFSISPHHydroBase<Dimension>::
 color() const {
   return mColor;
