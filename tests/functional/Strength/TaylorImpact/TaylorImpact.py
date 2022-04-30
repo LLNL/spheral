@@ -41,7 +41,7 @@
 # CRK 3D
 #ATS:test(SELF, "--geometry 3d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_3d_state_snapshot_8proc", np=8, label="Generate 8 proc CRK 3D reference data")
 
-import os, shutil
+import os, shutil, sys
 from math import *
 import mpi
 
@@ -72,7 +72,7 @@ commandLine(geometry = "2d",         # one of (2d, 3d, RZ)
             # Resolution
             nr = 10,
             nz = 80,
-            nPerh = 3.01,
+            nPerh = 2.01,
             
             # Material.
             etamin = 0.2,
@@ -145,6 +145,7 @@ commandLine(geometry = "2d",         # one of (2d, 3d, RZ)
 
 assert geometry in ("2d", "3d", "RZ")
 assert not (compatibleEnergy and evolveTotalEnergy)
+assert not (fsisph and geometry=="RZ")
 
 exec("from Spheral%s import *" % geometry)
 
@@ -152,6 +153,8 @@ if crksph:
     hydroname = os.path.join("CRKSPH",
                              str(correctionOrder),
                              str(volumeType))
+elif fsisph:
+    hydroname = "FSISPH"
 else:
     hydroname = os.path.join("SPH", "gradh=%s" % gradhCorrection)
 if asph:
@@ -172,7 +175,6 @@ restartBaseName = os.path.join(restartDir, "TaylorImpact-%i-%i" % (nr, nz))
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -291,8 +293,7 @@ del n
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-#WT = TableKernel(NBSplineKernel(3), 1000)
-WT = TableKernel(WendlandC2Kernel(), 1000)
+WT = TableKernel(NBSplineKernel(3), 1000)
 output('WT')
 
 #-------------------------------------------------------------------------------
@@ -439,8 +440,7 @@ if crksph:
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
-                   ASPH = asph,
-                   RZ = (geometry == "RZ"))
+                   ASPH = asph)
 elif fsisph:
     hydro = FSISPH(dataBase = db,
                 W = WT,
@@ -452,10 +452,7 @@ elif fsisph:
                 ASPH = asph,
                 xsphCoefficient = fsiXSPHCoeff,
                 epsTensile = epsilonTensile,
-                nTensile = nTensile,
-                strengthInDamage=False,
-                damageRelieveRubble=False,
-                RZ = False)
+                nTensile = nTensile)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -470,8 +467,7 @@ else:
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile,
-                ASPH = asph,
-                RZ = (geometry == "RZ"))
+                ASPH = asph)
 
 for bc in bcs:
     hydro.appendBoundary(bc)
@@ -550,18 +546,18 @@ output("control")
 # In the two material case, it's useful to smooth the initial velocity field
 # in order to avoid interpenetration at the interface.
 #-------------------------------------------------------------------------------
-# if (not reflect) and control.totalSteps == 0:
-#     print "Smoothing initial velocity field."
-#     state = State(db, integrator.physicsPackages())
-#     derivs = StateDerivatives(db, integrator.physicsPackages())
-#     integrator.initialize(state, derivs)
-#     vel = db.fluidVelocity
-#     pos = db.fluidPosition
-#     H = db.fluidHfield
-#     m = db.fluidMass
-#     velsmooth = smoothVectorFieldsMash(vel, pos, m, H, WT)
-#     vel.assignFields(velsmooth)
-#     control.dropViz(control.totalSteps, 0.0, 0.0)
+if (not reflect) and control.totalSteps == 0:
+    print "Smoothing initial velocity field."
+    state = State(db, integrator.physicsPackages())
+    derivs = StateDerivatives(db, integrator.physicsPackages())
+    integrator.initialize(state, derivs)
+    vel = db.fluidVelocity
+    pos = db.fluidPosition
+    H = db.fluidHfield
+    m = db.fluidMass
+    velsmooth = smoothVectorFieldsMash(vel, pos, m, H, WT)
+    vel.assignFields(velsmooth)
+    control.dropViz(control.totalSteps, 0.0, 0.0)
 
 #-------------------------------------------------------------------------------
 # Advance to completetion.
@@ -574,50 +570,50 @@ else:
 #-------------------------------------------------------------------------------
 # If requested, generate table output of the full results.
 #-------------------------------------------------------------------------------
-# if siloSnapShotFile:
-#     from siloPointmeshDump import siloPointmeshDump
-#     print "Generating snapshot in silo files."
+if siloSnapShotFile:
+    from siloPointmeshDump import siloPointmeshDump
+    print "Generating snapshot in silo files."
 
-#     # First generate the state and derivatives.
-#     state = State(db, integrator.physicsPackages())
-#     state0 = State(db, integrator.physicsPackages())
-#     state0.copyState()
-#     derivs = StateDerivatives(db, integrator.physicsPackages())
-#     derivs.Zero()
-#     integrator.preStepInitialize(state, derivs)
-#     dt = integrator.selectDt(dtmin, dtmax, state, derivs)
-#     integrator.initializeDerivatives(control.time() + dt, dt, state, derivs)
-#     integrator.evaluateDerivatives(control.time() + dt, dt, db, state, derivs)
-#     integrator.finalizeDerivatives(control.time() + dt, dt, db, state, derivs)
+    # First generate the state and derivatives.
+    state = State(db, integrator.physicsPackages())
+    state0 = State(db, integrator.physicsPackages())
+    state0.copyState()
+    derivs = StateDerivatives(db, integrator.physicsPackages())
+    derivs.Zero()
+    integrator.preStepInitialize(state, derivs)
+    dt = integrator.selectDt(dtmin, dtmax, state, derivs)
+    integrator.initializeDerivatives(control.time() + dt, dt, state, derivs)
+    integrator.evaluateDerivatives(control.time() + dt, dt, db, state, derivs)
+    integrator.finalizeDerivatives(control.time() + dt, dt, db, state, derivs)
 
-#     # Grab the fields and their derivatives.
-#     mass = state0.scalarFields(HydroFieldNames.mass)
-#     rho = state0.scalarFields(HydroFieldNames.massDensity)
-#     pos = state0.vectorFields(HydroFieldNames.position)
-#     eps = state0.scalarFields(HydroFieldNames.specificThermalEnergy)
-#     vel = state0.vectorFields(HydroFieldNames.velocity)
-#     H = state0.symTensorFields(HydroFieldNames.H)
-#     P = state0.scalarFields(HydroFieldNames.pressure)
-#     S = state0.symTensorFields(SolidFieldNames.deviatoricStress)
-#     cs = state0.scalarFields(HydroFieldNames.soundSpeed)
-#     K = state0.scalarFields(SolidFieldNames.bulkModulus)
-#     mu = state0.scalarFields(SolidFieldNames.shearModulus)
-#     Y = state0.scalarFields(SolidFieldNames.yieldStrength)
-#     ps = state0.scalarFields(SolidFieldNames.plasticStrain)
-#     massSum = derivs.scalarFields("new " + HydroFieldNames.massDensity)
-#     DrhoDt = derivs.scalarFields("delta " + HydroFieldNames.massDensity)
-#     DvelDt = derivs.vectorFields(HydroFieldNames.hydroAcceleration)
-#     DepsDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
-#     DvelDx = derivs.tensorFields(HydroFieldNames.velocityGradient)
-#     DHDt = derivs.symTensorFields("delta " + HydroFieldNames.H)
-#     Hideal = derivs.symTensorFields("new " + HydroFieldNames.H)
-#     DSDt = derivs.symTensorFields("delta " + SolidFieldNames.deviatoricStress)
+    # Grab the fields and their derivatives.
+    mass = state0.scalarFields(HydroFieldNames.mass)
+    rho = state0.scalarFields(HydroFieldNames.massDensity)
+    pos = state0.vectorFields(HydroFieldNames.position)
+    eps = state0.scalarFields(HydroFieldNames.specificThermalEnergy)
+    vel = state0.vectorFields(HydroFieldNames.velocity)
+    H = state0.symTensorFields(HydroFieldNames.H)
+    P = state0.scalarFields(HydroFieldNames.pressure)
+    S = state0.symTensorFields(SolidFieldNames.deviatoricStress)
+    cs = state0.scalarFields(HydroFieldNames.soundSpeed)
+    K = state0.scalarFields(SolidFieldNames.bulkModulus)
+    mu = state0.scalarFields(SolidFieldNames.shearModulus)
+    Y = state0.scalarFields(SolidFieldNames.yieldStrength)
+    ps = state0.scalarFields(SolidFieldNames.plasticStrain)
+    massSum = derivs.scalarFields("new " + HydroFieldNames.massDensity)
+    DrhoDt = derivs.scalarFields("delta " + HydroFieldNames.massDensity)
+    DvelDt = derivs.vectorFields(HydroFieldNames.hydroAcceleration)
+    DepsDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
+    DvelDx = derivs.tensorFields(HydroFieldNames.velocityGradient)
+    DHDt = derivs.symTensorFields("delta " + HydroFieldNames.H)
+    Hideal = derivs.symTensorFields("new " + HydroFieldNames.H)
+    DSDt = derivs.symTensorFields("delta " + SolidFieldNames.deviatoricStress)
 
-#     # Write the sucker.
-#     siloPointmeshDump(siloSnapShotFile, 
-#                       fieldLists = [mass, rho, pos, eps, vel, H, P, S, cs, K, mu, Y, ps,
-#                                     massSum, DrhoDt, DvelDt, DepsDt, DvelDx, DHDt, Hideal, DSDt],
-#                       baseDirectory = dataDir,
-#                       label = "Spheral++ snapshot of state and derivatives.",
-#                       time = control.time(),
-#                       cycle = control.totalSteps)
+    # Write the sucker.
+    siloPointmeshDump(siloSnapShotFile, 
+                      fieldLists = [mass, rho, pos, eps, vel, H, P, S, cs, K, mu, Y, ps,
+                                    massSum, DrhoDt, DvelDt, DepsDt, DvelDx, DHDt, Hideal, DSDt],
+                      baseDirectory = dataDir,
+                      label = "Spheral++ snapshot of state and derivatives.",
+                      time = control.time(),
+                      cycle = control.totalSteps)
