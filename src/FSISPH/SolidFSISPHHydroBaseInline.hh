@@ -100,23 +100,6 @@ kernelAveragingMethod() const {
   return mKernelAveragingMethod;
 }
 
-//------------------------------------------------------------------------------
-// return our slide surface method
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-SolidFSISPHHydroBase<Dimension>::
-slideSurfaceMethod(SlideSurfaceMethod x) {
-  mSlideSurfaceMethod = x;
-}
-template<typename Dimension>
-inline
-SlideSurfaceMethod
-SolidFSISPHHydroBase<Dimension>::
-slideSurfaceMethod() const {
-  return mSlideSurfaceMethod;
-}
 
 //------------------------------------------------------------------------------
 // switch to turn on density sum for different nodeLists
