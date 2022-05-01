@@ -422,41 +422,49 @@ void
 DEMBase<Dimension>::
 initializeBeforeRedistribution(){
 
-  //const auto  numNodeLists = mDataBase.numNodeLists();
-  //const auto  nodeListPtrs = mDataBase.DEMNodeListPtrs();
-  const auto& connectivityMap = mDataBase.connectivityMap();
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
+  std::cout << "SHABINGO!"<< std::endl;
 
-  // set all our active contacts to 1
-#pragma omp for
-  for (auto kk = 0u; kk < npairs; ++kk) {
+//   //const auto  numNodeLists = mDataBase.numNodeLists();
+//   //const auto  nodeListPtrs = mDataBase.DEMNodeListPtrs();
+//   const auto& connectivityMap = mDataBase.connectivityMap();
+//   const auto& pairs = connectivityMap.nodePairList();
+//   const auto  npairs = pairs.size();
 
-    const auto i = pairs[kk].i_node;
-    const auto j = pairs[kk].j_node;
-    const auto nodeListi = pairs[kk].i_list;
-    const auto nodeListj = pairs[kk].j_list;
+//   // set all our active contacts to 1
+// #pragma omp for
+//   for (auto kk = 0u; kk < npairs; ++kk) {
 
-    const auto storageLocation = this->findContactIndex(nodeListi,i,nodeListj,j);
-    const auto storageNodeList = storageLocation[0];
-    const auto storageNode = storageLocation[1];
-    const auto storageContact = storageLocation[2];
+//     const auto i = pairs[kk].i_node;
+//     const auto j = pairs[kk].j_node;
+//     const auto nodeListi = pairs[kk].i_list;
+//     const auto nodeListj = pairs[kk].j_list;
 
-    const auto storageUniqueNode = mUniqueIndices(storageNodeList,storageNode);
+//     const auto storageLocation = this->findContactIndex(nodeListi,i,nodeListj,j);
+//     const auto storageNodeList = storageLocation[0];
+//     const auto storageNode = storageLocation[1];
+//     const auto storageContact = storageLocation[2];
 
-    int pairNodeList, pairNode;
-    if (nodeListi == storageNodeList){
-      pairNodeList = nodeListj;
-      pairNode = j;
-    } else{
-      pairNodeList = nodeListi;
-      pairNode = i;
-    }
-    mNeighborIndices(pairNodeList,pairNode).push_back(storageUniqueNode);
-    mShearDisplacement(pairNodeList,pairNode).push_back(mShearDisplacement(storageNodeList,storageNode)[storageContact]);
-    mEquilibriumOverlap(pairNodeList,pairNode).push_back(mEquilibriumOverlap(storageNodeList,storageNode)[storageContact]);
-    mDDtShearDisplacement(pairNodeList,pairNode).push_back(mDDtShearDisplacement(storageNodeList,storageNode)[storageContact]);
-  }
+//     const auto storageUniqueNode = mUniqueIndices(storageNodeList,storageNode);
+//     std::cout << mNeighborIndices(nodeListi,i).size() << std::endl;
+//     std::cout << mNeighborIndices(nodeListj,j).size() << std::endl;
+//     int pairNodeList, pairNode;
+//     if (nodeListi == storageNodeList){
+//       pairNodeList = nodeListj;
+//       pairNode = j;
+//     } else{
+//       pairNodeList = nodeListi;
+//       pairNode = i;
+//     }
+//     mNeighborIndices(pairNodeList,pairNode).push_back(storageUniqueNode);
+//     mShearDisplacement(pairNodeList,pairNode).push_back(mShearDisplacement(storageNodeList,storageNode)[storageContact]);
+//     mEquilibriumOverlap(pairNodeList,pairNode).push_back(mEquilibriumOverlap(storageNodeList,storageNode)[storageContact]);
+//     mDDtShearDisplacement(pairNodeList,pairNode).push_back(mDDtShearDisplacement(storageNodeList,storageNode)[storageContact]);
+//     std::cout << mNeighborIndices(nodeListi,i).size() << std::endl;
+//     std::cout << mNeighborIndices(nodeListj,j).size() << std::endl;
+  
+//   }
+  
+
 }
 
 template<typename Dimension>

@@ -42,7 +42,7 @@ commandLine(numParticlePerLength = 50,     # number of particles on a side of th
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 1000,
-            redistributeStep = 500,
+            redistributeStep = None,
             dataDir = "dumps-DEM-2d",
             )
 
