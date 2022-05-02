@@ -151,6 +151,13 @@ equilibriumOverlap() const {
   return mEquilibriumOverlap;
 }
 
+template<typename Dimension>
+inline
+const vector<ContactIndex>&
+DEMBase<Dimension>::
+contactStorageIndices() const {
+  return mContactStorageIndices;
+}
 //------------------------------------------------------------------------------
 // access methods for a single element in our pair fields
 //------------------------------------------------------------------------------

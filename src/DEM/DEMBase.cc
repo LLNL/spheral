@@ -30,6 +30,7 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/registerWithRedistribution.hh"
 
+#include "DEM/ContactStorageLocation.hh"
 #include "DEM/IncrementPairFieldList.hh"
 #include "DEM/DEMBase.hh"
 #include "DEM/DEMDimension.hh"
@@ -546,29 +547,58 @@ addContacts(const DataBase<Dimension>& dataBase,
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
+  const auto  numPairs = pairs.size();
   
   auto neighborIds = state.fields(DEMFieldNames::neighborIndices, vector<int>());
 
+  mContactStorageIndices.resize(numPairs);
+
 #pragma omp for
-  for (auto kk = 0u; kk < npairs; ++kk) {
+  for (auto kk = 0u; kk < numPairs; ++kk) {
 
     const auto i = pairs[kk].i_node;
     const auto j = pairs[kk].j_node;
     const auto nodeListi = pairs[kk].i_list;
     const auto nodeListj = pairs[kk].j_list;
 
-    const auto dataLocation = this->storageNodeSelection(nodeListi,i,nodeListj,j);
-    const auto storageNodeListIndex = dataLocation[0];
-    const auto storageNodeIndex = dataLocation[1];
-    const auto uniqueIndex = dataLocation[2];
- 
-    // get our contact indices 
-    const auto neighborContacts = neighborIds(storageNodeListIndex,storageNodeIndex);
-    const auto contactIndexPtr = std::find(neighborContacts.begin(),neighborContacts.end(),uniqueIndex);
+    // get our unique global ID numbers
+    const auto uIDi = mUniqueIndices(nodeListi,i);
+    const auto uIDj = mUniqueIndices(nodeListj,j);
+  
+    // get our number of internal nodes
+    const int numInternalNodesi = mUniqueIndices[nodeListi]->numInternalElements();
+    const int numInternalNodesj = mUniqueIndices[nodeListj]->numInternalElements();
+
+    // boolean operations to decide which pair-node maintains pair fields
+    const auto nodeiIsInternal = i < numInternalNodesi;
+    const auto nodejIsGhost = j >= numInternalNodesj;
+    const auto nodeiIsMinUnique = uIDi <= uIDj;
+    const auto selectNodei = nodeiIsInternal and (nodeiIsMinUnique or nodejIsGhost);
+
+    // store info on storage/dummy locations
+    auto& contactkk = mContactStorageIndices[kk];
+
+    contactkk.storeNodeList = (selectNodei ? nodeListi : nodeListj);
+    contactkk.storeNode     = (selectNodei ? i         : j);
+    contactkk.pairNodeList  = (selectNodei ? nodeListj : nodeListi);
+    contactkk.pairNode      = (selectNodei ? j         : i);
+
+    // find contact if it already exists 
+    const auto uniqueSearchIndex = (selectNodei ? uIDj : uIDi);
+    const auto neighborContacts = mNeighborIndices(contactkk.storeNodeList,
+                                                   contactkk.storeNode);
+    const auto contactIndexPtr = std::find(neighborContacts.begin(),
+                                           neighborContacts.end(),
+                                           uniqueSearchIndex);
+    const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);
+    contactkk.storeContact = storageContactIndex;
 
     // add the contact if it is new
-    if (contactIndexPtr == neighborContacts.end()) neighborIds(storageNodeListIndex,storageNodeIndex).push_back(uniqueIndex);
+    if (contactIndexPtr == neighborContacts.end()){
+      neighborIds(contactkk.storeNodeList,contactkk.storeNode).push_back(uniqueSearchIndex);
+    }
+
+
 
   }
 
@@ -681,7 +711,7 @@ storageNodeSelection(int nodeListi,
 
   // first we'll pick the internal node over a ghost. 
   // if both are internal we'll use the one with the lowerst global id
-  const auto selectNodei = (i < (int)numInternalNodesi) and (uIDi < uIDj or j > (int)numInternalNodesj);
+  const auto selectNodei = (i < (int)numInternalNodesi) and (uIDi < uIDj or j >= (int)numInternalNodesj);
 
   int storageNodeListIndex, storageNodeIndex, uniqueIndex;
   if (selectNodei) {

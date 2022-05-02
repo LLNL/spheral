@@ -17,6 +17,7 @@ template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 class RedistributionNotificationHandle;
+struct ContactIndex;
 
 template<typename Dimension>
 class DEMBase: public Physics<Dimension> {
@@ -156,6 +157,8 @@ public:
   const FieldList<Dimension, std::vector<Vector>>& DDtShearDisplacement() const;
   const FieldList<Dimension, std::vector<Scalar>>& equilibriumOverlap() const;
   
+  const std::vector<ContactIndex>& contactStorageIndices() const;
+
   // access a single element in our state pair fields
   const Vector& shearDisplacement(const int nodeListi,
                                   const int nodei,
@@ -203,6 +206,8 @@ protected:
   FieldList<Dimension,std::vector<Vector>> mShearDisplacement;     // displacement for friction spring
   FieldList<Dimension,std::vector<int>> mIsActiveContact;          // tracks if a interfaction is still active
   FieldList<Dimension,std::vector<Vector>> mDDtShearDisplacement;  // derivative to evolve frictional spring displacement
+
+  std::vector<ContactIndex> mContactStorageIndices;
 
   // The restart registration.
   RestartRegistrationType mRestart;

@@ -9,6 +9,7 @@ set(DEM_inst
 
 set(DEM_sources
     DEMFieldNames.cc
+    ContactStorageLocation.cc
     DEMDimension.cc)
 
 instantiate(DEM_inst DEM_sources)
@@ -20,7 +21,8 @@ set(DEM_headers
     LinearSpringDEM.hh
     DEMBase.hh
     DEMDimension.hh
-    DEMFieldNames.hh)
+    DEMFieldNames.hh
+    ContactStorageLocation.hh)
 
 spheral_install_python_files(DEM.py)
 

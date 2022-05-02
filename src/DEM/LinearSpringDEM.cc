@@ -5,12 +5,15 @@
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementFieldList.hh"
+
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Hydro/HydroFieldNames.hh"
+
 #include "DEM/DEMFieldNames.hh"
 #include "DEM/DEMDimension.hh"
 #include "DEM/LinearSpringDEM.hh"
+#include "DEM/ContactStorageLocation.hh"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -116,6 +119,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DomegaDt.size() == numNodeLists);
 
+  const auto& contacts = this->contactStorageIndices();
 
 #pragma omp parallel
   {
@@ -135,9 +139,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       nodeListj = pairs[kk].j_list;
       
       // stored pair-wise values
-      const auto pairIndexSet = this->findContactIndex(nodeListi,i,nodeListj,j);
-      const auto overlapij = equilibriumOverlap(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]];
-      const auto sij = shearDisplacement(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]];
+      const auto& contact = contacts[kk];
+      // stored pair-wise values
+      //const auto pairIndexSet = this->findContactIndex(nodeListi,i,nodeListj,j);
+      const auto overlapij = equilibriumOverlap(contact.storeNodeList,contact.storeNode)[contact.storeContact];
+      //const auto sij = shearDisplacement(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]];
       //const auto numContacts = neighborIds(pairIndexSet[0],pairIndexSet[1]).size();
       
       // Get the state for node i.
@@ -218,7 +224,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         DvDti += f/mi*rhatij;
         DvDtj -= f/mj*rhatij;
 
-        DDtShearDisplacement(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]]=vt;
+        //DDtShearDisplacement(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]]=vt;
         
         //DomegaDti += M/I;
       }  

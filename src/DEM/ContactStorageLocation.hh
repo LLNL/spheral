@@ -9,37 +9,27 @@
 namespace Spheral{
 
   struct ContactIndex {
-    ContactIndex(const int nodeListIndex, 
-                 const int nodeIndex, 
-                 const int contactIndex);
+    ContactIndex();
+    ContactIndex(const int storeNodeListIndex, 
+                 const int storeNodeIndex, 
+                 const int storeContactIndex,
+                 const int pairNodeListIndex,
+                 const int pairNodeIndex);
 
-    int nodeListIndex; 
-    int nodeIndex; 
-    int contactIndex;
-  }
+      int storeNodeList; 
+      int storeNode; 
+      int storeContact;
 
-
-  struct ContactStorageLocation{
-
-    ContactStorageLocation(const int nodeListi,
-                           const int i,
-                           const int uniqueIndexi,
-                           const int numInternalElementsi,
-                           const int nodeListj,
-                           const int j,
-                           const int uniqueIndexj,
-                           const int numInternalElementsj);
-    ContactIndex storageLocation;              
-  }
-}
+      int pairNodeList;
+      int pairNode;
+  };
 
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> struct ContactIndex;
-  template<typename Dimension> struct ContactStorageLocation;
+  struct ContactIndex;
 }
 
 #endif
