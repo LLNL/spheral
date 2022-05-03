@@ -136,7 +136,7 @@ if CRKSPH:
          HydroConstructor = CRKSPHHydro
       else:
          HydroConstructor = ACRKSPHHydro
-      Qconstructor = CRKSPHMonaghanGingoldViscosity
+      Qconstructor = LimitedMonaghanGingoldViscosity
       gradhCorrection = False
 else:
    if solid:

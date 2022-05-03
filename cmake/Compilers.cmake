@@ -1,0 +1,70 @@
+message("-- C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
+
+#-------------------------------------------------------------------------------
+# Optionally suppress compiler warnings
+#-------------------------------------------------------------------------------
+option(ENABLE_WARNINGS "show compiler warnings" ON)
+option(ENABLE_WARNINGS_AS_ERRORS "make warnings errors" OFF)
+
+option(ENABLE_UNUSED_VARIABLE_WARNINGS "show unused variable compiler warnings" ON)
+option(ENABLE_UNUSED_PARAMETER_WARNINGS "show unused parameter warnings" OFF)
+option(ENABLE_MISSING_INCLUDE_DIR_WARNINGS "show unused parameter warnings" OFF)
+
+
+if (NOT ENABLE_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+endif()
+message("-- Compiler warnings ${ENABLE_WARNINGS}")
+
+if (ENABLE_WARNINGS_AS_ERRORS)
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    set(CXX_WARNING_FLAGS /W4 /WX)
+  else()
+    set(CXX_WARNING_FLAGS -Wall -Wextra -pedantic -Werror -Wl,--fatal-warnings)
+  endif()
+  add_compile_options(${CXX_WARNING_FLAGS})
+  message("-- Treating warnings as errors with compile flags ${CXX_WARNING_FLAGS}")
+endif()
+
+
+if (NOT ENABLE_UNUSED_VARIABLE_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable")
+endif()
+message("-- Compiler unused variable warnings ${ENABLE_UNUSED_VARIABLE_WARNINGS}")
+
+
+if (NOT ENABLE_UNUSED_PARAMETER_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+endif()
+message("-- Compiler unused parameter warnings ${ENABLE_UNUSED_PARAMETER_WARNINGS}")
+
+
+if (NOT ENABLE_MISSING_INCLUDE_DIR_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-include-dirs")
+endif()
+message("-- Compiler missing include dir warnings ${ENABLE_MISSING_INCLUDE_DIR_WARNINGS}")
+
+
+# We build some Fortran code from outside sources (like the Helmholtz EOS) that
+# cause building errors if the compiler is too picky...
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w")
+message("-- Fortran flags: ${CMAKE_Fortran_FLAGS}")
+
+
+#-------------------------------------------------------------------------------
+# PYB11 Target Flags
+#-------------------------------------------------------------------------------
+set(SPHERAL_PYB11_TARGET_FLAGS
+  "-Wno-unused-local-typedefs"
+  "-Wno-self-assign-overloaded"
+  "-Wno-overloaded-virtual"
+  "-Wno-delete-non-abstract-non-virtual-dtor")
+
+
+#-------------------------------------------------------------------------------
+# Compiler specific flags
+#-------------------------------------------------------------------------------
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+  set(CMAKE_CXX_FLAGS -wd11074,11076,654)
+  set(SPHERAL_PYB11_TARGET_FLAGS )
+endif()

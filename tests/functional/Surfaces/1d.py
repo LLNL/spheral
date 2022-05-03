@@ -93,7 +93,7 @@ if SVPH:
     HydroConstructor = SVPHFacetedHydro
 elif CRKSPH:
     HydroConstructor = CRKSPHHydro
-    #Qconstructor = CRKSPHMonaghanGingoldViscosity
+    #Qconstructor = LimitedMonaghanGingoldViscosity
     #linearInExpansion = True
 elif TSPH:
     HydroConstructor = TaylorSPHHydro
