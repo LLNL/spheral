@@ -117,6 +117,12 @@ generator1 = GenerateNodeDistribution3d(2, 1, 1,
 distributeNodes3d((nodes1, generator1))
 
 # initial conditions
+positions = nodes1.positions()
+positions[0].y = -0.001
+positions[1].y = 0.001
+positions[0].z = -0.001
+positions[1].z = 0.001
+
 velocity = nodes1.velocity()
 velocity[0] = Vector(vImpact,0.0,0.0)
 velocity[1] = Vector(-vImpact,0.0,0.0)

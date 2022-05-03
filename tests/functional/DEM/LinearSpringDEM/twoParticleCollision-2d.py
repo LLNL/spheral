@@ -123,6 +123,10 @@ generator1 = GenerateNodeDistribution2d(2, 1,
 distributeNodes2d((nodes1, generator1))
 
 # initial conditions
+positions = nodes1.positions()
+positions[0].y = -0.001
+positions[1].y = 0.001
+
 velocity = nodes1.velocity()
 velocity[0] = Vector( vImpact,0.0)
 velocity[1] = Vector(-vImpact,0.0)
