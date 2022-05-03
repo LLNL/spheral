@@ -285,7 +285,7 @@ initialize(const Scalar  time,
                  StateDerivatives<Dimension>& derivs){
 
   // update our state pair fields for the current connectivity
-  this->addContacts(dataBase,state,derivs);
+  this->initializeContacts(dataBase,state,derivs);
 
   mCyclesSinceLastKulling++;
   if (mCyclesSinceLastKulling % mKullFrequency == 0){ 
@@ -425,45 +425,23 @@ initializeBeforeRedistribution(){
 
   std::cout << "SHABINGO!"<< std::endl;
 
-//   //const auto  numNodeLists = mDataBase.numNodeLists();
-//   //const auto  nodeListPtrs = mDataBase.DEMNodeListPtrs();
-//   const auto& connectivityMap = mDataBase.connectivityMap();
-//   const auto& pairs = connectivityMap.nodePairList();
-//   const auto  npairs = pairs.size();
+  const auto& connectivityMap = mDataBase.connectivityMap();
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
 
-//   // set all our active contacts to 1
-// #pragma omp for
-//   for (auto kk = 0u; kk < npairs; ++kk) {
-
-//     const auto i = pairs[kk].i_node;
-//     const auto j = pairs[kk].j_node;
-//     const auto nodeListi = pairs[kk].i_list;
-//     const auto nodeListj = pairs[kk].j_list;
-
-//     const auto storageLocation = this->findContactIndex(nodeListi,i,nodeListj,j);
-//     const auto storageNodeList = storageLocation[0];
-//     const auto storageNode = storageLocation[1];
-//     const auto storageContact = storageLocation[2];
-
-//     const auto storageUniqueNode = mUniqueIndices(storageNodeList,storageNode);
-//     std::cout << mNeighborIndices(nodeListi,i).size() << std::endl;
-//     std::cout << mNeighborIndices(nodeListj,j).size() << std::endl;
-//     int pairNodeList, pairNode;
-//     if (nodeListi == storageNodeList){
-//       pairNodeList = nodeListj;
-//       pairNode = j;
-//     } else{
-//       pairNodeList = nodeListi;
-//       pairNode = i;
-//     }
-//     mNeighborIndices(pairNodeList,pairNode).push_back(storageUniqueNode);
-//     mShearDisplacement(pairNodeList,pairNode).push_back(mShearDisplacement(storageNodeList,storageNode)[storageContact]);
-//     mEquilibriumOverlap(pairNodeList,pairNode).push_back(mEquilibriumOverlap(storageNodeList,storageNode)[storageContact]);
-//     mDDtShearDisplacement(pairNodeList,pairNode).push_back(mDDtShearDisplacement(storageNodeList,storageNode)[storageContact]);
-//     std::cout << mNeighborIndices(nodeListi,i).size() << std::endl;
-//     std::cout << mNeighborIndices(nodeListj,j).size() << std::endl;
+  // if the pair is internal copy stored pairwise values over
+#pragma omp for
+  for (auto kk = 0u; kk < npairs; ++kk) {
+    const auto& contactkk = mContactStorageIndices[kk];
+    const auto storageUniqueNode = mUniqueIndices(contactkk.storeNodeList,contactkk.storeNode);
+    if (contactkk.pairNode < (int)mUniqueIndices[contactkk.pairNodeList]->numInternalElements()){
+      mNeighborIndices(contactkk.pairNodeList,contactkk.pairNode).push_back(storageUniqueNode);
+      mShearDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mShearDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
+      mEquilibriumOverlap(contactkk.pairNodeList,contactkk.pairNode).push_back(mEquilibriumOverlap(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
+      mDDtShearDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mDDtShearDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
+    }
   
-//   }
+  }
   
 
 }
@@ -540,9 +518,9 @@ kullInactiveContactsFromPairFieldList(Value& pairFieldList) const {
 template<typename Dimension>
 void
 DEMBase<Dimension>::
-addContacts(const DataBase<Dimension>& dataBase,
-                  State<Dimension>& state,
-                  StateDerivatives<Dimension>& /*derivs*/){
+initializeContacts(const DataBase<Dimension>& dataBase,
+                         State<Dimension>& state,
+                         StateDerivatives<Dimension>& /*derivs*/){
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -597,10 +575,23 @@ addContacts(const DataBase<Dimension>& dataBase,
     if (contactIndexPtr == neighborContacts.end()){
       neighborIds(contactkk.storeNodeList,contactkk.storeNode).push_back(uniqueSearchIndex);
     }
-
-
-
   }
+
+//   int numNodesTotal = 0;
+//   int numStoredContacts = 0;
+//   const auto  numNodeLists = dataBase.numNodeLists();
+//   const auto  nodeListPtrs = dataBase.DEMNodeListPtrs();
+//   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+//     const auto numNodes = nodeListPtrs[nodeListi]->numInternalNodes();
+// #pragma omp parallel for
+//     for (auto nodei = 0u; nodei < numNodes; ++nodei) {  
+//       const auto numContacts = mNeighborIndices(nodeListi,nodei).size();
+//       numStoredContacts += numContacts;
+//     }
+//     numNodesTotal += numNodes;
+//   }
+//   std::cout << "AverageContacts" <<std::endl;
+//   std::cout << numStoredContacts/numNodesTotal << std::endl;
 
   this->resizeStatePairFieldLists(state);
 
@@ -639,14 +630,7 @@ kullInactiveContacts(const DataBase<Dimension>& dataBase,
   // set all our active contacts to 1
 #pragma omp for
   for (auto kk = 0u; kk < npairs; ++kk) {
-
-    const auto i = pairs[kk].i_node;
-    const auto j = pairs[kk].j_node;
-    const auto nodeListi = pairs[kk].i_list;
-    const auto nodeListj = pairs[kk].j_list;
-
     const auto& contactkk = mContactStorageIndices[kk];
-
     isActive(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact] = 1;
   }
 

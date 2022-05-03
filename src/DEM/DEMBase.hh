@@ -113,9 +113,9 @@ public:
   void kullInactiveContactsFromStatePairFieldLists(State<Dimension>& state) const;
   //#############################################################################
 
-  void addContacts(const DataBase<Dimension>& dataBase,
-                         State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
+  void initializeContacts(const DataBase<Dimension>& dataBase,
+                                State<Dimension>& state,
+                                StateDerivatives<Dimension>& derivs);
 
   void kullInactiveContacts(const DataBase<Dimension>& dataBase,
                                   State<Dimension>& state,

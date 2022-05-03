@@ -141,10 +141,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // stored pair-wise values
       const auto& contact = contacts[kk];
       // stored pair-wise values
-      //const auto pairIndexSet = this->findContactIndex(nodeListi,i,nodeListj,j);
       const auto overlapij = equilibriumOverlap(contact.storeNodeList,contact.storeNode)[contact.storeContact];
-      //const auto sij = shearDisplacement(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]];
-      //const auto numContacts = neighborIds(pairIndexSet[0],pairIndexSet[1]).size();
+      const auto sij = shearDisplacement(contact.storeNodeList,contact.storeNode)[contact.storeContact];
+      const int numContacts = neighborIds(contact.storeNodeList,contact.storeNode).size();
       
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
