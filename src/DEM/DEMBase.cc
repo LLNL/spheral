@@ -645,16 +645,9 @@ kullInactiveContacts(const DataBase<Dimension>& dataBase,
     const auto nodeListi = pairs[kk].i_list;
     const auto nodeListj = pairs[kk].j_list;
 
-    const auto storageLocation = this->findContactIndex(nodeListi,i,nodeListj,j);
-    const auto nodeListStore = storageLocation[0];
-    const auto nodeStore = storageLocation[1];
-    const auto contactStore = storageLocation[2];
+    const auto& contactkk = mContactStorageIndices[kk];
 
-    // add the contact if it is new
-    if (contactStore == (int)isActive(nodeListStore,nodeStore).size()){
-      isActive(nodeListStore,nodeStore).push_back(1);
-    }
-    isActive(nodeListStore,nodeStore)[contactStore] = 1;
+    isActive(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact] = 1;
   }
 
   this->kullInactiveContactsFromPairFieldList(neighborIds);
@@ -666,67 +659,67 @@ kullInactiveContacts(const DataBase<Dimension>& dataBase,
 //-------;-----------------------------------------------------------------------
 // method to find where we are storing the pair contact
 //------------------------------------------------------------------------------
-template<typename Dimension>
-std::vector<int>
-DEMBase<Dimension>::
-findContactIndex(int nodeListi,
-                 int i,
-                 int nodeListj,
-                 int j) const {
+// template<typename Dimension>
+// std::vector<int>
+// DEMBase<Dimension>::
+// findContactIndex(int nodeListi,
+//                  int i,
+//                  int nodeListj,
+//                  int j) const {
 
-  const auto dataLocation = this->storageNodeSelection(nodeListi,i,nodeListj,j);
-  const auto storageNodeListIndex = dataLocation[0];
-  const auto storageNodeIndex = dataLocation[1];
-  const auto uniqueIndex = dataLocation[2];
+//   const auto dataLocation = this->storageNodeSelection(nodeListi,i,nodeListj,j);
+//   const auto storageNodeListIndex = dataLocation[0];
+//   const auto storageNodeIndex = dataLocation[1];
+//   const auto uniqueIndex = dataLocation[2];
 
-  // get our contact indices 
-  auto& neighborContacts = mNeighborIndices(storageNodeListIndex,storageNodeIndex);
-  const auto contactIndexPtr = std::find(neighborContacts.begin(),neighborContacts.end(),uniqueIndex);
-  const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);
+//   // get our contact indices 
+//   auto& neighborContacts = mNeighborIndices(storageNodeListIndex,storageNodeIndex);
+//   const auto contactIndexPtr = std::find(neighborContacts.begin(),neighborContacts.end(),uniqueIndex);
+//   const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);
 
-  // these contacts should all exist by the time this method is called
-  if (contactIndexPtr == neighborContacts.end()) std::cout<<"Oopsie doodle" << std::endl;
+//   // these contacts should all exist by the time this method is called
+//   if (contactIndexPtr == neighborContacts.end()) std::cout<<"Oopsie doodle" << std::endl;
 
-  std::vector<int> storageIndices = {storageNodeListIndex,storageNodeIndex,storageContactIndex};
-  return storageIndices; 
-}
+//   std::vector<int> storageIndices = {storageNodeListIndex,storageNodeIndex,storageContactIndex};
+//   return storageIndices; 
+// }
 
 //------------------------------------------------------------------------------
 // where are we storing this?
 //------------------------------------------------------------------------------
-template<typename Dimension>
-std::vector<int>
-DEMBase<Dimension>::
-storageNodeSelection(int nodeListi,
-                     int i,
-                     int nodeListj,
-                     int j) const {
+// template<typename Dimension>
+// std::vector<int>
+// DEMBase<Dimension>::
+// storageNodeSelection(int nodeListi,
+//                      int i,
+//                      int nodeListj,
+//                      int j) const {
 
-  // get our unique global ID numbers
-  const auto uIDi = mUniqueIndices(nodeListi,i);
-  const auto uIDj = mUniqueIndices(nodeListj,j);
+//   // get our unique global ID numbers
+//   const auto uIDi = mUniqueIndices(nodeListi,i);
+//   const auto uIDj = mUniqueIndices(nodeListj,j);
 
-  const auto numInternalNodesi = mUniqueIndices[nodeListi]->numInternalElements();
-  const auto numInternalNodesj = mUniqueIndices[nodeListj]->numInternalElements();
+//   const auto numInternalNodesi = mUniqueIndices[nodeListi]->numInternalElements();
+//   const auto numInternalNodesj = mUniqueIndices[nodeListj]->numInternalElements();
 
-  // first we'll pick the internal node over a ghost. 
-  // if both are internal we'll use the one with the lowerst global id
-  const auto selectNodei = (i < (int)numInternalNodesi) and (uIDi < uIDj or j >= (int)numInternalNodesj);
+//   // first we'll pick the internal node over a ghost. 
+//   // if both are internal we'll use the one with the lowerst global id
+//   const auto selectNodei = (i < (int)numInternalNodesi) and (uIDi < uIDj or j >= (int)numInternalNodesj);
 
-  int storageNodeListIndex, storageNodeIndex, uniqueIndex;
-  if (selectNodei) {
-    storageNodeListIndex = nodeListi;
-    storageNodeIndex = i;
-    uniqueIndex = uIDj;
-  } else{
-    storageNodeListIndex = nodeListj;
-    storageNodeIndex = j;
-    uniqueIndex = uIDi;
-  }
+//   int storageNodeListIndex, storageNodeIndex, uniqueIndex;
+//   if (selectNodei) {
+//     storageNodeListIndex = nodeListi;
+//     storageNodeIndex = i;
+//     uniqueIndex = uIDj;
+//   } else{
+//     storageNodeListIndex = nodeListj;
+//     storageNodeIndex = j;
+//     uniqueIndex = uIDi;
+//   }
 
-  // return the nodelist,node ids plus the unique index we'll search for
-  std::vector<int> storageIndices = {storageNodeListIndex,storageNodeIndex,uniqueIndex};
-  return storageIndices; 
-}
+//   // return the nodelist,node ids plus the unique index we'll search for
+//   std::vector<int> storageIndices = {storageNodeListIndex,storageNodeIndex,uniqueIndex};
+//   return storageIndices; 
+// }
 
 }
