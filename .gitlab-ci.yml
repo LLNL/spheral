@@ -112,6 +112,13 @@ stages:
     EXTRA_CMAKE_ARGS: ""
     EXTRA_TEST_ARGS: ""
 
+.oneapi_2022_1_mvapich2:
+  variables:
+    SPEC: "oneapi@2022.1^mvapich2"
+    LC_MODULES: "gcc/10.2.1"
+    EXTRA_CMAKE_ARGS: ""
+    EXTRA_TEST_ARGS: ""
+
 # ------------------------------------------------------------------------------
 
 r_gcc_8_1_0_mvapich2_Debug:
@@ -128,6 +135,10 @@ r_gcc_8_3_1_~mpi:
 
 r_clang_9_0_0_mvapich2:
   extends: [.clang_9_0_0_mvapich2, .r_build_and_test, .on_ruby]
+  stage: build_and_install
+
+r_oneapi_2022_1_mvapich2:
+  extends: [.oneapi_2022_1_mvapich2, .r_build_and_test, .on_ruby]
   stage: build_and_install
 
 l_gcc_8_3_1_spectrum:

@@ -6,6 +6,7 @@ include(${CMAKE_MODULE_PATH}/spheral/SpheralAddLibs.cmake)
 include(${CMAKE_MODULE_PATH}/spheral/SpheralInstallPythonFiles.cmake)
 
 include_directories(.)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
@@ -49,6 +50,9 @@ if(NOT ENABLE_CXXONLY)
     Pybind11Wraps
     )
 endif()
+
+configure_file(${PROJECT_SOURCE_DIR}/src/config.hh.in
+  ${PROJECT_BINARY_DIR}/src/config.hh)
 
 foreach(_package ${_packages})
   add_subdirectory(${_package})

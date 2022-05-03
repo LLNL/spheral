@@ -93,7 +93,7 @@ assert numNodeLists in (1, 2)
 # CRKSPH Switches to ensure consistency
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.

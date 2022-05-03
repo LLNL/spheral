@@ -1,5 +1,5 @@
 #ATS:for testDim in ("1d", "2d"): # , "3d"):
-#ATS:    for HydroChoice in ("SPHHydro", "ASPHHydro", "SolidSPHHydro", "SolidASPHHydro", "PSPHHydro", "APSPHHydro"):
+#ATS:    for HydroChoice in ("SPH", "ASPH", "PSPH", "PASPH"):
 #ATS:        test(SELF, "--graphics False --nx1 10 --nx2 10 --testCase linear --testDim %s --HydroChoice %s" % (testDim, HydroChoice), 
 #ATS:             label="%s linear gradient correction test -- %s (serial)" % (HydroChoice, testDim))
 #-------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ commandLine(
     hmax = 10.0,
 
     # What hydro operator should we test?
-    HydroChoice = "SPHHydro",
+    HydroChoice = "SPH",
     gradhCorrection = False,
 
     # Should we randomly perturb the positions?
@@ -233,7 +233,7 @@ for i in xrange(nodes1.numInternalNodes):
 db.updateConnectivityMap(True)
 cm = db.connectivityMap()
 q = MonaghanGingoldViscosity(1.0, 1.0)
-if "PSPH" in HydroChoice:
+if HydroChoice in ("PSPH", "PASPH"):
     hydro = HydroConstructor(dataBase = db,
                              Q = q,
                              W = WT,

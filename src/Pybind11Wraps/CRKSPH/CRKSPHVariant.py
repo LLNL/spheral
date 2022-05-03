@@ -6,6 +6,7 @@ from CRKSPHHydroBase import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralCRKSPH")
+@PYB11dynamic_attr
 class CRKSPHVariant(CRKSPHHydroBase):
     "CRKSPHVariant -- A development variant of CRKSPH for experimentation."
 
