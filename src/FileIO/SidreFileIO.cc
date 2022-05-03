@@ -205,8 +205,8 @@ void SidreFileIO::close()
     writer.write(mDataStorePtr->getRoot(), numRestartFiles, mFileName, "sidre_hdf5");
 #else
     mDataStorePtr->getRoot()->save(mFileName);
-    mDataStorePtr.reset();
 #endif // USE_MPI
+  mDataStorePtr.reset();
   }
   mFileOpen = false;
 }
