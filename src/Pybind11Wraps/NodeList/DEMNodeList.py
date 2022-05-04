@@ -13,14 +13,8 @@ class DEMNodeList(NodeList):
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
+    typedef Field<%(Dimension)s, int> intField;
     typedef Field<%(Dimension)s, Scalar> ScalarField;
-    typedef Field<%(Dimension)s, Vector> VectorField;
-    typedef Field<%(Dimension)s, Vector3d> Vector3dField;
-    typedef Field<%(Dimension)s, Tensor> TensorField;
-    typedef Field<%(Dimension)s, SymTensor> SymTensorField;
 """
 
     def pyinit(self,
@@ -45,6 +39,17 @@ class DEMNodeList(NodeList):
     @PYB11pycppname("particleRadius")
     def setparticleRadius(self, val="const ScalarField&"):
         "Set the particle radii"
+        return "void"
+
+    @PYB11const
+    @PYB11returnpolicy("reference_internal")
+    def compositeParticleIndex(self):
+        "the composite particle index field"
+        return "const intField&"
+
+    @PYB11pycppname("compositeParticleIndex")
+    def setCompositeParticleIndex(self, val="const intField&"):
+        "set the composite particle indices"
         return "void"
 
     #...........................................................................

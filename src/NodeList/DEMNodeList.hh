@@ -43,6 +43,9 @@ public:
   const Field<Dimension, Scalar>& particleRadius() const;
   void particleRadius(const Field<Dimension, Scalar>& particleRadius);
 
+  Field<Dimension, int>& compositeParticleIndex();
+  const Field<Dimension, int>& compositeParticleIndex() const;
+  void compositeParticleIndex(const Field<Dimension, int>& compositeParticleIndex);
 
   //****************************************************************************
   // Methods required for restarting.
@@ -56,6 +59,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
 #ifndef __GCCXML__
   Field<Dimension, Scalar> mParticleRadius;
+  Field<Dimension, int> mCompositeParticleIndex;
 #endif
 
   // No default constructor or copying.

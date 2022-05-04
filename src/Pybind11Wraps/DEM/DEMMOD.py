@@ -42,6 +42,7 @@ HerzianDEM%(ndim)id = PYB11TemplateClass(HerzianDEM, template_parameters="%(Dime
 #-------------------------------------------------------------------------------
 class DEMFieldNames:
     particleRadius = PYB11readonly(static=True, returnpolicy="copy")
+    compositeParticleIndex = PYB11readonly(static=True, returnpolicy="copy")
     angularVelocity = PYB11readonly(static=True, returnpolicy="copy")
     uniqueIndices = PYB11readonly(static=True, returnpolicy="copy")
     isActiveContact = PYB11readonly(static=True, returnpolicy="copy")

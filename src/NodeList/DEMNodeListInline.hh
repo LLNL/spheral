@@ -21,4 +21,23 @@ DEMNodeList<Dimension>::particleRadius() const {
   return mParticleRadius;
 }
 
+
+//------------------------------------------------------------------------------
+// composite particle indices
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+Field<Dimension, int>&
+DEMNodeList<Dimension>::compositeParticleIndex() {
+  REQUIRE(mCompositeParticleIndex.nodeListPtr() == this);
+  return mCompositeParticleIndex;
+}
+
+template<typename Dimension>
+inline
+const Field<Dimension, int>&
+DEMNodeList<Dimension>::compositeParticleIndex() const {
+  REQUIRE(mCompositeParticleIndex.nodeListPtr() == this);
+  return mCompositeParticleIndex;
+}
 }

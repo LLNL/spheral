@@ -41,7 +41,8 @@ DEMNodeList(string name,
               const Scalar nPerh,
               const int maxNumNeighbors):
   NodeList<Dimension>(name, numInternal, numGhost, hmin, hmax, hminratio, nPerh, maxNumNeighbors),
-  mParticleRadius(DEMFieldNames::particleRadius, *this){
+  mParticleRadius(DEMFieldNames::particleRadius, *this),
+  mCompositeParticleIndex(DEMFieldNames::compositeParticleIndex, *this){
 }
 
 //------------------------------------------------------------------------------
@@ -63,6 +64,16 @@ particleRadius(const Field<Dimension, typename Dimension::Scalar>& radii) {
   mParticleRadius.name(DEMFieldNames::particleRadius);
 }
 
+//------------------------------------------------------------------------------
+// Set the particle radii
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DEMNodeList<Dimension>::
+compositeParticleIndex(const Field<Dimension, int>& ids) {
+  mCompositeParticleIndex = ids;
+  mCompositeParticleIndex.name(DEMFieldNames::compositeParticleIndex);
+}
 
 //------------------------------------------------------------------------------
 // Calculate and return the volume per node.
@@ -121,6 +132,7 @@ dumpState(FileIO& file, const string& pathName) const {
 
   // Dump each of the internal fields of the DEMNodeList.
   file.write(mParticleRadius, pathName + "/particleRadius");
+  file.write(mCompositeParticleIndex, pathName + "/compositeParticleIndex");
 }
 
 //------------------------------------------------------------------------------
@@ -136,6 +148,7 @@ restoreState(const FileIO& file, const string& pathName) {
 
   // Restore each of the internal fields of the DEMNodeList.
   file.read(mParticleRadius, pathName + "/particleRadius");
+  file.read(mCompositeParticleIndex, pathName + "/compositeParticleIndex");
 }  
 
 }

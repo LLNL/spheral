@@ -1412,6 +1412,21 @@ DataBase<Dimension>::DEMParticleRadius() const {
 
 
 //------------------------------------------------------------------------------
+// Return the DEM Particle Radii
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, int>
+DataBase<Dimension>::DEMCompositeParticleIndex() const {
+  REQUIRE(valid());
+  FieldList<Dimension, int> result;
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->compositeParticleIndex());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Return the node extent for each NodeList.
 //------------------------------------------------------------------------------
 template<typename Dimension>

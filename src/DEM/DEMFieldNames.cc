@@ -7,6 +7,7 @@
 #include "DEMFieldNames.hh"
 
 const std::string Spheral::DEMFieldNames::particleRadius = "particle radius";
+const std::string Spheral::DEMFieldNames::compositeParticleIndex = "composite particle flags";
 const std::string Spheral::DEMFieldNames::angularVelocity = "angular velocity";
 const std::string Spheral::DEMFieldNames::uniqueIndices = "unique indices";
 const std::string Spheral::DEMFieldNames::isActiveContact = "bool indentifying active contacts";
