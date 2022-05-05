@@ -4,6 +4,7 @@ from Spheral2d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution2d import *
+from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator2d
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes2d
@@ -42,7 +43,7 @@ commandLine(numParticlePerLength = 50,     # number of particles on a side of th
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 1000,
-            redistributeStep = None,
+            redistributeStep = 100,
             dataDir = "dumps-DEM-2d",
             )
 
@@ -100,21 +101,25 @@ for nodes in nodeSet:
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    generator1 = GenerateNodeDistribution2d(numParticlePerLength, numParticlePerLength,
+    generator0 = GenerateNodeDistribution2d(numParticlePerLength, numParticlePerLength,
                                             rho = 1.0,
                                             distributionType = "lattice",
                                             xmin = (-0.5,  0.525),
                                             xmax = ( 0.5,  1.525),
                                             nNodePerh = nPerh)
 
+    generator1 = GenerateDEMfromSPHGenerator2d(WT,
+                                               generator0,
+                                               nPerh=nPerh)
 
     distributeNodes2d((nodes1, generator1))
-
+   
     # set our particle radius
-    radius =1.0/numParticlePerLength/2.5
-    particleRadius = nodes1.particleRadius()
-    nodes1.particleRadius(ScalarField("radii", nodes1, radius))
-
+    # radius =1.0/numParticlePerLength/2.5
+    # particleRadius = nodes1.particleRadius()
+    # print particleRadius[0]
+    # nodes1.particleRadius(ScalarField("radii", nodes1, radius))
+    # print particleRadius[0]
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
