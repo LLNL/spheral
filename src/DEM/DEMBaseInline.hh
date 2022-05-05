@@ -161,28 +161,28 @@ contactStorageIndices() const {
 //------------------------------------------------------------------------------
 // access methods for a single element in our pair fields
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const typename Dimension::Vector&
-DEMBase<Dimension>::
-shearDisplacement(const int nodeListi,
-                  const int nodei,
-                  const int contacti) const {
-  return (contacti < (int)mShearDisplacement.size() ? 
-          mShearDisplacement(nodeListi,nodei)[contacti] : 
-          Dimension::Vector::zero);
-}
+// template<typename Dimension>
+// inline
+// const typename Dimension::Vector&
+// DEMBase<Dimension>::
+// shearDisplacement(const int nodeListi,
+//                   const int nodei,
+//                   const int contacti) const {
+//   return (contacti < (int)mShearDisplacement.size() ? 
+//           mShearDisplacement(nodeListi,nodei)[contacti] : 
+//           Dimension::Vector::zero);
+// }
 
-template<typename Dimension>
-inline
-const typename Dimension::Scalar 
-DEMBase<Dimension>::equilibriumOverlap(const int nodeListi,
-                                       const int nodei,
-                                       const int contacti) const {
-  return (contacti < (int)mEquilibriumOverlap.size() ? 
-          mEquilibriumOverlap(nodeListi,nodei)[contacti] : 
-          0.0);
-}
+// template<typename Dimension>
+// inline
+// const typename Dimension::Scalar 
+// DEMBase<Dimension>::equilibriumOverlap(const int nodeListi,
+//                                        const int nodei,
+//                                        const int contacti) const {
+//   return (contacti < (int)mEquilibriumOverlap.size() ? 
+//           mEquilibriumOverlap(nodeListi,nodei)[contacti] : 
+//           0.0);
+// }
 
 //------------------------------------------------------------------------------
 // moment of interia specializations

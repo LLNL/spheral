@@ -121,16 +121,16 @@ public:
                                   State<Dimension>& state,
                                   StateDerivatives<Dimension>& derivs);
 
-  // methods to find storage location for pairwise fields
-  std::vector<int> storageNodeSelection(int nodeListi,
-                                        int i,
-                                        int nodeListj,
-                                        int j) const;
+  // // methods to find storage location for pairwise fields
+  // std::vector<int> storageNodeSelection(int nodeListi,
+  //                                       int i,
+  //                                       int nodeListj,
+  //                                       int j) const;
 
-  std::vector<int> findContactIndex(int nodeListi,
-                                    int i,
-                                    int nodeListj,
-                                    int j) const;
+  // std::vector<int> findContactIndex(int nodeListi,
+  //                                   int i,
+  //                                   int nodeListj,
+  //                                   int j) const;
 
   // Optionally we can provide a bounding box for use generating the mesh
   // for the Voronoi mass density update.
@@ -160,12 +160,12 @@ public:
   const std::vector<ContactIndex>& contactStorageIndices() const;
 
   // access a single element in our state pair fields
-  const Vector& shearDisplacement(const int nodeListi,
-                                  const int nodei,
-                                  const int contacti) const;
-  const Scalar  equilibriumOverlap(const int nodeListi,
-                                   const int nodei,
-                                   const int contacti) const;
+  // const Vector& shearDisplacement(const int nodeListi,
+  //                                 const int nodei,
+  //                                 const int contacti) const;
+  // const Scalar  equilibriumOverlap(const int nodeListi,
+  //                                  const int nodei,
+  //                                  const int contacti) const;
 
   // inlined and specialized for different dimensions
   Scalar momentOfInertia(const Scalar massi,

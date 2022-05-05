@@ -450,7 +450,7 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 finalizeAfterRedistribution() {
-  std::cout << "SHABINGO!"<< std::endl;
+  //std::cout << "SHABINGO!"<< std::endl;
 }
 
 //------------------------------------------------------------------------------
