@@ -137,9 +137,9 @@ r_clang_9_0_0_mvapich2:
   extends: [.clang_9_0_0_mvapich2, .r_build_and_test, .on_ruby]
   stage: build_and_install
 
-r_oneapi_2022_1_mvapich2:
-  extends: [.oneapi_2022_1_mvapich2, .r_build_and_test, .on_ruby]
-  stage: build_and_install
+#r_oneapi_2022_1_mvapich2:
+#  extends: [.oneapi_2022_1_mvapich2, .r_build_and_test, .on_ruby]
+#  stage: build_and_install
 
 l_gcc_8_3_1_spectrum:
   extends: [.gcc_8_3_1_spectrum, .l_build_and_test, .on_lassen]
