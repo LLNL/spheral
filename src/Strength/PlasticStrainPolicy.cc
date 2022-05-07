@@ -47,8 +47,8 @@ inline
 double
 computeJ2(const Dim<1>::SymTensor& S) {
   if (GeometryRegistrar::coords() == CoordinateType::Spherical) {
-    const auto STT = 0.5*(S.Trace());  // S_theta_theta == S_phi_phi = -S_rr/2
-    return 0.5*(S.doubledot(S) + 2.0*STT*STT);
+    // S_theta_theta == S_phi_phi = -S_rr/2
+    return 0.75*S.xx()*S.xx();
   } else {
     return 0.5*S.doubledot(S);
   }
@@ -133,12 +133,7 @@ update(const KeyType& key,
       const auto yieldLimit = max(0.0, Y(k,i));
 
       // von Mises yield scaling constant.
-      double f;
-      if (distinctlyGreaterThan(equivalentStressDeviator, 0.0)) {
-        f = min(1.0, yieldLimit/equivalentStressDeviator);
-      } else {
-        f = 1.0;
-      }
+      const auto f = min(1.0, yieldLimit*safeInvVar(equivalentStressDeviator));
 
       // Scale the stress deviator.
       deviatoricStress(k,i) *= f;
