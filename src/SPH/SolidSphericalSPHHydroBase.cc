@@ -760,8 +760,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 
       // Determine the deviatoric stress evolution.
       // Note the spin term is always zero in spherical coordinates.
-      const auto deviatoricDeformation = SymTensor(2.0/3.0*(localDvDxi.xx() + vi.x()*riInv));
-      DSDti = (2.0*mui)*deviatoricDeformation;
+      // const auto deviatoricDeformation = SymTensor(2.0/3.0*(localDvDxi.xx() + vi.x()*riInv));
+      DSDti.xx(4.0/3.0*mui*localDvDxi.xx());
 
       // Optionally use damage to ramp down stress on damaged material.
       const auto Di = max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0));
