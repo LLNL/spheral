@@ -3,7 +3,7 @@ include(ExternalProject)
 #-------------------------------------------------------------------------------
 # Configure CMake
 #-------------------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 if (NOT CMAKE_MODULE_PATH)
@@ -61,6 +61,12 @@ endif()
 
 if(ENABLE_OPENMP)
   list(APPEND spheral_blt_depends openmp)
+endif()
+
+if(ENABLE_CUDA)
+  #set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --extended-lambda -Xcudafe --display_error_number")
+  set(CMAKE_CUDA_STANDARD 14)
+  list(APPEND SPHERAL_CXX_DEPENDS cuda)
 endif()
 
 option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
