@@ -39,6 +39,10 @@ function(spheral_add_cxx_library package_name)
                     )
   endif()
 
+  if(ENABLE_CUDA)
+    set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+  endif()
+
   # Only add target depends if the list exists, can throw an error otherwise
   if(spheral_depends)
     add_dependencies(Spheral_${package_name} ${spheral_depends})
