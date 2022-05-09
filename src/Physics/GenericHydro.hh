@@ -85,6 +85,12 @@ public:
   int maxActualNeighbor() const;
   double averageActualNeighbor() const;
 
+  // Stored attributes about the last timestep chosen
+  size_t DTrank() const;
+  size_t DTNodeList() const;
+  size_t DTnode() const;
+  std::string DTreason() const;
+
 protected:
   //-------------------------- Protected Interface --------------------------//
   void updateMasterNeighborStats(int numMaster) const;
@@ -106,6 +112,8 @@ private:
   mutable int mNormCoarseNeighbor;
   mutable int mNormRefineNeighbor;
   mutable int mNormActualNeighbor;
+  mutable size_t mDTrank, mDTNodeList, mDTnode;
+  mutable std::string mDTreason;
 
   // Forbidden methods.
   GenericHydro();

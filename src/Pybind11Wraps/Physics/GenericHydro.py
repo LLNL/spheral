@@ -75,3 +75,7 @@ class GenericHydro(Physics):
     minActualNeighbor = PYB11property("int", "minActualNeighbor", doc="minimum number of actual neighbors found")
     maxActualNeighbor = PYB11property("int", "maxActualNeighbor", doc="maximum number of actual neighbors found")
     averageActualNeighbor = PYB11property("double", "averageActualNeighbor", doc="average number of actual neighbors found")
+    DTrank = PYB11property("size_t", "DTrank", doc="rank of processor controlling last time step")
+    DTNodeList = PYB11property("size_t", "DTNodeList", doc="NodeList index of NodeList controlling last time step")
+    DTnode = PYB11property("size_t", "DTnode", doc="Node ID of node controlling last time step")
+    DTreason = PYB11property("std::string", "DTreason", doc="short string describing constraint controlling last time step")
