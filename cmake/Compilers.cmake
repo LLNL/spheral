@@ -8,7 +8,7 @@ option(ENABLE_WARNINGS_AS_ERRORS "make warnings errors" OFF)
 
 option(ENABLE_UNUSED_VARIABLE_WARNINGS "show unused variable compiler warnings" ON)
 option(ENABLE_UNUSED_PARAMETER_WARNINGS "show unused parameter warnings" OFF)
-option(ENABLE_MISSING_INCLUDE_DIR_WARNINGS "show unused parameter warnings" OFF)
+option(ENABLE_MISSING_INCLUDE_DIR_WARNINGS "show unused parameter warnings" ON)
 
 
 if (NOT ENABLE_WARNINGS)
@@ -47,7 +47,7 @@ message("-- Compiler missing include dir warnings ${ENABLE_MISSING_INCLUDE_DIR_W
 
 # We build some Fortran code from outside sources (like the Helmholtz EOS) that
 # cause building errors if the compiler is too picky...
-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w")
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -Wno-missing-include-dirs")
 message("-- Fortran flags: ${CMAKE_Fortran_FLAGS}")
 
 
