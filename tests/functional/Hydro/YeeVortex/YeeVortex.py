@@ -154,7 +154,7 @@ assert not(boolReduceViscosity and boolCullenViscosity)
 if svph:
     hydroname = "SVPH"
 elif crksph:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity
     hydroname = "CRKSPH"
 elif psph:
     hydroname = "PSPH"

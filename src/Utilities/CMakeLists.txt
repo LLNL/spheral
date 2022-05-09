@@ -15,6 +15,7 @@ set(Utilities_inst
    )
 
 set(Utilities_sources
+    BuildData.cc
     DBC.cc
     QuadraticInterpolator.cc
     Process.cc
@@ -42,6 +43,7 @@ instantiate(Utilities_inst Utilities_sources)
 
 set(Utilities_headers
     Bessel.hh
+    BuildData.hh
     CounterClockwiseComparator.hh
     DBC.hh
     QuadraticInterpolator.hh
@@ -69,7 +71,6 @@ set(Utilities_headers
     RegisterMPIDataTypes.hh
     RegisterMPIDataTypesInline.hh
     SafeIndexMap.hh
-    SidreDataCollection.hh
     SpheralFunctions.hh
     SurfaceNodeCoupling.hh
     Timer.hh

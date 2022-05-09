@@ -68,7 +68,7 @@ commandLine(nx1 = 100,
 # CRKSPH Switches to ensure consistency
 #-------------------------------------------------------------------------------
 if CRKSPH:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Material properties.

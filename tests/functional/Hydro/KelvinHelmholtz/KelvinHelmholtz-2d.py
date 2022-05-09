@@ -190,7 +190,7 @@ vizBaseName = "KelvinHelmholtz-2d"
 # CRKSPH Switches to ensure consistency
 #-------------------------------------------------------------------------------
 if crksph or fsisph:
-    Qconstructor = CRKSPHMonaghanGingoldViscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -393,7 +393,7 @@ if fsisph:
 elif gsph:
     limiter = VanLeerLimiter()
     waveSpeed = DavisWaveSpeed()
-    solver = HLLC(limiter,waveSpeed,gsphLinearCorrect,RiemannGradient)
+    solver = HLLC(limiter,waveSpeed,gsphLinearCorrect)
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
                 W = WT,

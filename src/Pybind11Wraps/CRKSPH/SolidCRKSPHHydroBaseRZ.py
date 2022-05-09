@@ -8,6 +8,7 @@ from RestartMethods import *
 @PYB11template()
 @PYB11template_dict({"Dimension" : "Dim<2>"})
 @PYB11module("SpheralCRKSPH")
+@PYB11dynamic_attr
 class SolidCRKSPHHydroBaseRZ(CRKSPHHydroBase):
     "An area weighted RZ specialization of solid CRKSPH for cylindrical coordinates"
 

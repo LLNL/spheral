@@ -9,7 +9,9 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
+from GenericRiemannHydro import *
 from GSPHHydroBase import *
+from MFMHydroBase import *
 from WaveSpeeds import *
 from Limiters import *
 from RiemannSolvers import *
@@ -17,7 +19,9 @@ from RiemannSolvers import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-PYB11includes += ['"GSPH/GSPHHydroBase.hh"',
+PYB11includes += ['"GSPH/GenericRiemannHydro.hh"',
+                  '"GSPH/GSPHHydroBase.hh"',
+                  '"GSPH/MFMHydroBase.hh"',
                   '"GSPH/WaveSpeeds/WaveSpeedBase.hh"',
                   '"GSPH/WaveSpeeds/AcousticWaveSpeed.hh"',
                   '"GSPH/WaveSpeeds/DavisWaveSpeed.hh"',
@@ -45,14 +49,16 @@ GradientType = PYB11enum(("RiemannGradient",
                           "HydroAccelerationGradient",
                           "SPHGradient",
                           "MixedMethodGradient",
-                          "OnlyDvDxGradient"), export_values = True)
+                          "SPHSameTimeGradient"), export_values = True)
 
 #-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
 for ndim in dims:
     exec('''
+GenericRiemannHydro%(ndim)id = PYB11TemplateClass(GenericRiemannHydro, template_parameters="%(Dimension)s")
 GSPHHydroBase%(ndim)id = PYB11TemplateClass(GSPHHydroBase, template_parameters="%(Dimension)s")
+MFMHydroBase%(ndim)id = PYB11TemplateClass(MFMHydroBase, template_parameters="%(Dimension)s")
 WaveSpeedBase%(ndim)id = PYB11TemplateClass(WaveSpeedBase, template_parameters="%(Dimension)s")
 AcousticWaveSpeed%(ndim)id = PYB11TemplateClass(AcousticWaveSpeed, template_parameters="%(Dimension)s")
 DavisWaveSpeed%(ndim)id = PYB11TemplateClass(DavisWaveSpeed, template_parameters="%(Dimension)s")

@@ -98,7 +98,9 @@ Hopkins arXiv:1409.7395
     CullAlpha2  = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "CullAlpha2", returnpolicy="reference_internal")
     DalphaDt = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DalphaDt", returnpolicy="reference_internal")
     alphaLocal = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "alphaLocal", returnpolicy="reference_internal")
-
+    R = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "R", returnpolicy="reference_internal")
+    vsig = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "vsig", returnpolicy="reference_internal")
+    
 #-------------------------------------------------------------------------------
 # Inject abstract interface
 #-------------------------------------------------------------------------------
