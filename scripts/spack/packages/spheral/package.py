@@ -114,26 +114,20 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
         if '+cuda' in spec:
             entries.append(cmake_cache_option("ENABLE_CUDA", True))
 
-        #    if not spec.satisfies('cuda_arch=none'):
-        #        cuda_arch = spec.variants['cuda_arch'].value
-        #        entries.append(cmake_cache_string("CUDA_ARCH", 'sm_{0}'.format(cuda_arch[0])))
-        #        entries.append(cmake_cache_string("CMAKE_CUDA_ARCHITECTURES={0}".format(cuda_arch[0])))
-        #        flag = '-arch sm_{0}'.format(cuda_arch[0])
-        #        entries.append(cmake_cache_string("CMAKE_CUDA_FLAGS", '{0}'.format(flag)))
+            if not spec.satisfies('cuda_arch=none'):
+                cuda_arch = spec.variants['cuda_arch'].value
+                entries.append(cmake_cache_string(
+                    "CUDA_ARCH", 'sm_{0}'.format(cuda_arch[0])))
+                entries.append(cmake_cache_string(
+                    "CMAKE_CUDA_ARCHITECTURES", '{0}'.format(cuda_arch[0])))
+                flag = '-arch sm_{0}'.format(cuda_arch[0])
+                entries.append(cmake_cache_string(
+                    "CMAKE_CUDA_FLAGS", '{0}'.format(flag)))
 
-        #    entries.append(cmake_cache_option("ENABLE_DEVICE_CONST", spec.satisfies('+deviceconst')))
-        #else:
-        #    entries.append(cmake_cache_option("ENABLE_CUDA", False))
-
-        #if '+rocm' in spec:
-        #    entries.append(cmake_cache_option("ENABLE_HIP", True))
-        #    entries.append(cmake_cache_path("HIP_ROOT_DIR", '{0}'.format(spec['hip'].prefix)))
-        #    archs = self.spec.variants['amdgpu_target'].value
-        #    if archs != 'none':
-        #        arch_str = ",".join(archs)
-        #        entries.append(cmake_cache_string("HIP_HIPCC_FLAGS", '--amdgpu-target={0}'.format(arch_str)))
-        #else:
-        #    entries.append(cmake_cache_option("ENABLE_HIP", False))
+            entries.append(cmake_cache_option(
+                "ENABLE_DEVICE_CONST", spec.satisfies('+deviceconst')))
+        else:
+            entries.append(cmake_cache_option("ENABLE_CUDA", False))
 
         return entries
 
