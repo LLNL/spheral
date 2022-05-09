@@ -393,7 +393,7 @@ if outputFile != "None":
         # Also we can optionally compare the current results with another file for
         # bit level consistency.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None":
+        if comparisonFile != "None" and BuildData.cxx_compiler_id != "IntelLLVM":
             import filecmp
             print "Compare files : %s     <--->     %s" % (outputFile, comparisonFile)
             assert filecmp.cmp(outputFile, comparisonFile)

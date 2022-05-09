@@ -100,7 +100,11 @@ GenericHydro(ArtificialViscosity<Dimension>& Q,
   mNormMasterNeighbor(0),
   mNormCoarseNeighbor(0),
   mNormRefineNeighbor(0),
-  mNormActualNeighbor(0) {
+  mNormActualNeighbor(0),
+  mDTrank(0u),
+  mDTNodeList(0u),
+  mDTnode(0u),
+  mDTreason() {
 }
 
 //------------------------------------------------------------------------------
@@ -178,10 +182,15 @@ dt(const DataBase<Dimension>& dataBase,
 
     // Walk all the nodes in this FluidNodeList.
     const auto ni = connectivityMap.numNodes(nodeListi);
+    const auto rank = Process::getRank();
     // #pragma omp parallel for reduction(MINPAIR:minDt)
 #pragma omp parallel
     {
       auto minDt_local = minDt;
+      auto DTrank_local = mDTrank;
+      auto DTNodeList_local = mDTNodeList;
+      auto DTnode_local = mDTnode;
+      auto DTreason_local = mDTreason;
 #pragma omp for
       for (auto k = 0; k < ni; ++k) {
         const auto i = connectivityMap.ithNode(nodeListi, k);
@@ -205,8 +214,12 @@ dt(const DataBase<Dimension>& dataBase,
                                            "                   cs = " + to_string(cs(nodeListi, i)) + "\n" +
                                            "            nodeScale = " + to_string(nodeScalei) + "\n" +
                                            "             material = " + fluidNodeList.name() + "\n" +
-                                           "(nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                                           "(nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                            "           @ position = " + vec_to_string(position(nodeListi, i))));
+            DTrank_local = rank;
+            DTNodeList_local = nodeListi;
+            DTnode_local = i;
+            DTreason_local = "sound speed";
           }
 
           // Longitudinal sound speed limit.
@@ -218,8 +231,12 @@ dt(const DataBase<Dimension>& dataBase,
                                              "                               csl = " + to_string((*cslptr)(i)) + "\n" +
                                              "                         nodeScale = " + to_string(nodeScalei) + "\n" +
                                              "                          material = " + fluidNodeList.name() + "\n" +
-                                             "             (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                                             "             (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                              "                        @ position = " + vec_to_string(position(nodeListi, i))));
+              DTrank_local = rank;
+              DTNodeList_local = nodeListi;
+              DTnode_local = i;
+              DTreason_local = "longitudinal sound speed";
             }
           }
 
@@ -236,8 +253,12 @@ dt(const DataBase<Dimension>& dataBase,
                                             "                                              rho = " + to_string(rhoi) + "\n" +
                                             "                                        nodeScale = " + to_string(nodeScalei) + "\n" +
                                             "                                         material = " + fluidNodeList.name() + "\n" +
-                                            "                            (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                                            "                            (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                             "                                       @ position = " + vec_to_string(position(nodeListi, i))));
+              DTrank_local = rank;
+              DTNodeList_local = nodeListi;
+              DTnode_local = i;
+              DTreason_local = "deviatoric stress effective sound speed";
             }
           }
 
@@ -251,8 +272,12 @@ dt(const DataBase<Dimension>& dataBase,
                                             "                                       rho = " + to_string(rhoi) + "\n" +
                                             "                                 nodeScale = " + to_string(nodeScalei) + "\n" +
                                             "                                  material = " + fluidNodeList.name() + "\n" +
-                                            "                     (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                                            "                     (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                             "                                @ position = " + vec_to_string(position(nodeListi, i))));
+            DTrank_local = rank;
+            DTNodeList_local = nodeListi;
+            DTnode_local = i;
+            DTreason_local = "artificial viscosity";
           }
 
           // Velocity divergence limit.
@@ -262,8 +287,12 @@ dt(const DataBase<Dimension>& dataBase,
             minDt_local = make_pair(divvDt, ("Velocity divergence limit: dt = " + to_string(divvDt) + "\n" +
                                              "                 div velocity = " + to_string(divVelocity) + "\n" +
                                              "                     material = " + fluidNodeList.name() + "\n" +
-                                             "        (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                                             "        (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                              "                   @ position = " + vec_to_string(position(nodeListi, i))));
+            DTrank_local = rank;
+            DTNodeList_local = nodeListi;
+            DTnode_local = i;
+            DTreason_local = "velocity divergence";
           }
 
           // Maximum velocity difference limit.
@@ -287,13 +316,17 @@ dt(const DataBase<Dimension>& dataBase,
               if (dtVelDiff < minDt_local.first) {
                 minDt_local = make_pair(dtVelDiff, ("Pairwise velocity difference limit: dt = " + to_string(dtVelDiff) + "\n" + 
                                                     "                              material = " + fluidNodeList.name() + "\n" +
-                                                    "                  (nodeListi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
-                                                    "                  (nodeListj, i, rank) = (" + to_string(nodeListj) + " " + to_string(j) + " " + to_string(Process::getRank()) + ")\n" +
+                                                    "                  (nodeListi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
+                                                    "                  (nodeListj, i, rank) = (" + to_string(nodeListj) + " " + to_string(j) + " " + to_string(rank) + ")\n" +
                                                     "                   @ pos(nodeListi, i) = " + vec_to_string(position(nodeListi, i)) + "\n" +
                                                     "                   @ pos(nodeListj, j) = " + vec_to_string(position(nodeListj, j)) + "\n" +
                                                     "                                   vij = " + to_string(vij.magnitude()) + "\n" +
                                                     "                            nodeScalei = " + to_string(nodeScalei) + "\n" +
                                                     "                            nodeScalej = " + to_string(nodeScalej)));
+                DTrank_local = rank;
+                DTNodeList_local = nodeListi;
+                DTnode_local = i;
+                DTreason_local = "pairwise velocity difference";
               }
 
               // // We also use a pairwise condition modeled on the Monaghan-Gingold viscosity formulation.
@@ -352,8 +385,12 @@ dt(const DataBase<Dimension>& dataBase,
                                             "              |acceleration| = " + to_string(DvDt(nodeListi, i).magnitude()) + "\n" +
                                             "                   nodeScale = " + to_string(nodeScalei) + "\n" +
                                             "                    material = " + fluidNodeList.name() + "\n" +
-                                            "       (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                                            "       (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                             "                  @ position = " + vec_to_string(position(nodeListi, i))));
+            DTrank_local = rank;
+            DTNodeList_local = nodeListi;
+            DTnode_local = i;
+            DTreason_local = "acceleration";
           }
 
           // If requested, limit against the absolute velocity.
@@ -364,15 +401,27 @@ dt(const DataBase<Dimension>& dataBase,
                                               "                        |vi| = " + to_string(velocity(nodeListi, i).magnitude()) + "\n" +
                                               "                   nodeScale = " + to_string(nodeScalei) + "\n" +
                                               "                    material = " + fluidNodeList.name() + "\n" +
-                                              "       (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                                              "       (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                               "                  @ position = " + vec_to_string(position(nodeListi, i))));
+              DTrank_local = rank;
+              DTNodeList_local = nodeListi;
+              DTnode_local = i;
+              DTreason_local = "velocity magnitude";
             }
           }
         }
       }
 
 #pragma omp critical
-      if (minDt_local.first < minDt.first) minDt = minDt_local;
+      {
+        if (minDt_local.first < minDt.first) {
+          minDt = minDt_local;
+          mDTrank = DTrank_local;
+          mDTNodeList = DTNodeList_local;
+          mDTnode = DTnode_local;
+          mDTreason = DTreason_local;
+        }
+      }
     }
   }
 
