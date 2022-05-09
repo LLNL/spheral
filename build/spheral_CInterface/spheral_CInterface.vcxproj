@@ -405,6 +405,11 @@
       <Project>{b57f178b-ecdf-41fb-ad8c-e5cfbb4877d6}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'">
+    <ProjectReference Include="..\..\..\conduit\Win32\blueprint_par\conduit_blueprint_par.vcxproj">
+      <Project>{b57f178b-ecdf-41fb-ad8c-e5cfbb4877d6}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'">
     <ProjectReference Include="..\..\..\conduit\Win32\blueprint_par\conduit_blueprint_par.vcxproj">
       <Project>{b57f178b-ecdf-41fb-ad8c-e5cfbb4877d6}</Project>
