@@ -7,7 +7,7 @@ from spack import *
 import socket
 import os
 
-class Spheral(CachedCMakePackage, PythonPackage):
+class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     """Spheral++ provides a steerable parallel environment for performing coupled hydrodynamical and gravitational numerical simulations."""
 
     homepage = "https://spheral.readthedocs.io/"
@@ -42,7 +42,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
     depends_on('qhull@2020.1', type='build')
     depends_on('m-aneos')
     depends_on('py-polyclipper')
-    depends_on('eigen@3.3.7', type='build')
+    depends_on('eigen@3.4.0', type='build')
     depends_on('hdf5@1.8.19 ~mpi +hl', type='build')
     depends_on('silo@4.10.2 +hdf5', type='build')
 
@@ -65,6 +65,11 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
     depends_on('py-sphinx@1.8.5', type='build', when='+docs')
     depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
+
+    # -------------------------------------------------------------------------
+    # DEPENDS
+    # -------------------------------------------------------------------------
+    conflicts('cuda_arch=none', when='+cuda', msg='CUDA architecture is required')
 
     def _get_sys_type(self, spec):
         sys_type = spec.architecture
@@ -106,8 +111,8 @@ class Spheral(CachedCMakePackage, PythonPackage):
         spec = self.spec
         entries = super(Spheral, self).initconfig_hardware_entries()
 
-        #if '+cuda' in spec:
-        #    entries.append(cmake_cache_option("ENABLE_CUDA", True))
+        if '+cuda' in spec:
+            entries.append(cmake_cache_option("ENABLE_CUDA", True))
 
         #    if not spec.satisfies('cuda_arch=none'):
         #        cuda_arch = spec.variants['cuda_arch'].value
