@@ -46,6 +46,8 @@ class Opensubdiv(CMakePackage, CudaPackage):
     #depends_on('libxinerama')
     depends_on('llvm-openmp', when='+openmp')
 
+    patch('oneapi.patch', when='%oneapi')
+
     def setup_build_environment(self, env):
         if '+pic' in self.spec:
             env.append_flags('CFLAGS', self.compiler.cc_pic_flag)

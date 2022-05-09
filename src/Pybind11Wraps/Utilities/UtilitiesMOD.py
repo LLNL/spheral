@@ -17,6 +17,7 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 PYB11includes += ['"Utilities/packElement.hh"',
                   '"boost/math/special_functions/legendre.hpp"',
+                  '"Utilities/BuildData.hh"',
                   '"Utilities/Functors.hh"',
                   '"Utilities/erff.hh"',
                   '"Utilities/newtonRaphson.hh"',
@@ -94,6 +95,7 @@ from BiLinearInterpolator import *
 from BiQuadraticInterpolator import *
 from BiCubicInterpolator import *
 from uniform_random import *
+from BuildData import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
