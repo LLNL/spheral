@@ -4,5 +4,5 @@
 	url = https://github.com/llnl/blt
 [submodule "scripts/devtools/uberenv"]
 	path = scripts/devtools/uberenv
-	url = https://github.com/mdavis36/uberenv
-	branch = origin/spheral
+	url = https://github.com/llnl/uberenv
+	branch = origin/master
