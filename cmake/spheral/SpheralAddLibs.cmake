@@ -21,7 +21,7 @@
 function(spheral_add_cxx_library package_name)
 
   # TODO : Check to see if -WL,--start-group ** -WL,--end-group is still needed or if it is a cmake version issue.
-  if(ENABLE_STATIC_CXXONLY)
+  if(NOT ENABLE_SHARED)
     # Build static spheral C++ library
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
@@ -35,7 +35,7 @@ function(spheral_add_cxx_library package_name)
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
                     DEPENDS_ON  -Wl,--start-group ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS} -Wl,--end-group
-                    SHARED      FALSE
+                    SHARED      TRUE
                     )
   endif()
 

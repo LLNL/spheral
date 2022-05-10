@@ -50,8 +50,11 @@ set(ENABLE_OPENSUBDIV ON CACHE BOOL "enable the Opensubdiv Pixar extension for r
 set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state package")
 
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
+option(ENABLE_SHARED "Building C++ libs shared" ON)
+
 if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_CXXONLY ON)
+  set(ENABLE_SHARED OFF)
 endif()
 
 if(ENABLE_MPI)
@@ -67,6 +70,7 @@ if(ENABLE_CUDA)
   #set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --extended-lambda -Xcudafe --display_error_number")
   set(CMAKE_CUDA_STANDARD 14)
   list(APPEND SPHERAL_CXX_DEPENDS cuda)
+  set(ENABLE_SHARED OFF)
 endif()
 
 option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
