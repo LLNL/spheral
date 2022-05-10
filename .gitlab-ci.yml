@@ -91,6 +91,13 @@ stages:
     EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
     EXTRA_TEST_ARGS: "--filter \"np<2\""
 
+.cuda_11_gcc_8_3_1_~mpi:
+  variables:
+    SPEC: "gcc@8.3.1~mpi"
+    LC_MODULES: "gcc/8.3.1 cuda/11.1.0"
+    EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
+    EXTRA_TEST_ARGS: "--filter \"np<2\""
+
 .gcc_8_3_1_~mpi_Debug:
   variables:
     SPEC: "gcc@8.3.1~mpi"
@@ -102,6 +109,13 @@ stages:
   variables:
     SPEC: "gcc@8.3.1^spectrum-mpi"
     LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: ""
+    EXTRA_TEST_ARGS: ""
+
+.cuda_11_gcc_8_3_1_spectrum:
+  variables:
+    SPEC: "gcc@8.3.1+cuda^spectrum-mpi"
+    LC_MODULES: "gcc/8.3.1 cuda/11.1.0"
     EXTRA_CMAKE_ARGS: ""
     EXTRA_TEST_ARGS: ""
 
@@ -145,6 +159,14 @@ l_gcc_8_3_1_spectrum:
   extends: [.gcc_8_3_1_spectrum, .l_build_and_test, .on_lassen]
   stage: build_and_install
   
+l_cuda_11_gcc_8_3_1_spectrum:
+  extends: [.cuda_11_gcc_8_3_1_spectrum, .l_build_and_test, .on_lassen]
+  stage: build_and_install
+  
+l_cuda_gcc_8_3_1_~mpi:
+  extends: [.cuda_11_gcc_8_3_1_~mpi, .l_build_and_test, .on_lassen]
+  stage: build_and_install
+
 l_gcc_8_3_1_~mpi_Debug:
   extends: [.gcc_8_3_1_~mpi_Debug, .l_build_and_test, .on_lassen]
   stage: build_and_install
