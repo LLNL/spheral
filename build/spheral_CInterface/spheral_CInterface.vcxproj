@@ -400,6 +400,26 @@
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'">
+    <ProjectReference Include="..\..\..\conduit\Win32\blueprint_par\conduit_blueprint_par.vcxproj">
+      <Project>{b57f178b-ecdf-41fb-ad8c-e5cfbb4877d6}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'">
+    <ProjectReference Include="..\..\..\conduit\Win32\blueprint_par\conduit_blueprint_par.vcxproj">
+      <Project>{b57f178b-ecdf-41fb-ad8c-e5cfbb4877d6}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'">
+    <ProjectReference Include="..\..\..\conduit\Win32\blueprint_par\conduit_blueprint_par.vcxproj">
+      <Project>{b57f178b-ecdf-41fb-ad8c-e5cfbb4877d6}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'">
+    <ProjectReference Include="..\..\..\conduit\Win32\blueprint_par\conduit_blueprint_par.vcxproj">
+      <Project>{b57f178b-ecdf-41fb-ad8c-e5cfbb4877d6}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\axom\Win32\core\core.vcxproj">
       <Project>{0511e583-4ee3-3921-9ed1-55446a1d8366}</Project>
@@ -424,6 +444,9 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\axom\Win32\spin\spin.vcxproj">
       <Project>{0ce700b4-66dc-3e06-ba63-3e4d291c4238}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\conduit\Win32\blueprint\conduit_blueprint.vcxproj">
+      <Project>{3a84033b-6bd6-3e0f-a80b-101936097c7b}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\qhull\build\qhullstatic.vcxproj">
       <Project>{3a95de97-a2de-4e8b-8e2d-f17652aeb947}</Project>
