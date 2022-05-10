@@ -167,17 +167,6 @@ DepsDx() const {
   return mDepsDx;
 }
 
-//------------------------------------------------------------------------------
-// our interface smoothness metric
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const FieldList<Dimension, int>&
-SolidFSISPHHydroBase<Dimension>::
-color() const {
-  return mColor;
-}
-
 
 //------------------------------------------------------------------------------
 // our interface smoothness metric

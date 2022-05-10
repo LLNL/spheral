@@ -164,7 +164,6 @@ public:
   KernelAveragingMethod kernelAveragingMethod() const;
   void kernelAveragingMethod(KernelAveragingMethod method);
 
-  const FieldList<Dimension, int>& color() const;
   const FieldList<Dimension, Scalar>& rawPressure() const;
   const FieldList<Dimension, Vector>& DPDx() const;
   const FieldList<Dimension, Vector>& DepsDx() const;
@@ -197,7 +196,6 @@ private:
   
   std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
  
-  FieldList<Dimension, int> mColor;                           // used to activate contact algo for same nodelist
   FieldList<Dimension, Scalar> mRawPressure;                  // material interface normals
   FieldList<Dimension, Vector> mDPDx;                         // pressure gradient     
   FieldList<Dimension, Vector> mDepsDx;                       // specific thermal energy gradient    

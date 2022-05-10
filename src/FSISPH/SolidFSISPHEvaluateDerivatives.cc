@@ -53,7 +53,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Get the state and derivative FieldLists.
-  const auto color = state.fields(FSIFieldNames::color, int(0));
   const auto interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
   const auto interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   const auto interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
@@ -70,10 +69,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto K = state.fields(SolidFieldNames::bulkModulus, 0.0);
   const auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-  //const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+  const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
 
-  CHECK(color.size() == numNodeLists);
+  CHECK(fragIDs.size()==numNodeLists);
   CHECK(interfaceFraction.size() == numNodeLists);
   CHECK(interfaceNormals.size() == numNodeLists);
   CHECK(interfaceSmoothness.size() == numNodeLists);
@@ -188,7 +187,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
-      const auto& colori = color(nodeListi,i);
       const auto& interfaceNormalsi = interfaceNormals(nodeListi,i);
       const auto& interfaceSmoothnessi = interfaceSmoothness(nodeListi,i);
       const auto& interfaceFractioni = interfaceFraction(nodeListi,i);
@@ -207,7 +205,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  mui = max(mu(nodeListi,i),tiny);
       const auto  Ki = max(tiny,K(nodeListi,i))+4.0/3.0*mui;
       const auto  Hdeti = Hi.Determinant();
-      //const auto fragIDi = fragIDs(nodeListi, i);
+      const auto fragIDi = fragIDs(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -231,7 +229,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& newInterfaceFractioni = newInterfaceFraction_thread(nodeListi,i);
 
       // Get the state for node j
-      const auto& colorj = color(nodeListj,j);
       const auto& interfaceNormalsj = interfaceNormals(nodeListj,j);
       const auto& interfaceSmoothnessj = interfaceSmoothness(nodeListj,j);
       const auto& interfaceFractionj = interfaceFraction(nodeListj,j);
@@ -250,7 +247,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto  muj = max(mu(nodeListj,j),tiny);
       const auto  Kj = max(tiny,K(nodeListj,j))+4.0/3.0*muj;
       const auto  Hdetj = Hj.Determinant();
-      //const auto fragIDj = fragIDs(nodeListj, j);
+      const auto fragIDj = fragIDs(nodeListj, j);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
@@ -280,7 +277,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // decoupling and boolean switches
       //-------------------------------------------------------
       // Flag if this is a contiguous material pair or not.
-      const auto sameMatij =  (nodeListi == nodeListj and colori==colorj);
+      const auto sameMatij =  (nodeListi == nodeListj and fragIDi==fragIDj);
       const auto differentMatij = !sameMatij; 
       const auto averageKernelij = ( (differentMatij and averageInterfaceKernels) or alwaysAverageKernels);
 
@@ -681,15 +678,14 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
   const auto  numPairs = pairs.size();
 
   // Get the state and derivative FieldLists.
-  const auto color = state.fields(FSIFieldNames::color, int(0));
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
-  
-  CHECK(color.size() == numNodeLists);
+  const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
+
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(massDensity.size() == numNodeLists);
@@ -728,7 +724,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
-      const auto& colori = color(nodeListi,i);
+      const auto& fragIDi = fragIDs(nodeListi,i);
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& epsi = specificThermalEnergy(nodeListi, i);
@@ -741,7 +737,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       CHECK(Hdeti > 0.0);
 
       // Get the state for node j
-      const auto& colorj = color(nodeListj,j);
+      const auto& fragIDj = fragIDs(nodeListj,j);
       const auto& rj = position(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
       const auto& epsj = specificThermalEnergy(nodeListj, j);
@@ -768,7 +764,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
 
       // logic
       //---------------------------------------
-      const auto sameMatij = (nodeListi == nodeListj and colori == colorj);
+      const auto sameMatij = (nodeListi == nodeListj and fragIDi == fragIDj);
       const auto differentMatij = (nodeListi!=nodeListj);
       const auto averageKernelij = ( (differentMatij and averageInterfaceKernels) or alwaysAverageKernels);
 
