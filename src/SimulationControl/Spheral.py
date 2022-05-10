@@ -3,6 +3,15 @@
 
 # Modified version to be compatible with the pybindgen version of Spheral++.
 
+from SpheralUtilities import BuildData
+
+if not BuildData.cxx_compiler_id == "GNU":
+    try:
+        import sys, ctypes
+        sys.setdlopenflags(sys.getdlopenflags() | ctypes.RTLD_GLOBAL)
+    except:
+        print "WARNING: unable to set python dl flags on Spheral import."
+        pass
 
 # ------------------------------------------------------------------------------
 # Load up MPI.
@@ -13,14 +22,6 @@ import mpi
 # Import the compiled packages.
 # ------------------------------------------------------------------------------
 from SpheralCompiledPackages import *
-
-try:
-    if not BuildData.cxx_compiler_id == "GNU":
-        import sys, ctypes
-        sys.setdlopenflags(sys.getdlopenflags() | ctypes.RTLD_GLOBAL)
-except:
-    print "WARNING: unable to set python dl flags on Spheral import."
-    pass
 
 # ------------------------------------------------------------------------------
 # Import the Material python extensions.
