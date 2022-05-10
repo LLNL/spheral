@@ -149,6 +149,41 @@ GenericHydro<Dimension>::averageActualNeighbor() const {
 }
 
 //------------------------------------------------------------------------------
+// Stored info about last timestep selection
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+size_t
+GenericHydro<Dimension>::
+DTrank() const {
+  return mDTrank;
+}
+
+template<typename Dimension>
+inline
+size_t
+GenericHydro<Dimension>::
+DTNodeList() const {
+  return mDTNodeList;
+}
+
+template<typename Dimension>
+inline
+size_t
+GenericHydro<Dimension>::
+DTnode() const {
+  return mDTnode;
+}
+
+template<typename Dimension>
+inline
+std::string
+GenericHydro<Dimension>::
+DTreason() const {
+  return mDTreason;
+}
+
+//------------------------------------------------------------------------------
 // Update the master neighboring statistics.
 //------------------------------------------------------------------------------
 template<typename Dimension>
