@@ -703,13 +703,14 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       }
 
       // Evaluate the continuity equation.
-      DrhoDti = -rhoi*(DvDxi.xx() + 2.0*vi.x()*riInv);
+      const auto divv = DvDxi.xx() + 2.0*vi.x()*riInv;
+      DrhoDti = -rhoi*divv;
 
       // If we're in range of the origin, compute an effective Q.
       Scalar Qi = 0.0;
       if (etaii.x() < etaMax) {
-        const auto divv = -std::min(0.0, 2.0*vi.x()*riInv);  // * W1d(etaii.x(), 1.0)/W0;
-        Qi = mQself*rhoi*hi*divv*(hi*divv + ci);
+        const auto mu = -std::min(0.0, divv);  // * W1d(etaii.x(), 1.0)/W0;
+        Qi = mQself*rhoi*hi*mu*(hi*mu + ci);
         maxViscousPressurei = std::max(maxViscousPressurei, Qi);
       }
 
@@ -761,7 +762,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       // Determine the deviatoric stress evolution.
       // Note the spin term is always zero in spherical coordinates.
       // const auto deviatoricDeformation = SymTensor(2.0/3.0*(localDvDxi.xx() + vi.x()*riInv));
-      const auto deviatoricDeformation = localDvDxi.xx() - (localDvDxi.xx() + 2.0*vi.x()*riInv)/3.0;
+      const auto deviatoricDeformation = localDvDxi.xx() - divv/3.0;
       DSDti.xx(2.0*mui*deviatoricDeformation);
 
       // Optionally use damage to ramp down stress on damaged material.
