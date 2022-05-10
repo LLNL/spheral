@@ -3,18 +3,11 @@ set(QHULL_URL "https://github.com/qhull/qhull/archive/2019.1.tar.gz")
 set(QHULL_CACHE "${CACHE_DIR}/2019.1.tar.gz")
 set(QHULL_SRC_DIR ${QHULL_PREFIX}/src/qhull/src)
 
-# Setting this to just the release library until we support TPL debug builds on LC
-set(${lib_name}_libs libqhull.so)
-if(ENABLE_STATIC_TPL)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(${lib_name}_libs libqhullstatic_d.a)
+else()
   set(${lib_name}_libs libqhullstatic.a)
 endif()
-set(QHULL_BUILD_TYPE Release)
-# if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-#   set(${lib_name}_libs libqhullstatic_d.a)
-# else()
-#   set(${lib_name}_libs libqhullstatic.a)
-# endif()
-# set(QHULL_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
 if(${lib_name}_BUILD)
 
@@ -34,7 +27,7 @@ if(${lib_name}_BUILD)
                -DCMAKE_C_FLAGS=-fPIC
                -DBUILD_SHARED_LIBS=OFF
                -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR}
-               -DCMAKE_BUILD_TYPE=${QHULL_BUILD_TYPE}
+               -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 
     LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
     LOG_CONFIGURE ${OUT_PROTOCOL_EP}
