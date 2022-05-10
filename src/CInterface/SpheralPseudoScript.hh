@@ -26,7 +26,7 @@
 #include "Kernel/TableKernel.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
-#include "Physics/Physics.hh"
+#include "Physics/GenericHydro.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -106,6 +106,12 @@ public:
 
   // initializeStep -- should be called once at the beginning of a cycle.
   static double initializeStep();
+
+  // dtNode -- should be called after initializeStep()
+  static size_t dtNode();
+
+  // dtReason -- should be called after initializeStep()
+  static std::string dtReason();
 
   // evaluateDerivatives -- computes the fluid time derivatives.
   static void evaluateDerivatives(double*  massDensitySum,
@@ -230,7 +236,7 @@ private:
   std::shared_ptr<SmoothingScaleBase<Dimension>> mSmoothingScaleMethodPtr;
   std::shared_ptr<ArtificialViscosity<Dimension>> mQptr;
   std::shared_ptr<Physics<Dimension>> mRKptr;
-  std::shared_ptr<Physics<Dimension>> mHydroPtr;
+  std::shared_ptr<GenericHydro<Dimension>> mHydroPtr;
   std::shared_ptr<Physics<Dimension>> mDamagePtr;
 
   // Integrator and state.

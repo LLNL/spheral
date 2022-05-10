@@ -240,6 +240,42 @@ double spheral_initialize_step(const int ndims) {
 }
 
 //------------------------------------------------------------------------------
+// spheral_dt_node
+//------------------------------------------------------------------------------
+int spheral_dt_node(const int ndims) {
+  switch (ndims) {
+  case 3:
+    return Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtNode();
+    break;
+
+  case 2:
+    return Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtNode();
+    break;
+
+  default:
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
+// spheral_dt_reason
+//------------------------------------------------------------------------------
+const char * spheral_dt_reason(const int ndims) {
+  switch (ndims) {
+  case 3:
+    return Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason().c_str();
+    break;
+
+  case 2:
+    return Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason().c_str();
+    break;
+
+  default:
+    VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
+  }
+}
+
+//------------------------------------------------------------------------------
 // spheral_evaluate_derivatives
 //------------------------------------------------------------------------------
 void spheral_evaluate_derivatives(const int ndims,

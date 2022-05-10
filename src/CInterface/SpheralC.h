@@ -248,6 +248,25 @@ SPHERALDLL_API
   double spheral_initialize_step(const int       ndims);
 
 /*------------------------------------------------------------------------------
+  spheral_dt_node, spheral_dt_reason
+
+  These methods should be called after spheral_initialize_step to get the
+  node ID which is controlling the time step, and the reason.
+
+  The order of methods to be called for each derivative evaluation should be
+  spheral_initialize_step(...)
+  spheral_dt_node(...)
+  spheral_dt_reason(...)
+
+  Returns: information on the node controlling the time step
+  ----------------------------------------------------------------------------*/
+SPHERALDLL_API
+  int spheral_dt_node(const int       ndims);
+
+SPHERALDLL_API
+  const char * spheral_dt_reason(const int       ndims);
+
+/*------------------------------------------------------------------------------
   spheral_evaluate_derivatives
 
   Evaluates the current derivatives (time and space) based on the state last
