@@ -92,7 +92,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
         return "{1}-{2}.cmake".format(
             hostname,
             self._get_sys_type(self.spec),
-            cache_spec
+            cache_spec.replace(" ", "_")
         )
 
     def initconfig_compiler_entries(self):
