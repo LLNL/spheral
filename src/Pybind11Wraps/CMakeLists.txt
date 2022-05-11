@@ -1,5 +1,6 @@
 set (_python_packages
   CXXTypes
+  CXXTests
   Geometry
   Silo
   DataOutput
