@@ -326,18 +326,18 @@ def verneySample(nodes, indices):
     rhoshell = mpi.allreduce(sum([mass[i]*rho[i] for i in indices] + [0.0]), mpi.SUM)
     epsshell = mpi.allreduce(sum([mass[i]*eps[i] for i in indices] + [0.0]), mpi.SUM)
     Pshell = mpi.allreduce(sum([mass[i]*P[i] for i in indices] + [0.0]), mpi.SUM)
+    Sshell = mpi.allreduce(sum([mass[i]*S[i].Trace() for i in indices] + [0.0]), mpi.SUM)
     strainShell = mpi.allreduce(sum([mass[i]*ps[i] for i in indices] + [0.0]), mpi.SUM)
     hshell = mpi.allreduce(sum([mass[i]*2.0/(H[i].Trace()) for i in indices] + [0.0]), mpi.SUM)
-    Sshell = mpi.allreduce(sum([mass[i]*S[i].Trace() for i in indices] + [0.0]), mpi.SUM)
     rshell /= mshell
     vshell /= mshell
     rhoshell /= mshell
     epsshell /= mshell
     Pshell /= mshell
+    Sshell /= mshell
     strainShell /= mshell
     hshell /= mshell
-    Sshell /= mshell
-    return rshell, vshell, rhoshell, epsshell, Pshell, strainShell, hshell, Sshell
+    return rshell, vshell, rhoshell, epsshell, Pshell, Sshell, strainShell, hshell
 
 # Find shells of points in binned radii
 histories = []
@@ -352,7 +352,7 @@ for ishell in xrange(nshells):
     print "Selected %i nodes for shell %i." % (n, ishell)
     if n > 0:
         histories.append(NodeHistory(nodesBe, shellIndices[ishell], verneySample, historyOutputName % ishell, 
-                                     labels = ("r", "vel", "rho", "eps", "P", "plastic strain", "h", "S")))
+                                     labels = ("r", "vel", "rho", "eps", "pressure", "Srr", "plastic strain", "h")))
 
 #-------------------------------------------------------------------------------
 # Build the controller.
