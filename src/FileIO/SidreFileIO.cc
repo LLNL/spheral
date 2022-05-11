@@ -181,16 +181,18 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
 
   if (access == AccessType::Read)
   {
-#ifdef USE_MPI
-    axom::sidre::IOManager reader(Communicator::communicator());
-    reader.read(mDataStorePtr->getRoot(), fileName + ".root");
-#else
+// #ifdef USE_MPI
+//     axom::sidre::IOManager reader(Communicator::communicator());
+//     reader.read(mDataStorePtr->getRoot(), fileName + ".root");
+// #else
     mDataStorePtr->getRoot()->load(fileName);
-#endif // USE_MPI
+// #endif // USE_MPI
   }
 
   VERIFY2(mDataStorePtr != 0, "SidreFileIO ERROR: unable to open " << fileName);
   mFileOpen = true;
+
+  std::cout << "This is at the end of the open function begun reading on process: " << Process::getRank() << " and it is trying to read " << fileName << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -200,12 +202,12 @@ void SidreFileIO::close()
 {
   if (mDataStorePtr != 0)
   {
-#ifdef USE_MPI
-    axom::sidre::IOManager writer(Communicator::communicator());
-    writer.write(mDataStorePtr->getRoot(), numRestartFiles, mFileName, "sidre_hdf5");
-#else
+// #ifdef USE_MPI
+//     axom::sidre::IOManager writer(Communicator::communicator());
+//     writer.write(mDataStorePtr->getRoot(), numRestartFiles, mFileName, "sidre_hdf5");
+// #else
     mDataStorePtr->getRoot()->save(mFileName);
-#endif // USE_MPI
+// #endif // USE_MPI
   mDataStorePtr.reset();
   }
   mFileOpen = false;
