@@ -40,29 +40,22 @@ namespace {
 inline
 double
 computeJ2(const Dim<3>::SymTensor& S) {
-  return 0.5*S.doubledot(S);
-}
-
-inline
-double
-computeJ2(const Dim<1>::SymTensor& S) {
-  if (GeometryRegistrar::coords() == CoordinateType::Spherical) {
-    // S_theta_theta == S_phi_phi = -S_rr/2
-    return 0.75*S.xx()*S.xx();
-  } else {
-    return 0.5*S.doubledot(S);
-  }
+  return 0.5*(S.doubledot(S));
 }
 
 inline
 double
 computeJ2(const Dim<2>::SymTensor& S) {
-  if (GeometryRegistrar::coords() == CoordinateType::RZ) {
-    const auto STT = S.Trace();    // S_theta_theta = -(S_rr + S_zz)
-    return 0.5*(S.doubledot(S) + STT*STT);
-  } else {
-    return 0.5*S.doubledot(S);
-  }
+  // the third diagonal component of S (acutally negative to make Tr(S)=0)
+  const auto S33 = S.Trace();
+  return 0.5*(S.doubledot(S) + S33*S33);
+}
+
+inline
+double
+computeJ2(const Dim<1>::SymTensor& S) {
+  // S_11 == S_22 = -S_00/2
+  return 0.75*S.xx()*S.xx();
 }
 
 }
