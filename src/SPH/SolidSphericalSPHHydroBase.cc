@@ -721,7 +721,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
 
       // Specific thermal energy
-      DepsDti -= vi.dot(deltaDvDti) + 2.0*Pi*vi.x()*riInv;
+      // DepsDti -= vi.dot(deltaDvDti) + 2.0*Pi*vi.x()*riInv;
+      DepsDti -= 2.0*mi/(rhoi*rhoi)*(sigmai.xx() - 0.5*Qi)*vi.dot(gradWii);
 
       // If needed finish the total energy derivative.
       if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
