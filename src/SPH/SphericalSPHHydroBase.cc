@@ -636,7 +636,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // }
 
       // Specific thermal energy
-      DepsDti -= vi.dot(deltaDvDti) + 2.0*Pi*vi.x()*riInv;
+      DepsDti += 2.0*mi/(rhoi*rhoi)*(Pi + 0.5*Qi)*vi.dot(gradWii);
+      // DepsDti -= vi.dot(deltaDvDti) + 2.0*Pi*vi.x()*riInv;
       // DepsDti += vi.dot(deltaDvDti) + 0.5*deltaDvDti.dot(deltaDvDti)*dt - 2.0*Pi*vi.x()*riInv;
       // DepsDti += 0.5*mi*QPiij.xx()*vi.dot(gradWii) - 2.0*Pi*vi.x()*riInv;
 
