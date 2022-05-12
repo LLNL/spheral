@@ -67,6 +67,7 @@ commandLine(nr = 20,                     # Radial resolution of the shell in poi
             sph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Cl = None,
             Cq = None,
+            Qself = None,
             linearInExpansion = None,
             Qlimiter = None,
             balsaraCorrection = None,
@@ -276,6 +277,8 @@ if not epsilon2 is None:
     q.epsilon2 = epsilon2
 if not linearInExpansion is None:
     q.linearInExpansion = linearInExpansion
+if not Qself is None:
+    hydro.Qself = Qself
 output("q")
 output("q.Cl")
 output("q.Cq")
@@ -283,6 +286,7 @@ output("q.limiter")
 output("q.epsilon2")
 output("q.linearInExpansion")
 output("q.quadraticInExpansion")
+output("hydro.Qself")
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
@@ -386,6 +390,8 @@ else:
     rsim0 = histories[0].sampleHistory[-1][0]
     print "Simulation measured final inner shell radius of %g cm: errror %g cm." % (rsim0,
                                                                                     rsim0 - r0)
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print "Total energy error: %g" % Eerror
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.

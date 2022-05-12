@@ -430,6 +430,8 @@ else:
     rsim0 = histories[0].sampleHistory[-1][0]
     print "Simulation measured final inner shell radius of %g cm: errror %g cm." % (rsim0,
                                                                                     rsim0 - r0)
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print "Total energy error: %g" % Eerror
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
