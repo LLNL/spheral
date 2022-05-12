@@ -352,7 +352,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         gradWjMj = Mj.Transpose()*gradWj;
       }
 
-      // interface normals ("consumed slide surface")
+      // interface normals 
       //-----------------------------------------------------------
       const auto fSij = ( sameMatij ? 1.0 : -1.0);         // direction parameter
       const auto Aij = fSij*voli*volj*(gradWiMi+gradWjMj); // "surface area vector"
@@ -410,8 +410,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         maxViscousPressurej = max(maxViscousPressurej, rhoi*rhoj * QPiji.diagonalElements().maxAbsElement());
 
         // stress tensor
-        sigmai = (damageReduceStress ? fDij : 1.0) * Si - Pi * SymTensor::one;
-        sigmaj = (damageReduceStress ? fDij : 1.0) * Sj - Pj * SymTensor::one;
+        {
+          const auto Seffi = (damageReduceStress ? fDij : 1.0) * Si;
+          const auto Seffj = (damageReduceStress ? fDij : 1.0) * Sj;
+          const auto Peffi = (differentMatij ? max(Pi,0.0) : Pi);
+          const auto Peffj = (differentMatij ? max(Pj,0.0) : Pj);
+          sigmai = Seffi - Peffi * SymTensor::one;
+          sigmaj = Seffj - Peffj * SymTensor::one;
+        }
 
         // Compute the tensile correction to add to the stress as described in 
         // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -588,7 +594,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       normi += Hdeti*mi/rhoi*W0;
 
       // finish our interface fields.
-      newInterfaceSmoothnessi /= max(newInterfaceFractioni,tiny);
+      newInterfaceSmoothnessi = min(1.0,max(0.0,newInterfaceSmoothnessi/max(newInterfaceFractioni,tiny)));
       smoothedInterfaceNormalsi +=  interfaceFractioni * Hdeti*mi/rhoi*W0 * interfaceNormalsi;
       if (newInterfaceFractioni > tiny){
         const auto normalSmoothFraction = min(0.9,max(0.1, 20.0*min(interfaceFractioni,0.05)));
