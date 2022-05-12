@@ -284,8 +284,8 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+output("hydro.kernel")
+output("hydro.PiKernel")
 
 #-------------------------------------------------------------------------------
 # Tweak the artificial viscosity.
@@ -348,10 +348,10 @@ def verneySample(nodes, indices):
     rho = nodes.massDensity()
     eps = nodes.specificThermalEnergy()
     P = ScalarField("pressure", nodes)
-    S = nodes.deviatoricStress()
     nodes.pressure(P)
     ps = nodes.plasticStrain()
     H = nodes.Hfield()
+    S = nodes.deviatoricStress()
     mshell = mpi.allreduce(sum([mass[i] for i in indices] + [0.0]), mpi.SUM)
     assert mshell > 0.0
     Srr = []
@@ -403,15 +403,9 @@ control = SpheralController(integrator, WT,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizTime = vizTime,
-                            vizStep = vizStep)
+                            vizStep = vizStep,
+                            periodicWork = [(hist.sample, sampleFreq) for hist in histories])
 output("control")
-
-#-------------------------------------------------------------------------------
-# Add the diagnostics to the controller.
-#-------------------------------------------------------------------------------
-for hist in histories:
-    control.appendPeriodicWork(hist.sample, sampleFreq)
-    hist.flushHistory()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
@@ -486,9 +480,10 @@ if graphics:
                             xFunction = "%s.magnitude()",
                             plotStyle="points",
                             winTitle="rho @ %g" % (control.time()))
-    velPlot = plotFieldList(state.vectorFields("velocity"),
+    radialVelocity = radialVelocityFieldList(db.fluidPosition,
+                                             db.fluidVelocity)
+    velPlot = plotFieldList(radialVelocity,
                             xFunction = "%s.magnitude()",
-                            yFunction = "%s.magnitude()",
                             plotStyle="points",
                             winTitle="vel @ %g" % (control.time()))
     mPlot = plotFieldList(state.scalarFields("mass"),

@@ -188,6 +188,7 @@ output("W")
 #-------------------------------------------------------------------------------
 nodesBe = makeSolidNodeList("Beryllium", eosBe, strengthModelBe,
                             nPerh = nPerh,
+                            kernelExtent = W.kernelExtent,
                             hmin = hmin,
                             hmax = hmax,
                             rhoMin = etamin*rho0Be,
@@ -370,7 +371,8 @@ control = SpheralController(integrator,
                             vizDir = vizDir,
                             vizTime = vizTime,
                             vizStep = vizStep,
-                            periodicWork = [(hist.sample, sampleFreq) for hist in histories])
+                            periodicWork = [(hist.sample, sampleFreq) for hist in histories],
+                            iterateInitialH = (HUpdate == IntegrateH))
 output("control")
 
 #-------------------------------------------------------------------------------

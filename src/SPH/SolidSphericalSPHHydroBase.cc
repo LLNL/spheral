@@ -564,6 +564,11 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
         pairAccelerations[2*kk+1] = deltaDvDtj;
       }
 
+      // if (i == 0 or j == 0) {
+      //   cerr << " --> (" << i << " " << j << ") " << DvDti << " " << deltaDvDti << " : " << sigmarhoi << " " << sigmarhoj << " " << QPiij << " " << QPiji << " : "
+      //        << gradWji << "" << gradWjj << " " << gradWQji << " " << gradWQjj << endl;
+      // }
+
       // Specific thermal energy evolution.
       DepsDti -= mj*(sigmarhoi.xx() - 0.5*QPiij.xx())*(vj.dot(gradWij) + vi.dot(gradWjj));
       DepsDtj -= mi*(sigmarhoj.xx() - 0.5*QPiji.xx())*(vi.dot(gradWji) + vj.dot(gradWii));
@@ -721,6 +726,11 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       const auto deltaDvDti = mi*safeOmegai/(rhoi*rhoi)*(2.0*sigmai*gradWii - Qi*gradWQii);
       DvDti += deltaDvDti;
       if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
+
+      // if (i == 0) {
+      //   cerr << " --> (" << i << " " << i << ") " << DvDti << " " << deltaDvDti << " : " << sigmai/(rhoi*rhoi) << " " << Qi << " : "
+      //        << gradWii << " : vi=" << vi << endl;
+      // }
 
       // Specific thermal energy
       // DepsDti -= vi.dot(deltaDvDti) + 2.0*Pi*vi.x()*riInv;
