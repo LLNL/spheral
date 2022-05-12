@@ -72,14 +72,14 @@ stages:
 
 .gcc_8_1_0_mvapich2_Debug:
   variables:
-    SPEC: "gcc@8.1.0^mvapich2"
+    SPEC: "gcc@8.1.0+mpi"
     LC_MODULES: "gcc/8.1.0"
     EXTRA_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
     EXTRA_TEST_ARGS: "--filter \"level<100\""
 
 .gcc_8_3_1_mvapich2:
   variables:
-    SPEC: "gcc@8.3.1^mvapich2"
+    SPEC: "gcc@8.3.1+mpi"
     LC_MODULES: "gcc/8.3.1"
     EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
     EXTRA_TEST_ARGS: ""
@@ -93,7 +93,7 @@ stages:
 
 .cuda_11_gcc_8_3_1_~mpi:
   variables:
-    SPEC: "gcc@8.3.1+cuda~mpi cuda_arch=70"
+    SPEC: "gcc@8.3.1~mpi+cuda cuda_arch=70"
     LC_MODULES: "gcc/8.3.1 cuda/11.1.0"
     EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On"
     EXTRA_TEST_ARGS: "--filter \"np<2\""
@@ -107,14 +107,14 @@ stages:
 
 .gcc_8_3_1_spectrum:
   variables:
-    SPEC: "gcc@8.3.1^spectrum-mpi"
+    SPEC: "gcc@8.3.1+mpi"
     LC_MODULES: "gcc/8.3.1"
     EXTRA_CMAKE_ARGS: ""
     EXTRA_TEST_ARGS: ""
 
 .cuda_11_gcc_8_3_1_spectrum:
   variables:
-    SPEC: "gcc@8.3.1+cuda^spectrum-mpi cuda_arch=70"
+    SPEC: "gcc@8.3.1+mpi+cuda cuda_arch=70"
     LC_MODULES: "gcc/8.3.1 cuda/11.1.0"
     EXTRA_CMAKE_ARGS: ""
     EXTRA_TEST_ARGS: ""
