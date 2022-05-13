@@ -1,0 +1,6 @@
+#ifndef SPHERAL_config_HPP
+#define SPHERAL_config_HPP
+
+#define SPHERAL_CXX_COMPILER_ID "@CMAKE_CXX_COMPILER_ID@"
+
+#endif //  SPHERAL_config_HPP

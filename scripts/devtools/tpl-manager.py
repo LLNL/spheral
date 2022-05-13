@@ -9,7 +9,6 @@ import json
 #------------------------------------------------------------------------------
 
 project_dir=os.path.abspath(os.path.join(os.path.realpath(__file__), "../../../"))
-default_mirror_dir="/usr/gapps/Spheral/spheral-spack-tpls/mirror"
 
 default_spheral_spack_dir=os.path.join(os.getcwd(), "../spheral-spack-tpls")
 upstream_dir="/usr/WS2/wciuser/Spheral/spheral-spack-tpls/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_p/"
@@ -27,12 +26,6 @@ def parse_args():
       help='Spack spec to use.')
   parser.add_argument('--spec-list', type=str, default="",
       help='JSON file with a list of specs to build for, this will override --spec.')
-
-  # Mirrors
-  parser.add_argument('--no-mirror', action='store_true',
-      help='Use a mirror with the spack instancedt.')
-  parser.add_argument('--mirror-dir', type=str, default=default_mirror_dir,
-      help='Dir of mirror to be used when --use-mirror is enabled.')
 
   # Spack setup
   parser.add_argument('--spheral-spack-dir', type=str, default=default_spheral_spack_dir,
@@ -114,24 +107,6 @@ def build_deps(args):
   # to have the spack instance take over our environment.
   os.environ["SPACK_DISABLE_LOCAL_CONFIG"] = "1"
   spack_cmd=os.path.join(args.spheral_spack_dir, "spack/bin/spack")
-  
-  # Let's set up a mirror for our TPL builds, this will help in downloding tars for packages 
-  # offline and for pulling in binaries of precompiled TPL specs.
-  if not args.no_mirror:
-
-    print("** Setting up mirror")
-    if args.mirror_dir:
-      print("** --mirro-dir defined : Adding mirror : {0}".format(args.mirror_dir))
-    else:
-      print("** --mirror-dir NOT defined : Adding default mirror : {0}".format(args.mirror_dir))
-
-    if sexe("{0} mirror list | grep spheral-tpl".format(spack_cmd), ret_output=True):
-      print("** Spheral-tpl mirror found, removing...")
-      sexe("{0} mirror rm spheral-tpl".format(spack_cmd), echo=True)
-
-    print("** Adding Spheral-tpl mirror...")
-    sexe("{0} mirror add spheral-tpl {1}".format(spack_cmd, args.mirror_dir), echo=True)
-    sexe("{0} gpg trust `find {1} -name \"*.pub\"`".format(spack_cmd, args.mirror_dir), echo=True)
 
   with open(uberenv_project_json) as f:
     package_name=json.loads(f.read())["package_name"]
