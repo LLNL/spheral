@@ -411,6 +411,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
 
       // Normalized node coordinates
+      //   first subscript -> node position
+      //  second subscript -> smoothing scale
       const auto etaii = Hi*ri;
       const auto etaji = Hi*rj;
       const auto etaij = Hj*ri;
@@ -418,7 +420,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
       // Symmetrized kernel weight and gradient.
       // Note our subscript rules here:
-      //   first subscript -> first node position in call
+      //   first subscript -> first node position in call: i -> (ri,rj) ; j -> (rj,ri)
       //  second subscript -> smoothing scale used
       W.kernelAndGrad(etaji, etaii, Hi, Wji, gradWji, gWji);
       W.kernelAndGrad(etajj, etaij, Hj, Wjj, gradWjj, gWjj);
@@ -494,8 +496,10 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // DepsDtj -= vj.dot(deltaDvDtj);
       // DepsDti += mj*(Prhoi + fQi        *QPiij.xx())*vij.dot(gradWjj);
       // DepsDtj -= mi*(Prhoj + (1.0 - fQi)*QPiji.xx())*vij.dot(gradWii);
-      DepsDti += mj*(Prhoi + 0.5*QPiij.xx())*(vj.dot(gradWij) + vi.dot(gradWjj));
-      DepsDtj += mi*(Prhoj + 0.5*QPiji.xx())*(vi.dot(gradWji) + vj.dot(gradWii));
+      DepsDti += mj*(Prhoi + 0.5*fQi        *(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
+      DepsDtj += mi*(Prhoj + 0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
+      // DepsDti += mj*(Prhoi + 0.5*fQi        *(QPiij.xx() + QPiji.xx()))*vij.dot(gradWjj);
+      // DepsDtj -= mi*(Prhoj + 0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*vij.dot(gradWii);
 
       // Velocity gradient.
       const auto deltaDvDxi = -mj*vij.dyad(gradWjj);

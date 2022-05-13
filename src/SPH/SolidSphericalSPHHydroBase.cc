@@ -460,6 +460,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       const auto fDij = pairs[kk].f_couple;
 
       // Normalized node coordinates
+      //   first subscript -> node position
+      //  second subscript -> smoothing scale
       const auto etaii = Hi*ri;
       const auto etaji = Hi*rj;
       const auto etaij = Hj*ri;
@@ -467,7 +469,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 
       // Symmetrized kernel weight and gradient.
       // Note our subscript rules here:
-      //   first subscript -> first node position in call
+      //   first subscript -> first node position in call: i -> (ri,rj) ; j -> (rj,ri)
       //  second subscript -> smoothing scale used
       W.kernelAndGrad(etaji, etaii, Hi, Wji, gradWji, gWji);
       W.kernelAndGrad(etajj, etaij, Hj, Wjj, gradWjj, gWjj);
@@ -570,8 +572,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       // }
 
       // Specific thermal energy evolution.
-      DepsDti -= mj*(sigmarhoi.xx() - 0.5*QPiij.xx())*(vj.dot(gradWij) + vi.dot(gradWjj));
-      DepsDtj -= mi*(sigmarhoj.xx() - 0.5*QPiji.xx())*(vi.dot(gradWji) + vj.dot(gradWii));
+      DepsDti -= mj*(sigmarhoi.xx() - 0.5*fQi        *(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
+      DepsDtj -= mi*(sigmarhoj.xx() - 0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
 
       // Velocity gradient.
       const auto deltaDvDxi = -fDij * mj*vij.dyad(gradWGjj);
