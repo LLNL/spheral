@@ -5,11 +5,13 @@
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementFieldList.hh"
+#include "DataBase/ReplaceFieldList.hh"
 
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Hydro/HydroFieldNames.hh"
 
+#include "DEM/ReplaceAndIncrementFieldList.hh"
 #include "DEM/DEMFieldNames.hh"
 #include "DEM/DEMDimension.hh"
 #include "DEM/LinearSpringDEM.hh"
@@ -85,6 +87,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // A few useful constants we'll use in the following loop.
   //const double tiny = std::numeric_limits<double>::epsilon();
   const auto dampingConstTerms = 4.0*mNormalSpringConstant/(1.0+mBeta*mBeta);
+  const auto tangentialSpringConstant = mNormalSpringConstant;
+  const auto invTangentialSpringConstant = 1.0/tangentialSpringConstant;
+  const auto muD = 0.3;
+  const auto muS = 0.4;
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -113,11 +119,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
-  auto DDtShearDisplacement = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() +  DEMFieldNames::shearDisplacement, std::vector<Vector>());
+  auto DDtShearDisplacement = derivatives.fields(ReplaceAndIncrementFieldList<Dimension, std::vector<Vector>>::incrementPrefix() +  DEMFieldNames::shearDisplacement, std::vector<Vector>());
+  auto newShearDisplacement = derivatives.fields(ReplaceAndIncrementFieldList<Dimension, std::vector<Vector>>::replacePrefix() +  DEMFieldNames::shearDisplacement, std::vector<Vector>());
 
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DomegaDt.size() == numNodeLists);
+  CHECK(DDtShearDisplacement.size() == numNodeLists);
+  CHECK(newShearDisplacement.size() == numNodeLists);
 
   const auto& contacts = this->contactStorageIndices();
 
@@ -138,12 +147,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       nodeListi = pairs[kk].i_list;
       nodeListj = pairs[kk].j_list;
       
+      const int storeNodeList = contacts[kk].storeNodeList;
+      const int storeNode = contacts[kk].storeNode;
+      const int storeContact = contacts[kk].storeContact;
+
       // stored pair-wise values
-      const auto& contact = contacts[kk];
-      // stored pair-wise values
-      const auto overlapij = equilibriumOverlap(contact.storeNodeList,contact.storeNode)[contact.storeContact];
-      const auto sij = shearDisplacement(contact.storeNodeList,contact.storeNode)[contact.storeContact];
-      const int numContacts = neighborIds(contact.storeNodeList,contact.storeNode).size();
+      const auto overlapij = equilibriumOverlap(storeNodeList,storeNode)[storeContact];
+      const auto sij = shearDisplacement(storeNodeList,storeNode)[storeContact];
+      //const int numContacts = neighborIds(storeNodeList,storeNode).size();
       
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
@@ -161,11 +172,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Get the derivs from node i
       auto& DvDti = DvDt_thread(nodeListi, i);
-      //auto& DomegaDti = DomegaDt_thread(nodeListi, i);
+      auto& DomegaDti = DomegaDt_thread(nodeListi, i);
 
       // Get the derivs from node j
       auto& DvDtj = DvDt_thread(nodeListj, j);
-      //auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
+      auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
 
       CHECK(mi > 0.0);
       CHECK(mj > 0.0);
@@ -192,40 +203,68 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
         // effective quantities
         const auto mij = (mi*mj)/(mi+mj);
-        //const auto Rij = (Ri*Rj)/(Ri+Rj);
         const auto lij = (li*lj)/(li+lj);
 
         // this is super ugly right now and should change down the line...
-        const auto vroti =  DEMDimension<Dimension>::cross(rhatij,omegai);
-        const auto vrotj = -DEMDimension<Dimension>::cross(rhatij,omegaj);
+        const auto vroti = -DEMDimension<Dimension>::cross(omegai,rhatij);
+        const auto vrotj =  DEMDimension<Dimension>::cross(omegaj,rhatij);
+
         const auto vij = vi-vj + li*vroti - lj*vrotj;
 
         const auto vn = vij.dot(rhatij);
         const auto vt = vij - vn*rhatij;
 
+        // projection of shear spring displacement
+        auto newSij = sij - rhatij.dot(sij)*rhatij;
+        const auto shatij = newSij.unitVector();
+        newSij = shatij * sij.magnitude();
+
         // rolling velocity
         const auto vr = -lij*(vroti + vrotj);
-        
+         
         // torsion
         const auto torsion = lij*rhatij*DEMDimension<Dimension>::dot(omegai-omegaj,rhatij);
-        
-        // moments of interia
-        const auto Ii = this->momentOfInertia(mi,Ri);
-        const auto Ij = this->momentOfInertia(mj,Rj);
 
         // normal force w/ Herzian spring constant
         const auto normalDampingConstant = std::sqrt(mij*dampingConstTerms);
+        const auto tangentialDampingConstant = normalDampingConstant;
 
         // normal force
-        const auto f = mNormalSpringConstant*delta - normalDampingConstant*vn;
-        //const auto M = 
+        const auto fn = (mNormalSpringConstant*delta - normalDampingConstant*vn)*rhatij;
+        const auto fnMag = fn.magnitude();
 
-        DvDti += f/mi*rhatij;
-        DvDtj -= f/mj*rhatij;
+        // friction force
+        const auto ft0damp = - tangentialDampingConstant*vt;
+        const auto ft0spring = - tangentialSpringConstant*newSij;
+        const auto ftStatic = muS*fnMag;
 
-        //DDtShearDisplacement(pairIndexSet[0],pairIndexSet[1])[pairIndexSet[2]]=vt;
-        
-        //DomegaDti += M/I;
+        auto ft = ft0spring + ft0damp;
+
+        if  (ft.magnitude() > ftStatic){
+
+          const auto ftDynamic = muD*fnMag;
+          ft = ftDynamic*ft.unitVector();
+
+          newSij = ( ft0damp.magnitude() > ftDynamic ? 
+                     Vector::zero : 
+                     -invTangentialSpringConstant*(ft-ft0damp) );
+
+        }
+
+        // pairwise force and moment
+        const auto fij = fn + ft;
+        const auto Mij = -DEMDimension<Dimension>::cross(rhatij,fij);
+
+        // our accelerations
+        DvDti += fij;
+        DvDtj -= fij;
+
+        DomegaDti += Mij*li;
+        DomegaDtj += Mij*lj;
+
+        newShearDisplacement(storeNodeList,storeNode)[storeContact]=newSij;
+        DDtShearDisplacement(storeNodeList,storeNode)[storeContact]=vt;
+    
       }  
     } // loop over pairs
     threadReduceFieldLists<Dimension>(threadStack);
@@ -238,8 +277,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
+        const auto mi = mass(nodeListi,i);
+        const auto Ri = radius(nodeListi,i);
         const auto veli = velocity(nodeListi,i);
+        const auto Ii = this->momentOfInertia(mi,Ri);
+
         DxDt(nodeListi,i) = veli;
+        DomegaDt(nodeListi,i) /= Ii;
+        DvDt(nodeListi,i) /= mi;
     }
   }
 

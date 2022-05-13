@@ -14,6 +14,7 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementFieldList.hh"
+#include "DataBase/ReplaceFieldList.hh"
 #include "DataBase/DataBase.hh"
 
 #include "Field/FieldList.hh"
@@ -32,6 +33,7 @@
 
 #include "DEM/ContactStorageLocation.hh"
 #include "DEM/IncrementPairFieldList.hh"
+#include "DEM/ReplaceAndIncrementFieldList.hh"
 #include "DEM/DEMBase.hh"
 #include "DEM/DEMDimension.hh"
 #include "DEM/DEMFieldNames.hh"
@@ -82,6 +84,7 @@ DEMBase(const DataBase<Dimension>& dataBase,
         const Vector& xmax):
   Physics<Dimension>(),
   mDataBase(dataBase),
+  mFirstCycle(true),
   mCyclesSinceLastKulling(0),
   mKullFrequency((int)stepsPerCollision),
   mStepsPerCollision(stepsPerCollision),
@@ -98,6 +101,7 @@ DEMBase(const DataBase<Dimension>& dataBase,
   mShearDisplacement(FieldStorageType::CopyFields),
   mIsActiveContact(FieldStorageType::CopyFields),
   mDDtShearDisplacement(FieldStorageType::CopyFields),
+  mNewShearDisplacement(FieldStorageType::CopyFields),
   mRestart(registerWithRestart(*this)),
   mRedistribute(registerWithRedistribution(*this,
                                            &DEMBase<Dimension>::initializeBeforeRedistribution,
@@ -114,7 +118,8 @@ DEMBase(const DataBase<Dimension>& dataBase,
     mIsActiveContact = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::isActiveContact);
     mNeighborIndices = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::neighborIndices);
     mShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), DEMFieldNames::shearDisplacement);
-    mDDtShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::shearDisplacement);
+    mDDtShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::shearDisplacement);
+    mNewShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::shearDisplacement);
     mEquilibriumOverlap = dataBase.newDEMFieldList(std::vector<Scalar>(), DEMFieldNames::equilibriumOverlap);
 
 }
@@ -135,10 +140,11 @@ void
 DEMBase<Dimension>::
 resizeDerivativePairFieldLists(StateDerivatives<Dimension>& derivs) const {
   
-  auto DsDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::shearDisplacement, std::vector<Vector>());
+  auto DsDt = derivs.fields(ReplaceAndIncrementFieldList<Dimension, std::vector<Vector>>::incrementPrefix() + DEMFieldNames::shearDisplacement, std::vector<Vector>());
+  auto newShearDisp = derivs.fields(ReplaceAndIncrementFieldList<Dimension, std::vector<Vector>>::replacePrefix() + DEMFieldNames::shearDisplacement, std::vector<Vector>());
   
   this->addContactsToPairFieldList(DsDt,Vector::zero);
-
+  this->addContactsToPairFieldList(newShearDisp,Vector::zero);
 }
 
 //------------------------------------------------------------------------------
@@ -180,12 +186,10 @@ kullInactiveContactsFromStatePairFieldLists(State<Dimension>& state) const{
 template<typename Dimension>
 void
 DEMBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& /*dataBase*/) {
-
+initializeProblemStartup(DataBase<Dimension>& dataBase) {
   TIME_DEMinitializeStartup.start();
 
   TIME_DEMinitializeStartup.stop();
-
 }
 
 //------------------------------------------------------------------------------
@@ -205,27 +209,30 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeDEMFieldList(mIsActiveContact, vector<int>(), DEMFieldNames::isActiveContact, false);
   dataBase.resizeDEMFieldList(mNeighborIndices, vector<int>(), DEMFieldNames::neighborIndices, false);
   dataBase.resizeDEMFieldList(mShearDisplacement, vector<Vector>(), DEMFieldNames::shearDisplacement, false);
-  dataBase.resizeDEMFieldList(mEquilibriumOverlap, vector<Scalar>(), DEMFieldNames::uniqueIndices, false);
+  dataBase.resizeDEMFieldList(mEquilibriumOverlap, vector<Scalar>(), DEMFieldNames::equilibriumOverlap, false);
 
   auto position = dataBase.DEMPosition();
   auto velocity = dataBase.DEMVelocity();
   auto mass = dataBase.DEMMass();
   auto Hfield = dataBase.DEMHfield();
   auto radius = dataBase.DEMParticleRadius();
+  auto compositeParticleIndex = dataBase.DEMCompositeParticleIndex();
 
   PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
   PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,true));
   PolicyPointer angularVelocityPolicy(new IncrementFieldList<Dimension, RotationType>());
-  PolicyPointer shearDisplacementPolicy(new IncrementPairFieldList<Dimension, std::vector<Vector>>());
+  PolicyPointer shearDisplacementPolicy(new ReplaceAndIncrementFieldList<Dimension,std::vector<Vector>>());
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);
   state.enroll(radius);
   state.enroll(Hfield);
+  state.enroll(compositeParticleIndex);
   state.enroll(position, positionPolicy);
   state.enroll(velocity, velocityPolicy);
   state.enroll(mOmega, angularVelocityPolicy);
   
+
   state.enroll(mIsActiveContact);
   state.enroll(mUniqueIndices);
   state.enroll(mNeighborIndices);
@@ -248,12 +255,14 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeDEMFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position, false);
   dataBase.resizeDEMFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
   dataBase.resizeDEMFieldList(mDomegaDt, DEMDimension<Dimension>::zero,  IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity , false);
-  dataBase.resizeDEMFieldList(mDDtShearDisplacement, vector<Vector>(),  IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::shearDisplacement , false);
+  dataBase.resizeDEMFieldList(mDDtShearDisplacement, vector<Vector>(),  ReplaceAndIncrementFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::shearDisplacement , false);
+  dataBase.resizeDEMFieldList(mNewShearDisplacement, vector<Vector>(),  ReplaceAndIncrementFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::shearDisplacement , false);
   
   derivs.enroll(mDxDt);
   derivs.enroll(mDvDt);
   derivs.enroll(mDomegaDt);
   derivs.enroll(mDDtShearDisplacement);
+  derivs.enroll(mNewShearDisplacement);
 
   TIME_DEMregisterDerivs.stop();
 }
@@ -285,11 +294,20 @@ initialize(const Scalar  time,
                  StateDerivatives<Dimension>& derivs){
 
   // update our state pair fields for the current connectivity
-  this->initializeContacts(dataBase,state,derivs);
+  this->initializeContacts(dataBase);
+  this->resizeStatePairFieldLists(state);
 
+  // on the first pass we initialize our equilibrium overlap
+  if(mFirstCycle){
+    this->initializeOverlap(dataBase);
+    mFirstCycle=false;
+  }
+
+  // every so often remove old contacts 
   mCyclesSinceLastKulling++;
   if (mCyclesSinceLastKulling % mKullFrequency == 0){ 
-    this->kullInactiveContacts(dataBase,state,derivs);
+    this->kullInactiveContacts(dataBase);
+    this->kullInactiveContactsFromStatePairFieldLists(state);
   }
 
 }
@@ -325,7 +343,7 @@ applyGhostBoundaries(State<Dimension>& state,
   auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   auto angularVelocity = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
-
+  auto compositeParticleIndex = state.fields(DEMFieldNames::compositeParticleIndex,int(0));
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
@@ -334,6 +352,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(velocity);
     (*boundaryItr)->applyFieldListGhostBoundary(angularVelocity);
     (*boundaryItr)->applyFieldListGhostBoundary(radius);
+    (*boundaryItr)->applyFieldListGhostBoundary(compositeParticleIndex);
   }
   TIME_DEMghostBounds.stop();
 }
@@ -352,7 +371,7 @@ enforceBoundaries(State<Dimension>& state,
   auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   auto angularVelocity = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
-
+  auto compositeParticleIndex = state.fields(DEMFieldNames::compositeParticleIndex,int(0));
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
@@ -361,6 +380,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(velocity);
     (*boundaryItr)->enforceFieldListBoundary(angularVelocity);
     (*boundaryItr)->enforceFieldListBoundary(radius);
+    (*boundaryItr)->enforceFieldListBoundary(compositeParticleIndex);
   }
   TIME_DEMenforceBounds.stop();
 }
@@ -386,6 +406,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mNeighborIndices, pathName + "/neighborIndices");
   file.write(mShearDisplacement, pathName + "/shearDisplacement");
   file.write(mDDtShearDisplacement, pathName + "/DDtShearDisplacement");
+  file.write(mNewShearDisplacement, pathName + "/newShearDisplacement");
   file.write(mEquilibriumOverlap, pathName + "/equilibriumOverlap");
 }
 
@@ -410,20 +431,67 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mNeighborIndices, pathName + "/neighborIndices");
   file.read(mShearDisplacement, pathName + "/shearDisplacement");
   file.read(mDDtShearDisplacement, pathName + "/DDtShearDisplacement");
+  file.read(mNewShearDisplacement, pathName + "/newShearDisplacement");
   file.read(mEquilibriumOverlap, pathName + "/equilibriumOverlap");
 }
 
 
+
 //------------------------------------------------------------------------------
-// REdistribution methods
+// when problem starts set our equilibrium overlap
 //------------------------------------------------------------------------------
 
 template<typename Dimension>
 void
 DEMBase<Dimension>::
-initializeBeforeRedistribution(){
+initializeOverlap(const DataBase<Dimension>& dataBase){
+  
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  numPairs = pairs.size();
+  
+  const auto& positions = dataBase.DEMPosition();
+  const auto& particleRadius = dataBase.DEMParticleRadius();
+  const auto& particleIndex = dataBase.DEMCompositeParticleIndex();
 
-  std::cout << "SHABINGO!"<< std::endl;
+#pragma omp for
+  for (auto kk = 0u; kk < numPairs; ++kk) {
+
+    const auto i = pairs[kk].i_node;
+    const auto j = pairs[kk].j_node;
+    const auto nodeListi = pairs[kk].i_list;
+    const auto nodeListj = pairs[kk].j_list;
+
+    const auto storeNodeList = mContactStorageIndices[kk].storeNodeList;
+    const auto storeNode = mContactStorageIndices[kk].storeNode;
+    const auto storeContact = mContactStorageIndices[kk].storeContact;
+
+    // node fields
+    const auto ri = positions(nodeListi,i);
+    const auto Ri = particleRadius(nodeListi,i);
+    const auto pIDi = particleIndex(nodeListi,i);
+
+    const auto rj = positions(nodeListj,j);
+    const auto Rj = particleRadius(nodeListj,j);
+    const auto pIDj = particleIndex(nodeListj,j);
+
+    // composite particle 
+    if(pIDi==pIDj){
+      const auto rij = ri-rj;
+      const auto rijMag = rij.magnitude();
+      const auto delta0 = (Ri+Rj) - rijMag;
+      mEquilibriumOverlap(storeNodeList,storeNode)[storeContact] = delta0;
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// REdistribution methods
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DEMBase<Dimension>::
+initializeBeforeRedistribution(){
 
   const auto& connectivityMap = mDataBase.connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
@@ -439,12 +507,10 @@ initializeBeforeRedistribution(){
       mShearDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mShearDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
       mEquilibriumOverlap(contactkk.pairNodeList,contactkk.pairNode).push_back(mEquilibriumOverlap(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
       mDDtShearDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mDDtShearDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
-    }
-  
-  }
-  
-
-}
+      mNewShearDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mNewShearDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
+    } // if 
+  }   // for
+}     // method
 
 template<typename Dimension>
 void
@@ -509,7 +575,6 @@ kullInactiveContactsFromPairFieldList(Value& pairFieldList) const {
       pairFieldi.resize(activeContactCount);
     }
   }
-
 }
 
 //------------------------------------------------------------------------------
@@ -518,17 +583,13 @@ kullInactiveContactsFromPairFieldList(Value& pairFieldList) const {
 template<typename Dimension>
 void
 DEMBase<Dimension>::
-initializeContacts(const DataBase<Dimension>& dataBase,
-                         State<Dimension>& state,
-                         StateDerivatives<Dimension>& /*derivs*/){
+initializeContacts(const DataBase<Dimension>& dataBase){
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  numPairs = pairs.size();
   
-  auto neighborIds = state.fields(DEMFieldNames::neighborIndices, vector<int>());
-
   mContactStorageIndices.resize(numPairs);
 
 #pragma omp for
@@ -573,28 +634,9 @@ initializeContacts(const DataBase<Dimension>& dataBase,
 
     // add the contact if it is new
     if (contactIndexPtr == neighborContacts.end()){
-      neighborIds(contactkk.storeNodeList,contactkk.storeNode).push_back(uniqueSearchIndex);
+      mNeighborIndices(contactkk.storeNodeList,contactkk.storeNode).push_back(uniqueSearchIndex);
     }
   }
-
-//   int numNodesTotal = 0;
-//   int numStoredContacts = 0;
-//   const auto  numNodeLists = dataBase.numNodeLists();
-//   const auto  nodeListPtrs = dataBase.DEMNodeListPtrs();
-//   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-//     const auto numNodes = nodeListPtrs[nodeListi]->numInternalNodes();
-// #pragma omp parallel for
-//     for (auto nodei = 0u; nodei < numNodes; ++nodei) {  
-//       const auto numContacts = mNeighborIndices(nodeListi,nodei).size();
-//       numStoredContacts += numContacts;
-//     }
-//     numNodesTotal += numNodes;
-//   }
-//   std::cout << "AverageContacts" <<std::endl;
-//   std::cout << numStoredContacts/numNodesTotal << std::endl;
-
-  this->resizeStatePairFieldLists(state);
-
 }
 
 
@@ -604,12 +646,7 @@ initializeContacts(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 DEMBase<Dimension>::
-kullInactiveContacts(const DataBase<Dimension>& dataBase,
-                           State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs){
-
-  auto neighborIds = state.fields(DEMFieldNames::neighborIndices, vector<int>());
-  auto isActive = state.fields(DEMFieldNames::isActiveContact, vector<int>());
+kullInactiveContacts(const DataBase<Dimension>& dataBase){
 
   const auto  numNodeLists = dataBase.numNodeLists();
   const auto  nodeListPtrs = dataBase.DEMNodeListPtrs();
@@ -622,8 +659,8 @@ kullInactiveContacts(const DataBase<Dimension>& dataBase,
     const auto numNodes = nodeListPtrs[nodeListi]->numInternalNodes();
 #pragma omp parallel for
     for (auto nodei = 0u; nodei < numNodes; ++nodei) {  
-      const auto numContacts = neighborIds(nodeListi,nodei).size();
-      isActive(nodeListi,nodei).assign(numContacts,0);
+      const auto numContacts = mNeighborIndices(nodeListi,nodei).size();
+      mIsActiveContact(nodeListi,nodei).assign(numContacts,0);
     }
   }
 
@@ -631,79 +668,11 @@ kullInactiveContacts(const DataBase<Dimension>& dataBase,
 #pragma omp for
   for (auto kk = 0u; kk < npairs; ++kk) {
     const auto& contactkk = mContactStorageIndices[kk];
-    isActive(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact] = 1;
+    mIsActiveContact(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact] = 1;
   }
 
-  this->kullInactiveContactsFromPairFieldList(neighborIds);
-  this->kullInactiveContactsFromStatePairFieldLists(state);
-
+  this->kullInactiveContactsFromPairFieldList(mNeighborIndices);
 }
 
 
-//-------;-----------------------------------------------------------------------
-// method to find where we are storing the pair contact
-//------------------------------------------------------------------------------
-// template<typename Dimension>
-// std::vector<int>
-// DEMBase<Dimension>::
-// findContactIndex(int nodeListi,
-//                  int i,
-//                  int nodeListj,
-//                  int j) const {
-
-//   const auto dataLocation = this->storageNodeSelection(nodeListi,i,nodeListj,j);
-//   const auto storageNodeListIndex = dataLocation[0];
-//   const auto storageNodeIndex = dataLocation[1];
-//   const auto uniqueIndex = dataLocation[2];
-
-//   // get our contact indices 
-//   auto& neighborContacts = mNeighborIndices(storageNodeListIndex,storageNodeIndex);
-//   const auto contactIndexPtr = std::find(neighborContacts.begin(),neighborContacts.end(),uniqueIndex);
-//   const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);
-
-//   // these contacts should all exist by the time this method is called
-//   if (contactIndexPtr == neighborContacts.end()) std::cout<<"Oopsie doodle" << std::endl;
-
-//   std::vector<int> storageIndices = {storageNodeListIndex,storageNodeIndex,storageContactIndex};
-//   return storageIndices; 
-// }
-
-//------------------------------------------------------------------------------
-// where are we storing this?
-//------------------------------------------------------------------------------
-// template<typename Dimension>
-// std::vector<int>
-// DEMBase<Dimension>::
-// storageNodeSelection(int nodeListi,
-//                      int i,
-//                      int nodeListj,
-//                      int j) const {
-
-//   // get our unique global ID numbers
-//   const auto uIDi = mUniqueIndices(nodeListi,i);
-//   const auto uIDj = mUniqueIndices(nodeListj,j);
-
-//   const auto numInternalNodesi = mUniqueIndices[nodeListi]->numInternalElements();
-//   const auto numInternalNodesj = mUniqueIndices[nodeListj]->numInternalElements();
-
-//   // first we'll pick the internal node over a ghost. 
-//   // if both are internal we'll use the one with the lowerst global id
-//   const auto selectNodei = (i < (int)numInternalNodesi) and (uIDi < uIDj or j >= (int)numInternalNodesj);
-
-//   int storageNodeListIndex, storageNodeIndex, uniqueIndex;
-//   if (selectNodei) {
-//     storageNodeListIndex = nodeListi;
-//     storageNodeIndex = i;
-//     uniqueIndex = uIDj;
-//   } else{
-//     storageNodeListIndex = nodeListj;
-//     storageNodeIndex = j;
-//     uniqueIndex = uIDi;
-//   }
-
-//   // return the nodelist,node ids plus the unique index we'll search for
-//   std::vector<int> storageIndices = {storageNodeListIndex,storageNodeIndex,uniqueIndex};
-//   return storageIndices; 
-// }
-
-}
+} //spheral namespace

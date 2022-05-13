@@ -30,7 +30,7 @@ namespace Spheral{
   typename DEMDimension<Dim<2>>::AngularVector  
   DEMDimension<Dim<2>>::
   cross(const Dim<2>::Vector v1, const Dim<2>::Vector v2){
-    return 0.0;
+    return v1[0]*v2[1]-v1[1]*v2[0];
   }
 
   inline

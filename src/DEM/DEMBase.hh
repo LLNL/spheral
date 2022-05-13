@@ -113,13 +113,11 @@ public:
   void kullInactiveContactsFromStatePairFieldLists(State<Dimension>& state) const;
   //#############################################################################
 
-  void initializeContacts(const DataBase<Dimension>& dataBase,
-                                State<Dimension>& state,
-                                StateDerivatives<Dimension>& derivs);
+  void initializeOverlap(const DataBase<Dimension>& dataBase);
 
-  void kullInactiveContacts(const DataBase<Dimension>& dataBase,
-                                  State<Dimension>& state,
-                                  StateDerivatives<Dimension>& derivs);
+  void initializeContacts(const DataBase<Dimension>& dataBase);
+
+  void kullInactiveContacts(const DataBase<Dimension>& dataBase);
 
   // // methods to find storage location for pairwise fields
   // std::vector<int> storageNodeSelection(int nodeListi,
@@ -155,6 +153,7 @@ public:
   const FieldList<Dimension, std::vector<int>>& neighborIndices() const;
   const FieldList<Dimension, std::vector<Vector>>& shearDisplacement() const;
   const FieldList<Dimension, std::vector<Vector>>& DDtShearDisplacement() const;
+  const FieldList<Dimension, std::vector<Vector>>& newShearDisplacement() const;
   const FieldList<Dimension, std::vector<Scalar>>& equilibriumOverlap() const;
   
   const std::vector<ContactIndex>& contactStorageIndices() const;
@@ -183,6 +182,8 @@ protected:
 
   const DataBase<Dimension>& mDataBase;
 
+  bool mFirstCycle;
+
   int mCyclesSinceLastKulling;
   int mKullFrequency;
   
@@ -194,18 +195,19 @@ protected:
 
   // fields attached to the nodes
   FieldList<Dimension, int>      mTimeStepMask;
-  FieldList<Dimension, Vector>   mDxDt;
-  FieldList<Dimension, Vector>   mDvDt;
-  FieldList<Dimension, RotationType> mOmega;
-  FieldList<Dimension, RotationType> mDomegaDt;
-
+  FieldList<Dimension, Vector>   mDxDt;           // linear position derivative
+  FieldList<Dimension, Vector>   mDvDt;           // linear acceleration
+  FieldList<Dimension, RotationType> mOmega;      // angular velocity
+  FieldList<Dimension, RotationType> mDomegaDt;   // angular acceleration
+  FieldList<Dimension,int> mUniqueIndices;        // each node gets a global unique index
+  
   // fields attached to the pair interactions
-  FieldList<Dimension,int> mUniqueIndices;                         // each nodes global unqiue index
-  FieldList<Dimension,std::vector<int>> mNeighborIndices;          // tracks unique indices of contacts-we upate these 
-  FieldList<Dimension,std::vector<Scalar>> mEquilibriumOverlap;    // nonzero values for composite particles
-  FieldList<Dimension,std::vector<Vector>> mShearDisplacement;     // displacement for friction spring
-  FieldList<Dimension,std::vector<int>> mIsActiveContact;          // tracks if a interfaction is still active
-  FieldList<Dimension,std::vector<Vector>> mDDtShearDisplacement;  // derivative to evolve frictional spring displacement
+  FieldList<Dimension,std::vector<int>> mNeighborIndices;              // tracks unique indices of contacts-we upate these 
+  FieldList<Dimension,std::vector<Scalar>> mEquilibriumOverlap;        // nonzero values for composite particles
+  FieldList<Dimension,std::vector<Vector>> mShearDisplacement;         // displacement for friction spring
+  FieldList<Dimension,std::vector<int>> mIsActiveContact;              // tracks if a interfaction is still active
+  FieldList<Dimension,std::vector<Vector>> mDDtShearDisplacement;      // derivative to evolve frictional spring displacement
+  FieldList<Dimension,std::vector<Vector>> mNewShearDisplacement;      // handles rotation of frictional spring and reset on slip
 
   std::vector<ContactIndex> mContactStorageIndices;
 
