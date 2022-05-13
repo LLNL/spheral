@@ -1,36 +1,40 @@
+#ATS:DEM2d0 = test(          SELF, "--clearDirectories True  --checkError True  --restartStep 10 --steps 100", label="DEM individual particle collision -- 2-D (serial)")
+#ATS:DEM2d1 = testif(DEM2d0, SELF, "--clearDirectories False --checkError False  --restartStep 10 --restoreCycle 10 --steps 10 --checkRestart True", label="DEM individual particle collision -- 2-D (serial) RESTART CHECK")
+#ATS:DEM2d2 = test(          SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM individual particle collision -- 2-D (serial)")
+
 import os, sys, shutil, mpi
 from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution2d import *
-from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator2d
+
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes2d
 else:
     from DistributeNodes import distributeNodes2d
 
-title("DEM 2d Drop Test")
+title("DEM Restitution Coefficient Test")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(numParticlePerLength = 50,     # number of particles on a side of the box
-            normalSpringConstant=1000.0,  # spring constant for LDS model
+commandLine(vImpact = 1.0,                 # impact velocity
+            normalSpringConstant=10000.0,  # spring constant for LDS model
             restitutionCoefficient=0.8,    # restitution coefficient to get damping const
             radius = 0.25,                 # particle radius
             nPerh = 1.01,                  # this should basically always be 1 for DEM
 
             # integration
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
-            stepsPerCollision = 50,  # replaces CFL for DEM
-            goalTime = 25.0,
+            IntegratorConstructor = VerletIntegrator,
+            stepsPerCollision = 30,  # replaces CFL for DEM
+            goalTime = None,
             dt = 1e-8,
             dtMin = 1.0e-8, 
             dtMax = 0.1,
             dtGrowth = 2.0,
-            steps = None,
+            steps = 100,
             maxSteps = None,
             statsStep = 10,
             domainIndependent = False,
@@ -38,19 +42,26 @@ commandLine(numParticlePerLength = 50,     # number of particles on a side of th
             dtverbose = False,
             
             # output control
-            vizCycle = None,
-            vizTime = 0.1, 
+            vizCycle = 10,#None,
+            vizTime = None,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 1000,
-            redistributeStep = 100,
+            redistributeStep = 500,
             dataDir = "dumps-DEM-2d",
+
+            # ats parameters
+            checkError = False,
+            checkRestart = False,
+            restitutionErrorThreshold = 0.01, # relative error
             )
 
 #-------------------------------------------------------------------------------
 # file things
 #-------------------------------------------------------------------------------
-testName = "DEM-dropTest-2d"
+testName = "DEM-twoParticleCollision-2d"
+dataDir = os.path.join(dataDir,
+                  "restitutionCoefficient=%s" % restitutionCoefficient)
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
@@ -100,35 +111,31 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    generator0 = GenerateNodeDistribution2d(numParticlePerLength, numParticlePerLength,
+
+generator1 = GenerateNodeDistribution2d(2, 1,
                                             rho = 1.0,
                                             distributionType = "lattice",
-                                            xmin = (-0.5,  0.525),
-                                            xmax = ( 0.5,  1.525),
+                                            xmin = (0.0,  0.0),
+                                            xmax = (1.0,  0.5),
                                             nNodePerh = nPerh)
-    
-    # really simple bar shaped particle
-    def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
-        xout = [xi+Ri/3.0,xi-Ri/3.0]
-        yout = [yi,yi]
-        mout = [mi/2.0,mi/2.0]
-        Rout = [Ri/2.0,Ri/2.0]
-        return xout,yout,mout,Rout
 
-    generator1 = GenerateDEMfromSPHGenerator2d(WT,
-                                               generator0,
-                                               #DEMParticleGenerator=DEMParticleGenerator,
-                                               nPerh=nPerh)
 
-    distributeNodes2d((nodes1, generator1))
-   
-    # set our particle radius
-    # radius =1.0/numParticlePerLength/2.5
-    # particleRadius = nodes1.particleRadius()
-    # print particleRadius[0]
-    # nodes1.particleRadius(ScalarField("radii", nodes1, radius))
-    # print particleRadius[0]
+distributeNodes2d((nodes1, generator1))
+
+# initial conditions
+positions = nodes1.positions()
+#positions[0].y = -0.125
+#positions[1].y = 0.125
+
+velocity = nodes1.velocity()
+velocity[0] = Vector( vImpact,0.0)
+velocity[1] = Vector(-vImpact,0.0)
+
+particleRadius = nodes1.particleRadius()
+
+particleRadius[0] = radius
+particleRadius[1] = radius
+
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -142,38 +149,21 @@ output("db.numFluidNodeLists")
 
 
 #-------------------------------------------------------------------------------
-# PhysicsPackage : DEM
+# DEM
 #-------------------------------------------------------------------------------
-dem = DEM(db,
-          normalSpringConstant,
-          restitutionCoefficient,
-          stepsPerCollision = stepsPerCollision)
+hydro = DEM(db,
+            normalSpringConstant,
+            restitutionCoefficient,
+            stepsPerCollision = stepsPerCollision)
 
-packages = [dem]
 
-#-------------------------------------------------------------------------------
-# PhysicsPackage : gravity
-#-------------------------------------------------------------------------------
-allindices = vector_of_int(range(nodes1.numInternalNodes))
+packages = [hydro]
 
-gravity = ConstantAcceleration(a0 = Vector(0.0,-1.0),
-                               nodeList = nodes1,
-                               indices = allindices)
-packages += [gravity]
+omega = hydro.omega
 
-#-------------------------------------------------------------------------------
-# Create boundary conditions.
-#-------------------------------------------------------------------------------
-plane1 = Plane(Vector(0.0, 0.0), Vector(  1.0, 1.0))
-plane2 = Plane(Vector(0.0, 0.0), Vector( -1.0, 1.0))
-bc1 = ReflectingBoundary(plane1)
-bc2 = ReflectingBoundary(plane2)
-bcSet = [bc1, bc2]
-
-for p in packages:
-    for bc in bcSet:
-        p.appendBoundary(bc)
-
+omega = hydro.omega
+omega[0][0] = -0.1
+omega[0][1] = -0.1
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
 #-------------------------------------------------------------------------------
@@ -192,7 +182,7 @@ integrator.rigorousBoundaries = rigorousBoundaries
 integrator.cullGhostNodes = False
 
 output("integrator")
-output("integrator.havePhysicsPackage(dem)")
+output("integrator.havePhysicsPackage(hydro)")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
@@ -201,25 +191,57 @@ output("integrator.domainDecompositionIndependent")
 output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
+mass = db.DEMMass
+radius = db.DEMParticleRadius
+velocity = db.DEMVelocity
+position = db.DEMPosition
+omega = hydro.omega
+def printConservation(cycle,time,dt):
+    
+    Ptotx = 0.0
+    Ptoty = 0.0
+    Rtot  = 0.0
+    RtotOmega  = 0.0
+    RtotVx  = 0.0
+    RtotVy  = 0.0
+    nodeLists = db.nodeLists()
+    for nodelisti in range(db.numNodeLists):
+        for i in range(nodeLists[nodelisti].numInternalNodes):
+            Ptotx += mass(nodelisti,i)*velocity(nodelisti,i).x
+            Ptoty += mass(nodelisti,i)*velocity(nodelisti,i).y
+            RtotOmega += 0.5 * mass(nodelisti,i) * radius(nodelisti,i)**2 * omega(nodelisti,i)
+            RtotVx += mass(nodelisti,i) * (-velocity(nodelisti,i).x*position(nodelisti,i).y)
+            RtotVy += mass(nodelisti,i) * (velocity(nodelisti,i).y*position(nodelisti,i).x)
+    Ptotx = mpi.allreduce(Ptotx,mpi.SUM)
+    Ptoty = mpi.allreduce(Ptoty,mpi.SUM)
+    RtotOmega = mpi.allreduce(RtotOmega,mpi.SUM)
+    RtotVx = mpi.allreduce(RtotVx,mpi.SUM)
+    RtotVy = mpi.allreduce(RtotVy,mpi.SUM)
+    Rtot = RtotOmega+RtotVx+RtotVy
+
+    print(" Total Linear Momentum X   : %.15f" % Ptotx)
+    print(" Total Linear Momentum y   : %.15f" % Ptoty)
+    print(" Total Rotational Momentum omega : %.15f" % RtotOmega)
+    print(" Total Rotational Momentum vx    : %.15f" % RtotVx)
+    print(" Total Rotational Momentum vy    : %.15f" % RtotVy)
+    print(" Total Rotational Momentum : %.15f" % Rtot)
+
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-from SpheralPointmeshSiloDump import dumpPhysicsState
 control = SpheralController(integrator, WT,
                             iterateInitialH = False,
                             initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            redistributeStep=redistributeStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             vizBaseName = vizBaseName,
-                            vizMethod = dumpPhysicsState,
-                            vizGhosts=True,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = SPH)
+                            SPH = SPH,
+                            periodicWork=[(printConservation,1)])
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -233,3 +255,26 @@ if not steps is None:
 else:
     control.advance(goalTime, maxSteps)
 
+#-------------------------------------------------------------------------------
+# Great success?
+#-------------------------------------------------------------------------------
+if checkRestart:
+    control.setRestartBaseName(restartBaseName)
+    state0 = State(db, integrator.physicsPackages())
+    state0.copyState()
+    control.loadRestartFile(control.totalSteps)
+    state1 = State(db, integrator.physicsPackages())
+    if not state1 == state0:
+        raise ValueError, "The restarted state does not match!"
+    else:
+        print "Restart check PASSED."
+
+if checkError:
+    # check our restitution coefficient is correct
+    #-------------------------------------------------------------
+    vijPostImpact = velocity[0].x - velocity[1].x
+    vijPreImpact = 2.0*vImpact
+    restitutionEff = vijPostImpact/vijPreImpact
+    restitutionError = abs(restitutionEff + restitutionCoefficient)/restitutionCoefficient
+    if  restitutionError > restitutionErrorThreshold:
+        raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
