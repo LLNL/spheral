@@ -1,4 +1,0 @@
-95c95
-< #define R3D_MAX_VERTS 128
----
-> #define R3D_MAX_VERTS 1024
