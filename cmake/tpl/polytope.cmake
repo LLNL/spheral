@@ -5,52 +5,6 @@ set(POLYTOPE_SRC_DIR ${POLYTOPE_PREFIX}/src/polytope)
 
 set(${lib_name}_libs libpolytope.a)
 
-set(POLYTOPE_DEPENDS ${boost_build_dep})
-set(POLYTOPE_USE_PYTHON On)
-
-if(ENABLE_CXXONLY)
-  set(POLYTOPE_USE_PYTHON Off)
-else()
-  #list(APPEND POLYTOPE_DEPENDS python-install pip-modules ${spheral_py_depends})
+if(NOT ENABLE_CXXONLY)
   list(APPEND POLYTOPE_DEPENDS python-install pyb11generator ${spheral_py_depends})
 endif()
-
-if(${lib_name}_BUILD)
-
-  if (EXISTS ${POLYTOPE_CACHE})
-    set(POLYTOPE_URL ${POLYTOPE_CACHE})
-  endif()
-
-  ExternalProject_add(${lib_name}
-    PREFIX ${POLYTOPE_PREFIX}
-    PATCH_COMMAND patch -t ${POLYTOPE_PREFIX}/src/polytope/src/PYB11/CMakeLists.txt  ${PATCH_DIR}/polytope-PYB11-CMakeLists.patch
-
-    URL ${POLYTOPE_URL}
-    URL_HASH "MD5=${POLYTOPE_MD5}"
-    DOWNLOAD_DIR ${CACHE_DIR}
-    CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${BUILDTIME_PYTHONENV_STR}
-    ${CMAKE_COMMAND} ${POLYTOPE_SRC_DIR}
-               -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-               -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-               -DCMAKE_INSTALL_PREFIX=${${lib_name}_DIR} 
-               -DPYBIND11_INCLUDE_DIRS=${pybind11_DIR}/include
-               -DUSE_PYTHON=${POLYTOPE_USE_PYTHON}
-               -DPYTHON_EXE=${PYTHON_EXE}
-               -DBoost_INCLUDE_DIR=${boost_DIR}/include
-               -DTESTING=Off
-               DEPENDS ${POLYTOPE_DEPENDS}
-    BUILD_COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${BUILDTIME_PYTHONENV_STR} make install
-    LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
-    LOG_CONFIGURE ${OUT_PROTOCOL_EP}
-    LOG_BUILD ${OUT_PROTOCOL_EP}
-    LOG_INSTALL ${OUT_PROTOCOL_EP}
-  )
-
-  if(NOT ENABLE_CXXONLY AND NOT ENABLE_STATIC_CXXONLY)
-    install(
-      FILES ${${lib_name}_DIR}/lib/python2.7/site-packages/polytope/polytope.so
-      DESTINATION ${PYTHON_SITE_PACKAGE_DIR}
-      )
-  endif()
-endif()
-

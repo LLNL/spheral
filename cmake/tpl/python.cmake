@@ -28,40 +28,6 @@ if(PYTHON_CXX_COMPILER MATCHES "mpicxx$")
   message("${PYTHON_CXX_COMPILER}")
 endif()
 
-if(${lib_name}_BUILD)
-
-  if (EXISTS ${PYTHON_CACHE})
-    set(PYTHON_URL ${PYTHON_CACHE})
-  endif()
-
-  ExternalProject_add(${lib_name}
-    PREFIX ${PYTHON_PREFIX}
-    URL ${PYTHON_URL} 
-    URL_HASH "MD5=${PYTHON_MD5}"
-    DOWNLOAD_DIR ${CACHE_DIR}
-    CONFIGURE_COMMAND env CC=${PYTHON_C_COMPILER}
-                          CXX=${PYTHON_CXX_COMPILER}
-                          CFLAGS=-I${ZLIB_INSTALL_DIR}/include
-                          LIBS=-lz
-                      ${PYTHON_SRC_DIR}/configure
-                          --with-cxx-main='${PYTHON_CXX_COMPILER}'
-                          --disable-ipv6
-                          --enable-shared
-                          --prefix=${PYTHON_INSTALL_DIR}
-                          LDFLAGS=-Wl,-L${ZLIB_INSTALL_DIR}/lib,-rpath=${PYTHON_INSTALL_DIR}/lib
-    BUILD_COMMAND make 
-    INSTALL_COMMAND make install
-    DEPENDS ${zlib_build_dep}
-
-    LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
-    LOG_CONFIGURE ${OUT_PROTOCOL_EP}
-    LOG_BUILD ${OUT_PROTOCOL_EP}
-    LOG_INSTALL ${OUT_PROTOCOL_EP}
-  )
-  set(${lib_name}-install-dep ${lib_name})
-
-endif()
-
 add_custom_target(
   ${lib_name}-install
   COMMAND ${PYTHON_EXE} -V &> python-version.log

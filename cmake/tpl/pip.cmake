@@ -6,30 +6,7 @@ if (NOT DEFINED PIP_EXE)
   set(PIP_EXE ${PYTHON_INSTALL_DIR}/bin/pip2.7)
 endif()
 
-if(${lib_name}_BUILD)
-
-  if (EXISTS ${PIP_CACHE})
-    set(PIP_URL ${PIP_CACHE})
-  endif()
-
-  ExternalProject_add(${lib_name}
-    URL ${PIP_URL}
-    URL_HASH "MD5=${PIP_MD5}"
-    DOWNLOAD_NO_EXTRACT TRUE
-    DOWNLOAD_DIR ${CACHE_DIR}
-    PREFIX ${PIP_PREFIX}
-    CONFIGURE_COMMAND ${PYTHON_EXE} ${CACHE_DIR}/${PIP_DIST}/pip install --no-index ${CACHE_DIR}/${PIP_DIST}
-    BUILD_COMMAND sleep 1
-    INSTALL_COMMAND sleep 1
-    DEPENDS python-install
-    LOG_DOWNLOAD ${OUT_PROTOCOL_EP}
-    LOG_CONFIGURE ${OUT_PROTOCOL_EP}
-  )
-  set(${lib_name}-install-dep ${lib_name})
-
-else()
-  set(${lib_name}_ADD_BLT_TARGET OFF)
-endif()
+set(${lib_name}_ADD_BLT_TARGET OFF)
 
 add_custom_target(
   ${lib_name}-install

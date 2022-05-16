@@ -62,6 +62,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
     depends_on('py-setuptools@44.1.0', type='build')
     depends_on('py-pybind11@2.4.3', type='build')
     depends_on('py-pyb11generator@1.0.12', type='build')
+    depends_on('py-virtualenv', type='build')
 
     depends_on('py-sphinx@1.8.5', type='build', when='+docs')
     depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
@@ -190,6 +191,9 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
         entries.append(cmake_cache_option('pyb11generator_BUILD', False))
         entries.append(cmake_cache_path('pyb11generator_DIR', spec['py-pyb11generator'].prefix + '/lib/python2.7/site-packages/'))
+
+        entries.append(cmake_cache_option('virtualenv_BUILD', False))
+        entries.append(cmake_cache_path('virtualenv_DIR', spec['py-virtualenv'].prefix + '/lib/python2.7/site-packages/'))
 
         if "+docs" in spec:
             entries.append(cmake_cache_option('sphinx_BUILD', False))
