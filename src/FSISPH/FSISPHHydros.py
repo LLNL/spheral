@@ -3,83 +3,6 @@ from SpheralCompiledPackages import *
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
-#-------------------------------------------------------------------------------
-# The generic solidFSISPHHydro pattern.
-#-------------------------------------------------------------------------------
-SolidFSISPHHydroFactoryString = """
-class %(classname)s%(dim)s(SolidFSISPHHydroBase%(dim)s):
-
-    def __init__(self,
-                 dataBase,
-                 Q,
-                 slides,
-                 W,
-                 filter = 0.0,
-                 cfl = 0.5,
-                 surfaceForceCoefficient = 0.0,
-                 densityStabilizationCoefficient = 0.0, 
-                 specificThermalEnergyDiffusionCoefficient = 0.0, 
-                 xsphCoefficient=0.0,
-                 interfaceMethod=HLLCInterface,  
-                 kernelAveragingMethod=NeverAverageKernels,       
-                 sumDensityNodeLists = None,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 gradhCorrection = False,
-                 XSPH = True,
-                 correctVelocityGradient = True,
-                 densityUpdate = RigorousSumDensity,
-                 HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
-                 damageRelieveRubble = True,
-                 strengthInDamage = False,
-                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
-                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
-        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-
-        SolidFSISPHHydroBase%(dim)s.__init__(self,
-                                          self._smoothingScaleMethod,
-                                          dataBase,
-                                          Q,
-                                          slides,
-                                          W,
-                                          filter,
-                                          cfl,
-                                          surfaceForceCoefficient,
-                                          densityStabilizationCoefficient, 
-                                          specificThermalEnergyDiffusionCoefficient,
-                                          xsphCoefficient,
-                                          interfaceMethod,  
-                                          kernelAveragingMethod,     
-                                          sumDensityNodeLists,
-                                          useVelocityMagnitudeForDt,
-                                          compatibleEnergyEvolution,
-                                          evolveTotalEnergy,
-                                          gradhCorrection,
-                                          XSPH,
-                                          correctVelocityGradient,
-                                          densityUpdate,
-                                          HUpdate,
-                                          epsTensile,
-                                          nTensile,
-                                          damageRelieveRubble,
-                                          strengthInDamage,
-                                          xmin,
-                                          xmax)
-        return
-"""
-
-for dim in dims:
-
-    exec(SolidFSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                       "classname"            : "SolidFSISPHHydro",
-                                       "smoothingScaleMethod" : "SPHSmoothingScale"})
-    exec(SolidFSISPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                       "classname"            : "SolidAFSISPHHydro",
-                                       "smoothingScaleMethod" : "ASPHSmoothingScale"})
-
 def FSISPH(dataBase,
         W,
         Q = None,
@@ -100,23 +23,20 @@ def FSISPH(dataBase,
         HUpdate = IdealH,
         epsTensile = 0.0,
         nTensile = 4.0,
-        damageRelieveRubble = True,
+        damageRelieveRubble = False,
         strengthInDamage = False,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
         ASPH = False,
         RZ = False):
-
-    # terms that are on deck or on their way out
-    gradhCorrection = False
-    densityUpdate = IntegrateDensity
-    XSPH=False
+    ######################################################################
+    # some of these parameters are inactive and possible on there was out.
+    # strengthInDamage and damageRelieveRubble are old switches and are not
+    # implemented in the code. RZ has not been implemented in FSISPH
+    ######################################################################
     
     if compatibleEnergyEvolution and evolveTotalEnergy:
         raise RuntimeError, "compatibleEnergyEvolution and evolveTotalEnergy are incompatible"
-
-    if gradhCorrection:
-        raise RuntimeError, "gradhCorrection not implemented yet"
 
     if strengthInDamage and damageRelieveRubble:
         raise RuntimeError, "strengthInDamage and damageRelieveRubble are incompatible"
@@ -148,35 +68,13 @@ def FSISPH(dataBase,
     # Decide on the hydro object.
     if RZ:
         raise RuntimeError, "RZ is not implemented yet"
-        # RZ ----------------------------------------
-        '''
-        if nsolid > 0:
-            if ASPH:
-                Constructor = SolidAFSISPHHydroRZ
-            else:
-                Constructor = SolidFSISPHHydroRZ
-        else:
-            if ASPH:
-                Constructor = AFSISPHHydroRZ
-            else:
-                Constructor = FSISPHHydroRZ
-        '''
     else:
-    
         # Cartesian ---------------------------------
         if nsolid > 0:
-            if ASPH:
-                Constructor = eval("SolidAFSISPHHydro%id" % ndim)
-            else:
-                Constructor = eval("SolidFSISPHHydro%id" % ndim)
+            Constructor = eval("SolidFSISPHHydroBase%id" % ndim)
         else:
-            raise RuntimeError, "currently only implemented for fluid nodelists"
-            '''
-            if ASPH:
-                Constructor = eval("AFSISPHHydro%id" % ndim)
-            else:
-                Constructor = eval("FSISPHHydro%id" % ndim)
-            '''
+            raise RuntimeError, "currently only implemented for solid nodelists"
+
 
     # Artificial viscosity.
     if not Q:
@@ -187,12 +85,19 @@ def FSISPH(dataBase,
     # slide surfaces.
     if not slides:
         contactTypes = vector_of_int([0]*(dataBase.numNodeLists**2))
-        slides = eval("SlideSurface%id(contactTypes)" % (ndim))
+        slides = eval("SlideSurface%id(dataBase,contactTypes)" % ndim)
+
+    # Smoothing scale update
+    if ASPH:
+        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
+    else:
+        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
-    kwargs = {"dataBase" : dataBase,
+    kwargs = {"smoothingScaleMethod" : smoothingScaleMethod,
+              "dataBase" : dataBase,
               "Q" : Q,
               "slides" : slides,
               "W" : W,
@@ -208,82 +113,29 @@ def FSISPH(dataBase,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
               "evolveTotalEnergy" : evolveTotalEnergy,
-              "gradhCorrection" : gradhCorrection,
-              "XSPH" : XSPH,
+              "gradhCorrection" : False,
+              "XSPH" : False,
               "correctVelocityGradient" : correctVelocityGradient,
-              "densityUpdate" : densityUpdate,
+              "densityUpdate" : IntegrateDensity,
               "HUpdate" : HUpdate,
               "epsTensile" : epsTensile,
               "nTensile" : nTensile,
+              "damageRelieveRubble" : damageRelieveRubble,
+              "strengthInDamage" : strengthInDamage,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
-
-    if nsolid > 0:
-        kwargs.update({"damageRelieveRubble"      : damageRelieveRubble,
-                       "strengthInDamage"         : strengthInDamage})
 
     # Build and return the thing.
     result = Constructor(**kwargs)
     result.Q = Q
     result.slides = slides
+    result._smoothingScaleMethod = smoothingScaleMethod
     
     return result
 
 #-------------------------------------------------------------------------------
-# Provide a shorthand ASPH factory.
+# Provide shorthand names for AFSISPH
 #-------------------------------------------------------------------------------
-def AFSISPH(dataBase,
-         W,
-         Q = None,
-         slides=None,
-         filter = 0.0,
-         cfl = 0.25,
-         surfaceForceCoefficient = 0.0,
-         densityStabilizationCoefficient = 0.0,  
-         specificThermalEnergyDiffusionCoefficient = 0.0,
-         xsphCoefficient = 0.0,   
-         interfaceMethod = HLLCInterface,
-         kernelAveragingMethod = NeverAverageKernels,                     
-         sumDensityNodeLists = None,       
-         useVelocityMagnitudeForDt = False,
-         compatibleEnergyEvolution = True,
-         evolveTotalEnergy = False,
-         gradhCorrection = False,
-         XSPH = False,
-         correctVelocityGradient = True,
-         densityUpdate = IntegrateDensity,
-         HUpdate = IdealH,
-         epsTensile = 0.0,
-         nTensile = 4.0,
-         damageRelieveRubble = False,
-         strengthInDamage = False,
-         xmin = (-1e100, -1e100, -1e100),
-         xmax = ( 1e100,  1e100,  1e100)):
-    return FSISPH(dataBase = dataBase,
-               W = W,
-               Q = Q,
-               slides=slides,
-               filter = filter,
-               cfl = cfl,
-               surfaceForceCoefficient = surfaceForceCoefficient,
-               densityStabilizationCoefficient = densityStabilizationCoefficient, 
-               specificThermalEnergyDiffusionCoefficient = specificThermalEnergyDiffusionCoefficient,  
-               xsphCoefficient = xsphCoefficient,   
-               interfaceMethod = interfaceMethod,    
-               kernelAvragingMethod = kernelAveragingMethod,               
-               sumDensityNodeLists = sumDensityNodeLists,          
-               useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-               compatibleEnergyEvolution = compatibleEnergyEvolution,
-               evolveTotalEnergy = evolveTotalEnergy,
-               gradhCorrection = gradhCorrection,
-               XSPH = XSPH,
-               correctVelocityGradient = correctVelocityGradient,
-               densityUpdate = densityUpdate,
-               HUpdate = HUpdate,
-               epsTensile = epsTensile,
-               nTensile = nTensile,
-               damageRelieveRubble = damageRelieveRubble,
-               strengthInDamage = strengthInDamage,
-               xmin = xmin,
-               xmax = xmax,
-               ASPH = True)
+def AFSISPH(*args, **kwargs):
+    kwargs.update({"ASPH" : True})
+    return SPH(*args, **kwargs)
