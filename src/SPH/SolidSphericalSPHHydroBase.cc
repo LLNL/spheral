@@ -572,10 +572,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       // }
 
       // Specific thermal energy evolution.
-      DepsDti += mj*(0.5*fQi        *(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
-      DepsDtj += mi*(0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
-      // DepsDti -= mj*(sigmarhoi.xx() - 0.5*fQi        *(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
-      // DepsDtj -= mi*(sigmarhoj.xx() - 0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
+      DepsDti -= mj*(sigmarhoi.xx() - 0.5*fQi        *(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
+      DepsDtj -= mi*(sigmarhoj.xx() - 0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
 
       // Velocity gradient.
       const auto deltaDvDxi = -fDij * mj*vij.dyad(gradWGjj);
@@ -727,7 +725,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 
       // Self-interaction for momentum (cause curvilinear coordinates are weird)
       const auto sigmai = Si - Pi * SymTensor::one;
-      const auto deltaDvDti = mi*safeOmegai/(rhoi*rhoi)*(2.0*sigmai*gradWii - Qi*gradWQii);
+      const auto deltaDvDti = mi*safeOmegai/(rhoi*rhoi)*(2.0*sigmai*gradWii - Qi*gradWQii) +
+                      2.0/rhoi*(0.5*sigmai.xx() + Pi)*riInv;
       DvDti += deltaDvDti;
       if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
 
@@ -738,14 +737,15 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 
       // Specific thermal energy
       // DepsDti -= 2.0*mi/(rhoi*rhoi)*(sigmai.xx() - 0.5*Qi)*vi.dot(gradWii);
-      DepsDti += mi/(rhoi*rhoi)*Qi*vi.dot(gradWii);
-      const Dim<3>::SymTensor sigma3d(sigmai.xx(), 0.0, 0.0,
-                                      0.0, -0.5*sigmai.xx() - Pi, 0.0,
-                                      0.0, 0.0, -0.5*sigmai.xx() - Pi);
-      const Dim<3>::SymTensor gradv3d(DvDxi.xx(), 0.0, 0.0,
-                                      0.0, vi.x()*riInv, 0.0,
-                                      0.0, 0.0, vi.x()*riInv);
-      DepsDti += sigma3d.doubledot(gradv3d)/rhoi;
+      DepsDti += mi*Qi/(rhoi*rhoi)*vi.dot(gradWii) - //   Q self-term
+                      2.0/rhoi*(0.5*sigmai.xx() + Pi)*vi.x()*riInv;
+      // const Dim<3>::SymTensor sigma3d(sigmai.xx(), 0.0, 0.0,
+      //                                 0.0, -0.5*sigmai.xx() - Pi, 0.0,
+      //                                 0.0, 0.0, -0.5*sigmai.xx() - Pi);
+      // const Dim<3>::SymTensor gradv3d(DvDxi.xx(), 0.0, 0.0,
+      //                                 0.0, vi.x()*riInv, 0.0,
+      //                                 0.0, 0.0, vi.x()*riInv);
+      // DepsDti += sigma3d.doubledot(gradv3d)/rhoi;
 
       // If needed finish the total energy derivative.
       if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
