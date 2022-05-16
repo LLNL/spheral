@@ -54,7 +54,7 @@ computeJ2(const Dim<2>::SymTensor& S) {
 inline
 double
 computeJ2(const Dim<1>::SymTensor& S) {
-  // S_11 == S_22 = -S_00/2
+  // S_22 == S_33 = -S_11/2
   return 0.75*S.xx()*S.xx();
 }
 
