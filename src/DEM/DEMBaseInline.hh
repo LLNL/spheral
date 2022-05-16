@@ -194,5 +194,74 @@ momentOfInertia(const Dim<3>::Scalar m, const Dim<3>::Scalar R) const {
   return 0.4*m*R*R;
 }
 
+//------------------------------------------------------------------------------
+// torsion specializations
+//------------------------------------------------------------------------------
+template<>
+inline
+DEMDimension<Dim<1>>::AngularVector
+DEMBase<Dim<1>>::
+torsionMoment(const Dim<1>::Vector rhatij, 
+              const Dim<1>::Vector omegai,
+              const Dim<1>::Vector omegaj) const {
+  return 0.0;
+}
+
+template<>
+inline
+DEMDimension<Dim<2>>::AngularVector
+DEMBase<Dim<2>>::
+torsionMoment(const Dim<2>::Vector rhatij, 
+              const Dim<2>::Vector omegai,
+              const Dim<2>::Vector omegaj) const {
+  return 0.0;
+}
+
+template<>
+inline
+DEMDimension<Dim<3>>::AngularVector
+DEMBase<Dim<3>>::
+torsionMoment(const Dim<3>::Vector rhatij, 
+              const Dim<3>::Vector omegai,
+              const Dim<3>::Vector omegaj) const {
+  const auto direction = (DEMDimension<Dim<3>>::dot(omegai-omegaj,rhatij) > 0 ? 1.0 : -1.0);
+  return rhatij*direction;
+}
+
+
+//------------------------------------------------------------------------------
+// rolling Moment specializations
+//------------------------------------------------------------------------------
+template<>
+inline
+DEMDimension<Dim<1>>::AngularVector
+DEMBase<Dim<1>>::
+rollingMoment(const Dim<1>::Vector rhatij, 
+              const Dim<1>::Vector vroti,
+              const Dim<1>::Vector vrotj) const {
+  return 0.0;
+}
+
+template<>
+inline
+DEMDimension<Dim<2>>::AngularVector
+DEMBase<Dim<2>>::
+rollingMoment(const Dim<2>::Vector rhatij, 
+              const Dim<2>::Vector vroti,
+              const Dim<2>::Vector vrotj) const {
+  return ( DEMDimension<Dim<2>>::cross((vroti + vrotj),rhatij) > 0.0 ? 1.0 : -1.0 );
+}
+
+template<>
+inline
+DEMDimension<Dim<3>>::AngularVector
+DEMBase<Dim<3>>::
+rollingMoment(const Dim<3>::Vector rhatij, 
+              const Dim<3>::Vector vroti,
+              const Dim<3>::Vector vrotj) const {
+  return DEMDimension<Dim<3>>::cross((vroti + vrotj),rhatij).unitVector();
+}
+
+
 
 }

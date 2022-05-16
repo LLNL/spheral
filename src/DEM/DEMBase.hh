@@ -158,18 +158,18 @@ public:
   
   const std::vector<ContactIndex>& contactStorageIndices() const;
 
-  // access a single element in our state pair fields
-  // const Vector& shearDisplacement(const int nodeListi,
-  //                                 const int nodei,
-  //                                 const int contacti) const;
-  // const Scalar  equilibriumOverlap(const int nodeListi,
-  //                                  const int nodei,
-  //                                  const int contacti) const;
 
   // inlined and specialized for different dimensions
   Scalar momentOfInertia(const Scalar massi,
                          const Scalar particleRadiusi) const;
 
+  RotationType torsionMoment(const Vector rhatij,
+                             const Vector omegai,
+                             const Vector omegaj) const;
+
+  RotationType rollingMoment(const Vector rhatij,
+                             const Vector vroti,
+                             const Vector vrotj) const;
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "DEMBase" ; }
