@@ -99,6 +99,8 @@ SolidFSISPHHydroBase<Dimension>::
 kernelAveragingMethod() const {
   return mKernelAveragingMethod;
 }
+
+
 //------------------------------------------------------------------------------
 // switch to turn on density sum for different nodeLists
 //------------------------------------------------------------------------------
@@ -164,6 +166,96 @@ SolidFSISPHHydroBase<Dimension>::
 DepsDx() const {
   return mDepsDx;
 }
+
+
+//------------------------------------------------------------------------------
+// our interface smoothness metric
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+rawPressure() const {
+  return mRawPressure;
+}
+
+//------------------------------------------------------------------------------
+// Return the interface normal field list ref
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+interfaceNormals() const {
+  return mInterfaceNormals;
+}
+
+//------------------------------------------------------------------------------
+// Return the Interface fraction
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+interfaceFraction() const {
+  return mInterfaceFraction;
+}
+
+//------------------------------------------------------------------------------
+// smoothness metric for mixing interfaces
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+interfaceSmoothness() const {
+  return mInterfaceSmoothness;
+}
+
+//------------------------------------------------------------------------------
+// next time step  Interface normal field list ref
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+newInterfaceNormals() const {
+  return mNewInterfaceNormals;
+}
+
+//------------------------------------------------------------------------------
+// next time step  Interface normal field list ref
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+smoothedInterfaceNormals() const {
+  return mSmoothedInterfaceNormals;
+}
+
+//------------------------------------------------------------------------------
+// next time step  Interface fraction
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+newInterfaceFraction() const {
+  return mNewInterfaceFraction;
+}
+
+//------------------------------------------------------------------------------
+// next time step smoothness metric for mixing interfaces
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+newInterfaceSmoothness() const {
+  return mNewInterfaceSmoothness;
+}
+
 
 //------------------------------------------------------------------------------
 // Ref to the slide surface obj
