@@ -1,6 +1,6 @@
-#ATS:DEM2d0 = test(          SELF, "--clearDirectories True  --checkError True  --restartStep 10 --steps 100", label="DEM individual particle collision -- 2-D (serial)")
+#ATS:DEM2d0 = test(          SELF, "--clearDirectories True  --checkError True --checkConservation True  --restartStep 10 --steps 100", label="DEM individual particle collision -- 2-D (serial)")
 #ATS:DEM2d1 = testif(DEM2d0, SELF, "--clearDirectories False --checkError False  --restartStep 10 --restoreCycle 10 --steps 10 --checkRestart True", label="DEM individual particle collision -- 2-D (serial) RESTART CHECK")
-#ATS:DEM2d2 = test(          SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM individual particle collision -- 2-D (serial)")
+#ATS:DEM2d2 = test(          SELF, "--clearDirectories True  --checkError True --checkConservation True  --restitutionCoefficient=1.0 --steps 100", label="DEM individual particle collision -- 2-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
@@ -8,7 +8,7 @@ from Spheral2d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution2d import *
-
+from DEMConservationTracker import TrackConservation2d as TrackConservation
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes2d
@@ -27,8 +27,8 @@ commandLine(vImpact = 1.0,                 # impact velocity
             nPerh = 1.01,                  # this should basically always be 1 for DEM
 
             # integration
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
-            stepsPerCollision = 50,  # replaces CFL for DEM
+            IntegratorConstructor = VerletIntegrator,    # Verlet only integrator that garentees conservation of Rot Mom w/ DEM
+            stepsPerCollision = 50,                      # replaces CFL for DEM
             goalTime = None,
             dt = 1e-8,
             dtMin = 1.0e-8, 
@@ -50,10 +50,12 @@ commandLine(vImpact = 1.0,                 # impact velocity
             redistributeStep = 500,
             dataDir = "dumps-DEM-2d",
 
-            # ats parameters
-            checkError = False,
-            checkRestart = False,
-            restitutionErrorThreshold = 0.01, # relative error
+             # ats parameters
+            checkError = False,                # turn on error checking for restitution coefficient
+            checkRestart = False,              # turn on error checking for restartability
+            checkConservation = False,         # turn on error checking for momentum conservation
+            restitutionErrorThreshold = 0.01,  # relative error actual restitution vs nominal
+            conservationErrorThreshold = 1e-15 # relative error for momentum conservation
             )
 
 #-------------------------------------------------------------------------------
@@ -122,17 +124,12 @@ generator1 = GenerateNodeDistribution2d(2, 1,
 
 distributeNodes2d((nodes1, generator1))
 
-# initial conditions
-positions = nodes1.positions()
-positions[0].y = -0.001
-positions[1].y = 0.001
-
+# initial conditions : when directly using SPH generator need to set particle radius
 velocity = nodes1.velocity()
 velocity[0] = Vector( vImpact,0.0)
 velocity[1] = Vector(-vImpact,0.0)
 
 particleRadius = nodes1.particleRadius()
-
 particleRadius[0] = radius
 particleRadius[1] = radius
 
@@ -186,6 +183,15 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
+# Periodic Work Function : track conservation
+#-------------------------------------------------------------------------------
+conservation = TrackConservation(db,
+                                  hydro,
+                                  verbose=False)
+                                  
+periodicWork = [(conservation.periodicWorkFunction,1)]
+
+#-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
@@ -199,7 +205,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = SPH)
+                            periodicWork = periodicWork)
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -236,3 +242,12 @@ if checkError:
     restitutionError = abs(restitutionEff + restitutionCoefficient)/restitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
         raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
+
+
+if checkConservation:
+    if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
+        raise ValueError, "linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX()
+    if  conservation.deltaLinearMomentumY() > conservationErrorThreshold:
+        raise ValueError, "linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY()
+    if  conservation.deltaRotationalMomentumZ() > conservationErrorThreshold:
+        raise ValueError, "rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ()

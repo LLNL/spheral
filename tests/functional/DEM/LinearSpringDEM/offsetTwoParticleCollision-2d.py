@@ -191,40 +191,7 @@ output("integrator.domainDecompositionIndependent")
 output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
-mass = db.DEMMass
-radius = db.DEMParticleRadius
-velocity = db.DEMVelocity
-position = db.DEMPosition
-omega = hydro.omega
-def printConservation(cycle,time,dt):
-    
-    Ptotx = 0.0
-    Ptoty = 0.0
-    Rtot  = 0.0
-    RtotOmega  = 0.0
-    RtotVx  = 0.0
-    RtotVy  = 0.0
-    nodeLists = db.nodeLists()
-    for nodelisti in range(db.numNodeLists):
-        for i in range(nodeLists[nodelisti].numInternalNodes):
-            Ptotx += mass(nodelisti,i)*velocity(nodelisti,i).x
-            Ptoty += mass(nodelisti,i)*velocity(nodelisti,i).y
-            RtotOmega += 0.5 * mass(nodelisti,i) * radius(nodelisti,i)**2 * omega(nodelisti,i)
-            RtotVx += mass(nodelisti,i) * (-velocity(nodelisti,i).x*position(nodelisti,i).y)
-            RtotVy += mass(nodelisti,i) * (velocity(nodelisti,i).y*position(nodelisti,i).x)
-    Ptotx = mpi.allreduce(Ptotx,mpi.SUM)
-    Ptoty = mpi.allreduce(Ptoty,mpi.SUM)
-    RtotOmega = mpi.allreduce(RtotOmega,mpi.SUM)
-    RtotVx = mpi.allreduce(RtotVx,mpi.SUM)
-    RtotVy = mpi.allreduce(RtotVy,mpi.SUM)
-    Rtot = RtotOmega+RtotVx+RtotVy
 
-    print(" Total Linear Momentum X   : %.15f" % Ptotx)
-    print(" Total Linear Momentum y   : %.15f" % Ptoty)
-    print(" Total Rotational Momentum omega : %.15f" % RtotOmega)
-    print(" Total Rotational Momentum vx    : %.15f" % RtotVx)
-    print(" Total Rotational Momentum vy    : %.15f" % RtotVy)
-    print(" Total Rotational Momentum : %.15f" % Rtot)
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.

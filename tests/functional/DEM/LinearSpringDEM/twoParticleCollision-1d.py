@@ -1,4 +1,4 @@
-#ATS:DEM1d = test(        SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM individual particle collision -- 1-D (serial)")
+#ATS:DEM1d = test(        SELF, "--clearDirectories True  --checkError True --checkConservation  --restitutionCoefficient=1.0 --steps 100", label="DEM individual particle collision -- 1-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
@@ -6,6 +6,7 @@ from Spheral1d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution1d import *
+from DEMConservationTracker import TrackConservation1d as TrackConservation
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes1d
@@ -24,8 +25,8 @@ commandLine(vImpact = 1.0,                 # impact velocity
             nPerh = 1.01,                  # this should basically always be 1 for DEM
 
             # integration
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
-            stepsPerCollision = 50,  # replaces CFL for DEM
+            IntegratorConstructor = VerletIntegrator,   # Verlet integrator currently needed for rot momentum conservation w/ DEM
+            stepsPerCollision = 50,                     # replaces CFL for DEM
             goalTime = None,
             dt = 1e-8,
             dtMin = 1.0e-8, 
@@ -48,9 +49,11 @@ commandLine(vImpact = 1.0,                 # impact velocity
             dataDir = "dumps-DEM-1d",
 
             # ats parameters
-            checkError = False,
-            checkRestart = False,
-            restitutionErrorThreshold = 0.01, # relative error
+            checkError = False,                # turn on error checking for restitution coefficient
+            checkRestart = False,              # turn on error checking for restartability
+            checkConservation = False,         # turn on error checking for momentum conservation
+            restitutionErrorThreshold = 0.01,  # relative error actual restitution vs nominal
+            conservationErrorThreshold = 1e-15 # relative error for momentum conservation
             )
 
 #-------------------------------------------------------------------------------
@@ -120,6 +123,7 @@ velocity = nodes1.velocity()
 velocity[0] = Vector(vImpact,0.0)
 velocity[1] = Vector(-vImpact,0.0)
 
+# set particle radius by hand (SPH generator won't do this)
 particleRadius = nodes1.particleRadius()
 
 particleRadius[0] = radius
@@ -174,6 +178,16 @@ output("integrator.domainDecompositionIndependent")
 output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
+
+#-------------------------------------------------------------------------------
+# Periodic Work Function : track conservation
+#-------------------------------------------------------------------------------
+conservation = TrackConservation(db,
+                                  hydro,
+                                  verbose=False)
+                                  
+periodicWork = [(conservation.periodicWorkFunction,1)]
+
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
@@ -188,7 +202,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = SPH)
+                            periodicWork=periodicWork)
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -226,3 +240,9 @@ if checkError:
     restitutionError = abs(restitutionEff + restitutionCoefficient)/restitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
         raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
+
+
+if checkConservation:
+    if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
+        raise ValueError, "linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX()
+    

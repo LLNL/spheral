@@ -6,6 +6,7 @@ from Spheral3d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution3d import *
+from DEMConservationTracker import TrackConservation3d as TrackConservation
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes3d
@@ -24,7 +25,7 @@ commandLine(vImpact = 1.0,                 # impact velocity
             nPerh = 1.01,                  # this should basically always be 1 for DEM
 
             # integration
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
+            IntegratorConstructor = VerletIntegrator,
             stepsPerCollision = 50,  # replaces CFL for DEM
             goalTime = None,
             dt = 1e-8,
@@ -47,10 +48,12 @@ commandLine(vImpact = 1.0,                 # impact velocity
             redistributeStep = 500,
             dataDir = "dumps-DEM-3d",
 
-            # ats parameters
-            checkError = False,
-            checkRestart = False,
-            restitutionErrorThreshold = 0.01, # relative error
+             # ats parameters
+            checkError = False,                # turn on error checking for restitution coefficient
+            checkRestart = False,              # turn on error checking for restartability
+            checkConservation = False,         # turn on error checking for momentum conservation
+            restitutionErrorThreshold = 0.01,  # relative error actual restitution vs nominal
+            conservationErrorThreshold = 1e-15 # relative error for momentum conservation
             )
 
 #-------------------------------------------------------------------------------
@@ -116,13 +119,8 @@ generator1 = GenerateNodeDistribution3d(2, 1, 1,
 
 distributeNodes3d((nodes1, generator1))
 
-# initial conditions
-positions = nodes1.positions()
-positions[0].y = -0.001
-positions[1].y = 0.001
-positions[0].z = -0.001
-positions[1].z = 0.001
 
+# initial conditions
 velocity = nodes1.velocity()
 velocity[0] = Vector(vImpact,0.0,0.0)
 velocity[1] = Vector(-vImpact,0.0,0.0)
@@ -182,6 +180,16 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
+# Periodic Work Function : track conservation
+#-------------------------------------------------------------------------------
+conservation = TrackConservation(db,
+                                  hydro,
+                                  verbose=False)
+                                  
+periodicWork = [(conservation.periodicWorkFunction,1)]
+
+
+#-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
@@ -195,7 +203,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = SPH)
+                            periodicWork=periodicWork)
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -233,3 +241,17 @@ if checkError:
     restitutionError = abs(restitutionEff + restitutionCoefficient)/restitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
         raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
+
+if checkConservation:
+    if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
+        raise ValueError, "linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX()
+    if  conservation.deltaLinearMomentumY() > conservationErrorThreshold:
+        raise ValueError, "linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY()
+    if  conservation.deltaLinearMomentumZ() > conservationErrorThreshold:
+        raise ValueError, "linear momentum - z conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumZ()
+    if  conservation.deltaRotationalMomentumX() > conservationErrorThreshold:
+        raise ValueError, "rotational momentum - x conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumX()
+    if  conservation.deltaRotationalMomentumY() > conservationErrorThreshold:
+        raise ValueError, "rotational momentum - y conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumY()
+    if  conservation.deltaRotationalMomentumZ() > conservationErrorThreshold:
+        raise ValueError, "rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ()
