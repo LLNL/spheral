@@ -626,18 +626,12 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Self-interaction for momentum (cause curvilinear coordinates are weird)
-      const auto deltaDvDti = -mi*safeOmegai/(rhoi*rhoi)*(2.0*Pi*gradWii + Qi*gradWQii); // + 2.0*Pi/rhoi*riInv;
+      const auto deltaDvDti = -mi*safeOmegai/(rhoi*rhoi)*(2.0*Pi*gradWii + Qi*gradWQii);
       DvDti += deltaDvDti;
       if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
-      // if (i == 0) {
-      //   const auto veli = velocity(nodeListi, i);
-      //   std::cerr << "   " << ri << " " << veli << " " << Pi << " " << Qi << " " << rhoi << " " << gradWii << " " << gradWQii << " : " << deltaDvDti << " " << DvDti << std::endl;
-      // }
 
       // Specific thermal energy
       DepsDti += 2.0*mi/(rhoi*rhoi)*(Pi + 0.5*Qi)*vi.dot(gradWii) - 2.0*Pi/rhoi*vi.x()*riInv;
-      // DepsDti += mi/(rhoi*rhoi)*Qi*vi.dot(gradWii);
-      // DepsDti += Pi/(rhoi*rhoi) * DrhoDti - 2.0*Pi/rhoi*vi.x()*riInv;
 
       // If needed finish the total energy derivative.
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
