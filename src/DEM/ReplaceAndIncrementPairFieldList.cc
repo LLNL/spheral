@@ -1,8 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
-// ReplaceAndIncrementFieldList -- An implementation of UpdatePolicyBase appropriate for
+// ReplaceAndIncrementPairFieldList -- An implementation of UpdatePolicyBase appropriate for
 // when 'ya just want to increment by derivatives:  x1 = x0 + A*dx/dt
 //----------------------------------------------------------------------------//
-#include "DEM/ReplaceAndIncrementFieldList.hh"
+#include "DEM/ReplaceAndIncrementPairFieldList.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"
@@ -18,35 +18,35 @@ namespace Spheral {
 // Constructors mostly wrappers to the base
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
-ReplaceAndIncrementFieldList<Dimension, Value>::
-ReplaceAndIncrementFieldList():
+ReplaceAndIncrementPairFieldList<Dimension, Value>::
+ReplaceAndIncrementPairFieldList():
   FieldListUpdatePolicyBase<Dimension, Value>() {
 }
 
 template<typename Dimension, typename Value>
-ReplaceAndIncrementFieldList<Dimension, Value>::
-ReplaceAndIncrementFieldList(const std::string& depend0):
+ReplaceAndIncrementPairFieldList<Dimension, Value>::
+ReplaceAndIncrementPairFieldList(const std::string& depend0):
   FieldListUpdatePolicyBase<Dimension, Value>(depend0 ) {
 }
 
 template<typename Dimension, typename Value>
-ReplaceAndIncrementFieldList<Dimension, Value>::
-ReplaceAndIncrementFieldList(const std::string& depend0,
+ReplaceAndIncrementPairFieldList<Dimension, Value>::
+ReplaceAndIncrementPairFieldList(const std::string& depend0,
                    const std::string& depend1):
   FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1 ) {
 }
 
 template<typename Dimension, typename Value>
-ReplaceAndIncrementFieldList<Dimension, Value>::
-ReplaceAndIncrementFieldList(const std::string& depend0,
+ReplaceAndIncrementPairFieldList<Dimension, Value>::
+ReplaceAndIncrementPairFieldList(const std::string& depend0,
                    const std::string& depend1,
                    const std::string& depend2):
   FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2 ) {
 }
 
 template<typename Dimension, typename Value>
-ReplaceAndIncrementFieldList<Dimension, Value>::
-ReplaceAndIncrementFieldList(const std::string& depend0,
+ReplaceAndIncrementPairFieldList<Dimension, Value>::
+ReplaceAndIncrementPairFieldList(const std::string& depend0,
                    const std::string& depend1,
                    const std::string& depend2,
                    const std::string& depend3):
@@ -54,8 +54,8 @@ ReplaceAndIncrementFieldList(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
-ReplaceAndIncrementFieldList<Dimension, Value>::
-ReplaceAndIncrementFieldList(const std::string& depend0,
+ReplaceAndIncrementPairFieldList<Dimension, Value>::
+ReplaceAndIncrementPairFieldList(const std::string& depend0,
                    const std::string& depend1,
                    const std::string& depend2,
                    const std::string& depend3,
@@ -64,8 +64,8 @@ ReplaceAndIncrementFieldList(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
-ReplaceAndIncrementFieldList<Dimension, Value>::
-ReplaceAndIncrementFieldList(const std::string& depend0,
+ReplaceAndIncrementPairFieldList<Dimension, Value>::
+ReplaceAndIncrementPairFieldList(const std::string& depend0,
                    const std::string& depend1,
                    const std::string& depend2,
                    const std::string& depend3,
@@ -78,8 +78,8 @@ ReplaceAndIncrementFieldList(const std::string& depend0,
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
-ReplaceAndIncrementFieldList<Dimension, Value>::
-~ReplaceAndIncrementFieldList() {
+ReplaceAndIncrementPairFieldList<Dimension, Value>::
+~ReplaceAndIncrementPairFieldList() {
 }
 
 //------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ ReplaceAndIncrementFieldList<Dimension, Value>::
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
 void
-ReplaceAndIncrementFieldList<Dimension, Value>::
+ReplaceAndIncrementPairFieldList<Dimension, Value>::
 update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
@@ -129,11 +129,11 @@ update(const KeyType& key,
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
 bool
-ReplaceAndIncrementFieldList<Dimension, Value>::
+ReplaceAndIncrementPairFieldList<Dimension, Value>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const ReplaceAndIncrementFieldList<Dimension, Value>* rhsPtr = dynamic_cast<const ReplaceAndIncrementFieldList<Dimension, Value>*>(&rhs);
+  const ReplaceAndIncrementPairFieldList<Dimension, Value>* rhsPtr = dynamic_cast<const ReplaceAndIncrementPairFieldList<Dimension, Value>*>(&rhs);
   return rhsPtr != 0;
 }
 

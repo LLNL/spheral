@@ -5,7 +5,7 @@ set(DEM_inst
     HerzianDEM
     ReplacePairFieldList
     IncrementPairFieldList
-    ReplaceAndIncrementFieldList
+    ReplaceAndIncrementPairFieldList
     LinearSpringDEM)
 
 set(DEM_sources
@@ -18,7 +18,7 @@ instantiate(DEM_inst DEM_sources)
 set(DEM_headers 
     HerzianDEM.hh
     ReplacePairFieldList.hh
-    ReplaceAndIncrementFieldList.hh
+    ReplaceAndIncrementPairFieldList.hh
     IncrementPairFieldList.hh
     LinearSpringDEM.hh
     DEMBase.hh

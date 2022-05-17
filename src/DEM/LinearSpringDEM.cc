@@ -11,7 +11,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Hydro/HydroFieldNames.hh"
 
-#include "DEM/ReplaceAndIncrementFieldList.hh"
+#include "DEM/ReplaceAndIncrementPairFieldList.hh"
 #include "DEM/DEMFieldNames.hh"
 #include "DEM/DEMDimension.hh"
 #include "DEM/LinearSpringDEM.hh"
@@ -121,8 +121,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
-  auto DDtShearDisplacement = derivatives.fields(ReplaceAndIncrementFieldList<Dimension, std::vector<Vector>>::incrementPrefix() +  DEMFieldNames::shearDisplacement, std::vector<Vector>());
-  auto newShearDisplacement = derivatives.fields(ReplaceAndIncrementFieldList<Dimension, std::vector<Vector>>::replacePrefix() +  DEMFieldNames::shearDisplacement, std::vector<Vector>());
+  auto DDtShearDisplacement = derivatives.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix() +  DEMFieldNames::shearDisplacement, std::vector<Vector>());
+  auto newShearDisplacement = derivatives.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix() +  DEMFieldNames::shearDisplacement, std::vector<Vector>());
 
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);

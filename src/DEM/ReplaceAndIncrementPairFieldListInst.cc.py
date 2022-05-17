@@ -3,9 +3,9 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "DEM/ReplaceAndIncrementFieldList.cc"
+#include "DEM/ReplaceAndIncrementPairFieldList.cc"
 
 namespace Spheral {
-  template class ReplaceAndIncrementFieldList<Dim< %(ndim)s >,std::vector<Dim< %(ndim)s>::Vector>>;
+  template class ReplaceAndIncrementPairFieldList<Dim< %(ndim)s >,std::vector<Dim< %(ndim)s>::Vector>>;
 }
 """

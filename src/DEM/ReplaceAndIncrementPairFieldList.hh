@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// ReplaceAndIncrementFieldList -- Update policy for the shearDisplacement pairwise
+// ReplaceAndIncrementPairFieldList -- Update policy for the shearDisplacement pairwise
 //                            pairwise field. This one increments a replaced 
 //                            field. The replacement reorients the displacment
 //                            into the new tangential plane of the particle-
@@ -7,29 +7,29 @@
 //
 // Created by JMP, Sun May 8 2022
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_ReplaceAndIncrementFieldList_hh__
-#define __Spheral_ReplaceAndIncrementFieldList_hh__
+#ifndef __Spheral_ReplaceAndIncrementPairFieldList_hh__
+#define __Spheral_ReplaceAndIncrementPairFieldList_hh__
 
 #include "DataBase/FieldListUpdatePolicyBase.hh"
 
 namespace Spheral {
 
 template<typename Dimension, typename Value>
-class ReplaceAndIncrementFieldList: public FieldListUpdatePolicyBase<Dimension, Value> {
+class ReplaceAndIncrementPairFieldList: public FieldListUpdatePolicyBase<Dimension, Value> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // pull up from the parent
   typedef typename  FieldListUpdatePolicyBase<Dimension, Value>::KeyType KeyType;
 
   // Constructors, destructor.
-  ReplaceAndIncrementFieldList();
-  explicit ReplaceAndIncrementFieldList(const std::string& depend0);
-  ReplaceAndIncrementFieldList(const std::string& depend0, const std::string& depend1);
-  ReplaceAndIncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2);
-  ReplaceAndIncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
-  ReplaceAndIncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
-  ReplaceAndIncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
-  virtual ~ReplaceAndIncrementFieldList();
+  ReplaceAndIncrementPairFieldList();
+  explicit ReplaceAndIncrementPairFieldList(const std::string& depend0);
+  ReplaceAndIncrementPairFieldList(const std::string& depend0, const std::string& depend1);
+  ReplaceAndIncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2);
+  ReplaceAndIncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
+  ReplaceAndIncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
+  ReplaceAndIncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
+  virtual ~ReplaceAndIncrementPairFieldList();
   
   static const std::string incrementPrefix() { return "delta "; }
   static const std::string replacePrefix() { return "new "; }
@@ -46,8 +46,8 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  ReplaceAndIncrementFieldList(const ReplaceAndIncrementFieldList& rhs);
-  ReplaceAndIncrementFieldList& operator=(const ReplaceAndIncrementFieldList& rhs);
+  ReplaceAndIncrementPairFieldList(const ReplaceAndIncrementPairFieldList& rhs);
+  ReplaceAndIncrementPairFieldList& operator=(const ReplaceAndIncrementPairFieldList& rhs);
 
 };
 
@@ -57,7 +57,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension, typename Value> class ReplaceAndIncrementFieldList;
+  template<typename Dimension, typename Value> class ReplaceAndIncrementPairFieldList;
 }
 
 #endif
