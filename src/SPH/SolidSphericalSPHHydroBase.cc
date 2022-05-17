@@ -726,7 +726,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       // Self-interaction for momentum (cause curvilinear coordinates are weird)
       const auto sigmai = Si - Pi * SymTensor::one;
       const auto deltaDvDti = mi*safeOmegai/(rhoi*rhoi)*(2.0*sigmai*gradWii - Qi*gradWQii) +
-                      2.0/rhoi*(0.5*Si.xx())*riInv;
+                      2.0/rhoi*(0.5*Si.xx() + Pi)*riInv;
       DvDti += deltaDvDti;
       if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
 
