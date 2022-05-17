@@ -492,10 +492,10 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Specific thermal energy evolution
-      DepsDti += mj*(0.5*fQi        *(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
-      DepsDtj += mi*(0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
-      // DepsDti += mj*(Prhoi + 0.5*fQi        *(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
-      // DepsDtj += mi*(Prhoj + 0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
+      // DepsDti += mj*(0.5*fQi        *(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
+      // DepsDtj += mi*(0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
+      DepsDti += mj*(Prhoi + 0.5*fQi        *(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
+      DepsDtj += mi*(Prhoj + 0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
 
       // Velocity gradient.
       const auto deltaDvDxi = -mj*vij.dyad(gradWjj);
@@ -626,7 +626,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Self-interaction for momentum (cause curvilinear coordinates are weird)
-      const auto deltaDvDti = -mi*safeOmegai/(rhoi*rhoi)*(2.0*Pi*gradWii + Qi*gradWQii);
+      const auto deltaDvDti = -mi*safeOmegai/(rhoi*rhoi)*(2.0*Pi*gradWii + Qi*gradWQii); // + 2.0*Pi/rhoi*riInv;
       DvDti += deltaDvDti;
       if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
       // if (i == 0) {
@@ -635,9 +635,9 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // }
 
       // Specific thermal energy
-      DepsDti += mi/(rhoi*rhoi)*Qi*vi.dot(gradWii);
-      // DepsDti += 2.0*mi/(rhoi*rhoi)*(Pi + 0.5*Qi)*vi.dot(gradWii);
-      DepsDti += Pi/(rhoi*rhoi) * DrhoDti;
+      DepsDti += 2.0*mi/(rhoi*rhoi)*(Pi + 0.5*Qi)*vi.dot(gradWii) - 2.0*Pi/rhoi*vi.x()*riInv;
+      // DepsDti += mi/(rhoi*rhoi)*Qi*vi.dot(gradWii);
+      // DepsDti += Pi/(rhoi*rhoi) * DrhoDti - 2.0*Pi/rhoi*vi.x()*riInv;
 
       // If needed finish the total energy derivative.
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
