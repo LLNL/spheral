@@ -580,11 +580,11 @@ class SpheralController:
         if self.restartFileConstructor is SiloFileIO:
             fileName += ".silo"
         # Sidre already adds ".root" to the end of the file so we need to run the check without adding anything to the fileName
-        # if self.restartFileConstructor is SidreFileIO:
-        #     if not os.path.exists(fileName + ".root") and mpi.rank is 0:
-        #         raise RuntimeError("File %s does not exist or is inaccessible." %
-        #                            fileName)
-        if not os.path.exists(fileName):
+        if self.restartFileConstructor is SidreFileIO:
+            if not os.path.exists(fileName + ".root") and mpi.rank is 0:
+                raise RuntimeError("File %s does not exist or is inaccessible." %
+                                   fileName)
+        elif not os.path.exists(fileName):
             raise RuntimeError("File %s does not exist or is inaccessible." %
                                fileName)
 
