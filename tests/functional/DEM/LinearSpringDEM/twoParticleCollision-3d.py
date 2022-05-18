@@ -1,4 +1,8 @@
-#ATS:DEM3d = test(        SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
+#ATS:DEM3d0 = test(        SELF, "--clearDirectories True  --checkError True  --checkConservation True --restitutionCoefficient=1.0 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
+#ATS:DEM3d1 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckSlidingFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
+#ATS:DEM3d2 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckRollingFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
+#ATS:DEM3d3 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckTorsionFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
+#ATS:DEM3d4 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckTorsionObjectivity True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
@@ -23,6 +27,7 @@ commandLine(vImpact = 1.0,                 # impact velocity
             restitutionCoefficient=0.8,    # restitution coefficient to get damping const
             radius = 0.25,                 # particle radius
             nPerh = 1.01,                  # this should basically always be 1 for DEM
+            omega0 = 0.1,                  # initial angular velocity it we're doing that
 
             # integration
             IntegratorConstructor = VerletIntegrator,
@@ -48,6 +53,12 @@ commandLine(vImpact = 1.0,                 # impact velocity
             redistributeStep = 500,
             dataDir = "dumps-DEM-3d",
 
+            # test rotation on top of restitution coefficient
+            boolTestSlidingFriction=False,
+            boolTestRollingFriction=False,
+            boolTestTorsionalFriction=False,
+            boolTestTorsionalObjectivity=False,
+
              # ats parameters
             checkError = False,                # turn on error checking for restitution coefficient
             checkRestart = False,              # turn on error checking for restartability
@@ -55,6 +66,12 @@ commandLine(vImpact = 1.0,                 # impact velocity
             restitutionErrorThreshold = 0.01,  # relative error actual restitution vs nominal
             conservationErrorThreshold = 1e-15 # relative error for momentum conservation
             )
+
+# assert sum([checkError,
+#             boolTestSlidingFriction,
+#             boolTestRollingFriction,
+#             boolTestTorsionalFriction,
+#             boolTestTorsionalObjectivity]) <= 1
 
 #-------------------------------------------------------------------------------
 # file things
@@ -120,16 +137,6 @@ generator1 = GenerateNodeDistribution3d(2, 1, 1,
 distributeNodes3d((nodes1, generator1))
 
 
-# initial conditions
-velocity = nodes1.velocity()
-velocity[0] = Vector(vImpact,0.0,0.0)
-velocity[1] = Vector(-vImpact,0.0,0.0)
-
-particleRadius = nodes1.particleRadius()
-
-particleRadius[0] = radius
-particleRadius[1] = radius
-
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -152,6 +159,33 @@ hydro = DEM(db,
 
 packages = [hydro]
 
+
+#-------------------------------------------------------------------------------
+# initial conditions
+#-------------------------------------------------------------------------------
+
+velocity = nodes1.velocity()
+velocity[0] = Vector(vImpact,0.0,0.0)
+velocity[1] = Vector(-vImpact,0.0,0.0)
+
+particleRadius = nodes1.particleRadius()
+particleRadius[0] = radius
+particleRadius[1] = radius
+omega = hydro.omega
+
+if boolTestSlidingFriction:
+    omega[0][0] = Vector(0.0,0.0,omega0)
+    omega[0][1] = Vector(0.0,0.0,omega0)
+elif boolTestRollingFriction:  
+    omega[0][0] = Vector(0.0,0.0, omega0)
+    omega[0][1] = Vector(0.0,0.0,-omega0)
+elif boolTestTorsionalFriction:
+    omega[0][0] = Vector( omega0,0.0,0.0)
+    omega[0][1] = Vector(-omega0,0.0,0.0)
+elif boolTestTorsionalObjectivity:
+    omega[0][0] = Vector( omega0,0.0,0.0)
+    omega[0][1] = Vector( omega0,0.0,0.0)
+    
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
 #-------------------------------------------------------------------------------

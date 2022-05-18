@@ -115,11 +115,11 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 
 generator1 = GenerateNodeDistribution2d(2, 1,
-                                            rho = 1.0,
-                                            distributionType = "lattice",
-                                            xmin = (0.0,  0.0),
-                                            xmax = (1.0,  0.5),
-                                            nNodePerh = nPerh)
+                                        rho = 1.0,
+                                        distributionType = "lattice",
+                                        xmin = (0.0,  0.0),
+                                        xmax = (1.0,  0.5),
+                                        nNodePerh = nPerh)
 
 
 distributeNodes2d((nodes1, generator1))
