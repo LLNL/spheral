@@ -9,8 +9,7 @@ from SpheralTestUtilities import *
 from GenerateNodeDistribution2d import *
 from PeanoHilbertDistributeNodes import distributeNodes2d
 
-import mpi
-import os, shutil
+import mpi, os, sys, shutil
 from math import *
 
 
@@ -42,7 +41,7 @@ commandLine(
     vx0 = -0.059*8.52e4,
 
     # Node seeding stuff.
-    nPerh = 3.01,
+    nPerh = 4.01,
     hminratio = 0.1,
     hmin = 1e-5,
     hmax = 0.5,
@@ -70,18 +69,19 @@ commandLine(
     evolveTotalEnergy = False,
     gradhCorrection = True,
     correctVelocityGradient = True,
-    epsilonTensile = 0.00,
+    epsilonTensile = 0.0,
     nTensile = 4,
 
     # fsi options 
     fsiRhoStabCoeff = 0.0, 
-    fsiEpsDiffuseCoeff = 0.1, 
+    fsiEpsDiffuseCoeff = 0.0, 
+    fsiXSPHCoeff = 1.0,
 
     #crk options
     correctionOrder = LinearOrder,
 
     # artificial viscosity
-    Qconstructor = MonaghanGingoldViscosity,
+    Qconstructor = LimitedMonaghanGingoldViscosity,
     Cl = 1.0,
     Cq = 2.0,
     Qlimiter = False,
@@ -90,7 +90,7 @@ commandLine(
     
     # Times, and simulation control.
     cfl = 0.25,
-    goalTime = 4000.0e-6,
+    goalTime = 6000.0e-6,
     dtSample = 5e-6,
     dt = 1e-10,
     dtMin = 1e-10,
@@ -106,7 +106,7 @@ commandLine(
 
     # Outputs.
     clearDirectories=False,
-    vizTime = 40.0e-6,
+    vizTime = 100.0e-6,
     vizCycle = None,
     vizDerivs = False,
     restoreCycle = None,
@@ -127,11 +127,15 @@ if crksph:
     hydroname = "CRK"+hydroname
 elif fsisph:
     hydroname = "FSI"+hydroname
+if asph:
+    hydroname = "A"+hydroname
 # Restart and output files.
 dataDir = os.path.join(baseDir,
                        hydroname,
+                        "ntensile=%s" % nTensile,
+                        "epstensile=%s" % epsilonTensile,
                         "nr=%s" % nr,
-                       "nperh=%s" % nPerh)
+                        "nperh=%s" % nPerh)
 
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "RubberCylinders-2d-%i" % (nr))
@@ -143,7 +147,6 @@ else:
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -164,16 +167,16 @@ if restoreCycle is None:
 #-------------------------------------------------------------------------------
 ack = rho0*c0*c0
 eos = LinearPolynomialEquationOfStateCGS(rho0,    # reference density  
-                                           etamin,  # etamin             
-                                           etamax,  # etamax             
-                                           0.0,     # A0
-                                           ack,     # A1
-                                           0.0,     # A2
-                                           0.0,     # A3
-                                           0.0,     # B0
-                                           0.0,     # B1
-                                           0.0,     # B2
-                                           55.350)  # atomic weight
+                                         etamin,  # etamin             
+                                         etamax,  # etamax             
+                                         0.0,     # A0
+                                         ack,     # A1
+                                         0.0,     # A2
+                                         0.0,     # A3
+                                         0.0,     # B0
+                                         0.0,     # B1
+                                         0.0,     # B2
+                                         55.350)  # atomic weight
 
 strengthModel = ConstantStrength(mu0,
                                  Y0)
@@ -290,7 +293,7 @@ if restoreCycle is None:
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node lists.
 #-------------------------------------------------------------------------------
-db = DataBase2d()
+db = DataBase()
 for nodes in nodeSet:
     db.appendNodeList(nodes)
 output("db")
@@ -323,9 +326,7 @@ if crksph:
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    ASPH = asph)
-
-elif fsisph: # FSI branch of spheral
-    q = LimitedMonaghanGingoldViscosity(Cl,Cq)
+elif fsisph:
     hydro = FSISPH(dataBase = db,
                 Q=q,
                 W = WT,
@@ -337,13 +338,12 @@ elif fsisph: # FSI branch of spheral
                 evolveTotalEnergy = evolveTotalEnergy,
                 HUpdate = HUpdate,
                 ASPH = asph,
+                xsphCoefficient = fsiXSPHCoeff,
                 epsTensile = epsilonTensile,
-                nTensile = nTensile,
-                strengthInDamage=False,
-                damageRelieveRubble=False,
-                RZ = False)
+                nTensile = nTensile)
 else:
     hydro = SPH(dataBase = db,
+                Q=q,
                 W = WT,
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
