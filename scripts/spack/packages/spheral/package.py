@@ -195,12 +195,12 @@ class Spheral(CachedCMakePackage, PythonPackage):
         entries.append(cmake_cache_option('virtualenv_BUILD', False))
         entries.append(cmake_cache_path('virtualenv_DIR', spec['py-virtualenv'].prefix + '/lib/python2.7/site-packages/'))
 
-        if "+docs" in spec:
-            entries.append(cmake_cache_option('sphinx_BUILD', False))
-            entries.append(cmake_cache_path('sphinx_DIR', spec['py-sphinx'].prefix + '/lib/python2.7/site-packages/'))
-            entries.append(cmake_cache_path('SPHINX_EXEC', spec['py-sphinx'].prefix + '/bin/sphinx-build'))
-            entries.append(cmake_cache_option('sphinx_rtd_theme_BUILD', False))
-            entries.append(cmake_cache_path('sphinx_rtd_theme_DIR', spec['py-sphinx-rtd-theme'].prefix + '/lib/python2.7/site-packages/'))
+        #if "+docs" in spec:
+        #    entries.append(cmake_cache_option('sphinx_BUILD', False))
+        #    entries.append(cmake_cache_path('sphinx_DIR', spec['py-sphinx'].prefix + '/lib/python2.7/site-packages/'))
+        #    entries.append(cmake_cache_path('SPHINX_EXEC', spec['py-sphinx'].prefix + '/bin/sphinx-build'))
+        #    entries.append(cmake_cache_option('sphinx_rtd_theme_BUILD', False))
+        #    entries.append(cmake_cache_path('sphinx_rtd_theme_DIR', spec['py-sphinx-rtd-theme'].prefix + '/lib/python2.7/site-packages/'))
 
 
         entries.append(cmake_cache_option('polyclipper_BUILD', False))

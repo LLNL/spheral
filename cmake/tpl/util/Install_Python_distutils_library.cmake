@@ -15,27 +15,31 @@ macro(Install_Pip_Module lib_name)
   string(REGEX REPLACE "[\=]+[^ ]*" "" lib_name_str ${lib_name})
 
   set(${lib_name_str}_TARGET_DEPENDS )
-  set(${lib_name_str}_download_stamp_file "${CACHE_DIR}/.${lib_name_str}_pip_download.stamp")
-  add_custom_command(
-    OUTPUT ${${lib_name_str}_download_stamp_file}
-    COMMAND echo "-- pip downloading ${lib_name}"
-    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${BUILDTIME_PYTHONENV_STR} ${PYTHON_EXE} ${PIP_EXE} ${OUT_PROTOCOL_PIP} download --no-binary :all -d ${CACHE_DIR} ${lib_name}
-    COMMAND touch ${${lib_name_str}_download_stamp_file}
-  )
+  if(NOT ${lib_name_str}_DIR)
+    set(${lib_name_str}_download_stamp_file "${CACHE_DIR}/.${lib_name_str}_pip_download.stamp")
+    add_custom_command(
+      OUTPUT ${${lib_name_str}_download_stamp_file}
+      COMMAND echo "-- pip downloading ${lib_name}"
+      COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${BUILDTIME_PYTHONENV_STR} ${PYTHON_EXE} ${PIP_EXE} ${OUT_PROTOCOL_PIP} download --no-binary :all -d ${CACHE_DIR} ${lib_name}
+      COMMAND touch ${${lib_name_str}_download_stamp_file}
+    )
 
-  set(commands )
-  list(APPEND commands COMMAND echo "-- pip install ${lib_name_str}")
-  list(APPEND commands COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${BUILDTIME_PYTHONENV_STR} ${PYTHON_EXE} ${PIP_EXE} ${OUT_PROTOCOL_PIP} install ${lib_name} --no-index --find-links ${CACHE_DIR} --target ${${lib_name_str}_DIR})
+    set(commands )
+    list(APPEND commands COMMAND echo "-- pip install ${lib_name_str}")
+    list(APPEND commands COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${BUILDTIME_PYTHONENV_STR} ${PYTHON_EXE} ${PIP_EXE} ${OUT_PROTOCOL_PIP} install ${lib_name_str} --no-index --find-links ${CACHE_DIR})
+    #list(APPEND commands COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${BUILDTIME_PYTHONENV_STR} ${PYTHON_EXE} ${PIP_EXE} ${OUT_PROTOCOL_PIP} install ${lib_name} --no-index --find-links ${CACHE_DIR} --target ${${lib_name_str}_DIR})
+    message("${commands}")
 
-  set(${lib_name_str}_install_stamp_file "${CACHE_DIR}/.${lib_name_str}_pip_install.stamp")
-  add_custom_command(
-    OUTPUT ${${lib_name_str}_install_stamp_file}
-    ${commands}
-    COMMAND touch ${${lib_name_str}_install_stamp_file}
-    DEPENDS pip-install ${${lib_name_str}_DEPENDS} ${${lib_name_str}_download_stamp_file}
-  )
+    set(${lib_name_str}_install_stamp_file "${CACHE_DIR}/.${lib_name_str}_pip_install.stamp")
+    add_custom_command(
+      OUTPUT ${${lib_name_str}_install_stamp_file}
+      ${commands}
+      COMMAND touch ${${lib_name_str}_install_stamp_file}
+      DEPENDS pip-install ${${lib_name_str}_DEPENDS} ${${lib_name_str}_download_stamp_file}
+    )
 
-  set(${lib_name_str}_TARGET_DEPENDS ${${lib_name_str}_download_stamp_file} ${${lib_name_str}_install_stamp_file})
+    set(${lib_name_str}_TARGET_DEPENDS ${${lib_name_str}_download_stamp_file} ${${lib_name_str}_install_stamp_file})
+  endif()
   
   add_custom_target(
     ${lib_name_str}
@@ -44,4 +48,3 @@ macro(Install_Pip_Module lib_name)
     )
 
 endmacro()
-
