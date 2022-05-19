@@ -139,6 +139,22 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, vector<typename Dimension::Vector>>&
 DEMBase<Dimension>::
+rollingDisplacement() const {
+  return mRollingDisplacement;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, vector<typename Dimension::Vector>>&
+DEMBase<Dimension>::
+torsionalDisplacement() const {
+  return mTorsionalDisplacement;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, vector<typename Dimension::Vector>>&
+DEMBase<Dimension>::
 DDtShearDisplacement() const {
   return mDDtShearDisplacement;
 }
@@ -150,6 +166,40 @@ DEMBase<Dimension>::
 newShearDisplacement() const {
   return mNewShearDisplacement;
 }
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, vector<typename Dimension::Vector>>&
+DEMBase<Dimension>::
+DDtRollingDisplacement() const {
+  return mDDtRollingDisplacement;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, vector<typename Dimension::Vector>>&
+DEMBase<Dimension>::
+newRollingDisplacement() const {
+  return mNewRollingDisplacement;
+}
+
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, vector<typename Dimension::Vector>>&
+DEMBase<Dimension>::
+DDtTorsionalDisplacement() const {
+  return mDDtTorsionalDisplacement;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, vector<typename Dimension::Vector>>&
+DEMBase<Dimension>::
+newTorsionalDisplacement() const {
+  return mNewTorsionalDisplacement;
+}
+
 
 template<typename Dimension>
 inline

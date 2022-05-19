@@ -152,8 +152,14 @@ public:
   const FieldList<Dimension, std::vector<int>>& isActiveContact() const;
   const FieldList<Dimension, std::vector<int>>& neighborIndices() const;
   const FieldList<Dimension, std::vector<Vector>>& shearDisplacement() const;
+  const FieldList<Dimension, std::vector<Vector>>& rollingDisplacement() const;
+  const FieldList<Dimension, std::vector<Vector>>& torsionalDisplacement() const;
   const FieldList<Dimension, std::vector<Vector>>& DDtShearDisplacement() const;
   const FieldList<Dimension, std::vector<Vector>>& newShearDisplacement() const;
+  const FieldList<Dimension, std::vector<Vector>>& DDtRollingDisplacement() const;
+  const FieldList<Dimension, std::vector<Vector>>& newRollingDisplacement() const;
+  const FieldList<Dimension, std::vector<Vector>>& DDtTorsionalDisplacement() const;
+  const FieldList<Dimension, std::vector<Vector>>& newTorsionalDisplacement() const;
   const FieldList<Dimension, std::vector<Scalar>>& equilibriumOverlap() const;
   
   const std::vector<ContactIndex>& contactStorageIndices() const;
@@ -170,6 +176,7 @@ public:
   RotationType rollingMoment(const Vector rhatij,
                              const Vector vroti,
                              const Vector vrotj) const;
+                             
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "DEMBase" ; }
@@ -204,10 +211,16 @@ protected:
   // fields attached to the pair interactions
   FieldList<Dimension,std::vector<int>> mNeighborIndices;              // tracks unique indices of contacts-we upate these 
   FieldList<Dimension,std::vector<Scalar>> mEquilibriumOverlap;        // nonzero values for composite particles
-  FieldList<Dimension,std::vector<Vector>> mShearDisplacement;         // displacement for friction spring
+  FieldList<Dimension,std::vector<Vector>> mShearDisplacement;         // displacement for sliding spring
+  FieldList<Dimension,std::vector<Vector>> mRollingDisplacement;       // displacement for rolling spring
+  FieldList<Dimension,std::vector<Vector>> mTorsionalDisplacement;     // displacement for torsional spring
   FieldList<Dimension,std::vector<int>> mIsActiveContact;              // tracks if a interfaction is still active
   FieldList<Dimension,std::vector<Vector>> mDDtShearDisplacement;      // derivative to evolve frictional spring displacement
   FieldList<Dimension,std::vector<Vector>> mNewShearDisplacement;      // handles rotation of frictional spring and reset on slip
+  FieldList<Dimension,std::vector<Vector>> mDDtRollingDisplacement;    // derivative to evolve frictional spring displacement
+  FieldList<Dimension,std::vector<Vector>> mNewRollingDisplacement;    // handles rotation of frictional spring and reset on slip
+  FieldList<Dimension,std::vector<Vector>> mDDtTorsionalDisplacement;  // derivative to evolve frictional spring displacement
+  FieldList<Dimension,std::vector<Vector>> mNewTorsionalDisplacement;  // handles rotation of frictional spring and reset on slip
 
   std::vector<ContactIndex> mContactStorageIndices;
 

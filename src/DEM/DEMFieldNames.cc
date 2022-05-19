@@ -13,4 +13,6 @@ const std::string Spheral::DEMFieldNames::uniqueIndices = "unique indices";
 const std::string Spheral::DEMFieldNames::isActiveContact = "bool indentifying active contacts";
 const std::string Spheral::DEMFieldNames::neighborIndices = "unique neighbor indices";
 const std::string Spheral::DEMFieldNames::shearDisplacement = "shear displacement";
+const std::string Spheral::DEMFieldNames::rollingDisplacement = "rolling displacement";
+const std::string Spheral::DEMFieldNames::torsionalDisplacement = "torsional displacement";
 const std::string Spheral::DEMFieldNames::equilibriumOverlap = "equilibrium overlap";

@@ -91,7 +91,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto invTangentialSpringConstant = 1.0/tangentialSpringConstant;
   const auto muD = 0.3;
   const auto muS = 0.4;
-  const auto muT = 0.25;
+  const auto muT = 0.01;
   const auto muR = 0.1;
 
   // The connectivity.
@@ -260,9 +260,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         DomegaDtj += Mfriction*lj;
 
         // Moment - rolling velocity
-        const typename DEMDimension<Dimension>::AngularVector Mroll = -muR*fnMag*this->rollingMoment(rhatij,vroti,vrotj);
-        DomegaDti -= Mroll*lij;
-        DomegaDtj += Mroll*lij;
+        //const typename DEMDimension<Dimension>::AngularVector Mroll = -muR*fnMag*this->rollingMoment(rhatij,vroti,vrotj);
+        //DomegaDti -= Mroll*lij;
+        //DomegaDtj += Mroll*lij;
 
         // Moment - torsion 
         const auto contactRadiusij = std::sqrt(4.0*rijMag*Ri - (rijMag*rijMag - Rj*Rj + Ri*Ri))/(2.0*rijMag);
@@ -270,8 +270,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         DomegaDti -= (Mtorsion)*contactRadiusij;
         DomegaDtj += (Mtorsion)*contactRadiusij;
 
-        newShearDisplacement(storeNodeList,storeNode)[storeContact]=newSij;
-        DDtShearDisplacement(storeNodeList,storeNode)[storeContact]=vt;
+        newShearDisplacement(storeNodeList,storeNode)[storeContact] = newSij;
+        DDtShearDisplacement(storeNodeList,storeNode)[storeContact] = vt;
     
       }  
     } // loop over pairs

@@ -18,6 +18,8 @@ struct DEMFieldNames {
   static const std::string isActiveContact;
   static const std::string neighborIndices;
   static const std::string shearDisplacement;
+  static const std::string rollingDisplacement;
+  static const std::string torsionalDisplacement;
   static const std::string equilibriumOverlap;
 };
 

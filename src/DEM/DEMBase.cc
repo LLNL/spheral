@@ -99,9 +99,15 @@ DEMBase(const DataBase<Dimension>& dataBase,
   mNeighborIndices(FieldStorageType::CopyFields),
   mEquilibriumOverlap(FieldStorageType::CopyFields),
   mShearDisplacement(FieldStorageType::CopyFields),
+  mRollingDisplacement(FieldStorageType::CopyFields),
+  mTorsionalDisplacement(FieldStorageType::CopyFields),
   mIsActiveContact(FieldStorageType::CopyFields),
   mDDtShearDisplacement(FieldStorageType::CopyFields),
   mNewShearDisplacement(FieldStorageType::CopyFields),
+  mDDtRollingDisplacement(FieldStorageType::CopyFields),
+  mNewRollingDisplacement(FieldStorageType::CopyFields),
+  mDDtTorsionalDisplacement(FieldStorageType::CopyFields),
+  mNewTorsionalDisplacement(FieldStorageType::CopyFields),
   mRestart(registerWithRestart(*this)),
   mRedistribute(registerWithRedistribution(*this,
                                            &DEMBase<Dimension>::initializeBeforeRedistribution,
@@ -118,8 +124,14 @@ DEMBase(const DataBase<Dimension>& dataBase,
     mIsActiveContact = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::isActiveContact);
     mNeighborIndices = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::neighborIndices);
     mShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), DEMFieldNames::shearDisplacement);
+    mRollingDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), DEMFieldNames::rollingDisplacement);
+    mTorsionalDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), DEMFieldNames::torsionalDisplacement);
     mDDtShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::shearDisplacement);
     mNewShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::shearDisplacement);
+    mDDtRollingDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::rollingDisplacement);
+    mNewRollingDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::rollingDisplacement);
+    mDDtTorsionalDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::torsionalDisplacement);
+    mNewTorsionalDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::torsionalDisplacement);
     mEquilibriumOverlap = dataBase.newDEMFieldList(std::vector<Scalar>(), DEMFieldNames::equilibriumOverlap);
 
 }
@@ -142,9 +154,17 @@ resizeDerivativePairFieldLists(StateDerivatives<Dimension>& derivs) const {
   
   auto DsDt = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix() + DEMFieldNames::shearDisplacement, std::vector<Vector>());
   auto newShearDisp = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix() + DEMFieldNames::shearDisplacement, std::vector<Vector>());
+  auto DDtRollingDisp = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix() + DEMFieldNames::rollingDisplacement, std::vector<Vector>());
+  auto newRollingDisp = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix() + DEMFieldNames::rollingDisplacement, std::vector<Vector>());
+  auto DDtTorsionalDisp = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix() + DEMFieldNames::torsionalDisplacement, std::vector<Vector>());
+  auto newTorsionalDisp = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix() + DEMFieldNames::torsionalDisplacement, std::vector<Vector>());
   
   this->addContactsToPairFieldList(DsDt,Vector::zero);
   this->addContactsToPairFieldList(newShearDisp,Vector::zero);
+  this->addContactsToPairFieldList(DDtRollingDisp,Vector::zero);
+  this->addContactsToPairFieldList(newRollingDisp,Vector::zero);
+  this->addContactsToPairFieldList(DDtTorsionalDisp,Vector::zero);
+  this->addContactsToPairFieldList(newTorsionalDisp,Vector::zero);
 }
 
 //------------------------------------------------------------------------------
@@ -157,10 +177,13 @@ resizeStatePairFieldLists(State<Dimension>& state) const{
 
   auto eqOverlap = state.fields(DEMFieldNames::equilibriumOverlap, vector<Scalar>());
   auto shearDisp = state.fields(DEMFieldNames::shearDisplacement, vector<Vector>());
+  auto rollingDisplacement = state.fields(DEMFieldNames::rollingDisplacement, vector<Vector>());
+  auto torsionalDisplacement = state.fields(DEMFieldNames::torsionalDisplacement, vector<Vector>());
 
   this->addContactsToPairFieldList(eqOverlap,0.0);
   this->addContactsToPairFieldList(shearDisp,Vector::zero);
-
+  this->addContactsToPairFieldList(rollingDisplacement,Vector::zero);
+  this->addContactsToPairFieldList(torsionalDisplacement,Vector::zero);
 }
 
 //------------------------------------------------------------------------------
@@ -173,9 +196,13 @@ kullInactiveContactsFromStatePairFieldLists(State<Dimension>& state) const{
 
   auto eqOverlap = state.fields(DEMFieldNames::equilibriumOverlap, vector<Scalar>());
   auto shearDisp = state.fields(DEMFieldNames::shearDisplacement, vector<Vector>());
+  auto rollingDisplacement = state.fields(DEMFieldNames::rollingDisplacement, vector<Vector>());
+  auto torsionalDisplacement = state.fields(DEMFieldNames::torsionalDisplacement, vector<Vector>());
 
   this->kullInactiveContactsFromPairFieldList(eqOverlap);
   this->kullInactiveContactsFromPairFieldList(shearDisp);
+  this->kullInactiveContactsFromPairFieldList(rollingDisplacement);
+  this->kullInactiveContactsFromPairFieldList(torsionalDisplacement);
 
 }
 
@@ -209,6 +236,8 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeDEMFieldList(mIsActiveContact, vector<int>(), DEMFieldNames::isActiveContact, false);
   dataBase.resizeDEMFieldList(mNeighborIndices, vector<int>(), DEMFieldNames::neighborIndices, false);
   dataBase.resizeDEMFieldList(mShearDisplacement, vector<Vector>(), DEMFieldNames::shearDisplacement, false);
+  dataBase.resizeDEMFieldList(mRollingDisplacement, vector<Vector>(), DEMFieldNames::rollingDisplacement, false);
+  dataBase.resizeDEMFieldList(mTorsionalDisplacement, vector<Vector>(), DEMFieldNames::torsionalDisplacement, false);
   dataBase.resizeDEMFieldList(mEquilibriumOverlap, vector<Scalar>(), DEMFieldNames::equilibriumOverlap, false);
 
   auto position = dataBase.DEMPosition();
@@ -222,6 +251,8 @@ registerState(DataBase<Dimension>& dataBase,
   PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,true));
   PolicyPointer angularVelocityPolicy(new IncrementFieldList<Dimension, RotationType>());
   PolicyPointer shearDisplacementPolicy(new ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>());
+  PolicyPointer rollingDisplacementPolicy(new ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>());
+  PolicyPointer torsionalDisplacementPolicy(new ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>());
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);
@@ -237,6 +268,8 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mUniqueIndices);
   state.enroll(mNeighborIndices);
   state.enroll(mShearDisplacement, shearDisplacementPolicy);
+  state.enroll(mRollingDisplacement, rollingDisplacementPolicy);
+  state.enroll(mTorsionalDisplacement, torsionalDisplacementPolicy);
   state.enroll(mEquilibriumOverlap);
 
   TIME_DEMregister.stop();
@@ -257,12 +290,20 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeDEMFieldList(mDomegaDt, DEMDimension<Dimension>::zero,  IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity , false);
   dataBase.resizeDEMFieldList(mDDtShearDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::shearDisplacement , false);
   dataBase.resizeDEMFieldList(mNewShearDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::shearDisplacement , false);
+  dataBase.resizeDEMFieldList(mDDtRollingDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::rollingDisplacement , false);
+  dataBase.resizeDEMFieldList(mNewRollingDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::rollingDisplacement , false);
+  dataBase.resizeDEMFieldList(mDDtTorsionalDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::torsionalDisplacement , false);
+  dataBase.resizeDEMFieldList(mNewTorsionalDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::torsionalDisplacement , false);
   
   derivs.enroll(mDxDt);
   derivs.enroll(mDvDt);
   derivs.enroll(mDomegaDt);
   derivs.enroll(mDDtShearDisplacement);
   derivs.enroll(mNewShearDisplacement);
+  derivs.enroll(mDDtRollingDisplacement);
+  derivs.enroll(mNewRollingDisplacement);
+  derivs.enroll(mDDtTorsionalDisplacement);
+  derivs.enroll(mNewTorsionalDisplacement);
 
   TIME_DEMregisterDerivs.stop();
 }
@@ -405,8 +446,15 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mIsActiveContact, pathName + "/iActiveContact");
   file.write(mNeighborIndices, pathName + "/neighborIndices");
   file.write(mShearDisplacement, pathName + "/shearDisplacement");
+  file.write(mRollingDisplacement, pathName + "/rollingDisplacement");
+  file.write(mTorsionalDisplacement, pathName + "/torsionalDisplacement");
+  
   file.write(mDDtShearDisplacement, pathName + "/DDtShearDisplacement");
   file.write(mNewShearDisplacement, pathName + "/newShearDisplacement");
+  file.write(mDDtRollingDisplacement, pathName + "/DDtRollingDisplacement");
+  file.write(mNewRollingDisplacement, pathName + "/newRollingDisplacement");
+  file.write(mDDtTorsionalDisplacement, pathName + "/DDtTorsionalDisplacement");
+  file.write(mNewTorsionalDisplacement, pathName + "/newTorsionalDisplacement");
   file.write(mEquilibriumOverlap, pathName + "/equilibriumOverlap");
 }
 
@@ -430,8 +478,15 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mIsActiveContact, pathName + "/iActiveContact");
   file.read(mNeighborIndices, pathName + "/neighborIndices");
   file.read(mShearDisplacement, pathName + "/shearDisplacement");
+  file.read(mRollingDisplacement, pathName + "/rollingDisplacement");
+  file.read(mTorsionalDisplacement, pathName + "/torsionalDisplacement");
+
   file.read(mDDtShearDisplacement, pathName + "/DDtShearDisplacement");
   file.read(mNewShearDisplacement, pathName + "/newShearDisplacement");
+  file.read(mDDtRollingDisplacement, pathName + "/DDtRollingDisplacement");
+  file.read(mNewRollingDisplacement, pathName + "/newRollingDisplacement");
+  file.read(mDDtTorsionalDisplacement, pathName + "/DDtTorsionalDisplacement");
+  file.read(mNewTorsionalDisplacement, pathName + "/newTorsionalDisplacement");
   file.read(mEquilibriumOverlap, pathName + "/equilibriumOverlap");
 }
 
@@ -505,9 +560,15 @@ initializeBeforeRedistribution(){
     if (contactkk.pairNode < (int)mUniqueIndices[contactkk.pairNodeList]->numInternalElements()){
       mNeighborIndices(contactkk.pairNodeList,contactkk.pairNode).push_back(storageUniqueNode);
       mShearDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mShearDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
+      mRollingDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mRollingDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
+      mTorsionalDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mTorsionalDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
       mEquilibriumOverlap(contactkk.pairNodeList,contactkk.pairNode).push_back(mEquilibriumOverlap(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
       mDDtShearDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mDDtShearDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
       mNewShearDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mNewShearDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
+      mDDtRollingDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mDDtRollingDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
+      mNewRollingDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mNewRollingDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
+      mDDtTorsionalDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mDDtTorsionalDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
+      mNewTorsionalDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mNewTorsionalDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
     } // if 
   }   // for
 }     // method
