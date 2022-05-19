@@ -8,8 +8,8 @@
 #
 #ATS:t0 = test(      SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar Noh problem -- 1-D (serial)")
 #ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK")
-#ATS:t2 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-restartcheck' --restartStep 20", np=4, label="Planar Noh problem -- 1-D (parallel)")
-#ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=4, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK")
+#ATS:t2 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh problem -- 1-D (parallel)")
+#ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK")
 #ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-1proc-reproducing.txt'", label="Planar Noh problem -- 1-D (serial reproducing test setup)")
 #ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDir 'dumps-planar-reproducing' --domainIndependent True --outputFile 'Noh-planar-4proc-reproducing.txt' --comparisonFile 'Noh-planar-1proc-reproducing.txt'", np=4, label="Planar Noh problem -- 1-D (4 proc reproducing test)")
 #
@@ -17,10 +17,10 @@
 #
 #ATS:t10 = test(       SELF, "--graphics None --clearDirectories True  --checkError True   --dataDir 'dumps-planar-sidre' --restartStep 20 --restartFileConstructor SidreFileIO", label="Planar Noh problem -- 1-D (serial) with Sidre")
 #ATS:t11 = testif(t10, SELF, "--graphics None --clearDirectories False --checkError False  --dataDir 'dumps-planar-sidre' --restartStep 20 --restartFileConstructor SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK with Sidre")
-#ATS:t12 = test(       SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-sidre-parrallel' --restartStep 20 --restartFileConstructor SidreFileIO", np=4, label="Planar Noh problem -- 1-D (parallel) with Sidre")
-#ATS:t13 = testif(t12, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-sidre-parrallel' --restartStep 20 --restartFileConstructor SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", np=4, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK with Sidre")
+#ATS:t12 = test(       SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-sidre-parrallel' --restartStep 20 --restartFileConstructor SidreFileIO", np=2, label="Planar Noh problem -- 1-D (parallel) with Sidre")
+#ATS:t13 = testif(t12, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-sidre-parrallel' --restartStep 20 --restartFileConstructor SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK with Sidre")
 #ATS:t14 = test(       SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-spio' --restartStep 20 --restartFileConstructor SidreFileIO --restartFileCount 1", np=6, label="Planar Noh problem -- 1-D (parallel) with Sidre (SPIO check)")
-#ATS:t15 = testif(t14, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-spio' --restartStep 20 --restartFileConstructor SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", np=6, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK with Sidre (SPIO check)")
+#ATS:t15 = testif(t14, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-spio' --restartStep 20 --restartFileConstructor SidreFileIO --restartFileCount 1 --restoreCycle 20 --steps 20 --checkRestart True", np=6, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK with Sidre (SPIO check)")
 #
 # Ordinary solid SPH
 #
@@ -617,11 +617,6 @@ else:
     if control.time() < goalTime:
         control.step(5)
         control.advance(goalTime, maxSteps)
-    else:
-        # Check the SPIO has the correct amount of files (only matters for writing restart files)
-        if control.restartFileConstructor is SidreFileIO and mpi.rank is 0:
-            if not control.restartFileCount is len(os.listdir(os.path.join(os.getcwd(), control.restartBaseName + "_cycle%i" % control.totalSteps))):
-                raise ValueError, "The amount of restart files given does not match the amount that exist!"
 
 
 #-------------------------------------------------------------------------------
@@ -876,3 +871,10 @@ Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.
 print "Total energy error: %g" % Eerror
 if compatibleEnergy and abs(Eerror) > 1e-13:
     raise ValueError, "Energy error outside allowed bounds."
+
+
+
+# Check that SPIO is writing the expected amount of files
+if control.restartFileConstructor is SidreFileIO and mpi.rank is 0:
+    if not control.restartFileCount is len(os.listdir(os.path.join(os.getcwd(), control.restartBaseName + "_cycle%i" % control.totalSteps))):
+        raise ValueError, "The amount of restart files given does not match the amount that exist!"

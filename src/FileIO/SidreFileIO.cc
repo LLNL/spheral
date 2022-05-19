@@ -175,8 +175,8 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
 {
   VERIFY2(mDataStorePtr == 0 and mFileOpen == false,
           "ERROR: attempt to reopen SidreFileIO object.");
+          
   mDataStorePtr = std::make_shared<axom::sidre::DataStore>();
-
   mFileName = fileName;
 
   if (access == AccessType::Read)
