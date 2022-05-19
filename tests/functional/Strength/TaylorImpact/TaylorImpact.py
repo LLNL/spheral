@@ -41,7 +41,7 @@
 # CRK 3D
 #ATS:test(SELF, "--geometry 3d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_3d_state_snapshot_8proc", np=8, label="Generate 8 proc CRK 3D reference data")
 
-import os, shutil
+import os, shutil, sys
 from math import *
 import mpi
 
@@ -77,15 +77,35 @@ commandLine(geometry = "2d",         # one of (2d, 3d, RZ)
             # Material.
             etamin = 0.2,
             etamax = 4.0,
+            strengthFit = "starting",  # "starting" or "fitted" from Eakins
 
-            # Artificial viscosity (and other numerical crap).
+            # hydro type
             crksph = False,
-            asph = True,     # Only for H evolution, not hydro algorithm
+            fsisph = False,
+
+            # general hydro options
+            asph = False,                         # Only for H evolution, not hydro algorithm
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
             compatibleEnergy = True,
             evolveTotalEnergy = False,
             filter = 0.0,
+            useVelocityMagnitudeForDt = True,
+            XSPH = True,
+            epsilonTensile = 0.0,
+            nTensile = 4,
+            rigorousBoundaries = False,
+            gradhCorrection = True,
+            correctVelocityGradient = True,   
+
+            # fsi options
+            fsiXSPHCoeff = 0.0,
+
+            # crksph options
+            correctionOrder = LinearOrder,                # CRKSPH
+            volumeType = RKVoronoiVolume,                 # CRKSPH
+
+            # artificial viscosity
             Cl = 1.0,                                      # Linear Q coefficient
             Cq = 1.0,                                      # Quadratic Q coefficient
             Qlimiter = False,                              # Q directional limiter switch
@@ -93,22 +113,15 @@ commandLine(geometry = "2d",         # one of (2d, 3d, RZ)
             epsilon2 = 1e-2,                               
             negligibleSoundSpeed = 1e-5,
             csMultiplier = 1e-4,
+            
+            # kernel
             hmin = 1e-5, 
             hmax = 1000.0, 
             hminratio = 0.1,
             limitIdealH = False,
-            cfl = 0.4,
-            useVelocityMagnitudeForDt = True,
-            XSPH = True,
-            epsilonTensile = 0.0,
-            nTensile = 4,
-            rigorousBoundaries = False,
-            gradhCorrection = True,
-            correctVelocityGradient = True,
-            correctionOrder = LinearOrder,                # CRKSPH
-            volumeType = RKVoronoiVolume,                 # CRKSPH
-
+            
             # Simulation control
+            cfl = 0.4,
             goalTime = 150.0,
             steps = None,
             dt = 1e-3,
@@ -132,6 +145,7 @@ commandLine(geometry = "2d",         # one of (2d, 3d, RZ)
 
 assert geometry in ("2d", "3d", "RZ")
 assert not (compatibleEnergy and evolveTotalEnergy)
+assert not (fsisph and geometry=="RZ")
 
 exec("from Spheral%s import *" % geometry)
 
@@ -139,6 +153,8 @@ if crksph:
     hydroname = os.path.join("CRKSPH",
                              str(correctionOrder),
                              str(volumeType))
+elif fsisph:
+    hydroname = "FSISPH"
 else:
     hydroname = os.path.join("SPH", "gradh=%s" % gradhCorrection)
 if asph:
@@ -159,7 +175,6 @@ restartBaseName = os.path.join(restartDir, "TaylorImpact-%i-%i" % (nr, nz))
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -213,19 +228,35 @@ meltFitCu = NinthOrderPolynomialFit( 5.22055639e-02,
                                      0.00000000e+00,
                                      0.00000000e+00)
 
-strengthCu = SteinbergGuinanStrengthMKS(eosCu,
-                                        4.770000e-01,   # G0 (Mb)
-                                        2.8300e+00,     # A  (Mb^-1)
-                                        3.7700e-04,     # B  (dimensionless)
-                                        1.2000e-03,     # Y0 (Mb)
-                                        6.4000e-03,     # Ymax (Mb)
-                                        1.0000e-03,     # Yp (dimensionless)
-                                        3.6000e+01,     # beta (dimensionless)
-                                        0.0000e+00,     # gamma0 (dimensionless)
-                                        4.5000e-01,     # nhard (dimensionless)
-                                        coldFitCu,
-                                        meltFitCu)
-
+if strengthFit == "starting":
+    strengthCu = SteinbergGuinanStrengthMKS(eosCu,
+                                            4.770000e-01,   # G0 (Mb)
+                                            2.8300e+00,     # A  (Mb^-1)
+                                            3.7700e-04,     # B  (dimensionless)
+                                            1.2000e-03,     # Y0 (Mb)
+                                            6.4000e-03,     # Ymax (Mb)
+                                            1.0000e-03,     # Yp (dimensionless)
+                                            3.6000e+01,     # beta (dimensionless)
+                                            0.0000e+00,     # gamma0 (dimensionless)
+                                            4.5000e-01,     # nhard (dimensionless)
+                                            coldFitCu,
+                                            meltFitCu)
+elif strengthFit == "fitted":
+    strengthCu = SteinbergGuinanStrengthMKS(eosCu,
+                                            4.770000e-01,   # G0 (Mb)
+                                            2.8300e+00,     # A  (Mb^-1)
+                                            3.7700e-04,     # B  (dimensionless)
+                                            3.2000e-03,     # Y0 (Mb)
+                                            6.4000e-03,     # Ymax (Mb)
+                                            1.0000e-03,     # Yp (dimensionless)
+                                            5.0000e+00,     # beta (dimensionless)
+                                            0.0000e+00,     # gamma0 (dimensionless)
+                                            3.0000e-01,     # nhard (dimensionless)
+                                            coldFitCu,
+                                            meltFitCu)
+else:
+    raise RuntimeError("incorrect strengthFit specified")
+    
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
 #-------------------------------------------------------------------------------
@@ -409,8 +440,19 @@ if crksph:
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
-                   ASPH = asph,
-                   RZ = (geometry == "RZ"))
+                   ASPH = asph)
+elif fsisph:
+    hydro = FSISPH(dataBase = db,
+                W = WT,
+                cfl = cfl, 
+                correctVelocityGradient = correctVelocityGradient,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                HUpdate = HUpdate,
+                ASPH = asph,
+                xsphCoefficient = fsiXSPHCoeff,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -425,8 +467,7 @@ else:
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile,
-                ASPH = asph,
-                RZ = (geometry == "RZ"))
+                ASPH = asph)
 
 for bc in bcs:
     hydro.appendBoundary(bc)
@@ -488,7 +529,6 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Build the controller.
 #-------------------------------------------------------------------------------
-from SpheralPointmeshSiloDump import dumpPhysicsState
 control = SpheralController(integrator, WT,
                             volumeType = volumeType,
                             statsStep = statsStep,
@@ -496,7 +536,6 @@ control = SpheralController(integrator, WT,
                             redistributeStep = redistributeStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
-                            vizMethod = dumpPhysicsState,
                             vizBaseName = "TaylorImpact",
                             vizDir = vizDir,
                             vizStep = vizCycle,

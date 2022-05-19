@@ -769,7 +769,7 @@ if outputFile != "None":
         # Also we can optionally compare the current results with another file for
         # bit level consistency.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None":
+        if comparisonFile != "None" and BuildData.cxx_compiler_id != "IntelLLVM":
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)

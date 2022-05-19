@@ -69,6 +69,7 @@ class pair:
 
 # std::pair
 pair_double_string = PYB11TemplateClass(pair, template_parameters=("double", "std::string"))
+pair_double_double = PYB11TemplateClass(pair, template_parameters=("double", "double"))
 
 # RKCoefficients
 
