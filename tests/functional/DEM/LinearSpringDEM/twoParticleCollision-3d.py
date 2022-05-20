@@ -1,8 +1,8 @@
 #ATS:DEM3d0 = test(        SELF, "--clearDirectories True  --checkError True  --checkConservation True --restitutionCoefficient=1.0 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
 #ATS:DEM3d1 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckSlidingFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
 #ATS:DEM3d2 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckRollingFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
-#ATS:DEM3d3 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckTorsionFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
-#ATS:DEM3d4 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckTorsionObjectivity True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
+#ATS:DEM3d3 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckTorsionalFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
+#ATS:DEM3d4 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckTorsionalObjectivity True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
@@ -54,10 +54,10 @@ commandLine(vImpact = 1.0,                 # impact velocity
             dataDir = "dumps-DEM-3d",
 
             # test rotation on top of restitution coefficient
-            boolTestSlidingFriction=False,
-            boolTestRollingFriction=False,
-            boolTestTorsionalFriction=False,
-            boolTestTorsionalObjectivity=False,
+            boolCheckSlidingFriction=False,
+            boolCheckRollingFriction=False,
+            boolCheckTorsionalFriction=False,
+            boolCheckTorsionalObjectivity=False,
 
              # ats parameters
             checkError = False,                # turn on error checking for restitution coefficient
@@ -68,10 +68,10 @@ commandLine(vImpact = 1.0,                 # impact velocity
             )
 
 # assert sum([checkError,
-#             boolTestSlidingFriction,
-#             boolTestRollingFriction,
-#             boolTestTorsionalFriction,
-#             boolTestTorsionalObjectivity]) <= 1
+#             boolCheckSlidingFriction,
+#             boolCheckRollingFriction,
+#             boolCheckTorsionalFriction,
+#             boolCheckTorsionalObjectivity]) <= 1
 
 #-------------------------------------------------------------------------------
 # file things
@@ -173,16 +173,16 @@ particleRadius[0] = radius
 particleRadius[1] = radius
 omega = hydro.omega
 
-if boolTestSlidingFriction:
+if boolCheckSlidingFriction:
     omega[0][0] = Vector(0.0,0.0,omega0)
     omega[0][1] = Vector(0.0,0.0,omega0)
-elif boolTestRollingFriction:  
+elif boolCheckRollingFriction:  
     omega[0][0] = Vector(0.0,0.0, omega0)
     omega[0][1] = Vector(0.0,0.0,-omega0)
-elif boolTestTorsionalFriction:
+elif boolCheckTorsionalFriction:
     omega[0][0] = Vector( omega0,0.0,0.0)
     omega[0][1] = Vector(-omega0,0.0,0.0)
-elif boolTestTorsionalObjectivity:
+elif boolCheckTorsionalObjectivity:
     omega[0][0] = Vector( omega0,0.0,0.0)
     omega[0][1] = Vector( omega0,0.0,0.0)
     
