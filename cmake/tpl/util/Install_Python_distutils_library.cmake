@@ -27,7 +27,6 @@ macro(Install_Pip_Module lib_name)
     set(commands )
     list(APPEND commands COMMAND echo "-- pip install ${lib_name_str}")
     list(APPEND commands COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${BUILDTIME_PYTHONENV_STR} ${PYTHON_EXE} ${PIP_EXE} ${OUT_PROTOCOL_PIP} install ${lib_name_str} --no-index --find-links ${CACHE_DIR})
-    message("${commands}")
 
     set(${lib_name_str}_install_stamp_file "${CACHE_DIR}/.${lib_name_str}_pip_install.stamp")
     add_custom_command(
