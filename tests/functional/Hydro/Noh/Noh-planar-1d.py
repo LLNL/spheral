@@ -873,8 +873,9 @@ if compatibleEnergy and abs(Eerror) > 1e-13:
     raise ValueError, "Energy error outside allowed bounds."
 
 
-
 # Check that SPIO is writing the expected amount of files
 if control.restartFileConstructor is SidreFileIO and mpi.rank is 0:
-    if not control.restartFileCount is len(os.listdir(os.path.join(os.getcwd(), control.restartBaseName + "_cycle%i" % control.totalSteps))):
-        raise ValueError, "The amount of restart files given does not match the amount that exist!"
+    # Need to check if the dir exists to see if we used Sidre or Spio (Sidre parallel IO)
+    if os.path.isdir(os.path.join(os.getcwd(), control.restartBaseName + "_cycle%i" % control.totalSteps)):
+        if not control.restartFileCount is len(os.listdir(os.path.join(os.getcwd(), control.restartBaseName + "_cycle%i" % control.totalSteps))):
+            raise ValueError, "The amount of restart files written does not match the amount expected based on input!"
