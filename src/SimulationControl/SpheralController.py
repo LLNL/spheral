@@ -56,8 +56,7 @@ class SpheralController:
         self.kernel = kernel
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
-        if restartFileConstructor is SidreFileIO: # FileCount only applies to SidreFileIO
-            self.SPIOFileCountPerTimeslice = SPIOFileCountPerTimeslice
+        self.SPIOFileCountPerTimeslice = SPIOFileCountPerTimeslice
         self.SPH = SPH
         self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
         self._break = False
