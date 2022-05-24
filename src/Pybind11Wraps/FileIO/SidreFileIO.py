@@ -22,10 +22,6 @@ class SidreFileIO(FileIO):
         "Construct a sidre datastore with a name and access"
 
     def pyinit2(self,
-                numFiles = "int"):
-        "Set amount of files for restart to be written to ( 0 < numFiles <= MPI_Comm_size() )"
-
-    def pyinit3(self,
                 filename = "const std::string",
                 access = "AccessType",
                 numFiles = "int"):

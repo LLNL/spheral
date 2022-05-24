@@ -19,8 +19,8 @@
 #ATS:t11 = testif(t10, SELF, "--graphics None --clearDirectories False --checkError False  --dataDir 'dumps-planar-sidre' --restartStep 20 --restartFileConstructor SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem -- 1-D (serial) RESTART CHECK with Sidre")
 #ATS:t12 = test(       SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-sidre-parrallel' --restartStep 20 --restartFileConstructor SidreFileIO", np=2, label="Planar Noh problem -- 1-D (parallel) with Sidre")
 #ATS:t13 = testif(t12, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-sidre-parrallel' --restartStep 20 --restartFileConstructor SidreFileIO --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK with Sidre")
-#ATS:t14 = test(       SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-spio' --restartStep 20 --restartFileConstructor SidreFileIO --restartFileCount 1", np=6, label="Planar Noh problem -- 1-D (parallel) with Sidre (SPIO check)")
-#ATS:t15 = testif(t14, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-spio' --restartStep 20 --restartFileConstructor SidreFileIO --restartFileCount 1 --restoreCycle 20 --steps 20 --checkRestart True", np=6, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK with Sidre (SPIO check)")
+#ATS:t14 = test(       SELF, "--graphics None --clearDirectories True  --checkError True  --dataDir 'dumps-planar-spio' --restartStep 20 --restartFileConstructor SidreFileIO --SPIOFileCountPerTimeslice 1", np=6, label="Planar Noh problem -- 1-D (parallel) with Sidre (SPIO check)")
+#ATS:t15 = testif(t14, SELF, "--graphics None --clearDirectories False --checkError False --dataDir 'dumps-planar-spio' --restartStep 20 --restartFileConstructor SidreFileIO --SPIOFileCountPerTimeslice 1 --restoreCycle 20 --steps 20 --checkRestart True", np=6, label="Planar Noh problem -- 1-D (parallel) RESTART CHECK with Sidre (SPIO check)")
 #
 # Ordinary solid SPH
 #
@@ -179,7 +179,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             dataDirBase = "dumps-planar-Noh",
             restartBaseName = "Noh-planar-1d",
             restartFileConstructor = SiloFileIO,
-            restartFileCount = mpi.procs,
+            SPIOFileCountPerTimeslice = None,
             outputFile = "None",
             comparisonFile = "None",
             normOutputFile = "None",
@@ -585,7 +585,7 @@ control = SpheralController(integrator,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restartFileConstructor = restartFileConstructor,
-                            restartFileCount = restartFileCount,
+                            SPIOFileCountPerTimeslice = SPIOFileCountPerTimeslice,
                             restoreCycle = restoreCycle,
                             timerName = timerName
                             )
@@ -874,6 +874,6 @@ if compatibleEnergy and abs(Eerror) > 1e-13:
 
 
 # Check that SPIO is writing the expected amount of files also need to check if mpi is enabled to see if we are using Spio
-if control.restartFileConstructor is SidreFileIO and mpi.rank is 0 and not mpi.is_fake_mpi():
-    if not control.restartFileCount is len(os.listdir(os.path.join(os.getcwd(), control.restartBaseName + "_cycle%i" % control.totalSteps))):
+if control.restartFileConstructor is SidreFileIO and mpi.rank is 0 and not mpi.is_fake_mpi() and control.SPIOFileCountPerTimeslice is not None:
+    if not control.SPIOFileCountPerTimeslice is len(os.listdir(os.path.join(os.getcwd(), control.restartBaseName + "_cycle%i" % control.totalSteps))):
         raise ValueError, "The amount of restart files written does not match the amount expected based on input!"

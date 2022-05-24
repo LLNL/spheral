@@ -28,7 +28,7 @@ class SpheralController:
                  restartBaseName = "restart",
                  restartObjects = [],
                  restartFileConstructor = SiloFileIO,
-                 restartFileCount = 0,
+                 SPIOFileCountPerTimeslice = None,
                  restoreCycle = None,
                  initializeDerivatives = False,
                  vizBaseName = None,
@@ -57,7 +57,7 @@ class SpheralController:
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
         if restartFileConstructor is SidreFileIO: # FileCount only applies to SidreFileIO
-            self.restartFileCount = restartFileCount
+            self.SPIOFileCountPerTimeslice = SPIOFileCountPerTimeslice
         self.SPH = SPH
         self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
         self._break = False
@@ -555,8 +555,8 @@ class SpheralController:
         import time
         start = time.clock()
         fileName = self.restartBaseName + "_cycle%i" % self.totalSteps
-        if self.restartFileConstructor is SidreFileIO:
-            file = self.restartFileConstructor(fileName, Create, self.restartFileCount)
+        if self.restartFileConstructor is SidreFileIO and self.SPIOFileCountPerTimeslice is not None:
+            file = self.restartFileConstructor(fileName, Create, self.SPIOFileCountPerTimeslice)
         else:
             file = self.restartFileConstructor(fileName, Create)
         RestartRegistrar.instance().dumpState(file)
@@ -595,8 +595,8 @@ class SpheralController:
         if self.restartFileConstructor is GzipFileIO:
             file = self.restartFileConstructor(fileName, Read)
                                                #readToMemory = True)
-        elif self.restartFileConstructor is SidreFileIO:
-            file = self.restartFileConstructor(fileName, Read, self.restartFileCount)
+        elif self.restartFileConstructor is SidreFileIO and self.SPIOFileCountPerTimeslice is not None:
+            file = self.restartFileConstructor(fileName, Read, self.SPIOFileCountPerTimeslice)
         else:
             file = self.restartFileConstructor(fileName, Read)
         RestartRegistrar.instance().restoreState(file)
