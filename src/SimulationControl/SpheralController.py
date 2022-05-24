@@ -581,7 +581,7 @@ class SpheralController:
             fileName += ".silo"
         # Sidre already adds ".root" to the end of the file so we need to run the check without adding anything to the fileName
         if self.restartFileConstructor is SidreFileIO:
-            if not os.path.exists(fileName + ".root") and mpi.rank is 0:
+            if not os.path.exists(fileName + ".root") and mpi.rank is 0 and not is_fake_mpi:
                 raise RuntimeError("File %s does not exist or is inaccessible." %
                                    fileName)
         elif not os.path.exists(fileName):
