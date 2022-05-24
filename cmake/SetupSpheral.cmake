@@ -120,57 +120,55 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #-------------------------------------------------------------------------------
 set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 
-if (NOT BUILD_TPL_ONLY)
-  #-------------------------------------------------------------------------------
-  # Install symlink for spheral->python
-  #-------------------------------------------------------------------------------
-  if (NOT ENABLE_CXXONLY)
-    install(CODE "execute_process( \
-      COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
-      WORKING_DIRECTORY ${SPHERAL_TPL_DIR})")
-  endif()
+#-------------------------------------------------------------------------------
+# Install symlink for spheral->python
+#-------------------------------------------------------------------------------
+if (NOT ENABLE_CXXONLY)
+  install(CODE "execute_process( \
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
+    WORKING_DIRECTORY ${SPHERAL_TPL_DIR})")
+endif()
 
-  #-------------------------------------------------------------------------------
-  # Prepare to build the src
-  #-------------------------------------------------------------------------------
-  add_subdirectory(${SPHERAL_ROOT_DIR}/src)
+#-------------------------------------------------------------------------------
+# Prepare to build the src
+#-------------------------------------------------------------------------------
+add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 
-  #-------------------------------------------------------------------------------
-  # Add the documentation
-  #-------------------------------------------------------------------------------
-  if (NOT ENABLE_CXXONLY)
-    add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
-  endif()
+#-------------------------------------------------------------------------------
+# Add the documentation
+#-------------------------------------------------------------------------------
+if (NOT ENABLE_CXXONLY)
+  add_subdirectory(${SPHERAL_ROOT_DIR}/docs)
+endif()
 
-  #-------------------------------------------------------------------------------
-  # Build C++ tests and install tests to install directory
-  #-------------------------------------------------------------------------------
-  if (ENABLE_TESTS)
-    add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit/CXXTests)
+#-------------------------------------------------------------------------------
+# Build C++ tests and install tests to install directory
+#-------------------------------------------------------------------------------
+if (ENABLE_TESTS)
+  add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit/CXXTests)
 
-    # A macro to preserve directory structure when installing files
-    macro(install_with_directory)
-        set(optionsArgs "")
-        set(oneValueArgs SOURCE DESTINATION)
-        set(multiValueArgs FILES)
-        cmake_parse_arguments(CAS "${optionsArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
-        foreach(FILE ${CAS_FILES})
-            get_filename_component(DIR ${FILE} DIRECTORY)
-            INSTALL(FILES ${CAS_SOURCE}/${FILE} DESTINATION ${CAS_DESTINATION}/${DIR})
-        endforeach()
-    endmacro(install_with_directory)
+  # A macro to preserve directory structure when installing files
+  macro(install_with_directory)
+      set(optionsArgs "")
+      set(oneValueArgs SOURCE DESTINATION)
+      set(multiValueArgs FILES)
+      cmake_parse_arguments(CAS "${optionsArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+      foreach(FILE ${CAS_FILES})
+          get_filename_component(DIR ${FILE} DIRECTORY)
+          INSTALL(FILES ${CAS_SOURCE}/${FILE} DESTINATION ${CAS_DESTINATION}/${DIR})
+      endforeach()
+  endmacro(install_with_directory)
 
-    # Find the test files we want to install
-    execute_process(
-      COMMAND git ls-files tests
-      WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
-      OUTPUT_VARIABLE test_files1)
-    string(REPLACE "\n" " " test_files ${test_files1})
-    separate_arguments(test_files)
-    list(REMOVE_ITEM test_files tests/unit/CXXTests/runCXXTests.ats)
-    install_with_directory(
-      FILES       ${test_files} 
-      SOURCE      ${SPHERAL_ROOT_DIR}
-      DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
-  endif()
+  # Find the test files we want to install
+  execute_process(
+    COMMAND git ls-files tests
+    WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
+    OUTPUT_VARIABLE test_files1)
+  string(REPLACE "\n" " " test_files ${test_files1})
+  separate_arguments(test_files)
+  list(REMOVE_ITEM test_files tests/unit/CXXTests/runCXXTests.ats)
+  install_with_directory(
+    FILES       ${test_files} 
+    SOURCE      ${SPHERAL_ROOT_DIR}
+    DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
 endif()
