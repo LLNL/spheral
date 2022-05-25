@@ -1,4 +1,0 @@
-12c12
-< PYPI_ENDPOINT = 'http://pypi.python.org/pypi'
----
-> PYPI_ENDPOINT = 'https://pypi.python.org/pypi'
