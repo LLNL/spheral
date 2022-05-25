@@ -591,10 +591,7 @@ class SpheralController:
         print 'Reading from restart file', fileName
         import time
         start = time.clock()
-        if self.restartFileConstructor is GzipFileIO:
-            file = self.restartFileConstructor(fileName, Read)
-                                               #readToMemory = True)
-        elif self.restartFileConstructor is SidreFileIO and self.SPIOFileCountPerTimeslice is not None:
+        if self.restartFileConstructor is SidreFileIO and self.SPIOFileCountPerTimeslice is not None:
             file = self.restartFileConstructor(fileName, Read, self.SPIOFileCountPerTimeslice)
         else:
             file = self.restartFileConstructor(fileName, Read)
