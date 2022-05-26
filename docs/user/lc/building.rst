@@ -310,3 +310,54 @@ Building Spheral TPLs with your own Spack installation will require deeper knowl
  - You will want to model your ``compiler.yaml`` and ``packages.yaml`` files off of those found in ``scripts/spack/configs/`` (`Spack Configuration Files <https://spack.readthedocs.io/en/latest/configuration.html#configuration>`_).
    
 Further notes on setting up Spack and how it is used with the Spheral dev-tools scripts can be found in `Development Documentation: Spheral Spack / Uberenv <Development_Documentation.html#spheral-spack-uberenv>`_.
+
+Running Tests
+#############
+
+Basic Smoke Test
+================
+
+After a build and install it's recommended to perform a quick smoke test with Spheral to see if the Spheral environment was installed and all of the libraries were built and linked together correctly.
+
+From your install directory run:
+::
+
+  ./spheral -c "import Spheral"
+
+
+ATS Testing Suite
+=================
+
+Spheral uses ATS to execute a suite of parallel tests. During install a script is generated ``spheral-atstest`` which handles calling the ats script in ``/usr/gapps/Spheral/bin`` and passing the generated ``spheral`` executor script to it.
+
+From the install directory run:
+::
+
+  ./spheral-atstest tests/integration.ats 
+
+ATS Filters and Options
+-----------------------
+
+We will need to pass some filters to ``ATS`` depending on how we built Spheral.
+
+Non MPI Filter
+..............
+
+If Spheral was built without ``MPI`` support we will need to pass the filter to our ``ats`` command. This stops the ATS suite from attempting to run any tests that rely on more than one process/rank.
+:: 
+
+  --filter='"np<2"'
+  
+Debug Build Filter
+..................
+
+If Spheral was built in Debug mode it is recommended to pass the below filter if you value your time.
+::
+
+  --filter='"level<100"'
+
+These filters stack when calling them. So if you are running``ats`` on a non-mpi debug buid your tests command would be as such:
+
+::
+
+  ./spheral-atstest tests/integration.ats --filter='"np<2"' --filter='"level<100"'
