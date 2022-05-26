@@ -16,6 +16,7 @@ from SlideSurface import *
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"FSISPH/SolidFSISPHHydroBase.hh"',
+                  '"FSISPH/FSIFieldNames.hh"',
                   '"FSISPH/SlideSurface.hh"',
                   '"FileIO/FileIO.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"']
@@ -30,6 +31,7 @@ InterfaceMethod = PYB11enum(("HLLCInterface",
 KernelAveragingMethod = PYB11enum(("NeverAverageKernels", 
                                    "AlwaysAverageKernels",
                                    "AverageInterfaceKernels"), export_values = True)
+
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
@@ -45,3 +47,16 @@ SolidFSISPHHydroBase%(ndim)id = PYB11TemplateClass(SolidFSISPHHydroBase, templat
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
+
+#-------------------------------------------------------------------------------
+# expose our field names
+#-------------------------------------------------------------------------------
+class FSIFieldNames:
+    rawPressure = PYB11readonly(static=True, returnpolicy="copy")
+    pressureGradient = PYB11readonly(static=True, returnpolicy="copy")
+    specificThermalEnergyGradient = PYB11readonly(static=True, returnpolicy="copy")
+    interfaceNormals = PYB11readonly(static=True, returnpolicy="copy")
+    interfaceFraction = PYB11readonly(static=True, returnpolicy="copy")
+    interfaceSmoothness = PYB11readonly(static=True, returnpolicy="copy")
+    smoothedInterfaceNormals = PYB11readonly(static=True, returnpolicy="copy")
+    smoothnessNormalization = PYB11readonly(static=True, returnpolicy="copy")

@@ -4,9 +4,10 @@
 # described in D.J. Price's dissertation as an example of the effect of the
 # grad h terms.
 #-------------------------------------------------------------------------------
-import os, shutil
+import os, shutil, sys
 from math import *
 from Spheral1d import *
+from Spheral import ScalarPairScalarFunctor as PairScalarFunctor
 from SpheralTestUtilities import *
 import mpi
 import numpy as np
@@ -46,27 +47,30 @@ commandLine(nx1 = 100,
             cs2 = 1.0,
             mu = 1.0,
 
-            nPerh = 1.51,
+            nPerh = 3.01,
 
-            Cl = 0.0,
-            Cq = 0.0,
+            Cl = 1.0,
+            Cq = 2.0,
             linearInExpansion = False,
             Qlimiter = False,
             epsilon2 = 1e-30,
             hmin = 1.0e-10,
             hmax = 0.1,
-            cfl = 0.5,
+            cfl = 0.25,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4,
             filter = 0.0,
-            KernelConstructor = BSplineKernel,
+            KernelConstructor = WendlandC2Kernel,
             order = 5,
 
             svph = False,
             crksph = False,
             psph = False,
+            fsisph = False,
+            solid = False,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
+            correctionOrder = LinearOrder,
             steps = None,
             goalTime = 5.0,
             dt = 1.0e-10,
@@ -79,7 +83,6 @@ commandLine(nx1 = 100,
             statsStep = 1,
             smoothIters = 0,
             HUpdate = IntegrateH,
-            correctionOrder = LinearOrder,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
             gradhCorrection = True,
@@ -90,7 +93,7 @@ commandLine(nx1 = 100,
             clearDirectories = True,
             dataDirBase = "dumps-planar-AcousticWave-1d",
             outputFile = "AcousticWave-planar-1d.gnu",
-            normOutputFile = "None",
+            normOutputFile = "Limited_asciiDump.dat",
             writeOutputLabel = True,
 
             graphics = "gnu",
@@ -102,11 +105,13 @@ if svph:
     hydroname = "SVPH"
 elif crksph:
     hydroname = "CRKSPH"
-elif PSPH:
+elif psph:
     hydroname = "PSPH"
+elif fsisph:
+    hydroname = "FSISPH"
 else:
     hydroname = "SPH"
-
+normOutputFile = hydroname+"_"+normOutputFile
 dataDir = os.path.join(dataDirBase,
                        hydroname,
                        "nx=%i" % nx1)
@@ -116,7 +121,6 @@ restartBaseName = os.path.join(restartDir, "AcousticWave-planar-1d-%i" % nx1)
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -143,11 +147,15 @@ output("WT")
 #-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
-nodes1 = makeFluidNodeList("nodes1", eos,
-                           hmin = hmin,
-                           hmax = hmax,
-                           kernelExtent = kernelExtent,
-                           nPerh = nPerh)
+if solid:
+    makeNL = makeSolidNodeList
+else:
+    makeNL = makeFluidNodeList
+nodes1 = makeNL("nodes1", eos,
+                hmin = hmin,
+                hmax = hmax,
+                kernelExtent = kernelExtent,
+                nPerh = nPerh)
 output("nodes1")
 output("nodes1.hmin")
 output("nodes1.hmax")
@@ -248,7 +256,6 @@ output("db.numFluidNodeLists")
 if svph:
     hydro = SVPH(dataBase = db,
                  W = WT,
-                 Q = q,
                  cfl = cfl,
                  compatibleEnergyEvolution = compatibleEnergy,
                  XSVPH = XSPH,
@@ -261,19 +268,36 @@ elif crksph:
     hydro = CRKSPH(dataBase = db,
                    filter = filter,
                    cfl = cfl,
+                   order = correctionOrder,
                    compatibleEnergyEvolution = compatibleEnergy,
-                   correctionOrder = correctionOrder,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate)
+elif psph:
+    hydro = PSPH(dataBase = db,
+                 cfl = cfl,
+                 W = WT,
+                 filter = filter,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 densityUpdate = densityUpdate,
+                 HUpdate = HUpdate,
+                 XSPH = XSPH)
+elif fsisph: 
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   cfl = cfl,
+                   sumDensityNodeLists = [nodes1],
+                   compatibleEnergyEvolution = compatibleEnergy,          
+                   epsTensile = epsilonTensile)
 else:
     hydro = SPH(dataBase = db,
+                #Q=MonaghanGingoldViscosity(Cl,Cq),
                 W = WT, 
-                Q = q,
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 gradhCorrection = gradhCorrection,
                 XSPH = XSPH,
+                correctVelocityGradient=False,
                 densityUpdate = densityUpdate,
                 HUpdate = HUpdate,
                 epsTensile = epsilonTensile,
@@ -320,6 +344,37 @@ output("integrator.dtMax")
 output("integrator.dtGrowth")
 output("integrator.rigorousBoundaries")
 
+def printTotalEnergy(cycle,time,dt):
+    Etot=0.0
+    Etherm=0.0
+    Ekinetic=0.0
+    Vtot = 0.0
+    Ptot = Vector.zero
+    mass00=db.fluidMass
+    vel00=db.fluidVelocity
+    eps00=db.fluidSpecificThermalEnergy
+    rho00 = db.fluidMassDensity
+    nodeLists = db.nodeLists()
+    for nodelisti in range(db.numNodeLists):
+
+        for i in range(nodeLists[nodelisti].numInternalNodes):
+            #print([mass00(nodelisti,i),eps00(nodelisti,i),vel00(nodelisti,i)])
+            Vtot += mass00(nodelisti,i)/rho00(nodelisti,i)
+            #Ptot += mass00(nodelisti,i)*vel00(nodelisti,i)
+            Etot += mass00(nodelisti,i)*(0.5*vel00(nodelisti,i).magnitude2()+eps00(nodelisti,i))
+            Etherm += mass00(nodelisti,i)*(eps00(nodelisti,i))
+            Ekinetic += mass00(nodelisti,i)*(0.5*vel00(nodelisti,i).magnitude2())
+    #Ptot = mpi.allreduce(Ptot,mpi.SUM)
+    Vtot = mpi.allreduce(Vtot,mpi.SUM)
+    Etot = mpi.allreduce(Etot,mpi.SUM)
+    Etherm = mpi.allreduce(Etherm,mpi.SUM)
+    Ekinetic = mpi.allreduce(Ekinetic,mpi.SUM)
+    print(" TOTAL   VOLUME   : %.15g" % Vtot)
+    #print([" TOTAL   MOMENTUM : ",Ptot])
+    print(" TOTAL   ENERGY   : %.15g" % Etot)
+    print(" KINETIC ENERGY   : %.15g" % Ekinetic)
+    print(" THERMAL ENERGY   : %.15g" % Etherm)
+
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
@@ -328,7 +383,8 @@ control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            restoreCycle = restoreCycle)
+                            restoreCycle = restoreCycle,
+                            periodicWork=[(printTotalEnergy,1)])
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -352,7 +408,14 @@ xlocal = [pos.x for pos in nodes1.positions().internalValues()]
 xprof = mpi.reduce(xlocal, mpi.SUM)
 dx = (x1 - x0)/nx1
 h1 = nPerh*dx
-answer = AcousticWaveSolution.AcousticWaveSolution(eos, cs, rho1, x0, x1, A, twopi*kfreq, h1)
+answer = AcousticWaveSolution.AcousticWaveSolution(eos, 
+                                                   cs=cs, 
+                                                   rho0=rho1, 
+                                                   x0=x0, 
+                                                   x1=x1, 
+                                                   A=A, 
+                                                   k=twopi*kfreq, 
+                                                   h0=h1)
 #print "\n\nPERIOD=",1.0/(kfreq*cs)
 
 ### Compute the simulated specific entropy.
@@ -367,38 +430,40 @@ answer = AcousticWaveSolution.AcousticWaveSolution(eos, cs, rho1, x0, x1, A, two
 #-------------------------------------------------------------------------------
 # Plot the final state.
 #-------------------------------------------------------------------------------
-if graphics == "gnu":
-    from SpheralGnuPlotUtilities import *
-    state = State(db, integrator.physicsPackages())
-    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state)
-    if mpi.rank == 0:
-        plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot, xprof)
-    cs = state.scalarFields(HydroFieldNames.soundSpeed)
-    csPlot = plotFieldList(cs, winTitle="Sound speed", colorNodeLists=False)
-    EPlot = plotEHistory(control.conserve)
 
-    # Plot the correction terms.
+if graphics:
+    from SpheralMatplotlib import *
 
-    # Plot the grad h correction term (omega)
+    rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
+    plotAnswer(answer, control.time(),
+               rhoPlot = rhoPlot,
+               velPlot = velPlot,
+               epsPlot = epsPlot,
+               PPlot = PPlot,
+               HPlot = HPlot)
+    pE = plotEHistory(control.conserve)
 
-    if SVPH:
-        volPlot = plotFieldList(hydro.volume(),
-                                winTitle = "volume",
-                                colorNodeLists = False)
-    elif CRKSPH:
-        APlot = plotFieldList(hydro.A(),
-                              winTitle = "A",
-                              colorNodeLists = False)
-        BPlot = plotFieldList(hydro.B(),
-                              yFunction = "%s.x",
-                              winTitle = "B",
-                              colorNodeLists = False)
+    #csPlot = plotFieldList(cs, winTitle="Sound speed")
+    #csPlot.plot(xans, csAns, "k-",
+    #            label = "Analytic")
 
-    else:
-        omegaPlot = plotFieldList(hydro.omegaGradh(),
-                                  winTitle = "grad h correction",
-                                  colorNodeLists = False)
-Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+    #APlot = newFigure()
+    #APlot.plot(xprof, A, "ro", label="Simulation")
+    #APlot.plot(xans, Aans, "k-", label="Analytic")
+    #plt.title("A entropy")
+
+    plots = [(rhoPlot, "Sod-planar-rho.png"),
+             (velPlot, "Sod-planar-vel.png"),
+             (epsPlot, "Sod-planar-eps.png"),
+             (PPlot, "Sod-planar-P.png"),
+             (HPlot, "Sod-planar-h.png")]
+             #(csPlot, "Sod-planar-cs.png"),
+             #(APlot, "Sod-planar-entropy.png")]
+
+    # Make hardcopies of the plots.
+    for p, filename in plots:
+        savefig(p, os.path.join(dataDir, filename))
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[1])/control.conserve.EHistory[1]
 print "Total energy error: %g" % Eerror
 
 #-------------------------------------------------------------------------------
@@ -421,11 +486,7 @@ if outputFile != "None":
               "rhoans", "Pans", "vans", "epsans", "hans"]
     stuff = [xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof, 
              rhoans, Pans, vans, uans, hans]
-    if CRKSPH:
-        Aprof = mpi.reduce(hydro.A()[0].internalValues(), mpi.SUM)
-        Bprof = mpi.reduce([x.x for x in hydro.B()[0].internalValues()], mpi.SUM)
-        labels += ["A", "B"]
-        stuff += [Aprof, Bprof]
+
 
     if mpi.rank == 0:
         multiSort(*tuple(stuff))
@@ -449,6 +510,7 @@ if outputFile != "None":
                                                      '"h L1"',   '"h L2"',   '"h Linf"'))
             f.write("%16i " % nx1)
         xmin, xmax = x0, x1
+        pickleDumpDict =[]
         for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
                                   ("Pressure", Pprof, Pans),
                                   ("Velocity", vprof, vans),
@@ -456,15 +518,40 @@ if outputFile != "None":
             assert len(data) == len(ans)
             error = [data[i] - ans[i] for i in xrange(len(data))]
             Pn = Pnorm.Pnorm(error, xprof)
-            L1 = Pn.pnormAverage(1, xmin, xmax)
-            L2 = Pn.pnormAverage(2, xmin, xmax)
-            Linf = Pn.pnormAverage("inf", xmin, xmax)
+            L1 = Pn.gridpnorm(1, xmin, xmax)
+            L2 = Pn.gridpnorm(2, xmin, xmax)
+            Linf = Pn.gridpnorm("inf", xmin, xmax)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
             if normOutputFile != "None":
                 f.write((3*"%16.12e ") % (L1, L2, Linf))
+            # if name == "Mass Density":
+            #     pickleDumpL1 = L1
+
         if normOutputFile != "None":
             f.write("\n")
             f.close()
 
+        # keep running tally of density norms in single
+        # file for refinement study
+        # filename = hydroname+'densityNorm.pkl'
+        # if os.path.exists(filename):
+
+        #     f=open(filename,'r')
+        #     data=pickle.load(f)
+        #     data.append(pickleDumpL1)
+        #     f.close()
+        # else:
+        #     data = [pickleDumpL1]
+
+        # with open(filename, 'wb') as f:
+        #     pickle.dump(data,f)
+
+
 if compatibleEnergy and abs(Eerror) > 1e-5:
     raise ValueError, "Energy error outside allowed bounds."
+
+
+
+
+    
+    

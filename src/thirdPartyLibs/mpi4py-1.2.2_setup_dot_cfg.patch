@@ -1,4 +1,0 @@
-20a21,23
-> 
-> [build_ext]
-> define = PyMPI_MISSING_MPI_Type_create_f90_integer, PyMPI_MISSING_MPI_Type_create_f90_real, PyMPI_MISSING_MPI_Type_create_f90_complex
