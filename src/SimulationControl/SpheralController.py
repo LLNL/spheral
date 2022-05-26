@@ -28,6 +28,7 @@ class SpheralController:
                  restartBaseName = "restart",
                  restartObjects = [],
                  restartFileConstructor = SiloFileIO,
+                 SPIOFileCountPerTimeslice = None,
                  restoreCycle = None,
                  initializeDerivatives = False,
                  vizBaseName = None,
@@ -55,6 +56,7 @@ class SpheralController:
         self.kernel = kernel
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
+        self.SPIOFileCountPerTimeslice = SPIOFileCountPerTimeslice
         self.SPH = SPH
         self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
         self._break = False
@@ -552,7 +554,10 @@ class SpheralController:
         import time
         start = time.clock()
         fileName = self.restartBaseName + "_cycle%i" % self.totalSteps
-        file = self.restartFileConstructor(fileName, Create)
+        if self.restartFileConstructor is SidreFileIO and self.SPIOFileCountPerTimeslice is not None:
+            file = self.restartFileConstructor(fileName, Create, self.SPIOFileCountPerTimeslice)
+        else:
+            file = self.restartFileConstructor(fileName, Create)
         RestartRegistrar.instance().dumpState(file)
         print "Wrote restart file in %0.2f seconds" % (time.clock() - start)
 
@@ -573,7 +578,12 @@ class SpheralController:
             fileName += ".gz"
         if self.restartFileConstructor is SiloFileIO:
             fileName += ".silo"
-        if not os.path.exists(fileName):
+        # Sidre already adds ".root" to the end of the file so we need to run the check without adding anything to the fileName
+        if self.restartFileConstructor is SidreFileIO:
+            if not os.path.exists(fileName + ".root") and mpi.rank is 0 and not mpi.is_fake_mpi():
+                raise RuntimeError("File %s does not exist or is inaccessible." %
+                                   fileName)
+        elif not os.path.exists(fileName):
             raise RuntimeError("File %s does not exist or is inaccessible." %
                                fileName)
 
@@ -581,9 +591,8 @@ class SpheralController:
         print 'Reading from restart file', fileName
         import time
         start = time.clock()
-        if self.restartFileConstructor is GzipFileIO:
-            file = self.restartFileConstructor(fileName, Read)
-                                               #readToMemory = True)
+        if self.restartFileConstructor is SidreFileIO and self.SPIOFileCountPerTimeslice is not None:
+            file = self.restartFileConstructor(fileName, Read, self.SPIOFileCountPerTimeslice)
         else:
             file = self.restartFileConstructor(fileName, Read)
         RestartRegistrar.instance().restoreState(file)
