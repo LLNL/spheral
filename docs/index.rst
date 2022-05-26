@@ -8,16 +8,15 @@ Welcome to Spheral's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: User Guide:
 
    intro.rst
-   quickstart.rst
-   building.rst
+   user/external/building.rst
+   user/lc/building.rst
+   user/cmake_config.rst
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Developer Guide:
+
    Development_Documentation.rst
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
