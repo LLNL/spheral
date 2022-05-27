@@ -1,0 +1,44 @@
+# ------------------------------------------------------------------------------
+# JOB TEMPLATES
+
+.blueos_build_and_test:
+  script:
+    - whoami
+    - ml load python/3.8.2
+    - ml load "$LC_MODULES"
+    - lalloc 1 ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - lalloc 1 ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --logs test-logs --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats "$EXTRA_TEST_ARGS" build_"$ARCH"-"$SPEC"/install/$ATS_FILE
+  artifacts:
+    when: always
+    paths:
+      - test-logs/
+
+.toss_build_and_test:
+  script:
+    - whoami
+    - ml load "$LC_MODULES"
+    - srun -N 1 -c 36 -p pdebug -t 60 $SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --logs test-logs --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats "$EXTRA_TEST_ARGS" build_"$ARCH"-"$SPEC"/install/$ATS_FILE
+  artifacts:
+    when: always
+    paths:
+      - test-logs/
+
+.blueos_update_tpls:
+  script:
+    - lalloc 1 ./$SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=/usr/WS2/wciuser/Spheral/spheral-spack-tpls
+
+.toss_update_tpls:      
+  script:
+    - srun -N 1 -c 36 -p pdebug -t 60 $SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=/usr/WS2/wciuser/Spheral/spheral-spack-tpls
+
+.toss_update_permissions:
+  script:
+    - ml load mpifileutils
+    - srun -N 1 -p pdebug -n 20 -t 10 dchmod --mode go+rx /usr/WS2/wciuser/Spheral/spheral-spack-tpls/
+.merge_pr_rule:
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
+      when: always
+
+

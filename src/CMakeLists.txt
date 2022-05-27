@@ -6,7 +6,7 @@ include(${CMAKE_MODULE_PATH}/spheral/SpheralAddLibs.cmake)
 include(${CMAKE_MODULE_PATH}/spheral/SpheralInstallPythonFiles.cmake)
 
 include_directories(.)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${PROJECT_BINARY_DIR}/src)
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
@@ -51,7 +51,7 @@ if(NOT ENABLE_CXXONLY)
     )
 endif()
 
-configure_file(${PROJECT_SOURCE_DIR}/src/config.hh.in
+configure_file(config.hh.in
   ${PROJECT_BINARY_DIR}/src/config.hh)
 
 foreach(_package ${_packages})
