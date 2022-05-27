@@ -481,7 +481,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       CHECK(rhoj > 0.0);
       const auto Prhoi = safeOmegai*Pi/(rhoi*rhoi);
       const auto Prhoj = safeOmegaj*Pj/(rhoj*rhoj);
-      const auto fQi = ri.x()*safeInv(ri.x() + rj.x());
+      const auto fQi = rj.x()*safeInv(ri.x() + rj.x());
       const auto deltaDvDti = -mj*(Prhoi*gradWji + Prhoj*gradWjj + fQi        *(QPiij*gradWQji + QPiji*gradWQjj));
       const auto deltaDvDtj = -mi*(Prhoj*gradWij + Prhoi*gradWii + (1.0 - fQi)*(QPiji*gradWQij + QPiij*gradWQii));
       DvDti += deltaDvDti;
@@ -492,10 +492,10 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Specific thermal energy evolution
-      // DepsDti += mj*(0.5*fQi        *(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
-      // DepsDtj += mi*(0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
-      DepsDti += mj*(Prhoi + 0.5*fQi        *(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
-      DepsDtj += mi*(Prhoj + 0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
+      DepsDti += mj*(Prhoi + 0.25*(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
+      DepsDtj += mi*(Prhoj + 0.25*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
+      // DepsDti += mj*(Prhoi + 0.5*fQi        *(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
+      // DepsDtj += mi*(Prhoj + 0.5*(1.0 - fQi)*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
 
       // Velocity gradient.
       const auto deltaDvDxi = -mj*vij.dyad(gradWjj);
