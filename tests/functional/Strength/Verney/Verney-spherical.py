@@ -19,7 +19,7 @@ from SortAndDivideRedistributeNodes import distributeNodes1d
 #-------------------------------------------------------------------------------
 # Identify ourselves!
 #-------------------------------------------------------------------------------
-title("RZ Verney imploding shell test.")
+title("Spherical Verney imploding shell test.")
 
 #-------------------------------------------------------------------------------
 # Use (cm, gm, usec) units as in paper.
