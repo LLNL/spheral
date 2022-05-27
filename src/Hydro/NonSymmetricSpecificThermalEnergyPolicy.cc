@@ -120,7 +120,6 @@ update(const KeyType& key,
       const auto nodeListj = pairs[kk].j_list;
 
       // State for node i.
-      const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& ai = acceleration(nodeListi, i);
@@ -128,7 +127,6 @@ update(const KeyType& key,
       const auto& pacci = pairAccelerations[2*kk];
 
       // State for node j.
-      const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
       const auto  mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& aj = acceleration(nodeListj, j);
@@ -136,6 +134,8 @@ update(const KeyType& key,
       const auto& paccj = pairAccelerations[2*kk+1];
 
       const auto dEij = -(mi*vi12.dot(pacci) + mj*vj12.dot(paccj));
+      const auto weighti = std::max(numeric_limits<Scalar>::epsilon(), DepsDt0(nodeListi, i)*sgn(dEij));
+      const auto weightj = std::max(numeric_limits<Scalar>::epsilon(), DepsDt0(nodeListj, j)*sgn(dEij));
       const auto wi = weighti/(weighti + weightj);
       CHECK(wi >= 0.0 and wi <= 1.0);
 
