@@ -5,6 +5,16 @@
 #
 # See LA-14379, Howell & Ball 2002 JCP
 #-------------------------------------------------------------------------------
+#
+# Ordinary solid SPH
+#
+#ATS:t100 = test(        SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Spherical Verney problem with solid SPH -- 1-D (serial)")
+#ATS:t101 = testif(t100, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Spherical Verney problem with solid SPH -- 1-D (serial) RESTART CHECK")
+#ATS:t102 = test(        SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-spherical-restartcheck' --restartStep 20", np=2, label="Spherical Verney problem with solid SPH -- 1-D (parallel)")
+#ATS:t103 = testif(t102, SELF, "--graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-spherical-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Spherical Verney problem with solid SPH -- 1-D (parallel) RESTART CHECK")
+#ATS:t104 = test(        SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-spherical-reproducing' --domainIndependent True --outputFile 'Verney-spherical-1proc-reproducing.txt'", label="Spherical Verney problem with solid SPH -- 1-D (serial reproducing test setup)")
+#ATS:t105 = testif(t104, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDirBase 'dumps-spherical-reproducing' --domainIndependent True --outputFile 'Verney-spherical-4proc-reproducing.txt' --comparisonFile 'Verney-spherical-1proc-reproducing.txt'", np=4, label="Spherical Verney problem with solid SPH -- 1-D (4 proc reproducing test)")
+
 from math import *
 import shutil
 import mpi
@@ -111,6 +121,13 @@ commandLine(nr = 20,                     # Radial resolution of the shell in poi
             clearDirectories = False,
             dataDirBase = "dumps-Verney-Be-R",
             outputFile = "Verney-Be-R.gnu",
+            comparisonFile = "None",
+
+            # Testing
+            checkRestart = False,
+            checkError = False,
+            rInnerCheck = 4.0,
+            rInnerError = 0.1,
         )
 
 # Material parameters for this test problem.
@@ -379,7 +396,24 @@ output("control")
 # Advance to the end time.
 #-------------------------------------------------------------------------------
 if not steps is None:
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName + "_CHECK")
     control.step(steps)
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName)
+
+    # Are we doing the restart test?
+    if checkRestart:
+        state0 = State(db, integrator.physicsPackages())
+        state0.copyState()
+        print control.totalSteps
+        control.loadRestartFile(control.totalSteps)
+        state1 = State(db, integrator.physicsPackages())
+        if not state1 == state0:
+            raise ValueError, "The restarted state does not match!"
+        else:
+            print "Restart check PASSED."
+
 else:
     control.advance(goalTime)
     control.dropRestartFile()
@@ -438,6 +472,14 @@ if outputFile != "None":
                      unpackElementUL(packElementDouble(psi))))
         f.close()
 
+        #---------------------------------------------------------------------------
+        # Also we can optionally compare the current results with another file.
+        #---------------------------------------------------------------------------
+        if comparisonFile != "None":
+            comparisonFile = os.path.join(dataDir, comparisonFile)
+            import filecmp
+            assert filecmp.cmp(outputFile, comparisonFile)
+
 #-------------------------------------------------------------------------------
 # Plot the state.
 #-------------------------------------------------------------------------------
@@ -470,3 +512,12 @@ if graphics:
                            xFunction = "%s.x",
                            plotStyle="points",
                            winTitle="plastic strain @ %g" % (control.time()))
+
+#-------------------------------------------------------------------------------
+# Check the answer
+#-------------------------------------------------------------------------------
+if checkError:
+    if abs(rsim0 - rInnerCheck) > rInnerError:
+        raise RuntimeError, "Inner shell radius %g outside expected range [%g:%g]" % (rsim0, rInnerCheck - rInnerError, rInnerCheck + rInnerError)
+    if compatibleEnergy and Eerror > 1.0e-10:
+        raise RuntimeError, "Energy error %g > %g" % (Eerror, 1.0e-10)
