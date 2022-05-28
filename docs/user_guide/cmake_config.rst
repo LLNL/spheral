@@ -1,5 +1,5 @@
-Spheral / CMake Configurations
-##############################
+CMake Configurations
+====================
 
 This section outlines the common CMake options Spheral provides for configuring how to build Spheral.
 

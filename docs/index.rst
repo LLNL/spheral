@@ -6,17 +6,23 @@
 Welcome to Spheral's documentation!
 =======================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: User Guide:
+.. include:: intro/introduction.rst
+   :start-after: [intro-section-start]
+   :end-before: [intro-section-end]
 
-   intro.rst
-   user/external/building.rst
-   user/lc/building.rst
-   user/cmake_config.rst
+.. toctree::
+   :maxdepth: 1
+   :caption: User Guides:
+
+   user_guide/external/index.rst
+   user_guide/lc/index.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Developer Guide:
 
-   Development_Documentation.rst
+   developer/Development_Documentation.rst
+
+.. include:: intro/introduction.rst
+   :start-after: [license-section-start]
+   :end-before: [license-section-end]
