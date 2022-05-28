@@ -30,10 +30,12 @@ public:
   // Constructor.
   // Takes a normal 3D TableKernel and constructs the integral form appropriate
   // for 1D spherical coordinates.
-  template<typename KernelType> SphericalKernel(const KernelType& kernel,
-                                                const unsigned numIntegral = 5000u,
-                                                const unsigned numKernel = 200u,
-                                                const bool useInterpolation = true);
+  template<typename KernelType>
+  explicit
+  SphericalKernel(const KernelType& kernel,
+                  const unsigned numIntegral = 5000u,
+                  const unsigned numKernel = 200u,
+                  const bool useInterpolation = true);
   SphericalKernel(const SphericalKernel& rhs);
 
   // Destructor.

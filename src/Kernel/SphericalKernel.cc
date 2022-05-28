@@ -212,21 +212,21 @@ SphericalKernel::integralCorrection(const double a,
 }
 
 // Constructor instantiations
-template SphericalKernel::SphericalKernel<TableKernel<Dim<3>>>          (const TableKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<BSplineKernel<Dim<3>>>        (const BSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<NBSplineKernel<Dim<3>>>       (const NBSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<W4SplineKernel<Dim<3>>>       (const W4SplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<GaussianKernel<Dim<3>>>       (const GaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<SuperGaussianKernel<Dim<3>>>  (const SuperGaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<PiGaussianKernel<Dim<3>>>     (const PiGaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<HatKernel<Dim<3>>>            (const HatKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<SincKernel<Dim<3>>>           (const SincKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<NSincPolynomialKernel<Dim<3>>>(const NSincPolynomialKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<QuarticSplineKernel<Dim<3>>>  (const QuarticSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<QuinticSplineKernel<Dim<3>>>  (const QuinticSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<WendlandC2Kernel<Dim<3>>>     (const WendlandC2Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<WendlandC4Kernel<Dim<3>>>     (const WendlandC4Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel<WendlandC6Kernel<Dim<3>>>     (const WendlandC6Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const TableKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const BSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const NBSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const W4SplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const GaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const SuperGaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const PiGaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const HatKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const SincKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const NSincPolynomialKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const QuarticSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const QuinticSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const WendlandC2Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const WendlandC4Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernel::SphericalKernel(const WendlandC6Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
 
 }
 
