@@ -11,39 +11,45 @@ option(ENABLE_UNUSED_PARAMETER_WARNINGS "show unused parameter warnings" OFF)
 option(ENABLE_MISSING_INCLUDE_DIR_WARNINGS "show unused parameter warnings" OFF)
 
 
-if (NOT ENABLE_WARNINGS)
+if (ENABLE_WARNINGS)
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-command-line-argument -Wno-c++17-extensions")
+  endif()
+else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
 endif()
 message("-- Compiler warnings ${ENABLE_WARNINGS}")
 
+set(CXX_WARNING_FLAGS "")
 if (ENABLE_WARNINGS_AS_ERRORS)
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    set(CXX_WARNING_FLAGS /W4 /WX)
+    list(APPEND CXX_WARNING_FLAGS /W4 /WX)
   else()
-    set(CXX_WARNING_FLAGS -Wall -Wextra -pedantic -Werror -Wl,--fatal-warnings)
+    list(APPEND CXX_WARNING_FLAGS -Wall -Wextra -pedantic -Werror -Wl,--fatal-warnings)
   endif()
-  add_compile_options(${CXX_WARNING_FLAGS})
   message("-- Treating warnings as errors with compile flags ${CXX_WARNING_FLAGS}")
 endif()
 
 
 if (NOT ENABLE_UNUSED_VARIABLE_WARNINGS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable")
+  list(APPEND CXX_WARNING_FLAGS -Wno-unused-variable)
 endif()
 message("-- Compiler unused variable warnings ${ENABLE_UNUSED_VARIABLE_WARNINGS}")
 
 
 if (NOT ENABLE_UNUSED_PARAMETER_WARNINGS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+  list(APPEND CXX_WARNING_FLAGS -Wno-unused-parameter)
 endif()
 message("-- Compiler unused parameter warnings ${ENABLE_UNUSED_PARAMETER_WARNINGS}")
 
 
 if (NOT ENABLE_MISSING_INCLUDE_DIR_WARNINGS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-include-dirs")
+  list(APPEND CXX_WARNING_FLAGS -Wno-missing-include-dirs)
 endif()
 message("-- Compiler missing include dir warnings ${ENABLE_MISSING_INCLUDE_DIR_WARNINGS}")
 
+add_compile_options(${CXX_WARNING_FLAGS})
+message("-- using warning flags ${CXX_WARNING_FLAGS}")
 
 # We build some Fortran code from outside sources (like the Helmholtz EOS) that
 # cause building errors if the compiler is too picky...
