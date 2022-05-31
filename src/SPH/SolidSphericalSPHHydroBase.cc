@@ -96,13 +96,6 @@ tensileStressCorrection(const Dim<1>::SymTensor& sigma) {
   }
 }
 
-//------------------------------------------------------------------------------
-// Compute one minus the SymTensor in it's principle frame
-//------------------------------------------------------------------------------
-inline Dim<1>::SymTensor oneMinusEigenvalues(const Dim<1>::SymTensor& x) {
-  return Dim<1>::SymTensor(1.0 - x[0]);
-}
-
 }
 
 //------------------------------------------------------------------------------

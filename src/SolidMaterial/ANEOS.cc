@@ -88,15 +88,12 @@ public:
         const CubicHermiteInterpolator& epsMinInterp,
         const CubicHermiteInterpolator& epsMaxInterp,
         const BiCubicInterpolator& epsInterp,
-        const epsFunc& Feps,
-        const bool verbose = false):
+        const epsFunc& Feps):
     mTmin(Tmin),
     mTmax(Tmax),
     mEpsMinInterp(epsMinInterp),
     mEpsMaxInterp(epsMaxInterp),
-    mEpsInterp(epsInterp),
-    mFeps(Feps),
-    mVerbose(verbose) {}
+    mEpsInterp(epsInterp) {}
 
   double operator()(const double rho, const double eps) const {
     if (eps < mEpsMinInterp(rho)) {
@@ -120,8 +117,6 @@ private:
   double mTmin, mTmax;
   const CubicHermiteInterpolator& mEpsMinInterp, mEpsMaxInterp;
   const BiCubicInterpolator& mEpsInterp;
-  const epsFunc& mFeps;
-  bool mVerbose;
 
   // We need to make a single argument functor for eps(T) given a fixed rho
   class Trho_func {
@@ -661,7 +656,7 @@ temperature(const Scalar massDensity,
     return Textra(massDensity, specificThermalEnergy);
   } else {
     const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
-    const auto Ftemp = Tfunc(mTmin, mTmax, mEpsMinInterp, mEpsMaxInterp, mEpsInterp, Feps, true);
+    const auto Ftemp = Tfunc(mTmin, mTmax, mEpsMinInterp, mEpsMaxInterp, mEpsInterp, Feps);
     return Ftemp(massDensity, specificThermalEnergy);
   }
 }

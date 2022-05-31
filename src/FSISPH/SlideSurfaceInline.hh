@@ -87,7 +87,7 @@ slideCorrection(const typename Dimension::Scalar  smoothnessi,
     const auto ssij = this->pairwiseInterfaceSmoothness(smoothnessi,smoothnessj);
     const auto nij = this->pairwiseInterfaceNormal(smoothnessi,smoothnessj,normali,normalj);
     const auto vijhat = (velocityi-velocityj).unitVector();
-    const auto fij = abs(nij.dot(vijhat));
+    const auto fij = std::abs(nij.dot(vijhat));
     const auto slideCorr = (1.0-ssij) + (ssij)*fij*fij; 
 
     return slideCorr;      
@@ -113,7 +113,7 @@ weightedSlideCorrection(const typename Dimension::Scalar  smoothnessi,
     const auto ssij = this->weightedPairwiseInterfaceSmoothness(smoothnessi,smoothnessj,weighti,weightj);
     const auto nij = this->weightedPairwiseInterfaceNormal(smoothnessi,smoothnessj,normali,normalj,weighti,weightj);
     const auto vijhat = (velocityi-velocityj).unitVector();
-    const auto fij = abs(nij.dot(vijhat));
+    const auto fij = std::abs(nij.dot(vijhat));
     const auto slideCorr = (1.0-ssij) + (ssij)*fij*fij; 
 
     return slideCorr;      

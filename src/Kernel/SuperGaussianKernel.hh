@@ -15,6 +15,7 @@
 #define __Spheral_SuperGaussianKernel_hh__
 
 #include "Kernel.hh"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
@@ -47,6 +48,15 @@ private:
   static const double mKGW;
 
 };
+
+template<> const double SuperGaussianKernel<Dim<1>>::mKW;
+template<> const double SuperGaussianKernel<Dim<1>>::mKGW;
+
+template<> const double SuperGaussianKernel<Dim<2>>::mKW;
+template<> const double SuperGaussianKernel<Dim<2>>::mKGW;
+
+template<> const double SuperGaussianKernel<Dim<3>>::mKW;
+template<> const double SuperGaussianKernel<Dim<3>>::mKGW;
 
 }
 
