@@ -11,16 +11,16 @@ option(ENABLE_UNUSED_PARAMETER_WARNINGS "show unused parameter warnings" OFF)
 option(ENABLE_MISSING_INCLUDE_DIR_WARNINGS "show unused parameter warnings" OFF)
 
 
+set(CXX_WARNING_FLAGS "")
 if (ENABLE_WARNINGS)
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-command-line-argument -Wno-c++17-extensions")
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    list(APPEND CXX_WARNING_FLAGS -Wno-unused-command-line-argument -Wno-c++17-extensions)
   endif()
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
 endif()
 message("-- Compiler warnings ${ENABLE_WARNINGS}")
 
-set(CXX_WARNING_FLAGS "")
 if (ENABLE_WARNINGS_AS_ERRORS)
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     list(APPEND CXX_WARNING_FLAGS /W4 /WX)
@@ -61,11 +61,16 @@ message("-- Fortran flags: ${CMAKE_Fortran_FLAGS}")
 # PYB11 Target Flags
 #-------------------------------------------------------------------------------
 set(SPHERAL_PYB11_TARGET_FLAGS
-  "-Wno-unused-local-typedefs"
-  "-Wno-self-assign-overloaded"
-  "-Wno-overloaded-virtual"
-  "-Wno-delete-non-abstract-non-virtual-dtor")
-
+  -Wno-unused-local-typedefs 
+  -Wno-overloaded-virtual)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  list(APPEND SPHERAL_PYB11_TARGET_FLAGS
+    -Wno-self-assign-overloaded 
+    -Wno-delete-non-abstract-non-virtual-dtor)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  list(APPEND SPHERAL_PYB11_TARGET_FLAGS
+    -Wno-pedantic)
+endif()
 
 #-------------------------------------------------------------------------------
 # Compiler specific flags
