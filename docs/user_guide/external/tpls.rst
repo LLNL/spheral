@@ -1,3 +1,5 @@
+.. _ex_tpl:
+
 Spheral Third Party Libraries (TPLs)
 ####################################
 

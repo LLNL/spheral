@@ -9,6 +9,7 @@ This guide is designed to help external users build and install Spheral on non L
    :caption: User Guide:
 
    quickstart.rst
+   ubuntu_update.rst
    cloning.rst
    tpls.rst
    configure.rst
