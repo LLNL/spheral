@@ -4,10 +4,6 @@ The Spheral build system works in two stages.
  - Stage 1: Building and setting up Third Party Libraries (TPL)s.
  - Stage 2: Building and installing Spheral.
 
- ..
-   .. note::
-     Stage 1 is technically optional however highly recommended, especially for first time users. If you wish to skip Stage 1 you can build the TPLs manually and pass them to CMake when configuring Spheral. (See ...)
-
 Spheral uses `Spack <https://github.com/llnl/spack>`_ under the hood to handle Third Party Library dependencies. Spack will track dependencies between TPLs and version constraints of TPLs as the project develops. Spack is also particularly good at handling TPL setup across various configurations, compilers and build time options.
 [intro-end]
 
@@ -31,11 +27,13 @@ Spheral provides a tool (``tpl-manager.py``) in an attempt to deobfuscate the sp
 [tpl_manager-end]
 
 [ex_tpl_manager_notes-start]
+
  .. note:
     The External User Guide does not cover building the full range of tpl configurations. Please see the LC User Guide for more informtaion.
 
 [ex_tpl_manager_notes-end]
 [lc_tpl_manager_notes-start]
+
  .. note:
     The External User Guide does not cover building the full range of tpl configurations. Please see the LC User Guide for more informtaion.
 
@@ -70,6 +68,7 @@ Above we are telling ``tpl-manager`` to build our TPLs with the ``gcc`` that is 
 
 .. note::
    Spheral minimally requires a C++11 compliant compiler.
+
 [ex_running_tpl_manager-end]
 
 [lc_running_tpl_manager-start]
@@ -124,5 +123,5 @@ Help
 Manually installing TPLs
 ========================
 
-Although it is HIGHLY recommended, you do not need to use ``tpl-manager`` to setup TPLs for Spheral. TPLs can be built manually or built through your own spack installation and passed to the Spheral CMake system. See `Customize CMake Options`_ for more details.
+Although it is HIGHLY recommended, you do not need to use ``tpl-manager`` to setup TPLs for Spheral. TPLs can be built manually or built through your own spack installation and passed to the Spheral CMake system. See :ref:`manual_config` for more details.
 [manual_tpl-end]

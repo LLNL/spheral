@@ -14,6 +14,7 @@ Update and install necessary package dependencies.
 
 .. warning::
    For alternative Linux distros your mileage may vary, ensure you are installing compatible packages to the ones listed above.
+
 [ex_update_sys-section-end]
 
 ..
@@ -27,6 +28,7 @@ Create a directory structure and clone spheral.
   mkdir -p SPHERAL && cd SPHERAL
   git clone --recursive https://github.com/llnl/spheral
   cd spheral
+
 [create_dir-section-end]
 
 ..
@@ -44,6 +46,7 @@ Build our TPL dependencies from source with the Spheral tpl-management tool (``t
 
 .. note::
   This command will generate a ``.cmake`` file with the naming convention ``<system-type>-<compiler-spec>``. The following commands will refer to this format as ``<host-config>`` for generalization across operating systems and architectures. You will need to substitute the correct format in the following commands. 
+
 [ex_tpl-section-end]
 
 [lc_tpl-section-start]
@@ -57,6 +60,7 @@ Build our TPL dependencies from source with the Spheral tpl-management tool (``t
 
 .. note::
   This command will generate a ``.cmake`` file with the naming convention ``<system-type>-<compiler-spec>``. The following commands will refer to this format as ``<host-config>`` for generalization across operating systems and architectures. You will need to substitute the correct format in the following commands. 
+
 [lc_tpl-section-end]
 
 ..
@@ -68,6 +72,7 @@ Set up a build/install directory structure and configure cmake.
 ::
 
   python3 scripts/devtools/host-config-build.py --host-config <host-config>.cmake
+
 [ex_build-section-end]
 
 [lc_build-section-start]
@@ -75,6 +80,7 @@ Set up a build/install directory structure and configure cmake.
 ::
 
   ./scripts/devtools/host-config-build.py --host-config <host-config>.cmake
+
 [lc_build-section-end]
 
 ..
@@ -87,6 +93,7 @@ Build and install Spheral.
 
   cd build_<host-config>/build
   make -j <N> install
+
 [ex_install-section-end]
 
 [lc_install-section-start]
@@ -98,6 +105,7 @@ Build and install Spheral.
 
 .. warning::
  ``make`` should be run under an allocation as it will take considerable resources on LC to build and install Spheral.
+
 [lc_install-section-end]
 
 

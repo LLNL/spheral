@@ -13,6 +13,7 @@ For example if you run ``tpl-manager`` with only a single ``--spec`` e.g. ``gcc~
 ::
 
   <sys_type>-gcc~mpi.cmake
+
 [ex_intro-end]
 
 [lc_intro-start]
@@ -34,6 +35,7 @@ However if you ran ``tpl-manager`` with only a single ``--spec`` e.g. ``gcc@8.1.
 ::
 
   toss_3_x86_64_ib-gcc@8.1.0~mpi.cmake
+
 [lc_intro-end]
 
 
@@ -60,7 +62,7 @@ The ``host-config-build`` tool is located at ``scripts/devtools/host-config-buil
   build_<host-config>/install
 
 .. note::
-   ``host-config-build.py`` is simply a wrapper around CMake. It is possible to directly run CMake rather than ``host-config-build.py``; ``host-config-build.py`` reports the CMake line it is using, so this can be a good starting point if you need to run CMake manually yourself.  See :ref:`manual_build` for more details.
+   ``host-config-build.py`` is simply a wrapper around CMake. It is possible to directly run CMake rather than ``host-config-build.py``; ``host-config-build.py`` reports the CMake line it is using, so this can be a good starting point if you need to run CMake manually yourself.  See :ref:`manual_config` for more details.
 
 [ex_hcb-end]
 
@@ -82,7 +84,7 @@ The ``host-config-build`` tool is located at ``scripts/devtools/host-config-buil
   build_<host-config>/install
 
 .. note::
-   ``host-config-build.py`` is simply a wrapper around CMake. It is possible to directly run CMake rather than ``host-config-build.py``; ``host-config-build.py`` reports the CMake line it is using, so this can be a good starting point if you need to run CMake manually yourself.  See :ref:`manual_build` for more details.
+   ``host-config-build.py`` is simply a wrapper around CMake. It is possible to directly run CMake rather than ``host-config-build.py``; ``host-config-build.py`` reports the CMake line it is using, so this can be a good starting point if you need to run CMake manually yourself.  See :ref:`manual_config` for more details.
 
 [lc_hcb-end]
 
@@ -182,6 +184,7 @@ The example below shows how you can take the ``gcc`` host-config from above, and
 
 [manual_cmake-start]
 .. _manual_config:
+
 Manually Configure CMake
 ========================
 

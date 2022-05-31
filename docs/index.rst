@@ -6,7 +6,7 @@
 Welcome to Spheral's documentation!
 =======================================
 
-.. include:: intro/introduction.rst
+.. include:: intro/introduction.rst.inc
    :start-after: [intro-section-start]
    :end-before: [intro-section-end]
 
@@ -18,11 +18,12 @@ Welcome to Spheral's documentation!
    user_guide/lc/index.rst
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Developer Guide:
 
-   developer/Development_Documentation.rst
+   developer/development_docs.rst
+   developer/design_docs.rst
 
-.. include:: intro/introduction.rst
+.. include:: intro/introduction.rst.inc
    :start-after: [license-section-start]
    :end-before: [license-section-end]
