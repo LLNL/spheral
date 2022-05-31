@@ -8,10 +8,10 @@ This guide is designed to help external users build and install Spheral on non L
    :maxdepth: 2
    :caption: User Guide:
 
-   00_quickstart.rst
-   01_cloning.rst
-   02_tpls.rst
-   03_configure.rst
-   04_building.rst
-   05_tests.rst
-   06_appendecies.rst
+   quickstart.rst
+   cloning.rst
+   tpls.rst
+   configure.rst
+   building.rst
+   tests.rst
+   appendecies.rst

@@ -1,3 +1,21 @@
+..
+   CONFIGURE SPHERAL INTRO
+   ----------------------------------------
+
+[ex_intro-start]
+Configuring Spheral 
+###################
+
+After running ``tpl-manager`` you will see a file in your Spheral root directory following the format ``<sys_type>-<spec>.cmake``. 
+
+For example if you run ``tpl-manager`` with only a single ``--spec`` e.g. ``gcc~mpi``, you will only see:
+
+::
+
+  <sys_type>-gcc~mpi.cmake
+[ex_intro-end]
+
+[lc_intro-start]
 Configuring Spheral 
 ###################
 
@@ -16,21 +34,37 @@ However if you ran ``tpl-manager`` with only a single ``--spec`` e.g. ``gcc@8.1.
 ::
 
   toss_3_x86_64_ib-gcc@8.1.0~mpi.cmake
+[lc_intro-end]
+
+
 
 ..
-  .. note::
-    A basic build & install from this point would look as follows:
-  
-    ::
-      
-      python3 scripts/devtools/host-config-build.py --host-config <sys_type>-gcc.cmake
-      cd build_<sys_type>-gcc/build
-      make -j <N> install
-      cd ../install/
-      ./spheral -c "import Spheral"
+   HOST-CONFIG-BUILD.PY
+   ----------------------------------------
 
-    The following sections detail these commands further.
+[ex_hcb-start]
+host-config-build.py
+====================
 
+The ``host-config-build`` tool is located at ``scripts/devtools/host-config-build.py``. ``host-config-build`` takes a host-config file and sets up Spheral's CMake with the appropriate TPLs. ``host-config-build`` by default also sets up a basic build/install directory structure. 
+
+::
+
+  python3 scripts/devtools/host-config-build.py --host-config <sys_type>-gcc.cmake"
+
+``--host-config`` is a **required** argument of the tool, by default this will create two directories in the format of:
+
+::
+
+  build_<host-config>/build
+  build_<host-config>/install
+
+.. note::
+   ``host-config-build.py`` is simply a wrapper around CMake. It is possible to directly run CMake rather than ``host-config-build.py``; ``host-config-build.py`` reports the CMake line it is using, so this can be a good starting point if you need to run CMake manually yourself.  See :ref:`manual_build` for more details.
+
+[ex_hcb-end]
+
+[lc_hcb-start]
 host-config-build.py
 ====================
 
@@ -50,11 +84,27 @@ The ``host-config-build`` tool is located at ``scripts/devtools/host-config-buil
 .. note::
    ``host-config-build.py`` is simply a wrapper around CMake. It is possible to directly run CMake rather than ``host-config-build.py``; ``host-config-build.py`` reports the CMake line it is using, so this can be a good starting point if you need to run CMake manually yourself.  See :ref:`manual_build` for more details.
 
+[lc_hcb-end]
+
+
+..
+   HELP
+   ----------------------------------------
+
+[help-start]
 Help
 ----
 
 ``host-config-build`` supports ``-h`` or ``--help`` if you need to reference the available options.
+[help-end]
 
+
+
+..
+   HOST-CONFIG-BUILD OPTIONS
+   ----------------------------------------
+
+[hcb_options-start]
 Custom Build Directory
 ======================
 
@@ -69,6 +119,14 @@ Option ``--build``
 --------------------
 
 The ``--build`` option will configure CMake as usual and then execute a build and install in parallel. 
+[hcb_options-end]
+[ex_hcb_options_note-start]
+
+.. note::
+   When building on non LC systems and using ``--build`` you can ignore any warning pertaining to ``lc-modules`` not set.
+
+[ex_hcb_options_note-end]
+[lc_hcb_options_note-start]
 
 .. warning::
    If running on LC and using ``--build`` be sure to launch in a resource allocation, as ``--build`` will take advantage of parallel compilation.
@@ -84,6 +142,16 @@ If you use build you may need some system modules in your environment during the
 
 If ``--build`` is not passed ``--lc-modules`` will not do anything, you will need to ensure the correct modules are in your path before building manually.
 
+[lc_hcb_options_note-end]
+
+
+
+
+..
+   ADDITIONAL CMAKE OPTIONS
+   ----------------------------------------
+
+[add_cmake_options-start]
 Additional CMake Options
 ========================
 
@@ -91,13 +159,29 @@ With ``host-config-build`` we are still able to pass and override CMake argument
 
 The example below shows how you can take the ``gcc`` host-config from above, and configure with ``Release`` and a custom ``PYB11Generator`` install.
 
+[add_cmake_options-end]
+[ex_add_cmake_example-start]
+::
+
+  python3 scripts/devtools/host-config-build.py --host-config <sys_type>-gcc.cmake" -DCMAKE_BUILD_TYPE=Release -Dpyb11generator_DIR=<PYB11generator_install_prefix>/lib/python2.7/site-packages/
+
+[ex_add_cmake_example-end]
+[lc_add_cmake_example-start]
 ::
 
   ./scripts/devtools/host-config-build.py --host-config <sys_type>-gcc.cmake" -DCMAKE_BUILD_TYPE=Release -Dpyb11generator_DIR=<PYB11generator_install_prefix>/lib/python2.7/site-packages/
 
+[lc_add_cmake_example-end]
 
-.. _manual_build:
 
+
+
+..
+   MANUAL CMAKE CONFIGURATION
+   ----------------------------------------
+
+[manual_cmake-start]
+.. _manual_config:
 Manually Configure CMake
 ========================
 
@@ -114,5 +198,4 @@ In this example we create our build directory ``Spheral_release/BUILD``, and wil
 The CMake option ``-C ../../Spheral/<sys_type>-gcc.cmake`` is how we tell the CMake system to use the TPLs we installed with ``tpl-manager.py`` for ``gcc``.
 
 The somewhat obscure command ``-DCMAKE_INSTALL_PREFIX=`chdir ..; pwd``` specifies the install directory as the full path to ``Spheral_release``. Alternatively you can specify this path explicitly, such as ``-DCMAKE_INSTALL_PREFIX=/usr/local/Spheral_release``.
-
-
+[manual_cmake-end]
