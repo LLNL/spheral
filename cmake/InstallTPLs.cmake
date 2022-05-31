@@ -16,7 +16,15 @@ Spheral_Handle_TPL(qhull spheral_depends)
 Spheral_Handle_TPL(hdf5 spheral_depends)
 Spheral_Handle_TPL(silo spheral_depends)
 Spheral_Handle_TPL(conduit spheral_depends)
-Spheral_Handle_TPL(axom spheral_depends)
+##Spheral_Handle_TPL(axom spheral_depends)
+
+#TODO: replace Spheral_Handle_TPL with cmake-friendly approach (using axom's exported targets)
+find_package(axom REQUIRED
+             NO_DEFAULT_PATH 
+             PATHS ${AXOM_DIR}/lib/cmake)
+
+# Spheral_Handle_TPL adds packages to this list
+list(APPEND spheral_blt_depends axom)
 
 # Some libraries are optional
 if (ENABLE_ANEOS)
