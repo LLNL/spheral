@@ -67,7 +67,7 @@ isSlideSurface(const int nodeListi,
                const int nodeListj) const {
     const auto oneDimIndex = mNumNodeLists * nodeListi + nodeListj;
     return mIsSlideSurface[oneDimIndex];
-};
+}
 
 //------------------------------------------------------------------------------
 // this is from our old implementation where we would just reduce the AV
