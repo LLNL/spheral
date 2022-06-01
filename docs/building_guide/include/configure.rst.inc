@@ -200,5 +200,5 @@ In this example we create our build directory ``Spheral_release/BUILD``, and wil
 
 The CMake option ``-C ../../Spheral/<sys_type>-gcc.cmake`` is how we tell the CMake system to use the TPLs we installed with ``tpl-manager.py`` for ``gcc``.
 
-The somewhat obscure command ``-DCMAKE_INSTALL_PREFIX=`chdir ..; pwd``` specifies the install directory as the full path to ``Spheral_release``. Alternatively you can specify this path explicitly, such as ``-DCMAKE_INSTALL_PREFIX=/usr/local/Spheral_release``.
+The somewhat obscure command ``-DCMAKE_INSTALL_PREFIX=`cd ..; pwd``` specifies the install directory as the full path to ``Spheral_release``. Alternatively you can specify this path explicitly, such as ``-DCMAKE_INSTALL_PREFIX=/usr/local/Spheral_release``.
 [manual_cmake-end]

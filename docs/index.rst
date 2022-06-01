@@ -12,10 +12,10 @@ Welcome to Spheral's documentation!
 
 .. toctree::
    :maxdepth: 1
-   :caption: User Guides:
+   :caption: Building Guides:
 
-   user_guide/external/index.rst
-   user_guide/lc/index.rst
+   building_guide/external/index.rst
+   building_guide/lc/index.rst
 
 .. toctree::
    :maxdepth: 1

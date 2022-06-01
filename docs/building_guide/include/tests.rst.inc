@@ -15,6 +15,8 @@ From your install directory run:
 
   ./spheral -c "import Spheral"
 
+This will run the Spheral Python process and try importing the Spheral modules.  If successful you should see a banner printed with information about the version of Spheral, after which Python exits.
+
 [smoke_test-end]
 
 
@@ -39,7 +41,7 @@ From the install directory run:
 ATS Testing Suite
 =================
 
-Spheral uses ATS to execute a suite of parallel tests. During install a script is generated ``spheral-atstest`` which handles calling the ats script in ``/usr/gapps/Spheral/bin`` and passing the generated ``spheral`` executor script to it.
+Spheral uses ATS (the Python Automated Testing System) to execute a suite of parallel tests. During install a script is generated ``spheral-atstest`` which handles calling the ats script in ``/usr/gapps/Spheral/bin`` and passing the generated ``spheral`` executor script to it.
 
 From the install directory run:
 ::
@@ -63,11 +65,13 @@ We will need to pass some filters to ``ATS`` depending on how we built Spheral.
 Non MPI Filter
 ..............
 
-If Spheral was built without ``MPI`` support we will need to pass the filter to our ``ats`` command. This stops the ATS suite from attempting to run any tests that rely on more than one process/rank.
+If Spheral was built without ``MPI`` support we will need to pass a filter to our ``ats`` command to prevent parallel tests from being performed:
 :: 
 
   --filter='"np<2"'
   
+This stops the ATS suite from attempting to run any tests that rely on more than one process/rank.
+
 Debug Build Filter
 ..................
 

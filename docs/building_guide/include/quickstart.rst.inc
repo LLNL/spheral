@@ -94,6 +94,8 @@ Build and install Spheral.
   cd build_<host-config>/build
   make -j <N> install
 
+where ``<N>`` should be replaced with the number of parallel make processes you want to launch (typically the number of cores on your CPU).
+
 [ex_install-section-end]
 
 [lc_install-section-start]

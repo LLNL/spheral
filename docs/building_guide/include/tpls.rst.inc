@@ -12,7 +12,7 @@ Spheral uses `Spack <https://github.com/llnl/spack>`_ under the hood to handle T
 tpl-manager.py
 ==============
 
-Spheral provides a tool (``tpl-manager.py``) in an attempt to deobfuscate the spack process from the user. ``tpl-manager`` 's primary responsibilities are to:
+Spheral provides a tool (``tpl-manager.py``) in an attempt to simplify the spack process for the user. ``tpl-manager`` 's primary responsibilities are to:
 
  - Set up a local ``Spack`` instance for Spheral.
  - Generate a dependency tree of third party libraries (relative to the provided configuration).
