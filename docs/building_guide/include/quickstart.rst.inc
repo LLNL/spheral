@@ -106,7 +106,9 @@ Build and install Spheral.
   make -j <N> install
 
 .. warning::
- ``make`` should be run under an allocation as it will take considerable resources on LC to build and install Spheral.
+ ``make`` should be run under an allocation (i.e., ``srun`` or ``salloc`` on Slurm) as it will take considerable resources on LC to build and install Spheral.  An exammple appropriate for rzgenie would be::
+
+  srun --exclusive make -j 36 install
 
 [lc_install-section-end]
 

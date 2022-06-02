@@ -37,9 +37,6 @@ Spheral provides a tool (``tpl-manager.py``) in an attempt to simplify the spack
  .. note:
     The External User Guide does not cover building the full range of tpl configurations. Please see the LC User Guide for more informtaion.
 
-.. warning::
-   If running on LC be sure to launch ``tpl-manager`` in a resource allocation, as ``tpl-manager`` will take advantage of parallel builds when compiling libraries.
-
 [lc_tpl_manager_notes-end]
 
 
@@ -84,6 +81,11 @@ Running tpl-manager
   ./scripts/devtools/tpl-manager.py --spec gcc@8.3.1
 
 This will install the local Spheral Spack instance into the adjacent directory of your Spheral root dir. You can use ``--spheral-spack-dir`` if you would like to setup the spack instance somewhere else. 
+
+.. warning::
+   If running on LC be sure to launch ``tpl-manager`` in a resource allocation, as ``tpl-manager`` will take advantage of parallel builds when compiling libraries.  An example appropriate for use on rzgenie would be::
+
+    srun --exclusive ./scripts/devtools/tpl-manager.py --spec gcc@8.3.1
 
 Above we are telling ``tpl-manager`` to build our TPLs with ``gcc`` at version ``8.3.1``. By default this will build with ``+mpi`` support, however we can disable ``mpi`` support for the TPLs and Spheral by appending ``~mpi`` to our spec.
 ::
