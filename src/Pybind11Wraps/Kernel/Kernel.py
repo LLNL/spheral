@@ -251,72 +251,72 @@ class TableKernel(Kernel):
     # Constructors
     def pyinit(self,
                kernel = "const BSplineKernel<%(Dimension)s>&",
-               numPoints = ("unsigned", "100")):
+               numPoints = ("const unsigned", "100")):
         "Construct with BSpline kernel"
 
     def pyinita(self,
                 kernel = "const W4SplineKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with W4Spline kernel"
 
     def pyinitb(self,
                 kernel = "const GaussianKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with Gaussian kernel"
 
     def pyinitc(self,
                 kernel = "const SuperGaussianKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with SuperGaussian kernel"
 
     def pyinitd(self,
                 kernel = "const PiGaussianKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with PiGaussian kernel"
 
     def pyinite(self,
                 kernel = "const HatKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with Hat kernel"
 
     def pyinitf(self,
                 kernel = "const SincKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with Sinc kernel"
 
     def pyinitg(self,
                 kernel = "const NSincPolynomialKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with NSincPolynomial kernel"
 
     def pyinith(self,
                 kernel = "const QuarticSplineKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with Quartic spline kernel"
 
     def pyiniti(self,
                 kernel = "const QuinticSplineKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with Quintic spline kernel"
 
     def pyinitj(self,
                 kernel = "const NBSplineKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with NBSpline kernel"
 
     def pyinitk(self,
                 kernel = "const WendlandC2Kernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with WendlandC2 kernel"
 
     def pyinitl(self,
                 kernel = "const WendlandC4Kernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with WendlandC4 kernel"
 
     def pyinitm(self,
                 kernel = "const WendlandC6Kernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100")):
+                numPoints = ("const unsigned", "100")):
         "Construct with WendlandC6 kernel"
 
     #...........................................................................
