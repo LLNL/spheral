@@ -38,7 +38,7 @@
 
 .clang_9_0_0_mvapich2:
   variables:
-    SPEC: "clang@9.0.0^mvapich2 -DENABLE_WARNINGS_AS_ERRORS=On"
+    SPEC: "clang@9.0.0^mvapich2"
     LC_MODULES: "clang/9.0.0"
     EXTRA_CMAKE_ARGS: ""
     EXTRA_TEST_ARGS: ""
