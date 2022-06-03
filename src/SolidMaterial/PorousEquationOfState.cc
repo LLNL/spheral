@@ -178,14 +178,14 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
   REQUIRE(this->valid());
   REQUIRE(massDensity.nodeListPtr() == bulkModulus.nodeListPtr());
   REQUIRE(specificThermalEnergy.nodeListPtr() == bulkModulus.nodeListPtr());
-  REQUIRE(mAlphaPtr->nodeListPtr() == bulkModulus.nodeListPtr());
-  const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
-  mSolidEOS.setBulkModulus(bulkModulus, rhoS, specificThermalEnergy);
+  //REQUIRE(mAlphaPtr->nodeListPtr() == bulkModulus.nodeListPtr());
+  //const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
+  mSolidEOS.setSoundSpeed(bulkModulus, massDensity, specificThermalEnergy);
 
   // Now apply the porosity modifier.
   const unsigned n = bulkModulus.numInternalElements();
   for (unsigned i = 0; i != n; ++i) {
-    bulkModulus(i) /= (*mAlphaPtr)(i);
+    bulkModulus(i) *= massDensity(i)*bulkModulus(i);
   }
 }
 
