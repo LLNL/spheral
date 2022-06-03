@@ -125,13 +125,13 @@ DEMBase(const DataBase<Dimension>& dataBase,
     mNeighborIndices = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::neighborIndices);
     mShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), DEMFieldNames::shearDisplacement);
     mRollingDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), DEMFieldNames::rollingDisplacement);
-    mTorsionalDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), DEMFieldNames::torsionalDisplacement);
+    mTorsionalDisplacement = dataBase.newDEMFieldList(std::vector<Scalar>(), DEMFieldNames::torsionalDisplacement);
     mDDtShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::shearDisplacement);
     mNewShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::shearDisplacement);
     mDDtRollingDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::rollingDisplacement);
     mNewRollingDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::rollingDisplacement);
-    mDDtTorsionalDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::torsionalDisplacement);
-    mNewTorsionalDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::torsionalDisplacement);
+    mDDtTorsionalDisplacement = dataBase.newDEMFieldList(std::vector<Scalar>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::torsionalDisplacement);
+    mNewTorsionalDisplacement = dataBase.newDEMFieldList(std::vector<Scalar>(), ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::torsionalDisplacement);
     mEquilibriumOverlap = dataBase.newDEMFieldList(std::vector<Scalar>(), DEMFieldNames::equilibriumOverlap);
 
 }
@@ -156,15 +156,15 @@ resizeDerivativePairFieldLists(StateDerivatives<Dimension>& derivs) const {
   auto newShearDisp = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix() + DEMFieldNames::shearDisplacement, std::vector<Vector>());
   auto DDtRollingDisp = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix() + DEMFieldNames::rollingDisplacement, std::vector<Vector>());
   auto newRollingDisp = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix() + DEMFieldNames::rollingDisplacement, std::vector<Vector>());
-  auto DDtTorsionalDisp = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix() + DEMFieldNames::torsionalDisplacement, std::vector<Vector>());
-  auto newTorsionalDisp = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix() + DEMFieldNames::torsionalDisplacement, std::vector<Vector>());
+  auto DDtTorsionalDisp = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Scalar>>::incrementPrefix() + DEMFieldNames::torsionalDisplacement, std::vector<Scalar>());
+  auto newTorsionalDisp = derivs.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Scalar>>::replacePrefix() + DEMFieldNames::torsionalDisplacement, std::vector<Scalar>());
   
   this->addContactsToPairFieldList(DsDt,Vector::zero);
   this->addContactsToPairFieldList(newShearDisp,Vector::zero);
   this->addContactsToPairFieldList(DDtRollingDisp,Vector::zero);
   this->addContactsToPairFieldList(newRollingDisp,Vector::zero);
-  this->addContactsToPairFieldList(DDtTorsionalDisp,Vector::zero);
-  this->addContactsToPairFieldList(newTorsionalDisp,Vector::zero);
+  this->addContactsToPairFieldList(DDtTorsionalDisp,0.0);
+  this->addContactsToPairFieldList(newTorsionalDisp,0.0);
 }
 
 //------------------------------------------------------------------------------
@@ -178,12 +178,12 @@ resizeStatePairFieldLists(State<Dimension>& state) const{
   auto eqOverlap = state.fields(DEMFieldNames::equilibriumOverlap, vector<Scalar>());
   auto shearDisp = state.fields(DEMFieldNames::shearDisplacement, vector<Vector>());
   auto rollingDisplacement = state.fields(DEMFieldNames::rollingDisplacement, vector<Vector>());
-  auto torsionalDisplacement = state.fields(DEMFieldNames::torsionalDisplacement, vector<Vector>());
+  auto torsionalDisplacement = state.fields(DEMFieldNames::torsionalDisplacement, vector<Scalar>());
 
   this->addContactsToPairFieldList(eqOverlap,0.0);
   this->addContactsToPairFieldList(shearDisp,Vector::zero);
   this->addContactsToPairFieldList(rollingDisplacement,Vector::zero);
-  this->addContactsToPairFieldList(torsionalDisplacement,Vector::zero);
+  this->addContactsToPairFieldList(torsionalDisplacement,0.0);
 }
 
 //------------------------------------------------------------------------------
@@ -197,7 +197,7 @@ kullInactiveContactsFromStatePairFieldLists(State<Dimension>& state) const{
   auto eqOverlap = state.fields(DEMFieldNames::equilibriumOverlap, vector<Scalar>());
   auto shearDisp = state.fields(DEMFieldNames::shearDisplacement, vector<Vector>());
   auto rollingDisplacement = state.fields(DEMFieldNames::rollingDisplacement, vector<Vector>());
-  auto torsionalDisplacement = state.fields(DEMFieldNames::torsionalDisplacement, vector<Vector>());
+  auto torsionalDisplacement = state.fields(DEMFieldNames::torsionalDisplacement, vector<Scalar>());
 
   this->kullInactiveContactsFromPairFieldList(eqOverlap);
   this->kullInactiveContactsFromPairFieldList(shearDisp);
@@ -237,7 +237,7 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeDEMFieldList(mNeighborIndices, vector<int>(), DEMFieldNames::neighborIndices, false);
   dataBase.resizeDEMFieldList(mShearDisplacement, vector<Vector>(), DEMFieldNames::shearDisplacement, false);
   dataBase.resizeDEMFieldList(mRollingDisplacement, vector<Vector>(), DEMFieldNames::rollingDisplacement, false);
-  dataBase.resizeDEMFieldList(mTorsionalDisplacement, vector<Vector>(), DEMFieldNames::torsionalDisplacement, false);
+  dataBase.resizeDEMFieldList(mTorsionalDisplacement, vector<Scalar>(), DEMFieldNames::torsionalDisplacement, false);
   dataBase.resizeDEMFieldList(mEquilibriumOverlap, vector<Scalar>(), DEMFieldNames::equilibriumOverlap, false);
 
   auto position = dataBase.DEMPosition();
@@ -252,7 +252,7 @@ registerState(DataBase<Dimension>& dataBase,
   PolicyPointer angularVelocityPolicy(new IncrementFieldList<Dimension, RotationType>());
   PolicyPointer shearDisplacementPolicy(new ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>());
   PolicyPointer rollingDisplacementPolicy(new ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>());
-  PolicyPointer torsionalDisplacementPolicy(new ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>());
+  PolicyPointer torsionalDisplacementPolicy(new ReplaceAndIncrementPairFieldList<Dimension,std::vector<Scalar>>());
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);
@@ -292,8 +292,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeDEMFieldList(mNewShearDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::shearDisplacement , false);
   dataBase.resizeDEMFieldList(mDDtRollingDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::rollingDisplacement , false);
   dataBase.resizeDEMFieldList(mNewRollingDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::rollingDisplacement , false);
-  dataBase.resizeDEMFieldList(mDDtTorsionalDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::torsionalDisplacement , false);
-  dataBase.resizeDEMFieldList(mNewTorsionalDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::torsionalDisplacement , false);
+  dataBase.resizeDEMFieldList(mDDtTorsionalDisplacement, vector<Scalar>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::torsionalDisplacement , false);
+  dataBase.resizeDEMFieldList(mNewTorsionalDisplacement, vector<Scalar>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::torsionalDisplacement , false);
   
   derivs.enroll(mDxDt);
   derivs.enroll(mDvDt);

@@ -145,7 +145,7 @@ rollingDisplacement() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, vector<typename Dimension::Vector>>&
+const FieldList<Dimension, vector<typename Dimension::Scalar>>&
 DEMBase<Dimension>::
 torsionalDisplacement() const {
   return mTorsionalDisplacement;
@@ -186,7 +186,7 @@ newRollingDisplacement() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, vector<typename Dimension::Vector>>&
+const FieldList<Dimension, vector<typename Dimension::Scalar>>&
 DEMBase<Dimension>::
 DDtTorsionalDisplacement() const {
   return mDDtTorsionalDisplacement;
@@ -194,7 +194,7 @@ DDtTorsionalDisplacement() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, vector<typename Dimension::Vector>>&
+const FieldList<Dimension, vector<typename Dimension::Scalar>>&
 DEMBase<Dimension>::
 newTorsionalDisplacement() const {
   return mNewTorsionalDisplacement;
@@ -274,8 +274,7 @@ DEMBase<Dim<3>>::
 torsionMoment(const Dim<3>::Vector rhatij, 
               const Dim<3>::Vector omegai,
               const Dim<3>::Vector omegaj) const {
-  const auto direction = (DEMDimension<Dim<3>>::dot(omegai-omegaj,rhatij) > 0 ? 1.0 : -1.0);
-  return rhatij*direction;
+  return rhatij;
 }
 
 
