@@ -2,6 +2,8 @@
 Introduction
 ############
 
+[intro-section-start]
+
 Spheral++ provides a steerable parallel environment for performing coupled hydrodynamical & gravitational numerical simulations. Hydrodynamics and gravity are modelled using particle based methods (SPH and N-Body).
 
 Some useful features are
@@ -15,7 +17,13 @@ Some useful features are
 - Scriptable user interface in python.
 - Extensible by user in python, including the ability to write new physics packages in python.
 
-Release and license:
+[intro-section-end]
+
+[license-section-start]
+
+####################
+Release and License:
+####################
 
 Copyright (c) 2012, Lawrence Livermore National Security, LLC.
 Produced at the Lawrence Livermore National Laboratory
@@ -24,3 +32,5 @@ CODE-OCEC-12-049
 All rights reserved.
 
 Please see `full license <https://github.com/jmikeowen/spheral/blob/master/License.txt>`_
+
+[license-section-end]

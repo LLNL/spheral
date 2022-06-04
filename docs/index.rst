@@ -6,18 +6,24 @@
 Welcome to Spheral's documentation!
 =======================================
 
+.. include:: intro/introduction.rst.inc
+   :start-after: [intro-section-start]
+   :end-before: [intro-section-end]
+
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Build Guides:
 
-   intro.rst
-   quickstart.rst
-   building.rst
-   Development_Documentation.rst
+   build_guide/external/index.rst
+   build_guide/lc/index.rst
 
-Indices and tables
-==================
+.. toctree::
+   :maxdepth: 1
+   :caption: Developer Guide:
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   developer/development_docs.rst
+   developer/design_docs.rst
+
+.. include:: intro/introduction.rst.inc
+   :start-after: [license-section-start]
+   :end-before: [license-section-end]
