@@ -263,8 +263,17 @@ SPHERALDLL_API
 SPHERALDLL_API
   int spheral_dt_node(const int       ndims);
 
+enum spheral_dt_constraint
+{
+  SPH_Courant,
+  SPH_Q,
+  SPH_Hydro,
+  SPH_Velocity,
+  SPH_Accel
+};
+
 SPHERALDLL_API
-  const char * spheral_dt_reason(const int       ndims);
+  enum spheral_dt_constraint spheral_dt_reason(const int       ndims);
 
 /*------------------------------------------------------------------------------
   spheral_evaluate_derivatives

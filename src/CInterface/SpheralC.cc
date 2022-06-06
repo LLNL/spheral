@@ -260,14 +260,48 @@ int spheral_dt_node(const int ndims) {
 //------------------------------------------------------------------------------
 // spheral_dt_reason
 //------------------------------------------------------------------------------
-const char * spheral_dt_reason(const int ndims) {
+enum spheral_dt_constraint spheral_dt_reason(const int ndims) {
   switch (ndims) {
   case 3:
-    return Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason().c_str();
+    if (Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "sound speed" ||
+        Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "longitudinal sound speed" ||
+        Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "deviatoric stress effective sound speed") {
+      return SPH_Courant;
+    }
+    else if (Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "artificial viscosity") {
+      return SPH_Q;
+    }
+    else if (Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "velocity divergence") {
+      return SPH_Hydro;
+    }
+    else if (Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "pairwise velocity difference" ||
+             Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "velocity magnitude") {
+      return SPH_Velocity;
+    }
+    else if (Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "acceleration") {
+      return SPH_Accel;
+    }
     break;
 
   case 2:
-    return Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason().c_str();
+    if (Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "sound speed" ||
+        Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "longitudinal sound speed" ||
+        Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "deviatoric stress effective sound speed") {
+      return SPH_Courant;
+    }
+    else if (Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "artificial viscosity") {
+      return SPH_Q;
+    }
+    else if (Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "velocity divergence") {
+      return SPH_Hydro;
+    }
+    else if (Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "pairwise velocity difference" ||
+             Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "velocity magnitude") {
+      return SPH_Velocity;
+    }
+    else if (Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "acceleration") {
+      return SPH_Accel;
+    }
     break;
 
   default:
