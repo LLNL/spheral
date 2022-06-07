@@ -266,20 +266,23 @@ enum spheral_dt_constraint spheral_dt_reason(const int ndims) {
     if (Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "sound speed" ||
         Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "longitudinal sound speed" ||
         Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "deviatoric stress effective sound speed") {
-      return SPH_Courant;
+      return SPHERAL_DT_Courant;
     }
     else if (Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "artificial viscosity") {
-      return SPH_Q;
+      return SPHERAL_DT_Q;
     }
     else if (Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "velocity divergence") {
-      return SPH_Hydro;
+      return SPHERAL_DT_Hydro;
     }
     else if (Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "pairwise velocity difference" ||
              Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "velocity magnitude") {
-      return SPH_Velocity;
+      return SPHERAL_DT_Velocity;
     }
     else if (Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "acceleration") {
-      return SPH_Accel;
+      return SPHERAL_DT_Accel;
+    }
+    else {
+      return SPHERAL_DT_NoConstraint;
     }
     break;
 
@@ -287,20 +290,23 @@ enum spheral_dt_constraint spheral_dt_reason(const int ndims) {
     if (Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "sound speed" ||
         Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "longitudinal sound speed" ||
         Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "deviatoric stress effective sound speed") {
-      return SPH_Courant;
+      return SPHERAL_DT_Courant;
     }
     else if (Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "artificial viscosity") {
-      return SPH_Q;
+      return SPHERAL_DT_Q;
     }
     else if (Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "velocity divergence") {
-      return SPH_Hydro;
+      return SPHERAL_DT_Hydro;
     }
     else if (Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "pairwise velocity difference" ||
              Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "velocity magnitude") {
-      return SPH_Velocity;
+      return SPHERAL_DT_Velocity;
     }
     else if (Spheral::SpheralPseudoScript<Spheral::Dim<2>>::dtReason() == "acceleration") {
-      return SPH_Accel;
+      return SPHERAL_DT_Accel;
+    }
+    else {
+      return SPHERAL_DT_NoConstraint;
     }
     break;
 
