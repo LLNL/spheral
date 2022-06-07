@@ -263,7 +263,7 @@ SPHERALDLL_API
 SPHERALDLL_API
   int spheral_dt_node(const int       ndims);
 
-enum spheral_dt_constraint
+enum SpheralDtConstraint
 {
   SPHERAL_DT_NoConstraint = 0,
   SPHERAL_DT_Courant,
@@ -274,7 +274,7 @@ enum spheral_dt_constraint
 };
 
 SPHERALDLL_API
-  enum spheral_dt_constraint spheral_dt_reason(const int       ndims);
+  enum SpheralDtConstraint spheral_dt_reason(const int       ndims);
 
 /*------------------------------------------------------------------------------
   spheral_evaluate_derivatives

@@ -260,7 +260,7 @@ int spheral_dt_node(const int ndims) {
 //------------------------------------------------------------------------------
 // spheral_dt_reason
 //------------------------------------------------------------------------------
-enum spheral_dt_constraint spheral_dt_reason(const int ndims) {
+enum SpheralDtConstraint spheral_dt_reason(const int ndims) {
   switch (ndims) {
   case 3:
     if (Spheral::SpheralPseudoScript<Spheral::Dim<3>>::dtReason() == "sound speed" ||
