@@ -265,12 +265,12 @@ SPHERALDLL_API
 
 enum spheral_dt_constraint
 {
+  SPHERAL_DT_NoConstraint = 0,
   SPHERAL_DT_Courant,
   SPHERAL_DT_Q,
   SPHERAL_DT_Hydro,
   SPHERAL_DT_Velocity,
-  SPHERAL_DT_Accel,
-  SPHERAL_DT_NoConstraint
+  SPHERAL_DT_Accel
 };
 
 SPHERALDLL_API
