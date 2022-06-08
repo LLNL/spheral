@@ -101,7 +101,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto muT = 1.0;
   const auto muR = 1.0;
 
-  const auto beta2 = shapeFactor*shapeFactor;
+  const auto beta2 = shapeFactor*shapeFactor; // rename ... confusing
   const auto dampingConstTerms = 4.0*mNormalSpringConstant/(1.0+mBeta*mBeta);
   
   // spring constants
@@ -239,12 +239,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto li = (Ri*Ri-Rj*Rj + rijMag*rijMag)/(2.0*rijMag);
         const auto lj = rijMag-li;
 
-        // effective quantities (mass, reduced radius, contact radius)
+        // effective quantities (mass, reduced radius, contact radius) respectively
         const auto mij = (mi*mj)/(mi+mj);
         const auto lij = 2.0*(li*lj)/(li+lj);
         const auto aij = std::sqrt(4.0*rijMag*Ri - (rijMag*rijMag - Rj*Rj + Ri*Ri))/(2.0*rijMag);
 
-        // damping constants
+        // damping constants -- ct and cr derived quantities ala Zhang
         const auto Cn = std::sqrt(mij*dampingConstTerms);
         const auto Cs = Cn;
         const auto Ct = 2.0 * Cs * beta2 * lij * lij;
@@ -297,7 +297,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         // spring dashpot
         const auto Mt0spring = - kt*newDeltaTorsij;
         const auto Mt0damp = - Ct*omeganij;
-        auto MtorsionMag = (Mt0spring + Mt0damp)*lij*lij;
+        auto MtorsionMag = (Mt0spring + Mt0damp)*lij*lij;  // lij lij is part of coeffs
         const auto MtStatic = muT*fnMag;
 
         // limit to static

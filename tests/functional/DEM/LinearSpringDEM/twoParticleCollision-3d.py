@@ -1,8 +1,9 @@
-#ATS:DEM3d0 = test(        SELF, "--clearDirectories True  --checkError True  --checkConservation True --restitutionCoefficient=1.0 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
-#ATS:DEM3d1 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckSlidingFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
-#ATS:DEM3d2 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckRollingFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
-#ATS:DEM3d3 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckTorsionalFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
-#ATS:DEM3d4 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckTorsionalObjectivity True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM individual particle collision -- 3-D (serial)")
+#ATS:DEM3d0 = test(        SELF, "--clearDirectories True  --checkError True  --checkConservation True --restitutionCoefficient=1.0 --steps 100", label="DEM perfectly elastic 2 particle collision -- 3-D (serial)")
+#ATS:DEM3d1 = test(        SELF, "--clearDirectories True  --checkError True  --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM perfectly inelastic 2 particle collision -- 3-D (serial)")
+#ATS:DEM3d2 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckSlidingFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM inelastic 2 particle collision - sliding friction -- 3-D (serial)")
+#ATS:DEM3d3 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckRollingFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM inelastic 2  particle collision - rolling friction -- 3-D (serial)")
+#ATS:DEM3d4 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckTorsionalFriction True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM inelastic 2  particle collision - torsional friction -- 3-D (serial)")
+#ATS:DEM3d5 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckTorsionalObjectivity True --checkConservation True --restitutionCoefficient=0.8 --steps 100", label="DEM inelastic 2  particle collision - torsional objectivity -- 3-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
