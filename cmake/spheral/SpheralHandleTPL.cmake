@@ -3,11 +3,6 @@ set(CACHE_DIR ${CMAKE_BINARY_DIR}/tpl/cache)
 set(PATCH_DIR ${SPHERAL_ROOT_DIR}/src/tpl/patch)
 set(TPL_CMAKE_DIR ${CMAKE_MODULE_PATH}/tpl)
 
-# If a TPL takes a -j set this to launch a parallel build 
-if (NOT TPL_PARALLEL_BUILD)
-  set (TPL_PARALLEL_BUILD "1")
-endif()
-
 # Verboseness of TPL builds
 if (TPL_VERBOSE)
   set(OUT_PROTOCOL_EP 0)
@@ -58,45 +53,12 @@ function(Spheral_Handle_TPL lib_name dep_list)
 
   string(TOUPPER ${lib_name} LIB_NAME)
 
-  # Get the pure MD5 HASH string.
-  set(HASH ${${LIB_NAME}_MD5})
-                                                       
-  # If we are not building the TPL ...
-  if(NOT BUILD_TPL OR NOT ${lib_name}_BUILD)
-
-    # If no location to search is sepcified, search default dir
-    if (NOT ${lib_name}_DIR)
-      set(${lib_name}_DIR ${DEFAULT_TPL_LOCATION}/${lib_name}/${HASH})
-      message("${lib_name}_DIR not set.")
-      message("Setting ${lib_name} search to default location : ${${lib_name}_DIR}")
-    # else search the given dir
-    else()
-      message("${lib_name}_DIR set.")
-      message("Searching ${lib_name} for : ${${lib_name}_DIR}")
-    endif()
-
-    # Set usually when BUILD_TPL is off so that everything defaults to off
-    if(NOT BUILD_TPL)
-      set(${lib_name}_BUILD Off)
-    endif()
-
-    set(${lib_name}_build_dep)
-
-  # We are building the TPL ...
+  # If no location to search is sepcified, search default dir
+  if (NOT ${lib_name}_DIR)
+    message("${lib_name}_DIR not set.")
   else()
-
-    message("Generating build process for ${lib_name}.")
-
-    # If no location to search is sepcified, install in default dir
-    if (NOT ${lib_name}_DIR)
-      set(${lib_name}_DIR ${DEFAULT_TPL_LOCATION}/${lib_name}/${HASH})
-      message("${lib_name}_DIR not set. Installing ${lib_name} to default location : ${${lib_name}_DIR}")
-    # else install in the given dir
-    else()
-      message("${lib_name}_DIR set. Installing ${lib_name} to : ${${lib_name}_DIR}")
-    endif()
-
-    set(${lib_name}_build_dep ${lib_name})
+    message("${lib_name}_DIR set.")
+    message("Searching ${lib_name} for : ${${lib_name}_DIR}")
   endif()
 
   # Default this flag for the TPL to be added as a BLT lib, 
@@ -109,7 +71,6 @@ function(Spheral_Handle_TPL lib_name dep_list)
 
   if (NOT DEFINED ${lib_name}_NO_INCLUDES)
     list(APPEND ${lib_name}_INCLUDES $<BUILD_INTERFACE:${${lib_name}_DIR}/include>)
-    #message("-- including path ${lib_name} : ${lib_name}_INCLUDES")
   endif()
 
   # Generate full path to lib file for output list
@@ -119,12 +80,10 @@ function(Spheral_Handle_TPL lib_name dep_list)
     list(APPEND ${lib_name}_LIBRARIES $<BUILD_INTERFACE:${lib_abs}>)
 
     # Check all necessary files exist during config time when not installing TPL
-    if (NOT BUILD_TPL OR NOT ${lib_name}_BUILD)
-      if (NOT EXISTS ${lib_abs})
-        message(FATAL_ERROR "Cannot find ${lib} in ${${lib_name}_DIR} for TPL ${lib_name}.")
-      else()
-        message("Found: ${lib_abs}")
-      endif()
+    if (NOT EXISTS ${lib_abs})
+      message(FATAL_ERROR "Cannot find ${lib} in ${${lib_name}_DIR} for TPL ${lib_name}.")
+    else()
+      message("Found: ${lib_abs}")
     endif()
   endforeach()
 
@@ -138,15 +97,11 @@ function(Spheral_Handle_TPL lib_name dep_list)
   # Add the blt target to a list of libs that can be depended on
   if (${lib_name}_ADD_BLT_TARGET)
     list(APPEND spheral_blt_depends blt_${lib_name})
-    if (${lib_name}_BUILD)
-      list(APPEND ${dep_list} ${lib_name})
-    endif()
   endif()
 
   set(${lib_name}_DIR ${${lib_name}_DIR} PARENT_SCOPE)
   set(${dep_list} ${${dep_list}} PARENT_SCOPE)
   set(spheral_blt_depends ${spheral_blt_depends} PARENT_SCOPE)
-  set(${lib_name}_build_dep ${${lib_name}_build_dep} PARENT_SCOPE)
 
   message("")
 

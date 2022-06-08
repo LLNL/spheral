@@ -61,7 +61,7 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      const Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
-  int size = field.numElements();
+  int size = field.numInternalElements();
   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
   axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
                                           ->allocate(dtype, size)
@@ -91,7 +91,7 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
                      const Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
-  int size = field.numElements();
+  int size = field.numInternalElements();
   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
   std::vector<double> fieldData(size * DataType::numElements);
 
@@ -137,6 +137,19 @@ SidreFileIO::SidreFileIO(const std::string fileName, AccessType access):
 }
 
 //------------------------------------------------------------------------------
+// Construct and open the given file and set number of restart files
+//------------------------------------------------------------------------------
+SidreFileIO::SidreFileIO(const std::string fileName, AccessType access, int numFiles):
+  FileIO(fileName, access),
+  mDataStorePtr(0)
+{
+  open(fileName, access);
+  ENSURE(mFileOpen && mDataStorePtr != 0);
+  if (numFiles > 0 && numFiles <= Process::getTotalNumberOfProcesses())
+    numRestartFiles = numFiles;
+}
+
+//------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
 SidreFileIO::~SidreFileIO()
@@ -151,12 +164,19 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
 {
   VERIFY2(mDataStorePtr == 0 and mFileOpen == false,
           "ERROR: attempt to reopen SidreFileIO object.");
+          
   mDataStorePtr = std::make_shared<axom::sidre::DataStore>();
-
   mFileName = fileName;
 
   if (access == AccessType::Read)
+  {
+#ifdef USE_MPI
+    axom::sidre::IOManager reader(Communicator::communicator());
+    reader.read(mDataStorePtr->getRoot(), fileName + ".root");
+#else
     mDataStorePtr->getRoot()->load(fileName);
+#endif // USE_MPI
+  }
 
   VERIFY2(mDataStorePtr != 0, "SidreFileIO ERROR: unable to open " << fileName);
   mFileOpen = true;
@@ -169,7 +189,12 @@ void SidreFileIO::close()
 {
   if (mDataStorePtr != 0)
   {
+#ifdef USE_MPI
+    axom::sidre::IOManager writer(Communicator::communicator());
+    writer.write(mDataStorePtr->getRoot(), numRestartFiles, mFileName, "sidre_hdf5");
+#else
     mDataStorePtr->getRoot()->save(mFileName);
+#endif // USE_MPI
     mDataStorePtr.reset();
   }
   mFileOpen = false;

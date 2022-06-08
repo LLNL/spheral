@@ -8,39 +8,6 @@ set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM 1)
 # Initialize TPL options
 include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
 
-# If we are using a pre-built set of TPL's set _BUILD and _DIR variables.
-include(${SPHERAL_ROOT_DIR}/cmake/tpl/util/tpl.cmake)
-
-# If set to Off NONE of the TPLs will be built and installed
-# it is expected that the user provide locations for each one
-# else the default install location will be searched for TPLs
-set(BUILD_TPL ON CACHE BOOL "Define if any TPLs will be built or not.")
-
-# Default build flags for each TPL
-set(zlib_BUILD ON CACHE BOOL "Option to build zlib")
-set(boost_BUILD ON CACHE BOOL "Option to build boost")
-set(eigen_BUILD ON CACHE BOOL "Option to build eigen")
-set(qhull_BUILD ON CACHE BOOL "Option to build qhull")
-set(polytope_BUILD ON CACHE BOOL "Option to build polytope")
-set(hdf5_BUILD ON CACHE BOOL "Option to build hdf5")
-set(silo_BUILD ON CACHE BOOL "Option to build silo")
-set(opensubdiv_BUILD ON CACHE BOOL "Option to build Opensubdiv")
-set(aneos_BUILD ON CACHE BOOL "Option to build ANEOS third party lib")
-set(conduit_BUILD ON CACHE BOOL "Option to build Conduit")
-set(axom_BUILD ON CACHE BOOL "Option to build Axom")
-set(polyclipper_BUILD ON CACHE BOOL "Option to build PolyClipper")
-
-set(pybind11_BUILD ON CACHE BOOL "Option to build pybind11")
-set(python_BUILD ON CACHE BOOL "Option to build python")
-set(pip_BUILD ON CACHE BOOL "Option to build pip")
-
-set(setuptools_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")
-set(decorator_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")
-set(sphinx_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")
-set(sphinx_rtd_theme_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")
-set(pyb11generator_BUILD ON CACHE BOOL "Option to build PYB11Generator python module")
-set(virtualenv_BUILD ON CACHE BOOL "Option to build virtualenv python module")
-
 # These libs are always needed
 Spheral_Handle_TPL(zlib spheral_depends)
 Spheral_Handle_TPL(boost spheral_depends)
