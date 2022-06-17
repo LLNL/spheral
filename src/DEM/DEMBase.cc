@@ -443,7 +443,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mDvDt, pathName + "/DvDt");
   file.write(mUniqueIndices, pathName + "/uniqueIndices");
 
-  file.write(mIsActiveContact, pathName + "/iActiveContact");
+  file.write(mIsActiveContact, pathName + "/isActiveContact");
   file.write(mNeighborIndices, pathName + "/neighborIndices");
   file.write(mShearDisplacement, pathName + "/shearDisplacement");
   file.write(mRollingDisplacement, pathName + "/rollingDisplacement");
@@ -475,7 +475,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDvDt, pathName + "/DvDt");
   file.read(mUniqueIndices, pathName + "/uniqueIndices");
 
-  file.read(mIsActiveContact, pathName + "/iActiveContact");
+  file.read(mIsActiveContact, pathName + "/isActiveContact");
   file.read(mNeighborIndices, pathName + "/neighborIndices");
   file.read(mShearDisplacement, pathName + "/shearDisplacement");
   file.read(mRollingDisplacement, pathName + "/rollingDisplacement");
