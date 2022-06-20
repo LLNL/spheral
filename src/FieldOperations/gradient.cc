@@ -101,16 +101,16 @@ gradient(const FieldList<Dimension, DataType>& fieldList,
           Vector gradWij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
           case NeighborSearchType::GatherScatter:
-            gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etai, Hi) + 
-                           Hj*etajNorm*kernel.grad(etaj, Hj));
+            gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etai.magnitude(), Hi.Determinant()) + 
+                           Hj*etajNorm*kernel.grad(etaj.magnitude(), Hj.Determinant()));
             break;
 
           case NeighborSearchType::Gather:
-            gradWij = Hi*etaiNorm*kernel.grad(etai, Hi);
+            gradWij = Hi*etaiNorm*kernel.grad(etai.magnitude(), Hi.Determinant());
             break;
 
           case NeighborSearchType::Scatter:
-            gradWij = Hj*etajNorm*kernel.grad(etaj, Hj);
+            gradWij = Hj*etajNorm*kernel.grad(etaj.magnitude(), Hj.Determinant());
             break;
 
           default:
@@ -229,16 +229,16 @@ gradient(const FieldList<Dimension, std::vector<DataType>>& fieldList,
           Vector gradWij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
           case NeighborSearchType::GatherScatter:
-            gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etai, Hi) + 
-                           Hj*etajNorm*kernel.grad(etaj, Hj));
+            gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etai.magnitude(), Hi.Determinant()) + 
+                           Hj*etajNorm*kernel.grad(etaj.magnitude(), Hj.Determinant()));
             break;
 
           case NeighborSearchType::Gather:
-            gradWij = Hi*etaiNorm*kernel.grad(etai, Hi);
+            gradWij = Hi*etaiNorm*kernel.grad(etai.magnitude(), Hi.Determinant());
             break;
 
           case NeighborSearchType::Scatter:
-            gradWij = Hj*etajNorm*kernel.grad(etaj, Hj);
+            gradWij = Hj*etajNorm*kernel.grad(etaj.magnitude(), Hj.Determinant());
             break;
 
           default:

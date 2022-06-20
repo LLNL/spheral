@@ -7,12 +7,12 @@ from Spheral1d import *
 from SpheralTestUtilities import fuzzyEqual
 
 # Build the SphericalKernel
-WT = TableKernel3d(BSplineKernel3d(), 500)
 t0 = time.time()
-W = SphericalTableKernel(WT)
+W = SphericalKernel(BSplineKernel3d())
+#W = SphericalBiCubicSplineKernel()
 t1 = time.time()
 etamax = W.etamax
-print("Required %0.4f sec to construct SphericalTableKernel"% (t1 - t0))
+print("Required %0.4f sec to construct SphericalKernel"% (t1 - t0))
 
 # The r/h distance from the origin for point i (the central point we're probing around)
 etavals_i = ((i + 1)*0.1 for i in xrange(100))
@@ -23,11 +23,28 @@ hvals_i = (0.1, 0.5, 1.0, 2.0, 5.0)
 #-------------------------------------------------------------------------------
 # The analytic form of the quadratic bi-cubic spline from Omang et al.
 #-------------------------------------------------------------------------------
+def C(q):
+    return q*q - 0.75*q**4 + 0.3*q**5
+
+def D(q):
+    return 2.0*(q*q - q**3) + 0.75*q**4 - 0.1*q**5
+
+def gradC(q):
+    return 2.0*q - 3.0*q**3 + 1.5*q**4
+
+def gradD(q):
+    return 4.0*q - 6.0*q**2 + 3.0*q**3 - 0.5*q**4
+
+def sgn0(q):
+    if q == 0.0:
+        return 0.0
+    elif q > 0.0:
+        return 1.0
+    else:
+        return -1.0
+
+# W()
 def W3S1(rj, ri, h):
-    def C(q):
-        return q*q - 0.75*q**4 + 0.3*q**5
-    def D(q):
-        return 2.0*(q*q - q**3) + 0.75*q**4 - 0.1*q**5
     sigj = rj/h
     sigi = ri/h
     sigdiff = abs(sigj - sigi)
@@ -38,7 +55,7 @@ def W3S1(rj, ri, h):
     elif sigplus <= 2.0:
         if sigdiff < 1.0:
             result = -0.1 + D(sigplus) - C(sigdiff)
-        elif sigdiff < 2.0:
+        else:
             result = D(sigplus) - D(sigdiff)
     else:
         if sigdiff < 1.0:
@@ -47,44 +64,26 @@ def W3S1(rj, ri, h):
             result = 0.8 - D(sigdiff)
     return result/(h*rj*ri)
 
-#-------------------------------------------------------------------------------
-# The analytic gradient of the quadratic bi-cubic spline from Omang et al.
-#-------------------------------------------------------------------------------
+# gradW()
 def gradW3S1(rj, ri, h):
-    def C(q):
-        return q*q - 0.75*q**4 + 0.3*q**5
-    def D(q):
-        return 2.0*(q*q - q**3) + 0.75*q**4 - 0.1*q**5
-    def gradC(q):
-        return 2.0*q - 3.0*q**3 + 1.5*q**4
-    def gradD(q):
-        return 4.0*q - 6.0*q**2 + 3.0*q**3 - 0.5*q**4
     sigj = rj/h
     sigi = ri/h
     sigdiff = abs(sigj - sigi)
     sigplus = sigj + sigi
-
-    # \partial_rj
-    if sigj > sigi:
-        sgnfac = -1.0
-    else:
-        sgnfac = 1.0
-    #sgnfac = 1.0
+    sgndiff = sgn0(sigi - sigj)
 
     if sigplus <= 1.0:
-        return -W3S1(rj, ri, h)/rj + (gradC(sigplus) - sgnfac*gradC(sigdiff))/(h*h*ri*rj)
-
+        return -W3S1(rj, ri, h)/ri + (gradC(sigplus) - gradC(sigdiff)*sgndiff)/(h*h*ri*rj)
     elif sigplus <= 2.0:
         if sigdiff < 1.0:
-            return -W3S1(rj, ri, h)/rj + (gradD(sigplus) - sgnfac*gradC(sigdiff))/(h*h*ri*rj)
+            return -W3S1(rj, ri, h)/ri + (gradD(sigplus) - gradC(sigdiff)*sgndiff)/(h*h*ri*rj)
         else:
-            return -W3S1(rj, ri, h)/rj + (gradD(sigplus) - sgnfac*gradD(sigdiff))/(h*h*ri*rj)
-
+            return -W3S1(rj, ri, h)/ri + (gradD(sigplus) - gradD(sigdiff)*sgndiff)/(h*h*ri*rj)
     else:
         if sigdiff < 1.0:
-            return -W3S1(rj, ri, h)/rj - sgnfac*gradC(sigdiff)/(h*h*ri*rj)
+            return -W3S1(rj, ri, h)/ri - gradC(sigdiff)*sgndiff/(h*h*ri*rj)
         else:
-            return -W3S1(rj, ri, h)/rj - sgnfac*gradD(sigdiff)/(h*h*ri*rj)
+            return -W3S1(rj, ri, h)/ri - gradD(sigdiff)*sgndiff/(h*h*ri*rj)
 
 #-------------------------------------------------------------------------------
 # Return a useful r_j range for a given r_i
@@ -147,7 +146,7 @@ class TestSphericalKernel(unittest.TestCase):
                 W3S1fine = np.array([W3S1(rj, ri, hi) for rj in rjfine])
                 gradW3S1fine = np.gradient(W3S1fine, rjfine)
                 for j, rj in enumerate(rprange(ri, hi, etastep=0.05)):
-                    gradWij = W.grad(Vector(rj/hi), Vector(ri/hi), 1.0/hi).x
+                    gradWij = W.grad(Vector(ri/hi), Vector(rj/hi), SymTensor(1.0/hi)).x
                     gradW0 = gradW3S1fine[50*j]
                     self.failUnless(error(gradW0, gradWij) < gradWtol(rj/hi, ri/hi, etamax),
                                     "Kernel gradient value outside tolerance @ (%g, %g, %g): %g != %g, %g !<= %g" % (rj, ri, hi, gradW0, gradWij, error(gradW0, gradWij), gradWtol(rj/hi, ri/hi, etamax)))
@@ -161,7 +160,7 @@ class TestSphericalKernel(unittest.TestCase):
                 ri = hi*etai
                 for rj in rprange(ri, hi, etastep=0.05):
                     Wij0 = W(Vector(rj/hi), Vector(ri/hi), 1.0/hi)
-                    gradWij0 = W.grad(Vector(rj/hi), Vector(ri/hi), 1.0/hi).x
+                    gradWij0 = W.grad(Vector(rj/hi), Vector(ri/hi), SymTensor(1.0/hi)).x
                     Wij1, gradWij1 = W.kernelAndGradValue(Vector(rj/hi), Vector(ri/hi), 1.0/hi)
                     self.failUnless(self_error(Wij0, Wij1, self_tol) < self_tol,
                                     "Kernel value lookup inconsistent @ (%g, %g, %g): %g != %g, %g !<= %g" % (rj, ri, hi, Wij0, Wij1, self_error(Wij0, Wij1, self_tol), self_tol))

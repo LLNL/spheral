@@ -107,16 +107,16 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           Scalar Wij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
           case NeighborSearchType::GatherScatter:
-            Wij = 0.5*(kernel(etai, 1.0) + 
-                       kernel(etaj, 1.0));
+            Wij = 0.5*(kernel(etai.magnitude(), 1.0) + 
+                       kernel(etaj.magnitude(), 1.0));
             break;
 
           case NeighborSearchType::Gather:
-            Wij = kernel(etai, 1.0);
+            Wij = kernel(etai.magnitude(), 1.0);
             break;
 
           case NeighborSearchType::Scatter:
-            Wij = kernel(etaj, 1.0);
+            Wij = kernel(etaj.magnitude(), 1.0);
             break;
 
           default:
@@ -158,16 +158,16 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           Scalar Wij0;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
           case NeighborSearchType::GatherScatter:
-            Wij0 = 0.5*(kernel(etai, 1.0) + 
-                        kernel(etaj, 1.0));
+            Wij0 = 0.5*(kernel(etai.magnitude(), 1.0) + 
+                        kernel(etaj.magnitude(), 1.0));
             break;
 
           case NeighborSearchType::Gather:
-            Wij0 = kernel(etai, 1.0);
+            Wij0 = kernel(etai.magnitude(), 1.0);
             break;
 
           case NeighborSearchType::Scatter:
-            Wij0 = kernel(etaj, 1.0);
+            Wij0 = kernel(etaj.magnitude(), 1.0);
             break;
 
           default:
@@ -259,16 +259,16 @@ smoothFieldsMash2(const FieldList<Dimension, DataType>& fieldList,
           Scalar Wij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
           case NeighborSearchType::GatherScatter:
-            Wij = 0.5*(kernel(etai, 1.0) +
-                       kernel(etaj, 1.0))*(a(masterItr) + b(masterItr)*rij.x());
+            Wij = 0.5*(kernel(etai.magnitude(), 1.0) +
+                       kernel(etaj.magnitude(), 1.0))*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
           case NeighborSearchType::Gather:
-            Wij = kernel(etai, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
+            Wij = kernel(etai.magnitude(), 1.0)*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
           case NeighborSearchType::Scatter:
-            Wij = kernel(etaj, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
+            Wij = kernel(etaj.magnitude(), 1.0)*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
           default:

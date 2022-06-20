@@ -15,6 +15,7 @@
 #define __Spheral_SuperGaussianKernel_hh__
 
 #include "Kernel.hh"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
@@ -33,13 +34,13 @@ public:
   ~SuperGaussianKernel();
 
   // Return the kernel weight for a given normalized distance or position.
-  double kernelValue(double etaMagnitude, const double Hdet) const;
+  double kernelValue(double etaij, const double Hdet) const;
 
   // Return the gradient value for a given normalized distance or position.
-  double gradValue(double etaMagnitude, const double Hdet) const;
+  double gradValue(double etaij, const double Hdet) const;
 
   // Return the gradient value for a given normalized distance or position.
-  double grad2Value(double etaMagnitude, const double Hdet) const;
+  double grad2Value(double etaij, const double Hdet) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -47,6 +48,15 @@ private:
   static const double mKGW;
 
 };
+
+template<> const double SuperGaussianKernel<Dim<1>>::mKW;
+template<> const double SuperGaussianKernel<Dim<1>>::mKGW;
+
+template<> const double SuperGaussianKernel<Dim<2>>::mKW;
+template<> const double SuperGaussianKernel<Dim<2>>::mKGW;
+
+template<> const double SuperGaussianKernel<Dim<3>>::mKW;
+template<> const double SuperGaussianKernel<Dim<3>>::mKGW;
 
 }
 

@@ -194,12 +194,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
           const Tensor Ri = rotationMatrix(rijUnit);
 
           // Kernel estimate from i.
-          const Vector etai = Hi*rij;
+          const Scalar etai = (Hi*rij).magnitude();
           const Scalar Wi = mW(etai, Hdeti);
           const Scalar gradWi = mW.grad(etai, Hdeti);
 
           // Kernel estimate from j.
-          const Vector etaj = -(Hj*rij);
+          const Scalar etaj = (Hj*rij).magnitude();
           const Scalar Wj = mW(etaj, Hdetj);
           const Scalar gradWj = mW.grad(etaj, Hdetj);
 
