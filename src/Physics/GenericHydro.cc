@@ -23,7 +23,6 @@
 #include <limits>
 #include <algorithm>
 #include <sstream>
-#include <functional>
 
 using std::vector;
 using std::string;
@@ -165,11 +164,11 @@ dt(const DataBase<Dimension>& dataBase,
   auto minDt = make_pair(std::numeric_limits<double>::max(), string());
 
   // Define a function for computing the velocity divergence (different for curvilinear coordinates)
-  std::function<double(const Tensor&, const Vector&, const Vector&)> Fdiv = [](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace(); };
+  auto Fdiv = +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace(); };
   if (GeometryRegistrar::coords() == CoordinateType::Spherical) {
-    Fdiv = [](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi[0] + 2.0*veli[0]*safeInv(posi[0]); };
+    Fdiv = +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi[0] + 2.0*veli[0]*safeInv(posi[0]); };
   } else if (GeometryRegistrar::coords() == CoordinateType::RZ) {
-    Fdiv = [](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace() + veli[0]*safeInv(posi[0]); };
+    Fdiv = +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace() + veli[0]*safeInv(posi[0]); };
   }
 
   // Loop over every fluid node.
