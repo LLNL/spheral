@@ -27,15 +27,15 @@ commandLine(vImpact = 1.0,                 # impact velocity
             omega0 = 0.1,                  # initial angular velocity it we're doing that
 
             radius = 0.25,                 # particle radius
-            normalSpringConstant=10000.0,  # spring constant for LDS model
-            restitutionCoefficient=0.8,    # restitution coefficient to get damping const
-            tangenSpringConstant=3000.0,         # spring constant for LDS model
-            tangenRestitutionCoefficient=0.8,    # restitution coefficient to get damping const
-            dynamicFriction = 0.1,
-            staticFriction = 0.1,
-            rollingFriction = 0.1,
-            torsionalFriction = 0.1,
-            shapeFactor = 0.8,
+            normalSpringConstant=10000.0,           # spring constant for LDS model
+            normalRestitutionCoefficient=0.55,      # restitution coefficient to get damping const
+            tangentialSpringConstant=2857.0,        # spring constant for LDS model
+            tangentialRestitutionCoefficient=0.55,  # restitution coefficient to get damping const
+            dynamicFriction = 1.0,
+            staticFriction = 1.0,
+            rollingFriction = 1.05,
+            torsionalFriction = 1.3,
+            shapeFactor = 0.5,
 
             nPerh = 1.01,                  # this should basically always be 1 for DEM
             
