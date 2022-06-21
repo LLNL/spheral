@@ -24,12 +24,21 @@ title("DEM Restitution Coefficient Test")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(vImpact = 1.0,                 # impact velocity
-            normalSpringConstant=10000.0,  # spring constant for LDS model
-            restitutionCoefficient=0.8,    # restitution coefficient to get damping const
-            radius = 0.25,                 # particle radius
-            nPerh = 1.01,                  # this should basically always be 1 for DEM
             omega0 = 0.1,                  # initial angular velocity it we're doing that
 
+            radius = 0.25,                 # particle radius
+            normalSpringConstant=10000.0,  # spring constant for LDS model
+            restitutionCoefficient=0.8,    # restitution coefficient to get damping const
+            tangenSpringConstant=3000.0,         # spring constant for LDS model
+            tangenRestitutionCoefficient=0.8,    # restitution coefficient to get damping const
+            dynamicFriction = 0.1,
+            staticFriction = 0.1,
+            rollingFriction = 0.1,
+            torsionalFriction = 0.1,
+            shapeFactor = 0.8,
+
+            nPerh = 1.01,                  # this should basically always be 1 for DEM
+            
             # integration
             IntegratorConstructor = VerletIntegrator,
             stepsPerCollision = 50,  # replaces CFL for DEM
@@ -154,8 +163,15 @@ output("db.numFluidNodeLists")
 # DEM
 #-------------------------------------------------------------------------------
 hydro = DEM(db,
-            normalSpringConstant,
-            restitutionCoefficient,
+            normalSpringConstant = normalSpringConstant,
+            normalRestitutionCoefficient = normalRestitutionCoefficient,
+            tangentialSpringConstant = tangentialSpringConstant,
+            tangentialRestitutionCoefficient = tangentialRestitutionCoefficient,
+            dynamicFrictionCoefficient = dynamicFriction,
+            staticFrictionCoefficient = staticFriction,
+            rollingFrictionCoefficient = rollingFriction,
+            torsionalFrictionCoefficient = torsionalFriction,
+            shapeFactor = shapeFactor,
             stepsPerCollision = stepsPerCollision)
 
 packages = [hydro]
