@@ -41,20 +41,35 @@ template<typename Dimension>
 LinearSpringDEM<Dimension>::
 LinearSpringDEM(const DataBase<Dimension>& dataBase,
                 const Scalar normalSpringConstant,
-                const Scalar restitutionCoefficient,
+                const Scalar normalRestitutionCoefficient,
+                const Scalar tangentialSpringConstant,
+                const Scalar tangentialRestitutionCoefficient,
+                const Scalar dynamicFrictionCoefficient,
+                const Scalar staticFrictionCoefficient,
+                const Scalar rollingFrictionCoefficient,
+                const Scalar torsionalFrictionCoefficient,
+                const Scalar shapeFactor,
                 const Scalar stepsPerCollision,
                 const Vector& xmin,
                 const Vector& xmax):
   DEMBase<Dimension>(dataBase,stepsPerCollision,xmin,xmax),
   mNormalSpringConstant(normalSpringConstant),
-  mRestitutionCoefficient(restitutionCoefficient){
+  mNormalRestitutionCoefficient(normalRestitutionCoefficient),
+  mTangentialSpringConstant(tangentialSpringConstant),
+  mTangentialRestitutionCoefficient(tangentialRestitutionCoefficient),
+  mDynamicFrictionCoefficient(dynamicFrictionCoefficient),
+  mStaticFrictionCoefficient(staticFrictionCoefficient),
+  mRollingFrictionCoefficient(rollingFrictionCoefficient),
+  mTorsionalFrictionCoefficient(torsionalFrictionCoefficient),
+  mShapeFactor(shapeFactor){
      
     const auto pi = 3.14159265358979323846;
     const auto mass = dataBase.DEMMass();
     const auto minMass = mass.min();
 
-    mBeta = pi/std::log(restitutionCoefficient);
-    mTimeStep = pi*std::sqrt(0.5*minMass/normalSpringConstant * (1.0 + 1.0/(mBeta*mBeta)));
+    mNormalBeta = pi/std::log(normalRestitutionCoefficient);
+    mTangentialBeta = pi/std::log(tangentialRestitutionCoefficient);
+    mTimeStep = pi*std::sqrt(0.5*minMass/normalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)));
 
 }
 
@@ -94,30 +109,32 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   this->resizeDerivativePairFieldLists(derivatives);
 
   // A few useful constants we'll use in the following loop.
-  //const double tiny = std::numeric_limits<double>::epsilon();
-  const auto shapeFactor = 1.00;
-  const auto muD = 0.3;
-  const auto muS = 0.4;
-  const auto muT = 1.0;
-  const auto muR = 1.0;
+  const double tiny = std::numeric_limits<double>::epsilon();
+  const auto shapeFactor = this->shapeFactor();
+  const auto shapeFactor2 = shapeFactor*shapeFactor; 
 
-  const auto beta2 = shapeFactor*shapeFactor; // rename ... confusing
-  const auto dampingConstTerms = 4.0*mNormalSpringConstant/(1.0+mBeta*mBeta);
-  
+  const auto muD = this->dynamicFrictionCoefficient();
+  const auto muS = this->staticFrictionCoefficient();
+  const auto muT = this->torsionalFrictionCoefficient();
+  const auto muR = this->rollingFrictionCoefficient();
+
   // spring constants
-  const auto kn = mNormalSpringConstant;           // normal
-  const auto ks = 1.0*mNormalSpringConstant;   // sliding
-  const auto kt = 2.0*ks*beta2;                    // torsion
-  const auto kr = mNormalSpringConstant*beta2;     // rolling
-  const auto invKs = 1.0/ks;
-  const auto invKt = 1.0/kt;
-  const auto invKr = 1.0/kr;
-  
+  const auto kn = this->normalSpringConstant();        // normal
+  const auto ks = this->tangentialSpringConstant();    // sliding
+  const auto kt = 2.0*ks*shapeFactor2;
+  const auto kr = kn*shapeFactor2;
 
+  const auto invKs = 1.0/max(ks,tiny);
+  const auto invKt = 1.0/max(kt,tiny);
+  const auto invKr = 1.0/max(kr,tiny);
+  
+  const auto normalDampingTerms = 4.0*kn/(1.0+mNormalBeta*mNormalBeta);
+  const auto tangentialDampingTerms = 8.0/5.0*ks/(1.0+mTangentialBeta*mTangentialBeta);
+ 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
-  const auto numNodeLists = nodeLists.size();
+  const auto  numNodeLists = nodeLists.size();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
   
@@ -242,86 +259,110 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         // effective quantities (mass, reduced radius, contact radius) respectively
         const auto mij = (mi*mj)/(mi+mj);
         const auto lij = 2.0*(li*lj)/(li+lj);
-        const auto aij = std::sqrt(4.0*rijMag*Ri - (rijMag*rijMag - Rj*Rj + Ri*Ri))/(2.0*rijMag);
+        //const auto aij = std::sqrt(4.0*rijMag*Ri - (rijMag*rijMag - Rj*Rj + Ri*Ri))/(2.0*rijMag);
 
-        // damping constants -- ct and cr derived quantities ala Zhang
-        const auto Cn = std::sqrt(mij*dampingConstTerms);
-        const auto Cs = Cn;
-        const auto Ct = 2.0 * Cs * beta2 * lij * lij;
-        const auto Cr = Cn * beta2 * lij * lij;
+        // damping constants -- ct and cr derived quantities ala Zhang 2017
+        const auto Cn = std::sqrt(mij*normalDampingTerms);
+        const auto Cs = std::sqrt(mij*tangentialDampingTerms);
+        const auto Ct = 2.0 * Cs * shapeFactor2;
+        const auto Cr = Cn * shapeFactor2;
 
         // our velocities
-        const auto vroti = -DEMDimension<Dimension>::cross(omegai,rhatij);
-        const auto vrotj =  DEMDimension<Dimension>::cross(omegaj,rhatij);
+        const Vector vroti = -DEMDimension<Dimension>::cross(omegai,rhatij);
+        const Vector vrotj =  DEMDimension<Dimension>::cross(omegaj,rhatij);
 
-        const auto vij = vi-vj + li*vroti - lj*vrotj;
+        const Vector vij = vi-vj + li*vroti - lj*vrotj;
 
-        const auto vn = vij.dot(rhatij);
-        const auto vt = vij - vn*rhatij;
+        const Scalar vn = vij.dot(rhatij);                  // normal velocity
+        const Vector vs = vij - vn*rhatij;                  // sliding velocity
+        const Vector vr = li*vroti + lj*vrotj;              // rolling velocity
+        const Scalar vt = lij*DEMDimension<Dimension>::dot(omegai-omegaj,rhatij); // torsion velocity
 
         // normal force
-        const auto fn = (kn*delta - Cn*vn)*rhatij;
-        const auto fnMag = fn.magnitude();
+        const Vector fn = (kn*delta - Cn*vn)*rhatij;
+        const Scalar fnMag = fn.magnitude();
 
         // sliding
         //------------------------------------------------------------
         // project onto new tangential plane -- maintain magnitude
-        auto newDeltaSlidij = (deltaSlidij - rhatij.dot(deltaSlidij)*rhatij).unitVector()*deltaSlidij.magnitude();
+        Vector newDeltaSlidij = (deltaSlidij - rhatij.dot(deltaSlidij)*rhatij).unitVector()*deltaSlidij.magnitude();
         
         // spring dashpot
-        const auto ft0spring = - ks*newDeltaSlidij;
-        const auto ft0damp = - Cs*vt;
-        auto ft = ft0spring + ft0damp;
+        const Vector ft0spring = - ks*newDeltaSlidij;
+        const Vector ft0damp = - Cs*vs;
+              Vector ft = ft0spring + ft0damp;
 
         // static friction limit
         if  (ft.magnitude() > muS*fnMag){
 
-          const auto ftDynamic = muD*fnMag;
+          const Scalar ftDynamic = muD*fnMag;
           ft = ftDynamic*ft.unitVector();
 
           newDeltaSlidij = ( ft0damp.magnitude() > ftDynamic ? 
                                 Vector::zero : 
-                               -invKs*(ft-ft0damp) );
+                               -(ft-ft0damp)*invKs );
 
         }
 
-        // Moment - rolling velocity
-        //const typename DEMDimension<Dimension>::AngularVector Mroll = -muR*fnMag*this->rollingMoment(rhatij,vroti,vrotj);
-        //DomegaDti -= Mroll*lij;
-        //DomegaDtj += Mroll*lij;
-
-        // Moment - torsion 
+        // torsion
+        //------------------------------------------------------------
         auto newDeltaTorsij = deltaTorsij;
-        const auto omeganij = DEMDimension<Dimension>::dot(omegai-omegaj,rhatij);
         
         // spring dashpot
-        const auto Mt0spring = - kt*newDeltaTorsij;
-        const auto Mt0damp = - Ct*omeganij;
-        auto MtorsionMag = (Mt0spring + Mt0damp)*lij*lij;  // lij lij is part of coeffs
-        const auto MtStatic = muT*fnMag;
+        const Scalar Mt0spring = - kt*newDeltaTorsij;
+        const Scalar Mt0damp = - Ct*vt;
+              Scalar MtorsionMag = (Mt0spring + Mt0damp); 
+        const Scalar MtStatic = muT*shapeFactor*muS*fnMag;
 
         // limit to static
         if  (MtorsionMag > MtStatic){
           MtorsionMag =  MtStatic;
-          newDeltaTorsij = (Mt0damp > MtStatic ? 0.0 :  -invKt*(MtorsionMag-Mt0damp));
+          newDeltaTorsij = (Mt0damp > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
         }
 
-        // Rectilinear Acceleration
-        const auto fij = fn + ft;
+        // convert this ish to velocity instead of angular velocity
+
+        // rolling
+        //------------------------------------------------------------
+        Vector newDeltaRollij = (deltaRollij - rhatij.dot(deltaRollij)*rhatij).unitVector()*deltaRollij.magnitude();
+    
+        // const auto omegaRotij = DEMDimension<Dimension>::cross(rhatij,DEMDimension<Dimension>::cross(omegaj-omegai,rhatij))
+        //                       - 0.5*(lj-li)/(li*lj)*DEMDimension<Dimension>::cross(rhatij,vt);
+
+        const Vector Mr0spring = - kr*newDeltaRollij;
+        const Vector Mr0damp = - Cr*vr;
+              Vector effectiveRollingForce = (Mr0spring + Mr0damp); 
+        const Scalar MrStatic = muR*shapeFactor*fnMag;
+
+        // limit to static
+        if  (effectiveRollingForce.magnitude() > MrStatic){
+         effectiveRollingForce =  MrStatic*effectiveRollingForce.unitVector();
+         newDeltaRollij = (Mr0damp.magnitude() > MrStatic ?
+                           Vector::zero :  
+                           -(effectiveRollingForce-Mr0damp)*invKr);
+        }
+
+        // accelerations
+        //------------------------------------------------------------
+        // Rectilinear Acceleration 
+        const Vector fij = fn + ft;
         DvDti += fij;
         DvDtj -= fij;
 
         // angular acceleration
         const auto Msliding = -DEMDimension<Dimension>::cross(rhatij,fij);
-        const auto Mtorsion = MtorsionMag * this->torsionMoment(omegai,omegaj,rhatij);
-        DomegaDti += Msliding*li - (Mtorsion)*lij;
-        DomegaDtj += Msliding*lj + (Mtorsion)*lij;
+        const auto Mrolling = -DEMDimension<Dimension>::cross(rhatij,effectiveRollingForce);
+        const auto Mtorsion = MtorsionMag * this->torsionMoment(omegai,omegaj,rhatij); // rename torsionDirection
+        DomegaDti += Msliding*li - (Mtorsion)*lij - Mrolling * lij;
+        DomegaDtj += Msliding*lj + (Mtorsion)*lij + Mrolling * lij;
 
         // for spring updates
         newShearDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaSlidij;
-        DDtShearDisplacement(storeNodeList,storeNode)[storeContact] = vt;
+        DDtShearDisplacement(storeNodeList,storeNode)[storeContact] = vs;
         newTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaTorsij;
-        DDtTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = omeganij;
+        DDtTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = vt;
+        newRollingDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaRollij;
+        DDtRollingDisplacement(storeNodeList,storeNode)[storeContact] = vr;
     
       }  
     } // loop over pairs

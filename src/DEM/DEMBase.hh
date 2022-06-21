@@ -119,17 +119,6 @@ public:
 
   void kullInactiveContacts(const DataBase<Dimension>& dataBase);
 
-  // // methods to find storage location for pairwise fields
-  // std::vector<int> storageNodeSelection(int nodeListi,
-  //                                       int i,
-  //                                       int nodeListj,
-  //                                       int j) const;
-
-  // std::vector<int> findContactIndex(int nodeListi,
-  //                                   int i,
-  //                                   int nodeListj,
-  //                                   int j) const;
-
   // Optionally we can provide a bounding box for use generating the mesh
   // for the Voronoi mass density update.
   const Vector& xmin() const;

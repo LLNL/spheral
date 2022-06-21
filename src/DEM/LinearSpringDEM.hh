@@ -30,7 +30,14 @@ public:
 
   LinearSpringDEM(const DataBase<Dimension>& dataBase,
                   const Scalar normalSpringConstant,
-                  const Scalar restitutionCoefficient,
+                  const Scalar normalRestitutionCoefficient,
+                  const Scalar tangentialSpringConstant,
+                  const Scalar tangentialRestitutionCoefficient,
+                  const Scalar dynamicFrictionCoefficient,
+                  const Scalar staticFrictionCoefficient,
+                  const Scalar rollingFrictionCoefficient,
+                  const Scalar torsionalFrictionCoefficient,
+                  const Scalar shapeFactor,
                   const Scalar stepsPerCollision,
                   const Vector& xmin,
                   const Vector& xmax);
@@ -51,11 +58,35 @@ public:
   Scalar normalSpringConstant() const;
   void   normalSpringConstant(Scalar x);
 
-  Scalar restitutionCoefficient() const;
-  void   restitutionCoefficient(Scalar x);
+  Scalar normalRestitutionCoefficient() const;
+  void   normalRestitutionCoefficient(Scalar x);
 
-  Scalar beta() const;
-  void   beta(Scalar x);
+  Scalar tangentialSpringConstant() const;
+  void   tangentialSpringConstant(Scalar x);
+
+  Scalar tangentialRestitutionCoefficient() const;
+  void   tangentialRestitutionCoefficient(Scalar x);
+
+  Scalar dynamicFrictionCoefficient() const;
+  void   dynamicFrictionCoefficient(Scalar x);
+
+  Scalar staticFrictionCoefficient() const;
+  void   staticFrictionCoefficient(Scalar x);
+
+  Scalar rollingFrictionCoefficient() const;
+  void   rollingFrictionCoefficient(Scalar x);
+
+  Scalar torsionalFrictionCoefficient() const;
+  void   torsionalFrictionCoefficient(Scalar x);
+
+  Scalar shapeFactor() const;
+  void   shapeFactor(Scalar x);
+
+  Scalar normalBeta() const;
+  void   normalBeta(Scalar x);
+
+  Scalar tangentialBeta() const;
+  void   tangentialBeta(Scalar x);
 
   Scalar timeStep() const;
   void   timeStep(Scalar x);
@@ -68,8 +99,17 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   Scalar mNormalSpringConstant;
-  Scalar mRestitutionCoefficient;
-  Scalar mBeta;
+  Scalar mNormalRestitutionCoefficient;
+  Scalar mTangentialSpringConstant;
+  Scalar mTangentialRestitutionCoefficient;
+  Scalar mDynamicFrictionCoefficient;     // coefficient of friciton - dynamic
+  Scalar mStaticFrictionCoefficient;      // coefficient of friction - static
+  Scalar mRollingFrictionCoefficient;     // coefficient of friction - rolling
+  Scalar mTorsionalFrictionCoefficient;   // coefficient of friction - torsional 
+  Scalar mShapeFactor;                    // varies between 0 and 1 to account to non spherical shapes & influences rolling/torsion spring parameters
+
+  Scalar mNormalBeta;
+  Scalar mTangentialBeta;
   Scalar mTimeStep;
 
   // No default constructor, copying, or assignment.

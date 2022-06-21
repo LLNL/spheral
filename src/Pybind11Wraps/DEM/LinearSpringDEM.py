@@ -16,7 +16,14 @@ class LinearSpringDEM(DEMBase):
     
     def pyinit(dataBase = "const DataBase<%(Dimension)s>&",
                normalSpringConstant = "const Scalar",
-               restitutionCoefficient = "const Scalar",
+               normalRestitutionCoefficient = "const Scalar",
+               tangentialSpringConstant = "const Scalar",
+               tangentialRestitutionCoefficient = "const Scalar",
+               dynamicFrictionCoefficient = "const Scalar",
+               staticFrictionCoefficient = "const Scalar",
+               rollingFrictionCoefficient = "const Scalar",
+               torsionalFrictionCoefficient = "const Scalar",
+               shapeFactor = "const Scalar",
                stepsPerCollision = "const Scalar",
                xmin = "const Vector&",
                xmax = "const Vector&"):
@@ -41,8 +48,18 @@ class LinearSpringDEM(DEMBase):
         "calculate the derivatives for Linear Spring DEM."
         return "void"
 
-    normalSpringConstant = PYB11property("Scalar", "normalSpringConstant", "normalSpringConstant", doc="linear spring constant")
-    restitutionCoefficient = PYB11property("Scalar", "restitutionCoefficient", "restitutionCoefficient", doc="linear restitution coefficient")
-    beta = PYB11property("Scalar", "beta", "beta", doc="a damping parameter")
+    normalSpringConstant = PYB11property("Scalar", "normalSpringConstant", "normalSpringConstant", doc="normal spring constant")
+    normalRestitutionCoefficient = PYB11property("Scalar", "normalRestitutionCoefficient", "normalRestitutionCoefficient", doc="normal restitution coefficient")
+    tangentialSpringConstant = PYB11property("Scalar", "tangentialSpringConstant", "tangentialSpringConstant", doc="tangential spring constant")
+    tangentialRestitutionCoefficient = PYB11property("Scalar", "tangentialRestitutionCoefficient", "tangentialRestitutionCoefficient", doc="tangential restitution coefficient")
+    
+    dynamicFrictionCoefficient = PYB11property("Scalar", "dynamicFrictionCoefficient", "dynamicFrictionCoefficient", doc="sliding friction coefficient - dynamic")
+    staticFrictionCoefficient = PYB11property("Scalar", "staticFrictionCoefficient", "staticFrictionCoefficient", doc="sliding friction coefficient - static")
+    rollingFrictionCoefficient = PYB11property("Scalar", "rollingFrictionCoefficient", "rollingFrictionCoefficient", doc="rolling friction coefficient")
+    torsionalFrictionCoefficient = PYB11property("Scalar", "torsionalFrictionCoefficient", "torsionalFrictionCoefficient", doc="torsional friction coefficient")
+    
+    shapeFactor = PYB11property("Scalar", "shapeFactor", "shapeFactor", doc="shape factor - simple approach to non-spherical particles")
+    normalBeta = PYB11property("Scalar", "normalBeta", "normalBeta", doc="a damping parameter")
+    tangentialBeta = PYB11property("Scalar", "tangentialBeta", "tangentialBeta", doc="a damping parameter")
     timeStep = PYB11property("Scalar", "timeStep", "timeStep", doc="constant time-step for this model")
   
