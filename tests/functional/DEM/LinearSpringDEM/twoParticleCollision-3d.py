@@ -88,7 +88,11 @@ commandLine(vImpact = 1.0,                 # impact velocity
 #-------------------------------------------------------------------------------
 testName = "DEM-twoParticleCollision-3d"
 dataDir = os.path.join(dataDir,
-                  "restitutionCoefficient=%s" % normalRestitutionCoefficient)
+                  "restitutionCoefficient=%s" % normalRestitutionCoefficient,
+                  "boolCheckSlidingFriction=%s" % boolCheckSlidingFriction,
+                  "boolCheckSlidingFriction=%s" % boolCheckRollingFriction,
+                  "boolCheckTorsionalFriction=%s" % boolCheckTorsionalFriction,
+                  "boolCheckTorsionalObjectivity=%s" % boolCheckTorsionalObjectivity)
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
