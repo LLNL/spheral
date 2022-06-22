@@ -275,7 +275,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
         const Scalar vn = vij.dot(rhatij);                  // normal velocity
         const Vector vs = vij - vn*rhatij;                  // sliding velocity
-        const Vector vr = li*vroti + lj*vrotj;              // rolling velocity
+        const Vector vr = -li*vroti - lj*vrotj;              // rolling velocity
         const Scalar vt = lij*DEMDimension<Dimension>::dot(omegai-omegaj,rhatij); // torsion velocity
 
         // normal force

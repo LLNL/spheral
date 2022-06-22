@@ -36,7 +36,7 @@ def makeDEMNodeList%(dim)s(name,
                                   nPerh, maxNumNeighbors)
 
     if NeighborType == NestedGridNeighbor%(dim)s:
-        print "makeSolidNodeList Deprecation Warning: NestedGridNeighbor is deprecated: suggest using TreeNeighbor."
+        print "makeDEMNodeList Deprecation Warning: NestedGridNeighbor is deprecated: suggest using TreeNeighbor."
         result._neighbor = NestedGridNeighbor%(dim)s(result, searchType, 
                                                      kernelExtent = kernelExtent)
                                                      #numGridLevels, topGridCellSize, 
