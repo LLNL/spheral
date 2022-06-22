@@ -87,11 +87,12 @@ commandLine(vImpact = 1.0,                 # impact velocity
 # file things
 #-------------------------------------------------------------------------------
 testName = "DEM-twoParticleCollision-3d"
+dataDir = os.path.join(dataDir,
+                  "restitutionCoefficient=%s" % normalRestitutionCoefficient)
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
 vizBaseName = testName
-
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
