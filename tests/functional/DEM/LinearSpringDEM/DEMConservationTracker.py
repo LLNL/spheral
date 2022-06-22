@@ -133,7 +133,7 @@ class TrackConservation3d:
             for i in range(nodeLists[nodelisti].numInternalNodes):
                 Ptot += mass(nodelisti,i) * velocity(nodelisti,i)
                 Rtot += mass(nodelisti,i) * (0.5 * radius(nodelisti,i)**2 * omega(nodelisti,i) + position(nodelisti,i).cross(velocity(nodelisti,i)))
-                print omega(nodelisti,i)
+                
         Ptot = mpi.allreduce(Ptot,mpi.SUM)
         Rtot = mpi.allreduce(Rtot,mpi.SUM)
 

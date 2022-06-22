@@ -1,4 +1,4 @@
-#ATS:DEM1d = test(        SELF, "--clearDirectories True  --checkError True --checkConservation True  --restitutionCoefficient=1.0 --steps 100", label="DEM individual particle collision -- 1-D (serial)")
+#ATS:DEM1d = test(        SELF, "--clearDirectories True  --checkError True --checkConservation True  --normalRestitutionCoefficient 1.0 --steps 100", label="DEM individual particle collision -- 1-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
@@ -253,7 +253,7 @@ if checkError:
     vijPostImpact = velocity[0].x - velocity[1].x
     vijPreImpact = 2.0*vImpact
     restitutionEff = vijPostImpact/vijPreImpact
-    restitutionError = abs(restitutionEff + restitutionCoefficient)/restitutionCoefficient
+    restitutionError = abs(restitutionEff + normalRestitutionCoefficient)/normalRestitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
         raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
 

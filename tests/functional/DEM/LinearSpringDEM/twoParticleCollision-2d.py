@@ -1,6 +1,6 @@
 #ATS:DEM2d0 = test(          SELF, "--clearDirectories True  --checkError True --checkConservation True  --restartStep 10 --steps 100", label="DEM individual particle collision -- 2-D (serial)")
 #ATS:DEM2d1 = testif(DEM2d0, SELF, "--clearDirectories False --checkError False  --restartStep 10 --restoreCycle 10 --steps 10 --checkRestart True", label="DEM individual particle collision -- 2-D (serial) RESTART CHECK")
-#ATS:DEM2d2 = test(          SELF, "--clearDirectories True  --checkError True --checkConservation True  --restitutionCoefficient=1.0 --steps 100", label="DEM individual particle collision -- 2-D (serial)")
+#ATS:DEM2d2 = test(          SELF, "--clearDirectories True  --checkError True --checkConservation True  --normalRestitutionCoefficient 1.0 --steps 100", label="DEM individual particle collision -- 2-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
@@ -72,7 +72,7 @@ commandLine(vImpact = 1.0,                 # impact velocity
 #-------------------------------------------------------------------------------
 testName = "DEM-twoParticleCollision-2d"
 dataDir = os.path.join(dataDir,
-                  "restitutionCoefficient=%s" % restitutionCoefficient)
+                  "restitutionCoefficient=%s" % normalRestitutionCoefficient)
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
@@ -255,7 +255,7 @@ if checkError:
     vijPostImpact = velocity[0].x - velocity[1].x
     vijPreImpact = 2.0*vImpact
     restitutionEff = vijPostImpact/vijPreImpact
-    restitutionError = abs(restitutionEff + restitutionCoefficient)/restitutionCoefficient
+    restitutionError = abs(restitutionEff + normalRestitutionCoefficient)/normalRestitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
         raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
 
