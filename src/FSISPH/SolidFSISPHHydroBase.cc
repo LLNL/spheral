@@ -6,6 +6,7 @@
 #include "SPH/SPHHydroBase.hh"                 
 #include "SPH/SolidSPHHydroBase.hh"
 
+#include "GSPH/Policies/PureReplaceFieldList.hh"
 #include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -32,6 +33,7 @@
 #include "FSISPH/SolidFSISPHHydroBase.hh"
 #include "FSISPH/FSIFieldNames.hh"
 #include "FSISPH/computeFSISPHSumMassDensity.hh"
+#include "FSISPH/computeHWeightedFSISPHSumMassDensity.hh"
 #include "FSISPH/SlideSurface.hh"
 
 
@@ -164,8 +166,17 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mApplySelectDensitySum(false),
   mSumDensityNodeLists(sumDensityNodeLists),
   mPairDepsDt(),
+  mRawPressure(FieldStorageType::CopyFields),
   mDPDx(FieldStorageType::CopyFields),
-  mDepsDx(FieldStorageType::CopyFields){
+  mDepsDx(FieldStorageType::CopyFields),
+  mInterfaceNormals(FieldStorageType::CopyFields),
+  mInterfaceFraction(FieldStorageType::CopyFields),
+  mInterfaceSmoothness(FieldStorageType::CopyFields),
+  mNewInterfaceNormals(FieldStorageType::CopyFields),
+  mSmoothedInterfaceNormals(FieldStorageType::CopyFields),
+  mNewInterfaceFraction(FieldStorageType::CopyFields),
+  mNewInterfaceSmoothness(FieldStorageType::CopyFields){
+
     mPairDepsDt.clear();
 
     // see if we're summing density for any nodelist
@@ -175,9 +186,18 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
         mApplySelectDensitySum = true;
       } 
     }
- 
+    
+    mRawPressure = dataBase.newFluidFieldList(0.0, FSIFieldNames::rawPressure);
     mDPDx = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::pressureGradient);
     mDepsDx = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::specificThermalEnergyGradient);
+    mInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceNormals);
+    mInterfaceFraction = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceFraction);
+    mInterfaceSmoothness = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceSmoothness);
+    mNewInterfaceNormals = dataBase.newFluidFieldList(Vector::one, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals);
+    mSmoothedInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::smoothedInterfaceNormals);
+    mNewInterfaceFraction = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction);
+    mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
+    
   }
 
 //------------------------------------------------------------------------------
@@ -196,12 +216,12 @@ void
 SolidFSISPHHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase){
 
-  SlideSurface<Dimension>& slides = this->slideSurface();
-  slides.initializeProblemStartup(dataBase);
-  
   SolidSPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
+
+  mRawPressure+=this->pressure();
   
 }
+
 //------------------------------------------------------------------------------
 // Register states
 //------------------------------------------------------------------------------
@@ -212,13 +232,20 @@ registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   TIME_SolidFSISPHregisterState.start();
 
-  SlideSurface<Dimension>& slides = this->slideSurface();
-  slides.registerState(dataBase,state);
-
   SolidSPHHydroBase<Dimension>::registerState(dataBase,state);
   
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+  
+  dataBase.resizeFluidFieldList(mRawPressure, 0.0, FSIFieldNames::rawPressure, false);
+  dataBase.resizeFluidFieldList(mInterfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals,false);
+  dataBase.resizeFluidFieldList(mInterfaceFraction, 0.0, FSIFieldNames::interfaceFraction,false); 
+  dataBase.resizeFluidFieldList(mInterfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness,false);
+   
+  PolicyPointer rawPressurePolicy(new PressurePolicy<Dimension>());
+  PolicyPointer interfaceNormalsPolicy(new PureReplaceFieldList<Dimension,Vector>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals));
+  PolicyPointer interfaceFractionPolicy(new PureReplaceFieldList<Dimension,Scalar>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction));
+  PolicyPointer interfaceSmoothnessPolicy(new PureReplaceFieldList<Dimension,Scalar>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness));
   
   // Override the specific thermal energy policy if compatible
   if(this->compatibleEnergyEvolution()){
@@ -227,13 +254,11 @@ registerState(DataBase<Dimension>& dataBase,
     PolicyPointer epsPolicy(new CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>(dataBase));
     state.enroll(specificThermalEnergy, epsPolicy);
   }
-  
-  // override our pressure policy we need neg pressure to decouple
-  FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
-  CHECK(pressure.numFields() == dataBase.numFluidNodeLists());
-  PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
-  state.enroll(pressure, pressurePolicy);
-  
+
+  state.enroll(mRawPressure,rawPressurePolicy);
+  state.enroll(mInterfaceNormals,interfaceNormalsPolicy); 
+  state.enroll(mInterfaceFraction,interfaceFractionPolicy);
+  state.enroll(mInterfaceSmoothness,interfaceSmoothnessPolicy); 
 
   TIME_SolidFSISPHregisterState.stop();
 }
@@ -254,12 +279,20 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   // make sure we're tracking the right number of node lists
   dataBase.resizeFluidFieldList(mDPDx, Vector::zero, FSIFieldNames::pressureGradient, false);
   dataBase.resizeFluidFieldList(mDepsDx, Vector::zero, FSIFieldNames::specificThermalEnergyGradient, false);
+  dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals,false);
+  dataBase.resizeFluidFieldList(mSmoothedInterfaceNormals, Vector::zero,  FSIFieldNames::smoothedInterfaceNormals,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceFraction, 0.0,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() +  FSIFieldNames::interfaceFraction,false); 
+  dataBase.resizeFluidFieldList(mNewInterfaceSmoothness, 0.0,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness,false);
 
   // enroll 
   derivs.enrollAny(HydroFieldNames::pairWork,  mPairDepsDt);
   derivs.enroll(mDPDx);
   derivs.enroll(mDepsDx);
-  
+  derivs.enroll(mNewInterfaceNormals);
+  derivs.enroll(mSmoothedInterfaceNormals);
+  derivs.enroll(mNewInterfaceFraction);
+  derivs.enroll(mNewInterfaceSmoothness);
+
   TIME_SolidFSISPHregisterDerivs.stop();
 }
 
@@ -280,7 +313,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto& H = state.fields(HydroFieldNames::H, SymTensor::zero);
       const auto& W = this->kernel();
             auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-      computeFSISPHSumMassDensity(connectivityMap, W, mSumDensityNodeLists, position, mass, H, massDensity);
+      computeHWeightedFSISPHSumMassDensity(connectivityMap, W, mSumDensityNodeLists, position, mass, H, massDensity);
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
@@ -303,7 +336,6 @@ initialize(const typename Dimension::Scalar time,
   const TableKernel<Dimension>& W = this->kernel();
 
   ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
-  SlideSurface<Dimension>& slides = this->slideSurface();
 
   Q.initialize(dataBase, 
                state,
@@ -314,15 +346,6 @@ initialize(const typename Dimension::Scalar time,
                dt,
                W);
   
-  slides.initialize(dataBase, 
-                    state,
-                    derivs,
-                    this->boundaryBegin(),
-                    this->boundaryEnd(),
-                    time, 
-                    dt,
-                    W);
-
   // We depend on the caller knowing to finalize the ghost boundaries!
   TIME_SolidFSISPHinitialize.stop();
 }
@@ -354,6 +377,104 @@ finalizeDerivatives(const Scalar /*time*/,
 
 } // finalize
 
+
+//------------------------------------------------------------------------------
+// Apply the ghost boundary conditions for hydro state fields.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidFSISPHHydroBase<Dimension>::
+applyGhostBoundaries(State<Dimension>& state,
+                     StateDerivatives<Dimension>& derivs) {
+
+  SolidSPHHydroBase<Dimension>::applyGhostBoundaries(state,derivs);
+
+  FieldList<Dimension, Scalar> interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
+  FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
+  FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
+  FieldList<Dimension, Scalar> rawPressure = state.fields(FSIFieldNames::rawPressure, 0.0);
+
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->applyFieldListGhostBoundary(interfaceFraction);
+    (*boundaryItr)->applyFieldListGhostBoundary(interfaceNormals);
+    (*boundaryItr)->applyFieldListGhostBoundary(interfaceSmoothness);
+    (*boundaryItr)->applyFieldListGhostBoundary(rawPressure);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Enforce the boundary conditions for hydro state fields.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidFSISPHHydroBase<Dimension>::
+enforceBoundaries(State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+
+  SolidSPHHydroBase<Dimension>::enforceBoundaries(state,derivs);
+
+  FieldList<Dimension, Scalar> interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
+  FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
+  FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
+  FieldList<Dimension, Scalar> rawPressure = state.fields(FSIFieldNames::rawPressure, 0.0);
+
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->enforceFieldListBoundary(interfaceFraction);
+    (*boundaryItr)->enforceFieldListBoundary(interfaceNormals);
+    (*boundaryItr)->enforceFieldListBoundary(interfaceSmoothness);
+    (*boundaryItr)->enforceFieldListBoundary(rawPressure);
+  }
+
+}
+
+//------------------------------------------------------------------------------
+// Dump the current state to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidFSISPHHydroBase<Dimension>::
+dumpState(FileIO& file, const string& pathName) const {
+
+  SolidSPHHydroBase<Dimension>::dumpState(file, pathName);
+
+  file.write(mRawPressure, pathName + "/rawEosPressure");
+  file.write(mDPDx, pathName + "/DpDx");
+  file.write(mDepsDx, pathName + "/DepsDx");
+  file.write(mInterfaceNormals, pathName + "/interfaceNormals");
+  file.write(mInterfaceFraction, pathName + "/interfaceFraction");
+  file.write(mInterfaceSmoothness, pathName + "/interfaceSmoothness");
+  file.write(mNewInterfaceNormals, pathName + "/newInterfaceNormals");
+  file.write(mSmoothedInterfaceNormals, pathName + "/smoothedInterfaceNormals");
+  file.write(mNewInterfaceFraction, pathName + "/newInterfaceFraction");
+  file.write(mNewInterfaceSmoothness, pathName + "/newInterfaceSmoothness");
+}
+
+
+//------------------------------------------------------------------------------
+// Dump the current state to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidFSISPHHydroBase<Dimension>::
+restoreState(const FileIO& file, const string& pathName) {
+
+  SolidSPHHydroBase<Dimension>::restoreState(file, pathName);
+
+  file.read(mRawPressure, pathName + "/rawEosPressure");
+  file.read(mDPDx, pathName + "/DpDx");
+  file.read(mDepsDx, pathName + "/DepsDx");
+  file.read(mInterfaceNormals, pathName + "/interfaceNormals");
+  file.read(mInterfaceFraction, pathName + "/interfaceFraction");
+  file.read(mInterfaceSmoothness, pathName + "/interfaceSmoothness");
+  file.read(mNewInterfaceNormals, pathName + "/newInterfaceNormals");
+  file.read(mSmoothedInterfaceNormals, pathName + "/smoothedInterfaceNormals");
+  file.read(mNewInterfaceFraction, pathName + "/newInterfaceFraction");
+  file.read(mNewInterfaceSmoothness, pathName + "/newInterfaceSmoothness");
+}
 
 //------------------------------------------------------------------------------
 // method for limited linear reconstruction between nodes
