@@ -15,6 +15,7 @@ source("unit/Geometry/testPolyClipper2d.py")
 source("unit/Geometry/testPolyClipper3d.py")
 
 # Kernel unit tests
+source("unit/Kernel/testTableKernel.py")
 source("unit/Kernel/testBicubicSphericalKernel.py")
 
 # Boundary unit tests
@@ -60,6 +61,10 @@ source("unit/Utilities/testSegmentIntersectPolygonEdges.py")
 source("unit/Utilities/testSegmentIntersectPolyhedronEdges.py")
 source("unit/Utilities/testSimpsonsIntegration.py")
 source("unit/Utilities/test_uniform_random.py")
+source("unit/Utilities/testCubicHermiteInterpolator.py")
+source("unit/Utilities/testBiLinearInterpolator.py")
+source("unit/Utilities/testBiQuadraticInterpolator.py")
+source("unit/Utilities/testBiCubicInterpolator.py")
 
 # Mesh tests.
 source("unit/Mesh/testLineMesh.py")
@@ -84,6 +89,7 @@ source("functional/Gravity/CollisionlessSphereCollapse.py")
 #source("functional/Strength/PlateImpact/PlateImpact-1d.py")
 source("functional/Strength/CollidingPlates/CollidingPlates-1d.py")
 source("functional/Strength/DiametralCompression/DiametralCompression.py")
+source("functional/Strength/Verney/Verney-spherical.py")
 
 # Damage tests.
 source("functional/Damage/TensileRod/TensileRod-1d.py")

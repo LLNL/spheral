@@ -581,15 +581,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
               // Symmetrized kernel weight and gradient.
               const Vector Hetai = Hi*etai.unitVector();
-              const std::pair<double, double> WWi = W.kernelAndGradValue(etaMagi, Hdeti);
-              const Scalar Wi = WWi.first;
-              const Scalar gWi = WWi.second;
+              Scalar Wi, gWi;
+              const std::pair<double, double> WWi = W.kernelAndGradValue(etaMagi, Hdeti, Wi, gWi);
               const Vector gradWi = gWi*Hetai;
 
               const Vector Hetaj = Hj*etaj.unitVector();
-              const std::pair<double, double> WWj = W.kernelAndGradValue(etaMagj, Hdetj);
-              const Scalar Wj = WWj.first;
-              const Scalar gWj = WWj.second;
+              Scalar Wj, gWj;
+              W.kernelAndGradValue(etaMagj, Hdetj, Wj, gWj);
               const Vector gradWj = gWj*Hetaj;
 
               // Zero'th and second moment of the node distribution -- used for the

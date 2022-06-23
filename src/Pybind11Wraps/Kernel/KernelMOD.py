@@ -29,7 +29,8 @@ PYB11includes += ['"Geometry/GeomPlane.hh"',
                   '"Kernel/WendlandC4Kernel.hh"',
                   '"Kernel/WendlandC6Kernel.hh"',
                   '"Kernel/ExpInvKernel.hh"',
-                  '"Kernel/SphericalTableKernel.hh"']
+                  '"Kernel/SphericalKernel.hh"',
+                  '"Kernel/SphericalBiCubicSplineKernel.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -40,7 +41,8 @@ PYB11namespaces = ["Spheral"]
 # Instantiate our types
 #-------------------------------------------------------------------------------
 from Kernel import *
-from SphericalTableKernel import *
+from SphericalKernel import *
+from SphericalBiCubicSplineKernel import *
 
 for ndim in dims:
     for KT in ("BSpline","W4Spline", "Gaussian", "SuperGaussian", "PiGaussian",

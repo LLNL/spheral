@@ -62,6 +62,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('py-setuptools@44.1.0', type='build')
     depends_on('py-pybind11@2.4.3', type='build')
     depends_on('py-pyb11generator@1.0.12', type='build')
+    depends_on('py-virtualenv', type='build')
 
     depends_on('py-sphinx@1.8.5', type='build', when='+docs')
     depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
@@ -190,13 +191,8 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
         entries.append(cmake_cache_option('pyb11generator_BUILD', False))
         entries.append(cmake_cache_path('pyb11generator_DIR', spec['py-pyb11generator'].prefix + '/lib/python2.7/site-packages/'))
 
-        if "+docs" in spec:
-            entries.append(cmake_cache_option('sphinx_BUILD', False))
-            entries.append(cmake_cache_path('sphinx_DIR', spec['py-sphinx'].prefix + '/lib/python2.7/site-packages/'))
-            entries.append(cmake_cache_path('SPHINX_EXEC', spec['py-sphinx'].prefix + '/bin/sphinx-build'))
-            entries.append(cmake_cache_option('sphinx_rtd_theme_BUILD', False))
-            entries.append(cmake_cache_path('sphinx_rtd_theme_DIR', spec['py-sphinx-rtd-theme'].prefix + '/lib/python2.7/site-packages/'))
-
+        entries.append(cmake_cache_option('virtualenv_BUILD', False))
+        entries.append(cmake_cache_path('virtualenv_DIR', spec['py-virtualenv'].prefix + '/lib/python2.7/site-packages/'))
 
         entries.append(cmake_cache_option('polyclipper_BUILD', False))
         entries.append(cmake_cache_path('polyclipper_DIR', spec['py-polyclipper'].prefix))

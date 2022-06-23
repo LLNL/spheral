@@ -29,14 +29,13 @@ simpsonsIntegration(const Function& function,
   if (x0 == x1) return 0.0;
 
   // Prepare our variables.
-  unsigned i;
-  Result integrand, result = DataTypeTraits<Value>::zero();
+  Result integrand = DataTypeTraits<Value>::zero(), result = DataTypeTraits<Value>::zero();
 
   // Size of the bins.
-  const Value dx = (x1 - x0)/numBins;
+  const auto dx = (x1 - x0)/numBins;
 
   // Walk the bins and accumulate the answer.
-  for (i = 0u; i < numBins + 1u; ++i) {
+  for (auto i = 0u; i < numBins + 1u; ++i) {
     integrand = function(x0 + i*dx);
     if (i == 0 or i == numBins) {
       result += integrand;
@@ -48,7 +47,7 @@ simpsonsIntegration(const Function& function,
   }
     
   // Finish up and return the result.
-  result *= (x1 - x0)/(3.0*numBins);
+  result *= dx/3.0;
   return result;
 }
 

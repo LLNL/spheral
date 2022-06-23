@@ -35,6 +35,7 @@ dumps-*
 python
 lc_*
 build_*
+!build_guide*
 *.core
 spack-build*
 *.logs

@@ -25,6 +25,10 @@ if (ENABLE_2D)
   list(APPEND Hydro_sources RZNonSymmetricSpecificThermalEnergyPolicy.cc)
 endif()
 
+if (ENABLE_1D AND ENABLE_2D)
+  list(APPEND Hydro_sources SphericalPositionPolicy.cc)
+endif()
+
 instantiate(Hydro_inst Hydro_sources)
 
 set(Hydro_headers

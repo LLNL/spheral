@@ -21,11 +21,11 @@ using std::abs;
 
 namespace Spheral {
 
-template<typename Dimension>
+template<typename Dimension, typename KernelType>
 void
 correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
-                         const TableKernel<Dimension>& W,
-                         const bool /*sumOverAllNodeLists*/,
+                         const KernelType& W,
+                         const bool sumOverAllNodeLists,
                          const FieldList<Dimension, typename Dimension::Vector>& position,
                          const FieldList<Dimension, typename Dimension::Scalar>& mass,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
@@ -39,10 +39,7 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
   typedef typename Dimension::Scalar Scalar;
 
-  // Some useful variables.
-  const auto W0 = W.kernelValue(0.0, 1.0);
-
-  // The set of interacting node pairs.
+  // The set of interacting node pairs (includes self interaction)
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
 
@@ -50,17 +47,6 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
   FieldList<Dimension, Scalar> sumUnity(FieldStorageType::CopyFields);
   for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
     sumUnity.appendNewField("SPH sum unity check", massDensity[nodeListi]->nodeList(), 0.0);
-
-    // Initialize the self-contribution.
-    const auto n = massDensity[nodeListi]->numInternalElements();
-#pragma omp parallel for
-    for (auto i = 0u; i < n; ++i) {
-      const auto  mi = mass(nodeListi, i);
-      const auto  rhoi = massDensity(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
-      const auto  Hdeti = Hi.Determinant();
-      sumUnity(nodeListi, i) += mi/rhoi*Hdeti*W0;
-    }
   }
 
   // Now the pair contributions.
@@ -93,11 +79,8 @@ correctSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       CHECK(rhoj > 0.0);
 
       // Kernel weighting and gradient.
-      const auto rij = ri - rj;
-      const auto etai = (Hi*rij).magnitude();
-      const auto etaj = (Hj*rij).magnitude();
-      const auto Wi = W.kernelValue(etai, Hdeti);
-      const auto Wj = W.kernelValue(etaj, Hdetj);
+      const auto Wi = W(Hi*rj, Hi*ri, Hdeti);
+      const auto Wj = W(Hj*rj, Hj*ri, Hdetj);
 
       // Sum the pair-wise contributions.
       sumUnity_thread(nodeListi, i) += mj/rhoj*Wj;

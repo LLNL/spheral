@@ -15,7 +15,7 @@ public:
 
   WaveSpeedBase();
 
-  ~WaveSpeedBase();
+  virtual ~WaveSpeedBase();
 
   virtual
   void waveSpeed(const Scalar rhoi, 

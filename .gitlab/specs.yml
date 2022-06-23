@@ -1,0 +1,53 @@
+# ------------------------------------------------------------------------------
+# SPEC TEMPLATES
+
+.gcc_8_1_0_mvapich2_Debug:
+  variables:
+    SPEC: "gcc@8.1.0^mvapich2"
+    LC_MODULES: "gcc/8.1.0"
+    EXTRA_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug"
+    EXTRA_TEST_ARGS: "--filter \"level<100\""
+
+.gcc_8_3_1_mvapich2:
+  variables:
+    SPEC: "gcc@8.3.1^mvapich2"
+    LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On -DENABLE_WARNINGS_AS_ERRORS=On"
+    EXTRA_TEST_ARGS: ""
+
+.gcc_8_3_1_~mpi:
+  variables:
+    SPEC: "gcc@8.3.1~mpi"
+    LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: "-DENABLE_DOCS=On -DENABLE_WARNINGS_AS_ERRORS=On"
+    EXTRA_TEST_ARGS: "--filter \"np<2\""
+
+.gcc_8_3_1_~mpi_Debug:
+  variables:
+    SPEC: "gcc@8.3.1~mpi"
+    LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Debug -DENABLE_WARNINGS_AS_ERRORS=On"
+    EXTRA_TEST_ARGS: "--filter \"level<100\" --filter \"np<2\""
+
+.gcc_8_3_1_spectrum:
+  variables:
+    SPEC: "gcc@8.3.1^spectrum-mpi"
+    LC_MODULES: "gcc/8.3.1"
+    EXTRA_CMAKE_ARGS: ""
+    EXTRA_TEST_ARGS: ""
+
+.clang_9_0_0_mvapich2:
+  variables:
+    SPEC: "clang@9.0.0^mvapich2"
+    LC_MODULES: "clang/9.0.0"
+    EXTRA_CMAKE_ARGS: ""
+    EXTRA_TEST_ARGS: ""
+
+.oneapi_2022_1_mvapich2:
+  variables:
+    SPEC: "oneapi@2022.1^mvapich2"
+    LC_MODULES: "gcc/10.2.1"
+    EXTRA_CMAKE_ARGS: ""
+    EXTRA_TEST_ARGS: ""
+
+

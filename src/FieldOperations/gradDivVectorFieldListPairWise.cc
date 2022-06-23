@@ -87,9 +87,7 @@ gradDivVectorFieldListPairWise
         // State for node i.
         const Vector& ri = position(masterItr);
         const SymTensor& Hi = Hfield(masterItr);
-        //const Scalar& weighti = weight(masterItr);
-        //const Scalar& mi = mass(masterItr);
-        //const Scalar& rhoi = rho(masterItr);
+        const Scalar Hdeti = Hi.Determinant();
         const Vector& fieldi = fieldList(masterItr);
 
         // Loop over the refined neighbors.
@@ -102,6 +100,7 @@ gradDivVectorFieldListPairWise
 
             const Vector& rj = position(neighborItr);
             const SymTensor& Hj = Hfield(neighborItr);
+            const Scalar Hdetj = Hj.Determinant();
             const Scalar& weightj = weight(neighborItr);
             //const Scalar& mj = mass(neighborItr);
             //const Scalar& rhoj = rho(neighborItr);
@@ -110,17 +109,19 @@ gradDivVectorFieldListPairWise
             const Vector rij = ri - rj;
             const Vector etai = Hi*rij;
             const Vector etaj = Hj*rij;
+            const Scalar etaiMag = etai.magnitude();
+            const Scalar etajMag = etaj.magnitude();
 
             const Vector etaiNorm = etai.unitVector();
             const Vector etajNorm = etaj.unitVector();
             const Vector Hetai = Hi*etaiNorm;
             const Vector Hetaj = Hj*etajNorm;
 
-            const Scalar Wi = kernel(etai, Hi);
-            const Scalar Wj = kernel(etaj, Hj);
+            const Scalar Wi = kernel(etaiMag, Hdeti);
+            const Scalar Wj = kernel(etajMag, Hdetj);
 
-            const Scalar getai = kernel.grad(etai, Hi);
-            const Scalar getaj = kernel.grad(etaj, Hj);
+            const Scalar getai = kernel.grad(etaiMag, Hdeti);
+            const Scalar getaj = kernel.grad(etajMag, Hdetj);
 
             const Vector gWi = Hetai*getai;
             const Vector gWj = Hetaj*getaj;
