@@ -125,8 +125,8 @@ splatFieldsMash(const FieldList<Dimension, DataType>& fieldList,
           const Vector etaj = Hj*rij;
 
           // Calculate the kernel estimates for each node.
-          Scalar Wi = kernel(etai, 1.0);
-          Scalar Wj = kernel(etaj, 1.0);
+          Scalar Wi = kernel(etai.magnitude(), 1.0);
+          Scalar Wj = kernel(etaj.magnitude(), 1.0);
 
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij, weightij;
@@ -175,8 +175,8 @@ splatFieldsMash(const FieldList<Dimension, DataType>& fieldList,
           const Vector etaj = Hj*rij;
           
           // Calculate the kernel estimates for each node.
-          Scalar Wi = kernel(etai, 1.0);
-          Scalar Wj = kernel(etaj, 1.0);
+          Scalar Wi = kernel(etai.magnitude(), 1.0);
+          Scalar Wj = kernel(etaj.magnitude(), 1.0);
 
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij, weightij;

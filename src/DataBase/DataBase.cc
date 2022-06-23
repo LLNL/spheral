@@ -2167,11 +2167,5 @@ DataBase<Dimension>::valid() const {
   return ok;
 }
 
-//------------------------------------------------------------------------------
-// Set the static dimensionality.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-int DataBase<Dimension>::nDim = Dimension::nDim;
-
 }
 

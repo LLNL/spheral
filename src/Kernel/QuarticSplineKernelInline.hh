@@ -46,15 +46,15 @@ QuarticSplineKernel<Dimension>::~QuarticSplineKernel() {
 template<typename Dimension>
 inline
 double
-QuarticSplineKernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+QuarticSplineKernel<Dimension>::kernelValue(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
 
-  if (etaMagnitude < 2.0) {
+  if (etaij < 2.0) {
     return this->volumeNormalization()*Hdet*(1.0 -
-                                             1.5*etaMagnitude*etaMagnitude +
-                                             etaMagnitude*etaMagnitude*etaMagnitude -
-                                             3.0/16.0*FastMath::pow4(etaMagnitude));
+                                             1.5*etaij*etaij +
+                                             etaij*etaij*etaij -
+                                             3.0/16.0*FastMath::pow4(etaij));
   } else {
     return 0.0;
   }
@@ -66,14 +66,14 @@ QuarticSplineKernel<Dimension>::kernelValue(double etaMagnitude, const double Hd
 template<typename Dimension>
 inline
 double
-QuarticSplineKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+QuarticSplineKernel<Dimension>::gradValue(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
 
-  if (etaMagnitude < 2.0) {
-    return  -this->volumeNormalization()*Hdet*(-3.0*etaMagnitude +
-                                               3.0*etaMagnitude*etaMagnitude - 
-                                               0.75*FastMath::pow3(etaMagnitude));
+  if (etaij < 2.0) {
+    return  -this->volumeNormalization()*Hdet*(-3.0*etaij +
+                                               3.0*etaij*etaij - 
+                                               0.75*FastMath::pow3(etaij));
   } else {
     return 0.0;
   }
@@ -85,13 +85,13 @@ QuarticSplineKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet
 template<typename Dimension>
 inline
 double
-QuarticSplineKernel<Dimension>::grad2Value(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+QuarticSplineKernel<Dimension>::grad2Value(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
 
-  if (etaMagnitude < 2.0) {
-    return this->volumeNormalization()*Hdet*(-3.0 + 6.0*etaMagnitude - 
-                                             2.25*etaMagnitude*etaMagnitude);
+  if (etaij < 2.0) {
+    return this->volumeNormalization()*Hdet*(-3.0 + 6.0*etaij - 
+                                             2.25*etaij*etaij);
   } else {
     return 0.0;
   }

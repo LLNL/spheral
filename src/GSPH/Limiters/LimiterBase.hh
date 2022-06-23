@@ -21,7 +21,7 @@ public:
   LimiterBase(bool TVD,
               bool symmetric);
 
-  ~LimiterBase();
+  virtual ~LimiterBase();
 
   virtual
   Scalar slopeLimiter(const Scalar) const ;

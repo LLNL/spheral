@@ -93,6 +93,8 @@ gradientMash(const FieldList<Dimension, DataType>& fieldList,
             const Vector rij = ri - rj;
             const Vector etai = Hi*rij;
             const Vector etaj = Hj*rij;
+            const Scalar etaiMag = etai.magnitude();
+            const Scalar etajMag = etaj.magnitude();
             const Vector etaiNorm = etai.unitVector();
             const Vector etajNorm = etaj.unitVector();
 
@@ -101,19 +103,19 @@ gradientMash(const FieldList<Dimension, DataType>& fieldList,
             Vector gradWij;
             switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
             case NeighborSearchType::GatherScatter:
-              Wij = 0.5*(kernel(etai, 1.0) + kernel(etaj, 1.0));
-              gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etai, 1.0) + 
-                             Hj*etajNorm*kernel.grad(etaj, 1.0));
+              Wij = 0.5*(kernel(etaiMag, 1.0) + kernel(etajMag, 1.0));
+              gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etaiMag, 1.0) + 
+                             Hj*etajNorm*kernel.grad(etajMag, 1.0));
               break;
 
             case NeighborSearchType::Gather:
-              Wij = kernel(etai, 1.0);
-              gradWij = Hi*etaiNorm*kernel.grad(etai, 1.0);
+              Wij = kernel(etaiMag, 1.0);
+              gradWij = Hi*etaiNorm*kernel.grad(etaiMag, 1.0);
               break;
 
             case NeighborSearchType::Scatter:
-              Wij = kernel(etaj, 1.0);
-              gradWij = Hj*etajNorm*kernel.grad(etaj, 1.0);
+              Wij = kernel(etajMag, 1.0);
+              gradWij = Hj*etajNorm*kernel.grad(etajMag, 1.0);
               break;
 
             default:
@@ -232,21 +234,23 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
           const Vector rij = ri - rj;
           const Vector etai = Hi*rij;
           const Vector etaj = Hj*rij;
+          const Scalar etaiMag = etai.magnitude();
+          const Scalar etajMag = etaj.magnitude();
 
           // Get the symmetrized kernel weighting for this node pair.
           Scalar Wij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
           case NeighborSearchType::GatherScatter:
-            Wij = 0.5*(kernel(etai, 1.0) + 
-                       kernel(etaj, 1.0));
+            Wij = 0.5*(kernel(etaiMag, 1.0) + 
+                       kernel(etajMag, 1.0));
             break;
 
           case NeighborSearchType::Gather:
-            Wij = kernel(etai, 1.0);
+            Wij = kernel(etaiMag, 1.0);
             break;
 
           case NeighborSearchType::Scatter:
-            Wij = kernel(etaj, 1.0);
+            Wij = kernel(etajMag, 1.0);
             break;
 
           default:
@@ -331,6 +335,8 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
           const Vector rij = ri - rj;
           const Vector etai = Hi*rij;
           const Vector etaj = Hj*rij;
+          const Scalar etaiMag = etai.magnitude();
+          const Scalar etajMag = etaj.magnitude();
           const Vector etaiNorm = etai.unitVector();
           const Vector etajNorm = etaj.unitVector();
 
@@ -338,16 +344,16 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
           Scalar Wij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
           case NeighborSearchType::GatherScatter:
-            Wij = 0.5*(kernel(etai, 1.0) +
-                       kernel(etaj, 1.0))*(a(masterItr) + b(masterItr)*rij.x());
+            Wij = 0.5*(kernel(etaiMag, 1.0) +
+                       kernel(etajMag, 1.0))*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
           case NeighborSearchType::Gather:
-            Wij = kernel(etai, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
+            Wij = kernel(etaiMag, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
           case NeighborSearchType::Scatter:
-            Wij = kernel(etaj, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
+            Wij = kernel(etajMag, 1.0)*(a(masterItr) + b(masterItr)*rij.x());
             break;
 
           default:
@@ -433,6 +439,8 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
           const Vector rij = ri - rj;
           const Vector etai = Hi*rij;
           const Vector etaj = Hj*rij;
+          const Scalar etaiMag = etai.magnitude();
+          const Scalar etajMag = etaj.magnitude();
           const Vector etaiNorm = etai.unitVector();
           const Vector etajNorm = etaj.unitVector();
 
@@ -441,19 +449,19 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
           Vector gradWij;
           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
           case NeighborSearchType::GatherScatter:
-            Wij = 0.5*(kernel(etai, 1.0) + kernel(etaj, 1.0));
-            gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etai, 1.0) + 
-                           Hj*etajNorm*kernel.grad(etaj, 1.0));
+            Wij = 0.5*(kernel(etaiMag, 1.0) + kernel(etajMag, 1.0));
+            gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etaiMag, 1.0) + 
+                           Hj*etajNorm*kernel.grad(etajMag, 1.0));
             break;
 
           case NeighborSearchType::Gather:
-            Wij = kernel(etai, 1.0);
-            gradWij = Hi*etaiNorm*kernel.grad(etai, 1.0);
+            Wij = kernel(etaiMag, 1.0);
+            gradWij = Hi*etaiNorm*kernel.grad(etaiMag, 1.0);
             break;
 
           case NeighborSearchType::Scatter:
-            Wij = kernel(etaj, 1.0);
-            gradWij = Hj*etajNorm*kernel.grad(etaj, 1.0);
+            Wij = kernel(etajMag, 1.0);
+            gradWij = Hj*etajNorm*kernel.grad(etajMag, 1.0);
             break;
 
           default:
@@ -491,164 +499,5 @@ gradientMash2(const FieldList<Dimension, DataType>& fieldList,
 
   return result;
 }
-
-//------------------------------------------------------------------------------
-// Calculate the gradient of a FieldList.
-//------------------------------------------------------------------------------
-// template<typename Dimension, typename DataType>
-// FieldList<Dimension, typename MathTraits<Dimension, DataType>::GradientType>
-// gradientMash(const FieldList<Dimension, DataType>& fieldList,
-//           const FieldList<Dimension, typename Dimension::Vector>& position,
-//           const FieldList<Dimension, typename Dimension::Scalar>& weight,
-//           const FieldList<Dimension, typename Dimension::SymTensor>& Hfield,
-//           const TableKernel<Dimension>& kernel) {
-
-//   // Typedef's to ease typing/understandability.
-//   typedef typename Dimension::Scalar Scalar;
-//   typedef typename Dimension::Vector Vector;
-//   typedef typename Dimension::Tensor Tensor;
-//   typedef typename Dimension::SymTensor SymTensor;
-//   typedef typename MathTraits<Dimension, DataType>::GradientType GradientType;
-
-//   // Return FieldList.
-//   FieldList<Dimension, GradientType> result;
-//   vector< vector<bool> > flagNodeDone(fieldList.numFields());
-//   result.copyFields();
-//   for (FieldList<Dimension, DataType>::const_iterator fieldItr = fieldList.begin();
-//        fieldItr < fieldList.end(); 
-//        ++fieldItr) {
-//     result.appendField(Field<Dimension, GradientType>((*fieldItr)->nodeList()));
-//     flagNodeDone[fieldItr - fieldList.begin()].resize((*fieldItr)->nodeListPtr()->numInternalNodes(), false);
-//   }
-
-//   // Loop over all the elements in the input FieldList.
-//   for (InternalNodeIterator<Dimension> nodeItr = fieldList.internalNodeBegin();
-//        nodeItr < fieldList.internalNodeEnd();
-//        ++nodeItr) {
-
-//     // Check if this node has been done yet.
-//     if (!flagNodeDone[nodeItr.fieldID()][nodeItr.nodeID()]) {
-
-//       // We will do the batch of master nodes associated with this node together.
-//       // Set the neighbor information.
-//       fieldList.setMasterNodeLists(position(nodeItr), Hfield(nodeItr));
-
-//       // Now loop over all the master nodes.
-//       for (MasterNodeIterator<Dimension> masterItr = fieldList.masterNodeBegin();
-//            masterItr < fieldList.masterNodeEnd();
-//            ++masterItr) {
-//         CHECK(flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] == false);
-
-//         // Set the refined neighbor information for this master node.
-//         fieldList.setRefineNodeLists(position(masterItr), Hfield(masterItr));
-
-//         // Loop over the refined neighbors.
-//         const Vector& ri = position(masterItr);
-//         const SymTensor& Hi = Hfield(masterItr);
-//         const Scalar& weighti = weight(masterItr);
-//         const DataType& fieldi = fieldList(masterItr);
-
-//      // First calculate the smoothed estimate of Fi.
-//      Scalar normalization = 0.0;
-//      DataType Fi(0.0);
-//         for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin();
-//              neighborItr < fieldList.refineNodeEnd();
-//              ++neighborItr) {
-
-//           const Vector& rj = position(neighborItr);
-//           const SymTensor& Hj = Hfield(neighborItr);
-//           const Scalar& weightj = weight(neighborItr);
-//           const DataType& fieldj = fieldList(neighborItr);
-
-//           const Vector rij = ri - rj;
-//           const Vector etai = Hi*rij;
-//           const Vector etaj = Hj*rij;
-//           const Vector etaiNorm = etai.unitVector();
-//           const Vector etajNorm = etaj.unitVector();
-
-//           // Get the symmetrized kernel gradient for this node pair.
-//           Scalar Wij;
-//           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-//           case Neighbor<Dimension>::GatherScatter:
-//             Wij = 0.5*(kernel(etai, 1.0) + kernel(etaj, 1.0));
-//             break;
-
-//           case Neighbor<Dimension>::Gather:
-//             Wij = kernel(etai, 1.0);
-//             break;
-
-//           case Neighbor<Dimension>::Scatter:
-//             Wij = kernel(etaj, 1.0);
-//             break;
-//           }
-
-//           // Add this nodes contribution to the master value.
-//        Fi += weightj*fieldj*Wij;
-//           normalization += weightj*Wij;
-
-//         }
-//      CHECK(normalization > 0.0);
-//      Fi /= normalization;
-
-//         for (RefineNodeIterator<Dimension> neighborItr = fieldList.refineNodeBegin();
-//              neighborItr < fieldList.refineNodeEnd();
-//              ++neighborItr) {
-
-//           const Vector& rj = position(neighborItr);
-//           const SymTensor& Hj = Hfield(neighborItr);
-//           const Scalar& weightj = weight(neighborItr);
-//           const DataType& fieldj = fieldList(neighborItr);
-
-//           const Vector rij = ri - rj;
-//           const Vector etai = Hi*rij;
-//           const Vector etaj = Hj*rij;
-//           const Vector etaiNorm = etai.unitVector();
-//           const Vector etajNorm = etaj.unitVector();
-
-//           // Get the symmetrized kernel gradient for this node pair.
-//           Vector gradWij;
-//           switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
-//           case Neighbor<Dimension>::GatherScatter:
-//             gradWij = 0.5*(Hi*etaiNorm*kernel.grad(etai, 1.0) + 
-//                            Hj*etajNorm*kernel.grad(etaj, 1.0));
-//             break;
-
-//           case Neighbor<Dimension>::Gather:
-//             gradWij = Hi*etaiNorm*kernel.grad(etai, 1.0);
-//             break;
-
-//           case Neighbor<Dimension>::Scatter:
-//             gradWij = Hj*etajNorm*kernel.grad(etaj, 1.0);
-//             break;
-//           }
-
-//           // Add this nodes contribution to the master value.
-//           result(masterItr) += weightj*(fieldj - Fi)*gradWij;
-
-//         }
-
-//      result(masterItr) /= normalization;
-
-//         // This master node is finished.
-//         flagNodeDone[masterItr.fieldID()][masterItr.nodeID()] = true;
-//       }
-//     }
-//   }
-
-//   // After we're done, all nodes in all NodeLists should be flagged as done.
-//   for (vector< vector<bool> >::const_iterator flagNodeItr = flagNodeDone.begin();
-//        flagNodeItr < flagNodeDone.end();
-//        ++flagNodeItr) {
-//     int checkcount = count(flagNodeItr->begin(), flagNodeItr->end(), false);
-//     if (checkcount > 0) {
-//       cerr << "Error in FieldList::smoothFieldsMash: Not all values determined on exit "
-//            << checkcount << endl;
-//     }
-//     CHECK(checkcount == 0);
-//   }
-
-//   return result;
-// }
-
 
 }

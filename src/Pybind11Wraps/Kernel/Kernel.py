@@ -7,161 +7,84 @@ from PYB11Generator import *
 class Kernel:
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
+    using Vector = typename %(Dimension)s::Vector;
+    using SymTensor = typename %(Dimension)s::SymTensor;
 """
 
     @PYB11pyname("__call__")
     @PYB11cppname("operator()")
     @PYB11const
-    def call1(self,
-              eta = "const Vector&",
-              H = "const SymTensor&"):
-        "Return the kernel value at the given normalized radius"
+    def __call__etaij(self,
+                      etaij = "const double&",
+                      Hdet = "const double&"):
+        "Return the kernel value at the given normalized radius, where etaij = magnitude(H*(posi - posj)), Hdet = ||H||"
         return "double"
 
     @PYB11pyname("__call__")
     @PYB11cppname("operator()")
     @PYB11const
-    def call3(self,
-              eta = "const Vector&",
+    def __call__etaj_etai(self,
+                          etaj = "const Vector&",
+                          etai = "const Vector&",
+                          Hdet = "const double&"):
+        "Return the kernel value for points at etaj and etai, where etaj = H*posj, etai = H*posi, Hdet = ||H||"
+        return "double"
+
+    #...........................................................................
+    @PYB11const
+    def grad(self,
+             etaij = "const double&",
+             Hdet = "const double&"):
+        """Return the gradient value (scalar) at the given normalized radius, where etaij = magnitude(H*(posi - posj)), Hdet = ||H||.
+The full gradient can be constructed from the result as \vec{grad} = H * \vec{etaij}/|\vec{etaij}| * result"""
+        return "double"
+
+    @PYB11pycppname("grad")
+    @PYB11const
+    def another_grad(self,
+                     etaj = "const Vector&",
+                     etai = "const Vector&",
+                     Hdet = "const double&"):
+        """Return the gradient (scalar) value for points at etaj and etai, where etaj = H*posj, etai = H*posi, Hdet = ||H||.
+The full gradient can be constructed from the result as \vec{grad} = H * \vec{etaij}/|\vec{etaij}| * result"""
+        return "double"
+
+    #...........................................................................
+    @PYB11const
+    def grad2(self,
+              etaij = "const double&",
               Hdet = "const double&"):
-        "Return the kernel value at the given normalized radius"
-        return "double"
-
-    @PYB11const
-    def __call__(self,
-                 etaMagnitude = "const double&",
-                 H = "const SymTensor&"):
-        "Return the kernel value at the given normalized radius"
-        return "double"
-
-    @PYB11pyname("__call__")
-    @PYB11cppname("operator()")
-    @PYB11const
-    def call2(self,
-              etaMagnitude = "const double&",
-              Hdet = "const double&"):
-        "Return the kernel value at the given normalized radius"
-        return "double"
-
-    #...........................................................................
-    @PYB11pycppname("grad")
-    @PYB11const
-    def grad_2(self,
-               eta = "const Vector&",
-               Hdet = "const double&"):
-        "Return the gradient of the kernel"
+        "Return the second derivative value (scalar) at the given normalized radius, where etaij = magnitude(H*(posi - posj)), Hdet = ||H||"
         return "double"
 
     @PYB11pycppname("grad")
     @PYB11const
-    def grad_3(self,
-               eta = "const Vector&",
-               H = "const SymTensor&"):
-        "Return the gradient of the kernel"
-        return "double"
-
-    @PYB11pycppname("grad")
-    @PYB11const
-    def grad_0(self,
-               etaMagnitude = "const double&",
-               Hdet = "const double&"):
-        "Return the gradient of the kernel"
-        return "double"
-
-    @PYB11pycppname("grad")
-    @PYB11const
-    def grad_1(self,
-               etaMagnitude = "const double&",
-               H = "const SymTensor&"):
-        "Return the gradient of the kernel"
-        return "double"
-
-    #...........................................................................
-    @PYB11pycppname("grad2")
-    @PYB11const
-    def grad2_2(self,
-               eta = "const Vector&",
-               Hdet = "const double&"):
-        "Return the second derivative of the kernel"
-        return "double"
-
-    @PYB11pycppname("grad2")
-    @PYB11const
-    def grad2_3(self,
-               eta = "const Vector&",
-               H = "const SymTensor&"):
-        "Return the second derivative of the kernel"
-        return "double"
-
-    @PYB11pycppname("grad2")
-    @PYB11const
-    def grad2_0(self,
-               etaMagnitude = "const double&",
-               Hdet = "const double&"):
-        "Return the second derivative of the kernel"
-        return "double"
-
-    @PYB11pycppname("grad2")
-    @PYB11const
-    def grad2_1(self,
-               etaMagnitude = "const double&",
-               H = "const SymTensor&"):
-        "Return the second derivative of the kernel"
-        return "double"
-
-    #...........................................................................
-    @PYB11pycppname("gradh")
-    @PYB11const
-    def gradh_2(self,
-               eta = "const Vector&",
-               Hdet = "const double&"):
-        "Return the gradient with respect to h of the kernel"
-        return "double"
-
-    @PYB11pycppname("gradh")
-    @PYB11const
-    def gradh_3(self,
-               eta = "const Vector&",
-               H = "const SymTensor&"):
-        "Return the gradient with respect to h of the kernel"
-        return "double"
-
-    @PYB11pycppname("gradh")
-    @PYB11const
-    def gradh_0(self,
-                etaMagnitude = "const double&",
-                Hdet = "const double&"):
-        "Return the gradient with respect to h of the kernel"
-        return "double"
-
-    @PYB11pycppname("gradh")
-    @PYB11const
-    def gradh_1(self,
-               etaMagnitude = "const double&",
-               H = "const SymTensor&"):
-        "Return the gradient with respect to h of the kernel"
+    def another_grad2(self,
+                      etaj = "const Vector&",
+                      etai = "const Vector&",
+                      Hdet = "const double&"):
+        """Return the gradient (scalar) value for points at etaj and etai, where etaj = H*posj, etai = H*posi, Hdet = ||H||.
+The full gradient can be constructed from the result as \vec{grad} = H * \vec{etaij}/|\vec{etaij}| * result"""
         return "double"
 
     #...........................................................................
     @PYB11const
     def kernelValue(self,
-                    etaMagnitude = "double",
+                    etaij = "double",
                     Hdet = "const double"):
         "Return the value of the kernel"
         return "double"
 
     @PYB11const
     def gradValue(self,
-                  etaMagnitude = "double",
+                  etaij = "double",
                   Hdet = "const double"):
         "Return the value of the gradient of the kernel"
         return "double"
 
     @PYB11const
     def grad2Value(self,
-                   etaMagnitude = "double",
+                   etaij = "double",
                    Hdet = "const double"):
         "Return the value of the second derivative of the kernel"
         return "double"
@@ -318,141 +241,135 @@ class NBSplineKernel(Kernel):
 #-------------------------------------------------------------------------------
 PYB11template("Dimension")
 class TableKernel(Kernel):
-    PYB11typedefs=""
+    PYB11typedefs="""
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+"""
 
     #...........................................................................
     # Constructors
     def pyinit(self,
                kernel = "const BSplineKernel<%(Dimension)s>&",
-               numPoints = ("unsigned", "100"),
-               hmult = ("double", "1.0")):
+               numPoints = ("const unsigned", "100")):
         "Construct with BSpline kernel"
 
     def pyinita(self,
                 kernel = "const W4SplineKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with W4Spline kernel"
 
     def pyinitb(self,
                 kernel = "const GaussianKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with Gaussian kernel"
 
     def pyinitc(self,
                 kernel = "const SuperGaussianKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with SuperGaussian kernel"
 
     def pyinitd(self,
                 kernel = "const PiGaussianKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with PiGaussian kernel"
 
     def pyinite(self,
                 kernel = "const HatKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with Hat kernel"
 
     def pyinitf(self,
                 kernel = "const SincKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with Sinc kernel"
 
     def pyinitg(self,
                 kernel = "const NSincPolynomialKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with NSincPolynomial kernel"
 
     def pyinith(self,
                 kernel = "const QuarticSplineKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with Quartic spline kernel"
 
     def pyiniti(self,
                 kernel = "const QuinticSplineKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with Quintic spline kernel"
 
     def pyinitj(self,
                 kernel = "const NBSplineKernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with NBSpline kernel"
 
     def pyinitk(self,
                 kernel = "const WendlandC2Kernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with WendlandC2 kernel"
 
     def pyinitl(self,
                 kernel = "const WendlandC4Kernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with WendlandC4 kernel"
 
     def pyinitm(self,
                 kernel = "const WendlandC6Kernel<%(Dimension)s>&",
-                numPoints = ("unsigned", "100"),
-                hmult = ("double", "1.0")):
+                numPoints = ("const unsigned", "100")):
         "Construct with WendlandC6 kernel"
 
     #...........................................................................
     # Methods
-
-    @PYB11pycppname("kernelAndGradValues")
     @PYB11const
-    def kernelAndGradValues1(self,
-                             etaMagnitude = "const std::vector<double>&",
-                             Hdets = "const std::vector<double>&",
-                             kernelValues = "std::vector<double>&",
-                             gradValues = "std::vector<double>&"):
+    @PYB11implementation("""[](const TableKernel<%(Dimension)s>& self, const Vector& etaj, const Vector& etai, const SymTensor& H) -> py::tuple {
+        Scalar W, deltaWsum;
+        Vector gradW;
+        self.kernelAndGrad(etaj, etai, H, W, gradW, deltaWsum);
+        return py::make_tuple(W, gradW, deltaWsum);
+      }""")
+    def kernelAndGrad(self,
+                      etaj = "const Vector&",
+                      etai = "const Vector&",
+                      H = "const SymTensor&"):
+        "Simultaneously compute the W(etaj, etai), gradW(etaj, etai), deltaWsum(etaj, etai) -- returns a tuple of those results."
+        return "py::tuple"
+
+    @PYB11const
+    @PYB11implementation("""[](const TableKernel<%(Dimension)s>& self, const Scalar& etaij, const Scalar& Hdet) -> py::tuple {
+        Scalar W, gW;
+        self.kernelAndGradValue(etaij, Hdet, W, gW);
+        return py::make_tuple(W, gW);
+      }""")
+    def kernelAndGradValue(self,
+                           etaij = "const Scalar",
+                           Hdet = "const Scalar"):
+        return "py::tuple"
+
+    @PYB11const
+    def kernelAndGradValues(self,
+                            etaij = "const std::vector<Scalar>&",
+                            Hdets = "const std::vector<Scalar>&",
+                            kernelValues = "std::vector<Scalar>&",
+                            gradValues = "std::vector<Scalar>&"):
         return "void"
 
     @PYB11const
     def equivalentNodesPerSmoothingScale(self,
-                                         Wsum = "double"):
+                                         Wsum = "Scalar"):
         "Compute the nPerh that corresponds to the Wsum value"
-        return "double"
+        return "Scalar"
 
     @PYB11const
     def equivalentWsum(self,
-                       nPerh = "double"):
+                       nPerh = "Scalar"):
         "Compute the Wsum that corresponds to the  nPerh value"
-        return "double"
-
-    def f1(self):
-        "Look up the f1 (RZ) Garcia-Senz factor"
-        return
-
-    def f2(self):
-        "Look up the f2 (RZ) Garcia-Senz factor"
-        return
-
-    def gradf1(self):
-        "Look up the gradf1 (RZ) Garcia-Senz factor"
-        return
-
-    def gradf2(self):
-        "Look up the gradf2 (RZ) Garcia-Senz factor"
-        return
-
-    def f1Andf2(self):
-        "Look up the f1 & f2 (RZ) Garcia-Senz factors simultaneously"
+        return "Scalar"
 
     #...........................................................................
     # Properties
-    nperhValues = PYB11property("const std::vector<double>&", returnpolicy="reference_internal", doc="The lookup table used for finding nperh")
-    WsumValues = PYB11property("const std::vector<double>&", returnpolicy="reference_internal", doc="The lookup table of Wsum values")
+    nperhValues = PYB11property("const std::vector<Scalar>&", returnpolicy="reference_internal", doc="The lookup table used for finding nperh")
+    WsumValues = PYB11property("const std::vector<Scalar>&", returnpolicy="reference_internal", doc="The lookup table of Wsum values")
     numPoints = PYB11property("size_t", doc="The number of points in the table")
 
 #-------------------------------------------------------------------------------

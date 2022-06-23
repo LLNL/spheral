@@ -400,6 +400,11 @@ private:
   DataBase(const DataBase& rhs);
 };
 
+//------------------------------------------------------------------------------
+// Static varaible initialization
+//------------------------------------------------------------------------------
+template<typename Dimension> int DataBase<Dimension>::nDim = Dimension::nDim;
+
 }
 
 #include "DataBaseInline.hh"

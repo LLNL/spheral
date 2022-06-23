@@ -40,29 +40,22 @@ namespace {
 inline
 double
 computeJ2(const Dim<3>::SymTensor& S) {
-  return 0.5*S.doubledot(S);
-}
-
-inline
-double
-computeJ2(const Dim<1>::SymTensor& S) {
-  if (GeometryRegistrar::coords() == CoordinateType::Spherical) {
-    const auto STT = 0.5*(S.Trace());  // S_theta_theta == S_phi_phi = -S_rr/2
-    return 0.5*(S.doubledot(S) + 2.0*STT*STT);
-  } else {
-    return 0.5*S.doubledot(S);
-  }
+  return 0.5*(S.doubledot(S));
 }
 
 inline
 double
 computeJ2(const Dim<2>::SymTensor& S) {
-  if (GeometryRegistrar::coords() == CoordinateType::RZ) {
-    const auto STT = S.Trace();    // S_theta_theta = -(S_rr + S_zz)
-    return 0.5*(S.doubledot(S) + STT*STT);
-  } else {
-    return 0.5*S.doubledot(S);
-  }
+  // the third diagonal component of S (acutally negative to make Tr(S)=0)
+  const auto S33 = S.Trace();
+  return 0.5*(S.doubledot(S) + S33*S33);
+}
+
+inline
+double
+computeJ2(const Dim<1>::SymTensor& S) {
+  // S_22 == S_33 = -S_11/2
+  return 0.75*S.xx()*S.xx();
 }
 
 }
@@ -133,12 +126,7 @@ update(const KeyType& key,
       const auto yieldLimit = max(0.0, Y(k,i));
 
       // von Mises yield scaling constant.
-      double f;
-      if (distinctlyGreaterThan(equivalentStressDeviator, 0.0)) {
-        f = min(1.0, yieldLimit/equivalentStressDeviator);
-      } else {
-        f = 1.0;
-      }
+      const auto f = min(1.0, yieldLimit*safeInvVar(equivalentStressDeviator));
 
       // Scale the stress deviator.
       deviatoricStress(k,i) *= f;

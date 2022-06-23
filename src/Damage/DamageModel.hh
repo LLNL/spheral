@@ -89,7 +89,7 @@ public:
                         const Scalar dt,
                         DataBase<Dimension>& dataBase, 
                         State<Dimension>& state,
-                        StateDerivatives<Dimension>& derivs);
+                        StateDerivatives<Dimension>& derivs) override;
 
   virtual bool requireGhostConnectivity() const override;
   virtual bool requireIntersectionConnectivity() const override;

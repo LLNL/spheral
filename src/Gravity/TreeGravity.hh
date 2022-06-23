@@ -240,6 +240,15 @@ private:
   void deserialize(Cell& cell, std::vector<char>::const_iterator& bufItr, const std::vector<char>::const_iterator& endItr) const;
 };
 
+//------------------------------------------------------------------------------
+// Define our static members.
+//------------------------------------------------------------------------------
+template<typename Dimension> unsigned TreeGravity<Dimension>::num1dbits = 21U;
+template<typename Dimension> uint64_t TreeGravity<Dimension>::max1dKey = 1U << TreeGravity<Dimension>::num1dbits;
+template<typename Dimension> uint64_t TreeGravity<Dimension>::xkeymask = (1U << TreeGravity<Dimension>::num1dbits) - 1U;
+template<typename Dimension> uint64_t TreeGravity<Dimension>::ykeymask = TreeGravity<Dimension>::xkeymask << TreeGravity<Dimension>::num1dbits;
+template<typename Dimension> uint64_t TreeGravity<Dimension>::zkeymask = TreeGravity<Dimension>::ykeymask << TreeGravity<Dimension>::num1dbits;
+
 }
 
 #include "TreeGravityInline.hh"

@@ -164,9 +164,8 @@ gradientFieldListSVPH(const FieldList<Dimension, DataType>& fieldList,
           const Vector rij = ri - rj;
           const Vector etaj = Hj*rij;
           const Vector Hetaj = Hj*etaj.unitVector();
-          const pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
-          const Scalar Wj = WWj.first;
-          const Scalar gWj = WWj.second;
+          Scalar Wj, gWj;
+          W.kernelAndGradValue(etaj.magnitude(), Hdetj, Wj, gWj);
           const Vector gradWj = gWj*Hetaj;
 
           // Increment the result.

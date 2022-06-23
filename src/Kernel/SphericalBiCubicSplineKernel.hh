@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SphericalTableKernel
+// SphericalBiCubicSplineKernel
 //
 // Take a 3D Kernel and build a specialized 1D tabulated version appropriate
 // for use with the spherical SPH algorithm described in
@@ -8,21 +8,18 @@
 //
 // Created by JMO, Wed Dec  2 16:41:20 PST 2020
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SphericalTableKernel_hh__
-#define __Spheral_SphericalTableKernel_hh__
+#ifndef __Spheral_SphericalBiCubicSplineKernel_hh__
+#define __Spheral_SphericalBiCubicSplineKernel_hh__
 
-#include "Kernel.hh"
 #include "TableKernel.hh"
-#include "Utilities/BiQuadraticInterpolator.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
-class SphericalTableKernel {
+class SphericalBiCubicSplineKernel {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  using InterpolatorType = BiQuadraticInterpolator;
   using Scalar = Dim<1>::Scalar;
   using Vector = Dim<1>::Vector;
   using Tensor = Dim<1>::Tensor;
@@ -31,14 +28,17 @@ public:
   // Constructor.
   // Takes a normal 3D TableKernel and constructs the integral form appropriate
   // for 1D spherical coordinates.
-  SphericalTableKernel(const TableKernel<Dim<3>>& kernel);
-  SphericalTableKernel(const SphericalTableKernel& rhs);
+  SphericalBiCubicSplineKernel(const unsigned numKernel = 200u);
+  SphericalBiCubicSplineKernel(const SphericalBiCubicSplineKernel& rhs);
 
   // Destructor.
-  virtual ~SphericalTableKernel();
+  virtual ~SphericalBiCubicSplineKernel();
 
   // Assignment.
-  SphericalTableKernel& operator=(const SphericalTableKernel& rhs);
+  SphericalBiCubicSplineKernel& operator=(const SphericalBiCubicSplineKernel& rhs);
+
+  // Comparisons
+  bool operator==(const SphericalBiCubicSplineKernel& rhs) const;
 
   // These methods taking a Vector eta and Vector position are the special methods
   // allowing this kernel to implement the asymmetric sampling as a function of r.
@@ -46,44 +46,35 @@ public:
   //  etaj : Vector normalized coordinate: etaj = H*posj
   //  etai : Vector normalized coordinate: etai = H*posi
   //  Hdet  : Determinant of the H tensor used to compute eta
-  double operator()(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
-  Vector grad(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
-  std::pair<double, Vector> kernelAndGradValue(const Vector& etaj, const Vector& etai, const Scalar Hdeti) const;
-
-  // Return the kernel weight for a given normalized distance or position.
-  double kernelValue(const double etaMagnitude, const double Hdet) const;
-
-  // Return the gradient value for a given normalized distance or position.
-  double gradValue(const double etaMagnitude, const double Hdet) const;
-
-  // Return the second derivative value for a given normalized distance or position.
-  double grad2Value(const double etaMagnitude, const double Hdet) const;
+  double operator()(const Vector& etaj, const Vector& etai, const Scalar Hdet) const;
+  Vector grad(const Vector& etaj, const Vector& etai, const SymTensor& H) const;
+  void kernelAndGrad(const Vector& etaj, const Vector& etai, const SymTensor& H,
+                     Scalar& W,
+                     Vector& gradW,
+                     Scalar& deltaWsum) const;
 
   // Access our internal data.
-  const InterpolatorType& Winterpolator() const;
-  const TableKernel<Dim<3>>& kernel() const;
+  const TableKernel<Dim<3>>& baseKernel3d() const;
+  const TableKernel<Dim<1>>& baseKernel1d() const;
   Scalar etamax() const;
-
-  // Test if the kernel is currently valid.
-  virtual bool valid() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
-  InterpolatorType mInterp;
-  TableKernel<Dim<3>> mKernel;
-  Scalar metamax;
+  TableKernel<Dim<3>> mBaseKernel3d;
+  TableKernel<Dim<1>> mBaseKernel1d;  // Only for use with the IdealH algorithm
+  double metamax;
 };
 
 }
 
-#include "SphericalTableKernelInline.hh"
+#include "SphericalBiCubicSplineKernelInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  class SphericalTableKernel;
+  class SphericalBiCubicSplineKernel;
 }
 
 #endif
