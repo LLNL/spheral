@@ -43,6 +43,7 @@ source("unit/Distributed/distributedUnitTests.py")
 # Material unit tests.
 source("unit/Material/testEOS.py")
 source("unit/SolidMaterial/testTillotsonEquationOfState.py")
+source("unit/SolidMaterial/testANEOS.py")
 source("functional/Material/UnitConversion.py")
 
 # Test the sampling to lattice method.
