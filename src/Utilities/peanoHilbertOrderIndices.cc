@@ -61,7 +61,7 @@ hashPosition(const Dim<2>::Vector& position,
   typedef Dim<2>::Vector Vector;
 
   // Pre-conditions.
-  REQUIRE(boxmin.x() < boxmax.x() and boxmin.y() < boxmax.y());
+  REQUIRE(boxmin.x() <= boxmax.x() and boxmin.y() <= boxmax.y());
   REQUIRE(position.x() >= boxmin.x() and position.x() <= boxmax.x());
   REQUIRE(position.y() >= boxmin.y() and position.y() <= boxmax.y());
 
@@ -149,9 +149,9 @@ hashPosition(const Dim<3>::Vector& position,
   typedef Dim<3>::Vector Vector;
 
   // Pre-conditions.
-  REQUIRE(boxmin.x() < boxmax.x() and 
-          boxmin.y() < boxmax.y() and
-          boxmin.z() < boxmax.z());
+  REQUIRE(boxmin.x() <= boxmax.x() and 
+          boxmin.y() <= boxmax.y() and
+          boxmin.z() <= boxmax.z());
   REQUIRE(position.x() >= boxmin.x() and position.x() <= boxmax.x());
   REQUIRE(position.y() >= boxmin.y() and position.y() <= boxmax.y());
   REQUIRE(position.z() >= boxmin.z() and position.z() <= boxmax.z());
