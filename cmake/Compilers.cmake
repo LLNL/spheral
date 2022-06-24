@@ -38,7 +38,7 @@ message("-- Compiler unused variable warnings ${ENABLE_UNUSED_VARIABLE_WARNINGS}
 
 
 if (NOT ENABLE_UNUSED_PARAMETER_WARNINGS)
-  list(APPEND CXX_WARNING_FLAGS -Wno-unused-parameter)
+  list(APPEND CXX_WARNING_FLAGS "$<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>")
 endif()
 message("-- Compiler unused parameter warnings ${ENABLE_UNUSED_PARAMETER_WARNINGS}")
 
