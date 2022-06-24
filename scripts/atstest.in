@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-/usr/gapps/Spheral/bin/lcats -e @CMAKE_INSTALL_PREFIX@/spheral "$@"
+/usr/gapps/Spheral/bin/lcats --atsExe @CMAKE_INSTALL_PREFIX@/.venv/bin/ats -e @CMAKE_INSTALL_PREFIX@/spheral "$@"
