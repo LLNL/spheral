@@ -43,6 +43,22 @@
     EXTRA_CMAKE_ARGS: ""
     EXTRA_TEST_ARGS: ""
 
+.cuda_11_gcc_8_3_1_~mpi:
+  variables:
+    SPEC: "gcc@8.3.1~mpi"
+    SPEC: "gcc@8.3.1+cuda~mpi cuda_arch=70"
+    LC_MODULES: "gcc/8.3.1 cuda/11.1.0"
+    EXTRA_CMAKE_ARGS: ""
+    EXTRA_TEST_ARGS: "--addOp=\"--smpi_off\""
+
+.cuda_11_gcc_8_3_1_spectrum:
+  variables:
+    SPEC: "gcc@8.3.1+cuda^spectrum-mpi"
+    SPEC: "gcc@8.3.1+cuda^spectrum-mpi cuda_arch=70"
+    LC_MODULES: "gcc/8.3.1 cuda/11.1.0"
+    EXTRA_CMAKE_ARGS: ""
+    EXTRA_TEST_ARGS: "--addOp=\"--smpi_off\""
+
 .oneapi_2022_1_mvapich2:
   variables:
     SPEC: "oneapi@2022.1^mvapich2"
