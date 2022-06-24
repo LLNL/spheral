@@ -7,7 +7,7 @@
     - ml load python/3.8.2
     - ml load $LC_MODULES
     - lalloc 1 ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
-    - lalloc 1 ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --logs test-logs --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats "$EXTRA_TEST_ARGS" build_"$ARCH"-"$SPEC"/install/$ATS_FILE
+    - lalloc 1 ./build_gitlab/install/spheral-atstest --logs test-logs "$EXTRA_TEST_ARGS" build_"$ARCH"-"$SPEC"/install/$ATS_FILE
   artifacts:
     when: always
     paths:
@@ -18,7 +18,7 @@
     - whoami
     - ml load $LC_MODULES
     - srun -N 1 -c 36 -p pdebug -t 60 $SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
-    - ./build_"$ARCH"-"$SPEC"/install/spheral-atstest --logs test-logs --atsExe /usr/gapps/ats/"$ARCH"/7.0.5/bin/ats "$EXTRA_TEST_ARGS" build_"$ARCH"-"$SPEC"/install/$ATS_FILE
+    - ./build_gitlab/install/spheral-atstest --logs test-logs "$EXTRA_TEST_ARGS" build_gitlab/install/$ATS_FILE
   artifacts:
     when: always
     paths:
