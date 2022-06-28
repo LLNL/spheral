@@ -88,7 +88,7 @@ dt(const DataBase<Dimension>& dataBase,
 
   minContactTime = pi*std::pow(minContactTime,0.25);
   return std::make_pair(minContactTime/this->stepsPerCollision(),"Herzian DEM vote for time-step");
-};
+}
 
 //------------------------------------------------------------------------------
 // get our acceleration and other things
@@ -216,7 +216,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     }
   }
 
-};
+}
 
 
 }
