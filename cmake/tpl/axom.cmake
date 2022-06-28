@@ -1,3 +1,3 @@
 set(${lib_name}_libs 
-    libaxom.a 
+    libaxom.so 
    )

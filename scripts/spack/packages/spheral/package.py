@@ -43,15 +43,15 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('m-aneos')
     depends_on('py-polyclipper')
     depends_on('eigen@3.4.0', type='build')
-    depends_on('hdf5@1.8.19 ~mpi +hl', type='build')
+    depends_on('hdf5@1.8.19 +hl', type='build')
     depends_on('silo@4.10.2 +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
     depends_on('conduit@0.8.2 +mpi +hdf5 -test', type='build', when='+mpi')
     depends_on('conduit@0.8.2 ~mpi +hdf5 -test', type='build', when='~mpi')
 
-    depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
-    depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
+    depends_on('axom@0.5.0 +shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
+    depends_on('axom@0.5.0 +shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope', type='build')
