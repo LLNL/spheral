@@ -92,7 +92,7 @@ dt(const DataBase<Dimension>& /*dataBase*/,
    const StateDerivatives<Dimension>& /*derivs*/,
    const typename Dimension::Scalar /*currentTime*/) const{
   return make_pair(mTimeStep/this->stepsPerCollision(),("Linear Spring DEM vote for time step"));
-};
+}
 
 //------------------------------------------------------------------------------
 // get our acceleration and other things
@@ -387,7 +387,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     }
   }
 
-};
+}
 
 
 }
