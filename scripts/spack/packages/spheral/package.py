@@ -67,6 +67,8 @@ class Spheral(CachedCMakePackage, PythonPackage):
     depends_on('py-sphinx@1.8.5', type='build', when='+docs')
     depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
 
+    depends_on('caliper')
+
     def _get_sys_type(self, spec):
         sys_type = spec.architecture
         if "SYS_TYPE" in env:
@@ -209,6 +211,8 @@ class Spheral(CachedCMakePackage, PythonPackage):
         entries.append(cmake_cache_option('ENABLE_OPENMP', '+openmp' in spec))
         entries.append(cmake_cache_option('ENABLE_DOCS', '+docs' in spec))
 
+        entries.append(cmake_cache_option('caliper_BUILD', False))
+        entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
 
         return entries
 
