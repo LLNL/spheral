@@ -38,7 +38,7 @@ message("-- Compiler unused variable warnings ${ENABLE_UNUSED_VARIABLE_WARNINGS}
 
 
 if (NOT ENABLE_UNUSED_PARAMETER_WARNINGS)
-  list(APPEND CXX_WARNING_FLAGS "$<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>")
+  list(APPEND CXX_WARNING_FLAGS -Wno-unused-parameter)
 endif()
 message("-- Compiler unused parameter warnings ${ENABLE_UNUSED_PARAMETER_WARNINGS}")
 
@@ -48,7 +48,7 @@ if (NOT ENABLE_MISSING_INCLUDE_DIR_WARNINGS)
 endif()
 message("-- Compiler missing include dir warnings ${ENABLE_MISSING_INCLUDE_DIR_WARNINGS}")
 
-add_compile_options(${CXX_WARNING_FLAGS})
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${CXX_WARNING_FLAGS}>")
 message("-- using warning flags ${CXX_WARNING_FLAGS}")
 
 # We build some Fortran code from outside sources (like the Helmholtz EOS) that
