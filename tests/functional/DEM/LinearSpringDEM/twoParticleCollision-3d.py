@@ -141,17 +141,18 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-generator1 = GenerateNodeDistribution3d(2, 1, 1,
+generator0 = GenerateNodeDistribution3d(2, 1, 1,
                                         rho = 1.0,
                                         distributionType = "lattice",
                                         xmin = (0.0,  0.0, 0.0),
                                         xmax = (1.0,  0.5, 0.5),
                                         nNodePerh = nPerh)
 
-
+generator1 = GenerateDEMfromSPHGenerator3d(WT,
+                                           generator0,
+                                           nPerh=nPerh)
 distributeNodes3d((nodes1, generator1))
-
-
+ 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -193,8 +194,8 @@ velocity[1] = Vector(-vImpact,0.0,0.0)
 particleRadius = nodes1.particleRadius()
 particleRadius[0] = radius
 particleRadius[1] = radius
-omega = hydro.omega
 
+omega = hydro.omega
 if boolCheckSlidingFriction:
     omega[0][0] = Vector(0.0,0.0,omega0)
     omega[0][1] = Vector(0.0,0.0,omega0)

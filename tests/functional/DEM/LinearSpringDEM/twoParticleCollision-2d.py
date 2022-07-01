@@ -123,14 +123,16 @@ for nodes in nodeSet:
 # Set the node properties.
 #-------------------------------------------------------------------------------
 
-generator1 = GenerateNodeDistribution2d(2, 1,
+generator0 = GenerateNodeDistribution2d(2, 1,
                                         rho = 1.0,
                                         distributionType = "lattice",
                                         xmin = (0.0,  0.0),
                                         xmax = (1.0,  0.5),
                                         nNodePerh = nPerh)
 
-
+generator1 = GenerateDEMfromSPHGenerator2d(WT,
+                                           generator0,
+                                           nPerh=nPerh)
 distributeNodes2d((nodes1, generator1))
 
 # initial conditions : when directly using SPH generator need to set particle radius

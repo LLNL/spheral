@@ -118,12 +118,16 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-generator1 = GenerateNodeDistribution1d(2,
+generator0 = GenerateNodeDistribution1d(2,
                                         rho = 1.0,
                                         xmin = 0.0,
                                         xmax = 1.0,
                                         nNodePerh = nPerh)
 
+
+generator1 = GenerateDEMfromSPHGenerator1d(WT,
+                                           generator0,
+                                           nPerh=nPerh)
 
 distributeNodes1d((nodes1, generator1))
 

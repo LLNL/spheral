@@ -109,12 +109,12 @@ if restoreCycle is None:
                                             nNodePerh = nPerh)
     
     # really simple bar shaped particle
-    def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
-        xout = [xi+Ri/3.0,xi-Ri/3.0]
-        yout = [yi,yi]
-        mout = [mi/2.0,mi/2.0]
-        Rout = [Ri/2.0,Ri/2.0]
-        return xout,yout,mout,Rout
+    # def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
+    #     xout = [xi+Ri/3.0,xi-Ri/3.0]
+    #     yout = [yi,yi]
+    #     mout = [mi/2.0,mi/2.0]
+    #     Rout = [Ri/2.0,Ri/2.0]
+    #     return xout,yout,mout,Rout
 
     generator1 = GenerateDEMfromSPHGenerator2d(WT,
                                                generator0,
