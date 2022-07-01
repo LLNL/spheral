@@ -15,6 +15,8 @@
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
 
+#include <limits>
+
 #include "boost/assign.hpp"
 using namespace boost::assign;
 
@@ -59,6 +61,9 @@ hashPosition(const Dim<2>::Vector& position,
 
   typedef KeyTraits::Key Key;
   typedef Dim<2>::Vector Vector;
+  typedef Dim<2>::Scalar Scalar;
+
+  const Scalar tiny = std::numeric_limits<Scalar>::epsilon();
 
   // Pre-conditions.
   REQUIRE(boxmin.x() <= boxmax.x() and boxmin.y() <= boxmax.y());
@@ -93,8 +98,8 @@ hashPosition(const Dim<2>::Vector& position,
   CHECK(deltar >= 0.0);
   const Key ncells = KeyTraits::one << KeyTraits::numbits1d;
   const Vector cellsize = boxsize/ncells;
-  const int xfine = int(deltar.x()/cellsize.x());
-  const int yfine = int(deltar.y()/cellsize.y());
+  const int xfine = int(deltar.x()/std::max(cellsize.x(),tiny));
+  const int yfine = int(deltar.y()/std::max(cellsize.y(),tiny));
   CHECK(xfine >= 0 and xfine <= (int)ncells);
   CHECK(yfine >= 0 and yfine <= (int)ncells);
 
@@ -147,7 +152,10 @@ hashPosition(const Dim<3>::Vector& position,
 
   typedef KeyTraits::Key Key;
   typedef Dim<3>::Vector Vector;
-
+  typedef Dim<3>::Scalar Scalar;
+  
+  const Scalar tiny = std::numeric_limits<Scalar>::epsilon();
+  
   // Pre-conditions.
   REQUIRE(boxmin.x() <= boxmax.x() and 
           boxmin.y() <= boxmax.y() and
@@ -200,9 +208,9 @@ hashPosition(const Dim<3>::Vector& position,
   CHECK(deltar >= 0.0);
   const Key ncells = KeyTraits::one << KeyTraits::numbits1d;
   const Vector cellsize = boxsize/ncells;
-  const int xfine = int(deltar.x()/cellsize.x());
-  const int yfine = int(deltar.y()/cellsize.y());
-  const int zfine = int(deltar.z()/cellsize.z());
+  const int xfine = int(deltar.x()/std::max(cellsize.x(),tiny));
+  const int yfine = int(deltar.y()/std::max(cellsize.y(),tiny));
+  const int zfine = int(deltar.z()/std::max(cellsize.z(),tiny));
   CHECK(xfine >= 0 and xfine <= (int)ncells);
   CHECK(yfine >= 0 and yfine <= (int)ncells);
   CHECK(zfine >= 0 and zfine <= (int)ncells);
