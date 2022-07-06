@@ -67,7 +67,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
     depends_on('py-sphinx@1.8.5', type='build', when='+docs')
     depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
 
-    depends_on('caliper')
+    depends_on('caliper', type='build')
 
     def _get_sys_type(self, spec):
         sys_type = spec.architecture
