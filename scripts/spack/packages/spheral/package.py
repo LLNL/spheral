@@ -28,6 +28,8 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     variant('mpi', default=True, description='Enable MPI Support.')
     variant('openmp', default=True, description='Enable OpenMP Support.')
     variant('docs', default=False, description='Enable building Docs.')
+    variant('shared', default=True, when='~cuda', description='Build C++ libs as shared.')
+    variant('shared', default=False, when='+cuda', description='Build C++ libs as shared.')
 
     # -------------------------------------------------------------------------
     # DEPENDS
@@ -73,6 +75,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     # DEPENDS
     # -------------------------------------------------------------------------
     conflicts('cuda_arch=none', when='+cuda', msg='CUDA architecture is required')
+    conflicts('+shared', when='+cuda', msg='Cannot build C++ libs shared when CUDA is enabled.')
 
     def _get_sys_type(self, spec):
         sys_type = spec.architecture
@@ -206,6 +209,9 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
         if "+mpi" in spec:
             entries.append(cmake_cache_path('-DMPI_C_COMPILER', spec['mpi'].mpicc) )
             entries.append(cmake_cache_path('-DMPI_CXX_COMPILER', spec['mpi'].mpicxx) )
+
+        if "~shared" in spec and "~cuda" in spec:
+            entries.append(cmake_cache_option('ENABLE_SHARED', False))
 
         entries.append(cmake_cache_option('ENABLE_OPENMP', '+openmp' in spec))
         entries.append(cmake_cache_option('ENABLE_DOCS', '+docs' in spec))
