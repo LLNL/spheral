@@ -48,7 +48,10 @@ if (NOT ENABLE_MISSING_INCLUDE_DIR_WARNINGS)
 endif()
 message("-- Compiler missing include dir warnings ${ENABLE_MISSING_INCLUDE_DIR_WARNINGS}")
 
+set(CUDA_WARNING_FLAGS -Xcudafe=\"--diag_suppress=esa_on_defaulted_function_ignored\")
+
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${CXX_WARNING_FLAGS}>")
+add_compile_options("$<$<COMPILE_LANGUAGE:CUDA>:${CUDA_WARNING_FLAGS}>")
 message("-- using warning flags ${CXX_WARNING_FLAGS}")
 
 # We build some Fortran code from outside sources (like the Helmholtz EOS) that
