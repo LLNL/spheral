@@ -78,8 +78,8 @@ computeSPHOmegaGradhCorrection(const ConnectivityMap<Dimension>& connectivityMap
       const auto etaj = (Hj*rij).magnitude();
 
       // Kernel weighting and gradient.
-      std::tie(Wi, gWi) = W.kernelAndGradValue(etai, Hdeti);
-      std::tie(Wj, gWj) = W.kernelAndGradValue(etaj, Hdetj);
+      W.kernelAndGradValue(etai, Hdeti, Wi, gWi);
+      W.kernelAndGradValue(etaj, Hdetj, Wj, gWj);
 
       // Sum the pair-wise contributions.
       omegaGradh_thread(nodeListi, i) += Wi;

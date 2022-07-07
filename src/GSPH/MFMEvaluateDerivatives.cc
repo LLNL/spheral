@@ -202,11 +202,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
 
       // Symmetrized kernel weight and gradient.
-      std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
+      W.kernelAndGradValue(etaMagi, Hdeti, Wi, gWi);
       const auto Hetai = Hi*etai.unitVector();
       const auto gradWi = gWi*Hetai;
 
-      std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
+      W.kernelAndGradValue(etaMagj, Hdetj, Wj, gWj);
       const auto Hetaj = Hj*etaj.unitVector();
       const auto gradWj = gWj*Hetaj;
 

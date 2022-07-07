@@ -208,6 +208,30 @@ gradf1Integral(const KernelType& W,
                                                                      numbins);
 }
 
+//------------------------------------------------------------------------------
+// Functors for building interpolation of kernel
+//------------------------------------------------------------------------------
+template<typename KernelType>
+struct Wlookup {
+  const KernelType& mW;
+  Wlookup(const KernelType& W): mW(W) {}
+  double operator()(const double x) const { return mW(x, 1.0); }
+};
+
+template<typename KernelType>
+struct gradWlookup {
+  const KernelType& mW;
+  gradWlookup(const KernelType& W): mW(W) {}
+  double operator()(const double x) const { return mW.grad(x, 1.0); }
+};
+
+template<typename KernelType>
+struct grad2Wlookup {
+  const KernelType& mW;
+  grad2Wlookup(const KernelType& W): mW(W) {}
+  double operator()(const double x) const { return mW.grad2(x, 1.0); }
+};
+
 }  // anonymous
 
 //------------------------------------------------------------------------------
@@ -216,70 +240,27 @@ gradf1Integral(const KernelType& W,
 template<typename Dimension>
 template<typename KernelType>
 TableKernel<Dimension>::TableKernel(const KernelType& kernel,
-                                    const unsigned numPoints,
-                                    const double hmult):
+                                    const unsigned numPoints):
   Kernel<Dimension, TableKernel<Dimension> >(),
-  mInterp(),
-  mGradInterp(),
-  mGrad2Interp(),
+  mInterp(0.0, kernel.kernelExtent(), numPoints, Wlookup<KernelType>(kernel)),
+  mGradInterp(0.0, kernel.kernelExtent(), numPoints, gradWlookup<KernelType>(kernel)),
+  mGrad2Interp(0.0, kernel.kernelExtent(), numPoints, grad2Wlookup<KernelType>(kernel)),
   mNumPoints(numPoints),
   mNperhValues(),
   mWsumValues(),
   mMinNperh(0.25),
-  mMaxNperh(10.0),
-  mf1Interp(),
-  mf2Interp() {
+  mMaxNperh(64.0) {
 
   // Pre-conditions.
   VERIFY(numPoints > 0);
-  VERIFY(hmult > 0.0);
 
   // Set the volume normalization and kernel extent.
   this->setVolumeNormalization(1.0); // (kernel.volumeNormalization() / Dimension::pownu(hmult));  // We now build this into the tabular kernel values.
-  this->setKernelExtent(hmult * kernel.kernelExtent());
-  this->setInflectionPoint(hmult * kernel.inflectionPoint());
-
-  // Set the number of points and table step size.
-  const double etamax = this->kernelExtent();
-  const double stepSize = etamax/(numPoints - 1);
-  CHECK(stepSize > 0.0);
-
-  // Set the fitting coefficients.
-  // Note that we will go ahead and fold the normalization constants in here, 
-  // so we don't have to multiply by them in the value lookups.
-  std::vector<double> kernelValues(numPoints), gradValues(numPoints), grad2Values(numPoints);
-  const double correction = 1.0/Dimension::pownu(hmult);
-  const double deta = stepSize/hmult;
-  for (auto i = 0u; i < numPoints; ++i) {
-    CHECK(i*stepSize >= 0.0);
-    kernelValues[i] = correction*kernel(i*deta, 1.0);
-    gradValues[i] = correction*kernel.grad(i*deta, 1.0);
-    grad2Values[i] = correction*kernel.grad2(i*deta, 1.0);
-  }
-  mInterp.initialize(0.0, etamax, kernelValues);
-  mGradInterp.initialize(0.0, etamax, gradValues);
-  mGrad2Interp.initialize(0.0, etamax, grad2Values);
-
-  // If we're a 2D kernel we set the RZ correction information.
-  if (Dimension::nDim == 2) {
-    std::vector<double> f1Values(numPoints), f2Values(numPoints);
-    const auto K1d = 0.5/simpsonsIntegration<volfunc<TableKernel<Dimension>>, double, double>(volfunc<TableKernel<Dimension>>(*this), 0.0, etamax, numPoints);
-    for (auto i = 0u; i < numPoints; ++i) {
-      CHECK(i*stepSize >= 0.0);
-      const double zeta = i*stepSize;
-      f1Values[i] = f1Integral(*this, zeta, numPoints)/K1d;
-      f2Values[i] = f2Integral(*this, zeta, numPoints)/K1d;
-      // gradf1Values[i] = -f1Values[i]*f1Values[i]*gradf1Integral(*this, zeta, numPoints)*K1d;
-    }
-    mf1Interp.initialize(0.0, etamax, f1Values);
-    mf2Interp.initialize(0.0, etamax, f2Values);
-  }
+  this->setKernelExtent(kernel.kernelExtent());
+  this->setInflectionPoint(kernel.inflectionPoint());
 
   // Set the table of n per h values.
   this->setNperhValues();
-
-  // That should be it, so we should have left the kernel in a valid state.
-  ENSURE(valid());
 }
 
 //------------------------------------------------------------------------------
@@ -296,9 +277,7 @@ TableKernel(const TableKernel<Dimension>& rhs):
   mNperhValues(rhs.mNperhValues),
   mWsumValues( rhs.mWsumValues),
   mMinNperh(rhs.mMinNperh),
-  mMaxNperh(rhs.mMaxNperh),
-  mf1Interp(rhs.mf1Interp),
-  mf2Interp(rhs.mf2Interp) {
+  mMaxNperh(rhs.mMaxNperh) {
 }
 
 //------------------------------------------------------------------------------
@@ -326,10 +305,20 @@ operator=(const TableKernel<Dimension>& rhs) {
     mWsumValues =  rhs.mWsumValues;
     mMinNperh = rhs.mMinNperh;
     mMaxNperh = rhs.mMaxNperh;
-    mf1Interp = rhs.mf1Interp;
-    mf2Interp = rhs.mf2Interp;
   }
   return *this;
+}
+
+//------------------------------------------------------------------------------
+// Equivalence
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+TableKernel<Dimension>::
+operator==(const TableKernel<Dimension>& rhs) const {
+  return ((mInterp == rhs.mInterp) and
+          (mGradInterp == rhs.mGradInterp) and
+          (mGrad2Interp == rhs.mGrad2Interp));
 }
 
 //------------------------------------------------------------------------------
@@ -337,9 +326,9 @@ operator=(const TableKernel<Dimension>& rhs) {
 // sum of kernel values.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
+typename Dimension::Scalar
 TableKernel<Dimension>::
-equivalentNodesPerSmoothingScale(const double Wsum) const {
+equivalentNodesPerSmoothingScale(const Scalar Wsum) const {
 
   // Find the lower bound in the tabulated Wsum's bracketing the input
   // value.
@@ -352,7 +341,7 @@ equivalentNodesPerSmoothingScale(const double Wsum) const {
         (Wsum >= mWsumValues[lb] and Wsum <= mWsumValues[ub]));
 
   // Now interpolate for the corresponding nodes per h (within bounds);
-  double result;
+  Scalar result;
   if (lb == -1) {
     result = mNperhValues[0];
   } else if (ub == n) {
@@ -373,9 +362,9 @@ equivalentNodesPerSmoothingScale(const double Wsum) const {
 // Determine the effective Wsum we would expect for the given n per h.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-double
+typename Dimension::Scalar
 TableKernel<Dimension>::
-equivalentWsum(const double nPerh) const {
+equivalentWsum(const Scalar nPerh) const {
 
   // Find the lower bound in the tabulated n per h's bracketing the input
   // value.
@@ -388,7 +377,7 @@ equivalentWsum(const double nPerh) const {
         (nPerh >= mNperhValues[lb] and nPerh <= mNperhValues[ub]));
 
   // Now interpolate for the corresponding Wsum.
-  double result;
+  Scalar result;
   if (lb == -1) {
     result = mWsumValues[0];
   } else if (ub == n) {
@@ -418,15 +407,15 @@ setNperhValues(const bool scaleTo1D) {
   REQUIRE(this->kernelExtent() > 0.0);
 
   // Size the Nperh array.
-  mWsumValues = vector<double>(mNumPoints);
-  mNperhValues = vector<double>(mNumPoints);
+  mWsumValues = vector<Scalar>(mNumPoints);
+  mNperhValues = vector<Scalar>(mNumPoints);
 
   // For the allowed range of n per h, sum up the kernel values.
-  const double dnperh = (mMaxNperh - mMinNperh)/(mNumPoints - 1u);
+  const Scalar dnperh = (mMaxNperh - mMinNperh)/(mNumPoints - 1u);
   for (auto i = 0u; i < mNumPoints; ++i) {
-    const double nperh = mMinNperh + i*dnperh;
+    const Scalar nperh = mMinNperh + i*dnperh;
     CHECK(nperh >= mMinNperh and nperh <= mMaxNperh);
-    const double deta = 1.0/nperh;
+    const Scalar deta = 1.0/nperh;
     mNperhValues[i] = nperh;
     if (scaleTo1D) {
       mWsumValues[i] = sumKernelValuesAs1D(*this, deta);
@@ -445,17 +434,6 @@ setNperhValues(const bool scaleTo1D) {
   }
   END_CONTRACT_SCOPE
 
-}
-
-//------------------------------------------------------------------------------
-// Determine if the kernel is in a valid, ready to use state.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-bool
-TableKernel<Dimension>::
-valid() const {
-  return (Kernel<Dimension, TableKernel<Dimension>>::valid() and
-          mNumPoints > 0);
 }
 
 }

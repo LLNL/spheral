@@ -25,6 +25,23 @@ def xgen(n, xmin, xmax):
         count += 1
 
 #===============================================================================
+# Functor to generate the problem
+#===============================================================================
+class Fquad(ScalarScalarFunctor):
+    def __init__(self, A, B, C):
+        ScalarScalarFunctor.__init__(self)
+        self.A = A
+        self.B = B
+        self.C = C
+        return
+    def __call__(self, x):
+        return self.A + self.B*x + self.C*x*x
+    def prime(self, x):
+        return self.B + 2.0*self.C*x
+    def prime2(self, x):
+        return 2.0*self.C
+
+#===============================================================================
 # TestQuadraticInterpolator
 #===============================================================================
 class TestQuadraticInterpolator(unittest.TestCase):
@@ -41,52 +58,34 @@ class TestQuadraticInterpolator(unittest.TestCase):
         self.A = rangen.uniform(-100.0, 100.0)
         self.B = rangen.uniform(-100.0, 100.0)
         self.C = rangen.uniform(-100.0, 100.0)
-        yvals = vector_of_double([self.y(self.xmin + i*self.dx) for i in xrange(self.n)])
-        self.F = QuadraticInterpolator(self.xmin, self.xmax, yvals)
+        self.func = Fquad(self.A, self.B, self.C)
+        self.F = QuadraticInterpolator(self.xmin, self.xmax, self.n, self.func)
         self.fuzz = 1.0e-10
         return
-
-    #===========================================================================
-    # Compute y(x) answer
-    #===========================================================================
-    def y(self, x):
-        return self.A + self.B*x + self.C*x*x
-
-    #===========================================================================
-    # Compute dy/dx(x) answer
-    #===========================================================================
-    def yprime(self, x):
-        return self.B + 2.0*self.C*x
-
-    #===========================================================================
-    # Compute d^2y/dx^2(x) answer
-    #===========================================================================
-    def yprime2(self, x):
-        return 2.0*self.C
 
     #===========================================================================
     # Interpolate y
     #===========================================================================
     def test_yinterp(self):
         for x in xgen(self.ntests, self.xmin, self.xmax):
-            self.failUnless(fuzzyEqual(self.F(x), self.y(x), self.fuzz),
-                            "Error interpolating F(x): %g != %g" % (self.F(x), self.y(x)))
+            self.failUnless(fuzzyEqual(self.F(x), self.func(x), self.fuzz),
+                            "Error interpolating F(x): %g != %g" % (self.F(x), self.func(x)))
 
     #===========================================================================
     # Interpolate dy/dx
     #===========================================================================
     def test_dyinterp(self):
         for x in xgen(self.ntests, self.xmin, self.xmax):
-            self.failUnless(fuzzyEqual(self.yprime(x), self.F.prime(x), self.fuzz),
-                            "Error interpolating F'(x): %g != %g" % (self.F.prime(x), self.yprime(x)))
+            self.failUnless(fuzzyEqual(self.F.prime(x), self.func.prime(x), self.fuzz),
+                            "Error interpolating F'(x): %g != %g" % (self.F.prime(x), self.func.prime(x)))
 
     #===========================================================================
     # Interpolate d^2y/dx^2
     #===========================================================================
     def test_dy2interp(self):
         for x in xgen(self.ntests, self.xmin, self.xmax):
-            self.failUnless(fuzzyEqual(self.yprime2(x), self.F.prime2(x), self.fuzz),
-                            "Error interpolating F''(x): %g != %g" % (self.F.prime2(x), self.yprime2(x)))
+            self.failUnless(fuzzyEqual(self.F.prime2(x), self.func.prime2(x), self.fuzz),
+                            "Error interpolating F''(x): %g != %g" % (self.F.prime2(x), self.func.prime2(x)))
 
 if __name__ == "__main__":
     unittest.main()

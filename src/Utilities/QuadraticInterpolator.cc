@@ -8,8 +8,6 @@
 //----------------------------------------------------------------------------//
 #include "QuadraticInterpolator.hh"
 
-#include <Eigen/Dense>
-
 namespace Spheral {
 
 //------------------------------------------------------------------------------
@@ -24,37 +22,22 @@ QuadraticInterpolator::QuadraticInterpolator():
 }
 
 //------------------------------------------------------------------------------
-// Construct with tabulated data
-//------------------------------------------------------------------------------
-QuadraticInterpolator::QuadraticInterpolator(const double xmin,
-                                             const double xmax,
-                                             const std::vector<double>& yvals):
-  mN1(),
-  mXmin(),
-  mXmax(),
-  mXstep(),
-  mcoeffs() {
-  this->initialize(xmin, xmax, yvals);
-}
-
-//------------------------------------------------------------------------------
 // Initialize the interpolation to fit the given data
-// Note, because we're doing a parabolic fit there are 2 fewer sets of coeficients
-// than the size of the table we're fitting.
 //------------------------------------------------------------------------------
 void
 QuadraticInterpolator::initialize(const double xmin,
                                   const double xmax,
                                   const std::vector<double>& yvals) {
   const auto n = yvals.size();
-  REQUIRE(n > 2);      // Need at least 3 points to fit a parabola
-  REQUIRE(xmax > xmin);
+  VERIFY2(n > 2, "QuadraticInterpolator::initialize requires at least 3 unique values to fit");
+  VERIFY2(n % 2 == 1, "QuadraticInterpolator::initialize requires an odd number of tabulated values");
+  VERIFY2(xmax > xmin, "QuadraticInterpolator::initialize requires a positive domain: [" << xmin << " " << xmax << "]");
 
-  mN1 = n - 3;  // Maximum index into arrays
+  mN1 = (n - 1u)/2u - 1u;  // Maximum index into arrays
   mXmin = xmin;
   mXmax = xmax;
-  mXstep = (xmax - xmin)/(n - 1);
-  mcoeffs.resize(3*(n - 2));
+  mXstep = (xmax - xmin)/(mN1 + 1u);
+  mcoeffs.resize(3*(mN1 + 1u));
 
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> EMatrix;
   typedef Eigen::Matrix<double, 3, 1> EVector;
@@ -64,22 +47,19 @@ QuadraticInterpolator::initialize(const double xmin,
   // Find the coefficient fits.
   double x0, x1, x2;
   EMatrix A;
-  EVector B, C;
-  for (auto i0 = 0u; i0 < n - 2; ++i0) {
-    const auto i1 = i0 + 1u;
-    const auto i2 = i0 + 2u;
-    CHECK(i2 < n);
+  EVector X, B;
+  for (auto i0 = 0u; i0 <= mN1; ++i0) {
     x0 = xmin + i0*mXstep;
-    x1 = x0 + mXstep;
-    x2 = x1 + mXstep;
+    x1 = x0 + 0.5*mXstep;
+    x2 = x0 + mXstep;
     A << 1.0, x0, x0*x0,
          1.0, x1, x1*x1,
          1.0, x2, x2*x2;
-    B << yvals[i0], yvals[i1], yvals[i2];
-    C = A.inverse()*B;
-    mcoeffs[3*i0    ] = C(0);
-    mcoeffs[3*i0 + 1] = C(1);
-    mcoeffs[3*i0 + 2] = C(2);
+    B << yvals[2u*i0], yvals[2u*i0 + 1u], yvals[2u*i0 + 2u];
+    X = A.inverse()*B;
+    mcoeffs[3*i0     ] = X(0);
+    mcoeffs[3*i0 + 1u] = X(1);
+    mcoeffs[3*i0 + 2u] = X(2);
   }
 }
 
@@ -87,6 +67,18 @@ QuadraticInterpolator::initialize(const double xmin,
 // Destructor
 //------------------------------------------------------------------------------
 QuadraticInterpolator::~QuadraticInterpolator() {
+}
+
+//------------------------------------------------------------------------------
+// Equivalence
+//------------------------------------------------------------------------------
+bool
+QuadraticInterpolator::
+operator==(const QuadraticInterpolator& rhs) const {
+  return ((mN1 == rhs.mN1) and
+          (mXmin == rhs.mXmin) and
+          (mXmax == rhs.mXmax) and
+          (mcoeffs == rhs.mcoeffs));
 }
 
 }

@@ -42,6 +42,7 @@ spheral_install_python_files(
   Spheral1d.py
   Spheral2d.py
   Spheral3d.py
+  SphericalSpheral.py
   SpheralRZ.py
   SolidSpheral1d.py
   SolidSpheral2d.py

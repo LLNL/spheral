@@ -58,9 +58,8 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
   const Vector rei = reval - ri;
   const Vector etai = Hi*rei;
 
-  const std::pair<double, double> WWi = W.kernelAndGradValue(etai.magnitude(), Hdeti);
-  const Scalar Wi = WWi.first;
-  const Scalar gradWSPH = WWi.second;
+  Scalar Wi, gradWSPH;
+  W.kernelAndGradValue(etai.magnitude(), Hdeti, Wi, gradWSPH);
   if(abs(WWi.first) < 1.0e-16 and abs(WWi.first) < 1.0e-16){//If SPH kernel and gradient are zero, no point in calculating corrected kernel
     WCRKSPH = 0.0;
     gradWCRKSPH = Vector::zero;
@@ -113,9 +112,9 @@ computeCRKSPHEvaluation(const ConnectivityMap<Dimension>& connectivityMap,
           // Kernel weighting and gradient.
           const Vector rej = reval - rj;
           const Vector etaj = Hj*rej;
-          const std::pair<double, double> WWj = W.kernelAndGradValue(etaj.magnitude(), Hdetj);
-          const Scalar& Wj = WWj.first;
-          const Vector gradWj = (Hj*etaj.unitVector())*WWj.second;
+          Scalar Wj, gWj;
+          W.kernelAndGradValue(etaj.magnitude(), Hdetj, Wj, gWj);
+          const Vector gradWj = (Hj*etaj.unitVector())*gWj;
 
           // Zeroth moment. 
           const Scalar wwj = wj*Wj;

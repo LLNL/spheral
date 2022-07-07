@@ -35,10 +35,10 @@ SincKernel<Dimension>::~SincKernel() {
 template<typename Dimension>
 inline
 double
-SincKernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+SincKernel<Dimension>::kernelValue(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
-  const double thpt = M_PI*etaMagnitude;
+  const double thpt = M_PI*etaij;
   const double ack = thpt/(thpt*thpt + 1e-30);
   return this->volumeNormalization()*Hdet*ack*sin(thpt);
 }
@@ -49,13 +49,13 @@ SincKernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet) const
 template<typename Dimension>
 inline
 double
-SincKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+SincKernel<Dimension>::gradValue(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
-  const double thpt = M_PI*etaMagnitude;
+  const double thpt = M_PI*etaij;
   const double ack = thpt/(thpt*thpt + 1e-30);
   return M_PI*ack*(this->volumeNormalization()*Hdet*cos(thpt) - 
-                   this->kernelValue(etaMagnitude, Hdet));
+                   this->kernelValue(etaij, Hdet));
 }
 
 //------------------------------------------------------------------------------
@@ -64,13 +64,13 @@ SincKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) const {
 template<typename Dimension>
 inline
 double
-SincKernel<Dimension>::grad2Value(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+SincKernel<Dimension>::grad2Value(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
-  const double thpt = M_PI*etaMagnitude;
+  const double thpt = M_PI*etaij;
   const double ack = thpt/(thpt*thpt + 1e-30);
-  return -M_PI*(M_PI*kernelValue(etaMagnitude, Hdet) +
-                2.0*ack*gradValue(etaMagnitude, Hdet));
+  return -M_PI*(M_PI*kernelValue(etaij, Hdet) +
+                2.0*ack*gradValue(etaij, Hdet));
 }
 
 }

@@ -42,12 +42,31 @@ def SPH(W,
 
     # Pick the appropriate C++ constructor from dimensionality and coordinates
     ndim = dataBase.nDim
-    if GeometryRegistrar.coords() == CoordinateType.RZ:
+    if GeometryRegistrar.coords() == CoordinateType.Spherical:
+        assert ndim == 1
+        if nsolid > 0:
+            constructor = SolidSphericalSPHHydroBase
+        else:
+            constructor = SphericalSPHHydroBase
+
+        # Build the spherical kernels
+        print("Constructing Spherical kernels...")
+        W3S1 = SphericalKernel(W)
+        W = W3S1
+        if WPi:
+            WPi3S1 = SphericalKernel(WPi)
+            WPi = WPi3S1
+        if WGrad:
+            WGrad3S1 = SphericalKernel(WGrad)
+            WGrad = WGrad3S1
+
+    elif GeometryRegistrar.coords() == CoordinateType.RZ:
         assert ndim == 2
         if nsolid > 0:
             constructor = SolidSPHHydroBaseRZ
         else:
             constructor = SPHHydroBaseRZ
+
     else:
         if nsolid > 0:
             constructor = eval("SolidSPHHydroBase%id" % ndim)
@@ -65,6 +84,12 @@ def SPH(W,
         Cl = 2.0*(dataBase.maxKernelExtent/2.0)
         Cq = 2.0*(dataBase.maxKernelExtent/2.0)**2
         Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
+
+    # Smoothing scale update
+    if ASPH:
+        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
+    else:
+        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
 
     # Smoothing scale update
     if ASPH:

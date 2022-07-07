@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SPHHydroBaseSpherical -- An SPH/ASPH hydrodynamic package for Spheral++,
+// SphericalSPHHydroBase -- An SPH/ASPH hydrodynamic package for Spheral++,
 //                          specialized for 1D Spherical (r) geometry.
 //
 // Based on the algorithm described in
@@ -11,17 +11,18 @@
 //
 // Created by JMO, Tue Dec 22 10:04:21 PST 2020
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SPHHydroBaseSpherical_hh__
-#define __Spheral_SPHHydroBaseSpherical_hh__
+#ifndef __Spheral_SphericalSPHHydroBase_hh__
+#define __Spheral_SphericalSPHHydroBase_hh__
 
 #include <string>
 
 #include "SPHHydroBase.hh"
+#include "Kernel/SphericalKernel.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
-class SPHHydroBaseSpherical: public SPHHydroBase<Dim<1>> {
+class SphericalSPHHydroBase: public SPHHydroBase<Dim<1>> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -34,11 +35,11 @@ public:
   typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  SPHHydroBaseSpherical(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+  SphericalSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                         DataBase<Dimension>& dataBase,
                         ArtificialViscosity<Dimension>& Q,
-                        const TableKernel<Dimension>& W,
-                        const TableKernel<Dimension>& WPi,
+                        const SphericalKernel& W,
+                        const SphericalKernel& WPi,
                         const double filter,
                         const double cfl,
                         const bool useVelocityMagnitudeForDt,
@@ -56,21 +57,17 @@ public:
                         const Vector& xmax);
 
   // Destructor.
-  virtual ~SPHHydroBaseSpherical();
+  virtual ~SphericalSPHHydroBase();
 
-  // Tasks we do once on problem startup.
-  virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+  // Register the state Hydro expects to use and evolve.
+  virtual 
+  void registerState(DataBase<Dimension>& dataBase,
+                     State<Dimension>& state) override;
 
-  // // Register the state Hydro expects to use and evolve.
-  // virtual 
-  // void registerState(DataBase<Dimension>& dataBase,
-  //                    State<Dimension>& state) override;
-
-  // // This method is called once at the beginning of a timestep, after all state registration.
-  // virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
-  //                                State<Dimension>& state,
-  //                                StateDerivatives<Dimension>& derivs) override;
+  // This method is called once at the beginning of a timestep, after all state registration.
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
 
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
@@ -81,27 +78,42 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
 
-  // // Apply boundary conditions to the physics specific fields.
-  // virtual
-  // void applyGhostBoundaries(State<Dimension>& state,
-  //                           StateDerivatives<Dimension>& derivs) override;
+  // Apply boundary conditions to the physics specific fields.
+  virtual
+  void applyGhostBoundaries(State<Dimension>& state,
+                            StateDerivatives<Dimension>& derivs) override;
 
-  // // Enforce boundary conditions for the physics specific fields.
-  // virtual
-  // void enforceBoundaries(State<Dimension>& state,
-  //                        StateDerivatives<Dimension>& derivs) override;
+  // Enforce boundary conditions for the physics specific fields.
+  virtual
+  void enforceBoundaries(State<Dimension>& state,
+                         StateDerivatives<Dimension>& derivs) override;
                
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "SPHHydroBaseSpherical" ; }
+  virtual std::string label() const override { return "SphericalSPHHydroBase" ; }
   //****************************************************************************
+
+  // Access the stored interpolation kernels.
+  // These hide the base class "kernel" methods which return vanilla TableKernels.
+  const SphericalKernel& kernel() const;
+  const SphericalKernel& PiKernel() const;
+
+  // We also have a funny self-Q term for interactions near the origin.
+  double Qself() const;
+  void Qself(const double x);
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
-  SPHHydroBaseSpherical();
-  SPHHydroBaseSpherical(const SPHHydroBaseSpherical&);
-  SPHHydroBaseSpherical& operator=(const SPHHydroBaseSpherical&);
+  SphericalSPHHydroBase();
+  SphericalSPHHydroBase(const SphericalSPHHydroBase&);
+  SphericalSPHHydroBase& operator=(const SphericalSPHHydroBase&);
+
+  double mQself;
+
+  // The specialized kernels
+  const SphericalKernel& mKernel;
+  const SphericalKernel& mPiKernel;
 };
 
 }
@@ -110,7 +122,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  class SPHHydroBaseSpherical;
+  class SphericalSPHHydroBase;
 }
 
 #endif

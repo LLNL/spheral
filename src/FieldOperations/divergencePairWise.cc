@@ -109,16 +109,16 @@ divergencePairWise
             Scalar Wij;
             switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
             case NeighborSearchType::GatherScatter:
-              Wij = 0.5*(kernel(etai, Hi) + 
-                         kernel(etaj, Hj));
+              Wij = 0.5*(kernel(etai.magnitude(), Hi.Determinant()) + 
+                         kernel(etaj.magnitude(), Hj.Determinant()));
               break;
 
             case NeighborSearchType::Gather:
-              Wij = kernel(etai, Hi);
+              Wij = kernel(etai.magnitude(), Hi.Determinant());
               break;
 
             case NeighborSearchType::Scatter:
-              Wij = kernel(etaj, Hj);
+              Wij = kernel(etaj.magnitude(), Hj.Determinant());
               break;
 
             default:

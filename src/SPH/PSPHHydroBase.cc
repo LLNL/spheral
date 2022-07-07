@@ -452,14 +452,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(etaMagj >= 0.0);
 
       // Symmetrized kernel weight and gradient.
-      std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
-      std::tie(WQi, gWQi) = WQ.kernelAndGradValue(etaMagi, Hdeti);
+      W.kernelAndGradValue(etaMagi, Hdeti, Wi, gWi);
+      WQ.kernelAndGradValue(etaMagi, Hdeti, WQi, gWQi);
       const auto Hetai = Hi*etai.unitVector();
       const auto gradWi = gWi*Hetai;
       const auto gradWQi = gWQi*Hetai;
 
-      std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
-      std::tie(WQj, gWQj) = WQ.kernelAndGradValue(etaMagj, Hdetj);
+      W.kernelAndGradValue(etaMagj, Hdetj, Wj, gWj);
+      WQ.kernelAndGradValue(etaMagj, Hdetj, WQj, gWQj);
       const auto Hetaj = Hj*etaj.unitVector();
       const auto gradWj = gWj*Hetaj;
       const auto gradWQj = gWQj*Hetaj;
