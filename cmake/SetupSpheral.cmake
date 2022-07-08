@@ -70,7 +70,6 @@ if(ENABLE_CUDA)
   #set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --extended-lambda -Xcudafe --display_error_number")
   set(CMAKE_CUDA_STANDARD 14)
   list(APPEND SPHERAL_CXX_DEPENDS cuda)
-  set(ENABLE_SHARED OFF)
 endif()
 
 option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
