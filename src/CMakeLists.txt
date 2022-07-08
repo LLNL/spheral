@@ -65,19 +65,24 @@ message("${SPHERAL_CXX_LIBS}")
 message("CHECK")
 blt_add_library(NAME        Spheral_CXX
                 SOURCES     spheralCXX.cc
-                DEPENDS_ON  ${SPHERAL_CXX_LIBS}
+                DEPENDS_ON  ${SPHERAL_CXX_LIBS} ${SPHERAL_CXX_DEPENDS}
                 SHARED      TRUE
                 )
-  # Install Spheral C++ target and set it as an exportable CMake target
-  install(TARGETS             Spheral_CXX
-          DESTINATION         lib
-          EXPORT              ${PROJECT_NAME}-targets
-          )
 
-  # Set the r-path of the C++ lib such that it is independent of the build dir when installed
-  set_target_properties(Spheral_CXX PROPERTIES
-                      INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${qhull_DIR}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib"
-                      )
+if(ENABLE_CUDA)
+  set_target_properties(Spheral_CXX PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+endif()
+
+# Install Spheral C++ target and set it as an exportable CMake target
+install(TARGETS             Spheral_CXX
+        DESTINATION         lib
+        EXPORT              ${PROJECT_NAME}-targets
+        )
+
+# Set the r-path of the C++ lib such that it is independent of the build dir when installed
+set_target_properties(Spheral_CXX PROPERTIES
+                    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${qhull_DIR}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib"
+                    )
 
 include_directories(${extra_packages_DIR})
 foreach(e_package ${extra_packages})
