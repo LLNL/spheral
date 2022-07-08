@@ -1,5 +1,5 @@
 # Setting this to just the release library until we support TPL debug builds on LC
-set(${lib_name}_libs libqhullstatic.a)
+set(${lib_name}_libs libqhull.so)
 if(ENABLE_STATIC_TPL)
   set(${lib_name}_libs libqhullstatic.a)
 endif()
