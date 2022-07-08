@@ -51,3 +51,9 @@ Notable changes include:
     * CullenDehnen segfault fix.
 
 **Full Changelog**: https://github.com/LLNL/spheral/compare/2022.2.0-pre-spack...v2022.6.0
+
+Version v2022.06.1 -- Release date 2022-06-24
+=============================================
+
+This is a bugfix release, which corrects a path problem that broke our convenient ANEOS
+constructors using the provided input for quartz, dunite, and serpentine.
