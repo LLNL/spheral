@@ -73,5 +73,5 @@ spheral_install_python_files(
   ShadowIvanoviSALEDamageModel.py
   )
 
-spheral_add_cxx_library(Damage)
+spheral_add_obj_library(Damage)
 

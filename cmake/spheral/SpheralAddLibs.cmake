@@ -1,10 +1,10 @@
 #-----------------------------------------------------------------------------------
-# spheral_add_cxx_library
+# spheral_add_obj_library
 #     - Generates the blt libraries for a given spheral C++ package
 #
 # package_name : *name* of spheral package to make into a library
 #
-# Variables that must be set before valling spheral_add_cxx_library:
+# Variables that must be set before calling spheral_add_obj_library:
 #     ENABLE_STATIC_CXXONLY : Default False
 #         - If set to true all libs will be made static
 #     <package_Name>_headers
@@ -18,28 +18,14 @@
 #
 #-----------------------------------------------------------------------------------
 
-function(spheral_add_cxx_library package_name)
+function(spheral_add_obj_library package_name)
 
-  # TODO : Check to see if -WL,--start-group ** -WL,--end-group is still needed or if it is a cmake version issue.
-  if(NOT ENABLE_SHARED)
-    # Build static spheral C++ library
-    blt_add_library(NAME        Spheral_${package_name}
-                    HEADERS     ${${package_name}_headers}
-                    SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  -Wl,--start-group ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS} -Wl,--end-group
-                    OBJECT TRUE
-                    SHARED      FALSE
-                    )
-  else()
-    # Build shared spheral C++ library
-    blt_add_library(NAME        Spheral_${package_name}
-                    HEADERS     ${${package_name}_headers}
-                    SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  -Wl,--start-group ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS} -Wl,--end-group
-                    OBJECT TRUE
-                    SHARED      TRUE
-                    )
-  endif()
+  blt_add_library(NAME        Spheral_${package_name}
+                  HEADERS     ${${package_name}_headers}
+                  SOURCES     ${${package_name}_sources}
+                  DEPENDS_ON  -Wl,--start-group ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS} -Wl,--end-group
+                  OBJECT TRUE
+                  )
 
   if(ENABLE_CUDA)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
@@ -50,6 +36,54 @@ function(spheral_add_cxx_library package_name)
     add_dependencies(Spheral_${package_name} ${spheral_depends})
   endif()
 
+  ## Install Spheral C++ target and set it as an exportable CMake target
+  #install(TARGETS             Spheral_${package_name}
+  #        DESTINATION         lib
+  #        EXPORT              ${PROJECT_NAME}-targets
+  #        )
+
+  ## Install the headers
+  #install(FILES       ${${package_name}_headers}
+  #        DESTINATION include/${package_name}
+  #        )
+
+  # Set the r-path of the C++ lib such that it is independent of the build dir when installed
+  #set_target_properties(Spheral_${package_name} PROPERTIES
+  #                      INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${qhull_DIR}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib"
+  #                      )
+
+  # Add this to the SPHERAL_OBJ_LIBS list
+  get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+  list(APPEND SPHERAL_OBJ_LIBS Spheral_${package_name})
+  set_property(GLOBAL PROPERTY SPHERAL_OBJ_LIBS "${SPHERAL_OBJ_LIBS}")
+
+endfunction()
+
+function(spheral_add_cxx_library package_name)
+
+  get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+
+  if(NOT ENABLE_SHARED)
+    # Build static spheral C++ library
+    blt_add_library(NAME        Spheral_${package_name}
+                    HEADERS     ${${package_name}_headers}
+                    SOURCES     ${${package_name}_sources}
+                    DEPENDS_ON  ${SPHERAL_OBJ_LIBS} ${SPHERAL_CXX_DEPENDS}
+                    SHARED      FALSE
+                    )
+  else()
+    # Build shared spheral C++ library
+    blt_add_library(NAME        Spheral_${package_name}
+                    HEADERS     ${${package_name}_headers}
+                    SOURCES     ${${package_name}_sources}
+                    DEPENDS_ON  ${SPHERAL_OBJ_LIBS} ${SPHERAL_CXX_DEPENDS}
+                    SHARED      TRUE
+                    )
+  endif()
+
+  if(ENABLE_CUDA)
+    set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+  endif()
 
   # Install Spheral C++ target and set it as an exportable CMake target
   install(TARGETS             Spheral_${package_name}
@@ -57,21 +91,10 @@ function(spheral_add_cxx_library package_name)
           EXPORT              ${PROJECT_NAME}-targets
           )
 
-  # Install the headers
-  install(FILES       ${${package_name}_headers}
-          DESTINATION include/${package_name}
-          )
-
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(Spheral_${package_name} PROPERTIES
                         INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${qhull_DIR}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib"
                         )
-
-  # Add this to the SPHERAL_CXX_LIBS list
-  get_property(SPHERAL_CXX_LIBS GLOBAL PROPERTY SPHERAL_CXX_LIBS)
-  list(APPEND SPHERAL_CXX_LIBS Spheral_${package_name})
-  set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS "${SPHERAL_CXX_LIBS}")
-
 endfunction()
 
 
@@ -81,12 +104,12 @@ endfunction()
 #
 # package_name : *name* of spheral package to make into a library
 #
-# Variables that must be set before valling spheral_add_cxx_library:
+# Variables that must be set before calling spheral_add_obj_library:
 #     <package_Name>_ADDITIONAL_INCLUDES
 #         - List of addition includes needed by a given package
 #     <package_name>_ADDITIONAL_SOURCE
 #         - List of additional sources to build library with
-#     SPHERAL_CXX_LIBS
+#     SPHERAL_OBJ_LIBS
 #         - List of items that are required to build the python portion of spheral
 #     spheral_depends
 #         - List of targets the library depends on
@@ -97,8 +120,6 @@ endfunction()
 
 function(spheral_add_pybind11_library package_name)
   include(${CMAKE_MODULE_PATH}/spheral/PYB11Generator.cmake)
-
-  get_property(SPHERAL_CXX_LIBS GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 
   # Generate the pybind11 C++ source file
   PYB11_GENERATE_BINDINGS(${package_name})

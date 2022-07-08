@@ -17,5 +17,5 @@ set(Physics_headers
     PhysicsInline.hh
     )
 
-spheral_add_cxx_library(Physics)
+spheral_add_obj_library(Physics)
 
