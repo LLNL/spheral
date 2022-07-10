@@ -267,11 +267,6 @@ conservation = TrackConservation(db,
                                   
 periodicWork = [(conservation.periodicWorkFunction,1)]
 
-#print omega0
-def writeOmega(cycle,time,dt):
-    print omega[0][0]
-    print omega[0][1]
-periodicWork += [(writeOmega,1)]
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
