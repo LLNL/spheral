@@ -30,7 +30,6 @@ class GenerateDEMfromSPHGenerator1d(NodeGeneratorBase):
         #--------------------------------------------------
         initialParticleRadius=[]
         if not particleRadius:
-            SPHGenerator.makeHround()
             for i in range(SPHGenerator.localNumNodes()):
                 hi = 1.0/SPHGenerator.H[i](0,0)
                 di = hi/nPerh
