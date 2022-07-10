@@ -7,6 +7,7 @@ from SpheralTestUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution1d import *
 from DEMConservationTracker import TrackConservation1d as TrackConservation
+from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator1d
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes1d
@@ -41,7 +42,7 @@ commandLine(vImpact = 1.0,                       # impact velocity
             dtMin = 1.0e-8, 
             dtMax = 0.1,
             dtGrowth = 2.0,
-            steps = 100,
+            steps = 120,
             maxSteps = None,
             statsStep = 10,
             domainIndependent = False,
@@ -49,7 +50,7 @@ commandLine(vImpact = 1.0,                       # impact velocity
             dtverbose = False,
             
             # output control
-            vizCycle = 10,#None,
+            vizCycle = None,
             vizTime = None,
             clearDirectories = False,
             restoreCycle = None,
@@ -61,9 +62,21 @@ commandLine(vImpact = 1.0,                       # impact velocity
             checkError = False,                # turn on error checking for restitution coefficient
             checkRestart = False,              # turn on error checking for restartability
             checkConservation = False,         # turn on error checking for momentum conservation
-            restitutionErrorThreshold = 0.01,  # relative error actual restitution vs nominal
+            restitutionErrorThreshold = 0.02,  # relative error actual restitution vs nominal
             conservationErrorThreshold = 1e-15 # relative error for momentum conservation
             )
+
+#-------------------------------------------------------------------------------
+# check for bad inputs
+#-------------------------------------------------------------------------------
+assert mpi.procs == 1 
+assert nPerh >= 1
+assert steps > stepsPerCollision
+assert shapeFactor <= 1.0 and shapeFactor >= 0.0
+assert dynamicFriction >= 0.0
+assert staticFriction >= 0.0
+assert torsionalFriction >= 0.0
+assert rollingFriction >= 0.0
 
 #-------------------------------------------------------------------------------
 # file things
@@ -73,6 +86,9 @@ restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
 vizBaseName = testName
+
+if vizCycle is None and vizTime is None:
+    vizBaseName=None
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.

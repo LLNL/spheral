@@ -9,6 +9,7 @@ from SpheralTestUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from DEMConservationTracker import TrackConservation2d as TrackConservation
+from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator2d
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes2d
@@ -51,7 +52,7 @@ commandLine(vImpact = 1.0,                 # impact velocity
             dtverbose = False,
             
             # output control
-            vizCycle = 10,#None,
+            vizCycle = None,
             vizTime = None,
             clearDirectories = False,
             restoreCycle = None,
@@ -68,6 +69,18 @@ commandLine(vImpact = 1.0,                 # impact velocity
             )
 
 #-------------------------------------------------------------------------------
+# check for bad inputs
+#-------------------------------------------------------------------------------
+assert mpi.procs == 1 
+assert nPerh >= 1
+assert steps > stepsPerCollision
+assert shapeFactor <= 1.0 and shapeFactor >= 0.0
+assert dynamicFriction >= 0.0
+assert staticFriction >= 0.0
+assert torsionalFriction >= 0.0
+assert rollingFriction >= 0.0
+
+#-------------------------------------------------------------------------------
 # file things
 #-------------------------------------------------------------------------------
 testName = "DEM-twoParticleCollision-2d"
@@ -77,6 +90,10 @@ restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
 vizBaseName = testName
+
+
+if vizCycle is None and vizTime is None:
+    vizBaseName=None
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.

@@ -11,6 +11,8 @@ from Spheral3d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution3d import *
+from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator3d
+
 from DEMConservationTracker import TrackConservation3d as TrackConservation
 
 if mpi.procs > 1:
@@ -23,31 +25,31 @@ title("DEM Restitution Coefficient Test")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(vImpact = 1.0,                 # impact velocity
-            omega0 = 0.1,                  # initial angular velocity it we're doing that
+commandLine(vImpact = 1.0,                            # impact velocity
+            omega0 = 0.1,                             # initial angular velocity it we're doing that
 
-            radius = 0.25,                 # particle radius
-            normalSpringConstant=10000.0,           # spring constant for LDS model
-            normalRestitutionCoefficient=0.55,      # restitution coefficient to get damping const
-            tangentialSpringConstant=2857.0,        # spring constant for LDS model
-            tangentialRestitutionCoefficient=0.55,  # restitution coefficient to get damping const
-            dynamicFriction = 1.0,
-            staticFriction = 1.0,
-            rollingFriction = 1.05,
-            torsionalFriction = 1.3,
-            shapeFactor = 0.5,
+            radius = 0.25,                            # particle radius
+            normalSpringConstant=10000.0,             # spring constant for LDS model
+            normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
+            tangentialSpringConstant=2857.0,          # spring constant for LDS model
+            tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
+            dynamicFriction = 1.0,                    # static friction coefficient sliding
+            staticFriction = 1.0,                     # dynamic friction coefficient sliding
+            rollingFriction = 1.05,                   # static friction coefficient for rolling
+            torsionalFriction = 1.3,                  # static friction coefficient for torsion
+            shapeFactor = 0.5,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
 
-            nPerh = 1.01,                  # this should basically always be 1 for DEM
+            nPerh = 1.01,                             # this should basically always be 1 for DEM
             
             # integration
-            IntegratorConstructor = VerletIntegrator,
-            stepsPerCollision = 50,  # replaces CFL for DEM
+            IntegratorConstructor = VerletIntegrator, # Verlet one integrator to garenteee conservation
+            stepsPerCollision = 50,                   # replaces CFL for DEM
             goalTime = None,
             dt = 1e-8,
             dtMin = 1.0e-8, 
             dtMax = 0.1,
             dtGrowth = 2.0,
-            steps = 100,
+            steps = 200,
             maxSteps = None,
             statsStep = 10,
             domainIndependent = False,
@@ -55,7 +57,7 @@ commandLine(vImpact = 1.0,                 # impact velocity
             dtverbose = False,
             
             # output control
-            vizCycle = 10,#None,
+            vizCycle = None,
             vizTime = None,
             clearDirectories = False,
             restoreCycle = None,
@@ -63,40 +65,59 @@ commandLine(vImpact = 1.0,                 # impact velocity
             redistributeStep = 500,
             dataDir = "dumps-DEM-3d",
 
-            # test rotation on top of restitution coefficient
-            boolCheckSlidingFriction=False,
-            boolCheckRollingFriction=False,
-            boolCheckTorsionalFriction=False,
-            boolCheckTorsionalObjectivity=False,
-
              # ats parameters
-            checkError = False,                # turn on error checking for restitution coefficient
-            checkRestart = False,              # turn on error checking for restartability
-            checkConservation = False,         # turn on error checking for momentum conservation
-            restitutionErrorThreshold = 0.01,  # relative error actual restitution vs nominal
-            conservationErrorThreshold = 1e-15 # relative error for momentum conservation
+            checkError = False,                    # turn on error checking for restitution coefficient
+            boolCheckSlidingFriction=False,        # checks sliding friction reduces relative rotation
+            boolCheckRollingFriction=False,        # checks rolling friction reduces relative rotation 
+            boolCheckTorsionalFriction=False,      # checks torsional friction reduces relative rotation
+            boolCheckTorsionalObjectivity=False,   # checks to make sure torsion is objective
+            checkRestart = False,                  # turn on error checking for restartability
+            checkConservation = False,             # turn on error checking for momentum conservation
+            restitutionErrorThreshold = 0.01,      # relative error actual restitution vs nominal
+            conservationErrorThreshold = 1e-15,    # relative error for momentum conservation
+            torsionalObjectivityThreshold = 1e-10  # relative error bounds on torsion objectivity test
             )
 
-# assert sum([checkError,
-#             boolCheckSlidingFriction,
-#             boolCheckRollingFriction,
-#             boolCheckTorsionalFriction,
-#             boolCheckTorsionalObjectivity]) <= 1
+#-------------------------------------------------------------------------------
+# check for bad inputs
+#-------------------------------------------------------------------------------
+assert mpi.procs == 1 
+assert nPerh >= 1
+assert steps > stepsPerCollision
+assert shapeFactor <= 1.0 and shapeFactor >= 0.0
+assert dynamicFriction >= 0.0
+assert staticFriction >= 0.0
+assert torsionalFriction >= 0.0
+assert rollingFriction >= 0.0
+assert sum([checkError,
+            boolCheckSlidingFriction,
+            boolCheckRollingFriction,
+            boolCheckTorsionalFriction,
+            boolCheckTorsionalObjectivity]) <= 1
 
+if boolCheckSlidingFriction:
+    shapeFactor = 0.0
+    
 #-------------------------------------------------------------------------------
 # file things
 #-------------------------------------------------------------------------------
 testName = "DEM-twoParticleCollision-3d"
+
 dataDir = os.path.join(dataDir,
                   "restitutionCoefficient=%s" % normalRestitutionCoefficient,
                   "boolCheckSlidingFriction=%s" % boolCheckSlidingFriction,
-                  "boolCheckSlidingFriction=%s" % boolCheckRollingFriction,
+                  "boolCheckRollingFriction=%s" % boolCheckRollingFriction,
                   "boolCheckTorsionalFriction=%s" % boolCheckTorsionalFriction,
                   "boolCheckTorsionalObjectivity=%s" % boolCheckTorsionalObjectivity)
+
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
 vizBaseName = testName
+
+if vizCycle is None and vizTime is None:
+    vizBaseName=None
+
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
@@ -209,6 +230,7 @@ elif boolCheckTorsionalObjectivity:
     omega[0][0] = Vector( omega0,0.0,0.0)
     omega[0][1] = Vector( omega0,0.0,0.0)
     
+
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
 #-------------------------------------------------------------------------------
@@ -245,7 +267,11 @@ conservation = TrackConservation(db,
                                   
 periodicWork = [(conservation.periodicWorkFunction,1)]
 
-
+#print omega0
+def writeOmega(cycle,time,dt):
+    print omega[0][0]
+    print omega[0][1]
+periodicWork += [(writeOmega,1)]
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
@@ -274,11 +300,12 @@ if not steps is None:
 else:
     control.advance(goalTime, maxSteps)
 
-
 #-------------------------------------------------------------------------------
 # Great success?
 #-------------------------------------------------------------------------------
 if checkRestart:
+# check reproducibility when restarted
+#-------------------------------------------------------------
     control.setRestartBaseName(restartBaseName)
     state0 = State(db, integrator.physicsPackages())
     state0.copyState()
@@ -290,16 +317,18 @@ if checkRestart:
         print "Restart check PASSED."
 
 if checkError:
-    # check our restitution coefficient is correct
-    #-------------------------------------------------------------
+# check our restitution coefficient is correct
+#-------------------------------------------------------------
     vijPostImpact = velocity[0].x - velocity[1].x
     vijPreImpact = 2.0*vImpact
     restitutionEff = vijPostImpact/vijPreImpact
     restitutionError = abs(restitutionEff + normalRestitutionCoefficient)/normalRestitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
-        raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
+        raise ValueError, ("relative restitution coefficient error, %g, exceeds bounds" % restitutionError)
 
 if checkConservation:
+# check momentum conservation
+#-------------------------------------------------------------
     if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
         raise ValueError, "linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX()
     if  conservation.deltaLinearMomentumY() > conservationErrorThreshold:
@@ -312,3 +341,16 @@ if checkConservation:
         raise ValueError, "rotational momentum - y conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumY()
     if  conservation.deltaRotationalMomentumZ() > conservationErrorThreshold:
         raise ValueError, "rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ()
+
+if boolCheckSlidingFriction or boolCheckRollingFriction or boolCheckTorsionalFriction:
+# check for non-physical behavior
+#-------------------------------------------------------------
+    if omega[0][0].magnitude()+omega[0][1].magnitude() > 2*omega0:
+        raise ValueError, "particles are rotating faster post-collision"
+
+if boolCheckTorsionalObjectivity:
+# to satify objectivity omega (along axis) should not change when equal
+#-------------------------------------------------------------
+    omegaError = (2*omega0 - omega[0][0][0] - omega[0][1][0]) / (2*omega0)
+    if omegaError > torsionalObjectivityThreshold:
+        raise ValueError, ("torsional objectivity failure with relative angular velocity error, %g, exceeds bounds" % omegaError)
