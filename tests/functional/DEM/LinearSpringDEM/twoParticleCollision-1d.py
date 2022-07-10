@@ -173,7 +173,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # DEM
 #-------------------------------------------------------------------------------
-hydro = DEM(db,
+dem = DEM(db,
             normalSpringConstant = normalSpringConstant,
             normalRestitutionCoefficient = normalRestitutionCoefficient,
             tangentialSpringConstant = tangentialSpringConstant,
@@ -185,7 +185,7 @@ hydro = DEM(db,
             shapeFactor = shapeFactor,
             stepsPerCollision = stepsPerCollision)
 
-packages = [hydro]
+packages = [dem]
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
@@ -205,7 +205,7 @@ integrator.rigorousBoundaries = rigorousBoundaries
 integrator.cullGhostNodes = False
 
 output("integrator")
-output("integrator.havePhysicsPackage(hydro)")
+output("integrator.havePhysicsPackage(dem)")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
@@ -219,7 +219,7 @@ output("integrator.verbose")
 # Periodic Work Function : track conservation
 #-------------------------------------------------------------------------------
 conservation = TrackConservation(db,
-                                  hydro,
+                                  dem,
                                   verbose=False)
                                   
 periodicWork = [(conservation.periodicWorkFunction,1)]

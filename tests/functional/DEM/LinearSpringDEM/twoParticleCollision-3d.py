@@ -189,19 +189,19 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # DEM
 #-------------------------------------------------------------------------------
-hydro = DEM(db,
-            normalSpringConstant = normalSpringConstant,
-            normalRestitutionCoefficient = normalRestitutionCoefficient,
-            tangentialSpringConstant = tangentialSpringConstant,
-            tangentialRestitutionCoefficient = tangentialRestitutionCoefficient,
-            dynamicFrictionCoefficient = dynamicFriction,
-            staticFrictionCoefficient = staticFriction,
-            rollingFrictionCoefficient = rollingFriction,
-            torsionalFrictionCoefficient = torsionalFriction,
-            shapeFactor = shapeFactor,
-            stepsPerCollision = stepsPerCollision)
+dem = DEM(db,
+          normalSpringConstant = normalSpringConstant,
+          normalRestitutionCoefficient = normalRestitutionCoefficient,
+          tangentialSpringConstant = tangentialSpringConstant,
+          tangentialRestitutionCoefficient = tangentialRestitutionCoefficient,
+          dynamicFrictionCoefficient = dynamicFriction,
+          staticFrictionCoefficient = staticFriction,
+          rollingFrictionCoefficient = rollingFriction,
+          torsionalFrictionCoefficient = torsionalFriction,
+          shapeFactor = shapeFactor,
+          stepsPerCollision = stepsPerCollision)
 
-packages = [hydro]
+packages = [dem]
 
 
 #-------------------------------------------------------------------------------
@@ -216,7 +216,7 @@ particleRadius = nodes1.particleRadius()
 particleRadius[0] = radius
 particleRadius[1] = radius
 
-omega = hydro.omega
+omega = dem.omega
 if boolCheckSlidingFriction:
     omega[0][0] = Vector(0.0,0.0,omega0)
     omega[0][1] = Vector(0.0,0.0,omega0)
@@ -249,7 +249,7 @@ integrator.rigorousBoundaries = rigorousBoundaries
 integrator.cullGhostNodes = False
 
 output("integrator")
-output("integrator.havePhysicsPackage(hydro)")
+output("integrator.havePhysicsPackage(dem)")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
@@ -262,7 +262,7 @@ output("integrator.verbose")
 # Periodic Work Function : track conservation
 #-------------------------------------------------------------------------------
 conservation = TrackConservation(db,
-                                  hydro,
+                                  dem,
                                   verbose=False)
                                   
 periodicWork = [(conservation.periodicWorkFunction,1)]
