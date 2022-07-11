@@ -36,7 +36,7 @@ class TrackConservation1d:
             print(" Total Linear Momentum     : %.15f" % Ptotx)
 
     def deltaLinearMomentumX(self):
-        return self.conservedQuantities[-1][2] - self.conservedQuantities[1][2]
+        return abs(self.conservedQuantities[-1][2] - self.conservedQuantities[1][2])
 
 ############################################
 # 2D
@@ -87,18 +87,18 @@ class TrackConservation2d:
         self.conservedQuantities.append([cycle,time,Ptotx,Ptoty,Rtot])
 
         if self.verbose:
-            print(" Total Linear Momentum X     : %.15f" % Ptotx)
-            print(" Total Linear Momentum y     : %.15f" % Ptoty)
-            print(" Total Rotational Momentum z : %.15f" % Rtot)
+            print(" Total Linear Momentum X     : %.18f" % Ptotx)
+            print(" Total Linear Momentum y     : %.18f" % Ptoty)
+            print(" Total Rotational Momentum z : %.18f" % Rtot)
 
     def deltaLinearMomentumX(self):
-        return self.conservedQuantities[-1][2] - self.conservedQuantities[1][2]
+        return abs(self.conservedQuantities[-1][2] - self.conservedQuantities[1][2])
 
     def deltaLinearMomentumY(self):
-        return self.conservedQuantities[-1][3] - self.conservedQuantities[1][3]
+        return abs(self.conservedQuantities[-1][3] - self.conservedQuantities[1][3])
     
     def deltaRotationalMomentumZ(self):
-        return self.conservedQuantities[-1][4] - self.conservedQuantities[1][4]
+        return abs(self.conservedQuantities[-1][4] - self.conservedQuantities[1][4])
 
 
 
@@ -132,7 +132,7 @@ class TrackConservation3d:
         for nodelisti in range(self.db.numNodeLists):
             for i in range(nodeLists[nodelisti].numInternalNodes):
                 Ptot += mass(nodelisti,i) * velocity(nodelisti,i)
-                Rtot += mass(nodelisti,i) * (0.5 * radius(nodelisti,i)**2 * omega(nodelisti,i) + position(nodelisti,i).cross(velocity(nodelisti,i)))
+                Rtot += mass(nodelisti,i) * (0.4 * radius(nodelisti,i)**2 * omega(nodelisti,i) + position(nodelisti,i).cross(velocity(nodelisti,i)))
                 
         Ptot = mpi.allreduce(Ptot,mpi.SUM)
         Rtot = mpi.allreduce(Rtot,mpi.SUM)
@@ -148,19 +148,19 @@ class TrackConservation3d:
             print(" Rotational Momentum Z     : %.15f" % Rtot[2])
 
     def deltaLinearMomentumX(self):
-        return self.conservedQuantities[-1][2] - self.conservedQuantities[1][2]
+        return abs(self.conservedQuantities[-1][2] - self.conservedQuantities[1][2])
 
     def deltaLinearMomentumY(self):
-        return self.conservedQuantities[-1][3] - self.conservedQuantities[1][3]
+        return abs(self.conservedQuantities[-1][3] - self.conservedQuantities[1][3])
 
     def deltaLinearMomentumZ(self):
-        return self.conservedQuantities[-1][4] - self.conservedQuantities[1][4]
+        return abs(self.conservedQuantities[-1][4] - self.conservedQuantities[1][4])
     
     def deltaRotationalMomentumX(self):
-        return self.conservedQuantities[-1][5] - self.conservedQuantities[1][5]
+        return abs(self.conservedQuantities[-1][5] - self.conservedQuantities[1][5])
 
     def deltaRotationalMomentumY(self):
-        return self.conservedQuantities[-1][6] - self.conservedQuantities[1][6]
+        return abs(self.conservedQuantities[-1][6] - self.conservedQuantities[1][6])
     
     def deltaRotationalMomentumZ(self):
-        return self.conservedQuantities[-1][7] - self.conservedQuantities[1][7]
+        return abs(self.conservedQuantities[-1][7] - self.conservedQuantities[1][7])

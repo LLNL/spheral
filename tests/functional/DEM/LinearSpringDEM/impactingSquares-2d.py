@@ -1,3 +1,5 @@
+#ATS:DEM2d0 = test(          SELF, "--clearDirectories True   --goalTime=1.0", label="DEM impacting squares -- 3-D (parallel)", np=8)
+
 import os, sys, shutil, mpi
 from math import *
 from Spheral2d import *
@@ -14,13 +16,15 @@ else:
     from DistributeNodes import distributeNodes2d
 
 title("DEM 2d Impacting Squares")
+# This tests the conservation properties of the DEM package when
+# distribution across multiple processors
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(numParticlePerLength = 10,     # number of particles on a side of the box
+commandLine(numParticlePerLength = 10,                # number of particles on a side of the box
             radius = 0.25,                            # particle radius
-            normalSpringConstant=1000.0,             # spring constant for LDS model
+            normalSpringConstant=1000.0,              # spring constant for LDS model
             normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
             tangentialSpringConstant=285.70,          # spring constant for LDS model
             tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
@@ -52,7 +56,7 @@ commandLine(numParticlePerLength = 10,     # number of particles on a side of th
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 1000,
-            redistributeStep = 100,
+            redistributeStep = 1000000000,
             dataDir = "dumps-DEM-2d",
             )
 
@@ -121,8 +125,8 @@ if restoreCycle is None:
     def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
         xout = [xi]
         yout = [yi]
-        mout = [mi/2.0]
-        Rout = [Ri/2.0]
+        mout = [mi/1.1]
+        Rout = [Ri/1.1]
         return xout,yout,mout,Rout
 
     generator1 = GenerateDEMfromSPHGenerator2d(WT,

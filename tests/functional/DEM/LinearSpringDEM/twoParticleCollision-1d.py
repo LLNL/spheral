@@ -71,7 +71,6 @@ commandLine(vImpact = 1.0,                       # impact velocity
 #-------------------------------------------------------------------------------
 assert mpi.procs == 1 
 assert nPerh >= 1
-assert steps > stepsPerCollision
 assert shapeFactor <= 1.0 and shapeFactor >= 0.0
 assert dynamicFriction >= 0.0
 assert staticFriction >= 0.0

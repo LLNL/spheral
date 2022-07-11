@@ -64,7 +64,7 @@ commandLine(vImpact = 1.0,                 # impact velocity
             checkError = False,                # turn on error checking for restitution coefficient
             checkRestart = False,              # turn on error checking for restartability
             checkConservation = False,         # turn on error checking for momentum conservation
-            restitutionErrorThreshold = 0.01,  # relative error actual restitution vs nominal
+            restitutionErrorThreshold = 0.02,  # relative error actual restitution vs nominal
             conservationErrorThreshold = 1e-15 # relative error for momentum conservation
             )
 
@@ -73,7 +73,6 @@ commandLine(vImpact = 1.0,                 # impact velocity
 #-------------------------------------------------------------------------------
 assert mpi.procs == 1 
 assert nPerh >= 1
-assert steps > stepsPerCollision
 assert shapeFactor <= 1.0 and shapeFactor >= 0.0
 assert dynamicFriction >= 0.0
 assert staticFriction >= 0.0
