@@ -349,6 +349,9 @@ initialize(const Scalar  time,
   if (mCyclesSinceLastKulling % mKullFrequency == 0){ 
     this->kullInactiveContacts(dataBase);
     this->kullInactiveContactsFromStatePairFieldLists(state);
+
+    this->initializeContacts(dataBase);
+    this->resizeStatePairFieldLists(state);
   }
 
 }
