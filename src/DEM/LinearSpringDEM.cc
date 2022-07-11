@@ -67,8 +67,8 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
     const auto mass = dataBase.DEMMass();
     const auto minMass = mass.min();
 
-    mNormalBeta = pi/std::log(normalRestitutionCoefficient);
-    mTangentialBeta = pi/std::log(tangentialRestitutionCoefficient);
+    mNormalBeta = pi/std::log(std::max(normalRestitutionCoefficient,1.0e-3));
+    mTangentialBeta = pi/std::log(std::max(tangentialRestitutionCoefficient,1.0e-3));
     mTimeStep = pi*std::sqrt(0.5*minMass/normalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)));
 
 }
