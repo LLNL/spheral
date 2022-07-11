@@ -177,16 +177,16 @@ output("db.numFluidNodeLists")
 # DEM
 #-------------------------------------------------------------------------------
 dem = DEM(db,
-            normalSpringConstant = normalSpringConstant,
-            normalRestitutionCoefficient = normalRestitutionCoefficient,
-            tangentialSpringConstant = tangentialSpringConstant,
-            tangentialRestitutionCoefficient = tangentialRestitutionCoefficient,
-            dynamicFrictionCoefficient = dynamicFriction,
-            staticFrictionCoefficient = staticFriction,
-            rollingFrictionCoefficient = rollingFriction,
-            torsionalFrictionCoefficient = torsionalFriction,
-            shapeFactor = shapeFactor,
-            stepsPerCollision = stepsPerCollision)
+          normalSpringConstant = normalSpringConstant,
+          normalRestitutionCoefficient = normalRestitutionCoefficient,
+          tangentialSpringConstant = tangentialSpringConstant,
+          tangentialRestitutionCoefficient = tangentialRestitutionCoefficient,
+          dynamicFrictionCoefficient = dynamicFriction,
+          staticFrictionCoefficient = staticFriction,
+          rollingFrictionCoefficient = rollingFriction,
+          torsionalFrictionCoefficient = torsionalFriction,
+          shapeFactor = shapeFactor,
+          stepsPerCollision = stepsPerCollision)
 
 packages = [dem]
 
