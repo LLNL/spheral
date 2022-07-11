@@ -51,7 +51,7 @@ namespace Spheral{
   typename Dim<3>::Vector  
   DEMDimension<Dim<3>>::
   cross(const Dim<3>::Vector v1, const Dim<3>::Vector v2){
-    return Dim<3>::Vector(v1[0]*v2[2] - v1[2]*v2[1],
+    return Dim<3>::Vector(v1[1]*v2[2] - v1[2]*v2[1],
                           v1[2]*v2[0] - v1[0]*v2[2],
                           v1[0]*v2[1] - v1[1]*v2[0]);
   }
