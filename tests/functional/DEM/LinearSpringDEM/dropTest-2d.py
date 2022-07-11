@@ -6,6 +6,8 @@ from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator2d
 
+from DEMConservationTracker import TrackConservation3d as TrackConservation
+
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes2d
 else:
@@ -17,13 +19,20 @@ title("DEM 2d Drop Test")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(numParticlePerLength = 50,     # number of particles on a side of the box
-            normalSpringConstant=1000.0,  # spring constant for LDS model
-            restitutionCoefficient=0.8,    # restitution coefficient to get damping const
-            radius = 0.25,                 # particle radius
-            nPerh = 1.01,                  # this should basically always be 1 for DEM
+            radius = 0.25,                            # particle radius
+            normalSpringConstant=10000.0,             # spring constant for LDS model
+            normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
+            tangentialSpringConstant=2857.0,          # spring constant for LDS model
+            tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
+            dynamicFriction = 1.0,                    # static friction coefficient sliding
+            staticFriction = 1.0,                     # dynamic friction coefficient sliding
+            rollingFriction = 1.05,                   # static friction coefficient for rolling
+            torsionalFriction = 1.3,                  # static friction coefficient for torsion
+            shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
+            nPerh = 1.01,                             # this should basically always be 1 for DEM
 
             # integration
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
+            IntegratorConstructor = VerletIntegrator,
             stepsPerCollision = 50,  # replaces CFL for DEM
             goalTime = 25.0,
             dt = 1e-8,
@@ -104,8 +113,8 @@ if restoreCycle is None:
     generator0 = GenerateNodeDistribution2d(numParticlePerLength, numParticlePerLength,
                                             rho = 1.0,
                                             distributionType = "lattice",
-                                            xmin = (-0.5,  0.525),
-                                            xmax = ( 0.5,  1.525),
+                                            xmin = (-0.5,  0.0),
+                                            xmax = ( 0.5,  1.0),
                                             nNodePerh = nPerh)
     
     # really simple bar shaped particle
@@ -123,12 +132,6 @@ if restoreCycle is None:
 
     distributeNodes2d((nodes1, generator1))
    
-    # set our particle radius
-    # radius =1.0/numParticlePerLength/2.5
-    # particleRadius = nodes1.particleRadius()
-    # print particleRadius[0]
-    # nodes1.particleRadius(ScalarField("radii", nodes1, radius))
-    # print particleRadius[0]
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -145,8 +148,15 @@ output("db.numFluidNodeLists")
 # PhysicsPackage : DEM
 #-------------------------------------------------------------------------------
 dem = DEM(db,
-          normalSpringConstant,
-          restitutionCoefficient,
+          normalSpringConstant = normalSpringConstant,
+          normalRestitutionCoefficient = normalRestitutionCoefficient,
+          tangentialSpringConstant = tangentialSpringConstant,
+          tangentialRestitutionCoefficient = tangentialRestitutionCoefficient,
+          dynamicFrictionCoefficient = dynamicFriction,
+          staticFrictionCoefficient = staticFriction,
+          rollingFrictionCoefficient = rollingFriction,
+          torsionalFrictionCoefficient = torsionalFriction,
+          shapeFactor = shapeFactor,
           stepsPerCollision = stepsPerCollision)
 
 packages = [dem]
@@ -164,11 +174,11 @@ packages += [gravity]
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-plane1 = Plane(Vector(0.0, 0.0), Vector(  1.0, 1.0))
-plane2 = Plane(Vector(0.0, 0.0), Vector( -1.0, 1.0))
+plane1 = Plane(Vector(0.0, 0.0), Vector(  0.0, 1.0))
+#plane2 = Plane(Vector(0.0, 0.0), Vector( -1.0, 1.0))
 bc1 = ReflectingBoundary(plane1)
-bc2 = ReflectingBoundary(plane2)
-bcSet = [bc1, bc2]
+#bc2 = ReflectingBoundary(plane2)
+bcSet = [bc1]#, bc2]
 
 for p in packages:
     for bc in bcSet:
@@ -202,6 +212,16 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
+# Periodic Work Function: Track conseravation
+#-------------------------------------------------------------------------------
+
+conservation = TrackConservation(db,
+                                  dem,
+                                  verbose=True)
+                                  
+periodicWork = [(conservation.periodicWorkFunction,1)]
+
+#-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 from SpheralPointmeshSiloDump import dumpPhysicsState
@@ -219,7 +239,8 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = SPH)
+                            SPH = SPH,
+                            periodicWork=periodicWork)
 output("control")
 
 #-------------------------------------------------------------------------------
