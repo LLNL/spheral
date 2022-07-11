@@ -59,7 +59,7 @@ gradDivVectorFieldListGolden
   }
 
   // Remember the square of the kernel extent.
-  const Scalar cutoff2 = kernel.kernelExtent()*kernel.kernelExtent();
+  const Scalar cutoff2 = FastMath::pow2(kernel.kernelExtent());
 
   // Loop over all the elements in the input FieldList.
   for (InternalNodeIterator<Dimension> nodeItr = fieldList.internalNodeBegin();
@@ -121,6 +121,8 @@ gradDivVectorFieldListGolden
             const Vector rij = ri - rj;
             const Vector etai = Hi*rij;
             const Vector etaj = Hj*rij;
+            const Scalar etaiMag = etai.magnitude();
+            const Scalar etajMag = etai.magnitude();
 
             if (etai.magnitude2() < cutoff2 ||
                 etaj.magnitude2() < cutoff2) {
@@ -128,11 +130,13 @@ gradDivVectorFieldListGolden
               const Vector etajNorm = etaj.unitVector();
               const Vector Hetai = Hi*etaiNorm;
               const Vector Hetaj = Hj*etajNorm;
+              const Scalar Hdeti = Hi.Determinant();
+              const Scalar Hdetj = Hj.Determinant();
 
-              const Scalar getai = kernel.grad(etai, Hi);
-              const Scalar getaj = kernel.grad(etaj, Hj);
-              const Scalar g2etai = kernel.grad2(etai, Hi);
-              const Scalar g2etaj = kernel.grad2(etaj, Hj);
+              const Scalar getai = kernel.grad(etaiMag, Hdeti);
+              const Scalar getaj = kernel.grad(etajMag, Hdetj);
+              const Scalar g2etai = kernel.grad2(etaiMag, Hdeti);
+              const Scalar g2etaj = kernel.grad2(etajMag, Hdetj);
 
               const Vector gWi = Hetai*getai;
               const Vector gWj = Hetaj*getaj;

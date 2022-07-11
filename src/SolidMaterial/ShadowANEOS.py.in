@@ -24,7 +24,7 @@ ANEOS can be constructed one of two ways:
 
 1.  Using internal material input parameters from the Github repository for one of:
        - quartz
-       - dunnite
+       - dunite
        - serpentine
     For this constructor you *must* specify the material name as either the first argument or
     using the "material=" keyword argument.
@@ -32,7 +32,7 @@ ANEOS can be constructed one of two ways:
     cannot use multiple ANEOS equations of state.)
     Supported arguments for this constructor (default values in []):
         material              : Label for the material (required for this constructor, one of the above) 
-        units                 : Units the user wants to work in (required)                               
+        constants             : Units the user wants to work in (required)                               
         numRhoVals            : [500] number of rho values to build table                                
         numTvals              : [500] number of temperature values to build table                        
         rhoMin                : [1e-3 g/cc] lower table bound in density                                 
@@ -55,7 +55,7 @@ ANEOS can be constructed one of two ways:
         rhoMax                : [100 g/cc] upper table bound in density                
         Tmin                  : [1K] lower table bound in temperature                  
         Tmax                  : [1e6K] upper table bound in temperature                
-        units                 : Units the user wants to work in (required)  *REQUIRED* 
+        constants             : Units the user wants to work in (required)  *REQUIRED* 
         externalPressure      : [0.0] external pressure                                
         minimumPressure       : [-inf] minimum pressure                                
         maximumPressure       : [inf] maximum pressure                                 
@@ -98,7 +98,7 @@ def _ANEOSFactory(RealConstructor,
             (len(args) < iarg + 1 and not arg in kwargs)):
             raise ValueError, ("ANEOS error: did not provide required arguments %s.\n" % arg) + expectedUsageString
     if (len(args) > len(cppArgs) or 
-        min([arg in cppArgs for arg in kwargs] + [True]) == False):
+        min([arg in allArgs for arg in kwargs] + [True]) == False):
         raise ValueError, "ANEOS unexpected argument.\n" + expectedUsageString
 
     # Are we using one of the provided, canned materials?
@@ -111,8 +111,8 @@ def _ANEOSFactory(RealConstructor,
     else:
         material = None
     if material:
-        if material not in ("quartz", "dunnite", "serpentine"):
-            raise ValueError, "ANEOS: material must be one of (quartz, dunnite, serpentine), passed %s" % material
+        if material not in ("quartz", "dunite", "serpentine"):
+            raise ValueError, "ANEOS: material must be one of (quartz, dunite, serpentine), passed %s" % material
         filename = os.path.join("@ANEOS_INPUT_DEST_DIR@", {"quartz" : "quartz_.input",
                                                            "dunite" : "dunite_.input",
                                                            "serpentine" : "serpent.input"}[material])

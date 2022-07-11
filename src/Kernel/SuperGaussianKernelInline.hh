@@ -51,11 +51,11 @@ SuperGaussianKernel<Dimension>::~SuperGaussianKernel() {
 template<typename Dimension>
 inline
 double
-SuperGaussianKernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+SuperGaussianKernel<Dimension>::kernelValue(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
-  double etaMagnitude2 = etaMagnitude*etaMagnitude;
-  return this->volumeNormalization()*Hdet*(mKW - etaMagnitude2)*exp(-etaMagnitude2);
+  double etaij2 = etaij*etaij;
+  return this->volumeNormalization()*Hdet*(mKW - etaij2)*exp(-etaij2);
 }
 
 //------------------------------------------------------------------------------
@@ -64,12 +64,12 @@ SuperGaussianKernel<Dimension>::kernelValue(double etaMagnitude, const double Hd
 template<typename Dimension>
 inline
 double
-SuperGaussianKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+SuperGaussianKernel<Dimension>::gradValue(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
-  double etaMagnitude2 = etaMagnitude*etaMagnitude;
+  double etaij2 = etaij*etaij;
   return -2.0*this->volumeNormalization()*Hdet*
-    etaMagnitude*(mKW + 1.0 - etaMagnitude2)*exp(-etaMagnitude2);
+    etaij*(mKW + 1.0 - etaij2)*exp(-etaij2);
 }
 
 //------------------------------------------------------------------------------
@@ -78,13 +78,13 @@ SuperGaussianKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet
 template<typename Dimension>
 inline
 double
-SuperGaussianKernel<Dimension>::grad2Value(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+SuperGaussianKernel<Dimension>::grad2Value(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
-  double etaMagnitude2 = etaMagnitude*etaMagnitude;
+  double etaij2 = etaij*etaij;
   return 2.0*this->volumeNormalization()*Hdet*
-    ((2.0*mKW + 5.0)*etaMagnitude2 - 4.0*etaMagnitude2*etaMagnitude2 - mKW - 1.0)*
-    exp(-etaMagnitude2);
+    ((2.0*mKW + 5.0)*etaij2 - 4.0*etaij2*etaij2 - mKW - 1.0)*
+    exp(-etaij2);
 }
 
 }

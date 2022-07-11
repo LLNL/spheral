@@ -46,14 +46,14 @@ WendlandC2Kernel<Dimension>::~WendlandC2Kernel() {
 template<typename Dimension>
 inline
 double
-WendlandC2Kernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+WendlandC2Kernel<Dimension>::kernelValue(double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
     if(Dimension::nDim == 1)
-      return this->volumeNormalization()*Hdet*(pow(1.0-etaMagnitude,3)*(1.0+3.0*etaMagnitude))*(etaMagnitude < 1.0);
+      return this->volumeNormalization()*Hdet*(pow(1.0-etaij,3)*(1.0+3.0*etaij))*(etaij < 1.0);
     else
-      return this->volumeNormalization()*Hdet*(pow(1.0-etaMagnitude,4)*(1.0+4.0*etaMagnitude))*(etaMagnitude < 1.0);
+      return this->volumeNormalization()*Hdet*(pow(1.0-etaij,4)*(1.0+4.0*etaij))*(etaij < 1.0);
 
 }
 
@@ -63,14 +63,14 @@ WendlandC2Kernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet)
 template<typename Dimension>
 inline
 double
-WendlandC2Kernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+WendlandC2Kernel<Dimension>::gradValue(double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
     if(Dimension::nDim == 1)
-      return this->volumeNormalization()*Hdet*(-12.0*pow(1.0-etaMagnitude,2)*etaMagnitude)*(etaMagnitude < 1.0);
+      return this->volumeNormalization()*Hdet*(-12.0*pow(1.0-etaij,2)*etaij)*(etaij < 1.0);
     else
-      return  this->volumeNormalization()*Hdet*(20.0*pow(etaMagnitude-1.0,3)*etaMagnitude)*(etaMagnitude < 1.0);
+      return  this->volumeNormalization()*Hdet*(20.0*pow(etaij-1.0,3)*etaij)*(etaij < 1.0);
 
 
 }
@@ -81,17 +81,17 @@ WendlandC2Kernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) c
 template<typename Dimension>
 inline
 double
-WendlandC2Kernel<Dimension>::grad2Value(double etaMagnitude, const double Hdet) const {
-  REQUIRE(etaMagnitude >= 0.0);
+WendlandC2Kernel<Dimension>::grad2Value(double etaij, const double Hdet) const {
+  REQUIRE(etaij >= 0.0);
   REQUIRE(Hdet >= 0.0);
 
 
-    const double eta2 = etaMagnitude*etaMagnitude;
+    const double eta2 = etaij*etaij;
     if(Dimension::nDim == 1)
-      return this->volumeNormalization()*Hdet*(-12.0*(3.0*eta2-4.0*etaMagnitude+1.0))*(etaMagnitude < 1.0);
+      return this->volumeNormalization()*Hdet*(-12.0*(3.0*eta2-4.0*etaij+1.0))*(etaij < 1.0);
     else
-      return this->volumeNormalization()*Hdet*(20.0*pow(etaMagnitude-1.0,2)*
-                                               (4.0*etaMagnitude-1.0))*(etaMagnitude < 1.0);
+      return this->volumeNormalization()*Hdet*(20.0*pow(etaij-1.0,2)*
+                                               (4.0*etaij-1.0))*(etaij < 1.0);
 
 }
 

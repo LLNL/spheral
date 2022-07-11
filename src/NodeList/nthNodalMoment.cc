@@ -91,7 +91,7 @@ nthNodalMoment(const NodeListIterator nodeListBegin,
         for (unsigned k = 0; k != neighbors.size(); ++k) {
           const unsigned j = neighbors[k];
           const Vector etai = Hi*(pos(nodeListj, j) - ri);
-          const double Wi = W(etai, 1.0);
+          const double Wi = W(etai.magnitude(), 1.0);
           wsum += Wi;
           result(nodeListi, i) += Wi * nthMomentKernel<Dimension, moment>()(etai);
         }

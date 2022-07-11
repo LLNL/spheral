@@ -10,6 +10,7 @@
 #include "GenericHydro.hh"
 
 #include "Physics.hh"
+#include "Geometry/GeometryRegistrar.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "Field/FieldList.hh"
@@ -162,6 +163,14 @@ dt(const DataBase<Dimension>& dataBase,
   // Initialize the return value to some impossibly high value.
   auto minDt = make_pair(std::numeric_limits<double>::max(), string());
 
+  // Define a function for computing the velocity divergence (different for curvilinear coordinates)
+  auto Fdiv = +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace(); };
+  if (GeometryRegistrar::coords() == CoordinateType::Spherical) {
+    Fdiv = +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi[0] + 2.0*veli[0]*safeInv(posi[0]); };
+  } else if (GeometryRegistrar::coords() == CoordinateType::RZ) {
+    Fdiv = +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace() + veli[0]*safeInv(posi[0]); };
+  }
+
   // Loop over every fluid node.
   // #pragma omp declare reduction (MINPAIR : pair<double,string> : omp_out = (omp_out.first < omp_in.first ? omp_out : omp_in)) initializer(omp_priv = pair<double,string>(std::numeric_limits<double>::max(), string("null")))
   // #pragma omp parallel for reduction(MINPAIR:minDt) collapse(2)
@@ -281,7 +290,7 @@ dt(const DataBase<Dimension>& dataBase,
           }
 
           // Velocity divergence limit.
-          const auto divVelocity = DvDx(nodeListi, i).Trace();
+          const auto divVelocity = Fdiv(DvDx(nodeListi, i), position(nodeListi, i), velocity(nodeListi, i));
           const auto divvDt = 1.0/(std::abs(divVelocity) + tiny);
           if (divvDt < minDt_local.first) {
             minDt_local = make_pair(divvDt, ("Velocity divergence limit: dt = " + to_string(divvDt) + "\n" +

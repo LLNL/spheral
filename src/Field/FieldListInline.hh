@@ -423,7 +423,7 @@ FieldList<Dimension, DataType>::deleteField(const Field<Dimension, DataType>& fi
     }
     CHECK(fieldItr != mFieldCache.end());
     mFieldCache.erase(fieldItr);
-    [[fallthrough]];
+    [[fallthrough]]; // C++17 for deliberate case fallthrough
   case FieldStorageType::ReferenceFields:
     mFieldPtrs.erase(fieldPtrItr);
     mFieldBasePtrs.erase(mFieldBasePtrs.begin() + delta);

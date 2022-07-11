@@ -15,15 +15,15 @@ outfile = sys.argv[2]
 ndim = sys.argv[3]
 idim = int(ndim)
 
-dictionary = {"ndim" : ndim}
+dictionary = {"ndim"      : ndim,
+              "Dim"       : "Dim<%s>" % ndim,
+              "Scalar"    : "Dim<%s>::Scalar" % ndim,
+              "Vector"    : "Dim<%s>::Vector" % ndim,
+              "Tensor"    : "Dim<%s>::Tensor" % ndim,
+              "SymTensor" : "Dim<%s>::SymTensor" % ndim,
+}
 
-## Python 2
-#
-#execfile(infile)
-#
-## Python 3
+# Read the input file to get the definition of the string "text", which we use to generate the explicit instantiation .cc file
 exec(open(infile).read())
-
-f = open(outfile, "w")
-f.write(text % dictionary)
-f.close()
+with open(outfile, "w") as f:
+    f.write(text % dictionary)

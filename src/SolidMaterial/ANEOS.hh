@@ -11,8 +11,8 @@
 #define ANEOS_HH
 
 #include "SolidMaterial/SolidEquationOfState.hh"
-#include "Utilities/QuadraticInterpolator.hh"
-#include "Utilities/BiQuadraticInterpolator.hh"
+#include "Utilities/CubicHermiteInterpolator.hh"
+#include "Utilities/BiCubicInterpolator.hh"
 
 // Forward declarations.
 namespace Spheral {
@@ -134,8 +134,8 @@ private:
   int mMaterialNumber;
   unsigned mNumRhoVals, mNumTvals;
   double mRhoMin, mRhoMax, mTmin, mTmax, mEpsMin, mEpsMax, mExternalPressure;
-  QuadraticInterpolator mEpsMinInterp, mEpsMaxInterp;
-  BiQuadraticInterpolator mEpsInterp, mTinterp, mPinterp, mCVinterp, mCSinterp, mKinterp, mSinterp;
+  CubicHermiteInterpolator mEpsMinInterp, mEpsMaxInterp;
+  BiCubicInterpolator mEpsInterp, mTinterp, mPinterp, mCVinterp, mCSinterp, mKinterp, mSinterp;
 
   // ANEOS internal units.
   PhysicalConstants mANEOSunits;

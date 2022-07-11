@@ -26,8 +26,8 @@ namespace Spheral {
 // Constructor.
 //------------------------------------------------------------------------------
 AxisBoundaryRZ::AxisBoundaryRZ(const double etamin):
-  ReflectingBoundary<Dimension>(GeomPlane<Dim<2> >(Dim<2>::Vector(0.0, 0.0),
-                                                   Dim<2>::Vector(0.0, 1.0))),
+  ReflectingBoundary<Dim<2>>(GeomPlane<Dim<2> >(Dim<2>::Vector(0.0, 0.0),
+                                                Dim<2>::Vector(0.0, 1.0))),
   mEtaMin(etamin) {
   VERIFY2(etamin >= 0.0, "Error: AxisBoundaryRZ requires a minimum eta >= 0.0");
 }
@@ -44,7 +44,7 @@ AxisBoundaryRZ::~AxisBoundaryRZ() {
 // where behind is defined in terms of the plane normal.
 //------------------------------------------------------------------------------
 void
-AxisBoundaryRZ::setViolationNodes(NodeList<Dimension>& nodeList) {
+AxisBoundaryRZ::setViolationNodes(NodeList<Dim<2>>& nodeList) {
 
   // Get the BoundaryNodes.violationNodes for this NodeList.
   typedef Boundary<Dimension>::BoundaryNodes BoundaryNodes;

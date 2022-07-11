@@ -3,6 +3,16 @@
 #
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
+#
+# Ordinary SPH
+#
+#ATS:t0 = test(      SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (serial)")
+#ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (serial) RESTART CHECK")
+#ATS:t2 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh RZ problem (parallel)")
+#ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar RZ Noh problem -- (parallel) RESTART CHECK")
+#ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-reproducing' --domainIndependent True --outputFile 'Noh-rz-planar-1proc-reproducing.txt'", label="Planar RZ Noh problem -- (serial reproducing test setup)")
+#ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDirBase 'dumps-rz-planar-reproducing' --domainIndependent True --outputFile 'Noh-rz-planar-4proc-reproducing.txt' --comparisonFile 'Noh-rz-planar-1proc-reproducing.txt'", np=4, label="Planar RZ Noh problem (4 proc reproducing test)")
+
 import os, shutil, mpi
 from SpheralRZ import *
 from SpheralTestUtilities import *
@@ -106,14 +116,14 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             checkEnergy = False,
             restoreCycle = -1,
             restartStep = 10000,
+            dataDirBase = "dump-rz-Noh",
+            outputFile = "Noh-RZ.gnu",
             comparisonFile = "None",
             normOutputFile = "None",
             writeOutputLabel = True,
 
             graphics = True,
             )
-
-outputFile = "Noh-%s-RZ.gnu" % problem
 
 assert not(boolReduceViscosity and boolCullenViscosity)
    
@@ -129,7 +139,7 @@ else:
 if solid:
     hydroname = "Solid" + hydroname
 
-dataDir = os.path.join("dumps-%s-Noh-RZ" % problem,
+dataDir = os.path.join(dataDirBase,
                        hydroname,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
@@ -529,7 +539,7 @@ xprof = mpi.reduce([x.magnitude() for x in nodes1.positions().internalValues()],
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralGnuPlotUtilities import multiSort
     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
@@ -554,13 +564,13 @@ if outputFile != "None":
                      rhoansi, Pansi, vansi, uansi, hansi))
         f.close()
 
-        # #---------------------------------------------------------------------------
-        # # Also we can optionally compare the current results with another file.
-        # #---------------------------------------------------------------------------
-        # if comparisonFile != "None":
-        #     comparisonFile = os.path.join(dataDir, comparisonFile)
-        #     import filecmp
-        #     assert filecmp.cmp(outputFile, comparisonFile)
+        #---------------------------------------------------------------------------
+        # Also we can optionally compare the current results with another file.
+        #---------------------------------------------------------------------------
+        if comparisonFile != "None":
+            comparisonFile = os.path.join(dataDir, comparisonFile)
+            import filecmp
+            assert filecmp.cmp(outputFile, comparisonFile)
 
 # #------------------------------------------------------------------------------
 # # Compute the error.

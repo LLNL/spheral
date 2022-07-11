@@ -1,13 +1,13 @@
 {
   "specs": {
     "toss_3_x86_64_ib": [
-        "gcc@8.1.0^mvapich2",
-        "gcc@8.3.1^mvapich2",
-        "clang@9.0.0^mvapich2"
+        "gcc@8.1.0",
+        "gcc@8.3.1",
+        "clang@9.0.0"
       ]
     ,
     "blueos_3_ppc64le_ib_p9": [
-        "gcc@8.3.1^spectrum-mpi"
+        "gcc@8.3.1"
       ]
   }
 }
