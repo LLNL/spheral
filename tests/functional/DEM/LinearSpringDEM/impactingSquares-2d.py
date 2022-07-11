@@ -1,4 +1,4 @@
-#ATS:DEM2d0 = test(          SELF, "--clearDirectories True   --goalTime=1.0", label="DEM impacting squares -- 3-D (parallel)", np=8)
+#ATS:DEM2dImpact = test(          SELF, "--clearDirectories True  --checkConservation --goalTime=1.0", label="DEM impacting squares -- 3-D (parallel)", np=8)
 
 import os, sys, shutil, mpi
 from math import *
@@ -58,6 +58,11 @@ commandLine(numParticlePerLength = 10,                # number of particles on a
             restartStep = 1000,
             redistributeStep = 1000000000,
             dataDir = "dumps-DEM-2d",
+            
+            # ats
+            checkConservation = False,             # turn on error checking for momentum conservation
+            conservationErrorThreshold = 1e-14,    # relative error for momentum conservation
+            
             )
 
 #-------------------------------------------------------------------------------
@@ -254,3 +259,11 @@ if not steps is None:
 else:
     control.advance(goalTime, maxSteps)
 
+
+if checkConservation:
+    if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
+        raise ValueError, "linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX()
+    if  conservation.deltaLinearMomentumY() > conservationErrorThreshold:
+        raise ValueError, "linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY()
+    if  conservation.deltaRotationalMomentumZ() > conservationErrorThreshold:
+        raise ValueError, "rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ()

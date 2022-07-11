@@ -26,13 +26,13 @@ commandLine(numParticlePerLength = 4,                 # number of particles on a
             radius = 0.25,                            # particle radius
             normalSpringConstant=1000.0,              # spring constant for LDS model
             normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
-            tangentialSpringConstant=00.00,          # spring constant for LDS model
-            tangentialRestitutionCoefficient=1.00,    # restitution coefficient to get damping const
-            dynamicFriction = 0.0,                    # static friction coefficient sliding
-            staticFriction = 0.0,                     # dynamic friction coefficient sliding
-            rollingFriction = 0.00,                   # static friction coefficient for rolling
-            torsionalFriction = 0.0,                  # static friction coefficient for torsion
-            shapeFactor = 0.0,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
+            tangentialSpringConstant=285.70,          # spring constant for LDS model
+            tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
+            dynamicFriction = 1.0,                    # static friction coefficient sliding
+            staticFriction = 1.0,                     # dynamic friction coefficient sliding
+            rollingFriction = 1.05,                   # static friction coefficient for rolling
+            torsionalFriction = 1.3,                  # static friction coefficient for torsion
+            shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
             nPerh = 1.01,                             # this should basically always be 1 for DEM
 
             # integration
@@ -188,7 +188,6 @@ for i in range(db.numNodeLists):
             v[j][0]= -0.1
             p[j][2]+=0.1/numParticlePerLength
             p[j][1]+=0.25/numParticlePerLength
-            p[j][2]+=0.01/numParticlePerLength
         else:
             v[j][0]=  0.1
 
@@ -262,11 +261,6 @@ if not steps is None:
     control.step(steps)
 else:
     control.advance(goalTime, maxSteps)
-
-
-print conservation.deltaRotationalMomentumX()
-print conservation.deltaRotationalMomentumZ()
-print "end"
 
 if checkConservation:
 # check momentum conservation
