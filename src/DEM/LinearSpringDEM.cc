@@ -125,15 +125,15 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // spring constants
   const auto kn = this->normalSpringConstant();        // normal
   const auto ks = this->tangentialSpringConstant();    // sliding
-  const auto kt = 2.0*ks*shapeFactor2;
-  const auto kr = kn*shapeFactor2;
+  const auto kt = 0.50 * ks * shapeFactor2;
+  const auto kr = 0.25 * kn * shapeFactor2;
 
   const auto invKs = 1.0/max(ks,tiny);
   const auto invKt = 1.0/max(kt,tiny);
   const auto invKr = 1.0/max(kr,tiny);
   
-  const auto normalDampingTerms = 4.0*kn/(1.0+mNormalBeta*mNormalBeta);
-  const auto tangentialDampingTerms = 8.0/5.0*ks/(1.0+mTangentialBeta*mTangentialBeta);
+  const auto normalDampingTerms = 2.0*kn/(1.0+mNormalBeta*mNormalBeta);
+  const auto tangentialDampingTerms = 4.0/5.0*ks/(1.0+mTangentialBeta*mTangentialBeta);
  
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -213,8 +213,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto deltaSlidij = shearDisplacement(storeNodeList,storeNode)[storeContact];
       const auto deltaRollij = rollingDisplacement(storeNodeList,storeNode)[storeContact];
       const auto deltaTorsij = torsionalDisplacement(storeNodeList,storeNode)[storeContact];
-      //const int numContacts = neighborIds(storeNodeList,storeNode).size();
-      
+
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
@@ -260,16 +259,15 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto li = (Ri*Ri-Rj*Rj + rijMag*rijMag)/(2.0*rijMag);
         const auto lj = rijMag-li;
 
-        // effective quantities (mass, reduced radius, contact radius) respectively
-        const auto mij = (mi*mj)/(mi+mj);
+        // effective quantities (mass, reduced radius) respectively, mij->mi for mi=mj
+        const auto mij = 2.0*(mi*mj)/(mi+mj);
         const auto lij = 2.0*(li*lj)/(li+lj);
-        //const auto aij = std::sqrt(4.0*rijMag*Ri - (rijMag*rijMag - Rj*Rj + Ri*Ri))/(2.0*rijMag);
 
         // damping constants -- ct and cr derived quantities ala Zhang 2017
         const auto Cn = std::sqrt(mij*normalDampingTerms);
         const auto Cs = std::sqrt(mij*tangentialDampingTerms);
-        const auto Ct = 2.0 * Cs * shapeFactor2;
-        const auto Cr = Cn * shapeFactor2;
+        const auto Ct = 0.50 * Cs * shapeFactor2;
+        const auto Cr = 0.25 * Cn * shapeFactor2;
 
         // our velocities
         const Vector vroti = -DEMDimension<Dimension>::cross(omegai,rhatij);
