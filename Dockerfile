@@ -26,7 +26,7 @@ RUN python3 scripts/devtools/host-config-build.py --host-config $HOST_CONFIG.cma
 # Build Spheral
 WORKDIR build_$HOST_CONFIG/build
 RUN make -j 8 Spheral_CXX
-RUN make -j 4 install
+RUN make install
 
 # Run ATS testing suite.
 WORKDIR ../install
