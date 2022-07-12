@@ -1,6 +1,7 @@
 #ATS:DEM2d0 = test(          SELF, "--clearDirectories True  --checkError True --checkConservation True  --restartStep 10 --steps 100", label="DEM individual particle collision restitution 0.55 -- 2-D (serial)")
 #ATS:DEM2d1 = testif(DEM2d0, SELF, "--clearDirectories False --checkError False  --restartStep 100 --restoreCycle 10 --steps 10 --checkRestart True", label="DEM individual particle collision restitution 0.55  -- 2-D (serial) RESTART CHECK")
 #ATS:DEM2d2 = test(          SELF, "--clearDirectories True  --checkError True --checkConservation True  --normalRestitutionCoefficient 1.0 --steps 100", label="DEM individual particle collision restitution 1.00 -- 2-D (serial)")
+#ATS:DEM2d3 = test(          SELF, "--clearDirectories True  --checkError True --checkConservation True  --normalRestitutionCoefficient 0.60 --cohesiveTensileStrength 1000.0 --steps 100", label="DEM individual particle collision restitution 1.00 -- 2-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
@@ -32,7 +33,7 @@ commandLine(vImpact = 1.0,                            # impact velocity
             staticFriction = 1.0,                     # static sliding friction coefficient
             rollingFriction = 1.05,                   # rolling friction coefficient
             torsionalFriction = 1.3,                  # torisional friction coefficient
-            cohesiveTensileStrength = 0.0,            # units of pressure
+            cohesiveTensileStrength =0.0,             # units of pressure
             shapeFactor = 0.5,                        # shape irregularity parameter 0-1 (1 most irregular)
             
             nPerh = 1.01,                             # this should basically always be 1 for DEM
@@ -277,9 +278,10 @@ if checkError:
     vijPreImpact = 2.0*vImpact
     restitutionEff = vijPostImpact/vijPreImpact
     restitutionError = abs(restitutionEff + normalRestitutionCoefficient)/normalRestitutionCoefficient
-    if  restitutionError > restitutionErrorThreshold:
+    if  restitutionError > restitutionErrorThreshold and cohesiveTensileStrength < 1e-10:
         raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
-
+    elif restitutionEff > normalRestitutionCoefficient:
+        raise ValueError, "cohesion increased the restitution coefficient!" % restitutionError
 
 if checkConservation:
     if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
