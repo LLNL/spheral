@@ -120,6 +120,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto muT = this->torsionalFrictionCoefficient();
   const auto muR = this->rollingFrictionCoefficient();
 
+  const auto Cc = this->cohesiveCoefficient();
+  
   // spring constants
   const auto kn = this->normalSpringConstant();        // normal
   const auto ks = this->tangentialSpringConstant();    // sliding
@@ -280,9 +282,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const Vector vr = -li*vroti - lj*vrotj;              // rolling velocity
         const Scalar vt = lij*DEMDimension<Dimension>::dot(omegai-omegaj,rhatij); // torsion velocity
 
-        // normal force
-        const Vector fn = (kn*delta - Cn*vn)*rhatij;
-        const Scalar fnMag = fn.magnitude();
+        // normal forces 
+        //------------------------------------------------------------
+        const Scalar fnMag = (kn*delta - Cn*vn);      // normal spring
+        const Scalar fcMag = Cc*shapeFactor2*lij*lij; // normal cohesion
+        const Vector fn = (fnMag-fcMag)*rhatij;       // net normal force
 
         // sliding
         //------------------------------------------------------------
