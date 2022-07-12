@@ -23,7 +23,7 @@ class LinearSpringDEM(DEMBase):
                staticFrictionCoefficient = "const Scalar",
                rollingFrictionCoefficient = "const Scalar",
                torsionalFrictionCoefficient = "const Scalar",
-               cohesiveCoefficient = "const Scalar",
+               cohesiveTensileStrength = "const Scalar",
                shapeFactor = "const Scalar",
                stepsPerCollision = "const Scalar",
                xmin = "const Vector&",
@@ -53,7 +53,7 @@ class LinearSpringDEM(DEMBase):
     normalRestitutionCoefficient = PYB11property("Scalar", "normalRestitutionCoefficient", "normalRestitutionCoefficient", doc="normal restitution coefficient")
     tangentialSpringConstant = PYB11property("Scalar", "tangentialSpringConstant", "tangentialSpringConstant", doc="tangential spring constant")
     tangentialRestitutionCoefficient = PYB11property("Scalar", "tangentialRestitutionCoefficient", "tangentialRestitutionCoefficient", doc="tangential restitution coefficient")
-    cohesiveCoefficient = PYB11property("Scalar", "cohesiveCoefficient", "cohesiveCoefficient", doc="constant for normal cohesion constant")
+    cohesiveTensileStrength = PYB11property("Scalar", "cohesiveTensileStrength", "cohesiveTensileStrength", doc="constant for normal cohesion constant")
     
     dynamicFrictionCoefficient = PYB11property("Scalar", "dynamicFrictionCoefficient", "dynamicFrictionCoefficient", doc="sliding friction coefficient - dynamic")
     staticFrictionCoefficient = PYB11property("Scalar", "staticFrictionCoefficient", "staticFrictionCoefficient", doc="sliding friction coefficient - static")

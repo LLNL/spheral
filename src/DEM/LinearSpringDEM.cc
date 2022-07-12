@@ -48,7 +48,7 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
                 const Scalar staticFrictionCoefficient,
                 const Scalar rollingFrictionCoefficient,
                 const Scalar torsionalFrictionCoefficient,
-                const Scalar cohesiveCoefficient,
+                const Scalar cohesiveTensileStrength,
                 const Scalar shapeFactor,
                 const Scalar stepsPerCollision,
                 const Vector& xmin,
@@ -62,7 +62,7 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
   mStaticFrictionCoefficient(staticFrictionCoefficient),
   mRollingFrictionCoefficient(rollingFrictionCoefficient),
   mTorsionalFrictionCoefficient(torsionalFrictionCoefficient),
-  mCohesiveCoefficient(cohesiveCoefficient),
+  mCohesiveTensileStrength(cohesiveTensileStrength),
   mShapeFactor(shapeFactor){
      
     const auto pi = 3.14159265358979323846;
@@ -120,8 +120,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto muT = this->torsionalFrictionCoefficient();
   const auto muR = this->rollingFrictionCoefficient();
 
-  const auto Cc = this->cohesiveCoefficient();
-  
+  const auto Cc = this->cohesiveTensileStrength();
+
   // spring constants
   const auto kn = this->normalSpringConstant();        // normal
   const auto ks = this->tangentialSpringConstant();    // sliding

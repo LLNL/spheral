@@ -155,15 +155,15 @@ template<typename Dimension>
 inline
 typename Dimension::Scalar
 LinearSpringDEM<Dimension>::
-cohesiveCoefficient() const {
-  return mCohesiveCoefficient;
+cohesiveTensileStrength() const {
+  return mCohesiveTensileStrength;
 }
 template<typename Dimension>
 inline
 void
 LinearSpringDEM<Dimension>::
-cohesiveCoefficient(typename Dimension::Scalar x) {
-  mCohesiveCoefficient = x;
+cohesiveTensileStrength(typename Dimension::Scalar x) {
+  mCohesiveTensileStrength = x;
 }
 
 //------------------------------------------------------------------------------
