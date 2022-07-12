@@ -2,7 +2,6 @@ include_directories(.)
 
 set(DEM_inst 
     DEMBase
-    HerzianDEM
     ReplacePairFieldList
     IncrementPairFieldList
     ReplaceAndIncrementPairFieldList
@@ -16,7 +15,6 @@ set(DEM_sources
 instantiate(DEM_inst DEM_sources)
 
 set(DEM_headers 
-    HerzianDEM.hh
     ReplacePairFieldList.hh
     ReplaceAndIncrementPairFieldList.hh
     IncrementPairFieldList.hh

@@ -10,7 +10,6 @@ dims = spheralDimensions()
 
 from DEMBase import *
 from LinearSpringDEM import *
-from HerzianDEM import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -18,7 +17,6 @@ from HerzianDEM import *
 PYB11includes += ['"DEM/DEMBase.hh"',
                   '"DEM/DEMFieldNames.hh"',
                   '"DEM/LinearSpringDEM.hh"',
-                  '"DEM/HerzianDEM.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
@@ -33,7 +31,6 @@ for ndim in dims:
     exec('''
 DEMBase%(ndim)id = PYB11TemplateClass(DEMBase, template_parameters="%(Dimension)s")
 LinearSpringDEM%(ndim)id = PYB11TemplateClass(LinearSpringDEM, template_parameters="%(Dimension)s")
-HerzianDEM%(ndim)id = PYB11TemplateClass(HerzianDEM, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
