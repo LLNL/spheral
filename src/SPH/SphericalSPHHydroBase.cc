@@ -48,6 +48,7 @@
 #include "Utilities/Timer.hh"
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
+#include "caliper/cali.h"
 
 #include "SphericalSPHHydroBase.hh"
 
@@ -232,7 +233,9 @@ evaluateDerivatives(const Dim<1>::Scalar time,
                     const State<Dim<1>>& state,
                     StateDerivatives<Dim<1>>& derivs) const {
   TIME_SPHevalDerivs.start();
+  CALI_MARK_BEGIN("TIME_SPHevalDerivs");
   TIME_SPHevalDerivs_initial.start();
+  CALI_MARK_BEGIN("TIME_SPHevalDerivs_initial");
 
   //static double totalLoopTime = 0.0;
   // Get the ArtificialViscosity.
@@ -318,11 +321,13 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   const auto nnodes = dataBase.numFluidInternalNodes();
   if (mCompatibleEnergyEvolution) pairAccelerations.resize(2u*npairs + nnodes);
   TIME_SPHevalDerivs_initial.stop();
+  CALI_MARK_END("TIME_SPHevalDerivs_initial");
 
   Vector gradSum_check;
 
   // Walk all the interacting pairs.
   TIME_SPHevalDerivs_pairs.start();
+  CALI_MARK_BEGIN("TIME_SPHevalDerivs_pairs");
 #pragma omp parallel
   {
     // Thread private scratch variables
@@ -533,9 +538,11 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
   }   // OpenMP parallel region
   TIME_SPHevalDerivs_pairs.stop();
+  CALI_MARK_END("TIME_SPHevalDerivs_pairs");
 
   // Finish up the derivatives for each point.
   TIME_SPHevalDerivs_final.start();
+  CALI_MARK_BEGIN("TIME_SPHevalDerivs_final");
   size_t offset = 2u*npairs;
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
@@ -673,7 +680,9 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   }
   CHECK(offset == 2u*npairs + nnodes);
   TIME_SPHevalDerivs_final.stop();
+  CALI_MARK_END("TIME_SPHevalDerivs_final");
   TIME_SPHevalDerivs.stop();
+  CALI_MARK_END("TIME_SPHevalDerivs");
 }
 
 //------------------------------------------------------------------------------

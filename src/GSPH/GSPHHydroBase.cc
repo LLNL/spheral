@@ -24,6 +24,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/Timer.hh"
+#include "caliper/cali.h"
 
 #include "GSPH/GSPHHydroBase.hh"
 #include "GSPH/GSPHFieldNames.hh"
@@ -118,8 +119,10 @@ void
 GSPHHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
   TIME_GSPHinitializeStartup.start();
+  CALI_MARK_BEGIN("TIME_GSPHinitializeStartup");
   GenericRiemannHydro<Dimension>::initializeProblemStartup(dataBase);
   TIME_GSPHinitializeStartup.stop();
+  CALI_MARK_END("TIME_GSPHinitializeStartup");
 }
 
 //------------------------------------------------------------------------------
@@ -131,6 +134,7 @@ GSPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   TIME_GSPHregister.start();
+  CALI_MARK_BEGIN("TIME_GSPHregister");
 
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
@@ -156,6 +160,7 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(volume, volumePolicy);
 
   TIME_GSPHregister.stop();
+  CALI_MARK_END("TIME_GSPHregister");
 }
 
 //------------------------------------------------------------------------------
@@ -167,6 +172,7 @@ GSPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   TIME_GSPHregisterDerivs.start();
+  CALI_MARK_BEGIN("TIME_GSPHregisterDerivs");
 
   GenericRiemannHydro<Dimension>::registerDerivatives(dataBase,derivs);
 
@@ -174,6 +180,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDmassDensityDt);
 
   TIME_GSPHregisterDerivs.stop();
+  CALI_MARK_END("TIME_GSPHregisterDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -186,6 +193,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   TIME_GSPHpreStepInitialize.start();
+  CALI_MARK_BEGIN("TIME_GSPHpreStepInitialize");
   GenericRiemannHydro<Dimension>::preStepInitialize(dataBase,state,derivs);
 
   if(this->densityUpdate() == MassDensityType::RigorousSumDensity){
@@ -210,6 +218,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
               ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
   TIME_GSPHpreStepInitialize.stop();
+  CALI_MARK_END("TIME_GSPHpreStepInitialize");
 }
 
 //------------------------------------------------------------------------------
@@ -224,10 +233,12 @@ initialize(const typename Dimension::Scalar time,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
   TIME_GSPHinitialize.start();
+  CALI_MARK_BEGIN("TIME_GSPHinitialize");
 
   GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
 
   TIME_GSPHinitialize.stop();
+  CALI_MARK_END("TIME_GSPHinitialize");
   
 }
 
@@ -243,8 +254,10 @@ finalizeDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
   TIME_GSPHfinalizeDerivs.start();
+  CALI_MARK_BEGIN("TIME_GSPHfinalizeDerivs");
   GenericRiemannHydro<Dimension>::finalizeDerivatives(time,dt,dataBase,state,derivs);
   TIME_GSPHfinalizeDerivs.stop();
+  CALI_MARK_END("TIME_GSPHfinalizeDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -256,10 +269,12 @@ GSPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
   TIME_GSPHghostBounds.start();
+  CALI_MARK_BEGIN("TIME_GSPHghostBounds");
 
   GenericRiemannHydro<Dimension>::applyGhostBoundaries(state,derivs);
 
   TIME_GSPHghostBounds.stop();
+  CALI_MARK_END("TIME_GSPHghostBounds");
 }
 
 //------------------------------------------------------------------------------
@@ -271,10 +286,12 @@ GSPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   TIME_GSPHenforceBounds.start();
+  CALI_MARK_BEGIN("TIME_GSPHenforceBounds");
 
   GenericRiemannHydro<Dimension>::enforceBoundaries(state,derivs);
 
   TIME_GSPHenforceBounds.stop();
+  CALI_MARK_END("TIME_GSPHenforceBounds");
 }
 
 

@@ -1,14 +1,22 @@
 #include <caliper/cali.h>
 #include <iostream>
 
+
+void myTestFunction(int abc)
+{
+  CALI_CXX_MARK_FUNCTION;
+  std::cout << "My number is: " << abc << std::endl;
+}
+
 int main()
 {
-  // CALI_CXX_MARK_FUNCTION;
+  CALI_CXX_MARK_FUNCTION;
   CALI_MARK_BEGIN("area");
   std::cout << "Hello World!" << std::endl;
   CALI_MARK_END("area");
 
   int a = 12398745;
+  myTestFunction(a);
 
   CALI_CXX_MARK_LOOP_BEGIN(mainloop_id, "mainloop");
   for (int i = 0; i < 100; ++i)

@@ -11,6 +11,7 @@
 #include "Utilities/FastMath.hh"
 #include "Utilities/Timer.hh"
 #include "Geometry/PolyClipperUtilities.hh"
+#include "caliper/cali.h"
 
 extern Timer TIME_computeVoronoiVolume;
 
@@ -346,6 +347,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
                      FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags) {
 
   TIME_computeVoronoiVolume.start();
+  CALI_CXX_MARK_FUNCTION;
 
   // Pre-conditions
   REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());

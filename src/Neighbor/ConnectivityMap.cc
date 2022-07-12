@@ -17,6 +17,7 @@
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/pointDistances.hh"
 #include "Utilities/Timer.hh"
+#include "caliper/cali.h"
 
 #include <algorithm>
 #include <ctime>
@@ -162,6 +163,7 @@ ConnectivityMap<Dimension>::
 patchConnectivity(const FieldList<Dimension, int>& flags,
                   const FieldList<Dimension, int>& old2new) {
   TIME_ConnectivityMap_patch.start();
+  CALI_CXX_MARK_FUNCTION;
 
   const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
 
@@ -338,6 +340,7 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
 
   // Pre-conditions.
   TIME_ConnectivityMap_computeIntersectionConnectivity.start();
+  CALI_CXX_MARK_FUNCTION;
   const auto numNodeLists = mNodeLists.size();
   const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
   const auto ghostConnectivity = (mBuildGhostConnectivity or
@@ -408,6 +411,7 @@ void
 ConnectivityMap<Dimension>::
 removeConnectivity(const FieldList<Dimension, vector<vector<int>>>& neighborsToCut) {
   TIME_ConnectivityMap_cutConnectivity.start();
+  CALI_CXX_MARK_FUNCTION;
 
   const auto numNodeLists = mNodeLists.size();
   REQUIRE(neighborsToCut.numFields() == numNodeLists);
@@ -537,6 +541,7 @@ bool
 ConnectivityMap<Dimension>::
 valid() const {
   TIME_ConnectivityMap_valid.start();
+  CALI_CXX_MARK_FUNCTION;
 
   const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
   const auto ghostConnectivity = (mBuildGhostConnectivity or
@@ -756,6 +761,7 @@ void
 ConnectivityMap<Dimension>::
 computeConnectivity() {
   TIME_ConnectivityMap_computeConnectivity.start();
+  CALI_CXX_MARK_FUNCTION;
 
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
@@ -1035,6 +1041,7 @@ computeConnectivity() {
   if (mBuildOverlapConnectivity) {
     // VERIFY2(ghostConnectivity, "ghost connectivity is required for overlap connectivity");
     TIME_ConnectivityMap_computeOverlapConnectivity.start();
+    CALI_MARK_BEGIN("TIME_ConnectivityMap_computeOverlapConnectivity");
 
     // To start out, *all* neighbors of a node (gather and scatter) are overlap neighbors.  Therefore we
     // first just copy the neighbor connectivity.
@@ -1097,11 +1104,13 @@ computeConnectivity() {
       }
     }
     TIME_ConnectivityMap_computeOverlapConnectivity.stop();
+    CALI_MARK_END("TIME_ConnectivityMap_computeOverlapConnectivity");
   }
 
   // Are we building intersection connectivity?
   if (mBuildIntersectionConnectivity) {
     TIME_ConnectivityMap_precomputeIntersectionConnectivity.start();
+    CALI_MARK_BEGIN("TIME_ConnectivityMap_precomputeIntersectionConnectivity");
     const auto npairs = mNodePairList.size();
 #pragma omp parallel
     {
@@ -1122,6 +1131,7 @@ computeConnectivity() {
       } // omp critical
     }   // omp parallel
     TIME_ConnectivityMap_precomputeIntersectionConnectivity.stop();
+    CALI_MARK_END("TIME_ConnectivityMap_precomputeIntersectionConnectivity");
   }
 
   // {

@@ -9,6 +9,7 @@
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
 #include "Utilities/Timer.hh"
+#include "caliper/cali.h"
 
 extern Timer TIME_interpolateRK;
 
@@ -174,6 +175,7 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
                   const NodeCoupling& nodeCoupling) {
 
   TIME_interpolateRK.start();
+  CALI_CXX_MARK_FUNCTION;
 
   typedef typename Dimension::Vector Vector;
   typedef vector<variant<FieldList<Dimension, typename Dimension::Scalar>,

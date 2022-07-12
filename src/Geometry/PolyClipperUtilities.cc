@@ -10,6 +10,7 @@
 #include "Geometry/PolyClipperUtilities.hh"
 #include "Utilities/Timer.hh"
 #include "Utilities/DBC.hh"
+#include "caliper/cali.h"
 
 // Declare timers
 extern Timer TIME_PC2d_convertto;
@@ -25,6 +26,7 @@ namespace Spheral {
 void convertToPolyClipper(PolyClipperPolygon& polygon,
                           const Dim<2>::FacetedVolume& Spheral_polygon) {
   TIME_PC2d_convertto.start();
+  CALI_MARK_BEGIN("TIME_PC2d_convertto");
 
   // Construct the vertices without connectivity first.
   const auto& coords = Spheral_polygon.vertices();
@@ -46,6 +48,7 @@ void convertToPolyClipper(PolyClipperPolygon& polygon,
 
   CHECK(polygon.size() == nverts0);
   TIME_PC2d_convertto.stop();
+  CALI_MARK_END("TIME_PC2d_convertto");
 }
 
 //------------------------------------------------------------------------------
@@ -55,6 +58,7 @@ void convertToPolyClipper(PolyClipperPolygon& polygon,
 vector<set<int>> convertFromPolyClipper(Dim<2>::FacetedVolume& Spheral_polygon,
                                         const PolyClipperPolygon& polygon) {
   TIME_PC2d_convertfrom.start();
+  CALI_MARK_BEGIN("TIME_PC2d_convertfrom");
 
   // Useful types.
   using FacetedVolume = Spheral::Dim<2>::FacetedVolume;
@@ -115,6 +119,7 @@ vector<set<int>> convertFromPolyClipper(Dim<2>::FacetedVolume& Spheral_polygon,
   return vertexPlanes;
 
   TIME_PC2d_convertfrom.stop();
+  CALI_MARK_END("TIME_PC2d_convertfrom");
 }
 
 //------------------------------------------------------------------------------
@@ -123,6 +128,7 @@ vector<set<int>> convertFromPolyClipper(Dim<2>::FacetedVolume& Spheral_polygon,
 void convertToPolyClipper(PolyClipperPolyhedron& polyhedron,
                           const Dim<3>::FacetedVolume& Spheral_polyhedron) {
   TIME_PC3d_convertto.start();
+  CALI_MARK_BEGIN("TIME_PC3d_convertto");
 
   const auto& vertPositions = Spheral_polyhedron.vertices();
   const auto& facets = Spheral_polyhedron.facets();
@@ -170,6 +176,7 @@ void convertToPolyClipper(PolyClipperPolyhedron& polyhedron,
 
   CHECK(polyhedron.size() == nverts);
   TIME_PC3d_convertto.stop();
+  CALI_MARK_END("TIME_PC3d_convertto");
 }
 
 //------------------------------------------------------------------------------
@@ -178,6 +185,7 @@ void convertToPolyClipper(PolyClipperPolyhedron& polyhedron,
 vector<set<int>> convertFromPolyClipper(Dim<3>::FacetedVolume& Spheral_polyhedron,
                                         const PolyClipperPolyhedron& polyhedron) {
   TIME_PC3d_convertfrom.start();
+  CALI_MARK_BEGIN("TIME_PC3d_convertfrom");
 
   // Useful types.
   using FacetedVolume = Spheral::Dim<3>::FacetedVolume;
@@ -227,6 +235,7 @@ vector<set<int>> convertFromPolyClipper(Dim<3>::FacetedVolume& Spheral_polyhedro
   return vertexPlanes;
 
   TIME_PC3d_convertfrom.stop();
+  CALI_MARK_END("TIME_PC3d_convertfrom");
 }
 
 }

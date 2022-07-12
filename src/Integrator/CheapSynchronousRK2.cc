@@ -16,6 +16,7 @@
 #include "Physics/Physics.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/Timer.hh"
+#include "caliper/cali.h"
 
 using std::vector;
 using std::string;
@@ -99,6 +100,7 @@ step(typename Dimension::Scalar maxTime,
      StateDerivatives<Dimension>& derivs) {
 
   TIME_CheapRK2.start();
+  CALI_MARK_BEGIN("TIME_CheapRK2");
 
   // Get the current time and data base.
   Scalar t = this->currentTime();
@@ -106,27 +108,34 @@ step(typename Dimension::Scalar maxTime,
 
   // Initalize the integrator.
   TIME_CheapRK2PreInit.start();
+  CALI_MARK_BEGIN("TIME_CheapRK2PreInit");
   this->preStepInitialize(state, derivs);
   this->initializeDerivatives(t, 0.0, state, derivs);
   TIME_CheapRK2PreInit.stop();
+  CALI_MARK_END("TIME_CheapRK2PreInit");
 
   // Determine the minimum timestep across all packages.
   TIME_CheapRK2Dt.start();
+  CALI_MARK_BEGIN("TIME_CheapRK2Dt");
   const Scalar dt = this->selectDt(min(this->dtMin(), maxTime - t),
                                    min(this->dtMax(), maxTime - t),
                                    state,
                                    derivs);
   const double hdt = 0.5*dt;
   TIME_CheapRK2Dt.stop();
+  CALI_MARK_END("TIME_CheapRK2Dt");
 
   // Copy the beginning of step state.
   TIME_CheapRK2CopyState.start();
+  CALI_MARK_BEGIN("TIME_CheapRK2CopyState");
   State<Dimension> state0(state);
   state0.copyState();
   TIME_CheapRK2CopyState.stop();
+  CALI_MARK_END("TIME_CheapRK2CopyState");
 
   // Trial advance the state to the mid timestep point.
   TIME_CheapRK2MidStep.start();
+  CALI_MARK_BEGIN("TIME_CheapRK2MidStep");
   state.timeAdvanceOnly(true);
   state.update(derivs, hdt, t, hdt);
   this->currentTime(t + hdt);
@@ -134,14 +143,17 @@ step(typename Dimension::Scalar maxTime,
   this->postStateUpdate(t + hdt, hdt, db, state, derivs);
   this->finalizeGhostBoundaries();
   TIME_CheapRK2MidStep.stop();
+  CALI_MARK_END("TIME_CheapRK2MidStep");
 
   // Evaluate the derivatives at the midpoint.
   TIME_CheapRK2EvalDerivs.start();
+  CALI_MARK_BEGIN("TIME_CheapRK2EvalDerivs");
   this->initializeDerivatives(t + hdt, hdt, state, derivs);
   derivs.Zero();
   this->evaluateDerivatives(t + hdt, hdt, db, state, derivs);
   this->finalizeDerivatives(t + hdt, hdt, db, state, derivs);
   TIME_CheapRK2EvalDerivs.stop();
+  CALI_MARK_END("TIME_CheapRK2EvalDerivs");
 
   // Check if the timestep is still a good idea...
   if (this->allowDtCheck()) {
@@ -157,6 +169,7 @@ step(typename Dimension::Scalar maxTime,
 
   // Advance the state from the beginning of the cycle using the midpoint derivatives.
   TIME_CheapRK2EndStep.start();
+  CALI_MARK_BEGIN("TIME_CheapRK2EndStep");
   state.timeAdvanceOnly(false);
   //this->copyGhostState(state, state0);
   state.assign(state0);
@@ -167,21 +180,27 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeGhostBoundaries();
   // this->enforceBoundaries(state, derivs);
   TIME_CheapRK2EndStep.stop();
+  CALI_MARK_END("TIME_CheapRK2EndStep");
 
   // Apply any physics specific finalizations.
   TIME_CheapRK2Finalize.start();
+  CALI_MARK_BEGIN("TIME_CheapRK2Finalize");
   this->postStepFinalize(t + dt, dt, state, derivs);
   TIME_CheapRK2Finalize.stop();
+  CALI_MARK_END("TIME_CheapRK2Finalize");
 
   // Enforce boundaries.
   TIME_CheapRK2EnforceBound.start();
+  CALI_MARK_BEGIN("TIME_CheapRK2EnforceBound");
   this->enforceBoundaries(state, derivs);
   TIME_CheapRK2EnforceBound.stop();
+  CALI_MARK_END("TIME_CheapRK2EnforceBound");
 
   // Set the new current time and last time step.
   this->currentCycle(this->currentCycle() + 1);
   this->lastDt(dt);
   TIME_CheapRK2.stop();
+  CALI_MARK_END("TIME_CheapRK2");
 
   return true;
 }

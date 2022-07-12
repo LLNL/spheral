@@ -8,6 +8,7 @@
 #include "editMultimaterialSurfaceTopology.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/Timer.hh"
+#include "caliper/cali.h"
 
 #include <vector>
 #include <algorithm>
@@ -25,6 +26,7 @@ void
 editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
                                  ConnectivityMap<Dimension>& connectivityMap) {
   TIME_CRKSPH_editMultimaterialSurfaceTopology.start();
+  CALI_CXX_MARK_FUNCTION;
 
   // Declare some useful stuff and preconditions.
   const auto  numNodeLists = surfacePoint.size();

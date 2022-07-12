@@ -45,6 +45,7 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/Timer.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
+#include "caliper/cali.h"
 
 #include "SolidSphericalSPHHydroBase.hh"
 
@@ -248,7 +249,9 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
                     const State<Dim<1>>& state,
                     StateDerivatives<Dim<1>>& derivatives) const {
   TIME_SolidSPHevalDerivs.start();
+  CALI_MARK_BEGIN("TIME_SolidSPHevalDerivs");
   TIME_SolidSPHevalDerivs_initial.start();
+  CALI_MARK_BEGIN("TIME_SolidSPHevalDerivs_initial");
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
@@ -355,9 +358,11 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W1d(1.0/nPerh, 1.0);
   TIME_SolidSPHevalDerivs_initial.stop();
+  CALI_MARK_END("TIME_SolidSPHevalDerivs_initial");
 
   // Walk all the interacting pairs.
   TIME_SolidSPHevalDerivs_pairs.start();
+  CALI_MARK_BEGIN("TIME_SolidSPHevalDerivs_pairs");
 #pragma omp parallel
   {
     // Thread private  scratch variables.
@@ -599,9 +604,11 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 
   }   // OpenMP parallel region
   TIME_SolidSPHevalDerivs_pairs.stop();
+  CALI_MARK_END("TIME_SolidSPHevalDerivs_pairs");
 
   // Finish up the derivatives for each point.
   TIME_SolidSPHevalDerivs_final.start();
+  CALI_MARK_BEGIN("TIME_SolidSPHevalDerivs_final");
   size_t offset = 2u*npairs;
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
@@ -778,7 +785,9 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
     offset += ni;
   }
   TIME_SolidSPHevalDerivs_final.stop();
+  CALI_MARK_END("TIME_SolidSPHevalDerivs_final");
   TIME_SolidSPHevalDerivs.stop();
+  CALI_MARK_END("TIME_SolidSPHevalDerivs");
 }
 
 //------------------------------------------------------------------------------
