@@ -48,6 +48,7 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
                 const Scalar staticFrictionCoefficient,
                 const Scalar rollingFrictionCoefficient,
                 const Scalar torsionalFrictionCoefficient,
+                const Scalar cohesiveCoefficient,
                 const Scalar shapeFactor,
                 const Scalar stepsPerCollision,
                 const Vector& xmin,
@@ -61,6 +62,7 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
   mStaticFrictionCoefficient(staticFrictionCoefficient),
   mRollingFrictionCoefficient(rollingFrictionCoefficient),
   mTorsionalFrictionCoefficient(torsionalFrictionCoefficient),
+  mCohesiveCoefficient(cohesiveCoefficient),
   mShapeFactor(shapeFactor){
      
     const auto pi = 3.14159265358979323846;
@@ -320,8 +322,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
           newDeltaTorsij = (Mt0damp > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
         }
 
-        // convert this ish to velocity instead of angular velocity
-
         // rolling
         //------------------------------------------------------------
         Vector newDeltaRollij = (deltaRollij - rhatij.dot(deltaRollij)*rhatij).unitVector()*deltaRollij.magnitude();
@@ -353,8 +353,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto Msliding = -DEMDimension<Dimension>::cross(rhatij,fij);
         const auto Mrolling = -DEMDimension<Dimension>::cross(rhatij,effectiveRollingForce);
         const auto Mtorsion = MtorsionMag * this->torsionMoment(omegai,omegaj,rhatij); // rename torsionDirection
-        DomegaDti += Msliding*li - (Mtorsion)*lij - Mrolling * lij;
-        DomegaDtj += Msliding*lj + (Mtorsion)*lij + Mrolling * lij;
+        DomegaDti += Msliding*li - (Mtorsion + Mrolling) * lij;
+        DomegaDtj += Msliding*lj + (Mtorsion + Mrolling) * lij;
 
         // for spring updates
         newShearDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaSlidij;
@@ -391,3 +391,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
 
 }
+
+
+// add cohesive force
+// parse into dim specializations
+// double check implementation

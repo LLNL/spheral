@@ -3,7 +3,6 @@ from SpheralCompiledPackages import *
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
-
 #-------------------------------------------------------------------------------
 # linear spring helper class
 #-------------------------------------------------------------------------------
@@ -16,7 +15,8 @@ def LinearSpringDEM(dataBase,
                     staticFrictionCoefficient,
                     rollingFrictionCoefficient,
                     torsionalFrictionCoefficient,
-                    shapeFactor,
+                    cohesiveCoefficient=0.0,
+                    shapeFactor=0.0,
                     stepsPerCollision = 25,
                     xmin = (-1e100, -1e100, -1e100),
                     xmax = ( 1e100,  1e100,  1e100)):
@@ -39,6 +39,7 @@ def LinearSpringDEM(dataBase,
               "staticFrictionCoefficient" : staticFrictionCoefficient,
               "rollingFrictionCoefficient" : rollingFrictionCoefficient,
               "torsionalFrictionCoefficient" : torsionalFrictionCoefficient,
+              "cohesiveCoefficient" : cohesiveCoefficient,
               "shapeFactor" : shapeFactor,
               "stepsPerCollision" : stepsPerCollision,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
@@ -48,7 +49,6 @@ def LinearSpringDEM(dataBase,
     result = Constructor(**kwargs)
 
     return result
-
 
 #-------------------------------------------------------------------------------
 # convienence function that defaults to Linear Spring DEM
@@ -62,6 +62,7 @@ def DEM(dataBase,
         staticFrictionCoefficient,
         rollingFrictionCoefficient,
         torsionalFrictionCoefficient,
+        cohesiveCoefficient,
         shapeFactor,
         stepsPerCollision = 25,
         xmin = (-1e100, -1e100, -1e100),
@@ -75,6 +76,7 @@ def DEM(dataBase,
                            staticFrictionCoefficient,
                            rollingFrictionCoefficient,
                            torsionalFrictionCoefficient,
+                           cohesiveCoefficient,
                            shapeFactor,
                            stepsPerCollision,
                            xmin,

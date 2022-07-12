@@ -37,6 +37,7 @@ public:
                   const Scalar staticFrictionCoefficient,
                   const Scalar rollingFrictionCoefficient,
                   const Scalar torsionalFrictionCoefficient,
+                  const Scalar cohesiveCoefficient,
                   const Scalar shapeFactor,
                   const Scalar stepsPerCollision,
                   const Vector& xmin,
@@ -79,6 +80,9 @@ public:
   Scalar torsionalFrictionCoefficient() const;
   void   torsionalFrictionCoefficient(Scalar x);
 
+  Scalar cohesiveCoefficient() const;
+  void   cohesiveCoefficient(Scalar x);
+
   Scalar shapeFactor() const;
   void   shapeFactor(Scalar x);
 
@@ -106,6 +110,7 @@ private:
   Scalar mStaticFrictionCoefficient;      // coefficient of friction - static
   Scalar mRollingFrictionCoefficient;     // coefficient of friction - rolling
   Scalar mTorsionalFrictionCoefficient;   // coefficient of friction - torsional 
+  Scalar mCohesiveCoefficient;
   Scalar mShapeFactor;                    // varies between 0 and 1 to account to non spherical shapes & influences rolling/torsion spring parameters
 
   Scalar mNormalBeta;

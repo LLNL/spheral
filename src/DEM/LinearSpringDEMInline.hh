@@ -149,6 +149,24 @@ torsionalFrictionCoefficient(typename Dimension::Scalar x) {
 }
 
 //------------------------------------------------------------------------------
+// cohesive coefficient
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+LinearSpringDEM<Dimension>::
+cohesiveCoefficient() const {
+  return mCohesiveCoefficient;
+}
+template<typename Dimension>
+inline
+void
+LinearSpringDEM<Dimension>::
+cohesiveCoefficient(typename Dimension::Scalar x) {
+  mCohesiveCoefficient = x;
+}
+
+//------------------------------------------------------------------------------
 // set/get the shape factor
 //------------------------------------------------------------------------------
 template<typename Dimension>
