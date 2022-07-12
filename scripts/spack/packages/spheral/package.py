@@ -56,6 +56,13 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
     depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
+    depends_on('raja+cuda', when='+cuda')
+    depends_on('chai+cuda', when='+cuda')
+
+    depends_on('raja', when='~cuda')
+    depends_on('chai', when='~cuda')
+    depends_on('umpire~shared', when='~cuda')
+
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope', type='build')
 
@@ -202,6 +209,18 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
         entries.append(cmake_cache_option('polytope_BUILD', False))
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))
+
+        entries.append(cmake_cache_option('raja_BUILD', False))
+        entries.append(cmake_cache_path('raja_DIR', spec['raja'].prefix))
+
+        entries.append(cmake_cache_option('chai_BUILD', False))
+        entries.append(cmake_cache_path('chai_DIR', spec['chai'].prefix))
+
+        entries.append(cmake_cache_option('umpire_BUILD', False))
+        entries.append(cmake_cache_path('umpire_DIR', spec['umpire'].prefix))
+
+        entries.append(cmake_cache_option('camp_BUILD', False))
+        entries.append(cmake_cache_path('camp_DIR', spec['camp'].prefix))
 
         entries.append(cmake_cache_option('ENABLE_MPI', '+mpi' in spec))
         if "+mpi" in spec:

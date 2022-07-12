@@ -48,7 +48,11 @@ if (NOT ENABLE_MISSING_INCLUDE_DIR_WARNINGS)
 endif()
 message("-- Compiler missing include dir warnings ${ENABLE_MISSING_INCLUDE_DIR_WARNINGS}")
 
-set(CUDA_WARNING_FLAGS -Xcudafe=\"--diag_suppress=esa_on_defaulted_function_ignored\")
+set(CUDA_WARNING_FLAGS )
+# Suppress Eigen warnings.
+list(APPEND CUDA_WARNING_FLAGS -Xcudafe=\"--diag_suppress=esa_on_defaulted_function_ignored\")
+# Suppress: warning: a __device__ function("Spheral::X") redeclared with __host__ __device__, hence treated as a __host__ __device__ function
+list(APPEND CUDA_WARNING_FLAGS -Xcudafe=\"--diag_suppress=3148\")
 
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${CXX_WARNING_FLAGS}>")
 add_compile_options("$<$<COMPILE_LANGUAGE:CUDA>:${CUDA_WARNING_FLAGS}>")

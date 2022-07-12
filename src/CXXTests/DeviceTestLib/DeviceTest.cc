@@ -1,43 +1,35 @@
 #include "DeviceTest.hh"
 
+#include "RAJA/RAJA.hpp"
+#include "chai/ManagedArray.hpp"
+
 #include<stdio.h>
 
 namespace Spheral
 {
 
-#ifdef __CUDACC__
-__device__ void add(int a, int b, int *c)
+RAJA_HOST_DEVICE void add(int a, int b, int *c)
 {
   *c = a + b;
 }
 
-__global__ void launch(int a, int b, int *c)
-{
-  add(a,b,c);
-}
-
-__host__ int launchCaller(int a, int b)
-{
-  int c;
-  int *d_c;
-  cudaMalloc((void**) &d_c, sizeof(int));
-
-  launch<<<1,1>>>(a,b,d_c);
-  cudaError_t err = cudaGetLastError();
-  if (err != cudaSuccess) 
-      printf("Error: %s\n", cudaGetErrorString(err));
-
-  cudaMemcpy(&c, d_c, sizeof(int), cudaMemcpyDeviceToHost);
-  cudaFree(d_c);
-  return c;
-}
-
-#else
 int launchCaller(int a, int b)
 {
-  return a + b;
-}
+  chai::ManagedArray<int> c(1);
 
+#ifdef RAJA_ENABLE_CUDA
+  using EXEC_POL=RAJA::cuda_exec<256>;
+#else
+  using EXEC_POL=RAJA::seq_exec;
 #endif
+  
+  RAJA::forall<EXEC_POL>(RAJA::RangeSegment(0,1),
+    [=] RAJA_HOST_DEVICE (int i) {
+      add(a,b,&c[0]);
+    }
+  );
+
+  return c[0];
+}
 
 } // namespace Spehral
