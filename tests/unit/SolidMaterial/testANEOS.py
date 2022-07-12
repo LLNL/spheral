@@ -28,10 +28,10 @@ class TestANEOS(unittest.TestCase):
     #===========================================================================
     # serpentine
     #===========================================================================
-    def test_serpentine(self):
-        units = CGS()
-        eos = ANEOS(material = "serpentine",
-                    constants = units)
+    # def test_serpentine(self):
+    #     units = CGS()
+    #     eos = ANEOS(material = "serpentine",
+    #                 constants = units)
 
 #===============================================================================
 # Run the suckers.
