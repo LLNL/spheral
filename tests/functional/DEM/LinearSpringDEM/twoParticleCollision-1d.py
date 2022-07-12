@@ -56,7 +56,7 @@ commandLine(vImpact = 1.0,                       # impact velocity
             restoreCycle = None,
             restartStep = 1000,
             redistributeStep = 500,
-            dataDir = "dumps-DEM-1d",
+            dataDir = "dumps-DEM-2particle-1d",
 
             # ats parameters
             checkError = False,                # turn on error checking for restitution coefficient

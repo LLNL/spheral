@@ -57,7 +57,7 @@ commandLine(numParticlePerLength = 10,                # number of particles on a
             restoreCycle = None,
             restartStep = 1000,
             redistributeStep = 1000000000,
-            dataDir = "dumps-DEM-2d",
+            dataDir = "dumps-DEM-impactingSquares-2d",
             
             # ats
             checkConservation = False,             # turn on error checking for momentum conservation
