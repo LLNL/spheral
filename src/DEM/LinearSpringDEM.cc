@@ -284,9 +284,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
         // normal forces 
         //------------------------------------------------------------
-        const Scalar fnMag = (kn*delta - Cn*vn);      // normal spring
-        const Scalar fcMag = Cc*shapeFactor2*lij*lij; // normal cohesion
-        const Vector fn = (fnMag-fcMag)*rhatij;       // net normal force
+        const Vector fn = (kn*delta - Cn*vn)*rhatij;        // normal spring
+        const Vector fc = Cc*shapeFactor2*lij*lij*rhatij;   // normal cohesion
+        const Scalar fnMag = fn.magnitude();                // net normal force
 
         // sliding
         //------------------------------------------------------------
@@ -349,7 +349,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         // accelerations
         //------------------------------------------------------------
         // Rectilinear Acceleration 
-        const Vector fij = fn + ft;
+        const Vector fij = fn - fc + ft;
         DvDti += fij;
         DvDtj -= fij;
 
