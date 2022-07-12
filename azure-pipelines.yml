@@ -1,0 +1,14 @@
+jobs:
+- job: Docker
+  timeoutInMinutes: 360
+  pool:
+    vmImage: 'ubuntu-latest'
+  variables:
+    DOCKER_BUILDKIT: '1'
+  steps:
+  - checkout: self
+    clean: boolean
+    submodules: recursive
+  - task: Docker@2
+    inputs:
+      command: build
