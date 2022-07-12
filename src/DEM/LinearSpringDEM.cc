@@ -394,7 +394,3 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
 }
 
-
-// add cohesive force
-// parse into dim specializations
-// double check implementation
