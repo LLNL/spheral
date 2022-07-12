@@ -32,6 +32,7 @@ commandLine(numParticlePerLength = 10,                # number of particles on a
             staticFriction = 1.0,                     # dynamic friction coefficient sliding
             rollingFriction = 1.05,                   # static friction coefficient for rolling
             torsionalFriction = 1.3,                  # static friction coefficient for torsion
+            cohesiveTensileStrength = 0.0,            # units of pressure
             shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
             nPerh = 1.01,                             # this should basically always be 1 for DEM
 
@@ -168,6 +169,7 @@ dem = DEM(db,
           staticFrictionCoefficient = staticFriction,
           rollingFrictionCoefficient = rollingFriction,
           torsionalFrictionCoefficient = torsionalFriction,
+          cohesiveTensileStrength = cohesiveTensileStrength,
           shapeFactor = shapeFactor,
           stepsPerCollision = stepsPerCollision)
 

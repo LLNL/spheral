@@ -30,6 +30,7 @@ commandLine(vImpact = 1.0,                       # impact velocity
             staticFriction = 1.0,
             rollingFriction = 1.05,
             torsionalFriction = 1.3,
+            cohesiveTensileStrength = 0.0,
             shapeFactor = 0.5,
             
             nPerh = 1.01,                        # this should basically always be 1 for DEM
@@ -76,6 +77,7 @@ assert dynamicFriction >= 0.0
 assert staticFriction >= 0.0
 assert torsionalFriction >= 0.0
 assert rollingFriction >= 0.0
+assert cohesiveTensileStrength >= 0.0
 
 #-------------------------------------------------------------------------------
 # file things
@@ -181,6 +183,7 @@ dem = DEM(db,
           staticFrictionCoefficient = staticFriction,
           rollingFrictionCoefficient = rollingFriction,
           torsionalFrictionCoefficient = torsionalFriction,
+          cohesiveTensileStrength =cohesiveTensileStrength,
           shapeFactor = shapeFactor,
           stepsPerCollision = stepsPerCollision)
 

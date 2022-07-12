@@ -21,20 +21,21 @@ title("DEM Restitution Coefficient Test")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(vImpact = 1.0,                 # impact velocity
+commandLine(vImpact = 1.0,                            # impact velocity
 
-            radius = 0.25,                 # particle radius
-            normalSpringConstant=10000.0,           # spring constant for LDS model
-            normalRestitutionCoefficient=0.55,      # restitution coefficient to get damping const
-            tangentialSpringConstant=2857.0,        # spring constant for LDS model
-            tangentialRestitutionCoefficient=0.55,  # restitution coefficient to get damping const
-            dynamicFriction = 1.0,
-            staticFriction = 1.0,
-            rollingFriction = 1.05,
-            torsionalFriction = 1.3,
-            shapeFactor = 0.5,
+            radius = 0.25,                            # particle radius
+            normalSpringConstant=10000.0,             # spring constant for LDS model
+            normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
+            tangentialSpringConstant=2857.0,          # spring constant for LDS model
+            tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
+            dynamicFriction = 1.0,                    # dynamic sliding friction coefficient
+            staticFriction = 1.0,                     # static sliding friction coefficient
+            rollingFriction = 1.05,                   # rolling friction coefficient
+            torsionalFriction = 1.3,                  # torisional friction coefficient
+            cohesiveTensileStrength = 0.0,            # units of pressure
+            shapeFactor = 0.5,                        # shape irregularity parameter 0-1 (1 most irregular)
             
-            nPerh = 1.01,                  # this should basically always be 1 for DEM
+            nPerh = 1.01,                             # this should basically always be 1 for DEM
 
             # integration
             IntegratorConstructor = VerletIntegrator,    # Verlet only integrator that garentees conservation of Rot Mom w/ DEM
@@ -78,6 +79,7 @@ assert dynamicFriction >= 0.0
 assert staticFriction >= 0.0
 assert torsionalFriction >= 0.0
 assert rollingFriction >= 0.0
+assert cohesiveTensileStrength >= 0.0
 
 #-------------------------------------------------------------------------------
 # file things
@@ -184,6 +186,7 @@ dem = DEM(db,
           staticFrictionCoefficient = staticFriction,
           rollingFrictionCoefficient = rollingFriction,
           torsionalFrictionCoefficient = torsionalFriction,
+          cohesiveTensileStrength =cohesiveTensileStrength,
           shapeFactor = shapeFactor,
           stepsPerCollision = stepsPerCollision)
 

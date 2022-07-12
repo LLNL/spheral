@@ -37,6 +37,7 @@ commandLine(vImpact = 1.0,                            # impact velocity
             staticFriction = 1.0,                     # dynamic friction coefficient sliding
             rollingFriction = 1.05,                   # static friction coefficient for rolling
             torsionalFriction = 1.3,                  # static friction coefficient for torsion
+            cohesiveTensileStrength = 0.0,            # units of pressure
             shapeFactor = 0.5,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
 
             nPerh = 1.01,                             # this should basically always be 1 for DEM
@@ -88,6 +89,7 @@ assert dynamicFriction >= 0.0
 assert staticFriction >= 0.0
 assert torsionalFriction >= 0.0
 assert rollingFriction >= 0.0
+assert cohesiveTensileStrength >= 0.0
 assert sum([boolCheckSlidingFriction,
             boolCheckRollingFriction,
             boolCheckTorsionalFriction,
@@ -196,6 +198,7 @@ dem = DEM(db,
           staticFrictionCoefficient = staticFriction,
           rollingFrictionCoefficient = rollingFriction,
           torsionalFrictionCoefficient = torsionalFriction,
+          cohesiveTensileStrength =cohesiveTensileStrength,
           shapeFactor = shapeFactor,
           stepsPerCollision = stepsPerCollision)
 
