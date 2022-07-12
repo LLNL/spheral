@@ -52,10 +52,10 @@ commandLine(numParticlePerLength = 10,                # number of particles on a
             
             # output control
             vizCycle = None,
-            vizTime = 0.1, 
+            vizTime = None, 
             clearDirectories = False,
             restoreCycle = None,
-            restartStep = 1000,
+            restartStep = 10000,
             redistributeStep = 1000000000,
             dataDir = "dumps-DEM-impactingSquares-2d",
             
@@ -73,6 +73,9 @@ restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
 vizBaseName = testName
+
+if vizCycle is None and vizTime is None:
+    vizBaseName=None
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
