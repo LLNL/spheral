@@ -12,5 +12,5 @@ set(ArtificialConduction_headers
     ArtificialConductionPolicy.hh
     ) 
 
-spheral_add_cxx_library(ArtificialConduction)
+spheral_add_obj_library(ArtificialConduction)
 

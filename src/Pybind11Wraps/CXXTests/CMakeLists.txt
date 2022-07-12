@@ -1,2 +1,2 @@
-set(CXXTests_ADDITIONAL_DEPENDS Spheral_DeviceTestLib)
+#set(CXXTests_ADDITIONAL_DEPENDS Spheral_DeviceTestLib)
 spheral_add_pybind11_library(CXXTests)

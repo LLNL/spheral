@@ -41,5 +41,5 @@ spheral_install_python_files(
   VoidNodeLists.py
   )
 
-spheral_add_cxx_library(NodeList)
+spheral_add_obj_library(NodeList)
 

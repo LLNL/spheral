@@ -28,8 +28,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     variant('mpi', default=True, description='Enable MPI Support.')
     variant('openmp', default=True, description='Enable OpenMP Support.')
     variant('docs', default=False, description='Enable building Docs.')
-    variant('shared', default=True, when='~cuda', description='Build C++ libs as shared.')
-    variant('shared', default=False, when='+cuda', description='Build C++ libs as shared.')
+    variant('shared', default=True, description='Build C++ libs as shared.')
 
     # -------------------------------------------------------------------------
     # DEPENDS
@@ -51,11 +50,11 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('silo@4.10.2 +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
-    depends_on('conduit@0.8.2 +mpi +hdf5 -test', type='build', when='+mpi')
-    depends_on('conduit@0.8.2 ~mpi +hdf5 -test', type='build', when='~mpi')
+    depends_on('conduit@0.8.2 +shared +mpi +hdf5 -test', type='build', when='+mpi')
+    depends_on('conduit@0.8.2 +shared ~mpi +hdf5 -test', type='build', when='~mpi')
 
-    depends_on('axom@0.5.0 +shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
-    depends_on('axom@0.5.0 +shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
+    depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
+    depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope', type='build')
@@ -75,7 +74,6 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     # DEPENDS
     # -------------------------------------------------------------------------
     conflicts('cuda_arch=none', when='+cuda', msg='CUDA architecture is required')
-    conflicts('+shared', when='+cuda', msg='Cannot build C++ libs shared when CUDA is enabled.')
 
     def _get_sys_type(self, spec):
         sys_type = spec.architecture
