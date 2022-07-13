@@ -56,11 +56,12 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
     depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
-    depends_on('raja+cuda', when='+cuda')
-    depends_on('chai+cuda', when='+cuda')
+    depends_on('raja~shared+cuda', when='+cuda')
+    depends_on('chai~shared+cuda', when='+cuda')
+    depends_on('umpire~shared+cuda', when='+cuda')
 
-    depends_on('raja', when='~cuda')
-    depends_on('chai', when='~cuda')
+    depends_on('raja~shared', when='~cuda')
+    depends_on('chai~shared', when='~cuda')
     depends_on('umpire~shared', when='~cuda')
 
     depends_on('opensubdiv@3.4.3', type='build')
