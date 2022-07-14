@@ -5,7 +5,7 @@
 #-------------------------------------------------------------------------------
 # The Yee-Vortex Test
 #-------------------------------------------------------------------------------
-import shutil
+import shutil, os, sys, mpi
 from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
@@ -13,9 +13,8 @@ from SpheralGnuPlotUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
-from CentroidalVoronoiRelaxation import *
-
-import mpi
+from CentroidalVoronoiRelaxation import * 
+from LlyodsAlgorithm import LlyodsAlgorithm
 import DistributeNodes
 
 class YeeDensity:
@@ -63,26 +62,62 @@ commandLine(
 
     #Vortex strength
     beta = 5.0,
+
     #Tempurature at inf
     temp_inf = 1.0,
 
     # Resolution and node seeding.
     nRadial = 64,
     seed = "constantDTheta",
+    numLlyodIters = 10,
 
+    # kernel options
+    KernelConstructor = NBSplineKernel,
     nPerh = 1.51,
+    order = 5,
+    hmin = 1e-5,
+    hmax = 0.5,
+    hminratio = 0.1,
 
+    # hydros
     svph = False,
     crksph = False,
     fsisph = False,
     psph = False,
+    gsph = False,
+    mfm = False,
+
+    # general hydro options
     asph = False, 
     solid = False,
+    XSPH = False,
+    epsilonTensile = 0.0,
+    nTensile = 8,
+    densityUpdate = IntegrateDensity, # VolumeScaledDensity,
+    compatibleEnergy = True,
+    evolveTotalEnergy = False,
+    correctVelocityGradient = True,
+    
+    # default SPH options
+    gradhCorrection = True,
+
+    # CRKSPH options
     filter = 0.0,  # For CRKSPH
-    KernelConstructor = NBSplineKernel,
-    order = 5,
-    Qconstructor = MonaghanGingoldViscosity,
-    #Qconstructor = TensorMonaghanGingoldViscosity,
+    
+    # PSPH options
+    HopkinsConductivity = False, 
+    XPSH=False,
+
+    # MFM/GSPH options
+    WaveSpeedConstructor = DavisWaveSpeed, # Einfeldt, Acoustic
+    LimiterConstructor = VanLeerLimiter, # VanLeer, Opsre, MinMod, VanAlba, Superbee
+    riemannLinearReconstruction = True,
+    riemannGradientType = SPHSameTimeGradient, # HydroAccelerationGradient, SPHGradient, RiemannGradient, MixedMethodGradient, SPHSameTimeGradient
+
+    # artificial viscosity
+    Qconstructor = LimitedMonaghanGingoldViscosity,  # TensorMonaghanGingoldViscosity,
+    Cl = 0.0, 
+    Cq = 0.0,
     boolReduceViscosity = False,
     nhQ = 5.0,
     nhL = 10.0,
@@ -99,25 +134,18 @@ commandLine(
     linearConsistent = False,
     fcentroidal = 0.0,
     fcellPressure = 0.0,
-    Cl = 1.0, 
-    Cq = 0.75,
     linearInExpansion = False,
     Qlimiter = False,
     balsaraCorrection = False,
     epsilon2 = 1e-2,
-    hmin = 1e-5,
-    hmax = 0.5,
-    hminratio = 0.1,
-    cfl = 0.5,
-    XSPH = False,
-    epsilonTensile = 0.0,
-    nTensile = 8,
-
-    IntegratorConstructor = CheapSynchronousRK2Integrator,
+    
+    # integrator
+    IntegratorConstructor = VerletIntegrator,
+    cfl = 0.25,
     goalTime = 8.0,
     steps = None,
-    vizCycle = 20,
-    vizTime = 0.1,
+    vizCycle = None,
+    vizTime = 2.0,
     dt = 0.0001,
     dtMin = 1.0e-5, 
     dtMax = 1.0,
@@ -128,23 +156,17 @@ commandLine(
     domainIndependent = False,
     rigorousBoundaries = False,
     dtverbose = False,
-
-    densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-    compatibleEnergy = True,
-    gradhCorrection = True,
-    HopkinsConductivity = False,   # For PSPH
-    correctVelocityGradient = True,
-    evolveTotalEnergy = False,
-    XPSH=False,
-
+    
+    # output
     useVoronoiOutput = False,
     clearDirectories = False,
     restoreCycle = -1,
     restartStep = 200,
     dataDir = "dumps-yeevortex-xy",
     graphics = True,
-    smooth = None,
-    outputFile = "None",
+    smooth = False,
+    outputFileBase = ".out",
+    convergenceFileBase = "converge.txt",
     )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
@@ -159,7 +181,12 @@ elif crksph:
 elif psph:
     hydroname = "PSPH"
 elif fsisph:
+    Qconstructor = LimitedMonaghanGingoldViscosity
     hydroname = "FSISPH"
+elif mfm:
+    hydroname = "MFM"
+elif gsph:
+    hydroname = "GSPH"
 else:
     hydroname = "SPH"
 if asph:
@@ -167,6 +194,13 @@ if asph:
 if solid:
     hydroname = "solid"+hydroname
 
+
+if mfm or gsph:
+    convergenceFile = hydroname + "_"  + str(densityUpdate) + "_"  + str(riemannGradientType) + "_" + convergenceFileBase
+    outputFile = hydroname + "_"  + str(densityUpdate) + "_"  + str(riemannGradientType) + "_" + str(nRadial) + ".out"
+else:
+    convergenceFile = hydroname+"_"+str(densityUpdate) + "_"  + convergenceFileBase
+    outputFile = hydroname + "_"  + str(densityUpdate) + "_"  + str(nRadial) + ".out"
 #-------------------------------------------------------------------------------
 # Build our directory paths.
 #-------------------------------------------------------------------------------
@@ -199,7 +233,6 @@ else:
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(baseDir):
         shutil.rmtree(baseDir)
@@ -216,7 +249,7 @@ mu = 1.0
 K = 1.0
 eos = GammaLawGasMKS(gamma, mu)
 #eos = PolytropicEquationOfStateMKS(K,gamma,mu)
-
+YeeDensityFunc = YeeDensity(xc,yc,gamma,beta,temp_inf)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
@@ -253,7 +286,7 @@ rmaxbound = rmax + rmax/nRadial*nbcrind
 nr1 = nRadial + nbcrind
 if seed == "lattice":
     generator = GenerateNodeDistribution2d(2*nr1, 2*nr1,
-                                           rho = YeeDensity(xc,yc,gamma,beta,temp_inf),
+                                           rho = YeeDensityFunc,
                                            distributionType = seed,
                                            xmin = (-rmaxbound, -rmaxbound),
                                            xmax = (rmaxbound, rmaxbound),
@@ -264,7 +297,7 @@ if seed == "lattice":
                                            SPH = SPH)
 else:
     generator = GenerateNodeDistribution2d(nr1, nr1,
-                                           rho = YeeDensity(xc,yc,gamma,beta,temp_inf),
+                                           rho = YeeDensityFunc,
                                            distributionType = seed,
                                            xmin = (-rmaxbound, -rmaxbound),
                                            xmax = (rmaxbound, rmaxbound),
@@ -358,16 +391,55 @@ elif crksph:
                     densityUpdate = densityUpdate,
                     HUpdate = HUpdate)
 elif fsisph: 
+    if densityUpdate==RigorousSumDensity:
+        sumDensityNodeLists = [nodes]
+    else:
+        sumDensityNodeLists = []
     hydro = FSISPH(dataBase = db,
                 Q=q,
                 W = WT,
-                cfl = cfl,                      
+                cfl = cfl,  
+                sumDensityNodeLists = sumDensityNodeLists,                    
                 densityStabilizationCoefficient = 0.1,              
                 specificThermalEnergyDiffusionCoefficient = 0.1, 
                 correctVelocityGradient = correctVelocityGradient,
                 compatibleEnergyEvolution = compatibleEnergy,
                 HUpdate = HUpdate,
                 ASPH = asph,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+elif gsph:
+    limiter = LimiterConstructor()
+    waveSpeed = WaveSpeedConstructor()
+    solver = HLLC(limiter,waveSpeed,riemannLinearReconstruction)
+    hydro = GSPH(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                gradientType = riemannGradientType,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+elif mfm:
+    limiter = LimiterConstructor()
+    waveSpeed = WaveSpeedConstructor()
+    solver = HLLC(limiter,waveSpeed,riemannLinearReconstruction)
+    hydro = MFM(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                gradientType = riemannGradientType,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
 elif psph:
@@ -492,20 +564,58 @@ if smooth:
 #     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
 # else:
 #     vizMethod = None # default
+from SpheralPointmeshSiloDump import dumpPhysicsState  
+  
 control = SpheralController(integrator, WT,
                             initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
-                            #vizMethod = vizMethod,
+                            #vizMethod = dumpPhysicsState,
+                            #vizGhosts=True,
                             vizBaseName = vizBaseName,
+                            vizDerivs=True,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             skipInitialPeriodicWork = svph)
 output("control")
 
+if numLlyodIters>0:
+    
+    def inDomain(pos):
+        if pos.magnitude() < rmax:
+            return True
+        else:
+            return False
+
+    LlyodsAlgorithm(db,hydro,inDomain,YeeDensity(xc,yc,gamma,beta,temp_inf),nPerh,numLlyodIters)
+
+    vel = nodes.velocity()
+    eps = nodes.specificThermalEnergy()
+    pos = nodes.positions()
+    rho = nodes.massDensity()
+    mass = nodes.mass()
+    vol = hydro.volume[0]
+    VolTot=0.0
+    for i in xrange(nodes.numInternalNodes):
+        VolTot += vol[i]
+    VolTot = mpi.allreduce(VolTot,mpi.SUM)
+    numTotal = mpi.allreduce(nodes.numInternalNodes,mpi.SUM)
+    volNominal = VolTot/numTotal
+
+    for i in xrange(nodes.numInternalNodes):
+        xi, yi = pos[i]
+        xci = (xi-xc)
+        yci = (yi-yc)
+        r2=xci*xci+yci*yci
+        velx = vel_infx-yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+        vely = vel_infy+xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+        rho[i] = YeeDensityFunc(pos[i])
+        mass[i] = rho[i]*vol[i]
+        vel[i] = Vector(velx,vely)
+        eps[i] = pow(rho[i],(gamma-1.0))/(gamma-1.0)
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
@@ -521,7 +631,7 @@ else:
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
 if outputFile != "None":
-    outputFile = os.path.join(baseDir, outputFile)
+    #outputFile = os.path.join(baseDir, outputFile)
     from SpheralGnuPlotUtilities import multiSort
     P = ScalarField("pressure", nodes)
     nodes.pressure(P)
@@ -540,6 +650,7 @@ if outputFile != "None":
     if mpi.rank == 0:
         import numpy as np
         from Pnorm import Pnorm
+        
         rprof = np.array([sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)])
         multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof,velx,vely)
         epsans = []
@@ -560,9 +671,13 @@ if outputFile != "None":
            rhoans.append(rhoi)
            velans.append(Vector(velxans,velyans).magnitude())
            Pans.append(temp*rhoi)
+        L1rho2 =sum([abs(rhoprof[i]-rhoans[i]) for i in range(len(rhoans))])/len(rhoans)
+        Linfrho2 =max([abs(rhoprof[i]-rhoans[i]) for i in range(len(rhoans))])/len(rhoans)
         L1rho = Pnorm(rhoprof, rprof, rhoans).pnorm(1, rmin=0.0, rmax=rmaxnorm)
+        print (L1rho2,L1rho)
         L2rho = Pnorm(rhoprof, rprof, rhoans).pnorm(2, rmin=0.0, rmax=rmaxnorm)
         Linfrho = Pnorm(rhoprof, rprof, rhoans).pnorm("inf", rmin=0.0, rmax=rmaxnorm)
+        print (Linfrho2,Linfrho)
         L1eps = Pnorm(epsprof, rprof, epsans).pnorm(1, rmin=0.0, rmax=rmaxnorm)
         L2eps = Pnorm(epsprof, rprof, epsans).pnorm(2, rmin=0.0, rmax=rmaxnorm)
         Linfeps = Pnorm(epsprof, rprof, epsans).pnorm("inf", rmin=0.0, rmax=rmaxnorm)
@@ -572,8 +687,11 @@ if outputFile != "None":
         L1P = Pnorm(Pprof, rprof, Pans).pnorm(1, rmin=0.0, rmax=rmaxnorm)
         L2P = Pnorm(Pprof, rprof, Pans).pnorm(2, rmin=0.0, rmax=rmaxnorm)
         LinfP = Pnorm(Pprof, rprof, velans).pnorm("inf", rmin=0.0, rmax=rmaxnorm)
-        with open("converge-CRK-%s-cullen-%s-PSPH-%s.txt" % (CRKSPH,boolCullenViscosity,PSPH), "a") as myfile:
-            myfile.write(("#" + 14*"%16s\t " + "%16s\n") % ("nRadial", "L1rho", "L1eps", "L1vel", "L2rho", "L2eps", "L2vel", "Linfrho", "Linfeps", "Linfvel", "L1P", "L2P", "LinfP", "cycles", "runtime"))
+
+        isNewFile = not os.path.exists(convergenceFile)
+        with open(convergenceFile, "a") as myfile:
+            if isNewFile:
+                myfile.write(("#" + 14*"%16s\t " + "%16s\n") % ("nRadial", "L1rho", "L1eps", "L1vel", "L2rho", "L2eps", "L2vel", "Linfrho", "Linfeps", "Linfvel", "L1P", "L2P", "LinfP", "cycles", "runtime"))
             myfile.write((14*"%16s\t " + "%16s\n") % (nRadial, L1rho, L1eps, L1vel, L2rho, L2eps, L2vel, Linfrho, Linfeps, Linfvel, L1P, L2P, LinfP, control.totalSteps, control.stepTimer.elapsedTime))
         f = open(outputFile, "w")
         f.write(("# " + 19*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder", "rhoans", "epsans", "velans",
