@@ -64,6 +64,7 @@ commandLine(nx1 = 100,
             crksph = False,
             fsisph = False,
             gsph = False,
+            mfm = False,
 
             # hydro options
             solid = False,                        # fluid limit of the solid hydro
@@ -78,6 +79,7 @@ commandLine(nx1 = 100,
             evolveTotalEnergy = False,            # integrate total instead of specific energy
             gradhCorrection = True,               # correct for temporal variation in h
             correctVelocityGradient = True,       # linear exact velocity gradient (M correction) (corrected kernesl for GSPH and FSISPH)
+            
             # SVPH parameters
             fcentroidal = 0.0,
             fcellPressure = 0.0,
@@ -90,14 +92,16 @@ commandLine(nx1 = 100,
             fsiInterfaceMethod = HLLCInterface,     # (HLLCInterface, ModulusInterface)
             fsiKernelMethod  = NeverAverageKernels, # (NeverAverageKernels, AlwaysAverageKernels, AverageInterfaceKernels)
     
-            # GSPH parameters
+            # GSPH/MFM parameters
             gsphEpsDiffuseCoeff = 0.0,
             gsphLinearCorrect = True,
+            LimiterConstructor = VanLeerLimiter,
+            WaveSpeedConstructor = DavisWaveSpeed,
 
             # artificial viscosity
+            Qconstructor = LimitedMonaghanGingoldViscosity,
             Cl = 1.0, 
             Cq = 1.0,
-            Qconstructor = MonaghanGingoldViscosity,
             linearConsistent = False,
             boolReduceViscosity = False,
             nh = 5.0,
@@ -150,21 +154,29 @@ assert numNodeLists in (1, 2)
 
 assert not svph 
 assert not (compatibleEnergy and evolveTotalEnergy)
-assert sum([fsisph,psph,gsph,crksph,svph])<=1
+assert sum([fsisph,psph,gsph,crksph,svph,mfm])<=1
 assert not (fsisph and not solid)
+assert not ((mfm or gsph) and (boolCullenViscosity or boolReduceViscosity))
 
 # Decide on our hydro algorithm.
 hydroname = 'SPH'
+useArtificialViscosity=True
+
 if svph:
     hydroname = "SVPH"
 elif crksph:
     hydroname = "CRK"+hydroname
+    Qconstructor = LimitedMonaghanGingoldViscosity
 elif psph:
     hydroname = "P"+hydroname
 elif fsisph:
     hydroname = "FSI"+hydroname
 elif gsph:
     hydroname = "G"+hydroname
+    useArtificialViscosity=False
+elif mfm:
+    hydroname = "MFM"
+    useArtificialViscosity=False
 if asph: 
     hydorname = "A"+hydroname
 if solid: 
@@ -185,12 +197,6 @@ restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, "KelvinHelmholtz-2d")
 vizBaseName = "KelvinHelmholtz-2d"
-
-#-------------------------------------------------------------------------------
-# CRKSPH Switches to ensure consistency
-#-------------------------------------------------------------------------------
-if crksph or fsisph:
-    Qconstructor = LimitedMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -332,7 +338,7 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-if not gsph:
+if useArtificialViscosity:
     q = Qconstructor(Cl, Cq, linearInExpansion)
     q.epsilon2 = epsilon2
     q.limiter = Qlimiter
@@ -351,6 +357,7 @@ if not gsph:
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPH(dataBase = db,
+                   Q=q,
                    cfl = cfl,
                    filter = filter,
                    epsTensile = epsilonTensile,
@@ -391,14 +398,29 @@ if fsisph:
                    ASPH = asph,
                    epsTensile = epsilonTensile)
 elif gsph:
-    limiter = VanLeerLimiter()
-    waveSpeed = DavisWaveSpeed()
+    limiter = LimiterConstructor()
+    waveSpeed = WaveSpeedConstructor()
     solver = HLLC(limiter,waveSpeed,gsphLinearCorrect)
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
                 W = WT,
                 cfl=cfl,
-                specificThermalEnergyDiffusionCoefficient = gsphEpsDiffuseCoeff,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient= correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                densityUpdate=densityUpdate,
+                XSPH = xsph,
+                ASPH = asph,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+elif mfm:
+    limiter = LimiterConstructor()
+    waveSpeed = WaveSpeedConstructor()
+    solver = HLLC(limiter,waveSpeed,gsphLinearCorrect)
+    hydro = MFM(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
@@ -433,7 +455,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
-if boolReduceViscosity:
+if boolReduceViscosity and useArtificialViscosity:
     evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 
