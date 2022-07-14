@@ -234,10 +234,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto gradVi = riemannDvDxi;
       auto gradVj = riemannDvDxj;
       if (gradType==GradientType::SPHSameTimeGradient){
-        gradPi = newRiemannDpDxi;
-        gradPj = newRiemannDpDxj;
-        gradVi = newRiemannDvDxi;
-        gradVj = newRiemannDvDxj;
+        gradPi = newRiemannDpDx(nodeListi,i);
+        gradPj = newRiemannDpDx(nodeListj,j);
+        gradVi = newRiemannDvDx(nodeListi,i);
+        gradVj = newRiemannDvDx(nodeListj,j);
       }
       riemannSolver.interfaceState(i,            j, 
                                    nodeListi,    nodeListj, 
@@ -431,9 +431,10 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
                    const State<Dimension>& state,
                          StateDerivatives<Dimension>& derivatives) const {
 
+  const auto calcSpatialGradients =  (this->gradientType() == GradientType::SPHSameTimeGradient 
+                                  or  this->isFirstCycle());
   // The kernels and such.
   const auto& W = this->kernel();
-  const auto gradType = this->gradientType();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -525,7 +526,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       Mj -= rij.dyad(gradPsij);
       
       // // based on nodal values
-      if (gradType == GradientType::SPHSameTimeGradient){
+      if (calcSpatialGradients){
         const auto& vi = velocity(nodeListi, i);
         const auto& Pi = pressure(nodeListi, i);
         const auto& vj = velocity(nodeListj, j);
@@ -564,7 +565,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
 
       Mi = ( goodM ? Mi.Inverse() : Tensor::one);
 
-      if (gradType == GradientType::SPHSameTimeGradient){
+      if (calcSpatialGradients){
         auto& newRiemannDpDxi = newRiemannDpDx(nodeListi, i);
         auto& newRiemannDvDxi = newRiemannDvDx(nodeListi, i);
 
@@ -579,7 +580,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
          boundItr != this->boundaryEnd();
          ++boundItr)(*boundItr)->applyFieldListGhostBoundary(M);
 
-  if (gradType == GradientType::SPHSameTimeGradient){ 
+  if (calcSpatialGradients){ 
     for (ConstBoundaryIterator boundItr = this->boundaryBegin();
           boundItr != this->boundaryEnd();
            ++boundItr){

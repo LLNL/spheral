@@ -139,7 +139,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& voli = volume(nodeListi, i);
-      //const auto& epsi = specificThermalEnergy(nodeListi, i);
       const auto& Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
@@ -169,7 +168,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& vj = velocity(nodeListj, j);
       const auto& rhoj = massDensity(nodeListj, j);
       const auto& volj = volume(nodeListj, j);
-      //const auto& epsj = specificThermalEnergy(nodeListj, j);
       const auto& Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto& cj = soundSpeed(nodeListj, j);
@@ -189,7 +187,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj,j);
       const auto& Mj = M(nodeListj,j);
-
+      
       // Node displacement.
       const auto rij = ri - rj;
       const auto rhatij =rij.unitVector();
@@ -234,11 +232,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto gradVi = riemannDvDxi;
       auto gradVj = riemannDvDxj;
       if (gradType==GradientType::SPHSameTimeGradient){
-        gradPi = newRiemannDpDxi;
-        gradPj = newRiemannDpDxj;
-        gradVi = newRiemannDvDxi;
-        gradVj = newRiemannDvDxj;
+        gradPi = newRiemannDpDx(nodeListi,i);
+        gradPj = newRiemannDpDx(nodeListj,j);
+        gradVi = newRiemannDvDx(nodeListi,i);
+        gradVj = newRiemannDvDx(nodeListj,j);
       }
+      
       riemannSolver.interfaceState(i,            j, 
                                    nodeListi,    nodeListj, 
                                    ri,           rj, 
@@ -252,7 +251,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                    vstar,
                                    rhostari,
                                    rhostarj);
-
+      
       // get our basis function and interface area vectors
       //--------------------------------------------------------
       psii = volj*Wi;
@@ -437,8 +436,8 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
 
   // The kernels and such.
   const auto& W = this->kernel();
-  const auto gradType = this->gradientType();
-
+  const auto calcSpatialGradients =  (this->gradientType() == GradientType::SPHSameTimeGradient 
+                                  or  this->isFirstCycle());
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
@@ -531,7 +530,8 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       Mj -= rij.dyad(gradPsij);
       
       // // based on nodal values
-      if (gradType == GradientType::SPHSameTimeGradient){
+      if (calcSpatialGradients){
+        
         const auto& vi = velocity(nodeListi, i);
         const auto& Pi = pressure(nodeListi, i);
         const auto& vj = velocity(nodeListj, j);
@@ -546,6 +546,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
 
         newRiemannDvDxi -= (vi-vj).dyad(gradPsii);
         newRiemannDvDxj -= (vi-vj).dyad(gradPsij);
+
       }
     } // loop over pairs
 
@@ -570,12 +571,14 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
 
       Mi = ( goodM ? Mi.Inverse() : Tensor::one);
 
-      if (gradType == GradientType::SPHSameTimeGradient){
+      if (calcSpatialGradients){
+        
         auto& newRiemannDpDxi = newRiemannDpDx(nodeListi, i);
         auto& newRiemannDvDxi = newRiemannDvDx(nodeListi, i);
 
         newRiemannDpDxi = Mi.Transpose()*newRiemannDpDxi;
         newRiemannDvDxi = newRiemannDvDxi*Mi;
+
       }
     }
     
@@ -585,7 +588,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
          boundItr != this->boundaryEnd();
          ++boundItr)(*boundItr)->applyFieldListGhostBoundary(M);
 
-  if (gradType == GradientType::SPHSameTimeGradient){ 
+  if (calcSpatialGradients){ 
     for (ConstBoundaryIterator boundItr = this->boundaryBegin();
           boundItr != this->boundaryEnd();
            ++boundItr){
