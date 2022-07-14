@@ -11,6 +11,7 @@ from Spheral import ScalarPairScalarFunctor as PairScalarFunctor
 from SpheralTestUtilities import *
 import mpi
 import numpy as np
+from DistributeNodes import distributeNodesInRange1d
 #import matplotlib.pyplot as plt
 
 def smooth(x,window_len=11,window='hanning'):
@@ -35,44 +36,73 @@ title("Acoustic wave propagation test.")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1 = 100,
+commandLine(# problem geometry
+            nx1 = 100,
             x0 = 0.0,
             x1 = 1.0,
 
+            # problem I.C.s
             rho1 = 1.0,
             eps1 = 1.0,
             A = 1.0e-6,
             kfreq = 1.0,
-
             cs2 = 1.0,
             mu = 1.0,
 
-            nPerh = 3.01,
-
-            Cl = 1.0,
-            Cq = 2.0,
-            linearInExpansion = False,
-            Qlimiter = False,
-            epsilon2 = 1e-30,
-            hmin = 1.0e-10,
-            hmax = 0.1,
-            cfl = 0.25,
-            XSPH = False,
-            epsilonTensile = 0.0,
-            nTensile = 4,
-            filter = 0.0,
+            # Kernel properties
             KernelConstructor = WendlandC2Kernel,
-            order = 5,
-
+            nPerh = 2.5,
+            HUpdate = IntegrateH,
+            hmin = 1.0e-10,
+            hmax = 0.25,
+            order = 3,
+            
+            #hydros (out different solvers)
             svph = False,
             crksph = False,
             psph = False,
             fsisph = False,
+            gsph = False,
+            mfm = False,
+
+            # general hydro options
             solid = False,
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
+            XSPH = False,
+            epsilonTensile = 0.0,
+            nTensile = 4,
+            filter = 0.0,
+            densityUpdate = IntegrateDensity,
+            correctVelocityGradient=True,
+            compatibleEnergy = True,
+            evolveTotalEnergy = False,
+
+            # Default SPH options
+            gradhCorrection = True,
+
+            # CRKSPH options
             correctionOrder = LinearOrder,
+
+            # SVPH options
+            linearConsistent = False,
+
+            # MFM/GSPH options
+            WaveSpeedConstructor = DavisWaveSpeed,           # Davis, Einfeldt, Acoustic
+            LimiterConstructor = VanLeerLimiter,             # VanLeer, Opsre, MinMod, VanAlba, Superbee
+            riemannLinearReconstruction = True,              # True - second order, False - first order
+            riemannGradientType = HydroAccelerationGradient, # HydroAccelerationGradient, SPHGradient, RiemannGradient, MixedMethodGradient, SPHSameTimeGradient
+
+            # Artificial Viscosity
+            Cl = 1.0,
+            Cq = 1.0,
+            linearInExpansion = False,
+            Qlimiter = False,
+            epsilon2 = 1e-30,
+
+            # integrator options
+            IntegratorConstructor = VerletIntegrator,#CheapSynchronousRK2Integrator,
+            cfl = 0.25,
             steps = None,
-            goalTime = 5.0,
+            goalTime = 1.0,
             dt = 1.0e-10,
             dtMin = 1.0e-10, 
             dtMax = 0.1,
@@ -82,21 +112,17 @@ commandLine(nx1 = 100,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            HUpdate = IntegrateH,
-            densityUpdate = RigorousSumDensity,
-            compatibleEnergy = True,
-            gradhCorrection = True,
-            linearConsistent = False,
-
+            
+            # outputs
             restoreCycle = None,
             restartStep = 10000,
             clearDirectories = True,
             dataDirBase = "dumps-planar-AcousticWave-1d",
             outputFile = "AcousticWave-planar-1d.gnu",
-            normOutputFile = "Limited_asciiDump.dat",
+            normOutputFile = "_cfl2_asciiDump.dat",
             writeOutputLabel = True,
 
-            graphics = "gnu",
+            graphics = False,#"gnu",
 
             checkReversibility = False,
             )
@@ -109,9 +135,28 @@ elif psph:
     hydroname = "PSPH"
 elif fsisph:
     hydroname = "FSISPH"
+elif mfm:
+    hydroname = "MFM"
+elif gsph:
+    hydroname = "GSPH"
 else:
     hydroname = "SPH"
+
+normOutputFile = str(riemannGradientType)+"_"+normOutputFile
+if LimiterConstructor==VanLeerLimiter:
+    normOutputFile = "vanLeer_"+normOutputFile
+elif LimiterConstructor==VanAlbaLimiter:
+    normOutputFile = "vanalba_"+normOutputFile
+elif LimiterConstructor==OspreLimiter:
+    normOutputFile = "opsre_"+normOutputFile
+elif LimiterConstructor==MinModLimiter:
+    normOutputFile = "MinMod_"+normOutputFile
+elif LimiterConstructor==SuperbeeLimiter:
+    normOutputFile = "Superbee_"+normOutputFile
+normOutputFile = str(densityUpdate)+"_"+normOutputFile
 normOutputFile = hydroname+"_"+normOutputFile
+
+print normOutputFile
 dataDir = os.path.join(dataDirBase,
                        hydroname,
                        "nx=%i" % nx1)
@@ -137,9 +182,9 @@ eos = IsothermalEquationOfStateMKS(cs2, mu)
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 10000)
+  WT = TableKernel(NBSplineKernel(order), 100000)
 else:
-  WT = TableKernel(KernelConstructor(), 10000)
+  WT = TableKernel(KernelConstructor(), 100000)
 output("WT")
 kernelExtent = WT.kernelExtent
 output("WT")
@@ -164,7 +209,6 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-from DistributeNodes import distributeNodesInRange1d
 distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1))],
                          nPerh = nPerh)
 nNodesThisDomain1 = nodes1.numInternalNodes
@@ -209,8 +253,8 @@ xi = x0
 for i in xrange(nodes1.numInternalNodes):
     func0 = MassFunctor(max(0.0, Mi[i] - mi))
     func1 = MassFunctor(Mi[i])
-    xi0 = newtonRaphsonFindRoot(func0, xi, xi + 2.0*dx, 1.0e-18, 1.0e-18)
-    xi1 = newtonRaphsonFindRoot(func1, xi, xi + 2.0*dx, 1.0e-18, 1.0e-18)
+    xi0 = newtonRaphsonFindRoot(func0, xi, xi + 2.0*dx, 1.0e-35, 1.0e-35)
+    xi1 = newtonRaphsonFindRoot(func1, xi, xi + 2.0*dx, 1.0e-35, 1.0e-35)
     rhoi0 = rho1*(1.0 + A*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0)))
     rhoi1 = rho1*(1.0 + A*sin(twopi*kfreq*(xi1 - x0)/(x1 - x0)))
     xi = x0 + (x1 - x0)*(rhoi0*xi0 + rhoi1*xi1)/(rhoi0 + rhoi1)
@@ -218,6 +262,8 @@ for i in xrange(nodes1.numInternalNodes):
     vel[i].x = A*cs*sin(twopi*kfreq*(xi - x0)/(x1 - x0))
     rho[i] = rho1*(1.0 + A*sin(twopi*kfreq*(xi - x0)/(x1 - x0)))
     mass[i] = rho1*((xi1 - xi0) - A/(twopi*kfreq)*(cos(twopi*kfreq*xi1) - cos(twopi*kfreq*xi0)))
+    print A/(twopi*kfreq)*(cos(twopi*kfreq*xi1) - cos(twopi*kfreq*xi0))
+    print("%3.16e" % mass[i])
     H[i] *= rho[i]/rho1
 # xi0 = 0.0
 # dx0 = (x1 - x0)/nx1
@@ -240,7 +286,11 @@ rhoscale = rho1/rhoscale
 print "Compute analytic rho scaling of %16.12e." % rhoscale
 for i in xrange(nodes1.numInternalNodes):
     mass[i] *= rhoscale
-
+    #print 1.0-rhoscale
+    #print rho[i]
+    #print mass[i]
+#print(mass.max())
+#print(mass.min())
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -283,21 +333,60 @@ elif psph:
                  HUpdate = HUpdate,
                  XSPH = XSPH)
 elif fsisph: 
+    if densityUpdate == RigorousSumDensity:
+        sumDensityNodeLists = [nodes1]
+    else:
+        sumDensityNodeLists = []
     hydro = FSISPH(dataBase = db,
                    W = WT,
                    cfl = cfl,
-                   sumDensityNodeLists = [nodes1],
+                   sumDensityNodeLists = sumDensityNodeLists,
                    compatibleEnergyEvolution = compatibleEnergy,          
                    epsTensile = epsilonTensile)
+elif gsph:
+    limiter = LimiterConstructor()
+    waveSpeed = WaveSpeedConstructor()
+    solver = HLLC(limiter,waveSpeed,riemannLinearReconstruction)
+    hydro = GSPH(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                gradientType = riemannGradientType,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+elif mfm:
+    limiter = LimiterConstructor()
+    waveSpeed = WaveSpeedConstructor()
+    solver = HLLC(limiter,waveSpeed,riemannLinearReconstruction)
+    hydro = MFM(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                gradientType = riemannGradientType,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 else:
+    Q =  MonaghanGingoldViscosity(Cl,Cq,linearInExpansion)
     hydro = SPH(dataBase = db,
-                #Q=MonaghanGingoldViscosity(Cl,Cq),
+                Q = Q,
                 W = WT, 
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 gradhCorrection = gradhCorrection,
                 XSPH = XSPH,
-                correctVelocityGradient=False,
+                correctVelocityGradient=correctVelocityGradient,
                 densityUpdate = densityUpdate,
                 HUpdate = HUpdate,
                 epsTensile = epsilonTensile,
@@ -307,16 +396,17 @@ output("hydro")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-q = hydro.Q
-q.Cl = Cl
-q.Cq = Cq
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-output("q")
-output("q.Cl")
-output("q.Cq")
-output("q.epsilon2")
-output("q.limiter")
+if not (mfm or gsph):
+    q = hydro.Q
+    q.Cl = Cl
+    q.Cq = Cq
+    q.epsilon2 = epsilon2
+    q.limiter = Qlimiter
+    output("q")
+    output("q.Cl")
+    output("q.Cq")
+    output("q.epsilon2")
+    output("q.limiter")
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -382,6 +472,7 @@ print "Making controller."
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
+                            vizTime=1.0,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             periodicWork=[(printTotalEnergy,1)])
@@ -517,10 +608,10 @@ if outputFile != "None":
                                   ("h       ", hprof, hans)]:
             assert len(data) == len(ans)
             error = [data[i] - ans[i] for i in xrange(len(data))]
-            Pn = Pnorm.Pnorm(error, xprof)
-            L1 = Pn.gridpnorm(1, xmin, xmax)
-            L2 = Pn.gridpnorm(2, xmin, xmax)
-            Linf = Pn.gridpnorm("inf", xmin, xmax)
+            #Pn = Pnorm.Pnorm(error, xprof)
+            L1 = sum([abs(data[i] - ans[i]) for i in range(len(data))])/len(data)#Pn.pnorm(1, xmin, xmax)
+            L2 = (sum([abs(data[i] - ans[i])**2.0 for i in range(len(data))]))**(1.0/2.0)/len(data)
+            Linf = (sum([abs(data[i] - ans[i])**100.0 for i in range(len(data))]))**(1.0/100.0)/len(data)
             print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
             if normOutputFile != "None":
                 f.write((3*"%16.12e ") % (L1, L2, Linf))
@@ -547,7 +638,7 @@ if outputFile != "None":
         #     pickle.dump(data,f)
 
 
-if compatibleEnergy and abs(Eerror) > 1e-5:
+if compatibleEnergy and abs(Eerror) > 1e-4:
     raise ValueError, "Energy error outside allowed bounds."
 
 
