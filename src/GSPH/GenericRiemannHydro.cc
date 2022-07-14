@@ -97,6 +97,7 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mGradientType(gradType),
   mDensityUpdate(densityUpdate),
   mHEvolution(HUpdate),
+  mIsFirstCycle(true),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mEvolveTotalEnergy(evolveTotalEnergy),
   mXSPH(XSPH),
@@ -491,16 +492,6 @@ initialize(const typename Dimension::Scalar time,
                  StateDerivatives<Dimension>& derivs) {
 
   auto& riemannSolver = this->riemannSolver();
-  // const auto& W = this->kernel();
-
-  // riemannSolver.initialize(dataBase, 
-  //                          state,
-  //                          derivs,
-  //                          this->boundaryBegin(),
-  //                          this->boundaryEnd(),
-  //                          time, 
-  //                          dt,
-  //                          W);
 
   if(riemannSolver.linearReconstruction()){
     const auto& connectivityMap = dataBase.connectivityMap();
@@ -569,7 +560,7 @@ template<typename Dimension>
 void
 GenericRiemannHydro<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
-                     StateDerivatives<Dimension>& /*derivs*/) {
+                     StateDerivatives<Dimension>& derivs) {
   // Apply boundary conditions to the basic fluid state Fields.
   auto volume = state.fields(HydroFieldNames::volume, 0.0);
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -582,10 +573,11 @@ applyGhostBoundaries(State<Dimension>& state,
   // our store vars in the riemann solver
   auto DpDx = state.fields(GSPHFieldNames::RiemannPressureGradient,Vector::zero); 
   auto DvDx = state.fields(GSPHFieldNames::RiemannVelocityGradient,Tensor::zero); 
-
+  auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
+    (*boundaryItr)->applyFieldListGhostBoundary(M);
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
     (*boundaryItr)->applyFieldListGhostBoundary(mass);
     (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
@@ -606,7 +598,7 @@ template<typename Dimension>
 void
 GenericRiemannHydro<Dimension>::
 enforceBoundaries(State<Dimension>& state,
-                  StateDerivatives<Dimension>& /*derivs*/) {
+                  StateDerivatives<Dimension>& derivs) {
 
   // Enforce boundary conditions on the fluid state Fields.
   auto volume = state.fields(HydroFieldNames::volume, 0.0);
@@ -620,11 +612,12 @@ enforceBoundaries(State<Dimension>& state,
   // our store vars in the riemann solver
   auto DpDx = state.fields(GSPHFieldNames::RiemannPressureGradient,Vector::zero); 
   auto DvDx = state.fields(GSPHFieldNames::RiemannVelocityGradient,Tensor::zero); 
-
+  auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
+    (*boundaryItr)->enforceFieldListBoundary(M);
     (*boundaryItr)->enforceFieldListBoundary(volume);
     (*boundaryItr)->enforceFieldListBoundary(mass);
     (*boundaryItr)->enforceFieldListBoundary(massDensity);

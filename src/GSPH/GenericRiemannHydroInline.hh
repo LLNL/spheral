@@ -264,6 +264,26 @@ HEvolution(HEvolutionType type) {
   mHEvolution = type;
 }
 
+
+//------------------------------------------------------------------------------
+// Access the trigger need to store spatial derivs on problem start up
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+GenericRiemannHydro<Dimension>::isFirstCycle() const {
+  return mIsFirstCycle;
+}
+
+template<typename Dimension>
+inline
+void
+GenericRiemannHydro<Dimension>::isFirstCycle(bool val) {
+  mIsFirstCycle = val;
+}
+
+
+
 //------------------------------------------------------------------------------
 // Access the flag determining if we're using the compatible energy evolution 
 // algorithm.

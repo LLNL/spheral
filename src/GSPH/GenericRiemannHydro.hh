@@ -145,6 +145,9 @@ public:
   void HEvolution(HEvolutionType type);
 
   // setter-getters for our bool switches
+  bool isFirstCycle() const;
+  void isFirstCycle(bool val);
+
   bool compatibleEnergyEvolution() const;
   void compatibleEnergyEvolution(bool val);
 
@@ -228,7 +231,8 @@ private:
   MassDensityType mDensityUpdate;
   HEvolutionType mHEvolution;
   
-   // A bunch of switches.
+  // A bunch of switches.
+  bool mIsFirstCycle;
   bool mCompatibleEnergyEvolution;    
   bool mEvolveTotalEnergy;           
   bool mXSPH;
