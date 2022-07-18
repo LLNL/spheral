@@ -18,6 +18,7 @@ list(APPEND _packages
   Damage
   DataBase
   DataOutput
+  DEM
   Distributed
   ExternalForce
   Field

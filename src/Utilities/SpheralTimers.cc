@@ -241,6 +241,20 @@ Timer TIME_DamageGradientCoupling       ("damage gradient coupling ctor     ", T
 Timer TIME_DamageGradientCoupling_grad  ("damage gradient compute grad      ", TIME_Damage);
 Timer TIME_DamageGradientCoupling_pairs ("damage gradient loop over pairs   ", TIME_Damage);
 
+//------------------------------------------------------------------------------
+// DEM
+//------------------------------------------------------------------------------
+
+Timer TIME_DEM                   ("DEM base timer                 ", TIME_Physics);
+Timer TIME_DEMinitializeStartup  ("DEM initializeStartup          ", TIME_DEM);
+Timer TIME_DEMregister           ("DEM registerState              ", TIME_DEM);
+Timer TIME_DEMregisterDerivs     ("DEM registerDerivatives        ", TIME_DEM);
+Timer TIME_DEMpreStepInitialize  ("DEM preStepInitialize          ", TIME_DEM);
+Timer TIME_DEMinitialize         ("DEM initializeDerivatives      ", TIME_DEM);
+Timer TIME_DEMfinalizeDerivs     ("DEM finalizeDerivatives        ", TIME_DEM);
+Timer TIME_DEMghostBounds        ("DEM ghost boundaries           ", TIME_DEM);
+Timer TIME_DEMenforceBounds      ("DEM enforce boundaries         ", TIME_DEM);
+
 // //------------------------------------------------------------------------------
 // // MASH NodeList
 // //------------------------------------------------------------------------------
