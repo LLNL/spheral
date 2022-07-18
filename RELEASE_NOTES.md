@@ -8,7 +8,8 @@ This release contains ...
 Notable changes include:
 
   * New features/ API changes:
-
+    * New Discrete Element Model (DEM) physics package with linear-damped spring approach
+    
   * Build changes / improvements:
 
   * Bug Fixes / improvements:
