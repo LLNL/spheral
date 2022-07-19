@@ -1,0 +1,6 @@
+source("LinearSpringDEM/twoParticleCollision-1d.py")
+source("LinearSpringDEM/twoParticleCollision-2d.py")
+source("LinearSpringDEM/twoParticleCollision-3d.py")
+source("LinearSpringDEM/impactingSquares-2d.py")
+source("LinearSpringDEM/impactingSquares-3d.py")
+
