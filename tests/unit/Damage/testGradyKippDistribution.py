@@ -7,7 +7,7 @@
 from Spheral2d import *
 from SpheralTestUtilities import *
 from math import *
-import mpi
+import mpi, bisect
 import matplotlib.pyplot as plt
 
 #-------------------------------------------------------------------------------
@@ -51,7 +51,39 @@ kernelExtent = WT.kernelExtent
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
 #-------------------------------------------------------------------------------
-nodes = makeFluidNodeList("test nodes", eos)
+nodes = makeSolidNodeList("test nodes", eos, NullStrength())
+db = DataBase()
+db.appendNodeList(nodes)
+
+#-------------------------------------------------------------------------------
+# Functions to help accumulating the distribution functions
+#-------------------------------------------------------------------------------
+energiesBA, fBA = [], []
+energiesO, fO = [], []
+energiesP, weightP, fP = [], [], []
+
+def accumulateP(nodes, damageP):
+    energiesP.append([])
+    weightP.append([])
+    fP.append([])
+    flaws = energiesP[-1]
+    weight = weightP[-1]
+    fcum = fP[-1]
+    minNumFlaws = damageP.minFlawsPerNode
+    for i in xrange(nodes.numInternalNodes):
+        epsmini, epsmaxi, Vi, nFlawsi = damageP.minFlaw[i], damageP.maxFlaw[i], damageP.initialVolume[i], damageP.numFlaws[i]
+        nsteps = min(10, nFlawsi)
+        deps = (epsmaxi - epsmini)/(nsteps - 1)
+        for j in xrange(nsteps):
+            epsj = epsmini + j*deps
+            weight.append((epsj, Vi*kWeibull*(epsj**mWeibull - epsmini**mWeibull) + 1.0))
+    weight.sort()
+    wsum = 0.0
+    for epsi, wi in weight:
+        wsum += wi
+        flaws.append(epsi)
+        fcum.append(wsum)
+    assert len(fcum) == len(flaws)
 
 #-------------------------------------------------------------------------------
 # Iterate over the number of tests, and check the seeeded distribution of flaws.
@@ -63,10 +95,6 @@ if mpi.procs > 1:
 else:
     from DistributeNodes import distributeNodes2d
 
-energiesBA = []
-fBA = []
-energiesO = []
-fO = []
 for test in xrange(ntests):
     nx = (test + 1)*nx0
     ny = (test + 1)*ny0
@@ -118,9 +146,21 @@ for test in xrange(ntests):
         energies.append(flaws)
         f.append(range(len(flaws)))
 
+    # Also the ProbabilisticDamageModel
+    pdamage = ProbabilisticDamageModel(nodeList = nodes,
+                                       kernel = WT,
+                                       kWeibull = kWeibull,
+                                       mWeibull = mWeibull,
+                                       seed = randomSeed,
+                                       minFlawsPerNode = 10)
+    pdamage.initializeProblemStartup(db)
+    accumulateP(nodes, pdamage)
+
     #--------------------------------------------------------------------------
     # Cover the same volume with a non-uniform node distribution and check
     # that the Benz-Asphaug-Owen flaw algorithm works in this case as well.
+    # We also simultaneously test the implicit distribution from the
+    # ProbabilisticDamage model.
     #--------------------------------------------------------------------------
     nx1 = (test + 1)*nx0/2
     ny1 = (test + 1)*ny0
@@ -154,7 +194,7 @@ for test in xrange(ntests):
     mask2 = IntField("mask2", nodes, 1)
     print "Area sum: ", mpi.allreduce(sum([m[i]/rho[i] for i in xrange(nodes.numInternalNodes)]), mpi.SUM)
 
-    # Construct the flaws.
+    # Collect the distribution function of flaws (BAO)
     localFlawsO = weibullFlawDistributionOwen(randomSeed,
                                               kWeibull,
                                               mWeibull,
@@ -162,8 +202,6 @@ for test in xrange(ntests):
                                               1,      # minFlawsPerNode
                                               1.0,    # volumeMultiplier
                                               mask2)
-
-    # Collect the distribution function of flaws.
     for (localFlaws, energies, f) in [(localFlawsO, energiesO, fO)]:
         flaws = []
         for i in xrange(nodes.numInternalNodes):
@@ -172,17 +210,31 @@ for test in xrange(ntests):
         energies.append(flaws)
         f.append(range(len(flaws)))
 
+    # Also the ProbabilisticDamageModel
+    pdamage = ProbabilisticDamageModel(nodeList = nodes,
+                                       kernel = WT,
+                                       kWeibull = kWeibull,
+                                       mWeibull = mWeibull,
+                                       seed = randomSeed,
+                                       minFlawsPerNode = 10)
+    pdamage.initializeProblemStartup(db)
+    accumulateP(nodes, pdamage)
+
 assert len(fBA) == ntests
 assert len(energiesBA) == ntests
 assert len(fO) == 2*ntests
 assert len(energiesO) == 2*ntests
+assert len(fP) == 2*ntests
+assert len(energiesP) == 2*ntests
 
 #-------------------------------------------------------------------------------
 # Now plot the results.
 #-------------------------------------------------------------------------------
 fig1 = plt.figure(1)
 fig2 = plt.figure(2)
+fig3 = plt.figure(3)
 
+#...............................................................................
 plt.figure(1)
 plt.xscale("log")
 plt.yscale("log")
@@ -190,8 +242,8 @@ for i in xrange(ntests):
     plt.plot(energiesBA[i], fBA[i], "-", linewidth=2*(ntests - i) + 3, label=("BA: N = %i" % ((i + 1)**2*nx0*ny0)))
 
 # Plot the expectation.
-emin = min([min(x) for x in (energiesBA + energiesO)])
-emax = max([max(x) for x in (energiesBA + energiesO)])
+emin = min([min(x) for x in (energiesBA)])# + energiesO)])
+emax = max([max(x) for x in (energiesBA)])# + energiesO)])
 eans = [emin + 0.01*(emax - emin)*i for i in range(101)]
 fans = [kWeibull * e**mWeibull for e in eans]
 plt.plot(eans, fans, "-", linewidth=3, label="Analytic")
@@ -200,6 +252,7 @@ plt.legend(loc="best")
 plt.xlabel(r"Flaw Activation Energy ($\varepsilon$)")
 plt.ylabel(r"$n(\varepsilon^f < \varepsilon)$")
 
+#...............................................................................
 plt.figure(2)
 plt.xscale("log")
 plt.yscale("log")
@@ -217,8 +270,36 @@ for i in xrange(2*ntests):
     plt.plot(energiesO[i], fO[i], "-", linewidth=2, label=TT)
 
 # Plot the expectation.
-emin = min([min(x) for x in (energiesBA + energiesO)])
-emax = max([max(x) for x in (energiesBA + energiesO)])
+emin = min([min(x) for x in energiesO])#(energiesBA + energiesO)])
+emax = max([max(x) for x in energiesO])#(energiesBA + energiesO)])
+eans = [emin + 0.01*(emax - emin)*i for i in range(101)]
+fans = [kWeibull * e**mWeibull for e in eans]
+plt.plot(eans, fans, "-", linewidth=3, label="Analytic")
+
+plt.legend(loc="lower right")
+plt.xlabel(r"Flaw Activation Energy ($\varepsilon$)")
+plt.ylabel(r"$n(\varepsilon^f < \varepsilon)$")
+
+#...............................................................................
+plt.figure(3)
+plt.xscale("log")
+plt.yscale("log")
+for i in xrange(2*ntests):
+    if i % 2 == 1:
+        nx1 = (i/2 + 1)*nx0/2
+        ny1 = (i/2 + 1)*ny0
+        nx2 = 2*nx1
+        ny2 = 2*ny1
+        TT = "P: (N1,N2)=(%i,%i)" % (nx1*ny1, nx2*ny2)
+    else:
+        nx = (i/2 + 1)*nx0
+        ny = (i/2 + 1)*ny0
+        TT = "P: N = %i" % (nx*ny)
+    plt.plot(energiesP[i], fP[i], "-", linewidth=2, label=TT)
+
+# Plot the expectation.
+emin = min([min(x) for x in energiesP])
+emax = max([max(x) for x in energiesP])
 eans = [emin + 0.01*(emax - emin)*i for i in range(101)]
 fans = [kWeibull * e**mWeibull for e in eans]
 plt.plot(eans, fans, "-", linewidth=3, label="Analytic")
