@@ -10,6 +10,8 @@ from math import *
 import mpi, bisect
 import matplotlib.pyplot as plt
 
+plt.rcParams['font.size'] = 14
+
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 # All CGS units.
@@ -60,14 +62,13 @@ db.appendNodeList(nodes)
 #-------------------------------------------------------------------------------
 energiesBA, fBA = [], []
 energiesO, fO = [], []
-energiesP, weightP, fP = [], [], []
+energiesP, fP = [], []
 
 def accumulateP(nodes, damageP):
     energiesP.append([])
     fP.append([])
     flaws = energiesP[-1]
     fcum = fP[-1]
-    minNumFlaws = damageP.minFlawsPerNode
     flaws.append(0.0)
     fcum.append(0.0)
     for i in xrange(nodes.numInternalNodes):
@@ -80,8 +81,11 @@ def accumulateP(nodes, damageP):
         fcum.insert(jmax, fcum[jmax - 1])
         assert flaws[jmin] == epsmini
         assert flaws[jmax] == epsmaxi
-        for k in xrange(jmin, len(fcum)):
-            dN = Vi*kWeibull*(min(epsmaxi, flaws[k])**mWeibull - epsmini**mWeibull) + 1.0
+        for k in xrange(jmin, jmax):
+            dN = Vi*kWeibull*(flaws[k]**mWeibull - epsmini**mWeibull) + 1.0
+            fcum[k] += dN
+        dN = Vi*kWeibull*(epsmaxi**mWeibull - epsmini**mWeibull) + 1.0
+        for k in xrange(jmax, len(fcum)):
             fcum[k] += dN
     flaws = flaws[1:]
     fcum = fcum[1:]
