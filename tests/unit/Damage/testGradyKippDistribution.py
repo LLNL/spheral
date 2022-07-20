@@ -245,7 +245,7 @@ plt.figure(1)
 plt.xscale("log")
 plt.yscale("log")
 for i in xrange(ntests):
-    plt.plot(energiesBA[i], fBA[i], "-", linewidth=2*(ntests - i) + 3, label=("BA: N = %i" % ((i + 1)**2*nx0*ny0)))
+    plt.plot(energiesBA[i], fBA[i], "-", linewidth=2*(ntests - i) + 3, label=("N = %i" % ((i + 1)**2*nx0*ny0)))
 
 # Plot the expectation.
 emin = min([min(x) for x in (energiesBA)])# + energiesO)])
@@ -254,7 +254,7 @@ eans = [emin + 0.01*(emax - emin)*i for i in range(101)]
 fans = [kWeibull * e**mWeibull for e in eans]
 plt.plot(eans, fans, "-", linewidth=3, label="Analytic")
 
-plt.legend(loc="best")
+plt.legend(loc="upper left", fontsize="x-small", ncol=1)
 plt.xlabel(r"Flaw Activation Energy ($\varepsilon$)")
 plt.ylabel(r"$n(\varepsilon^f < \varepsilon)$")
 
@@ -268,11 +268,11 @@ for i in xrange(2*ntests):
         ny1 = (i/2 + 1)*ny0
         nx2 = 2*nx1
         ny2 = 2*ny1
-        TT = "O: (N1,N2)=(%i,%i)" % (nx1*ny1, nx2*ny2)
+        TT = "(N1,N2)=(%i,%i)" % (nx1*ny1, nx2*ny2)
     else:
         nx = (i/2 + 1)*nx0
         ny = (i/2 + 1)*ny0
-        TT = "O: N = %i" % (nx*ny)
+        TT = "N = %i" % (nx*ny)
     plt.plot(energiesO[i], fO[i], "-", linewidth=2, label=TT)
 
 # Plot the expectation.
@@ -282,7 +282,7 @@ eans = [emin + 0.01*(emax - emin)*i for i in range(101)]
 fans = [kWeibull * e**mWeibull for e in eans]
 plt.plot(eans, fans, "-", linewidth=3, label="Analytic")
 
-plt.legend(loc="lower right")
+plt.legend(loc="upper left", fontsize="x-small", ncol=1)
 plt.xlabel(r"Flaw Activation Energy ($\varepsilon$)")
 plt.ylabel(r"$n(\varepsilon^f < \varepsilon)$")
 
@@ -296,11 +296,11 @@ for i in xrange(2*ntests):
         ny1 = (i/2 + 1)*ny0
         nx2 = 2*nx1
         ny2 = 2*ny1
-        TT = "P: (N1,N2)=(%i,%i)" % (nx1*ny1, nx2*ny2)
+        TT = "(N1,N2)=(%i,%i)" % (nx1*ny1, nx2*ny2)
     else:
         nx = (i/2 + 1)*nx0
         ny = (i/2 + 1)*ny0
-        TT = "P: N = %i" % (nx*ny)
+        TT = "N = %i" % (nx*ny)
     plt.plot(energiesP[i], fP[i], "-", linewidth=2, label=TT)
 
 # Plot the expectation.
@@ -310,6 +310,6 @@ eans = [emin + 0.01*(emax - emin)*i for i in range(101)]
 fans = [kWeibull * e**mWeibull for e in eans]
 plt.plot(eans, fans, "-", linewidth=3, label="Analytic")
 
-plt.legend(loc="lower right")
+plt.legend(loc="upper left", fontsize="x-small", ncol=1)
 plt.xlabel(r"Flaw Activation Energy ($\varepsilon$)")
 plt.ylabel(r"$n(\varepsilon^f < \varepsilon)$")
