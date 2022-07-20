@@ -64,25 +64,27 @@ energiesP, weightP, fP = [], [], []
 
 def accumulateP(nodes, damageP):
     energiesP.append([])
-    weightP.append([])
     fP.append([])
     flaws = energiesP[-1]
-    weight = weightP[-1]
     fcum = fP[-1]
     minNumFlaws = damageP.minFlawsPerNode
+    flaws.append(0.0)
+    fcum.append(0.0)
     for i in xrange(nodes.numInternalNodes):
         epsmini, epsmaxi, Vi, nFlawsi = damageP.minFlaw[i], damageP.maxFlaw[i], damageP.initialVolume[i], damageP.numFlaws[i]
-        nsteps = min(10, nFlawsi)
-        deps = (epsmaxi - epsmini)/(nsteps - 1)
-        for j in xrange(nsteps):
-            epsj = epsmini + j*deps
-            weight.append((epsj, Vi*kWeibull*(epsj**mWeibull - epsmini**mWeibull) + 1.0))
-    weight.sort()
-    wsum = 0.0
-    for epsi, wi in weight:
-        wsum += wi
-        flaws.append(epsi)
-        fcum.append(wsum)
+        jmin = bisect.bisect_left(flaws, epsmini)
+        flaws.insert(jmin, epsmini)
+        fcum.insert(jmin, fcum[jmin - 1])
+        jmax = bisect.bisect_left(flaws, epsmaxi)
+        flaws.insert(jmax, epsmaxi)
+        fcum.insert(jmax, fcum[jmax - 1])
+        assert flaws[jmin] == epsmini
+        assert flaws[jmax] == epsmaxi
+        for k in xrange(jmin, len(fcum)):
+            dN = Vi*kWeibull*(min(epsmaxi, flaws[k])**mWeibull - epsmini**mWeibull) + 1.0
+            fcum[k] += dN
+    flaws = flaws[1:]
+    fcum = fcum[1:]
     assert len(fcum) == len(flaws)
 
 #-------------------------------------------------------------------------------
