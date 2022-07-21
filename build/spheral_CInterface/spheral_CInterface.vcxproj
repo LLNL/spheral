@@ -167,7 +167,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <UndefinePreprocessorDefinitions>LAM_WANT_MPI2CPP</UndefinePreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;../../src;../../..;../../../hypre/src/parcsr_block_mv;../../../polyclipper/src;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
@@ -190,7 +190,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <UndefinePreprocessorDefinitions>LAM_WANT_MPI2CPP</UndefinePreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;../../src;../../..;../../../hypre/src/parcsr_block_mv;../../../polyclipper/src;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
@@ -263,7 +263,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <UndefinePreprocessorDefinitions>LAM_WANT_MPI2CPP</UndefinePreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..;../../src;../../..;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;../../src;../../..;../../../hypre/src/parcsr_block_mv;../../../polyclipper/src;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Cpp0xSupport>true</Cpp0xSupport>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
