@@ -616,9 +616,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DxDti = vi;
       if (XSPH) {
         XSPHWeightSumi += Hdeti*mi/rhoi*W0;
-        XSPHWeightSumi /= normi;
-        //CHECK(XSPHWeightSumi >= 0.0);
-        DxDti += xsphCoeff*XSPHDeltaVi/max(normi,tiny);
+        XSPHWeightSumi /= max(normi,tiny);
+        DxDti += xsphCoeff*XSPHWeightSumi*XSPHDeltaVi/max(normi,tiny);
       }
 
     
