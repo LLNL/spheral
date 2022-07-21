@@ -10,6 +10,7 @@ This release contains ...
 Notable changes include:
 
   * New features/ API changes:
+    * New Discrete Element Model (DEM) physics package with linear-damped spring approach
     * Adding a CUDA smoke test that can be called from the Spheral python API.
     * NVCC / CUDA 11 gitlab-ci jobs.
     * ATS default filters for non-MPI, debug and CUDA builds are injected into spheral-atstest script.
