@@ -180,12 +180,12 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
+protected:
+  //--------------------------- Protected Interface ---------------------------//
   // Allow descendents to request that sigma be calculated.
   bool calculateSigma() const;
   void calculateSigma(bool value);
 
-protected:
-  //--------------------------- Protected Interface ---------------------------//
   Scalar mClinear;
   Scalar mCquadratic;
   RKOrder mQcorrectionOrder;
