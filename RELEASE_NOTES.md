@@ -4,15 +4,34 @@ Version vYYYY.MM.pp -- Release date 20YY-MM-DD
 This release contains ...
 
   * Important Notes:
+    * Spheral now requires C++ 14
+    * Spheral C++ libs are compiled into a single library (Spheral_CXX)
 
 Notable changes include:
 
   * New features/ API changes:
     * New Discrete Element Model (DEM) physics package with linear-damped spring approach
-    
+    * Adding a CUDA smoke test that can be called from the Spheral python API.
+    * NVCC / CUDA 11 gitlab-ci jobs.
+    * ATS default filters for non-MPI, debug and CUDA builds are injected into spheral-atstest script.
+
   * Build changes / improvements:
+    * The C++ library interface is compiled into a single Spheral_CXX library. 
+    * Previous Spheral C++ libraries are still CMAKE targets, but are "ojbect" libraries.
+    * ATS bumped to version 7.0.9 for blueos smpi option support.
+    * Eigen bumped to 3.4.0 for NVCC compatiblity.
+    * C++ flag suppression is gaurded with build time CMake generators to only apply to C++ compilers.
 
   * Bug Fixes / improvements:
+    * spheral-atstest scripts always point to locally installed ATS instance.
+    * gitlab-ci report-results script for analyzing ATS CI runs.
+
+
+Version v2022.06.1 -- Release date 2022-06-24
+=============================================
+
+This is a bugfix release, which corrects a path problem that broke our convenient ANEOS
+constructors using the provided input for quartz, dunite, and serpentine.
 
 
 Version v2022.06.0 -- Release date 2022-06-09
@@ -52,9 +71,3 @@ Notable changes include:
     * CullenDehnen segfault fix.
 
 **Full Changelog**: https://github.com/LLNL/spheral/compare/2022.2.0-pre-spack...v2022.6.0
-
-Version v2022.06.1 -- Release date 2022-06-24
-=============================================
-
-This is a bugfix release, which corrects a path problem that broke our convenient ANEOS
-constructors using the provided input for quartz, dunite, and serpentine.

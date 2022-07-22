@@ -8,7 +8,7 @@ option(ENABLE_WARNINGS_AS_ERRORS "make warnings errors" OFF)
 
 option(ENABLE_UNUSED_VARIABLE_WARNINGS "show unused variable compiler warnings" ON)
 option(ENABLE_UNUSED_PARAMETER_WARNINGS "show unused parameter warnings" OFF)
-option(ENABLE_MISSING_INCLUDE_DIR_WARNINGS "show unused parameter warnings" OFF)
+option(ENABLE_MISSING_INCLUDE_DIR_WARNINGS "show unused parameter warnings" ON)
 
 
 set(CXX_WARNING_FLAGS "")
@@ -48,12 +48,15 @@ if (NOT ENABLE_MISSING_INCLUDE_DIR_WARNINGS)
 endif()
 message("-- Compiler missing include dir warnings ${ENABLE_MISSING_INCLUDE_DIR_WARNINGS}")
 
-add_compile_options(${CXX_WARNING_FLAGS})
+set(CUDA_WARNING_FLAGS -Xcudafe=\"--diag_suppress=esa_on_defaulted_function_ignored\")
+
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${CXX_WARNING_FLAGS}>")
+add_compile_options("$<$<COMPILE_LANGUAGE:CUDA>:${CUDA_WARNING_FLAGS}>")
 message("-- using warning flags ${CXX_WARNING_FLAGS}")
 
 # We build some Fortran code from outside sources (like the Helmholtz EOS) that
 # cause building errors if the compiler is too picky...
-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w")
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -Wno-missing-include-dirs")
 message("-- Fortran flags: ${CMAKE_Fortran_FLAGS}")
 
 

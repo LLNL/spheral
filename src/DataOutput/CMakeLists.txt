@@ -14,5 +14,5 @@ set(DataOutput_headers
     registerWithRestart.hh
     )
 
-spheral_add_cxx_library(DataOutput)
+spheral_add_obj_library(DataOutput)
 

@@ -27,5 +27,5 @@ set(Strength_headers
     effectiveKernelVolume.hh
     )
 
-spheral_add_cxx_library(Strength)
+spheral_add_obj_library(Strength)
 

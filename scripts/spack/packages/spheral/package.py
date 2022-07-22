@@ -7,7 +7,7 @@ from spack import *
 import socket
 import os
 
-class Spheral(CachedCMakePackage, PythonPackage):
+class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     """Spheral++ provides a steerable parallel environment for performing coupled hydrodynamical and gravitational numerical simulations."""
 
     homepage = "https://spheral.readthedocs.io/"
@@ -28,6 +28,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
     variant('mpi', default=True, description='Enable MPI Support.')
     variant('openmp', default=True, description='Enable OpenMP Support.')
     variant('docs', default=False, description='Enable building Docs.')
+    variant('shared', default=True, description='Build C++ libs as shared.')
 
     # -------------------------------------------------------------------------
     # DEPENDS
@@ -42,13 +43,15 @@ class Spheral(CachedCMakePackage, PythonPackage):
     depends_on('qhull@2020.1', type='build')
     depends_on('m-aneos')
     depends_on('py-polyclipper')
-    depends_on('eigen@3.3.7', type='build')
-    depends_on('hdf5@1.8.19 ~mpi +hl', type='build')
+    depends_on('eigen@3.4.0', type='build')
+    depends_on('hdf5@1.8.19 ~mpi +hl', type='build', when='~mpi')
+    depends_on('hdf5@1.8.19 +mpi +hl', type='build', when='+mpi')
+
     depends_on('silo@4.10.2 +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
-    depends_on('conduit@0.8.2 +mpi +hdf5 -test', type='build', when='+mpi')
-    depends_on('conduit@0.8.2 ~mpi +hdf5 -test', type='build', when='~mpi')
+    depends_on('conduit@0.8.2 +shared +mpi +hdf5 -test', type='build', when='+mpi')
+    depends_on('conduit@0.8.2 +shared ~mpi +hdf5 -test', type='build', when='~mpi')
 
     depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
     depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
@@ -66,6 +69,11 @@ class Spheral(CachedCMakePackage, PythonPackage):
 
     depends_on('py-sphinx@1.8.5', type='build', when='+docs')
     depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
+
+    # -------------------------------------------------------------------------
+    # DEPENDS
+    # -------------------------------------------------------------------------
+    conflicts('cuda_arch=none', when='+cuda', msg='CUDA architecture is required')
 
     def _get_sys_type(self, spec):
         sys_type = spec.architecture
@@ -88,7 +96,7 @@ class Spheral(CachedCMakePackage, PythonPackage):
         return "{1}-{2}.cmake".format(
             hostname,
             self._get_sys_type(self.spec),
-            cache_spec
+            cache_spec.replace(" ", "_")
         )
 
     def initconfig_compiler_entries(self):
@@ -107,29 +115,23 @@ class Spheral(CachedCMakePackage, PythonPackage):
         spec = self.spec
         entries = super(Spheral, self).initconfig_hardware_entries()
 
-        #if '+cuda' in spec:
-        #    entries.append(cmake_cache_option("ENABLE_CUDA", True))
+        if '+cuda' in spec:
+            entries.append(cmake_cache_option("ENABLE_CUDA", True))
 
-        #    if not spec.satisfies('cuda_arch=none'):
-        #        cuda_arch = spec.variants['cuda_arch'].value
-        #        entries.append(cmake_cache_string("CUDA_ARCH", 'sm_{0}'.format(cuda_arch[0])))
-        #        entries.append(cmake_cache_string("CMAKE_CUDA_ARCHITECTURES={0}".format(cuda_arch[0])))
-        #        flag = '-arch sm_{0}'.format(cuda_arch[0])
-        #        entries.append(cmake_cache_string("CMAKE_CUDA_FLAGS", '{0}'.format(flag)))
+            if not spec.satisfies('cuda_arch=none'):
+                cuda_arch = spec.variants['cuda_arch'].value
+                entries.append(cmake_cache_string(
+                    "CUDA_ARCH", 'sm_{0}'.format(cuda_arch[0])))
+                entries.append(cmake_cache_string(
+                    "CMAKE_CUDA_ARCHITECTURES", '{0}'.format(cuda_arch[0])))
+                flag = '-arch sm_{0}'.format(cuda_arch[0])
+                entries.append(cmake_cache_string(
+                    "CMAKE_CUDA_FLAGS", '{0}'.format(flag)))
 
-        #    entries.append(cmake_cache_option("ENABLE_DEVICE_CONST", spec.satisfies('+deviceconst')))
-        #else:
-        #    entries.append(cmake_cache_option("ENABLE_CUDA", False))
-
-        #if '+rocm' in spec:
-        #    entries.append(cmake_cache_option("ENABLE_HIP", True))
-        #    entries.append(cmake_cache_path("HIP_ROOT_DIR", '{0}'.format(spec['hip'].prefix)))
-        #    archs = self.spec.variants['amdgpu_target'].value
-        #    if archs != 'none':
-        #        arch_str = ",".join(archs)
-        #        entries.append(cmake_cache_string("HIP_HIPCC_FLAGS", '--amdgpu-target={0}'.format(arch_str)))
-        #else:
-        #    entries.append(cmake_cache_option("ENABLE_HIP", False))
+            entries.append(cmake_cache_option(
+                "ENABLE_DEVICE_CONST", spec.satisfies('+deviceconst')))
+        else:
+            entries.append(cmake_cache_option("ENABLE_CUDA", False))
 
         return entries
 
@@ -205,6 +207,9 @@ class Spheral(CachedCMakePackage, PythonPackage):
         if "+mpi" in spec:
             entries.append(cmake_cache_path('-DMPI_C_COMPILER', spec['mpi'].mpicc) )
             entries.append(cmake_cache_path('-DMPI_CXX_COMPILER', spec['mpi'].mpicxx) )
+
+        if "~shared" in spec and "~cuda" in spec:
+            entries.append(cmake_cache_option('ENABLE_SHARED', False))
 
         entries.append(cmake_cache_option('ENABLE_OPENMP', '+openmp' in spec))
         entries.append(cmake_cache_option('ENABLE_DOCS', '+docs' in spec))
