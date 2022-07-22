@@ -82,6 +82,9 @@ source("unit/CXXTests/runCXXTests.ats")
 # Hydro tests
 source("functional/Hydro/HydroTests.ats")
 
+# DEM tests
+source("functional/DEM/DEMTests.ats") 
+
 # Gravity tests
 source("functional/Gravity/CollisionlessSphereCollapse.py")
 

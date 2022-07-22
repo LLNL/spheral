@@ -33,6 +33,16 @@ DataBase<Dimension>::numSolidNodeLists() const {
 }
 
 //------------------------------------------------------------------------------
+// Number of DEMNodeLists registered with the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+DataBase<Dimension>::numDEMNodeLists() const {
+  return mDEMNodeListPtrs.size();
+}
+
+//------------------------------------------------------------------------------
 // Numbers of nodes in the DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -262,6 +272,70 @@ DataBase<Dimension>::solidNodeListAsNodeListEnd() const {
 }
 
 //------------------------------------------------------------------------------
+// Standard STL like iterators for DEMNodeLists.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::DEMNodeListIterator
+DataBase<Dimension>::DEMNodeListBegin() {
+  return mDEMNodeListPtrs.begin();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::DEMNodeListIterator
+DataBase<Dimension>::DEMNodeListEnd() {
+  return mDEMNodeListPtrs.end();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConstDEMNodeListIterator
+DataBase<Dimension>::DEMNodeListBegin() const {
+  return mDEMNodeListPtrs.begin();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConstDEMNodeListIterator
+DataBase<Dimension>::DEMNodeListEnd() const {
+  return mDEMNodeListPtrs.end();
+}
+
+//------------------------------------------------------------------------------
+// Standard STL like iterators for DEMNodeLists, but over NodeList
+// base type.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::NodeListIterator
+DataBase<Dimension>::DEMNodeListAsNodeListBegin() {
+  return mDEMNodeListAsNodeListPtrs.begin();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::NodeListIterator
+DataBase<Dimension>::DEMNodeListAsNodeListEnd() {
+  return mDEMNodeListAsNodeListPtrs.end();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConstNodeListIterator
+DataBase<Dimension>::DEMNodeListAsNodeListBegin() const {
+  return mDEMNodeListAsNodeListPtrs.begin();
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConstNodeListIterator
+DataBase<Dimension>::DEMNodeListAsNodeListEnd() const {
+  return mDEMNodeListAsNodeListPtrs.end();
+}
+
+
+//------------------------------------------------------------------------------
 // Get the current connectivity map.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -363,6 +437,29 @@ newSolidFieldList(const DataType value,
 }
 
 //------------------------------------------------------------------------------
+// Convenience method to construct a new FieldList with a Field for every
+// DEMNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+FieldList<Dimension, DataType>
+DataBase<Dimension>::
+newDEMFieldList(const DataType value,
+                  const typename Field<Dimension, DataType>::FieldName name) const {
+  FieldList<Dimension, DataType> result(FieldStorageType::CopyFields);
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr != DEMNodeListEnd();
+       ++nodeListItr) {
+    result.appendNewField(name, **nodeListItr, value);
+  }
+
+  ENSURE((int)result.numFields() == numDEMNodeLists());
+  return result;
+}
+
+
+//------------------------------------------------------------------------------
 // Convenience method to resize a FieldList such that it has a Field for every
 // NodeList in the DataBase.
 //------------------------------------------------------------------------------
@@ -439,6 +536,47 @@ resizeFluidFieldList(FieldList<Dimension, DataType>& fieldList,
 
   ENSURE(fieldList.numFields() == numFluidNodeLists());
 }
+
+
+//------------------------------------------------------------------------------
+// Convenience method to resize a FieldList such that it has a Field for every
+// DEMNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+DataBase<Dimension>::
+resizeDEMFieldList(FieldList<Dimension, DataType>& fieldList,
+                     const DataType value,
+                     const typename Field<Dimension, DataType>::FieldName name,
+                     const bool resetValues) const {
+  VERIFY((fieldList.storageType() == FieldStorageType::CopyFields));
+
+  // First check if it's necessary to resize the FieldList.
+  bool reinitialize = (int)fieldList.numFields() != numDEMNodeLists();
+  ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+  typename FieldList<Dimension, DataType>::const_iterator itr = fieldList.begin();
+  while (!reinitialize && 
+         nodeListItr != DEMNodeListEnd() &&
+         itr != fieldList.end()) {
+    reinitialize = (*itr)->nodeListPtr() != *nodeListItr;
+    ++nodeListItr;
+    ++itr;
+  }
+
+  if (reinitialize) {
+    fieldList = FieldList<Dimension, DataType>(fieldList.storageType());
+    for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+         nodeListItr != DEMNodeListEnd();
+         ++nodeListItr) fieldList.appendNewField(name, **nodeListItr, value);
+  } else if (resetValues) {
+    fieldList = value;
+  }
+
+  ENSURE((int)fieldList.numFields() == numDEMNodeLists());
+}
+
 
 //------------------------------------------------------------------------------
 // Convenience method to resize a FieldList such that it has a Field for every
@@ -540,6 +678,26 @@ newSolidArray(const DataType value) const {
 }
 
 //------------------------------------------------------------------------------
+// Construct a new array<array> with an array for every DEMNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+std::vector<std::vector<DataType>>
+DataBase<Dimension>::
+newDEMArray(const DataType value) const {
+  std::vector<std::vector<DataType>> result;
+  for (auto nodeListItr = DEMNodeListBegin();
+       nodeListItr != DEMNodeListEnd();
+       ++nodeListItr) {
+    result.push_back(std::vector<DataType>((*nodeListItr)->numNodes(), value));
+  }
+
+  ENSURE(result.size() == numNodeLists());
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Resize an array<array> for every NodeList in the DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -616,5 +774,32 @@ resizeSolidArray(std::vector<std::vector<DataType>>& array,
 
   ENSURE(array.size() == numNodeLists());
 }
+
+//------------------------------------------------------------------------------
+// Resize an array<array> for every DEMNodeList in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+inline
+void
+DataBase<Dimension>::
+resizeDEMArray(std::vector<std::vector<DataType>>& array,
+                 const DataType value,
+                 const bool resetValues) const {
+  array.resize(this->numDEMNodeLists());
+  auto k = 0;
+  for (auto nodeListItr = DEMNodeListBegin();
+       nodeListItr != DEMNodeListEnd();
+       ++nodeListItr, ++k) {
+    if (resetValues) {
+      array[k] = std::vector<DataType>((*nodeListItr)->numNodes(), value);
+    } else {
+      array[k].resize((*nodeListItr)->numNodes(), value);
+    }
+  }
+
+  ENSURE(array.size() == numNodeLists());
+}
+
 
 }

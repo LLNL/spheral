@@ -1,4 +1,4 @@
-#ATS:test(SELF, label="ANEOS unit tests.")
+#ATS:test(SELF, level=100, label="ANEOS unit tests.")
 # Unit tests of the ANEOS equation of state.  This is a silly test, just checking
 # that our convenient constructors using the provided inputs build properly.
 import unittest

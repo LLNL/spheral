@@ -27,5 +27,5 @@ spheral_install_python_files(
   PlyFileIO.py
   )
 
-spheral_add_cxx_library(FileIO)
+spheral_add_obj_library(FileIO)
 

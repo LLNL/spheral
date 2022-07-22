@@ -16,6 +16,7 @@ PYB11includes += ['"NodeList/NodeListRegistrar.hh"',
                   '"NodeList/NodeList.hh"',
                   '"NodeList/FluidNodeList.hh"',
                   '"NodeList/SolidNodeList.hh"',
+                  '"NodeList/DEMNodeList.hh"',
                   '"NodeList/SmoothingScaleBase.hh"',
                   '"NodeList/FixedSmoothingScale.hh"',
                   '"NodeList/SPHSmoothingScale.hh"',
@@ -53,6 +54,7 @@ from NodeListRegistrar import NodeListRegistrar
 from NodeList import NodeList
 from FluidNodeList import FluidNodeList
 from SolidNodeList import SolidNodeList
+from DEMNodeList import DEMNodeList
 from SmoothingScaleBase import SmoothingScaleBase
 from FixedSmoothingScale import FixedSmoothingScale
 from SPHSmoothingScale import SPHSmoothingScale
@@ -65,6 +67,7 @@ NodeListRegistrar%(ndim)id = PYB11TemplateClass(NodeListRegistrar, template_para
 NodeList%(ndim)id = PYB11TemplateClass(NodeList, template_parameters="Dim<%(ndim)i>")
 FluidNodeList%(ndim)id = PYB11TemplateClass(FluidNodeList, template_parameters="Dim<%(ndim)i>")
 SolidNodeList%(ndim)id = PYB11TemplateClass(SolidNodeList, template_parameters="Dim<%(ndim)i>")
+DEMNodeList%(ndim)id = PYB11TemplateClass(DEMNodeList, template_parameters="Dim<%(ndim)i>")
 
 SmoothingScaleBase%(ndim)id = PYB11TemplateClass(SmoothingScaleBase, template_parameters="Dim<%(ndim)i>")
 FixedSmoothingScale%(ndim)id = PYB11TemplateClass(FixedSmoothingScale, template_parameters="Dim<%(ndim)i>")
