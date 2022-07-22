@@ -213,7 +213,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <UndefinePreprocessorDefinitions>LAM_WANT_MPI2CPP</UndefinePreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..;../../src;../../..;../../../polyclipper/src;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;../../src;../../..;../../../hypre/src/parcsr_block_mv;../../../polyclipper/src;../../../polytope/src;../../../polytope/Win32;../../../qhull/src;../../../eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
