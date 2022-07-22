@@ -13,8 +13,6 @@
 #include <vector>
 #include <algorithm>
 
-extern Timer TIME_CRKSPH_editMultimaterialSurfaceTopology;
-
 using std::vector;
 using std::cerr;
 using std::endl;
@@ -25,7 +23,6 @@ template<typename Dimension>
 void
 editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
                                  ConnectivityMap<Dimension>& connectivityMap) {
-  TIME_CRKSPH_editMultimaterialSurfaceTopology.start();
   CALI_CXX_MARK_FUNCTION;
 
   // Declare some useful stuff and preconditions.
@@ -133,7 +130,6 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
   // }
   // // BLAGO!
 
-  TIME_CRKSPH_editMultimaterialSurfaceTopology.stop();
 }
 
 }

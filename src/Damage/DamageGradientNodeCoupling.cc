@@ -19,6 +19,7 @@
 #include "Field/FieldList.hh"
 #include "FieldOperations/FieldListFunctions.hh"
 #include "Boundary/Boundary.hh"
+#include "caliper/cali.h"
 
 #include <vector>
 
@@ -44,8 +45,9 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
                            NodePairList& pairs):
   NodeCoupling() {
 
-  TIME_Damage.start();
-  TIME_DamageGradientCoupling.start();
+  CALI_MARK_BEGIN("TIME_Damage");
+  CALI_MARK_BEGIN("TIME_DamageGradientCoupling");
+
   const auto npairs = pairs.size();
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
@@ -55,7 +57,7 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
   const auto numNodeLists = position.numFields();
 
   // Compute a scalar damage estimate to take the gradient of.
-  TIME_DamageGradientCoupling_grad.start();
+  CALI_MARK_BEGIN("TIME_DamageGradientCoupling_grad");
   FieldList<Dimension, Scalar> Dtrace(FieldStorageType::CopyFields);
   for (auto k = 0u; k < numNodeLists; ++k) {
     Dtrace.appendNewField("grad D", D[k]->nodeList(), 0.0);
@@ -73,11 +75,11 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(gradD);
     (*boundaryItr)->finalizeGhostBoundary();
   }
-  TIME_DamageGradientCoupling_grad.stop();
+  CALI_MARK_END("TIME_DamageGradientCoupling_grad");
 
   // For each interacting pair we need to compute the effective damage shielding, expressed
   // as the f_couple parameter in the NodePairIdxType.
-  TIME_DamageGradientCoupling_pairs.start();
+  CALI_MARK_BEGIN("TIME_DamageGradientCoupling_pairs");
   size_t i, il, j, jl;
   Scalar hij;
   Vector xjihat;
@@ -99,9 +101,9 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
     // }
     CHECK(pairs[k].f_couple >= 0.0 and pairs[k].f_couple <= 1.0);
   }
-  TIME_DamageGradientCoupling_pairs.stop();
-  TIME_DamageGradientCoupling.stop();
-  TIME_Damage.stop();
+  CALI_MARK_END("TIME_DamageGradientCoupling_pairs");
+  CALI_MARK_END("TIME_DamageGradientCoupling");
+  CALI_MARK_END("TIME_Damage");
 }
 
 }

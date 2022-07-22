@@ -38,6 +38,8 @@
 #include "DEM/DEMDimension.hh"
 #include "DEM/DEMFieldNames.hh"
 
+#include "caliper/cali.h"
+
 #ifdef _OPENMP
 #include "omp.h"
 #endif
@@ -228,6 +230,7 @@ DEMBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   TIME_DEMregister.start();
+  CALI_MARK_BEGIN("TIME_DEMregister");
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
   dataBase.resizeDEMFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
@@ -273,6 +276,7 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mEquilibriumOverlap);
 
   TIME_DEMregister.stop();
+  CALI_MARK_END("TIME_DEMregister");
 }
 
 //------------------------------------------------------------------------------
@@ -284,6 +288,7 @@ DEMBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   TIME_DEMregisterDerivs.start();
+  CALI_MARK_BEGIN("TIME_DEMregisterDerivs");
 
   dataBase.resizeDEMFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position, false);
   dataBase.resizeDEMFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
@@ -306,6 +311,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mNewTorsionalDisplacement);
 
   TIME_DEMregisterDerivs.stop();
+  CALI_MARK_END("TIME_DEMregisterDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -369,8 +375,10 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
                     const State<Dimension>& /*state*/,
                     StateDerivatives<Dimension>& /*derivs*/) const {
   TIME_DEMfinalizeDerivs.start();
+  CALI_MARK_BEGIN("TIME_DEMfinalizeDerivs");
 
   TIME_DEMfinalizeDerivs.stop();
+  CALI_MARK_END("TIME_DEMfinalizeDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -382,6 +390,7 @@ DEMBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
   TIME_DEMghostBounds.start();
+  CALI_MARK_BEGIN("TIME_DEMghostBounds");
 
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
   auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
@@ -399,6 +408,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(compositeParticleIndex);
   }
   TIME_DEMghostBounds.stop();
+  CALI_MARK_END("TIME_DEMghostBounds");
 }
 
 //------------------------------------------------------------------------------
@@ -410,6 +420,7 @@ DEMBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   TIME_DEMenforceBounds.start();
+  CALI_MARK_BEGIN("TIME_DEMenforceBounds");
 
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
   auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
@@ -427,6 +438,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(compositeParticleIndex);
   }
   TIME_DEMenforceBounds.stop();
+  CALI_MARK_END("TIME_DEMenforceBounds");
 }
 
 //------------------------------------------------------------------------------
