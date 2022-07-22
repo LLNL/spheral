@@ -114,12 +114,14 @@ vector<set<int>> convertFromPolyClipper(Dim<2>::FacetedVolume& Spheral_polygon,
 
   }
 
+  CALI_MARK_END("TIME_PC2d_convertfrom");
+
   // Return the set of planes responsible for each vertex.
   ENSURE(vertexPlanes.size() == Spheral_polygon.vertices().size());
   return vertexPlanes;
 
   TIME_PC2d_convertfrom.stop();
-  CALI_MARK_END("TIME_PC2d_convertfrom");
+  // CALI_MARK_END("TIME_PC2d_convertfrom");
 }
 
 //------------------------------------------------------------------------------

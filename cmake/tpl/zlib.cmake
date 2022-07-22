@@ -1,1 +1,1 @@
-set(${lib_name}_libs libz.a)
+set(${lib_name}_libs libz.so)
