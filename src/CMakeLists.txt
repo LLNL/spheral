@@ -16,7 +16,7 @@ list(APPEND _packages
   Boundary
   CInterface
   CRKSPH
-  CXXTests
+  #CXXTests
   Damage
   DataBase
   DataOutput
