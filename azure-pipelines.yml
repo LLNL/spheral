@@ -12,3 +12,10 @@ jobs:
   - task: Docker@2
     inputs:
       command: build
+  schedules:
+  - cron "0 0 * * *"
+    displayName: Daily midnight build
+    branches:
+      include:
+      - develop
+      - feature/docker-azure-ci
