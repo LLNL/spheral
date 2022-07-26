@@ -7,15 +7,16 @@ jobs:
     DOCKER_BUILDKIT: '1'
   steps:
   - checkout: self
-    clean: boolean
+    clean: true
     submodules: recursive
   - task: Docker@2
     inputs:
       command: build
-  schedules:
-  - cron "0 0 * * *"
-    displayName: Daily midnight build
-    branches:
-      include:
-      - develop
-      - feature/docker-azure-ci
+
+schedules:
+- cron: "0 0 * * *"
+  displayName: Daily midnight build
+  branches:
+    include:
+    - develop
+    - feature/docker-azure-ci
