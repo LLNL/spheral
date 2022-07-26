@@ -18,6 +18,13 @@ Spheral_Handle_TPL(silo spheral_depends)
 Spheral_Handle_TPL(conduit spheral_depends)
 Spheral_Handle_TPL(axom spheral_depends)
 
+# AXOM PUlls in HDF5 and Conduit for us
+find_package(axom REQUIRED QUIET PATHS ${axom_DIR}/lib/cmake)
+list(APPEND spheral_blt_depends axom)
+if(axom_FOUND)
+  message(STATUS "Found axom: ${axom_DIR} (found version ${axom_VERSION})")
+endif()
+
 # Some libraries are optional
 if (ENABLE_ANEOS)
   Spheral_Handle_TPL(aneos spheral_depends)

@@ -43,9 +43,9 @@ function(spheral_add_obj_library package_name)
   #        )
 
   ## Install the headers
-  #install(FILES       ${${package_name}_headers}
-  #        DESTINATION include/${package_name}
-  #        )
+  install(FILES       ${${package_name}_headers}
+          DESTINATION include/${package_name}
+          )
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   #set_target_properties(Spheral_${package_name} PROPERTIES

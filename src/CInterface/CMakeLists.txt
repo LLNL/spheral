@@ -9,7 +9,4 @@ set(CInterface_headers
     SpheralPseudoScript.hh
     )
 
-spheral_add_cxx_library(CInterface)
-
-list(APPEND SPHERAL_PYTHON_DEPENDS Spheral_CInterface)
-set(SPHERAL_PYTHON_DEPENDS "${SPHERAL_PYTHON_DEPENDS}" PARENT_SCOPE)
+spheral_add_obj_library(CInterface)
