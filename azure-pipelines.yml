@@ -12,3 +12,5 @@ jobs:
   - task: Docker@2
     inputs:
       command: build
+
+pr: none
