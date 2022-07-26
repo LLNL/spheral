@@ -1,4 +1,5 @@
 include(ExternalProject)
+cmake_policy(SET CMP0074 NEW)
 
 #-------------------------------------------------------------------------------
 # Configure CMake
@@ -7,7 +8,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 if (NOT CMAKE_MODULE_PATH)
-  set(CMAKE_MODULE_PATH "${SPHERAL_ROOT_DIR}/cmake")
+  set(CMAKE_MODULE_PATH "${SPHERAL_ROOT_DIR}/cmake" "${SPHERAL_ROOT_DIR}/cmake/tpl/Modules")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
