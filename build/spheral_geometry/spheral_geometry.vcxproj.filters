@@ -21,9 +21,6 @@
     <ClCompile Include="..\..\src\Geometry\EigenStruct.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Geometry\fakemain.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Geometry\Geom3Vector.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -78,10 +75,10 @@
     <ClCompile Include="..\..\src\Geometry\clipFacetedVolumeByPlanes3d.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Geometry\polyclipper2d.cc">
+    <ClCompile Include="..\..\src\Geometry\PolyClipperUtilities.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Geometry\polyclipper3d.cc">
+    <ClCompile Include="..\..\src\Geometry\GeometryRegistrar.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

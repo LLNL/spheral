@@ -83,7 +83,7 @@ weibullFlawDistributionOwen(const unsigned seed,
     vector<std::mt19937> gens(nlocal);
 #pragma omp parallel for
     for (auto i = 0u; i < nlocal; ++i) {
-      Key seedi = seed;
+      std::size_t seedi = seed;
       boost::hash_combine(seedi, keyList(0,i));
       gens[i].seed(seedi);
     }
