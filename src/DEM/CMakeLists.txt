@@ -26,5 +26,5 @@ set(DEM_headers
 
 spheral_install_python_files(DEM.py)
 
-spheral_add_cxx_library(DEM)
+spheral_add_obj_library(DEM)
 
