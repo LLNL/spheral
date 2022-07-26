@@ -21,6 +21,7 @@ Notable changes include:
     * ATS bumped to version 7.0.9 for blueos smpi option support.
     * Eigen bumped to 3.4.0 for NVCC compatiblity.
     * C++ flag suppression is gaurded with build time CMake generators to only apply to C++ compilers.
+    * Adding RAJA, CAMP, Umpire and CHAI as dependencies of Spheral.
 
   * Bug Fixes / improvements:
     * spheral-atstest scripts always point to locally installed ATS instance.
