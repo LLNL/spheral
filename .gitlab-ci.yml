@@ -47,7 +47,7 @@ l_cuda_11_gcc_8_3_1_spectrum:
   extends: [.cuda_11_gcc_8_3_1_spectrum, .blueos_build_and_test, .on_lassen]
   stage: build_and_install
   
-l_cuda_gcc_8_3_1_~mpi:
+l_cuda_11_gcc_8_3_1_~mpi:
   extends: [.cuda_11_gcc_8_3_1_~mpi, .blueos_build_and_test, .on_lassen]
   stage: build_and_install
 
