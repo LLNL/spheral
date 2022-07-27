@@ -19,7 +19,7 @@
   script:
     - whoami
     - ml load $LC_MODULES
-    - srun -N 1 -c 36 -p pdebug -t 60 $SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - srun -N 1 -c 36 -p pbatch -t 60 $SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
     - cat build_gitlab/install/spheral-lcatstest
     - ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE
     - ./build_gitlab/install/spheral scripts/gitlab/report_results.py
@@ -34,12 +34,12 @@
 
 .toss_update_tpls:      
   script:
-    - srun -N 1 -c 36 -p pdebug -t 60 $SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=/usr/WS2/wciuser/Spheral/spheral-spack-tpls
+    - srun -N 1 -c 36 -p pbatch -t 60 $SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=/usr/WS2/wciuser/Spheral/spheral-spack-tpls
 
 .toss_update_permissions:
   script:
     - ml load mpifileutils
-    - srun -N 1 -p pdebug -n 20 -t 10 dchmod --mode go+rx /usr/WS2/wciuser/Spheral/spheral-spack-tpls/
+    - srun -N 1 -p pbatch -n 20 -t 10 dchmod --mode go+rx /usr/WS2/wciuser/Spheral/spheral-spack-tpls/
 .merge_pr_rule:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "develop"'

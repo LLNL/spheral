@@ -43,6 +43,7 @@ source("unit/Distributed/distributedUnitTests.py")
 # Material unit tests.
 source("unit/Material/testEOS.py")
 source("unit/SolidMaterial/testTillotsonEquationOfState.py")
+source("unit/SolidMaterial/testANEOS.py")
 source("functional/Material/UnitConversion.py")
 
 # Test the sampling to lattice method.
@@ -76,11 +77,13 @@ source("unit/Distributed/testMPI4PYasPYMPI.py")
 
 # C++ unit tests.
 source("functional/CXXTests/test_r3d_utils.py")
-source("unit/CXXTests/test_cuda_launch.py")
 source("unit/CXXTests/runCXXTests.ats")
 
 # Hydro tests
 source("functional/Hydro/HydroTests.ats")
+
+# DEM tests
+source("functional/DEM/DEMTests.ats") 
 
 # Gravity tests
 source("functional/Gravity/CollisionlessSphereCollapse.py")
