@@ -17,7 +17,7 @@ for Wname in ("GaussianKernel",
               "PiGaussianKernel",
               "NBSplineKernel"):
     text += """
-  template TableKernel<Dim<%%(ndim)s>>::TableKernel(const %(Wname)s<Dim<%%(ndim)s>>&, const unsigned, const double);
+  template TableKernel<Dim<%%(ndim)s>>::TableKernel(const %(Wname)s<Dim<%%(ndim)s>>&, const unsigned);
 """ % {"Wname" : Wname}
 
 text += """
