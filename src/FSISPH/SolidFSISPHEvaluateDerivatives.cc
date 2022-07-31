@@ -285,11 +285,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
       
       // pairwise damage and nodal damage
-      const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
-      const auto Di = std::max(0.0, std::min(1.0, damage(nodeListi,i).dot(rhatij).magnitude()));
-      const auto Dj = std::max(0.0, std::min(1.0, damage(nodeListj,j).dot(rhatij).magnitude()));
+      //const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
+      const auto Di = std::max(0.0, std::min(1.0, damage(nodeListi,i).eigenValues().maxElement()));
+      const auto Dj = std::max(0.0, std::min(1.0, damage(nodeListj,j).eigenValues().maxElement()));
       const auto fDi =  (sameMatij ? max((1.0-Di)*(1.0-Di),tiny) : 0.0 );
       const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 0.0 );
+      const auto fDij = (sameMatij ? pow(1.0-std::abs(Di-Dj),2.0) : 0.0 );
 
       // is Pmin being activated (Pmin->zero for material interfaces)
       const auto pLimiti = (sameMatij ? (Pi-rhoi*ci*ci*1e-6) : 0.0);
