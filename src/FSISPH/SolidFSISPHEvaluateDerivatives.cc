@@ -286,14 +286,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       
       // pairwise damage and nodal damage
       const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
-      const auto Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
-      const auto Dj = max(0.0, min(1.0, damage(nodeListj, j).dot(rhatij).magnitude()));
+      const auto Di = std::max(0.0, std::min(1.0, damage(nodeListi,i).dot(rhatij).magnitude()));
+      const auto Dj = std::max(0.0, std::min(1.0, damage(nodeListj,j).dot(rhatij).magnitude()));
       const auto fDi =  (sameMatij ? max((1.0-Di)*(1.0-Di),tiny) : 0.0 );
       const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 0.0 );
 
       // is Pmin being activated (Pmin->zero for material interfaces)
-      const auto pLimiti = (sameMatij ? (Pi-rhoi*ci*ci*1e-5) : 0.0);
-      const auto pLimitj = (sameMatij ? (Pj-rhoj*cj*cj*1e-5) : 0.0);
+      const auto pLimiti = (sameMatij ? (Pi-rhoi*ci*ci*1e-6) : 0.0);
+      const auto pLimitj = (sameMatij ? (Pj-rhoj*cj*cj*1e-6) : 0.0);
       const auto pminActivei = (rPi < pLimiti);
       const auto pminActivej = (rPj < pLimitj);
       
@@ -608,19 +608,22 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
  
-    
+      // continuity
       DrhoDti -=  rhoi*DvDxi.Trace();
 
+      // energy
       if (totalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
+      // XSPH
       DxDti = vi;
       if (XSPH) {
         XSPHWeightSumi += Hdeti*mi/rhoi*W0;
-        XSPHWeightSumi /= max(normi,tiny);
-        DxDti += xsphCoeff*XSPHWeightSumi*XSPHDeltaVi/max(normi,tiny);
+        XSPHWeightSumi *= xsphCoeff*XSPHWeightSumi/max(normi*normi,tiny);
+        DxDti += XSPHDeltaVi;
       }
 
-    
+
+      // H - Evolution
       DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
                                                             ri,
                                                             DvDxi,
