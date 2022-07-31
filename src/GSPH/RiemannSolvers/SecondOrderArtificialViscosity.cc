@@ -1,7 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// HLLC -- approximate riemann solver
-//   Toro E.F., Spruce M., Speares W., (1994) "Restoration of the Contact
-//    Surface in the HLL-Riemann Solver," Shock Waves, 4:25-34
+// SecondOrderArtificialViscosity -- approximate riemann solver
+//   Frontiere, Raskin, Owen (2017) "CRKSPH:- A Conservative Reproducing Kernel 
+//   Smoothed Particle Hydrodynamics Scheme," J. Comp. Phys.
+//
+// This is a reimplementation of the LimitedArtificialViscosity class as a
+// derivative of RiemannSolverBase so it can be used with GSPH derived
+// classes 
 //
 // J.M. Pearl 2021
 //----------------------------------------------------------------------------//
@@ -11,7 +15,7 @@
 
 #include "GSPH/WaveSpeeds/WaveSpeedBase.hh"
 #include "GSPH/Limiters/LimiterBase.hh"
-#include "GSPH/RiemannSolvers/HLLC.hh"
+#include "GSPH/RiemannSolvers/SecondOrderArtificialViscosity.hh"
 
 #include <limits>
 
@@ -21,13 +25,17 @@ namespace Spheral {
 // Constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-HLLC<Dimension>::
-HLLC(LimiterBase<Dimension>& slopeLimiter,
-     WaveSpeedBase<Dimension>& waveSpeed,
-     const bool linearReconstruction):
+SecondOrderArtificialViscosity<Dimension>::
+SecondOrderArtificialViscosity(const Scalar Cl,
+                               const Scalar Cq,
+                               LimiterBase<Dimension>& slopeLimiter,
+                               WaveSpeedBase<Dimension>& waveSpeed,
+                               const bool linearReconstruction):
   RiemannSolverBase<Dimension>(slopeLimiter,
                                waveSpeed,
-                               linearReconstruction){
+                               linearReconstruction),
+  mCl(Cl),
+  mCq(Cq){
 
 }
 
@@ -35,8 +43,8 @@ HLLC(LimiterBase<Dimension>& slopeLimiter,
 // Destructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-HLLC<Dimension>::
-~HLLC(){}
+SecondOrderArtificialViscosity<Dimension>::
+~SecondOrderArtificialViscosity(){}
 
 
 //------------------------------------------------------------------------------
@@ -44,7 +52,7 @@ HLLC<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-HLLC<Dimension>::
+SecondOrderArtificialViscosity<Dimension>::
 interfaceState(const typename Dimension::Vector& ri,
                const typename Dimension::Vector& rj,
                const typename Dimension::SymTensor& Hi,
@@ -66,64 +74,39 @@ interfaceState(const typename Dimension::Vector& ri,
                      typename Dimension::Scalar& /*rhostari*/,
                      typename Dimension::Scalar& /*rhostarj*/) const{
 
-  Scalar Si, Sj;
-
+  
   const auto tiny = std::numeric_limits<Scalar>::epsilon();
 
-  const auto& waveSpeedObject = this->waveSpeed();
+  const Vector rij = ri - rj;
+  const Vector rhatij = rij.unitVector();
+  const Vector etaij = 0.5*(Hi+Hj)*rij;
 
-  const auto rij = ri - rj;
-  const auto rhatij = rij.unitVector();
+  // default to nodal values
+  Vector v1i = vi;
+  Vector v1j = vj;
 
-  vstar = 0.5*(vi+vj);
-  Pstar = 0.5*(Pi+Pj);
+  // linear reconstruction
+  if(this->linearReconstruction()){
 
-  if (ci > tiny or cj > tiny){
-
-
-    // default to nodal values
-    auto v1i = vi;
-    auto v1j = vj;
-
-    auto p1i = Pi;
-    auto p1j = Pj;
-
-    // linear reconstruction
-    if(this->linearReconstruction()){
-
-      // gradients along line of action
-      this->linearReconstruction(ri,rj, Pi,Pj,DpDxi,DpDxj, //inputs
-                                 p1i,p1j);                 //outputs
-      this->linearReconstruction(ri,rj, vi,vj,DvDxi,DvDxj, //inputs
-                                 v1i,v1j);                 //outputs
+    this->linearReconstruction(ri,rj, vi,vj,DvDxi,DvDxj, //inputs
+                               v1i,v1j);                 //outputs
   
-    }
-
-    const auto ui = v1i.dot(rhatij);
-    const auto uj = v1j.dot(rhatij);
-    const auto wi = v1i - ui*rhatij;
-    const auto wj = v1j - uj*rhatij;
-
-    waveSpeedObject.waveSpeed(rhoi,rhoj,ci,cj,ui,uj,  //inputs
-                              Si,Sj);                 //outputs
-
-    const auto denom = safeInv(Si - Sj);
-
-    const auto ustar = (Si*ui - Sj*uj - p1i + p1j )*denom;
-    const auto wstar = (Si*wi - Sj*wj)*denom;
-    vstar = ustar*rhatij + wstar;
-    Pstar = Sj * (ustar-uj) + p1j;
-
-  }else{ // if ci & cj too small punt to normal av
-    const auto uij = std::min((vi-vj).dot(rhatij),0.0);
-    Pstar += 0.25 * (rhoi+rhoj) * (uij*uij);
   }
+  const Vector vij = v1i-v1j;
+  const Scalar muij = std::max(0.0,-vij.dot(etaij)/(etaij.magnitude2() + tiny));
+  const Scalar cij = 0.5*(ci+cj);
+  const Scalar rhoij = 2*rhoi*rhoj/(rhoi+rhoj);
+  Pstar = 0.5*(Pi+Pj) 
+        + rhoij*muij*(this->Cl()*cij
+                     +this->Cq()*muij);
+  vstar = 0.5*(vi+vj);
+
 }// Scalar interface class
 
 
 template<typename Dimension>
 void
-HLLC<Dimension>::
+SecondOrderArtificialViscosity<Dimension>::
 interfaceState(const Vector& /*ri*/,
                const Vector& /*rj*/,
                const SymTensor& /*Hi*/,

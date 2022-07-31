@@ -3,9 +3,9 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "GSPH/RiemannSolvers/GHLLC.cc"
+#include "GSPH/RiemannSolvers/SecondOrderArtificialViscosity.cc"
 
 namespace Spheral {
-  template class GHLLC<Dim< %(ndim)s > >;
+  template class SecondOrderArtificialViscosity<Dim< %(ndim)s > >;
 }
 """

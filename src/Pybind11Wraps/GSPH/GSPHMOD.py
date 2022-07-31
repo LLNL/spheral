@@ -34,7 +34,7 @@ PYB11includes += ['"GSPH/GenericRiemannHydro.hh"',
                   '"GSPH/Limiters/OspreLimiter.hh"',
                   '"GSPH/RiemannSolvers/RiemannSolverBase.hh"',
                   '"GSPH/RiemannSolvers/HLLC.hh"',
-                  '"GSPH/RiemannSolvers/GHLLC.hh"',
+                  '"GSPH/RiemannSolvers/SecondOrderArtificialViscosity.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ SuperbeeLimiter%(ndim)id = PYB11TemplateClass(SuperbeeLimiter, template_paramete
 OspreLimiter%(ndim)id = PYB11TemplateClass(OspreLimiter, template_parameters="%(Dimension)s")
 RiemannSolverBase%(ndim)id = PYB11TemplateClass(RiemannSolverBase, template_parameters="%(Dimension)s")
 HLLC%(ndim)id = PYB11TemplateClass(HLLC, template_parameters="%(Dimension)s")
-GHLLC%(ndim)id = PYB11TemplateClass(GHLLC, template_parameters="%(Dimension)s")
+SecondOrderArtificialViscosity%(ndim)id = PYB11TemplateClass(SecondOrderArtificialViscosity, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 

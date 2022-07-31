@@ -239,19 +239,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         gradVi = newRiemannDvDx(nodeListi,i);
         gradVj = newRiemannDvDx(nodeListj,j);
       }
-      riemannSolver.interfaceState(i,            j, 
-                                   nodeListi,    nodeListj, 
-                                   ri,           rj, 
+      riemannSolver.interfaceState(ri,           rj, 
+                                   Hi,           Hj, 
                                    rhoi,         rhoj, 
                                    ci,           cj, 
                                    Peffi,        Peffj, 
                                    vi,           vj, 
                                    gradPi,       gradPj, 
                                    gradVi,       gradVj, 
-                                   Pstar,
-                                   vstar,
-                                   rhostari,
-                                   rhostarj);
+                                   Pstar,     //output
+                                   vstar,     //output
+                                   rhostari,  //output
+                                   rhostarj); //output
 
       // get our basis function and interface area vectors
       //--------------------------------------------------------

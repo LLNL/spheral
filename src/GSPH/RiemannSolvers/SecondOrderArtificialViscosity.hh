@@ -1,10 +1,15 @@
 //---------------------------------Spheral++----------------------------------//
-// GHLLC -- HLLC solver w/ gravitational source term
+// SecondOrderArtificialViscosity -- approximate riemann solver
+//   Toro E.F., Spruce M., Speares W., (1994) "Restoration of the Contact Surface in
+//   the HLL-Riemann Solver," Shock Waves, 4:25-34
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_GHLLC_hh__
-#define __Spheral_GHLLC_hh__
 
-#include "HLLC.hh"
+#ifndef __Spheral_SecondOrderArtificialViscosity_hh__
+#define __Spheral_SecondOrderArtificialViscosity_hh__
+
+#include "RiemannSolverBase.hh"
 
 namespace Spheral {
 
@@ -17,7 +22,7 @@ template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
-class GHLLC : public HLLC<Dimension> {
+class SecondOrderArtificialViscosity : public RiemannSolverBase<Dimension> {
 
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -26,40 +31,20 @@ class GHLLC : public HLLC<Dimension> {
 
 public:
 
-  GHLLC(LimiterBase<Dimension>& slopeLimiter,
-       WaveSpeedBase<Dimension>& waveSpeedBase,
-       const bool linearReconstruction,
-       const Vector gravitationalAcceleration);
+  SecondOrderArtificialViscosity(const Scalar Cl,
+                                 const Scalar Cq,
+                                 LimiterBase<Dimension>& slopeLimiter,
+                                 WaveSpeedBase<Dimension>& waveSpeedBase,
+                                 const bool linearReconstruction);
 
-  ~GHLLC();
+  ~SecondOrderArtificialViscosity();
 
-  // virtual
-  // void interfaceState(const int i,
-  //                     const int j,
-  //                     const int nodelisti,
-  //                     const int nodelistj,
-  //                     const Vector& ri,
-  //                     const Vector& rj,
-  //                     const Scalar& rhoi,   
-  //                     const Scalar& rhoj, 
-  //                     const Scalar& ci,   
-  //                     const Scalar& cj, 
-  //                     const Scalar& sigmai,    
-  //                     const Scalar& sigmaj,
-  //                     const Vector& vi,    
-  //                     const Vector& vj,
-  //                           Scalar& Pstar,
-  //                           Vector& vstar,
-  //                           Scalar& rhostari,
-  //                           Scalar& rhostarj) const override;
-
+  
   virtual
-  void interfaceState(const int i,
-                      const int j,
-                      const int nodelisti,
-                      const int nodelistj,
-                      const Vector& ri,
+  void interfaceState(const Vector& ri,
                       const Vector& rj,
+                      const SymTensor& Hi,
+                      const SymTensor& Hj,
                       const Scalar& rhoi,   
                       const Scalar& rhoj, 
                       const Scalar& ci,   
@@ -77,13 +62,12 @@ public:
                             Scalar& rhostari,
                             Scalar& rhostarj) const override;
 
+
   virtual
-  void interfaceState(const int i,
-                      const int j,
-                      const int nodelisti,
-                      const int nodelistj,
-                      const Vector& ri,
+  void interfaceState(const Vector& ri,
                       const Vector& rj,
+                      const SymTensor& Hi,
+                      const SymTensor& Hj,
                       const Scalar& rhoi,   
                       const Scalar& rhoj, 
                       const Scalar& ci,   
@@ -99,23 +83,27 @@ public:
                             Vector& Tstar,
                             Vector& vstar) const override;
 
-  
-  void gravitationalAcceleration(const Vector g);
-  Vector gravitationalAcceleration() const;
+  Scalar Cl() const;
+  void Cl(const Scalar x);
+
+  Scalar Cq() const;
+  void Cq(const Scalar x);
 
 private:
-  Vector mGravitationalAcceleration;
+  Scalar mCl;
+  Scalar mCq;
+  
 };
 
 }
 
-#include "GHLLCInline.hh"
+#include "SecondOrderArtificialViscosityInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class GHLLC;
+  template<typename Dimension> class SecondOrderArtificialViscosity;
 }
 
 #endif

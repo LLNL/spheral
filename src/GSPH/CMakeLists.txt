@@ -21,7 +21,7 @@ set(GSPH_inst
     WaveSpeeds/EinfeldtWaveSpeed
     RiemannSolvers/RiemannSolverBase
     RiemannSolvers/HLLC
-    RiemannSolvers/GHLLC)
+    RiemannSolvers/SecondOrderArtificialViscosity)
 
 set(GSPH_sources 
     GSPHFieldNames.cc)
@@ -48,7 +48,7 @@ set(GSPH_headers
     WaveSpeeds/EinfeldtWaveSpeed.hh
     RiemannSolvers/RiemannSolverBase.hh
     RiemannSolvers/HLLC.hh
-    RiemannSolvers/GHLLC.hh)
+    RiemannSolvers/SecondOrderArtificialViscosity.hh)
 
 add_subdirectory(Limiters)
 add_subdirectory(WaveSpeeds)
