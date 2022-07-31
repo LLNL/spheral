@@ -63,5 +63,5 @@ spheral_install_python_files(
     FacetedSurfaceASPHHydro.py
     )
 
-spheral_add_cxx_library(SPH)
+spheral_add_obj_library(SPH)
 

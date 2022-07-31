@@ -1,5 +1,6 @@
 set (_python_packages
   CXXTypes
+  CXXTests
   Geometry
   Silo
   DataOutput
@@ -24,6 +25,7 @@ set (_python_packages
   SPH
   CRKSPH
   SVPH
+  DEM
   GSPH
   FSISPH
   ArtificialViscosity

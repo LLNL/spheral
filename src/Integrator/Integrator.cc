@@ -503,11 +503,19 @@ Integrator<Dimension>::setGhostNodes() {
   for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd(); ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
   }
+  for (auto nodeListItr = db.DEMNodeListBegin(); nodeListItr < db.DEMNodeListEnd(); ++nodeListItr) {
+    (*nodeListItr)->numGhostNodes(0);
+  }
 
 
   // If we're need overlap connectivity, we need to double the kernel extent before setting ghost nodes.
   if (mRequireOverlapConnectivity) {
     for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
+      auto& neighbor = (*nodeListItr)->neighbor();
+      auto maxeta = 2.0*neighbor.kernelExtent();
+      neighbor.kernelExtent(maxeta);
+    }
+    for (auto nodeListItr = db.DEMNodeListBegin(); nodeListItr < db.DEMNodeListEnd();  ++nodeListItr) {
       auto& neighbor = (*nodeListItr)->neighbor();
       auto maxeta = 2.0*neighbor.kernelExtent();
       neighbor.kernelExtent(maxeta);
@@ -519,6 +527,10 @@ Integrator<Dimension>::setGhostNodes() {
     auto& neighbor = (*nodeListItr)->neighbor();
     neighbor.updateNodes();
   }
+  for (auto nodeListItr = db.DEMNodeListBegin(); nodeListItr < db.DEMNodeListEnd();  ++nodeListItr) {
+    auto& neighbor = (*nodeListItr)->neighbor();
+    neighbor.updateNodes();
+  }
 
   // Iterate over the boundaries and set their ghost node info.
   for (auto boundaryItr = boundaries.begin(); boundaryItr != boundaries.end(); ++boundaryItr) {
@@ -527,11 +539,20 @@ Integrator<Dimension>::setGhostNodes() {
     for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
       (*nodeListItr)->neighbor().updateNodes();
     }
+    for (auto nodeListItr = db.DEMNodeListBegin(); nodeListItr < db.DEMNodeListEnd();  ++nodeListItr) {
+      (*nodeListItr)->neighbor().updateNodes();
+    }
   }
 
   // If we doubled the kernel extents for overlap connectivity, put 'em back.
   if (mRequireOverlapConnectivity) {
     for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
+      auto& neighbor = (*nodeListItr)->neighbor();
+      auto maxeta = 0.5*neighbor.kernelExtent();
+      neighbor.kernelExtent(maxeta);
+      neighbor.updateNodes();
+    }
+    for (auto nodeListItr = db.DEMNodeListBegin(); nodeListItr < db.DEMNodeListEnd();  ++nodeListItr) {
       auto& neighbor = (*nodeListItr)->neighbor();
       auto maxeta = 0.5*neighbor.kernelExtent();
       neighbor.kernelExtent(maxeta);
@@ -675,6 +696,9 @@ Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
     for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr != db.fluidNodeListEnd(); ++nodeListItr) {
       (*nodeListItr)->neighbor().updateNodes();
     }
+    for (auto nodeListItr = db.DEMNodeListBegin(); nodeListItr != db.DEMNodeListEnd(); ++nodeListItr) {
+      (*nodeListItr)->neighbor().updateNodes();
+    }
   }
 
   // Iterate over the physics packages, and have them apply ghost boundaries
@@ -753,6 +777,11 @@ Integrator<Dimension>::setViolationNodes() {
   // Fix neighbor information.
   for (typename DataBase<Dimension>::FluidNodeListIterator nodeListItr = db.fluidNodeListBegin();
        nodeListItr != db.fluidNodeListEnd(); 
+       ++nodeListItr) {
+    (*nodeListItr)->neighbor().updateNodes();
+  }
+  for (typename DataBase<Dimension>::DEMNodeListIterator nodeListItr = db.DEMNodeListBegin();
+       nodeListItr != db.DEMNodeListEnd(); 
        ++nodeListItr) {
     (*nodeListItr)->neighbor().updateNodes();
   }
