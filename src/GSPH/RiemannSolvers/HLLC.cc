@@ -1,7 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
 // HLLC -- approximate riemann solver
-//   Toro E.F., Spruce M., Speares W., (1994) "Restoration of the Contact Surface in
-//   the HLL-Riemann Solver," Shock Waves, 4:25-34
+//   Toro E.F., Spruce M., Speares W., (1994) "Restoration of the Contact
+//    Surface in the HLL-Riemann Solver," Shock Waves, 4:25-34
 //
 // J.M. Pearl 2021
 //----------------------------------------------------------------------------//
@@ -218,10 +218,10 @@ interfaceState(const int i,
     if(this->linearReconstruction()){
 
       // gradients along line of action
-      this->linearReconstruction(ri,rj, Pi,Pj, DpDxi,DpDxj,
-                                 p1i,p1j);
-      this->linearReconstruction(ri,rj, vi,vj, DvDxi,DvDxj,
-                                 v1i,v1j);
+      this->linearReconstruction(ri,rj, Pi,Pj,DpDxi,DpDxj, //inputs
+                                 p1i,p1j);                 //outputs
+      this->linearReconstruction(ri,rj, vi,vj,DvDxi,DvDxj, //inputs
+                                 v1i,v1j);                 //outputs
   
     }
 
@@ -230,13 +230,14 @@ interfaceState(const int i,
     const auto wi = v1i - ui*rhatij;
     const auto wj = v1j - uj*rhatij;
 
-    waveSpeedObject.waveSpeed(rhoi,rhoj,ci,cj,ui,uj,Si,Sj);
+    waveSpeedObject.waveSpeed(rhoi,rhoj,ci,cj,ui,uj,  //inputs
+                              Si,Sj);                 //outputs
 
     const auto denom = safeInv(Si - Sj);
 
-    const auto ustar = (Si*ui - Sj*uj - p1i + p1j )*denom;
+    const auto ustar = (Si*ui - Sj*uj  )*denom;
     const auto wstar = (Si*wi - Sj*wj)*denom;
-    vstar = ustar*rhatij + wstar;
+    //vstar = ustar*rhatij + wstar;
     Pstar = Sj * (ustar-uj) + p1j;
 
   }else{ // if ci & cj too small punt to normal av

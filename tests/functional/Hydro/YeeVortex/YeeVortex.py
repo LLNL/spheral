@@ -52,13 +52,13 @@ commandLine(
     #Center and radius of Vortex
     xc=0.0,
     yc=0.0,
-    rmax = 5.0,
+    rmax = 6.0,
 
     # How far should we measure the error norms?
     rmaxnorm = 5.0,
     
     # The number of radial points on the outside to force with constant BC
-    nbcrind = 10,
+    nbcrind = 6,
 
     #Vortex strength
     beta = 5.0,
@@ -69,12 +69,12 @@ commandLine(
     # Resolution and node seeding.
     nRadial = 64,
     seed = "constantDTheta",
-    numLlyodIters = 10,
+    numLlyodIters = 4,
 
     # kernel options
-    KernelConstructor = NBSplineKernel,
-    nPerh = 1.51,
-    order = 5,
+    KernelConstructor = WendlandC2Kernel,
+    nPerh = 3.01,
+    order = 7,
     hmin = 1e-5,
     hmax = 0.5,
     hminratio = 0.1,
@@ -93,7 +93,7 @@ commandLine(
     XSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
-    densityUpdate = IntegrateDensity, # VolumeScaledDensity,
+    densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
     compatibleEnergy = True,
     evolveTotalEnergy = False,
     correctVelocityGradient = True,
@@ -116,8 +116,8 @@ commandLine(
 
     # artificial viscosity
     Qconstructor = LimitedMonaghanGingoldViscosity,  # TensorMonaghanGingoldViscosity,
-    Cl = 0.0, 
-    Cq = 0.0,
+    Cl = 1.0, 
+    Cq = 1.0,
     boolReduceViscosity = False,
     nhQ = 5.0,
     nhL = 10.0,
@@ -140,7 +140,7 @@ commandLine(
     epsilon2 = 1e-2,
     
     # integrator
-    IntegratorConstructor = VerletIntegrator,
+    IntegratorConstructor = CheapSynchronousRK2Integrator,
     cfl = 0.25,
     goalTime = 8.0,
     steps = None,
@@ -166,7 +166,7 @@ commandLine(
     graphics = True,
     smooth = False,
     outputFileBase = ".out",
-    convergenceFileBase = "converge.txt",
+    convergenceFileBase = "xstaglattice_converge.txt",
     )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
@@ -210,16 +210,18 @@ densityUpdateLabel = {IntegrateDensity : "IntegrateDensity",
                       SumVoronoiCellDensity : "SumVoronoiCellDensity"}
 baseDir = os.path.join(dataDir,
                        hydroname,
-                       Qconstructor.__name__,
-                       KernelConstructor.__name__,
-                       "Cl=%g_Cq=%g" % (Cl, Cq),
-                       densityUpdateLabel[densityUpdate],
-                       "compatibleEnergy=%s" % compatibleEnergy,
-                       "Cullen=%s" % boolCullenViscosity,
-                       "nPerh=%3.1f" % nPerh,
-                       "fcentroidal=%f" % max(fcentroidal, filter),
-                       "fcellPressure=%f" % fcellPressure,
-                       "seed=%s" % seed,
+                       #str(riemannGradientType),
+                       #LimiterConstructor.__name__,
+                       #Qconstructor.__name__,
+                       #KernelConstructor.__name__,
+                       #"Cl=%g_Cq=%g" % (Cl, Cq),
+                       #densityUpdateLabel[densityUpdate],
+                       #"compatibleEnergy=%s" % compatibleEnergy,
+                       #"Cullen=%s" % boolCullenViscosity,
+                       #"nPerh=%3.1f" % nPerh,
+                       #"fcentroidal=%f" % max(fcentroidal, filter),
+                       #"fcellPressure=%f" % fcellPressure,
+                       #"seed=%s" % seed,
                        str(nRadial))
 restartDir = os.path.join(baseDir, "restarts")
 restartBaseName = os.path.join(restartDir, "yeevortex-xy-%i" % nRadial)
@@ -283,8 +285,9 @@ output("    nodes.nodesPerSmoothingScale")
 # Set the node properties.
 #-------------------------------------------------------------------------------
 rmaxbound = rmax + rmax/nRadial*nbcrind
+print rmaxbound
 nr1 = nRadial + nbcrind
-if seed == "lattice":
+if seed == "lattice" or "xstaggeredLattice":
     generator = GenerateNodeDistribution2d(2*nr1, 2*nr1,
                                            rho = YeeDensityFunc,
                                            distributionType = seed,
@@ -296,6 +299,7 @@ if seed == "lattice":
                                            nNodePerh = nPerh,
                                            SPH = SPH)
 else:
+    
     generator = GenerateNodeDistribution2d(nr1, nr1,
                                            rho = YeeDensityFunc,
                                            distributionType = seed,
@@ -559,11 +563,11 @@ if smooth:
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-# if useVoronoiOutput:
-#     import SpheralVoronoiSiloDump
-#     vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
-# else:
-#     vizMethod = None # default
+if useVoronoiOutput:
+    import SpheralVoronoiSiloDump
+    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
+else:
+    vizMethod = None # default
 from SpheralPointmeshSiloDump import dumpPhysicsState  
   
 control = SpheralController(integrator, WT,
@@ -597,25 +601,26 @@ if numLlyodIters>0:
     pos = nodes.positions()
     rho = nodes.massDensity()
     mass = nodes.mass()
-    vol = hydro.volume[0]
-    VolTot=0.0
-    for i in xrange(nodes.numInternalNodes):
-        VolTot += vol[i]
-    VolTot = mpi.allreduce(VolTot,mpi.SUM)
-    numTotal = mpi.allreduce(nodes.numInternalNodes,mpi.SUM)
-    volNominal = VolTot/numTotal
+    #vol = hydro.volume[0]
 
-    for i in xrange(nodes.numInternalNodes):
-        xi, yi = pos[i]
-        xci = (xi-xc)
-        yci = (yi-yc)
-        r2=xci*xci+yci*yci
-        velx = vel_infx-yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-        vely = vel_infy+xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-        rho[i] = YeeDensityFunc(pos[i])
-        mass[i] = rho[i]*vol[i]
-        vel[i] = Vector(velx,vely)
-        eps[i] = pow(rho[i],(gamma-1.0))/(gamma-1.0)
+    # for i in xrange(nodes.numInternalNodes):
+    #     xi, yi = pos[i]
+    #     xci = (xi-xc)
+    #     yci = (yi-yc)
+    #     r2=xci*xci+yci*yci
+    #     velx = vel_infx-yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+    #     vely = vel_infy+xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
+    #     rhoNew = YeeDensityFunc(pos[i])
+    #     mass[i] = rhoNew*mass[i]*rho[i]
+    #     rho[i] = rhoNew
+    #     vel[i] = Vector(velx,vely)
+    #     eps[i] = pow(rho[i],(gamma-1.0))/(gamma-1.0)
+    # packages = integrator.physicsPackages()
+    # state = State2d(db, packages)
+    # integrator.setGhostNodes()
+    # derivs = StateDerivatives2d(db, packages)
+    # integrator.applyGhostBoundaries(state, derivs)
+    # integrator.finalizeGhostBoundaries()
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
