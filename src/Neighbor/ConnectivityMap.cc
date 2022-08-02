@@ -163,7 +163,8 @@ ConnectivityMap<Dimension>::
 patchConnectivity(const FieldList<Dimension, int>& flags,
                   const FieldList<Dimension, int>& old2new) {
   TIME_ConnectivityMap_patch.start();
-  CALI_CXX_MARK_FUNCTION;
+  // CALI_CXX_MARK_FUNCTION;
+  CALI_MARK_BEGIN("TIME_ConnectivityMap_patch");
 
   const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
 
@@ -325,6 +326,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
   // this method after that point.
   //ENSURE(valid());
   TIME_ConnectivityMap_patch.stop();
+  CALI_MARK_END("TIME_ConnectivityMap_patch");
 }
 
 //------------------------------------------------------------------------------
