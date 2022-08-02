@@ -16,7 +16,6 @@
 #include "Damage/ThreePointDamagedNodeCoupling.hh"
 #include "Utilities/pointDistances.hh"
 #include "Utilities/DBC.hh"
-#include "Utilities/Timer.hh"
 #include "Field/FieldList.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -25,12 +24,6 @@
 #include <vector>
 
 using std::vector;
-
-// Declare timers
-extern Timer TIME_Damage;
-extern Timer TIME_ThreePointCoupling;
-extern Timer TIME_ThreePointCoupling_initial;
-extern Timer TIME_ThreePointCoupling_pairs;
 
 namespace Spheral {
 
@@ -70,10 +63,7 @@ ThreePointDamagedNodeCoupling(const State<Dimension>& state,
                               NodePairList& pairs):
   NodeCoupling() {
 
-  TIME_Damage.start();
-  TIME_ThreePointCoupling.start();
-  CALI_MARK_BEGIN("TIME_Damage");
-  CALI_MARK_BEGIN("TIME_ThreePointCoupling");
+  CALI_MARK_BEGIN("ThreePointCoupling");
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto  D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
@@ -88,8 +78,7 @@ ThreePointDamagedNodeCoupling(const State<Dimension>& state,
   // For each interacting pair we need to compute the effective damage shielding, expressed
   // as the f_couple parameter in the NodePairIdxType.
   // Everyone starts out fully coupled.
-  TIME_ThreePointCoupling_initial.start();
-  CALI_MARK_BEGIN("TIME_ThreePointCoupling_initial");
+  CALI_MARK_BEGIN("ThreePointCoupling_initial");
 #pragma omp parallel for
   for (auto i = 0u; i < npairs; ++i) {
     pairs[i].f_couple = 1.0;
@@ -118,16 +107,14 @@ ThreePointDamagedNodeCoupling(const State<Dimension>& state,
   }
   // Parallel note: at this point workToBeDone is rank dependent, so some ranks will enter the following
   // block and some not.
-  TIME_ThreePointCoupling_initial.stop();
-  CALI_MARK_END("TIME_ThreePointCoupling_intial");
+  CALI_MARK_END("ThreePointCoupling_intial");
 
   // Now apply damage to pair interactions.
   if (workToBeDone) {
 
     // This branch uses the fact the ConnectivityMap has already computed the intersection
     // of each pair.
-    TIME_ThreePointCoupling_pairs.start();
-    CALI_MARK_BEGIN("TIME_ThreePointCoupling_pairs");
+    CALI_MARK_BEGIN("ThreePointCoupling_pairs");
     Vector b;
 #pragma omp parallel for private(b)
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -169,14 +156,10 @@ ThreePointDamagedNodeCoupling(const State<Dimension>& state,
         CHECK(fij >= 0.0 and fij <= 1.0);
       }
     }
-    TIME_ThreePointCoupling_pairs.stop();
-    CALI_MARK_END("TIME_ThreePointCoupling_pairs");
+    CALI_MARK_END("ThreePointCoupling_pairs");
   }
   
-  TIME_ThreePointCoupling.stop();
-  TIME_Damage.stop();
-  CALI_MARK_END("TIME_ThreePointCoupling");
-  CALI_MARK_END("TIME_Damage");
+  CALI_MARK_END("ThreePointCoupling");
 }
 
 }

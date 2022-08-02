@@ -8,10 +8,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
-#include "Utilities/Timer.hh"
 #include "caliper/cali.h"
-
-extern Timer TIME_interpolateRK;
 
 namespace Spheral {
 
@@ -174,7 +171,6 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
                   const FieldList<Dimension, RKCoefficients<Dimension>>& corrections,
                   const NodeCoupling& nodeCoupling) {
 
-  TIME_interpolateRK.start();
   CALI_CXX_MARK_FUNCTION;
 
   typedef typename Dimension::Vector Vector;
@@ -285,7 +281,6 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
     }
   }
 
-  TIME_interpolateRK.stop();
 
   // That's it!
   return result;

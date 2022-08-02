@@ -19,7 +19,6 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "Utilities/Timer.hh"
 #include "Utilities/NodeCoupling.hh"
 #include "Damage/PairMaxDamageNodeCoupling.hh"
 #include "Damage/DamageGradientNodeCoupling.hh"
@@ -40,10 +39,6 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
-
-// Declare timers
-extern Timer TIME_Damage;
-extern Timer TIME_DamageModel_finalize;
 
 namespace Spheral {
 
@@ -180,7 +175,7 @@ finalize(const Scalar /*time*/,
          State<Dimension>& state,
          StateDerivatives<Dimension>& /*derivs*/) {
 
-  CALI_CXX_MARK_FUNCTION;
+  CALI_MARK_BEGIN("DamageModel_finalize");
 
   // For 3pt damage, check if we should switch to using full intersection data
   // from the ConnectivityMap
@@ -209,6 +204,7 @@ finalize(const Scalar /*time*/,
     mComputeIntersectConnectivity = (dfrac > 0.2);  // Should tune this number...
     // if (Process::getRank() == 0) std::cout << "DamageModel dfrac = " << nD << "/" << ntot << " = " << dfrac << " : " << mComputeIntersectConnectivity << std::endl;
   }
+  CALI_MARK_END("DamageModel_finalize");
 }
 
 //------------------------------------------------------------------------------

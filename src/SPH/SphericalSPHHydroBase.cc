@@ -45,7 +45,6 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
-#include "Utilities/Timer.hh"
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
 #include "caliper/cali.h"
@@ -71,22 +70,6 @@ using std::min;
 using std::max;
 using std::abs;
 using std::make_shared;
-
-// Declare timers
-extern Timer TIME_SPH;
-extern Timer TIME_SPHinitializeStartup;
-extern Timer TIME_SPHregister;
-extern Timer TIME_SPHregisterDerivs;
-extern Timer TIME_SPHpreStepInitialize;
-extern Timer TIME_SPHinitialize;
-extern Timer TIME_SPHfinalizeDerivs;
-extern Timer TIME_SPHghostBounds;
-extern Timer TIME_SPHupdateVol;
-extern Timer TIME_SPHenforceBounds;
-extern Timer TIME_SPHevalDerivs;
-extern Timer TIME_SPHevalDerivs_initial;
-extern Timer TIME_SPHevalDerivs_pairs;
-extern Timer TIME_SPHevalDerivs_final;
 
 namespace Spheral {
 
@@ -232,10 +215,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
                     const DataBase<Dim<1>>& dataBase,
                     const State<Dim<1>>& state,
                     StateDerivatives<Dim<1>>& derivs) const {
-  TIME_SPHevalDerivs.start();
-  CALI_MARK_BEGIN("TIME_SPHevalDerivs");
-  TIME_SPHevalDerivs_initial.start();
-  CALI_MARK_BEGIN("TIME_SPHevalDerivs_initial");
+  CALI_MARK_BEGIN("SphericalSPHevalDerivs");
+  CALI_MARK_BEGIN("SphericalSPHevalDerivs_initial");
 
   //static double totalLoopTime = 0.0;
   // Get the ArtificialViscosity.
@@ -320,14 +301,12 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   // Size up the pair-wise accelerations before we start.
   const auto nnodes = dataBase.numFluidInternalNodes();
   if (mCompatibleEnergyEvolution) pairAccelerations.resize(2u*npairs + nnodes);
-  TIME_SPHevalDerivs_initial.stop();
-  CALI_MARK_END("TIME_SPHevalDerivs_initial");
+  CALI_MARK_END("SphericalSPHevalDerivs_initial");
 
   Vector gradSum_check;
 
   // Walk all the interacting pairs.
-  TIME_SPHevalDerivs_pairs.start();
-  CALI_MARK_BEGIN("TIME_SPHevalDerivs_pairs");
+  CALI_MARK_BEGIN("SphericalSPHevalDerivs_pairs");
 #pragma omp parallel
   {
     // Thread private scratch variables
@@ -537,12 +516,10 @@ evaluateDerivatives(const Dim<1>::Scalar time,
     threadReduceFieldLists<Dimension>(threadStack);
 
   }   // OpenMP parallel region
-  TIME_SPHevalDerivs_pairs.stop();
-  CALI_MARK_END("TIME_SPHevalDerivs_pairs");
+  CALI_MARK_END("SphericalSPHevalDerivs_pairs");
 
   // Finish up the derivatives for each point.
-  TIME_SPHevalDerivs_final.start();
-  CALI_MARK_BEGIN("TIME_SPHevalDerivs_final");
+  CALI_MARK_BEGIN("SphericalSPHevalDerivs_final");
   size_t offset = 2u*npairs;
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
@@ -679,10 +656,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
     offset += ni;
   }
   CHECK(offset == 2u*npairs + nnodes);
-  TIME_SPHevalDerivs_final.stop();
-  CALI_MARK_END("TIME_SPHevalDerivs_final");
-  TIME_SPHevalDerivs.stop();
-  CALI_MARK_END("TIME_SPHevalDerivs");
+  CALI_MARK_END("SphericalSPHevalDerivs_final");
+  CALI_MARK_END("SphericalSPHevalDerivs");
 }
 
 //------------------------------------------------------------------------------

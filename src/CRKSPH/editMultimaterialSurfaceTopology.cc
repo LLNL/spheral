@@ -7,7 +7,6 @@
 //------------------------------------------------------------------------------
 #include "editMultimaterialSurfaceTopology.hh"
 #include "Utilities/DBC.hh"
-#include "Utilities/Timer.hh"
 #include "caliper/cali.h"
 
 #include <vector>
@@ -23,7 +22,7 @@ template<typename Dimension>
 void
 editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
                                  ConnectivityMap<Dimension>& connectivityMap) {
-  CALI_CXX_MARK_FUNCTION;
+  CALI_MARK_BEGIN("CRKSPH_editMultimaterialSurfaceTopology");
 
   // Declare some useful stuff and preconditions.
   const auto  numNodeLists = surfacePoint.size();
@@ -130,6 +129,7 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
   // }
   // // BLAGO!
 
+  CALI_MARK_END("CRKSPH_editMultimaterialSurfaceTopology");
 }
 
 }

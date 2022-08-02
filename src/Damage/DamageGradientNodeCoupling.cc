@@ -13,7 +13,6 @@
 #include "Damage/DamageGradientNodeCoupling.hh"
 #include "Utilities/pointDistances.hh"
 #include "Utilities/DBC.hh"
-#include "Utilities/Timer.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Field/FieldList.hh"
@@ -24,12 +23,6 @@
 #include <vector>
 
 using std::vector;
-
-// Declare timers
-extern Timer TIME_Damage;
-extern Timer TIME_DamageGradientCoupling;
-extern Timer TIME_DamageGradientCoupling_grad;
-extern Timer TIME_DamageGradientCoupling_pairs;
 
 namespace Spheral {
 
@@ -45,8 +38,7 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
                            NodePairList& pairs):
   NodeCoupling() {
 
-  CALI_MARK_BEGIN("TIME_Damage");
-  CALI_MARK_BEGIN("TIME_DamageGradientCoupling");
+  CALI_MARK_BEGIN("DamageGradientCoupling");
 
   const auto npairs = pairs.size();
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -57,7 +49,7 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
   const auto numNodeLists = position.numFields();
 
   // Compute a scalar damage estimate to take the gradient of.
-  CALI_MARK_BEGIN("TIME_DamageGradientCoupling_grad");
+  CALI_MARK_BEGIN("DamageGradientCoupling_grad");
   FieldList<Dimension, Scalar> Dtrace(FieldStorageType::CopyFields);
   for (auto k = 0u; k < numNodeLists; ++k) {
     Dtrace.appendNewField("grad D", D[k]->nodeList(), 0.0);
@@ -75,11 +67,11 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(gradD);
     (*boundaryItr)->finalizeGhostBoundary();
   }
-  CALI_MARK_END("TIME_DamageGradientCoupling_grad");
+  CALI_MARK_END("DamageGradientCoupling_grad");
 
   // For each interacting pair we need to compute the effective damage shielding, expressed
   // as the f_couple parameter in the NodePairIdxType.
-  CALI_MARK_BEGIN("TIME_DamageGradientCoupling_pairs");
+  CALI_MARK_BEGIN("DamageGradientCoupling_pairs");
   size_t i, il, j, jl;
   Scalar hij;
   Vector xjihat;
@@ -101,9 +93,8 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
     // }
     CHECK(pairs[k].f_couple >= 0.0 and pairs[k].f_couple <= 1.0);
   }
-  CALI_MARK_END("TIME_DamageGradientCoupling_pairs");
-  CALI_MARK_END("TIME_DamageGradientCoupling");
-  CALI_MARK_END("TIME_Damage");
+  CALI_MARK_END("DamageGradientCoupling_pairs");
+  CALI_MARK_END("DamageGradientCoupling");
 }
 
 }
