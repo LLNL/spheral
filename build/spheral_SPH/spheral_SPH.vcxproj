@@ -378,7 +378,6 @@
     <ClCompile Include="..\..\src\SPH\SPHHydroBaseInst.cc.2.cc" />
     <ClCompile Include="..\..\src\SPH\SPHHydroBaseInst.cc.3.cc" />
     <ClCompile Include="..\..\src\SPH\SPHHydroBaseRZ.cc" />
-    <ClCompile Include="..\..\src\SPH\SPHHydroBaseGSRZ.cc" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\SPH\computeSPHOmegaGradhCorrectionInst.cc.py">

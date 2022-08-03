@@ -101,21 +101,23 @@ gradientPairWise
             const Vector rij = ri - rj;
             const Vector etai = Hi*rij;
             const Vector etaj = Hj*rij;
+            const Scalar etaiMag = etai.magnitude();
+            const Scalar etajMag = etaj.magnitude();
 
             // Get the symmetrized kernel weighting for this node pair.
             Scalar Wij;
             switch((*fieldList.begin())->nodeListPtr()->neighbor().neighborSearchType()) {
             case NeighborSearchType::GatherScatter:
-              Wij = 0.5*(kernel(etai, Hi) + 
-                         kernel(etaj, Hj));
+              Wij = 0.5*(kernel(etaiMag, Hi.Determinant()) + 
+                         kernel(etajMag, Hj.Determinant()));
               break;
 
             case NeighborSearchType::Gather:
-              Wij = kernel(etai, Hi);
+              Wij = kernel(etaiMag, Hi.Determinant());
               break;
 
             case NeighborSearchType::Scatter:
-              Wij = kernel(etaj, Hj);
+              Wij = kernel(etajMag, Hj.Determinant());
               break;
 
             default:

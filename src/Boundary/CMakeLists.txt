@@ -18,12 +18,18 @@ set(Boundary_inst
 
 set(Boundary_sources 
   FacetedVolumeBoundary.cc
+  )
+
+if(ENABLE_1D)
+  list(APPEND Boundary_sources
+       SphericalOriginBoundary.cc
        )
+endif()
 
 if(ENABLE_2D)
   list(APPEND Boundary_sources
        AxisBoundaryRZ.cc
-      )
+       )
 endif()
 
 if(ENABLE_3D)
@@ -38,6 +44,7 @@ instantiate(Boundary_inst Boundary_sources)
 
 set(Boundary_headers
     AxisBoundaryRZ.hh
+    SphericalOriginBoundary.hh
     Boundary.hh
     BoundaryInline.hh
     CRKSPHVoidBoundary.hh
@@ -73,5 +80,5 @@ set(Boundary_headers
 
 spheral_install_python_files(ExpandingDomain.py)
 
-spheral_add_cxx_library(Boundary)
+spheral_add_obj_library(Boundary)
 

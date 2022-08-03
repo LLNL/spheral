@@ -226,6 +226,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   // The kernels and such.
   const auto& W = this->kernel();
   const auto& WQ = this->PiKernel();
+  const auto  oneKernel = (W == WQ);
 
   // A few useful constants we'll use in the following loop.
   const double tiny = 1.0e-30;
@@ -309,6 +310,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
     // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
+    Vector gradWi, gradWj, gradWQi, gradWQj;
     Tensor QPiij, QPiji;
 
     typename SpheralThreads<Dim<2>>::FieldListStack threadStack;
@@ -412,21 +414,26 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto etaj = Hj*xij;
       const auto etaMagi = etai.magnitude();
       const auto etaMagj = etaj.magnitude();
+      const auto etaUnit = etai*safeInvVar(etaMagi);
       CHECK(etaMagi >= 0.0);
       CHECK(etaMagj >= 0.0);
 
       // Symmetrized kernel weight and gradient.
-      std::tie(Wi, gWi) = W.kernelAndGradValue(etaMagi, Hdeti);
-      std::tie(WQi, gWQi) = WQ.kernelAndGradValue(etaMagi, Hdeti);
-      const auto Hetai = Hi*etai.unitVector();
-      const auto gradWi = gWi*Hetai;
-      const auto gradWQi = gWQi*Hetai;
-
-      std::tie(Wj, gWj) = W.kernelAndGradValue(etaMagj, Hdetj);
-      std::tie(WQj, gWQj) = WQ.kernelAndGradValue(etaMagj, Hdetj);
-      const auto Hetaj = Hj*etaj.unitVector();
-      const auto gradWj = gWj*Hetaj;
-      const auto gradWQj = gWQj*Hetaj;
+      W.kernelAndGradValue(etaMagi, Hdeti, Wi, gWi);
+      W.kernelAndGradValue(etaMagj, Hdetj, Wj, gWj);
+      gradWi = gWi*Hi*etaUnit;
+      gradWj = gWj*Hj*etaUnit;
+      if (oneKernel) {
+        WQi = Wi;
+        WQj = Wj;
+        gradWQi = gradWi;
+        gradWQj = gradWj;
+      } else {
+        WQ.kernelAndGradValue(etaMagi, Hdeti, WQi, gWQi);
+        WQ.kernelAndGradValue(etaMagj, Hdetj, WQj, gWQj);
+        gradWQi = gWQi*Hi*etaUnit;
+        gradWQj = gWQj*Hj*etaUnit;
+      }
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.

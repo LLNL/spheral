@@ -12,11 +12,12 @@ Assumes the results is interpolated as y_interp = a + b*x + c*x^2"""
         "Default constuctor -- returns a non-functional interpolator until initialized"
         return
 
-    def pyinit1(self,
-                xmin = "const double",
-                xmax = "const double",
-                yvals = "const std::vector<double>&"):
-        "Returns an interpolator for yvals sampled in x in [xmin, xmax]"
+    def pyinit_func(self,
+                    xmin = "const double",
+                    xmax = "const double",
+                    n = "const size_t",
+                    F = "const PythonBoundFunctors::SpheralFunctor<double, double>&"):
+        "Constructs an interpolator based on the given function"
         return
 
     def initialize(self,

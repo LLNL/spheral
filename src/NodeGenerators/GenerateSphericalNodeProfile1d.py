@@ -11,14 +11,15 @@ class GenerateSphericalNodeProfile1d(GenerateNodeProfile1d):
     def __init__(self,
                  nr,
                  rho,
-                 xmin,
-                 xmax,
+                 rmin,
+                 rmax,
                  nNodePerh = 2.01,
                  numbins = 10000):
-        GenerateNodeProfile1d.__init__(nx = nr,
+        GenerateNodeProfile1d.__init__(self,
+                                       nx = nr,
                                        rho = rho,
-                                       xmin = xmin,
-                                       xmax = xmax,
+                                       xmin = rmin,
+                                       xmax = rmax,
                                        nNodePerh = nNodePerh,
                                        numbins = numbins)
 

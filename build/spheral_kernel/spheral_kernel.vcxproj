@@ -366,7 +366,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\Kernel\GaussianKernelInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Kernel\GaussianKernelInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Kernel\Kernel.cc" />
     <ClCompile Include="..\..\src\Kernel\NBSplineKernelInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Kernel\NBSplineKernelInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Kernel\PiGaussianKernelInst.cc.2.cc" />

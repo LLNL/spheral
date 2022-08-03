@@ -15,9 +15,6 @@
     <ClCompile Include="..\..\src\Kernel\GaussianKernelInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Kernel\Kernel.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Kernel\NBSplineKernelInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -53,7 +50,11 @@
     <CustomBuild Include="..\..\src\Kernel\PiGaussianKernelInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\Kernel\TableKernelAleInst.cc.py" />
-    <CustomBuild Include="..\..\src\Kernel\VolumeIntegrationFunctionsAleInst.cc.py" />
+    <CustomBuild Include="..\..\src\Kernel\TableKernelAleInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\VolumeIntegrationFunctionsAleInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

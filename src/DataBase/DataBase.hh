@@ -7,9 +7,11 @@
 #ifndef DataBase_HH
 #define DataBase_HH
 
+#include "Geometry/Dimension.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "NodeList/SolidNodeList.hh"
+#include "NodeList/DEMNodeList.hh"
 #include "Field/NodeIterators.hh"
 #include "Neighbor/ConnectivityMap.hh"
 
@@ -41,6 +43,9 @@ public:
   typedef typename std::vector<SolidNodeList<Dimension>*>::iterator SolidNodeListIterator;
   typedef typename std::vector<SolidNodeList<Dimension>*>::const_iterator ConstSolidNodeListIterator;
 
+  typedef typename std::vector<DEMNodeList<Dimension>*>::iterator DEMNodeListIterator;
+  typedef typename std::vector<DEMNodeList<Dimension>*>::const_iterator ConstDEMNodeListIterator;
+
   typedef ConnectivityMap<Dimension> ConnectivityMapType;
   typedef std::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
   
@@ -61,6 +66,7 @@ public:
   unsigned int numNodeLists() const;
   unsigned int numFluidNodeLists() const;
   int numSolidNodeLists() const;
+  int numDEMNodeLists() const;
 
   // Numbers of nodes.
   int numInternalNodes() const;
@@ -110,6 +116,18 @@ public:
 
   ConstNodeListIterator solidNodeListAsNodeListBegin() const;
   ConstNodeListIterator solidNodeListAsNodeListEnd() const;
+  
+  DEMNodeListIterator DEMNodeListBegin();
+  DEMNodeListIterator DEMNodeListEnd();
+
+  ConstDEMNodeListIterator DEMNodeListBegin() const;
+  ConstDEMNodeListIterator DEMNodeListEnd() const;
+
+  NodeListIterator DEMNodeListAsNodeListBegin();
+  NodeListIterator DEMNodeListAsNodeListEnd();
+
+  ConstNodeListIterator DEMNodeListAsNodeListBegin() const;
+  ConstNodeListIterator DEMNodeListAsNodeListEnd() const;
 
   // Provide NodeIterators to go over the elements of NodeLists/FieldLists.
   AllNodeIterator<Dimension> nodeBegin() const;
@@ -169,10 +187,12 @@ public:
                                         const bool computeIntersectionConnectivity) const;
 
   // Methods to add, remove, and verify NodeLists.
+  void appendNodeList(DEMNodeList<Dimension>& nodeList);
   void appendNodeList(SolidNodeList<Dimension>& nodeList);
   void appendNodeList(FluidNodeList<Dimension>& nodeList);
   void appendNodeList(NodeList<Dimension>& nodeList);
 
+  void deleteNodeList(DEMNodeList<Dimension>& nodeList);
   void deleteNodeList(SolidNodeList<Dimension>& nodeList);
   void deleteNodeList(FluidNodeList<Dimension>& nodeList);
   void deleteNodeList(NodeList<Dimension>& nodeList);
@@ -183,6 +203,7 @@ public:
   const std::vector<NodeList<Dimension>*>& nodeListPtrs() const;
   const std::vector<FluidNodeList<Dimension>*>& fluidNodeListPtrs() const;
   const std::vector<SolidNodeList<Dimension>*>& solidNodeListPtrs() const;
+  const std::vector<DEMNodeList<Dimension>*>& DEMNodeListPtrs() const;
 
   // Provide convenience functions for manipulating the neighbor information
   // of the NodeLists.
@@ -237,10 +258,18 @@ public:
   FieldList<Dimension, int> solidFragmentIDs() const;
   FieldList<Dimension, int> solidParticleTypes() const;
 
+  FieldList<Dimension, Scalar> DEMMass() const;
+  FieldList<Dimension, Vector> DEMPosition() const;
+  FieldList<Dimension, Vector> DEMVelocity() const;
+  FieldList<Dimension, SymTensor> DEMHfield() const;
+  FieldList<Dimension, Scalar> DEMParticleRadius() const;
+  FieldList<Dimension, int> DEMCompositeParticleIndex() const;
+  
   // We can also return the node extent Fields stored in the Neighbor objects.
   FieldList<Dimension, Vector> globalNodeExtent() const;
   FieldList<Dimension, Vector> fluidNodeExtent() const;
   FieldList<Dimension, Vector> solidNodeExtent() const;
+  FieldList<Dimension, Vector> DEMNodeExtent() const;
 
   // These functions return FieldLists with Fields that have to be calculated and
   // stored, so they are more expensive.
@@ -272,6 +301,9 @@ public:
   template<typename DataType>
   FieldList<Dimension, DataType> newSolidFieldList(const DataType value,
                                                    const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
+  template<typename DataType>
+  FieldList<Dimension, DataType> newDEMFieldList(const DataType value,
+                                                   const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
 
   // Resize a FieldList to the number of NodeLists or FluidNodeLists.
   // Optionally we can also set all elements in the FieldList to the specified value.
@@ -292,12 +324,18 @@ public:
                             const DataType value,
                             const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field",
                             const bool resetValues = true) const;
+  template<typename DataType>
+  void resizeDEMFieldList(FieldList<Dimension, DataType>& fieldList,
+                            const DataType value,
+                            const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field",
+                            const bool resetValues = true) const;
 
   //............................................................................
   // Create vector<vector<>> versions of the FieldLists.
   template<typename DataType> std::vector<std::vector<DataType>> newGlobalArray(const DataType value) const;
   template<typename DataType> std::vector<std::vector<DataType>> newFluidArray(const DataType value) const;
   template<typename DataType> std::vector<std::vector<DataType>> newSolidArray(const DataType value) const;
+  template<typename DataType> std::vector<std::vector<DataType>> newDEMArray(const DataType value) const;
 
   // Resize vector<vector<>> versions of the FieldLists.
   template<typename DataType> void resizeGlobalArray(std::vector<std::vector<DataType>>& array,
@@ -307,6 +345,9 @@ public:
                                                     const DataType value,
                                                     const bool resetValues = true) const;
   template<typename DataType> void resizeSolidArray(std::vector<std::vector<DataType>>& array,
+                                                    const DataType value,
+                                                    const bool resetValues = true) const;
+  template<typename DataType> void resizeDEMArray(std::vector<std::vector<DataType>>& array,
                                                     const DataType value,
                                                     const bool resetValues = true) const;
   //............................................................................
@@ -349,11 +390,20 @@ private:
   std::vector<SolidNodeList<Dimension>*> mSolidNodeListPtrs;
   std::vector<NodeList<Dimension>*> mSolidNodeListAsNodeListPtrs;
 
+  std::vector<DEMNodeList<Dimension>*> mDEMNodeListPtrs;
+  std::vector<NodeList<Dimension>*> mDEMNodeListAsNodeListPtrs;
+
+
   mutable ConnectivityMapPtr mConnectivityMapPtr;
 
   // Prevent copying.
   DataBase(const DataBase& rhs);
 };
+
+//------------------------------------------------------------------------------
+// Static varaible initialization
+//------------------------------------------------------------------------------
+template<typename Dimension> int DataBase<Dimension>::nDim = Dimension::nDim;
 
 }
 

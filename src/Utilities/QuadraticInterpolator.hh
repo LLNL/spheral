@@ -18,16 +18,20 @@ class QuadraticInterpolator {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
+  template<typename Func>
   QuadraticInterpolator(const double xmin,
                         const double xmax,
-                        const std::vector<double>& yvals);
+                        const size_t n,
+                        const Func& F);
   QuadraticInterpolator();
   ~QuadraticInterpolator();
 
-  // Initialize for interpolating in the given data
-  void initialize(const double xmin,
-                  const double xmax,
+  // Alternatively initialize from tabulated values
+  void initialize(const double xmin, const double xmax,
                   const std::vector<double>& yvals);
+
+  // Comparisons
+  bool operator==(const QuadraticInterpolator& rhs) const;
 
   // Interpolate for the y value
   double operator()(const double x) const;

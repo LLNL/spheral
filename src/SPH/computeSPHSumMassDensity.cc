@@ -5,7 +5,6 @@
 #include "computeSPHSumMassDensity.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
 #include "Hydro/HydroFieldNames.hh"
 
@@ -15,11 +14,11 @@ using std::min;
 using std::max;
 using std::abs;
 
-template<typename Dimension>
+template<typename Dimension, typename KernelType>
 void
 computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
-                         const TableKernel<Dimension>& W,
-                         const bool /*sumOverAllNodeLists*/,
+                         const KernelType& W,
+                         const bool sumOverAllNodeLists,
                          const FieldList<Dimension, typename Dimension::Vector>& position,
                          const FieldList<Dimension, typename Dimension::Scalar>& mass,
                          const FieldList<Dimension, typename Dimension::SymTensor>& H,
@@ -27,13 +26,10 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
 
   // Pre-conditions.
   const auto numNodeLists = massDensity.size();
+  CONTRACT_VAR(numNodeLists);
   REQUIRE(position.size() == numNodeLists);
   REQUIRE(mass.size() == numNodeLists);
   REQUIRE(H.size() == numNodeLists);
-
-
-  // Some useful variables.
-  const auto W0 = W.kernelValue(0.0, 1.0);
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
@@ -44,17 +40,19 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
     const auto n = massDensity[nodeListi]->numInternalElements();
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
+      const auto& posi = position(nodeListi, i);
       const auto  mi = mass(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
-      massDensity(nodeListi, i) = mi*Hdeti*W0;
+      const auto  etaii = Hi*posi;
+      massDensity(nodeListi, i) = mi*W(etaii, etaii, Hdeti);
     }
   }
 
-  // Now the pair contributions.
+  // Walk the pairs and sum their contributions.
 #pragma omp parallel
   {
-    int i, j, nodeListi, nodeListj;
+    size_t i, j, nodeListi, nodeListj;
     auto massDensity_thread = massDensity.threadCopy();
 
 #pragma omp for
@@ -77,11 +75,8 @@ computeSPHSumMassDensity(const ConnectivityMap<Dimension>& connectivityMap,
       const auto  Hdetj = Hj.Determinant();
 
       // Kernel weighting and gradient.
-      const auto rij = ri - rj;
-      const auto etai = (Hi*rij).magnitude();
-      const auto etaj = (Hj*rij).magnitude();
-      const auto Wi = W.kernelValue(etai, Hdeti);
-      const auto Wj = W.kernelValue(etaj, Hdetj);
+      const auto Wi = W(Hi*rj, Hi*ri, Hdeti);
+      const auto Wj = W(Hj*rj, Hj*ri, Hdetj);
 
       // Sum the pair-wise contributions.
       massDensity_thread(nodeListi, i) += (nodeListi == nodeListj ? mj : mi)*Wj;

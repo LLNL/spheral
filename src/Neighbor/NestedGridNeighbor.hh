@@ -243,6 +243,13 @@ private:
   static const int mGridNormalMagnitude;
 };
 
+//------------------------------------------------------------------------------
+// Initialize static variables.
+//------------------------------------------------------------------------------
+template<typename Dimension> const double NestedGridNeighbor<Dimension>::ln2inverse = 1.0/log(2.0);
+template<typename Dimension> const int NestedGridNeighbor<Dimension>::mEndOfLinkList = -1;
+template<typename Dimension> const int NestedGridNeighbor<Dimension>::mGridNormalMagnitude = 1024;
+
 }
 
 #include "NestedGridNeighborInline.hh"

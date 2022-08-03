@@ -365,10 +365,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\CRKSPH\centerOfMass.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHEvaluationInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHEvaluationInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHIntegralInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHIntegralInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensityInst.cc.2.cc" />
@@ -387,22 +383,6 @@
     <ClCompile Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrectionsInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHEvaluationInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHIntegralInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
