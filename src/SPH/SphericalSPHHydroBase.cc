@@ -47,7 +47,7 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
-#include "caliper/cali.h"
+#include "Utilities/timerLayer.hh"
 
 #include "SphericalSPHHydroBase.hh"
 
@@ -215,8 +215,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
                     const DataBase<Dim<1>>& dataBase,
                     const State<Dim<1>>& state,
                     StateDerivatives<Dim<1>>& derivs) const {
-  CALI_MARK_BEGIN("SphericalSPHevalDerivs");
-  CALI_MARK_BEGIN("SphericalSPHevalDerivs_initial");
+  TIME_BEGIN("SphericalSPHevalDerivs");
+  TIME_BEGIN("SphericalSPHevalDerivs_initial");
 
   //static double totalLoopTime = 0.0;
   // Get the ArtificialViscosity.
@@ -301,12 +301,12 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   // Size up the pair-wise accelerations before we start.
   const auto nnodes = dataBase.numFluidInternalNodes();
   if (mCompatibleEnergyEvolution) pairAccelerations.resize(2u*npairs + nnodes);
-  CALI_MARK_END("SphericalSPHevalDerivs_initial");
+  TIME_END("SphericalSPHevalDerivs_initial");
 
   Vector gradSum_check;
 
   // Walk all the interacting pairs.
-  CALI_MARK_BEGIN("SphericalSPHevalDerivs_pairs");
+  TIME_BEGIN("SphericalSPHevalDerivs_pairs");
 #pragma omp parallel
   {
     // Thread private scratch variables
@@ -516,10 +516,10 @@ evaluateDerivatives(const Dim<1>::Scalar time,
     threadReduceFieldLists<Dimension>(threadStack);
 
   }   // OpenMP parallel region
-  CALI_MARK_END("SphericalSPHevalDerivs_pairs");
+  TIME_END("SphericalSPHevalDerivs_pairs");
 
   // Finish up the derivatives for each point.
-  CALI_MARK_BEGIN("SphericalSPHevalDerivs_final");
+  TIME_BEGIN("SphericalSPHevalDerivs_final");
   size_t offset = 2u*npairs;
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
@@ -656,8 +656,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
     offset += ni;
   }
   CHECK(offset == 2u*npairs + nnodes);
-  CALI_MARK_END("SphericalSPHevalDerivs_final");
-  CALI_MARK_END("SphericalSPHevalDerivs");
+  TIME_END("SphericalSPHevalDerivs_final");
+  TIME_END("SphericalSPHevalDerivs");
 }
 
 //------------------------------------------------------------------------------

@@ -23,7 +23,7 @@
 #include "Damage/PairMaxDamageNodeCoupling.hh"
 #include "Damage/DamageGradientNodeCoupling.hh"
 #include "Damage/ThreePointDamagedNodeCoupling.hh"
-#include "caliper/cali.h"
+#include "Utilities/timerLayer.hh"
 
 #include "boost/shared_ptr.hpp"
 
@@ -175,7 +175,7 @@ finalize(const Scalar /*time*/,
          State<Dimension>& state,
          StateDerivatives<Dimension>& /*derivs*/) {
 
-  CALI_MARK_BEGIN("DamageModel_finalize");
+  TIME_BEGIN("DamageModel_finalize");
 
   // For 3pt damage, check if we should switch to using full intersection data
   // from the ConnectivityMap
@@ -204,7 +204,7 @@ finalize(const Scalar /*time*/,
     mComputeIntersectConnectivity = (dfrac > 0.2);  // Should tune this number...
     // if (Process::getRank() == 0) std::cout << "DamageModel dfrac = " << nD << "/" << ntot << " = " << dfrac << " : " << mComputeIntersectConnectivity << std::endl;
   }
-  CALI_MARK_END("DamageModel_finalize");
+  TIME_END("DamageModel_finalize");
 }
 
 //------------------------------------------------------------------------------

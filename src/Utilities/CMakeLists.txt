@@ -83,6 +83,7 @@ set(Utilities_headers
     SpheralFunctions.hh
     SurfaceNodeCoupling.hh
     Timer.hh
+    timerLayer.hh
     Tree.hh
     TreeInline.hh
     allReduce.hh

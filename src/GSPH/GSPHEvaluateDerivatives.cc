@@ -10,7 +10,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                           StateDerivatives<Dimension>& derivatives) const {
-  CALI_MARK_BEGIN("GSPHevalDerivs");
+  TIME_BEGIN("GSPHevalDerivs");
 
   const auto& riemannSolver = this->riemannSolver();
 
@@ -419,7 +419,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     } // nodes loop
   } // nodeLists loop
 
-  CALI_MARK_END("GSPHevalDerivs");
+  TIME_END("GSPHevalDerivs");
 } // eval derivs method 
 
 

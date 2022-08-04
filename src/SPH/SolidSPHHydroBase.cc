@@ -32,7 +32,7 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
-#include "caliper/cali.h"
+#include "Utilities/timerLayer.hh"
 
 #include "SolidSPHHydroBase.hh"
 
@@ -207,7 +207,7 @@ void
 SolidSPHHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
-  CALI_MARK_BEGIN("SolidSPHinitializeStartup");
+  TIME_BEGIN("SolidSPHinitializeStartup");
 
   // Call the ancestor.
   SPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
@@ -226,7 +226,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
   mHfield0.assignFields(H);
 
-  CALI_MARK_END("SolidSPHinitializeStartup");
+  TIME_END("SolidSPHinitializeStartup");
 }
 
 
@@ -238,7 +238,7 @@ void
 SolidSPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-  CALI_MARK_BEGIN("SolidSPHregister");
+  TIME_BEGIN("SolidSPHregister");
 
   // Invoke SPHHydro's state.
   SPHHydroBase<Dimension>::registerState(dataBase, state);
@@ -307,7 +307,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   // And finally the intial plastic strain.
   state.enroll(mPlasticStrain0);
-  CALI_MARK_END("SolidSPHregister");
+  TIME_END("SolidSPHregister");
 }
 
 //------------------------------------------------------------------------------
@@ -318,7 +318,7 @@ void
 SolidSPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
-  CALI_MARK_BEGIN("SolidSPHregisterDerivs");
+  TIME_BEGIN("SolidSPHregisterDerivs");
 
   // Call the ancestor method.
   SPHHydroBase<Dimension>::registerDerivatives(dataBase, derivs);
@@ -339,7 +339,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     CHECK((*itr) != 0);
     derivs.enroll((*itr)->plasticStrainRate());
   }
-  CALI_MARK_END("SolidSPHregisterDerivs");
+  TIME_END("SolidSPHregisterDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -353,8 +353,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
-  CALI_MARK_BEGIN("SolidSPHevalDerivs");
-  CALI_MARK_BEGIN("SolidSPHevalDerivs_initial");
+  TIME_BEGIN("SolidSPHevalDerivs");
+  TIME_BEGIN("SolidSPHevalDerivs_initial");
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
@@ -464,10 +464,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
-  CALI_MARK_END("SolidSPHevalDerivs_initial");
+  TIME_END("SolidSPHevalDerivs_initial");
 
   // Walk all the interacting pairs.
-  CALI_MARK_BEGIN("SolidSPHevalDerivs_pairs");
+  TIME_BEGIN("SolidSPHevalDerivs_pairs");
 #pragma omp parallel
   {
     // Thread private  scratch variables.
@@ -719,10 +719,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     threadReduceFieldLists<Dimension>(threadStack);
 
   }   // OpenMP parallel region
-  CALI_MARK_END("SolidSPHevalDerivs_pairs");
+  TIME_END("SolidSPHevalDerivs_pairs");
 
   // Finish up the derivatives for each point.
-  CALI_MARK_BEGIN("SolidSPHevalDerivs_final");
+  TIME_BEGIN("SolidSPHevalDerivs_final");
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
@@ -862,8 +862,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
     }
   }
-  CALI_MARK_END("SolidSPHevalDerivs_final");
-  CALI_MARK_END("SolidSPHevalDerivs");
+  TIME_END("SolidSPHevalDerivs_final");
+  TIME_END("SolidSPHevalDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -874,7 +874,7 @@ void
 SolidSPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
-  CALI_MARK_BEGIN("SolidSPHghostBounds");
+  TIME_BEGIN("SolidSPHghostBounds");
 
   // Ancestor method.
   SPHHydroBase<Dimension>::applyGhostBoundaries(state, derivs);
@@ -897,7 +897,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(fragIDs);
     (*boundaryItr)->applyFieldListGhostBoundary(pTypes);
   }
-  CALI_MARK_END("SolidSPHghostBounds");
+  TIME_END("SolidSPHghostBounds");
 }
 
 //------------------------------------------------------------------------------
@@ -908,7 +908,7 @@ void
 SolidSPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-  CALI_MARK_BEGIN("SolidSPHenforceBounds");
+  TIME_BEGIN("SolidSPHenforceBounds");
 
   // Ancestor method.
   SPHHydroBase<Dimension>::enforceBoundaries(state, derivs);
@@ -931,7 +931,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(fragIDs);
     (*boundaryItr)->enforceFieldListBoundary(pTypes);
   }
-  CALI_MARK_END("SolidSPHenforceBounds");
+  TIME_END("SolidSPHenforceBounds");
 }
 
 //------------------------------------------------------------------------------

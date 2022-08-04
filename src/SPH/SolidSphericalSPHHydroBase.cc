@@ -44,7 +44,7 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
-#include "caliper/cali.h"
+#include "Utilities/timerLayer.hh"
 
 #include "SolidSphericalSPHHydroBase.hh"
 
@@ -236,8 +236,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
                     const State<Dim<1>>& state,
                     StateDerivatives<Dim<1>>& derivatives) const {
 
-  CALI_MARK_BEGIN("SolidSphericalSPHevalDerivs");
-  CALI_MARK_BEGIN("SolidSphericalSPHevalDerivs_initial");
+  TIME_BEGIN("SolidSphericalSPHevalDerivs");
+  TIME_BEGIN("SolidSphericalSPHevalDerivs_initial");
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
@@ -343,10 +343,10 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W1d(1.0/nPerh, 1.0);
-  CALI_MARK_END("SolidSphericalSPHevalDerivs_initial");
+  TIME_END("SolidSphericalSPHevalDerivs_initial");
 
   // Walk all the interacting pairs.
-  CALI_MARK_BEGIN("SolidSphericalSPHevalDerivs_pairs");
+  TIME_BEGIN("SolidSphericalSPHevalDerivs_pairs");
 #pragma omp parallel
   {
     // Thread private  scratch variables.
@@ -587,10 +587,10 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
     threadReduceFieldLists<Dimension>(threadStack);
 
   }   // OpenMP parallel region
-  CALI_MARK_END("SolidSphericalSPHevalDerivs_pairs");
+  TIME_END("SolidSphericalSPHevalDerivs_pairs");
 
   // Finish up the derivatives for each point.
-  CALI_MARK_BEGIN("SolidSphericalSPHevalDerivs_final");
+  TIME_BEGIN("SolidSphericalSPHevalDerivs_final");
   size_t offset = 2u*npairs;
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
@@ -766,8 +766,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
     }
     offset += ni;
   }
-  CALI_MARK_END("SolidSphericalSPHevalDerivs_final");
-  CALI_MARK_END("SolidSphericalSPHevalDerivs");
+  TIME_END("SolidSphericalSPHevalDerivs_final");
+  TIME_END("SolidSphericalSPHevalDerivs");
 }
 
 //------------------------------------------------------------------------------

@@ -16,7 +16,7 @@
 #include "Utilities/mortonOrderIndices.hh"
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/pointDistances.hh"
-#include "caliper/cali.h"
+#include "Utilities/timerLayer.hh"
 
 #include <algorithm>
 #include <ctime>
@@ -153,7 +153,7 @@ void
 ConnectivityMap<Dimension>::
 patchConnectivity(const FieldList<Dimension, int>& flags,
                   const FieldList<Dimension, int>& old2new) {
-  CALI_MARK_BEGIN("ConnectivityMap_patch");
+  TIME_BEGIN("ConnectivityMap_patch");
 
   const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
 
@@ -314,7 +314,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
   // when we call patch!  The valid method should be checked by whoever called
   // this method after that point.
   //ENSURE(valid());
-  CALI_MARK_END("ConnectivityMap_patch");
+  TIME_END("ConnectivityMap_patch");
 }
 
 //------------------------------------------------------------------------------
@@ -329,7 +329,7 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
                                  const FieldList<Dimension, typename Dimension::Vector>& position) const {
 
   // Pre-conditions.
-  CALI_MARK_BEGIN("ConnectivityMap_computeIntersectionConnectivity");
+  TIME_BEGIN("ConnectivityMap_computeIntersectionConnectivity");
   const auto numNodeLists = mNodeLists.size();
   const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
   const auto ghostConnectivity = (mBuildGhostConnectivity or
@@ -386,7 +386,7 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
   result[nodeListj].push_back(j);
 
   // That's it.
-  CALI_MARK_END("ConnectivityMap_computeIntersectionConnectivity");
+  TIME_END("ConnectivityMap_computeIntersectionConnectivity");
   return result;
 }
 
@@ -399,7 +399,7 @@ template<typename Dimension>
 void
 ConnectivityMap<Dimension>::
 removeConnectivity(const FieldList<Dimension, vector<vector<int>>>& neighborsToCut) {
-  CALI_MARK_BEGIN("ConnectivityMap_cutConnectivity");
+  TIME_BEGIN("ConnectivityMap_cutConnectivity");
 
   const auto numNodeLists = mNodeLists.size();
   REQUIRE(neighborsToCut.numFields() == numNodeLists);
@@ -416,7 +416,7 @@ removeConnectivity(const FieldList<Dimension, vector<vector<int>>>& neighborsToC
     }
   }
 
-  CALI_MARK_END("ConnectivityMap_cutConnectivity");
+  TIME_END("ConnectivityMap_cutConnectivity");
 }
 
 //------------------------------------------------------------------------------
@@ -528,7 +528,7 @@ template<typename Dimension>
 bool
 ConnectivityMap<Dimension>::
 valid() const {
-  CALI_MARK_BEGIN("ConnectivityMap_valid");
+  TIME_BEGIN("ConnectivityMap_valid");
 
   const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
   const auto ghostConnectivity = (mBuildGhostConnectivity or
@@ -736,7 +736,7 @@ valid() const {
   // }
 
   // Everything must be OK.
-  CALI_MARK_END("ConnectivityMap_valid");
+  TIME_END("ConnectivityMap_valid");
   return true;
 }
 
@@ -747,7 +747,7 @@ template<typename Dimension>
 void
 ConnectivityMap<Dimension>::
 computeConnectivity() {
-  CALI_MARK_BEGIN("ConnectivityMap_computeConnectivity");
+  TIME_BEGIN("ConnectivityMap_computeConnectivity");
 
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
@@ -1026,7 +1026,7 @@ computeConnectivity() {
   // Do we need overlap connectivity?
   if (mBuildOverlapConnectivity) {
     // VERIFY2(ghostConnectivity, "ghost connectivity is required for overlap connectivity");
-    CALI_MARK_BEGIN("ConnectivityMap_computeOverlapConnectivity");
+    TIME_BEGIN("ConnectivityMap_computeOverlapConnectivity");
 
     // To start out, *all* neighbors of a node (gather and scatter) are overlap neighbors.  Therefore we
     // first just copy the neighbor connectivity.
@@ -1088,12 +1088,12 @@ computeConnectivity() {
         }
       }
     }
-    CALI_MARK_END("ConnectivityMap_computeOverlapConnectivity");
+    TIME_END("ConnectivityMap_computeOverlapConnectivity");
   }
 
   // Are we building intersection connectivity?
   if (mBuildIntersectionConnectivity) {
-    CALI_MARK_BEGIN("ConnectivityMap_precomputeIntersectionConnectivity");
+    TIME_BEGIN("ConnectivityMap_precomputeIntersectionConnectivity");
     const auto npairs = mNodePairList.size();
 #pragma omp parallel
     {
@@ -1113,7 +1113,7 @@ computeConnectivity() {
         }
       } // omp critical
     }   // omp parallel
-    CALI_MARK_END("ConnectivityMap_precomputeIntersectionConnectivity");
+    TIME_END("ConnectivityMap_precomputeIntersectionConnectivity");
   }
 
   // {
@@ -1142,7 +1142,7 @@ computeConnectivity() {
   ENSURE(valid());
   END_CONTRACT_SCOPE
 
-  CALI_MARK_END("ConnectivityMap_computeConnectivity");
+  TIME_END("ConnectivityMap_computeConnectivity");
 }
 
 }

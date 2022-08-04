@@ -33,7 +33,7 @@ extern "C" {
 #include "libqhull/qhull_a.h"
 }
 
-#include "caliper/cali.h"
+#include "Utilities/timerLayer.hh"
 
 #include <algorithm>
 #include <numeric>
@@ -82,7 +82,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
   mSurfaceMeshPtr(nullptr),
   mSurfaceMeshQueryPtr(nullptr),
   mSignedDistancePtr(nullptr) {
-  CALI_MARK_BEGIN("Polyhedron_construct1");
+  TIME_BEGIN("Polyhedron_construct1");
   if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
 
   if (points.size() > 0) {
@@ -235,7 +235,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points):
     END_CONTRACT_SCOPE
 
   }
-  CALI_MARK_END("Polyhedron_construct1");
+  TIME_END("Polyhedron_construct1");
 }
 
 //------------------------------------------------------------------------------
@@ -259,7 +259,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
   mSurfaceMeshPtr(nullptr),
   mSurfaceMeshQueryPtr(nullptr),
   mSignedDistancePtr(nullptr) {
-  CALI_MARK_BEGIN("Polyhedron_construct2");
+  TIME_BEGIN("Polyhedron_construct2");
 
   // Construct the facets.
   mFacets.reserve(facetIndices.size());
@@ -273,7 +273,7 @@ GeomPolyhedron(const vector<GeomPolyhedron::Vector>& points,
 
   // Fill in our bounding box.
   setBoundingBox();
-  CALI_MARK_END("Polyhedron_construct2");
+  TIME_END("Polyhedron_construct2");
 }
 
 //------------------------------------------------------------------------------
@@ -854,30 +854,30 @@ operator!=(const GeomPolyhedron& rhs) const {
 void
 GeomPolyhedron::
 setBoundingBox() {
-  CALI_MARK_BEGIN("Polyhedron_BB");
+  TIME_BEGIN("Polyhedron_BB");
   boundingBox(mVertices, mXmin, mXmax);
 
   // Check if we're convex.
   mConvex = this->convex();
 
   // Compute the ancillary geometry.
-  CALI_MARK_BEGIN("Polyhedron_BB_ancillary");
+  TIME_BEGIN("Polyhedron_BB_ancillary");
   mVertexFacetConnectivity.clear();
   mFacetFacetConnectivity.clear();
   mVertexUnitNorms.clear();
   // GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
-  CALI_MARK_END("Polyhedron_BB_ancillary");
+  TIME_END("Polyhedron_BB_ancillary");
 
   // Have the facets recompute their normals
   for (auto& f: mFacets) f.computeNormal();
 
   // Stash the centroid and inscribed radius for use in containment.  If the centroid is not contained however,
   // we set this internal radius to zero to disable this accelerated containment checking.
-  CALI_MARK_BEGIN("Polyhedron_BB_centroid");
+  TIME_BEGIN("Polyhedron_BB_centroid");
   mCentroid = this->centroid();
-  CALI_MARK_END("Polyhedron_BB_centroid");
+  TIME_END("Polyhedron_BB_centroid");
 
-  CALI_MARK_BEGIN("Polyhedron_BB_R2");
+  TIME_BEGIN("Polyhedron_BB_R2");
   if (pointInPolyhedron(mCentroid, *this, false, 1.0e-10)) {
     mRinterior2 = std::numeric_limits<double>::max();
     for (const auto& facet: mFacets) mRinterior2 = min(mRinterior2, facet.distance(mCentroid));
@@ -886,7 +886,7 @@ setBoundingBox() {
     mRinterior2 = -1.0;
   }
   mRinterior2 = -1.0; // BLAGO!
-  CALI_MARK_END("Polyhedron_BB_R2");
+  TIME_END("Polyhedron_BB_R2");
 
   // Clear any existing Axom information, so it's reconstructed if needed
   if (mSurfaceMeshPtr != nullptr) delete mSurfaceMeshPtr;
@@ -895,7 +895,7 @@ setBoundingBox() {
   mSurfaceMeshPtr = nullptr;
   mSurfaceMeshQueryPtr = nullptr;
   mSignedDistancePtr = nullptr;
-  CALI_MARK_END("Polyhedron_BB");
+  TIME_END("Polyhedron_BB");
 }
 
 //------------------------------------------------------------------------------
@@ -951,7 +951,7 @@ buildAxomData() const {
 bool
 GeomPolyhedron::
 convex(const double tol) const {
-  CALI_MARK_BEGIN("Polyhedron_convex");
+  TIME_BEGIN("Polyhedron_convex");
   // Do the convex comparison for each vertex.
   bool result = true;
   const double reltol = tol*max(1.0, (mXmax - mXmin).maxAbsElement());
@@ -964,7 +964,7 @@ convex(const double tol) const {
     }
     ++vertexItr;
   }
-  CALI_MARK_END("Polyhedron_convex");
+  TIME_END("Polyhedron_convex");
   return result;
 }
 

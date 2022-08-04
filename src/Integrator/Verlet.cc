@@ -19,7 +19,7 @@
 #include "Physics/Physics.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/DBC.hh"
-#include "caliper/cali.h"
+#include "Utilities/timerLayer.hh"
 
 using std::vector;
 using std::string;
@@ -91,63 +91,63 @@ step(typename Dimension::Scalar maxTime,
      State<Dimension>& state,
      StateDerivatives<Dimension>& derivs) {
 
-  CALI_MARK_BEGIN("Verlet");
+  TIME_BEGIN("Verlet");
 
   // Get the current time and data base.
   auto  t = this->currentTime();
   auto& db = this->accessDataBase();
 
   // Initalize the integrator.
-  CALI_MARK_BEGIN("VerletPreInit");
+  TIME_BEGIN("VerletPreInit");
   this->preStepInitialize(state, derivs);
-  CALI_MARK_END("VerletPreInit");
+  TIME_END("VerletPreInit");
 
   // Copy the beginning of step positions.
-  CALI_MARK_BEGIN("VerletCopyPos0");
+  TIME_BEGIN("VerletCopyPos0");
   auto pos0 = state.fields(HydroFieldNames::position, Vector::zero);
   pos0.copyFields();
-  CALI_MARK_END("VerletCopyPos0");
+  TIME_END("VerletCopyPos0");
 
   // Determine the minimum timestep across all packages.
-  CALI_MARK_BEGIN("VerletDt");
+  TIME_BEGIN("VerletDt");
   const Scalar dtMin = min(this->dtMin(), maxTime - t);
   const Scalar dtMax = min(this->dtMax(), maxTime - t);
   const Scalar dt0 = this->selectDt(dtMin, dtMax, state, derivs);
   const Scalar hdt0 = 0.5*dt0;
   const auto dtcheck = this->allowDtCheck();
   const auto dtcheckFrac = this->dtCheckFrac();
-  CALI_MARK_END("VerletDt");
+  TIME_END("VerletDt");
 
   // If we're doing dt checking, we need to copy the initial state.
   State<Dimension> state0;
   if (dtcheck) {
-    CALI_MARK_BEGIN("VerletCopyState0");
+    TIME_BEGIN("VerletCopyState0");
     state0 = state;
     state0.copyState();
-    CALI_MARK_END("VerletCopyState0");
+    TIME_END("VerletCopyState0");
   }
 
   // Evaluate the beginning of step derivatives.
-  CALI_MARK_BEGIN("VerletEvalDerivs1");
+  TIME_BEGIN("VerletEvalDerivs1");
   this->initializeDerivatives(t, dt0, state, derivs);
   derivs.Zero();
   this->evaluateDerivatives(t, dt0, db, state, derivs);
   this->finalizeDerivatives(t, dt0, db, state, derivs);
-  CALI_MARK_END("VerletEvalDerivs1");
+  TIME_END("VerletEvalDerivs1");
 
   // Predict state at the mid-point.
   // state.timeAdvanceOnly(true);
-  CALI_MARK_BEGIN("VerletPredict1");
+  TIME_BEGIN("VerletPredict1");
   state.update(derivs, hdt0, t, dt0);
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
   this->postStateUpdate(t + hdt0, hdt0, db, state, derivs);
   this->finalizeGhostBoundaries();
-  CALI_MARK_END("VerletPredict1");
+  TIME_END("VerletPredict1");
 
   // Check if the timestep is still a good idea...
   if (dtcheck) {
-    CALI_MARK_BEGIN("VerletDtCheck");
+    TIME_BEGIN("VerletDtCheck");
     const auto dtnew = this->selectDt(dtMin,
                                       dtMax,
                                       state,
@@ -156,19 +156,19 @@ step(typename Dimension::Scalar maxTime,
       this->currentTime(t);
       state.assign(state0);
       return false;
-      CALI_MARK_END("VerletDtCheck");
+      TIME_END("VerletDtCheck");
     }
-    CALI_MARK_END("VerletDtCheck");
+    TIME_END("VerletDtCheck");
   }
 
   // Copy the mid-point state.
-  CALI_MARK_BEGIN("VerletMidPointCopy");
+  TIME_BEGIN("VerletMidPointCopy");
   State<Dimension> state12(state);
   state12.copyState();
-  CALI_MARK_END("VerletMidPointCopy");
+  TIME_END("VerletMidPointCopy");
 
   // Advance the position to the end of step using the half-step velocity.
-  CALI_MARK_BEGIN("VerletPredict2");
+  TIME_BEGIN("VerletPredict2");
   auto vel12 = state.fields(HydroFieldNames::velocity, Vector::zero);
   pos0 += dt0*vel12;
 
@@ -182,20 +182,20 @@ step(typename Dimension::Scalar maxTime,
   this->applyGhostBoundaries(state, derivs);
   this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   this->finalizeGhostBoundaries();
-  CALI_MARK_END("VerletPredict2");
+  TIME_END("VerletPredict2");
 
   // Evaluate the derivatives at the predicted end-point.
-  CALI_MARK_BEGIN("VerletEvalDerivs2");
+  TIME_BEGIN("VerletEvalDerivs2");
   this->currentTime(t + dt0);
   this->initializeDerivatives(t + dt0, dt0, state, derivs);
   derivs.Zero();
   this->evaluateDerivatives(t + dt0, dt0, db, state, derivs);
   this->finalizeDerivatives(t + dt0, dt0, db, state, derivs);
-  CALI_MARK_END("VerletEvalDerivs2");
+  TIME_END("VerletEvalDerivs2");
 
   // Check if the timestep is still a good idea...
   if (dtcheck) {
-    CALI_MARK_BEGIN("VerletDtCheck");
+    TIME_BEGIN("VerletDtCheck");
     const auto dtnew = this->selectDt(dtMin,
                                       dtMax,
                                       state,
@@ -203,14 +203,14 @@ step(typename Dimension::Scalar maxTime,
     if (dtnew < dtcheckFrac*dt0) {
       this->currentTime(t);
       state.assign(state0);
-      CALI_MARK_END("VerletDtCheck");
+      TIME_END("VerletDtCheck");
       return false;
     }
-    CALI_MARK_END("VerletDtCheck");
+    TIME_END("VerletDtCheck");
   }
 
   // Correct the final state by the end-point derivatives.
-  CALI_MARK_BEGIN("VerletUpdateState");
+  TIME_BEGIN("VerletUpdateState");
   state.assign(state12);
   // state.timeAdvanceOnly(false);
   state.update(derivs, hdt0, t + hdt0, dt0);
@@ -222,17 +222,17 @@ step(typename Dimension::Scalar maxTime,
   this->applyGhostBoundaries(state, derivs);
   this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   this->finalizeGhostBoundaries();
-  CALI_MARK_END("VerletUpdateState");
+  TIME_END("VerletUpdateState");
 
   // Apply any physics specific finalizations.
-  CALI_MARK_BEGIN("VerletFinalize");
+  TIME_BEGIN("VerletFinalize");
   this->postStepFinalize(t + dt0, dt0, state, derivs);
 
   // Set the new current time and last time step.
   this->currentCycle(this->currentCycle() + 1);
   this->lastDt(dt0);
-  CALI_MARK_END("VerletFinalize");
-  CALI_MARK_END("Verlet");
+  TIME_END("VerletFinalize");
+  TIME_END("Verlet");
 
   return true;
 }

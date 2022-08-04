@@ -42,7 +42,7 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
-#include "caliper/cali.h"
+#include "Utilities/timerLayer.hh"
 
 #include "SPHHydroBase.hh"
 
@@ -187,7 +187,7 @@ void
 SPHHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
-  CALI_MARK_BEGIN("SPHinitializeStartup");
+  TIME_BEGIN("SPHinitializeStartup");
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
@@ -225,7 +225,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   //     }
   //   }
   // }
-  CALI_MARK_END("SPHinitializeStartup");
+  TIME_END("SPHinitializeStartup");
 }
 
 //------------------------------------------------------------------------------
@@ -236,7 +236,7 @@ void
 SPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-  CALI_MARK_BEGIN("SPHregister");
+  TIME_BEGIN("SPHregister");
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
   // Create the local storage for time step mask, pressure, sound speed, and position weight.
@@ -356,7 +356,7 @@ registerState(DataBase<Dimension>& dataBase,
   // We deliberately make this non-dynamic here.  These corrections are computed
   // during SPHHydroBase::initialize, not as part of our usual state update.
   state.enroll(mOmegaGradh);
-  CALI_MARK_END("SPHregister");
+  TIME_END("SPHregister");
 }
 
 //------------------------------------------------------------------------------
@@ -367,7 +367,7 @@ void
 SPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
-  CALI_MARK_BEGIN("SPHregisterDerivs");
+  TIME_BEGIN("SPHregisterDerivs");
 
   // Create the scratch fields.
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
@@ -422,7 +422,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mM);
   derivs.enroll(mLocalM);
   derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
-  CALI_MARK_END("SPHregisterDerivs");
+  TIME_END("SPHregisterDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -434,7 +434,7 @@ SPHHydroBase<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-  CALI_MARK_BEGIN("SPHpreStepInitialize");
+  TIME_BEGIN("SPHpreStepInitialize");
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
@@ -600,7 +600,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   //        ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
   //   this->enforceBoundaries(state, derivs);
   // }
-  CALI_MARK_END("SPHpreStepInitialize");
+  TIME_END("SPHpreStepInitialize");
 }
 
 //------------------------------------------------------------------------------
@@ -614,7 +614,7 @@ initialize(const typename Dimension::Scalar time,
            const DataBase<Dimension>& dataBase,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
-  CALI_MARK_BEGIN("SPHinitialize");
+  TIME_BEGIN("SPHinitialize");
 
   // Initialize the grad h corrrections if needed.
   //const TableKernel<Dimension>& W = this->kernel();
@@ -643,7 +643,7 @@ initialize(const typename Dimension::Scalar time,
                WPi);
 
   // We depend on the caller knowing to finalize the ghost boundaries!
-  CALI_MARK_END("SPHinitialize");
+  TIME_END("SPHinitialize");
 }
 
 //------------------------------------------------------------------------------
@@ -657,8 +657,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-  CALI_MARK_BEGIN("SPHevalDerivs");
-  CALI_MARK_BEGIN("SPHevalDerivs_initial");
+  TIME_BEGIN("SPHevalDerivs");
+  TIME_BEGIN("SPHevalDerivs_initial");
 
   //static double totalLoopTime = 0.0;
   // Get the ArtificialViscosity.
@@ -749,10 +749,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);
-  CALI_MARK_END("SPHevalDerivs_initial");
+  TIME_END("SPHevalDerivs_initial");
 
   // Walk all the interacting pairs.
-  CALI_MARK_BEGIN("SPHevalDerivs_pairs");
+  TIME_BEGIN("SPHevalDerivs_pairs");
 #pragma omp parallel
   {
     // Thread private scratch variables
@@ -969,10 +969,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     threadReduceFieldLists<Dimension>(threadStack);
 
   }   // OpenMP parallel region
-  CALI_MARK_END("SPHevalDerivs_pairs");
+  TIME_END("SPHevalDerivs_pairs");
 
   // Finish up the derivatives for each point.
-  CALI_MARK_BEGIN("SPHevalDerivs_final");
+  TIME_BEGIN("SPHevalDerivs_final");
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
@@ -1077,8 +1077,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         i);
     }
   }
-  CALI_MARK_END("SPHevalDerivs_final");
-  CALI_MARK_END("SPHevalDerivs");
+  TIME_END("SPHevalDerivs_final");
+  TIME_END("SPHevalDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -1092,7 +1092,7 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
                     const DataBase<Dimension>& /*dataBase*/,
                     const State<Dimension>& /*state*/,
                     StateDerivatives<Dimension>& derivs) const {
-  CALI_MARK_BEGIN("SPHfinalizeDerivs");
+  TIME_BEGIN("SPHfinalizeDerivs");
 
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
@@ -1109,7 +1109,7 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
-  CALI_MARK_END("SPHfinalizeDerivs");
+  TIME_END("SPHfinalizeDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -1120,7 +1120,7 @@ void
 SPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& /*derivs*/) {
-  CALI_MARK_BEGIN("SPHghostBounds");
+  TIME_BEGIN("SPHghostBounds");
 
   // Apply boundary conditions to the basic fluid state Fields.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -1159,7 +1159,7 @@ applyGhostBoundaries(State<Dimension>& state,
     }
     // if (updateVolume) (*boundaryItr)->applyFieldListGhostBoundary(volume);
   }
-  CALI_MARK_END("SPHghostBounds");
+  TIME_END("SPHghostBounds");
 }
 
 //------------------------------------------------------------------------------
@@ -1170,7 +1170,7 @@ void
 SPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
-  CALI_MARK_BEGIN("SPHenforceBounds");
+  TIME_BEGIN("SPHenforceBounds");
 
   // Enforce boundary conditions on the fluid state Fields.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -1209,7 +1209,7 @@ enforceBoundaries(State<Dimension>& state,
     }
     // if (updateVolume) (*boundaryItr)->enforceFieldListBoundary(volume);
   }
-  CALI_MARK_END("SPHenforceBounds");
+  TIME_END("SPHenforceBounds");
 }
 
 //------------------------------------------------------------------------------
@@ -1220,7 +1220,7 @@ void
 SPHHydroBase<Dimension>::
 updateVolume(State<Dimension>& state,
              const bool boundaries) const {
-  CALI_MARK_BEGIN("SPHupdateVol");
+  TIME_BEGIN("SPHupdateVol");
 
   // Pre-conditions.
   REQUIRE(state.fieldNameRegistered(HydroFieldNames::position));
@@ -1288,7 +1288,7 @@ updateVolume(State<Dimension>& state,
   }
 
   // That's it.
-  CALI_MARK_END("SPHupdateVol");
+  TIME_END("SPHupdateVol");
 }
 
 //------------------------------------------------------------------------------

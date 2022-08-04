@@ -10,7 +10,7 @@
 #include "Utilities/pointOnPolygon.hh"
 #include "Utilities/FastMath.hh"
 #include "Geometry/PolyClipperUtilities.hh"
-#include "caliper/cali.h"
+#include "Utilities/timerLayer.hh"
 
 #include <algorithm>
 #include <utility>
@@ -343,7 +343,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
                      FieldList<Dimension, typename Dimension::FacetedVolume>& cells,
                      FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags) {
 
-  CALI_CXX_MARK_FUNCTION;
+  TIME_FUNCTION;
 
   // Pre-conditions
   REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());

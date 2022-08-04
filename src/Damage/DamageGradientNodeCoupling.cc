@@ -18,7 +18,7 @@
 #include "Field/FieldList.hh"
 #include "FieldOperations/FieldListFunctions.hh"
 #include "Boundary/Boundary.hh"
-#include "caliper/cali.h"
+#include "Utilities/timerLayer.hh"
 
 #include <vector>
 
@@ -38,7 +38,7 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
                            NodePairList& pairs):
   NodeCoupling() {
 
-  CALI_MARK_BEGIN("DamageGradientCoupling");
+  TIME_BEGIN("DamageGradientCoupling");
 
   const auto npairs = pairs.size();
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -49,7 +49,7 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
   const auto numNodeLists = position.numFields();
 
   // Compute a scalar damage estimate to take the gradient of.
-  CALI_MARK_BEGIN("DamageGradientCoupling_grad");
+  TIME_BEGIN("DamageGradientCoupling_grad");
   FieldList<Dimension, Scalar> Dtrace(FieldStorageType::CopyFields);
   for (auto k = 0u; k < numNodeLists; ++k) {
     Dtrace.appendNewField("grad D", D[k]->nodeList(), 0.0);
@@ -67,11 +67,11 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(gradD);
     (*boundaryItr)->finalizeGhostBoundary();
   }
-  CALI_MARK_END("DamageGradientCoupling_grad");
+  TIME_END("DamageGradientCoupling_grad");
 
   // For each interacting pair we need to compute the effective damage shielding, expressed
   // as the f_couple parameter in the NodePairIdxType.
-  CALI_MARK_BEGIN("DamageGradientCoupling_pairs");
+  TIME_BEGIN("DamageGradientCoupling_pairs");
   size_t i, il, j, jl;
   Scalar hij;
   Vector xjihat;
@@ -93,8 +93,8 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
     // }
     CHECK(pairs[k].f_couple >= 0.0 and pairs[k].f_couple <= 1.0);
   }
-  CALI_MARK_END("DamageGradientCoupling_pairs");
-  CALI_MARK_END("DamageGradientCoupling");
+  TIME_END("DamageGradientCoupling_pairs");
+  TIME_END("DamageGradientCoupling");
 }
 
 }
