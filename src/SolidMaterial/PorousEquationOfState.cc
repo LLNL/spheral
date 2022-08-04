@@ -175,13 +175,17 @@ PorousEquationOfState<Dimension>::
 setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
-  
-  this->setSoundSpeed(bulkModulus, massDensity, specificThermalEnergy);
+  REQUIRE(this->valid());
+  REQUIRE(massDensity.nodeListPtr() == bulkModulus.nodeListPtr());
+  REQUIRE(specificThermalEnergy.nodeListPtr() == bulkModulus.nodeListPtr());
+  REQUIRE(mAlphaPtr->nodeListPtr() == bulkModulus.nodeListPtr());
+  const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
+  mSolidEOS.setBulkModulus(bulkModulus, rhoS, specificThermalEnergy);
 
   // Now apply the porosity modifier.
   const unsigned n = bulkModulus.numInternalElements();
   for (unsigned i = 0; i != n; ++i) {
-    bulkModulus(i) *= massDensity(i)*bulkModulus(i);
+    bulkModulus(i) /= (*mAlphaPtr)(i);
   }
 }
 
