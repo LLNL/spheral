@@ -51,14 +51,37 @@ def distributeNodesGeneric(listOfNodeTuples,
         r = nodes.positions()
         m = nodes.mass()
         vel = nodes.velocity()
-        rho = nodes.massDensity()
         H = nodes.Hfield()
         for i in xrange(nlocal):
             r[i] = generator.localPosition(i)
             m[i] = generator.localMass(i)
             vel[i] = generator.localVelocity(i)
-            rho[i] = generator.localMassDensity(i)
             H[i] = generator.localHtensor(i)
+       
+        # DEM mod -- we'll want to clean this up at some point...
+        #------------------------------------------------------
+        try:
+            rho = nodes.massDensity()
+            for i in xrange(nlocal):
+                rho[i] = generator.localMassDensity(i)
+        except:
+            pass
+
+        try:
+            rad = nodes.particleRadius()
+            for i in xrange(nlocal):
+                rad[i] = generator.localParticleRadius(i)
+        except:
+            pass
+
+        try:
+            compID = nodes.compositeParticleIndex()
+            for i in xrange(nlocal):
+                compID[i] = generator.localCompositeParticleIndex(i)
+        except:
+            pass
+        #-----------------------------------------------------
+
         H.applyScalarMin(hmaxInv)
         H.applyScalarMax(hminInv)
 

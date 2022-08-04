@@ -18,6 +18,7 @@ set(Utilities_sources
     BuildData.cc
     DBC.cc
     QuadraticInterpolator.cc
+    CubicHermiteInterpolator.cc
     Process.cc
     KeyTraits.cc
     PeanoHilbertTransform.cc
@@ -48,8 +49,16 @@ set(Utilities_headers
     DBC.hh
     QuadraticInterpolator.hh
     QuadraticInterpolatorInline.hh
+    CubicHermiteInterpolator.hh
+    CubicHermiteInterpolatorInline.hh
+    XYInterpolator.hh
+    XYInterpolatorInline.hh
+    BiLinearInterpolator.hh
+    BiLinearInterpolatorInline.hh
     BiQuadraticInterpolator.hh
     BiQuadraticInterpolatorInline.hh
+    BiCubicInterpolator.hh
+    BiCubicInterpolatorInline.hh
     DataTypeTraits.hh
     DomainNode.hh
     DomainNodeInline.hh
@@ -133,5 +142,5 @@ set(Utilities_headers
 
 spheral_install_python_files(fitspline.py)
 
-spheral_add_cxx_library(Utilities)
+spheral_add_obj_library(Utilities)
 

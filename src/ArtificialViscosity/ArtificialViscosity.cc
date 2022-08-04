@@ -335,12 +335,12 @@ calculateSigmaAndGradDivV(const DataBase<Dimension>& dataBase,
       const auto etai = Hi*rij;
       const auto etamagi = etai.magnitude();
       const auto Hetai = Hi*etai.unitVector();
-      std::tie(Wi, gWi) = W.kernelAndGradValue(etamagi, Hdeti);
+      W.kernelAndGradValue(etamagi, Hdeti, Wi, gWi);
 
       const auto etaj = Hj*rij;
       const auto etamagj = etaj.magnitude();
       const auto Hetaj = Hj*etaj.unitVector();
-      std::tie(Wj, gWj) = W.kernelAndGradValue(etamagj, Hdetj);
+      W.kernelAndGradValue(etamagj, Hdetj, Wj, gWj);
 
       // Sum this pairs contribution to grad v for both i & j.
       const auto vij = vi - vj;

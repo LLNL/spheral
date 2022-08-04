@@ -134,13 +134,13 @@ gradDivVectorFieldListMash
               const Vector Hetai = Hi*etaiNorm;
               const Vector Hetaj = Hj*etajNorm;
 
-              Scalar getai = kernel.grad(etai, Hi);
-              Scalar getaj = kernel.grad(etaj, Hj);
-              Scalar g2etai = kernel.grad2(etai, Hi);
-              Scalar g2etaj = kernel.grad2(etaj, Hj);
+              Scalar getai = kernel.grad(etai.magnitude(), Hi.Determinant());
+              Scalar getaj = kernel.grad(etaj.magnitude(), Hj.Determinant());
+              Scalar g2etai = kernel.grad2(etai.magnitude(), Hi.Determinant());
+              Scalar g2etaj = kernel.grad2(etaj.magnitude(), Hj.Determinant());
               
-              Scalar Wi = kernel(etai, Hi);
-              Scalar Wj = kernel(etaj, Hj);
+              Scalar Wi = kernel(etai.magnitude(), Hi.Determinant());
+              Scalar Wj = kernel(etaj.magnitude(), Hj.Determinant());
 
               // Add the renormalization terms.
               const Scalar thpti = 1.0/(etai.magnitude2() + epsilon2);

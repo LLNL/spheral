@@ -264,8 +264,7 @@ if crksph:
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate,
-                   RZ = True)
+                   HUpdate = HUpdate)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -278,16 +277,15 @@ else:
                 HUpdate = HUpdate,
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
-                nTensile = nTensile,
-                RZ = True)
+                nTensile = nTensile)
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel()")
-output("hydro.PiKernel()")
+output("hydro.kernel")
+output("hydro.PiKernel")
 
 #-------------------------------------------------------------------------------
 # Tweak the artificial viscosity.
@@ -353,13 +351,20 @@ def verneySample(nodes, indices):
     nodes.pressure(P)
     ps = nodes.plasticStrain()
     H = nodes.Hfield()
+    S = nodes.deviatoricStress()
     mshell = mpi.allreduce(sum([mass[i] for i in indices] + [0.0]), mpi.SUM)
     assert mshell > 0.0
+    Srr = []
+    for i in indices:
+        Si = SymTensor(S[i])
+        Si.rotationalTransform(rotationMatrix(pos[i].unitVector()))
+        Srr.append(Si.xx)
     rshell = mpi.allreduce(sum([mass[i]*pos[i].magnitude() for i in indices] + [0.0]), mpi.SUM)
     vshell = mpi.allreduce(sum([mass[i]*vel[i].dot(pos[i].unitVector()) for i in indices] + [0.0]), mpi.SUM)
     rhoshell = mpi.allreduce(sum([mass[i]*rho[i] for i in indices] + [0.0]), mpi.SUM)
     epsshell = mpi.allreduce(sum([mass[i]*eps[i] for i in indices] + [0.0]), mpi.SUM)
     Pshell = mpi.allreduce(sum([mass[i]*P[i] for i in indices] + [0.0]), mpi.SUM)
+    Sshell = mpi.allreduce(sum([mass[i]*Srri for i, Srri in zip(indices, Srr)] + [0.0]), mpi.SUM)
     strainShell = mpi.allreduce(sum([mass[i]*ps[i] for i in indices] + [0.0]), mpi.SUM)
     hshell = mpi.allreduce(sum([mass[i]*2.0/(H[i].Trace()) for i in indices] + [0.0]), mpi.SUM)
     rshell /= mshell
@@ -367,9 +372,10 @@ def verneySample(nodes, indices):
     rhoshell /= mshell
     epsshell /= mshell
     Pshell /= mshell
+    Sshell /= mshell
     strainShell /= mshell
     hshell /= mshell
-    return rshell, vshell, rhoshell, epsshell, Pshell, strainShell, hshell
+    return rshell, vshell, rhoshell, epsshell, Pshell, Sshell, strainShell, hshell
 
 # Find shells of points in binned radii
 histories = []
@@ -384,7 +390,7 @@ for ishell in xrange(nshells):
     print "Selected %i nodes for shell %i." % (n, ishell)
     if n > 0:
         histories.append(NodeHistory(nodesBe, shellIndices[ishell], verneySample, historyOutputName % ishell, 
-                                     labels = ("r", "vel", "rho", "eps", "P", "plastic strain", "h")))
+                                     labels = ("r", "vel", "rho", "eps", "pressure", "Srr", "plastic strain", "h")))
 
 #-------------------------------------------------------------------------------
 # Build the controller.
@@ -397,15 +403,9 @@ control = SpheralController(integrator, WT,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizTime = vizTime,
-                            vizStep = vizStep)
+                            vizStep = vizStep,
+                            periodicWork = [(hist.sample, sampleFreq) for hist in histories])
 output("control")
-
-#-------------------------------------------------------------------------------
-# Add the diagnostics to the controller.
-#-------------------------------------------------------------------------------
-for hist in histories:
-    control.appendPeriodicWork(hist.sample, sampleFreq)
-    hist.flushHistory()
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
@@ -424,6 +424,8 @@ else:
     rsim0 = histories[0].sampleHistory[-1][0]
     print "Simulation measured final inner shell radius of %g cm: errror %g cm." % (rsim0,
                                                                                     rsim0 - r0)
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print "Total energy error: %g" % Eerror
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
@@ -478,9 +480,10 @@ if graphics:
                             xFunction = "%s.magnitude()",
                             plotStyle="points",
                             winTitle="rho @ %g" % (control.time()))
-    velPlot = plotFieldList(state.vectorFields("velocity"),
+    radialVelocity = radialVelocityFieldList(db.fluidPosition,
+                                             db.fluidVelocity)
+    velPlot = plotFieldList(radialVelocity,
                             xFunction = "%s.magnitude()",
-                            yFunction = "%s.magnitude()",
                             plotStyle="points",
                             winTitle="vel @ %g" % (control.time()))
     mPlot = plotFieldList(state.scalarFields("mass"),

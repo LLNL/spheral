@@ -78,6 +78,11 @@ class DataBase:
         "Add a NodeList"
         return "void"
 
+    @PYB11pycppname("appendNodeList")
+    def appendNodeList2(self, nodeList="DEMNodeList<%(Dimension)s>&"):
+        "Add a DEMNodeList"
+        return "void"
+
     def deleteNodeList(self, nodeList="SolidNodeList<%(Dimension)s>&"):
         "Remove a SolidNodeList"
         return "void"
@@ -90,6 +95,11 @@ class DataBase:
     @PYB11pycppname("deleteNodeList")
     def deleteNodeList2(self, nodeList="NodeList<%(Dimension)s>&"):
         "Remove a NodeList"
+        return "void"
+
+    @PYB11pycppname("deleteNodeList")
+    def deleteNodeList2(self, nodeList="DEMNodeList<%(Dimension)s>&"):
+        "Remove a DEMNodeList"
         return "void"
 
     @PYB11const
@@ -557,10 +567,18 @@ will get the new value regardless of resetValues."""
     def solidNodeLists(self):
         return "const std::vector<SolidNodeList<%(Dimension)s>*>&"
 
+    @PYB11cppname("DEMNodeListPtrs")
+    @PYB11returnpolicy("reference_internal")
+    @PYB11const
+    def DEMNodeLists(self):
+        return "const std::vector<DEMNodeList<%(Dimension)s>*>&"
+
+
     nodeListPtrs = PYB11property("const std::vector<NodeList<%(Dimension)s>*>&", "nodeListPtrs", doc="The set of NodeLists in the DataBase")
     fluidNodeListPtrs = PYB11property("const std::vector<FluidNodeList<%(Dimension)s>*>&", "fluidNodeListPtrs", doc="The set of FluidNodeLists in the DataBase")
     solidNodeListPtrs = PYB11property("const std::vector<SolidNodeList<%(Dimension)s>*>&", "solidNodeListPtrs", doc="The set of SolidNodeLists in the DataBase")
-
+    DEMNodeListPtrs = PYB11property("const std::vector<DEMNodeList<%(Dimension)s>*>&", "DEMNodeListPtrs", doc="The set of NodeLists in the DataBase")
+    
 
     #...........................................................................
     # Attributes
@@ -571,6 +589,7 @@ will get the new value regardless of resetValues."""
     numNodeLists = PYB11property("int", "numNodeLists", doc="Number of NodeLists in DataBase")
     numFluidNodeLists = PYB11property("int", "numFluidNodeLists", doc="Number of FluidNodeLists in DataBase")
     numSolidNodeLists = PYB11property("int", "numSolidNodeLists", doc="Number of SolidNodeLists in DataBase")
+    numDEMNodeLists = PYB11property("int", "numDEMNodeLists", doc="Number of DEMNodeLists in DataBase")
 
     numNodes = PYB11property("int", "numNodes", doc="Number of nodes in all NodeLists in DataBase")
     numInternalNodes = PYB11property("int", "numInternalNodes", doc="Number of internal nodes in all NodeLists in DataBase")
@@ -591,7 +610,8 @@ will get the new value regardless of resetValues."""
     nodeListPtrs = PYB11property("const std::vector<NodeList<%(Dimension)s>*>&", "nodeListPtrs", doc="The set of NodeLists in the DataBase")
     fluidNodeListPtrs = PYB11property("const std::vector<FluidNodeList<%(Dimension)s>*>&", "fluidNodeListPtrs", doc="The set of FluidNodeLists in the DataBase")
     solidNodeListPtrs = PYB11property("const std::vector<SolidNodeList<%(Dimension)s>*>&", "solidNodeListPtrs", doc="The set of SolidNodeLists in the DataBase")
-
+    DEMNodeListPtrs = PYB11property("const std::vector<DEMNodeList<%(Dimension)s>*>&", "DEMNodeListPtrs", doc="The set of NodeLists in the DataBase")
+    
     maxKernelExtent = PYB11property("double")
 
     globalMass = PYB11property("FieldList<%(Dimension)s, Scalar>")
@@ -620,6 +640,13 @@ will get the new value regardless of resetValues."""
     solidPlasticStrainRate = PYB11property("FieldList<%(Dimension)s, Scalar>")
     solidDamage = PYB11property("FieldList<%(Dimension)s, SymTensor>")
     solidFragmentIDs = PYB11property("FieldList<%(Dimension)s, int>")
+
+    DEMMass = PYB11property("FieldList<%(Dimension)s, Scalar>")
+    DEMPosition = PYB11property("FieldList<%(Dimension)s, Vector>")
+    DEMVelocity = PYB11property("FieldList<%(Dimension)s, Vector>")
+    DEMParticleRadius = PYB11property("FieldList<%(Dimension)s, Scalar>")
+    DEMHfield = PYB11property("FieldList<%(Dimension)s, SymTensor>")
+    DEMCompositeParticleIndex = PYB11property("FieldList<%(Dimension)s, int>")
 
     globalNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")
     fluidNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")

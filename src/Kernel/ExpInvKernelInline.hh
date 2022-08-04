@@ -50,9 +50,9 @@ ExpInvKernel<Dimension>::~ExpInvKernel() {
 template<typename Dimension>
 inline
 double
-ExpInvKernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet) const {
+ExpInvKernel<Dimension>::kernelValue(double etaij, const double Hdet) const {
   const double A = this->volumeNormalization();
-  const double x = std::abs(etaMagnitude) + 0.5;
+  const double x = std::abs(etaij) + 0.5;
   return A*Hdet*exp(1.0/x);
 }
 
@@ -62,9 +62,9 @@ ExpInvKernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet) con
 template<typename Dimension>
 inline
 double
-ExpInvKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) const {
+ExpInvKernel<Dimension>::gradValue(double etaij, const double Hdet) const {
   const double A = this->volumeNormalization();
-  const double x = std::abs(etaMagnitude) + 0.5;
+  const double x = std::abs(etaij) + 0.5;
   return -A*Hdet/(x*x)*exp(1.0/x);
 }
 
@@ -74,9 +74,9 @@ ExpInvKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) const
 template<typename Dimension>
 inline
 double
-ExpInvKernel<Dimension>::grad2Value(double etaMagnitude, const double Hdet) const {
+ExpInvKernel<Dimension>::grad2Value(double etaij, const double Hdet) const {
   const double A = this->volumeNormalization();
-  const double x = std::abs(etaMagnitude) + 0.5;
+  const double x = std::abs(etaij) + 0.5;
   return A*Hdet*(1.0/(x*x*x*x) + 1.0/(x*x*x))*exp(1.0/x);
 }
 

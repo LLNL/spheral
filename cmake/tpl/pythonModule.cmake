@@ -39,7 +39,7 @@ endforeach()
 # Runtime Python Module Dependencies
 #
 set(pip-runtime-modules
-    numpy==1.16.6
+    numpy==1.16.5
     numpy-stl==2.11.2
     matplotlib==2.2.5
     decorator==4.4.2

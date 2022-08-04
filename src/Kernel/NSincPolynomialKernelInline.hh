@@ -51,22 +51,22 @@ NSincPolynomialKernel<Dimension>::~NSincPolynomialKernel() {
 template<typename Dimension>
 inline
 double
-NSincPolynomialKernel<Dimension>::kernelValue(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+NSincPolynomialKernel<Dimension>::kernelValue(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
 
   const int numPolynomials = (mOrder + 1)/2;
   CHECK(numPolynomials > 0 && numPolynomials < (int)mAij.size());
 
   CHECK(this->kernelExtent() > 0.0);
-  const int iPolynomial = int(etaMagnitude);
+  const int iPolynomial = int(etaij);
 
   if (iPolynomial >= numPolynomials) {
     return 0.0;
   } else {
     double result = 0.0;
     for (int i = 0; i <= mOrder; ++i)
-      result += mAij[iPolynomial][i]*pow(etaMagnitude, i);
+      result += mAij[iPolynomial][i]*pow(etaij, i);
     result *= this->volumeNormalization()*Hdet;
     return result;
   }
@@ -78,22 +78,22 @@ NSincPolynomialKernel<Dimension>::kernelValue(double etaMagnitude, const double 
 template<typename Dimension>
 inline
 double
-NSincPolynomialKernel<Dimension>::gradValue(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+NSincPolynomialKernel<Dimension>::gradValue(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
 
   const int numPolynomials = (mOrder + 1)/2;
   CHECK(numPolynomials > 0 && numPolynomials < (int)mAij.size());
 
   CHECK(this->kernelExtent() > 0.0);
-  const int iPolynomial = int(etaMagnitude);
+  const int iPolynomial = int(etaij);
 
   if (iPolynomial >= numPolynomials) {
     return 0.0;
   } else {
     double result = 0.0;
     for (int i = 1; i <= mOrder; ++i) 
-      result += mAij[iPolynomial][i]*i*pow(etaMagnitude, i - 1);
+      result += mAij[iPolynomial][i]*i*pow(etaij, i - 1);
     result *= this->volumeNormalization()*Hdet;
     return result;
   }
@@ -105,22 +105,22 @@ NSincPolynomialKernel<Dimension>::gradValue(double etaMagnitude, const double Hd
 template<typename Dimension>
 inline
 double
-NSincPolynomialKernel<Dimension>::grad2Value(double etaMagnitude, const double Hdet) const {
-  CHECK(etaMagnitude >= 0.0);
+NSincPolynomialKernel<Dimension>::grad2Value(double etaij, const double Hdet) const {
+  CHECK(etaij >= 0.0);
   CHECK(Hdet >= 0.0);
 
   const int numPolynomials = (mOrder + 1)/2;
   CHECK(numPolynomials > 0 && numPolynomials < (int)mAij.size());
 
   CHECK(this->kernelExtent() > 0.0);
-  const int iPolynomial = int(etaMagnitude);
+  const int iPolynomial = int(etaij);
 
   if (iPolynomial >= numPolynomials) {
     return 0.0;
   } else {
     double result = 0.0;
     for (int i = 2; i <= mOrder; ++i) 
-      result += mAij[iPolynomial][i]*i*(i - 1)*pow(etaMagnitude, i - 2);
+      result += mAij[iPolynomial][i]*i*(i - 1)*pow(etaij, i - 2);
     result *= this->volumeNormalization()*Hdet;
     return result;
   }

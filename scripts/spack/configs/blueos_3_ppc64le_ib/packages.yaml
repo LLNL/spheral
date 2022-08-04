@@ -9,20 +9,22 @@ packages:
     - spec: cmake@3.20.2
       prefix: /usr/tce/packages/cmake/cmake-3.20.2
 
-  #cuda:
-  #  version: [11.0.2, 10.1.243, 10.1.168, 9.2.148, 8.0]
-  #  buildable: false
-  #  externals:
-  #  - spec: cuda@11.0.2~allow-unsupported-compilers
-  #    prefix: /usr/tce/packages/cuda/cuda-11.0.2
-  #  - spec: cuda@10.1.243~allow-unsupported-compilers
-  #    prefix: /usr/tce/packages/cuda/cuda-10.1.243
-  #  - spec: cuda@10.1.168+allow-unsupported-compilers
-  #    prefix: /usr/tce/packages/cuda/cuda-10.1.168
-  #  - spec: cuda@9.2.148~allow-unsupported-compilers
-  #    prefix: /usr/tce/packages/cuda/cuda-9.2.148
-  #  - spec: cuda@8.0~allow-unsupported-compilers
-  #    prefix: /usr/tce/packages/cuda/cuda-8.0
+  cuda:
+    version: [11.1.0, 11.0.2, 10.1.243, 10.1.168, 9.2.148, 8.0]
+    buildable: false
+    externals:
+    - spec: cuda@11.1.0~allow-unsupported-compilers
+      prefix: /usr/tce/packages/cuda/cuda-11.1.0
+    - spec: cuda@11.0.2~allow-unsupported-compilers
+      prefix: /usr/tce/packages/cuda/cuda-11.0.2
+    - spec: cuda@10.1.243~allow-unsupported-compilers
+      prefix: /usr/tce/packages/cuda/cuda-10.1.243
+    - spec: cuda@10.1.168+allow-unsupported-compilers
+      prefix: /usr/tce/packages/cuda/cuda-10.1.168
+    - spec: cuda@9.2.148~allow-unsupported-compilers
+      prefix: /usr/tce/packages/cuda/cuda-9.2.148
+    - spec: cuda@8.0~allow-unsupported-compilers
+      prefix: /usr/tce/packages/cuda/cuda-8.0
   
   spectrum-mpi:
     externals:

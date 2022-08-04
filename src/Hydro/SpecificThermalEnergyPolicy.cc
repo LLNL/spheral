@@ -81,7 +81,6 @@ update(const KeyType& key,
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  // const auto  entropy = state.fields(HydroFieldNames::entropy, Scalar());
   const auto  eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
   const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   const auto  DepsDt0 = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
@@ -107,26 +106,22 @@ update(const KeyType& key,
       const auto nodeListj = pairs[kk].j_list;
 
       // State for node i.
-      const auto  weighti = abs(DepsDt0(nodeListi, i)) + numeric_limits<Scalar>::epsilon();
-      // const auto  si = entropy(nodeListi, i);
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
-      //const auto  ui = eps0(nodeListi, i);
       const auto& ai = acceleration(nodeListi, i);
       const auto  vi12 = vi + ai*hdt;
       const auto& paccij = pairAccelerations[kk];
 
       // State for node j.
-      const auto  weightj = abs(DepsDt0(nodeListj, j)) + numeric_limits<Scalar>::epsilon();
-      // const auto  sj = entropy(nodeListj, j);
       const auto  mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
-      //const auto  uj = eps0(nodeListj, j);
       const auto& aj = acceleration(nodeListj, j);
       const auto  vj12 = vj + aj*hdt;
 
       const auto  vji12 = vj12 - vi12;
       const Scalar duij = vji12.dot(paccij);
+      const auto weighti = std::max(numeric_limits<Scalar>::epsilon(), DepsDt0(nodeListi, i)*sgn(duij));
+      const auto weightj = std::max(numeric_limits<Scalar>::epsilon(), DepsDt0(nodeListj, j)*sgn(duij));
       const Scalar wi = weighti/(weighti + weightj);         // Du/Dt weighting
       // const Scalar wi = entropyWeighting(si, sj, duij);   // entropy weighting
       CHECK(wi >= 0.0 and wi <= 1.0);
