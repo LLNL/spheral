@@ -145,9 +145,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  setPressure(bulkModulus, massDensity, specificThermalEnergy);
-  bulkModulus += mExternalPressure;
-  bulkModulus *= mGamma;
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+    bulkModulus(i) = this->bulkModulus(massDensity(i), specificThermalEnergy(i));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -227,7 +227,7 @@ PolytropicEquationOfState<Dimension>::
 soundSpeed(const Scalar massDensity,
            const Scalar /*specificThermalEnergy*/) const {
   CHECK(valid());
-  const double c2 = mPolytropicConstant*pow(massDensity, mGamma1);
+  const double c2 = mGamma*mPolytropicConstant*pow(massDensity, mGamma1);
   CHECK(c2 >= 0.0);
   return sqrt(c2);
 }
@@ -253,7 +253,7 @@ PolytropicEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return pressure(massDensity, specificThermalEnergy) + mExternalPressure;
+  return mGamma*(pressure(massDensity, specificThermalEnergy) + mExternalPressure);
 }
 
 //------------------------------------------------------------------------------
