@@ -180,9 +180,9 @@ packages = [dem]
 #-------------------------------------------------------------------------------
 # Initial Conditions
 #-------------------------------------------------------------------------------
-
 numNodeLists = db.numNodeLists
 nodeLists = db.nodeLists()
+omega = dem.omega
 for i in range(db.numNodeLists):
     nodeListi = nodeLists[i]
     numNodes = nodeListi.numInternalNodes
@@ -191,11 +191,15 @@ for i in range(db.numNodeLists):
     for j in range(numNodes):
         if p[j][0] > 0.0:
             v[j][0]= -0.1
-            p[j][2]+=0.1/numParticlePerLength
+            p[j][0]+=0.05/numParticlePerLength
             p[j][1]+=0.25/numParticlePerLength
+            p[j][2]+=0.10/numParticlePerLength
+            omega[i][j][0]=random.random()-0.5
+            omega[i][j][1]=random.random()-0.5
+            omega[i][j][2]=random.random()-0.5
         else:
             v[j][0]=  0.1
-
+            
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
 #-------------------------------------------------------------------------------
