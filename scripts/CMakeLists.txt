@@ -28,10 +28,16 @@ if (NOT ENABLE_CXXONLY)
     "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
     )
 
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/lcatstest.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
+    )
+
   install(FILES 
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
+      "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
     )
 
