@@ -1,6 +1,6 @@
 #ATS:DEM3dImpact = test(          SELF, "--clearDirectories True --checkConservation True   --goalTime 1.0", label="DEM impacting squares -- 3-D (parallel)", np=8)
 
-import os, sys, shutil, mpi
+import os, sys, shutil, mpi, random
 from math import *
 from Spheral3d import *
 from SpheralTestUtilities import *
@@ -199,7 +199,7 @@ for i in range(db.numNodeLists):
             omega[i][j][2]=random.random()-0.5
         else:
             v[j][0]=  0.1
-            
+
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
 #-------------------------------------------------------------------------------
