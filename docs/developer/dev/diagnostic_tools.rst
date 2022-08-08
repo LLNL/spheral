@@ -21,10 +21,10 @@ By defualt, even when configured with ENABLE_TIMER=On, there is no information b
 There are many different options that can be used with ``CALI_CONFIG`` to view various information. Here are some extra-links for those who want to read or experiment with other features in Caliper that can be more closely incorperated with Spheral in the future:
 ::
 
-  https://software.llnl.gov/Caliper/CaliperBasics.html#more-on-configurations
-  https://software.llnl.gov/Caliper/BuiltinConfigurations.html
-  https://software.llnl.gov/Caliper/configuration.html
-  https://software.llnl.gov/Caliper/OutputFormats.html?highlight=cali+query
+  `Configuration basics <https://software.llnl.gov/Caliper/CaliperBasics.html#more-on-configurations>`_
+  `Builtin Configuration <https://software.llnl.gov/Caliper/BuiltinConfigurations.html>`_
+  `Manual Configuration <https://software.llnl.gov/Caliper/configuration.html>`_
+  `Output Format <https://software.llnl.gov/Caliper/OutputFormats.html>`_
 
 
 Adding Regions
