@@ -357,7 +357,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto Mtorsion = MtorsionMag * this->torsionMoment(rhatij,omegai,omegaj); // rename torsionDirection
         DomegaDti += Msliding*li - (Mtorsion + Mrolling) * lij;
         DomegaDtj += Msliding*lj + (Mtorsion + Mrolling) * lij;
- 
+
         // for spring updates
         newShearDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaSlidij;
         DDtShearDisplacement(storeNodeList,storeNode)[storeContact] = vs;
