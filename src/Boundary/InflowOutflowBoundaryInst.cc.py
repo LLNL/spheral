@@ -2,7 +2,7 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "InflowOutflowBoundary.cc"
+#include "Boundary/InflowOutflowBoundary.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

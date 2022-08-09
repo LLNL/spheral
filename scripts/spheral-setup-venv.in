@@ -38,7 +38,9 @@ echo "Creating spheral symlink to spheral-env script ..."
 cd @CMAKE_INSTALL_PREFIX@
 chmod u+x scripts/spheral-env.sh
 chmod u+x scripts/atstest.sh
+chmod u+x scripts/lcatstest.sh
 cp --symbolic-link scripts/spheral-env.sh spheral
 cp --symbolic-link scripts/atstest.sh spheral-atstest
+cp --symbolic-link scripts/lcatstest.sh spheral-lcatstest
 cd - > /dev/null 
 

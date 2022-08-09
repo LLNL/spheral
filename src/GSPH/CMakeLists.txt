@@ -59,5 +59,5 @@ instantiate(GSPH_inst GSPH_sources)
 
 spheral_install_python_files(GSPHHydros.py)
 
-spheral_add_cxx_library(GSPH)
+spheral_add_obj_library(GSPH)
 

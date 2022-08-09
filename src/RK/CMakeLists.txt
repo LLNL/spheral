@@ -61,5 +61,5 @@ set(RK_headers
     interpolateRK.hh
     )
 
-spheral_add_cxx_library(RK)
+spheral_add_obj_library(RK)
 

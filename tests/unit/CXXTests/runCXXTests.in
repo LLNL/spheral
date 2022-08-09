@@ -1,2 +1,3 @@
 ### List of all c++ tests to be run in ats
+source("test_cuda_launch.py")
 source(@TEST_LIST@)

@@ -54,5 +54,5 @@ set(DataBase_headers
     UpdatePolicyBaseInline.hh
     )
 
-spheral_add_cxx_library(DataBase)
+spheral_add_obj_library(DataBase)
 
