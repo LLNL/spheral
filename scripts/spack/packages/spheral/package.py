@@ -70,7 +70,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('py-sphinx@1.8.5', type='build', when='+docs')
     depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
 
-    depends_on('caliper', type='build')
+    depends_on('caliper ~shared', type='build')
     # -------------------------------------------------------------------------
     # DEPENDS
     # -------------------------------------------------------------------------
