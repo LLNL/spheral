@@ -18,7 +18,7 @@ By defualt, even when configured with ENABLE_TIMER=On, there is no information b
 .. note::
   To obtain a similar result to that of the removed Spheral::Timer use :kbd:`CALI_CONFIG=runtime\-report(output=time.txt),calc.inclusive,region.count` this will result in a file named time.txt with cumulative times for the nested regions as well as a count of how many times each region ran.
 
-There are many different options that can be used with ``CALI_CONFIG`` to view various information. Here are some extra links for those who want to read or experiment with other features in Caliper that can be more closely incorperated into Spheral in the future:
+There are many different options that can be used with ``CALI_CONFIG`` to view various information. Here are some extra links for those who want to read or experiment with other features in Caliper that can be incorperated into Spheral in the future:
 
   * `Configuration basics <https://software.llnl.gov/Caliper/CaliperBasics.html#more-on-configurations>`_
   * `Builtin Configuration <https://software.llnl.gov/Caliper/BuiltinConfigurations.html>`_
