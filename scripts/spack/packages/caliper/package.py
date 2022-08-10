@@ -86,20 +86,9 @@ class Caliper(CMakePackage, CudaPackage, ROCmPackage):
 
     patch("for_aarch64.patch", when="target=aarch64:")
 
-    def flag_handler(self, name, flags):
-        spec = self.spec
-
-        if '+pic' in spec:
-            if name == 'cflags':
-                flags.append(self.compiler.cc_pic_flag)
-            elif name == 'cxxflags':
-                flags.append(self.compiler.cxx_pic_flag)
-            elif name == 'fcflags':
-                flags.append(self.compiler.fc_pic_flag)
-        # if name == 'cflags':
-        #     if spec.compiler.name in ['clang', 'apple-clang']:
-        #         flags.append('-Wno-implicit-function-declaration')
-        return (flags, None, None)
+    def setup_build_environment(self, env):
+        if '+pic' in self.spec:
+            env.append_flags('CFLAGS', self.compiler.cc_pic_flag)
 
     def cmake_args(self):
         spec = self.spec
