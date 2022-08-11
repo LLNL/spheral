@@ -123,7 +123,7 @@ resolution materials."""
     minFlaw = PYB11property("const Field<%(Dimension)s, Scalar>&", "minFlaw",
                             returnpolicy="reference_internal",
                             doc="The minimum flaw activation strain on each point")
-    maxFlaw = PYB11property("const Field<%(Dimension)s, Scalar>&", "minFlaw",
+    maxFlaw = PYB11property("const Field<%(Dimension)s, Scalar>&", "maxFlaw",
                             returnpolicy="reference_internal",
                             doc="The maximum flaw activation strain on each point")
     initialVolume = PYB11property("const Field<%(Dimension)s, Scalar>&", "initialVolume",
