@@ -591,6 +591,7 @@ initialize(const bool     RZ,
            const int      piKernelType,
            const int      gradKernelType,
            const int      nbspline,
+           const int      numinterp,
            const int      rkorder,
            const int      rkvolume,
            const int      damage,
@@ -641,22 +642,22 @@ initialize(const bool     RZ,
   // Build the general interpolation kernel.
   switch(kernelType) {
   case 0:
-    me.mKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 100));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), numinterp));
     break;
   case 1:
-    me.mKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 100));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), numinterp));
     break;
   case 2:
-    me.mKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 100));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), numinterp));
     break;
   case 3:
-    me.mKernelPtr.reset(new TableKernel<Dimension>(BSplineKernel<Dimension>(), 100));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(BSplineKernel<Dimension>(), numinterp));
     break;
   case 4:
-    me.mKernelPtr.reset(new TableKernel<Dimension>(QuarticSplineKernel<Dimension>(), 100));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(QuarticSplineKernel<Dimension>(), numinterp));
     break;
   case 5:
-    me.mKernelPtr.reset(new TableKernel<Dimension>(QuinticSplineKernel<Dimension>(), 100));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(QuinticSplineKernel<Dimension>(), numinterp));
     break;
   default:
     VERIFY2(false, "SpheralPsuedoScript::initialize: invalid kernelType " << kernelType);
@@ -665,22 +666,22 @@ initialize(const bool     RZ,
   // Build the interpolation kernel for artificial viscosity.
   switch(piKernelType) {
   case 0:
-    me.mPiKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 100));
+    me.mPiKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), numinterp));
     break;
   case 1:
-    me.mPiKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 100));
+    me.mPiKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), numinterp));
     break;
   case 2:
-    me.mPiKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 100));
+    me.mPiKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), numinterp));
     break;
   case 3:
-    me.mPiKernelPtr.reset(new TableKernel<Dimension>(BSplineKernel<Dimension>(), 100));
+    me.mPiKernelPtr.reset(new TableKernel<Dimension>(BSplineKernel<Dimension>(), numinterp));
     break;
   case 4:
-    me.mPiKernelPtr.reset(new TableKernel<Dimension>(QuarticSplineKernel<Dimension>(), 100));
+    me.mPiKernelPtr.reset(new TableKernel<Dimension>(QuarticSplineKernel<Dimension>(), numinterp));
     break;
   case 5:
-    me.mPiKernelPtr.reset(new TableKernel<Dimension>(QuinticSplineKernel<Dimension>(), 100));
+    me.mPiKernelPtr.reset(new TableKernel<Dimension>(QuinticSplineKernel<Dimension>(), numinterp));
     break;
   default:
     VERIFY2(false, "SpheralPseudoScript::initialize: invalid piKerneltype " << piKernelType);
@@ -689,22 +690,22 @@ initialize(const bool     RZ,
   // Build the interpolation kernel for the velocity gradient.
   switch(gradKernelType) {
   case 0:
-    me.mGradKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), 100));
+    me.mGradKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), numinterp));
     break;
   case 1:
-    me.mGradKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), 100));
+    me.mGradKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), numinterp));
     break;
   case 2:
-    me.mGradKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), 100));
+    me.mGradKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), numinterp));
     break;
   case 3:
-    me.mGradKernelPtr.reset(new TableKernel<Dimension>(BSplineKernel<Dimension>(), 100));
+    me.mGradKernelPtr.reset(new TableKernel<Dimension>(BSplineKernel<Dimension>(), numinterp));
     break;
   case 4:
-    me.mGradKernelPtr.reset(new TableKernel<Dimension>(QuarticSplineKernel<Dimension>(), 100));
+    me.mGradKernelPtr.reset(new TableKernel<Dimension>(QuarticSplineKernel<Dimension>(), numinterp));
     break;
   case 5:
-    me.mGradKernelPtr.reset(new TableKernel<Dimension>(QuinticSplineKernel<Dimension>(), 100));
+    me.mGradKernelPtr.reset(new TableKernel<Dimension>(QuinticSplineKernel<Dimension>(), numinterp));
     break;
   default:
     VERIFY2(false, "SpheralPseudoScript::initialize: invalid gradKerneltype " << gradKernelType);

@@ -117,6 +117,7 @@ SPHERALDLL_API   void spheral_set_communicator(MPI_Comm* comm);
     piKernelType          : select the artificial viscosity interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
     gradKernelType        : select the velocity gradient interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
     nbspline              : order of kernel (if using B splines)
+    numinterp             : number of kernel interpolation points
     rkorder               : order of CRK correction
     rkvolume              : RK volume definition (0=MassOverDensity, 1=SumVolume, 2=VoronoiVolume, 3=HullVolume, 4=HVolume)
     damage                : flag to feed back damage to Spheral
@@ -154,6 +155,7 @@ SPHERALDLL_API
                           const int      piKernelType,
                           const int      gradKernelType,
                           const int      nbspline,
+                          const int      numinterp,
                           const int      rkorder,
                           const int      rkvolume,
                           const int      damage,

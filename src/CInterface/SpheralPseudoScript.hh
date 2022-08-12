@@ -65,6 +65,7 @@ public:
                          const int      piKernelType,
                          const int      gradKernelType,
                          const int      nbspline,
+                         const int      numinterp,
                          const int      rkorder,
                          const int      rkvolume,
                          const int      damage,
