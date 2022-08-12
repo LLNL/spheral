@@ -34,9 +34,6 @@ set(Utilities_sources
     refinePolyhedron.cc
     coarsenBinnedValuesInst.cc
     clipFacetedVolume.cc
-    SpheralTimers.cc
-    #SpheralTimersAlternate.cc
-    Timer.cc
     uniform_random.cc
     )
 
@@ -82,7 +79,6 @@ set(Utilities_headers
     SafeIndexMap.hh
     SpheralFunctions.hh
     SurfaceNodeCoupling.hh
-    Timer.hh
     timerLayer.hh
     Tree.hh
     TreeInline.hh
