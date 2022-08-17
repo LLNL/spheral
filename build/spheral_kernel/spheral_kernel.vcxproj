@@ -364,6 +364,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\Kernel\BSplineKernelInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\Kernel\BSplineKernelInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Kernel\QuarticSplineKernelInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\Kernel\QuarticSplineKernelInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Kernel\QuinticSplineKernelInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\Kernel\QuinticSplineKernelInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Kernel\GaussianKernelInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Kernel\GaussianKernelInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Kernel\NBSplineKernelInst.cc.2.cc" />
@@ -376,6 +382,30 @@
     <ClCompile Include="..\..\src\Kernel\VolumeIntegrationFunctionsAleInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="..\..\src\Kernel\BSplineKernelInst.cc.py">
+      <Command>
+        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+      </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\QuarticSplineKernelInst.cc.py">
+      <Command>
+        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+      </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Kernel\QuinticSplineKernelInst.cc.py">
+      <Command>
+        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+      </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
     <CustomBuild Include="..\..\src\Kernel\GaussianKernelInst.cc.py">
       <Command>
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
@@ -416,6 +446,47 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Kernel\BSplineKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\BSplineKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\ExpInvKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\ExpInvKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\GaussianKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\GaussianKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\HatKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\HatKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\Kernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\KernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\KernelTraits.hh" />
+    <ClInclude Include="..\..\src\Kernel\NBSplineKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\NBSplineKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\NSincPolynomialKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\NSincPolynomialKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\PiGaussianKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\PiGaussianKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\QuarticSplineKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\QuarticSplineKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\QuinticSplineKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\SincKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\SincKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\SphericalBiCubicSplineKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\SphericalBiCubicSplineKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\SphericalKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\SphericalKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\SuperGaussianKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\SuperGaussianKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\TableKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\TableKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\VolumeIntegrationFunctions.hh" />
+    <ClInclude Include="..\..\src\Kernel\W4SplineKernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\W4SplineKernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\WendlandC2Kernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\WendlandC2KernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\WendlandC4Kernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\WendlandC4KernelInline.hh" />
+    <ClInclude Include="..\..\src\Kernel\WendlandC6Kernel.hh" />
+    <ClInclude Include="..\..\src\Kernel\WendlandC6KernelInline.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
