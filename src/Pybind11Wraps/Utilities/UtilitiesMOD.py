@@ -15,7 +15,8 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-PYB11includes += ['"Utilities/packElement.hh"',
+PYB11includes += ['"Utilities/ApproximatePolyhedralGravityModel.hh"',
+                  '"Utilities/packElement.hh"',
                   '"boost/math/special_functions/legendre.hpp"',
                   '"Utilities/BuildData.hh"',
                   '"Utilities/Functors.hh"',
@@ -84,6 +85,7 @@ PYB11namespaces = ["Spheral"]
 # Instantiate types and add dimension dependent functions.
 #-------------------------------------------------------------------------------
 from SpheralFunctor import *
+from ApproximatePolyhedralGravityModel import *
 from KeyTraits import *
 from Timer import *
 from DomainNode import *

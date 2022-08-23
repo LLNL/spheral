@@ -15,6 +15,7 @@ set(Utilities_inst
    )
 
 set(Utilities_sources
+    ApproximatePolyhedralGravityModel.cc
     BuildData.cc
     DBC.cc
     QuadraticInterpolator.cc
@@ -43,6 +44,8 @@ set(Utilities_sources
 instantiate(Utilities_inst Utilities_sources)
 
 set(Utilities_headers
+    ApproximatePolyhedralGravityModel.hh
+    ApproximatePolyhedralGravityModelInline.hh
     Bessel.hh
     BuildData.hh
     CounterClockwiseComparator.hh
