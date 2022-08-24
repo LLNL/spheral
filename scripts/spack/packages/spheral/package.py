@@ -56,6 +56,8 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
     depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
+    depends_on('caliper ~shared +pic', type='build')
+
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope', type='build')
 
@@ -144,6 +146,9 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
         entries.append(cmake_cache_option('BUILD_TPL', True))
 
         # TPL locations
+        entries.append(cmake_cache_option('caliper_BUILD', False))
+        entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
+
         entries.append(cmake_cache_option('python_BUILD', False))
         entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
 
