@@ -49,9 +49,7 @@ message("Default TPL location : ${DEFAULT_TPL_LOCATION}\n")
 # <lib_name>_libs : list of full paths to tpl lib files to be linked to.
 #----------------------------------------------------------------------------------------
 
-function(Spheral_Handle_TPL lib_name dep_list)
-
-  string(TOUPPER ${lib_name} LIB_NAME)
+function(Spheral_Handle_TPL lib_name dep_list target_type)
 
   # If no location to search is sepcified, search default dir
   if (NOT ${lib_name}_DIR)
@@ -103,12 +101,12 @@ function(Spheral_Handle_TPL lib_name dep_list)
 
   # Add the blt target to a list of libs that can be depended on
   if (${lib_name}_ADD_BLT_TARGET)
-    list(APPEND spheral_blt_depends blt_${lib_name})
+    list(APPEND spheral_blt_${target_type}_depends blt_${lib_name})
   endif()
 
   set(${lib_name}_DIR ${${lib_name}_DIR} PARENT_SCOPE)
   set(${dep_list} ${${dep_list}} PARENT_SCOPE)
-  set(spheral_blt_depends ${spheral_blt_depends} PARENT_SCOPE)
+  set(spheral_blt_${target_type}_depends ${spheral_blt_${target_type}_depends} PARENT_SCOPE)
 
   message("")
 
