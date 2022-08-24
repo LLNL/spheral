@@ -76,15 +76,22 @@ function(Spheral_Handle_TPL lib_name dep_list)
   # Generate full path to lib file for output list
   set(${lib_name}_LIBRARIES )
   foreach(lib ${${lib_name}_libs})
-    set(lib_abs "${${lib_name}_DIR}/lib/${lib}")
-    list(APPEND ${lib_name}_LIBRARIES $<BUILD_INTERFACE:${lib_abs}>)
+    find_file(temp_abs_path
+      NAME ${lib}
+      PATHS ${${lib_name}_DIR}
+      PATH_SUFFIXES lib lib64
+      NO_CACHE
+      )
+    # set(temp_abs_path "${${lib_name}_DIR}/lib/${lib}")
+    list(APPEND ${lib_name}_LIBRARIES $<BUILD_INTERFACE:${temp_abs_path}>)
 
     # Check all necessary files exist during config time when not installing TPL
-    if (NOT EXISTS ${lib_abs})
+    if (NOT EXISTS ${temp_abs_path})
       message(FATAL_ERROR "Cannot find ${lib} in ${${lib_name}_DIR} for TPL ${lib_name}.")
     else()
-      message("Found: ${lib_abs}")
+      message("Found: ${temp_abs_path}")
     endif()
+    unset(temp_abs_path CACHE) # Remove this line when using cmake 3.21+, same as find_file(NO_CACHE)
   endforeach()
 
   # Register any libs/includes under a blt dir for later use/depends
