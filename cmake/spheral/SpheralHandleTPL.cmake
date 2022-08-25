@@ -79,6 +79,7 @@ function(Spheral_Handle_TPL lib_name dep_list target_type)
       PATHS ${${lib_name}_DIR}
       PATH_SUFFIXES lib lib64
       NO_CACHE
+      NO_DEFAULT_PATH
       )
     # set(temp_abs_path "${${lib_name}_DIR}/lib/${lib}")
     list(APPEND ${lib_name}_LIBRARIES $<BUILD_INTERFACE:${temp_abs_path}>)
