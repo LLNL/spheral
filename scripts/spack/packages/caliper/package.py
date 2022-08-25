@@ -59,7 +59,7 @@ class Caliper(CMakePackage, CudaPackage, ROCmPackage):
     variant("sampler", default=is_linux, description="Enable sampling support on Linux")
     variant("sosflow", default=False, description="Enable SOSflow support")
     variant("fortran", default=False, description="Enable Fortran support")
-    variant('pic', default=True, description='Produce position-independent code (for shared libs)')
+    variant("pic", default=True, description="Produce position-independent code (for shared libs)")
 
     depends_on("adiak@0.1:0", when="@2.2: +adiak")
 
@@ -86,9 +86,10 @@ class Caliper(CMakePackage, CudaPackage, ROCmPackage):
 
     patch("for_aarch64.patch", when="target=aarch64:")
 
-    def setup_build_environment(self, env):
-        if '+pic' in self.spec:
-            env.append_flags('CFLAGS', self.compiler.cc_pic_flag)
+    # def setup_build_environment(self, env):
+    #     if '+pic' in self.spec:
+    #         env.append_flags('CFLAGS', self.compiler.pic_flag)
+    #         env.append_flags('CXXFLAGS', self.compiler.pic_flag)
 
     def cmake_args(self):
         spec = self.spec
@@ -111,6 +112,7 @@ class Caliper(CMakePackage, CudaPackage, ROCmPackage):
             self.define_from_variant("WITH_NVTX", "cuda"),
             self.define_from_variant("WITH_ROCTRACER", "rocm"),
             self.define_from_variant("WITH_ROCTX", "rocm"),
+            self.define_from_variant("WITH_PIC", "pic"),
         ]
 
         if "+papi" in spec:
@@ -142,6 +144,9 @@ class Caliper(CMakePackage, CudaPackage, ROCmPackage):
 
         if "+rocm" in spec:
             args.append("-DROCM_PREFIX=%s" % spec["hsa-rocr-dev"].prefix)
+
+        if "+pic" in spec:
+            args.append("-DCMAKE_POSITION_INDEPENDENT_CODE=True")
 
         return args
 
