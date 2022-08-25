@@ -40,7 +40,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
     depends_on('boost@1.74.0 -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
-    depends_on('qhull@2020.1', type='build')
+    depends_on('qhull@2020.1 +pic', type='build')
     depends_on('m-aneos')
     depends_on('py-polyclipper')
     depends_on('eigen@3.4.0', type='build')
