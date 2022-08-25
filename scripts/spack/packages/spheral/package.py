@@ -71,7 +71,6 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
     depends_on('py-sphinx@1.8.5', type='build', when='+docs')
     depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
-
     # -------------------------------------------------------------------------
     # DEPENDS
     # -------------------------------------------------------------------------
@@ -218,7 +217,6 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
         entries.append(cmake_cache_option('ENABLE_OPENMP', '+openmp' in spec))
         entries.append(cmake_cache_option('ENABLE_DOCS', '+docs' in spec))
-
 
         return entries
 

@@ -16,7 +16,7 @@
 #include "Utilities/mortonOrderIndices.hh"
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/pointDistances.hh"
-#include "Utilities/Timer.hh"
+#include "Utilities/timerLayer.hh"
 
 #include <algorithm>
 #include <ctime>
@@ -31,14 +31,6 @@ using std::min;
 using std::max;
 using std::abs;
 
-// Declare the timers.
-extern Timer TIME_ConnectivityMap_patch;
-extern Timer TIME_ConnectivityMap_cutConnectivity;
-extern Timer TIME_ConnectivityMap_valid;
-extern Timer TIME_ConnectivityMap_computeConnectivity;
-extern Timer TIME_ConnectivityMap_computeOverlapConnectivity;
-extern Timer TIME_ConnectivityMap_computeIntersectionConnectivity;
-extern Timer TIME_ConnectivityMap_precomputeIntersectionConnectivity;
 
 namespace Spheral {
 
@@ -161,7 +153,7 @@ void
 ConnectivityMap<Dimension>::
 patchConnectivity(const FieldList<Dimension, int>& flags,
                   const FieldList<Dimension, int>& old2new) {
-  TIME_ConnectivityMap_patch.start();
+  TIME_BEGIN("ConnectivityMap_patch");
 
   const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
 
@@ -322,7 +314,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
   // when we call patch!  The valid method should be checked by whoever called
   // this method after that point.
   //ENSURE(valid());
-  TIME_ConnectivityMap_patch.stop();
+  TIME_END("ConnectivityMap_patch");
 }
 
 //------------------------------------------------------------------------------
@@ -337,7 +329,7 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
                                  const FieldList<Dimension, typename Dimension::Vector>& position) const {
 
   // Pre-conditions.
-  TIME_ConnectivityMap_computeIntersectionConnectivity.start();
+  TIME_BEGIN("ConnectivityMap_computeIntersectionConnectivity");
   const auto numNodeLists = mNodeLists.size();
   const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
   const auto ghostConnectivity = (mBuildGhostConnectivity or
@@ -394,7 +386,7 @@ connectivityIntersectionForNodes(const int nodeListi, const int i,
   result[nodeListj].push_back(j);
 
   // That's it.
-  TIME_ConnectivityMap_computeIntersectionConnectivity.stop();
+  TIME_END("ConnectivityMap_computeIntersectionConnectivity");
   return result;
 }
 
@@ -407,7 +399,7 @@ template<typename Dimension>
 void
 ConnectivityMap<Dimension>::
 removeConnectivity(const FieldList<Dimension, vector<vector<int>>>& neighborsToCut) {
-  TIME_ConnectivityMap_cutConnectivity.start();
+  TIME_BEGIN("ConnectivityMap_cutConnectivity");
 
   const auto numNodeLists = mNodeLists.size();
   REQUIRE(neighborsToCut.numFields() == numNodeLists);
@@ -424,7 +416,7 @@ removeConnectivity(const FieldList<Dimension, vector<vector<int>>>& neighborsToC
     }
   }
 
-  TIME_ConnectivityMap_cutConnectivity.stop();
+  TIME_END("ConnectivityMap_cutConnectivity");
 }
 
 //------------------------------------------------------------------------------
@@ -536,7 +528,7 @@ template<typename Dimension>
 bool
 ConnectivityMap<Dimension>::
 valid() const {
-  TIME_ConnectivityMap_valid.start();
+  TIME_BEGIN("ConnectivityMap_valid");
 
   const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
   const auto ghostConnectivity = (mBuildGhostConnectivity or
@@ -744,7 +736,7 @@ valid() const {
   // }
 
   // Everything must be OK.
-  TIME_ConnectivityMap_valid.stop();
+  TIME_END("ConnectivityMap_valid");
   return true;
 }
 
@@ -755,7 +747,7 @@ template<typename Dimension>
 void
 ConnectivityMap<Dimension>::
 computeConnectivity() {
-  TIME_ConnectivityMap_computeConnectivity.start();
+  TIME_BEGIN("ConnectivityMap_computeConnectivity");
 
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::SymTensor SymTensor;
@@ -1034,7 +1026,7 @@ computeConnectivity() {
   // Do we need overlap connectivity?
   if (mBuildOverlapConnectivity) {
     // VERIFY2(ghostConnectivity, "ghost connectivity is required for overlap connectivity");
-    TIME_ConnectivityMap_computeOverlapConnectivity.start();
+    TIME_BEGIN("ConnectivityMap_computeOverlapConnectivity");
 
     // To start out, *all* neighbors of a node (gather and scatter) are overlap neighbors.  Therefore we
     // first just copy the neighbor connectivity.
@@ -1096,12 +1088,12 @@ computeConnectivity() {
         }
       }
     }
-    TIME_ConnectivityMap_computeOverlapConnectivity.stop();
+    TIME_END("ConnectivityMap_computeOverlapConnectivity");
   }
 
   // Are we building intersection connectivity?
   if (mBuildIntersectionConnectivity) {
-    TIME_ConnectivityMap_precomputeIntersectionConnectivity.start();
+    TIME_BEGIN("ConnectivityMap_precomputeIntersectionConnectivity");
     const auto npairs = mNodePairList.size();
 #pragma omp parallel
     {
@@ -1121,7 +1113,7 @@ computeConnectivity() {
         }
       } // omp critical
     }   // omp parallel
-    TIME_ConnectivityMap_precomputeIntersectionConnectivity.stop();
+    TIME_END("ConnectivityMap_precomputeIntersectionConnectivity");
   }
 
   // {
@@ -1150,7 +1142,7 @@ computeConnectivity() {
   ENSURE(valid());
   END_CONTRACT_SCOPE
 
-  TIME_ConnectivityMap_computeConnectivity.stop();
+  TIME_END("ConnectivityMap_computeConnectivity");
 }
 
 }

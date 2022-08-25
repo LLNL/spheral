@@ -43,8 +43,8 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "Utilities/Timer.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
+#include "Utilities/timerLayer.hh"
 
 #include "SolidSphericalSPHHydroBase.hh"
 
@@ -65,18 +65,6 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
-
-// Declare timers
-extern Timer TIME_SolidSPH;
-extern Timer TIME_SolidSPHinitializeStartup;
-extern Timer TIME_SolidSPHregister;
-extern Timer TIME_SolidSPHregisterDerivs;
-extern Timer TIME_SolidSPHghostBounds;
-extern Timer TIME_SolidSPHenforceBounds;
-extern Timer TIME_SolidSPHevalDerivs;
-extern Timer TIME_SolidSPHevalDerivs_initial;
-extern Timer TIME_SolidSPHevalDerivs_pairs;
-extern Timer TIME_SolidSPHevalDerivs_final;
 
 namespace Spheral {
 
@@ -247,8 +235,9 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
                     const DataBase<Dim<1>>& dataBase,
                     const State<Dim<1>>& state,
                     StateDerivatives<Dim<1>>& derivatives) const {
-  TIME_SolidSPHevalDerivs.start();
-  TIME_SolidSPHevalDerivs_initial.start();
+
+  TIME_BEGIN("SolidSphericalSPHevalDerivs");
+  TIME_BEGIN("SolidSphericalSPHevalDerivs_initial");
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
@@ -354,10 +343,10 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
   const auto  WnPerh = W1d(1.0/nPerh, 1.0);
-  TIME_SolidSPHevalDerivs_initial.stop();
+  TIME_END("SolidSphericalSPHevalDerivs_initial");
 
   // Walk all the interacting pairs.
-  TIME_SolidSPHevalDerivs_pairs.start();
+  TIME_BEGIN("SolidSphericalSPHevalDerivs_pairs");
 #pragma omp parallel
   {
     // Thread private  scratch variables.
@@ -598,10 +587,10 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
     threadReduceFieldLists<Dimension>(threadStack);
 
   }   // OpenMP parallel region
-  TIME_SolidSPHevalDerivs_pairs.stop();
+  TIME_END("SolidSphericalSPHevalDerivs_pairs");
 
   // Finish up the derivatives for each point.
-  TIME_SolidSPHevalDerivs_final.start();
+  TIME_BEGIN("SolidSphericalSPHevalDerivs_final");
   size_t offset = 2u*npairs;
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
@@ -777,8 +766,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
     }
     offset += ni;
   }
-  TIME_SolidSPHevalDerivs_final.stop();
-  TIME_SolidSPHevalDerivs.stop();
+  TIME_END("SolidSphericalSPHevalDerivs_final");
+  TIME_END("SolidSphericalSPHevalDerivs");
 }
 
 //------------------------------------------------------------------------------

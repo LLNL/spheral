@@ -28,7 +28,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
-#include "Utilities/Timer.hh"
+#include "Utilities/timerLayer.hh"
 
 #include "FSISPH/SolidFSISPHHydroBase.hh"
 #include "FSISPH/FSIFieldNames.hh"
@@ -55,10 +55,6 @@ using std::min;
 using std::max;
 using std::abs;
 
-extern Timer TIME_SolidFSISPHpreStepInitialize;
-extern Timer TIME_SolidFSISPHinitialize;
-extern Timer TIME_SolidFSISPHregisterDerivs;
-extern Timer TIME_SolidFSISPHregisterState;
 
 namespace Spheral {
 
@@ -230,7 +226,7 @@ void
 SolidFSISPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-  TIME_SolidFSISPHregisterState.start();
+  TIME_BEGIN("SolidFSISPHregisterState");
 
   SolidSPHHydroBase<Dimension>::registerState(dataBase,state);
   
@@ -260,7 +256,7 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mInterfaceFraction,interfaceFractionPolicy);
   state.enroll(mInterfaceSmoothness,interfaceSmoothnessPolicy); 
 
-  TIME_SolidFSISPHregisterState.stop();
+  TIME_END("SolidFSISPHregisterState");
 }
 
 //------------------------------------------------------------------------------
@@ -271,7 +267,7 @@ void
 SolidFSISPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>&  dataBase,
                     StateDerivatives<Dimension>& derivs) {
-  TIME_SolidFSISPHregisterDerivs.start();
+  TIME_BEGIN("SolidFSISPHregisterDerivs");
 
   // Call the ancestor method.
   SolidSPHHydroBase<Dimension>::registerDerivatives(dataBase, derivs);  
@@ -293,7 +289,7 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   derivs.enroll(mNewInterfaceFraction);
   derivs.enroll(mNewInterfaceSmoothness);
 
-  TIME_SolidFSISPHregisterDerivs.stop();
+  TIME_END("SolidFSISPHregisterDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -305,7 +301,7 @@ SolidFSISPHHydroBase<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
-  TIME_SolidFSISPHpreStepInitialize.start();
+  TIME_BEGIN("SolidFSISPHpreStepInitialize");
   if (mApplySelectDensitySum){
       const auto& connectivityMap = dataBase.connectivityMap();
       const auto& position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -317,7 +313,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
-  TIME_SolidFSISPHpreStepInitialize.stop();
+  TIME_END("SolidFSISPHpreStepInitialize");
 }
 
 //------------------------------------------------------------------------------
@@ -331,7 +327,7 @@ initialize(const typename Dimension::Scalar time,
            const DataBase<Dimension>& dataBase,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
-  TIME_SolidFSISPHinitialize.start();
+  TIME_BEGIN("SolidFSISPHinitialize");
 
   const TableKernel<Dimension>& W = this->kernel();
 
@@ -347,7 +343,7 @@ initialize(const typename Dimension::Scalar time,
                W);
   
   // We depend on the caller knowing to finalize the ghost boundaries!
-  TIME_SolidFSISPHinitialize.stop();
+  TIME_END("SolidFSISPHinitialize");
 }
 
 //------------------------------------------------------------------------------
