@@ -455,6 +455,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         // construct our interface velocity 
         auto vstar = 0.5*(vi+vj);
 
+        linearReconstruction(ri,rj,Pi,Pj,DPDxi,DPDxj,PLineari,PLinearj);
 
         if (constructInterface){
           
@@ -463,20 +464,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           const auto uj = vj.dot(rhatij);
           const auto wi = vi - ui*rhatij;
           const auto wj = vj - uj*rhatij;
-          
+
           // weights weights
+          //const auto Ci =  (constructHLLC ? rhoi*(std::max(uj+cj,ui+ci)-ui)  : Ki  ) + tiny;
+          //const auto Cj =  (constructHLLC ? rhoj*(std::min(ui-ci,uj-cj)-uj)  : Kj  ) + tiny;
           const auto Ci =  (constructHLLC ? std::sqrt(rhoi*Ki)  : Ki  ) + tiny;
           const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj)  : Kj  ) + tiny;
           const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : mui ) + tiny;
           const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : muj ) + tiny;
 
-          const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
+          const auto CiCjInv = 1.0/(Ci+Cj);
+          
+          const auto weightUi = max(0.0, min(1.0, Ci*CiCjInv));
           const auto weightUj = 1.0 - weightUi;
           const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, Csi/(Csi+Csj) )) );
           const auto weightWj = 1.0 - weightWi;
 
           // get our eff pressure
-          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ? (PLinearj - PLineari + (Seffi - Seffj).dot(rhatij).dot(rhatij))/(Ci+Cj) : 0.0); 
+          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ? (PLinearj - PLineari - (Seffi-Seffj).dot(rhatij).dot(rhatij))*CiCjInv : 0.0); 
           const auto wstar = weightWi*wi + weightWj*wj;
           vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
   
@@ -489,7 +494,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         }
 
         // diffuse to stabilize things
-        linearReconstruction(ri,rj,Pi,Pj,DPDxi,DPDxj,PLineari,PLinearj);
         if (stabilizeDensity and (ci>tiny and cj>tiny)){
           const auto cFactor = 1.0 + max(min( (vi-vj).dot(rhatij)/max(cij,tiny), 0.0), -1.0);
           const auto effCoeff = (differentMatij ? 1.0 : rhoStabilizeCoeff*cFactor);
@@ -652,7 +656,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
       const auto spin = localDvDxi.SkewSymmetric();
-      const auto deviatoricDeformation = deformation - (deformation.Trace()*oneOverDimension)*SymTensor::one;
+      const auto deviatoricDeformation = deformation - (deformation.Trace()/3.0)*SymTensor::one;
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
       DSDti += spinCorrection + 2.0*mui*deviatoricDeformation;
       
