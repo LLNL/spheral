@@ -132,6 +132,7 @@ class SpheralController:
     # Destructor
     #--------------------------------------------------------------------------
     def __del__(self):
+        pass
 
     #--------------------------------------------------------------------------
     # (Re)initialize the current problem (and controller state).

@@ -1,9 +1,7 @@
 # Setting this to just the release library until we support TPL debug builds on LC
-set(${lib_name}_libs libqhull.so)
-if(ENABLE_STATIC_TPL)
-  set(${lib_name}_libs libqhullstatic.a)
-endif()
-set(QHULL_BUILD_TYPE Release)
+#set(${lib_name}_libs libqhull.so)
+set(${lib_name}_libs libqhullstatic.a)
+#set(QHULL_BUILD_TYPE Release)
 # if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 #   set(${lib_name}_libs libqhullstatic_d.a)
 # else()

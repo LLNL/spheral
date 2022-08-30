@@ -40,7 +40,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
     depends_on('boost@1.74.0 -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
-    depends_on('qhull@2020.1', type='build')
+    depends_on('qhull@2020.1 +pic', type='build')
     depends_on('m-aneos')
     depends_on('py-polyclipper')
     depends_on('eigen@3.4.0', type='build')
@@ -56,6 +56,8 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
     depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
+    depends_on('caliper ~shared +pic', type='build')
+
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope', type='build')
 
@@ -69,8 +71,6 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
     depends_on('py-sphinx@1.8.5', type='build', when='+docs')
     depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
-
-    depends_on('caliper ~shared +pic', type='build')
     # -------------------------------------------------------------------------
     # DEPENDS
     # -------------------------------------------------------------------------
@@ -145,6 +145,9 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
         entries.append(cmake_cache_option('BUILD_TPL', True))
 
         # TPL locations
+        entries.append(cmake_cache_option('caliper_BUILD', False))
+        entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
+
         entries.append(cmake_cache_option('python_BUILD', False))
         entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
 
@@ -214,9 +217,6 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
         entries.append(cmake_cache_option('ENABLE_OPENMP', '+openmp' in spec))
         entries.append(cmake_cache_option('ENABLE_DOCS', '+docs' in spec))
-
-        entries.append(cmake_cache_option('caliper_BUILD', False))
-        entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
 
         return entries
 

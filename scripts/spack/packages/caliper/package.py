@@ -86,10 +86,10 @@ class Caliper(CMakePackage, CudaPackage, ROCmPackage):
 
     patch("for_aarch64.patch", when="target=aarch64:")
 
-    # def setup_build_environment(self, env):
-    #     if '+pic' in self.spec:
-    #         env.append_flags('CFLAGS', self.compiler.pic_flag)
-    #         env.append_flags('CXXFLAGS', self.compiler.pic_flag)
+    def setup_build_environment(self, env):
+        if '+pic' in self.spec:
+            env.append_flags('CFLAGS', self.compiler.cc_pic_flag)
+            env.append_flags('CXXFLAGS', self.compiler.cxx_pic_flag)
 
     def cmake_args(self):
         spec = self.spec
