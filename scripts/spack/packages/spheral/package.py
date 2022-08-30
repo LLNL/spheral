@@ -56,7 +56,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
     depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
-    depends_on('caliper ~shared +pic', type='build')
+    depends_on('caliper ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
 
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope', type='build')
