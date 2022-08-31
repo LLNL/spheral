@@ -38,4 +38,4 @@ So far there are two different types of regions in Spheral, using the following 
 
 - ``TIME_FUNCTION`` can be added to the very beginning of a function and creates a region for the entire function using the function's name. ``TIME_FUNCTION`` uses just the function name and no class or parameter information, so be careful when using this method with functions that could share names.
 
-- ``TIME_BEGIN("timer_name")`` and ``TIME_END("timer_name")`` create a region between the two different calls and use the string (in this case timer_name) as the name. This is the most similar method to the removed Spheral::Timer.
+- ``TIME_BEGIN("timer_name")`` and ``TIME_END("timer_name")`` create a region between the two different calls and use the string (in this case timer_name) as the name.
