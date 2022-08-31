@@ -31,7 +31,7 @@ ApproximatePolyhedralGravityModel::ApproximatePolyhedralGravityModel(const GeomP
 }
 
 //--------------------------------------------------------------------------------------------
-// Constructor 
+// Destructor 
 //--------------------------------------------------------------------------------------------
 ApproximatePolyhedralGravityModel::~ApproximatePolyhedralGravityModel() {
 }
