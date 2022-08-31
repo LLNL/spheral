@@ -44,7 +44,7 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
-#include "Utilities/timerLayer.hh"
+#include "Utilities/Timer.hh"
 
 #include "SolidSphericalSPHHydroBase.hh"
 

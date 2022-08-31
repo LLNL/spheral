@@ -8,7 +8,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/NodeList.hh"
-#include "Utilities/timerLayer.hh"
+#include "Utilities/Timer.hh"
 
 namespace Spheral {
 

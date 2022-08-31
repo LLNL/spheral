@@ -10,7 +10,7 @@
 #include "Utilities/pointOnPolygon.hh"
 #include "Utilities/FastMath.hh"
 #include "Geometry/PolyClipperUtilities.hh"
-#include "Utilities/timerLayer.hh"
+#include "Utilities/Timer.hh"
 
 #include <algorithm>
 #include <utility>

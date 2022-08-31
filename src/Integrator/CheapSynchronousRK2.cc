@@ -15,7 +15,7 @@
 #include "Field/NodeIterators.hh"
 #include "Physics/Physics.hh"
 #include "Utilities/DBC.hh"
-#include "Utilities/timerLayer.hh"
+#include "Utilities/Timer.hh"
 
 using std::vector;
 using std::string;

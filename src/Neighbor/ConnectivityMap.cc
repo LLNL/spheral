@@ -16,7 +16,7 @@
 #include "Utilities/mortonOrderIndices.hh"
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/pointDistances.hh"
-#include "Utilities/timerLayer.hh"
+#include "Utilities/Timer.hh"
 
 #include <algorithm>
 #include <ctime>

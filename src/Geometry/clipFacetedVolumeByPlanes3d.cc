@@ -21,7 +21,7 @@
 #include "Utilities/removeElements.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/timingUtilities.hh"
-#include "Utilities/timerLayer.hh"
+#include "Utilities/Timer.hh"
 
 #include <iostream>
 #include <iterator>

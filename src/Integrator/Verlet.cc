@@ -19,7 +19,7 @@
 #include "Physics/Physics.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/DBC.hh"
-#include "Utilities/timerLayer.hh"
+#include "Utilities/Timer.hh"
 
 using std::vector;
 using std::string;

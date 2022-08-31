@@ -37,7 +37,7 @@
 #include "DEM/DEMDimension.hh"
 #include "DEM/DEMFieldNames.hh"
 
-#include "Utilities/timerLayer.hh"
+#include "Utilities/Timer.hh"
 
 #ifdef _OPENMP
 #include "omp.h"

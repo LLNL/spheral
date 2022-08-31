@@ -23,7 +23,7 @@
 #include "Damage/PairMaxDamageNodeCoupling.hh"
 #include "Damage/DamageGradientNodeCoupling.hh"
 #include "Damage/ThreePointDamagedNodeCoupling.hh"
-#include "Utilities/timerLayer.hh"
+#include "Utilities/Timer.hh"
 
 #include "boost/shared_ptr.hpp"
 

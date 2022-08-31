@@ -79,7 +79,7 @@ set(Utilities_headers
     SafeIndexMap.hh
     SpheralFunctions.hh
     SurfaceNodeCoupling.hh
-    timerLayer.hh
+    Timer.hh
     Tree.hh
     TreeInline.hh
     allReduce.hh

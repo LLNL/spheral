@@ -7,7 +7,7 @@
 //------------------------------------------------------------------------------
 #include "editMultimaterialSurfaceTopology.hh"
 #include "Utilities/DBC.hh"
-#include "Utilities/timerLayer.hh"
+#include "Utilities/Timer.hh"
 
 #include <vector>
 #include <algorithm>

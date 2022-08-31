@@ -33,7 +33,7 @@ extern "C" {
 #include "libqhull/qhull_a.h"
 }
 
-#include "Utilities/timerLayer.hh"
+#include "Utilities/Timer.hh"
 
 #include <algorithm>
 #include <numeric>

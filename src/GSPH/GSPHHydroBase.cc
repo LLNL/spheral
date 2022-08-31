@@ -23,7 +23,7 @@
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
-#include "Utilities/timerLayer.hh"
+#include "Utilities/Timer.hh"
 
 #include "GSPH/GSPHHydroBase.hh"
 #include "GSPH/GSPHFieldNames.hh"
