@@ -162,8 +162,6 @@ commandLine(KernelConstructor = WendlandC4Kernel3d,
             tol = 1.0e-5,
 
             graphics = True,
-
-            timerName = ""
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
@@ -451,8 +449,7 @@ control = SpheralController(integrator,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
-                            restoreCycle = restoreCycle,
-                            timerName = timerName
+                            restoreCycle = restoreCycle
                             )
 output("control")
 

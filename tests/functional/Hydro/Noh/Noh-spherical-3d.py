@@ -124,8 +124,6 @@ commandLine(order = 5,
             comparisonFile = "None",
 
             graphics = True,
-
-            timerName = ""
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
@@ -472,8 +470,7 @@ control = SpheralController(integrator, WT,
                             vizTime = vizTime,
                             vizDerivs = vizDerivs,
                             #skipInitialPeriodicWork = SVPH,
-                            SPH = True,        # Only for iterating H
-                            timerName = timerName
+                            SPH = True        # Only for iterating H
                             )
 output("control")
 
