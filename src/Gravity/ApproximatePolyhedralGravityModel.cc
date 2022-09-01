@@ -50,7 +50,7 @@ ApproximatePolyhedralGravityModel::acceleration(const Dim<3>::Vector& position) 
 
   for(unsigned int i=0; i < this->numQuadraturePoints(); i++){
     Scalar r = (position - quadPoints[i]).magnitude();
-    acceleration += GrhoAn[i]/std::max(r,res[i]);
+    acceleration -= GrhoAn[i]/std::max(r,res[i]);
   }
 
   return acceleration;
@@ -70,10 +70,10 @@ ApproximatePolyhedralGravityModel::potential(const Dim<3>::Vector& position) con
 
   for(unsigned int i=0; i < this->numQuadraturePoints(); i++){
     Vector r = (position - quadPoints[i]);
-    potential += GrhoAn[i].dot(r)/std::max(r.magnitude(),0.001*res[i]);
+    potential -= GrhoAn[i].dot(r)/std::max(r.magnitude(),0.001*res[i]);
   }
 
-  return potential;
+  return 0.5*potential;
 }
 
 }
