@@ -1,3 +1,5 @@
+#ATS:APGM1 = test(SELF,       " ", np=1, label="Approximate polyhedral gravity model acceleration test")
+
 #-------------------------------------------------------------------------------
 # Set up a pair of equal mass N-body points in a simple circular orbit of each
 # other.
