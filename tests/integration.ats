@@ -88,7 +88,7 @@ source("functional/DEM/DEMTests.ats")
 # Gravity tests
 source("functional/Gravity/CollisionlessSphereCollapse.py")
 source("functional/Gravity/ApproximatePolyhedralGravityModel.py")
-
+ 
 # Strength tests.
 #source("functional/Strength/PlateImpact/PlateImpact-1d.py")
 source("functional/Strength/CollidingPlates/CollidingPlates-1d.py")
