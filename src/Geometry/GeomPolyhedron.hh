@@ -89,10 +89,13 @@ public:
   // Spit out a vector<vector<unsigned> > and vector<Vector> that encode the facets.
   std::vector<std::vector<unsigned> > facetVertices() const;
   std::vector<Vector> facetNormals() const;
+  std::vector<Vector> facetAreaVectors() const;
+  std::vector<Vector> facetCentroids() const;
 
   // Useful facet properties.
   double facetArea(const unsigned facetID) const;
   Vector facetAreaNormal(const unsigned facetID) const;
+  Vector facetCentroid(const unsigned facetID) const;
 
   // Reconstruct the internal data given a set of vertices and the vertex
   // indicies that define the facets.
