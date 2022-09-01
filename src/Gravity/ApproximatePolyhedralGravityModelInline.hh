@@ -1,6 +1,8 @@
 namespace Spheral {
 
-
+//--------------------------------------------------------------------------------------------
+// get methods
+//--------------------------------------------------------------------------------------------
 inline
 const std::vector<Dim<3>::Vector>& 
 ApproximatePolyhedralGravityModel::values() const {

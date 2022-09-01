@@ -1,8 +1,9 @@
 #ATS:APGM1 = test(SELF,       " ", np=1, label="Approximate polyhedral gravity model acceleration test")
 
 #-------------------------------------------------------------------------------
-# Set up a pair of equal mass N-body points in a simple circular orbit of each
-# other.
+# Test our gravitational acceleration from the approximate polyhedral gravity 
+# model on a coarse surface mesh of bennu and compare to nominal values derived
+# from GaMA.
 #-------------------------------------------------------------------------------
 from Spheral3d import *
 from SpheralTestUtilities import *

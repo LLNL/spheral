@@ -1,7 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// Analytic Polhedral Model
-//----------------------------------------------------------------------------//
+// Approximate Polhedral Model
+///----------------------------------------------------------------------------//
+//   Model used to calculate the gravitational fields of an irregular shaped 
+//   body by apply numerical quadrature to a discetization of its surface.
 //
+//   Pearl, Hitt, A Fast Quadrature-Based Gravity Model for the Homogeneous 
+//   Polyhedron, MNRAS, 492(1), 2020.
 //----------------------------------------------------------------------------//
 // J. M. Pearl 2022
 //----------------------------------------------------------------------------//
@@ -13,7 +17,8 @@ namespace Spheral {
 //--------------------------------------------------------------------------------------------
 // Constructor 
 //--------------------------------------------------------------------------------------------
-ApproximatePolyhedralGravityModel::ApproximatePolyhedralGravityModel(const GeomPolyhedron & poly, const double Mass, const double G):
+ApproximatePolyhedralGravityModel::
+ApproximatePolyhedralGravityModel(const GeomPolyhedron & poly, const double Mass, const double G):
   mNumQuadraturePoints(poly.facets().size()),
   mQuadraturePoints(poly.facetCentroids()),
   mValues(poly.facetAreaVectors()){
@@ -33,14 +38,16 @@ ApproximatePolyhedralGravityModel::ApproximatePolyhedralGravityModel(const GeomP
 //--------------------------------------------------------------------------------------------
 // Destructor 
 //--------------------------------------------------------------------------------------------
-ApproximatePolyhedralGravityModel::~ApproximatePolyhedralGravityModel() {
+ApproximatePolyhedralGravityModel::
+~ApproximatePolyhedralGravityModel() {
 }
 
 //--------------------------------------------------------------------------------------------
 // acceleration
 //--------------------------------------------------------------------------------------------
 Dim<3>::Vector
-ApproximatePolyhedralGravityModel::acceleration(const Dim<3>::Vector& position) const {
+ApproximatePolyhedralGravityModel::
+acceleration(const Dim<3>::Vector& position) const {
   
   Dim<3>::Vector acceleration = Vector::zero;
 
@@ -60,7 +67,8 @@ ApproximatePolyhedralGravityModel::acceleration(const Dim<3>::Vector& position) 
 // potential
 //--------------------------------------------------------------------------------------------
 Dim<3>::Scalar
-ApproximatePolyhedralGravityModel::potential(const Dim<3>::Vector& position) const {
+ApproximatePolyhedralGravityModel::
+potential(const Dim<3>::Vector& position) const {
   
   Scalar potential = 0.0;
 
