@@ -129,8 +129,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  setPressure(bulkModulus, massDensity, specificThermalEnergy);
-  bulkModulus += mExternalPressure;
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+    bulkModulus(i) = this->bulkModulus(massDensity(i), specificThermalEnergy(i));
+  }
 }
 
 //------------------------------------------------------------------------------

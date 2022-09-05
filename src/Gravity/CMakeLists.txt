@@ -6,6 +6,7 @@ set(Gravity_inst
 
 set(Gravity_sources
   TreeGravityInst.cc
+  ApproximatePolyhedralGravityModel.cc
   )
 instantiate(Gravity_inst Gravity_sources)
 
@@ -14,6 +15,8 @@ set(Gravity_headers
   NBodyGravity.hh
   TreeGravity.hh
   TreeGravityInline.hh
+  ApproximatePolyhedralGravityModel.hh
+  ApproximatePolyhedralGravityModelInline.hh
   )
 
 
