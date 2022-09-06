@@ -15,6 +15,8 @@
 #         - List of targets the library depends on
 #     spheral_blt_depends
 #         - List of blt/libs the library depends on
+#     OBJ_LIBS_LIST
+#         - name of a CMake list which we will add the library object files to
 #
 #-----------------------------------------------------------------------------------
 
@@ -52,23 +54,25 @@ function(spheral_add_obj_library package_name)
   #                      INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${qhull_DIR}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib"
   #                      )
 
-  # Add this to the SPHERAL_OBJ_LIBS list
-  get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
-  list(APPEND SPHERAL_OBJ_LIBS Spheral_${package_name})
-  set_property(GLOBAL PROPERTY SPHERAL_OBJ_LIBS "${SPHERAL_OBJ_LIBS}")
+  # Add this to the OBJ_LIBS_list list
+  get_property(OBJ_LIBS_LIST GLOBAL PROPERTY OBJ_LIBS_LIST)
+  get_property(${OBJ_LIBS_LIST} GLOBAL PROPERTY ${OBJ_LIBS_LIST})
+  list(APPEND ${OBJ_LIBS_LIST} Spheral_${package_name})
+  set_property(GLOBAL PROPERTY ${OBJ_LIBS_LIST} "${${OBJ_LIBS_LIST}}")
 
 endfunction()
 
 function(spheral_add_cxx_library package_name)
 
-  get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+  get_property(OBJ_LIBS_LIST GLOBAL PROPERTY OBJ_LIBS_LIST)
+  get_property(${OBJ_LIBS_LIST} GLOBAL PROPERTY ${OBJ_LIBS_LIST})
 
   if(NOT ENABLE_SHARED)
     # Build static spheral C++ library
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  ${SPHERAL_OBJ_LIBS} ${SPHERAL_CXX_DEPENDS}
+                    DEPENDS_ON  ${${OBJ_LIBS_LIST}} ${SPHERAL_CXX_DEPENDS}
                     SHARED      FALSE
                     )
   else()
@@ -76,7 +80,7 @@ function(spheral_add_cxx_library package_name)
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  ${SPHERAL_OBJ_LIBS} ${SPHERAL_CXX_DEPENDS}
+                    DEPENDS_ON  ${${OBJ_LIBS_LIST}} ${SPHERAL_CXX_DEPENDS}
                     SHARED      TRUE
                     )
   endif()
@@ -109,8 +113,6 @@ endfunction()
 #         - List of addition includes needed by a given package
 #     <package_name>_ADDITIONAL_SOURCE
 #         - List of additional sources to build library with
-#     SPHERAL_OBJ_LIBS
-#         - List of items that are required to build the python portion of spheral
 #     spheral_depends
 #         - List of targets the library depends on
 #     spheral_blt_depends
