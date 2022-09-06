@@ -3,6 +3,7 @@
 #     - Generates the blt libraries for a given spheral C++ package
 #
 # package_name : *name* of spheral package to make into a library
+# obj_libs_list : *name* of a CMake list which we will add the library object files to
 #
 # Variables that must be set before calling spheral_add_obj_library:
 #     ENABLE_STATIC_CXXONLY : Default False
@@ -15,12 +16,12 @@
 #         - List of targets the library depends on
 #     spheral_blt_depends
 #         - List of blt/libs the library depends on
-#     OBJ_LIBS_LIST
-#         - name of a CMake list which we will add the library object files to
 #
 #-----------------------------------------------------------------------------------
 
-function(spheral_add_obj_library package_name)
+function(spheral_add_obj_library
+         package_name
+         obj_libs_list)
 
   blt_add_library(NAME        Spheral_${package_name}
                   HEADERS     ${${package_name}_headers}
@@ -54,25 +55,29 @@ function(spheral_add_obj_library package_name)
   #                      INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${qhull_DIR}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib"
   #                      )
 
-  # Add this to the OBJ_LIBS_list list
-  get_property(OBJ_LIBS_LIST GLOBAL PROPERTY OBJ_LIBS_LIST)
-  get_property(${OBJ_LIBS_LIST} GLOBAL PROPERTY ${OBJ_LIBS_LIST})
-  list(APPEND ${OBJ_LIBS_LIST} Spheral_${package_name})
-  set_property(GLOBAL PROPERTY ${OBJ_LIBS_LIST} "${${OBJ_LIBS_LIST}}")
+  # Add this to the obj_libs_list list
+  get_property(${obj_libs_list} GLOBAL PROPERTY ${obj_libs_list})
+  list(APPEND ${obj_libs_list} Spheral_${package_name})
+  set_property(GLOBAL PROPERTY ${obj_libs_list} "${${obj_libs_list}}")
 
 endfunction()
 
-function(spheral_add_cxx_library package_name)
+#-----------------------------------------------------------------------------------
+# spheral_add_obj_library
+#     - same interface as spheral_add_obj_library
+#-----------------------------------------------------------------------------------
+function(spheral_add_cxx_library
+         package_name
+         obj_libs_list)
 
-  get_property(OBJ_LIBS_LIST GLOBAL PROPERTY OBJ_LIBS_LIST)
-  get_property(${OBJ_LIBS_LIST} GLOBAL PROPERTY ${OBJ_LIBS_LIST})
+  get_property(${obj_libs_list} GLOBAL PROPERTY ${obj_libs_list})
 
   if(NOT ENABLE_SHARED)
     # Build static spheral C++ library
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  ${${OBJ_LIBS_LIST}} ${SPHERAL_CXX_DEPENDS}
+                    DEPENDS_ON  ${${obj_libs_list}} ${SPHERAL_CXX_DEPENDS}
                     SHARED      FALSE
                     )
   else()
@@ -80,7 +85,7 @@ function(spheral_add_cxx_library package_name)
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  ${${OBJ_LIBS_LIST}} ${SPHERAL_CXX_DEPENDS}
+                    DEPENDS_ON  ${${obj_libs_list}} ${SPHERAL_CXX_DEPENDS}
                     SHARED      TRUE
                     )
   endif()

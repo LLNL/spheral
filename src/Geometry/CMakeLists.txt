@@ -100,5 +100,5 @@ set(Geometry_headers
     outerProduct.hh
     )
 
-spheral_add_obj_library(Geometry)
+spheral_add_obj_library(Geometry SPHERAL_OBJ_LIBS)
 

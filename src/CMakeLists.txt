@@ -67,6 +67,6 @@ endforeach()
 
 set(CXX_sources spheralCXX.cc)
 
-spheral_add_cxx_library(CXX)
+spheral_add_cxx_library(CXX SPHERAL_OBJ_LIBS)
 
 install(EXPORT ${PROJECT_NAME}-targets DESTINATION Spheral/lib/cmake)

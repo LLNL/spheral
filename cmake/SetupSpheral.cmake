@@ -133,7 +133,7 @@ set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 # Also globally set the variable for the list we accumulate the obj files from
 # each library into
 #-------------------------------------------------------------------------------
-set_property(GLOBAL PROPERTY OBJ_LIBS_LIST SPHERAL_OBJ_LIBS)
+set_property(GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
 
 #-------------------------------------------------------------------------------
 # Install symlink for spheral->python

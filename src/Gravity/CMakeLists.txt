@@ -20,5 +20,5 @@ set(Gravity_headers
   )
 
 
-spheral_add_obj_library(Gravity)
+spheral_add_obj_library(Gravity  SPHERAL_OBJ_LIBS)
 
