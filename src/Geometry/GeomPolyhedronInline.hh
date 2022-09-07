@@ -82,6 +82,14 @@ xmax() const {
 // Useful facet properties.
 //------------------------------------------------------------------------------
 inline
+GeomPolyhedron::Vector
+GeomPolyhedron::
+facetCentroid(const unsigned facetID) const {
+  REQUIRE(facetID < mFacets.size());
+  return mFacets[facetID].position();
+}
+
+inline
 double
 GeomPolyhedron::
 facetArea(const unsigned facetID) const {

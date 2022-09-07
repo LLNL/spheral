@@ -629,6 +629,19 @@ facetVertices() const {
 }
 
 //------------------------------------------------------------------------------
+// Spit out the facet centroids.
+//------------------------------------------------------------------------------
+vector<GeomPolyhedron::Vector>
+GeomPolyhedron::
+facetCentroids() const {
+  vector<Vector> result;
+  result.reserve(mFacets.size());
+  for (const Facet& facet: mFacets) result.push_back(facet.position());
+  ENSURE(result.size() == mFacets.size());
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Spit out the facet normals.
 //------------------------------------------------------------------------------
 vector<GeomPolyhedron::Vector>
@@ -637,6 +650,19 @@ facetNormals() const {
   vector<Vector> result;
   result.reserve(mFacets.size());
   for (const Facet& facet: mFacets) result.push_back(facet.normal());
+  ENSURE(result.size() == mFacets.size());
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Spit out the facet normals.
+//------------------------------------------------------------------------------
+vector<GeomPolyhedron::Vector>
+GeomPolyhedron::
+facetAreaVectors() const {
+  vector<Vector> result;
+  result.reserve(mFacets.size());
+  for (const Facet& facet: mFacets) result.push_back(facet.normal()*facet.area());
   ENSURE(result.size() == mFacets.size());
   return result;
 }
