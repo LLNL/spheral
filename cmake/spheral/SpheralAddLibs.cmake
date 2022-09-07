@@ -20,8 +20,17 @@
 #-----------------------------------------------------------------------------------
 
 function(spheral_add_obj_library
-         package_name
-         obj_libs_list)
+         package_name)
+
+  set(obj_libs_list SPHERAL_OBJ_LIBS)
+
+  # We can optionally specify the obj_libs_list
+  set(extra_args ${ARGN})
+  list(LENGTH extra_args extra_count)
+  if (${extra_count} GREATER 0)
+    list(GET extra_args 0 obj_libs_list)
+  endif()
+  message("${package_name} obj_libs_list : ${obj_libs_list}")
 
   blt_add_library(NAME        Spheral_${package_name}
                   HEADERS     ${${package_name}_headers}
@@ -67,17 +76,33 @@ endfunction()
 #     - same interface as spheral_add_obj_library
 #-----------------------------------------------------------------------------------
 function(spheral_add_cxx_library
-         package_name
-         obj_libs_list)
+         package_name)
 
+  set(obj_libs_list SPHERAL_OBJ_LIBS)
+  set(EXTRA_CXX_DEPENDS )
+
+  # We can optionally specify the obj_libs_list and any additional dependencies
+  set(extra_args ${ARGN})
+  list(LENGTH extra_args extra_count)
+  message("${package_name} extra_args : ${extra_args}")
+  if (${extra_count} GREATER 0)
+    list(GET extra_args 0 obj_libs_list)
+  endif()
+  if (${extra_count} GREATER 1)
+    list(GET extra_args 1 optional_arg)
+    list(APPEND EXTRA_CXX_DEPENDS ${optional_arg})
+  endif()
   get_property(${obj_libs_list} GLOBAL PROPERTY ${obj_libs_list})
+  message("${package_name} obj_libs_list : ${obj_libs_list}")
+  message("${package_name} EXTRA_CXX_DEPENDS : ${EXTRA_CXX_DEPENDS}")
+  message("${package_name} ${obj_libs_list} : ${${obj_libs_list}}")
 
   if(NOT ENABLE_SHARED)
     # Build static spheral C++ library
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  ${${obj_libs_list}} ${SPHERAL_CXX_DEPENDS}
+                    DEPENDS_ON  ${${obj_libs_list}} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS}
                     SHARED      FALSE
                     )
   else()
@@ -85,7 +110,7 @@ function(spheral_add_cxx_library
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  ${${obj_libs_list}} ${SPHERAL_CXX_DEPENDS}
+                    DEPENDS_ON  ${${obj_libs_list}} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS}
                     SHARED      TRUE
                     )
   endif()
@@ -143,6 +168,7 @@ function(spheral_add_pybind11_library package_name)
                   SHARED       TRUE
                   )
   add_dependencies(${MODULE_NAME} ${spheral_py_depends} ${spheral_depends})
+  message("${MODULE_NAME} depends : ${spheral_py_depends} : ${spheral_depends}")
 
   target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
 
