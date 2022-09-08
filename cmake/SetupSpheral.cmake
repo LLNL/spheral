@@ -50,7 +50,7 @@ set(ENABLE_OPENSUBDIV ON CACHE BOOL "enable the Opensubdiv Pixar extension for r
 set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state package")
 
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
-option(ENABLE_SHARED "Building C++ libs shared" OFF)
+option(ENABLE_SHARED "Building C++ libs shared" ON)
 
 if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_CXXONLY ON)
