@@ -52,4 +52,3 @@ set(ArtificialViscosity_headers
 
 spheral_add_obj_library(ArtificialViscosity)
 
-
