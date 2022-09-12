@@ -10,8 +10,6 @@
 #include "NodeList/NodeList.hh"
 #include "Utilities/Timer.hh"
 
-extern Timer TIME_interpolateRK;
-
 namespace Spheral {
 
 using boost::variant;
@@ -173,7 +171,7 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
                   const FieldList<Dimension, RKCoefficients<Dimension>>& corrections,
                   const NodeCoupling& nodeCoupling) {
 
-  TIME_interpolateRK.start();
+  TIME_FUNCTION;
 
   typedef typename Dimension::Vector Vector;
   typedef vector<variant<FieldList<Dimension, typename Dimension::Scalar>,
@@ -283,7 +281,6 @@ interpolateRK(const vector<variant<FieldList<Dimension, typename Dimension::Scal
     }
   }
 
-  TIME_interpolateRK.stop();
 
   // That's it!
   return result;

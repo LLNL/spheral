@@ -85,14 +85,17 @@ position() const {
   Vector result;
   unsigned i, j;
   double circum = 0.0, dl;
+  const auto p0 = point(0);
   for (i = 0; i != n; ++i) {
     j = (i + 1) % n;
-    dl = (point(i) - point(j)).magnitude();
-    result += (point(i) + point(j)) * dl;
+    const auto p1 = point(i)-point(0);
+    const auto p2 = point(j)-point(0);
+    dl = (p1.cross(p2)).magnitude();
+    result += (p1+p2) * dl;
     circum += dl;
   }
-  result *= safeInvVar(2.0*circum);
-  return result;
+  result *= safeInvVar(3.0*circum);
+  return p0 + result;
 }
 
 //------------------------------------------------------------------------------

@@ -21,7 +21,7 @@ foreach(lib ${pip_build_modules})
   string(REGEX REPLACE "[\=]+[^ ]*" "" lib_name_str ${lib})
 
   # Initialize our libr}ies with the TPL system. This builds up our PYTHONENV variable...
-  Spheral_Handle_TPL(${lib_name_str} spheral_depends)
+  Spheral_Handle_TPL(${lib_name_str} spheral_depends py)
   list(APPEND PYTHONENV ${${lib_name_str}_DIR})
 endforeach()
 

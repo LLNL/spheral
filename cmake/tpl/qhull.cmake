@@ -1,4 +1,3 @@
-set(${lib_name}_libs libqhull.so)
 # Default to just the release library until we support TPL debug builds on LC
 set(QHULL_BUILD_TYPE Release CACHE STRING "qhull build type")
 if(ENABLE_STATIC_TPL)
