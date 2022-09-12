@@ -124,6 +124,11 @@ packages:
     - spec: tar@1.26
       prefix: /usr
     buildable: false
+  elfutils:
+    externals:
+    - spec: elfutils@0.176
+      prefix: /usr
+    buildable: false
 
 #---- Extension Dependencies
 

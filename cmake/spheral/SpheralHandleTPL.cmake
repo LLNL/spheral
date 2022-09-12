@@ -49,9 +49,7 @@ message("Default TPL location : ${DEFAULT_TPL_LOCATION}\n")
 # <lib_name>_libs : list of full paths to tpl lib files to be linked to.
 #----------------------------------------------------------------------------------------
 
-function(Spheral_Handle_TPL lib_name dep_list)
-
-  string(TOUPPER ${lib_name} LIB_NAME)
+function(Spheral_Handle_TPL lib_name dep_list target_type)
 
   # If no location to search is sepcified, search default dir
   if (NOT ${lib_name}_DIR)
@@ -76,15 +74,23 @@ function(Spheral_Handle_TPL lib_name dep_list)
   # Generate full path to lib file for output list
   set(${lib_name}_LIBRARIES )
   foreach(lib ${${lib_name}_libs})
-    set(lib_abs "${${lib_name}_DIR}/lib/${lib}")
-    list(APPEND ${lib_name}_LIBRARIES $<BUILD_INTERFACE:${lib_abs}>)
+    find_file(temp_abs_path
+      NAME ${lib}
+      PATHS ${${lib_name}_DIR}
+      PATH_SUFFIXES lib lib64
+      NO_CACHE
+      NO_DEFAULT_PATH
+      )
+    # set(temp_abs_path "${${lib_name}_DIR}/lib/${lib}")
+    list(APPEND ${lib_name}_LIBRARIES $<BUILD_INTERFACE:${temp_abs_path}>)
 
     # Check all necessary files exist during config time when not installing TPL
-    if (NOT EXISTS ${lib_abs})
+    if (NOT EXISTS ${temp_abs_path})
       message(FATAL_ERROR "Cannot find ${lib} in ${${lib_name}_DIR} for TPL ${lib_name}.")
     else()
-      message("Found: ${lib_abs}")
+      message("Found: ${temp_abs_path}")
     endif()
+    unset(temp_abs_path CACHE) # Remove this line when using cmake 3.21+, same as find_file(NO_CACHE)
   endforeach()
 
   # Register any libs/includes under a blt dir for later use/depends
@@ -96,12 +102,12 @@ function(Spheral_Handle_TPL lib_name dep_list)
 
   # Add the blt target to a list of libs that can be depended on
   if (${lib_name}_ADD_BLT_TARGET)
-    list(APPEND spheral_blt_depends blt_${lib_name})
+    list(APPEND spheral_blt_${target_type}_depends blt_${lib_name})
   endif()
 
   set(${lib_name}_DIR ${${lib_name}_DIR} PARENT_SCOPE)
   set(${dep_list} ${${dep_list}} PARENT_SCOPE)
-  set(spheral_blt_depends ${spheral_blt_depends} PARENT_SCOPE)
+  set(spheral_blt_${target_type}_depends ${spheral_blt_${target_type}_depends} PARENT_SCOPE)
 
   message("")
 

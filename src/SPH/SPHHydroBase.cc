@@ -40,9 +40,9 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
-#include "Utilities/Timer.hh"
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
+#include "Utilities/Timer.hh"
 
 #include "SPHHydroBase.hh"
 
@@ -66,22 +66,6 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
-
-// Declare timers
-extern Timer TIME_SPH;
-extern Timer TIME_SPHinitializeStartup;
-extern Timer TIME_SPHregister;
-extern Timer TIME_SPHregisterDerivs;
-extern Timer TIME_SPHpreStepInitialize;
-extern Timer TIME_SPHinitialize;
-extern Timer TIME_SPHfinalizeDerivs;
-extern Timer TIME_SPHghostBounds;
-extern Timer TIME_SPHupdateVol;
-extern Timer TIME_SPHenforceBounds;
-extern Timer TIME_SPHevalDerivs;
-extern Timer TIME_SPHevalDerivs_initial;
-extern Timer TIME_SPHevalDerivs_pairs;
-extern Timer TIME_SPHevalDerivs_final;
 
 namespace Spheral {
 
@@ -203,7 +187,7 @@ void
 SPHHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
-  TIME_SPHinitializeStartup.start();
+  TIME_BEGIN("SPHinitializeStartup");
   // Initialize the pressure and sound speed.
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
@@ -241,7 +225,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   //     }
   //   }
   // }
-  TIME_SPHinitializeStartup.stop();
+  TIME_END("SPHinitializeStartup");
 }
 
 //------------------------------------------------------------------------------
@@ -252,7 +236,7 @@ void
 SPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-  TIME_SPHregister.start();
+  TIME_BEGIN("SPHregister");
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
   // Create the local storage for time step mask, pressure, sound speed, and position weight.
@@ -372,7 +356,7 @@ registerState(DataBase<Dimension>& dataBase,
   // We deliberately make this non-dynamic here.  These corrections are computed
   // during SPHHydroBase::initialize, not as part of our usual state update.
   state.enroll(mOmegaGradh);
-  TIME_SPHregister.stop();
+  TIME_END("SPHregister");
 }
 
 //------------------------------------------------------------------------------
@@ -383,7 +367,7 @@ void
 SPHHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
-  TIME_SPHregisterDerivs.start();
+  TIME_BEGIN("SPHregisterDerivs");
 
   // Create the scratch fields.
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
@@ -438,7 +422,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mM);
   derivs.enroll(mLocalM);
   derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
-  TIME_SPHregisterDerivs.stop();
+  TIME_END("SPHregisterDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -450,7 +434,7 @@ SPHHydroBase<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
-  TIME_SPHpreStepInitialize.start();
+  TIME_BEGIN("SPHpreStepInitialize");
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
@@ -616,7 +600,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   //        ++boundaryItr) (*boundaryItr)->setAllViolationNodes(dataBase);
   //   this->enforceBoundaries(state, derivs);
   // }
-  TIME_SPHpreStepInitialize.stop();
+  TIME_END("SPHpreStepInitialize");
 }
 
 //------------------------------------------------------------------------------
@@ -630,7 +614,7 @@ initialize(const typename Dimension::Scalar time,
            const DataBase<Dimension>& dataBase,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
-  TIME_SPHinitialize.start();
+  TIME_BEGIN("SPHinitialize");
 
   // Initialize the grad h corrrections if needed.
   //const TableKernel<Dimension>& W = this->kernel();
@@ -659,7 +643,7 @@ initialize(const typename Dimension::Scalar time,
                WPi);
 
   // We depend on the caller knowing to finalize the ghost boundaries!
-  TIME_SPHinitialize.stop();
+  TIME_END("SPHinitialize");
 }
 
 //------------------------------------------------------------------------------
@@ -673,8 +657,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-  TIME_SPHevalDerivs.start();
-  TIME_SPHevalDerivs_initial.start();
+  TIME_BEGIN("SPHevalDerivs");
+  TIME_BEGIN("SPHevalDerivs_initial");
 
   //static double totalLoopTime = 0.0;
   // Get the ArtificialViscosity.
@@ -764,11 +748,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();
-  const auto  WnPerh = W(1.0/nPerh, 1.0);TIME_SPHevalDerivs_initial.stop();
-  TIME_SPHevalDerivs_initial.stop();
+  const auto  WnPerh = W(1.0/nPerh, 1.0);
+  TIME_END("SPHevalDerivs_initial");
 
   // Walk all the interacting pairs.
-  TIME_SPHevalDerivs_pairs.start();
+  TIME_BEGIN("SPHevalDerivs_pairs");
 #pragma omp parallel
   {
     // Thread private scratch variables
@@ -985,10 +969,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     threadReduceFieldLists<Dimension>(threadStack);
 
   }   // OpenMP parallel region
-  TIME_SPHevalDerivs_pairs.stop();
+  TIME_END("SPHevalDerivs_pairs");
 
   // Finish up the derivatives for each point.
-  TIME_SPHevalDerivs_final.start();
+  TIME_BEGIN("SPHevalDerivs_final");
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
@@ -1093,8 +1077,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         i);
     }
   }
-  TIME_SPHevalDerivs_final.stop();
-  TIME_SPHevalDerivs.stop();
+  TIME_END("SPHevalDerivs_final");
+  TIME_END("SPHevalDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -1108,7 +1092,7 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
                     const DataBase<Dimension>& /*dataBase*/,
                     const State<Dimension>& /*state*/,
                     StateDerivatives<Dimension>& derivs) const {
-  TIME_SPHfinalizeDerivs.start();
+  TIME_BEGIN("SPHfinalizeDerivs");
 
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
@@ -1125,7 +1109,7 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
-  TIME_SPHfinalizeDerivs.stop();
+  TIME_END("SPHfinalizeDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -1136,7 +1120,7 @@ void
 SPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& /*derivs*/) {
-  TIME_SPHghostBounds.start();
+  TIME_BEGIN("SPHghostBounds");
 
   // Apply boundary conditions to the basic fluid state Fields.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -1175,7 +1159,7 @@ applyGhostBoundaries(State<Dimension>& state,
     }
     // if (updateVolume) (*boundaryItr)->applyFieldListGhostBoundary(volume);
   }
-  TIME_SPHghostBounds.stop();
+  TIME_END("SPHghostBounds");
 }
 
 //------------------------------------------------------------------------------
@@ -1186,7 +1170,7 @@ void
 SPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
-  TIME_SPHenforceBounds.start();
+  TIME_BEGIN("SPHenforceBounds");
 
   // Enforce boundary conditions on the fluid state Fields.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -1225,7 +1209,7 @@ enforceBoundaries(State<Dimension>& state,
     }
     // if (updateVolume) (*boundaryItr)->enforceFieldListBoundary(volume);
   }
-  TIME_SPHenforceBounds.stop();
+  TIME_END("SPHenforceBounds");
 }
 
 //------------------------------------------------------------------------------
@@ -1236,7 +1220,7 @@ void
 SPHHydroBase<Dimension>::
 updateVolume(State<Dimension>& state,
              const bool boundaries) const {
-  TIME_SPHupdateVol.start();
+  TIME_BEGIN("SPHupdateVol");
 
   // Pre-conditions.
   REQUIRE(state.fieldNameRegistered(HydroFieldNames::position));
@@ -1304,7 +1288,7 @@ updateVolume(State<Dimension>& state,
   }
 
   // That's it.
-  TIME_SPHupdateVol.stop();
+  TIME_END("SPHupdateVol");
 }
 
 //------------------------------------------------------------------------------

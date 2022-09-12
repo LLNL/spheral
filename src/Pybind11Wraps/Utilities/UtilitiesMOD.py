@@ -46,7 +46,6 @@ PYB11includes += ['"Utilities/packElement.hh"',
                   '"Utilities/overlayRemapFields.hh"',
                   '"Utilities/computeShepardsInterpolation.hh"',
                   '"Utilities/clipFacetedVolume.hh"',
-                  '"Utilities/Timer.hh"',
                   '"Utilities/DomainNode.hh"',
                   '"Utilities/NodeCoupling.hh"',
                   '"Utilities/QuadraticInterpolator.hh"',
@@ -62,17 +61,7 @@ PYB11includes += ['"Utilities/packElement.hh"',
 # Preamble
 #-------------------------------------------------------------------------------
 PYB11preamble += """
-extern Timer TIME_Spheral;
 
-namespace Spheral {
-void startRootTimer() {
-  TIME_Spheral.start();
-}
-
-void stopRootTimer() {
-  TIME_Spheral.stop();
-}
-}
 """
 
 #-------------------------------------------------------------------------------
@@ -85,7 +74,6 @@ PYB11namespaces = ["Spheral"]
 #-------------------------------------------------------------------------------
 from SpheralFunctor import *
 from KeyTraits import *
-from Timer import *
 from DomainNode import *
 from NodeCoupling import *
 from QuadraticInterpolator import *
@@ -429,14 +417,6 @@ def simpsonsIntegrationDouble(function = "const PythonBoundFunctors::SpheralFunc
                               numBins = "unsigned"):
     "Numerically integrate 'function' in the range (x0, x1) via Simpsons rule"
     return "double"
-
-def startRootTimer():
-    "Start the root Spheral Timer."
-    return "void"
-
-def stopRootTimer():
-    "Stop the root Spheral Timer."
-    return "void"
 
 #-------------------------------------------------------------------------------
 # packElement/unpackElement
