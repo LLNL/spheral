@@ -7,4 +7,3 @@ if(ENABLE_STATIC_TPL)
     set(${lib_name}_libs libqhullstatic.a)
   endif()
 endif()
-
