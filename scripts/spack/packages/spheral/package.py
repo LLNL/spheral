@@ -69,6 +69,19 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('py-pyb11generator@1.0.12', type='build')
     depends_on('py-virtualenv', type='build')
 
+    depends_on('py-numpy@1.16.5', type='build')
+    depends_on('py-numpy-stl@2.11.2', type='build')
+    depends_on('py-matplotlib@2.2.5', type='build')
+    depends_on('py-decorator@4.4.2', type='build')
+    depends_on('py-h5py@2.10.0', type='build')
+    depends_on('py-docutils@0.17.1', type='build')
+    depends_on('py-twine@1.15.0', type='build')
+    depends_on('py-cython@0.29.21', type='build')
+    depends_on('py-sobol@0.9', type='build')
+    depends_on('py-scipy@1.2.3', type='build')
+    depends_on('py-pipreqs@0.4.10', type='build')
+    depends_on('py-importlib_metadata@2.1.1', type='build')
+
     depends_on('py-sphinx@1.8.5', type='build', when='+docs')
     depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
     # -------------------------------------------------------------------------

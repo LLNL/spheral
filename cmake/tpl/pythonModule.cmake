@@ -35,39 +35,43 @@ foreach(lib ${pip_build_modules})
 endforeach()
 
 
+##
+## Runtime Python Module Dependencies
+##
+#set(pip-runtime-modules
+#    numpy==1.16.5
+#    numpy-stl==2.11.2
+#    matplotlib==2.2.5
+#    decorator==4.4.2
+#    h5py==2.10.0
+#    docutils==0.17.1
+#    twine==1.15.0
+#    cython==0.29.21
+#    sobol==0.9
+#    scipy==1.2.3
+#    pipreqs==0.4.10
+#    importlib_metadata==2.1.1
+#    )
 #
-# Runtime Python Module Dependencies
+## Only needed when we're allowing MPI parallelism
+#if (ENABLE_MPI)
+#  list(APPEND pip-runtime-modules mpi4py==3.0.3)
+#endif()
 #
-set(pip-runtime-modules
-    numpy==1.16.5
-    numpy-stl==2.11.2
-    matplotlib==2.2.5
-    decorator==4.4.2
-    h5py==2.10.0
-    docutils==0.17.1
-    twine==1.15.0
-    cython==0.29.21
-    sobol==0.9
-    scipy==1.2.3
-    pipreqs==0.4.10
-    importlib_metadata==2.1.1
-    )
-
-# Only needed when we're allowing MPI parallelism
-if (ENABLE_MPI)
-  list(APPEND pip-runtime-modules mpi4py==3.0.3)
-endif()
-
-# Generate our requirements.txt file for runtime python dependencies
-string(REPLACE ";" "\n" pip_rutime_modules_str "${pip-runtime-modules}")
-configure_file(
-  "${SPHERAL_ROOT_DIR}/cmake/tpl/util/requirements.in"
-  "${CMAKE_BINARY_DIR}/scripts/requirements.txt"
-  )
+## Generate our requirements.txt file for runtime python dependencies
+#string(REPLACE ";" "\n" pip_rutime_modules_str "${pip-runtime-modules}")
+#configure_file(
+#  "${SPHERAL_ROOT_DIR}/cmake/tpl/util/requirements.in"
+#  "${CMAKE_BINARY_DIR}/scripts/requirements.txt"
+#  )
 
 
+#install(FILES 
+#  "${CMAKE_BINARY_DIR}/scripts/requirements.txt"
+#  DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
+#  )
 install(FILES 
-  "${CMAKE_BINARY_DIR}/scripts/requirements.txt"
+  "${SPHERAL_ROOT_DIR}/cmake/tpl/util/requirements.txt"
   DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
   )
 #
