@@ -23,9 +23,14 @@ function(spheral_add_obj_library package_name)
   blt_add_library(NAME        Spheral_${package_name}
                   HEADERS     ${${package_name}_headers}
                   SOURCES     ${${package_name}_sources}
-                  DEPENDS_ON  ${spheral_blt_depends} ${spheral_blt_cxx_depends} blt_python ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+                  DEPENDS_ON  ${spheral_blt_depends} ${spheral_blt_cxx_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS}
                   OBJECT TRUE
                   )
+
+  ## Install the headers
+  install(FILES       ${${package_name}_headers}
+          DESTINATION include/${package_name}
+          )
 
   if(ENABLE_CUDA)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
