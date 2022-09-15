@@ -113,7 +113,7 @@ function(spheral_add_pybind11_library package_name)
                   CLEAR_PREFIX TRUE
                   SHARED       TRUE
                   )
-  add_dependencies(${MODULE_NAME} ${spheral_py_depends} ${spheral_depends})
+                #add_dependencies(${MODULE_NAME} ${spheral_py_depends} ${spheral_depends})
 
   target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
 

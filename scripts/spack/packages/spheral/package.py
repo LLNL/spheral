@@ -71,16 +71,21 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
     depends_on('py-numpy@1.16.5', type='build')
     depends_on('py-numpy-stl@2.11.2', type='build')
-    depends_on('py-matplotlib@2.2.5', type='build')
+    depends_on('py-enum34', type='build')
+    depends_on('py-python-utils@2.4.0', type='build')
+    depends_on('py-matplotlib@2.2.5', type=['build','run'])
     depends_on('py-decorator@4.4.2', type='build')
     depends_on('py-h5py@2.10.0', type='build')
     depends_on('py-docutils@0.17.1', type='build')
-    depends_on('py-twine@1.15.0', type='build')
+    #depends_on('py-twine@1.15.0', type='build')
     depends_on('py-cython@0.29.21', type='build')
-    depends_on('py-sobol@0.9', type='build')
+    #depends_on('py-sobol@0.9', type='build')
     depends_on('py-scipy@1.2.3', type='build')
     depends_on('py-pipreqs@0.4.10', type='build')
-    depends_on('py-importlib_metadata@2.1.1', type='build')
+    depends_on('py-importlib-metadata@2.0.0', type='build')
+    depends_on('py-gnuplot@1.8', type='build')
+    depends_on('py-ats@7.0.9', type='build')
+    depends_on('py-mpi4py@3.0.3', type='build', when='+mpi')
 
     depends_on('py-sphinx@1.8.5', type='build', when='+docs')
     depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
@@ -219,6 +224,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
         entries.append(cmake_cache_option('polytope_BUILD', False))
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))
+        os.environ['PYTHONPATH'] += ':' + spec['polytope'].prefix + '/lib/python2.7/site-packages/polytope/'
 
         entries.append(cmake_cache_option('ENABLE_MPI', '+mpi' in spec))
         if "+mpi" in spec:
@@ -230,6 +236,10 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
         entries.append(cmake_cache_option('ENABLE_OPENMP', '+openmp' in spec))
         entries.append(cmake_cache_option('ENABLE_DOCS', '+docs' in spec))
+
+        entries.append(cmake_cache_path('SPHERAL_PYTHONPATH', os.environ.get('PYTHONPATH')))
+
+        entries.append(cmake_cache_path("ATS_EXE", spec['py-ats'].prefix + '/bin/ats'))
 
         return entries
 

@@ -1,5 +1,8 @@
 if (NOT ENABLE_CXXONLY)
 
+  string(REGEX REPLACE "lib\/python2.7\/site-packages\/?[A-Za-z]*:" "* " VIRTUALENV_PYTHONPATH_COPY "${SPHERAL_PYTHONPATH}:")
+  message(${VIRTUALENV_PYTHONPATH_COPY})
+
   set(SPHERAL_ATS_BUILD_CONFIG_ARGS )
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"level<100\"'")

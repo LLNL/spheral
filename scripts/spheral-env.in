@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 #source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate
-@CMAKE_INSTALL_PREFIX@/.venv/bin/python "$@"
+#env PYTHONPATH=@SPHERAL_PYTHONPATH@:@CMAKE_INSTALL_PREFIX@/Spheral @PYTHON_EXE@ "$@"
+env PYTHONPATH=@CMAKE_INSTALL_PREFIX@/.venv/lib/python2.7/site-packages/ @CMAKE_INSTALL_PREFIX@/.venv/bin/python "$@"
 exit_result=$?
 #deactivate
 exit $exit_result

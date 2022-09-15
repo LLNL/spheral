@@ -30,9 +30,9 @@ string(REPLACE ";" ":" BUILDTIME_PYTHONENV_STR "${PYTHONENV}")
 
 
 # Run the actual installer for the modules.
-foreach(lib ${pip_build_modules})
-  Install_Pip_Module(${lib})
-endforeach()
+#foreach(lib ${pip_build_modules})
+#  Install_Pip_Module(${lib})
+#endforeach()
 
 
 ##
