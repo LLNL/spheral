@@ -28,13 +28,8 @@ if(ENABLE_DOCS AND NOT SPHINX_EXEC STREQUAL "SPHINX_EXEC-NOTFOUND")
     "${BINARY_BUILD_DIR}/conf.py"
     @ONLY)
 
-  #set(DOC_DEPENDS ${spheral_py_depends} sphinx sphinx_rtd_theme)
-  #if(pip_BUILD)
-  #  set(DOC_DEPENDS ${DOC_DEPENDS} pip-modules)
-  #endif()
-
   add_custom_target(Spheral_docs ALL
-    ${CMAKE_COMMAND} -E env PYTHONPATH=${SPHERAL_PYTHONPATH} ${PYTHON_EXE} -m sphinx #${SPHINX_EXEC}
+    ${CMAKE_COMMAND} -E env PYTHONPATH=${SPHERAL_PYTHONPATH} ${PYTHON_EXE} -m sphinx
     -q -b html
     -c "${BINARY_BUILD_DIR}"
     -d "${SPHINX_CACHE_DIR}"

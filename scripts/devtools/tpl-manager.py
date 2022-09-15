@@ -127,8 +127,8 @@ def build_deps(args):
     if sexe("{0} spec -I {1}@develop%{2}".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
     if sexe("{0} dev-build --deprecated --quiet -d {1} -u initconfig {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
 
-  #if not args.no_clean:
-  #  sexe("rm dev-build-* spack-build-* spack-configure-args.txt")
+  if not args.no_clean:
+    sexe("rm dev-build-* spack-build-* spack-configure-args.txt")
 
 def runtime_python_libs(args):
   print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
