@@ -239,8 +239,6 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
         entries.append(cmake_cache_path('SPHERAL_PYTHONPATH', os.environ.get('PYTHONPATH')))
 
-        entries.append(cmake_cache_path("ATS_EXE", spec['py-ats'].prefix + '/bin/ats'))
-
         return entries
 
 
