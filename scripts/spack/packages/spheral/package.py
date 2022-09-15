@@ -73,7 +73,8 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('py-numpy-stl@2.11.2', type='build')
     depends_on('py-enum34', type='build')
     depends_on('py-python-utils@2.4.0', type='build')
-    depends_on('py-matplotlib@2.2.5', type=['build','run'])
+    depends_on('py-matplotlib@2.2.5', type='build')
+    depends_on('py-pillow@6.2.2', type='build')
     depends_on('py-decorator@4.4.2', type='build')
     depends_on('py-h5py@2.10.0', type='build')
     depends_on('py-docutils@0.17.1', type='build')
@@ -87,8 +88,8 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('py-ats@7.0.9', type='build')
     depends_on('py-mpi4py@3.0.3', type='build', when='+mpi')
 
-    depends_on('py-sphinx@1.8.5', type='build', when='+docs')
-    depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
+    depends_on('py-sphinx@1.8.5', type='build')
+    depends_on('py-sphinx-rtd-theme@0.5.0', type='build')
     # -------------------------------------------------------------------------
     # DEPENDS
     # -------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
-env PYTHONPATH=@CMAKE_INSTALL_PREFIX@/.venv/lib/python2.7/site-packages/ @CMAKE_INSTALL_PREFIX@/.venv/bin/python "$@"
+@CMAKE_INSTALL_PREFIX@/.venv/bin/python "$@"
+#env PYTHONPATH=@CMAKE_INSTALL_PREFIX@/.venv/lib/python2.7/site-packages/ @CMAKE_INSTALL_PREFIX@/.venv/bin/python "$@"
 exit_result=$?
 exit $exit_result

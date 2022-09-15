@@ -1,0 +1,13 @@
+diff --git a/setup.py b/setup.py
+index c6defb2..662535a 100755
+--- a/setup.py
++++ b/setup.py
+@@ -731,7 +731,7 @@ class pil_build_ext(build_ext):
+                 files,
+                 libraries=libs,
+                 define_macros=defs,
+-                extra_compile_args=["-msse4"],
++                extra_compile_args=["-misel"],
+             )
+         ]
+ 
