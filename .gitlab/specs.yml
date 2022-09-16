@@ -47,7 +47,7 @@
   variables:
     SPEC: "gcc@8.3.1+cuda cuda_arch=70"
     LC_MODULES: "gcc/8.3.1 cuda/11.1.0"
-    EXTRA_CMAKE_ARGS: ""
+    EXTRA_CMAKE_ARGS: "-DENABLE_TIMER=On"
 
 .oneapi_2022_1_mvapich2:
   variables:

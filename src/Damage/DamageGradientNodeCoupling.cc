@@ -13,22 +13,16 @@
 #include "Damage/DamageGradientNodeCoupling.hh"
 #include "Utilities/pointDistances.hh"
 #include "Utilities/DBC.hh"
-#include "Utilities/Timer.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "FieldOperations/FieldListFunctions.hh"
 #include "Boundary/Boundary.hh"
+#include "Utilities/Timer.hh"
 
 #include <vector>
 
 using std::vector;
-
-// Declare timers
-extern Timer TIME_Damage;
-extern Timer TIME_DamageGradientCoupling;
-extern Timer TIME_DamageGradientCoupling_grad;
-extern Timer TIME_DamageGradientCoupling_pairs;
 
 namespace Spheral {
 
@@ -44,8 +38,8 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
                            NodePairList& pairs):
   NodeCoupling() {
 
-  TIME_Damage.start();
-  TIME_DamageGradientCoupling.start();
+  TIME_BEGIN("DamageGradientCoupling");
+
   const auto npairs = pairs.size();
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
@@ -55,7 +49,7 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
   const auto numNodeLists = position.numFields();
 
   // Compute a scalar damage estimate to take the gradient of.
-  TIME_DamageGradientCoupling_grad.start();
+  TIME_BEGIN("DamageGradientCoupling_grad");
   FieldList<Dimension, Scalar> Dtrace(FieldStorageType::CopyFields);
   for (auto k = 0u; k < numNodeLists; ++k) {
     Dtrace.appendNewField("grad D", D[k]->nodeList(), 0.0);
@@ -73,11 +67,11 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(gradD);
     (*boundaryItr)->finalizeGhostBoundary();
   }
-  TIME_DamageGradientCoupling_grad.stop();
+  TIME_END("DamageGradientCoupling_grad");
 
   // For each interacting pair we need to compute the effective damage shielding, expressed
   // as the f_couple parameter in the NodePairIdxType.
-  TIME_DamageGradientCoupling_pairs.start();
+  TIME_BEGIN("DamageGradientCoupling_pairs");
   size_t i, il, j, jl;
   Scalar hij;
   Vector xjihat;
@@ -99,9 +93,8 @@ DamageGradientNodeCoupling(const State<Dimension>& state,
     // }
     CHECK(pairs[k].f_couple >= 0.0 and pairs[k].f_couple <= 1.0);
   }
-  TIME_DamageGradientCoupling_pairs.stop();
-  TIME_DamageGradientCoupling.stop();
-  TIME_Damage.stop();
+  TIME_END("DamageGradientCoupling_pairs");
+  TIME_END("DamageGradientCoupling");
 }
 
 }

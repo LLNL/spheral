@@ -34,9 +34,6 @@ set(Utilities_sources
     refinePolyhedron.cc
     coarsenBinnedValuesInst.cc
     clipFacetedVolume.cc
-    SpheralTimers.cc
-    #SpheralTimersAlternate.cc
-    Timer.cc
     uniform_random.cc
     )
 
