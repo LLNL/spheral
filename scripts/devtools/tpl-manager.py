@@ -124,6 +124,7 @@ def build_deps(args):
   for s in spec_list:
     print("** Building TPL's and generating host-config for {0}%{1} ...".format(package_name,s))
     os.environ["SPEC"] = s
+    os.environ["LC_ALL"] = "en_US.UTF-8"
     if sexe("{0} spec -I {1}@develop%{2}".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
     if sexe("{0} dev-build --deprecated --quiet -d {1} -u initconfig {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
 
