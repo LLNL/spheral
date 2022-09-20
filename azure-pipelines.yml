@@ -18,4 +18,4 @@ jobs:
       command: build
       arguments: --target spheral --tag spheral --network none
 
-#pr: none
+pr: none
