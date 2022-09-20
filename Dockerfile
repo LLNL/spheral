@@ -5,11 +5,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -y
 RUN apt-get upgrade -y
-RUN apt-get install -y build-essential git gfortran mpich autotools-dev autoconf sqlite pkg-config uuid gettext cmake libncurses-dev libgdbm-dev libffi-dev libssl-dev libexpat-dev libreadline-dev python python3 unzip libtool wget curl
+RUN apt-get install -y build-essential git gfortran mpich autotools-dev autoconf sqlite pkg-config uuid gettext cmake libncurses-dev libgdbm-dev libffi-dev libssl-dev libexpat-dev libreadline-dev liblapack-dev libbz2-dev locale python python3 unzip libtool wget curl
 
-RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
-RUN python2.7 get-pip.py
-RUN rm get-pip.py
+RUN locale-gen en_US.UTF-8
 
 # Initialize script ARGs.
 # SPEC can be defined on the command line with --build-args SPEC=<...>
@@ -20,9 +18,8 @@ ARG HOST_CONFIG=docker-$SPEC
 WORKDIR /home/spheral/workspace/
 COPY scripts scripts
 COPY .uberenv_config.json .
-COPY cmake/tpl/util/requirements.txt cmake/tpl/util/requirements.txt
 RUN python3 scripts/devtools/tpl-manager.py --spec $SPEC --spheral-spack-dir /home
-RUN rm -rf /home/spheral/workspace/*
+#RUN rm -rf /home/spheral/workspace/*
 
 
 FROM spheral-build-env AS spheral
