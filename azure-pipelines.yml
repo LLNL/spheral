@@ -12,5 +12,10 @@ jobs:
   - task: Docker@2
     inputs:
       command: build
+      arguments: --target spheral-build-env-local --tag spheral-build-env
+  - task: Docker@2
+    inputs:
+      command: build
+      arguments: --target spheral --tag spheral --network none
 
-pr: none
+#pr: none
