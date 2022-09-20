@@ -60,7 +60,7 @@ ARG JPY=1
 
 # Copy Spheral source and generate host config from tpl-manager (all dependencies should already be installed).
 COPY . .
-RUN python3 scripts/devtools/tpl-manager.py --spec $SPEC --upstream-dir /home/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder_
+RUN python3 scripts/devtools/tpl-manager.py --spec $SPEC --upstream-dir /home/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder_ --spack-url /home/spack
 
 # Configure Spheral with SPEC TPLs.
 RUN mv *.cmake $HOST_CONFIG.cmake
