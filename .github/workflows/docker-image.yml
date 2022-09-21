@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/build-env
+  IMAGE_NAME: llnl/spheral
 
 jobs:
   build:
