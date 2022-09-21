@@ -29,7 +29,7 @@ if(ENABLE_DOCS AND NOT SPHINX_EXEC STREQUAL "SPHINX_EXEC-NOTFOUND")
     @ONLY)
 
   add_custom_target(Spheral_docs ALL
-    ${CMAKE_COMMAND} -E env PYTHONPATH=${SPHERAL_PYTHONPATH} ${PYTHON_EXE} -m sphinx
+    ${CMAKE_COMMAND} -E env PYTHONPATH=${SPACK_PYTHONPATH} ${PYTHON_EXE} -m sphinx
     -q -b html
     -c "${BINARY_BUILD_DIR}"
     -d "${SPHINX_CACHE_DIR}"

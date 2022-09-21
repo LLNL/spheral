@@ -2,7 +2,7 @@ name: Generate build env image
 
 on:
   push:
-    branches: ["develop","bugfix/offline-build"]
+    branches: ["develop"]
 
 env:
   REGISTRY: ghcr.io

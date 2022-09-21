@@ -131,23 +131,11 @@ def build_deps(args):
   if not args.no_clean:
     sexe("rm dev-build-* spack-build-* spack-configure-args.txt")
 
-def runtime_python_libs(args):
-  print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-  print("~~~~~ Python Runtime Dependencies")
-  print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-  print("")
-
-  #if not sexe("python2.7 -m pip download -r {0}/cmake/tpl/util/requirements.txt --no-binary :all -d {1}/pip-cache".format(project_dir, args.spheral_spack_dir), echo=True ) : print("Could not execute pip downloads.")
-  #if not sexe("wget http://downloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz --no-check-certificate -O {0}/pip-cache/gnuplot-py-1.8.tar.gz".format(args.spheral_spack_dir), echo=True ) : print("FAILED : Could not wget gnuplot.")
-  #if not sexe("wget https://github.com/LLNL/ATS/archive/refs/tags/7.0.9.tar.gz --no-check-certificate -O {0}/pip-cache/7.0.9.tar.gz".format(args.spheral_spack_dir), echo=True ) : print("FAILED : Could not wget gnuplot.")
-
-
 #------------------------------------------------------------------------------
 
 def main():
   args = parse_args()
   build_deps(args)
-  #runtime_python_libs(args)
 
 
 if __name__ == "__main__":
