@@ -200,6 +200,16 @@ void SidreFileIO::close()
   mFileOpen = false;
 }
 
+void setGroup(const axom::sidre::Group group)
+{
+  // This needs to be made in some sort of clean way
+  // will need to figure out how I could make the functions be called on a group,
+  // probably instead of using the DataStore pointer I can make the functions work with
+  // Groups and pass in the getRoot(), might even have that be a new private variable
+  // need to see how other codes do it, maybe something like Mfem
+  axom::sidre::Group myGroup = group;
+}
+
 //------------------------------------------------------------------------------
 // Check if the specified path is in the file.
 //------------------------------------------------------------------------------
