@@ -25,7 +25,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: build env image
-      run: docker build --target spheral-build-env-local --tag spheral-build-env
+      run: docker build --target spheral-build-env-local --tag spheral-build-env .
       
     - name: build spheral image
       run: docker build --target spheral --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest --network none .
