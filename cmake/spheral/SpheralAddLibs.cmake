@@ -50,7 +50,7 @@ function(spheral_add_obj_library
 endfunction()
 
 #-----------------------------------------------------------------------------------
-# spheral_add_obj_library
+# spheral_add_cxx_library
 #     - same interface as spheral_add_obj_library
 #-----------------------------------------------------------------------------------
 function(spheral_add_cxx_library
