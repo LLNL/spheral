@@ -24,6 +24,7 @@
     HOSTNAME: "lassen"
     ARCH: "blueos_3_ppc64le_ib_p9"
     LLNL_SERVICE_USER: sphapp
+    DISPLAY: ":0.0"
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_LASSEN == "OFF"' #run except if ...
       when: never
