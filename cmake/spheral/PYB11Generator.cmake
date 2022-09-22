@@ -67,7 +67,7 @@ macro(PYB11_GENERATE_BINDINGS PYB11_MODULE_NAME)
   # Format list into a one line shell friendly format
   STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})
 
-  string(JOIN ":" PYTHON_ENV_STR ${PYTHON_ENV_STR} $ENV{PYTHONPATH})
+  string(JOIN ":" PYTHON_ENV_STR ${PYTHON_ENV_STR} ${SPACK_PYTHONPATH})
 
   # Generating python stamp files to detect changes in PYB11_SOURCE and
   # its included modules
