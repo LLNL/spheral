@@ -37,11 +37,7 @@ endif()
 # Only needed when building the python interface of spheral
 if(NOT ENABLE_CXXONLY)
   Spheral_Handle_TPL(python spheral_depends py)
-  Spheral_Handle_TPL(pip spheral_py_depends py)
   Spheral_Handle_TPL(pybind11 spheral_depends py)
-
-  include(${SPHERAL_ROOT_DIR}/cmake/tpl/pythonModule.cmake)
-
 endif()
 
 Spheral_Handle_TPL(polytope spheral_depends cxx)

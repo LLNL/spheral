@@ -93,7 +93,7 @@ SpheralMaterialPropertiesLib = {
 
 # 2 ----------------------------------------------------------------------------
     "basalt" : {
-        "rho0" : 2.700,         # gm/cm^3
+        "rho0" : 2.900,         # gm/cm^3
         "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless

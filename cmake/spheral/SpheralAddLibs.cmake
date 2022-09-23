@@ -3,6 +3,7 @@
 #     - Generates the blt libraries for a given spheral C++ package
 #
 # package_name : *name* of spheral package to make into a library
+# obj_libs_list : *name* of a CMake list which we will add the library object files to
 #
 # Variables that must be set before calling spheral_add_obj_library:
 #     ENABLE_STATIC_CXXONLY : Default False
@@ -18,7 +19,17 @@
 #
 #-----------------------------------------------------------------------------------
 
-function(spheral_add_obj_library package_name)
+function(spheral_add_obj_library
+         package_name)
+
+  set(obj_libs_list SPHERAL_OBJ_LIBS)
+
+  # We can optionally specify the obj_libs_list
+  set(extra_args ${ARGN})
+  list(LENGTH extra_args extra_count)
+  if (${extra_count} GREATER 0)
+    list(GET extra_args 0 obj_libs_list)
+  endif()
 
   blt_add_library(NAME        Spheral_${package_name}
                   HEADERS     ${${package_name}_headers}
@@ -36,23 +47,41 @@ function(spheral_add_obj_library package_name)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
   endif()
 
-  # Add this to the SPHERAL_OBJ_LIBS list
-  get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
-  list(APPEND SPHERAL_OBJ_LIBS Spheral_${package_name})
-  set_property(GLOBAL PROPERTY SPHERAL_OBJ_LIBS "${SPHERAL_OBJ_LIBS}")
+  # Add this to the obj_libs_list list
+  get_property(${obj_libs_list} GLOBAL PROPERTY ${obj_libs_list})
+  list(APPEND ${obj_libs_list} Spheral_${package_name})
+  set_property(GLOBAL PROPERTY ${obj_libs_list} "${${obj_libs_list}}")
 
 endfunction()
 
-function(spheral_add_cxx_library package_name)
+#-----------------------------------------------------------------------------------
+# spheral_add_cxx_library
+#     - same interface as spheral_add_obj_library
+#-----------------------------------------------------------------------------------
+function(spheral_add_cxx_library
+         package_name)
 
-  get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+  set(obj_libs_list SPHERAL_OBJ_LIBS)
+  set(EXTRA_CXX_DEPENDS )
+
+  # We can optionally specify the obj_libs_list and any additional dependencies
+  set(extra_args ${ARGN})
+  list(LENGTH extra_args extra_count)
+  if (${extra_count} GREATER 0)
+    list(GET extra_args 0 obj_libs_list)
+  endif()
+  if (${extra_count} GREATER 1)
+    list(GET extra_args 1 optional_arg)
+    list(APPEND EXTRA_CXX_DEPENDS ${optional_arg})
+  endif()
+  get_property(${obj_libs_list} GLOBAL PROPERTY ${obj_libs_list})
 
   if(NOT ENABLE_SHARED)
     # Build static spheral C++ library
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  ${SPHERAL_OBJ_LIBS} ${SPHERAL_CXX_DEPENDS}
+                    DEPENDS_ON  ${${obj_libs_list}} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS}
                     SHARED      FALSE
                     )
   else()
@@ -60,10 +89,14 @@ function(spheral_add_cxx_library package_name)
     blt_add_library(NAME        Spheral_${package_name}
                     HEADERS     ${${package_name}_headers}
                     SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  ${SPHERAL_OBJ_LIBS} ${SPHERAL_CXX_DEPENDS}
+                    DEPENDS_ON  ${${obj_libs_list}} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS}
                     SHARED      TRUE
                     )
   endif()
+
+  get_target_property(_LINK_LIBRARIES Spheral_${package_name} LINK_LIBRARIES)
+  LIST(REMOVE_DUPLICATES _LINK_LIBRARIES)
+  set_target_properties(Spheral_${package_name} PROPERTIES LINK_LIBRARIES "${_LINK_LIBRARIES}") 
 
   if(ENABLE_CUDA)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
@@ -93,8 +126,6 @@ endfunction()
 #         - List of addition includes needed by a given package
 #     <package_name>_ADDITIONAL_SOURCE
 #         - List of additional sources to build library with
-#     SPHERAL_OBJ_LIBS
-#         - List of items that are required to build the python portion of spheral
 #     spheral_depends
 #         - List of targets the library depends on
 #     spheral_blt_depends
@@ -118,7 +149,6 @@ function(spheral_add_pybind11_library package_name)
                   CLEAR_PREFIX TRUE
                   SHARED       TRUE
                   )
-  add_dependencies(${MODULE_NAME} ${spheral_py_depends} ${spheral_depends})
 
   target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
 
