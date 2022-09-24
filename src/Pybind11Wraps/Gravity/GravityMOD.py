@@ -11,11 +11,13 @@ dims = spheralDimensions()
 
 from NBodyGravity import *
 from TreeGravity import *
+from ApproximatePolyhedralGravityModel import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-PYB11includes += ['"Physics/GenericBodyForce.hh"',
+PYB11includes += ['"Gravity/ApproximatePolyhedralGravityModel.hh"',
+                  '"Physics/GenericBodyForce.hh"',
                   '"Gravity/NBodyGravity.hh"',
                   '"Gravity/TreeGravity.hh"',
                   '"FileIO/FileIO.hh"']
