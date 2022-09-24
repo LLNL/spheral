@@ -78,7 +78,7 @@ commandLine(
 
     # Hydro parameters
     cfl = 0.35,   
-    correctVelocityGradient=True,        # linear order velocity gradient for PSPH SPH or FSISPH
+    correctVelocityGradient=False,        # linear order velocity gradient for PSPH SPH or FSISPH
     asph = False,                        # turns on elliptic kernels
     xsph = False,                        # updates position based on averaged velocity
     epsilonTensile = 0.00,               # term to fight the tensile instability 
@@ -92,7 +92,7 @@ commandLine(
     fsiRhoStabilizeCoeff = 0.00,           # coefficient that smooths the density field
     fsiEpsDiffuseCoeff = 0.00,             # explicit diiffusion of the thermal energy
     fsiXSPHCoeff = 0.00,                   # fsi uses multiplier for XSPH instead of binary switch
-    fsiInterfaceMethod = ModulusInterface, # (HLLCInterface, ModulusInterface)
+    fsiInterfaceMethod = NoInterface, # (HLLCInterface, ModulusInterface)
     
     # CRKSPH parameters
     correctionOrder = LinearOrder,   # for CRKSPH higher order field approximations
@@ -108,7 +108,7 @@ commandLine(
 
     # smoothing scale parameters
     kernelOrder = None,       # for b spline kernels, None defaults to WendlandC2 
-    nPerh = 3.51,             # number of neighbors / smoothing length     
+    nPerh = 3.01,             # number of neighbors / smoothing length     
     HEvolution =  IntegrateH, # (IdealH , IntegrateH) update method for smoothing kernel
     iterateInitialH = False,  # to calc initial ideal H in controller constructor
      
@@ -282,7 +282,7 @@ if incompressibleClamps:
                                        etaMin,
                                        etaMax,
                                        units)
-    PoissonsRatioCu=0.0
+    PoissonsRatioCu=0.33
     rho0Cu = eosSolidCu.referenceDensity 
     cs0Cu = eosSolidCu.soundSpeed(rho0Cu, 0.0)
     Ks0Cu = rho0Cu*cs0Cu*cs0Cu
@@ -619,20 +619,20 @@ class loadCurveStorage:
 
     def maxY(self):
         maxy = 0.0
-        nodeLists = self.db.nodeLists()
-        for nodeList in nodeLists:
-            positions = nodeList.positions()
-            for position in positions:
-                maxy = max(maxy,position.y)
+        #nodeLists = self.db.nodeLists()
+        #for nodeList in nodeLists:
+        positions = self.nodes.positions()
+        for position in positions:
+            maxy = max(maxy,position.y)
         maxy = mpi.allreduce(maxy,mpi.MAX)
         return maxy
 
     def minY(self):
         miny = 0.0
-        nodeLists = self.db.nodeLists()
-        for nodeList in nodeLists:
-            positions = nodeList.positions()
-            for position in positions:
+        #nodeLists = self.db.nodeLists()
+        #for nodeList in nodeLists:
+        positions = self.nodes.positions()
+        for position in positions:
                 miny = min(miny,position.y)
         miny = mpi.allreduce(miny,mpi.MIN)
         return miny
@@ -657,6 +657,7 @@ class loadCurveStorage:
         # other form of strain calc
         maxy = self.maxY()
         miny = self.minY()
+        print (self.maxy0 - self.miny0) - (maxy-miny)
         delta2 = (self.maxy0 - self.miny0) - (maxy-miny)
         straini2 = delta2/self.diameter
 
@@ -752,7 +753,8 @@ z_sample = LSyy.DATA_Tot[:,2]
 xdiff = x_sample[:-1]-x_sample[1:]
 forceSampled = sum((0.5*Sigmaxx[1:]+0.5*Sigmaxx[:-1])*xdiff)
 
-
+print sum(xdiff)
+print rSpecimen*2.0
 # plane strain estimate of force
 #--------------------------------
 Kc = rho0Clamps*cS0Clamps**2
@@ -762,13 +764,21 @@ Ec = 3.0*Kc*(1-2.0*PoissonsRatioClamps)
 oneOverEstar = (1.0-PoissonsRatio**2)/Es + (1.0-PoissonsRatioClamps**2)/Ec
 Estar = 1.0/oneOverEstar
 
-delta = compressionSpeed*goalTime
+delta = 2.0*compressionSpeed*goalTime
 
-forceEstimated = pi/4.0*Estar*delta
+print delta
+print LCS.strainHist2[-1]*2.0*rSpecimen/100.0
+print LCS.strainHist[-1]*2.0*rSpecimen/100.0
 
+forceEstimated = pi/10.0*Estar*delta
+
+forceEstimated2 = pi/10.0*Estar*LCS.strainHist2[-1]*2.0*rSpecimen/100.0
+forceEstimated1 = pi/10.0*Estar*LCS.strainHist[-1]*2.0*rSpecimen/100.0
 print "   "
-print "Force from Displacement: %g" % forceEstimated
-print "Force from Sampling    : %g" % forceSampled
+print "Force from Displacement : %g" % forceEstimated
+print "Force from Displacement2: %g" % forceEstimated2
+print "Force from Displacement1: %g" % forceEstimated1
+print "Force from Sampling     : %g" % forceSampled
 print "   "
 
 # analytic herzian soln for stress field
@@ -815,9 +825,9 @@ if mpi.rank==0:
         FS = 14
         factor = 1e5 # cgus -> MPa
         ax.plot(Yreduced,[entry*factor for entry in Sxxreduced],'c.',label='$\sigma_{xx}$ -- FSISPH')
-        ax.plot(Yreduced,[entry*factor for entry in Sxxanalytic],'b--',label='$\sigma_{xx}$ -- Analytic')
+        ax.plot(Yreduced,[entry*factor for entry in Sxxanalytic],'b.',label='$\sigma_{xx}$ -- Analytic')
         ax.plot(Yreduced,[entry*factor for entry in Syyreduced],'y.',label='$\sigma_{yy}$ -- FSISPH')
-        ax.plot(Yreduced,[entry*factor for entry in Syyanalytic],'k-',label='$\sigma_{yy}$ -- Analytic')
+        ax.plot(Yreduced,[entry*factor for entry in Syyanalytic],'k.',label='$\sigma_{yy}$ -- Analytic')
         ax.legend(fontsize=FS)
         plt.xlabel(r'y-$cm$',fontsize=FS)
         plt.ylabel(r'Stress-$MPa$',fontsize=FS)

@@ -24,7 +24,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // A few useful constants we'll use in the following loop.
+  const auto PminInterface = 0.0;
   const auto fullyDamagedThreshold=1.0e-2;
+  const auto bufferFactor = 1.0e-6;
   const auto tiny = std::numeric_limits<double>::epsilon();
   const auto W0 = W(0.0, 1.0);
   const auto epsTensile = this->epsilonTensile();
@@ -293,8 +295,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto fDij = (sameMatij ? pow(1.0-std::abs(Di-Dj),2.0) : 0.0 );
 
       // is Pmin being activated (Pmin->zero for material interfaces)
-      const auto pLimiti = (sameMatij ? (Pi-rhoi*ci*ci*1e-6) : 0.0);
-      const auto pLimitj = (sameMatij ? (Pj-rhoj*cj*cj*1e-6) : 0.0);
+      const auto pLimiti = (sameMatij ? (Pi-rhoi*ci*ci*bufferFactor) : PminInterface);
+      const auto pLimitj = (sameMatij ? (Pj-rhoj*cj*cj*bufferFactor) : PminInterface);
       const auto pminActivei = (rPi < pLimiti);
       const auto pminActivej = (rPj < pLimitj);
       
@@ -306,7 +308,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // do we need to construct our interface velocity?
       const auto constructInterface = (fDij < 1.0-fullyDamagedThreshold) and activateConstruction;
-      const auto negligableShearWave = max(mui,muj) < 1.0e-5*min(Ki,Kj);
+      const auto negligableShearWave = max(mui,muj) < bufferFactor*min(Ki,Kj);
 
       // do we reduce our deviatoric stress
       const auto isTensile = (((Si+Sj)-(Pi+Pj)*SymTensor::one).dot(rhatij)).dot(rhatij) > 0;
@@ -411,14 +413,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         maxViscousPressurej = max(maxViscousPressurej, rhoi*rhoj * QPiji.diagonalElements().maxAbsElement());
 
         // stress tensor
-        {
-          const auto Seffi = (damageReduceStress ? fDij : 1.0) * Si;
-          const auto Seffj = (damageReduceStress ? fDij : 1.0) * Sj;
-          const auto Peffi = (differentMatij ? max(Pi,0.0) : Pi);
-          const auto Peffj = (differentMatij ? max(Pj,0.0) : Pj);
-          sigmai = Seffi - Peffi * SymTensor::one;
-          sigmaj = Seffj - Peffj * SymTensor::one;
-        }
+        const auto Seffi = (damageReduceStress ? fDij : 1.0) * Si;
+        const auto Seffj = (damageReduceStress ? fDij : 1.0) * Sj;
+        const auto Peffi = (differentMatij ? max(Pi,0.0) : Pi);
+        const auto Peffj = (differentMatij ? max(Pj,0.0) : Pj);
+        sigmai = Seffi - Peffi * SymTensor::one;
+        sigmaj = Seffj - Peffj * SymTensor::one;
 
         // Compute the tensile correction to add to the stress as described in 
         // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -454,6 +454,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
         // construct our interface velocity 
         auto vstar = 0.5*(vi+vj);
+
+        linearReconstruction(ri,rj,Pi,Pj,DPDxi,DPDxj,PLineari,PLinearj);
+
         if (constructInterface){
           
           // components
@@ -461,20 +464,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           const auto uj = vj.dot(rhatij);
           const auto wi = vi - ui*rhatij;
           const auto wj = vj - uj*rhatij;
-          
+
           // weights weights
+          //const auto Ci =  (constructHLLC ? rhoi*(std::max(uj+cj,ui+ci)-ui)  : Ki  ) + tiny;
+          //const auto Cj =  (constructHLLC ? rhoj*(std::min(ui-ci,uj-cj)-uj)  : Kj  ) + tiny;
           const auto Ci =  (constructHLLC ? std::sqrt(rhoi*Ki)  : Ki  ) + tiny;
           const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj)  : Kj  ) + tiny;
           const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : mui ) + tiny;
           const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : muj ) + tiny;
 
-          const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
+          const auto CiCjInv = 1.0/(Ci+Cj);
+          
+          const auto weightUi = max(0.0, min(1.0, Ci*CiCjInv));
           const auto weightUj = 1.0 - weightUi;
           const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, Csi/(Csi+Csj) )) );
           const auto weightWj = 1.0 - weightWi;
 
           // get our eff pressure
-          const auto ustar = weightUi*ui + weightUj*uj; 
+          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ? (PLinearj - PLineari - (Seffi-Seffj).dot(rhatij).dot(rhatij))*CiCjInv : 0.0); 
           const auto wstar = weightWi*wi + weightWj*wj;
           vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
   
@@ -485,13 +492,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           localDvDxi -=  2.0*volj*((vi-vstar).dyad(gradWi));
           localDvDxj -=  2.0*voli*((vstar-vj).dyad(gradWj)); 
         }
-        
+
         // diffuse to stabilize things
         if (stabilizeDensity and (ci>tiny and cj>tiny)){
-          linearReconstruction(ri,rj,Pi,Pj,DPDxi,DPDxj,PLineari,PLinearj);
           const auto cFactor = 1.0 + max(min( (vi-vj).dot(rhatij)/max(cij,tiny), 0.0), -1.0);
           const auto effCoeff = (differentMatij ? 1.0 : rhoStabilizeCoeff*cFactor);
-          vstar += effCoeff * rhatij * cij * min(max((PLinearj-PLineari)/(Ki + Kj),-0.25),0.25);
+          vstar += (constructHLLC? fDij : 1.0) * effCoeff * rhatij * cij * min(max((PLinearj-PLineari)/(Ki + Kj),-0.25),0.25);
         }
 
         // global velocity gradient
@@ -619,8 +625,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DxDti = vi;
       if (XSPH) {
         XSPHWeightSumi += Hdeti*mi/rhoi*W0;
-        XSPHWeightSumi *= xsphCoeff*XSPHWeightSumi/max(normi*normi,tiny);
-        DxDti += XSPHDeltaVi;
+        DxDti += xsphCoeff*XSPHWeightSumi/max(normi*normi,tiny) * XSPHDeltaVi;
       }
 
 
@@ -651,7 +656,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
       const auto spin = localDvDxi.SkewSymmetric();
-      const auto deviatoricDeformation = deformation - (deformation.Trace()*oneOverDimension)*SymTensor::one;
+      const auto deviatoricDeformation = deformation - (deformation.Trace()/3.0)*SymTensor::one;
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
       DSDti += spinCorrection + 2.0*mui*deviatoricDeformation;
       

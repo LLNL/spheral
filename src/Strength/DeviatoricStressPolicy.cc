@@ -55,7 +55,7 @@ update(const KeyType& /*key*/,
 
   // We only want to enforce zeroing the trace in Cartesian coordinates.   In RZ or R
   // we assume the missing components on the diagonal sum to -Trace(S).
-  const auto zeroTrace = GeometryRegistrar::coords() == CoordinateType::Cartesian;
+  //const auto zeroTrace = GeometryRegistrar::coords() == CoordinateType::Cartesian;
 
   // Iterate over the internal nodes.
   const auto numFields = S.numFields();
@@ -63,10 +63,10 @@ update(const KeyType& /*key*/,
     const auto n = S[k]->numInternalElements();
     for (auto i = 0u; i < n; ++i) {
       auto S0 = S(k,i) + multiplier*(DSDt(k,i));               // Elastic prediction for the new deviatoric stress
-      if (zeroTrace) {
-        S0 -= SymTensor::one * S0.Trace()/Dimension::nDim;     // Ensure the deviatoric stress is traceless (all but RZ and spherical)
-        CHECK(fuzzyEqual(S0.Trace(), 0.0));
-      }
+      //if (zeroTrace) {
+      //  S0 -= SymTensor::one * S0.Trace()/Dimension::nDim;     // Ensure the deviatoric stress is traceless (all but RZ and spherical)
+      //  CHECK(fuzzyEqual(S0.Trace(), 0.0));
+      //}
 
       // Purely elastic flow.  The plastic yielding is accounted for when we update the plastic strain.
       S(k,i) = S0;
