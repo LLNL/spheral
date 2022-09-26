@@ -205,7 +205,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
         entries.append(cmake_cache_option('polytope_BUILD', False))
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))
 
-        entries.append(cmake_cache_option('ENABLE_CALIPER', '+caliper' in spec))
+        entries.append(cmake_cache_option('ENABLE_TIMER', '+caliper' in spec))
         if "+caliper" in spec:
             entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
 
