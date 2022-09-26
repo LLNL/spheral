@@ -29,9 +29,6 @@ public:
   virtual void open(const std::string fileName, AccessType access) override;
   virtual void close() override;
 
-  // Used to pass a Sidre group if you don't want to have fileIO as part of the constructor
-  void setGroup(const axom::sidre::Group);
-
   //******************************************************************************
   // Methods all FileIO descendent classes must provide.
   //******************************************************************************
