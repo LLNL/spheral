@@ -1,0 +1,34 @@
+# ------------------------------------------------------------------------------
+# MACHINE TEMPLATES
+
+.on_ruby:
+  tags:
+    - ruby
+  variables:
+    HOSTNAME: "ruby"
+    PARTITION: pbatch
+    BUILD_ALLOC: srun -N 1 -c 36 -p pbatch -t 60
+    TEST_ALLOC: ""
+  extends: [.on_toss]
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_RUBY == "OFF"' #run except if ...
+#      when: never
+#    - if: '$CI_JOB_NAME =~ /release_resources/'
+#      when: always
+#    - when: on_success
+
+.on_lassen:
+  tags:
+    - lassen
+  variables:
+    HOSTNAME: "lassen"
+    BUILD_ALLOC: lalloc 1
+    TEST_ALLOC: $BUILD_ALLOC
+  extends: [.on_blueos]
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_LASSEN == "OFF"' #run except if ...
+#      when: never
+#    - if: '$CI_JOB_NAME =~ /release_resources/'
+#      when: always
+#    - when: on_success
+
