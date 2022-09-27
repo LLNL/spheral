@@ -7,7 +7,7 @@
   - Adds (specific feature) at the request of (project or person)
 
 ------
-# ToDo Before Merging
+### ToDo :
 
 - [ ] Annotate ``RELEASE_NOTES.md`` with notable changes.
 - [ ] Create LLNLSpheral PR pointing at this branch. (PR#)
