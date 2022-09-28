@@ -12,7 +12,7 @@ stages:
 
 include:
   - local: .gitlab/os.yml
-  - local: .gitlab-ci-machines.yml
+  - local: .gitlab/machines.yml
 
 .toss3_platform:
   extends: [.on_ruby]
