@@ -1,0 +1,14 @@
+# ------------------------------------------------------------------------------
+# BUILD JOBS
+
+toss_gcc_8_3_1_~mpi:
+  extends: [.gcc_8_3_1_~mpi, .build_and_test, .toss3_platform]
+  stage: build_and_install
+  
+blueos_cuda_11_gcc_8_3_1_~mpi:
+  extends: [.cuda_11_gcc_8_3_1_~mpi, .build_and_test, .blueos_platform]
+  stage: build_and_install
+
+blueos_gcc_8_3_1_~mpi_Debug:
+  extends: [.gcc_8_3_1_~mpi_Debug, .build_and_test, .blueos_platform]
+  stage: build_and_install

@@ -9,10 +9,6 @@ toss_gcc_8_3_1_mvapich2:
   extends: [.gcc_8_3_1_mvapich2, .build_and_test, .toss3_platform]
   stage: build_and_install
 
-toss_gcc_8_3_1_~mpi:
-  extends: [.gcc_8_3_1_~mpi, .build_and_test, .toss3_platform]
-  stage: build_and_install
-
 toss_clang_9_0_0_mvapich2:
   extends: [.clang_9_0_0_mvapich2, .build_and_test, .toss3_platform]
   stage: build_and_install
@@ -29,14 +25,6 @@ blueos_cuda_11_gcc_8_3_1_spectrum:
   extends: [.cuda_11_gcc_8_3_1_spectrum, .build_and_test, .blueos_platform]
   stage: build_and_install
   
-blueos_cuda_11_gcc_8_3_1_~mpi:
-  extends: [.cuda_11_gcc_8_3_1_~mpi, .build_and_test, .blueos_platform]
-  stage: build_and_install
-
-blueos_gcc_8_3_1_~mpi_Debug:
-  extends: [.gcc_8_3_1_~mpi_Debug, .build_and_test, .blueos_platform]
-  stage: build_and_install
-
 # ------------------------------------------------------------------------------
 # UPDATE TPL JOBS
 
