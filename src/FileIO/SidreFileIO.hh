@@ -154,7 +154,12 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // A pointer to the root of the sidre datastore associated with this object.
-  std::shared_ptr<axom::sidre::DataStore> mDataStorePtr;
+  std::unique_ptr<axom::sidre::DataStore> mDataStorePtr;
+
+  // A pointer to the group that will have data written to it, in standalone Spheral's
+  // case this will be the root group. Other codes could pass a group to Spheral to use
+  // their datastore.
+  axom::sidre::Group baseGroup;
 
   // write() function in sidre needs to have access to file name
   std::string mFileName;
