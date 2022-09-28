@@ -13,14 +13,6 @@ stages:
 include:
   - local: .gitlab/os.yml
   - local: .gitlab/machines.yml
-
-.toss3_platform:
-  extends: [.on_ruby]
-
-.blueos_platform:
-  extends: [.on_lassen]
-
-include:
   - local: .gitlab/scripts.yml
   - local: .gitlab/specs.yml
   - local: .gitlab/jobs.yml

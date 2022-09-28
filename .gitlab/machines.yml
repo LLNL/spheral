@@ -10,6 +10,7 @@
     BUILD_ALLOC: srun -N 1 -c 36 -p pbatch -t 60
     TEST_ALLOC: ""
   extends: [.on_toss]
+
 #  rules:
 #    - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_RUBY == "OFF"' #run except if ...
 #      when: never
@@ -31,4 +32,10 @@
 #    - if: '$CI_JOB_NAME =~ /release_resources/'
 #      when: always
 #    - when: on_success
+
+.toss3_platform:
+  extends: [.on_ruby]
+
+.blueos_platform:
+  extends: [.on_lassen]
 
