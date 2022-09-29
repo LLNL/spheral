@@ -13,7 +13,7 @@ namespace Spheral
 // Specialize to read/write a std::string/std::vector type
 //------------------------------------------------------------------------------
 template <typename DataType>
-void sidreWriteVec(axom::sidre::Group grp, const DataType& value, const std::string& path)
+void sidreWriteVec(axom::sidre::Group* grp, const DataType& value, const std::string& path)
 {
   axom::sidre::DataTypeId dtype = DataTypeTraits<DataType>::axomTypeID();
   axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
@@ -23,7 +23,7 @@ void sidreWriteVec(axom::sidre::Group grp, const DataType& value, const std::str
 }
 
 template <typename DataType>
-void sidreReadVec(axom::sidre::Group grp, DataType& value, const std::string& path)
+void sidreReadVec(axom::sidre::Group* grp, DataType& value, const std::string& path)
 {
   int size = grp->getView(path)->getNumElements();
   value.resize(size);
@@ -35,7 +35,7 @@ void sidreReadVec(axom::sidre::Group grp, DataType& value, const std::string& pa
 // Specialize to read/write a Geometric type
 //------------------------------------------------------------------------------
 template <typename DataType>
-void sidreWriteGeom(axom::sidre::Group grp, const DataType& value, const std::string& path)
+void sidreWriteGeom(axom::sidre::Group* grp, const DataType& value, const std::string& path)
 {
   int size = int(DataType::numElements);
   axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
@@ -45,7 +45,7 @@ void sidreWriteGeom(axom::sidre::Group grp, const DataType& value, const std::st
 }
 
 template <typename DataType>
-void sidreReadGeom(axom::sidre::Group grp, DataType& value, const std::string& path)
+void sidreReadGeom(axom::sidre::Group* grp, DataType& value, const std::string& path)
 {
   double* data = grp->getView(path)->getArray();
   for (int i = 0; i < int(DataType::numElements); ++i)
@@ -57,7 +57,7 @@ void sidreReadGeom(axom::sidre::Group grp, DataType& value, const std::string& p
 template <typename Dimension, typename DataType,
           typename std::enable_if<std::is_arithmetic<DataType>::value,
                                   DataType>::type* = nullptr>
-void sidreWriteField(axom::sidre::Group grp,
+void sidreWriteField(axom::sidre::Group* grp,
                      const Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
@@ -72,7 +72,7 @@ void sidreWriteField(axom::sidre::Group grp,
 template <typename Dimension, typename DataType,
           typename std::enable_if<std::is_arithmetic<DataType>::value,
                                   DataType>::type* = nullptr>
-void sidreReadField(axom::sidre::Group grp,
+void sidreReadField(axom::sidre::Group* grp,
                      Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
@@ -87,7 +87,7 @@ void sidreReadField(axom::sidre::Group grp,
 template <typename Dimension, typename DataType,
           typename std::enable_if<!std::is_arithmetic<DataType>::value,
                                   DataType>::type* = nullptr>
-void sidreWriteField(axom::sidre::Group grp,
+void sidreWriteField(axom::sidre::Group* grp,
                      const Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
@@ -107,7 +107,7 @@ void sidreWriteField(axom::sidre::Group grp,
 template <typename Dimension, typename DataType,
           typename std::enable_if<!std::is_arithmetic<DataType>::value,
                                   DataType>::type* = nullptr>
-void sidreReadField(axom::sidre::Group grp,
+void sidreReadField(axom::sidre::Group* grp,
                      Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
@@ -201,14 +201,14 @@ void SidreFileIO::close()
   mFileOpen = false;
 }
 
-void setGroup(const axom::sidre::Group group)
+void setGroup(const axom::sidre::Group* group)
 {
   // This needs to be made in some sort of clean way
   // will need to figure out how I could make the functions be called on a group,
   // probably instead of using the DataStore pointer I can make the functions work with
   // Groups and pass in the getRoot(), might even have that be a new private variable
   // need to see how other codes do it, maybe something like Mfem
-  axom::sidre::Group myGroup = group;
+  baseGroup = group;
 }
 
 //------------------------------------------------------------------------------

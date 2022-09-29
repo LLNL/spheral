@@ -159,7 +159,8 @@ private:
   // A pointer to the group that will have data written to it, in standalone Spheral's
   // case this will be the root group. Other codes could pass a group to Spheral to use
   // their datastore.
-  axom::sidre::Group baseGroup;
+  axom::sidre::Group* baseGroup;
+  // if this stays a raw pointer then I need to add delete somewhere, have not done that yet
 
   // write() function in sidre needs to have access to file name
   std::string mFileName;
