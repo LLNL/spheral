@@ -17,8 +17,14 @@ set(Gravity_headers
   TreeGravityInline.hh
   ApproximatePolyhedralGravityModel.hh
   ApproximatePolyhedralGravityModelInline.hh
+  PolyGravity.hh
   )
 
+# The PolyGravity object requires 3D, and optionally works in 2D
+if(ENABLE_3D)
+  list(APPEND Gravity_sources
+       PolyGravity.cc)
+endif()
 
 spheral_add_obj_library(Gravity)
 
