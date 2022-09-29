@@ -15,6 +15,8 @@
 #include "Physics/GenericBodyForce.hh"
 #include "Field/FieldList.hh"
 
+#include <memory>
+
 namespace Spheral {
 
 template<typename Dimension> class State;
@@ -34,8 +36,8 @@ public:
   using TimeStepType = typename Physics<Dimension>::TimeStepType;
 
   //! Constructor.
-  //! \param G -- the gravitational constant.
   //! \param poly -- polytope we're going to solve on.
+  //! \param G -- the gravitational constant.
   //! \param mass -- mass of the polytope
   //! \param ftimestep -- safety factor in [0,1] in setting time steps.
   PolyGravity(const Polytope& poly,
@@ -103,7 +105,7 @@ private:
   // Private data.
   double mG, mMass, mftimestep;
   Dim<3>::FacetedVolume mPoly;
-  ApproximatePolyhedralGravityModel mSolver;
+  std::shared_ptr<ApproximatePolyhedralGravityModel> mSolver;
 
   // The potential fields filled in during evaluateDerivates.
   mutable FieldList<Dimension, Scalar> mPotential;
@@ -126,8 +128,8 @@ private:
 };
 
 // Declare explicit specializations.
-template<> PolyGravity<Dim<2>>::PolyGravity(const PolyGravity::Dim<2>::Polytope, const double, const double, const double);
-template<> PolyGravity<Dim<3>>::PolyGravity(const PolyGravity::Dim<3>::Polytope, const double, const double, const double);
+template<> PolyGravity<Dim<2>>::PolyGravity(const PolyGravity<Dim<2>>::Polytope&, const double, const double, const double);
+template<> PolyGravity<Dim<3>>::PolyGravity(const PolyGravity<Dim<3>>::Polytope&, const double, const double, const double);
 
 }
 

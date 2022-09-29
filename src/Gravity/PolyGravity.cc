@@ -45,6 +45,22 @@ using std::abs;
 
 namespace Spheral {
 
+namespace {   // anonymous
+
+//------------------------------------------------------------------------------
+// Dim::Vector -> Vector3d
+//------------------------------------------------------------------------------
+Dim<3>::Vector TO3VEC(const Dim<3>::Vector& p) { return p; }
+Dim<3>::Vector TO3VEC(const Dim<2>::Vector& p) { return Dim<3>::Vector(p.x(), p.y(), 0.0); }
+
+//------------------------------------------------------------------------------
+// Dim::Vector -> Vector3d
+//------------------------------------------------------------------------------
+template<typename Dimension> typename Dimension::Vector FROM3VEC(const Dim<3>::Vector& p) { return p; }
+template<> Dim<2>::Vector FROM3VEC<Dim<2>>(const Dim<3>::Vector& p) { return Dim<2>::Vector(p.x(), p.y()); }
+
+}             // anonymous
+  
 //------------------------------------------------------------------------------
 // Constructor (3D)
 //------------------------------------------------------------------------------
@@ -59,13 +75,10 @@ PolyGravity(const PolyGravity<Dim<3>>::Polytope& poly,
   mMass(mass),
   mftimestep(ftimestep),
   mPoly(poly),
-  mSolver(poly, mass, G),
+  mSolver(std::make_shared<ApproximatePolyhedralGravityModel>(poly, mass, G)),
   mPotential(FieldStorageType::CopyFields),
   mExtraEnergy(0.0),
-  mNodeListMax(0),
-  mimax(0),
   mDtMinAcc(0.0),
-  mRhoMax(0.0),
   mRestart(registerWithRestart(*this)) {
   VERIFY2(G > 0.0, "PolyGravity requires G > 0");
   VERIFY2(mass > 0.0,"PolyGravity requires mass > 0");
@@ -89,10 +102,7 @@ PolyGravity(const PolyGravity<Dim<2>>::Polytope& poly,
   mSolver(),
   mPotential(FieldStorageType::CopyFields),
   mExtraEnergy(0.0),
-  mNodeListMax(0),
-  mimax(0),
   mDtMinAcc(0.0),
-  mRhoMax(0.0),
   mRestart(registerWithRestart(*this)) {
   VERIFY2(G > 0.0, "PolyGravity requires G > 0");
   VERIFY2(mass > 0.0,"PolyGravity requires mass > 0");
@@ -104,8 +114,8 @@ PolyGravity(const PolyGravity<Dim<2>>::Polytope& poly,
 
   // Build the 3D vertices by extruding the 2d points up and down in z.
   const auto length = sqrt(poly.volume());
-  const auto npoints2d = points2d.size();
-  vector<Vector> points3d(2*npoints2d);
+  const unsigned npoints2d = points2d.size();
+  vector<Dim<3>::Vector> points3d(2*npoints2d);
   for (auto i = 0u; i < npoints2d; ++i) {
     points3d[i].x(points2d[i].x());
     points3d[i].y(points2d[i].y());
@@ -127,8 +137,8 @@ PolyGravity(const PolyGravity<Dim<2>>::Polytope& poly,
   CHECK(facets3d.size() == facets2d.size());
 
   // Build a 3D extruded version of the polytope
-  mPoly = Polytope(points3d, facets3d);
-  mSolver = ApproximatePolyhedralGravityModel(mPoly, mass, G);
+  mPoly = Dim<3>::FacetedVolume(points3d, facets3d);
+  mSolver =  std::make_shared<ApproximatePolyhedralGravityModel>(mPoly, mass, G);
 }
 
 //------------------------------------------------------------------------------
@@ -167,8 +177,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
   const auto vel = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const auto H = state.fields(HydroFieldNames::Hfield);
-  const auto numNodeLists = position.numFields();
+  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto numNodeLists = pos.numFields();
 
   // Get the acceleration and position change vectors we'll be modifying.
   auto DxDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
@@ -178,13 +188,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   mPotential = 0.0;
   mDtMinAcc = std::numeric_limits<Scalar>::max();
   mExtraEnergy = 0.0;
-  for (auto k = 0u; i < numNodeLists; ++i) {
-    const auto n = mPotential[nodeListi]->numInternalElements();
+  for (auto k = 0u; k < numNodeLists; ++k) {
+    const auto n = mPotential[k]->numInternalElements();
     for (auto i = 0u; i < n; ++i) {
-      const auto ai = mSolver.acceleration(pos(k, i));
-      DxDt(k, i) = vel(nodeListi, i);
+      const auto ai = FROM3VEC<Dimension>(mSolver->acceleration(TO3VEC(pos(k, i))));
+      DxDt(k, i) = vel(k, i);
       DvDt(k, i) += ai;
-      mPotential(k, i) = mSolver.potential(pos(k, i));
+      mPotential(k, i) = mSolver->potential(TO3VEC(pos(k, i)));
       mExtraEnergy += mPotential(k, i);
       const auto hi = 1.0/(Dimension::nDim * H(k, i).Trace());
       mDtMinAcc = min(mDtMinAcc, sqrt(hi/ai.magnitude()));      // Similar to acceleration constraint from TreeGravity
@@ -255,7 +265,7 @@ potential() const {
 // The surface model
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const Dim<3>::FacetedVolume
+const Dim<3>::FacetedVolume&
 PolyGravity<Dimension>::
 poly() const {
   return mPoly;
@@ -306,7 +316,7 @@ template<typename Dimension>
 const ApproximatePolyhedralGravityModel&
 PolyGravity<Dimension>::
 solver() const {
-  return mSolver;
+  return *mSolver;
 }
 
 //------------------------------------------------------------------------------
