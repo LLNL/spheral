@@ -21,16 +21,21 @@ ApproximatePolyhedralGravityModel::
 ApproximatePolyhedralGravityModel(const GeomPolyhedron & poly, const double Mass, const double G):
   mNumQuadraturePoints(poly.facets().size()),
   mQuadraturePoints(poly.facetCentroids()),
-  mValues(poly.facetAreaVectors()){
+  mValues(poly.facetAreaVectors()),
+  mResolutions(poly.facets().size(), std::numeric_limits<double>::max()) {
     
-	  auto rho = Mass/poly.volume();
-    mResolutions.reserve(this->numQuadraturePoints());
-	  for(unsigned int i=0; i < this->numQuadraturePoints(); i++){
-      Scalar A = mValues[i].magnitude(); 
-      mResolutions.push_back(std::sqrt(A));
-      mValues[i] *= G*rho;
+  auto rho = Mass/poly.volume();
+  const auto& facets = poly.facets();
+  const auto& verts = poly.vertices();
+  for (auto i = 0u; i < facets.size(); ++i) {
+    const auto centroid = facets[i].position();
+    const auto& iverts = facets[i].ipoints();
+    const auto nverts = iverts.size();
+    for (auto j = 0u; j < nverts; ++j) {
+      mResolutions[i] = std::min(mResolutions[i], (0.5*(verts[iverts[j]] + verts[iverts[(j+1u)%nverts]]) - centroid).magnitude());
     }
-
+    mValues[i] *= G*rho;
+  }
 }
 
 //--------------------------------------------------------------------------------------------

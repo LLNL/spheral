@@ -136,6 +136,15 @@ PolyGravity(const PolyGravity<Dim<2>>::Polytope& poly,
   }
   CHECK(facets3d.size() == facets2d.size());
 
+  // Close the top and bottom.
+  vector<unsigned> top_facet, bottom_facet;
+  for (auto i = 0u; i < npoints2d; ++i) {
+    top_facet.push_back(npoints2d + i);
+    bottom_facet.push_back(npoints2d - i);
+  }
+  facets3d.push_back(top_facet);
+  facets3d.push_back(bottom_facet);
+
   // Build a 3D extruded version of the polytope
   mPoly = Dim<3>::FacetedVolume(points3d, facets3d);
   mSolver =  std::make_shared<ApproximatePolyhedralGravityModel>(mPoly, mass, G);
