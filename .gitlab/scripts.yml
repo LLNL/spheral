@@ -9,7 +9,7 @@
     - lalloc 1 ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
     - cat build_gitlab/install/spheral-lcatstest
     - lalloc 1 ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE
-    - ./build_gitlab/install/spheral scripts/gitlab/report_results.py
+    - ./build_gitlab/install/spheral $SCRIPT_DIR/gitlab/report_results.py
   artifacts:
     when: always
     paths:
@@ -22,7 +22,7 @@
     - srun -N 1 -c 36 -p pbatch -t 60 $SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
     - cat build_gitlab/install/spheral-lcatstest
     - ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE
-    - ./build_gitlab/install/spheral scripts/gitlab/report_results.py
+    - ./build_gitlab/install/spheral $SCRIPT_DIR/gitlab/report_results.py
   artifacts:
     when: always
     paths:

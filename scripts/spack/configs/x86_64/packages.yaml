@@ -97,3 +97,8 @@ packages:
     - spec: elfutils@0.176
       prefix: /usr
     buildable: false
+  netlib-lapack:
+    externals:
+    - spec: netlib-lapack@3.9.0
+      prefix: /usr
+    buildable: false

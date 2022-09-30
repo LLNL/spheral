@@ -1,5 +1,0 @@
-set(${lib_name}_NO_INCLUDES On)
-include(${SPHERAL_ROOT_DIR}/cmake/tpl/util/Install_Python_distutils_library.cmake)
-set(virtualenv_IMPORT virtualenv PARENT_SCOPE)
-set(virtualenv_DEPENDS setuptools PARENT_SCOPE)
-set(virtualenv_NO_INCLUDES On)
