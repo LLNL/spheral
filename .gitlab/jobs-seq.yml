@@ -16,6 +16,16 @@ blueos_cuda_11_gcc_8_3_1_~mpi_build:
   extends: [.cuda_11_gcc_8_3_1_~mpi, .build_and_test, .blueos_resource2]
   stage: build_and_install
 
+blueos_cuda_11_gcc_8_3_1_~mpi_test:
+  extends: [.cuda_11_gcc_8_3_1_~mpi, .run_ats, .blueos_resource2]
+  stage: run_ats
+  needs: [blueos_cuda_11_gcc_8_3_1_~mpi_build]
+
+
+blueos_gcc_8_3_1_~mpi_Debug_build:
+  extends: [.gcc_8_3_1_~mpi_Debug, .build_and_test, .blueos_resource1]
+  stage: build_and_install
+
 blueos_gcc_8_3_1_~mpi_Debug_test:
   extends: [.gcc_8_3_1_~mpi_Debug, .run_ats, .blueos_resource1]
   stage: run_ats
