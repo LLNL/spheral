@@ -2,6 +2,7 @@
 # JOB TEMPLATES
 
 .build_and_test:
+  stage: build_and_install
   script:
     - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID
     - echo $CI_BUILD_DIR &> ci-dir.txt && echo $CI_JOB_NAME &> job-name.txt
@@ -18,6 +19,7 @@
       - job-name.txt
 
 .run_ats:
+  stage: run_ats
   script:
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt

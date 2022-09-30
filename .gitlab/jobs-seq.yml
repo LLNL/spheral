@@ -29,4 +29,4 @@ blueos_gcc_8_3_1_~mpi_Debug_build:
 blueos_gcc_8_3_1_~mpi_Debug_test:
   extends: [.gcc_8_3_1_~mpi_Debug, .run_ats, .blueos_resource1]
   stage: run_ats
-  needs: [blueos_cuda_11_gcc_8_3_1_~mpi_build]
+  needs: [blueos_gcc_8_3_1_~mpi_Debug_build]
