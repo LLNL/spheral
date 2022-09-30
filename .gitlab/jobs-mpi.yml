@@ -10,11 +10,6 @@ toss_gcc_8_1_0_mvapich2_Debug_test:
   stage: run_ats
   needs: [toss_gcc_8_1_0_mvapich2_Debug_build]
 
-#toss_gcc_8_1_0_mvapich2_Debug_clean:
-#  extends: [.gcc_8_1_0_mvapich2_Debug, .clean_build_dir]
-#  stage: cleanup
-#  needs: [toss_gcc_8_1_0_mvapich2_Debug_test]
-
 
     
 toss_gcc_8_3_1_mvapich2_build:
@@ -25,12 +20,6 @@ toss_gcc_8_3_1_mvapich2_test:
   extends: [.gcc_8_3_1_mvapich2, .run_ats, .toss_resource2]
   stage: run_ats
   needs: [toss_gcc_8_3_1_mvapich2_build]
-
-#toss_gcc_8_3_1_mvapich2_clean:
-#  extends: [.gcc_8_1_0_mvapich2_Debug, .clean_build_dir]
-#  stage: cleanup
-#  needs: [toss_gcc_8_3_1_mvapich2_test]
-
 
 
 
@@ -43,12 +32,6 @@ toss_clang_9_0_0_mvapich2_test:
   stage: run_ats
   needs: [toss_clang_9_0_0_mvapich2_build]
 
-#toss_clang_9_0_0_mvapich2_clean:
-#  extends: [.clang_9_0_0_mvapich2, .clean_build_dir]
-#  stage: cleanup
-#  needs: [toss_clang_9_0_0_mvapich2_test]
-
-
 
 
 #toss_oneapi_2022_1_mvapich2:
@@ -57,17 +40,25 @@ toss_clang_9_0_0_mvapich2_test:
 
 
 
-
-#blueos_gcc_8_3_1_spectrum:
-#  extends: [.gcc_8_3_1_spectrum, .build_and_test, .blueos_resource1]
-#  stage: build_and_install
+blueos_gcc_8_3_1_spectrum_build:
+  extends: [.gcc_8_3_1_spectrum, .build_and_test, .blueos_resource1]
+  stage: build_and_install
   
+blueos_gcc_8_3_1_spectrum_test:
+  extends: [.gcc_8_3_1_spectrum, .run_ats, .blueos_resource1]
+  stage: run_ats
+  needs: [blueos_gcc_8_3_1_spectrum_build]
 
 
 
-#blueos_cuda_11_gcc_8_3_1_spectrum:
-#  extends: [.cuda_11_gcc_8_3_1_spectrum, .build_and_test, .blueos_resource2]
-#  stage: build_and_install
+blueos_cuda_11_gcc_8_3_1_spectrum_build:
+  extends: [.cuda_11_gcc_8_3_1_spectrum, .build_and_test, .blueos_resource2]
+  stage: build_and_install
+  
+blueos_cuda_11_gcc_8_3_1_spectrum_test:
+  extends: [.cuda_11_gcc_8_3_1_spectrum, .run_ats, .blueos_resource2]
+  stage: run_ats
+  needs: [blueos_cuda_11_gcc_8_3_1_spectrum_build]
   
 # ------------------------------------------------------------------------------
 # UPDATE TPL JOBS
