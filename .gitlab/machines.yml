@@ -15,7 +15,6 @@
 .on_lassen:
   tags:
     - lassen
-    - shell
   variables:
     HOSTNAME: "lassen"
     BUILD_ALLOC: lalloc 1
@@ -41,10 +40,10 @@
   extends: [.toss_resource_general]
 
 .blueos_resource1:
-  resource_group: blueos1
+  #resource_group: blueos1
   extends: [.blueos_resource_general]
 
 .blueos_resource2:
-  resource_group: blueos2
+  #resource_group: blueos2
   extends: [.blueos_resource_general]
 
