@@ -2,11 +2,14 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
   ALLOC_NAME: ${CI_PROJECT_NAME}_ci_${CI_PIPELINE_ID}
   BUILD_ROOT: ${CI_PROJECT_DIR}
+  SPHERAL_BUILDS_DIR: /usr/WS2/sphapp/.jacamar-ci/spheral-builds
   SCRIPT_DIR: "scripts"
   ATS_FILE: "tests/integration.ats"
 
 stages:
   - build_and_install
+  - run_ats
+  - cleanup
   - update_tpls
   - update_permissions
 
@@ -17,3 +20,14 @@ include:
   - local: .gitlab/specs.yml
   - local: .gitlab/jobs-mpi.yml
   - local: .gitlab/jobs-seq.yml
+
+# This job searches our SPHERAL_BUILDS_DIR and deletes all but the N most recent builds.
+# This should be enough of a buffer that we likely won't delete a build mid pipeline,
+# and never fill the sphapp workspace storage.
+cleanup_build_dirs:
+  script:
+    - ml load mpifileutils
+    - cd $SPHERAL_BUILDS_DIR
+    - source $SCRIPT_DIR/gitlab/clean_spheral_builds.sh 50
+  extends: [.toss_resource_general]
+  stage: cleanup

@@ -2,8 +2,6 @@
 # SYSTEM / OS TEMPLATES
 
 .sys_config:
-  tags:
-    - shell
   variables:
     LLNL_SERVICE_USER: sphapp
     UPSTREAM_DIR: /usr/WS2/wciuser/Spheral/spheral-spack-tpls

@@ -4,6 +4,7 @@
 .on_ruby:
   tags:
     - ruby
+    - shell
   variables:
     HOSTNAME: "ruby"
     PARTITION: pbatch
@@ -14,6 +15,7 @@
 .on_lassen:
   tags:
     - lassen
+    - shell
   variables:
     HOSTNAME: "lassen"
     BUILD_ALLOC: lalloc 1
@@ -22,9 +24,27 @@
 
 # ------------------------------------------------------------------------------
 
-.toss3_platform:
+.toss_resource_general:
   extends: [.on_ruby]
 
-.blueos_platform:
+.blueos_resource_general:
   extends: [.on_lassen]
+
+# ------------------------------------------------------------------------------
+#
+.toss_resource1:
+  resource_group: toss1
+  extends: [.toss_resource_general]
+
+.toss_resource2:
+  resource_group: toss2
+  extends: [.toss_resource_general]
+
+.blueos_resource1:
+  resource_group: blueos1
+  extends: [.blueos_resource_general]
+
+.blueos_resource2:
+  resource_group: blueos2
+  extends: [.blueos_resource_general]
 

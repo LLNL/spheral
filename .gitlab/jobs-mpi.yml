@@ -1,44 +1,88 @@
 # ------------------------------------------------------------------------------
 # BUILD JOBS
 
-toss_gcc_8_1_0_mvapich2_Debug:
-  extends: [.gcc_8_1_0_mvapich2_Debug, .build_and_test, .toss3_platform]
+toss_gcc_8_1_0_mvapich2_Debug_build:
+  extends: [.gcc_8_1_0_mvapich2_Debug, .build_and_test, .toss_resource1]
   stage: build_and_install
 
-toss_gcc_8_3_1_mvapich2:
-  extends: [.gcc_8_3_1_mvapich2, .build_and_test, .toss3_platform]
+toss_gcc_8_1_0_mvapich2_Debug_test:
+  extends: [.gcc_8_1_0_mvapich2_Debug, .run_ats, .toss_resource1]
+  stage: run_ats
+  needs: [toss_gcc_8_1_0_mvapich2_Debug_build]
+
+#toss_gcc_8_1_0_mvapich2_Debug_clean:
+#  extends: [.gcc_8_1_0_mvapich2_Debug, .clean_build_dir]
+#  stage: cleanup
+#  needs: [toss_gcc_8_1_0_mvapich2_Debug_test]
+
+
+    
+toss_gcc_8_3_1_mvapich2_build:
+  extends: [.gcc_8_3_1_mvapich2, .build_and_test, .toss_resource2]
   stage: build_and_install
 
-toss_clang_9_0_0_mvapich2:
-  extends: [.clang_9_0_0_mvapich2, .build_and_test, .toss3_platform]
+toss_gcc_8_3_1_mvapich2_test:
+  extends: [.gcc_8_3_1_mvapich2, .run_ats, .toss_resource2]
+  stage: run_ats
+  needs: [toss_gcc_8_3_1_mvapich2_build]
+
+#toss_gcc_8_3_1_mvapich2_clean:
+#  extends: [.gcc_8_1_0_mvapich2_Debug, .clean_build_dir]
+#  stage: cleanup
+#  needs: [toss_gcc_8_3_1_mvapich2_test]
+
+
+
+
+toss_clang_9_0_0_mvapich2_build:
+  extends: [.clang_9_0_0_mvapich2, .build_and_test, .toss_resource1]
   stage: build_and_install
+
+toss_clang_9_0_0_mvapich2_test:
+  extends: [.clang_9_0_0_mvapich2, .run_ats, .toss_resource2]
+  stage: run_ats
+  needs: [toss_clang_9_0_0_mvapich2_build]
+
+#toss_clang_9_0_0_mvapich2_clean:
+#  extends: [.clang_9_0_0_mvapich2, .clean_build_dir]
+#  stage: cleanup
+#  needs: [toss_clang_9_0_0_mvapich2_test]
+
+
+
 
 #toss_oneapi_2022_1_mvapich2:
-#  extends: [.oneapi_2022_1_mvapich2, .build_and_test, .toss3_platform]
+#  extends: [.oneapi_2022_1_mvapich2, .build_and_test, .toss_resource]
 #  stage: build_and_install
 
-blueos_gcc_8_3_1_spectrum:
-  extends: [.gcc_8_3_1_spectrum, .build_and_test, .blueos_platform]
-  stage: build_and_install
+
+
+
+#blueos_gcc_8_3_1_spectrum:
+#  extends: [.gcc_8_3_1_spectrum, .build_and_test, .blueos_resource1]
+#  stage: build_and_install
   
-blueos_cuda_11_gcc_8_3_1_spectrum:
-  extends: [.cuda_11_gcc_8_3_1_spectrum, .build_and_test, .blueos_platform]
-  stage: build_and_install
+
+
+
+#blueos_cuda_11_gcc_8_3_1_spectrum:
+#  extends: [.cuda_11_gcc_8_3_1_spectrum, .build_and_test, .blueos_resource2]
+#  stage: build_and_install
   
 # ------------------------------------------------------------------------------
 # UPDATE TPL JOBS
 
 blueos_update_tpls:
-  extends: [.blueos_platform, .update_tpls, .merge_pr_rule]
+  extends: [.blueos_resource2, .update_tpls, .merge_pr_rule]
   stage: update_tpls
 
 toss_update_tpls:
-  extends: [.toss3_platform, .update_tpls, .merge_pr_rule]
+  extends: [.toss_resource2, .update_tpls, .merge_pr_rule]
   stage: update_tpls
 
 # ------------------------------------------------------------------------------
 # UPDATE PERM JOBS
 
 toss_update_permissions:
-  extends: [.toss3_platform, .toss_update_permissions, .merge_pr_rule]
+  extends: [.toss_resource_general, .toss_update_permissions, .merge_pr_rule]
   stage: update_permissions

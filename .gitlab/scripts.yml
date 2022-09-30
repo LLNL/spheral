@@ -3,15 +3,33 @@
 
 .build_and_test:
   script:
+    - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID
+    - echo $CI_BUILD_DIR &> ci-dir.txt && echo $CI_JOB_NAME &> job-name.txt
+    - echo $CI_BUILD_DIR && echo $CI_PROJECT_DIR
+    - mkdir -p $CI_BUILD_DIR && cp -a $CI_PROJECT_DIR/. $CI_BUILD_DIR
+    - cd $CI_BUILD_DIR
+
     - ml load python/3.8.2
     - ml load $LC_MODULES
     - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+  artifacts:
+    paths:
+      - ci-dir.txt
+      - job-name.txt
+
+.run_ats:
+  script:
+    - CI_BUILD_DIR=$(cat ci-dir.txt)
+    - cd $CI_BUILD_DIR && cat job-name.txt
+
     - cat build_gitlab/install/spheral-lcatstest
-    - $TEST_ALLOC ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE
+    - $TEST_ALLOC ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE --timelimit="45m"
+    - cp -r test-logs $CI_PROJECT_DIR
     - ./build_gitlab/install/spheral $SCRIPT_DIR/gitlab/report_results.py
   artifacts:
     when: always
     paths:
+      - ci-dir.txt
       - test-logs/
 
 .update_tpls:
