@@ -69,11 +69,14 @@ PolyGravity<Dim<3>>::
 PolyGravity(const PolyGravity<Dim<3>>::Polytope& poly,
             const double G,
             const double mass,
-            const double ftimestep):
+            const double ftimestep,
+            const GravityTimeStepType timeStepChoice):
   GenericBodyForce<Dim<3>>(),
   mG(G),
   mMass(mass),
   mftimestep(ftimestep),
+  mDynamicalTime(1.0/sqrt(G*mass/poly.volume())),
+  mTimeStepChoice(timeStepChoice),
   mPoly(poly),
   mSolver(std::make_shared<ApproximatePolyhedralGravityModel>(poly, mass, G)),
   mPotential(FieldStorageType::CopyFields),
@@ -93,11 +96,14 @@ PolyGravity<Dim<2>>::
 PolyGravity(const PolyGravity<Dim<2>>::Polytope& poly,
             const double G,
             const double mass,
-            const double ftimestep):
+            const double ftimestep,
+            const GravityTimeStepType timeStepChoice):
   GenericBodyForce<Dim<2>>(),
   mG(G),
   mMass(mass),
   mftimestep(ftimestep),
+  mDynamicalTime(1.0/sqrt(G*mass/poly.volume())),
+  mTimeStepChoice(timeStepChoice),
   mPoly(),
   mSolver(),
   mPotential(FieldStorageType::CopyFields),
@@ -244,10 +250,20 @@ dt(const DataBase<Dimension>& /*dataBase*/,
    const Scalar /*currentTime*/) const {
 
   // A standard N-body approach -- just take the ratio of softening length/acceleration.
-  const auto dt = mftimestep * mDtMinAcc;
-  std::stringstream reasonStream;
-  reasonStream << "PolyGravity: f*sqrt(L/a) = " << dt << std::endl;
-  return TimeStepType(dt, reasonStream.str());
+  if (mTimeStepChoice == GravityTimeStepType::AccelerationRatio) {
+    const auto dt = mftimestep * mDtMinAcc;
+    std::stringstream reasonStream;
+    reasonStream << "PolyGravity: f*sqrt(L/a) = " << dt << std::endl;
+    return TimeStepType(dt, reasonStream.str());
+
+  } else {
+
+    // Dynamical time
+    const auto dt = mftimestep * mDynamicalTime;
+    std::stringstream reasonStream;
+    reasonStream << "PolyGravity: dynamical time = " << mDynamicalTime << std::endl;
+    return TimeStepType(dt, reasonStream.str());
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -316,6 +332,33 @@ PolyGravity<Dimension>::
 ftimestep(double x) {
   VERIFY(x > 0.0);
   mftimestep = x;
+}
+
+//------------------------------------------------------------------------------
+// timeStepChoice
+//------------------------------------------------------------------------------
+template<typename Dimension>
+GravityTimeStepType
+PolyGravity<Dimension>::
+timeStepChoice() const {
+  return mTimeStepChoice;
+}
+
+template<typename Dimension>
+void
+PolyGravity<Dimension>::
+timeStepChoice(GravityTimeStepType x) {
+  mTimeStepChoice = x;
+}
+
+//------------------------------------------------------------------------------
+// dynamicalTime
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+PolyGravity<Dimension>::
+dynamicalTime() const {
+  return mDynamicalTime;
 }
 
 //------------------------------------------------------------------------------

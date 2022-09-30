@@ -11,6 +11,7 @@
 #define __Spheral_PolyGravity__
 
 #include "Gravity/ApproximatePolyhedralGravityModel.hh"
+#include "Gravity/TreeGravity.hh"      // Just for GravityTimeStepType enum
 #include "Geometry/Dimension.hh"
 #include "Physics/GenericBodyForce.hh"
 #include "Field/FieldList.hh"
@@ -40,10 +41,12 @@ public:
   //! \param G -- the gravitational constant.
   //! \param mass -- mass of the polytope
   //! \param ftimestep -- safety factor in [0,1] in setting time steps.
+  //! \param timeStepChoice -- algorithm to use choosing time steps.
   PolyGravity(const Polytope& poly,
               const double G,
               const double mass,
-              const double ftimestep);
+              const double ftimestep,
+              const GravityTimeStepType timeStepChoice);
 
   //! Destructor.
   virtual ~PolyGravity();
@@ -91,6 +94,13 @@ public:
   double ftimestep() const;
   void ftimestep(double x);
 
+  //! The algorithmic choice for setting the time step.
+  GravityTimeStepType timeStepChoice() const;
+  void timeStepChoice(GravityTimeStepType x);
+
+  //! The dynamical time
+  double dynamicalTime() const;
+
   //! Gravity solver
   const ApproximatePolyhedralGravityModel& solver() const;
 
@@ -103,7 +113,8 @@ public:
 
 private:
   // Private data.
-  double mG, mMass, mftimestep;
+  double mG, mMass, mftimestep, mDynamicalTime;
+  GravityTimeStepType mTimeStepChoice;
   Dim<3>::FacetedVolume mPoly;
   std::shared_ptr<ApproximatePolyhedralGravityModel> mSolver;
 
@@ -128,8 +139,8 @@ private:
 };
 
 // Declare explicit specializations.
-template<> PolyGravity<Dim<2>>::PolyGravity(const PolyGravity<Dim<2>>::Polytope&, const double, const double, const double);
-template<> PolyGravity<Dim<3>>::PolyGravity(const PolyGravity<Dim<3>>::Polytope&, const double, const double, const double);
+template<> PolyGravity<Dim<2>>::PolyGravity(const PolyGravity<Dim<2>>::Polytope&, const double, const double, const double, const GravityTimeStepType);
+template<> PolyGravity<Dim<3>>::PolyGravity(const PolyGravity<Dim<3>>::Polytope&, const double, const double, const double, const GravityTimeStepType);
 
 }
 

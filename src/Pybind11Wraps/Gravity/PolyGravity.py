@@ -24,7 +24,8 @@ class PolyGravity(GenericBodyForce):
                poly = "const Polytope&",
                G = "const double",
                mass = "const double",
-               ftimestep = "const double"):
+               ftimestep = "const double",
+               timeStepChoice = ("GravityTimeStepType", "GravityTimeStepType::DynamicalTime")):
         "PolyGravity constructor"
 
     #...........................................................................
@@ -81,6 +82,8 @@ class PolyGravity(GenericBodyForce):
     G = PYB11property("double", "G", doc="The gravitational constant")
     mass = PYB11property("double", "mass", doc="The mass of the polyhedron")
     ftimestep = PYB11property("double", "ftimestep", "ftimestep", doc="The current time step scaling factor.")
+    timeStepChoice = PYB11property("GravityTimeStepType", "timeStepChoice", "timeStepChoice", doc="The algorithmic choice for setting the time step.")
+    dynamicalTime = PYB11property("double", "dynamicalTime", doc="The dynamical time (1/sqrt(G*rho))")
     solver = PYB11property("const ApproximatePolyhedralGravityModel&", "solver", returnpolicy="reference_internal", doc="The 3D gravity solver")
 
 #-------------------------------------------------------------------------------
