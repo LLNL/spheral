@@ -35,10 +35,12 @@
       - test-logs/
 
 .update_tpls:
+  stage: update_tpls
   script:
     - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=$UPSTREAM_DIR
 
 .toss_update_permissions:
+  stage: update_permissions
   script:
     - ml load mpifileutils
     - srun -N 1 -p $PARTITION -n 20 -t 10 dchmod --mode go+rx $UPSTREAM_DIR
