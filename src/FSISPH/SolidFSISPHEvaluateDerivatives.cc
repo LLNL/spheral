@@ -357,10 +357,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // interface normals 
       //-----------------------------------------------------------
-      const auto fSij = ( sameMatij ? 1.0 : -1.0);         // direction parameter
-      const auto Aij = fSij*voli*volj*(gradWiMi+gradWjMj); // "surface area vector"
-      newInterfaceNormalsi -= Aij;
-      newInterfaceNormalsj += Aij;
+      const auto fSij = ( sameMatij ? 1.0 : -1.0); // direction parameter
+      const auto Ai = fSij*(voli*volj)*(gradWiMi+gradWjMj); // "surface area vector"
+      const auto Aj = fSij*(voli*volj)*(gradWjMj+gradWiMi); // "surface area vector"
+      newInterfaceNormalsi -= Ai;
+      newInterfaceNormalsj += Aj;
       if(interfaceFractioni > tiny and interfaceFractionj > tiny){
         smoothedInterfaceNormalsi += fSij*volj*interfaceFractionj*interfaceNormalsj*Wi;
         smoothedInterfaceNormalsj += fSij*voli*interfaceFractioni*interfaceNormalsi*Wj;
@@ -369,10 +370,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         const auto alignment = max(fSij*interfaceNormalsi.dot(interfaceNormalsj),0.0);
         newInterfaceSmoothnessi += alignment*volj*Wij;
         newInterfaceSmoothnessj += alignment*voli*Wij;
-        newInterfaceFractioni += volj*Wij;
-        newInterfaceFractionj += voli*Wij;
+        newInterfaceFractioni += volj*Wi;
+        newInterfaceFractionj += voli*Wj;    
       }
-
+      
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
       //---------------------------------------------------------------
@@ -382,6 +383,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       weightedNeighborSumj += abs(gWj);
       massSecondMomenti += gradWi.magnitude2()*thpt;
       massSecondMomentj += gradWj.magnitude2()*thpt;
+
+      // normalization 
+      //-----------------------------------------------------------
+      normi += volj*Wi;
+      normj += voli*Wj;
 
       if (!decouple){
 
@@ -474,15 +480,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : muj ) + tiny;
 
           const auto CiCjInv = 1.0/(Ci+Cj);
+          const auto CsiCsjInv = 1.0/(Csi+Csj);
           
           const auto weightUi = max(0.0, min(1.0, Ci*CiCjInv));
           const auto weightUj = 1.0 - weightUi;
-          const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, Csi/(Csi+Csj) )) );
+          const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, Csi*CsiCsjInv )) );
           const auto weightWj = 1.0 - weightWi;
 
           // get our eff pressure
-          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ? (PLinearj - PLineari - (Seffi-Seffj).dot(rhatij).dot(rhatij))*CiCjInv : 0.0); 
-          const auto wstar = weightWi*wi + weightWj*wj;
+          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ? (PLinearj - PLineari)*CiCjInv : 0.0); 
+          const auto wstar = weightWi*wi + weightWj*wj + (constructHLLC ? (Seffi-Seffj).dot(rhatij)*CsiCsjInv : 0.0);
           vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
   
         }
@@ -527,11 +534,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           pairDepsDt[2*kk]   += diffusion; 
           pairDepsDt[2*kk+1] -= diffusion;
         }
-
-        // normalization 
-        //-----------------------------------------------------------
-        normi += volj*Wi;
-        normj += voli*Wj;
 
         // XSPH -- we use this to handle tensile instability here
         //-----------------------------------------------------------
@@ -603,13 +605,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // finish our interface fields.
       newInterfaceSmoothnessi = min(1.0,max(0.0,newInterfaceSmoothnessi/max(newInterfaceFractioni,tiny)));
       smoothedInterfaceNormalsi +=  interfaceFractioni * Hdeti*mi/rhoi*W0 * interfaceNormalsi;
-      if (newInterfaceFractioni > tiny){
-        const auto normalSmoothFraction = min(0.9,max(0.1, 20.0*min(interfaceFractioni,0.05)));
-        newInterfaceNormalsi = (normalSmoothFraction * newInterfaceNormalsi.unitVector()+
-                                (1.0-normalSmoothFraction) * smoothedInterfaceNormalsi.unitVector()).unitVector();
-      }else{
-        newInterfaceNormalsi = Vector::zero;
-      }
+      //if (newInterfaceFractioni > tiny){
+      //  const auto normalSmoothFraction = min(0.9,max(0.1, 20.0*min(interfaceFractioni,0.05)));
+      //  newInterfaceNormalsi = (normalSmoothFraction * newInterfaceNormalsi.unitVector()+
+      //                          (1.0-normalSmoothFraction) * smoothedInterfaceNormalsi.unitVector()).unitVector();
+      //}else{
+      //  newInterfaceNormalsi = Vector::zero;
+      //}
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
