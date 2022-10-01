@@ -49,6 +49,14 @@ blueos_cuda_11_gcc_8_3_1_spectrum_test:
   extends: [.cuda_11_gcc_8_3_1_spectrum, .run_ats, .blueos_resource2]
   needs: [blueos_cuda_11_gcc_8_3_1_spectrum_build]
   allow_failure: true
+
+
+# ------------------------------------------------------------------------------
+# CLEAN OLD BUILD DIRS
+
+cleanup_build_dirs:
+  extends: [.clean_dirs]
+
   
 # ------------------------------------------------------------------------------
 # UPDATE TPL JOBS

@@ -12,7 +12,7 @@
 
     - ml load python/3.8.2
     - ml load $LC_MODULES
-    #- $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
   artifacts:
     paths:
       - ci-dir.txt
@@ -24,15 +24,26 @@
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
 
-    #- cat build_gitlab/install/spheral-lcatstest
-    #- $TEST_ALLOC ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE --timelimit="45m"
-    #- cp -r test-logs $CI_PROJECT_DIR
-    #- ./build_gitlab/install/spheral $SCRIPT_DIR/gitlab/report_results.py
+    - cat build_gitlab/install/spheral-lcatstest
+    - $TEST_ALLOC ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE --timelimit="45m"
+    - cp -r test-logs $CI_PROJECT_DIR
+    - ./build_gitlab/install/spheral $SCRIPT_DIR/gitlab/report_results.py
   artifacts:
     when: always
     paths:
       - ci-dir.txt
-      #- test-logs/
+      - test-logs/
+
+# This job searches our SPHERAL_BUILDS_DIR and deletes all but the N most recent builds.
+# This should be enough of a buffer that we likely won't delete a build mid pipeline,
+# and never fill the sphapp workspace storage.
+.clean_dirs:
+  stage: cleanup
+  script:
+    - ml load mpifileutils
+    - cd $SPHERAL_BUILDS_DIR
+    - source $CI_PROJECT_DIR/$SCRIPT_DIR/gitlab/clean_spheral_builds.sh 50
+  extends: [.toss_resource_general]
 
 .update_tpls:
   stage: update_tpls
