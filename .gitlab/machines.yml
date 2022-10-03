@@ -3,32 +3,48 @@
 
 .on_ruby:
   tags:
-    - shell
     - ruby
+    - shell
   variables:
     HOSTNAME: "ruby"
-    ARCH: "toss_3_x86_64_ib"
-    LLNL_SERVICE_USER: sphapp
-  rules:
-    - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_RUBY == "OFF"' #run except if ...
-      when: never
-    - if: '$CI_JOB_NAME =~ /release_resources/'
-      when: always
-    - when: on_success
+    PARTITION: pdebug
+    BUILD_ALLOC: srun -N 1 -c 36 -p pdebug -t 60
+    TEST_ALLOC: ""
+  extends: [.on_toss]
 
 .on_lassen:
   tags:
-    - shell
     - lassen
+    - shell
   variables:
     HOSTNAME: "lassen"
-    ARCH: "blueos_3_ppc64le_ib_p9"
-    LLNL_SERVICE_USER: sphapp
-    DISPLAY: ":0.0"
-  rules:
-    - if: '$CI_COMMIT_BRANCH =~ /_qnone/ || $ON_LASSEN == "OFF"' #run except if ...
-      when: never
-    - if: '$CI_JOB_NAME =~ /release_resources/'
-      when: always
-    - when: on_success
+    BUILD_ALLOC: lalloc 1
+    TEST_ALLOC: $BUILD_ALLOC
+  extends: [.on_blueos]
+
+# ------------------------------------------------------------------------------
+
+.toss_resource_general:
+  extends: [.on_ruby]
+
+.blueos_resource_general:
+  extends: [.on_lassen]
+
+# ------------------------------------------------------------------------------
+#
+.toss_resource1:
+  resource_group: toss1
+  extends: [.toss_resource_general]
+
+.toss_resource2:
+  resource_group: toss2
+  extends: [.toss_resource_general]
+
+.blueos_resource1:
+  #resource_group: blueos1
+  extends: [.blueos_resource_general]
+
+.blueos_resource2:
+  #resource_group: blueos2
+  extends: [.blueos_resource_general]
 

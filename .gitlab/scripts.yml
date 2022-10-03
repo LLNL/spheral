@@ -1,45 +1,60 @@
 # ------------------------------------------------------------------------------
 # JOB TEMPLATES
 
-.blueos_build_and_test:
+.build_and_test:
+  stage: build_and_install
   script:
-    - whoami
+    - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID
+    - echo $CI_BUILD_DIR &> ci-dir.txt && echo $CI_JOB_NAME &> job-name.txt
+    - echo $CI_BUILD_DIR && echo $CI_PROJECT_DIR
+    - mkdir -p $CI_BUILD_DIR && cp -a $CI_PROJECT_DIR/. $CI_BUILD_DIR
+    - cd $CI_BUILD_DIR
+
     - ml load python/3.8.2
     - ml load $LC_MODULES
-    - lalloc 1 ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+  artifacts:
+    paths:
+      - ci-dir.txt
+      - job-name.txt
+
+.run_ats:
+  stage: run_ats
+  script:
+    - CI_BUILD_DIR=$(cat ci-dir.txt)
+    - cd $CI_BUILD_DIR && cat job-name.txt
+
     - cat build_gitlab/install/spheral-lcatstest
-    - lalloc 1 ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE
+    - $TEST_ALLOC ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE --timelimit="45m"
+    - cp -r test-logs $CI_PROJECT_DIR
     - ./build_gitlab/install/spheral $SCRIPT_DIR/gitlab/report_results.py
   artifacts:
     when: always
     paths:
+      - ci-dir.txt
       - test-logs/
 
-.toss_build_and_test:
-  script:
-    - whoami
-    - ml load $LC_MODULES
-    - srun -N 1 -c 36 -p pbatch -t 60 $SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
-    - cat build_gitlab/install/spheral-lcatstest
-    - ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE
-    - ./build_gitlab/install/spheral $SCRIPT_DIR/gitlab/report_results.py
-  artifacts:
-    when: always
-    paths:
-      - test-logs/
-
-.blueos_update_tpls:
-  script:
-    - lalloc 1 ./$SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=/usr/WS2/wciuser/Spheral/spheral-spack-tpls
-
-.toss_update_tpls:      
-  script:
-    - srun -N 1 -c 36 -p pbatch -t 60 $SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=/usr/WS2/wciuser/Spheral/spheral-spack-tpls
-
-.toss_update_permissions:
+# This job searches our SPHERAL_BUILDS_DIR and deletes all but the N most recent builds.
+# This should be enough of a buffer that we likely won't delete a build mid pipeline,
+# and never fill the sphapp workspace storage.
+.clean_dirs:
+  stage: cleanup
   script:
     - ml load mpifileutils
-    - srun -N 1 -p pbatch -n 20 -t 10 dchmod --mode go+rx /usr/WS2/wciuser/Spheral/spheral-spack-tpls/
+    - cd $SPHERAL_BUILDS_DIR
+    - source $CI_PROJECT_DIR/$SCRIPT_DIR/gitlab/clean_spheral_builds.sh 50
+  extends: [.toss_resource_general]
+
+.update_tpls:
+  stage: update_tpls
+  script:
+    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=$UPSTREAM_DIR
+
+.toss_update_permissions:
+  stage: update_permissions
+  script:
+    - ml load mpifileutils
+    - srun -N 1 -p $PARTITION -n 20 -t 10 dchmod --mode go+rx $UPSTREAM_DIR
 .merge_pr_rule:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "develop"'
