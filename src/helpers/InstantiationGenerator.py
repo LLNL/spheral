@@ -9,8 +9,6 @@
 #-------------------------------------------------------------------------------
 import sys
 
-print("This is at the very beginning of the InstantiationGenerator file.", file=sys.stderr)
-
 assert len(sys.argv) == 4
 infile = sys.argv[1]
 outfile = sys.argv[2]
@@ -26,7 +24,6 @@ dictionary = {"ndim"      : ndim,
 }
 
 # Read the input file to get the definition of the string "text", which we use to generate the explicit instantiation .cc file
-print("This is before trying to exec(open()) the files in InstantiationGenerator.", file=sys.stderr)
 exec(open(infile).read())
 with open(outfile, "w") as f:
     f.write(text % dictionary)

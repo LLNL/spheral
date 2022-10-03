@@ -25,6 +25,13 @@ function(instantiate _inst_var _source_var)
      list(APPEND _dims 3)
   endif()
 
+  # Sets PYTHONINTERP_FOUND and PYTHON_EXECUTABLE.
+  find_package(PythonInterp)
+
+  if (NOT PYTHONINTERP_FOUND)
+    message("A valid python was not found, this is the path to python currently being used: ${PYTHON_EXECUTABLE}")
+  endif()
+
   # Iterate over each Instantation file
   foreach(_inst ${${_inst_var}})
 
