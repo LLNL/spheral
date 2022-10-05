@@ -304,7 +304,6 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
 }
 
 
-
 //------------------------------------------------------------------------------
 // evaluate the derivatives
 //------------------------------------------------------------------------------
@@ -349,7 +348,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto averageInterfaceKernels = (mKernelAveragingMethod==KernelAveragingMethod::AverageInterfaceKernels);
   const auto constructHLLC = (mInterfaceMethod == InterfaceMethod::HLLCInterface);
   const auto activateConstruction = !(mInterfaceMethod == InterfaceMethod::NoInterface);
-  const auto oneOverDimension = 1.0/Dimension::nDim;
+  const auto strainTraceConstant =  (this->planeStrain() ? 1.0/3.0 : 1.0/Dimension::nDim);
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -966,7 +965,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
       const auto spin = localDvDxi.SkewSymmetric();
-      const auto deviatoricDeformation = deformation - (deformation.Trace()/3.0)*SymTensor::one;
+      const auto deviatoricDeformation = deformation - (deformation.Trace()*strainTraceConstant)*SymTensor::one;
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
       DSDti += spinCorrection + 2.0*mui*deviatoricDeformation;
       
