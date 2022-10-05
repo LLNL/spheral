@@ -25,8 +25,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // A few useful constants we'll use in the following loop.
   const auto PminInterface = 0.0;
-  const auto fullyDamagedThreshold=1.0e-2;
+  const auto tinyScalarDamage = 1.0e-2;
   const auto bufferFactor = 1.0e-6;
+
   const auto tiny = std::numeric_limits<double>::epsilon();
   const auto W0 = W(0.0, 1.0);
   const auto epsTensile = this->epsilonTensile();
@@ -282,6 +283,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto sameMatij =  (nodeListi == nodeListj and fragIDi==fragIDj);
       const auto differentMatij = !sameMatij; 
       const auto averageKernelij = ( (differentMatij and averageInterfaceKernels) or alwaysAverageKernels);
+      
+      // some thresholds
+      const auto tinyPressure = bufferFactor*min(Ki,Kj);
 
       // Flag if at least one particle is free (0).
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
@@ -294,21 +298,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 0.0 );
       const auto fDij = (sameMatij ? pow(1.0-std::abs(Di-Dj),2.0) : 0.0 );
 
-      // is Pmin being activated (Pmin->zero for material interfaces)
-      const auto pLimiti = (sameMatij ? (Pi-rhoi*ci*ci*bufferFactor) : PminInterface);
-      const auto pLimitj = (sameMatij ? (Pj-rhoj*cj*cj*bufferFactor) : PminInterface);
-      const auto pminActivei = (rPi < pLimiti);
-      const auto pminActivej = (rPj < pLimitj);
+      // is Pmin being activated (Pmin fsi has additional pmin for intefaces)
+      const auto pMini = (sameMatij ? (Pi-tinyPressure) : PminInterface);
+      const auto pMinj = (sameMatij ? (Pj-tinyPressure) : PminInterface);
+      const auto pminActivei = (rPi < pMini);
+      const auto pminActivej = (rPj < pMinj);
       
       // decoupling criteria 
       const auto isExpanding = (ri-rj).dot(vi-vj) > 0.0;
-      const auto isFullyDamaged = (fDi<fullyDamagedThreshold) or (fDj<fullyDamagedThreshold);
+      const auto isFullyDamaged = (fDi<tinyScalarDamage) or (fDj<tinyScalarDamage);
       const auto isPastAdhesionThreshold = pminActivei or pminActivej;
       const auto decouple = isExpanding and (isFullyDamaged and isPastAdhesionThreshold);
 
       // do we need to construct our interface velocity?
-      const auto constructInterface = (fDij < 1.0-fullyDamagedThreshold) and activateConstruction;
-      const auto negligableShearWave = max(mui,muj) < bufferFactor*min(Ki,Kj);
+      const auto constructInterface = (fDij < 1.0-tinyScalarDamage) and activateConstruction;
+      const auto negligableShearWave = max(mui,muj) < tinyPressure;
 
       // do we reduce our deviatoric stress
       const auto isTensile = (((Si+Sj)-(Pi+Pj)*SymTensor::one).dot(rhatij)).dot(rhatij) > 0;
@@ -471,9 +475,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           const auto wi = vi - ui*rhatij;
           const auto wj = vj - uj*rhatij;
 
-          // weights weights
-          //const auto Ci =  (constructHLLC ? rhoi*(std::max(uj+cj,ui+ci)-ui)  : Ki  ) + tiny;
-          //const auto Cj =  (constructHLLC ? rhoj*(std::min(ui-ci,uj-cj)-uj)  : Kj  ) + tiny;
+          // acoustic wave speeds
           const auto Ci =  (constructHLLC ? std::sqrt(rhoi*Ki)  : Ki  ) + tiny;
           const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj)  : Kj  ) + tiny;
           const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : mui ) + tiny;
@@ -482,12 +484,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           const auto CiCjInv = 1.0/(Ci+Cj);
           const auto CsiCsjInv = 1.0/(Csi+Csj);
           
+          // weights
           const auto weightUi = max(0.0, min(1.0, Ci*CiCjInv));
           const auto weightUj = 1.0 - weightUi;
           const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, Csi*CsiCsjInv )) );
           const auto weightWj = 1.0 - weightWi;
 
-          // get our eff pressure
+          // interface velocity
           const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ? (PLinearj - PLineari)*CiCjInv : 0.0); 
           const auto wstar = weightWi*wi + weightWj*wj + (constructHLLC ? (Seffi-Seffj).dot(rhatij)*CsiCsjInv : 0.0);
           vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
@@ -504,7 +507,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         if (stabilizeDensity and (ci>tiny and cj>tiny)){
           const auto cFactor = 1.0 + max(min( (vi-vj).dot(rhatij)/max(cij,tiny), 0.0), -1.0);
           const auto effCoeff = (differentMatij ? 1.0 : rhoStabilizeCoeff*cFactor);
-          vstar += (constructHLLC? fDij : 1.0) * effCoeff * rhatij * cij * min(max((PLinearj-PLineari)/(Ki + Kj),-0.25),0.25);
+          vstar += (constructHLLC ? fDij : 1.0) * effCoeff * rhatij * cij * min(max((PLinearj-PLineari)/(Ki + Kj),-0.25),0.25);
         }
 
         // global velocity gradient
