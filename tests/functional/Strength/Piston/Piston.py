@@ -1,36 +1,29 @@
 
 # Solid FSISPH
 #
-#ATS:fsisph1 = test(           SELF, "--fsisph True --solid True --nx1 500 --cfl 0.45 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Water-Gas Wilkins problem with FSISPH -- 1-D (serial)")
-#ATS:fsisph2 = testif(fsisph1, SELF, "--fsisph True --solid True --nx1 500 --cfl 0.45 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Water-Gas Wilkins problem with FSISPH -- 1-D (serial) RESTART CHECK")
-#
-# GSPH
-#
-#ATS:gsph1 = test(         SELF, "--gsph True --nx1 500 --cfl 0.45 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Water-Gas Wilkins problem with GSPH -- 1-D (serial)")
-#ATS:gsph2 = testif(gsph1, SELF, "--gsph True --nx1 500 --cfl 0.45 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Water-Gas Wilkins problem with GSPH -- 1-D (serial) RESTART CHECK")
-#
+#ATS:fsisph1 = test(           SELF, "--fsisph True --solid True --nx1 500 --cfl 0.45 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Copper plastic-wave problem with FSISPH -- 1-D (serial)")
+#ATS:fsisph2 = testif(fsisph1, SELF, "--fsisph True --solid True --nx1 500 --cfl 0.45 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Copper plastic-wave problem with FSISPH -- 1-D (serial) RESTART CHECK")
 
-import os, sys
-import shutil
+
+import os, sys, shutil
 from SolidSpheral1d import *
 from SpheralTestUtilities import *
-#from SodAnalyticSolution import SodSolutionStiffGasStiffGas as SodSolution
 
 from GenerateNodeProfile import GenerateNodeProfile1d
 from VoronoiDistributeNodes import distributeNodes1d
 
-title("1-D integrated hydro test -- planar Wilkins problem Water-Gas")
+title("1-D Elastic-Plastic copy piston problem")
 
 #-------------------------------------------------------------------------------
-# Generic problem parameters -- defaults are from the gas-water shock test of 
-# Liang & Chen, "Flow visualization of shock/water column interactions" Shocks
-# Waves, 2008.
+# Maire, et. al., A nominally second-order cell-centered Lagrangian scheme for 
+# simulating elastic–plastic flows on two-dimensional unstructured grids,
+# Journal of Computational Physics, 235, 626-665, 2013, 10.1016/j.jcp.2012.10.017
 #-------------------------------------------------------------------------------
             
 commandLine(# materials properties
             rho0 = 8930.0,  # refence density
             etamin = 0.0,   # min density ratio
-            etamax = 100.0,   # max density ratio
+            etamax = 100.0, # max density ratio
             c0 = 3940.0,    # reference sound speed
             gamma0 = 2.0,   # gruniesen coefficient
             S1 = 1.49,      # some other parameter
@@ -43,7 +36,7 @@ commandLine(# materials properties
             mu = 4.5e10,    # shear modulus
             Y0 = 9e7,       # yield strength
 
-            v0 = 20.0,     # velocity
+            v0 = 20.0,      # velocity
 
             # domain
             x0 = 0.0,  
@@ -68,8 +61,8 @@ commandLine(# materials properties
             mfm = False,      # moving finite mass -- hopkins 2015
 
             # FSI parameters
-            fsiRhoStabilizeCoeff = 0.1,         # diffusion operating through the vel-gradient
-            fsiEpsDiffuseCoeff = 0.1,           # diffusion coeff for specific thermal energy
+            fsiRhoStabilizeCoeff = 0.0,         # diffusion operating through the vel-gradient
+            fsiEpsDiffuseCoeff = 0.0,           # diffusion coeff for specific thermal energy
             fsiXSPHCoeff = 0.0,                 # ramps xsph up
             fsiInterfaceMethod = HLLCInterface, # (HLLCInterface, ModulusInterface, NoInterface)
 
@@ -133,8 +126,8 @@ commandLine(# materials properties
             clearDirectories = False,
             restoreCycle = -1,
             restartStep = 10000,
-            dataDirBase = "dumps-Wilkins-planar",
-            restartBaseName = "Wilkins-planar-1d-restart",
+            dataDirBase = "dumps-Piston-1d-Cu",
+            restartBaseName = "Piston-1d-Cu-restart",
             outputFile = "None",
             checkRestart = False,
             graphics = True,
@@ -168,7 +161,7 @@ dataDir = os.path.join(dataDirBase,
                        "Cullen=%s" % boolCullenViscosity,
                        "%i" % (nx1))
 restartDir = os.path.join(dataDir, "restarts")
-restartBaseName = os.path.join(restartDir, "Wilkins-planar-1d-WG-%i" % (nx1))
+restartBaseName = os.path.join(restartDir, "Piston-1d-Cu-%i" % (nx1))
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
