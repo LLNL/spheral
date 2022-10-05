@@ -28,7 +28,7 @@ function(instantiate _inst_var _source_var)
   # Iterate over each Instantation file
   foreach(_inst ${${_inst_var}})
 
-    if(ENABLE_INSTANTIATIONS)
+    if(ENABLE_INSTANTIATIONS AND (EXISTS ${PYTHON_EXE}))
 
       # Generate a C++ file for each dimension with the format: <Name>Inst<N>d.cc
       foreach(_dim ${_dims})
