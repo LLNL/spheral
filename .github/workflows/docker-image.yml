@@ -2,7 +2,7 @@ name: Generate build env image
 
 on:
   push:
-    branches: ["develop"]
+    branches: ["develop", "task/github-actions"]
 
 env:
   REGISTRY: ghcr.io
