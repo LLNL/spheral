@@ -16,7 +16,7 @@ template <typename DataType>
 void sidreWriteVec(axom::sidre::Group* grp, const DataType& value, const std::string& path)
 {
   axom::sidre::DataTypeId dtype = DataTypeTraits<DataType>::axomTypeID();
-  axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
+  axom::sidre::Buffer* buff = grp->getDataStore()->createBuffer()
                                            ->allocate(dtype, value.size())
                                            ->copyBytesIntoBuffer((void*)value.data(), sizeof(typename DataType::value_type) * (value.size()));
   grp->createView(path, dtype, value.size(), buff);
@@ -38,7 +38,7 @@ template <typename DataType>
 void sidreWriteGeom(axom::sidre::Group* grp, const DataType& value, const std::string& path)
 {
   int size = int(DataType::numElements);
-  axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
+  axom::sidre::Buffer* buff = grp->getDataStore()->createBuffer()
                                           ->allocate(axom::sidre::DOUBLE_ID, size)
                                           ->copyBytesIntoBuffer((void*)value.begin(), sizeof(double) * (size));
   grp->createView(path, axom::sidre::DOUBLE_ID, size, buff);
@@ -63,7 +63,7 @@ void sidreWriteField(axom::sidre::Group* grp,
 {
   int size = field.numInternalElements();
   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
-  axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
+  axom::sidre::Buffer* buff = grp->getDataStore()->createBuffer()
                                           ->allocate(dtype, size)
                                           ->copyBytesIntoBuffer((void*)&field[0], sizeof(DataType) * (size));
   grp->createView(path, dtype, size, buff);
@@ -98,7 +98,7 @@ void sidreWriteField(axom::sidre::Group* grp,
   for (int i = 0; i < size; ++i)
     std::copy(field(i).begin(), field(i).end(), &fieldData[i * DataType::numElements]);
 
-  axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
+  axom::sidre::Buffer* buff = grp->getDataStore()->createBuffer()
                                           ->allocate(dtype, size * DataType::numElements)
                                           ->copyBytesIntoBuffer((void*)fieldData.data(), sizeof(double) * (size * DataType::numElements));
   grp->createView(path, dtype, size * DataType::numElements, buff);
@@ -122,16 +122,18 @@ void sidreReadField(axom::sidre::Group* grp,
 // Empty constructor.
 //------------------------------------------------------------------------------
 SidreFileIO::SidreFileIO():
-  FileIO(),
-  mDataStorePtr(0) {}
+    FileIO()
+  {
+    // mDataStorePtr = std::make_unique<axom::sidre::DataStore>();
+  }
 
 //------------------------------------------------------------------------------
 // Construct and open the given file.
 //------------------------------------------------------------------------------
 SidreFileIO::SidreFileIO(const std::string fileName, AccessType access):
-  FileIO(fileName, access),
-  mDataStorePtr(0)
+  FileIO(fileName, access)
 {
+  // mDataStorePtr = std::make_unique<axom::sidre::DataStore>();
   open(fileName, access);
   ENSURE(mFileOpen && mDataStorePtr != 0);
 }
@@ -140,9 +142,9 @@ SidreFileIO::SidreFileIO(const std::string fileName, AccessType access):
 // Construct and open the given file and set number of restart files
 //------------------------------------------------------------------------------
 SidreFileIO::SidreFileIO(const std::string fileName, AccessType access, int numFiles):
-  FileIO(fileName, access),
-  mDataStorePtr(0)
+  FileIO(fileName, access)
 {
+  // mDataStorePtr = std::make_unique<axom::sidre::DataStore>();
   open(fileName, access);
   ENSURE(mFileOpen && mDataStorePtr != 0);
   if (numFiles > 0 && numFiles <= Process::getTotalNumberOfProcesses())
@@ -162,10 +164,14 @@ SidreFileIO::~SidreFileIO()
 //------------------------------------------------------------------------------
 void SidreFileIO::open(const std::string fileName, AccessType access)
 {
+  if (mDataStorePtr != 0)
+    std::cout << "This is the datastore ptr that is probably not zero" << std::endl;
+  else
+    std::cout << "woohoo mDataStorePtr does = 0." << std::endl;
+
   VERIFY2(mDataStorePtr == 0 and mFileOpen == false,
           "ERROR: attempt to reopen SidreFileIO object.");
-          
-  mDataStorePtr = std::make_unique<axom::sidre::DataStore>();
+
   baseGroup = mDataStorePtr->getRoot();
   mFileName = fileName;
 
@@ -201,15 +207,10 @@ void SidreFileIO::close()
   mFileOpen = false;
 }
 
-void setGroup(const axom::sidre::Group* group)
-{
-  // This needs to be made in some sort of clean way
-  // will need to figure out how I could make the functions be called on a group,
-  // probably instead of using the DataStore pointer I can make the functions work with
-  // Groups and pass in the getRoot(), might even have that be a new private variable
-  // need to see how other codes do it, maybe something like Mfem
-  baseGroup = group;
-}
+// void setGroup(axom::sidre::Group* group)
+// {
+//   baseGroup = group;
+// }
 
 //------------------------------------------------------------------------------
 // Check if the specified path is in the file.

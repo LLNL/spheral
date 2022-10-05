@@ -30,7 +30,7 @@ public:
   virtual void close() override;
 
   // Used to pass a Sidre group if you don't want to have fileIO as part of the constructor
-  void setGroup(const axom::sidre::Group);
+  void setGroup(axom::sidre::Group* group) {baseGroup = group;};
 
   //******************************************************************************
   // Methods all FileIO descendent classes must provide.
