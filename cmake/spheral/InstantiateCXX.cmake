@@ -25,13 +25,6 @@ function(instantiate _inst_var _source_var)
      list(APPEND _dims 3)
   endif()
 
-  # Sets PYTHONINTERP_FOUND and PYTHON_EXECUTABLE.
-  find_package(PythonInterp)
-
-  if (NOT PYTHONINTERP_FOUND)
-    message("A valid python was not found, this is the path to python currently being used: ${PYTHON_EXECUTABLE}")
-  endif()
-
   # Iterate over each Instantation file
   foreach(_inst ${${_inst_var}})
 
@@ -45,7 +38,7 @@ function(instantiate _inst_var _source_var)
 
         # Generate the C++ file
         add_custom_command(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${_inst_file}
-                           COMMAND ${PYTHON_EXECUTABLE} ${SPHERAL_ROOT_DIR}/src/helpers/InstantiationGenerator.py ${_inst_py} ${_inst_file} ${_dim}
+                           COMMAND ${PYTHON_EXE} ${SPHERAL_ROOT_DIR}/src/helpers/InstantiationGenerator.py ${_inst_py} ${_inst_file} ${_dim}
                            BYPRODUCTS ${_inst_file}
                            COMMENT "Generating instantiation ${_inst_file}..."
                            )
