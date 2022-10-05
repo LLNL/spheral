@@ -14,6 +14,8 @@ Notable changes include:
     * Adding a CUDA smoke test that can be called from the Spheral python API.
     * NVCC / CUDA 11 gitlab-ci jobs.
     * ATS default filters for non-MPI, debug and CUDA builds are injected into spheral-atstest script.
+    * Latest Develop docker containers hosted on ghcr.io/llnl/spheral:latest
+    * External / offline builds are tested through github actions.
 
   * Build changes / improvements:
     * The C++ library interface is compiled into a single Spheral_CXX library. 
@@ -21,10 +23,12 @@ Notable changes include:
     * ATS bumped to version 7.0.9 for blueos smpi option support.
     * Eigen bumped to 3.4.0 for NVCC compatiblity.
     * C++ flag suppression is gaurded with build time CMake generators to only apply to C++ compilers.
+    * Python runtime libraries are now managed through Spack / tpl-manager.
 
   * Bug Fixes / improvements:
     * spheral-atstest scripts always point to locally installed ATS instance.
     * gitlab-ci report-results script for analyzing ATS CI runs.
+    * Support for offline Spheral builds (provided TPLs are installed).
 
 
 Version v2022.06.1 -- Release date 2022-06-24
