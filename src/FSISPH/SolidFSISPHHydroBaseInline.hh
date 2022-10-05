@@ -7,6 +7,36 @@ template<typename Dimension>
 inline
 void
 SolidFSISPHHydroBase<Dimension>::
+planeStrain(bool x) {
+  mPlaneStrain = x;
+}
+template<typename Dimension>
+inline
+bool
+SolidFSISPHHydroBase<Dimension>::
+planeStrain() const {
+  return mPlaneStrain;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+interfacePmin(double x) {
+  mInterfacePmin = x;
+}
+template<typename Dimension>
+inline
+double
+SolidFSISPHHydroBase<Dimension>::
+interfacePmin() const {
+  return mInterfacePmin;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
 surfaceForceCoefficient(double x) {
   mSurfaceForceCoefficient = x;
 }

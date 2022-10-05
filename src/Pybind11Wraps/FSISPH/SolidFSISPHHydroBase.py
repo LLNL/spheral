@@ -42,6 +42,8 @@ class SolidFSISPHHydroBase(SolidSPHHydroBase):
                HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
+               interfacePmin = "const double",
+               planeStrain = "const bool",
                damageRelieveRubble = "const bool",
                strengthInDamage = "const bool",
                xmin = "const Vector&",
@@ -107,6 +109,8 @@ mass density, velocity, and specific thermal energy."""
     
     slideSurfaces = PYB11property("SlideSurface<%(Dimension)s>&", "slideSurface", doc="The slide surface object")
     
+    planeStrain = PYB11property("bool", "planeStrain", "planeStrain",doc="bool switch to use a plane-strain deviatoric stress update policy.")
+    interfacePmin = PYB11property("double", "interfacePmin", "interfacePmin",doc="minimum allowable pressure across material interfaces.")
     surfaceForceCoefficient = PYB11property("double", "surfaceForceCoefficient", "surfaceForceCoefficient",doc="additional force between different materials ala Monaghan 2013.")
     densityStabilizationCoefficient = PYB11property("double", "densityStabilizationCoefficient", "densityStabilizationCoefficient",doc="coefficient used to adjust velocity gradient to prevent unstable rho.")
     specificThermalEnergyDiffusionCoefficient = PYB11property("double", "specificThermalEnergyDiffusionCoefficient", "specificThermalEnergyDiffusionCoefficient",doc="coefficient used to diffuse specificThermalEnergy amongst like nodes.")

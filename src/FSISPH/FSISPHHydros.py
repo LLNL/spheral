@@ -23,12 +23,15 @@ def FSISPH(dataBase,
         HUpdate = IdealH,
         epsTensile = 0.0,
         nTensile = 4.0,
-        damageRelieveRubble = False,
-        strengthInDamage = False,
+        interfacePmin=0.0,
+        planeStrain = True,
+        damageRelieveRubble = False,    # zombie input for backward compat
+        strengthInDamage = False,       # zombie input for backward compat
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
         ASPH = False,
         RZ = False):
+
     ######################################################################
     # some of these parameters are inactive and possible on there was out.
     # strengthInDamage and damageRelieveRubble are old switches and are not
@@ -120,6 +123,8 @@ def FSISPH(dataBase,
               "HUpdate" : HUpdate,
               "epsTensile" : epsTensile,
               "nTensile" : nTensile,
+              "interfacePmin" : interfacePmin,
+              "planeStrain" : planeStrain,
               "damageRelieveRubble" : damageRelieveRubble,
               "strengthInDamage" : strengthInDamage,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),

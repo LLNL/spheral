@@ -71,6 +71,8 @@ public:
                     const HEvolutionType HUpdate,
                     const double epsTensile,
                     const double nTensile,
+                    const double interfacePmin,
+                    const bool planeStrain,
                     const bool damageRelieveRubble,
                     const bool strengthInDamage,
                     const Vector& xmin,
@@ -137,6 +139,12 @@ public:
                                   typename Dimension::Scalar& ytildei,
                                   typename Dimension::Scalar& ytildej) const;
 
+  bool planeStrain() const;
+  void planeStrain(bool x);
+
+  double interfacePmin() const;
+  void interfacePmin(double x);
+  
   double surfaceForceCoefficient() const;
   void surfaceForceCoefficient(double x);
 
@@ -183,7 +191,9 @@ public:
  //****************************************************************************
 
 private:
+  bool mPlaneStrain;                                  // switch to update deviatoric stress according to plane-strain model
   SlideSurface<Dimension>& mSlideSurface;             // ref to the obj tracking slideSurfs between nodelists
+  double mInterfacePmin;                              // minimum pressure allowed between material interfaces
   double mSurfaceForceCoefficient;                    // Monaghan 2013 force increase @ interface
   double mDensityStabilizationCoefficient;            // adjusts DvDx to stabilize rho
   double mSpecificThermalEnergyDiffusionCoefficient;  // controls diffusion of eps
