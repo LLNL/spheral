@@ -9,6 +9,7 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
+from Tree import *
 from NBodyGravity import *
 from TreeGravity import *
 from PolyGravity import *
@@ -17,7 +18,8 @@ from ApproximatePolyhedralGravityModel import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-PYB11includes += ['"Gravity/ApproximatePolyhedralGravityModel.hh"',
+PYB11includes += ['"Gravity/Tree.hh"',
+                  '"Gravity/ApproximatePolyhedralGravityModel.hh"',
                   '"Physics/GenericBodyForce.hh"',
                   '"Gravity/NBodyGravity.hh"',
                   '"Gravity/TreeGravity.hh"',
@@ -45,9 +47,11 @@ NBodyGravity%(ndim)id = PYB11TemplateClass(NBodyGravity, template_parameters="%(
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
 if 2 in dims:
+    Tree2d = PYB11TemplateClass(Tree, template_parameters="Dim<2>")
     QuadTreeGravity = PYB11TemplateClass(TreeGravity, template_parameters="Dim<2>")
     PolyGravity2d = PYB11TemplateClass(PolyGravity, template_parameters="Dim<2>")
 
 if 3 in dims:
+    Tree3d = PYB11TemplateClass(Tree, template_parameters="Dim<3>")
     OctTreeGravity = PYB11TemplateClass(TreeGravity, template_parameters="Dim<3>")
     PolyGravity3d = PYB11TemplateClass(PolyGravity, template_parameters="Dim<3>")
