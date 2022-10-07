@@ -694,6 +694,16 @@ boxLength() const {
 }
 
 //------------------------------------------------------------------------------
+// cellSize
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+TreeNeighbor<Dimension>::
+cellSize(const LevelKey levelID) const {
+  return mBoxLength/(1u << levelID);
+}
+
+//------------------------------------------------------------------------------
 // Serialize to a buffer of char.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -791,6 +801,60 @@ occupiedCells() const {
     }
   }
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Find the nearest cell center on the given grid level.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename TreeNeighbor<Dimension>::Vector
+TreeNeighbor<Dimension>::
+nearestCellCenter(const Vector& xi,
+                  const SymTensor& Hi) const {
+  const auto leveli = gridLevel(Hi);
+  CellKey keyi, ix, iy, iz;
+  buildCellKey(leveli, xi, keyi, ix, iy, iz);
+  return mXmin + cellSize(leveli)*Vector(double(ix) + 0.5,
+                                         double(iy) + 0.5,
+                                         double(iz) + 0.5);
+}
+
+template<typename Dimension>
+typename TreeNeighbor<Dimension>::Vector
+TreeNeighbor<Dimension>::
+nearestCellCenter(const Vector& xi,
+                  const double hi) const {
+  return this->nearestCellCenter(xi, SymTensor::one * 1.0/hi);
+}
+
+//------------------------------------------------------------------------------
+// Do any existing points occupy cells overlapping the given position and
+// extent?
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+TreeNeighbor<Dimension>::
+occupied(const Vector& xi,
+         const SymTensor& Hi) const {
+  if (mTree.size() == 0) return false;
+  const auto gridLeveli = std::min(gridLevel(Hi), unsigned(mTree.size()) - 1u);
+  CellKey keyi, ix, iy, iz;
+  for (auto ilevel = 0u; ilevel < gridLeveli; ++ilevel) {
+    buildCellKey(ilevel, xi, keyi, ix, iy, iz);
+    const auto keyCellItr = mTree[ilevel].find(keyi);
+    if (keyCellItr != mTree[ilevel].end() and
+        (not keyCellItr->second.members.empty())) return true;
+  }
+  buildCellKey(gridLeveli, xi, keyi, ix, iy, iz);
+  return mTree[gridLeveli].find(keyi) != mTree[gridLeveli].end();
+}
+
+template<typename Dimension>
+bool
+TreeNeighbor<Dimension>::
+occupied(const Vector& xi,
+         const double hi) const {
+  return this->occupied(xi, SymTensor::one * 1.0/hi);
 }
 
 //------------------------------------------------------------------------------
