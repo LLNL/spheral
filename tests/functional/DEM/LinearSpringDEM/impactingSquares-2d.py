@@ -229,7 +229,7 @@ conservation = TrackConservation(db,
                                   dem,
                                   verbose=True)
                                   
-periodicWork = [(conservation.periodicWorkFunction,1)]
+periodicWork = [(conservation.periodicWorkFunction,100)]
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
