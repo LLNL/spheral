@@ -1,0 +1,19 @@
+# ------------------------------------------------------------------------------
+# SYSTEM / OS TEMPLATES
+
+.sys_config:
+  variables:
+    LLNL_SERVICE_USER: sphapp
+    UPSTREAM_DIR: /usr/WS2/wciuser/Spheral/spheral-spack-tpls
+    DISPLAY: ":0.0"
+
+.on_toss:
+  variables:
+    ARCH: "toss_3_x86_64_ib"
+  extends: [.sys_config]
+
+.on_blueos:
+  variables:
+    ARCH: "blueos_3_ppc64le_ib_p9"
+  extends: [.sys_config]
+
