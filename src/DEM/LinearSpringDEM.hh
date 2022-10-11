@@ -1,7 +1,14 @@
 //---------------------------------Spheral++----------------------------------//
-// LinearSpringDEM -- contact model based on damped linear springs
-//                       Cundall & Strack Geotechnique, vol. 29, no. 1,
-//                       pp. 47-65, 1979.
+// DEM -- damped linear spring contact model based on pkdgrav immplementation
+//---------------------------------------------------------------------------
+// Schwartz, S.R. and Richards, D.C. "An implementation of the soft-sphere 
+// discrete element method in a high-performance parallel gravity tree-code,"
+// Granular Matter, (2012) 14:363–380, 10.1007/s10035-012-0346-z.
+//
+// Zhang et. al. "Rotational Failure of Rubble-pile Bodies: Influences of 
+// Shear and Cohesive Strengths," The Astrophysical Journal, (2018) 857:15, 20
+// 10.3847/1538-4357/aab5b2.
+//
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_LinearSpringDEM_hh__
 #define __Spheral_LinearSpringDEM_hh__
