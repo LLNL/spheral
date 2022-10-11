@@ -10,6 +10,8 @@
 // 10.3847/1538-4357/aab5b2.
 //
 //----------------------------------------------------------------------------//
+#include "FileIO/FileIO.hh"
+
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/DataBase.hh"
@@ -64,14 +66,8 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
   mTorsionalFrictionCoefficient(torsionalFrictionCoefficient),
   mCohesiveTensileStrength(cohesiveTensileStrength),
   mShapeFactor(shapeFactor){
-     
-    const auto pi = 3.14159265358979323846;
-    const auto mass = dataBase.DEMMass();
-    const auto minMass = mass.min();
 
-    mNormalBeta = pi/std::log(std::max(normalRestitutionCoefficient,1.0e-3));
-    mTangentialBeta = pi/std::log(std::max(tangentialRestitutionCoefficient,1.0e-3));
-    mTimeStep = pi*std::sqrt(0.5*minMass/normalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)));
+  this->setTimeStep(dataBase);
 
 }
 
@@ -81,6 +77,24 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 LinearSpringDEM<Dimension>::
 ~LinearSpringDEM() {}
+
+//------------------------------------------------------------------------------
+// set our timestep (for now its a constant single value)
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+setTimeStep(const DataBase<Dimension>& dataBase){
+    
+    const auto pi = 3.14159265358979323846;
+    const auto mass = dataBase.DEMMass();
+    const auto minMass = mass.min();
+
+    mNormalBeta = pi/std::log(std::max(mNormalRestitutionCoefficient,1.0e-3));
+    mTangentialBeta = pi/std::log(std::max(mTangentialRestitutionCoefficient,1.0e-3));
+    mTimeStep = pi*std::sqrt(0.5*minMass/mNormalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)));
+
+}
 
 
 //------------------------------------------------------------------------------
@@ -391,6 +405,26 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
 }
 
+
+//------------------------------------------------------------------------------
+// Dump the current state to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+dumpState(FileIO& file, const std::string& pathName) const {
+  file.write(mTimeStep, pathName + "/timeStep");
+}
+
+//------------------------------------------------------------------------------
+// Restore the state from the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+restoreState(const FileIO& file, const std::string& pathName) {
+  file.read(mTimeStep, pathName + "/timeStep");
+}
 
 }
 

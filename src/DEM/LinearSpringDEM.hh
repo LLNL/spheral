@@ -55,7 +55,9 @@ public:
                                    const DataBase<Dimension>& dataBase,
                                    const State<Dimension>& state,
                                          StateDerivatives<Dimension>& derivs) const override;
-  
+
+  virtual void setTimeStep(const DataBase<Dimension>& dataBase);
+
   Scalar normalSpringConstant() const;
   void   normalSpringConstant(Scalar x);
 
@@ -98,6 +100,8 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "LinearSpringDEM" ; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 private:
@@ -106,12 +110,12 @@ private:
   Scalar mNormalRestitutionCoefficient;
   Scalar mTangentialSpringConstant;
   Scalar mTangentialRestitutionCoefficient;
-  Scalar mDynamicFrictionCoefficient;     // coefficient of friciton - dynamic
-  Scalar mStaticFrictionCoefficient;      // coefficient of friction - static
-  Scalar mRollingFrictionCoefficient;     // coefficient of friction - rolling
-  Scalar mTorsionalFrictionCoefficient;   // coefficient of friction - torsional 
+  Scalar mDynamicFrictionCoefficient;       // coefficient of friciton - dynamic
+  Scalar mStaticFrictionCoefficient;        // coefficient of friction - static
+  Scalar mRollingFrictionCoefficient;       // coefficient of friction - rolling
+  Scalar mTorsionalFrictionCoefficient;     // coefficient of friction - torsional 
   Scalar mCohesiveTensileStrength;
-  Scalar mShapeFactor;                    // varies between 0 and 1 to account to non spherical shapes & influences rolling/torsion spring parameters
+  Scalar mShapeFactor;                      // varies between 0 and 1 to account to non spherical shapes & influences rolling/torsion spring parameters
 
   Scalar mNormalBeta;
   Scalar mTangentialBeta;
