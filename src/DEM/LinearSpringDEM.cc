@@ -1,3 +1,4 @@
+
 //---------------------------------Spheral++----------------------------------//
 // DEM -- damped linear spring contact model based on pkdgrav immplementation
 //---------------------------------------------------------------------------
@@ -34,7 +35,25 @@
 
 #include <cmath>
 #include <limits>
+#include <algorithm>
+
+using std::make_pair;
+using std::to_string;
+
 namespace Spheral {
+
+namespace {
+
+// Provide to_string for Spheral Vector
+template<typename Vector>
+std::string
+vec_to_string(const Vector& vec) {
+  std::ostringstream oss;
+  oss << vec << std::endl;
+  return oss.str();
+}
+
+}
 
 //------------------------------------------------------------------------------
 // Default constructor
@@ -103,11 +122,64 @@ setTimeStep(const DataBase<Dimension>& dataBase){
 template<typename Dimension>
 typename LinearSpringDEM<Dimension>::TimeStepType
 LinearSpringDEM<Dimension>::
-dt(const DataBase<Dimension>& /*dataBase*/,
-   const State<Dimension>& /*state*/,
+dt(const DataBase<Dimension>& dataBase,
+   const State<Dimension>& state,
    const StateDerivatives<Dimension>& /*derivs*/,
    const typename Dimension::Scalar /*currentTime*/) const{
-  return make_pair(mTimeStep/this->stepsPerCollision(),("Linear Spring DEM vote for time step"));
+
+  // Get some useful fluid variables from the DataBase.
+  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto  r = state.fields(DEMFieldNames::particleRadius, 0.0);
+  const auto& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity(),
+                                                         this->requireOverlapConnectivity(),
+                                                         this->requireIntersectionConnectivity());
+  const auto& pairs = connectivityMap.nodePairList();
+
+  // Check each pair to see how much they are closing.
+  auto dtMin = std::numeric_limits<Scalar>::max();
+  const auto dtSpring = mTimeStep/this->stepsPerCollision();
+  TimeStepType result(dtMin, "DEM error, this message should not get to the end");
+  for (const auto& pair: pairs) {
+
+    // node i
+    const auto& xi = position(pair.i_list, pair.i_node);
+    const auto& vi = velocity(pair.i_list, pair.i_node);
+    const auto  ri = r(pair.i_list, pair.i_node);
+
+    // node j
+    const auto& xj = position(pair.j_list, pair.j_node);
+    const auto& vj = velocity(pair.j_list, pair.j_node);
+    const auto  rj = r(pair.j_list, pair.j_node);
+
+    // Compare closing speed to separation
+    const auto xji = xj - xi;
+    const auto vji = vj - vi;
+    const auto hatji = xji.unitVector();
+    const auto closing_speed = -std::min(0.0, vji.dot(hatji));
+    if (closing_speed > 0.0) {
+      const auto dtji = std::max(dtSpring, std::max(0.0, xji.magnitude() - ri - rj)/closing_speed);
+      if (dtji < dtMin) {
+        dtMin = dtji;
+        result = make_pair(dtji,
+                           (dtji > dtSpring ?
+                            std::string("DEM pairwise closing rate:\n") :
+                            std::string("DEM spring constraint:\n")) +
+                           "  (listi, i, rank) = (" + to_string(pair.i_list) + " " + to_string(pair.i_node) + " " + to_string(Process::getRank()) + ")\n" +
+                           "  (listj, j, rank) = (" + to_string(pair.j_list) + " " + to_string(pair.j_node) + " " + to_string(Process::getRank()) + ")\n" +
+                                   "position_i = " + vec_to_string(xi) + "\n" +
+                           "        velocity_i = " + vec_to_string(vi) +"\n" +
+                           "          radius_i = " + to_string(ri) + "\n" +
+                           "        position_j = " + vec_to_string(xj) + "\n" +
+                           "        velocity_j = " + vec_to_string(vj) + "\n" +
+                           "          radius_j = " + to_string(rj) + "\n" +
+                           "         spring_dt = " + to_string(mTimeStep) + "\n");
+      }
+    }
+    if (dtMin == dtSpring) break;    // No point continuing if we've hit the minimum
+  }
+
+  return result;
 }
 
 //------------------------------------------------------------------------------
