@@ -21,7 +21,7 @@ def LinearSpringDEM(dataBase,
                     xmin = (-1e100, -1e100, -1e100),
                     xmax = ( 1e100,  1e100,  1e100)):
     assert dataBase.numDEMNodeLists == dataBase.numNodeLists, "all nodelists must be dem nodelists"
-    assert stepsPerCollision > 10, "stepsPerCollision too low, reccomended is 25-50"
+    assert stepsPerCollision > 1, "stepsPerCollision too low, reccomended is 25-50"
 
     ndim = dataBase.nDim
 
