@@ -83,7 +83,8 @@ setPressure(Field<Dimension, Scalar>& pressure,
             const Field<Dimension, Scalar>& massDensity,
             const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(valid());
-  const auto n = massDensity.size();
+  //const auto n = massDensity.size();
+  const auto n = pressure.size();
 #pragma omp parallel for
   for (auto i = 0u; i < n; ++i) {
     pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));

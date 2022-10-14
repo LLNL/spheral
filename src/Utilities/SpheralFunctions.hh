@@ -17,7 +17,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Fuzzy comparisons.
 //------------------------------------------------------------------------------
-template<typename DataType>
+inline template<typename DataType>
 bool fuzzyEqual(const DataType& lhs, const DataType& rhs,
                 const double fuzz = 1.0e-15) {
   // return std::abs(lhs - rhs)/std::max(std::numeric_limits<DataType>::epsilon(), std::max(fuzz, std::max(std::abs(lhs), std::abs(rhs)))) < fuzz;
@@ -54,7 +54,7 @@ bool distinctlyLessThan(const DataType& lhs, const DataType& rhs,
   return lhs < rhs && !fuzzyEqual(lhs, rhs, fuzz);
 }
 
-template<typename DataType>
+inline template<typename DataType>
 bool distinctlyGreaterThan(const DataType& lhs, const DataType& rhs,
                            const double fuzz = 1.0e-15) {
   return lhs > rhs && !fuzzyEqual(lhs, rhs, fuzz);

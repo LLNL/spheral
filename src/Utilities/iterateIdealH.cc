@@ -61,16 +61,24 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   // Store the input nperh for each NodeList.
   // If we're rescaling the nodes per h for our work, make a cut at it.
   vector<double> nperh0;
-  for (auto nodeListItr = dataBase.fluidNodeListBegin();
-       nodeListItr != dataBase.fluidNodeListEnd(); 
-       ++nodeListItr) {
-    const auto nperh = (*nodeListItr)->nodesPerSmoothingScale();
-    nperh0.push_back(nperh);
-    if (distinctlyGreaterThan(nPerhForIteration, 0.0)) {
-      auto& Hfield = **(H.fieldForNodeList(**nodeListItr));
-      Hfield *= Dimension::rootnu(nperh/nPerhForIteration);
-      (*nodeListItr)->nodesPerSmoothingScale(nPerhForIteration);
-    }
+  if (distinctlyGreaterThan(nPerhForIteration, 0.0)) {
+      for (auto nodeListItr = dataBase.fluidNodeListBegin();
+          nodeListItr != dataBase.fluidNodeListEnd();
+          ++nodeListItr) {
+          const auto nperh = (*nodeListItr)->nodesPerSmoothingScale();
+          nperh0.push_back(nperh);
+          auto& Hfield = **(H.fieldForNodeList(**nodeListItr));
+          Hfield *= Dimension::rootnu(nperh / nPerhForIteration);
+          (*nodeListItr)->nodesPerSmoothingScale(nPerhForIteration);
+      }
+  }
+  else {
+      for (auto nodeListItr = dataBase.fluidNodeListBegin();
+          nodeListItr != dataBase.fluidNodeListEnd();
+          ++nodeListItr) {
+          const auto nperh = (*nodeListItr)->nodesPerSmoothingScale();
+          nperh0.push_back(nperh);
+      }
   }
   CHECK(nperh0.size() == dataBase.numFluidNodeLists());
 
