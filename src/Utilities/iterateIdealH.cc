@@ -61,6 +61,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   // Store the input nperh for each NodeList.
   // If we're rescaling the nodes per h for our work, make a cut at it.
   vector<double> nperh0;
+  // Pulled divide by nPerhForIteration out of loop to improve optimization
   if (distinctlyGreaterThan(nPerhForIteration, 0.0)) {
       for (auto nodeListItr = dataBase.fluidNodeListBegin();
           nodeListItr != dataBase.fluidNodeListEnd();
