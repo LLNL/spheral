@@ -6,7 +6,7 @@ from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator2d
 
-from DEMConservationTracker import TrackConservation3d as TrackConservation
+from DEMConservationTracker import TrackConservation2d as TrackConservation
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes2d
@@ -24,6 +24,7 @@ commandLine(numParticlePerLength = 50,     # number of particles on a side of th
             normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
             tangentialSpringConstant=2857.0,          # spring constant for LDS model
             tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
+            cohesiveTensileStrength = 0.0,            # units of pressure
             dynamicFriction = 1.0,                    # static friction coefficient sliding
             staticFriction = 1.0,                     # dynamic friction coefficient sliding
             rollingFriction = 1.05,                   # static friction coefficient for rolling
@@ -156,6 +157,7 @@ dem = DEM(db,
           staticFrictionCoefficient = staticFriction,
           rollingFrictionCoefficient = rollingFriction,
           torsionalFrictionCoefficient = torsionalFriction,
+          cohesiveTensileStrength = cohesiveTensileStrength,
           shapeFactor = shapeFactor,
           stepsPerCollision = stepsPerCollision)
 
