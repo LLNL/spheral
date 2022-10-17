@@ -413,6 +413,7 @@ template<typename Dimension>
 void
 LinearSpringDEM<Dimension>::
 dumpState(FileIO& file, const std::string& pathName) const {
+  DEMBase<Dimension>::dumpState(file, pathName);
   file.write(mTimeStep, pathName + "/timeStep");
 }
 
@@ -423,6 +424,7 @@ template<typename Dimension>
 void
 LinearSpringDEM<Dimension>::
 restoreState(const FileIO& file, const std::string& pathName) {
+  DEMBase<Dimension>::restoreState(file, pathName);
   file.read(mTimeStep, pathName + "/timeStep");
 }
 

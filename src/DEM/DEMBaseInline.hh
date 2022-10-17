@@ -35,6 +35,58 @@ xmax(const typename Dimension::Vector& x) {
   mxmax = x;
 }
 
+
+//------------------------------------------------------------------------------
+// set get for numerical switches
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+DEMBase<Dimension>::
+firstCycle() const {
+  return mFirstCycle;
+}
+
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+firstCycle(bool x) {
+  mFirstCycle = x;
+}
+
+template<typename Dimension>
+inline
+int
+DEMBase<Dimension>::
+kullFrequency() const {
+  return mKullFrequency;
+}
+
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+kullFrequency(int x) {
+  mKullFrequency = x;
+}
+
+template<typename Dimension>
+inline
+int
+DEMBase<Dimension>::
+cyclesSinceLastKulling() const {
+  return mCyclesSinceLastKulling;
+}
+
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+cyclesSinceLastKulling(int x) {
+  mCyclesSinceLastKulling = x;
+}
+
 //------------------------------------------------------------------------------
 // CFL number (ratio to estimated contact duration)
 //------------------------------------------------------------------------------

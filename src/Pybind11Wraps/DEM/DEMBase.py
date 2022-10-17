@@ -99,6 +99,10 @@ class DEMBase(Physics):
     
     stepsPerCollision = PYB11property("Scalar", "stepsPerCollision", "stepsPerCollision", doc="number of steps resolving the collision time scale")
     
+    cyclesSinceLastKulling = PYB11property("int", "cyclesSinceLastKulling", "cyclesSinceLastKulling", doc="every n-cycles we prune our contact list to only the active contacts. This counts how long its been.")
+    kullFrequency = PYB11property("int", "kullFrequency", "kullFrequency", doc="every n-cycles we prune our contact list to only the active contacts. This is the frequency.")
+    firstCycle = PYB11property("bool", "firstCycle", "firstCycle", doc="boolean flag thats true for the first cycle of a run.")
+    
     timeStepMask =  PYB11property("const FieldList<%(Dimension)s, int>&", "timeStepMask", returnpolicy="reference_internal")
     DxDt =          PYB11property("const FieldList<%(Dimension)s, Vector>&","DxDt", returnpolicy="reference_internal")
     DvDt =          PYB11property("const FieldList<%(Dimension)s, Vector>&", "DvDt", returnpolicy="reference_internal")

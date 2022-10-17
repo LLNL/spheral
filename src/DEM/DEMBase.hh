@@ -129,6 +129,15 @@ public:
   Scalar stepsPerCollision() const;
   void   stepsPerCollision(Scalar x);
 
+  int cyclesSinceLastKulling() const;
+  void   cyclesSinceLastKulling(int x);
+
+  int kullFrequency() const;
+  void   kullFrequency(int x);
+
+  bool firstCycle() const;
+  void firstCycle(bool x);
+
   // access for node fieldLists
   const FieldList<Dimension, int>&    timeStepMask() const;
   const FieldList<Dimension, Vector>& DxDt() const;
@@ -190,20 +199,22 @@ protected:
   Vector mxmin, mxmax;
 
   // fields attached to the nodes
-  FieldList<Dimension, int>      mTimeStepMask;
-  FieldList<Dimension, Vector>   mDxDt;           // linear position derivative
-  FieldList<Dimension, Vector>   mDvDt;           // linear acceleration
-  FieldList<Dimension, RotationType> mOmega;      // angular velocity
-  FieldList<Dimension, RotationType> mDomegaDt;   // angular acceleration
-  FieldList<Dimension,int> mUniqueIndices;        // each node gets a global unique index
+  FieldList<Dimension, int>          mTimeStepMask;   // filter out particle from timestep calc (not active right now for DEM)
+  FieldList<Dimension, Vector>       mDxDt;           // linear position derivative
+  FieldList<Dimension, Vector>       mDvDt;           // linear acceleration
+  FieldList<Dimension, RotationType> mOmega;          // angular velocity
+  FieldList<Dimension, RotationType> mDomegaDt;       // angular acceleration
+  FieldList<Dimension,int>           mUniqueIndices;  // each node gets a global unique index
   
-  // fields attached to the pair interactions
-  FieldList<Dimension,std::vector<int>> mNeighborIndices;              // tracks unique indices of contacts-we upate these 
+  // state fields attached to the pair interactions
+  FieldList<Dimension,std::vector<int>> mNeighborIndices;              // tracks unique indices of contacts-we upate these (note treated specially compared to other state pair field lists)
   FieldList<Dimension,std::vector<Scalar>> mEquilibriumOverlap;        // nonzero values for composite particles
   FieldList<Dimension,std::vector<Vector>> mShearDisplacement;         // displacement for sliding spring
   FieldList<Dimension,std::vector<Vector>> mRollingDisplacement;       // displacement for rolling spring
   FieldList<Dimension,std::vector<Scalar>> mTorsionalDisplacement;     // displacement for torsional spring
   FieldList<Dimension,std::vector<int>> mIsActiveContact;              // tracks if a interfaction is still active
+  
+   // deriv fields attached to the pair interactions
   FieldList<Dimension,std::vector<Vector>> mDDtShearDisplacement;      // derivative to evolve frictional spring displacement
   FieldList<Dimension,std::vector<Vector>> mNewShearDisplacement;      // handles rotation of frictional spring and reset on slip
   FieldList<Dimension,std::vector<Vector>> mDDtRollingDisplacement;    // derivative to evolve frictional spring displacement

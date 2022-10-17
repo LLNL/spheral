@@ -76,7 +76,7 @@ DEMBase(const DataBase<Dimension>& dataBase,
   mDataBase(dataBase),
   mFirstCycle(true),
   mCyclesSinceLastKulling(0),
-  mKullFrequency((int)stepsPerCollision),
+  mKullFrequency(1),//(int)stepsPerCollision),
   mStepsPerCollision(stepsPerCollision),
   mxmin(xmin),
   mxmax(xmax),
@@ -340,8 +340,8 @@ initialize(const Scalar  time,
     this->kullInactiveContacts(dataBase);
     this->kullInactiveContactsFromStatePairFieldLists(state);
 
-    this->initializeContacts(dataBase);
-    this->resizeStatePairFieldLists(state);
+    //this->initializeContacts(dataBase);
+    //this->resizeStatePairFieldLists(state);
   }
 
 }
@@ -428,6 +428,7 @@ DEMBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
 
   file.write(mCyclesSinceLastKulling, pathName + "/cyclesSinceLastKulling");
+  file.write(mFirstCycle, pathName + "/firstCycle");
 
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mOmega, pathName + "/omega");
@@ -460,7 +461,8 @@ DEMBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
 
   file.read(mCyclesSinceLastKulling, pathName + "/cyclesSinceLastKulling");
-
+  file.read(mFirstCycle, pathName + "/firstCycle");
+  
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mOmega, pathName + "/omega");
   file.read(mDomegaDt, pathName + "/DomegaDt");
