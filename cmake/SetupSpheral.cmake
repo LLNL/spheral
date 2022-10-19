@@ -60,6 +60,7 @@ endif()
 if(ENABLE_CXXONLY)
   set(ENABLE_INSTANTIATIONS OFF)
   set(ENABLE_DOCS OFF)
+  set(ENABLE_TESTS OFF)
 endif()
 
 if(ENABLE_MPI)
