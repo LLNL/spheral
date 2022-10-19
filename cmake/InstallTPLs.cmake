@@ -31,6 +31,7 @@ endif()
 if(NOT ENABLE_CXXONLY)
   Spheral_Handle_TPL(python spheral_depends py)
   Spheral_Handle_TPL(pybind11 spheral_depends py)
+  list(APPEND spheral_blt_cxx_depends blt_python)
 endif()
 
 Spheral_Handle_TPL(polytope spheral_depends cxx)

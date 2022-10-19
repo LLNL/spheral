@@ -2,7 +2,7 @@
 # BUILD JOBS
 
 toss_gcc_8_3_1_mvapich2_Debug_build:
-  extends: [.gcc_8_3_1_mvapich2_Debug, .build_and_test, .toss_resource1]
+  extends: [.gcc_8_3_1_mvapich2_CXXONLY, .build_and_test, .toss_resource1]
 
 
 
