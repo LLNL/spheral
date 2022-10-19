@@ -10,10 +10,14 @@ extern "C" {
 #endif
 
 #ifdef _WIN32
+#ifdef SPHERAL_STATIC
+#define SPHERALDLL_API
+#else
 #ifdef SPHERALDLL_EXPORTS
 #define SPHERALDLL_API __declspec ( dllexport )
 #else
 #define SPHERALDLL_API __declspec ( dllimport )
+#endif
 #endif
 #else
 #define SPHERALDLL_API
