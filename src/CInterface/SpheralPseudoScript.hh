@@ -62,8 +62,6 @@ public:
                          const int      Qoption,
                          const int      distributedBoundary,
                          const int      kernelType,
-                         const int      piKernelType,
-                         const int      gradKernelType,
                          const int      nbspline,
                          const int      numinterp,
                          const int      rkorder,
@@ -232,8 +230,6 @@ private:
 
   // Hydro bits.
   std::shared_ptr<TableKernel<Dimension>> mKernelPtr;
-  std::shared_ptr<TableKernel<Dimension>> mPiKernelPtr;
-  std::shared_ptr<TableKernel<Dimension>> mGradKernelPtr;
   std::shared_ptr<SmoothingScaleBase<Dimension>> mSmoothingScaleMethodPtr;
   std::shared_ptr<ArtificialViscosity<Dimension>> mQptr;
   std::shared_ptr<Physics<Dimension>> mRKptr;

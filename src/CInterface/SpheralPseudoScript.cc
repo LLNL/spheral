@@ -17,9 +17,9 @@
 #include "SpheralPseudoScript.hh"
 #include "SolidMaterial/LinearPolynomialEquationOfState.hh"
 #include "SolidMaterial/NullStrength.hh"
-#include "Kernel/BSplineKernel.hh"
-#include "Kernel/QuarticSplineKernel.hh"
-#include "Kernel/QuinticSplineKernel.hh"
+#include "Kernel/WendlandC2Kernel.hh"
+#include "Kernel/WendlandC4Kernel.hh"
+#include "Kernel/WendlandC6Kernel.hh"
 #include "Kernel/NBSplineKernel.hh"
 #include "Kernel/GaussianKernel.hh"
 #include "Kernel/PiGaussianKernel.hh"
@@ -588,8 +588,6 @@ initialize(const bool     RZ,
            const int      Qoption,
            const int      distributedBoundary,
            const int      kernelType,
-           const int      piKernelType,
-           const int      gradKernelType,
            const int      nbspline,
            const int      numinterp,
            const int      rkorder,
@@ -617,8 +615,8 @@ initialize(const bool     RZ,
           "SpheralPseudoScript::initialize: RK correction order must be in the range [0,7].");
   VERIFY2(rkvolume >= 0 and rkvolume < 5,
           "SpheralPseudoScript::initialize: RK volume must be in the range [0,4].");
-  VERIFY2(kernelType >= 0 && kernelType <= 5 && piKernelType >= 0 && piKernelType <= 5 && gradKernelType >= 0 && gradKernelType <= 5,
-          "SpheralPseudoScript::initialize: SPH kernel type must be 0 (NBSpline), 1 (Gaussian), 2 (PiGaussian), 3 (BSpline), 4 (QuarticSpline), or 5 (QuinticSpline).");
+  VERIFY2(kernelType >= 0 && kernelType <= 5,
+          "SpheralPseudoScript::initialize: SPH kernel type must be 0 (NBSpline), 1 (Gaussian), 2 (PiGaussian), 3 (WendlandC2), 4 (WendlandC4), or 5 (WendlandC6).");
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -651,64 +649,16 @@ initialize(const bool     RZ,
     me.mKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), numinterp));
     break;
   case 3:
-    me.mKernelPtr.reset(new TableKernel<Dimension>(BSplineKernel<Dimension>(), numinterp));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(WendlandC2Kernel<Dimension>(), numinterp));
     break;
   case 4:
-    me.mKernelPtr.reset(new TableKernel<Dimension>(QuarticSplineKernel<Dimension>(), numinterp));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(WendlandC4Kernel<Dimension>(), numinterp));
     break;
   case 5:
-    me.mKernelPtr.reset(new TableKernel<Dimension>(QuinticSplineKernel<Dimension>(), numinterp));
+    me.mKernelPtr.reset(new TableKernel<Dimension>(WendlandC6Kernel<Dimension>(), numinterp));
     break;
   default:
     VERIFY2(false, "SpheralPsuedoScript::initialize: invalid kernelType " << kernelType);
-  }
-
-  // Build the interpolation kernel for artificial viscosity.
-  switch(piKernelType) {
-  case 0:
-    me.mPiKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), numinterp));
-    break;
-  case 1:
-    me.mPiKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), numinterp));
-    break;
-  case 2:
-    me.mPiKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), numinterp));
-    break;
-  case 3:
-    me.mPiKernelPtr.reset(new TableKernel<Dimension>(BSplineKernel<Dimension>(), numinterp));
-    break;
-  case 4:
-    me.mPiKernelPtr.reset(new TableKernel<Dimension>(QuarticSplineKernel<Dimension>(), numinterp));
-    break;
-  case 5:
-    me.mPiKernelPtr.reset(new TableKernel<Dimension>(QuinticSplineKernel<Dimension>(), numinterp));
-    break;
-  default:
-    VERIFY2(false, "SpheralPseudoScript::initialize: invalid piKerneltype " << piKernelType);
-  }
-
-  // Build the interpolation kernel for the velocity gradient.
-  switch(gradKernelType) {
-  case 0:
-    me.mGradKernelPtr.reset(new TableKernel<Dimension>(NBSplineKernel<Dimension>(nbspline), numinterp));
-    break;
-  case 1:
-    me.mGradKernelPtr.reset(new TableKernel<Dimension>(GaussianKernel<Dimension>(3.0), numinterp));
-    break;
-  case 2:
-    me.mGradKernelPtr.reset(new TableKernel<Dimension>(PiGaussianKernel<Dimension>(7.0), numinterp));
-    break;
-  case 3:
-    me.mGradKernelPtr.reset(new TableKernel<Dimension>(BSplineKernel<Dimension>(), numinterp));
-    break;
-  case 4:
-    me.mGradKernelPtr.reset(new TableKernel<Dimension>(QuarticSplineKernel<Dimension>(), numinterp));
-    break;
-  case 5:
-    me.mGradKernelPtr.reset(new TableKernel<Dimension>(QuinticSplineKernel<Dimension>(), numinterp));
-    break;
-  default:
-    VERIFY2(false, "SpheralPseudoScript::initialize: invalid gradKerneltype " << gradKernelType);
   }
 
   // Construct the NodeLists for our materials.
@@ -796,8 +746,8 @@ initialize(const bool     RZ,
                                                           *me.mDataBasePtr,
                                                           *me.mQptr,
                                                           *me.mKernelPtr,
-                                                          *me.mPiKernelPtr,
-                                                          *me.mGradKernelPtr,
+                                                          *me.mKernelPtr,
+                                                          *me.mKernelPtr,
                                                           0.0,                                  // filter
                                                           CFL,                                  // cfl
                                                           useVelocityDt,                        // useVelocityMagnitudeForDt
@@ -1720,8 +1670,6 @@ SpheralPseudoScript():
   mNeighbors(),
   mNodeLists(),
   mKernelPtr(),
-  mPiKernelPtr(),
-  mGradKernelPtr(),
   mSmoothingScaleMethodPtr(),
   mQptr(),
   mRKptr(),

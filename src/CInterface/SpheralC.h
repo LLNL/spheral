@@ -118,8 +118,6 @@ SPHERALDLL_API   void spheral_set_communicator(MPI_Comm* comm);
                                                                      2=TensorMonaghanGingold)
     distributedBoundary   : type of distributed boundary / neighbor method (0 or 1 = NestedGrid, 2 = Tree)
     kernelType            : select the generic interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
-    piKernelType          : select the artificial viscosity interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
-    gradKernelType        : select the velocity gradient interpolation kernel (0=BSpline, 1=Gaussian, 2=PiGaussian)
     nbspline              : order of kernel (if using B splines)
     numinterp             : number of kernel interpolation points
     rkorder               : order of CRK correction
@@ -156,8 +154,6 @@ SPHERALDLL_API
                           const int      Qoption,
                           const int      distributedBoundary,
                           const int      kernelType,
-                          const int      piKernelType,
-                          const int      gradKernelType,
                           const int      nbspline,
                           const int      numinterp,
                           const int      rkorder,
