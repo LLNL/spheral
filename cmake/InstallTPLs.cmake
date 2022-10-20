@@ -17,7 +17,6 @@ Spheral_Handle_TPL(hdf5 spheral_depends cxx)
 Spheral_Handle_TPL(silo spheral_depends cxx)
 Spheral_Handle_TPL(conduit spheral_depends cxx)
 Spheral_Handle_TPL(axom spheral_depends cxx)
-Spheral_Handle_TPL(caliper spheral_depends cxx)
 
 # AXOM PUlls in HDF5 and Conduit for us
 find_package(axom REQUIRED QUIET PATHS ${axom_DIR}/lib/cmake)
@@ -32,6 +31,9 @@ if (ENABLE_ANEOS)
 endif()
 if (ENABLE_OPENSUBDIV)
   Spheral_Handle_TPL(opensubdiv spheral_depends cxx)
+endif()
+if(ENABLE_TIMER)
+  Spheral_Handle_TPL(caliper spheral_depends cxx)
 endif()
 
 # Only needed when building the python interface of spheral
