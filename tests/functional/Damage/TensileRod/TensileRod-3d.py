@@ -519,7 +519,6 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            timerName = timerFile,
                             SPH = not ASPH)
 output("control")
 

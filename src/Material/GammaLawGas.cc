@@ -133,8 +133,8 @@ setGammaField(Field<Dimension, Scalar>& gamma,
 }
 
 //------------------------------------------------------------------------------
-// Set the bulk modulus (rho DP/Drho).  This is just the pressure for a gamma
-// law gas.
+// Set the bulk modulus (rho DP/Drho). 
+// This is just the specific heat ratio times pressure for a gamma law gas.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -143,7 +143,9 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
                const Field<Dimension, Scalar>& massDensity,
                const Field<Dimension, Scalar>& specificThermalEnergy) const {
   CHECK(valid());
-  setPressure(bulkModulus, massDensity, specificThermalEnergy);
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+    bulkModulus(i) = this->bulkModulus(massDensity(i), specificThermalEnergy(i));
+  }
 }
 
 //------------------------------------------------------------------------------

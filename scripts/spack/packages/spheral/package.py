@@ -40,7 +40,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
     depends_on('boost@1.74.0 -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
-    depends_on('qhull@2020.1', type='build')
+    depends_on('qhull@2020.1 +pic', type='build')
     depends_on('m-aneos')
     depends_on('py-polyclipper')
     depends_on('eigen@3.4.0', type='build')
@@ -63,6 +63,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('raja+desul~shared', when='~cuda')
     depends_on('chai~shared', when='~cuda')
     depends_on('umpire~shared', when='~cuda')
+    depends_on('caliper ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
 
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope', type='build')
@@ -75,9 +76,25 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('py-pyb11generator@1.0.12', type='build')
     depends_on('py-virtualenv', type='build')
 
-    depends_on('py-sphinx@1.8.5', type='build', when='+docs')
-    depends_on('py-sphinx-rtd-theme@0.5.0', type='build', when='+docs')
+    depends_on('py-numpy@1.16.5', type='build')
+    depends_on('py-numpy-stl@2.11.2', type='build')
+    depends_on('py-enum34', type='build')
+    depends_on('py-python-utils@2.4.0', type='build')
+    depends_on('py-matplotlib@2.2.5', type='build')
+    depends_on('py-pillow@6.2.2', type='build')
+    depends_on('py-decorator@4.4.2', type='build')
+    depends_on('py-h5py@2.10.0', type='build')
+    depends_on('py-docutils@0.17.1', type='build')
+    depends_on('py-cython@0.29.21', type='build')
+    depends_on('py-scipy@1.2.3', type='build')
+    depends_on('py-pipreqs@0.4.10', type='build')
+    depends_on('py-importlib-metadata@2.0.0', type='build')
+    depends_on('py-gnuplot@1.8', type='build')
+    depends_on('py-ats@7.0.9', type='build')
+    depends_on('py-mpi4py@3.0.3', type='build', when='+mpi')
 
+    depends_on('py-sphinx@1.8.5', type='build')
+    depends_on('py-sphinx-rtd-theme@0.5.0', type='build')
     # -------------------------------------------------------------------------
     # DEPENDS
     # -------------------------------------------------------------------------
@@ -152,64 +169,37 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
         entries.append(cmake_cache_option('BUILD_TPL', True))
 
         # TPL locations
-        entries.append(cmake_cache_option('python_BUILD', False))
+        entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
+
         entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
 
-        entries.append(cmake_cache_option('zlib_BUILD', False))
         entries.append(cmake_cache_path('zlib_DIR', spec['zlib'].prefix))
 
-        entries.append(cmake_cache_option('boost_BUILD', False))
         entries.append(cmake_cache_path('boost_DIR', spec['boost'].prefix))
 
-        entries.append(cmake_cache_option('qhull_BUILD', False))
         entries.append(cmake_cache_path('qhull_DIR', spec['qhull'].prefix))
 
-        entries.append(cmake_cache_option('aneos_BUILD', False))
         entries.append(cmake_cache_path('aneos_DIR', spec['m-aneos'].prefix))
 
-        entries.append(cmake_cache_option('hdf5_BUILD', False))
         entries.append(cmake_cache_path('hdf5_DIR', spec['hdf5'].prefix))
     
-        entries.append(cmake_cache_option('conduit_BUILD', False))
         entries.append(cmake_cache_path('conduit_DIR', spec['conduit'].prefix))
 
-        entries.append(cmake_cache_option('axom_BUILD', False))
         entries.append(cmake_cache_path('axom_DIR', spec['axom'].prefix))
 
-        entries.append(cmake_cache_option('silo_BUILD', False))
         entries.append(cmake_cache_path('silo_DIR', spec['silo'].prefix))
 
-        entries.append(cmake_cache_option('eigen_BUILD', False))
         entries.append(cmake_cache_path('eigen_DIR', spec['eigen'].prefix))
         entries.append(cmake_cache_path('eigen_INCLUDES','$<BUILD_INTERFACE:' + spec['eigen'].prefix.include.eigen3 + '>'))
 
-        entries.append(cmake_cache_option('opensubdiv_BUILD', False))
         entries.append(cmake_cache_path('opensubdiv_DIR', spec['opensubdiv'].prefix))
 
-        entries.append(cmake_cache_option('pip_BUILD', False))
-        entries.append(cmake_cache_path('pip_DIR', spec['py-pip'].prefix + '/lib/python2.7/site-packages/'))
-        entries.append(cmake_cache_path('PIP_EXE', spec['py-pip'].prefix + '/bin/pip'))
-
-        entries.append(cmake_cache_option('setuptools_BUILD', False))
-        entries.append(cmake_cache_path('setuptools_DIR', spec['py-setuptools'].prefix + '/lib/python2.7/site-packages/'))
-
-        entries.append(cmake_cache_option('pybind11_BUILD', False))
         entries.append(cmake_cache_path('pybind11_DIR', spec['py-pybind11'].prefix))
 
-        entries.append(cmake_cache_option('decorator_BUILD', False))
-        entries.append(cmake_cache_path('decorator_DIR', spec['py-decorator'].prefix + '/lib/python2.7/site-packages/'))
-
-        entries.append(cmake_cache_option('pyb11generator_BUILD', False))
-        entries.append(cmake_cache_path('pyb11generator_DIR', spec['py-pyb11generator'].prefix + '/lib/python2.7/site-packages/'))
-
-        entries.append(cmake_cache_option('virtualenv_BUILD', False))
-        entries.append(cmake_cache_path('virtualenv_DIR', spec['py-virtualenv'].prefix + '/lib/python2.7/site-packages/'))
-
-        entries.append(cmake_cache_option('polyclipper_BUILD', False))
         entries.append(cmake_cache_path('polyclipper_DIR', spec['py-polyclipper'].prefix))
 
-        entries.append(cmake_cache_option('polytope_BUILD', False))
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))
+        os.environ['PYTHONPATH'] += ':' + spec['polytope'].prefix + '/lib/python2.7/site-packages/polytope/'
 
         entries.append(cmake_cache_option('raja_BUILD', False))
         entries.append(cmake_cache_path('raja_DIR', spec['raja'].prefix))
@@ -234,6 +224,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
         entries.append(cmake_cache_option('ENABLE_OPENMP', '+openmp' in spec))
         entries.append(cmake_cache_option('ENABLE_DOCS', '+docs' in spec))
 
+        entries.append(cmake_cache_path('SPACK_PYTHONPATH', os.environ.get('PYTHONPATH')))
 
         return entries
 

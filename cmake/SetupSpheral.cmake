@@ -130,6 +130,12 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 
 #-------------------------------------------------------------------------------
+# Also globally set the variable for the list we accumulate the obj files from
+# each library into
+#-------------------------------------------------------------------------------
+set_property(GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+
+#-------------------------------------------------------------------------------
 # Install symlink for spheral->python
 #-------------------------------------------------------------------------------
 if (NOT ENABLE_CXXONLY)

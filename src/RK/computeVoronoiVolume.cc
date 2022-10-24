@@ -9,10 +9,8 @@
 #include "Utilities/allReduce.hh"
 #include "Utilities/pointOnPolygon.hh"
 #include "Utilities/FastMath.hh"
-#include "Utilities/Timer.hh"
 #include "Geometry/PolyClipperUtilities.hh"
-
-extern Timer TIME_computeVoronoiVolume;
+#include "Utilities/Timer.hh"
 
 #include <algorithm>
 #include <utility>
@@ -345,7 +343,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
                      FieldList<Dimension, typename Dimension::FacetedVolume>& cells,
                      FieldList<Dimension, std::vector<CellFaceFlag>>& cellFaceFlags) {
 
-  TIME_computeVoronoiVolume.start();
+  TIME_FUNCTION;
 
   // Pre-conditions
   REQUIRE(facetedBoundaries.size() == 0 or facetedBoundaries.size() == position.size());
@@ -771,7 +769,6 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
   }    // numGensGlobal > 0
 
   // cerr << "computeVoronoiVolume FINISHED" << endl;
-  TIME_computeVoronoiVolume.stop();
 }
     
 //------------------------------------------------------------------------------

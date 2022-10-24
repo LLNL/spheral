@@ -1,44 +1,30 @@
 cd @CMAKE_INSTALL_PREFIX@
 echo "Creating Spheral virtual python environment ..."
+env PYTHONPATH=@SPACK_PYTHONPATH@ @PYTHON_EXE@ -m virtualenv -p @PYTHON_EXE@ .venv --no-pip --no-setuptools
 
-env PYTHONPATH=@BUILDTIME_PYTHONENV_STR@ @PYTHON_EXE@ -m virtualenv -p @PYTHON_EXE@ .venv --no-pip --no-setuptools
+echo "Installing runtime python libraries ..."
+cp -r @VIRTUALENV_PYTHONPATH_COPY@ .venv/ &> /dev/null
 
-echo "Copy pip from pip_DIR ..."
-cp -r @pip_DIR@/* .venv/lib/python2.7/site-packages/
-
-echo "Copy setuptools from setuptools_DIR ..."
-cp -r @setuptools_DIR@/* .venv/lib/python2.7/site-packages/
-
-#echo "Copy pyb11generator from pyb11generator_DIR ..."
-#cp -r @pyb11generator_DIR@/* .venv/lib/python2.7/site-packages/
-
-#echo "Activating virtual environment"
-#source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate
-
-echo "Installing runtime python dependencies from generatoed requirements.txt ..."
-source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate && @CMAKE_INSTALL_PREFIX@/.venv/bin/python -m pip download -r scripts/requirements.txt --no-binary :all -d @CACHE_DIR@
-source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate && @CMAKE_INSTALL_PREFIX@/.venv/bin/python -m pip install -r scripts/requirements.txt --no-index --find-links @CACHE_DIR@
-
-echo "Installing custom runtime python dependencies : gnuplot, ats ..."
-source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate && wget @GNUPLOT_URL@ --no-check-certificate -O @GNUPLOT_CACHE@ > @GNUPLOT_CACHE@-download.log
-source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate && @CMAKE_INSTALL_PREFIX@/.venv/bin/python -m pip install @GNUPLOT_CACHE@ --no-index --find-links @CACHE_DIR@
-source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate && wget @ATS_URL@ --no-check-certificate -O @ATS_CACHE@ > @ATS_CACHE@-download.log
-source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate && @CMAKE_INSTALL_PREFIX@/.venv/bin/python -m pip install @ATS_CACHE@ --no-index --find-links @CACHE_DIR@
-
-echo "Installing Spheral ..."
-cp @polytope_DIR@/lib/python2.7/site-packages/polytope/polytope.so @CMAKE_INSTALL_PREFIX@/.venv/lib/python2.7/site-packages/
+echo "Setup Spheral libraries ..."
 cp Spheral.pth .venv/lib/python2.7/site-packages/
 mkdir -p .venv/lib/python2.7/site-packages/Spheral
-
 cd @CMAKE_INSTALL_PREFIX@/.venv/lib/python2.7/site-packages/Spheral
 cp --symbolic-link @CMAKE_INSTALL_PREFIX@/Spheral/* . > /dev/null 2>&1
 cd - > /dev/null 
+
+# We need to reconfigure ATS to use our virtual env python otherwise ats will not be able to launch properly.
+echo "Reconfigure ATS executing python to virtual env python..."
+sed -i '2s/.*/XXXXXX/' .venv/bin/ats
+sed -i 's|XXXXXX|\x27\x27\x27exec\x27 @CMAKE_INSTALL_PREFIX@/.venv/bin/python "$0" "$@"|' .venv/bin/ats
 
 echo "Creating spheral symlink to spheral-env script ..."
 cd @CMAKE_INSTALL_PREFIX@
 chmod u+x scripts/spheral-env.sh
 chmod u+x scripts/atstest.sh
-cp --symbolic-link scripts/spheral-env.sh spheral
-cp --symbolic-link scripts/atstest.sh spheral-atstest
+chmod u+x scripts/lcatstest.sh
+cp --symbolic-link scripts/spheral-env.sh spheral &> /dev/null
+cp --symbolic-link scripts/atstest.sh spheral-atstest &> /dev/null
+cp --symbolic-link scripts/lcatstest.sh spheral-lcatstest &> /dev/null
 cd - > /dev/null 
 
+echo "Done."

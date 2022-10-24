@@ -50,7 +50,6 @@ class SpheralController:
                  reinitializeNeighborsStep = 10,
                  volumeType = RKVolumeType.RKVoronoiVolume,
                  facetedBoundaries = None,
-                 timerName = "",
                  printAllTimers = False):
         self.restart = RestartableObject(self)
         self.integrator = integrator
@@ -73,13 +72,6 @@ class SpheralController:
             self.kernel = kernel.baseKernel1d
         else:
             self.kernel = kernel
-
-        if timerName == "":
-            self.timerName = "time.table"
-        else:
-            self.timerName = timerName
-        self.printAllTimers = printAllTimers
-        startRootTimer()
 
         # Determine the dimensionality of this run, based on the integrator.
         self.dim = "%id" % self.integrator.dataBase.nDim
@@ -140,7 +132,7 @@ class SpheralController:
     # Destructor
     #--------------------------------------------------------------------------
     def __del__(self):
-        stopRootTimer()
+        pass
 
     #--------------------------------------------------------------------------
     # (Re)initialize the current problem (and controller state).
@@ -386,9 +378,6 @@ class SpheralController:
 
         # Print how much time was spent per integration cycle.
         self.stepTimer.printStatus()
-
-        # Output any timer info
-        Timer.TimerSummary(self.timerName, self.printAllTimers)
 
         return
 

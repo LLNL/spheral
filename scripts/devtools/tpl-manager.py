@@ -11,7 +11,7 @@ import json
 project_dir=os.path.abspath(os.path.join(os.path.realpath(__file__), "../../../"))
 
 default_spheral_spack_dir=os.path.join(os.getcwd(), "../spheral-spack-tpls")
-upstream_dir="/usr/WS2/wciuser/Spheral/spheral-spack-tpls/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_p/"
+default_upstream_dir="/usr/WS2/wciuser/Spheral/spheral-spack-tpls/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_p/"
 
 uberenv_path = os.path.join(project_dir, "scripts/devtools/uberenv/uberenv.py")
 uberenv_project_json = os.path.join(os.getcwd(), ".uberenv_config.json")
@@ -31,6 +31,12 @@ def parse_args():
   parser.add_argument('--spheral-spack-dir', type=str, default=default_spheral_spack_dir,
       help='Dir of spack instance to handle tpls. This can point at \
             an existing spack dir or an empty on to create a new spack instance.')
+
+  parser.add_argument('--upstream-dir', type=str, default=default_upstream_dir,
+      help='Dir of upstream spack installation.')
+
+  parser.add_argument('--spack-url', type=str, default="",
+      help='URL of spack to use.')
 
   parser.add_argument('--no-clean', type=bool, default=False,
       help='Do not clean spack generated log files.')
@@ -90,9 +96,12 @@ def build_deps(args):
     spack_config_dir_opt="--spack-config-dir={0}".format(os.path.join(project_dir, "scripts/spack/configs/x86_64"))
 
   spack_upstream_opt=""
-  if os.path.isdir(upstream_dir):
-    spack_upstream_opt="--upstream {0}".format(upstream_dir)
+  if os.path.isdir(args.upstream_dir):
+    spack_upstream_opt="--upstream {0}".format(args.upstream_dir)
 
+  uberenv_spack_url_opt=""
+  if args.spack_url:
+      uberenv_spack_url_opt="--spack-url {0}".format(args.spack_url)
 
   # We use uberenv to set up our spack instance with our respective package.yaml files
   # config.yaml and custom spack packages recipes.
@@ -101,7 +110,7 @@ def build_deps(args):
   uberenv_project_json_opt="--project-json={0}".format(uberenv_project_json)
 
   print("** Spheral Spack Dir : {0}".format(args.spheral_spack_dir))
-  sexe("python3 {0} --setup-only {1} {2} {3} {4}".format(uberenv_path, prefix_opt, uberenv_project_json_opt, spack_config_dir_opt, spack_upstream_opt), echo=True)
+  sexe("python3 {0} --setup-only {1} {2} {3} {4} {5}".format(uberenv_path, prefix_opt, uberenv_project_json_opt, spack_config_dir_opt, spack_upstream_opt, uberenv_spack_url_opt), echo=True)
 
   # We just want to use the spac instance directly to generate our TPLs, we don't want
   # to have the spack instance take over our environment.
@@ -115,6 +124,7 @@ def build_deps(args):
   for s in spec_list:
     print("** Building TPL's and generating host-config for {0}%{1} ...".format(package_name,s))
     os.environ["SPEC"] = s
+    os.environ["LC_ALL"] = "en_US.UTF-8"
     if sexe("{0} spec -I {1}@develop%{2}".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
     if sexe("{0} dev-build --deprecated --quiet -d {1} -u initconfig {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
 
