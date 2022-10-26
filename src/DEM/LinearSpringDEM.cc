@@ -252,7 +252,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto overlapij = equilibriumOverlap(storeNodeList,storeNode)[storeContact];
       const auto deltaSlidij = storageSign*shearDisplacement(storeNodeList,storeNode)[storeContact];
       const auto deltaRollij =             rollingDisplacement(storeNodeList,storeNode)[storeContact];
-      const auto deltaTorsij = storageSign*torsionalDisplacement(storeNodeList,storeNode)[storeContact];
+      const auto deltaTorsij =             torsionalDisplacement(storeNodeList,storeNode)[storeContact];
 
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
@@ -360,10 +360,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const Scalar MtStatic = muT*shapeFactor*muS*fnMag;
 
         // limit to static
-        if  (std::abs(MtorsionMag) > MtStatic){
-          MtorsionMag =  (MtorsionMag > 0.0 ? 1.0 : -1.0)*MtStatic;
-          newDeltaTorsij = (std::abs(Mt0damp) > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
-        }
+        //if  (std::abs(MtorsionMag) > MtStatic){
+        //  MtorsionMag =  (MtorsionMag > 0.0 ? 1.0 : -1.0)*MtStatic;
+        //  newDeltaTorsij = (std::abs(Mt0damp) > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
+        //}
 
         // rolling
         //------------------------------------------------------------
@@ -401,8 +401,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         // for spring updates
         newShearDisplacement(storeNodeList,storeNode)[storeContact] = storageSign*newDeltaSlidij;
         DDtShearDisplacement(storeNodeList,storeNode)[storeContact] = storageSign*vs;
-        newTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = storageSign*newDeltaTorsij;
-        DDtTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = storageSign*vt;
+        newTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaTorsij;
+        DDtTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = vt;
         newRollingDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaRollij;
         DDtRollingDisplacement(storeNodeList,storeNode)[storeContact] = vr;
     
