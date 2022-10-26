@@ -117,6 +117,8 @@ public:
 
   void initializeContacts(const DataBase<Dimension>& dataBase);
 
+  void resetContacts(const DataBase<Dimension>& dataBase);
+  
   void kullInactiveContacts(const DataBase<Dimension>& dataBase);
 
   // Optionally we can provide a bounding box for use generating the mesh
@@ -144,9 +146,10 @@ public:
   const FieldList<Dimension, Vector>& DvDt() const;
   const FieldList<Dimension, RotationType>& omega() const;
   const FieldList<Dimension, RotationType>& DomegaDt() const;
-
-  // access for pair fieldLists
   const FieldList<Dimension, int>& uniqueIndices() const;
+  const FieldList<Dimension, int>& maxNumberOfNeighbors() const;
+  
+  // access for pair fieldLists
   const FieldList<Dimension, std::vector<int>>& isActiveContact() const;
   const FieldList<Dimension, std::vector<int>>& neighborIndices() const;
   const FieldList<Dimension, std::vector<Vector>>& shearDisplacement() const;
@@ -168,8 +171,8 @@ public:
                          const Scalar particleRadiusi) const;
 
   RotationType torsionMoment(const Vector rhatij,
-                             const Vector omegai,
-                             const Vector omegaj) const;
+                             const RotationType omegai,
+                             const RotationType omegaj) const;
 
   RotationType rollingMoment(const Vector rhatij,
                              const Vector vroti,
@@ -205,15 +208,16 @@ protected:
   FieldList<Dimension, RotationType> mOmega;          // angular velocity
   FieldList<Dimension, RotationType> mDomegaDt;       // angular acceleration
   FieldList<Dimension,int>           mUniqueIndices;  // each node gets a global unique index
-  
+  FieldList<Dimension,int>           mMaxNumberOfNeighbors;
+
   // state fields attached to the pair interactions
-  FieldList<Dimension,std::vector<int>> mNeighborIndices;              // tracks unique indices of contacts-we upate these (note treated specially compared to other state pair field lists)
+  FieldList<Dimension,std::vector<int>>    mNeighborIndices;           // tracks unique indices of contacts-we upate these (note treated specially compared to other state pair field lists)
   FieldList<Dimension,std::vector<Scalar>> mEquilibriumOverlap;        // nonzero values for composite particles
   FieldList<Dimension,std::vector<Vector>> mShearDisplacement;         // displacement for sliding spring
   FieldList<Dimension,std::vector<Vector>> mRollingDisplacement;       // displacement for rolling spring
   FieldList<Dimension,std::vector<Scalar>> mTorsionalDisplacement;     // displacement for torsional spring
-  FieldList<Dimension,std::vector<int>> mIsActiveContact;              // tracks if a interfaction is still active
-  
+  FieldList<Dimension,std::vector<int>>    mIsActiveContact;           // tracks if a interaction is still active
+
    // deriv fields attached to the pair interactions
   FieldList<Dimension,std::vector<Vector>> mDDtShearDisplacement;      // derivative to evolve frictional spring displacement
   FieldList<Dimension,std::vector<Vector>> mNewShearDisplacement;      // handles rotation of frictional spring and reset on slip
