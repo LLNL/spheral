@@ -238,9 +238,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const int pairNode = contacts[kk].pairNode;
 
       // simple test for our store/pair selection
-      const bool orientationOne = (storeNodeList==nodeListi and storeNode==i and pairNodeList==nodeListj and pairNode==j);
-      const bool orientationTwo = (storeNodeList==nodeListj and storeNode==j and pairNodeList==nodeListi and pairNode==i);
-      if(not(orientationOne or orientationTwo)) throw std::invalid_argument("AddPositiveIntegers arguments must be positive");
+      //const bool orientationOne = (storeNodeList==nodeListi and storeNode==i and pairNodeList==nodeListj and pairNode==j);
+      //const bool orientationTwo = (storeNodeList==nodeListj and storeNode==j and pairNodeList==nodeListi and pairNode==i);
+      //if(not(orientationOne or orientationTwo)) throw std::invalid_argument("AddPositiveIntegers arguments must be positive");
 
       
       // storage sign to make pairwise values i-j independent
@@ -360,10 +360,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const Scalar MtStatic = muT*shapeFactor*muS*fnMag;
 
         // limit to static
-        //if  (std::abs(MtorsionMag) > MtStatic){
-        //  MtorsionMag =  (MtorsionMag > 0.0 ? 1.0 : -1.0)*MtStatic;
-        //  newDeltaTorsij = (std::abs(Mt0damp) > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
-        //}
+        if  (std::abs(MtorsionMag) > MtStatic){
+         MtorsionMag =  (MtorsionMag > 0.0 ? 1.0 : -1.0)*MtStatic;
+         newDeltaTorsij = (std::abs(Mt0damp) > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
+        }
 
         // rolling
         //------------------------------------------------------------

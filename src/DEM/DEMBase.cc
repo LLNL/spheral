@@ -43,6 +43,9 @@
 #include "omp.h"
 #endif
 
+
+#include <iostream>
+#include <stdexcept>
 #include <limits.h>
 #include <float.h>
 #include <algorithm>
@@ -186,11 +189,13 @@ void
 DEMBase<Dimension>::
 kullInactiveContactsFromStatePairFieldLists(State<Dimension>& state) const{
 
+  auto neighborIndices = state.fields(DEMFieldNames::neighborIndices,vector<int>());
   auto eqOverlap = state.fields(DEMFieldNames::equilibriumOverlap, vector<Scalar>());
   auto shearDisp = state.fields(DEMFieldNames::shearDisplacement, vector<Vector>());
   auto rollingDisplacement = state.fields(DEMFieldNames::rollingDisplacement, vector<Vector>());
   auto torsionalDisplacement = state.fields(DEMFieldNames::torsionalDisplacement, vector<Scalar>());
 
+  this->kullInactiveContactsFromPairFieldList(neighborIndices);
   this->kullInactiveContactsFromPairFieldList(eqOverlap);
   this->kullInactiveContactsFromPairFieldList(shearDisp);
   this->kullInactiveContactsFromPairFieldList(rollingDisplacement);
@@ -541,7 +546,11 @@ initializeOverlap(const DataBase<Dimension>& dataBase){
 }
 
 //------------------------------------------------------------------------------
-// REdistribution methods
+// Redistribution methods -- before we redistribute, we are going to make sure
+// that each node in the pairwise interactions agrees regarding the stored
+// pairwise variables. Note, if the kullFrequency -> infty then you will get 
+// duplicate entries. It shouldn't break things but will lead to bloat pretty
+// quickly if you're doing a lot of redistributing.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -566,17 +575,12 @@ initializeBeforeRedistribution(){
       mTorsionalDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(mTorsionalDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
       mEquilibriumOverlap   (contactkk.pairNodeList,contactkk.pairNode).push_back(mEquilibriumOverlap   (contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
       
-      //mDDtShearDisplacement    (contactkk.pairNodeList,contactkk.pairNode).push_back(-mDDtShearDisplacement    (contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
-      //mNewShearDisplacement    (contactkk.pairNodeList,contactkk.pairNode).push_back(-mNewShearDisplacement    (contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
-      //mDDtRollingDisplacement  (contactkk.pairNodeList,contactkk.pairNode).push_back(-mDDtRollingDisplacement  (contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
-      //mNewRollingDisplacement  (contactkk.pairNodeList,contactkk.pairNode).push_back(-mNewRollingDisplacement  (contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
-      //mDDtTorsionalDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(-mDDtTorsionalDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
-      //mNewTorsionalDisplacement(contactkk.pairNodeList,contactkk.pairNode).push_back(-mNewTorsionalDisplacement(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact]);
-
     } // if 
   }   // for
 }     // method
 
+
+// this might be uneccessary? 
 template<typename Dimension>
 void
 DEMBase<Dimension>::
@@ -628,13 +632,15 @@ kullInactiveContactsFromPairFieldList(Value& pairFieldList) const {
       const auto& isActivei = mIsActiveContact(nodeListi,nodei);
       auto& pairFieldi = pairFieldList(nodeListi,nodei);
 
-      const auto numContacts = pairFieldi.size();
+      //if(not(isActivei.size()==pairFieldi.size())) throw std::invalid_argument("wrong sizes");
+
+      const auto numContacts = isActivei.size();
       unsigned int activeContactCount = 0;
 
       // shift all active entries to begining of vector
       for (auto contacti = 0u; contacti < numContacts; ++contacti){
         pairFieldi[activeContactCount] = pairFieldi[contacti];
-        if (isActivei[contacti]==1) activeContactCount++;
+        if (isActivei[contacti]==1) ++activeContactCount;
       }
 
       // resize to clip old entries
@@ -804,8 +810,6 @@ kullInactiveContacts(const DataBase<Dimension>& dataBase){
     const auto& contactkk = mContactStorageIndices[kk];
     mIsActiveContact(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact] = 1;
   }
-
-  this->kullInactiveContactsFromPairFieldList(mNeighborIndices);
 }
 
 
