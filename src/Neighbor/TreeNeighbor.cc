@@ -160,10 +160,10 @@ TreeNeighbor(NodeList<Dimension>& nodeList,
              const Vector& xmin,
              const Vector& xmax):
   Neighbor<Dimension>(nodeList, searchType, kernelExtent),
-  mBoxLength(),
-  mGridLevelConst0(),
-  mXmin(),
-  mXmax(),
+  mBoxLength((xmax - xmin).maxElement()),
+  mGridLevelConst0(0.0),
+  mXmin(xmin),
+  mXmax(xmax),
   mTree() {
   this->reinitialize(xmin, xmax, (xmax - xmin).maxElement()/4.0);
 }
