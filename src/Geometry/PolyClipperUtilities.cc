@@ -218,9 +218,8 @@ vector<set<int>> convertFromPolyClipper(Dim<3>::FacetedVolume& Spheral_polyhedro
 
   // Return the set of planes responsible for each vertex.
   ENSURE(vertexPlanes.size() == Spheral_polyhedron.vertices().size());
-  return vertexPlanes;
-
   TIME_END("PC3d_convertfrom");
+  return vertexPlanes;
 }
 
 }

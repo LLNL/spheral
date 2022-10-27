@@ -41,6 +41,8 @@ spack-build*
 *.logs
 rz*
 rz*
+blueos*
+toss*
 
 
 # These are files automatically generated in our configure process.
@@ -86,3 +88,4 @@ src/PBGWraps/SpheralModules_SPH.C
 src/PBGWraps/SpheralModules_Silo.C
 src/PBGWraps/SpheralModules_Utilities.C
 src/PBGWraps/SpheralModules_WildMagic.C
+

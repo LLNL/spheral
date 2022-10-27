@@ -27,6 +27,7 @@ if (ENABLE_OPENSUBDIV)
 endif()
 if(ENABLE_TIMER)
   Spheral_Handle_TPL(caliper spheral_depends cxx)
+  Spheral_Handle_TPL(adiak spheral_depends cxx)
 endif()
 
 # Only needed when building the python interface of spheral
