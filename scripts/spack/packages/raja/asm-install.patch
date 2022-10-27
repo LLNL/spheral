@@ -1,0 +1,16 @@
+diff --git a/tpl/desul/atomics/CMakeLists.txt b/tpl/desul/atomics/CMakeLists.txt
+index 8fe77f8..97dac97 100644
+--- a/tpl/desul/atomics/CMakeLists.txt
++++ b/tpl/desul/atomics/CMakeLists.txt
+@@ -44,7 +44,10 @@ install(EXPORT desul_atomics
+ 
+ install(DIRECTORY ${PROJECT_SOURCE_DIR}/atomics/include/
+   DESTINATION include
+-  FILES_MATCHING PATTERN *.hpp)
++  FILES_MATCHING 
++  PATTERN *.hpp
++  PATTERN *.inc
++  PATTERN *.inc_*)
+ 
+ 
+   # TODO: Add tests and install targets if needed.

@@ -17,6 +17,7 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     maintainers = ['davidbeckingsale']
 
+    version('bump.desul', branch='bugfix/bump-desul', submodules='True')
     version('develop', branch='develop', submodules='True')
     version('main',  branch='main',  submodules='True')
     version('2022.03.1', tag='v2022.03.1', submodules='True')
@@ -42,6 +43,7 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
     patch('https://github.com/LLNL/RAJA/commit/eca1124ee4af380d6613adc6012c307d1fd4176b.patch',
           sha256='57dd531a50ac791b4bb214d34a4bf3fca1349354927c72915b7ccd20524701a9',
           when='@:0.13.0 ^blt@0.4:')
+    patch('asm-install.patch')
 
     variant('openmp', default=True, description='Build OpenMP backend')
     variant('shared', default=True, description='Build Shared Libs')

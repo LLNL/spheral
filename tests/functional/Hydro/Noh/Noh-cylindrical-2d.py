@@ -138,6 +138,12 @@ commandLine(order = 5,
             graphics = True,
             )
 
+#-------------------------------------------------------------------------------
+# Initialize Timer MetaData we might need
+#-------------------------------------------------------------------------------
+from Spheral_banner import *
+initAdiakData("Noh-cylindircal-2d", SpheralBranch, SpheralShortCommit, nRadial)
+
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert not((gsph or mfm) and (boolReduceViscosity or boolCullenViscosity))
 assert not(fsisph and not solid)

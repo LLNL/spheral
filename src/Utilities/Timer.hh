@@ -13,3 +13,10 @@
 #define TIME_END(regionName)
 
 #endif // TIMER
+
+namespace Spheral {
+void initAdiakData(std::string test_name,
+                   std::string spheral_branch,
+                   std::string spheral_short_commit,
+                   int problem_size);
+} //  namespace Spheral

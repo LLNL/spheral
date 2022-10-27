@@ -15,6 +15,7 @@ set(Utilities_inst
    )
 
 set(Utilities_sources
+    Timer.cc
     BuildData.cc
     DBC.cc
     QuadraticInterpolator.cc
