@@ -15,7 +15,8 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-PYB11includes += ['"Utilities/packElement.hh"',
+PYB11includes += ['"Utilities/setGlobalFlags.hh"',
+                  '"Utilities/packElement.hh"',
                   '"boost/math/special_functions/legendre.hpp"',
                   '"Utilities/BuildData.hh"',
                   '"Utilities/Functors.hh"',
@@ -68,6 +69,12 @@ PYB11preamble += """
 # Namespaces
 #-------------------------------------------------------------------------------
 PYB11namespaces = ["Spheral"]
+
+#-------------------------------------------------------------------------------
+# Standard functions
+#-------------------------------------------------------------------------------
+def setGlobalFlags():
+    return
 
 #-------------------------------------------------------------------------------
 # Instantiate types and add dimension dependent functions.

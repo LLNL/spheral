@@ -160,6 +160,9 @@ class SpheralController:
                             volumeType = RKVolumeType.RKVoronoiVolume,
                             facetedBoundaries = None):
 
+        # Call the global C++ initialization method
+        setGlobalFlags()
+
         # Intialize the cycle count.
         self.totalSteps = 0
 

@@ -40,6 +40,7 @@ set(Utilities_sources
 instantiate(Utilities_inst Utilities_sources)
 
 set(Utilities_headers
+    setGlobalFlags.hh
     Bessel.hh
     BuildData.hh
     CounterClockwiseComparator.hh
