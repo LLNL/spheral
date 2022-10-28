@@ -4,8 +4,9 @@
 #include "Utilities/OpenMP_wrapper.hh"
 #include "adiak.hpp"
 #include <omp.h>
-#include <string>
 #endif // TIMER
+
+#include <string>
 
 namespace Spheral {
 
