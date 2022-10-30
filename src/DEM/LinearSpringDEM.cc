@@ -331,6 +331,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto rij = ri-rj;
       const auto rijMag = rij.magnitude();
       const auto delta0 = (Ri+Rj) - rijMag;  // raw delta
+      CHECK2(rijMag > 0.0, "ERROR: particles (" << nodeListi << " " << i << ") and (" << nodeListj << " " << j << ") share the same position @ " << ri);
       
       // if so do the things
       if (delta0 > 0.0){
@@ -342,7 +343,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto rhatij = rij.unitVector();
 
         // reduced radii
-        const auto li = (Ri*Ri-Rj*Rj + rijMag*rijMag)/(2.0*rijMag);
+        const auto li = (Ri*Ri-Rj*Rj + rijMag*rijMag)*safeInv(2.0*rijMag);
         const auto lj = rijMag-li;
 
         // effective quantities (mass, reduced radius) respectively, mij->mi for mi=mj
