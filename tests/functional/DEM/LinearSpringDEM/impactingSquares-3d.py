@@ -61,9 +61,9 @@ commandLine(numParticlePerLength = 4,                 # number of particles on a
             dataDir = "dumps-DEM-impactingSquares-3d",
 
             # ats
+            checkRestart = False,
             checkConservation = False,             # turn on error checking for momentum conservation
-            conservationErrorThreshold = 1e-14,    # relative error for momentum conservation
-            
+            conservationErrorThreshold = 1e-14,    # relative error for momentum conservation  
             )
 
 #-------------------------------------------------------------------------------
