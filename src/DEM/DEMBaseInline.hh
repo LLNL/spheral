@@ -59,32 +59,32 @@ template<typename Dimension>
 inline
 int
 DEMBase<Dimension>::
-kullFrequency() const {
-  return mKullFrequency;
+contactRemovalFrequency() const {
+  return mContactRemovalFrequency;
 }
 
 template<typename Dimension>
 inline
 void
 DEMBase<Dimension>::
-kullFrequency(int x) {
-  mKullFrequency = x;
+contactRemovalFrequency(int x) {
+  mContactRemovalFrequency = x;
 }
 
 template<typename Dimension>
 inline
 int
 DEMBase<Dimension>::
-cyclesSinceLastKulling() const {
-  return mCyclesSinceLastKulling;
+cycle() const {
+  return mCycle;
 }
 
 template<typename Dimension>
 inline
 void
 DEMBase<Dimension>::
-cyclesSinceLastKulling(int x) {
-  mCyclesSinceLastKulling = x;
+cycle(int x) {
+  mCycle = x;
 }
 
 //------------------------------------------------------------------------------
@@ -158,13 +158,6 @@ uniqueIndices() const {
   return mUniqueIndices;
 }
 
-template<typename Dimension>
-inline
-const FieldList<Dimension, int>&
-DEMBase<Dimension>::
-maxNumberOfNeighbors() const {
-  return mMaxNumberOfNeighbors;
-}
 
 //------------------------------------------------------------------------------
 // Pair things
