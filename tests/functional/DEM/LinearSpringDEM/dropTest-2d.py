@@ -55,6 +55,9 @@ commandLine(numParticlePerLength = 50,     # number of particles on a side of th
             restartStep = 1000,
             redistributeStep = 100,
             dataDir = "dumps-DEM-2d",
+
+            # ats type things
+            checkRestart=False,
             )
 
 #-------------------------------------------------------------------------------
@@ -214,7 +217,7 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
-# Periodic Work Function: Track conseravation
+# Periodic Work Function: Track conservation
 #-------------------------------------------------------------------------------
 
 conservation = TrackConservation(db,
@@ -256,3 +259,14 @@ if not steps is None:
 else:
     control.advance(goalTime, maxSteps)
 
+
+if checkRestart:
+    control.setRestartBaseName(restartBaseName)
+    state0 = State(db, integrator.physicsPackages())
+    state0.copyState()
+    control.loadRestartFile(control.totalSteps)
+    state1 = State(db, integrator.physicsPackages())
+    if not state1 == state0:
+        raise ValueError, "The restarted state does not match!"
+    else:
+        print "Restart check PASSED."
