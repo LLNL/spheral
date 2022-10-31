@@ -85,7 +85,7 @@ assert cohesiveTensileStrength >= 0.0
 #-------------------------------------------------------------------------------
 testName = "DEM-fiveParticleCollision-2d"
 dataDir = os.path.join(dataDir,
-                       mpi.procs)
+                       "mpiprocs=%s" % mpi.procs)
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
