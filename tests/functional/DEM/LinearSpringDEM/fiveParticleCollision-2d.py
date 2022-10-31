@@ -181,10 +181,6 @@ dem = DEM(db,
           stepsPerCollision = stepsPerCollision)
 
 packages = [dem]
-print "KULLFREAK = %s" % dem.kullFrequency
-dem.kullFrequency = 1
-
-
 
 #-------------------------------------------------------------------------------
 # Initial Conditions
