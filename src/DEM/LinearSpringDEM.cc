@@ -238,15 +238,16 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const int pairNode = contacts[kk].pairNode;
 
       // simple test for our store/pair selection
-      //const bool orientationOne = (storeNodeList==nodeListi and storeNode==i and pairNodeList==nodeListj and pairNode==j);
-      //const bool orientationTwo = (storeNodeList==nodeListj and storeNode==j and pairNodeList==nodeListi and pairNode==i);
-      //if(not(orientationOne or orientationTwo)) throw std::invalid_argument("AddPositiveIntegers arguments must be positive");
+      const bool orientationOne = (storeNodeList==nodeListi and storeNode==i and pairNodeList==nodeListj and pairNode==j);
+      const bool orientationTwo = (storeNodeList==nodeListj and storeNode==j and pairNodeList==nodeListi and pairNode==i);
+      if(not(orientationOne or orientationTwo)) throw std::invalid_argument("AddPositiveIntegers arguments must be positive");
 
       
-      // storage sign to make pairwise values i-j independent
+      // storage sign, this makes pairwise values i-j independent
+      const auto uIdi = uniqueIndices(nodeListi,i);
       const auto uIds = uniqueIndices(storeNodeList,storeNode);
       const auto uIdp = uniqueIndices(pairNodeList,pairNode);
-      const int storageSign = (uIds <= uIdp ? 1 : -1);
+      const int storageSign = (uIdi == std::min(uIds,uIdp) ? 1 : -1);
 
       // stored pair-wise values
       const auto overlapij = equilibriumOverlap(storeNodeList,storeNode)[storeContact];
