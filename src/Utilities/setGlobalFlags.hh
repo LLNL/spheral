@@ -17,7 +17,8 @@ void setGlobalFlags() {
 
 #ifdef __GNUC__
 #ifdef ENABLE_NAN_EXCEPTIONS
-  feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
+  feenableexcept(FE_DIVBYZERO | FE_INVALID);
+  // feenableexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW | FE_INVALID);
 #endif
 #endif
 
