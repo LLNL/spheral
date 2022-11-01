@@ -3,6 +3,11 @@
 #
 #ATS:sph0 = test(        SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical SPH, nPerh=2.0", np=8)
 #ATS:sph1 = testif(sph0, SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical SPH, nPerh=2.0, restart test", np=8)
+#ATS:sph2 = test(        SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --steps 100", label="Noh cylindrical SPH, nPerh=2.0", np=1, nt=1)
+#ATS:sph3 = test(        SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --steps 100", label="Noh cylindrical SPH, nPerh=2.0", np=1, nt=2)
+#ATS:sph4 = test(        SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --steps 100", label="Noh cylindrical SPH, nPerh=2.0", np=1, nt=4)
+#ATS:sph5 = test(        SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --steps 100", label="Noh cylindrical SPH, nPerh=2.0", np=1, nt=8)
+#ATS:sph6 = test(        SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --steps 100", label="Noh cylindrical SPH, nPerh=2.0", np=1, nt=16)
 #
 # CRK (SumVolume)
 #
