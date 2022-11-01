@@ -119,9 +119,8 @@ def main():
     if build_result != 0:
       print(build_result)
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-      print("Compilation failed, running make VERBOSE=1")
+      print("Compilation failed")
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-      sexe("{0} {1} --build . --verbose --target install -j 1".format(ml_cmd, cmake_cmd),ret_output=True, echo=True)
       sys.exit(1)
 
     # Try to import Spheral for a basic sanity test.
