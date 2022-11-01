@@ -17,15 +17,26 @@ using std::abs;
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PorousEquationOfState<Dimension>::
-PorousEquationOfState(const EquationOfState<Dimension>& solidEOS):
-  EquationOfState<Dimension>(solidEOS.constants(),
-                             solidEOS.minimumPressure(),
-                             solidEOS.maximumPressure(),
-                             solidEOS.minimumPressureType()),
-  mSolidEOS(solidEOS),
+PorousEquationOfState(const EquationOfState<Dimension>& EOS):
+  SolidEquationOfState<Dimension>(1.0,
+                                  std::numeric_limits<double>::min(),
+                                  std::numeric_limits<double>::max(),
+                                  EOS.constants(),
+                                  EOS.minimumPressure(),
+                                  EOS.maximumPressure(),
+                                  EOS.minimumPressure(),
+                                  EOS.minimumPressureType()),
+  mEOS(EOS),
   mAlphaPtr(nullptr),
   mAlpha0Ptr(nullptr),
   mC0Ptr(nullptr) {
+  const auto* solidEOSPtr = dynamic_cast<const SolidEquationOfState<Dimension>*>(&EOS);
+  if (solidEOSPtr != nullptr) {
+    this->referenceDensity(solidEOSPtr->referenceDensity());
+    this->etamin(solidEOSPtr->etamin());
+    this->etamax(solidEOSPtr->etamax());
+    this->minimumPressureDamage(solidEOSPtr->minimumPressureDamage());
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -52,7 +63,7 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 
   // The base EOS set's the solid (compacted) pressure.
   const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
-  mSolidEOS.setPressure(Pressure, rhoS, specificThermalEnergy);
+  mEOS.setPressure(Pressure, rhoS, specificThermalEnergy);
 
   // Now apply the porosity modifier.
   const unsigned n = Pressure.numInternalElements();
@@ -77,7 +88,7 @@ setTemperature(Field<Dimension, Scalar>& temperature,
   REQUIRE(specificThermalEnergy.nodeListPtr() == temperature.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == temperature.nodeListPtr());
   const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
-  mSolidEOS.setTemperature(temperature, rhoS, specificThermalEnergy);
+  mEOS.setTemperature(temperature, rhoS, specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------
@@ -94,7 +105,7 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
   REQUIRE(temperature.nodeListPtr() == specificThermalEnergy.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == specificThermalEnergy.nodeListPtr());
   const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
-  mSolidEOS.setSpecificThermalEnergy(specificThermalEnergy, rhoS, temperature);
+  mEOS.setSpecificThermalEnergy(specificThermalEnergy, rhoS, temperature);
 }
 
 //------------------------------------------------------------------------------
@@ -111,7 +122,7 @@ setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
   REQUIRE(temperature.nodeListPtr() == specificHeat.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == specificHeat.nodeListPtr());
   const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
-  mSolidEOS.setSpecificHeat(specificHeat, rhoS, temperature);
+  mEOS.setSpecificHeat(specificHeat, rhoS, temperature);
 }
 
 //------------------------------------------------------------------------------
@@ -135,7 +146,7 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
   REQUIRE(mC0Ptr->nodeListPtr() == soundSpeed.nodeListPtr());
 
   const auto rhoS = (*mAlphaPtr)*massDensity;
-  mSolidEOS.setSoundSpeed(soundSpeed, rhoS, specificThermalEnergy);
+  mEOS.setSoundSpeed(soundSpeed, rhoS, specificThermalEnergy);
   
   // Now apply the porosity modifier.
   const auto n = soundSpeed.numInternalElements();
@@ -163,7 +174,7 @@ setGammaField(Field<Dimension, Scalar>& gamma,
   REQUIRE(specificThermalEnergy.nodeListPtr() == gamma.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == gamma.nodeListPtr());
   const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
-  mSolidEOS.setGammaField(gamma, rhoS, specificThermalEnergy);
+  mEOS.setGammaField(gamma, rhoS, specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------
@@ -180,7 +191,7 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
   REQUIRE(specificThermalEnergy.nodeListPtr() == bulkModulus.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == bulkModulus.nodeListPtr());
   const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
-  mSolidEOS.setBulkModulus(bulkModulus, rhoS, specificThermalEnergy);
+  mEOS.setBulkModulus(bulkModulus, rhoS, specificThermalEnergy);
 
   // Now apply the porosity modifier.
   const unsigned n = bulkModulus.numInternalElements();
@@ -213,17 +224,31 @@ setEntropy(Field<Dimension, Scalar>& entropy,
 template<typename Dimension>
 bool
 PorousEquationOfState<Dimension>::valid() const {
-  return (mSolidEOS.valid() and mAlphaPtr != 0);
+  return (mEOS.valid() and mAlphaPtr != 0);
 }
 
 //------------------------------------------------------------------------------
-// Access the underlying solid EOS.
+// Access the underlying EOS.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 const EquationOfState<Dimension>&
 PorousEquationOfState<Dimension>::
+EOS() const {
+  return mEOS;
+}
+
+//------------------------------------------------------------------------------
+// Access the underlying SolidEOS.  If not a SolidEquationOfState, throws an
+// excption.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const SolidEquationOfState<Dimension>&
+PorousEquationOfState<Dimension>::
 solidEOS() const {
-  return mSolidEOS;
+  const auto* solidEOSPtr = dynamic_cast<const SolidEquationOfState<Dimension>*>(&mEOS);
+  VERIFY2(solidEOSPtr != nullptr,
+          "PorousEquationOfState ERROR: attempt to access solidEOS on a fluid EquationOfState");
+  return *solidEOSPtr;
 }
 
 //------------------------------------------------------------------------------
