@@ -43,11 +43,12 @@ commandLine(# problem geometry
 
             # problem I.C.s
             rho1 = 1.0,
-            eps1 = 1.0,
+            #eps1 = 1.0,
             A = 1.0e-6,
             kfreq = 1.0,
             cs2 = 1.0,
             mu = 1.0,
+            gamma1 = 5.0/3.0,
 
             # Kernel properties
             KernelConstructor = WendlandC2Kernel,
@@ -90,6 +91,7 @@ commandLine(# problem geometry
             LimiterConstructor = VanLeerLimiter,             # VanLeer, Opsre, MinMod, VanAlba, Superbee
             riemannLinearReconstruction = True,              # True - second order, False - first order
             riemannGradientType = HydroAccelerationGradient, # HydroAccelerationGradient, SPHGradient, RiemannGradient, MixedMethodGradient, SPHSameTimeGradient
+            gsphRiemannSolver = "HLLC",                      # HLLC / ArtificialViscosity
 
             # Artificial Viscosity
             Cl = 1.0,
@@ -100,7 +102,7 @@ commandLine(# problem geometry
 
             # integrator options
             IntegratorConstructor = VerletIntegrator,#CheapSynchronousRK2Integrator,
-            cfl = 0.25,
+            cfl = 0.35,
             steps = None,
             goalTime = 1.0,
             dt = 1.0e-10,
@@ -119,7 +121,7 @@ commandLine(# problem geometry
             clearDirectories = True,
             dataDirBase = "dumps-planar-AcousticWave-1d",
             outputFile = "AcousticWave-planar-1d.gnu",
-            normOutputFile = "_cfl2_asciiDump.dat",
+            normOutputFile = "_asciiDump.dat",
             writeOutputLabel = True,
 
             graphics = False,#"gnu",
@@ -154,7 +156,7 @@ elif LimiterConstructor==MinModLimiter:
 elif LimiterConstructor==SuperbeeLimiter:
     normOutputFile = "Superbee_"+normOutputFile
 normOutputFile = str(densityUpdate)+"_"+normOutputFile
-normOutputFile = hydroname+"_"+normOutputFile
+normOutputFile = hydroname+"_"+gsphRiemannSolver+"_"+normOutputFile
 
 print normOutputFile
 dataDir = os.path.join(dataDirBase,
@@ -176,8 +178,8 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-eos = IsothermalEquationOfStateMKS(cs2, mu)
-
+#eos = IsothermalEquationOfStateMKS(cs2, mu)
+eos = GammaLawGasMKS(gamma1, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
@@ -247,9 +249,12 @@ pos = nodes1.positions()
 vel = nodes1.velocity()
 rho = nodes1.massDensity()
 mass = nodes1.mass()
+eps = nodes1.specificThermalEnergy()
 H = nodes1.Hfield()
 dx = (x1 - x0)/nx1
 xi = x0
+eps1 = cs2/(gamma1*(gamma1-1.0))
+P1 = (gamma1-1.0)*rho1*eps1
 for i in xrange(nodes1.numInternalNodes):
     func0 = MassFunctor(max(0.0, Mi[i] - mi))
     func1 = MassFunctor(Mi[i])
@@ -262,6 +267,8 @@ for i in xrange(nodes1.numInternalNodes):
     vel[i].x = A*cs*sin(twopi*kfreq*(xi - x0)/(x1 - x0))
     rho[i] = rho1*(1.0 + A*sin(twopi*kfreq*(xi - x0)/(x1 - x0)))
     mass[i] = rho1*((xi1 - xi0) - A/(twopi*kfreq)*(cos(twopi*kfreq*xi1) - cos(twopi*kfreq*xi0)))
+    Pi = P1+A*sin(twopi*kfreq*(xi - x0)/(x1 - x0))
+    eps[i] = Pi/((gamma1 - 1.0)*rho[i])
     print A/(twopi*kfreq)*(cos(twopi*kfreq*xi1) - cos(twopi*kfreq*xi0))
     print("%3.16e" % mass[i])
     H[i] *= rho[i]/rho1
@@ -346,7 +353,12 @@ elif fsisph:
 elif gsph:
     limiter = LimiterConstructor()
     waveSpeed = WaveSpeedConstructor()
-    solver = HLLC(limiter,waveSpeed,riemannLinearReconstruction)
+    if gsphRiemannSolver == "HLLC":
+        solver = HLLC(limiter,waveSpeed,riemannLinearReconstruction)
+    elif gsphRiemannSolver == "ArtificialViscosity":
+        solver = SecondOrderArtificialViscosity(Cl,Cq,limiter,waveSpeed,riemannLinearReconstruction)
+    else:
+        raise ValueError, "WRONG!"
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
                 W = WT,
@@ -363,7 +375,13 @@ elif gsph:
 elif mfm:
     limiter = LimiterConstructor()
     waveSpeed = WaveSpeedConstructor()
-    solver = HLLC(limiter,waveSpeed,riemannLinearReconstruction)
+    if gsphRiemannSolver == "HLLC":
+        solver = HLLC(limiter,waveSpeed,riemannLinearReconstruction)
+    elif gsphRiemannSolver == "ArtificialViscosity":
+        solver = SecondOrderArtificialViscosity(Cl,Cq,limiter,waveSpeed,riemannLinearReconstruction)
+    else:
+        raise ValueError, "WRONG!"
+
     hydro = MFM(dataBase = db,
                 riemannSolver = solver,
                 W = WT,
