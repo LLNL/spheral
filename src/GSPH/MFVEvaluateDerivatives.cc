@@ -233,7 +233,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto gradPj = riemannDpDxj;
       auto gradVi = riemannDvDxi;
       auto gradVj = riemannDvDxj;
-      if (gradType==GradientType::SPHSameTimeGradient){
+      if (gradType==GradientType::SPHSameTimeGradient or
+          gradType==GradientType::SPHUncorrectedGradient){
         gradPi = newRiemannDpDx(nodeListi,i);
         gradPj = newRiemannDpDx(nodeListj,j);
         gradVi = newRiemannDvDx(nodeListi,i);
