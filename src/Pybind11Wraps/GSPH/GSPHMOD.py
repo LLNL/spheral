@@ -49,7 +49,9 @@ GradientType = PYB11enum(("RiemannGradient",
                           "HydroAccelerationGradient",
                           "SPHGradient",
                           "MixedMethodGradient",
-                          "SPHSameTimeGradient"), export_values = True)
+                          "SPHSameTimeGradient",
+                          "SPHUncorrectedGradient",
+                          "NoGradient"), export_values = True)
 
 #-------------------------------------------------------------------------------
 # Instantiate our types

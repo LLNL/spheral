@@ -20,7 +20,9 @@ enum class GradientType {
   HydroAccelerationGradient = 1,
   SPHGradient = 2,
   MixedMethodGradient = 3,
-  SPHSameTimeGradient = 4
+  SPHSameTimeGradient = 4,
+  SPHUncorrectedGradient = 5,
+  NoGradient = 6
 };
 
 template<typename Dimension> class State;
