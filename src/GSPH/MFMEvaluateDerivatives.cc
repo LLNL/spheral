@@ -233,7 +233,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto gradPj = riemannDpDxj;
       auto gradVi = riemannDvDxi;
       auto gradVj = riemannDvDxj;
-      if (gradType==GradientType::SPHSameTimeGradient){
+      if (gradType==GradientType::SPHSameTimeGradient or
+          gradType==GradientType::SPHUncorrectedGradient){
         gradPi = newRiemannDpDx(nodeListi,i);
         gradPj = newRiemannDpDx(nodeListj,j);
         gradVi = newRiemannDvDx(nodeListi,i);
@@ -431,7 +432,10 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
                          StateDerivatives<Dimension>& derivatives) const {
 
   const auto calcSpatialGradients =  (this->gradientType() == GradientType::SPHSameTimeGradient 
-                                  or  this->isFirstCycle());
+                                  or  this->isFirstCycle()
+                                  or  this->gradientType() == GradientType::SPHUncorrectedGradient);
+  const auto correctSpatialGradients = (this->gradientType() == GradientType::SPHSameTimeGradient 
+                                     or this->isFirstCycle());
   // The kernels and such.
   const auto& W = this->kernel();
 
@@ -564,7 +568,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
 
       Mi = ( goodM ? Mi.Inverse() : Tensor::one);
 
-      if (calcSpatialGradients){
+      if (correctSpatialGradients){
         auto& newRiemannDpDxi = newRiemannDpDx(nodeListi, i);
         auto& newRiemannDvDxi = newRiemannDvDx(nodeListi, i);
 
