@@ -1,7 +1,6 @@
-#include "caliper/cali.h"
-
 // If TIMER is defined then we want timer functionality
 #ifdef TIMER
+#include "caliper/cali.h"
 
 #define TIME_FUNCTION CALI_CXX_MARK_FUNCTION
 #define TIME_BEGIN(regionName) CALI_MARK_BEGIN(regionName)
