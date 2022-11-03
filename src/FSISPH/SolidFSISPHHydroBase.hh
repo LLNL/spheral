@@ -208,14 +208,15 @@ private:
   
   std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
  
+
   FieldList<Dimension, Scalar> mRawPressure;                  // material interface normals
   FieldList<Dimension, Vector> mDPDx;                         // pressure gradient     
-  FieldList<Dimension, Vector> mDepsDx;                       // specific thermal energy gradient    
-  FieldList<Dimension, Vector> mInterfaceAreaVectors;         // 
+  FieldList<Dimension, Vector> mDepsDx;                       // specific thermal energy gradient
+  FieldList<Dimension, Vector> mInterfaceAreaVectors;         // interface area vectors that can be used for BCs
   FieldList<Dimension, Vector> mInterfaceNormals;             // surface normals between nodelists     
   FieldList<Dimension, Scalar> mInterfaceFraction;            // fraction of dissimilar neighbor volume     
   FieldList<Dimension, Scalar> mInterfaceSmoothness;          // smoothness metric (0-1) 
-  FieldList<Dimension, Vector> mNewInterfaceAreaVectors;      // 
+  FieldList<Dimension, Vector> mNewInterfaceAreaVectors;      // interface area vectors that can be used for BCs next time step
   FieldList<Dimension, Vector> mNewInterfaceNormals;          // surface normals between nodelists next time step    
   FieldList<Dimension, Vector> mSmoothedInterfaceNormals;     // SPH interp of surface normal
   FieldList<Dimension, Scalar> mNewInterfaceFraction;         // fraction of dissimilar neighbor volume     

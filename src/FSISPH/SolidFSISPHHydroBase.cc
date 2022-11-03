@@ -683,8 +683,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto fSij = ( sameMatij ? 1.0 : -1.0);              // direction parameter
       const auto Aij = fSij*(voli*volj)*(gradWi+gradWj);        // "surface area vector"
       const auto AijMij = fSij*(voli*volj)*(gradWjMj+gradWiMi); // "surface area vector"
-      newInterfaceAreaVectorsi -= Aij;
-      newInterfaceAreaVectorsj += Aij;
+      newInterfaceAreaVectorsi -= AijMij;
+      newInterfaceAreaVectorsj += AijMij;
       newInterfaceNormalsi -= Aij;
       newInterfaceNormalsj += Aij;
       if(interfaceFractioni > tiny and interfaceFractionj > tiny){
