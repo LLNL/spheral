@@ -77,7 +77,7 @@ commandLine(
     fsiXSPHCoeff=0.00,                           # xsph coeff
     fsiEpsDiffuseCoeff=0.1,                      # coeff second order artificial conduction
     fsiInterfaceMethod = HLLCInterface,          # how do we handle multimat? (HLLCInterface,ModulusInterface,NoInterface)
-    fsiKernelMethod = AverageInterfaceKernels,   # should we avg the kernels? (AlwaysAverageKernels,NeverAverageKernels,AverageInterfaceKernels)
+    fsiKernelMethod = NeverAverageKernels,       # should we avg the kernels? (AlwaysAverageKernels,NeverAverageKernels,AverageInterfaceKernels)
     fsiSumDensity = True,                        # apply sum density to air nodes
     fsiSlides = True,                            # apply slide condition to interface
 
@@ -99,9 +99,14 @@ commandLine(
     quadraticInExpansion = None,        # turn on quadratic coeff when particles are separating
     etaCritFrac = None,
     
+    boolReduceViscosity =True,
+    nh = 1.00,
+    aMin = 0.1,
+    aMax = 2.0,
+
     # Times, and simulation control.
     cfl = 0.30,
-    goalTime = 20.0,          # tstar units
+    goalTime = 13.6,          # tstar units
     dt = 1e-9,                # sec - mixed units i know lock me up
     dtMin = 1e-12,            # sec
     dtMax = 1000.0,           # sec
@@ -501,6 +506,13 @@ output("hydro.XSPH")
 packages += [hydro]
 
 #-------------------------------------------------------------------------------
+# Physics Package : AV limiters
+#-------------------------------------------------------------------------------
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(hydro.Q,nh,nh,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
+
+#-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
 # We're going to set up reflection conditions on the top and bottom,
@@ -818,7 +830,7 @@ class trackCenterlinePressure:
 # create the periodic work functions. These are time-based work functions so we append them
 # after the control is constructe (these require fields from fsi's slide package)
 if fsisph:
-    interfaceFraction=hydro.slides.surfaceFraction
+    interfaceFraction=hydro.interfaceFraction
     interfaceWriter = trackInterface(interfaceFraction,nodesWater,tstar,dataDir)
     shapeTracker = TrackDropletShape(interfaceFraction,nodesWater,rColumn,nrColumn,tstar,dataDir)   
     centerlineWriter = trackCenterlinePressure(hydro.pressure,db,rColumn,nrColumn,tstar,dataDir)
