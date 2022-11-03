@@ -1,7 +1,14 @@
 //---------------------------------Spheral++----------------------------------//
-// LinearSpringDEM -- contact model based on damped linear springs
-//                       Cundall & Strack Geotechnique, vol. 29, no. 1,
-//                       pp. 47-65, 1979.
+// DEM -- damped linear spring contact model based on pkdgrav immplementation
+//---------------------------------------------------------------------------
+// Schwartz, S.R. and Richards, D.C. "An implementation of the soft-sphere 
+// discrete element method in a high-performance parallel gravity tree-code,"
+// Granular Matter, (2012) 14:363–380, 10.1007/s10035-012-0346-z.
+//
+// Zhang et. al. "Rotational Failure of Rubble-pile Bodies: Influences of 
+// Shear and Cohesive Strengths," The Astrophysical Journal, (2018) 857:15, 20
+// 10.3847/1538-4357/aab5b2.
+//
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_LinearSpringDEM_hh__
 #define __Spheral_LinearSpringDEM_hh__
@@ -55,7 +62,9 @@ public:
                                    const DataBase<Dimension>& dataBase,
                                    const State<Dimension>& state,
                                          StateDerivatives<Dimension>& derivs) const override;
-  
+
+  virtual void setTimeStep(const DataBase<Dimension>& dataBase);
+
   Scalar normalSpringConstant() const;
   void   normalSpringConstant(Scalar x);
 
@@ -98,6 +107,8 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "LinearSpringDEM" ; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 private:
@@ -106,12 +117,12 @@ private:
   Scalar mNormalRestitutionCoefficient;
   Scalar mTangentialSpringConstant;
   Scalar mTangentialRestitutionCoefficient;
-  Scalar mDynamicFrictionCoefficient;     // coefficient of friciton - dynamic
-  Scalar mStaticFrictionCoefficient;      // coefficient of friction - static
-  Scalar mRollingFrictionCoefficient;     // coefficient of friction - rolling
-  Scalar mTorsionalFrictionCoefficient;   // coefficient of friction - torsional 
+  Scalar mDynamicFrictionCoefficient;       // coefficient of friciton - dynamic
+  Scalar mStaticFrictionCoefficient;        // coefficient of friction - static
+  Scalar mRollingFrictionCoefficient;       // coefficient of friction - rolling
+  Scalar mTorsionalFrictionCoefficient;     // coefficient of friction - torsional 
   Scalar mCohesiveTensileStrength;
-  Scalar mShapeFactor;                    // varies between 0 and 1 to account to non spherical shapes & influences rolling/torsion spring parameters
+  Scalar mShapeFactor;                      // varies between 0 and 1 to account to non spherical shapes & influences rolling/torsion spring parameters
 
   Scalar mNormalBeta;
   Scalar mTangentialBeta;

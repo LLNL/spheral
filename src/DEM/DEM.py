@@ -15,13 +15,20 @@ def LinearSpringDEM(dataBase,
                     staticFrictionCoefficient,
                     rollingFrictionCoefficient,
                     torsionalFrictionCoefficient,
-                    cohesiveTensileStrength=0.0,
-                    shapeFactor=0.0,
+                    cohesiveTensileStrength = 0.0,
+                    shapeFactor = 0.0,
                     stepsPerCollision = 25,
                     xmin = (-1e100, -1e100, -1e100),
                     xmax = ( 1e100,  1e100,  1e100)):
+
     assert dataBase.numDEMNodeLists == dataBase.numNodeLists, "all nodelists must be dem nodelists"
     assert stepsPerCollision > 10, "stepsPerCollision too low, reccomended is 25-50"
+
+    # we might want to allow the user to set less parameters with reasonable defaults
+    #if tangentialSpringConstant is None:
+    #    tangentialSpringConstant = normalSpringConstant * 2.0/7.0
+    #if tangentialRestitutionCoefficient is None:
+    #    tangentialRestitutionCoefficient = normalRestitutionCoefficient
 
     ndim = dataBase.nDim
 
@@ -62,8 +69,8 @@ def DEM(dataBase,
         staticFrictionCoefficient,
         rollingFrictionCoefficient,
         torsionalFrictionCoefficient,
-        cohesiveTensileStrength,
-        shapeFactor,
+        cohesiveTensileStrength=0.0,
+        shapeFactor=0.0,
         stepsPerCollision = 25,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100)):
