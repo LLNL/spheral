@@ -9,6 +9,7 @@ variables:
 stages:
   - build_and_install
   - run_ats
+  - perf_suite
   - cleanup
   - update_tpls
   - update_permissions

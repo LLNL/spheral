@@ -50,6 +50,10 @@ blueos_cuda_11_gcc_8_3_1_spectrum_test:
   needs: [blueos_cuda_11_gcc_8_3_1_spectrum_build]
   allow_failure: true
 
+blueos_cuda_11_gcc_8_3_1_spectrum_perf:
+  extends: [.cuda_11_gcc_8_3_1_spectrum, .run_perf_suite, .blueos_resource2]
+  needs: [blueos_cuda_11_gcc_8_3_1_spectrum_test]
+  
 
 # ------------------------------------------------------------------------------
 # CLEAN OLD BUILD DIRS

@@ -1,9 +1,3 @@
-#ATS:sph0 = test(SELF, "--crksph False --nx 20 --ny 20 --nz 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --steps 100", label="Noh spherical SPH, nPerh=2.0", np=1, nt=1)
-#ATS:sph1 = test(SELF, "--crksph False --nx 20 --ny 20 --nz 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --steps 100", label="Noh spherical SPH, nPerh=2.0", np=1, nt=2)
-#ATS:sph2 = test(SELF, "--crksph False --nx 20 --ny 20 --nz 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --steps 100", label="Noh spherical SPH, nPerh=2.0", np=1, nt=4)
-#ATS:sph3 = test(SELF, "--crksph False --nx 20 --ny 20 --nz 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --steps 100", label="Noh spherical SPH, nPerh=2.0", np=1, nt=8)
-#ATS:sph4 = test(SELF, "--crksph False --nx 20 --ny 20 --nz 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --steps 100", label="Noh spherical SPH, nPerh=2.0", np=1, nt=16)
-
 #-------------------------------------------------------------------------------
 # The Spherical Noh test case run in 3-D.
 #

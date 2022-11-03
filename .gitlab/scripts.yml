@@ -26,7 +26,6 @@
 
     - cat build_gitlab/install/spheral-lcatstest
     - $TEST_ALLOC ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE --timelimit="45m"
-    - env CALI_CONFIG="spot(outdir=$CI_BUILD_DIR/test-logs)" ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE --timelimit="45m" --threaded
     - cp -r test-logs $CI_PROJECT_DIR
     - ./build_gitlab/install/spheral $SCRIPT_DIR/gitlab/report_results.py
   artifacts:
@@ -34,6 +33,21 @@
     paths:
       - ci-dir.txt
       - test-logs/
+
+.run_perf_suite:
+  stage: perf_suite
+  script:
+    - CI_BUILD_DIR=$(cat ci-dir.txt)
+    - cd $CI_BUILD_DIR && cat job-name.txt
+    - mkdir -p perf-logs
+
+    - $BUILD_ALLOC env CALI_CONFIG="spot(outdir=$CI_BUILD_DIR/perf-logs)" ./build_gitlab/install/spheral-atstest --logs perf-logs build_gitlab/install/$PERF_FILE
+    - cp -r perf-logs $CI_PROJECT_DIR
+  artifacts:
+    when: always
+    paths:
+      - job-name.txt
+      - perf-logs/
 
 # This job searches our SPHERAL_BUILDS_DIR and deletes all but the N most recent builds.
 # This should be enough of a buffer that we likely won't delete a build mid pipeline,
