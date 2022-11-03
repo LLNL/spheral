@@ -12,6 +12,7 @@ struct FSIFieldNames {
   static const std::string rawPressure;
   static const std::string pressureGradient;
   static const std::string specificThermalEnergyGradient;
+  static const std::string interfaceAreaVectors;
   static const std::string interfaceNormals;
   static const std::string interfaceFraction;
   static const std::string interfaceSmoothness;

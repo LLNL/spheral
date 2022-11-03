@@ -197,7 +197,6 @@ DepsDx() const {
   return mDepsDx;
 }
 
-
 //------------------------------------------------------------------------------
 // our interface smoothness metric
 //------------------------------------------------------------------------------
@@ -207,6 +206,17 @@ const FieldList<Dimension,  typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
 rawPressure() const {
   return mRawPressure;
+}
+
+//------------------------------------------------------------------------------
+// Return the interface area vectors field list ref
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+interfaceAreaVectors() const {
+  return mInterfaceAreaVectors;
 }
 
 //------------------------------------------------------------------------------
@@ -240,6 +250,17 @@ const FieldList<Dimension,  typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
 interfaceSmoothness() const {
   return mInterfaceSmoothness;
+}
+
+//------------------------------------------------------------------------------
+// next time step interface area vectors field list ref
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+newInterfaceAreaVectors() const {
+  return mNewInterfaceAreaVectors;
 }
 
 //------------------------------------------------------------------------------
@@ -285,7 +306,6 @@ SolidFSISPHHydroBase<Dimension>::
 newInterfaceSmoothness() const {
   return mNewInterfaceSmoothness;
 }
-
 
 //------------------------------------------------------------------------------
 // Ref to the slide surface obj
