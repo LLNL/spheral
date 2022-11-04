@@ -59,11 +59,16 @@ int main() {
   using SPH_TYPE = Spheral::GeomVector<1>;
   //using SPH_TYPE = MyTestData;
 
+#ifdef RAJA_ENABLE_CUDA
+  using EXEC_POL=RAJA::cuda_exec<256>;
+#else
+  using EXEC_POL=RAJA::loop_exec;
+#endif
 
   SPH_TYPE vec1(0);
   RAJA::AtomicRef<SPH_TYPE, RAJA::auto_atomic> vec1_ref(&vec1);
 
-  RAJA::forall<RAJA::loop_exec>(RAJA::RangeSegment(0,100), [=](int i) {
+  RAJA::forall<EXEC_POL>(RAJA::RangeSegment(0,100), [=] RAJA_HOST_DEVICE (int i) {
       
       SPH_TYPE inc(1);
 
