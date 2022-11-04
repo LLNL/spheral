@@ -32,10 +32,14 @@ def distributeNodesGeneric(listOfNodeTuples,
 
         # Prepare to preserve any extra per point values
         extrafields[nodes.name] = []
+        IntField = eval("Spheral.IntField%id" % db.nDim)
         ScalarField = eval("Spheral.ScalarField%id" % db.nDim)
         for iextra, vals in enumerate(extralists):
             assert len(vals) == nlocal
-            extrafields[nodes.name].append(ScalarField("extra%i" % iextra, nodes))
+            if type(vals[0]) == int:
+                extrafields[nodes.name].append(IntField("extra%i" % iextra, nodes))
+            else:
+                extrafields[nodes.name].append(ScalarField("extra%i" % iextra, nodes))
             for i in xrange(nlocal):
                 extrafields[nodes.name][iextra][i] = vals[i]
 
