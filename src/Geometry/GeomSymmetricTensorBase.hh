@@ -7,6 +7,8 @@
 #ifndef __Spheral__GeomSymmetricTensorBase__
 #define __Spheral__GeomSymmetricTensorBase__
 
+#include "RAJA/RAJA.hpp"
+
 namespace Spheral {
 
 template<int nDim> class GeomSymmetricTensorBase {};
@@ -14,21 +16,25 @@ template<int nDim> class GeomSymmetricTensorBase {};
 template<>
 class GeomSymmetricTensorBase<1> {
  public:
+  RAJA_HOST_DEVICE
   GeomSymmetricTensorBase(const double xx):
     mxx(xx) {}
  protected:
   double mxx;
  private:
+  RAJA_HOST_DEVICE
   GeomSymmetricTensorBase();
 };
 
 template<>
 class GeomSymmetricTensorBase<2> {
  public:
+  RAJA_HOST_DEVICE
   GeomSymmetricTensorBase(const double a):
     mxx(a),
     mxy(a),
     myy(a) {}
+  RAJA_HOST_DEVICE
   GeomSymmetricTensorBase(const double xx, const double xy,
                                            const double yy):
     mxx(xx),
@@ -38,12 +44,14 @@ class GeomSymmetricTensorBase<2> {
   double mxx, mxy,
               myy;
  private:
+  RAJA_HOST_DEVICE
   GeomSymmetricTensorBase();
 };
 
 template<>
 class GeomSymmetricTensorBase<3> {
  public:
+  RAJA_HOST_DEVICE
   GeomSymmetricTensorBase(const double a):
     mxx(a),
     mxy(a),
@@ -51,6 +59,7 @@ class GeomSymmetricTensorBase<3> {
     myy(a),
     myz(a),
     mzz(a) {}
+  RAJA_HOST_DEVICE
   GeomSymmetricTensorBase(const double xx, const double xy, const double xz,
                                            const double yy, const double yz,
                                                             const double zz):
@@ -65,6 +74,7 @@ class GeomSymmetricTensorBase<3> {
               myy, myz,
                    mzz;
  private:
+  RAJA_HOST_DEVICE
   GeomSymmetricTensorBase();
 };
 

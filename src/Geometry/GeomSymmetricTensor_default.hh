@@ -46,22 +46,31 @@ public:
   static const double sqrt3;
 
   // Constructors.
+  RAJA_HOST_DEVICE
   GeomSymmetricTensor();
+  RAJA_HOST_DEVICE
   explicit GeomSymmetricTensor(const double a11);
+  RAJA_HOST_DEVICE
   GeomSymmetricTensor(const double /*a11*/, const double /*a12*/,
                       const double /*a21*/, const double /*a22*/);
+  RAJA_HOST_DEVICE
   GeomSymmetricTensor(const double /*a11*/, const double /*a12*/, const double /*a13*/,
                       const double /*a21*/, const double /*a22*/, const double /*a23*/,
                       const double /*a31*/, const double /*a32*/, const double /*a33*/);
+  RAJA_HOST_DEVICE
   GeomSymmetricTensor(const GeomSymmetricTensor& ten);
+  RAJA_HOST_DEVICE
   explicit GeomSymmetricTensor(const GeomTensor<nDim>& ten);
   template<typename Derived> GeomSymmetricTensor(const Eigen::MatrixBase<Derived>& ten);
 
   // Destructor.
+  RAJA_HOST_DEVICE
   ~GeomSymmetricTensor();
 
   // Assignment.
+  RAJA_HOST_DEVICE
   GeomSymmetricTensor& operator=(const GeomTensor<nDim>& rhs);
+  RAJA_HOST_DEVICE
   GeomSymmetricTensor& operator=(const GeomSymmetricTensor& rhs);
   template<typename Derived> GeomSymmetricTensor& operator=(const Eigen::MatrixBase<Derived>& rhs);
 
@@ -74,24 +83,24 @@ public:
   double& operator[](size_type index);
 
   // Access the individual elements by (x,y,z) notation.
-  double xx() const;
-  double xy() const;
-  double xz() const;
-  double yx() const;
-  double yy() const;
-  double yz() const;
-  double zx() const;
-  double zy() const;
-  double zz() const;
-  void xx(double val);
-  void xy(double val);
-  void xz(double val);
-  void yx(double val);
-  void yy(double val);
-  void yz(double val);
-  void zx(double val);
-  void zy(double val);
-  void zz(double val);
+  RAJA_HOST_DEVICE double xx() const;
+  RAJA_HOST_DEVICE double xy() const;
+  RAJA_HOST_DEVICE double xz() const;
+  RAJA_HOST_DEVICE double yx() const;
+  RAJA_HOST_DEVICE double yy() const;
+  RAJA_HOST_DEVICE double yz() const;
+  RAJA_HOST_DEVICE double zx() const;
+  RAJA_HOST_DEVICE double zy() const;
+  RAJA_HOST_DEVICE double zz() const;
+  RAJA_HOST_DEVICE void xx(double val);
+  RAJA_HOST_DEVICE void xy(double val);
+  RAJA_HOST_DEVICE void xz(double val);
+  RAJA_HOST_DEVICE void yx(double val);
+  RAJA_HOST_DEVICE void yy(double val);
+  RAJA_HOST_DEVICE void yz(double val);
+  RAJA_HOST_DEVICE void zx(double val);
+  RAJA_HOST_DEVICE void zy(double val);
+  RAJA_HOST_DEVICE void zz(double val);
 
   // Get/set rows and columns.
   GeomVector<nDim> getRow(size_type index) const;

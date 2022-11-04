@@ -6,6 +6,8 @@
 #ifndef __Spheral__GeomTensorBase__
 #define __Spheral__GeomTensorBase__
 
+#include "RAJA/RAJA.hpp"
+
 namespace Spheral {
 
 template<int nDim> class GeomTensorBase {};
@@ -13,22 +15,26 @@ template<int nDim> class GeomTensorBase {};
 template<>
 class GeomTensorBase<1> {
  public:
+  RAJA_HOST_DEVICE
   GeomTensorBase(const double xx):
     mxx(xx) {}
  protected:
   double mxx;
  private:
+  RAJA_HOST_DEVICE
   GeomTensorBase();
 };
 
 template<>
 class GeomTensorBase<2> {
  public:
+  RAJA_HOST_DEVICE
   GeomTensorBase(const double a):
     mxx(a),
     mxy(a),
     myx(a),
     myy(a) {}
+  RAJA_HOST_DEVICE
   GeomTensorBase(const double xx, const double xy,
                  const double yx, const double yy):
     mxx(xx),
@@ -39,12 +45,14 @@ class GeomTensorBase<2> {
   double mxx, mxy,
          myx, myy;
  private:
+  RAJA_HOST_DEVICE
   GeomTensorBase();
 };
 
 template<>
 class GeomTensorBase<3> {
  public:
+  RAJA_HOST_DEVICE
   GeomTensorBase(const double a):
     mxx(a),
     mxy(a),
@@ -55,6 +63,7 @@ class GeomTensorBase<3> {
     mzx(a),
     mzy(a), 
     mzz(a) {}
+  RAJA_HOST_DEVICE
   GeomTensorBase(const double xx, const double xy, const double xz,
                  const double yx, const double yy, const double yz,
                  const double zx, const double zy, const double zz):
@@ -72,6 +81,7 @@ class GeomTensorBase<3> {
          myx, myy, myz,
          mzx, mzy, mzz;
  private:
+  RAJA_HOST_DEVICE
   GeomTensorBase();
 };
 

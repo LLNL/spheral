@@ -6,6 +6,8 @@
 #ifndef __Spheral__GeomVectorBase__
 #define __Spheral__GeomVectorBase__
 
+#include "RAJA/RAJA.hpp" 
+
 namespace Spheral {
 
 template<int nDim> class GeomVectorBase {};
@@ -13,6 +15,7 @@ template<int nDim> class GeomVectorBase {};
 template<>
 class GeomVectorBase<1> {
  public:
+  RAJA_HOST_DEVICE
   GeomVectorBase(const double x):
     mx(x) {}
  protected:
@@ -22,6 +25,7 @@ class GeomVectorBase<1> {
 template<>
 class GeomVectorBase<2> {
  public:
+  RAJA_HOST_DEVICE
   GeomVectorBase(const double x,
                  const double y):
     mx(x),
@@ -35,6 +39,7 @@ class GeomVectorBase<2> {
 template<>
 class GeomVectorBase<3> {
  public:
+  RAJA_HOST_DEVICE
   GeomVectorBase(const double x,
                  const double y,
                  const double z):

@@ -41,17 +41,23 @@ public:
   static const GeomVector one;
 
   // Constructors.
+
+  RAJA_HOST_DEVICE
   GeomVector(const double x = 0.0,
              const double y = 0.0,
              const double z = 0.0);
+  RAJA_HOST_DEVICE
   GeomVector(const GeomVector& vec);
   template<typename Derived> GeomVector(const Eigen::MatrixBase<Derived>& vec);
 
   // Destructor.
+  RAJA_HOST_DEVICE
   ~GeomVector();
 
   // Assignment.
+  RAJA_HOST_DEVICE
   GeomVector& operator=(const GeomVector<nDim>& vec);
+  RAJA_HOST_DEVICE
   GeomVector& operator=(const double val);
   template<typename Derived> GeomVector& operator=(const Eigen::MatrixBase<Derived>& vec);
 
