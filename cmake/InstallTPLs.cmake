@@ -17,10 +17,10 @@ Spheral_Handle_TPL(hdf5 spheral_depends cxx)
 Spheral_Handle_TPL(silo spheral_depends cxx)
 Spheral_Handle_TPL(conduit spheral_depends cxx)
 Spheral_Handle_TPL(axom spheral_depends cxx)
+Spheral_Handle_TPL(camp spheral_depends cxx)
 Spheral_Handle_TPL(raja spheral_depends cxx)
 Spheral_Handle_TPL(chai spheral_depends cxx)
 Spheral_Handle_TPL(umpire spheral_depends cxx)
-Spheral_Handle_TPL(camp spheral_depends cxx)
 
 # Some libraries are optional
 if (ENABLE_ANEOS)
