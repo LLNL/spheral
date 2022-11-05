@@ -60,7 +60,8 @@ PairMaxDamageNodeCoupling(const State<Dimension>& state,
 #pragma omp for
   for (auto k = 0u; k < n; ++k) {
     auto& pair = pairs[k];
-    if (fragIDs(pair.i_list, pair.i_node) != fragIDs(pair.j_list, pair.j_node)) {
+    if ((pair.i_list != pair.j_list) or
+        (fragIDs(pair.i_list, pair.i_node) != fragIDs(pair.j_list, pair.j_node))) {
       pair.f_couple = 0.0;
     } else {
       const auto xijhat = (pos(pair.i_list, pair.i_node) - pos(pair.j_list, pair.j_node)).unitVector();
