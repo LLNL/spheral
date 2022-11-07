@@ -5,10 +5,12 @@ variables:
   SPHERAL_BUILDS_DIR: /usr/WS2/sphapp/.jacamar-ci/spheral-builds
   SCRIPT_DIR: "scripts"
   ATS_FILE: "tests/integration.ats"
+  PERF_FILE: "tests/perf.ats"
 
 stages:
   - build_and_install
   - run_ats
+  - perf_suite
   - cleanup
   - update_tpls
   - update_permissions

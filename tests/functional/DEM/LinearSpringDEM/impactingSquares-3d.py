@@ -61,9 +61,9 @@ commandLine(numParticlePerLength = 4,                 # number of particles on a
             dataDir = "dumps-DEM-impactingSquares-3d",
 
             # ats
+            checkRestart = False,
             checkConservation = False,             # turn on error checking for momentum conservation
-            conservationErrorThreshold = 1e-14,    # relative error for momentum conservation
-            
+            conservationErrorThreshold = 1e-14,    # relative error for momentum conservation  
             )
 
 #-------------------------------------------------------------------------------
@@ -270,6 +270,17 @@ if not steps is None:
     control.step(steps)
 else:
     control.advance(goalTime, maxSteps)
+
+if checkRestart:
+    control.setRestartBaseName(restartBaseName)
+    state0 = State(db, integrator.physicsPackages())
+    state0.copyState()
+    control.loadRestartFile(control.totalSteps)
+    state1 = State(db, integrator.physicsPackages())
+    if not state1 == state0:
+        raise ValueError, "The restarted state does not match!"
+    else:
+        print "Restart check PASSED."
 
 if checkConservation:
 # check momentum conservation

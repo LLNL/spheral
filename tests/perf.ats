@@ -1,0 +1,4 @@
+stick(independent=True)
+source("perf2D.ats")
+source("perf3D.ats")
+

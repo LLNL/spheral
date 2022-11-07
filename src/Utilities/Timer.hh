@@ -13,6 +13,7 @@
 #define TIME_END(regionName)
 
 #endif // TIMER
+#include <string>
 
 namespace Spheral {
 void initAdiakData(std::string test_name,
