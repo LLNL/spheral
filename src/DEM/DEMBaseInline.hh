@@ -35,6 +35,58 @@ xmax(const typename Dimension::Vector& x) {
   mxmax = x;
 }
 
+
+//------------------------------------------------------------------------------
+// set get for numerical switches
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+DEMBase<Dimension>::
+firstCycle() const {
+  return mFirstCycle;
+}
+
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+firstCycle(bool x) {
+  mFirstCycle = x;
+}
+
+template<typename Dimension>
+inline
+int
+DEMBase<Dimension>::
+contactRemovalFrequency() const {
+  return mContactRemovalFrequency;
+}
+
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+contactRemovalFrequency(int x) {
+  mContactRemovalFrequency = x;
+}
+
+template<typename Dimension>
+inline
+int
+DEMBase<Dimension>::
+cycle() const {
+  return mCycle;
+}
+
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+cycle(int x) {
+  mCycle = x;
+}
+
 //------------------------------------------------------------------------------
 // CFL number (ratio to estimated contact duration)
 //------------------------------------------------------------------------------
@@ -98,11 +150,6 @@ omega() const {
   return mOmega;
 }
 
-
-
-//------------------------------------------------------------------------------
-// Pair things
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension, int>&
@@ -110,6 +157,12 @@ DEMBase<Dimension>::
 uniqueIndices() const {
   return mUniqueIndices;
 }
+
+
+//------------------------------------------------------------------------------
+// Pair things
+//------------------------------------------------------------------------------
+
 
 template<typename Dimension>
 inline
@@ -252,8 +305,8 @@ inline
 DEMDimension<Dim<1>>::AngularVector
 DEMBase<Dim<1>>::
 torsionMoment(const Dim<1>::Vector rhatij, 
-              const Dim<1>::Vector omegai,
-              const Dim<1>::Vector omegaj) const {
+              const DEMDimension<Dim<1>>::AngularVector omegai,
+              const DEMDimension<Dim<1>>::AngularVector omegaj) const {
   return 0.0;
 }
 
@@ -262,8 +315,8 @@ inline
 DEMDimension<Dim<2>>::AngularVector
 DEMBase<Dim<2>>::
 torsionMoment(const Dim<2>::Vector rhatij, 
-              const Dim<2>::Vector omegai,
-              const Dim<2>::Vector omegaj) const {
+              const DEMDimension<Dim<2>>::AngularVector omegai,
+              const DEMDimension<Dim<2>>::AngularVector omegaj) const {
   return 0.0;
 }
 
@@ -272,8 +325,8 @@ inline
 DEMDimension<Dim<3>>::AngularVector
 DEMBase<Dim<3>>::
 torsionMoment(const Dim<3>::Vector rhatij, 
-              const Dim<3>::Vector omegai,
-              const Dim<3>::Vector omegaj) const {
+              const DEMDimension<Dim<3>>::AngularVector omegai,
+              const DEMDimension<Dim<3>>::AngularVector omegaj) const {
   return rhatij;
 }
 
