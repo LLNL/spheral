@@ -8,56 +8,7 @@
 
 #define ATOMIC_ADD RAJA::atomicAdd<RAJA::omp_atomic>
 
-class MyTestData {
-  double data;
-public:
-  MyTestData() : data(0) {};
-  MyTestData(double d) : data(d) {};
-  MyTestData(const MyTestData&) = default;
-
-  //MyTestData& operator+=(const MyTestData& rhs) {
-  //  this->data += rhs.data;
-  //  return *this;
-  //}
-
-  friend std::ostream& operator<<(std::ostream& os, const MyTestData& rhs);
-  friend MyTestData operator+(const MyTestData& lhs, const MyTestData& rhs);
-
-  //---------------------------------------------------------------------------
-  //MyTestData(const volatile MyTestData& rhs) {
-  //  data = rhs.data; 
-  //};
-
-  //MyTestData& operator=(const volatile MyTestData& rhs) {
-  //  this->data = rhs.data;
-  //  return *this;
-  //}
-
-  //volatile MyTestData& operator+=(const MyTestData& rhs) volatile {
-  //  this->data += rhs.data;
-  //  return *this;
-  //}
-  //---------------------------------------------------------------------------
-
-};
-
-MyTestData operator+(const MyTestData& lhs, const MyTestData& rhs) {
-  return MyTestData(lhs.data + rhs.data);
-}
-std::ostream& operator<<(std::ostream& os, const MyTestData& rhs) {
-  os << rhs.data;
-  return os;
-}
-
 int main() {
-  //int a,b,c;
-  //a = 3; b = 4;
-
-  //c = Spheral::launchCaller(a,b);
-
-  //using SPH_TYPE = double;
-  using SPH_TYPE = Spheral::GeomVector<1>;
-  //using SPH_TYPE = MyTestData;
 
 #ifdef RAJA_ENABLE_CUDA
   using EXEC_POL=RAJA::cuda_exec<256>;
@@ -65,22 +16,33 @@ int main() {
   using EXEC_POL=RAJA::loop_exec;
 #endif
 
+  int a,b,c;
+  a = 3; b = 4;
+
+  std::cout << "Testing LaunchCaller()\n";
+  c = Spheral::launchCaller(a,b);
+  std::cout << "C : " << c << "\n";
+
+  std::cout << "Testing RAJA Atomic w/ GeomVector\n";
+
+
+  using SPH_TYPE = Spheral::GeomVector<1>;
   SPH_TYPE vec1(0);
+
   RAJA::AtomicRef<SPH_TYPE, RAJA::auto_atomic> vec1_ref(&vec1);
 
-  RAJA::forall<EXEC_POL>(RAJA::RangeSegment(0,100), [=] RAJA_HOST_DEVICE (int i) {
-      
-      SPH_TYPE inc(1);
+  RAJA::forall<EXEC_POL>(RAJA::RangeSegment(0,7), [=] RAJA_HOST_DEVICE (int i) {
+      int d_a, d_b, d_c;
+      d_a = 1; d_b = 3;
+      Spheral::add(d_a,d_b,&d_c);
 
+
+      SPH_TYPE inc(d_c);
       vec1_ref += inc;
-      //ATOMIC_ADD(vec1, inc);
-      //vec1 += inc;
-
-      });
+  });
 
   std::cout << vec1 << "\n";
 
-  //std::cout << "C : " << c << "\n";
   
   return EXIT_SUCCESS;
 }

@@ -58,8 +58,8 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
     depends_on('raja@develop +desul ~shared +cuda cuda_arch=70', when='+cuda')
     depends_on('camp+openmp+cuda cuda_arch=70', when='+cuda')
-    depends_on('chai~shared+cuda', when='+cuda')
-    depends_on('umpire~shared+cuda', when='+cuda')
+    depends_on('chai~shared+cuda cuda_arch=70', when='+cuda')
+    depends_on('umpire~shared+cuda cuda_arch=70', when='+cuda')
 
     depends_on('raja@develop +desul ~shared', when='~cuda')
     depends_on('camp+openmp~cuda', when='~cuda')

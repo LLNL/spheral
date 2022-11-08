@@ -1,21 +1,17 @@
 #ifndef __Spheral_DeviceTest_hh__
 #define __Spheral_DeviceTest_hh__
 
+#include "RAJA/RAJA.hpp"
+
 namespace Spheral
 {
 
-#ifdef __CUDACC__
-__device__ void add(int a, int b, int *c);
-
-__global__ void launch(int a, int b, int *c);
-
-__host__ int launchCaller(int a, int b);
-
-#else
+RAJA_HOST_DEVICE void add(int a, int b, int *c)
+{
+  *c = a + b;
+}
 
 int launchCaller(int a, int b);
-
-#endif
 
 } // namespace Spehral
 

@@ -1,17 +1,12 @@
 #include "DeviceTest.hh"
 
-#include "RAJA/RAJA.hpp"
+
 #include "chai/ManagedArray.hpp"
 
 #include<stdio.h>
 
 namespace Spheral
 {
-
-RAJA_HOST_DEVICE void add(int a, int b, int *c)
-{
-  *c = a + b;
-}
 
 int launchCaller(int a, int b)
 {
