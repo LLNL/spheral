@@ -24,6 +24,33 @@ nodes3d = makeFluidNodeList3d("nodes3d", eos3d)
 class FileIOTestBase:
 
     #---------------------------------------------------------------------------
+    # randomBox
+    #---------------------------------------------------------------------------
+    def randomBox(self):
+        x1 = Vector1d(random.uniform(-100.0, 100.0))
+        x2 = Vector1d(random.uniform(-100.0, 100.0))
+        return Box1d(vector_of_Vector1d([x1, x2]))
+
+    #---------------------------------------------------------------------------
+    # randomPolygon
+    #---------------------------------------------------------------------------
+    def randomPolygon(self):
+        N = 10
+        points = [Vector2d(random.uniform(-100.0, 100.0),
+                           random.uniform(-100.0, 100.0)) for i in xrange(N)]
+        return Polygon(vector_of_Vector2d(points))
+
+    #---------------------------------------------------------------------------
+    # randomPolyhedron
+    #---------------------------------------------------------------------------
+    def randomPolyhedron(self):
+        N = 50
+        points = [Vector3d(random.uniform(-100.0, 100.0),
+                           random.uniform(-100.0, 100.0),
+                           random.uniform(-100.0, 100.0)) for i in xrange(N)]
+        return Polyhedron(vector_of_Vector3d(points))
+
+    #---------------------------------------------------------------------------
     # int
     #---------------------------------------------------------------------------
     def testInt(self):
@@ -1692,6 +1719,51 @@ class FileIOTestBase:
                             "%s != %s @ %i of %i in SymTensorFieldList3d test" %
                             (str(fl[0][i]), str(fl0[0][i]), i, self.n))
         self.removeFile("TestSymTensorFieldList3d")
+        return
+
+    #---------------------------------------------------------------------------
+    # testWriteBox
+    #---------------------------------------------------------------------------
+    def testWriteBox(self):
+        x0 = self.randomBox()
+        f = self.constructor("TestBox", Write)
+        f.writeObject(x0, "FileIOTestBase/TestBox")
+        f.close()
+        f = self.constructor("TestBox", Read)
+        x1 = f.readObject("FileIOTestBase/TestBox")
+        f.close()
+        self.failUnless(x1 == x0)
+        self.removeFile("TestBox")
+        return
+
+    #---------------------------------------------------------------------------
+    # testWritePolygon
+    #---------------------------------------------------------------------------
+    def testWritePolygon(self):
+        x0 = self.randomPolygon()
+        f = self.constructor("TestPolygon", Write)
+        f.writeObject(x0, "FileIOTestBase/TestPolygon")
+        f.close()
+        f = self.constructor("TestPolygon", Read)
+        x1 = f.readObject("FileIOTestBase/TestPolygon")
+        f.close()
+        self.failUnless(x1 == x0)
+        self.removeFile("TestPolygon")
+        return
+
+    #---------------------------------------------------------------------------
+    # testWritePolyhedron
+    #---------------------------------------------------------------------------
+    def testWritePolyhedron(self):
+        x0 = self.randomPolyhedron()
+        f = self.constructor("TestPolyhedron", Write)
+        f.writeObject(x0, "FileIOTestBase/TestPolyhedron")
+        f.close()
+        f = self.constructor("TestPolyhedron", Read)
+        x1 = f.readObject("FileIOTestBase/TestPolyhedron")
+        f.close()
+        self.failUnless(x1 == x0)
+        self.removeFile("TestPolyhedron")
         return
 
     #---------------------------------------------------------------------------
