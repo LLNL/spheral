@@ -39,7 +39,7 @@ function(spheral_add_obj_library
                   )
 
   if(ENABLE_CUDA)
-    set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+    set_target_properties(Spheral_${package_name} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
   endif()
 
   # Add this to the obj_libs_list list
