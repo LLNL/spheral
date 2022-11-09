@@ -91,7 +91,7 @@ function(spheral_add_cxx_library
 
   get_target_property(_LINK_LIBRARIES Spheral_${package_name} LINK_LIBRARIES)
   LIST(REMOVE_DUPLICATES _LINK_LIBRARIES)
-  set_target_properties(Spheral_${package_name} PROPERTIES LINK_LIBRARIES "${_LINK_LIBRARIES}") 
+  set_target_properties(Spheral_${package_name} PROPERTIES LINK_LIBRARIES "${_LINK_LIBRARIES};${_LINK_LIBRARIES}") 
 
   if(ENABLE_CUDA)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
