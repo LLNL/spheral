@@ -391,8 +391,6 @@
     <ClCompile Include="..\..\src\Utilities\RedistributionRegistrar.cc" />
     <ClCompile Include="..\..\src\Utilities\RegisterMPIDataTypes.cc" />
     <ClCompile Include="..\..\src\Utilities\segmentIntersectEdges.cc" />
-    <ClCompile Include="..\..\src\Utilities\SpheralTimers.cc" />
-    <ClCompile Include="..\..\src\Utilities\SpheralTimersAlternate.cc" />
     <ClCompile Include="..\..\src\Utilities\uniform_random.cc" />
   </ItemGroup>
   <ItemGroup>
