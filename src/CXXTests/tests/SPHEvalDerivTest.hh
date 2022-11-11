@@ -19,9 +19,13 @@
 // Set up problem size
 //*****************************************************************************
 
-#if 0 // Large Problem
+#if 0 // X Large Problem
 #define N_PAIRS 500000000
 #define DATA_SZ 1000000
+
+#elif 0 // Large Problem
+#define N_PAIRS  5000000
+#define DATA_SZ  50000
 
 #elif 1 // Medium Problem
 #define N_PAIRS  1000000
