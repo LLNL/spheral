@@ -102,12 +102,6 @@
     <ClCompile Include="..\..\src\Utilities\segmentIntersectEdges.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\SpheralTimers.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\SpheralTimersAlternate.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Utilities\uniform_random.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
