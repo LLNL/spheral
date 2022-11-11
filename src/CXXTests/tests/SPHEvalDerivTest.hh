@@ -28,16 +28,14 @@
 #define DATA_SZ  10000
 
 #else // Small Problem
-#define N_PAIRS 22
-#define DATA_SZ 20
+#define N_PAIRS 2000
+#define DATA_SZ 200
 #endif
 
 //*****************************************************************************
 // Initialize execution platform
 //*****************************************************************************
-#define USE_DEVICE 1
-#define USE_CHAI 1
-
+#define USE_DEVICE 0
 
 //*****************************************************************************
 #define PRINT_DATA(X, SZ) \
@@ -56,8 +54,8 @@ void SpheralEvalDerivTest()
   RAJA::Timer timer_red;
 
   // Data Types to Use
+  //using DATA_TYPE = Spheral::GeomVector<3>;
   using DATA_TYPE = double;
-  //using DATA_TYPE = double;
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
   //---------------------------------------------------------------------------
@@ -100,31 +98,29 @@ void SpheralEvalDerivTest()
   chai::ManagedArray<unsigned> pairs(n_pairs);
   
   for (unsigned int i = 0; i < n_pairs; i++) pairs[i] = rand() % DATA_SZ;
-  std::cout << "Test\n";
+  pairs.registerTouch(chai::CPU);
   PRINT_DATA(pairs, N_PAIRS)
 
   chai::ManagedArray<DATA_TYPE> A(data_sz);
   chai::ManagedArray<DATA_TYPE> B(data_sz);
   chai::ManagedArray<DATA_TYPE> C(data_sz);
 
+#if USE_DEVICE
+  chai::ManagedArray<DATA_TYPE> g_A(strat.n_blocks * data_sz, chai::GPU);
+  chai::ManagedArray<DATA_TYPE> g_B(strat.n_blocks * data_sz, chai::GPU);
+  chai::ManagedArray<DATA_TYPE> g_C(strat.n_blocks * data_sz, chai::GPU);
+  
+  pairs.move(chai::GPU);
+  A.move(chai::GPU);
+  B.move(chai::GPU);
+  C.move(chai::GPU);
+#else
   chai::ManagedArray<DATA_TYPE> g_A(strat.n_blocks * data_sz);
   chai::ManagedArray<DATA_TYPE> g_B(strat.n_blocks * data_sz);
   chai::ManagedArray<DATA_TYPE> g_C(strat.n_blocks * data_sz);
+#endif
 
-  //---------------------------------------------------------------------------
-//#if 1
-//  using pair_pol = RAJA::LoopPolicy<RAJA::omp_for_exec, RAJA::cuda_global_thread_x>;
-//  using data_pol = RAJA::LoopPolicy<RAJA::omp_for_exec, RAJA::cuda_global_thread_x>;
-//  using loop_pol = RAJA::LoopPolicy<RAJA::loop_exec, RAJA::cuda_global_thread_x>;
-//  using launch_policy = RAJA::LaunchPolicy<RAJA::omp_launch_t, RAJA::cuda_launch_t<false>>;
-//  auto lp = RAJA::LaunchParams(RAJA::Teams(strat.n_blocks), RAJA::Threads(strat.block_sz));
-//#else
-//  using pair_pol     = RAJA::LoopPolicy<RAJA::omp_for_exec>;
-//  using data_pol      = RAJA::LoopPolicy<RAJA::omp_for_exec>;
-//  using loop_pol      = RAJA::LoopPolicy<RAJA::loop_exec>;
-//  using launch_policy = RAJA::LaunchPolicy<RAJA::omp_launch_t>;
-//  auto lp = RAJA::LaunchParams();
-//#endif
+  std::cout << "Test\n";
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -139,7 +135,8 @@ void SpheralEvalDerivTest()
   timer_pair.start();
 
   // Initial Pair loop: We are using RAJA::forall over teams for chai::ManagedArray support.
-  RAJA::forall<PAIR_EXEC_POL>(TRS_UINT(0, strat.n_pairs), [=] RAJA_HOST_DEVICE (unsigned t_idx) {
+  RAJA::forall<PAIR_EXEC_POL>(TRS_UINT(0, strat.n_pairs),
+    [=] RAJA_HOST_DEVICE (unsigned t_idx) {
 
       auto pair_idx = pairs[t_idx];
       auto b_idx = t_idx / strat.block_sz;
@@ -148,22 +145,23 @@ void SpheralEvalDerivTest()
 #if USE_DEVICE
       // We use atomics for Device code as blocks per memory pool is greater than 1.
       // g_X arrays are implicitly copied to the device with chai.
-      ATOMIC_ADD(&g_A[g_idx], 1.0);
-      ATOMIC_ADD(&g_B[g_idx], 1.0);
-      ATOMIC_ADD(&g_C[g_idx], 1.0);
+      ATOMIC_ADD(&g_A[g_idx], DATA_TYPE(1.0));
+      ATOMIC_ADD(&g_B[g_idx], DATA_TYPE(1.0));
+      ATOMIC_ADD(&g_C[g_idx], DATA_TYPE(1.0));
 #else
       // When executing on host we create one memory pool per omp thread, atomics are not needed.
-      g_A[g_idx] += 1.0;
-      g_B[g_idx] += 1.0;
-      g_C[g_idx] += 1.0;
+      g_A[g_idx] += DATA_TYPE(1.0);
+      g_B[g_idx] += DATA_TYPE(1.0);
+      g_C[g_idx] += DATA_TYPE(1.0);
 #endif
-  });
+    });
   timer_pair.stop();
 
   timer_red.start();
   // We need to perform an array reduction accross the memory pools. This is also performed on the 
   // device to reduce when applicable to minize data movement back to the CPU.
-  RAJA::forall<DATA_EXEC_POL>(TRS_UINT(0, data_sz), [=] RAJA_HOST_DEVICE (unsigned t_idx) {
+  RAJA::forall<DATA_EXEC_POL>(TRS_UINT(0, data_sz),
+    [=] RAJA_HOST_DEVICE (unsigned t_idx) {
       for (int b_idx = 0; b_idx < strat.n_blocks; b_idx++) {
         auto g_idx = b_idx*data_sz + t_idx;
         //printf("%d, ", g_idx);
@@ -171,17 +169,14 @@ void SpheralEvalDerivTest()
         B[t_idx] += g_B[g_idx];
         C[t_idx] += g_C[g_idx];
       }
-  });
+    });
+
+  A.move(chai::CPU);
+  B.move(chai::CPU);
+  C.move(chai::CPU);
+
   timer_red.stop();
   launch_timer.stop();
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-
-  PRINT_DATA(g_A, DATA_SZ * 2);
-  PRINT_DATA(g_B, DATA_SZ * 2);
-  PRINT_DATA(g_C, DATA_SZ * 2);
 
   PRINT_DATA(A, DATA_SZ)
   PRINT_DATA(B, DATA_SZ)
@@ -192,6 +187,8 @@ void SpheralEvalDerivTest()
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
+  pairs.move(chai::CPU);
+
   DATA_TYPE check_A[data_sz] = {0};
   DATA_TYPE check_B[data_sz] = {0};
   DATA_TYPE check_C[data_sz] = {0};
@@ -199,9 +196,9 @@ void SpheralEvalDerivTest()
   seq_timer.start();
   std::cout << "C++ Sequential Implementation.\n";
   for(int i = 0; i < N_PAIRS; i++){
-    check_A[pairs[i]] += 1.0;  
-    check_B[pairs[i]] += 1.0;  
-    check_C[pairs[i]] += 1.0;  
+    check_A[pairs[i]] += DATA_TYPE(1.0);  
+    check_B[pairs[i]] += DATA_TYPE(1.0);  
+    check_C[pairs[i]] += DATA_TYPE(1.0);  
   }
   seq_timer.stop();
 
