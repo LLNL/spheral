@@ -10,6 +10,8 @@
 // 10.3847/1538-4357/aab5b2.
 //
 //----------------------------------------------------------------------------//
+#include "FileIO/FileIO.hh"
+
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/DataBase.hh"
@@ -30,8 +32,11 @@
 #include "omp.h"
 #endif
 
+#include <iostream>
+#include <stdexcept>
 #include <cmath>
 #include <limits>
+
 namespace Spheral {
 
 //------------------------------------------------------------------------------
@@ -64,14 +69,8 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
   mTorsionalFrictionCoefficient(torsionalFrictionCoefficient),
   mCohesiveTensileStrength(cohesiveTensileStrength),
   mShapeFactor(shapeFactor){
-     
-    const auto pi = 3.14159265358979323846;
-    const auto mass = dataBase.DEMMass();
-    const auto minMass = mass.min();
 
-    mNormalBeta = pi/std::log(std::max(normalRestitutionCoefficient,1.0e-3));
-    mTangentialBeta = pi/std::log(std::max(tangentialRestitutionCoefficient,1.0e-3));
-    mTimeStep = pi*std::sqrt(0.5*minMass/normalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)));
+  this->setTimeStep(dataBase);
 
 }
 
@@ -81,6 +80,24 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 LinearSpringDEM<Dimension>::
 ~LinearSpringDEM() {}
+
+//------------------------------------------------------------------------------
+// set our timestep (for now its a constant single value)
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+setTimeStep(const DataBase<Dimension>& dataBase){
+    
+    const auto pi = 3.14159265358979323846;
+    const auto mass = dataBase.DEMMass();
+    const auto minMass = mass.min();
+
+    mNormalBeta = pi/std::log(std::max(mNormalRestitutionCoefficient,1.0e-3));
+    mTangentialBeta = pi/std::log(std::max(mTangentialRestitutionCoefficient,1.0e-3));
+    mTimeStep = pi*std::sqrt(0.5*minMass/mNormalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)));
+
+}
 
 
 //------------------------------------------------------------------------------
@@ -142,32 +159,44 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
   
-  // Get the state and derivative FieldLists.
+  // Get the state FieldLists.
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto omega = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   const auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
-  const auto equilibriumOverlap = state.fields(DEMFieldNames::equilibriumOverlap, std::vector<Scalar>());
-  const auto shearDisplacement = state.fields(DEMFieldNames::shearDisplacement, std::vector<Vector>());
-  const auto rollingDisplacement = state.fields(DEMFieldNames::rollingDisplacement, std::vector<Vector>());
-  const auto torsionalDisplacement = state.fields(DEMFieldNames::torsionalDisplacement, std::vector<Scalar>());
-  const auto neighborIds = state.fields(DEMFieldNames::neighborIndices, std::vector<int>());
+  const auto uniqueIndices = state.fields(DEMFieldNames::uniqueIndices, (int)0);
   
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
   CHECK(radius.size() == numNodeLists);
   CHECK(omega.size() == numNodeLists);
+  CHECK(uniqueIndices.size() == numNodeLists);
+
+  // Get the state pairFieldLists.
+  const auto equilibriumOverlap = state.fields(DEMFieldNames::equilibriumOverlap, std::vector<Scalar>());
+  const auto shearDisplacement = state.fields(DEMFieldNames::shearDisplacement, std::vector<Vector>());
+  const auto rollingDisplacement = state.fields(DEMFieldNames::rollingDisplacement, std::vector<Vector>());
+  const auto torsionalDisplacement = state.fields(DEMFieldNames::torsionalDisplacement, std::vector<Scalar>());
+  const auto neighborIds = state.fields(DEMFieldNames::neighborIndices, std::vector<int>());
+
   CHECK(equilibriumOverlap.size() == numNodeLists);
   CHECK(shearDisplacement.size() == numNodeLists);
   CHECK(rollingDisplacement.size() == numNodeLists);
   CHECK(torsionalDisplacement.size() == numNodeLists);
   CHECK(neighborIds.size() == numNodeLists);
 
+  // Get the deriv FieldLists
   auto DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
+  
+  CHECK(DxDt.size() == numNodeLists);
+  CHECK(DvDt.size() == numNodeLists);
+  CHECK(DomegaDt.size() == numNodeLists);
+  
+  // Get the deriv pairFieldLists
   auto DDtShearDisplacement = derivatives.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix() +  DEMFieldNames::shearDisplacement, std::vector<Vector>());
   auto newShearDisplacement = derivatives.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix() +  DEMFieldNames::shearDisplacement, std::vector<Vector>());
   auto DDtRollingDisplacement = derivatives.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix() +  DEMFieldNames::rollingDisplacement, std::vector<Vector>());
@@ -175,9 +204,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto DDtTorsionalDisplacement = derivatives.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Scalar>>::incrementPrefix() +  DEMFieldNames::torsionalDisplacement, std::vector<Scalar>());
   auto newTorsionalDisplacement = derivatives.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Scalar>>::replacePrefix() +  DEMFieldNames::torsionalDisplacement, std::vector<Scalar>());
 
-  CHECK(DxDt.size() == numNodeLists);
-  CHECK(DvDt.size() == numNodeLists);
-  CHECK(DomegaDt.size() == numNodeLists);
   CHECK(DDtShearDisplacement.size() == numNodeLists);
   CHECK(newShearDisplacement.size() == numNodeLists);
   CHECK(DDtRollingDisplacement.size() == numNodeLists);
@@ -185,6 +211,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(DDtTorsionalDisplacement.size() == numNodeLists);
   CHECK(newTorsionalDisplacement.size() == numNodeLists);
 
+  // storage locations in our pairwise FieldLists
   const auto& contacts = this->contactStorageIndices();
 
 #pragma omp parallel
@@ -207,12 +234,26 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const int storeNodeList = contacts[kk].storeNodeList;
       const int storeNode = contacts[kk].storeNode;
       const int storeContact = contacts[kk].storeContact;
+      const int pairNodeList = contacts[kk].pairNodeList;
+      const int pairNode = contacts[kk].pairNode;
+
+      // simple test for our store/pair selection
+      const bool orientationOne = (storeNodeList==nodeListi and storeNode==i and pairNodeList==nodeListj and pairNode==j);
+      const bool orientationTwo = (storeNodeList==nodeListj and storeNode==j and pairNodeList==nodeListi and pairNode==i);
+      if(not(orientationOne or orientationTwo)) throw std::invalid_argument("AddPositiveIntegers arguments must be positive");
+
+      
+      // storage sign, this makes pairwise values i-j independent
+      const auto uIdi = uniqueIndices(nodeListi,i);
+      const auto uIds = uniqueIndices(storeNodeList,storeNode);
+      const auto uIdp = uniqueIndices(pairNodeList,pairNode);
+      const int storageSign = (uIdi == std::min(uIds,uIdp) ? 1 : -1);
 
       // stored pair-wise values
       const auto overlapij = equilibriumOverlap(storeNodeList,storeNode)[storeContact];
-      const auto deltaSlidij = shearDisplacement(storeNodeList,storeNode)[storeContact];
-      const auto deltaRollij = rollingDisplacement(storeNodeList,storeNode)[storeContact];
-      const auto deltaTorsij = torsionalDisplacement(storeNodeList,storeNode)[storeContact];
+      const auto deltaSlidij = storageSign*shearDisplacement(storeNodeList,storeNode)[storeContact];
+      const auto deltaRollij =             rollingDisplacement(storeNodeList,storeNode)[storeContact];
+      const auto deltaTorsij =             torsionalDisplacement(storeNodeList,storeNode)[storeContact];
 
       // Get the state for node i.
       const auto& ri = position(nodeListi, i);
@@ -321,8 +362,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
         // limit to static
         if  (std::abs(MtorsionMag) > MtStatic){
-          MtorsionMag =  (MtorsionMag > 0.0 ? 1.0 : -1.0)*MtStatic;
-          newDeltaTorsij = (std::abs(Mt0damp) > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
+         MtorsionMag =  (MtorsionMag > 0.0 ? 1.0 : -1.0)*MtStatic;
+         newDeltaTorsij = (std::abs(Mt0damp) > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
         }
 
         // rolling
@@ -359,8 +400,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         DomegaDtj += Msliding*lj + (Mtorsion + Mrolling) * lij;
 
         // for spring updates
-        newShearDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaSlidij;
-        DDtShearDisplacement(storeNodeList,storeNode)[storeContact] = vs;
+        newShearDisplacement(storeNodeList,storeNode)[storeContact] = storageSign*newDeltaSlidij;
+        DDtShearDisplacement(storeNodeList,storeNode)[storeContact] = storageSign*vs;
         newTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaTorsij;
         DDtTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = vt;
         newRollingDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaRollij;
@@ -391,6 +432,28 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
 }
 
+
+//------------------------------------------------------------------------------
+// Dump the current state to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+dumpState(FileIO& file, const std::string& pathName) const {
+  DEMBase<Dimension>::dumpState(file, pathName);
+  file.write(mTimeStep, pathName + "/timeStep");
+}
+
+//------------------------------------------------------------------------------
+// Restore the state from the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+restoreState(const FileIO& file, const std::string& pathName) {
+  DEMBase<Dimension>::restoreState(file, pathName);
+  file.read(mTimeStep, pathName + "/timeStep");
+}
 
 }
 

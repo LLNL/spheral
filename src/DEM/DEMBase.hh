@@ -93,13 +93,18 @@ public:
   void initializeBeforeRedistribution();
   void finalizeAfterRedistribution();
 
+  void prepNeighborIndicesForRedistribution();
+  
+  template<typename Value>
+  void prepPairFieldListForRedistribution(Value& pairFieldList);
+
   // templated methods
   template<typename Value1, typename Value2>
   void addContactsToPairFieldList(Value1& pairFieldList, const Value2& newValue) const;
 
   template<typename Value>
-  void kullInactiveContactsFromPairFieldList(Value& pairFieldList) const;
-  
+  void removeInactiveContactsFromPairFieldList(Value& pairFieldList) const;
+
   //#############################################################################
   // special methods for the pair fields if you add pairFieldLists 
   // make sure to follow the pattern in these methods.
@@ -110,14 +115,19 @@ public:
   void resizeStatePairFieldLists(State<Dimension>& state) const;
 
   virtual 
-  void kullInactiveContactsFromStatePairFieldLists(State<Dimension>& state) const;
+  void removeInactiveContactsFromStatePairFieldLists(State<Dimension>& state) const;
+
+  virtual 
+  void removeInactiveContactsFromDerivativePairFieldLists(StateDerivatives<Dimension>& derivs) const;
   //#############################################################################
 
   void initializeOverlap(const DataBase<Dimension>& dataBase);
 
-  void initializeContacts(const DataBase<Dimension>& dataBase);
+  void updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase);
 
-  void kullInactiveContacts(const DataBase<Dimension>& dataBase);
+  void updateContactMap(const DataBase<Dimension>& dataBase);
+  
+  void identifyInactiveContacts(const DataBase<Dimension>& dataBase);
 
   // Optionally we can provide a bounding box for use generating the mesh
   // for the Voronoi mass density update.
@@ -129,17 +139,26 @@ public:
   Scalar stepsPerCollision() const;
   void   stepsPerCollision(Scalar x);
 
+  int  cycle() const;
+  void cycle(int x);
+
+  int  contactRemovalFrequency() const;
+  void contactRemovalFrequency(int x);
+
+  bool firstCycle() const;
+  void firstCycle(bool x);
+
   // access for node fieldLists
   const FieldList<Dimension, int>&    timeStepMask() const;
   const FieldList<Dimension, Vector>& DxDt() const;
   const FieldList<Dimension, Vector>& DvDt() const;
   const FieldList<Dimension, RotationType>& omega() const;
   const FieldList<Dimension, RotationType>& DomegaDt() const;
+  const FieldList<Dimension, int>& uniqueIndices() const;
 
   // access for pair fieldLists
-  const FieldList<Dimension, int>& uniqueIndices() const;
-  const FieldList<Dimension, std::vector<int>>& isActiveContact() const;
-  const FieldList<Dimension, std::vector<int>>& neighborIndices() const;
+  const FieldList<Dimension, std::vector<int>>&    isActiveContact() const;
+  const FieldList<Dimension, std::vector<int>>&    neighborIndices() const;
   const FieldList<Dimension, std::vector<Vector>>& shearDisplacement() const;
   const FieldList<Dimension, std::vector<Vector>>& rollingDisplacement() const;
   const FieldList<Dimension, std::vector<Scalar>>& torsionalDisplacement() const;
@@ -159,8 +178,8 @@ public:
                          const Scalar particleRadiusi) const;
 
   RotationType torsionMoment(const Vector rhatij,
-                             const Vector omegai,
-                             const Vector omegaj) const;
+                             const RotationType omegai,
+                             const RotationType omegaj) const;
 
   RotationType rollingMoment(const Vector rhatij,
                              const Vector vroti,
@@ -180,8 +199,8 @@ protected:
 
   bool mFirstCycle;
 
-  int mCyclesSinceLastKulling;
-  int mKullFrequency;
+  int mCycle;
+  int mContactRemovalFrequency;
   
   // number of steps per collision time-scale
   Scalar mStepsPerCollision;              
@@ -190,20 +209,22 @@ protected:
   Vector mxmin, mxmax;
 
   // fields attached to the nodes
-  FieldList<Dimension, int>      mTimeStepMask;
-  FieldList<Dimension, Vector>   mDxDt;           // linear position derivative
-  FieldList<Dimension, Vector>   mDvDt;           // linear acceleration
-  FieldList<Dimension, RotationType> mOmega;      // angular velocity
-  FieldList<Dimension, RotationType> mDomegaDt;   // angular acceleration
-  FieldList<Dimension,int> mUniqueIndices;        // each node gets a global unique index
-  
-  // fields attached to the pair interactions
-  FieldList<Dimension,std::vector<int>> mNeighborIndices;              // tracks unique indices of contacts-we upate these 
+  FieldList<Dimension, int>          mTimeStepMask;   // filter out particle from timestep calc (not active right now for DEM)
+  FieldList<Dimension, Vector>       mDxDt;           // linear position derivative
+  FieldList<Dimension, Vector>       mDvDt;           // linear acceleration
+  FieldList<Dimension, RotationType> mOmega;          // angular velocity
+  FieldList<Dimension, RotationType> mDomegaDt;       // angular acceleration
+  FieldList<Dimension,int>           mUniqueIndices;  // each node gets a global unique index
+
+  // state fields attached to the pair interactions
+  FieldList<Dimension,std::vector<int>>    mNeighborIndices;           // tracks unique indices of contacts-we upate these (note treated specially compared to other state pair field lists)
   FieldList<Dimension,std::vector<Scalar>> mEquilibriumOverlap;        // nonzero values for composite particles
   FieldList<Dimension,std::vector<Vector>> mShearDisplacement;         // displacement for sliding spring
   FieldList<Dimension,std::vector<Vector>> mRollingDisplacement;       // displacement for rolling spring
   FieldList<Dimension,std::vector<Scalar>> mTorsionalDisplacement;     // displacement for torsional spring
-  FieldList<Dimension,std::vector<int>> mIsActiveContact;              // tracks if a interfaction is still active
+  FieldList<Dimension,std::vector<int>>    mIsActiveContact;           // tracks if a interaction is still active
+
+   // deriv fields attached to the pair interactions
   FieldList<Dimension,std::vector<Vector>> mDDtShearDisplacement;      // derivative to evolve frictional spring displacement
   FieldList<Dimension,std::vector<Vector>> mNewShearDisplacement;      // handles rotation of frictional spring and reset on slip
   FieldList<Dimension,std::vector<Vector>> mDDtRollingDisplacement;    // derivative to evolve frictional spring displacement
