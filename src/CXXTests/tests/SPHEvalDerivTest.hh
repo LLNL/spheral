@@ -4,6 +4,8 @@
 #include "RAJA/RAJA.hpp"
 #include "RAJA/util/Timer.hpp"
 #include "chai/ManagedArray.hpp"
+#include "umpire/ResourceManager.hpp"
+#include "umpire/strategy/QuickPool.hpp"
 
 #include <cstdlib>
 #include <cstdio>
@@ -14,29 +16,30 @@
 #include "ExecStrategy.hh"
 
 //*****************************************************************************
-//
+// Set up problem size
 //*****************************************************************************
-#if 0
+
+#if 0 // Large Problem
 #define N_PAIRS 500000000
 #define DATA_SZ 1000000
-//#define BLOCK_SZ 200000
-#elif 1
+
+#elif 1 // Medium Problem
 #define N_PAIRS  1000000
 #define DATA_SZ  10000
-#else
+
+#else // Small Problem
 #define N_PAIRS 22
 #define DATA_SZ 20
 #endif
 
 //*****************************************************************************
-#define USE_DEVICE 0
+// Initialize execution platform
+//*****************************************************************************
+#define USE_DEVICE 1
 #define USE_CHAI 1
 
-#if USE_DEVICE
-#define USE_UNIFIED_MEM
-#endif
-//*****************************************************************************
 
+//*****************************************************************************
 #define PRINT_DATA(X, SZ) \
   std::cout << #X << "\t = "; \
   for (int i = 0; i < (SZ < 50 ? SZ : 50); i++) std::cout << X[i] << ", "; \
@@ -45,174 +48,136 @@
 //*****************************************************************************
 void SpheralEvalDerivTest()
 {
+  // Setup Timers
   srand(3);
   RAJA::Timer seq_timer;
   RAJA::Timer launch_timer;
   RAJA::Timer timer_pair;
   RAJA::Timer timer_red;
 
+  // Data Types to Use
   using DATA_TYPE = double;
+  //using DATA_TYPE = double;
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
   //---------------------------------------------------------------------------
+  //
+  // Setup Eval Derivs Execution.
+  //
+  //---------------------------------------------------------------------------
+
+  // These are going to be runtime mutable irl...
   unsigned int n_pairs = N_PAIRS;
   unsigned int data_sz = DATA_SZ;
 
+  // Initialize an execution strategy for EvalDerivs problem
+  // We need to: 
+  //  - define how many copies of temp memory we need
+  //  - calculate the blocks / block sizes depeding on execution space.
+  //  - define execution policies for CPU and GPU execution.
+  // TODO: Make this a runtime switch.
 #if USE_DEVICE
   ExecutionStrategy strat(n_pairs, data_sz, RAJA::ExecPlace::DEVICE);
   strat.block_sz = 1024;
   strat.n_blocks = RAJA_DIVIDE_CEILING_INT(strat.n_pairs, strat.block_sz);
-
   using PAIR_EXEC_POL = RAJA::cuda_exec<1024>;
   using DATA_EXEC_POL = RAJA::cuda_exec<1024>;
-
 #else
   ExecutionStrategy strat(n_pairs, data_sz, RAJA::ExecPlace::HOST);
   strat.block_sz = n_pairs / omp_get_max_threads();
   strat.n_blocks = RAJA_DIVIDE_CEILING_INT(strat.n_pairs, strat.block_sz);
-
   using PAIR_EXEC_POL = RAJA::omp_parallel_for_exec;
   using DATA_EXEC_POL = RAJA::omp_parallel_for_exec;
-
 #endif
-
   strat.print();
 
   //---------------------------------------------------------------------------
-  unsigned *pairs = (unsigned*) malloc(sizeof(unsigned) * n_pairs);
+  //
+  // Initialize Prototype data and allocate temp memory.
+  //
+  //---------------------------------------------------------------------------
+  
+  chai::ManagedArray<unsigned> pairs(n_pairs);
+  
   for (unsigned int i = 0; i < n_pairs; i++) pairs[i] = rand() % DATA_SZ;
-  //PRINT_DATA(pairs, N_PAIRS)
+  std::cout << "Test\n";
+  PRINT_DATA(pairs, N_PAIRS)
 
-#if USE_CHAI
-  chai::ManagedArray<DATA_TYPE> A(data_sz, chai::CPU);
-  chai::ManagedArray<DATA_TYPE> B(data_sz, chai::CPU);
-  chai::ManagedArray<DATA_TYPE> C(data_sz, chai::CPU);
-#else
-  DATA_TYPE A[data_sz] = {0};
-  DATA_TYPE B[data_sz] = {0};
-  DATA_TYPE C[data_sz] = {0};
-#endif
+  chai::ManagedArray<DATA_TYPE> A(data_sz);
+  chai::ManagedArray<DATA_TYPE> B(data_sz);
+  chai::ManagedArray<DATA_TYPE> C(data_sz);
 
-  // Switch between Unified Memory Allocation and Malloc
-#ifdef USE_UNIFIED_MEM
-  #if USE_CHAI
-  chai::ManagedArray<DATA_TYPE> g_A(strat.n_blocks * data_sz, chai::GPU);
-  chai::ManagedArray<DATA_TYPE> g_B(strat.n_blocks * data_sz, chai::GPU);
-  chai::ManagedArray<DATA_TYPE> g_C(strat.n_blocks * data_sz, chai::GPU);
-  #else
-  DATA_TYPE* g_A = memoryManager::allocate<DATA_TYPE>(strat.n_blocks * data_sz);
-  DATA_TYPE* g_B = memoryManager::allocate<DATA_TYPE>(strat.n_blocks * data_sz);
-  DATA_TYPE* g_C = memoryManager::allocate<DATA_TYPE>(strat.n_blocks * data_sz);
-  #endif
-#else
-  DATA_TYPE *g_A = (DATA_TYPE*) malloc(sizeof(DATA_TYPE) * strat.n_blocks * data_sz);
-  DATA_TYPE *g_B = (DATA_TYPE*) malloc(sizeof(DATA_TYPE) * strat.n_blocks * data_sz);
-  DATA_TYPE *g_C = (DATA_TYPE*) malloc(sizeof(DATA_TYPE) * strat.n_blocks * data_sz);
-#endif
+  chai::ManagedArray<DATA_TYPE> g_A(strat.n_blocks * data_sz);
+  chai::ManagedArray<DATA_TYPE> g_B(strat.n_blocks * data_sz);
+  chai::ManagedArray<DATA_TYPE> g_C(strat.n_blocks * data_sz);
 
   //---------------------------------------------------------------------------
-//#ifdef ENABLE_CUDA 
+//#if 1
+//  using pair_pol = RAJA::LoopPolicy<RAJA::omp_for_exec, RAJA::cuda_global_thread_x>;
+//  using data_pol = RAJA::LoopPolicy<RAJA::omp_for_exec, RAJA::cuda_global_thread_x>;
+//  using loop_pol = RAJA::LoopPolicy<RAJA::loop_exec, RAJA::cuda_global_thread_x>;
+//  using launch_policy = RAJA::LaunchPolicy<RAJA::omp_launch_t, RAJA::cuda_launch_t<false>>;
+//  auto lp = RAJA::LaunchParams(RAJA::Teams(strat.n_blocks), RAJA::Threads(strat.block_sz));
+//#else
+//  using pair_pol     = RAJA::LoopPolicy<RAJA::omp_for_exec>;
+//  using data_pol      = RAJA::LoopPolicy<RAJA::omp_for_exec>;
+//  using loop_pol      = RAJA::LoopPolicy<RAJA::loop_exec>;
+//  using launch_policy = RAJA::LaunchPolicy<RAJA::omp_launch_t>;
+//  auto lp = RAJA::LaunchParams();
+//#endif
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //
+  // Eval Deriv Problem...
+  //
+  //---------------------------------------------------------------------------
 #if 1
-  using pair_pol = RAJA::LoopPolicy<RAJA::omp_for_exec, RAJA::cuda_global_thread_x>;
-  using data_pol = RAJA::LoopPolicy<RAJA::omp_for_exec, RAJA::cuda_global_thread_x>;
-  using loop_pol = RAJA::LoopPolicy<RAJA::loop_exec, RAJA::cuda_global_thread_x>;
-  using launch_policy = RAJA::LaunchPolicy<RAJA::omp_launch_t, RAJA::cuda_launch_t<false>>;
-  auto lp = RAJA::LaunchParams(RAJA::Teams(strat.n_blocks), RAJA::Threads(strat.block_sz));
-#else
-  using pair_pol     = RAJA::LoopPolicy<RAJA::omp_for_exec>;
-  using data_pol      = RAJA::LoopPolicy<RAJA::omp_for_exec>;
-  using loop_pol      = RAJA::LoopPolicy<RAJA::loop_exec>;
-  using launch_policy = RAJA::LaunchPolicy<RAJA::omp_launch_t>;
-  auto lp = RAJA::LaunchParams();
-#endif
-
-  RAJA::View<DATA_TYPE, RAJA::Layout<1>> Av(A, data_sz);
-  RAJA::View<DATA_TYPE, RAJA::Layout<1>> Bv(B, data_sz);
-  RAJA::View<DATA_TYPE, RAJA::Layout<1>> Cv(C, data_sz);
-
-  RAJA::View<DATA_TYPE, RAJA::Layout<2>> g_Av(g_A, strat.n_blocks, data_sz);
-  RAJA::View<DATA_TYPE, RAJA::Layout<2>> g_Bv(g_B, strat.n_blocks, data_sz);
-  RAJA::View<DATA_TYPE, RAJA::Layout<2>> g_Cv(g_C, strat.n_blocks, data_sz);
-
-#if 1
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
   std::cout << "RAJA Teams Implementation Idx.\n";
-  if (strat.sequential) std::cout << "Running Sequential\n";
   launch_timer.start();
+  timer_pair.start();
 
-  if (strat.sequential)
-  {
+  // Initial Pair loop: We are using RAJA::forall over teams for chai::ManagedArray support.
+  RAJA::forall<PAIR_EXEC_POL>(TRS_UINT(0, strat.n_pairs), [=] RAJA_HOST_DEVICE (unsigned t_idx) {
 
-    RAJA::launch<launch_policy>(strat.exec_context, lp,
-      [=] RAJA_HOST_DEVICE (RAJA::LaunchContext ctx) {
-      RAJA::loop<pair_pol>(ctx, TRS_UINT(0, strat.n_pairs), [&] (unsigned t_idx) {
-        auto pair_idx = pairs[t_idx];
-        Av(pair_idx) += 1.0;
-        Bv(pair_idx) += 1.0;
-        Cv(pair_idx) += 1.0;
-      });
-    });
+      auto pair_idx = pairs[t_idx];
+      auto b_idx = t_idx / strat.block_sz;
+      auto g_idx = b_idx*data_sz + pair_idx;
 
-  }else{
-    timer_pair.start();
-    //RAJA::launch<launch_policy>(strat.exec_context, lp,
-    //  [=] RAJA_HOST_DEVICE (RAJA::LaunchContext ctx) {
-    //  RAJA::loop<pair_pol>(ctx, TRS_UINT(0, strat.n_pairs), [&] (unsigned t_idx) {
-    RAJA::forall<PAIR_EXEC_POL>(TRS_UINT(0, strat.n_pairs), [=] RAJA_HOST_DEVICE (unsigned t_idx) {
-        auto pair_idx = pairs[t_idx];
-        unsigned b_idx = t_idx / strat.block_sz;
-        auto g_idx = b_idx*data_sz + pair_idx;
-
-        // Device
-#if USE_CHAI
-  #if USE_DEVICE
-        ATOMIC_ADD(&g_A[g_idx], 1.0);
-        ATOMIC_ADD(&g_B[g_idx], 1.0);
-        ATOMIC_ADD(&g_C[g_idx], 1.0);
-  #else
-        g_A[g_idx] += 1.0;
-        g_B[g_idx] += 1.0;
-        g_C[g_idx] += 1.0;
-  #endif
+#if USE_DEVICE
+      // We use atomics for Device code as blocks per memory pool is greater than 1.
+      // g_X arrays are implicitly copied to the device with chai.
+      ATOMIC_ADD(&g_A[g_idx], 1.0);
+      ATOMIC_ADD(&g_B[g_idx], 1.0);
+      ATOMIC_ADD(&g_C[g_idx], 1.0);
 #else
-        ATOMIC_ADD(&g_Av(b_idx, pair_idx), 1.0);
-        ATOMIC_ADD(&g_Bv(b_idx, pair_idx), 1.0);
-        ATOMIC_ADD(&g_Cv(b_idx, pair_idx), 1.0);
+      // When executing on host we create one memory pool per omp thread, atomics are not needed.
+      g_A[g_idx] += 1.0;
+      g_B[g_idx] += 1.0;
+      g_C[g_idx] += 1.0;
 #endif
-    //  });
-    });
-    timer_pair.stop();
+  });
+  timer_pair.stop();
 
-    timer_red.start();
-    //RAJA::launch<launch_policy>(lp,
-    //  [=] RAJA_HOST_DEVICE (RAJA::LaunchContext ctx) {
-    //  RAJA::loop<data_pol>(ctx, TRS_UINT(0, data_sz), [&] (unsigned t_idx) {
-    //    RAJA::loop<loop_pol>(ctx, TRS_UINT(0, strat.n_blocks), [&] (unsigned b_idx) {
-    RAJA::forall<DATA_EXEC_POL>(TRS_UINT(0, data_sz), [=] RAJA_HOST_DEVICE (unsigned t_idx) {
-        for (int b_idx = 0; b_idx < strat.n_blocks; b_idx++) {
-          auto g_idx = b_idx*data_sz + t_idx;
-          //printf("%d, ", g_idx);
-  #if USE_CHAI
-          A[t_idx] += g_A[g_idx];
-          B[t_idx] += g_B[g_idx];
-          C[t_idx] += g_C[g_idx];
-  #else
-          Av(t_idx) += g_Av(b_idx, t_idx);
-          Bv(t_idx) += g_Bv(b_idx, t_idx);
-          Cv(t_idx) += g_Cv(b_idx, t_idx);
-  #endif
-        }
-
-    //    });
-    //  });
-    });
-    timer_red.stop();
-
-  }
-
+  timer_red.start();
+  // We need to perform an array reduction accross the memory pools. This is also performed on the 
+  // device to reduce when applicable to minize data movement back to the CPU.
+  RAJA::forall<DATA_EXEC_POL>(TRS_UINT(0, data_sz), [=] RAJA_HOST_DEVICE (unsigned t_idx) {
+      for (int b_idx = 0; b_idx < strat.n_blocks; b_idx++) {
+        auto g_idx = b_idx*data_sz + t_idx;
+        //printf("%d, ", g_idx);
+        A[t_idx] += g_A[g_idx];
+        B[t_idx] += g_B[g_idx];
+        C[t_idx] += g_C[g_idx];
+      }
+  });
+  timer_red.stop();
   launch_timer.stop();
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
 
   PRINT_DATA(g_A, DATA_SZ * 2);
   PRINT_DATA(g_B, DATA_SZ * 2);
@@ -263,23 +228,15 @@ void SpheralEvalDerivTest()
   std::cout << "        red : " << timer_red.elapsed() << " seconds (" << (timer_red.elapsed() / launch_timer.elapsed())*100 << "%)\n";
 
 
-#ifdef USE_UNIFIED_MEM
-  #if USE_CHAI
   g_A.free();
   g_B.free();
   g_C.free();
-  #else
-  memoryManager::deallocate(g_A);
-  memoryManager::deallocate(g_B);
-  memoryManager::deallocate(g_C);
-  #endif
-#else
-  free(g_A);
-  free(g_B);
-  free(g_C);
-#endif
 
+  A.free();
+  B.free();
+  C.free();
 
+  pairs.free();
 }
 
 #endif //  SPHERAL_SPHEVALDERIVTEST
