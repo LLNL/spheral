@@ -795,9 +795,9 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     # vector<FacetedVolume1d>
     #---------------------------------------------------------------------------
-    def testVectorBox1d(self):
+    def testVectorFacetedVolume1d(self):
         for n in (0, self.n):
-            filename = "TestVectorBox1d_%i" % n
+            filename = "TestVectorFacetedVolume1d_%i" % n
             v0 = vector_of_FacetedVolume1d([self.randomBox() for i in xrange(n)])
             assert len(v0) == n
             f = self.constructor(filename, Write)
@@ -818,9 +818,9 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     # vector<FacetedVolume2d>
     #---------------------------------------------------------------------------
-    def testVectorBox2d(self):
+    def testVectorFacetedVolume2d(self):
         for n in (0, self.n):
-            filename = "TestVectorBox2d_%i" % n
+            filename = "TestVectorFacetedVolume2d_%i" % n
             v0 = vector_of_FacetedVolume2d([self.randomPolygon() for i in xrange(n)])
             assert len(v0) == n
             f = self.constructor(filename, Write)
@@ -841,9 +841,9 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     # vector<FacetedVolume3d>
     #---------------------------------------------------------------------------
-    def testVectorBox3d(self):
+    def testVectorFacetedVolume3d(self):
         for n in (0, self.n):
-            filename = "TestVectorBox3d_%i" % n
+            filename = "TestVectorFacetedVolume3d_%i" % n
             v0 = vector_of_FacetedVolume3d([self.randomPolyhedron() for i in xrange(n)])
             assert len(v0) == n
             f = self.constructor(filename, Write)
