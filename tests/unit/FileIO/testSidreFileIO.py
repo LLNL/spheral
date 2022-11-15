@@ -30,6 +30,7 @@ class SidreFileIOTest(FileIOTestBase, unittest.TestCase):
     def tearDown(self):
         return
 
+    #if MPI needs to remove a directory and if no MPI then remove file (as it does now)
     def removeFile(self, filename):
         os.remove(filename)
 
