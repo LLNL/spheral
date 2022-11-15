@@ -14,6 +14,8 @@
 #include "Utilities/CubicHermiteInterpolator.hh"
 #include "Utilities/BiCubicInterpolator.hh"
 
+#include <memory>
+
 // Forward declarations.
 namespace Spheral {
 
@@ -44,6 +46,7 @@ public:
         const double minimumPressureDamage,
         const MaterialPressureMinType minPressureType,
         const bool useInterpolation);
+  ANEOS(const ANEOS& rhs);
   ~ANEOS();
 
   // We require any equation of state to define the following properties.
@@ -134,8 +137,8 @@ private:
   int mMaterialNumber;
   unsigned mNumRhoVals, mNumTvals;
   double mRhoMin, mRhoMax, mTmin, mTmax, mEpsMin, mEpsMax, mExternalPressure;
-  CubicHermiteInterpolator mEpsMinInterp, mEpsMaxInterp;
-  BiCubicInterpolator mEpsInterp, mTinterp, mPinterp, mCVinterp, mCSinterp, mKinterp, mSinterp;
+  std::shared_ptr<CubicHermiteInterpolator> mEpsMinInterp, mEpsMaxInterp;
+  std::shared_ptr<BiCubicInterpolator> mEpsInterp, mTinterp, mPinterp, mCVinterp, mCSinterp, mKinterp, mSinterp;
 
   // ANEOS internal units.
   PhysicalConstants mANEOSunits;
