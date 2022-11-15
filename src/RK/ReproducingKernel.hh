@@ -3,8 +3,8 @@
 //
 // Front-end class to wrap the Reproducing Kernel corrected methods
 //----------------------------------------------------------------------------//
-#ifndef __LLNLSpheral_ReproducingKernel__
-#define __LLNLSpheral_ReproducingKernel__
+#ifndef __Spheral_ReproducingKernel__
+#define __Spheral_ReproducingKernel__
 
 #include "RK/ReproducingKernelMethods.hh"
 
