@@ -158,7 +158,7 @@ IsothermalEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar /*specificThermalEnergy*/) const {
   REQUIRE(valid());
-  return this->applyPressureLimits(mK*massDensity - mExternalPressure);
+  return this->applyPressureLimits(mK*massDensity) - mExternalPressure;
 }
 
 //------------------------------------------------------------------------------

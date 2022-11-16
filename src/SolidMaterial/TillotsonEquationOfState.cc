@@ -260,7 +260,7 @@ pressure(const Scalar massDensity,
   }
 
   // That's it.
-  return this->applyPressureLimits(P - mExternalPressure);
+  return this->applyPressureLimits(P) - mExternalPressure;
 }
 
 //------------------------------------------------------------------------------

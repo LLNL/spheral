@@ -678,7 +678,7 @@ pressure(const Scalar massDensity,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     P *= mPconv;
   }
-  return this->applyPressureLimits(P - mExternalPressure);
+  return this->applyPressureLimits(P) - mExternalPressure;
 }
 
 //------------------------------------------------------------------------------
