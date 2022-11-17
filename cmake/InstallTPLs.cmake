@@ -21,6 +21,7 @@ Spheral_Handle_TPL(camp spheral_depends cxx)
 Spheral_Handle_TPL(raja spheral_depends cxx)
 Spheral_Handle_TPL(chai spheral_depends cxx)
 Spheral_Handle_TPL(umpire spheral_depends cxx)
+Spheral_Handle_TPL(lvarray spheral_depends cxx)
 
 # Some libraries are optional
 if (ENABLE_ANEOS)

@@ -56,15 +56,18 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
     depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
+    depends_on('lvarray@develop +umpire +chai ~tests +cuda cuda_arch=70', when='+cuda')
     depends_on('raja@develop +desul ~shared +cuda cuda_arch=70', when='+cuda')
     depends_on('camp+openmp+cuda cuda_arch=70', when='+cuda')
-    depends_on('chai~shared+cuda cuda_arch=70', when='+cuda')
-    depends_on('umpire~shared+cuda cuda_arch=70', when='+cuda')
+    depends_on('chai@2022.03.0+raja~shared+openmp+cuda cuda_arch=70', when='+cuda')
+    depends_on('umpire@2022.03.0~shared+cuda cuda_arch=70', when='+cuda')
 
+    depends_on('lvarray@develop +umpire +chai ~tests', when='~cuda')
     depends_on('raja@develop +desul ~shared', when='~cuda')
     depends_on('camp+openmp~cuda', when='~cuda')
-    depends_on('chai~shared', when='~cuda')
-    depends_on('umpire~shared', when='~cuda')
+    depends_on('chai@2022.03.0+raja~shared+openmp', when='~cuda')
+    depends_on('umpire@2022.03.0~shared', when='~cuda')
+
     depends_on('caliper ~shared +adiak ~libdw ~papi ~libunwind +pic', type='build')
     depends_on('adiak ~shared', type='build')
 
@@ -217,6 +220,9 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
         entries.append(cmake_cache_option('camp_BUILD', False))
         entries.append(cmake_cache_path('camp_DIR', spec['camp'].prefix))
+
+        entries.append(cmake_cache_option('lvarray_BUILD', False))
+        entries.append(cmake_cache_path('lvarray_DIR', spec['lvarray'].prefix))
 
         entries.append(cmake_cache_option('ENABLE_MPI', '+mpi' in spec))
         if "+mpi" in spec:
