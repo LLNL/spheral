@@ -43,7 +43,8 @@ GruneisenEquationOfState(const double referenceDensity,
                                   minimumPressure,
                                   maximumPressure,
                                   minimumPressureDamage,
-                                  minPressureType),
+                                  minPressureType,
+                                  externalPressure),
   mC0(C0),
   mS1(S1),
   mS2(S2),
@@ -52,7 +53,6 @@ GruneisenEquationOfState(const double referenceDensity,
   mb(b),
   mAtomicWeight(atomicWeight),
   mCv(0.0),
-  mExternalPressure(externalPressure),
   mEnergyMultiplier(1.0) {
   REQUIRE(distinctlyGreaterThan(mAtomicWeight, 0.0));
 //   mCv = 3.0 * 1000.0*Constants::ElectronCharge*Constants::NAvogadro / mAtomicWeight;
@@ -217,7 +217,7 @@ pressure(const Scalar massDensity,
 
   //TODO double check branching and apply eta convention in appropriate branch
   // if (mu <= 0.0 or specificThermalEnergy < 0.0) {
-  //   return this->applyPressureLimits(K0*mu + mgamma0*rho0*eps) - mExternalPressure;
+  //   return this->applyPressureLimits(K0*mu + mgamma0*rho0*eps);
 
   // } else {
     const double mu1 = mu + 1.0;
@@ -228,9 +228,9 @@ pressure(const Scalar massDensity,
     const double D = 1.0 - (mS1 - 1.0)*mu - mS2*thpt1 - mS3*thpt2;
     const double Dinv = 1.0/(sgn(D)*max(abs(D), tiny));
     return this->applyPressureLimits((K0*mu*(eta - 0.5*mgamma0*mu - 0.5*mb*mu*mu)*Dinv*Dinv +
-                                      (mgamma0 + mb*mu)*eps*rho0)) - mExternalPressure;
+                                      (mgamma0 + mb*mu)*eps*rho0));
     // return this->applyPressureLimits((K0*mu*(1.0 + (1.0 - 0.5*mgamma0)*mu - 0.5*mb*mu*mu)*Dinv*Dinv + 
-    //                                   (mgamma0 + mb*mu)*eps*rho0)) - mExternalPressure;
+    //                                   (mgamma0 + mb*mu)*eps*rho0));
   // }
 
 }

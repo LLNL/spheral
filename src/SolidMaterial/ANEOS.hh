@@ -124,11 +124,6 @@ public:
   double epsMax() const;
   bool useInterpolation() const;
 
-  // If requested, the user can specify an external pressure to be applied
-  // in the pressure calculation.
-  double externalPressure() const;
-  void externalPressure(const double x);
-
   double atomicWeight() const;
 
 private:
@@ -136,7 +131,7 @@ private:
   bool mUseInterpolation;
   int mMaterialNumber;
   unsigned mNumRhoVals, mNumTvals;
-  double mRhoMin, mRhoMax, mTmin, mTmax, mEpsMin, mEpsMax, mExternalPressure;
+  double mRhoMin, mRhoMax, mTmin, mTmax, mEpsMin, mEpsMax;
   std::shared_ptr<CubicHermiteInterpolator> mEpsMinInterp, mEpsMaxInterp;
   std::shared_ptr<BiCubicInterpolator> mEpsInterp, mTinterp, mPinterp, mCVinterp, mCSinterp, mKinterp, mSinterp;
 

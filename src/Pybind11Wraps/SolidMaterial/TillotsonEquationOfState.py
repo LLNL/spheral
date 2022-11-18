@@ -206,7 +206,6 @@ Reference: Tillotson 1962
     epsVapor = PYB11property("double", "epsVapor", "epsVapor")
 
     atomicWeight = PYB11property("double", "atomicWeight", "atomicWeight")
-    externalPressure = PYB11property("double", "externalPressure", "externalPressure")
 
 #-------------------------------------------------------------------------------
 # Inject EOS interface

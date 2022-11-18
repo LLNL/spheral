@@ -44,10 +44,12 @@ template<typename Dimension>
 EquationOfState<Dimension>::EquationOfState(const PhysicalConstants& constants,
                                             const double minimumPressure,
                                             const double maximumPressure,
-                                            const MaterialPressureMinType minPressureType):
+                                            const MaterialPressureMinType minPressureType,
+                                            const double externalPressure):
   mConstants(constants),
   mMinimumPressure(minimumPressure),
   mMaximumPressure(maximumPressure),
+  mExternalPressure(externalPressure),
   mMinPressureType(minPressureType) {
   REQUIRE(mMinimumPressure <= mMaximumPressure);
 }
@@ -73,7 +75,7 @@ specificThermalEnergyForPressure(const typename Dimension::Scalar Ptarget,
                                  const typename Dimension::Scalar /* Ptol */,
                                  const unsigned maxIterations) const {
   const Pfunctor<Dimension> pfunc(*this, rho, Ptarget);
-  return bisectRoot(pfunc, epsMin, epsMax, epsTol, maxIterations);
+  return bisectRoot(pfunc, epsMin, epsMax, epsTol, maxIterations, false);
 }
 
 }

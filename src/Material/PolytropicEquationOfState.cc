@@ -24,14 +24,14 @@ PolytropicEquationOfState(const double K,
                           const PhysicalConstants& constants,
                           const double minimumPressure,
                           const double maximumPressure,
-                          const MaterialPressureMinType minPressureType):
-  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
+                          const MaterialPressureMinType minPressureType,
+                          const double externalPressure):
+  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType, externalPressure),
   mPolytropicConstant(K),
   mPolytropicIndex(index),
   mGamma(0.0),
   mGamma1(0.0),
-  mMolecularWeight(mu),
-  mExternalPressure(0.0) {
+  mMolecularWeight(mu) {
   REQUIRE(index != 0.0);
   mGamma = (index + 1.0)/index;
   mGamma1 = mGamma - 1.0;
@@ -174,7 +174,7 @@ PolytropicEquationOfState<Dimension>::
 pressure(const Scalar massDensity,
          const Scalar /*specificThermalEnergy*/) const {
   CHECK(valid());
-  return this->applyPressureLimits(mPolytropicConstant*pow(massDensity, mGamma)) - mExternalPressure;
+  return this->applyPressureLimits(mPolytropicConstant*pow(massDensity, mGamma));
 }
 
 //------------------------------------------------------------------------------
@@ -253,7 +253,7 @@ PolytropicEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return mGamma*(pressure(massDensity, specificThermalEnergy) + mExternalPressure);
+  return mGamma*(pressure(massDensity, specificThermalEnergy) + this->externalPressure());
 }
 
 //------------------------------------------------------------------------------

@@ -49,7 +49,8 @@ LinearPolynomialEquationOfState(const double referenceDensity,
                                   minimumPressure,
                                   maximumPressure,
                                   minimumPressureDamage,
-                                  minPressureType),
+                                  minPressureType,
+                                  externalPressure),
   mA0(a0),
   mA1(a1),
   mA2(a2),
@@ -59,8 +60,7 @@ LinearPolynomialEquationOfState(const double referenceDensity,
   mB2(b2),
   mAtomicWeight(atomicWeight),
   mCv(3.0 * constants.molarGasConstant() / atomicWeight),
-  mGamma(mB0 + 1.0),
-  mExternalPressure(externalPressure) {
+  mGamma(mB0 + 1.0) {
   REQUIRE(distinctlyGreaterThan(mAtomicWeight, 0.0));
   ENSURE(valid());
 }
@@ -215,7 +215,7 @@ pressure(const Scalar massDensity,
   if (fuzzyEqual(eta, this->etamin())) return 0.0;
   const double mu = eta - 1.0;
   return this->applyPressureLimits(mA0 + mA1*mu + mA2*mu*mu + mA3*mu*mu*mu +
-                                   (mB0 + mB1*mu + mB2*mu*mu)*specificThermalEnergy) - mExternalPressure;
+                                   (mB0 + mB1*mu + mB2*mu*mu)*specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------

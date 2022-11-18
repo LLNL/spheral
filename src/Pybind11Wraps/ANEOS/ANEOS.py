@@ -111,7 +111,6 @@ an appropriate range for (rhoMin, rhoMax), (Tmin, Tmax), *and* have enough value
     # specificThermalEnergyVals = PYB11property(getterraw="[](const ANEOS<%(Dimension)s>& self) { return ANEOS_STEvals(self); }",
     #                                           doc="Get the specific thermal energy lookup table values")
     atomicWeight = PYB11property("double", "atomicWeight")
-    externalPressure = PYB11property("double", "externalPressure", "externalPressure")
     
 #-------------------------------------------------------------------------------
 # Add the virtual interface

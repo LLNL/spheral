@@ -325,7 +325,8 @@ ANEOS(const int materialNumber,
                                   minimumPressure,
                                   maximumPressure,
                                   minimumPressureDamage,
-                                  minPressureType),
+                                  minPressureType,
+                                  externalPressure),
   mUseInterpolation(useInterpolation),
   mMaterialNumber(materialNumber),
   mNumRhoVals(numRhoVals),
@@ -336,7 +337,6 @@ ANEOS(const int materialNumber,
   mTmax(Tmax),
   mEpsMin(std::numeric_limits<double>::max()),
   mEpsMax(std::numeric_limits<double>::min()),
-  mExternalPressure(externalPressure),
   mEpsMinInterp(std::make_shared<CubicHermiteInterpolator>()),
   mEpsMaxInterp(std::make_shared<CubicHermiteInterpolator>()),
   mEpsInterp(std::make_shared<BiCubicInterpolator>()),
@@ -490,7 +490,6 @@ ANEOS(const ANEOS& rhs):
   mTmax(rhs.mTmax),
   mEpsMin(rhs.mEpsMin),
   mEpsMax(rhs.mEpsMax),
-  mExternalPressure(rhs.mExternalPressure),
   mEpsMinInterp(rhs.mEpsMinInterp),
   mEpsMaxInterp(rhs.mEpsMaxInterp),
   mEpsInterp(rhs.mEpsInterp),
@@ -678,7 +677,7 @@ pressure(const Scalar massDensity,
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     P *= mPconv;
   }
-  return this->applyPressureLimits(P) - mExternalPressure;
+  return this->applyPressureLimits(P);
 }
 
 //------------------------------------------------------------------------------
@@ -905,23 +904,6 @@ bool
 ANEOS<Dimension>::
 useInterpolation() const {
   return mUseInterpolation;
-}
-
-//------------------------------------------------------------------------------
-// External pressure.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-double
-ANEOS<Dimension>::
-externalPressure() const {
-  return mExternalPressure;
-}
-
-template<typename Dimension>
-void
-ANEOS<Dimension>::
-externalPressure(const double x) {
-  mExternalPressure = x;
 }
 
 //------------------------------------------------------------------------------
