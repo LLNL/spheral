@@ -194,7 +194,7 @@ FileIO::read(Dim<2>::FacetedVolume& value, const string pathName) const {
   read(vertices, pathName + "/vertices");
   const auto n = vertices.size();
   vector<vector<unsigned>> facets(n, vector<unsigned>(2));
-  for (auto i = 0u; i < n; ++i) {
+  for (size_t i = 0u; i < n; ++i) {
     facets[i] = {i, (i + 1) % n};
   }
   value = Dim<2>::FacetedVolume(vertices, facets);
