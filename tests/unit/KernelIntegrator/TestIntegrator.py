@@ -1,5 +1,5 @@
-####ATS:t1 = test(SELF, "--dimension 1 --order 100", label="integration, 1d", np=1)                                     # <-- suspending 2022/9/15, need to come back and verify with Brody
-#ATS:t2 = test(SELF, "--dimension 2 --nx 10 --ny 10 --order 10 --tolerance 2.e-4", label="integration, 2d", np=1)
+#ATS:t1 = test(SELF, "--dimension 1 --order 100 --tolerance 2.0e-4", label="integration, 1d", np=1)
+#ATS:t2 = test(SELF, "--dimension 2 --nx 10 --ny 10 --order 10 --tolerance 2.0e-4", label="integration, 2d", np=1)
 #ATS:t3 = test(SELF, "--dimension 3 --nx 5 --ny 5 --nz 5 --order 6", label="integration, 3d", np=1)
 #ATS:r1 = test(SELF, "--dimension 1 --nx 20 --order 100 --correctionOrderIntegration 1", label="integration, 1d, rk1", np=1)
 #ATS:r1 = test(SELF, "--dimension 1 --nx 20 --nPerh 10.01 --order 100 --correctionOrderIntegration 4", label="integration, 1d, rk4", np=1)
@@ -337,7 +337,7 @@ output("connectivity_time")
 if correctionOrderIntegration < 0:
     integrationKernel = SPHIntegrationKernel(WT)
 else:
-    integrationKernel = eval("RKIntegrationKernel{}(WT)".format(correctionOrderIntegration))
+    integrationKernel = eval("RKIntegrationKernel{}d{}(WT)".format(dimension, correctionOrderIntegration))
 output("integrationKernel")
 integrator = KernelIntegrator(order, integrationKernel, dataBase, flatConnectivity)
 vlK_f = LinearKernel()
