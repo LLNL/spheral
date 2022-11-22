@@ -28,7 +28,7 @@ function(instantiate _inst_var _source_var)
   # Iterate over each Instantation file
   foreach(_inst ${${_inst_var}})
 
-    if(ENABLE_INSTANTIATIONS AND (EXISTS ${PYTHON_EXE}))
+    if(ENABLE_INSTANTIATIONS)
 
       # Generate a C++ file for each dimension with the format: <Name>Inst<N>d.cc
       foreach(_dim ${_dims})
@@ -37,8 +37,9 @@ function(instantiate _inst_var _source_var)
         set(_inst_file ${_inst}Inst${_dim}d.cc)
 
         # Generate the C++ file
+        # Uses BLT's python for instantiations to work when building CXX_ONLY as well as with python
         add_custom_command(OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${_inst_file}
-                           COMMAND ${PYTHON_EXE} ${SPHERAL_ROOT_DIR}/src/helpers/InstantiationGenerator.py ${_inst_py} ${_inst_file} ${_dim}
+                           COMMAND ${PYTHON_EXECUTABLE} ${SPHERAL_ROOT_DIR}/src/helpers/InstantiationGenerator.py ${_inst_py} ${_inst_file} ${_dim}
                            BYPRODUCTS ${_inst_file}
                            COMMENT "Generating instantiation ${_inst_file}..."
                            )
