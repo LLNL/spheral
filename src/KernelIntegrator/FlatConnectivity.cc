@@ -6,7 +6,9 @@
 #include "FlatConnectivity.hh"
 
 #include <algorithm>
+#ifdef USE_MPI
 #include "mpi.h"
+#endif
 
 #include "Boundary/ConstantBoundary.hh"
 #include "Boundary/InflowOutflowBoundary.hh"
