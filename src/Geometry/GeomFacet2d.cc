@@ -115,4 +115,36 @@ computeNormal() {
                    vertices[point1].x() - vertices[point2].x());
 }
 
+//------------------------------------------------------------------------------
+// ==
+//------------------------------------------------------------------------------
+bool
+GeomFacet2d::
+operator==(const GeomFacet2d& rhs) const {
+  return (*mVerticesPtr == *(rhs.mVerticesPtr) and
+          mPoints[0] == rhs.mPoints[0] and
+          mPoints[1] == rhs.mPoints[1]);
+}
+
+//------------------------------------------------------------------------------
+// !=
+//------------------------------------------------------------------------------
+bool
+GeomFacet2d::
+operator!=(const GeomFacet2d& rhs) const {
+  return not (*this == rhs);
+}
+
+//------------------------------------------------------------------------------
+// Output (ostream) operator.
+//------------------------------------------------------------------------------
+std::ostream&
+operator<<(std::ostream& os, const GeomFacet2d& facet) {
+  os << "GeomFacet2d( ivertices : " << facet.ipoint1() << " " << facet.ipoint2() << "\n"
+     << "              vertices : " << facet.point1() << " " << facet.point2() << "\n"
+     << "                normal : " << facet.normal() 
+     << "\n)";
+  return os;
+}
+
 }

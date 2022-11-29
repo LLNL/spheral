@@ -161,19 +161,26 @@ FileIO::read(GeomPlane<Dim<3> >& value, const string pathName) const {
 //------------------------------------------------------------------------------
 void
 FileIO::write(const Dim<1>::FacetedVolume& value, const string pathName) {
-  write(value.center(), pathName + "/center");
-  write(value.extent(), pathName + "/extent");
+  std::vector<char> buf;
+  packElement(value, buf);
+  std::string bufstr(buf.begin(), buf.end());
+  this->write(bufstr, pathName);
 }
 
 void
 FileIO::write(const Dim<2>::FacetedVolume& value, const string pathName) {
-  write(value.vertices(), pathName + "/vertices");
+  std::vector<char> buf;
+  packElement(value, buf);
+  std::string bufstr(buf.begin(), buf.end());
+  this->write(bufstr, pathName);
 }
 
 void
 FileIO::write(const Dim<3>::FacetedVolume& value, const string pathName) {
-  write(value.vertices(), pathName + "/vertices");
-  write(value.vertexFacetConnectivity(), pathName + "/facets");
+  std::vector<char> buf;
+  packElement(value, buf);
+  std::string bufstr(buf.begin(), buf.end());
+  this->write(bufstr, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -181,32 +188,32 @@ FileIO::write(const Dim<3>::FacetedVolume& value, const string pathName) {
 //------------------------------------------------------------------------------
 void
 FileIO::read(Dim<1>::FacetedVolume& value, const string pathName) const {
-  Dim<1>::Vector center;
-  Dim<1>::Scalar extent;
-  read(center, pathName + "/center");
-  read(extent, pathName + "/extent");
-  value = Dim<1>::FacetedVolume(center, extent);
+  std::string bufstr;
+  this->read(bufstr, pathName);
+  const std::vector<char> buf(bufstr.begin(), bufstr.end());
+  auto itr = buf.begin();
+  unpackElement(value, itr, buf.end());
+  ENSURE(itr == buf.end());
 }
 
 void
 FileIO::read(Dim<2>::FacetedVolume& value, const string pathName) const {
-  vector<Dim<2>::Vector> vertices;
-  read(vertices, pathName + "/vertices");
-  const unsigned n = vertices.size();
-  vector<vector<unsigned>> facets(n, vector<unsigned>(2));
-  for (auto i = 0u; i < n; ++i) {
-    facets[i] = {i, (i + 1u) % n};
-  }
-  value = Dim<2>::FacetedVolume(vertices, facets);
+  std::string bufstr;
+  this->read(bufstr, pathName);
+  const std::vector<char> buf(bufstr.begin(), bufstr.end());
+  auto itr = buf.begin();
+  unpackElement(value, itr, buf.end());
+  ENSURE(itr == buf.end());
 }
 
 void
 FileIO::read(Dim<3>::FacetedVolume& value, const string pathName) const {
-  vector<Dim<3>::Vector> vertices;
-  vector<vector<unsigned>> facets;
-  read(vertices, pathName + "/vertices");
-  read(facets, pathName + "/facets");
-  value = Dim<3>::FacetedVolume(vertices, facets);
+  std::string bufstr;
+  this->read(bufstr, pathName);
+  const std::vector<char> buf(bufstr.begin(), bufstr.end());
+  auto itr = buf.begin();
+  unpackElement(value, itr, buf.end());
+  ENSURE(itr == buf.end());
 }
 
 //------------------------------------------------------------------------------
