@@ -1494,45 +1494,30 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testWriteBox(self):
         x0 = self.randomBox()
-        f = self.constructor("TestBox", Write)
-        f.writeObject(x0, "FileIOTestBase/TestBox")
-        f.close()
-        f = self.constructor("TestBox", Read)
-        x1 = f.readObject("FileIOTestBase/TestBox")
-        f.close()
-        self.failUnless(x1 == x0)
-        self.removeFile("TestBox")
-        return
+        x1 = Box1d()
+        self.boilerPlate("TestBox",
+                         "FileIOTestBase/TestBox",
+                         x0, x1)
 
     #---------------------------------------------------------------------------
     # testWritePolygon
     #---------------------------------------------------------------------------
     def testWritePolygon(self):
         x0 = self.randomPolygon()
-        f = self.constructor("TestPolygon", Write)
-        f.writeObject(x0, "FileIOTestBase/TestPolygon")
-        f.close()
-        f = self.constructor("TestPolygon", Read)
-        x1 = f.readObject("FileIOTestBase/TestPolygon")
-        f.close()
-        self.failUnless(x1 == x0)
-        self.removeFile("TestPolygon")
-        return
+        x1 = Polygon()
+        self.boilerPlate("TestPolygon",
+                         "FileIOTestBase/TestPolygon",
+                         x0, x1)
 
     #---------------------------------------------------------------------------
     # testWritePolyhedron
     #---------------------------------------------------------------------------
     def testWritePolyhedron(self):
         x0 = self.randomPolyhedron()
-        f = self.constructor("TestPolyhedron", Write)
-        f.writeObject(x0, "FileIOTestBase/TestPolyhedron")
-        f.close()
-        f = self.constructor("TestPolyhedron", Read)
-        x1 = f.readObject("FileIOTestBase/TestPolyhedron")
-        f.close()
-        self.failUnless(x1 == x0)
-        self.removeFile("TestPolyhedron")
-        return
+        x1 = Polyhedron()
+        self.boilerPlate("TestPolyhedron", 
+                         "FileIOTestBase/TestPolyhedron",
+                         x0, x1)
 
     #---------------------------------------------------------------------------
     # writeObject(int)
