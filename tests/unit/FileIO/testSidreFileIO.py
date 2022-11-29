@@ -2,7 +2,7 @@
 from Spheral import *
 from FileIOTestBase import *
 
-import os
+import os, shutil
 import unittest
 
 #-------------------------------------------------------------------------------
@@ -31,7 +31,8 @@ class SidreFileIOTest(FileIOTestBase, unittest.TestCase):
         return
 
     def removeFile(self, filename):
-        os.remove(filename)
+        os.remove(filename + ".root")
+        shutil.rmtree(filename)
 
 #-------------------------------------------------------------------------------
 # Run those tests.
