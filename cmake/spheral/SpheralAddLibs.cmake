@@ -34,7 +34,7 @@ function(spheral_add_obj_library
   blt_add_library(NAME        Spheral_${package_name}
                   HEADERS     ${${package_name}_headers}
                   SOURCES     ${${package_name}_sources}
-                  DEPENDS_ON  ${spheral_blt_depends} ${spheral_blt_cxx_depends} blt_python ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+                  DEPENDS_ON  ${spheral_blt_depends} ${spheral_blt_cxx_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS}
                   OBJECT TRUE
                   )
 
@@ -91,7 +91,7 @@ function(spheral_add_cxx_library
 
   get_target_property(_LINK_LIBRARIES Spheral_${package_name} LINK_LIBRARIES)
   LIST(REMOVE_DUPLICATES _LINK_LIBRARIES)
-  set_target_properties(Spheral_${package_name} PROPERTIES LINK_LIBRARIES "${_LINK_LIBRARIES}") 
+  set_target_properties(Spheral_${package_name} PROPERTIES LINK_LIBRARIES "${_LINK_LIBRARIES};${_LINK_LIBRARIES}") 
 
   if(ENABLE_CUDA)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
