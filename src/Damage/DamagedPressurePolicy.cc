@@ -66,16 +66,18 @@ update(const KeyType& key,
   for (auto il = 0u; il < numFields; ++il) {
     const auto ni = pressure[il]->numInternalElements();
     auto Pmin = 0.0;
+    bool enforceDamagedPmin = false;
     const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(pressure[il]->nodeListPtr());
     if (solidNodeListPtr != nullptr) {
       const auto* eosPtr = dynamic_cast<const SolidEquationOfState<Dimension>*>(&(solidNodeListPtr->equationOfState()));
       if (eosPtr != nullptr) {
         Pmin = eosPtr->minimumPressureDamage();
+        enforceDamagedPmin = true;
       }
     }
+    if (enforceDamagedPmin) {
 #pragma omp parallel for
-    for (auto i = 0u; i < ni; ++i) {
-      if (pressure(il,i) < 0.0) {
+      for (auto i = 0u; i < ni; ++i) {
         const Scalar Di = std::max(0.0, std::min(1.0, D(il,i).eigenValues().maxElement()));
         CHECK(Di >= 0.0 and Di <= 1.0);
         pressure(il,i) = (1.0 - Di)*pressure(il,i) + Di*std::max(pressure(il,i), Pmin);
