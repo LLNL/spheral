@@ -209,6 +209,17 @@ rawPressure() const {
 }
 
 //------------------------------------------------------------------------------
+// next time step interface flags
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  int>&
+SolidFSISPHHydroBase<Dimension>::
+interfaceFlags() const {
+  return mInterfaceFlags;
+}
+
+//------------------------------------------------------------------------------
 // Return the interface area vectors field list ref
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -250,6 +261,17 @@ const FieldList<Dimension,  typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
 interfaceSmoothness() const {
   return mInterfaceSmoothness;
+}
+
+//------------------------------------------------------------------------------
+// next time step interface flags
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  int>&
+SolidFSISPHHydroBase<Dimension>::
+newInterfaceFlags() const {
+  return mNewInterfaceFlags;
 }
 
 //------------------------------------------------------------------------------

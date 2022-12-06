@@ -46,7 +46,8 @@ enum class ThreadReduction {
 template<typename Dimension>
 struct SpheralThreads {
 
-  typedef boost::variant<FieldList<Dimension, typename Dimension::Scalar>*,
+  typedef boost::variant<FieldList<Dimension, int>*,
+                         FieldList<Dimension, typename Dimension::Scalar>*,
                          FieldList<Dimension, typename Dimension::Vector>*,
                          FieldList<Dimension, typename Dimension::Tensor>*,
                          FieldList<Dimension, typename Dimension::SymTensor>*,

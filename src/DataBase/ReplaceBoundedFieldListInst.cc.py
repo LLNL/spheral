@@ -6,6 +6,7 @@ text = """
 #include "DataBase/ReplaceBoundedFieldList.cc"
 
 namespace Spheral {
+  template class ReplaceBoundedFieldList<Dim< %(ndim)s >, int>;
   template class ReplaceBoundedFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;
   template class ReplaceBoundedFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>;
   template class ReplaceBoundedFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector3d>;

@@ -175,10 +175,13 @@ public:
   const FieldList<Dimension, Scalar>& rawPressure() const;
   const FieldList<Dimension, Vector>& DPDx() const;
   const FieldList<Dimension, Vector>& DepsDx() const;
+  const FieldList<Dimension, int>& interfaceFlags() const;
   const FieldList<Dimension, Vector>& interfaceAreaVectors() const;
   const FieldList<Dimension, Vector>& interfaceNormals() const;
   const FieldList<Dimension, Scalar>& interfaceFraction() const;
   const FieldList<Dimension, Scalar>& interfaceSmoothness() const;
+
+  const FieldList<Dimension, int>& newInterfaceFlags() const;
   const FieldList<Dimension, Vector>& newInterfaceAreaVectors() const;
   const FieldList<Dimension, Vector>& newInterfaceNormals() const;
   const FieldList<Dimension, Vector>& smoothedInterfaceNormals() const;
@@ -208,14 +211,16 @@ private:
   
   std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
  
-
   FieldList<Dimension, Scalar> mRawPressure;                  // material interface normals
   FieldList<Dimension, Vector> mDPDx;                         // pressure gradient     
   FieldList<Dimension, Vector> mDepsDx;                       // specific thermal energy gradient
+  FieldList<Dimension, int> mInterfaceFlags;                  // flags indicating interface type
   FieldList<Dimension, Vector> mInterfaceAreaVectors;         // interface area vectors that can be used for BCs
   FieldList<Dimension, Vector> mInterfaceNormals;             // surface normals between nodelists     
   FieldList<Dimension, Scalar> mInterfaceFraction;            // fraction of dissimilar neighbor volume     
   FieldList<Dimension, Scalar> mInterfaceSmoothness;          // smoothness metric (0-1) 
+  
+  FieldList<Dimension, int> mNewInterfaceFlags;               // flags indicating interface type
   FieldList<Dimension, Vector> mNewInterfaceAreaVectors;      // interface area vectors that can be used for BCs next time step
   FieldList<Dimension, Vector> mNewInterfaceNormals;          // surface normals between nodelists next time step    
   FieldList<Dimension, Vector> mSmoothedInterfaceNormals;     // SPH interp of surface normal
