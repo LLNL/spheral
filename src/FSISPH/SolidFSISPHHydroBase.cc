@@ -708,6 +708,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       smoothedInterfaceNormalsj += interfaceFractioni*fSij*voli*interfaceAreaVectorsi;
       newInterfaceFractioni += volj*interfaceFlagsj*Wij;
       newInterfaceFractionj += voli*interfaceFlagsi*Wij;
+
+      const auto alignment = max(fSij*interfaceNormalsi.dot(interfaceNormalsj),0.0);
+      newInterfaceSmoothnessi += alignment*interfaceFlagsj*volj*Wij;
+      newInterfaceSmoothnessj += alignment*interfaceFlagsi*voli*Wij;
+
       // newInterfaceNormalsi -= Aij;
       // newInterfaceNormalsj += Aij;
       // if(interfaceFractioni > tiny and interfaceFractionj > tiny){
@@ -733,7 +738,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
 
       // flag neighbor of free surface
-      if (interfaceFlagsi == 2 or interfaceFlagsj == 2){
+      if (interfaceFlagsi == 2 or interfaceFlagsj == 2 or differentMatij){
         newInterfaceFlagsi=std::max(newInterfaceFlagsi,1);
         newInterfaceFlagsj=std::max(newInterfaceFlagsj,1);
       }
@@ -989,7 +994,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       newInterfaceFractioni += mi/rhoi*Hdeti*W0 * interfaceFlagsi;
       newInterfaceNormalsi = smoothedInterfaceNormalsi;
 
-      // newInterfaceSmoothnessi = min(1.0,max(0.0,newInterfaceSmoothnessi/max(newInterfaceFractioni,tiny)));
+      newInterfaceSmoothnessi = min(1.0,max(0.0,newInterfaceSmoothnessi/max(newInterfaceFractioni,tiny)));
       // smoothedInterfaceNormalsi +=  interfaceFractioni * mi/rhoi * interfaceNormalsi; //*Hdeti*W0;
       // if (newInterfaceFractioni > tiny or newInterfaceFlagsi > 0.5){
       //   const auto normalSmoothFraction = min(0.9,max(0.1, 20.0*min(interfaceFractioni,0.05)));
