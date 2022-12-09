@@ -29,7 +29,15 @@ class PiecewiseLinearPorousStrengthModel(PorousStrengthModel):
         "Construct with the strength model we're modifying"
 
 
+    def getPorousShearModulusRatio(self,
+                                   alphai = "const Scalar"):
+        "returns the ratio porous shear modulus to solid shear modulus"
+        return "Scalar"
 
+    def getPorousYieldStrengthRatio(self,
+                                    alphai = "const Scalar"):
+        "returns the ratio porous shear modulus to solid shear modulus"
+        return "Scalar"
     #...........................................................................
     # Properties
     porosityAbscissa = PYB11property("vector<Scalar>&","porosityAbscissa", returnpolicy="reference_internal")
