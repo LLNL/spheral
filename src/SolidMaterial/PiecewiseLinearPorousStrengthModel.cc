@@ -31,12 +31,22 @@ PiecewiseLinearPorousStrengthModel(const StrengthModel<Dimension>& solidStrength
   mShearModulusRatios(shearModulusRatios),
   mYieldStrengthRatios(yieldStrengthRatios) {
 
+    const Scalar tinyPorosity = 1.0e-4;
+
     // make sure we're interpolating the full range
-    if(mPorosityAbscissa.back() < 1.0){
+    if(mPorosityAbscissa.back() < 1.0-tinyPorosity){
         mPorosityAbscissa.push_back(1.0);
         mShearModulusRatios.push_back(0.0);
         mYieldStrengthRatios.push_back(0.0);
     }
+
+    // make sure we're interpolating the full range
+    if(mPorosityAbscissa.front() > tinyPorosity){
+        mPorosityAbscissa.insert(mPorosityAbscissa.begin(),1.0);
+        mShearModulusRatios.insert(mShearModulusRatios.begin(),1.0);
+        mYieldStrengthRatios.insert(mYieldStrengthRatios.begin(),1.0);
+    }
+    
 }
 
 //------------------------------------------------------------------------------
