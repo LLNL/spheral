@@ -124,7 +124,7 @@ def main():
       sys.exit(1)
 
     # Did we build the python interface?
-    if sexe("grep ENABLE_CXXONLY:BOOL=Off {0}/CMakeCache.txt".format(build_dir)) == 0:
+    if sexe("grep -i ENABLE_CXXONLY:BOOL=Off {0}/CMakeCache.txt".format(build_dir)) == 0:
       # Try to import Spheral for a basic sanity test.
       smoke_test = sexe("{0} {1}/spheral -c \"import Spheral\"".format(ml_cmd, install_dir))
       if smoke_test != 0:
