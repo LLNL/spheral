@@ -22,7 +22,7 @@ Notable changes include:
     * Pair-max damage algorithm now decouples points in different NodeLists or with different fragmentIDs
     * Added direct support for FacetedVolumes to FileIO interface
     * ANEOS now allows shallow copies to be made
-    * Polyheron contain method can now optionally use Axom methods to test for containment
+    * Polyhedron contain method can now optionally use Axom methods to test for containment
     * Adding user specified functions for shear modulus and yield strength as a function of damage    
 
   * Build changes / improvements:
