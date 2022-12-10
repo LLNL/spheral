@@ -38,6 +38,11 @@ function(spheral_add_obj_library
                   OBJECT TRUE
                   )
 
+  ## Install the headers
+  install(FILES       ${${package_name}_headers}
+          DESTINATION include/${package_name}
+          )
+
   if(ENABLE_CUDA)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
   endif()
