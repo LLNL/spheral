@@ -15,7 +15,7 @@ list(APPEND _packages
   ArtificialConduction
   Boundary
   CRKSPH
-  #CXXTests
+  CXXTests
   Damage
   DataBase
   DataOutput

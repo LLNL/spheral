@@ -41,6 +41,8 @@ spack-build*
 *.logs
 rz*
 rz*
+toss_3*.cmake
+blueos_3*.cmake
 
 
 # These are files automatically generated in our configure process.

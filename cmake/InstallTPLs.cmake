@@ -13,16 +13,16 @@ Spheral_Handle_TPL(zlib spheral_depends cxx)
 Spheral_Handle_TPL(boost spheral_depends cxx)
 Spheral_Handle_TPL(eigen spheral_depends cxx)
 Spheral_Handle_TPL(qhull spheral_depends cxx)
-Spheral_Handle_TPL(hdf5 spheral_depends cxx)
 Spheral_Handle_TPL(silo spheral_depends cxx)
-Spheral_Handle_TPL(conduit spheral_depends cxx)
-Spheral_Handle_TPL(axom spheral_depends cxx)
 
 # AXOM PUlls in HDF5 and Conduit for us
-find_package(axom REQUIRED QUIET PATHS ${axom_DIR}/lib/cmake)
-list(APPEND spheral_blt_depends axom)
+#Spheral_Handle_TPL(hdf5 spheral_depends cxx)
+#Spheral_Handle_TPL(conduit spheral_depends cxx)
+find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
 if(axom_FOUND)
+  list(APPEND spheral_blt_cxx_depends axom fmt)
   message(STATUS "Found axom: ${axom_DIR} (found version ${axom_VERSION})")
+  message(STATUS "${AXOM_INCLUDE_DIRS}")
 endif()
 
 # Some libraries are optional
