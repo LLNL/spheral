@@ -21,8 +21,8 @@ Spheral_Handle_TPL(silo spheral_depends cxx)
 find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
 if(axom_FOUND)
   list(APPEND spheral_blt_cxx_depends axom fmt)
+  blt_patch_target(NAME fmt TREAT_INCLUDES_AS_SYSTEM On)
   message(STATUS "Found axom: ${axom_DIR} (found version ${axom_VERSION})")
-  message(STATUS "${AXOM_INCLUDE_DIRS}")
 endif()
 
 # Some libraries are optional
