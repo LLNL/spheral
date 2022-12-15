@@ -310,8 +310,8 @@ computeGlobalIndices(const DataBase<Dimension>& dataBase,
   VERIFY(numInternalNodesDB == mNumInternalLocalNodes);
   
   // Get global indices manually
-  int globalScan = 0;
 #ifdef USE_MPI
+  int globalScan = 0;
   MPI_Scan(&mNumInternalLocalNodes, &globalScan, 1, MPI_INT, MPI_SUM, Communicator::communicator());
   VERIFY(globalScan >= mNumInternalLocalNodes);
   mFirstGlobalIndex = globalScan - mNumInternalLocalNodes;
@@ -319,7 +319,6 @@ computeGlobalIndices(const DataBase<Dimension>& dataBase,
   MPI_Allreduce(&mNumInternalLocalNodes, &mNumGlobalNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
   VERIFY(mNumGlobalNodes >= mNumInternalLocalNodes);
 #else
-  globalScan = mNumInternalLocalNodes;
   mNumGlobalNodes = mNumInternalLocalNodes;
 #endif
   VERIFY(mNumGlobalNodes == numGlobalNodesDB);
