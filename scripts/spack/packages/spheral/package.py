@@ -44,8 +44,8 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('m-aneos')
     depends_on('py-polyclipper')
     depends_on('eigen@3.4.0', type='build')
-    depends_on('hdf5@1.8.19 ~mpi +hl', type='build', when='~mpi')
-    depends_on('hdf5@1.8.19 +mpi +hl', type='build', when='+mpi')
+    depends_on('hdf5@1.8.19 ~shared ~mpi +hl', type='build', when='~mpi')
+    depends_on('hdf5@1.8.19 ~shared +mpi +hl', type='build', when='+mpi')
 
     depends_on('silo@4.10.2 +hdf5', type='build')
 
