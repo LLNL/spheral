@@ -4,6 +4,8 @@ from FileIOTestBase import *
 
 import os, shutil
 import unittest
+import mpi
+import shutil
 
 #-------------------------------------------------------------------------------
 # SidreFileIO tests.
@@ -30,9 +32,13 @@ class SidreFileIOTest(FileIOTestBase, unittest.TestCase):
     def tearDown(self):
         return
 
+    # If we are using MPI then we need to remove a directory because we are using Spio,
+    # otherwise we remove a file as is the case with the other FileIO types.
     def removeFile(self, filename):
-        os.remove(filename + ".root")
-        shutil.rmtree(filename)
+        if mpi.is_fake_mpi():
+            os.remove(filename)
+        else:
+            shutil.rmtree(filename)
 
 #-------------------------------------------------------------------------------
 # Run those tests.
