@@ -18,8 +18,8 @@ class SidreFileIOTest(FileIOTestBase, unittest.TestCase):
         self.intmax = 2**24
         self.unsignedmin = 0
         self.unsignedmax = 2**32
-        self.doublemin = -1e50
-        self.doublemax = 1e50
+        self.doublemin = -1e10
+        self.doublemax = 1e10
         self.constructor = SidreFileIO
 
         # Size the NodeLists.
