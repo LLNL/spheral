@@ -164,17 +164,17 @@ SidreFileIO::~SidreFileIO()
 //------------------------------------------------------------------------------
 void SidreFileIO::open(const std::string fileName, AccessType access)
 {
-  if (mDataStorePtr != 0)
-    std::cout << "This is the datastore ptr that is probably not zero" << std::endl;
-  else
-    std::cout << "woohoo mDataStorePtr does = 0." << std::endl;
+  // if (mDataStorePtr != 0)
+  //   std::cout << "This is the datastore ptr that is probably not zero" << std::endl;
+  // else
+  //   std::cout << "woohoo mDataStorePtr does = 0." << std::endl;
 
   VERIFY2(mDataStorePtr == 0 and mFileOpen == false,
           "ERROR: attempt to reopen SidreFileIO object.");
 
   mDataStorePtr = std::make_unique<axom::sidre::DataStore>();
   baseGroup = mDataStorePtr->getRoot();
-  std::cout << "We are able to set the baseGroup to datastore->getroot()\n";
+  // std::cout << "We are able to set the baseGroup to datastore->getroot()\n";
   mFileName = fileName;
 
   if (access == AccessType::Read)
