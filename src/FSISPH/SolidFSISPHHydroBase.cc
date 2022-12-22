@@ -704,8 +704,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       newInterfaceAreaVectorsi -= AijMij;
       newInterfaceAreaVectorsj += AijMij;
 
-      smoothedInterfaceNormalsi += interfaceFractionj*fSij*volj*interfaceAreaVectorsj;
-      smoothedInterfaceNormalsj += interfaceFractioni*fSij*voli*interfaceAreaVectorsi;
+      smoothedInterfaceNormalsi += max(interfaceFlagsj-1,0)*fSij*volj*interfaceAreaVectorsj*Wij;
+      smoothedInterfaceNormalsj += max(interfaceFlagsi-1,0)*fSij*voli*interfaceAreaVectorsi*Wij;
       newInterfaceFractioni += volj*interfaceFlagsj*Wij;
       newInterfaceFractionj += voli*interfaceFlagsi*Wij;
 
@@ -730,15 +730,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // }
 
       // flag free surface
-      if (Mi.Determinant() > 2.0){
-        newInterfaceFlagsi=2;
+      if (Mi.Determinant()> 2.0){
+        newInterfaceFlagsi=10;
       }
       if (Mj.Determinant() > 2.0){
-        newInterfaceFlagsj=2;
+        newInterfaceFlagsj=10;
       }
 
       // flag neighbor of free surface
-      if (interfaceFlagsi == 2 or interfaceFlagsj == 2 or differentMatij){
+      if (interfaceFlagsi == 10 or interfaceFlagsj == 10 or differentMatij){
         newInterfaceFlagsi=std::max(newInterfaceFlagsi,1);
         newInterfaceFlagsj=std::max(newInterfaceFlagsj,1);
       }
@@ -953,7 +953,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& interfaceFractioni = interfaceFraction(nodeListi,i);
       const auto& interfaceNormalsi = interfaceNormals(nodeListi,i);
       const auto  Hdeti = Hi.Determinant();
-      
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -978,7 +977,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& newInterfaceSmoothnessi = newInterfaceSmoothness(nodeListi,i);
       auto& newInterfaceFractioni = newInterfaceFraction(nodeListi,i);
       auto& newInterfaceFlagsi = newInterfaceFlags(nodeListi,i);
-
+      auto& Mi = M(nodeListi,i);
 
       
       // finish our normalization
@@ -986,15 +985,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // add another interface flag for free particles
       if (normi<0.05){
-        newInterfaceFlagsi = 2.0;
+        newInterfaceFlagsi = 10;
       }
 
       // finish our interface fields.
-      smoothedInterfaceNormalsi +=  interfaceFractioni * mi/rhoi * interfaceAreaVectorsi;
+      smoothedInterfaceNormalsi +=  max(interfaceFlagsi-1,0) * mi/rhoi*Hdeti*W0 * interfaceAreaVectorsi;
       newInterfaceFractioni += mi/rhoi*Hdeti*W0 * interfaceFlagsi;
-      newInterfaceNormalsi = smoothedInterfaceNormalsi;
+      if(interfaceFlagsi > 0) newInterfaceNormalsi = smoothedInterfaceNormalsi.unitVector();
 
-      newInterfaceSmoothnessi = min(1.0,max(0.0,newInterfaceSmoothnessi/max(newInterfaceFractioni,tiny)));
+      newInterfaceSmoothnessi = min(1.0,max(0.0,(newInterfaceSmoothnessi+mi/rhoi*Hdeti*W0 * interfaceFlagsi)/max(newInterfaceFractioni,tiny)));
       // smoothedInterfaceNormalsi +=  interfaceFractioni * mi/rhoi * interfaceNormalsi; //*Hdeti*W0;
       // if (newInterfaceFractioni > tiny or newInterfaceFlagsi > 0.5){
       //   const auto normalSmoothFraction = min(0.9,max(0.1, 20.0*min(interfaceFractioni,0.05)));
