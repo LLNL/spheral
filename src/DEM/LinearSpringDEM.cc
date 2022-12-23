@@ -161,7 +161,7 @@ dt(const DataBase<Dimension>& dataBase,
     const auto overlap = max(0.0, 1.0 - (xi - xj).magnitude()/(ri + rj));
     if (closing_speed > 0.0 or
         overlap > 0.0) {
-      const auto dtji = dtSpring; // max(dtSpring, std::max(0.0, xji.magnitude() - ri - rj)/closing_speed);
+      const auto dtji = max(dtSpring, (xji.magnitude() - ri - rj)*safeInvVar(closing_speed));
       if (dtji < dtMin) {
         dtMin = dtji;
         result = make_pair(dtji,
