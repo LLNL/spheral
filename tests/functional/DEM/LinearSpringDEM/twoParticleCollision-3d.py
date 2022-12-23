@@ -50,7 +50,7 @@ commandLine(vImpact = 1.0,                            # impact velocity
             dtMin = 1.0e-8, 
             dtMax = 0.1,
             dtGrowth = 2.0,
-            steps = 200,
+            steps = 500,
             maxSteps = None,
             statsStep = 10,
             domainIndependent = False,
@@ -216,6 +216,11 @@ velocity[1] = Vector(-vImpact,0.0,0.0)
 particleRadius = nodes1.particleRadius()
 particleRadius[0] = radius
 particleRadius[1] = radius
+
+bonusSpace = radius
+position = nodes1.positions()
+position[0].x -= bonusSpace
+position[1].x += bonusSpace
 
 omega = dem.omega
 if boolCheckSlidingFriction:
