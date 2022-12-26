@@ -4,6 +4,7 @@ set(GSPH_inst
     computeSPHVolume
     computeSumVolume
     computeMFMDensity
+    initializeGradients
     GenericRiemannHydro
     GSPHHydroBase
     MFMHydroBase
@@ -30,6 +31,7 @@ set(GSPH_headers
     computeSPHVolume.hh
     computeSumVolume.hh
     computeMFMDensity.hh
+    initializeGradients.hh
     GSPHFieldNames.hh
     GenericRiemannHydro.hh
     GSPHHydroBase.hh

@@ -36,6 +36,7 @@
 #include "GSPH/GSPHFieldNames.hh"
 #include "GSPH/GenericRiemannHydro.hh"
 #include "GSPH/computeSPHVolume.hh"
+#include "GSPH/initializeGradients.hh"
 #include "GSPH/Policies/PureReplaceFieldList.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
@@ -175,14 +176,41 @@ template<typename Dimension>
 void
 GenericRiemannHydro<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
+
+  auto mass = dataBase.fluidMass();
+  auto massDensity = dataBase.fluidMassDensity();
+  auto position = dataBase.fluidPosition();
+  auto velocity = dataBase.fluidVelocity();
+  auto H = dataBase.fluidHfield();
+
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
 
-  // for now initialize with SPH volume to make sure things are defined
-  const auto mass = dataBase.fluidMass();
-  const auto massDensity = dataBase.fluidMassDensity();
   computeSPHVolume(mass,massDensity,mVolume);
+
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+        boundItr != this->boundaryEnd();
+        ++boundItr){
+    (*boundItr)->applyFieldListGhostBoundary(mVolume);
+    (*boundItr)->applyFieldListGhostBoundary(velocity);
+    (*boundItr)->applyFieldListGhostBoundary(mPressure);
+  }
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+
+  initializeGradients(dataBase.connectivityMap(),
+                      this->kernel(),
+                      position,
+                      H,
+                      mVolume,
+                      mPressure,
+                      velocity,
+                      mRiemannDpDx,
+                      mRiemannDvDx);
+ 
 }
+
 
 //------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
