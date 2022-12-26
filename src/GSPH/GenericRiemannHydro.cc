@@ -36,6 +36,7 @@
 #include "GSPH/GSPHFieldNames.hh"
 #include "GSPH/GenericRiemannHydro.hh"
 #include "GSPH/computeSPHVolume.hh"
+#include "GSPH/Policies/PureReplaceFieldList.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 #ifdef _OPENMP
@@ -51,6 +52,7 @@ using std::string;
 using std::pair;
 using std::to_string;
 using std::make_pair;
+using std::make_shared;
 
 
 namespace {
@@ -121,9 +123,9 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mXSPHDeltaV(FieldStorageType::CopyFields),
   mM(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
-  mDvDt(FieldStorageType::CopyFields),
-  mDspecificThermalEnergyDt(FieldStorageType::CopyFields),
-  mDHDt(FieldStorageType::CopyFields),
+  mDvDt(FieldStorageType::CopyFields),                       // move up one layer
+  mDspecificThermalEnergyDt(FieldStorageType::CopyFields),   // move up one layer
+  mDHDt(FieldStorageType::CopyFields), 
   mDvDx(FieldStorageType::CopyFields),
   mRiemannDpDx(FieldStorageType::CopyFields),
   mRiemannDvDx(FieldStorageType::CopyFields),
@@ -191,7 +193,7 @@ GenericRiemannHydro<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
+  //typedef typename State<Dimension>::PolicyPointer PolicyPointer;
 
   VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
           "SPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
@@ -220,10 +222,12 @@ registerState(DataBase<Dimension>& dataBase,
       Hpolicy->push_back(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
     }
   }
-  
-  PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
-  PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
-  PolicyPointer csPolicy(new SoundSpeedPolicy<Dimension>());
+  //auto yieldStrengthPolicy = make_shared<YieldStrengthPolicy<Dimension>>()
+  auto positionPolicy = make_shared<IncrementFieldList<Dimension, Vector>>();
+  auto pressurePolicy = make_shared<PressurePolicy<Dimension>>();
+  auto csPolicy = make_shared<SoundSpeedPolicy<Dimension>>();
+  auto pressureGradientPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(ReplaceFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::RiemannPressureGradient);
+  auto velocityGradientPolicy = make_shared<PureReplaceFieldList<Dimension,Tensor>>(ReplaceFieldList<Dimension, Tensor>::prefix() + GSPHFieldNames::RiemannVelocityGradient);
 
   // normal state variables
   state.enroll(mTimeStepMask);
@@ -234,31 +238,36 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(position, positionPolicy);
   state.enroll(mPressure, pressurePolicy);
   state.enroll(mSoundSpeed, csPolicy);
-  state.enroll(mRiemannDpDx);
-  state.enroll(mRiemannDvDx);
+
+  if (mRiemannSolver.linearReconstruction()){
+    state.enroll(mRiemannDpDx, pressureGradientPolicy);
+    state.enroll(mRiemannDvDx, velocityGradientPolicy);
+  }else{
+    state.enroll(mRiemannDpDx);
+    state.enroll(mRiemannDvDx);
+  }
 
   // conditional for energy method
   if (mCompatibleEnergyEvolution) {
-    
-    PolicyPointer thermalEnergyPolicy(new CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>(dataBase));
-    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
-                                                                           HydroFieldNames::specificThermalEnergy,
-                                                                           true));
+    auto thermalEnergyPolicy = make_shared<CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>>(dataBase);
+    auto velocityPolicy = make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,
+                                                                             HydroFieldNames::specificThermalEnergy,
+                                                                             true);
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
 
   }else if (mEvolveTotalEnergy) {
-    PolicyPointer thermalEnergyPolicy(new SpecificFromTotalThermalEnergyPolicy<Dimension>());
-    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
-                                                                           HydroFieldNames::specificThermalEnergy,
-                                                                           true));
+    auto thermalEnergyPolicy = make_shared<SpecificFromTotalThermalEnergyPolicy<Dimension>>();
+    auto velocityPolicy = make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,
+                                                                             HydroFieldNames::specificThermalEnergy,
+                                                                             true) ;
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
 
   } else {
-    PolicyPointer thermalEnergyPolicy(new IncrementFieldList<Dimension, Scalar>());
-    PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,
-                                                                           true));
+    auto thermalEnergyPolicy = make_shared<IncrementFieldList<Dimension, Scalar>>();
+    auto velocityPolicy = make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,
+                                                                             true);
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
   }
@@ -491,40 +500,40 @@ initialize(const typename Dimension::Scalar time,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
 
-  auto& riemannSolver = this->riemannSolver();
+  // auto& riemannSolver = this->riemannSolver();
 
-  if(riemannSolver.linearReconstruction()){
-    const auto& connectivityMap = dataBase.connectivityMap();
-    const auto& nodeLists = connectivityMap.nodeLists();
-    const auto numNodeLists = nodeLists.size();
+  // if(riemannSolver.linearReconstruction()){
+  //   const auto& connectivityMap = dataBase.connectivityMap();
+  //   const auto& nodeLists = connectivityMap.nodeLists();
+  //   const auto numNodeLists = nodeLists.size();
 
-    // copy from previous time step
-    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-      const auto& nodeList = nodeLists[nodeListi];
-      const auto ni = nodeList->numInternalNodes();
-      #pragma omp parallel for
-      for (auto i = 0u; i < ni; ++i) {
-        const auto DvDxi = mNewRiemannDvDx(nodeListi,i);
-        const auto DpDxi = mNewRiemannDpDx(nodeListi,i);
+  //   // copy from previous time step
+  //   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+  //     const auto& nodeList = nodeLists[nodeListi];
+  //     const auto ni = nodeList->numInternalNodes();
+  //     #pragma omp parallel for
+  //     for (auto i = 0u; i < ni; ++i) {
+  //       const auto DvDxi = mNewRiemannDvDx(nodeListi,i);
+  //       const auto DpDxi = mNewRiemannDpDx(nodeListi,i);
 
-        mRiemannDvDx(nodeListi,i) = DvDxi;
-        mRiemannDpDx(nodeListi,i) = DpDxi;
+  //       mRiemannDvDx(nodeListi,i) = DvDxi;
+  //       mRiemannDpDx(nodeListi,i) = DpDxi;
             
-        }
-      } 
+  //       }
+  //     } 
 
-    for (auto boundItr =this->boundaryBegin();
-              boundItr != this->boundaryEnd();
-            ++boundItr) {
-      (*boundItr)->applyFieldListGhostBoundary(mRiemannDvDx);
-      (*boundItr)->applyFieldListGhostBoundary(mRiemannDpDx);
-    }
+  //   for (auto boundItr =this->boundaryBegin();
+  //             boundItr != this->boundaryEnd();
+  //           ++boundItr) {
+  //     (*boundItr)->applyFieldListGhostBoundary(mRiemannDvDx);
+  //     (*boundItr)->applyFieldListGhostBoundary(mRiemannDpDx);
+  //   }
 
-    for (auto boundItr = this->boundaryBegin();
-              boundItr != this->boundaryEnd();
-            ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  //   for (auto boundItr = this->boundaryBegin();
+  //             boundItr != this->boundaryEnd();
+  //           ++boundItr) (*boundItr)->finalizeGhostBoundary();
   
-  } // if LinearReconstruction
+  // } // if LinearReconstruction
   
 }
 
@@ -561,7 +570,7 @@ void
 GenericRiemannHydro<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
-  // Apply boundary conditions to the basic fluid state Fields.
+  
   auto volume = state.fields(HydroFieldNames::volume, 0.0);
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
   auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
@@ -569,15 +578,14 @@ applyGhostBoundaries(State<Dimension>& state,
   auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-
-  // our store vars in the riemann solver
   auto DpDx = state.fields(GSPHFieldNames::RiemannPressureGradient,Vector::zero); 
   auto DvDx = state.fields(GSPHFieldNames::RiemannVelocityGradient,Tensor::zero); 
-  auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+
+  //auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
-    (*boundaryItr)->applyFieldListGhostBoundary(M);
+    //(*boundaryItr)->applyFieldListGhostBoundary(M);
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
     (*boundaryItr)->applyFieldListGhostBoundary(mass);
     (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
@@ -600,7 +608,6 @@ GenericRiemannHydro<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
 
-  // Enforce boundary conditions on the fluid state Fields.
   auto volume = state.fields(HydroFieldNames::volume, 0.0);
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
   auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
@@ -608,16 +615,16 @@ enforceBoundaries(State<Dimension>& state,
   auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-
-  // our store vars in the riemann solver
   auto DpDx = state.fields(GSPHFieldNames::RiemannPressureGradient,Vector::zero); 
   auto DvDx = state.fields(GSPHFieldNames::RiemannVelocityGradient,Tensor::zero); 
-  auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  
+  // our store vars in the riemann solver
+  //auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
-    (*boundaryItr)->enforceFieldListBoundary(M);
+    //(*boundaryItr)->enforceFieldListBoundary(M);
     (*boundaryItr)->enforceFieldListBoundary(volume);
     (*boundaryItr)->enforceFieldListBoundary(mass);
     (*boundaryItr)->enforceFieldListBoundary(massDensity);
