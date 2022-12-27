@@ -204,25 +204,7 @@ initialize(const typename Dimension::Scalar time,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
-
-  // initialize spatial gradients so we can store them 
-  // if (this->isFirstCycle()){
-  //   this->computeMCorrection(time,dt,dataBase,state,derivs);
-  //   }
-
-  // GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs); 
-
-  // if (this->isFirstCycle()){
-  //   auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  //   auto  newRiemannDpDx = derivs.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient,Vector::zero);
-  //   auto  newRiemannDvDx = derivs.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient,Tensor::zero);
-  
-  //   M.Zero();
-  //   newRiemannDpDx.Zero();
-  //   newRiemannDvDx.Zero();
-  //   this->isFirstCycle(false);
-  // }
-
+  GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
 }
 
 //------------------------------------------------------------------------------

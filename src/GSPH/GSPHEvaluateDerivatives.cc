@@ -437,10 +437,8 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
   // The kernels and such.
   const auto& W = this->kernel();
   const auto calcSpatialGradients =  (this->gradientType() == GradientType::SPHSameTimeGradient 
-                                  or  this->isFirstCycle()
                                   or  this->gradientType() == GradientType::SPHUncorrectedGradient);
-  const auto correctSpatialGradients = (this->gradientType() == GradientType::SPHSameTimeGradient 
-                                     or this->isFirstCycle());
+  const auto correctSpatialGradients = (this->gradientType() == GradientType::SPHSameTimeGradient);
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
@@ -558,7 +556,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
 
   }   // OpenMP parallel region
   
-  // Finish up the spatial gradient calculation
+  // loop the nodes to finish up the spatial gradient calculation
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = M[nodeListi]->nodeList();
     const auto ni = nodeList.numInternalNodes();
@@ -582,10 +580,9 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
         newRiemannDpDxi = Mi.Transpose()*newRiemannDpDxi;
         newRiemannDvDxi = newRiemannDvDxi*Mi;
 
-      }
-    }
-    
-  }
+      } // if correctSpatialGradients
+    }   // for each node
+  }     // for each node list
   
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
          boundItr != this->boundaryEnd();
@@ -603,6 +600,5 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
  
-}
-
+} // MC correction method
 } // spheral namespace

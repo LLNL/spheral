@@ -432,10 +432,8 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
                          StateDerivatives<Dimension>& derivatives) const {
 
   const auto calcSpatialGradients =  (this->gradientType() == GradientType::SPHSameTimeGradient 
-                                  or  this->isFirstCycle()
                                   or  this->gradientType() == GradientType::SPHUncorrectedGradient);
-  const auto correctSpatialGradients = (this->gradientType() == GradientType::SPHSameTimeGradient 
-                                     or this->isFirstCycle());
+  const auto correctSpatialGradients = (this->gradientType() == GradientType::SPHSameTimeGradient);
   // The kernels and such.
   const auto& W = this->kernel();
 

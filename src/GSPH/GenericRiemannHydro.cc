@@ -100,7 +100,6 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mGradientType(gradType),
   mDensityUpdate(densityUpdate),
   mHEvolution(HUpdate),
-  mIsFirstCycle(true),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mEvolveTotalEnergy(evolveTotalEnergy),
   mXSPH(XSPH),
@@ -527,41 +526,6 @@ initialize(const typename Dimension::Scalar time,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
-
-  // auto& riemannSolver = this->riemannSolver();
-
-  // if(riemannSolver.linearReconstruction()){
-  //   const auto& connectivityMap = dataBase.connectivityMap();
-  //   const auto& nodeLists = connectivityMap.nodeLists();
-  //   const auto numNodeLists = nodeLists.size();
-
-  //   // copy from previous time step
-  //   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-  //     const auto& nodeList = nodeLists[nodeListi];
-  //     const auto ni = nodeList->numInternalNodes();
-  //     #pragma omp parallel for
-  //     for (auto i = 0u; i < ni; ++i) {
-  //       const auto DvDxi = mNewRiemannDvDx(nodeListi,i);
-  //       const auto DpDxi = mNewRiemannDpDx(nodeListi,i);
-
-  //       mRiemannDvDx(nodeListi,i) = DvDxi;
-  //       mRiemannDpDx(nodeListi,i) = DpDxi;
-            
-  //       }
-  //     } 
-
-  //   for (auto boundItr =this->boundaryBegin();
-  //             boundItr != this->boundaryEnd();
-  //           ++boundItr) {
-  //     (*boundItr)->applyFieldListGhostBoundary(mRiemannDvDx);
-  //     (*boundItr)->applyFieldListGhostBoundary(mRiemannDpDx);
-  //   }
-
-  //   for (auto boundItr = this->boundaryBegin();
-  //             boundItr != this->boundaryEnd();
-  //           ++boundItr) (*boundItr)->finalizeGhostBoundary();
-  
-  // } // if LinearReconstruction
   
 }
 

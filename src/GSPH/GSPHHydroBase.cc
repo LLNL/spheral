@@ -212,27 +212,8 @@ initialize(const typename Dimension::Scalar time,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("GSPHinitialize");
-
-  // initialize spatial gradients so we can store them 
-  // if (this->isFirstCycle()){
-  //   this->computeMCorrection(time,dt,dataBase,state,derivs);
-  // }
-
-  // GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs); 
-
-  // if (this->isFirstCycle()){
-  //   auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  //   auto  newRiemannDpDx = derivs.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient,Vector::zero);
-  //   auto  newRiemannDvDx = derivs.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient,Tensor::zero);
-  
-  //   M.Zero();
-  //   newRiemannDpDx.Zero();
-  //   newRiemannDvDx.Zero();
-  //   this->isFirstCycle(false);
-  // }
-
+  GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
   TIME_END("GSPHinitialize");
-  
 }
 
 //------------------------------------------------------------------------------
@@ -260,9 +241,7 @@ GSPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("GSPHghostBounds");
-
   GenericRiemannHydro<Dimension>::applyGhostBoundaries(state,derivs);
-
   TIME_END("GSPHghostBounds");
 }
 
@@ -275,9 +254,7 @@ GSPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("GSPHenforceBounds");
-
   GenericRiemannHydro<Dimension>::enforceBoundaries(state,derivs);
-
   TIME_END("GSPHenforceBounds");
 }
 
