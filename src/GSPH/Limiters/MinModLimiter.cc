@@ -6,6 +6,8 @@
 // J.M. Pearl 2021
 //----------------------------------------------------------------------------//
 
+#include <algorithm>
+
 #include "MinModLimiter.hh"
 
 namespace Spheral {
