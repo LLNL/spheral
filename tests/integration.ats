@@ -106,3 +106,6 @@ source("functional/Damage/TensileRod/TensileRod-1d.py")
 # RK tests
 source("functional/RK/RKInterpolation.py")
 source("functional/RK/testVoronoiVolume.py")
+
+# KernelIntegrator tests
+source("unit/KernelIntegrator/TestIntegrator.py")
