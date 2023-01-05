@@ -161,7 +161,9 @@ dt(const DataBase<Dimension>& dataBase,
     const auto overlap = max(0.0, 1.0 - (xi - xj).magnitude()/(ri + rj));
     if (closing_speed > 0.0 or
         overlap > 0.0) {
-      const auto dtji = max(dtSpring, (xji.magnitude() - ri - rj)*safeInvVar(closing_speed));
+      const auto dtji = (overlap > 0.0 ?
+                         dtSpring :
+                         max(dtSpring, 0.5*(xji.magnitude() - ri - rj)*safeInvVar(closing_speed)));
       if (dtji < dtMin) {
         dtMin = dtji;
         result = make_pair(dtji,
@@ -170,7 +172,7 @@ dt(const DataBase<Dimension>& dataBase,
                             std::string("DEM spring constraint:\n")) +
                            "  (listi, i, rank) = (" + to_string(pair.i_list) + " " + to_string(pair.i_node) + " " + to_string(Process::getRank()) + ")\n" +
                            "  (listj, j, rank) = (" + to_string(pair.j_list) + " " + to_string(pair.j_node) + " " + to_string(Process::getRank()) + ")\n" +
-                                   "position_i = " + vec_to_string(xi) + "\n" +
+                           "        position_i = " + vec_to_string(xi) + "\n" +
                            "        velocity_i = " + vec_to_string(vi) +"\n" +
                            "          radius_i = " + to_string(ri) + "\n" +
                            "        position_j = " + vec_to_string(xj) + "\n" +
@@ -180,6 +182,28 @@ dt(const DataBase<Dimension>& dataBase,
       }
     }
     if (dtMin == dtSpring) break;    // No point continuing if we've hit the minimum
+  }
+
+  // Ensure no point moves more than its own radius in a step
+  const auto numNodeLists = position.size();
+  auto k = 0u;
+  while (k < numNodeLists and dtMin > dtSpring) {
+    auto i = 0u;
+    const auto n = position[k]->size();
+    while (i < n and dtMin > dtSpring) {
+      const auto dti = 0.5*r(k,i)*safeInvVar(velocity(k,i).magnitude());
+      if (dti < dtMin) {
+        dtMin = dti;
+        result = make_pair(dti,
+                           std::string("DEM single particle velocity limit:\n") +
+                           "  (listi, i, rank) = (" + to_string(k) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                           "        position_i = " + vec_to_string(position(k,i)) + "\n" +
+                           "        velocity_i = " + vec_to_string(velocity(k,i)) +"\n" +
+                           "          radius_i = " + to_string(r(k,i)) + "\n");
+      }
+      ++i;
+    }
+    ++k;
   }
 
   return result;
