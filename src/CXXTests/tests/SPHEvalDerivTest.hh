@@ -14,6 +14,12 @@
 
 #include "memoryManager.hh"
 #include "ExecStrategy.hh"
+#include "NodeList/FluidNodeList.hh"
+#include "Material/GammaLawGas.hh"
+
+#include "LvArray/Array.hpp"
+#include "LvArray/ArrayOfArrays.hpp"
+#include "LvArray/ChaiBuffer.hpp"
 
 //*****************************************************************************
 // Set up problem size
@@ -23,7 +29,7 @@
 #define N_PAIRS 500000000
 #define DATA_SZ 1000000
 
-#elif 0 // Large Problem
+#elif 1 // Large Problem
 #define N_PAIRS  5000000
 #define DATA_SZ  50000
 
@@ -48,8 +54,73 @@
   std::cout << std::endl;
 
 //*****************************************************************************
+
+
+class pdouble {
+public:
+  using DATA_TYPE = double;
+
+  pdouble() : data(0) {};
+  pdouble(DATA_TYPE d) : data(d) {};
+
+  std::string string() const {return std::to_string(data);}
+
+  DATA_TYPE get_data() const {return data;}
+
+
+  pdouble& operator+=(const pdouble& rhs) {data += rhs.get_data(); return *this;}
+  friend pdouble operator+(pdouble lhs, const pdouble& rhs) {lhs+=rhs; return lhs;}
+  bool operator!=(const pdouble& rhs) const {return !(data == rhs.get_data());}
+
+private:
+    DATA_TYPE data = 0;
+};
+
+
+
+
+std::ostream& operator<<(std::ostream& out, const pdouble& d) {
+  return out << d.string();
+}
+
+
+
+template<typename DATA_TYPE>
+class chaiFieldBase : public chai::ManagedArray<DATA_TYPE> {
+public:
+  using BASE = chai::ManagedArray<DATA_TYPE>;
+  chaiFieldBase(size_t elements) : BASE(elements) {};
+  chaiFieldBase(size_t elements, chai::ExecutionSpace e) : BASE(elements, e) {};
+
+private:
+  chaiFieldBase(){};
+};
+
+//template<typename DATA_TYPE>
+//class chaiMFieldBase {
+//public:
+//  using ARRAY_TYPE = chai::ManagedArray<DATA_TYPE>;
+//
+//  chaiMFieldBase(size_t elems) { mDataArray = chai::makeManagedArray<DATA_TYPE>(elems); }
+//  chaiMFieldBase(size_t elems, chai::ExecutionSpace e) { mDataArray = chai::makeManagedArray<DATA_TYPE>(elems, e); }
+//
+//  void move (chai::ExecutionSpace e) {mDataArray.move(e);}
+//  void free() {mDataArray.free();}
+//
+//  // Index operator.
+//  DATA_TYPE& operator[](const unsigned int index) {return mDataArray[index];}
+//  DATA_TYPE& operator[](const unsigned int index) const {return mDataArray[index];}
+//private:
+//  ARRAY_TYPE mDataArray;
+//
+//};
+
+
+
 void SpheralEvalDerivTest()
 {
+
+  
   // Setup Timers
   srand(3);
   RAJA::Timer seq_timer;
@@ -58,9 +129,24 @@ void SpheralEvalDerivTest()
   RAJA::Timer timer_red;
 
   // Data Types to Use
+  using DIM = Spheral::Dim<1>;
+
   //using DATA_TYPE = Spheral::GeomVector<3>;
-  using DATA_TYPE = double;
+  using DATA_TYPE = pdouble;
+  //using DATA_TYPE = double;
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
+
+  using LV_ARRAY_DT = LvArray::Array<DATA_TYPE, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
+  //using FIELD_TYPE = lvFieldBase<DATA_TYPE>;
+  using FIELD_TYPE = LV_ARRAY_DT;
+  using VIEW_TYPE = LvArray::ArrayView<DATA_TYPE, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
+
+  using FIELDLIST_TYPE = LvArray::ArrayOfArrays<DATA_TYPE, std::ptrdiff_t, LvArray::ChaiBuffer>;
+  using FIELDLIST_TYPE_VIEW = LvArray::ArrayOfArraysView<DATA_TYPE, std::ptrdiff_t const, true, LvArray::ChaiBuffer>;
+  //using FIELD_TYPE = chaiFieldBase<DATA_TYPE>;
+  //using FIELD_TYPE = chai::ManagedArray<DATA_TYPE>;
+#define MEM_SPACE RAJA::Platform::cuda
+#define HOST_SPACE LvArray::MemorySpace::host
 
   //---------------------------------------------------------------------------
   //
@@ -92,7 +178,7 @@ void SpheralEvalDerivTest()
   using DATA_EXEC_POL = RAJA::omp_parallel_for_exec;
 #endif
   strat.print();
-
+  
   //---------------------------------------------------------------------------
   //
   // Initialize Prototype data and allocate temp memory.
@@ -105,24 +191,53 @@ void SpheralEvalDerivTest()
   pairs.registerTouch(chai::CPU);
   PRINT_DATA(pairs, N_PAIRS)
 
-  chai::ManagedArray<DATA_TYPE> A(data_sz);
-  chai::ManagedArray<DATA_TYPE> B(data_sz);
-  chai::ManagedArray<DATA_TYPE> C(data_sz);
+  FIELD_TYPE A(data_sz);
+  FIELD_TYPE B(data_sz);
+  FIELD_TYPE C(data_sz);
+
+  A.setName("A");
+  B.setName("B");
+  C.setName("C");
+
+  VIEW_TYPE Av = A;
+  VIEW_TYPE Bv = B;
+  VIEW_TYPE Cv = C;
+
+
+  //FIELDLIST_TYPE fl;
+  //fl.appendArray(A);
+  //fl.appendArray(B);
+  //fl.appendArray(C);
 
 #if USE_DEVICE
-  chai::ManagedArray<DATA_TYPE> g_A(strat.n_blocks * data_sz, chai::GPU);
-  chai::ManagedArray<DATA_TYPE> g_B(strat.n_blocks * data_sz, chai::GPU);
-  chai::ManagedArray<DATA_TYPE> g_C(strat.n_blocks * data_sz, chai::GPU);
+  //FIELD_TYPE g_A(strat.n_blocks * data_sz, chai::GPU);
+  //FIELD_TYPE g_B(strat.n_blocks * data_sz, chai::GPU);
+  //FIELD_TYPE g_C(strat.n_blocks * data_sz, chai::GPU);
+  FIELD_TYPE g_A(strat.n_blocks * data_sz);
+  FIELD_TYPE g_B(strat.n_blocks * data_sz);
+  FIELD_TYPE g_C(strat.n_blocks * data_sz);
+
+  g_A.setName("g_A");
+  g_B.setName("g_B");
+  g_C.setName("g_C");
   
   pairs.move(chai::GPU);
-  A.move(chai::GPU);
-  B.move(chai::GPU);
-  C.move(chai::GPU);
+  A.move(MEM_SPACE);
+  B.move(MEM_SPACE);
+  C.move(MEM_SPACE);
+
+  g_A.move(MEM_SPACE);
+  g_B.move(MEM_SPACE);
+  g_C.move(MEM_SPACE);
 #else
-  chai::ManagedArray<DATA_TYPE> g_A(strat.n_blocks * data_sz);
-  chai::ManagedArray<DATA_TYPE> g_B(strat.n_blocks * data_sz);
-  chai::ManagedArray<DATA_TYPE> g_C(strat.n_blocks * data_sz);
+  FIELD_TYPE g_A(strat.n_blocks * data_sz);
+  FIELD_TYPE g_B(strat.n_blocks * data_sz);
+  FIELD_TYPE g_C(strat.n_blocks * data_sz);
 #endif
+
+  VIEW_TYPE g_Av = g_A;
+  VIEW_TYPE g_Bv = g_B;
+  VIEW_TYPE g_Cv = g_C;
 
   std::cout << "Test\n";
 
@@ -149,14 +264,14 @@ void SpheralEvalDerivTest()
 #if USE_DEVICE
       // We use atomics for Device code as blocks per memory pool is greater than 1.
       // g_X arrays are implicitly copied to the device with chai.
-      ATOMIC_ADD(&g_A[g_idx], DATA_TYPE(1.0));
-      ATOMIC_ADD(&g_B[g_idx], DATA_TYPE(1.0));
-      ATOMIC_ADD(&g_C[g_idx], DATA_TYPE(1.0));
+      ATOMIC_ADD(&g_Av[g_idx], DATA_TYPE(1.0));
+      ATOMIC_ADD(&g_Bv[g_idx], DATA_TYPE(1.0));
+      ATOMIC_ADD(&g_Cv[g_idx], DATA_TYPE(1.0));
 #else
       // When executing on host we create one memory pool per omp thread, atomics are not needed.
-      g_A[g_idx] += DATA_TYPE(1.0);
-      g_B[g_idx] += DATA_TYPE(1.0);
-      g_C[g_idx] += DATA_TYPE(1.0);
+      g_Av[g_idx] += DATA_TYPE(1.0);
+      g_Bv[g_idx] += DATA_TYPE(1.0);
+      g_Cv[g_idx] += DATA_TYPE(1.0);
 #endif
     });
   timer_pair.stop();
@@ -169,15 +284,15 @@ void SpheralEvalDerivTest()
       for (int b_idx = 0; b_idx < strat.n_blocks; b_idx++) {
         auto g_idx = b_idx*data_sz + t_idx;
         //printf("%d, ", g_idx);
-        A[t_idx] += g_A[g_idx];
-        B[t_idx] += g_B[g_idx];
-        C[t_idx] += g_C[g_idx];
+        Av[t_idx] += g_Av[g_idx];
+        Bv[t_idx] += g_Bv[g_idx];
+        Cv[t_idx] += g_Cv[g_idx];
       }
     });
 
-  A.move(chai::CPU);
-  B.move(chai::CPU);
-  C.move(chai::CPU);
+  A.move(HOST_SPACE);
+  B.move(HOST_SPACE);
+  C.move(HOST_SPACE);
 
   timer_red.stop();
   launch_timer.stop();
@@ -193,9 +308,9 @@ void SpheralEvalDerivTest()
   //---------------------------------------------------------------------------
   pairs.move(chai::CPU);
 
-  DATA_TYPE check_A[data_sz] = {0};
-  DATA_TYPE check_B[data_sz] = {0};
-  DATA_TYPE check_C[data_sz] = {0};
+  DATA_TYPE check_A[data_sz];
+  DATA_TYPE check_B[data_sz];
+  DATA_TYPE check_C[data_sz];
 
   seq_timer.start();
   std::cout << "C++ Sequential Implementation.\n";
@@ -229,13 +344,13 @@ void SpheralEvalDerivTest()
   std::cout << "        red : " << timer_red.elapsed() << " seconds (" << (timer_red.elapsed() / launch_timer.elapsed())*100 << "%)\n";
 
 
-  g_A.free();
-  g_B.free();
-  g_C.free();
+  //g_A.free();
+  //g_B.free();
+  //g_C.free();
 
-  A.free();
-  B.free();
-  C.free();
+  //A.free();
+  //B.free();
+  //C.free();
 
   pairs.free();
 }

@@ -24,6 +24,7 @@ class Raja(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     version("develop", branch="bugfix/bump-desul", submodules=True)
     version("main", branch="main", submodules=False)
+    version("2022.10.4", tag="v2022.10.4", submodules=True)
     version("2022.10.1", tag="v2022.10.1", submodules=True)
     version("2022.10.0", tag="v2022.10.0", submodules=False)
     version("2022.03.1", tag="v2022.03.1", submodules=False)
