@@ -486,8 +486,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         //------------------------------------------------------------
         // Rectilinear Acceleration 
         const Vector fij = fn - fc + ft;
-        DvDti += fij;
-        DvDtj -= fij;
+        DvDti += fij/mi;
+        DvDtj -= fij/mj;
 
         // angular acceleration
         const auto Msliding = -DEMDimension<Dimension>::cross(rhatij,fij);
@@ -523,7 +523,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
         DxDt(nodeListi,i) = veli;
         DomegaDt(nodeListi,i) /= Ii;
-        DvDt(nodeListi,i) /= mi;
     }
   }
 
