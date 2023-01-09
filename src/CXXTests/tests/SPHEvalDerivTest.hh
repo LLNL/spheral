@@ -21,6 +21,7 @@
 #include "LvArray/ArrayOfArrays.hpp"
 #include "LvArray/ChaiBuffer.hpp"
 
+
 //*****************************************************************************
 // Set up problem size
 //*****************************************************************************
@@ -45,7 +46,7 @@
 //*****************************************************************************
 // Initialize execution platform
 //*****************************************************************************
-#define USE_DEVICE 0
+#define USE_DEVICE 1
 
 //*****************************************************************************
 #define PRINT_DATA(X, SZ) \
@@ -86,34 +87,75 @@ std::ostream& operator<<(std::ostream& out, const pdouble& d) {
 
 
 template<typename DATA_TYPE>
-class chaiFieldBase : public chai::ManagedArray<DATA_TYPE> {
+class LvFieldBaseView;
+
+template<typename DATA_TYPE>
+class LvFieldBase {
 public:
-  using BASE = chai::ManagedArray<DATA_TYPE>;
-  chaiFieldBase(size_t elements) : BASE(elements) {};
-  chaiFieldBase(size_t elements, chai::ExecutionSpace e) : BASE(elements, e) {};
+
+  friend class LvFieldBaseView<DATA_TYPE>;
+
+  using ARRAY_TYPE = LvArray::Array<DATA_TYPE, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
+  using VIEW_TYPE = LvFieldBaseView<DATA_TYPE>;
+
+  LvFieldBase(size_t elems) { mDataArray = ARRAY_TYPE(elems); }
+
+  LvFieldBase(size_t elems, RAJA::Platform platform) { 
+    mDataArray = ARRAY_TYPE(elems);
+    mDataArray.move(platform);
+  }
+
+  LvFieldBase(size_t elems, std::string name) { 
+    mDataArray = ARRAY_TYPE(elems);
+    mDataArray.setName(name);
+  }
+
+  LvFieldBase(size_t elems, std::string name, RAJA::Platform platform) { 
+    mDataArray = ARRAY_TYPE(elems);
+    mDataArray.setName(name);
+    mDataArray.move(platform);
+  }
+
+  void setName(std::string name) {mDataArray.setName(name);}
+  void move (RAJA::Platform platform) {mDataArray.move(platform);}
+
+  // Index operator.
+  RAJA_HOST_DEVICE
+  DATA_TYPE& operator[](const unsigned int index) {return mDataArray[index];}
+  RAJA_HOST_DEVICE
+  DATA_TYPE& operator[](const unsigned int index) const {return mDataArray[index];}
+
+  ARRAY_TYPE getArray() {return mDataArray;}
 
 private:
-  chaiFieldBase(){};
+  ARRAY_TYPE mDataArray;
+
 };
 
-//template<typename DATA_TYPE>
-//class chaiMFieldBase {
-//public:
-//  using ARRAY_TYPE = chai::ManagedArray<DATA_TYPE>;
-//
-//  chaiMFieldBase(size_t elems) { mDataArray = chai::makeManagedArray<DATA_TYPE>(elems); }
-//  chaiMFieldBase(size_t elems, chai::ExecutionSpace e) { mDataArray = chai::makeManagedArray<DATA_TYPE>(elems, e); }
-//
-//  void move (chai::ExecutionSpace e) {mDataArray.move(e);}
-//  void free() {mDataArray.free();}
-//
-//  // Index operator.
-//  DATA_TYPE& operator[](const unsigned int index) {return mDataArray[index];}
-//  DATA_TYPE& operator[](const unsigned int index) const {return mDataArray[index];}
-//private:
-//  ARRAY_TYPE mDataArray;
-//
-//};
+template<typename DATA_TYPE>
+class LvFieldBaseView {
+public:
+  using ARRAY_VIEW_TYPE = LvArray::ArrayView<DATA_TYPE, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
+  using FIELD_TYPE = LvFieldBase<DATA_TYPE>;
+
+  LvFieldBaseView(const FIELD_TYPE& field) { 
+    mDataView = field.mDataArray;
+  }
+
+  // Index operator.
+  RAJA_HOST_DEVICE
+  DATA_TYPE& operator[](const unsigned int index) {return mDataView(index);}
+  RAJA_HOST_DEVICE
+  DATA_TYPE& operator[](const unsigned int index) const {return mDataView(index);}
+
+  RAJA_HOST_DEVICE
+  inline constexpr
+  LvFieldBaseView( LvFieldBaseView const & source) noexcept : mDataView{source.mDataView} {
+  }
+
+private:
+  ARRAY_VIEW_TYPE mDataView;
+};
 
 
 
@@ -137,16 +179,17 @@ void SpheralEvalDerivTest()
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
   using LV_ARRAY_DT = LvArray::Array<DATA_TYPE, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
-  //using FIELD_TYPE = lvFieldBase<DATA_TYPE>;
-  using FIELD_TYPE = LV_ARRAY_DT;
-  using VIEW_TYPE = LvArray::ArrayView<DATA_TYPE, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
+  using FIELD_TYPE = LvFieldBase<DATA_TYPE>;
+  using VIEW_TYPE = FIELD_TYPE::VIEW_TYPE;
+  //using FIELD_TYPE = LV_ARRAY_DT;
+  //using VIEW_TYPE = LvArray::ArrayView<DATA_TYPE, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
 
   using FIELDLIST_TYPE = LvArray::ArrayOfArrays<DATA_TYPE, std::ptrdiff_t, LvArray::ChaiBuffer>;
   using FIELDLIST_TYPE_VIEW = LvArray::ArrayOfArraysView<DATA_TYPE, std::ptrdiff_t const, true, LvArray::ChaiBuffer>;
   //using FIELD_TYPE = chaiFieldBase<DATA_TYPE>;
   //using FIELD_TYPE = chai::ManagedArray<DATA_TYPE>;
 #define MEM_SPACE RAJA::Platform::cuda
-#define HOST_SPACE LvArray::MemorySpace::host
+#define HOST_SPACE RAJA::Platform::host
 
   //---------------------------------------------------------------------------
   //
@@ -191,55 +234,31 @@ void SpheralEvalDerivTest()
   pairs.registerTouch(chai::CPU);
   PRINT_DATA(pairs, N_PAIRS)
 
-  FIELD_TYPE A(data_sz);
-  FIELD_TYPE B(data_sz);
-  FIELD_TYPE C(data_sz);
+  FIELD_TYPE A(data_sz, "A");
+  FIELD_TYPE B(data_sz, "B");
+  FIELD_TYPE C(data_sz, "C");
 
-  A.setName("A");
-  B.setName("B");
-  C.setName("C");
-
-  VIEW_TYPE Av = A;
-  VIEW_TYPE Bv = B;
-  VIEW_TYPE Cv = C;
-
-
-  //FIELDLIST_TYPE fl;
-  //fl.appendArray(A);
-  //fl.appendArray(B);
-  //fl.appendArray(C);
+  VIEW_TYPE Av(A);
+  VIEW_TYPE Bv(B);
+  VIEW_TYPE Cv(C);
 
 #if USE_DEVICE
-  //FIELD_TYPE g_A(strat.n_blocks * data_sz, chai::GPU);
-  //FIELD_TYPE g_B(strat.n_blocks * data_sz, chai::GPU);
-  //FIELD_TYPE g_C(strat.n_blocks * data_sz, chai::GPU);
-  FIELD_TYPE g_A(strat.n_blocks * data_sz);
-  FIELD_TYPE g_B(strat.n_blocks * data_sz);
-  FIELD_TYPE g_C(strat.n_blocks * data_sz);
+  FIELD_TYPE g_A(strat.n_blocks * data_sz, "g_A", MEM_SPACE);
+  FIELD_TYPE g_B(strat.n_blocks * data_sz, "g_B", MEM_SPACE);
+  FIELD_TYPE g_C(strat.n_blocks * data_sz, "g_C", MEM_SPACE);
 
-  g_A.setName("g_A");
-  g_B.setName("g_B");
-  g_C.setName("g_C");
-  
   pairs.move(chai::GPU);
-  A.move(MEM_SPACE);
-  B.move(MEM_SPACE);
-  C.move(MEM_SPACE);
-
-  g_A.move(MEM_SPACE);
-  g_B.move(MEM_SPACE);
-  g_C.move(MEM_SPACE);
 #else
-  FIELD_TYPE g_A(strat.n_blocks * data_sz);
-  FIELD_TYPE g_B(strat.n_blocks * data_sz);
-  FIELD_TYPE g_C(strat.n_blocks * data_sz);
+  FIELD_TYPE g_A(strat.n_blocks * data_sz, "g_A");
+  FIELD_TYPE g_B(strat.n_blocks * data_sz, "g_B");
+  FIELD_TYPE g_C(strat.n_blocks * data_sz, "g_C");
 #endif
-
-  VIEW_TYPE g_Av = g_A;
-  VIEW_TYPE g_Bv = g_B;
-  VIEW_TYPE g_Cv = g_C;
-
   std::cout << "Test\n";
+
+  VIEW_TYPE g_Av(g_A);
+  VIEW_TYPE g_Bv(g_B);
+  VIEW_TYPE g_Cv(g_C);
+
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -275,6 +294,7 @@ void SpheralEvalDerivTest()
 #endif
     });
   timer_pair.stop();
+
 
   timer_red.start();
   // We need to perform an array reduction accross the memory pools. This is also performed on the 
