@@ -573,11 +573,9 @@ applyGhostBoundaries(State<Dimension>& state,
   auto DpDx = state.fields(GSPHFieldNames::RiemannPressureGradient,Vector::zero); 
   auto DvDx = state.fields(GSPHFieldNames::RiemannVelocityGradient,Tensor::zero); 
 
-  //auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
-    //(*boundaryItr)->applyFieldListGhostBoundary(M);
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
     (*boundaryItr)->applyFieldListGhostBoundary(mass);
     (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
@@ -609,14 +607,10 @@ enforceBoundaries(State<Dimension>& state,
   auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   auto DpDx = state.fields(GSPHFieldNames::RiemannPressureGradient,Vector::zero); 
   auto DvDx = state.fields(GSPHFieldNames::RiemannVelocityGradient,Tensor::zero); 
-  
-  // our store vars in the riemann solver
-  //auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
-    //(*boundaryItr)->enforceFieldListBoundary(M);
     (*boundaryItr)->enforceFieldListBoundary(volume);
     (*boundaryItr)->enforceFieldListBoundary(mass);
     (*boundaryItr)->enforceFieldListBoundary(massDensity);
