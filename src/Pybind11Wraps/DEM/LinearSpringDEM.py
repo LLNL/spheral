@@ -49,11 +49,6 @@ class LinearSpringDEM(DEMBase):
         "calculate the derivatives for Linear Spring DEM."
         return "void"
 
-    @PYB11virtual
-    def setTimeStep(dataBase = "const DataBase<%(Dimension)s>&"):
-        "calculate the appropriate timestep for points that are in contact"
-        return "void"
-
     normalSpringConstant = PYB11property("Scalar", "normalSpringConstant", "normalSpringConstant", doc="normal spring constant")
     normalRestitutionCoefficient = PYB11property("Scalar", "normalRestitutionCoefficient", "normalRestitutionCoefficient", doc="normal restitution coefficient")
     tangentialSpringConstant = PYB11property("Scalar", "tangentialSpringConstant", "tangentialSpringConstant", doc="tangential spring constant")
@@ -68,4 +63,3 @@ class LinearSpringDEM(DEMBase):
     shapeFactor = PYB11property("Scalar", "shapeFactor", "shapeFactor", doc="shape factor - simple approach to non-spherical particles")
     normalBeta = PYB11property("Scalar", "normalBeta", "normalBeta", doc="a damping parameter")
     tangentialBeta = PYB11property("Scalar", "tangentialBeta", "tangentialBeta", doc="a damping parameter")
-    timeStep = PYB11property("Scalar", "timeStep", "timeStep", doc="constant time-step for this model")

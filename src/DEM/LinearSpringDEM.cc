@@ -85,10 +85,9 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
   mRollingFrictionCoefficient(rollingFrictionCoefficient),
   mTorsionalFrictionCoefficient(torsionalFrictionCoefficient),
   mCohesiveTensileStrength(cohesiveTensileStrength),
-  mShapeFactor(shapeFactor){
-
-  this->setTimeStep(dataBase);
-
+  mShapeFactor(shapeFactor),
+  mNormalBeta(M_PI/std::log(std::max(normalRestitutionCoefficient,1.0e-3))),
+  mTangentialBeta(M_PI/std::log(std::max(tangentialRestitutionCoefficient,1.0e-3))) { // everything but the mass
 }
 
 //------------------------------------------------------------------------------
@@ -97,25 +96,6 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 LinearSpringDEM<Dimension>::
 ~LinearSpringDEM() {}
-
-//------------------------------------------------------------------------------
-// set our timestep (for now its a constant single value)
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-LinearSpringDEM<Dimension>::
-setTimeStep(const DataBase<Dimension>& dataBase){
-    
-    const auto pi = 3.14159265358979323846;
-    const auto mass = dataBase.DEMMass();
-    const auto minMass = mass.min();
-
-    mNormalBeta = pi/std::log(std::max(mNormalRestitutionCoefficient,1.0e-3));
-    mTangentialBeta = pi/std::log(std::max(mTangentialRestitutionCoefficient,1.0e-3));
-    mTimeStep = pi*std::sqrt(0.5*minMass/mNormalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)));
-
-}
-
 
 //------------------------------------------------------------------------------
 // time step -- constant for this model
@@ -129,6 +109,7 @@ dt(const DataBase<Dimension>& dataBase,
    const typename Dimension::Scalar /*currentTime*/) const{
 
   // Get some useful fluid variables from the DataBase.
+  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  r = state.fields(DEMFieldNames::particleRadius, 0.0);
@@ -137,21 +118,30 @@ dt(const DataBase<Dimension>& dataBase,
                                                          this->requireIntersectionConnectivity());
   const auto& pairs = connectivityMap.nodePairList();
 
+  // Compute the spring timestep constraint (except for the mass)
+  const auto nsteps = this->stepsPerCollision();
+  CHECK(nsteps > 0);
+  const auto dtSpring0 = M_PI*std::sqrt(0.5/mNormalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)))/nsteps;
+
   // Check each pair to see how much they are closing.
   auto dtMin = std::numeric_limits<Scalar>::max();
-  const auto dtSpring = mTimeStep/this->stepsPerCollision();
   TimeStepType result(dtMin, "DEM error, this message should not get to the end");
   for (const auto& pair: pairs) {
 
     // node i
+    const auto  mi = mass(pair.i_list, pair.i_node);
     const auto& xi = position(pair.i_list, pair.i_node);
     const auto& vi = velocity(pair.i_list, pair.i_node);
     const auto  ri = r(pair.i_list, pair.i_node);
 
     // node j
+    const auto  mj = mass(pair.j_list, pair.j_node);
     const auto& xj = position(pair.j_list, pair.j_node);
     const auto& vj = velocity(pair.j_list, pair.j_node);
     const auto  rj = r(pair.j_list, pair.j_node);
+    
+    // Spring constant timestep for this pair
+    const auto dtSpringij = dtSpring0*std::sqrt(std::min(mi, mj));
 
     // Compare closing speed to separation
     const auto xji = xj - xi;
@@ -162,12 +152,12 @@ dt(const DataBase<Dimension>& dataBase,
     if (closing_speed > 0.0 or
         overlap > 0.0) {
       const auto dtji = (overlap > 0.0 ?
-                         dtSpring :
-                         max(dtSpring, 0.5*(xji.magnitude() - ri - rj)*safeInvVar(closing_speed)));
+                         dtSpringij :
+                         max(dtSpringij, 0.5*(xji.magnitude() - ri - rj)*safeInvVar(closing_speed)));
       if (dtji < dtMin) {
         dtMin = dtji;
         result = make_pair(dtji,
-                           (dtji > dtSpring ?
+                           (dtji > dtSpringij ?
                             std::string("DEM pairwise closing rate:\n") :
                             std::string("DEM spring constraint:\n")) +
                            "  (listi, i, rank) = (" + to_string(pair.i_list) + " " + to_string(pair.i_node) + " " + to_string(Process::getRank()) + ")\n" +
@@ -178,19 +168,16 @@ dt(const DataBase<Dimension>& dataBase,
                            "        position_j = " + vec_to_string(xj) + "\n" +
                            "        velocity_j = " + vec_to_string(vj) + "\n" +
                            "          radius_j = " + to_string(rj) + "\n" +
-                           "         spring_dt = " + to_string(mTimeStep) + "\n");
+                           "         spring_dt = " + to_string(dtSpringij) + "\n");
       }
     }
-    if (dtMin == dtSpring) break;    // No point continuing if we've hit the minimum
   }
 
   // Ensure no point moves more than its own radius in a step
   const auto numNodeLists = position.size();
-  auto k = 0u;
-  while (k < numNodeLists and dtMin > dtSpring) {
-    auto i = 0u;
+  for (auto k = 0u; k < numNodeLists; ++k) {
     const auto n = position[k]->size();
-    while (i < n and dtMin > dtSpring) {
+    for (auto i = 0u; i < n; ++i) {
       const auto dti = 0.5*r(k,i)*safeInvVar(velocity(k,i).magnitude());
       if (dti < dtMin) {
         dtMin = dti;
@@ -201,9 +188,7 @@ dt(const DataBase<Dimension>& dataBase,
                            "        velocity_i = " + vec_to_string(velocity(k,i)) +"\n" +
                            "          radius_i = " + to_string(r(k,i)) + "\n");
       }
-      ++i;
     }
-    ++k;
   }
 
   return result;
@@ -526,29 +511,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     }
   }
 
-}
-
-
-//------------------------------------------------------------------------------
-// Dump the current state to the given file.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-LinearSpringDEM<Dimension>::
-dumpState(FileIO& file, const std::string& pathName) const {
-  DEMBase<Dimension>::dumpState(file, pathName);
-  file.write(mTimeStep, pathName + "/timeStep");
-}
-
-//------------------------------------------------------------------------------
-// Restore the state from the given file.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-LinearSpringDEM<Dimension>::
-restoreState(const FileIO& file, const std::string& pathName) {
-  DEMBase<Dimension>::restoreState(file, pathName);
-  file.read(mTimeStep, pathName + "/timeStep");
 }
 
 }
