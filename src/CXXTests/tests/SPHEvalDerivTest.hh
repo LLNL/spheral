@@ -150,6 +150,9 @@ void SpheralEvalDerivTest()
   FIELD_TYPE B(data_sz, "B");
   FIELD_TYPE C(data_sz, "C");
 
+  FIELD_TYPE One(data_sz, "One");
+  for (size_t i = 0; i < data_sz; i++) One[i] = 1.0;
+
   // Setting up global device pool memory for each Field...
   // TODO: How will this be allocted / generated in spheral.
   FIELD_TYPE g_A(strat.n_blocks * data_sz, "g_A", MEM_SPACE);
@@ -170,12 +173,18 @@ void SpheralEvalDerivTest()
   fl2.appendField(C);
   fl2.appendField(A);
 
+  LvFieldList<DATA_TYPE> flo("const FL One");
+  flo.appendField(One);
+
   // The FieldList types used in evalderivs.
   LvFieldListView<DATA_TYPE> flv(fl);
   LvFieldListView<DATA_TYPE> flv2(fl2);
+  
+  const LvFieldListView<DATA_TYPE> fl_one(flo);
 
-  //flv.move(MEM_SPACE);
-  //flv2.move(MEM_SPACE);
+  flv.move(MEM_SPACE);
+  flv2.move(MEM_SPACE);
+  fl_one.move(MEM_SPACE);
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -197,17 +206,22 @@ void SpheralEvalDerivTest()
       auto b_idx = t_idx / strat.block_sz;
       auto g_idx = b_idx*data_sz + pair_idx;
 
+      const auto& one = fl_one(0, pair_idx);
+
+      auto& a = g_Av[g_idx];
+      auto& b = g_Bv[g_idx];
+      auto& c = g_Cv[g_idx];
 #if USE_DEVICE
       // We use atomics for Device code as blocks per memory pool is greater than 1.
       // g_X arrays are implicitly copied to the device with chai.
-      ATOMIC_ADD(&g_Av[g_idx], DATA_TYPE(1.0));
-      ATOMIC_ADD(&g_Bv[g_idx], DATA_TYPE(1.0));
-      ATOMIC_ADD(&g_Cv[g_idx], DATA_TYPE(1.0));
+      ATOMIC_ADD(&a, one);
+      ATOMIC_ADD(&b, one);
+      ATOMIC_ADD(&c, one);
 #else
       // When executing on host we create one memory pool per omp thread, atomics are not needed.
-      g_Av[g_idx] += DATA_TYPE(1.0);
-      g_Bv[g_idx] += DATA_TYPE(1.0);
-      g_Cv[g_idx] += DATA_TYPE(1.0);
+      a += one;
+      b += one;
+      c += one;
 #endif
     });
   timer_pair.stop();
@@ -220,9 +234,14 @@ void SpheralEvalDerivTest()
     [=] RAJA_HOST_DEVICE (unsigned t_idx) {
       for (int b_idx = 0; b_idx < strat.n_blocks; b_idx++) {
         auto g_idx = b_idx*data_sz + t_idx;
-        flv (0, t_idx) += g_Av[g_idx];
-        flv (1, t_idx) += g_Bv[g_idx];
-        flv2(0, t_idx) += g_Cv[g_idx];
+
+        auto& a = flv(0, t_idx);
+        auto& b = flv(1, t_idx);
+        auto& c = flv2(0, t_idx);
+
+        a += g_Av[g_idx];
+        b += g_Bv[g_idx];
+        c += g_Cv[g_idx];
       }
     });
 
