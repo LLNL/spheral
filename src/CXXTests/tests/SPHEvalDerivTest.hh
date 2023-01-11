@@ -125,11 +125,10 @@ public:
 
   void setName(std::string name) {mDataArray.setName(name);}
   void move (RAJA::Platform platform) {mDataArray.move(platform);}
+  LvFieldBaseView<DATA_TYPE> toView() const {return LvFieldBaseView<DATA_TYPE>(*this);}
 
   // Index operator.
-  RAJA_HOST_DEVICE
   DATA_TYPE& operator[](const unsigned int index) {return mDataArray[index];}
-  RAJA_HOST_DEVICE
   DATA_TYPE& operator[](const unsigned int index) const {return mDataArray[index];}
 
   ARRAY_TYPE& getArray() {return mDataArray;}
@@ -175,6 +174,7 @@ public:
 
   friend class LvFieldListView<DATA_TYPE>;
 
+  using FIELD_TYPE = LvFieldBase<DATA_TYPE>;
   using FIELD_VIEW_TYPE = LvFieldBaseView<DATA_TYPE>;
   using ARRAY_TYPE = LV_ARRAY_CHAI_1D<FIELD_VIEW_TYPE>;
 
@@ -182,6 +182,10 @@ public:
 
   LvFieldList(std::string name) {
     mFieldArray.setName(name);
+  }
+
+  void appendField(const FIELD_TYPE& field) { 
+    mFieldArray.emplace_back(field.toView());
   }
 
   void appendField(const FIELD_VIEW_TYPE& field) { 
@@ -205,20 +209,10 @@ public:
 
   void move(LvArray::MemorySpace const& space, bool touch = true) const {
     mFieldView.move(space,touch);
-    //using namespace LvArray;
-    //auto prev_space = mFieldView.getPreviousSpace();
-    //std::cout<< prev_space << " : " << space << std::endl;
-
-    //if(space != LvArray::MemorySpace::undefined && space != prev_space) {
-    //  std::cout<<"FieldView"<< &(mFieldView.dataBuffer()) <<std::endl;
-    //  for (size_t i = 0; i < mFieldView.size(); i++) {
-    //    std::cout<<"DataView "<<i<< " : " << &(mFieldView[i].mDataView.dataBuffer()) <<std::endl;
-    //    mFieldView[i].mDataView.dataBuffer().move(space,touch);
-    //  }
-    //  mFieldView.dataBuffer().move(space,touch);
-    //}
-
   }
+
+  RAJA_HOST_DEVICE
+  DATA_TYPE& operator()(const unsigned int field_id, const unsigned int idx) const { return mFieldView(field_id)[idx]; }
 
   RAJA_HOST_DEVICE
   FIELD_VIEW_TYPE& operator[](const unsigned int index) {return mFieldView(index);}
@@ -228,14 +222,6 @@ public:
 
   RAJA_HOST_DEVICE
   inline LvFieldListView( LvFieldListView const & source) noexcept : mFieldView{source.mFieldView} {}
-//  inline LvFieldListView( LvFieldListView const & source) noexcept {
-//#if defined(LVARRAY_USE_CUDA) && !defined(__CUDA_ARCH__)
-//    auto space = LvArray::internal::toMemorySpace(
-//            LvArray::internal::getArrayManager().getExecutionSpace());
-//    source.move(space);
-//#endif
-//    mFieldView = source.mFieldView;
-//  }
 
 private:
   ARRAY_VIEW_TYPE mFieldView;
@@ -265,11 +251,6 @@ void SpheralEvalDerivTest()
   using FIELD_TYPE = LvFieldBase<DATA_TYPE>;
   using VIEW_TYPE = FIELD_TYPE::VIEW_TYPE;
 
-  using FIELDLIST_TYPE = LvFieldList<DATA_TYPE>;
-
-#define MEM_SPACE RAJA::Platform::cuda
-#define HOST_SPACE RAJA::Platform::host
-
   //---------------------------------------------------------------------------
   //
   // Setup Eval Derivs Execution.
@@ -287,18 +268,21 @@ void SpheralEvalDerivTest()
   //  - define execution policies for CPU and GPU execution.
   // TODO: Make this a runtime switch.
 #if USE_DEVICE
+#define MEM_SPACE RAJA::Platform::cuda
   ExecutionStrategy strat(n_pairs, data_sz, RAJA::ExecPlace::DEVICE);
   strat.block_sz = 1024;
   strat.n_blocks = RAJA_DIVIDE_CEILING_INT(strat.n_pairs, strat.block_sz);
   using PAIR_EXEC_POL = RAJA::cuda_exec<1024>;
   using DATA_EXEC_POL = RAJA::cuda_exec<1024>;
 #else
+#define MEM_SPACE RAJA::Platform::host
   ExecutionStrategy strat(n_pairs, data_sz, RAJA::ExecPlace::HOST);
   strat.block_sz = n_pairs / omp_get_max_threads();
   strat.n_blocks = RAJA_DIVIDE_CEILING_INT(strat.n_pairs, strat.block_sz);
   using PAIR_EXEC_POL = RAJA::omp_parallel_for_exec;
   using DATA_EXEC_POL = RAJA::omp_parallel_for_exec;
 #endif
+#define HOST_SPACE RAJA::Platform::host
   strat.print();
   
   //---------------------------------------------------------------------------
@@ -319,22 +303,18 @@ void SpheralEvalDerivTest()
   FIELD_TYPE B(data_sz, "B");
   FIELD_TYPE C(data_sz, "C");
 
-  VIEW_TYPE Av(A);
-  VIEW_TYPE Bv(B);
-  VIEW_TYPE Cv(C);
-
+  // Setting up global device pool memory for each Field...
+  // TODO: How will this be allocted / generated in spheral.
 #if USE_DEVICE
   FIELD_TYPE g_A(strat.n_blocks * data_sz, "g_A", MEM_SPACE);
   FIELD_TYPE g_B(strat.n_blocks * data_sz, "g_B", MEM_SPACE);
   FIELD_TYPE g_C(strat.n_blocks * data_sz, "g_C", MEM_SPACE);
-
   pairs.move(chai::GPU);
 #else
   FIELD_TYPE g_A(strat.n_blocks * data_sz, "g_A");
   FIELD_TYPE g_B(strat.n_blocks * data_sz, "g_B");
   FIELD_TYPE g_C(strat.n_blocks * data_sz, "g_C");
 #endif
-
   VIEW_TYPE g_Av(g_A);
   VIEW_TYPE g_Bv(g_B);
   VIEW_TYPE g_Cv(g_C);
@@ -344,17 +324,17 @@ void SpheralEvalDerivTest()
   // capture and chai data migration. 
   LvFieldList<DATA_TYPE> fl("MyFirstFieldList");
   LvFieldList<DATA_TYPE> fl2("MySecondFieldList");
-  fl.appendField(Av);
-  fl.appendField(Bv);
-  fl2.appendField(Cv);
-  fl2.appendField(Av);
+  fl.appendField(A);
+  fl.appendField(B);
+  fl2.appendField(C);
+  fl2.appendField(A);
 
   // The FieldList types used in evalderivs.
   LvFieldListView<DATA_TYPE> flv(fl);
   LvFieldListView<DATA_TYPE> flv2(fl2);
 
-  flv.move(MEM_SPACE);
-  flv2.move(MEM_SPACE);
+  //flv.move(MEM_SPACE);
+  //flv2.move(MEM_SPACE);
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -399,13 +379,12 @@ void SpheralEvalDerivTest()
     [=] RAJA_HOST_DEVICE (unsigned t_idx) {
       for (int b_idx = 0; b_idx < strat.n_blocks; b_idx++) {
         auto g_idx = b_idx*data_sz + t_idx;
-        flv[0][t_idx] += g_Av[g_idx];
-        flv[1][t_idx] += g_Bv[g_idx];
-        flv2[0][t_idx] += g_Cv[g_idx];
+        flv (0, t_idx) += g_Av[g_idx];
+        flv (1, t_idx) += g_Bv[g_idx];
+        flv2(0, t_idx) += g_Cv[g_idx];
       }
     });
 
-  std::cout<<"Calc done\n";
   flv.move(HOST_SPACE);
   flv2.move(HOST_SPACE);
 
