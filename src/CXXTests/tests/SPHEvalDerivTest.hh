@@ -20,6 +20,7 @@
 #include "LvArray/Array.hpp"
 #include "LvArray/ArrayOfArrays.hpp"
 #include "LvArray/ChaiBuffer.hpp"
+#include "LvArray/bufferManipulation.hpp"
 
 
 //*****************************************************************************
@@ -84,10 +85,16 @@ std::ostream& operator<<(std::ostream& out, const pdouble& d) {
   return out << d.string();
 }
 
-
+template<typename DATA_TYPE>
+using LV_ARRAY_CHAI_1D = LvArray::Array<DATA_TYPE, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
+template<typename DATA_TYPE>
+using LV_ARRAY_VIEW_CHAI_1D = LvArray::ArrayView<DATA_TYPE, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
 
 template<typename DATA_TYPE>
 class LvFieldBaseView;
+
+template<typename DATA_TYPE>
+class LvFieldListView;
 
 template<typename DATA_TYPE>
 class LvFieldBase {
@@ -95,7 +102,7 @@ public:
 
   friend class LvFieldBaseView<DATA_TYPE>;
 
-  using ARRAY_TYPE = LvArray::Array<DATA_TYPE, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
+  using ARRAY_TYPE = LV_ARRAY_CHAI_1D<DATA_TYPE>;
   using VIEW_TYPE = LvFieldBaseView<DATA_TYPE>;
 
   LvFieldBase(size_t elems) { mDataArray = ARRAY_TYPE(elems); }
@@ -125,7 +132,7 @@ public:
   RAJA_HOST_DEVICE
   DATA_TYPE& operator[](const unsigned int index) const {return mDataArray[index];}
 
-  ARRAY_TYPE getArray() {return mDataArray;}
+  ARRAY_TYPE& getArray() {return mDataArray;}
 
 private:
   ARRAY_TYPE mDataArray;
@@ -135,26 +142,103 @@ private:
 template<typename DATA_TYPE>
 class LvFieldBaseView {
 public:
-  using ARRAY_VIEW_TYPE = LvArray::ArrayView<DATA_TYPE, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
+  using ARRAY_VIEW_TYPE = LV_ARRAY_VIEW_CHAI_1D<DATA_TYPE>;
   using FIELD_TYPE = LvFieldBase<DATA_TYPE>;
 
-  LvFieldBaseView(const FIELD_TYPE& field) { 
-    mDataView = field.mDataArray;
+  friend class LvFieldListView<DATA_TYPE>;
+
+  LvFieldBaseView(const FIELD_TYPE& field) : mDataView{field.mDataArray} {}
+
+  void move(LvArray::MemorySpace const& space, bool touch = true) const {
+    mDataView.move(space,touch);
   }
 
-  // Index operator.
+  ARRAY_VIEW_TYPE& getView() {return mDataView;}
+
   RAJA_HOST_DEVICE
   DATA_TYPE& operator[](const unsigned int index) {return mDataView(index);}
+
   RAJA_HOST_DEVICE
   DATA_TYPE& operator[](const unsigned int index) const {return mDataView(index);}
 
   RAJA_HOST_DEVICE
-  inline constexpr
-  LvFieldBaseView( LvFieldBaseView const & source) noexcept : mDataView{source.mDataView} {
-  }
+  inline constexpr LvFieldBaseView( LvFieldBaseView const & source) noexcept : mDataView{source.mDataView} {}
 
 private:
   ARRAY_VIEW_TYPE mDataView;
+};
+
+
+template<typename DATA_TYPE>
+class LvFieldList{
+public:
+
+  friend class LvFieldListView<DATA_TYPE>;
+
+  using FIELD_VIEW_TYPE = LvFieldBaseView<DATA_TYPE>;
+  using ARRAY_TYPE = LV_ARRAY_CHAI_1D<FIELD_VIEW_TYPE>;
+
+  LvFieldList() {}
+
+  LvFieldList(std::string name) {
+    mFieldArray.setName(name);
+  }
+
+  void appendField(const FIELD_VIEW_TYPE& field) { 
+    mFieldArray.emplace_back(field);
+  }
+
+private:
+  ARRAY_TYPE mFieldArray;
+};
+
+
+template<typename DATA_TYPE>
+class LvFieldListView{
+public:
+
+  using FIELD_VIEW_TYPE = LvFieldBaseView<DATA_TYPE>;
+  using ARRAY_VIEW_TYPE = LV_ARRAY_VIEW_CHAI_1D<FIELD_VIEW_TYPE>;
+
+  RAJA_HOST_DEVICE
+  LvFieldListView(const LvFieldList<DATA_TYPE>& field) : mFieldView{field.mFieldArray.toView()} {}
+
+  void move(LvArray::MemorySpace const& space, bool touch = true) const {
+    mFieldView.move(space,touch);
+    //using namespace LvArray;
+    //auto prev_space = mFieldView.getPreviousSpace();
+    //std::cout<< prev_space << " : " << space << std::endl;
+
+    //if(space != LvArray::MemorySpace::undefined && space != prev_space) {
+    //  std::cout<<"FieldView"<< &(mFieldView.dataBuffer()) <<std::endl;
+    //  for (size_t i = 0; i < mFieldView.size(); i++) {
+    //    std::cout<<"DataView "<<i<< " : " << &(mFieldView[i].mDataView.dataBuffer()) <<std::endl;
+    //    mFieldView[i].mDataView.dataBuffer().move(space,touch);
+    //  }
+    //  mFieldView.dataBuffer().move(space,touch);
+    //}
+
+  }
+
+  RAJA_HOST_DEVICE
+  FIELD_VIEW_TYPE& operator[](const unsigned int index) {return mFieldView(index);}
+
+  RAJA_HOST_DEVICE
+  FIELD_VIEW_TYPE& operator[](const unsigned int index) const {return mFieldView(index);}
+
+  RAJA_HOST_DEVICE
+  inline LvFieldListView( LvFieldListView const & source) noexcept : mFieldView{source.mFieldView} {}
+//  inline LvFieldListView( LvFieldListView const & source) noexcept {
+//#if defined(LVARRAY_USE_CUDA) && !defined(__CUDA_ARCH__)
+//    auto space = LvArray::internal::toMemorySpace(
+//            LvArray::internal::getArrayManager().getExecutionSpace());
+//    source.move(space);
+//#endif
+//    mFieldView = source.mFieldView;
+//  }
+
+private:
+  ARRAY_VIEW_TYPE mFieldView;
 };
 
 
@@ -178,16 +262,11 @@ void SpheralEvalDerivTest()
   //using DATA_TYPE = double;
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
-  using LV_ARRAY_DT = LvArray::Array<DATA_TYPE, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
   using FIELD_TYPE = LvFieldBase<DATA_TYPE>;
   using VIEW_TYPE = FIELD_TYPE::VIEW_TYPE;
-  //using FIELD_TYPE = LV_ARRAY_DT;
-  //using VIEW_TYPE = LvArray::ArrayView<DATA_TYPE, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
 
-  using FIELDLIST_TYPE = LvArray::ArrayOfArrays<DATA_TYPE, std::ptrdiff_t, LvArray::ChaiBuffer>;
-  using FIELDLIST_TYPE_VIEW = LvArray::ArrayOfArraysView<DATA_TYPE, std::ptrdiff_t const, true, LvArray::ChaiBuffer>;
-  //using FIELD_TYPE = chaiFieldBase<DATA_TYPE>;
-  //using FIELD_TYPE = chai::ManagedArray<DATA_TYPE>;
+  using FIELDLIST_TYPE = LvFieldList<DATA_TYPE>;
+
 #define MEM_SPACE RAJA::Platform::cuda
 #define HOST_SPACE RAJA::Platform::host
 
@@ -234,6 +313,8 @@ void SpheralEvalDerivTest()
   pairs.registerTouch(chai::CPU);
   PRINT_DATA(pairs, N_PAIRS)
 
+
+  // Setting up our "Field Data", this is done through simulation setup in spheral e.g. node generation.
   FIELD_TYPE A(data_sz, "A");
   FIELD_TYPE B(data_sz, "B");
   FIELD_TYPE C(data_sz, "C");
@@ -253,12 +334,27 @@ void SpheralEvalDerivTest()
   FIELD_TYPE g_B(strat.n_blocks * data_sz, "g_B");
   FIELD_TYPE g_C(strat.n_blocks * data_sz, "g_C");
 #endif
-  std::cout << "Test\n";
 
   VIEW_TYPE g_Av(g_A);
   VIEW_TYPE g_Bv(g_B);
   VIEW_TYPE g_Cv(g_C);
 
+  // Creating "FieldLists" In evalDerivs we call STATE_TYPE::fields(...) to return a fieldList.
+  // In evalderivs we will want to return Something like LvFieldListView types for RAJA lambda 
+  // capture and chai data migration. 
+  LvFieldList<DATA_TYPE> fl("MyFirstFieldList");
+  LvFieldList<DATA_TYPE> fl2("MySecondFieldList");
+  fl.appendField(Av);
+  fl.appendField(Bv);
+  fl2.appendField(Cv);
+  fl2.appendField(Av);
+
+  // The FieldList types used in evalderivs.
+  LvFieldListView<DATA_TYPE> flv(fl);
+  LvFieldListView<DATA_TYPE> flv2(fl2);
+
+  flv.move(MEM_SPACE);
+  flv2.move(MEM_SPACE);
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -303,16 +399,15 @@ void SpheralEvalDerivTest()
     [=] RAJA_HOST_DEVICE (unsigned t_idx) {
       for (int b_idx = 0; b_idx < strat.n_blocks; b_idx++) {
         auto g_idx = b_idx*data_sz + t_idx;
-        //printf("%d, ", g_idx);
-        Av[t_idx] += g_Av[g_idx];
-        Bv[t_idx] += g_Bv[g_idx];
-        Cv[t_idx] += g_Cv[g_idx];
+        flv[0][t_idx] += g_Av[g_idx];
+        flv[1][t_idx] += g_Bv[g_idx];
+        flv2[0][t_idx] += g_Cv[g_idx];
       }
     });
 
-  A.move(HOST_SPACE);
-  B.move(HOST_SPACE);
-  C.move(HOST_SPACE);
+  std::cout<<"Calc done\n";
+  flv.move(HOST_SPACE);
+  flv2.move(HOST_SPACE);
 
   timer_red.stop();
   launch_timer.stop();
@@ -362,15 +457,6 @@ void SpheralEvalDerivTest()
   std::cout << "Launch Impl : " << launch_timer.elapsed() << " seconds (" << seq_timer.elapsed() / launch_timer.elapsed() << "x) speedup\n";
   std::cout << "       pair : " << timer_pair.elapsed() << " seconds (" << (timer_pair.elapsed() / launch_timer.elapsed())*100 << "%)\n";
   std::cout << "        red : " << timer_red.elapsed() << " seconds (" << (timer_red.elapsed() / launch_timer.elapsed())*100 << "%)\n";
-
-
-  //g_A.free();
-  //g_B.free();
-  //g_C.free();
-
-  //A.free();
-  //B.free();
-  //C.free();
 
   pairs.free();
 }
