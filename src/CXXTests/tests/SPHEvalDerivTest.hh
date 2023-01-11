@@ -291,12 +291,11 @@ void SpheralEvalDerivTest()
   //
   //---------------------------------------------------------------------------
   
-  chai::ManagedArray<unsigned> pairs(n_pairs);
-  
-  for (unsigned int i = 0; i < n_pairs; i++) pairs[i] = rand() % DATA_SZ;
-  pairs.registerTouch(chai::CPU);
-  PRINT_DATA(pairs, N_PAIRS)
-
+  // Generate pair data...
+  LvFieldBase<unsigned> pair_data(n_pairs, "Pairs");
+  for (unsigned int i = 0; i < n_pairs; i++) pair_data[i] = rand() % DATA_SZ;
+  PRINT_DATA(pair_data, N_PAIRS)
+  const LvFieldBaseView<unsigned> pairs(pair_data);
 
   // Setting up our "Field Data", this is done through simulation setup in spheral e.g. node generation.
   FIELD_TYPE A(data_sz, "A");
@@ -305,16 +304,10 @@ void SpheralEvalDerivTest()
 
   // Setting up global device pool memory for each Field...
   // TODO: How will this be allocted / generated in spheral.
-#if USE_DEVICE
   FIELD_TYPE g_A(strat.n_blocks * data_sz, "g_A", MEM_SPACE);
   FIELD_TYPE g_B(strat.n_blocks * data_sz, "g_B", MEM_SPACE);
   FIELD_TYPE g_C(strat.n_blocks * data_sz, "g_C", MEM_SPACE);
-  pairs.move(chai::GPU);
-#else
-  FIELD_TYPE g_A(strat.n_blocks * data_sz, "g_A");
-  FIELD_TYPE g_B(strat.n_blocks * data_sz, "g_B");
-  FIELD_TYPE g_C(strat.n_blocks * data_sz, "g_C");
-#endif
+
   VIEW_TYPE g_Av(g_A);
   VIEW_TYPE g_Bv(g_B);
   VIEW_TYPE g_Cv(g_C);
@@ -400,7 +393,6 @@ void SpheralEvalDerivTest()
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  pairs.move(chai::CPU);
 
   DATA_TYPE check_A[data_sz];
   DATA_TYPE check_B[data_sz];
@@ -437,7 +429,6 @@ void SpheralEvalDerivTest()
   std::cout << "       pair : " << timer_pair.elapsed() << " seconds (" << (timer_pair.elapsed() / launch_timer.elapsed())*100 << "%)\n";
   std::cout << "        red : " << timer_red.elapsed() << " seconds (" << (timer_red.elapsed() / launch_timer.elapsed())*100 << "%)\n";
 
-  pairs.free();
 }
 
 #endif //  SPHERAL_SPHEVALDERIVTEST
