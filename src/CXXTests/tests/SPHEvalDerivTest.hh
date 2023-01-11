@@ -12,16 +12,11 @@
 #include <iostream>
 #include <omp.h>
 
-#include "memoryManager.hh"
 #include "ExecStrategy.hh"
 #include "NodeList/FluidNodeList.hh"
-#include "Material/GammaLawGas.hh"
 
-#include "LvArray/Array.hpp"
-#include "LvArray/ArrayOfArrays.hpp"
-#include "LvArray/ChaiBuffer.hpp"
-#include "LvArray/bufferManipulation.hpp"
-
+#include "memoryManager.hh"
+#include "LvField.hh"
 
 //*****************************************************************************
 // Set up problem size
@@ -78,160 +73,13 @@ private:
     DATA_TYPE data = 0;
 };
 
-
-
-
 std::ostream& operator<<(std::ostream& out, const pdouble& d) {
   return out << d.string();
 }
 
-template<typename DATA_TYPE>
-using LV_ARRAY_CHAI_1D = LvArray::Array<DATA_TYPE, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
-template<typename DATA_TYPE>
-using LV_ARRAY_VIEW_CHAI_1D = LvArray::ArrayView<DATA_TYPE, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
-
-template<typename DATA_TYPE>
-class LvFieldBaseView;
-
-template<typename DATA_TYPE>
-class LvFieldListView;
-
-template<typename DATA_TYPE>
-class LvFieldBase {
-public:
-
-  friend class LvFieldBaseView<DATA_TYPE>;
-
-  using ARRAY_TYPE = LV_ARRAY_CHAI_1D<DATA_TYPE>;
-  using VIEW_TYPE = LvFieldBaseView<DATA_TYPE>;
-
-  LvFieldBase(size_t elems) { mDataArray = ARRAY_TYPE(elems); }
-
-  LvFieldBase(size_t elems, RAJA::Platform platform) { 
-    mDataArray = ARRAY_TYPE(elems);
-    mDataArray.move(platform);
-  }
-
-  LvFieldBase(size_t elems, std::string name) { 
-    mDataArray = ARRAY_TYPE(elems);
-    mDataArray.setName(name);
-  }
-
-  LvFieldBase(size_t elems, std::string name, RAJA::Platform platform) { 
-    mDataArray = ARRAY_TYPE(elems);
-    mDataArray.setName(name);
-    mDataArray.move(platform);
-  }
-
-  void setName(std::string name) {mDataArray.setName(name);}
-  void move (RAJA::Platform platform) {mDataArray.move(platform);}
-  LvFieldBaseView<DATA_TYPE> toView() const {return LvFieldBaseView<DATA_TYPE>(*this);}
-
-  // Index operator.
-  DATA_TYPE& operator[](const unsigned int index) {return mDataArray[index];}
-  DATA_TYPE& operator[](const unsigned int index) const {return mDataArray[index];}
-
-  ARRAY_TYPE& getArray() {return mDataArray;}
-
-private:
-  ARRAY_TYPE mDataArray;
-
-};
-
-template<typename DATA_TYPE>
-class LvFieldBaseView {
-public:
-  using ARRAY_VIEW_TYPE = LV_ARRAY_VIEW_CHAI_1D<DATA_TYPE>;
-  using FIELD_TYPE = LvFieldBase<DATA_TYPE>;
-
-  friend class LvFieldListView<DATA_TYPE>;
-
-  LvFieldBaseView(const FIELD_TYPE& field) : mDataView{field.mDataArray} {}
-
-  void move(LvArray::MemorySpace const& space, bool touch = true) const {
-    mDataView.move(space,touch);
-  }
-
-  ARRAY_VIEW_TYPE& getView() {return mDataView;}
-
-  RAJA_HOST_DEVICE
-  DATA_TYPE& operator[](const unsigned int index) {return mDataView(index);}
-
-  RAJA_HOST_DEVICE
-  DATA_TYPE& operator[](const unsigned int index) const {return mDataView(index);}
-
-  RAJA_HOST_DEVICE
-  inline constexpr LvFieldBaseView( LvFieldBaseView const & source) noexcept : mDataView{source.mDataView} {}
-
-private:
-  ARRAY_VIEW_TYPE mDataView;
-};
-
-
-template<typename DATA_TYPE>
-class LvFieldList{
-public:
-
-  friend class LvFieldListView<DATA_TYPE>;
-
-  using FIELD_TYPE = LvFieldBase<DATA_TYPE>;
-  using FIELD_VIEW_TYPE = LvFieldBaseView<DATA_TYPE>;
-  using ARRAY_TYPE = LV_ARRAY_CHAI_1D<FIELD_VIEW_TYPE>;
-
-  LvFieldList() {}
-
-  LvFieldList(std::string name) {
-    mFieldArray.setName(name);
-  }
-
-  void appendField(const FIELD_TYPE& field) { 
-    mFieldArray.emplace_back(field.toView());
-  }
-
-  void appendField(const FIELD_VIEW_TYPE& field) { 
-    mFieldArray.emplace_back(field);
-  }
-
-private:
-  ARRAY_TYPE mFieldArray;
-};
-
-
-template<typename DATA_TYPE>
-class LvFieldListView{
-public:
-
-  using FIELD_VIEW_TYPE = LvFieldBaseView<DATA_TYPE>;
-  using ARRAY_VIEW_TYPE = LV_ARRAY_VIEW_CHAI_1D<FIELD_VIEW_TYPE>;
-
-  RAJA_HOST_DEVICE
-  LvFieldListView(const LvFieldList<DATA_TYPE>& field) : mFieldView{field.mFieldArray.toView()} {}
-
-  void move(LvArray::MemorySpace const& space, bool touch = true) const {
-    mFieldView.move(space,touch);
-  }
-
-  RAJA_HOST_DEVICE
-  DATA_TYPE& operator()(const unsigned int field_id, const unsigned int idx) const { return mFieldView(field_id)[idx]; }
-
-  RAJA_HOST_DEVICE
-  FIELD_VIEW_TYPE& operator[](const unsigned int index) {return mFieldView(index);}
-
-  RAJA_HOST_DEVICE
-  FIELD_VIEW_TYPE& operator[](const unsigned int index) const {return mFieldView(index);}
-
-  RAJA_HOST_DEVICE
-  inline LvFieldListView( LvFieldListView const & source) noexcept : mFieldView{source.mFieldView} {}
-
-private:
-  ARRAY_VIEW_TYPE mFieldView;
-};
-
-
 
 void SpheralEvalDerivTest()
 {
-
   
   // Setup Timers
   srand(3);
@@ -248,7 +96,7 @@ void SpheralEvalDerivTest()
   //using DATA_TYPE = double;
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
-  using FIELD_TYPE = LvFieldBase<DATA_TYPE>;
+  using FIELD_TYPE = LvField<DATA_TYPE>;
   using VIEW_TYPE = FIELD_TYPE::VIEW_TYPE;
 
   //---------------------------------------------------------------------------
@@ -292,10 +140,10 @@ void SpheralEvalDerivTest()
   //---------------------------------------------------------------------------
   
   // Generate pair data...
-  LvFieldBase<unsigned> pair_data(n_pairs, "Pairs");
+  LvField<unsigned> pair_data(n_pairs, "Pairs");
   for (unsigned int i = 0; i < n_pairs; i++) pair_data[i] = rand() % DATA_SZ;
   PRINT_DATA(pair_data, N_PAIRS)
-  const LvFieldBaseView<unsigned> pairs(pair_data);
+  const LvFieldView<unsigned> pairs(pair_data);
 
   // Setting up our "Field Data", this is done through simulation setup in spheral e.g. node generation.
   FIELD_TYPE A(data_sz, "A");
