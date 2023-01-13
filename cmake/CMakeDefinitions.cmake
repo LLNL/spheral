@@ -2,6 +2,9 @@
 # Definitions to be added as compile flags for spheral 
 #-----------------------------------------------------------------------------------
 
+option(ENABLE_BOUNDCHECKING "Check bounds on STL types (expensive, Gnu only)" OFF)
+option(ENABLE_NAN_EXCEPTIONS "Raise an excpetion when a NAN occurs (Gnu only)" OFF)
+
 # If we're building debug default DBC to All
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   message("-- building Debug")
@@ -30,6 +33,12 @@ if (ENABLE_BOUNDCHECKING)
   add_definitions(-D_GLIBCXX_DEBUG=1)
 else()
   message("-- bound checking disabled")
+endif()
+
+# NAN handling (Gnu only)
+if (ENABLE_NAN_EXCEPTIONS)
+  message("-- Enabling NAN floating point exceptions (only applicable to Gnu compilers")
+  add_definitions(-DENABLE_NAN_EXCEPTIONS)
 endif()
 
 # CXXONLY

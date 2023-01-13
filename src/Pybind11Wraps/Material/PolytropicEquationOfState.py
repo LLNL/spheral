@@ -22,7 +22,8 @@ class PolytropicEquationOfState(EquationOfState):
                constants = "const PhysicalConstants&",
                minimumPressure = ("const double", "-std::numeric_limits<double>::max()"),
                maximumPressure = ("const double",  "std::numeric_limits<double>::max()"),
-               minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor")):
+               minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor"),
+               externalPressure = ("const double", "0.0")):
         "Provides the polytropic EOS: P = K rho^gamma; gamma = (index + 1)/index"
 
     #...........................................................................
@@ -88,7 +89,6 @@ class PolytropicEquationOfState(EquationOfState):
     polytropicIndex = PYB11property("double", "polytropicIndex", doc="polytropic index: gamma = (index + 1)/index")
     gamma = PYB11property("double", "gamma", doc="gamma: ratio of specific heats")
     mu = PYB11property("double", "molecularWeight", doc="mean molecular weight")
-    externalPressure = PYB11property("double", "externalPressure", "setExternalPressure", doc="Any external pressure (subtracted from the pressure calculation")
     
 #-------------------------------------------------------------------------------
 # Add the virtual interface

@@ -2,6 +2,7 @@
 # A set of methods to help reading and writing Spheral Polyhedra to/from files.
 #-------------------------------------------------------------------------------
 from SpheralCompiledPackages import *
+import mpi
 import numpy as np
 import stl
 
@@ -236,3 +237,73 @@ def readPolyhedronSTL(filename):
     facets = vector_of_vector_of_unsigned(facets)
     poly = Polyhedron(points, facets)
     return poly
+
+#-------------------------------------------------------------------------------
+# Convert a set of polyhedra to a NumpySTL mesh
+#-------------------------------------------------------------------------------
+def Polyhedra2NumpySTL(polys):
+    if type(polys) is Polyhedron:
+        polys = [polys]
+    result = []
+    for poly in polys:
+        vertices = np.array([[v.x, v.y, v.z] for v in poly.vertices])
+        facets = poly.facetVertices
+        faces = []
+        for facet in facets:
+            n = len(facet)
+            assert n >= 3
+            for j in xrange(1, n - 1):
+                faces.append([facet[0],
+                              facet[j],
+                              facet[j+1]])
+        stlPoly = stl.mesh.Mesh(np.zeros(len(faces), dtype=stl.mesh.Mesh.dtype))
+        for i, f in enumerate(faces):
+            for j in xrange(3):
+                stlPoly.vectors[i][j] = vertices[f[j],:]
+        result.append(stlPoly)
+    assert len(result) == len(polys)
+    return result
+
+#-------------------------------------------------------------------------------
+# Write an STL file from a list of polyhedra using the Numpy STL package
+#-------------------------------------------------------------------------------
+def writePolyhedraNumpySTL(polys,
+                           filename,
+                           unionPolys = True):
+    stlpolys = Polyhedra2NumpySTL(polys)
+
+    # If requested, union everything to a single STL (across all processors)
+    if unionPolys:
+        if mpi.rank == 0:
+            for iproc in xrange(1, mpi.procs):
+                stlpolys += mpi.recv(iproc, tag=100)[0]
+            result = stl.mesh.Mesh(np.concatenate([p.data for p in stlpolys]))
+            result.save(filename)
+        else:
+            mpi.send(stlpolys, dest=0, tag=100)
+        mpi.barrier()
+
+        # nfacets = mpi.allreduce(sum([0] + [np.shape(p)[0] for p in stlpolys]), mpi.SUM)
+        # result = stl.mesh.Mesh(np.zeros(nfacets, dtype=stl.mesh.Mesh.dtype))
+        # ioff = 0
+        # for iproc in xrange(mpi.procs):
+        #     other_polys = mpi.bcast(stlpolys, iproc)
+        #     ioff = 0
+        #     for p in other_polys:
+        #         for i in xrange(np.shape(p)[0]):
+        #             k = i + ioff
+        #             result.vectors[k] = p.vectors[i]
+        # if mpi.rank == 0:
+        #     result.save(filename)
+
+    else:
+        # We assume the filename provided is base path in which we want to write the
+        # individual files
+        print "Saving %i individual STL files" % mpi.allreduce(len(stlpolys), mpi.SUM)
+        ioff = 0
+        for iproc in xrange(mpi.procs):
+            nother = mpi.bcast(len(stlpolys), iproc)
+            if mpi.rank > iproc:
+                ioff += nother
+        for i, p in enumerate(stlpolys[:10]):
+            p.save(filename + "_part%08i.stl" % (ioff + i))

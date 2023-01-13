@@ -113,6 +113,9 @@ public:
   const Vector& xmax() const;
   double boxLength() const;
 
+  // Cell size on the given level
+  double cellSize(const LevelKey levelID) const;
+
   // Methods to serialize/deserialize the state of TreeNeighbor.
   void serialize(std::vector<char>& buffer) const;
   void deserialize(std::vector<char>::const_iterator& itr,
@@ -120,6 +123,16 @@ public:
 
   // Return the set of occupied cells on each level.
   std::vector<std::vector<CellKey>> occupiedCells() const;
+
+  // Find the nearest cell center on the given grid level.
+  Vector nearestCellCenter(const Vector& xi, const double hi) const;
+  Vector nearestCellCenter(const Vector& xi, const SymTensor& Hi) const;
+
+  // Test if the given position and extent is occupied, in the sense that
+  // any tree cell is occupied at any coarser level down to it's native
+  // level.
+  bool occupied(const Vector& xi, const double hi) const;
+  bool occupied(const Vector& xi, const SymTensor& Hi) const;
 
   // For our parallel algorithm it is useful to be able to set the master/coarse
   // information based on the given (level, cell).

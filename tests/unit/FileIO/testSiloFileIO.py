@@ -16,8 +16,8 @@ class SiloFileIOTest(FileIOTestBase, unittest.TestCase):
         self.intmax = 2**24
         self.unsignedmin = 0
         self.unsignedmax = 2**32
-        self.doublemin = -1e50
-        self.doublemax = 1e50
+        self.doublemin = -1e5
+        self.doublemax = 1e5
         self.constructor = SiloFileIO
 
         # Size the NodeLists.

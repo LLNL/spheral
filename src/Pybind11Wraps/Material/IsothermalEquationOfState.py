@@ -21,7 +21,8 @@ class IsothermalEquationOfState(EquationOfState):
                constants = "const PhysicalConstants&",
                minimumPressure = ("const double", "-std::numeric_limits<double>::max()"),
                maximumPressure = ("const double",  "std::numeric_limits<double>::max()"),
-               minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor")):
+               minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor"),
+               externalPressure = ("const double", "0.0")):
         "Provides the isothermal EOS: P = cs^2 rho = K rho"
 
     #...........................................................................
@@ -84,7 +85,6 @@ class IsothermalEquationOfState(EquationOfState):
     # Properties
     K = PYB11property("double", "K", doc="K: the pressure constant, K=cs^2")
     mu = PYB11property("double", "molecularWeight", doc="mean molecular weight")
-    externalPressure = PYB11property("double", "externalPressure", "setExternalPressure", doc="Any external pressure (subtracted from the pressure calculation")
     
 #-------------------------------------------------------------------------------
 # Add the virtual interface

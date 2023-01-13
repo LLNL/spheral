@@ -106,11 +106,6 @@ public:
   void K(double x);
   void atomicWeight(double x);
   
-  // If requested, the user can specify an external pressure to be applied
-  // in the pressure calculation.
-  double externalPressure() const;
-  void externalPressure(double x);
-
   // Compute the derivative of the pressure with respect to the density.
   double computeDPDrho(const Scalar massDensity,
                        const Scalar specificThermalEnergy) const;
@@ -121,7 +116,6 @@ private:
   //--------------------------- Private Interface ---------------------------//
   double mn, mK;
   double mAtomicWeight;
-  double mExternalPressure;
   double mCv;
   double mnKi;
 

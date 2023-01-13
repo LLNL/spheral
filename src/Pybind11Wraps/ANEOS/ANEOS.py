@@ -15,21 +15,21 @@ class ANEOS(SolidEquationOfState):
 
     #...........................................................................
     # Constructors
-    def pyinit(self,
-               materialNumber = "int",
-               numRhoVals = "unsigned",
-               numTvals = "unsigned",
-               rhoMin = "double", 
-               rhoMax = "double",
-               Tmin = "double", 
-               Tmax = "double", 
-               constants = "const PhysicalConstants&",
-               externalPressure = ("const double", "0.0"),
-               minimumPressure = ("const double", "std::numeric_limits<double>::lowest()"),
-               maximumPressure = ("const double",  "std::numeric_limits<double>::max()"),
-               minimumPressureDamage = ("const double", "0.0"),
-               minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor"),
-               useInterpolation = ("const bool", "true")):
+    def pyinit1(self,
+                materialNumber = "int",
+                numRhoVals = "unsigned",
+                numTvals = "unsigned",
+                rhoMin = "double", 
+                rhoMax = "double",
+                Tmin = "double", 
+                Tmax = "double", 
+                constants = "const PhysicalConstants&",
+                externalPressure = ("const double", "0.0"),
+                minimumPressure = ("const double", "std::numeric_limits<double>::lowest()"),
+                maximumPressure = ("const double",  "std::numeric_limits<double>::max()"),
+                minimumPressureDamage = ("const double", "0.0"),
+                minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor"),
+                useInterpolation = ("const bool", "true")):
         """ANEOS constructor
 
 Note the material number is the "EOS#" from the associated ANEOS input file passed to initializeANEOS, and the 
@@ -39,6 +39,12 @@ Also, note that (numRhoVals, numTvals) are used to compute an inverse lookup tab
 for the specific thermal energy.  This table is currently linear in (rho, T), so be sure you both span
 an appropriate range for (rhoMin, rhoMax), (Tmin, Tmax), *and* have enough values sampling in 
 (numRhoVals, numTvals) to represent this inverse for your equation of state."""
+        return
+
+    @PYB11implementation("[](const ANEOS<%(Dimension)s>& self) { return ANEOS<%(Dimension)s>(self); }")
+    def __copy__(self):
+        "Copy constructor"
+        return
 
     #...........................................................................
     # Methods
@@ -105,7 +111,6 @@ an appropriate range for (rhoMin, rhoMax), (Tmin, Tmax), *and* have enough value
     # specificThermalEnergyVals = PYB11property(getterraw="[](const ANEOS<%(Dimension)s>& self) { return ANEOS_STEvals(self); }",
     #                                           doc="Get the specific thermal energy lookup table values")
     atomicWeight = PYB11property("double", "atomicWeight")
-    externalPressure = PYB11property("double", "externalPressure", "externalPressure")
     
 #-------------------------------------------------------------------------------
 # Add the virtual interface
