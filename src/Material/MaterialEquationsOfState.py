@@ -22,7 +22,8 @@ class GammaLawGas%(units)s%(dim)id(GammaLawGas%(dim)id):
                  gamma,
                  mu,
                  minimumPressure = -1e200,
-                 maximumPressure =  1e200):
+                 maximumPressure =  1e200,
+                 externalPressure = 0.0):
         self._units = %(units)s()
         GammaLawGas%(dim)id.__init__(self,
                                      gamma,
@@ -41,7 +42,8 @@ class PolytropicEquationOfState%(units)s%(dim)id(PolytropicEquationOfState%(dim)
                  index,
                  mu,
                  minimumPressure = -1e200,
-                 maximumPressure =  1e200):
+                 maximumPressure =  1e200,
+                 externalPressure = 0.0):
         self._units = %(units)s()
         PolytropicEquationOfState%(dim)id.__init__(self,
                                                    K,
@@ -60,7 +62,8 @@ class IsothermalEquationOfState%(units)s%(dim)id(IsothermalEquationOfState%(dim)
                  K,
                  mu,
                  minimumPressure = -1e200,
-                 maximumPressure =  1e200):
+                 maximumPressure =  1e200,
+                 externalPressure = 0.0):
         self._units = %(units)s()
         IsothermalEquationOfState%(dim)id.__init__(self,
                                                    K,
@@ -80,7 +83,8 @@ class StiffenedGas%(units)s%(dim)id(StiffenedGas%(dim)id):
                  P0,
                  Cv,
                  minimumPressure = -1e200,
-                 maximumPressure =  1e200):
+                 maximumPressure =  1e200,
+                 externalPressure = 0.0):
         self._units = %(units)s()
         StiffenedGas%(dim)id.__init__(self,
                                       gamma,

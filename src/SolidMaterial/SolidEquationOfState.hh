@@ -32,7 +32,8 @@ public:
                        const double minimumPressure,
                        const double maximumPressure,
                        const double minimumPressureDamage,
-                       const MaterialPressureMinType minPressureType);
+                       const MaterialPressureMinType minPressureType,
+                       const double externalPressure);
   virtual ~SolidEquationOfState();
 
   // Access the member data.

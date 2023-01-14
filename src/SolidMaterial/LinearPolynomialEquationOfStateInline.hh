@@ -152,23 +152,4 @@ atomicWeight(double x) {
   mAtomicWeight = x;
 }
 
-//------------------------------------------------------------------------------
-// Get and set the external pressure.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-LinearPolynomialEquationOfState<Dimension>::
-externalPressure() const {
-  return mExternalPressure;
-}
-
-template<typename Dimension>
-inline
-void
-LinearPolynomialEquationOfState<Dimension>::
-externalPressure(double val) {
-  mExternalPressure = val;
-}
-
 }

@@ -362,6 +362,15 @@ public:
   void read(GeomPlane<Dim<2> >& value, const std::string pathName) const;
   void read(GeomPlane<Dim<3> >& value, const std::string pathName) const;
 
+  // Read/write polytopes
+  void write(const Dim<1>::FacetedVolume& value, const std::string pathName);
+  void write(const Dim<2>::FacetedVolume& value, const std::string pathName);
+  void write(const Dim<3>::FacetedVolume& value, const std::string pathName);
+
+  void read(Dim<1>::FacetedVolume& value, const std::string pathName) const;
+  void read(Dim<2>::FacetedVolume& value, const std::string pathName) const;
+  void read(Dim<3>::FacetedVolume& value, const std::string pathName) const;
+
   // Provide char* read/write methods, which will simply call the string
   // methods provided by descendents.
   void write(const char* value, const std::string pathName);

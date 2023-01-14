@@ -43,7 +43,8 @@ meaning that the full set of points passed in may not appear in the vertices."""
     def contains(self,
                  point = "const Vector&",
                  countBoundary = ("const bool", "true"),
-                 tol = ("const double", "1.0e-8")):
+                 tol = ("const double", "1.0e-8"),
+                 useAxom = ("const bool", "false")):
         "Test if the given point is internal to the polyhedron."
         return "bool"
 
@@ -108,8 +109,9 @@ indices that define the facets, and outward normals at the facets."""
         return "unsigned"
 
     @PYB11const
-    def distance(self, p="const Vector&"):
-        "Compute the minimum distance to a point."
+    def distance(self, p="const Vector&",
+                 useAxom = ("const bool", "false")):
+        "Compute the minimum distance to a point.  Note: when useAxom=True this is a signed distance, and otherwise it's positive."
         return "double"
 
     @PYB11const
