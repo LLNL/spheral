@@ -265,16 +265,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // acceleration
       //------------------------------------------------------
       const auto deltaDvDt = Pstar*Astar;
-      DvDti -= deltaDvDt;
-      DvDtj += deltaDvDt;
+      DvDti -= deltaDvDt/mi;
+      DvDtj += deltaDvDt/mj;
 
       // energy
       //------------------------------------------------------
       const auto deltaDepsDti = Pstar*Astar.dot(vi-vstar);
       const auto deltaDepsDtj = Pstar*Astar.dot(vstar-vj);
 
-      DepsDti += deltaDepsDti;
-      DepsDtj += deltaDepsDtj;
+      DepsDti += deltaDepsDti/mi;
+      DepsDtj += deltaDepsDtj/mj;
      
       if(compatibleEnergy){
         const auto invmij = 1.0/(mi*mj);
@@ -372,9 +372,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
-
-      DvDti /= mi;
-      DepsDti /= mi;
 
       normi += voli*Hdeti*W0;
 
