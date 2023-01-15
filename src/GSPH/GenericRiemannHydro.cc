@@ -633,6 +633,7 @@ GenericRiemannHydro<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
 
   file.write(mTimeStepMask, pathName + "/timeStepMask");
+  file.write(mVolume, pathName + "/volume");
   file.write(mPressure, pathName + "/pressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
 
@@ -669,6 +670,7 @@ GenericRiemannHydro<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
 
   file.read(mTimeStepMask, pathName + "/timeStepMask");
+  file.read(mVolume, pathName + "/volume");
   file.read(mPressure, pathName + "/pressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
 
