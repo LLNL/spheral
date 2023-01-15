@@ -375,9 +375,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
 
-      DvDti /= mi;
-      DepsDti /= mi;
-
       normi += voli*Hdeti*W0;
 
       DrhoDti = - rhoi * DvDxi.Trace();
