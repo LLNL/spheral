@@ -17,8 +17,9 @@ SolidEquationOfState(const double referenceDensity,
                      const double minimumPressure,
                      const double maximumPressure,
                      const double minimumPressureDamage,
-                     const MaterialPressureMinType minPressureType):
-  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
+                     const MaterialPressureMinType minPressureType,
+                     const double externalPressure):
+  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType, externalPressure),
   mReferenceDensity(referenceDensity),
   mEtaMin(etamin),
   mEtaMax(etamax),

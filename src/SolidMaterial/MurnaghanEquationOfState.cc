@@ -40,11 +40,11 @@ MurnaghanEquationOfState(const double referenceDensity,
                                   minimumPressure,
                                   maximumPressure,
                                   minimumPressureDamage,
-                                  minPressureType),
+                                  minPressureType,
+                                  externalPressure),
   mn(n),
   mK(K),
   mAtomicWeight(atomicWeight),
-  mExternalPressure(externalPressure),
   mCv(3.0 * constants.molarGasConstant() / atomicWeight),
   mnKi(K/n) {
   REQUIRE(distinctlyGreaterThan(n, 0.0));
@@ -205,7 +205,7 @@ pressure(const Scalar massDensity,
   const double eta = this->boundedEta(massDensity);
   if (fuzzyEqual(eta, this->etamin())) return 0.0;
   CHECK(distinctlyGreaterThan(eta, 0.0));
-  return this->applyPressureLimits(mnKi*(pow(eta, mn) - 1.0)+mExternalPressure);
+  return this->applyPressureLimits(mnKi*(pow(eta, mn) - 1.0));
 }
 
 //------------------------------------------------------------------------------

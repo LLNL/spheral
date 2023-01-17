@@ -22,7 +22,7 @@ ApproximatePolyhedralGravityModel::resolutions() const {
 }   
 
 inline
-Dim<3>::Scalar
+unsigned int
 ApproximatePolyhedralGravityModel::numQuadraturePoints() const {
   return mNumQuadraturePoints;
 }   

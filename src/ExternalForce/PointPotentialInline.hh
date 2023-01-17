@@ -11,7 +11,7 @@ inline
 typename Dimension::Scalar
 PointPotential<Dimension>::
 extraEnergy() const {
-  return mPotentialEnergy;
+  return mTotalPotentialEnergy;
 }
 
 //------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ inline
 typename Dimension::Scalar
 PointPotential<Dimension>::
 specificPotential(const typename Dimension::Vector& r) const {
-  return -G()*mass()/sqrt((r - origin()).magnitude2() + mCoreRadius2);
+  return -mG*mMass/std::sqrt((mMetric*(r - mOrigin)).magnitude2() + mCoreRadius2);
 }
 
 //------------------------------------------------------------------------------
@@ -40,9 +40,9 @@ template<typename Dimension>
 inline
 void
 PointPotential<Dimension>::
-setG(const typename Dimension::Scalar G) {
-  REQUIRE(G > 0.0);
-  mG = G;
+G(const typename Dimension::Scalar x) {
+  REQUIRE(x > 0.0);
+  mG = x;
 }
 
 //------------------------------------------------------------------------------
@@ -60,9 +60,9 @@ template<typename Dimension>
 inline
 void
 PointPotential<Dimension>::
-setMass(const typename Dimension::Scalar m) {
-  REQUIRE(m >= 0.0);
-  mMass = m;
+mass(const typename Dimension::Scalar x) {
+  REQUIRE(x >= 0.0);
+  mMass = x;
 }
 
 //------------------------------------------------------------------------------
@@ -80,9 +80,9 @@ template<typename Dimension>
 inline
 void
 PointPotential<Dimension>::
-setCoreRadius(const typename Dimension::Scalar rc) {
-  REQUIRE(rc >= 0.0);
-  mCoreRadius2 = rc*rc;
+coreRadius(const typename Dimension::Scalar x) {
+  REQUIRE(x >= 0.0);
+  mCoreRadius2 = x*x;
 }
 
 //------------------------------------------------------------------------------
@@ -100,29 +100,58 @@ template<typename Dimension>
 inline
 void
 PointPotential<Dimension>::
-setOrigin(const typename Dimension::Vector& origin) {
-  mOrigin = origin;
+origin(const typename Dimension::Vector& x) {
+  mOrigin = x;
 }
 
 //------------------------------------------------------------------------------
-// The maximum allowed fractional change in a particles potential (for 
-// setting the timestep).
+// The metric for mapping relative positions with respect to the origin
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-typename Dimension::Scalar
+const typename Dimension::Tensor&
 PointPotential<Dimension>::
-deltaPotentialFraction() const {
-  return mDeltaPhiFraction;
+metric() const {
+  return mMetric;
 }
 
 template<typename Dimension>
 inline
 void
 PointPotential<Dimension>::
-setDeltaPotentialFraction(const typename Dimension::Scalar deltaPhi) {
-  REQUIRE(deltaPhi > 0.0);
-  mDeltaPhiFraction = deltaPhi;
+metric(const typename Dimension::Tensor& x) {
+  mMetric = x;
+}
+
+//------------------------------------------------------------------------------
+// Timestep control
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+PointPotential<Dimension>::
+ftimestep() const {
+  return mftimestep;
+}
+
+template<typename Dimension>
+inline
+void
+PointPotential<Dimension>::
+ftimestep(const typename Dimension::Scalar x) {
+  REQUIRE(x > 0.0);
+  mftimestep = x;
+}
+
+//------------------------------------------------------------------------------
+// potential
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+PointPotential<Dimension>::
+potential() const {
+  return mPotential;
 }
 
 }

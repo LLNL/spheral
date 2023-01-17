@@ -38,11 +38,11 @@ bisectRoot(const Function& functor,
 
   // Initialize the searching parameters.
   double xl, xh;
-  if (xminValue < 0.0) {
+  if (xminValue <= 0.0) {
     xl = x1;
     xh = x2;
   } else {
-    CHECK(xminValue > 0.0 && xmaxValue < 0.0);
+    CHECK(xminValue > 0.0 && xmaxValue <= 0.0);
     xl = x2;
     xh = x1;
   }

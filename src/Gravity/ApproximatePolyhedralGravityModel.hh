@@ -40,17 +40,17 @@ class ApproximatePolyhedralGravityModel{
     Scalar potential(const Vector& position) const;
     Vector acceleration(const Vector& position) const;
 
-    Dim<3>::Scalar numQuadraturePoints() const;
+    unsigned int numQuadraturePoints() const;
 
     const std::vector<Vector>& quadraturePoints() const;
     const std::vector<Vector>& values() const;
     const std::vector<Scalar>& resolutions() const;
 
   private:
-    Dim<3>::Scalar mNumQuadraturePoints;    // we love counting things
-    std::vector<Vector> mQuadraturePoints;  // quadrature point area vectors
+    unsigned int mNumQuadraturePoints;      
+    std::vector<Vector> mQuadraturePoints;  // quadrature point positions
     std::vector<Vector> mValues;            // quadrature point area vectors
-    std::vector<Scalar> mResolutions;       // quadrature point area vectors
+    std::vector<Scalar> mResolutions;       // quadrature point length scale
 };
 
 }
