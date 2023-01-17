@@ -26,7 +26,7 @@
 #define N_PAIRS 500000000
 #define DATA_SZ 1000000
 
-#elif 1 // Large Problem
+#elif 0 // Large Problem
 #define N_PAIRS  5000000
 #define DATA_SZ  50000
 
@@ -42,7 +42,7 @@
 //*****************************************************************************
 // Initialize execution platform
 //*****************************************************************************
-#define USE_DEVICE 1
+#define USE_DEVICE 0
 
 //*****************************************************************************
 #define PRINT_DATA(X, SZ) \
@@ -52,31 +52,8 @@
 
 //*****************************************************************************
 
-
-class pdouble {
-public:
-  using DATA_TYPE = double;
-
-  pdouble() : data(0) {};
-  pdouble(DATA_TYPE d) : data(d) {};
-
-  std::string string() const {return std::to_string(data);}
-
-  DATA_TYPE get_data() const {return data;}
-
-
-  pdouble& operator+=(const pdouble& rhs) {data += rhs.get_data(); return *this;}
-  friend pdouble operator+(pdouble lhs, const pdouble& rhs) {lhs+=rhs; return lhs;}
-  bool operator!=(const pdouble& rhs) const {return !(data == rhs.get_data());}
-
-private:
-    DATA_TYPE data = 0;
-};
-
-std::ostream& operator<<(std::ostream& out, const pdouble& d) {
-  return out << d.string();
-}
-
+#define VEC3 1
+#include "vec.hh"
 
 void SpheralEvalDerivTest()
 {
@@ -89,10 +66,10 @@ void SpheralEvalDerivTest()
   RAJA::Timer timer_red;
 
   // Data Types to Use
-  using DIM = Spheral::Dim<1>;
+  //using DIM = Spheral::Dim<1>;
 
   //using DATA_TYPE = Spheral::GeomVector<3>;
-  using DATA_TYPE = pdouble;
+  using DATA_TYPE = vec;
   //using DATA_TYPE = double;
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
@@ -144,6 +121,7 @@ void SpheralEvalDerivTest()
   for (unsigned int i = 0; i < n_pairs; i++) pair_data[i] = rand() % DATA_SZ;
   PRINT_DATA(pair_data, N_PAIRS)
   const LvFieldView<unsigned> pairs(pair_data);
+  pairs.move(MEM_SPACE);
 
   // Setting up our "Field Data", this is done through simulation setup in spheral e.g. node generation.
   FIELD_TYPE A(data_sz, "A");
@@ -151,7 +129,8 @@ void SpheralEvalDerivTest()
   FIELD_TYPE C(data_sz, "C");
 
   FIELD_TYPE One(data_sz, "One");
-  for (size_t i = 0; i < data_sz; i++) One[i] = 1.0;
+  for (size_t i = 0; i < data_sz; i++) One[i] = DATA_TYPE(1.0);
+  std::cout << "one : " << One[0] << std::endl;
 
   // Setting up global device pool memory for each Field...
   // TODO: How will this be allocted / generated in spheral.
@@ -198,34 +177,25 @@ void SpheralEvalDerivTest()
   launch_timer.start();
   timer_pair.start();
 
-  // Initial Pair loop: We are using RAJA::forall over teams for chai::ManagedArray support.
   RAJA::forall<PAIR_EXEC_POL>(TRS_UINT(0, strat.n_pairs),
     [=] RAJA_HOST_DEVICE (unsigned t_idx) {
 
       auto pair_idx = pairs[t_idx];
       auto b_idx = t_idx / strat.block_sz;
-      auto g_idx = b_idx*data_sz + pair_idx;
+      auto g_pair_idx = b_idx*data_sz + pair_idx;
 
       const auto& one = fl_one(0, pair_idx);
 
-      auto& a = g_Av[g_idx];
-      auto& b = g_Bv[g_idx];
-      auto& c = g_Cv[g_idx];
-#if USE_DEVICE
-      // We use atomics for Device code as blocks per memory pool is greater than 1.
-      // g_X arrays are implicitly copied to the device with chai.
-      ATOMIC_ADD(&a, one);
-      ATOMIC_ADD(&b, one);
-      ATOMIC_ADD(&c, one);
-#else
-      // When executing on host we create one memory pool per omp thread, atomics are not needed.
+      auto& a = CAST_ATOMIC_TYPE(g_Av[g_pair_idx]);
+      auto& b = CAST_ATOMIC_TYPE(g_Bv[g_pair_idx]);
+      auto& c = CAST_ATOMIC_TYPE(g_Cv[g_pair_idx]);
+
       a += one;
       b += one;
       c += one;
-#endif
+
     });
   timer_pair.stop();
-
 
   timer_red.start();
   // We need to perform an array reduction accross the memory pools. This is also performed on the 
@@ -247,6 +217,7 @@ void SpheralEvalDerivTest()
 
   flv.move(HOST_SPACE);
   flv2.move(HOST_SPACE);
+  pairs.move(HOST_SPACE);
 
   timer_red.stop();
   launch_timer.stop();
@@ -268,9 +239,14 @@ void SpheralEvalDerivTest()
   seq_timer.start();
   std::cout << "C++ Sequential Implementation.\n";
   for(int i = 0; i < N_PAIRS; i++){
-    check_A[pairs[i]] += DATA_TYPE(1.0);  
-    check_B[pairs[i]] += DATA_TYPE(1.0);  
-    check_C[pairs[i]] += DATA_TYPE(1.0);  
+    DATA_TYPE inc(1.0);
+    if(i == 0) std::cout << "inc : " << inc << std::endl;
+    check_A[pairs[i]] += inc;  
+    check_B[pairs[i]] += inc;  
+    check_C[pairs[i]] += inc;  
+    //check_A[pairs[i]] += DATA_TYPE(1.0);  
+    //check_B[pairs[i]] += DATA_TYPE(1.0);  
+    //check_C[pairs[i]] += DATA_TYPE(1.0);  
   }
   seq_timer.stop();
 

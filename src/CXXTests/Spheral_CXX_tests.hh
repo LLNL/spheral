@@ -3,6 +3,10 @@
 
 #include "DeviceTestLib/DeviceTest.hh"
 #include "RAJA/RAJA.hpp"
+#include "desul/atomics.hpp"
+
+#define ORDER desul::MemoryOrderRelaxed;
+#define SCOPE desul::MemoryScopeDevice;
 
 //*****************************************************************************
 //
@@ -25,7 +29,8 @@ void basicLaunchCallerTest()
 //*****************************************************************************
 //
 //*****************************************************************************
-#define ATOMIC_ADD RAJA::atomicAdd<RAJA::auto_atomic>
+#define ATOMIC_ADD(P, V) RAJA::atomicAdd<RAJA::auto_atomic>(P, V)
+//#define ATOMIC_ADD(P, V) desul::atomic_add(P, V, desul::MemoryOrderRelease{}, desul::MemoryScopeDevice{})
 #include "Geometry/GeomVector.hh"
 
 void basicAtomicTets()

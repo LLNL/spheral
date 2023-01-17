@@ -46,43 +46,40 @@ public:
   GeomVector(const double x = 0.0,
              const double y = 0.0,
              const double z = 0.0);
-  RAJA_HOST_DEVICE
-  GeomVector(const GeomVector& vec);
+  
+  RAJA_HOST_DEVICE GeomVector(const GeomVector& vec);
   template<typename Derived> GeomVector(const Eigen::MatrixBase<Derived>& vec);
 
   // Destructor.
-  RAJA_HOST_DEVICE
-  ~GeomVector();
+  RAJA_HOST_DEVICE ~GeomVector();
 
   // Assignment.
-  RAJA_HOST_DEVICE
-  GeomVector& operator=(const GeomVector<nDim>& vec);
-  RAJA_HOST_DEVICE
-  GeomVector& operator=(const double val);
+  RAJA_HOST_DEVICE GeomVector& operator=(const GeomVector<nDim>& vec);
+  RAJA_HOST_DEVICE GeomVector& operator=(const double val);
   template<typename Derived> GeomVector& operator=(const Eigen::MatrixBase<Derived>& vec);
 
   // Allow the elements by indicies.
-  double operator()(size_type index) const;
-  double& operator()(size_type index);
+  RAJA_HOST_DEVICE double operator()(size_type index) const;
+  RAJA_HOST_DEVICE double& operator()(size_type index);
 
   // More C++ style indexing.
-  double operator[](size_type index) const;
-  double& operator[](size_type index);
+  RAJA_HOST_DEVICE double operator[](size_type index) const;
+  RAJA_HOST_DEVICE double& operator[](size_type index);
 
   // Access the individual elements by (x, y, z) notation.
-  double x() const;
-  double y() const;
-  double z() const;
-  void x(const double val);
-  void y(const double val);
-  void z(const double val);
+  RAJA_HOST_DEVICE double x() const;
+  RAJA_HOST_DEVICE double y() const;
+  RAJA_HOST_DEVICE double z() const;
+  RAJA_HOST_DEVICE void x(const double val);
+  RAJA_HOST_DEVICE void y(const double val);
+  RAJA_HOST_DEVICE void z(const double val);
 
   // Iterator access to the raw data.
-  iterator begin();
-  iterator end();
+  RAJA_HOST_DEVICE iterator begin();
+  RAJA_HOST_DEVICE iterator end();
 
-  const_iterator begin() const;
-  const_iterator end() const;
+  RAJA_HOST_DEVICE const_iterator begin() const;
+  RAJA_HOST_DEVICE const_iterator end() const;
 
   // Zero the vector.
   void Zero();
@@ -90,36 +87,36 @@ public:
   // Mathematical operators.
   GeomVector operator-() const;
 
-  GeomVector operator+(const GeomVector& vec) const;
-  GeomVector operator-(const GeomVector& vec) const;
-  GeomVector operator*(const double val) const;
-  GeomVector operator/(const double val) const;
+  RAJA_HOST_DEVICE GeomVector operator+(const GeomVector& vec) const;
+  RAJA_HOST_DEVICE GeomVector operator-(const GeomVector& vec) const;
+  RAJA_HOST_DEVICE GeomVector operator*(const double val) const;
+  RAJA_HOST_DEVICE GeomVector operator/(const double val) const;
 
-  GeomVector& operator+=(const GeomVector& vec);
-  GeomVector& operator-=(const GeomVector& vec);
+  RAJA_HOST_DEVICE GeomVector& operator+=(const GeomVector& vec);
+  RAJA_HOST_DEVICE GeomVector& operator-=(const GeomVector& vec);
 
   template<typename Derived> GeomVector& operator+=(const Eigen::MatrixBase<Derived>& vec);
   template<typename Derived> GeomVector& operator-=(const Eigen::MatrixBase<Derived>& vec);
 
-  GeomVector& operator*=(const double val);
-  GeomVector& operator/=(const double val);
+  RAJA_HOST_DEVICE GeomVector& operator*=(const double val);
+  RAJA_HOST_DEVICE GeomVector& operator/=(const double val);
 
-  int compare(const GeomVector& vec) const;
-  int compare(const double val) const;
+  RAJA_HOST_DEVICE int compare(const GeomVector& vec) const;
+  RAJA_HOST_DEVICE int compare(const double val) const;
 
-  bool operator==(const GeomVector& vec) const;
-  bool operator!=(const GeomVector& vec) const;
-  bool operator<(const GeomVector& vec) const;
-  bool operator>(const GeomVector& vec) const;
-  bool operator<=(const GeomVector& vec) const;
-  bool operator>=(const GeomVector& vec) const;
+  RAJA_HOST_DEVICE bool operator==(const GeomVector& vec) const;
+  RAJA_HOST_DEVICE bool operator!=(const GeomVector& vec) const;
+  RAJA_HOST_DEVICE bool operator<(const GeomVector& vec) const;
+  RAJA_HOST_DEVICE bool operator>(const GeomVector& vec) const;
+  RAJA_HOST_DEVICE bool operator<=(const GeomVector& vec) const;
+  RAJA_HOST_DEVICE bool operator>=(const GeomVector& vec) const;
 
-  bool operator==(const double val) const;
-  bool operator!=(const double val) const;
-  bool operator<(const double val) const;
-  bool operator>(const double val) const;
-  bool operator<=(const double val) const;
-  bool operator>=(const double val) const;
+  RAJA_HOST_DEVICE bool operator==(const double val) const;
+  RAJA_HOST_DEVICE bool operator!=(const double val) const;
+  RAJA_HOST_DEVICE bool operator<(const double val) const;
+  RAJA_HOST_DEVICE bool operator>(const double val) const;
+  RAJA_HOST_DEVICE bool operator<=(const double val) const;
+  RAJA_HOST_DEVICE bool operator>=(const double val) const;
 
   double dot(const GeomVector& vec) const;
   GeomVector<3> cross(const GeomVector& vec) const;
