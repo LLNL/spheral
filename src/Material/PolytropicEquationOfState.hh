@@ -27,7 +27,8 @@ public:
                             const PhysicalConstants& constants,
                             const double minimumPressure,
                             const double maximumPressure,
-                            const MaterialPressureMinType minPressureType);
+                            const MaterialPressureMinType minPressureType,
+                            const double externalPressure);
   ~PolytropicEquationOfState();
 
   // We require any equation of state to define the following properties.
@@ -94,11 +95,6 @@ public:
   Scalar gamma() const;
   virtual Scalar molecularWeight() const;
   
-  // If requested, the user can specify an external pressure to be applied
-  // in the pressure calculation.
-  Scalar externalPressure() const;
-  void setExternalPressure(Scalar P);
-
   virtual bool valid() const;
 
 private:
@@ -108,7 +104,6 @@ private:
   Scalar mGamma;
   Scalar mGamma1;
   Scalar mMolecularWeight;
-  Scalar mExternalPressure;
 
   // No default constructor, copying, or assignment.
   PolytropicEquationOfState();

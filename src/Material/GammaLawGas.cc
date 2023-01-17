@@ -28,8 +28,9 @@ GammaLawGas(const double gamma,
             const PhysicalConstants& constants,
             const double minimumPressure,
             const double maximumPressure,
-            const MaterialPressureMinType minPressureType):
-  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
+            const MaterialPressureMinType minPressureType,
+            const double externalPressure):
+  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType, externalPressure),
   mGamma(gamma),
   mMolecularWeight(mu) {
   mGamma1 = mGamma - 1.0;

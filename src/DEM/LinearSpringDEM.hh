@@ -63,8 +63,6 @@ public:
                                    const State<Dimension>& state,
                                          StateDerivatives<Dimension>& derivs) const override;
 
-  virtual void setTimeStep(const DataBase<Dimension>& dataBase);
-
   Scalar normalSpringConstant() const;
   void   normalSpringConstant(Scalar x);
 
@@ -101,16 +99,6 @@ public:
   Scalar tangentialBeta() const;
   void   tangentialBeta(Scalar x);
 
-  Scalar timeStep() const;
-  void   timeStep(Scalar x);
-
-  //****************************************************************************
-  // Methods required for restarting.
-  virtual std::string label() const override { return "LinearSpringDEM" ; }
-  virtual void dumpState(FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIO& file, const std::string& pathName);
-  //****************************************************************************
-
 private:
   //--------------------------- Private Interface ---------------------------//
   Scalar mNormalSpringConstant;
@@ -126,7 +114,6 @@ private:
 
   Scalar mNormalBeta;
   Scalar mTangentialBeta;
-  Scalar mTimeStep;
 
   // No default constructor, copying, or assignment.
   LinearSpringDEM();

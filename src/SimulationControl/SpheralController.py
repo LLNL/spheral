@@ -44,6 +44,7 @@ class SpheralController:
                  initialTime = 0.0,
                  SPH = False,
                  periodicWork = [],
+                 periodicTimeWork = [],
                  skipInitialPeriodicWork = False,
                  iterateInitialH = True,
                  numHIterationsBetweenCycles = 0,
@@ -115,6 +116,7 @@ class SpheralController:
                                  vizFields = vizFields,
                                  vizFieldLists = vizFieldLists,
                                  periodicWork = periodicWork,
+                                 periodicTimeWork = periodicTimeWork,
                                  skipInitialPeriodicWork = skipInitialPeriodicWork,
                                  iterateInitialH = iterateInitialH,
                                  reinitializeNeighborsStep = reinitializeNeighborsStep,
@@ -154,11 +156,15 @@ class SpheralController:
                             vizFields = [],
                             vizFieldLists = [],
                             periodicWork = [],
+                            periodicTimeWork = [],
                             skipInitialPeriodicWork = False,
                             iterateInitialH = True,
                             reinitializeNeighborsStep = 10,
                             volumeType = RKVolumeType.RKVoronoiVolume,
                             facetedBoundaries = None):
+
+        # Call the global C++ initialization method
+        setGlobalFlags()
 
         # Intialize the cycle count.
         self.totalSteps = 0
@@ -236,6 +242,8 @@ class SpheralController:
         self.appendPeriodicWork(self.reinitializeNeighbors, reinitializeNeighborsStep)
         for x, freq in periodicWork:
             self.appendPeriodicWork(x, freq)
+        for x, freq in periodicTimeWork:
+            self.appendPeriodicTimeWork(x, freq)
 
         # Add the dynamic redistribution object to the controller.
         self.addRedistributeNodes(self.kernel)

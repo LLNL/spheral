@@ -11,6 +11,7 @@
 #include "Field/Field.hh"
 
 #include <vector>
+#include <memory>
 
 namespace Spheral {
 
@@ -71,7 +72,7 @@ private:
   //--------------------------- Public Interface ---------------------------//
   Vector ma0;
   const NodeList<Dimension>* mNodeListPtr;
-  Field<Dimension, int> mFlags;
+  std::shared_ptr<Field<Dimension, int>> mFlagsPtr;
 
   // No default constructor, copying, or assignment.
   ConstantAcceleration();

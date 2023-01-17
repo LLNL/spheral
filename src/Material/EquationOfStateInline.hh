@@ -73,12 +73,30 @@ EquationOfState<Dimension>::minimumPressureType(const MaterialPressureMinType x)
 }
 
 //------------------------------------------------------------------------------
+// External pressure.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+double
+EquationOfState<Dimension>::
+externalPressure() const {
+  return mExternalPressure;
+}
+
+template<typename Dimension>
+void
+EquationOfState<Dimension>::
+externalPressure(const double x) {
+  mExternalPressure = x;
+}
+
+//------------------------------------------------------------------------------
 // Apply pressure limits to a candidate value.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 typename Dimension::Scalar
 EquationOfState<Dimension>::applyPressureLimits(Scalar P) const {
+  P -= mExternalPressure;
   return (P < mMinimumPressure ? (mMinPressureType == MaterialPressureMinType::PressureFloor ? 
                                   mMinimumPressure :
                                   0.0) :

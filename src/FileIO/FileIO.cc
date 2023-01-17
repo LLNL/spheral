@@ -157,6 +157,66 @@ FileIO::read(GeomPlane<Dim<3> >& value, const string pathName) const {
 }
 
 //------------------------------------------------------------------------------
+// Write polytopes
+//------------------------------------------------------------------------------
+void
+FileIO::write(const Dim<1>::FacetedVolume& value, const string pathName) {
+  std::vector<char> buf;
+  packElement(value, buf);
+  std::string bufstr(buf.begin(), buf.end());
+  this->write(bufstr, pathName);
+}
+
+void
+FileIO::write(const Dim<2>::FacetedVolume& value, const string pathName) {
+  std::vector<char> buf;
+  packElement(value, buf);
+  std::string bufstr(buf.begin(), buf.end());
+  this->write(bufstr, pathName);
+}
+
+void
+FileIO::write(const Dim<3>::FacetedVolume& value, const string pathName) {
+  std::vector<char> buf;
+  packElement(value, buf);
+  std::string bufstr(buf.begin(), buf.end());
+  this->write(bufstr, pathName);
+}
+
+//------------------------------------------------------------------------------
+// Read polytopes
+//------------------------------------------------------------------------------
+void
+FileIO::read(Dim<1>::FacetedVolume& value, const string pathName) const {
+  std::string bufstr;
+  this->read(bufstr, pathName);
+  const std::vector<char> buf(bufstr.begin(), bufstr.end());
+  auto itr = buf.begin();
+  unpackElement(value, itr, buf.end());
+  ENSURE(itr == buf.end());
+}
+
+void
+FileIO::read(Dim<2>::FacetedVolume& value, const string pathName) const {
+  std::string bufstr;
+  this->read(bufstr, pathName);
+  const std::vector<char> buf(bufstr.begin(), bufstr.end());
+  auto itr = buf.begin();
+  unpackElement(value, itr, buf.end());
+  ENSURE(itr == buf.end());
+}
+
+void
+FileIO::read(Dim<3>::FacetedVolume& value, const string pathName) const {
+  std::string bufstr;
+  this->read(bufstr, pathName);
+  const std::vector<char> buf(bufstr.begin(), bufstr.end());
+  auto itr = buf.begin();
+  unpackElement(value, itr, buf.end());
+  ENSURE(itr == buf.end());
+}
+
+//------------------------------------------------------------------------------
 // Write uniform_random
 //------------------------------------------------------------------------------
 void
