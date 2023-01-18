@@ -1,12 +1,6 @@
 #ifndef VEC_HH
 #define VEC_HH
 
-#if USE_DEVICE
-#define CAST_ATOMIC_TYPE(X) reinterpret_cast<camp::decay<decltype(X)>::ATOMIC_TYPE&>(X) 
-#else
-#define CAST_ATOMIC_TYPE(X) X
-#endif
-
 class vec_base {
 public:
   using DATA_TYPE = double;
@@ -32,7 +26,7 @@ class atomic_vec;
 class vec : public vec_base{
 public:
 
-  using ATOMIC_TYPE = atomic_vec;
+  using atomic_type = atomic_vec;
 
   RAJA_HOST_DEVICE vec(const DATA_TYPE d = 0) : vec_base(d) {};
   RAJA_HOST_DEVICE vec(const vec& pd) : vec_base(pd.mx) {};

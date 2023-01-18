@@ -36,18 +36,26 @@ public:
 
   LvField(size_t elems, std::string name) { 
     mDataArray = ARRAY_TYPE(elems);
-    mDataArray.setName(name);
+    mName = name; 
+    mDataArray.setName(mName);
   }
 
   LvField(size_t elems, std::string name, RAJA::Platform platform) { 
     mDataArray = ARRAY_TYPE(elems);
-    mDataArray.setName(name);
+    mName = name; 
+    mDataArray.setName(mName);
     mDataArray.move(platform);
   }
 
   void setName(std::string name) {mDataArray.setName(name);}
   void move (RAJA::Platform platform) {mDataArray.move(platform);}
+
   LvFieldView<DATA_TYPE> toView() const {return LvFieldView<DATA_TYPE>(*this);}
+  LvFieldView<DATA_TYPE> toViewWithPool(const LvField& pool) const {return LvFieldView<DATA_TYPE>(*this, pool);}
+
+  LvField make_pool_field(size_t num_pools, RAJA::Platform platform) {
+    return LvField(mDataArray.size() * num_pools, "POOL_" + mName, platform);
+  }
 
   // Index operator.
   DATA_TYPE& operator[](const unsigned int index) {return mDataArray[index];}
@@ -57,6 +65,7 @@ public:
 
 private:
   ARRAY_TYPE mDataArray;
+  std::string mName = "";
 
 };
 
@@ -68,7 +77,8 @@ public:
 
   friend class LvFieldListView<DATA_TYPE>;
 
-  LvFieldView(const FIELD_TYPE& field) : mDataView{field.mDataArray} {}
+  LvFieldView(const FIELD_TYPE& field) : mDataView{field.mDataArray}, mDataPoolView{field.mDataArray} {}
+  LvFieldView(const FIELD_TYPE& field, const FIELD_TYPE& pool) : mDataView{field.mDataArray}, mDataPoolView{pool.mDataArray} {}
 
   void move(LvArray::MemorySpace const& space, bool touch = true) const {
     mDataView.move(space,touch);
@@ -77,16 +87,20 @@ public:
   ARRAY_VIEW_TYPE& getView() {return mDataView;}
 
   RAJA_HOST_DEVICE
-  DATA_TYPE& operator[](const unsigned int index) {return mDataView(index);}
+  DATA_TYPE& operator[](const unsigned int index) {return mDataView(index); }
 
   RAJA_HOST_DEVICE
-  DATA_TYPE& operator[](const unsigned int index) const {return mDataView(index);}
+  DATA_TYPE& operator[](const unsigned int index) const {return mDataView(index); }
 
   RAJA_HOST_DEVICE
-  inline constexpr LvFieldView( LvFieldView const & source) noexcept : mDataView{source.mDataView} {}
+  DATA_TYPE& pool(const unsigned index) const {return mDataPoolView(index); }
+
+  RAJA_HOST_DEVICE
+  inline constexpr LvFieldView( LvFieldView const & source) noexcept : mDataView{source.mDataView}, mDataPoolView{source.mDataPoolView} {}
 
 private:
   ARRAY_VIEW_TYPE mDataView;
+  ARRAY_VIEW_TYPE mDataPoolView;
 };
 
 
@@ -110,6 +124,10 @@ public:
     mFieldArray.emplace_back(field.toView());
   }
 
+  void appendField(const FIELD_TYPE& field, const FIELD_TYPE& pool) { 
+    mFieldArray.emplace_back(field.toViewWithPool(pool));
+  }
+
   void appendField(const FIELD_VIEW_TYPE& field) { 
     mFieldArray.emplace_back(field);
   }
@@ -125,6 +143,7 @@ public:
 
   using FIELD_VIEW_TYPE = LvFieldView<DATA_TYPE>;
   using ARRAY_VIEW_TYPE = LV_ARRAY_VIEW_CHAI_1D<FIELD_VIEW_TYPE>;
+  using ATOMIC_DATA_TYPE = typename DATA_TYPE::atomic_type;
 
   RAJA_HOST_DEVICE
   LvFieldListView(const LvFieldList<DATA_TYPE>& field) : mFieldView{field.mFieldArray.toView()} {}
@@ -141,6 +160,12 @@ public:
 
   RAJA_HOST_DEVICE
   FIELD_VIEW_TYPE& operator[](const unsigned int index) const {return mFieldView(index);}
+
+  RAJA_HOST_DEVICE
+  DATA_TYPE& pool(const unsigned field_id, const unsigned idx) const {return mFieldView(field_id).pool(idx); }
+
+  RAJA_HOST_DEVICE
+  ATOMIC_DATA_TYPE& pool_atomic(const unsigned field_id, const unsigned idx) const { return *reinterpret_cast<ATOMIC_DATA_TYPE*>(&mFieldView(field_id).pool(idx)); }
 
   RAJA_HOST_DEVICE
   inline LvFieldListView( LvFieldListView const & source) noexcept : mFieldView{source.mFieldView} {}

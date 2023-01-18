@@ -42,7 +42,7 @@
 //*****************************************************************************
 // Initialize execution platform
 //*****************************************************************************
-#define USE_DEVICE 0
+#define USE_DEVICE 1
 
 //*****************************************************************************
 #define PRINT_DATA(X, SZ) \
@@ -65,11 +65,8 @@ void SpheralEvalDerivTest()
   RAJA::Timer timer_pair;
   RAJA::Timer timer_red;
 
-  // Data Types to Use
-  //using DIM = Spheral::Dim<1>;
-
-  //using DATA_TYPE = Spheral::GeomVector<3>;
-  using DATA_TYPE = vec;
+  using DATA_TYPE = Spheral::GeomVector<3>;
+  //using DATA_TYPE = vec;
   //using DATA_TYPE = double;
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
@@ -132,25 +129,26 @@ void SpheralEvalDerivTest()
   for (size_t i = 0; i < data_sz; i++) One[i] = DATA_TYPE(1.0);
   std::cout << "one : " << One[0] << std::endl;
 
-  // Setting up global device pool memory for each Field...
-  // TODO: How will this be allocted / generated in spheral.
-  FIELD_TYPE g_A(strat.n_blocks * data_sz, "g_A", MEM_SPACE);
-  FIELD_TYPE g_B(strat.n_blocks * data_sz, "g_B", MEM_SPACE);
-  FIELD_TYPE g_C(strat.n_blocks * data_sz, "g_C", MEM_SPACE);
-
-  VIEW_TYPE g_Av(g_A);
-  VIEW_TYPE g_Bv(g_B);
-  VIEW_TYPE g_Cv(g_C);
-
   // Creating "FieldLists" In evalDerivs we call STATE_TYPE::fields(...) to return a fieldList.
   // In evalderivs we will want to return Something like LvFieldListView types for RAJA lambda 
   // capture and chai data migration. 
   LvFieldList<DATA_TYPE> fl("MyFirstFieldList");
   LvFieldList<DATA_TYPE> fl2("MySecondFieldList");
-  fl.appendField(A);
-  fl.appendField(B);
-  fl2.appendField(C);
-  fl2.appendField(A);
+
+  // Setting up global device pool memory for each Field...
+  auto g_A = A.make_pool_field(strat.n_blocks, MEM_SPACE);
+  auto g_B = B.make_pool_field(strat.n_blocks, MEM_SPACE);
+  auto g_C = C.make_pool_field(strat.n_blocks, MEM_SPACE);
+
+  // Wrap the fields with their pools this isn't entirely necessary.
+  auto Av = A.toViewWithPool(g_A);
+  auto Bv = B.toViewWithPool(g_B);
+  auto Cv = C.toViewWithPool(g_C);
+
+  fl.appendField(Av);
+  fl.appendField(Bv);
+  fl2.appendField(Cv);
+  fl2.appendField(Av);
 
   LvFieldList<DATA_TYPE> flo("const FL One");
   flo.appendField(One);
@@ -186,9 +184,9 @@ void SpheralEvalDerivTest()
 
       const auto& one = fl_one(0, pair_idx);
 
-      auto& a = CAST_ATOMIC_TYPE(g_Av[g_pair_idx]);
-      auto& b = CAST_ATOMIC_TYPE(g_Bv[g_pair_idx]);
-      auto& c = CAST_ATOMIC_TYPE(g_Cv[g_pair_idx]);
+      auto& a =  flv.pool_atomic(0, g_pair_idx);
+      auto& b =  flv.pool_atomic(1, g_pair_idx);
+      auto& c = flv2.pool_atomic(0, g_pair_idx);
 
       a += one;
       b += one;
@@ -209,9 +207,9 @@ void SpheralEvalDerivTest()
         auto& b = flv(1, t_idx);
         auto& c = flv2(0, t_idx);
 
-        a += g_Av[g_idx];
-        b += g_Bv[g_idx];
-        c += g_Cv[g_idx];
+        a +=  flv.pool(0, g_idx);
+        b +=  flv.pool(1, g_idx);
+        c += flv2.pool(0, g_idx);
       }
     });
 
