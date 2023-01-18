@@ -25,6 +25,9 @@
 namespace Spheral {
 
 template<int nDim>
+class GeomVectorAtomic;
+
+template<int nDim>
 class GeomVector: public GeomVectorBase<nDim> {
 
 public:
@@ -33,6 +36,8 @@ public:
   typedef double* iterator;
   typedef unsigned size_type;
   typedef Eigen::Matrix<double, nDim, 1> EigenType;
+
+  using atomic_type = GeomVectorAtomic<nDim>;
 
   // Useful static member data.
   static const size_type nDimensions;
@@ -135,6 +140,30 @@ public:
   
   //  Convert to an Eigen Vector
   EigenType eigen() const;
+};
+
+template<int nDim>
+class GeomVectorAtomic: public GeomVector<nDim> {
+private:
+  using base_t = GeomVector<nDim>;
+
+public:
+  RAJA_HOST_DEVICE GeomVectorAtomic() {};
+  RAJA_HOST_DEVICE GeomVectorAtomic(const base_t& vec) : base_t(vec) {};
+
+
+  RAJA_HOST_DEVICE inline GeomVectorAtomic operator+=(const GeomVectorAtomic& rhs) {
+    ATOMIC_ADD(&this->mx, rhs.mx);
+    ATOMIC_ADD(&this->my, rhs.my);
+    ATOMIC_ADD(&this->mz, rhs.mz);
+    return *this;
+  }
+
+  RAJA_HOST_DEVICE inline GeomVectorAtomic operator+(const GeomVectorAtomic& rhs) {
+    GeomVectorAtomic result(*this);
+    result+=rhs;
+    return result;
+  }
 };
 
 // Declare explicit specializations.
