@@ -33,7 +33,8 @@ class EquationOfState:
                                          epsMax = "const Scalar",
                                          epsTol = "const Scalar",
                                          Ptol = "const Scalar",
-                                         maxIterations = ("const unsigned", "100")):
+                                         maxIterations = ("const unsigned", "100"),
+                                         verbose = ("const bool", "false")):
         return "Scalar"
 
     @PYB11virtual
