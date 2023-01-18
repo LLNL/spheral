@@ -22,7 +22,8 @@ class StiffenedGas(EquationOfState):
                constants = "const PhysicalConstants&",
                minimumPressure = ("const double", "-std::numeric_limits<double>::max()"),
                maximumPressure = ("const double",  "std::numeric_limits<double>::max()"),
-               minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor")):
+               minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor"),
+               externalPressure = ("const double", "0.0")):
         "Gamma law gas constructor: gamma=ratio of specific heats, mu=mean molecular weight"
 
     #...........................................................................

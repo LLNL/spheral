@@ -103,6 +103,8 @@ class TestPolyhedron(unittest.TestCase):
                 print "Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron)
             self.failUnless(result,
                             "Polyhedron does not contain seed point: %s" % str(p))
+            self.failUnless(result == self.polyhedron.contains(p, useAxom=True),
+                            "Polyhedron contains inconsistent using Axom")
         return
 
     #---------------------------------------------------------------------------
@@ -119,6 +121,8 @@ class TestPolyhedron(unittest.TestCase):
                 print "Min zray distance:  ", min([(Vector2d(p.x, p.y) - Vector2d(vi.x, vi.y)).magnitude() for vi in self.polyhedron.vertices])
             self.failUnless(result,
                             "Polyhedron does not contain seed point: %s" % str(p))
+            self.failUnless(result == self.polyhedron.contains(p, useAxom=True),
+                            "Polyhedron contains inconsistent using Axom")
         return
 
     #---------------------------------------------------------------------------
@@ -127,8 +131,11 @@ class TestPolyhedron(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testConvexContainSeeds(self):
         for p in self.points:
-            self.failUnless(self.polyhedron.convexContains(p),
+            result = self.polyhedron.convexContains(p)
+            self.failUnless(result,
                             "Polyhedron does not contain seed point: %s" % str(p))
+            self.failUnless(result == self.polyhedron.contains(p, useAxom=True),
+                            "Polyhedron contains inconsistent using Axom")
         return
 
     #---------------------------------------------------------------------------
@@ -139,8 +146,11 @@ class TestPolyhedron(unittest.TestCase):
         centroid = self.polyhedron.centroid
         for i in xrange(self.ntests):
             p = centroid + randomVector(0.0, rinner)
-            self.failUnless(self.polyhedron.contains(p),
+            result = self.polyhedron.contains(p)
+            self.failUnless(result,
                             "Polyhedron should contain %s but reports it does not." % str(p))
+            self.failUnless(result == self.polyhedron.contains(p, useAxom=True),
+                            "Polyhedron contains inconsistent using Axom")
         return
 
     #---------------------------------------------------------------------------
@@ -152,8 +162,11 @@ class TestPolyhedron(unittest.TestCase):
         centroid = self.polyhedron.centroid
         for i in xrange(self.ntests):
             p = centroid + randomVector(router, 2.0*router)
-            self.failUnless(not self.polyhedron.contains(p),
+            result = self.polyhedron.contains(p)
+            self.failUnless(not result,
                             "%s should be outside polyhedron but polyhedron reports it is contained." % str(p))
+            self.failUnless(result == self.polyhedron.contains(p, useAxom=True),
+                            "Polyhedron contains inconsistent using Axom")
         return
 
     #---------------------------------------------------------------------------

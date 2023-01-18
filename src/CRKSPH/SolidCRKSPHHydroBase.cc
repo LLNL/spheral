@@ -587,16 +587,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     const auto  hminratio = nodeList.hminratio();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
-    // Check if we can identify a reference density.
-    auto rho0 = 0.0;
-    try {
-      rho0 = dynamic_cast<const SolidEquationOfState<Dimension>&>(dynamic_cast<const SolidNodeList<Dimension>&>(nodeList).equationOfState()).referenceDensity();
-      CONTRACT_VAR(rho0);
-      // cerr << "Setting reference density to " << rho0 << endl;
-    } catch(...) {
-      // cerr << "BLAGO!" << endl;
-    }
-
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {

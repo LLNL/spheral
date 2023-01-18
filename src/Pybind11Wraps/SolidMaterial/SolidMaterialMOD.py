@@ -28,6 +28,7 @@ from iSALEROCKStrength import *
 
 from PorousEquationOfState import *
 from PorousStrengthModel import *
+from PiecewiseLinearPorousStrengthModel import *
 
 from PhysicsEvolvingMaterialLibrary import *
 
@@ -51,6 +52,7 @@ PYB11includes += ['"SolidMaterial/SolidEquationOfState.hh"',
                   '"SolidMaterial/iSALEROCKStrength.hh"',
                   '"SolidMaterial/PorousEquationOfState.hh"',
                   '"SolidMaterial/PorousStrengthModel.hh"',
+                  '"SolidMaterial/PiecewiseLinearPorousStrengthModel.hh"',
                   '"SolidMaterial/StrainPorosity.hh"',
                   '"SolidMaterial/PhysicsEvolvingMaterialLibrary.hh"',
                   '"FileIO/FileIO.hh"']
@@ -107,6 +109,7 @@ iSALEROCKStrength%(ndim)id = PYB11TemplateClass(iSALEROCKStrength, template_para
 
 PorousEquationOfState%(ndim)id = PYB11TemplateClass(PorousEquationOfState, template_parameters="%(Dimension)s")
 PorousStrengthModel%(ndim)id = PYB11TemplateClass(PorousStrengthModel, template_parameters="%(Dimension)s")
+PiecewiseLinearPorousStrengthModel%(ndim)id = PYB11TemplateClass(PiecewiseLinearPorousStrengthModel, template_parameters="%(Dimension)s")
 
 PhysicsEvolvingMaterialLibrary%(ndim)id = PYB11TemplateClass(PhysicsEvolvingMaterialLibrary, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,

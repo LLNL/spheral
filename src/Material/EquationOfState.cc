@@ -44,10 +44,12 @@ template<typename Dimension>
 EquationOfState<Dimension>::EquationOfState(const PhysicalConstants& constants,
                                             const double minimumPressure,
                                             const double maximumPressure,
-                                            const MaterialPressureMinType minPressureType):
+                                            const MaterialPressureMinType minPressureType,
+                                            const double externalPressure):
   mConstants(constants),
   mMinimumPressure(minimumPressure),
   mMaximumPressure(maximumPressure),
+  mExternalPressure(externalPressure),
   mMinPressureType(minPressureType) {
   REQUIRE(mMinimumPressure <= mMaximumPressure);
 }

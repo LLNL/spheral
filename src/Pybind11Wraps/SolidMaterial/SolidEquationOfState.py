@@ -24,7 +24,8 @@ class SolidEquationOfState(EquationOfState):
                minimumPressure = "const double",
                maximumPressure = "const double",
                minimumPressureDamage = "const double",
-               minPressureType = "const MaterialPressureMinType"):
+               minPressureType = "const MaterialPressureMinType",
+               externalPressure = "const double"):
         "Solid EOS base constructor"
 
     #...........................................................................

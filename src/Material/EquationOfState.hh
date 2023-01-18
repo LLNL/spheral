@@ -35,7 +35,8 @@ public:
   EquationOfState(const PhysicalConstants& constants,
                   const double minimumPressure,
                   const double maximumPressure,
-                  const MaterialPressureMinType minPressureType);
+                  const MaterialPressureMinType minPressureType,
+                  const double externalPressure);
 
   virtual ~EquationOfState();
 
@@ -98,6 +99,10 @@ public:
   MaterialPressureMinType minimumPressureType() const;
   void minimumPressureType(MaterialPressureMinType x);
 
+  // Optionally we can provide an "external" pressure, which is just a pressure offset
+  double externalPressure() const;
+  void externalPressure(const double x);
+
   // Equations of state should have a valid test.
   virtual bool valid() const = 0;
 
@@ -108,7 +113,7 @@ protected:
   PhysicalConstants mConstants;
 
 private:
-  double mMinimumPressure, mMaximumPressure;
+  double mMinimumPressure, mMaximumPressure, mExternalPressure;
   MaterialPressureMinType mMinPressureType;
 
   // No default constructor.
