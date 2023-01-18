@@ -143,7 +143,12 @@ public:
 
   using FIELD_VIEW_TYPE = LvFieldView<DATA_TYPE>;
   using ARRAY_VIEW_TYPE = LV_ARRAY_VIEW_CHAI_1D<FIELD_VIEW_TYPE>;
+
+#if USE_DEVICE
   using ATOMIC_DATA_TYPE = typename DATA_TYPE::atomic_type;
+#else
+  using ATOMIC_DATA_TYPE = DATA_TYPE;
+#endif
 
   RAJA_HOST_DEVICE
   LvFieldListView(const LvFieldList<DATA_TYPE>& field) : mFieldView{field.mFieldArray.toView()} {}

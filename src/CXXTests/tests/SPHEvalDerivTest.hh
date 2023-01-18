@@ -12,9 +12,15 @@
 #include <iostream>
 #include <omp.h>
 
-#include "ExecStrategy.hh"
 #include "NodeList/FluidNodeList.hh"
 
+//*****************************************************************************
+// Initialize execution platform
+//*****************************************************************************
+
+#define USE_DEVICE 1
+
+#include "ExecStrategy.hh"
 #include "memoryManager.hh"
 #include "LvField.hh"
 
@@ -26,7 +32,7 @@
 #define N_PAIRS 500000000
 #define DATA_SZ 1000000
 
-#elif 0 // Large Problem
+#elif 1 // Large Problem
 #define N_PAIRS  5000000
 #define DATA_SZ  50000
 
@@ -39,10 +45,6 @@
 #define DATA_SZ 200
 #endif
 
-//*****************************************************************************
-// Initialize execution platform
-//*****************************************************************************
-#define USE_DEVICE 1
 
 //*****************************************************************************
 #define PRINT_DATA(X, SZ) \
@@ -78,33 +80,20 @@ void SpheralEvalDerivTest()
   // Setup Eval Derivs Execution.
   //
   //---------------------------------------------------------------------------
-
-  // These are going to be runtime mutable irl...
   unsigned int n_pairs = N_PAIRS;
   unsigned int data_sz = DATA_SZ;
 
   // Initialize an execution strategy for EvalDerivs problem
-  // We need to: 
-  //  - define how many copies of temp memory we need
-  //  - calculate the blocks / block sizes depeding on execution space.
-  //  - define execution policies for CPU and GPU execution.
   // TODO: Make this a runtime switch.
 #if USE_DEVICE
-#define MEM_SPACE RAJA::Platform::cuda
-  ExecutionStrategy strat(n_pairs, data_sz, RAJA::ExecPlace::DEVICE);
-  strat.block_sz = 1024;
-  strat.n_blocks = RAJA_DIVIDE_CEILING_INT(strat.n_pairs, strat.block_sz);
+  ExecutionStrategy strat(n_pairs, data_sz, RAJA::Platform::cuda);
   using PAIR_EXEC_POL = RAJA::cuda_exec<1024>;
   using DATA_EXEC_POL = RAJA::cuda_exec<1024>;
 #else
-#define MEM_SPACE RAJA::Platform::host
-  ExecutionStrategy strat(n_pairs, data_sz, RAJA::ExecPlace::HOST);
-  strat.block_sz = n_pairs / omp_get_max_threads();
-  strat.n_blocks = RAJA_DIVIDE_CEILING_INT(strat.n_pairs, strat.block_sz);
+  ExecutionStrategy strat(n_pairs, data_sz, RAJA::Platform::host);
   using PAIR_EXEC_POL = RAJA::omp_parallel_for_exec;
   using DATA_EXEC_POL = RAJA::omp_parallel_for_exec;
 #endif
-#define HOST_SPACE RAJA::Platform::host
   strat.print();
   
   //---------------------------------------------------------------------------
@@ -118,7 +107,7 @@ void SpheralEvalDerivTest()
   for (unsigned int i = 0; i < n_pairs; i++) pair_data[i] = rand() % DATA_SZ;
   PRINT_DATA(pair_data, N_PAIRS)
   const LvFieldView<unsigned> pairs(pair_data);
-  pairs.move(MEM_SPACE);
+  pairs.move(strat.platform);
 
   // Setting up our "Field Data", this is done through simulation setup in spheral e.g. node generation.
   FIELD_TYPE A(data_sz, "A");
@@ -127,7 +116,6 @@ void SpheralEvalDerivTest()
 
   FIELD_TYPE One(data_sz, "One");
   for (size_t i = 0; i < data_sz; i++) One[i] = DATA_TYPE(1.0);
-  std::cout << "one : " << One[0] << std::endl;
 
   // Creating "FieldLists" In evalDerivs we call STATE_TYPE::fields(...) to return a fieldList.
   // In evalderivs we will want to return Something like LvFieldListView types for RAJA lambda 
@@ -136,9 +124,9 @@ void SpheralEvalDerivTest()
   LvFieldList<DATA_TYPE> fl2("MySecondFieldList");
 
   // Setting up global device pool memory for each Field...
-  auto g_A = A.make_pool_field(strat.n_blocks, MEM_SPACE);
-  auto g_B = B.make_pool_field(strat.n_blocks, MEM_SPACE);
-  auto g_C = C.make_pool_field(strat.n_blocks, MEM_SPACE);
+  auto g_A = A.make_pool_field(strat.n_data_pools, strat.platform);
+  auto g_B = B.make_pool_field(strat.n_data_pools, strat.platform);
+  auto g_C = C.make_pool_field(strat.n_data_pools, strat.platform);
 
   // Wrap the fields with their pools this isn't entirely necessary.
   auto Av = A.toViewWithPool(g_A);
@@ -159,9 +147,9 @@ void SpheralEvalDerivTest()
   
   const LvFieldListView<DATA_TYPE> fl_one(flo);
 
-  flv.move(MEM_SPACE);
-  flv2.move(MEM_SPACE);
-  fl_one.move(MEM_SPACE);
+  flv.move(strat.platform);
+  flv2.move(strat.platform);
+  fl_one.move(strat.platform);
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -179,14 +167,14 @@ void SpheralEvalDerivTest()
     [=] RAJA_HOST_DEVICE (unsigned t_idx) {
 
       auto pair_idx = pairs[t_idx];
-      auto b_idx = t_idx / strat.block_sz;
-      auto g_pair_idx = b_idx*data_sz + pair_idx;
+      auto p_b_idx = t_idx / strat.pool_block_sz;
+      auto pool_idx = p_b_idx*data_sz + pair_idx;
 
       const auto& one = fl_one(0, pair_idx);
 
-      auto& a =  flv.pool_atomic(0, g_pair_idx);
-      auto& b =  flv.pool_atomic(1, g_pair_idx);
-      auto& c = flv2.pool_atomic(0, g_pair_idx);
+      auto& a =  flv.pool_atomic(0, pool_idx);
+      auto& b =  flv.pool_atomic(1, pool_idx);
+      auto& c = flv2.pool_atomic(0, pool_idx);
 
       a += one;
       b += one;
@@ -200,7 +188,7 @@ void SpheralEvalDerivTest()
   // device to reduce when applicable to minize data movement back to the CPU.
   RAJA::forall<DATA_EXEC_POL>(TRS_UINT(0, data_sz),
     [=] RAJA_HOST_DEVICE (unsigned t_idx) {
-      for (int b_idx = 0; b_idx < strat.n_blocks; b_idx++) {
+      for (int b_idx = 0; b_idx < strat.n_data_pools; b_idx++) {
         auto g_idx = b_idx*data_sz + t_idx;
 
         auto& a = flv(0, t_idx);
@@ -213,12 +201,13 @@ void SpheralEvalDerivTest()
       }
     });
 
-  flv.move(HOST_SPACE);
-  flv2.move(HOST_SPACE);
-  pairs.move(HOST_SPACE);
+  flv.move(strat.host_platform);
+  flv2.move(strat.host_platform);
 
   timer_red.stop();
   launch_timer.stop();
+
+  pairs.move(strat.host_platform);
 
   PRINT_DATA(A, DATA_SZ)
   PRINT_DATA(B, DATA_SZ)
@@ -238,13 +227,9 @@ void SpheralEvalDerivTest()
   std::cout << "C++ Sequential Implementation.\n";
   for(int i = 0; i < N_PAIRS; i++){
     DATA_TYPE inc(1.0);
-    if(i == 0) std::cout << "inc : " << inc << std::endl;
     check_A[pairs[i]] += inc;  
     check_B[pairs[i]] += inc;  
     check_C[pairs[i]] += inc;  
-    //check_A[pairs[i]] += DATA_TYPE(1.0);  
-    //check_B[pairs[i]] += DATA_TYPE(1.0);  
-    //check_C[pairs[i]] += DATA_TYPE(1.0);  
   }
   seq_timer.stop();
 
