@@ -1,81 +1,75 @@
 #ifndef SPHERAL_LVFIELD
 #define SPHERAL_LVFIELD
 
-#include "LvArray/Array.hpp"
-#include "LvArray/ChaiBuffer.hpp"
 #include "LvArray/bufferManipulation.hpp"
+#include "Utilities/lvarray.hh"
 
-template<typename DATA_TYPE>
-using LV_ARRAY_CHAI_1D = LvArray::Array<DATA_TYPE, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
 
-template<typename DATA_TYPE>
-using LV_ARRAY_VIEW_CHAI_1D = LvArray::ArrayView<DATA_TYPE, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
-
-template<typename DATA_TYPE>
+template<typename Dimension, typename DATA_TYPE>
 class LvFieldView;
 
-template<typename DATA_TYPE>
+template<typename Dimension, typename DATA_TYPE>
 class LvFieldListView;
 
 
-template<typename DATA_TYPE>
-class LvField {
-public:
+//template<typename DATA_TYPE>
+//class LvField {
+//public:
+//
+//  friend class LvFieldView<DATA_TYPE>;
+//
+//  using ARRAY_TYPE = Spheral::SphArray<DATA_TYPE>;
+//  using VIEW_TYPE = LvFieldView<DATA_TYPE>;
+//
+//  LvField(size_t elems) { mDataArray = ARRAY_TYPE(elems); }
+//
+//  LvField(size_t elems, RAJA::Platform platform) { 
+//    mDataArray = ARRAY_TYPE(elems);
+//    mDataArray.move(platform);
+//  }
+//
+//  LvField(size_t elems, std::string name) { 
+//    mDataArray = ARRAY_TYPE(elems);
+//    mName = name; 
+//    mDataArray.setName(mName);
+//  }
+//
+//  LvField(size_t elems, std::string name, RAJA::Platform platform) { 
+//    mDataArray = ARRAY_TYPE(elems);
+//    mName = name; 
+//    mDataArray.setName(mName);
+//    mDataArray.move(platform);
+//  }
+//
+//  void setName(std::string name) {mDataArray.setName(name);}
+//  void move (RAJA::Platform platform) {mDataArray.move(platform);}
+//
+//  LvFieldView<DATA_TYPE> toView() const {return LvFieldView<DATA_TYPE>(*this);}
+//  LvFieldView<DATA_TYPE> toViewWithPool(const LvField& pool) const {return LvFieldView<DATA_TYPE>(*this, pool);}
+//
+//  LvField make_pool_field(size_t num_pools, RAJA::Platform platform) {
+//    return LvField(mDataArray.size() * num_pools, "POOL_" + mName, platform);
+//  }
+//
+//  // Index operator.
+//  DATA_TYPE& operator[](const unsigned int index) {return mDataArray[index];}
+//  DATA_TYPE& operator[](const unsigned int index) const {return mDataArray[index];}
+//
+//  ARRAY_TYPE& getArray() {return mDataArray;}
+//
+//private:
+//  ARRAY_TYPE mDataArray;
+//  std::string mName = "";
+//
+//};
 
-  friend class LvFieldView<DATA_TYPE>;
-
-  using ARRAY_TYPE = LV_ARRAY_CHAI_1D<DATA_TYPE>;
-  using VIEW_TYPE = LvFieldView<DATA_TYPE>;
-
-  LvField(size_t elems) { mDataArray = ARRAY_TYPE(elems); }
-
-  LvField(size_t elems, RAJA::Platform platform) { 
-    mDataArray = ARRAY_TYPE(elems);
-    mDataArray.move(platform);
-  }
-
-  LvField(size_t elems, std::string name) { 
-    mDataArray = ARRAY_TYPE(elems);
-    mName = name; 
-    mDataArray.setName(mName);
-  }
-
-  LvField(size_t elems, std::string name, RAJA::Platform platform) { 
-    mDataArray = ARRAY_TYPE(elems);
-    mName = name; 
-    mDataArray.setName(mName);
-    mDataArray.move(platform);
-  }
-
-  void setName(std::string name) {mDataArray.setName(name);}
-  void move (RAJA::Platform platform) {mDataArray.move(platform);}
-
-  LvFieldView<DATA_TYPE> toView() const {return LvFieldView<DATA_TYPE>(*this);}
-  LvFieldView<DATA_TYPE> toViewWithPool(const LvField& pool) const {return LvFieldView<DATA_TYPE>(*this, pool);}
-
-  LvField make_pool_field(size_t num_pools, RAJA::Platform platform) {
-    return LvField(mDataArray.size() * num_pools, "POOL_" + mName, platform);
-  }
-
-  // Index operator.
-  DATA_TYPE& operator[](const unsigned int index) {return mDataArray[index];}
-  DATA_TYPE& operator[](const unsigned int index) const {return mDataArray[index];}
-
-  ARRAY_TYPE& getArray() {return mDataArray;}
-
-private:
-  ARRAY_TYPE mDataArray;
-  std::string mName = "";
-
-};
-
-template<typename DATA_TYPE>
+template<typename Dimension, typename DATA_TYPE>
 class LvFieldView {
 public:
-  using ARRAY_VIEW_TYPE = LV_ARRAY_VIEW_CHAI_1D<DATA_TYPE>;
-  using FIELD_TYPE = LvField<DATA_TYPE>;
+  using ARRAY_VIEW_TYPE = Spheral::SphArrayView<DATA_TYPE>;
+  using FIELD_TYPE = Spheral::Field<Dimension, DATA_TYPE>;
 
-  friend class LvFieldListView<DATA_TYPE>;
+  friend class LvFieldListView<Dimension, DATA_TYPE>;
 
   LvFieldView(const FIELD_TYPE& field) : mDataView{field.mDataArray}, mDataPoolView{field.mDataArray} {}
   LvFieldView(const FIELD_TYPE& field, const FIELD_TYPE& pool) : mDataView{field.mDataArray}, mDataPoolView{pool.mDataArray} {}
@@ -104,15 +98,16 @@ private:
 };
 
 
-template<typename DATA_TYPE>
+template<typename Dimension, typename DATA_TYPE>
 class LvFieldList{
 public:
 
-  friend class LvFieldListView<DATA_TYPE>;
+  friend class LvFieldListView<Dimension, DATA_TYPE>;
 
-  using FIELD_TYPE = LvField<DATA_TYPE>;
-  using FIELD_VIEW_TYPE = LvFieldView<DATA_TYPE>;
-  using ARRAY_TYPE = LV_ARRAY_CHAI_1D<FIELD_VIEW_TYPE>;
+  using FIELD_TYPE = Spheral::Field<Dimension, DATA_TYPE>;
+  //using FIELD_TYPE = LvField<DATA_TYPE>;
+  using FIELD_VIEW_TYPE = LvFieldView<Dimension, DATA_TYPE>;
+  using ARRAY_TYPE = Spheral::SphArray<FIELD_VIEW_TYPE>;
 
   LvFieldList() {}
 
@@ -137,12 +132,12 @@ private:
 };
 
 
-template<typename DATA_TYPE>
+template<typename Dimension, typename DATA_TYPE>
 class LvFieldListView{
 public:
 
-  using FIELD_VIEW_TYPE = LvFieldView<DATA_TYPE>;
-  using ARRAY_VIEW_TYPE = LV_ARRAY_VIEW_CHAI_1D<FIELD_VIEW_TYPE>;
+  using FIELD_VIEW_TYPE = LvFieldView<Dimension, DATA_TYPE>;
+  using ARRAY_VIEW_TYPE = Spheral::SphArrayView<FIELD_VIEW_TYPE>;
 
 #if USE_DEVICE
   using ATOMIC_DATA_TYPE = typename DATA_TYPE::atomic_type;
@@ -151,7 +146,7 @@ public:
 #endif
 
   RAJA_HOST_DEVICE
-  LvFieldListView(const LvFieldList<DATA_TYPE>& field) : mFieldView{field.mFieldArray.toView()} {}
+  LvFieldListView(const LvFieldList<Dimension, DATA_TYPE>& field) : mFieldView{field.mFieldArray.toView()} {}
 
   void move(LvArray::MemorySpace const& space, bool touch = true) const {
     mFieldView.move(space,touch);

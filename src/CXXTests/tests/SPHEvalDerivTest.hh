@@ -54,8 +54,8 @@
 
 //*****************************************************************************
 
-#define VEC3 1
-#include "vec.hh"
+//#define VEC3 1
+//#include "vec.hh"
 
 void SpheralEvalDerivTest()
 {
@@ -67,13 +67,15 @@ void SpheralEvalDerivTest()
   RAJA::Timer timer_pair;
   RAJA::Timer timer_red;
 
+  using DIM = Spheral::Dim<3>;
+
   using DATA_TYPE = Spheral::GeomVector<3>;
   //using DATA_TYPE = vec;
   //using DATA_TYPE = double;
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
-  using FIELD_TYPE = LvField<DATA_TYPE>;
-  using VIEW_TYPE = FIELD_TYPE::VIEW_TYPE;
+  using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
+  using VIEW_TYPE = LvFieldView<DIM, DATA_TYPE>;
 
   //---------------------------------------------------------------------------
   //
@@ -103,25 +105,29 @@ void SpheralEvalDerivTest()
   //---------------------------------------------------------------------------
   
   // Generate pair data...
-  LvField<unsigned> pair_data(n_pairs, "Pairs");
+  //LvField<unsigned> pair_data(n_pairs, "Pairs");
+  Spheral::NodeList<DIM> pair_node_list("PairNodeList", n_pairs, 0);
+  Spheral::Field<DIM, unsigned> pair_data("Pairs", pair_node_list);
   for (unsigned int i = 0; i < n_pairs; i++) pair_data[i] = rand() % DATA_SZ;
   PRINT_DATA(pair_data, N_PAIRS)
-  const LvFieldView<unsigned> pairs(pair_data);
+  const LvFieldView<DIM, unsigned> pairs(pair_data);
   pairs.move(strat.platform);
 
   // Setting up our "Field Data", this is done through simulation setup in spheral e.g. node generation.
-  FIELD_TYPE A(data_sz, "A");
-  FIELD_TYPE B(data_sz, "B");
-  FIELD_TYPE C(data_sz, "C");
+  Spheral::NodeList<DIM> data_node_list("DataNodeList", data_sz, 0);
 
-  FIELD_TYPE One(data_sz, "One");
+  FIELD_TYPE A("A", data_node_list);
+  FIELD_TYPE B("B", data_node_list);
+  FIELD_TYPE C("C", data_node_list);
+
+  FIELD_TYPE One("One", data_node_list);
   for (size_t i = 0; i < data_sz; i++) One[i] = DATA_TYPE(1.0);
 
   // Creating "FieldLists" In evalDerivs we call STATE_TYPE::fields(...) to return a fieldList.
   // In evalderivs we will want to return Something like LvFieldListView types for RAJA lambda 
   // capture and chai data migration. 
-  LvFieldList<DATA_TYPE> fl("MyFirstFieldList");
-  LvFieldList<DATA_TYPE> fl2("MySecondFieldList");
+  LvFieldList<DIM, DATA_TYPE> fl("MyFirstFieldList");
+  LvFieldList<DIM, DATA_TYPE> fl2("MySecondFieldList");
 
   // Setting up global device pool memory for each Field...
   auto g_A = A.make_pool_field(strat.n_data_pools, strat.platform);
@@ -138,14 +144,14 @@ void SpheralEvalDerivTest()
   fl2.appendField(Cv);
   fl2.appendField(Av);
 
-  LvFieldList<DATA_TYPE> flo("const FL One");
+  LvFieldList<DIM, DATA_TYPE> flo("const FL One");
   flo.appendField(One);
 
   // The FieldList types used in evalderivs.
-  LvFieldListView<DATA_TYPE> flv(fl);
-  LvFieldListView<DATA_TYPE> flv2(fl2);
+  LvFieldListView<DIM, DATA_TYPE> flv(fl);
+  LvFieldListView<DIM, DATA_TYPE> flv2(fl2);
   
-  const LvFieldListView<DATA_TYPE> fl_one(flo);
+  const LvFieldListView<DIM, DATA_TYPE> fl_one(flo);
 
   flv.move(strat.platform);
   flv2.move(strat.platform);

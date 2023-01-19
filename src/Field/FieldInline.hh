@@ -32,7 +32,9 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name):
   FieldBase<Dimension>(name),
   mDataArray(),
-  mValid(false) {}
+  mValid(false) {
+  mDataArray.setName(name);
+}
 
 //------------------------------------------------------------------------------
 // Construct with name and field values.
@@ -44,7 +46,9 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(name, *field.nodeListPtr()),
   mDataArray(field.mDataArray),
-  mValid(field.mValid) {}
+  mValid(field.mValid) {
+  mDataArray.setName(name);
+}
 
 //------------------------------------------------------------------------------
 // Construct with the given name and NodeList.
@@ -55,9 +59,10 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList):
   FieldBase<Dimension>(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), DataType()),
   mValid(true) {
+  mDataArray.resizeDefault((size_t) nodeList.numNodes(), DataType());
   REQUIRE(numElements() == nodeList.numNodes());
+  mDataArray.setName(name);
 }
 
 template<>
@@ -66,9 +71,10 @@ Field<Dim<1>, Dim<1>::Scalar>::
 Field(FieldBase<Dim<1> >::FieldName name,
       const NodeList<Dim<1> >& nodeList):
   FieldBase<Dim<1> >(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), 0.0),
   mValid(true) {
+  mDataArray.resizeDefault((size_t) nodeList.numNodes(), 0.0);
   REQUIRE(numElements() == nodeList.numNodes());
+  mDataArray.setName(name);
 }
 
 template<>
@@ -77,9 +83,10 @@ Field<Dim<2>, Dim<2>::Scalar>::
 Field(FieldBase<Dim<2> >::FieldName name,
       const NodeList<Dim<2> >& nodeList):
   FieldBase<Dim<2> >(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), 0.0),
   mValid(true) {
+  mDataArray.resizeDefault((size_t) nodeList.numNodes(), 0.0);
   REQUIRE(numElements() == nodeList.numNodes());
+  mDataArray.setName(name);
 }
 
 template<>
@@ -88,9 +95,10 @@ Field<Dim<3>, Dim<3>::Scalar>::
 Field(FieldBase<Dim<3> >::FieldName name,
       const NodeList<Dim<3> >& nodeList):
   FieldBase<Dim<3> >(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), 0.0),
   mValid(true) {
+  mDataArray.resizeDefault((size_t) nodeList.numNodes(), 0.0);
   REQUIRE(numElements() == nodeList.numNodes());
+  mDataArray.setName(name);
 }
 
 //------------------------------------------------------------------------------
@@ -103,9 +111,10 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList,
       DataType value):
   FieldBase<Dimension>(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), value),
   mValid(true) {
+  mDataArray.resizeDefault((size_t) nodeList.numNodes(), value);
   REQUIRE(numElements() == nodeList.numNodes());
+  mDataArray.setName(name);
 }
 
 //------------------------------------------------------------------------------
@@ -117,13 +126,14 @@ inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name, 
       const NodeList<Dimension>& nodeList,
-      const std::vector<DataType,DataAllocator<DataType>>& array):
+      const SphArray<DataType>& array):
   FieldBase<Dimension>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes()),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
   REQUIRE(numElements() == array.size());
   mDataArray = array;
+  mDataArray.setName(name);
 }
 
 //------------------------------------------------------------------------------
@@ -213,7 +223,7 @@ Field<Dimension, DataType>::operator=(const Field<Dimension, DataType>& rhs) {
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>&
-Field<Dimension, DataType>::operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs) {
+Field<Dimension, DataType>::operator=(const SphArray<DataType>& rhs) {
   REQUIRE(mValid);
   REQUIRE(this->nodeList().numNodes() == rhs.size());
   mDataArray = rhs;
@@ -237,9 +247,11 @@ Field<Dimension, DataType>::operator=(const DataType& rhs) {
 //------------------------------------------------------------------------------
 template<typename Value>
 struct CrappyFieldCompareMethod {
-  static bool compare(const std::vector<Value,DataAllocator<Value>>& lhs, 
-                      const std::vector<Value,DataAllocator<Value>>& rhs) {
-    return lhs == rhs;
+  static bool compare(const SphArray<Value>& lhs, 
+                      const SphArray<Value>& rhs) {
+    if (lhs.size() != rhs.size()) return false;
+    for (size_t i = 0; i < lhs.size(); i++) if (lhs[i] != rhs[i]) return false;
+    return true;
   }
 };
 
@@ -1176,7 +1188,7 @@ Field<Dimension, DataType>::deleteElement(int nodeID) {
   const unsigned originalSize = this->size();
   CONTRACT_VAR(originalSize);
   REQUIRE(nodeID >= 0 && nodeID < (int)originalSize);
-  mDataArray.erase(mDataArray.begin() + nodeID);
+  mDataArray.erase(nodeID);
   ENSURE(mDataArray.size() == originalSize - 1);
 }
 
@@ -1988,5 +2000,41 @@ getAxomTypeID() const {
   return DataTypeTraits<DataType>::axomTypeID();
 }
 
+template<typename Dimension, typename DataType>
+inline
+void
+Field<Dimension, DataType>::
+move (RAJA::Platform platform) {
+  mDataArray.move(platform);
+}
+
+// FieldView Generators.
+template<typename Dimension, typename DataType>
+inline
+typename Field<Dimension, DataType>::view_type
+Field<Dimension, DataType>::
+toView() const {
+  return view_type(*this);
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename Field<Dimension, DataType>::view_type
+Field<Dimension, DataType>::
+toViewWithPool(const Field& pool) const {
+  return view_type(*this, pool);
+}
+
+// Generate a pool field object.
+template<typename Dimension, typename DataType>
+inline
+Field<Dimension, DataType>
+Field<Dimension, DataType>::
+make_pool_field(size_t num_pools, RAJA::Platform platform) {
+  Field pool("POOL_" + this->name());
+  pool.resizeField(mDataArray.size() * num_pools);
+  pool.move(platform);
+  return pool;
+}
 
 } // namespace Spheral
