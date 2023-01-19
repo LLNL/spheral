@@ -17,12 +17,15 @@ int launchCaller(int a, int b)
 #else
   using EXEC_POL=RAJA::seq_exec;
 #endif
+
+  c.move(chai::ExecutionSpace::GPU);
   
   RAJA::forall<EXEC_POL>(RAJA::RangeSegment(0,1),
     [=] RAJA_HOST_DEVICE (int i) {
       add(a,b,&c[0]);
     }
   );
+  c.move(chai::ExecutionSpace::CPU);
 
   return c[0];
 }
