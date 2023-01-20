@@ -36,9 +36,9 @@ ConstantAcceleration(const Vector a0,
   GenericBodyForce<Dimension>(),
   ma0(a0),
   mNodeListPtr(&nodeList),
-  mFlags("constant acceleration flags for " + nodeList.name(), nodeList, 0) {
-  for (const int i: indices) {
-    mFlags(i) = 1;
+  mFlagsPtr(std::make_shared<Field<Dimension, int>>("constant acceleration flags for " + nodeList.name(), nodeList, 0)) {
+  for (const auto i: indices) {
+    (*mFlagsPtr)(i) = 1;
   }
 }
 
@@ -52,7 +52,7 @@ ConstantAcceleration(const Vector a0,
   GenericBodyForce<Dimension>(),
   ma0(a0),
   mNodeListPtr(&nodeList),
-  mFlags("constant acceleration flags for " + nodeList.name(), nodeList, 1) {
+  mFlagsPtr() {
 }
 
 //------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // Increment the acceleration.
   const unsigned n = mNodeListPtr->numNodes();
   for (unsigned i = 0; i != n; ++i) {
-    if (mFlags(i) == 1) {
+    if (not mFlagsPtr or ((*mFlagsPtr)(i) == 1)) {
       DvDt(i) += ma0;
     }
   }

@@ -41,7 +41,8 @@ This class implements three distinct Spheral interfaces:
                minimumPressure = ("const double", "std::numeric_limits<double>::lowest()"),
                maximumPressure = ("const double", "std::numeric_limits<double>::max()"),
                minimumPressureDamage = ("const double", "0.0"),
-               minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor")):
+               minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor"),
+               externalPressure = ("const double", "0.0")):
         "Constructor"
 
 

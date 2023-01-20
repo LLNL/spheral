@@ -19,10 +19,10 @@ class GenerateDEMfromSPHGenerator1d(NodeGeneratorBase):
                  DEMParticleGenerator=None,
                  particleRadius=None,
                  nPerh=None,
-                 kernelExtentOverParticleRadius=2.05): 
+                 kernelExtentOverParticleRadius=4.05): 
 
         assert (particleRadius or nPerh), "a constant particle radius or the nPerh must be specified"
-        assert (kernelExtentOverParticleRadius >= 2.0)
+        assert (kernelExtentOverParticleRadius >= 4.0)
 
         hOverR = kernelExtentOverParticleRadius/W.kernelExtent
 
@@ -124,10 +124,10 @@ class GenerateDEMfromSPHGenerator2d(NodeGeneratorBase):
                  DEMParticleGenerator=None,
                  particleRadius=None,
                  nPerh=None,
-                 kernelExtentOverParticleRadius=2.05): 
+                 kernelExtentOverParticleRadius=4.05): 
 
         assert (particleRadius or nPerh), "a constant particle radius or the nPerh must be specified"
-        assert (kernelExtentOverParticleRadius >= 2.0)
+        assert (kernelExtentOverParticleRadius >= 4.0)
 
         hOverR = kernelExtentOverParticleRadius/W.kernelExtent
 
@@ -234,10 +234,10 @@ class GenerateDEMfromSPHGenerator3d(NodeGeneratorBase):
                  DEMParticleGenerator=None,
                  particleRadius=None,
                  nPerh=None,
-                 kernelExtentOverParticleRadius=2.05): 
+                 kernelExtentOverParticleRadius=4.05): 
 
         assert (particleRadius or nPerh), "a constant particle radius or the nPerh must be specified"
-        assert (kernelExtentOverParticleRadius >= 2.0)
+        assert (kernelExtentOverParticleRadius >= 4.0)
 
         hOverR = kernelExtentOverParticleRadius/W.kernelExtent
 

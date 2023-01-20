@@ -261,6 +261,23 @@ def readPlane%(ndim)i(self,
                       pathName = "const std::string"):
     "Read a Plane%(ndim)id"
     return "void"
+
+@PYB11pycppname("write")
+@PYB11noconvert
+def writeFacetedVolume%(ndim)i(self,
+                               value = "const Dim<%(ndim)i>::FacetedVolume&",
+                               pathName = "const std::string"):
+    "Write a FacetedVolume%(ndim)i"
+    return "void"
+
+@PYB11pycppname("read")
+@PYB11const
+@PYB11noconvert
+def readFacetedVolume%(ndim)i(self,
+                              value = "Dim<%(ndim)i>::FacetedVolume&",
+                              pathName = "const std::string"):
+    "Read a FacetedVolume%(ndim)i"
+    return "void"
 ''' % {"ndim" : ndim})
 
     @PYB11pycppname("write")

@@ -63,4 +63,3 @@ class LinearSpringDEM(DEMBase):
     shapeFactor = PYB11property("Scalar", "shapeFactor", "shapeFactor", doc="shape factor - simple approach to non-spherical particles")
     normalBeta = PYB11property("Scalar", "normalBeta", "normalBeta", doc="a damping parameter")
     tangentialBeta = PYB11property("Scalar", "tangentialBeta", "tangentialBeta", doc="a damping parameter")
-    timeStep = PYB11property("Scalar", "timeStep", "timeStep", doc="constant time-step for this model")

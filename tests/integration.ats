@@ -54,6 +54,7 @@ source("unit/FieldOperations/testSampleMultipleFields2Lattice3d.py")
 # FileIO tests
 source("unit/FileIO/testGzipFileIO.py")
 source("unit/FileIO/testSiloFileIO.py")
+source("unit/FileIO/testSidreFileIO.py")
 
 # Utilities tests
 source("unit/Utilities/testSegmentSegmentIntersection.py")
@@ -106,3 +107,6 @@ source("functional/Damage/TensileRod/TensileRod-1d.py")
 # RK tests
 source("functional/RK/RKInterpolation.py")
 source("functional/RK/testVoronoiVolume.py")
+
+# KernelIntegrator tests
+source("unit/KernelIntegrator/TestIntegrator.py")

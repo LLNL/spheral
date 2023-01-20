@@ -40,7 +40,8 @@ class FileIOTemplateMethods:
         for T in ["Dim<%i>::Vector" % ndim,
                   "Dim<%i>::Tensor" % ndim,
                   "Dim<%i>::SymTensor" % ndim,
-                  "Dim<%i>::ThirdRankTensor" % ndim]:
+                  "Dim<%i>::ThirdRankTensor" % ndim,
+                  "Dim<%i>::FacetedVolume" % ndim]:
             exec('''
 writeVec%(Tmangle)s = PYB11TemplateMethod(writeVec, template_parameters="%(T)s", pyname="write")
 readVec%(Tmangle)s  = PYB11TemplateMethod( readVec, template_parameters="%(T)s", pyname="read")

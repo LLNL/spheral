@@ -730,14 +730,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     const auto  hminratio = nodeList.hminratio();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
-    // Check if we can identify a reference density.
-    auto rho0 = 0.0;
-    try {
-      rho0 = dynamic_cast<const SolidEquationOfState<Dimension>&>(dynamic_cast<const FluidNodeList<Dimension>&>(nodeList).equationOfState()).referenceDensity();
-      // cerr << "Setting reference density to " << rho0 << endl;
-    } catch(...) {
-      // cerr << "BLAGO!" << endl;
-    }
+    // // Check if we can identify a reference density.
+    // auto rho0 = 0.0;
+    // try {
+    //   rho0 = dynamic_cast<const SolidEquationOfState<Dimension>&>(dynamic_cast<const FluidNodeList<Dimension>&>(nodeList).equationOfState()).referenceDensity();
+    //   // cerr << "Setting reference density to " << rho0 << endl;
+    // } catch(...) {
+    //   // cerr << "BLAGO!" << endl;
+    // }
 
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
@@ -851,12 +851,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 
       // Optionally use damage to ramp down stress on damaged material.
-      const auto Di = max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0));
+      // const auto Di = max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0));
       // Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
       // DHDti = (1.0 - Di)*DHDti + Di*(mHfield0(nodeListi, i) - Hi)*0.25/dt;
 
-      // We also adjust the density evolution in the presence of damage.
-      if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.5/dt*Di*(rhoi - rho0);
+      // // We also adjust the density evolution in the presence of damage.
+      // if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - Di * 0.05*(rhoi - rho0)*ci*Hi.Trace()/Dimension::nDim;
 
       // // In the presence of damage, add a term to reduce the stress on this point.
       // DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;

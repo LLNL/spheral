@@ -30,7 +30,7 @@ namespace Spheral {
 
 template<typename Dimension>
 class PorousEquationOfState: 
-    public EquationOfState<Dimension> {
+    public SolidEquationOfState<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -40,7 +40,7 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   // Constructors, destructors.
-  PorousEquationOfState(const EquationOfState<Dimension>& solidEOS); // Solid EOS we're going to modify
+  PorousEquationOfState(const EquationOfState<Dimension>& EOS);
   virtual ~PorousEquationOfState();
 
   //............................................................................
@@ -83,7 +83,8 @@ public:
   //............................................................................
 
   // Access the material parameters.
-  const EquationOfState<Dimension>& solidEOS() const;
+  const EquationOfState<Dimension>& EOS() const;
+  const SolidEquationOfState<Dimension>& solidEOS() const;  // Throws if the underlying EOS is not a SolidEquationOfState
 
   const Field<Dimension, Scalar>& alpha() const;
   void alpha(const Field<Dimension, Scalar>& x);
@@ -96,7 +97,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const EquationOfState<Dimension>& mSolidEOS;
+  const EquationOfState<Dimension>& mEOS;
   const Field<Dimension, Scalar> *mAlphaPtr, *mAlpha0Ptr, *mC0Ptr;
 
   // Disallow default constructor
