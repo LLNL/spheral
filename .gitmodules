@@ -6,3 +6,6 @@
 	path = scripts/devtools/uberenv
 	url = https://github.com/llnl/uberenv
 	branch = origin/master
+[submodule "subprojects/PYB11Generator"]
+	path = subprojects/PYB11Generator
+	url = https://github.com/LLNL/PYB11Generator.git
