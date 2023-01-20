@@ -42,7 +42,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
     depends_on('qhull@2020.1 +pic', type='build')
     depends_on('m-aneos')
-    depends_on('py-polyclipper')
+    #depends_on('py-polyclipper')
     depends_on('eigen@3.4.0', type='build')
     depends_on('hdf5@1.8.19 ~mpi +hl', type='build', when='~mpi')
     depends_on('hdf5@1.8.19 +mpi +hl', type='build', when='+mpi')
@@ -187,9 +187,9 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
         entries.append(cmake_cache_path('opensubdiv_DIR', spec['opensubdiv'].prefix))
 
-        entries.append(cmake_cache_path('pybind11_DIR', spec['py-pybind11'].prefix))
+        #entries.append(cmake_cache_path('pybind11_DIR', spec['py-pybind11'].prefix))
 
-        entries.append(cmake_cache_path('polyclipper_DIR', spec['py-polyclipper'].prefix))
+        #entries.append(cmake_cache_path('polyclipper_DIR', spec['py-polyclipper'].prefix))
 
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))
         os.environ['PYTHONPATH'] += ':' + spec['polytope'].prefix + '/lib/python2.7/site-packages/polytope/'
