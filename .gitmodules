@@ -9,3 +9,6 @@
 [submodule "extern/PYB11Generator"]
 	path = extern/PYB11Generator
 	url = https://github.com/LLNL/PYB11Generator.git
+[submodule "extern/PolyClipper"]
+	path = extern/PolyClipper
+	url = https://github.com/LLNL/PolyClipper.git
