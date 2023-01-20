@@ -87,7 +87,7 @@ void SpheralEvalDerivTest()
 
   // Initialize an execution strategy for EvalDerivs problem
   // TODO: Make this a runtime switch.
-#if USE_DEVICE
+#if USE_DEVICE && defined(RAJA_ENABLE_CUDA)
   ExecutionStrategy strat(n_pairs, data_sz, RAJA::Platform::cuda);
   using PAIR_EXEC_POL = RAJA::cuda_exec<1024>;
   using DATA_EXEC_POL = RAJA::cuda_exec<1024>;
