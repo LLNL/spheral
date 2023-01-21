@@ -12,6 +12,7 @@ set(SolidMaterial_inst
     CollinsStrength
     iSALEROCKStrength
     PorousEquationOfState
+    PiecewiseLinearPorousStrengthModel
     PorousStrengthModel
     StrainPorosity
     PhysicsEvolvingMaterialLibrary
@@ -39,6 +40,7 @@ set(SolidMaterial_headers
     PolynomialFit.hh
     PolynomialFitInline.hh
     PorousEquationOfState.hh
+    PiecewiseLinearPorousStrengthModel.hh
     PorousStrengthModel.hh
     SolidEquationOfState.hh
     SolidEquationOfStateInline.hh

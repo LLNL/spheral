@@ -217,23 +217,4 @@ tangentialBeta(typename Dimension::Scalar x) {
   mTangentialBeta = x;
 }
 
-//------------------------------------------------------------------------------
-// set/get the time step
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-typename Dimension::Scalar
-LinearSpringDEM<Dimension>::
-timeStep() const {
-  return mTimeStep;
-}
-template<typename Dimension>
-inline
-void
-LinearSpringDEM<Dimension>::
-timeStep(typename Dimension::Scalar x) {
-  mTimeStep = x;
-}
-
-
 }

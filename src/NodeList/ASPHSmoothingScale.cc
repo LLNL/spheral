@@ -363,7 +363,8 @@ idealSmoothingScale(const SymTensor& H,
 
     // Enforce limits on psi, which helps some with stability.
     typename SymTensor::EigenStructType psieigen = psi.eigenVectors();
-    for (int i = 0; i != Dimension::nDim; ++i) psieigen.eigenValues(i) = 1.0/pow(psieigen.eigenValues(i), 0.5/(Dimension::nDim - 1));
+    // for (int i = 0; i != Dimension::nDim; ++i) psieigen.eigenValues(i) = 1.0/pow(psieigen.eigenValues(i), 0.5/(Dimension::nDim - 1));
+    for (int i = 0; i != Dimension::nDim; ++i) psieigen.eigenValues(i) = 1.0/sqrt(psieigen.eigenValues(i));
     const Scalar psimin = (psieigen.eigenValues.maxElement()) * hminratio;
     psi = constructSymTensorWithMaxDiagonal(psieigen.eigenValues, psimin);
     psi.rotationalTransform(psieigen.eigenVectors);

@@ -15,10 +15,12 @@ instantiate(FSISPH_inst FSISPH_sources)
 
 set(FSISPH_headers
     SolidFSISPHHydroBase.hh
+    SolidFSISPHHydroBaseInline.hh
     computeFSISPHSumMassDensity.hh
     computeHWeightedFSISPHSumMassDensity.hh
     FSIFieldNames.hh
     SlideSurface.hh
+    SlideSurfaceInline.hh
     )
 
 spheral_install_python_files(

@@ -32,6 +32,7 @@ list(APPEND _packages
   Hydro
   Integrator
   Kernel
+  KernelIntegrator
   Material
   Mesh
   Neighbor

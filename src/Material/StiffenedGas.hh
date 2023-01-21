@@ -27,7 +27,8 @@ public:
                const PhysicalConstants& constants,
                const double minimumPressure,
                const double maximumPressure,
-               const MaterialPressureMinType minPressureType);
+               const MaterialPressureMinType minPressureType,
+               const double externalPressure);
   ~StiffenedGas();
 
   // We require any equation of state to define the following properties.

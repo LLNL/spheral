@@ -46,13 +46,13 @@ class TreeNeighbor(Neighbor):
         return "void"
 
     @PYB11const
-    def gridLevel(self, h="const double&"):
-        "Find the tree level appropriate for h (units of length)"
+    def gridLevel(self, H="const SymTensor&"):
+        "Find the tree level appropriate for H (units of 1/length)"
         return "unsigned"
                   
     @PYB11const
-    def gridLevel(self, H="const SymTensor&"):
-        "Find the tree level appropriate for H (units of 1/length)"
+    def gridLevel(self, h="const double&"):
+        "Find the tree level appropriate for h (units of length)"
         return "unsigned"
                   
     @PYB11const
@@ -66,9 +66,47 @@ class TreeNeighbor(Neighbor):
         return "std::string"
     
     @PYB11const
+    def cellSize(self,
+                 levelID = "const LevelKey"):
+        "Cell size on the given level"
+        return "double"
+
+    @PYB11const
     def serialize(self, buffer="std::vector<char>&"):
         "Serialize the current tree state to a buffer"
         return "void"
+
+    @PYB11const
+    def nearestCellCenter(self,
+                          xi = "const Vector&",
+                          Hi = "const SymTensor&"):
+        "Cell size on the given level"
+        return "Vector"
+                          
+    @PYB11const
+    def nearestCellCenter(self,
+                          xi = "const Vector&",
+                          hi = "const double"):
+        "Cell size on the given level"
+        return "Vector"
+                          
+    @PYB11const
+    def occupied(self,
+                 xi = "const Vector&",
+                 Hi = "const SymTensor&"):
+        """Test if the given position and extent is occupied, in the sense that
+any tree cell is occupied at any coarser level down to it's native
+level."""
+        return "bool"
+
+    @PYB11const
+    def occupied(self,
+                 xi = "const Vector&",
+                 hi = "const double"):
+        """Test if the given position and extent is occupied, in the sense that
+any tree cell is occupied at any coarser level down to it's native
+level."""
+        return "bool"
 
     @PYB11const
     def setTreeMasterList(self,
