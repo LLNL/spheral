@@ -65,8 +65,9 @@ HelmholtzEquationOfState(const PhysicalConstants& constants,
                          const double minimumTemperature,
                          const MaterialPressureMinType minPressureType,
                          const Scalar abar0,
-                         const Scalar zbar0):
-  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType),
+                         const Scalar zbar0,
+                         const double externalPressure):
+  EquationOfState<Dimension>(constants, minimumPressure, maximumPressure, minPressureType, externalPressure),
   myAbar(),
   myZbar(),
   mySpecificThermalEnergy(),

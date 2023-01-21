@@ -65,7 +65,7 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
 
   // Make a temporary NodeList so we can use it's neighbor logic.
   PhysicalConstants constants(1.0, 1.0, 1.0);
-  GammaLawGas<Dimension> eos(2.0, 2.0, constants, 0.0, 1e10, MaterialPressureMinType::PressureFloor);
+  GammaLawGas<Dimension> eos(2.0, 2.0, constants, 0.0, 1e10, MaterialPressureMinType::PressureFloor, 0.0);
   FluidNodeList<Dimension> nodes("shapes", eos, nshapes, 0,
                                             1e-10, 1e10, 1.0, 1.01, 500, 0.0, 1e10);
   NestedGridNeighbor<Dimension> neighbor(nodes, NeighborSearchType::GatherScatter, 31, 3.0*length, surface.xmin(), 1.0, 1);

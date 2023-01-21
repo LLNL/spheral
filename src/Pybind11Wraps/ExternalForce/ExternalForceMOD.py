@@ -16,7 +16,8 @@ dims = spheralDimensions()
 PYB11includes += ['"Physics/GenericBodyForce.hh"',
                   '"ExternalForce/PointPotential.hh"',
                   '"ExternalForce/ConstantAcceleration.hh"',
-                  '"ExternalForce/LinearAcceleration.hh"']
+                  '"ExternalForce/LinearAcceleration.hh"',
+                  '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces

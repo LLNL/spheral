@@ -32,10 +32,22 @@ def distributeNodesGeneric(listOfNodeTuples,
 
         # Prepare to preserve any extra per point values
         extrafields[nodes.name] = []
+        IntField = eval("Spheral.IntField%id" % db.nDim)
         ScalarField = eval("Spheral.ScalarField%id" % db.nDim)
         for iextra, vals in enumerate(extralists):
             assert len(vals) == nlocal
-            extrafields[nodes.name].append(ScalarField("extra%i" % iextra, nodes))
+            for iproc in xrange(mpi.procs):    # Figure out whether we're doing ints or scalars
+                tinfo = -1
+                if nlocal > 0:
+                    tinfo = (1 if type(vals[0]) == int else 2)
+                tinfo = mpi.bcast(tinfo, iproc)
+                if tinfo != -1:
+                    break
+            assert tinfo in (1,2)
+            if tinfo == 1:
+                extrafields[nodes.name].append(IntField("extra%i" % iextra, nodes))
+            else:
+                extrafields[nodes.name].append(ScalarField("extra%i" % iextra, nodes))
             for i in xrange(nlocal):
                 extrafields[nodes.name][iextra][i] = vals[i]
 

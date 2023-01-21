@@ -34,6 +34,7 @@ set (_python_packages
   SolidMaterial
   Strength
   ArtificialConduction
+  KernelIntegrator
   polytope
   Distributed
   OpenMP

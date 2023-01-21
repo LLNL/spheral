@@ -22,23 +22,4 @@ molecularWeight() const {
   return mMolecularWeight;
 }
 
-//------------------------------------------------------------------------------
-// Access the external pressure.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-typename Dimension::Scalar
-IsothermalEquationOfState<Dimension>::
-externalPressure() const {
-  return mExternalPressure;
-}
-
-template<typename Dimension>
-inline
-void
-IsothermalEquationOfState<Dimension>::
-setExternalPressure(typename Dimension::Scalar P) {
-  mExternalPressure = P;
-}
-
 }

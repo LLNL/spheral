@@ -14,8 +14,8 @@
 // corrections corresponding to a given derivative. The indexing is i + offsetGradC(d),
 // where i is the polynomial index and d is the gradient dimension. 
 //----------------------------------------------------------------------------//
-#ifndef __LLNLSpheral_RKUtilities__
-#define __LLNLSpheral_RKUtilities__
+#ifndef __Spheral_RKUtilities__
+#define __Spheral_RKUtilities__
 
 #include "RK/RKCorrectionParams.hh"
 #include "RK/RKCoefficients.hh"

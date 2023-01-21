@@ -231,25 +231,6 @@ atomicWeight(double x) {
 }
 
 //------------------------------------------------------------------------------
-// Get and set the external pressure.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-TillotsonEquationOfState<Dimension>::
-externalPressure() const {
-  return mExternalPressure;
-}
-
-template<typename Dimension>
-inline
-void
-TillotsonEquationOfState<Dimension>::
-externalPressure(double val) {
-  mExternalPressure = val;
-}
-
-//------------------------------------------------------------------------------
 // The internal helper methods for computing components of the EOS.
 //------------------------------------------------------------------------------
 template<typename Dimension>

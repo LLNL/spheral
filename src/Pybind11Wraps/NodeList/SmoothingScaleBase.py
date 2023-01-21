@@ -40,6 +40,12 @@ class SmoothingScaleBase:
         "Compute the time derivative and ideal H simultaneously for a Field of H's."
         return "void"
     
+    @PYB11const
+    def hmax(self,
+             Vi = "const Scalar",
+             nPerh = "const Scalar"):
+        "Compute an effective hmax given the volume and target nperh"
+        return "Scalar"
 
 #-------------------------------------------------------------------------------
 # Add the abstract interface

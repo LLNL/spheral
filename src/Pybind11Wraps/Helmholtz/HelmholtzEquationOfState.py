@@ -22,7 +22,8 @@ class HelmholtzEquationOfState(EquationOfState):
                minimumTemperature = ("const double", "-std::numeric_limits<double>::min()"),
                minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor"),
                abar0 = ("double", "13.6"),
-               zbar0 = ("double", "6.8")):
+               zbar0 = ("double", "6.8"),
+               externalPressure = ("double", 0.0)):
         "Helmholtz constructor"
 
     #...........................................................................
