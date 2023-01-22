@@ -57,23 +57,4 @@ atomicWeight(double x) {
   mAtomicWeight = x;
 }
 
-//------------------------------------------------------------------------------
-// Get and set the external pressure.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-MurnaghanEquationOfState<Dimension>::
-externalPressure() const {
-  return mExternalPressure;
-}
-
-template<typename Dimension>
-inline
-void
-MurnaghanEquationOfState<Dimension>::
-externalPressure(double val) {
-  mExternalPressure = val;
-}
-
 }

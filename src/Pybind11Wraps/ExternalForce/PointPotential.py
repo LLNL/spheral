@@ -3,6 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from GenericBodyForce import *
+from RestartMethods import *
 
 @PYB11template("Dimension")
 class PointPotential(GenericBodyForce):
@@ -22,11 +23,19 @@ class PointPotential(GenericBodyForce):
                G = "double",
                mass = "double",
                coreRadius = "double",
-               origin = "const Vector&"):
+               origin = "const Vector",
+               metric = ("const Tensor", "Tensor::one")):
         "PointPotential constructor"
 
     #...........................................................................
     # Virtual methods
+    @PYB11virtual
+    def registerState(self,
+                      dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
+        "Register the state you want carried around (and potentially evolved), as well as the policies for such evolution."
+        return "void"
+
     @PYB11virtual
     @PYB11const
     def evaluateDerivatives(self,
@@ -48,10 +57,10 @@ class PointPotential(GenericBodyForce):
         return "TimeStepType"
 
     @PYB11virtual
-    @PYB11const
-    def label(self):
-        "It's useful to have labels for Physics packages.  We'll require this to have the same signature as the restart label."
-        return "std::string"
+    def initializeProblemStartup(self,
+                                 dataBase = "DataBase<%(Dimension)s>&"):
+        "An optional hook to initialize once when the problem is starting up."
+        return "void"
 
     @PYB11virtual
     @PYB11const
@@ -68,8 +77,15 @@ class PointPotential(GenericBodyForce):
 
     #...........................................................................
     # Properties
-    G = PYB11property("Scalar", "G", "setG", doc="The gravitational constant")
-    mass = PYB11property("Scalar", "mass", "setMass", doc="The point mass")
-    coreRadius = PYB11property("Scalar", "coreRadius", "setCoreRadius", doc="The core softening radius")
-    origin = PYB11property("const Vector&", "origin", "setOrigin", returnpolicy="reference_internal", doc="The point mass position")
-    deltaPotentialFraction = PYB11property("Scalar", "deltaPotentialFraction", "setDeltaPotentialFraction", doc="The max allowed fraction potential change, for setting the timestep")
+    G = PYB11property("Scalar", "G", "G", doc="The gravitational constant")
+    mass = PYB11property("Scalar", "mass", "mass", doc="The point mass")
+    coreRadius = PYB11property("Scalar", "coreRadius", "coreRadius", doc="The core softening radius")
+    origin = PYB11property("const Vector&", "origin", "origin", returnpolicy="reference_internal", doc="The point mass position")
+    metric = PYB11property("const Tensor&", "metric", "metric", returnpolicy="reference_internal", doc="metric to map relative positions (with respect to origin)")
+    ftimestep = PYB11property("double", "ftimestep", "ftimestep", doc="The current time step scaling factor.")
+    potential = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "potential", returnpolicy="reference_internal", doc="The last computed potential")
+
+#-------------------------------------------------------------------------------
+# Inject restart methods
+#-------------------------------------------------------------------------------
+PYB11inject(RestartMethods, PointPotential)

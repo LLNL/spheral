@@ -47,7 +47,8 @@ OsborneEquationOfState(const double referenceDensity,
                                   minimumPressure,
                                   maximumPressure,
                                   minimumPressureDamage,
-                                  minPressureType),
+                                  minPressureType,
+                                  externalPressure),
   mA1(a1),
   mA2pos(a2pos),
   mA2neg(a2neg),
@@ -61,8 +62,7 @@ OsborneEquationOfState(const double referenceDensity,
   mC2neg(c2neg),
   mE0(E0),
   mAtomicWeight(atomicWeight),
-  mCv(3.0 * constants.molarGasConstant() / mAtomicWeight),
-  mExternalPressure(externalPressure) {
+  mCv(3.0 * constants.molarGasConstant() / mAtomicWeight) {
   VERIFY(distinctlyGreaterThan(mAtomicWeight, 0.0));
   ENSURE(valid());
 }
@@ -96,8 +96,7 @@ setPressure(Field<Dimension, Scalar>& pressure,
     const double c2 = mu > 0.0 ? mC2pos : mC2neg;
     pressure(i) = this->applyPressureLimits((mA1*mu + a2*mu*mu +
                                              (mB0 + mB1*mu + b2*mu*mu)*E +
-                                             (mC0 + mC1*mu + c2*mu*mu)*E*E)*safeInvVar(E + mE0) -
-                                            mExternalPressure);
+                                             (mC0 + mC1*mu + c2*mu*mu)*E*E)*safeInvVar(E + mE0));
   }
 }
 

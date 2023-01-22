@@ -136,6 +136,9 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
   If building with the Gnu compilers enable STL bound checking by passing -D_GLIBCXX_DEBUG=1 to the compiler. 
   Note, this is a very expensive option at runtime!
 
+``ENABLE_NAN_EXCEPTIONS`` (On, *Off*)
+  Raise exceptions in the C++ code when floating-point exceptions occur.  Gnu compilers only.
+
 ``ENABLE_DOCS`` (On, *Off*)
   Choose whether or not to build this documentation.
 

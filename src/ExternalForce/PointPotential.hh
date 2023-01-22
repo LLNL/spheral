@@ -28,18 +28,22 @@ public:
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   // Constructors.
-  PointPotential(double G, double mass, double coreRadius, const Vector& origin);
+  PointPotential(double G, double mass, double coreRadius, const Vector origin,
+                 const Tensor metric);
 
   // Destructor.
   virtual ~PointPotential();
 
+  // We augment the generic body force state.
+  virtual void registerState(DataBase<Dimension>& dataBase,
+                             State<Dimension>& state);
+
   // This is the derivative method that all BodyPotential classes must provide.
-  virtual 
-  void evaluateDerivatives(const Scalar time,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
+  virtual void evaluateDerivatives(const Scalar time,
+                                   const Scalar dt,
+                                   const DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivs) const;
 
   // Provide the timestep appropriate for this package.
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
@@ -47,8 +51,8 @@ public:
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
-  //! Required label for Physics interface.
-  virtual std::string label() const { return "PointPotential"; }
+  //! Initializations on problem start up.
+  virtual void initializeProblemStartup(DataBase<Dimension>& db);
 
   // Get the cumulative potential energy calculated in the last 
   // evaluateDerivatives.
@@ -59,33 +63,45 @@ public:
 
   // Access G.
   Scalar G() const;
-  void setG(Scalar G);
+  void G(Scalar G);
 
   // Access the mass.
   Scalar mass() const;
-  void setMass(Scalar m);
+  void mass(Scalar m);
 
   // Access the core softening radius.
   Scalar coreRadius() const;
-  void setCoreRadius(Scalar rc);
+  void coreRadius(Scalar rc);
 
   // Access the origin.
   const Vector& origin() const;
-  void setOrigin(const Vector& origin);
+  void origin(const Vector& origin);
 
-  // The maximum allowed fractional change in a particles potential (for 
-  // setting the timestep).
-  Scalar deltaPotentialFraction() const;
-  void setDeltaPotentialFraction(Scalar deltaPhi);
+  // The metric for modifying distance calculation
+  const Tensor& metric() const;
+  void metric(const Tensor& metric);
+
+  //! The current time step scaling factor.
+  Scalar ftimestep() const;
+  void ftimestep(Scalar x);
+
+  // Return the gravitational potential created by the particle distribution.
+  const FieldList<Dimension, Scalar>& potential() const;
+
+  //****************************************************************************
+  // Methods required for restarting.
+  virtual std::string label() const { return "PointPotential"; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
+  //****************************************************************************
 
 private:
   //--------------------------- Public Interface ---------------------------//
-  Scalar mG;
-  Scalar mMass;
-  Scalar mCoreRadius2;
+  Scalar mG, mMass, mCoreRadius2, mftimestep;
   Vector mOrigin;
-  Scalar mDeltaPhiFraction;
-  mutable Scalar mPotentialEnergy;
+  Tensor mMetric;
+  mutable Scalar mDtMinAcc, mTotalPotentialEnergy;
+  mutable FieldList<Dimension, Scalar> mPotential;
 
   // No default constructor, copying, or assignment.
   PointPotential();

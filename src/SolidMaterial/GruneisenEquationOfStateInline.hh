@@ -145,21 +145,4 @@ GruneisenEquationOfState<Dimension>::Cv() const {
   return mCv;
 }
 
-//------------------------------------------------------------------------------
-// Get and set the external pressure.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-GruneisenEquationOfState<Dimension>::externalPressure() const {
-  return mExternalPressure;
-}
-
-template<typename Dimension>
-inline
-void
-GruneisenEquationOfState<Dimension>::externalPressure(double val) {
-  mExternalPressure = val;
-}
-
 }
