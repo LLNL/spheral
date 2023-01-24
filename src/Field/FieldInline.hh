@@ -2022,7 +2022,7 @@ inline
 typename Field<Dimension, DataType>::view_type
 Field<Dimension, DataType>::
 toViewWithPool(const Field& pool) const {
-  return view_type(*this, pool);
+  return Field::view_type(*this, pool);
 }
 
 // Generate a pool field object.

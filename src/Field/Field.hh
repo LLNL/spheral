@@ -14,6 +14,7 @@
 #include "Utilities/lvarray.hh"
 #include "FieldBase.hh"
 #include "axom/sidre.hpp"
+#include "FieldView.hh"
 
 #include <string>
 #include <vector>
@@ -22,8 +23,8 @@
 #include "uvm_allocator.hh"
 #endif
 
-template<typename Dimension, typename DATA_TYPE>
-class LvFieldView;
+template<typename Dimension, typename DataType>
+class FieldView;
 
 namespace Spheral {
 
@@ -46,8 +47,9 @@ class Field:
     public FieldBase<Dimension> {
    
 public:
-  friend class ::LvFieldView<Dimension, DataType>;
-  using view_type = LvFieldView<Dimension, DataType>;
+
+  friend class FieldView<Dimension, DataType>;
+  using view_type = FieldView<Dimension, DataType>;
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;

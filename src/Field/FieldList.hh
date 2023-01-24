@@ -12,6 +12,7 @@
 
 #include "FieldListBase.hh"
 #include "Utilities/OpenMP_wrapper.hh"
+#include "FieldView.hh"
 
 #include <vector>
 #include <list>
@@ -50,15 +51,12 @@ public:
   typedef Dimension FieldDimension;
   typedef DataType FieldDataType;
 
-  typedef FieldBase<Dimension>* BaseElementType;
-  typedef Field<Dimension, DataType>* ElementType;
-  typedef Field<Dimension, DataType>* value_type;    // STL compatibility
-  typedef std::vector<ElementType> StorageType;
+  using ElementType = Field<Dimension, DataType>*;
+  using value_type = ElementType;    // STL compatibility
+  using StorageType = std::vector<ElementType>;
 
-  typedef typename StorageType::iterator iterator;
-  typedef typename StorageType::const_iterator const_iterator;
-  typedef typename StorageType::reverse_iterator reverse_iterator;
-  typedef typename StorageType::const_reverse_iterator const_reverse_iterator;
+  using iterator = typename StorageType::iterator;
+  using const_iterator = typename StorageType::const_iterator;
 
   typedef std::vector<DataType> CacheElementsType;
   typedef typename CacheElementsType::iterator cache_iterator;
@@ -109,24 +107,9 @@ public:
   // Provide the standard iterators over the Fields.
   iterator begin();
   iterator end();
-  reverse_iterator rbegin();
-  reverse_iterator rend();
 
   const_iterator begin() const;
   const_iterator end() const;
-  const_reverse_iterator rbegin() const;
-  const_reverse_iterator rend() const;
-
-  // Iterators over FieldBase* required by base class.
-  virtual typename FieldListBase<Dimension>::iterator begin_base();
-  virtual typename FieldListBase<Dimension>::iterator end_base();
-  virtual typename FieldListBase<Dimension>::reverse_iterator rbegin_base();
-  virtual typename FieldListBase<Dimension>::reverse_iterator rend_base();
-
-  virtual typename FieldListBase<Dimension>::const_iterator begin_base() const;
-  virtual typename FieldListBase<Dimension>::const_iterator end_base() const;
-  virtual typename FieldListBase<Dimension>::const_reverse_iterator rbegin_base() const;
-  virtual typename FieldListBase<Dimension>::const_reverse_iterator rend_base() const;
 
   // Index operator.
   ElementType operator[](const unsigned index);
@@ -284,8 +267,8 @@ private:
   typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
   typedef std::map<const NodeList<Dimension>*, int> HashMapType;
 
-  std::vector<ElementType> mFieldPtrs;
-  std::vector<BaseElementType> mFieldBasePtrs;
+  //SphArray<ElementViewType> mFieldViews;
+  StorageType mFieldPtrs;
   FieldCacheType mFieldCache;
   FieldStorageType mStorageType;
 
