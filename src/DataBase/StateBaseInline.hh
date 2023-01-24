@@ -46,6 +46,18 @@ allFields(const Value&) const {
 }
 
 //------------------------------------------------------------------------------
+// Test if the given FieldList is registered.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+bool
+StateBase<Dimension>::
+registered(const FieldList<Dimension, DataType>& fieldList) const {
+  REQUIRE(fieldList.begin() != fieldList.end());
+  return this->registered(**fieldList.begin());
+}
+
+//------------------------------------------------------------------------------
 // Return a FieldList containing all registered fields of the given name.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -66,6 +78,21 @@ fields(const std::string& name, const Value& dummy) const {
     }
   }
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Add the fields from a FieldList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+void
+StateBase<Dimension>::
+enroll(FieldList<Dimension, DataType>& fieldList) {
+  for (auto itr = fieldList.begin();
+       itr != fieldList.end();
+       ++itr) {
+    this->enroll(**itr);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -120,12 +147,13 @@ key(const FieldBase<Dimension>& field) {
 // Construct the lookup key for the given FieldList.
 //------------------------------------------------------------------------------
 template<typename Dimension>
+template<typename DataType>
 inline
 typename StateBase<Dimension>::KeyType
 StateBase<Dimension>::
-key(const FieldListBase<Dimension>& fieldList) {
-  REQUIRE(fieldList.begin_base() != fieldList.end_base());
-  return buildFieldKey((*fieldList.begin_base())->name(), UpdatePolicyBase<Dimension>::wildcard());
+key(const FieldList<Dimension, DataType>& fieldList) {
+  REQUIRE(fieldList.begin() != fieldList.end());
+  return buildFieldKey((*fieldList.begin())->name(), UpdatePolicyBase<Dimension>::wildcard());
 }
 
 //------------------------------------------------------------------------------

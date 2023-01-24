@@ -15,6 +15,17 @@ enroll(const typename State<Dimension>::KeyType& key,
 }
 
 //------------------------------------------------------------------------------
+// Remove the policy associated with a FieldList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename DataType>
+void
+State<Dimension>::
+removePolicy(FieldList<Dimension, DataType>& fieldList) {
+  this->removePolicy(StateBase<Dimension>::key(fieldList));
+}
+
+//------------------------------------------------------------------------------
 // Enroll the given field and policy.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -31,10 +42,11 @@ enroll(FieldBase<Dimension>& field,
 // Enroll the given FieldList and policy.
 //------------------------------------------------------------------------------
 template<typename Dimension>
+template<typename DataType>
 inline
 void
 State<Dimension>::
-enroll(FieldListBase<Dimension>& fieldList,
+enroll(FieldList<Dimension, DataType>& fieldList,
        typename State<Dimension>::PolicyPointer polptr) {
   this->enroll(fieldList);
   this->enroll(this->key(fieldList), polptr);
@@ -66,10 +78,11 @@ enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) {
 // Enroll the given field list.
 //------------------------------------------------------------------------------
 template<typename Dimension>
+template<typename DataType>
 inline
 void
 State<Dimension>::
-enroll(FieldListBase<Dimension>& fieldList) {
+enroll(FieldList<Dimension, DataType>& fieldList) {
   StateBase<Dimension>::enroll(fieldList);
 }
 
