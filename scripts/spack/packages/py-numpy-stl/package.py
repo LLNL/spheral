@@ -6,14 +6,14 @@
 from spack import *
 
 
-class PyPipreqs(PythonPackage):
+class PyNumpyStl(PythonPackage):
     """"""
 
-    homepage = "https://pypi.org/project/pipreqs/"
-    pypi = "pipreqs/pipreqs-0.4.10.tar.gz" 
+    homepage = "https://pypi.org/project/numpy-stl/"
+    pypi = "numpy-stl/numpy-stl-3.0.0.tar.gz" 
 
     #maintainers = ['mdavis36','jmikeowen']
 
-    version('0.4.11', sha256='c793b4e147ac437871b3a962c5ce467e129c859ece5ba79aca83c20f4d9c3aef')
+    version('3.0.0', sha256='578b78eacb0529ac9aba2f17dcc363d58c7c3c5708710c18f8c1e9965f2e81ac')
 
     extends('python@3:', type=['build', 'run'])

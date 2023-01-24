@@ -66,7 +66,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('py-setuptools', type='build')
 
     depends_on('py-numpy', type='build')
-    #depends_on('py-numpy-stl', type='build')
+    depends_on('py-numpy-stl', type='build')
     depends_on('py-python-utils', type='build')
     depends_on('py-matplotlib', type='build')
     depends_on('py-pillow', type='build')
@@ -75,7 +75,6 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('py-docutils', type='build')
     depends_on('py-cython', type='build')
     depends_on('py-scipy', type='build')
-    # depends_on('py-pipreqs', type='build')
     depends_on('py-importlib-metadata', type='build')
     depends_on('py-gnuplot', type='build')
     depends_on('py-ats', type='build')
