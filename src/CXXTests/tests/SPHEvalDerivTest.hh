@@ -75,7 +75,8 @@ void SpheralEvalDerivTest()
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
   using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
-  using VIEW_TYPE = LvFieldView<DIM, DATA_TYPE>;
+  using VIEW_TYPE = FIELD_TYPE::view_type;
+  //using VIEW_TYPE = Spheral::FieldView<DIM, DATA_TYPE>;
 
   //---------------------------------------------------------------------------
   //
@@ -110,7 +111,7 @@ void SpheralEvalDerivTest()
   Spheral::Field<DIM, unsigned> pair_data("Pairs", pair_node_list);
   for (unsigned int i = 0; i < n_pairs; i++) pair_data[i] = rand() % DATA_SZ;
   PRINT_DATA(pair_data, N_PAIRS)
-  const LvFieldView<DIM, unsigned> pairs(pair_data);
+  const Spheral::FieldView<DIM, unsigned> pairs(pair_data);
   pairs.move(strat.platform);
 
   // Setting up our "Field Data", this is done through simulation setup in spheral e.g. node generation.
