@@ -58,9 +58,9 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('caliper ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
 
     depends_on('opensubdiv@3.4.3', type='build')
-    # depends_on('polytope', type='build')
+    depends_on('polytope', type='build')
 
-    extends('python@3: +zlib +shared +ssl', type='build')
+    extends('python@3: +zlib +shared +ssl +readline', type='build')
 
     depends_on('py-pip', type='build')
     depends_on('py-setuptools', type='build')
