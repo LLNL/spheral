@@ -1,7 +1,7 @@
 import unittest
 from CXXTests import *
 
-execfile("generate2Dsetup.py")
+exec(compile(open("generate2Dsetup.py").read(), "generate2Dsetup.py", 'exec'))
 
 #===============================================================================
 # Main testing class.
@@ -37,7 +37,7 @@ class TestNodeIterators(unittest.TestCase):
 
     # Test the master node iterator.
     def testMasterNodeIterator(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
@@ -49,7 +49,7 @@ class TestNodeIterators(unittest.TestCase):
 
     # Test the coarse node iterator.
     def testCoarseNodeIterator(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
@@ -61,7 +61,7 @@ class TestNodeIterators(unittest.TestCase):
 
     # Test the refine node iterator.
     def testRefineNodeIterator(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes

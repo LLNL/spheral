@@ -196,7 +196,7 @@ class TestPolyhedronClipping(unittest.TestCase):
         for points, neighbors, facets in self.polyData:
             poly = Polyhedron(points, facets)
             PCpoly = convertToPolyClipper(poly)
-            for i in xrange(self.ntests):
+            for i in range(self.ntests):
                 planes1, planes2 = [], []
                 p0 = Vector(rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0),
@@ -214,14 +214,14 @@ class TestPolyhedronClipping(unittest.TestCase):
                 chunk2, clips = convertFromPolyClipper(PCchunk2)
                 success = fuzzyEqual(chunk1.volume + chunk2.volume, poly.volume)
                 if not success:
-                    print "Failed on pass ", i
-                    print "Plane: ", p0, phat
-                    print "Poly:\n", poly
-                    print "Chunk 1:\n ", chunk1
-                    print "Chunk 2:\n ", chunk2
+                    print("Failed on pass ", i)
+                    print("Plane: ", p0, phat)
+                    print("Poly:\n", poly)
+                    print("Chunk 1:\n ", chunk1)
+                    print("Chunk 2:\n ", chunk2)
                     vol1, cent1 = moments(PCchunk1)
                     vol2, cent2 = moments(PCchunk2)
-                    print "Vol check: %g + %g = %g" % (vol1, vol2, vol1 + vol2)
+                    print("Vol check: %g + %g = %g" % (vol1, vol2, vol1 + vol2))
                     writePolyhedronOBJ(poly, "poly.obj")
                     writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
                     writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
@@ -238,7 +238,7 @@ class TestPolyhedronClipping(unittest.TestCase):
         for points, neighbors, facets in self.polyData:
             poly = Polyhedron(points, facets)
             PCpoly = convertToPolyClipper(poly)
-            for i in xrange(self.ntests):
+            for i in range(self.ntests):
                 planes1, planes2 = [], []
                 p0 = Vector(rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0))
@@ -255,14 +255,14 @@ class TestPolyhedronClipping(unittest.TestCase):
                 chunk2, clips = convertFromPolyClipper(PCchunk2)
                 success = fuzzyEqual(chunk1.volume, chunk2.volume)
                 if not success:
-                    print "Failed on pass ", i
-                    print "Plane: ", p0, phat
-                    print "Poly:\n", poly
-                    print "Chunk 1:\n ", chunk1
-                    print "Chunk 2:\n ", chunk2
+                    print("Failed on pass ", i)
+                    print("Plane: ", p0, phat)
+                    print("Poly:\n", poly)
+                    print("Chunk 1:\n ", chunk1)
+                    print("Chunk 2:\n ", chunk2)
                     vol1, cent1 = moments(PCchunk1)
                     vol2, cent2 = moments(PCchunk2)
-                    print "Vol check: %g = %g" % (vol1, vol2)
+                    print("Vol check: %g = %g" % (vol1, vol2))
                     writePolyhedronOBJ(poly, "poly.obj")
                     writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
                     writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
@@ -277,7 +277,7 @@ class TestPolyhedronClipping(unittest.TestCase):
     def testNullClipOnePlane(self):
         for points, neighbors, facets in self.polyData:
             poly = Polyhedron(points, facets)
-            for i in xrange(self.ntests):
+            for i in range(self.ntests):
                 r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
                 theta = rangen.uniform(0.0, 2.0*pi)
                 phat = Vector(cos(theta), sin(theta))
@@ -301,7 +301,7 @@ class TestPolyhedronClipping(unittest.TestCase):
     def testFullClipOnePlane(self):
         for points, neighbors, facets in self.polyData:
             poly = Polyhedron(points, facets)
-            for i in xrange(self.ntests):
+            for i in range(self.ntests):
                 planes = []
                 r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
                 theta = rangen.uniform(0.0, 2.0*pi)
@@ -326,7 +326,7 @@ class TestPolyhedronClipping(unittest.TestCase):
         for points, neighbors, facets in self.polyData:
             poly = Polyhedron(points, facets)
             PCpoly = convertToPolyClipper(poly)
-            for i in xrange(self.ntests):
+            for i in range(self.ntests):
                 p0 = Vector(rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0))

@@ -140,7 +140,7 @@ lamb = r0/R0
 alpha = delta/R0
 Fval = F(alpha, lamb, R0, R1, 1000)
 u0 = sqrt(4.0*Y0*R1*Fval/(3.0*rho0Be*delta))
-print "  lambda = %s\n  alpha = %s\n  F = %s\n  u0 = %s\n" % (lamb, alpha, Fval, u0)
+print("  lambda = %s\n  alpha = %s\n  F = %s\n  u0 = %s\n" % (lamb, alpha, Fval, u0))
 
 if crksph:
     hydroname = "CRKSPH"
@@ -217,7 +217,7 @@ nodeSet = [nodesBe]
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
-print "Generating node distribution."
+print("Generating node distribution.")
 gen = GenerateSphericalNodeProfile1d(nr = nr,
                                      rho = rho0Be,
                                      rmin = R0,
@@ -231,7 +231,7 @@ output("mpi.reduce(nodesBe.numInternalNodes, mpi.SUM)")
 # Set node velocites.
 pos = nodesBe.positions()
 vel = nodesBe.velocity()
-for i in xrange(nodesBe.numInternalNodes):
+for i in range(nodesBe.numInternalNodes):
     ri = pos[i].magnitude()
     vel[i].x = -u0 * (R0/ri)**2
 
@@ -365,13 +365,13 @@ def verneySample(nodes, indices):
 histories = []
 dr = (R1 - R0)/nshells
 pos = nodesBe.positions()
-shellIndices = [[] for i in xrange(nr)]
-for i in xrange(nodesBe.numInternalNodes):
+shellIndices = [[] for i in range(nr)]
+for i in range(nodesBe.numInternalNodes):
     ishell = min(nr - 1, int((pos[i].magnitude() - R0)/dr + 0.5))
     shellIndices[ishell].append(i)
-for ishell in xrange(nshells):
+for ishell in range(nshells):
     n = mpi.allreduce(len(shellIndices[ishell]), mpi.SUM)
-    print "Selected %i nodes for shell %i." % (n, ishell)
+    print("Selected %i nodes for shell %i." % (n, ishell))
     if n > 0:
         histories.append(NodeHistory(nodesBe, shellIndices[ishell], verneySample, historyOutputName % ishell, 
                                      labels = ("r", "vel", "rho", "eps", "pressure", "Srr", "plastic strain", "h")))
@@ -406,13 +406,13 @@ if not steps is None:
     if checkRestart:
         state0 = State(db, integrator.physicsPackages())
         state0.copyState()
-        print control.totalSteps
+        print(control.totalSteps)
         control.loadRestartFile(control.totalSteps)
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
+            raise ValueError("The restarted state does not match!")
         else:
-            print "Restart check PASSED."
+            print("Restart check PASSED.")
 
 else:
     control.advance(goalTime)
@@ -424,10 +424,10 @@ else:
     # the interior of the shell, but it gives us something quantitative.
     histories[0].sample(control.totalSteps, control.time(), control.lastDt())
     rsim0 = histories[0].sampleHistory[-1][0]
-    print "Simulation measured final inner shell radius of %g cm: errror %g cm." % (rsim0,
-                                                                                    rsim0 - r0)
+    print("Simulation measured final inner shell radius of %g cm: errror %g cm." % (rsim0,
+                                                                                    rsim0 - r0))
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
@@ -518,6 +518,6 @@ if graphics:
 #-------------------------------------------------------------------------------
 if checkError:
     if abs(rsim0 - rInnerCheck) > rInnerError:
-        raise RuntimeError, "Inner shell radius %g outside expected range [%g:%g]" % (rsim0, rInnerCheck - rInnerError, rInnerCheck + rInnerError)
+        raise RuntimeError("Inner shell radius %g outside expected range [%g:%g]" % (rsim0, rInnerCheck - rInnerError, rInnerCheck + rInnerError))
     if compatibleEnergy and Eerror > 1.0e-10:
-        raise RuntimeError, "Energy error %g > %g" % (Eerror, 1.0e-10)
+        raise RuntimeError("Energy error %g > %g" % (Eerror, 1.0e-10))

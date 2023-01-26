@@ -169,7 +169,7 @@ if restoreCycle is None:
     nodes1.specificThermalEnergy(ScalarField3d("tmp", nodes1, eps1))
 
     # Set node velocities
-    for nodeID in xrange(nodes1.numNodes):
+    for nodeID in range(nodes1.numNodes):
         nodes1.velocity()[nodeID] = nodes1.positions()[nodeID].unitVector()*vr1
 
 #-------------------------------------------------------------------------------

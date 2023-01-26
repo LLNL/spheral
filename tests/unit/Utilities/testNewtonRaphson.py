@@ -31,7 +31,7 @@ class TestNewtonRaphson(unittest.TestCase):
     # known roots.
     #===========================================================================
     def testRoots(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
 
             # Randomly pick three roots.  We want to know them
             # in sorted order too.

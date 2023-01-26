@@ -129,7 +129,7 @@ lamb = r0/R0
 alpha = delta/R0
 Fval = F(alpha, lamb, R0, R1, 1000)
 u0 = sqrt(4.0*Y0*R1*Fval/(3.0*rho0Be*delta))
-print "  lambda = %s\n  alpha = %s\n  F = %s\n  u0 = %s\n" % (lamb, alpha, Fval, u0)
+print("  lambda = %s\n  alpha = %s\n  F = %s\n  u0 = %s\n" % (lamb, alpha, Fval, u0))
 
 # Hydro constructor.
 if CRKSPH:
@@ -216,7 +216,7 @@ nodeSet = [nodesBe]
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
-print "Generating node distribution."
+print("Generating node distribution.")
 if seed == "lattice":
     nx = int(R1/(R1 - R0) * nr + 0.5)
     if geometry == "octant":
@@ -246,7 +246,7 @@ output("mpi.reduce(nodesBe.numInternalNodes, mpi.SUM)")
 # Set node velocites.
 pos = nodesBe.positions()
 vel = nodesBe.velocity()
-for i in xrange(nodesBe.numInternalNodes):
+for i in range(nodesBe.numInternalNodes):
     ri = pos[i].magnitude()
     rhat = pos[i].unitVector()
     vel[i] = -u0 * (R0/ri)**2 * rhat
@@ -384,13 +384,13 @@ def verneySample(nodes, indices):
 histories = []
 dr = (R1 - R0)/nshells
 pos = nodesBe.positions()
-shellIndices = [[] for i in xrange(nr)]
-for i in xrange(nodesBe.numInternalNodes):
+shellIndices = [[] for i in range(nr)]
+for i in range(nodesBe.numInternalNodes):
     ishell = min(nr - 1, int((pos[i].magnitude() - R0)/dr + 0.5))
     shellIndices[ishell].append(i)
-for ishell in xrange(nshells):
+for ishell in range(nshells):
     n = mpi.allreduce(len(shellIndices[ishell]), mpi.SUM)
-    print "Selected %i nodes for shell %i." % (n, ishell)
+    print("Selected %i nodes for shell %i." % (n, ishell))
     if n > 0:
         histories.append(NodeHistory(nodesBe, shellIndices[ishell], verneySample, historyOutputName % ishell, 
                                      labels = ("r", "vel", "rho", "eps", "P", "plastic strain", "h")))
@@ -431,8 +431,8 @@ else:
     # the interior of the shell, but it gives us something quantitative.
     histories[0].sample(control.totalSteps, control.time(), control.lastDt())
     rsim0 = histories[0].sampleHistory[-1][0]
-    print "Simulation measured final inner shell radius of %g cm: errror %g cm." % (rsim0,
-                                                                                    rsim0 - r0)
+    print("Simulation measured final inner shell radius of %g cm: errror %g cm." % (rsim0,
+                                                                                    rsim0 - r0))
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.

@@ -140,16 +140,16 @@ class TestTillotsonEquationOfState(unittest.TestCase):
         etai = self.eos.boundedEta(rhoi)
         mui = etai - 1.0
         if mui >= 0.0:
-            print "Region 1"
+            print("Region 1")
             return self.P1(rhoi, epsi, etai, mui)
         elif epsi <= self.epsLiquid:
-            print "Region 2"
+            print("Region 2")
             return self.P2(rhoi, epsi, etai, mui)
         elif epsi <= self.epsVapor:
-            print "Region 3"
+            print("Region 3")
             return self.P3(rhoi, epsi, etai, mui)
         else:
-            print "Region 4"
+            print("Region 4")
             return self.P4(rhoi, epsi, etai, mui)
 
     #===========================================================================
@@ -231,9 +231,9 @@ class TestTillotsonEquationOfState(unittest.TestCase):
         rhof = ScalarField("rho", self.nodes)
         epsf = ScalarField("eps", self.nodes)
         Pf = ScalarField("pressure", self.nodes)
-        for irho in xrange(self.nsample):
+        for irho in range(self.nsample):
             rhof[0] = self.rho(irho)
-            for ieps in xrange(self.nsample):
+            for ieps in range(self.nsample):
                 epsf[0] = self.eps(ieps)
                 self.eos.setPressure(Pf, rhof, epsf)
                 Pi = Pf[0]

@@ -129,7 +129,7 @@ class AverageStrain:
         strain = self.damageModel.strain
 
         n = nodes.numInternalNodes
-        result = (mpi.allreduce(sum([mass[i]*(strain[i].Trace()) for i in xrange(n)]), mpi.SUM)/
+        result = (mpi.allreduce(sum([mass[i]*(strain[i].Trace()) for i in range(n)]), mpi.SUM)/
                   mpi.allreduce(sum(mass.internalValues()), mpi.SUM))
 
         self.timeHistory.append(atime)
@@ -153,7 +153,7 @@ class AverageStrain:
             n = len(self.timeHistory)
             assert len(self.strainHistory) == n
             if mpi.rank == 0:
-                for i in xrange(n):
+                for i in range(n):
                     self.file.write("%g   %g\n" % (self.timeHistory[i],
                                                    self.strainHistory[i]))
             self.file.flush()
@@ -255,7 +255,7 @@ nodeSet = [nodes]
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 eps0 = 0.0
-print "Generating node distribution."
+print("Generating node distribution.")
 generator = GenerateNodeDistribution(nRadial = nr,
                                      nTheta = 1,     # Not used
                                      rho = rho0,
@@ -277,7 +277,7 @@ output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 # Set node velocites to an initial linear (in radius) gradient
 pos = nodes.positions()
 vel = nodes.velocity()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     runit = pos[i].unitVector()
     vi = pos[i].magnitude()/R0 * vr0
     vel[i] = vi*runit
@@ -310,9 +310,9 @@ if thetaFactor == 0.5:
 #-------------------------------------------------------------------------------
 if constantBoundary:
     dr = R0/nr
-    constantNodes = vector_of_int([i for i in xrange(nodes.numInternalNodes)
+    constantNodes = vector_of_int([i for i in range(nodes.numInternalNodes)
                                    if pos[i].magnitude() > R0 - WT.kernelExtent*nPerh*dr])
-    print "Selected %i constant velocity nodes." % mpi.allreduce(len(constantNodes))
+    print("Selected %i constant velocity nodes." % mpi.allreduce(len(constantNodes)))
 
     # Set the nodes we're going to control to one single radial velocity 
     for i in constantNodes:
@@ -531,7 +531,7 @@ if plotFlaws and DamageModelConstructor is StochasticWeibullTensorDamageModel2d:
     from SpheralGnuPlotUtilities import generateNewGnuPlot
     import Gnuplot
     flaws = [x for x in damageModel.sortedFlaws()]
-    f = [i/volume for i in xrange(len(flaws))]
+    f = [i/volume for i in range(len(flaws))]
     fans = [kWeibull * x**mWeibull for x in flaws]
     d = Gnuplot.Data(flaws, f,
                      title = "Simulation",

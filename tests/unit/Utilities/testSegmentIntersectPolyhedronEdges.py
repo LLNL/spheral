@@ -59,7 +59,7 @@ class TestLineSegmentPolyhedronIntersection(unittest.TestCase):
     def testNonintersectingSegment1(self):
         a0 = Vector(10.0, 10.0, 10.0)
         a1 = Vector(20.0, 20.0, 20.0)
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             aa0, aa1, polyhedron, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polyhedron)
             self.failUnless(result == False,
@@ -72,7 +72,7 @@ class TestLineSegmentPolyhedronIntersection(unittest.TestCase):
     def testNonintersectingSegment2(self):
         a0 = Vector(1.25, 1.25, 1.25)
         a1 = Vector(1.75, 1.75, 1.75)
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             aa0, aa1, polyhedron, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polyhedron)
             Tinv = T.Inverse()
@@ -84,7 +84,7 @@ class TestLineSegmentPolyhedronIntersection(unittest.TestCase):
     # Segment passing through two polyhedron faces without hitting an edge
     #===========================================================================
     def testNonintersectingSegment3(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             faces = rangen.sample(self.faces, 2)
             theta0, theta1 = rangen.uniform(0.0, 2.0*pi), rangen.uniform(0.0, 2.0*pi)
             l0, l1 = rangen.uniform(0.0, 0.49), rangen.uniform(0.0, 0.49)
@@ -112,7 +112,7 @@ class TestLineSegmentPolyhedronIntersection(unittest.TestCase):
     #===========================================================================
     def testSegmentIntersectingRandomEdge1(self):
         a0 = Vector(1.5, 1.5, 1.5)
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             edge = rangen.choice(self.edges)
             a1 = edge[0] + rangen.random()*edge[1]
             a1 = a0 + 2.0*(a1 - a0)
@@ -128,7 +128,7 @@ class TestLineSegmentPolyhedronIntersection(unittest.TestCase):
     #===========================================================================
     def testSegmentIntersectingRandomEdge2(self):
         a0 = Vector(1.5, 1.5, 1.5)
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             edge = rangen.choice(self.edges)
             a1 = edge[0] + rangen.random()*edge[1]
             aa0, aa1, polyhedron, T = self.randomDistortion(a0, a1, self.vertices)
@@ -143,7 +143,7 @@ class TestLineSegmentPolyhedronIntersection(unittest.TestCase):
     #===========================================================================
     def testSegmentIntersectingRandomVertex(self):
         a0 = Vector(1.5, 1.5, 1.5)
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             a1 = rangen.choice(self.vertices)
             aa0, aa1, polyhedron, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polyhedron)

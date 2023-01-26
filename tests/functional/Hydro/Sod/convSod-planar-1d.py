@@ -177,7 +177,7 @@ for nx1 in nxlist:
     for nodes in nodeSet:
         pos = nodes.positions()
         eps = nodes.specificThermalEnergy()
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             eps[i] = specificEnergy(pos[i].x)
 
     #-------------------------------------------------------------------------------
@@ -317,12 +317,12 @@ for nx1 in nxlist:
         A1 = P1/(rho1**gammaGas)
         A2 = P2/(rho2**gammaGas)
 
-        for i in xrange(nodes1.numInternalNodes):
+        for i in range(nodes1.numInternalNodes):
             fi = WT.kernelValue(abs(nodes1.positions()[i].x - x1)/h1, 1.0) / W0
             fi = 1.0 - min(1.0, abs(nodes1.positions()[i].x - x1)/h1)
             assert fi >= 0.0 and fi <= 1.0
             nodes1.mass()[i] = (1.0 - fi)*m1 + 0.5*fi*(m1 + m2)
-        for i in xrange(nodes2.numInternalNodes):
+        for i in range(nodes2.numInternalNodes):
             fi = WT.kernelValue(abs(nodes2.positions()[i].x - x1)/h2, 1.0) / W0
             fi = 1.0 - min(1.0, abs(nodes2.positions()[i].x - x1)/h2)
             assert fi >= 0.0 and fi <= 1.0
@@ -348,7 +348,7 @@ for nx1 in nxlist:
             return
         def selectNodes(self, nodeList):
             if control.totalSteps == 50 and nodeList.name == nodes1.name:
-                return range(nodes1.numInternalNodes)
+                return list(range(nodes1.numInternalNodes))
             else:
                 return []
 
@@ -359,7 +359,7 @@ for nx1 in nxlist:
             return
         def selectNodes(self, nodeList):
             if control.totalSteps == 20:
-                return range(nodeList.numInternalNodes)
+                return list(range(nodeList.numInternalNodes))
             else:
                 return []
 
@@ -443,9 +443,9 @@ for nx1 in nxlist:
 
         # Some debugging useful plots to pull out the derivatives and check 'em out.
 
-    print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
+    print("Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                     control.conserve.EHistory[-1],
-                                                                    (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0])
+                                                                    (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]))
 
     #-------------------------------------------------------------------------------
     # If requested, write out the state in a global ordering to a file.
@@ -487,7 +487,7 @@ for nx1 in nxlist:
             f.close()
 
         import Pnorm
-        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+        print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
         failure = False
         hD = []
         for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
@@ -496,17 +496,17 @@ for nx1 in nxlist:
                                                  ("Thermal E", epsprof, uans),
                                                  ("h       ", hprof, hans)]:
             assert len(data) == len(ans)
-            error = [data[i] - ans[i] for i in xrange(len(data))]
+            error = [data[i] - ans[i] for i in range(len(data))]
             Pn = Pnorm.Pnorm(error, xprof)
             L1 = Pn.gridpnorm(1, rmin, rmax)
             L2 = Pn.gridpnorm(2, rmin, rmax)
             Linf = Pn.gridpnorm("inf", rmin, rmax)
-            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+            print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
             hD.append([L1,L2,Linf])
 
-        print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+        print("%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
                                                                                     hD[0][1],hD[1][1],hD[2][1],hD[3][1],
-                                                                                    hD[0][2],hD[1][2],hD[2][2],hD[3][2])
+                                                                                    hD[0][2],hD[1][2],hD[2][2],hD[3][2]))
         resultFile.write("%d,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g,%g\n" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
                                                                hD[0][1],hD[1][1],hD[2][1],hD[3][1],
                                                                hD[0][2],hD[1][2],hD[2][2],hD[3][2]))

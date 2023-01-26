@@ -92,14 +92,14 @@ def _ANEOSFactory(RealConstructor,
     optionalArgs = ["material"]
 
     # Check usage
-    allArgs = optionalArgs + cppArgs.keys()
+    allArgs = optionalArgs + list(cppArgs.keys())
     for iarg, arg in enumerate(cppArgs):
         if (cppArgs[arg] is None and
             (len(args) < iarg + 1 and not arg in kwargs)):
-            raise ValueError, ("ANEOS error: did not provide required arguments %s.\n" % arg) + expectedUsageString
+            raise ValueError(("ANEOS error: did not provide required arguments %s.\n" % arg) + expectedUsageString)
     if (len(args) > len(cppArgs) or 
         min([arg in allArgs for arg in kwargs] + [True]) == False):
-        raise ValueError, "ANEOS unexpected argument.\n" + expectedUsageString
+        raise ValueError("ANEOS unexpected argument.\n" + expectedUsageString)
 
     # Are we using one of the provided, canned materials?
     if "material" in kwargs:
@@ -112,7 +112,7 @@ def _ANEOSFactory(RealConstructor,
         material = None
     if material:
         if material not in ("quartz", "dunite", "serpentine"):
-            raise ValueError, "ANEOS: material must be one of (quartz, dunite, serpentine), passed %s" % material
+            raise ValueError("ANEOS: material must be one of (quartz, dunite, serpentine), passed %s" % material)
         filename = os.path.join("@ANEOS_INPUT_DEST_DIR@", {"quartz" : "quartz_.input",
                                                            "dunite" : "dunite_.input",
                                                            "serpentine" : "serpent.input"}[material])
@@ -124,8 +124,8 @@ def _ANEOSFactory(RealConstructor,
         exec("%s = cppArgs['%s']" % (arg, arg))
 
     # Deal with arguments
-    for iarg in xrange(len(args)):
-        exec("%s = args[iarg]" % cppArgs.keys()[iarg])
+    for iarg in range(len(args)):
+        exec("%s = args[iarg]" % list(cppArgs.keys())[iarg])
 
     # Keyword arguments
     for arg in kwargs:
@@ -135,15 +135,15 @@ def _ANEOSFactory(RealConstructor,
     # Make sure all required arguments got set to something
     for arg in cppArgs:
         if eval("arg") is None:
-            raise ValueError, ("ANEOS: did not set required argument %s\n" % arg) + expectedUsageString
+            raise ValueError(("ANEOS: did not set required argument %s\n" % arg) + expectedUsageString)
 
     # Did we use default values for rho min/max?  If so, need to check units
     lconv = 0.01  / constants.unitLengthMeters
     mconv = 0.001 / constants.unitMassKg
     rhoConv = mconv/(lconv**3)
-    if len(args) < cppArgs.keys().index("rhoMin") + 1 and not "rhoMin" in kwargs:
+    if len(args) < list(cppArgs.keys()).index("rhoMin") + 1 and not "rhoMin" in kwargs:
         rhoMin *= rhoConv
-    if len(args) < cppArgs.keys().index("rhoMax") + 1 and not "rhoMax" in kwargs:
+    if len(args) < list(cppArgs.keys()).index("rhoMax") + 1 and not "rhoMax" in kwargs:
         rhoMax *= rhoConv
 
     # The calling routine must provide the appropriate C++ constructor.

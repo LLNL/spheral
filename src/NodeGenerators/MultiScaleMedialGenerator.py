@@ -75,7 +75,7 @@ class MultiScaleMedialGeneratorBase(NodeGeneratorBase):
                 seedPositions = []
                 while mpi.allreduce(len(seedPositions), mpi.SUM) < ntarget:
                     zeta = sph.Vector(rangen.uniform(-0.5, 0.5), rangen.uniform(-0.5, 0.5), rangen.uniform(-0.5, 0.5))
-                    for i in xrange(gen.localNumNodes()):
+                    for i in range(gen.localNumNodes()):
                         hscale = (gen.vol[i]/pi)**(1.0/ndim)
                         xi = gen.pos[i] + hscale*zeta
                         if boundary.contains(xi, False):

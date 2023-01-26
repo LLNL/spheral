@@ -24,7 +24,7 @@ class WDUnits(PhysicalConstants):
 def hashEnergy(generator):
     e_hash = []
     e_heps = []
-    for i in xrange(generator.localNumNodes()):
+    for i in range(generator.localNumNodes()):
         e_hash.append( int( 1.0e15*abs(generator.x[i]) + 1.0e10*abs(generator.y[i]) + 1.0e5*abs(generator.z[i]) ) )
         e_heps.append( generator.eps[i] )
     #Pass it around
@@ -36,10 +36,10 @@ def energyHash(nodeList,e_hash,e_heps):
     eps = nodeList.specificThermalEnergy()
     pos = nodeList.positions()
     
-    for i in xrange(nodeList.numInternalNodes):
+    for i in range(nodeList.numInternalNodes):
         cval = int( 1.0e15*abs(pos[i].x) + 1.0e10*abs(pos[i].y) + 1.0e5*abs(pos[i].z) )
         indx = -100
-        for j in xrange(len(e_hash)):
+        for j in range(len(e_hash)):
             if(e_hash[j] == cval):
                 indx = j
                 break
@@ -195,7 +195,7 @@ generator1 = AsciiFileNodeGenerator3D(filename=star1,
 distributeNodes((nodes1, generator1))
 
 eps = nodes1.specificThermalEnergy()
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     eps[i] = generator1.eps[i]
 
 #energyHash(nodes1,ehash1,eheps1)
@@ -293,7 +293,7 @@ output("integrator.rigorousBoundaries")
 # Build the controller.
 #-------------------------------------------------------------------------------
 
-print "building controller"
+print("building controller")
 
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,

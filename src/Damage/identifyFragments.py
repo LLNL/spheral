@@ -12,7 +12,7 @@ def uniqueElements(container):
     resultDict = {}
     for x in container:
         resultDict[x] = 0
-    return resultDict.keys()
+    return list(resultDict.keys())
 
 #-------------------------------------------------------------------------------
 # Identify the set of distinct fragments in the given SolidNodeList.
@@ -66,8 +66,8 @@ def identifyFragments(nodeList,
     result.name = "FRAGMENT INDEX"
 
     stopTime = time.time()
-    print "identifyFragments: identified %i fragments." % numFragments
-    print "                   Required %g seconds." % (stopTime - startTime)
+    print("identifyFragments: identified %i fragments." % numFragments)
+    print("                   Required %g seconds." % (stopTime - startTime))
 
     return result
 
@@ -118,7 +118,7 @@ def fragmentProperties(nodeList,
 
     # Prepare the result.
     result = {}
-    for i in xrange(numFragments):
+    for i in range(numFragments):
         result[i] = {"mass": 0.0,
                      "num nodes": 0,
                      "position": Vector(),
@@ -146,7 +146,7 @@ def fragmentProperties(nodeList,
     nodeList.pressure(P)
 
     # Now iterate over the nodes and accumulate the local result.
-    for i in xrange(nodeList.numInternalNodes):
+    for i in range(nodeList.numInternalNodes):
         fragID = fragField[i]
         assert fragID < numFragments
         mi = mass[i]
@@ -167,7 +167,7 @@ def fragmentProperties(nodeList,
 
     # Reduce for the global fragment properties.
     assert mpi.allreduce(len(result), mpi.SUM) == numFragments*mpi.procs
-    for fragID in xrange(numFragments):
+    for fragID in range(numFragments):
         mfrag = mpi.allreduce(result[fragID]["mass"], mpi.SUM)
         assert mfrag > 0.0
         result[fragID]["mass"] = mfrag
@@ -184,7 +184,7 @@ def fragmentProperties(nodeList,
             result[fragID]["strain (vol)"] = mpi.allreduce(result[fragID]["strain (vol)"], mpi.SUM)/mfrag
 
     # Now that we have the center of mass for each fragment, we can evaluate the shape tensors.
-    for i in xrange(nodeList.numInternalNodes):
+    for i in range(nodeList.numInternalNodes):
         fragID = fragField[i]
         assert fragID < numFragments
         mi = mass[i]
@@ -192,7 +192,7 @@ def fragmentProperties(nodeList,
         result[fragID]["shape tensor"] += dr.selfdyad() * mi
 
     # Reduce the global shapes.
-    for fragID in xrange(numFragments):
+    for fragID in range(numFragments):
         mfrag = result[fragID]["mass"]
         assert mfrag > 0.0
         result[fragID]["shape tensor"] = mpi.allreduce(result[fragID]["shape tensor"], mpi.SUM)/mfrag
@@ -202,6 +202,6 @@ def fragmentProperties(nodeList,
     assert fuzzyEqual(sum([result[i]["mass"] for i in result]), mpi.allreduce(sum(nodeList.mass().internalValues()), mpi.SUM))
 
     stopTime = time.time()
-    print "fragmentProperties:  Required %g seconds." % (stopTime - startTime)
+    print("fragmentProperties:  Required %g seconds." % (stopTime - startTime))
 
     return result

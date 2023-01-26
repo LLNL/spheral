@@ -360,7 +360,7 @@ def planarReflectingOperator1(plane = "const GeomPlane<%(Dimension)s>&"):
     "Generate the reflection operator for the given plane."
     return "%(Dimension)s::Tensor"
 
-for ndim in xrange(1, 4):
+for ndim in range(1, 4):
     exec('''
 @PYB11cppname("rotationMatrix")
 def rotationMatrix%(ndim)id(runit = "const %(Vector)s&"):

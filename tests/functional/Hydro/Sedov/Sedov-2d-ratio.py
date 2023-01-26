@@ -114,7 +114,7 @@ commandLine(seed = "lattice",
 if smallPressure:
     P0 = 1.0e-6
     eps0 = P0/((gamma - 1.0)*rho0)
-    print "WARNING: smallPressure specified, so setting eps0=%g" % eps0
+    print("WARNING: smallPressure specified, so setting eps0=%g" % eps0)
 
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert not(gsph and (boolReduceViscosity or boolCullenViscosity))
@@ -137,7 +137,7 @@ if goalTime is None:
     nu2 = 2.0*nu1
     goalTime = (goalRadius*(answer.alpha*rho0/Espike)**nu1)**(1.0/nu2)
 vs, r2, v2, rho2, P2 = answer.shockState(goalTime)
-print "Predicted shock position %g at goal time %g." % (r2, goalTime)
+print("Predicted shock position %g at goal time %g." % (r2, goalTime))
 
 # Scale the spike energy according to the boundary conditions we're using.
 if thetaFactor == 0.5:
@@ -253,7 +253,7 @@ output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 Esum = 0.0
 if smoothSpike or topHatSpike:
     Wsum = 0.0
-    for nodeID in xrange(nodes1.numInternalNodes):
+    for nodeID in range(nodes1.numInternalNodes):
         Hi = H[nodeID]
         etaij = (Hi*pos[nodeID]).magnitude()
         if smoothSpike:
@@ -269,14 +269,14 @@ if smoothSpike or topHatSpike:
         Wsum += Wi
     Wsum = mpi.allreduce(Wsum, mpi.SUM)
     assert Wsum > 0.0
-    for nodeID in xrange(nodes1.numInternalNodes):
+    for nodeID in range(nodes1.numInternalNodes):
         eps[nodeID] /= Wsum
         Esum += eps[nodeID]*mass[nodeID]
         eps[nodeID] += eps0
 else:
     i = -1
     rmin = 1e50
-    for nodeID in xrange(nodes1.numInternalNodes):
+    for nodeID in range(nodes1.numInternalNodes):
         rij = pos[nodeID].magnitude()
         if rij < rmin:
             i = nodeID
@@ -288,7 +288,7 @@ else:
         eps[i] += Espike/mass[i]
         Esum += Espike
 Eglobal = mpi.allreduce(Esum, mpi.SUM)
-print "Initialized a total energy of", Eglobal
+print("Initialized a total energy of", Eglobal)
 assert fuzzyEqual(Eglobal, Espike)
 
 #-------------------------------------------------------------------------------
@@ -461,9 +461,9 @@ else:
     control.step(steps)
 
 # Output the energy conservation.
-print "Energy conservation: ", ((control.conserve.EHistory[-1] -
+print("Energy conservation: ", ((control.conserve.EHistory[-1] -
                                  control.conserve.EHistory[0])/
-                                control.conserve.EHistory[0])
+                                control.conserve.EHistory[0]))
 
 #-------------------------------------------------------------------------------
 # Generate some error metrics comparing to the analytic solution.
@@ -493,7 +493,7 @@ for Hfield, hrfield, htfield in zip(Hinverse,
     assert hrfield.numElements == n
     assert htfield.numElements == n
     positions = Hfield.nodeList().positions()
-    for i in xrange(n):
+    for i in range(n):
         runit = positions[i].unitVector()
         tunit = Vector(-(positions[i].y), positions[i].x).unitVector()
         hrfield[i] = (Hfield[i]*runit).magnitude()
@@ -507,7 +507,7 @@ if mpi.rank == 0:
     import Pnorm
     multiSort(r, rho, v, eps, P, A, hr, ht)
     rans, vans, epsans, rhoans, Pans, Aans, hans = answer.solution(control.time(), r)
-    print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+    print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
     #f = open("MCTesting.txt", "a")
     #f.write(("CL=%g, Cq=%g \t") %(Cl, Cq))
     for (name, data, ans) in [("Mass Density", rho, rhoans),
@@ -517,12 +517,12 @@ if mpi.rank == 0:
                               ("Entropy", A, Aans),
                               ("hr", hr, hans)]:
         assert len(data) == len(ans)
-        error = [data[i] - ans[i] for i in xrange(len(data))]
+        error = [data[i] - ans[i] for i in range(len(data))]
         Pn = Pnorm.Pnorm(error, r)
         L1 = Pn.gridpnorm(1, rmin, rmax)
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
-        print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
         #f.write(("\t\t%g") % (L1))
     #f.write("\n")
 Aans = mpi.bcast(Aans, 0)
@@ -549,15 +549,15 @@ if serialDump:
     i,j = 0,0
     nodeSet = []
     nodeSet.append(nodes1)
-    for i in xrange(procs):
+    for i in range(procs):
         for nodeL in nodeSet:
             if rank == i:
-                for j in xrange(nodeL.numInternalNodes):
+                for j in range(nodeL.numInternalNodes):
                     serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
     serialData = mpi.reduce(serialData,mpi.SUM)
     if rank == 0:
         f = open(dataDir + "/serialDump.ascii",'w')
-        for i in xrange(len(serialData)):
+        for i in range(len(serialData)):
             f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
         f.close()
 

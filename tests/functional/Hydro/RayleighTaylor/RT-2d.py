@@ -259,7 +259,7 @@ if restoreCycle is None:
     for nodes in (nodes1,nodes2):
         pos = nodes.positions()
         vel = nodes.velocity()
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             pos[i].y += dy(pos[i])
 
 #-------------------------------------------------------------------------------
@@ -365,9 +365,9 @@ if bArtificialConduction:
 nodeIndicies1 = vector_of_int()
 nodeIndicies2 = vector_of_int()
 
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     nodeIndicies1.append(i)
-for i in xrange(nodes2.numInternalNodes):
+for i in range(nodes2.numInternalNodes):
     nodeIndicies2.append(i)
 
 #nodeIndicies1.extend(range(nodes1.numInternalNodes))
@@ -465,14 +465,14 @@ if serialDump:
     rank = mpi.rank
     serialData = []
     i,j = 0,0
-    for i in xrange(procs):
+    for i in range(procs):
         for nodeL in nodeSet:
             if rank == i:
-                for j in xrange(nodeL.numInternalNodes):
+                for j in range(nodeL.numInternalNodes):
                     serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
     serialData = mpi.reduce(serialData,mpi.SUM)
     if rank == 0:
         f = open(dataDir + "/serialDump.ascii",'w')
-        for i in xrange(len(serialData)):
+        for i in range(len(serialData)):
             f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
         f.close()

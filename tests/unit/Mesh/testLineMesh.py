@@ -24,7 +24,7 @@ def meshScales(xnodes, xmin, xmax):
     nx = len(xnodes)
     xsort = list(xnodes)
     xsort.sort()
-    dx = ([(0.5*(xsort[i + 1] + xsort[i]) - 0.5*(xsort[i] + xsort[i - 1])) for i in xrange(1, nx-1)] + 
+    dx = ([(0.5*(xsort[i + 1] + xsort[i]) - 0.5*(xsort[i] + xsort[i - 1])) for i in range(1, nx-1)] + 
           [0.5*(xsort[0] + xsort[1]) - xmin] +
           [xmax - 0.5*(xsort[-2] + xsort[-1])])
     dxmin = mpi.bcast(0.5*min(dx))
@@ -78,16 +78,16 @@ class LineMeshGenericTests:
                                       xmin = xmin,
                                       xmax = xmax)
         sys.stderr.write("%i %i %i\n" % (self.nodes.numInternalNodes, self.nodes.numGhostNodes, mesh.numZones))
-        for i in xrange(self.nodes.numInternalNodes):
+        for i in range(self.nodes.numInternalNodes):
             node = mesh.node(i)
             assert node.ID == i
-        for i in xrange(mesh.numEdges):
+        for i in range(mesh.numEdges):
             edge = mesh.edge(i)
             assert edge.ID == i
-        for i in xrange(mesh.numFaces):
+        for i in range(mesh.numFaces):
             face = mesh.face(i)
             assert face.ID == i
-        for i in xrange(mesh.numZones):
+        for i in range(mesh.numZones):
             zone = mesh.zone(i)
             assert zone.ID == i
         return
@@ -101,7 +101,7 @@ class LineMeshGenericTests:
                                       xmax = xmax)
         assert mesh.numZones >= self.nodes.numInternalNodes
         pos = self.nodes.positions()
-        for i in xrange(self.nodes.numInternalNodes):
+        for i in range(self.nodes.numInternalNodes):
             zone = mesh.zone(i)
             zonehull = zone.convexHull
             self.failUnless(zonehull.contains(pos[i]),
@@ -118,7 +118,7 @@ class LineMeshGenericTests:
         mesh, void = generateLineMesh([self.nodes],
                                       xmin = xmin,
                                       xmax = xmax)
-        for i in xrange(mesh.numNodes - 1):
+        for i in range(mesh.numNodes - 1):
             assert mesh.node(i).position.x < mesh.node(i + 1).position.x
         return
 
@@ -206,7 +206,7 @@ class LineMeshGenericTests:
         mesh, void = generateLineMesh([self.nodes],
                                       xmin = xmin,
                                       xmax = xmax)
-        pos = [mesh.zone(i).position for i in xrange(mesh.numZones)] + [mesh.node(i).position for i in xrange(mesh.numNodes)]
+        pos = [mesh.zone(i).position for i in range(mesh.numZones)] + [mesh.node(i).position for i in range(mesh.numNodes)]
         xpos = [x.x for x in pos]
         xpos.sort()
         boxInv = Vector(1.0/(xmax.x - xmin.x))
@@ -225,9 +225,9 @@ class LineMeshGenericTests:
         mesh, void = generateLineMesh([self.nodes],
                                       xmin = xmin,
                                       xmax = xmax)
-        zoneList = [(mesh.zone(i).position.x, i) for i in xrange(mesh.numZones)]
+        zoneList = [(mesh.zone(i).position.x, i) for i in range(mesh.numZones)]
         zoneList.sort()
-        for inode in xrange(1, mesh.numNodes - 1):
+        for inode in range(1, mesh.numNodes - 1):
             zoneIDs = mesh.node(inode).zoneIDs
             assert len(zoneIDs) <= 2
             assert ((inode == 0             and len(zoneIDs) == 1 and zoneIDs[0] == zoneList[0][1]) or
@@ -251,12 +251,12 @@ class LineMeshGenericTests:
 
         # Check that all the generators are contained.
         pos = self.nodes.positions()
-        for i in xrange(self.nodes.numInternalNodes):
+        for i in range(self.nodes.numInternalNodes):
             self.failUnless(bs.contains(pos[i]),
                             "Failed containment for generator %i @ %s" % (i, pos[i]))
 
         # Check that all mesh nodes are contained.
-        for i in xrange(mesh.numNodes):
+        for i in range(mesh.numNodes):
             self.failUnless(bs.contains(mesh.node(i).position),
                             "Failed containment for mesh node %i @ %s" % (i, mesh.node(i).position))
 
@@ -281,10 +281,10 @@ class UniformLineMeshTests(unittest.TestCase, LineMeshGenericTests):
 
         # Generate initial positions, and split them up between domains appropriately.
         dxavg = (x1 - x0)/nx
-        xnodes = [x0 + (i + 0.5)*dxavg for i in xrange(nx)] # [rangen.uniform(x0, x1) for i in xrange(nx)]
+        xnodes = [x0 + (i + 0.5)*dxavg for i in range(nx)] # [rangen.uniform(x0, x1) for i in xrange(nx)]
         xnodes.sort()
         self.dxmin, self.dxmax = meshScales(xnodes, x0, x1)
-        for proc in xrange(numDomains):
+        for proc in range(numDomains):
             xnodes[proc*nxperdomain : (proc + 1)*nxperdomain] = mpi.bcast(xnodes[proc*nxperdomain : (proc + 1)*nxperdomain])
         xnodes = xnodes[rank*nxperdomain : (rank + 1)*nxperdomain]
         assert len(xnodes) == nxperdomain
@@ -295,7 +295,7 @@ class UniformLineMeshTests(unittest.TestCase, LineMeshGenericTests):
         random.shuffle(xnodes)
 
         # Now we can set the node conditions.
-        for i in xrange(nxperdomain):
+        for i in range(nxperdomain):
             pos[i] = Vector(xnodes[i])
             H[i] = SymTensor(1.0/(2.0*self.dxmax))
         self.nodes.neighbor().updateNodes()
@@ -337,7 +337,7 @@ class UniformLineMeshTests(unittest.TestCase, LineMeshGenericTests):
         self.failUnless(mpi.allreduce(void.numNodes, mpi.SUM) == 1, 
                         "Bad number of void nodes:  %i %s" % (mpi.allreduce(void.numNodes, mpi.SUM), str([x.x for x in void.positions().allValues()])))
         assert mpi.allreduce(mesh.numZones, mpi.SUM) == mpi.allreduce(self.nodes.numInternalNodes, mpi.SUM) + 1
-        maxpos = mpi.allreduce(max([pos[i].x for i in xrange(self.nodes.numInternalNodes)]), mpi.MAX)
+        maxpos = mpi.allreduce(max([pos[i].x for i in range(self.nodes.numInternalNodes)]), mpi.MAX)
         if void.numNodes == 1:
             self.failUnless(voidpos[0].x > maxpos, "%f %f" % (voidpos[0].x, maxpos))
             voidzone = mesh.zone(self.nodes.numInternalNodes)
@@ -365,10 +365,10 @@ class UniformGapLineMeshTests(unittest.TestCase, LineMeshGenericTests):
         # Generate initial positions, and split them up between domains appropriately.
         gap = 0.9
         dxavg = (x1 - x0 - gap)/nx
-        xnodes = [x0 + (i + 0.5)*dxavg for i in xrange(nx/2)] + [0.5*(x0 + x1 + gap) + (i + 0.5)*dxavg for i in xrange(nx/2)]
+        xnodes = [x0 + (i + 0.5)*dxavg for i in range(nx/2)] + [0.5*(x0 + x1 + gap) + (i + 0.5)*dxavg for i in range(nx/2)]
         xnodes.sort()
         self.dxmin, self.dxmax = meshScales(xnodes, x0, x1)
-        for proc in xrange(numDomains):
+        for proc in range(numDomains):
             xnodes[proc*nxperdomain : (proc + 1)*nxperdomain] = mpi.bcast(xnodes[proc*nxperdomain : (proc + 1)*nxperdomain])
         xnodes = xnodes[rank*nxperdomain : (rank + 1)*nxperdomain]
         assert len(xnodes) == nxperdomain
@@ -379,7 +379,7 @@ class UniformGapLineMeshTests(unittest.TestCase, LineMeshGenericTests):
         #random.shuffle(xnodes)
 
         # Now we can set the node conditions.
-        for i in xrange(nxperdomain):
+        for i in range(nxperdomain):
             pos[i] = Vector(xnodes[i])
             H[i] = SymTensor(1.0/(2.0*dxavg))
         self.nodes.neighbor().updateNodes()
@@ -444,10 +444,10 @@ class RandomLineMeshTests(unittest.TestCase, LineMeshGenericTests):
 
         # Generate initial positions, and split them up between domains appropriately.
         dxavg = (x1 - x0)/nx
-        xnodes = [rangen.uniform(x0, x1) for i in xrange(nx)]
+        xnodes = [rangen.uniform(x0, x1) for i in range(nx)]
         xnodes.sort()
         self.dxmin, self.dxmax = meshScales(xnodes, x0, x1)
-        for proc in xrange(numDomains):
+        for proc in range(numDomains):
             xnodes[proc*nxperdomain : (proc + 1)*nxperdomain] = mpi.bcast(xnodes[proc*nxperdomain : (proc + 1)*nxperdomain])
         xnodes = xnodes[rank*nxperdomain : (rank + 1)*nxperdomain]
         assert len(xnodes) == nxperdomain
@@ -458,7 +458,7 @@ class RandomLineMeshTests(unittest.TestCase, LineMeshGenericTests):
         random.shuffle(xnodes)
 
         # Now we can set the node conditions.
-        for i in xrange(nxperdomain):
+        for i in range(nxperdomain):
             pos[i] = Vector(xnodes[i])
             H[i] = SymTensor(1.0/(2.0*self.dxmax))
         self.nodes.neighbor().updateNodes()

@@ -157,7 +157,7 @@ mass = nodes1.mass()
 eps = nodes1.specificThermalEnergy()
 xvals = [p.x for p in pos.internalValues()]
 xans, vans, uans, rhoans, Pans, hans = answer.solution(0.0, xvals)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     vel[i].x = vans[i]
     eps[i] = uans[i]
 
@@ -174,11 +174,11 @@ m0 = rho1*dx
 Hdet0 = 1.0/(nPerh*dx)
 rhoscale = m0*WT.kernelValue(0.0, Hdet0)
 deta = 1.0/nPerh
-for i in xrange(1, int(WT.kernelExtent * (nPerh + 1))):
+for i in range(1, int(WT.kernelExtent * (nPerh + 1))):
     rhoscale += 2.0*m0*WT.kernelValue(i*deta, Hdet0)
 rhoscale = rho1/rhoscale
-print "Compute analytic rho scaling of %16.12e." % rhoscale
-for i in xrange(nodes1.numInternalNodes):
+print("Compute analytic rho scaling of %16.12e." % rhoscale)
+for i in range(nodes1.numInternalNodes):
     mass[i] *= rhoscale
 
 #-------------------------------------------------------------------------------
@@ -277,7 +277,7 @@ output("integrator.rigorousBoundaries")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-print "Making controller."
+print("Making controller.")
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -292,7 +292,7 @@ if steps is None:
     if control.time() < goalTime:
         control.advance(goalTime, maxSteps)
     if checkReversibility:
-        for i in xrange(nodes1.numNodes):
+        for i in range(nodes1.numNodes):
             vel[i] = -vel[i]
         control.advance(2*goalTime, maxSteps)
 else:
@@ -326,7 +326,7 @@ if graphics == "gnu":
     elif CRKSPH:
         A0=hydro.A0()
 	print("ARRAY LENGTH:")
-        print(A0[0].__len__())
+        print((A0[0].__len__()))
         tmp=[]
         for i in range(A0[0].__len__()):
 		tmp.append(A0[0][i])
@@ -364,7 +364,7 @@ if graphics == "gnu":
                                   colorNodeLists = False)
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
@@ -404,7 +404,7 @@ if outputFile != "None":
 
         # While we're at it compute and report the error norms.
         import Pnorm
-        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+        print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
         if normOutputFile != "None":
             f = open(normOutputFile, "a")
             if writeOutputLabel:
@@ -420,12 +420,12 @@ if outputFile != "None":
                                   ("Velocity", vprof, vans),
                                   ("h       ", hprof, hans)]:
             assert len(data) == len(ans)
-            error = [data[i] - ans[i] for i in xrange(len(data))]
+            error = [data[i] - ans[i] for i in range(len(data))]
             Pn = Pnorm.Pnorm(error, xprof)
             L1 = Pn.gridpnorm(1, xmin, xmax)
             L2 = Pn.gridpnorm(2, xmin, xmax)
             Linf = Pn.gridpnorm("inf", xmin, xmax)
-            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+            print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
             if normOutputFile != "None":
                 f.write((3*"%16.12e ") % (L1, L2, Linf))
         if normOutputFile != "None":
@@ -433,4 +433,4 @@ if outputFile != "None":
             f.close()
 
 if compatibleEnergy and abs(Eerror) > 1e-8:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")

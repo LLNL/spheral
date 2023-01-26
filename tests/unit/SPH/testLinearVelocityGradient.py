@@ -184,15 +184,15 @@ elif testDim == "spherical":
     distributeNodes1d((nodes1, gen))
 
 else:
-    raise ValueError, "Only tests cases for 1d, 2d, 3d, and Spherical." 
+    raise ValueError("Only tests cases for 1d, 2d, 3d, and Spherical.") 
 
 output("nodes1.numNodes")
 
 # Set node properties.
 eps = nodes1.specificThermalEnergy()
-for i in xrange(nx1):
+for i in range(nx1):
     eps[i] = eps1
-for i in xrange(nx2):
+for i in range(nx2):
     eps[i + nx1] = eps2
 
 #-------------------------------------------------------------------------------
@@ -203,7 +203,7 @@ dx2 = (x2 - x1)/nx2
 dy = (x2 - x0)/(nx1 + nx2)
 dz = (x2 - x0)/(nx1 + nx2)
 pos = nodes1.positions()
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     if pos[i] < x1:
         dx = dx1
     else:
@@ -232,8 +232,8 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 f = nodes1.velocity()
 pos = nodes1.positions()
-for i in xrange(nodes1.numInternalNodes):
-    for j in xrange(db.nDim):
+for i in range(nodes1.numInternalNodes):
+    for j in range(db.nDim):
         x = pos[i][j]
         if testCase == "linear":
             f[i][j] = (y0 + m0*x)
@@ -321,9 +321,9 @@ H = H_fl[0]
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
-xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
+xans = [positions[i].x for i in range(nodes1.numInternalNodes)]
 dyans = TensorField("derivative answer", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     if testCase == "linear":
         dyans[i] = m0 * Tensor.one
     elif testCase == "quadratic":
@@ -336,15 +336,15 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 errdySPH0 =  ScalarField("uncorrected SPH derivative error", nodes1)
 errdySPH1 =  ScalarField("corrected SPH derivative error", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     errdySPH0[i] =  (dfSPH0[i] - dyans[i]).selfDoubledot()
     errdySPH1[i] =  (dfSPH1[i] - dyans[i]).selfDoubledot()
 
 maxdySPHerror0 = max([abs(x) for x in errdySPH0])
 maxdySPHerror1 = max([abs(x) for x in errdySPH1])
 
-print "Maximum error in uncorrected SPH: %g" % maxdySPHerror0
-print "Maximum error in   corrected SPH: %g" % maxdySPHerror1
+print("Maximum error in uncorrected SPH: %g" % maxdySPHerror0)
+print("Maximum error in   corrected SPH: %g" % maxdySPHerror1)
 
 #-------------------------------------------------------------------------------
 # Plot the things.
@@ -352,7 +352,7 @@ print "Maximum error in   corrected SPH: %g" % maxdySPHerror1
 if graphics:
     from SpheralGnuPlotUtilities import *
     import Gnuplot
-    xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
+    xans = [positions[i].x for i in range(nodes1.numInternalNodes)]
 
     dansdata = Gnuplot.Data(xans, [x.xx for x in dyans.internalValues()],
                             with_ = "lines",
@@ -401,4 +401,4 @@ if graphics:
 # Check the maximum corrected SPH error and fail the test if it's out of bounds.
 #-------------------------------------------------------------------------------
 if maxdySPHerror1 > derivativeTolerance:
-    raise ValueError, "corrected SPH derivative error out of bounds: %g > %g" % (maxdySPHerror1, derivativeTolerance)
+    raise ValueError("corrected SPH derivative error out of bounds: %g > %g" % (maxdySPHerror1, derivativeTolerance))

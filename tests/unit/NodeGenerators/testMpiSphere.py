@@ -18,13 +18,13 @@ if (nshell>procs and procs>1):
     p = 0
     if(rank>0 and rank*npp!=nshell):
         imax = rank*npp+1
-        for i in xrange(1,imax):
+        for i in range(1,imax):
             h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
             if(i>1 and i<nshell):
                 p = (p+3.8/sqrt(nshell)*1.0/sqrt(1.0-h*h))%(2.0*pi)
     rankmin = rank*npp+1
     rankmax = ((rank+1)*npp + 1) if (rank != procs -1) else (nshell + 1)
-    for i in xrange(rankmin, rankmax):
+    for i in range(rankmin, rankmax):
         h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
         t = acos(h)
         if(i>1 and i<nshell):
@@ -39,7 +39,7 @@ else:
     # let rank 0 do all the work
     p = 0
     if (mpi.rank == 0):
-        for i in xrange(1, nshell+1):
+        for i in range(1, nshell+1):
             h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
             t = acos(h)
             if(i>1 and i<nshell):
@@ -53,5 +53,5 @@ else:
 
 positions = mpi.allreduce(positions,mpi.SUM)
 #print "x\ty\tz\trho\n"
-for i in xrange(len(positions)):
-    print "%f\t%f\t%f\t%f"%(positions[i][0],positions[i][1],positions[i][2],positions[i][3])
+for i in range(len(positions)):
+    print("%f\t%f\t%f\t%f"%(positions[i][0],positions[i][1],positions[i][2],positions[i][3]))

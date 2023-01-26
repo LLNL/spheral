@@ -46,7 +46,7 @@ class TestASPHIdealH3d(unittest.TestCase):
     # desired mapping to the node positions.
     #===========================================================================
     def distortNodeDistribution(self, T):
-        for i in xrange(self.testdata.nodes1.numNodes):
+        for i in range(self.testdata.nodes1.numNodes):
             self.testdata.nodes1.positions()[i] = T*self.testdata.nodes1.positions()[i]
         self.testdata.nodes1.neighbor().updateNodes()
         return
@@ -59,10 +59,10 @@ class TestASPHIdealH3d(unittest.TestCase):
         # The state of the node we're testing.
         ri = self.testdata.nodes1.positions()[self.inode]
         Hi = SymTensor3d(self.testdata.nodes1.Hfield()[self.inode])
-        print ri, Hi
+        print(ri, Hi)
         assert ri == Vector3d(0.5, 0.5, 0.5)
 
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
 
             # Pick a random multiplicative distortion to apply to the node
             # position field.
@@ -85,8 +85,8 @@ class TestASPHIdealH3d(unittest.TestCase):
             T = R*T0
             Rinverse = R.Inverse()
             Tinverse = T.Inverse()
-            print "mx, my, mz, theta/pi, phi/pi: ", mx, my, mz, theta/pi, phi/pi
-            print "T, Ti: ", T, Tinverse
+            print("mx, my, mz, theta/pi, phi/pi: ", mx, my, mz, theta/pi, phi/pi)
+            print("T, Ti: ", T, Tinverse)
 
             # Compute the expected answer for the ideal H.
             answer = (R*(T0.Inverse()*Hi).Symmetric()*R.Inverse()).Symmetric()
@@ -95,14 +95,14 @@ class TestASPHIdealH3d(unittest.TestCase):
             self.distortNodeDistribution(T)
 
             # Run the ideal H algorithm by evaluating the fluid derivatives.
-            for iter in xrange(self.iterations):
-                print "Iteration ", iter
+            for iter in range(self.iterations):
+                print("Iteration ", iter)
                 derivs = StateDerivatives3d(self.testdata.dataBase)
                 derivs.Zero()
                 self.hydro.evaluateDerivatives(1.0, 1.0, self.testdata.dataBase, derivs)
-                print "Hooo boy"
+                print("Hooo boy")
                 Hip = SymTensor3d(derivs.Hideal()[0][self.inode])
-                print "Original, Answer, Hip: ", Hi, answer, Hip
+                print("Original, Answer, Hip: ", Hi, answer, Hip)
                 self.testdata.nodes1.Hfield()[self.inode] = Hip
                 self.testdata.nodes1.neighbor().updateNodes()
 

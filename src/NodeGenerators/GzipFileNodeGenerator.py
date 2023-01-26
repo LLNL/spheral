@@ -129,7 +129,7 @@ class GzipFileNodeGenerator2D(NodeGeneratorBase):
             self.f.close()
 
         # Apply the requested number of refinements.
-        for i in xrange(refineNodes):
+        for i in range(refineNodes):
             refineNodes2d(self)
 
         return
@@ -284,7 +284,7 @@ class GzipFileNodeGenerator3D(NodeGeneratorBase):
             self.f.close()
 
         # Apply the requested number of refinements.
-        for i in xrange(refineNodes):
+        for i in range(refineNodes):
             refineNodes3d(self)
 
         return
@@ -352,12 +352,12 @@ class GzipFileNodeGeneratorRZto2D(GzipFileNodeGenerator2D):
         # Flip the components of the positions and velocities, since
         # x->z, y->r.
         n = len(self.x)
-        for i in xrange(n):
+        for i in range(n):
             self.x[i], self.y[i] = self.y[i], self.x[i]
             self.vx[i], self.vy[i] = self.vy[i], self.vx[i]
 
         # Scale the masses from RZ to 2-D planar geometry.
-        for i in xrange(n):
+        for i in range(n):
             ri = self.y[i]
             c = 2.0*pi*ri
             self.m[i] *= c/(c*c + 1.0e-50)
@@ -369,7 +369,7 @@ class GzipFileNodeGeneratorRZto2D(GzipFileNodeGenerator2D):
             NodeGeneratorBase.__init__(self, self.serialfile, *fields)
 
         # Apply the requested number of refinements.
-        for i in xrange(refineNodes):
+        for i in range(refineNodes):
             refineNodes2d(self)
 
         return
@@ -411,7 +411,7 @@ class GzipFileNodeGeneratorRZto3D(GzipFileNodeGeneratorRZto2D):
         H2dlist = self.H[:]
         assert len(H2dlist) == n
         self.H = []
-        for i in xrange(n):
+        for i in range(n):
             xi = self.x[i]
             yi = self.y[i]
             H2d = H2dlist[i]
@@ -472,14 +472,14 @@ class GzipFileNodeGeneratorRZto3D(GzipFileNodeGeneratorRZto2D):
         self.m = [x for x in mvec]
         self.H = [SymTensor3d(x) for x in Hvec]
         self.globalIDs = [x for x in globalIDsvec]
-        for i in xrange(len(extras)):
+        for i in range(len(extras)):
             extras[i] = [x for x in extrasVec[i]]
         self.rho = extras[0][:]
         self.vx = extras[1][:]
         self.vy = extras[2][:]
         self.eps = extras[3][:]
         assert len(extraFields) == (len(extras) - 4)
-        for i in xrange(len(extraFields)):
+        for i in range(len(extraFields)):
             self.__dict__[extraFields[i]] = extras[i + 4]
 
         # For consistency also generate the z velocities.
@@ -489,9 +489,9 @@ class GzipFileNodeGeneratorRZto3D(GzipFileNodeGeneratorRZto2D):
         # Post conditions.
         for fname in (["y", "z", "m", "rho", "vx", "vy", "vz", "eps", "H", "globalIDs"] + extraFields):
             if len(self.__dict__[fname]) != n:
-                raise ValueError, "GzipFileNodeGenerator3d: wrong field size for %s: %i != %i." % (fname,
+                raise ValueError("GzipFileNodeGenerator3d: wrong field size for %s: %i != %i." % (fname,
                                                                                                    len(self.__dict__[fname]),
-                                                                                                   n)
+                                                                                                   n))
         
         return
 
@@ -586,7 +586,7 @@ def readField(field,
     field.nodeList.numInternalNodes = n
 
     # Convert the field elements.
-    for i in xrange(n):
+    for i in range(n):
         field[i] = _fromString[type(field[i])](strings[i])
 
     return
@@ -613,7 +613,7 @@ def readField2String(materialName,
                     found = True
                     break
         if not found:
-            raise ValueError, "Unable to find %s %s" % (materialName, fieldName)
+            raise ValueError("Unable to find %s %s" % (materialName, fieldName))
 
     result = mpi.bcast(result, 0)
     return result

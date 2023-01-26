@@ -29,7 +29,7 @@ def randomPoints(numPoints,
         theta = rangen.uniform(0.0, 2.0*pi)
     R = rotationMatrix(Vector(cos(theta), sin(theta)))
     
-    for i in xrange(numPoints):
+    for i in range(numPoints):
         result.append(R*Vector(rangen.uniform(xmin, xmax),
                                rangen.uniform(ymin, ymax)))
 
@@ -113,7 +113,7 @@ class TestPolygon(unittest.TestCase):
     def testRandomInnerPoints(self):
         rinner, router = self.innerOuterRadii(self.polygon)
         centroid = self.polygon.centroid
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             theta = rangen.uniform(0.0, 2.0*pi)
             p = centroid + rangen.uniform(0.0, rinner) * Vector(cos(theta), sin(theta))
             self.failUnless(self.polygon.contains(p),
@@ -126,7 +126,7 @@ class TestPolygon(unittest.TestCase):
     def testRandomOuterPoints(self):
         rinner, router = self.innerOuterRadii(self.polygon)
         centroid = self.polygon.centroid
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             theta = rangen.uniform(0.0, 2.0*pi)
             p = centroid + rangen.uniform(router, 2.0*router) * Vector(cos(theta), sin(theta))
             self.failUnless(not self.polygon.contains(p),
@@ -152,7 +152,7 @@ class TestPolygon(unittest.TestCase):
         centroid = self.polygon.centroid
         vertices = vector_of_Vector(self.polygon.vertices)
         numVerts = len(vertices)
-        for i in xrange(numVerts):
+        for i in range(numVerts):
             vertices[i] = 0.5*(centroid + vertices[i])
             assert self.polygon.contains(vertices[i])
         polygon2 = Polygon(vertices)
@@ -169,7 +169,7 @@ class TestPolygon(unittest.TestCase):
         xmin = self.polygon.xmin.x
         vertices = vector_of_Vector(self.polygon.vertices)
         numVerts = len(vertices)
-        for i in xrange(numVerts):
+        for i in range(numVerts):
             xv = vertices[i].x
             vertices[i].x -= 2.0*(xv - xmin)
         polygon2 = Polygon(vertices)
@@ -187,7 +187,7 @@ class TestPolygon(unittest.TestCase):
         xlength = self.polygon.xmax.x - self.polygon.xmin.x
         vertices = vector_of_Vector(self.polygon.vertices)
         numVerts = len(vertices)
-        for i in xrange(numVerts):
+        for i in range(numVerts):
             xv = vertices[i].x
             vertices[i].x -= 2.0*(xv - xmin) + xlength
         polygon2 = Polygon(vertices)
@@ -282,7 +282,7 @@ class TestPolygon(unittest.TestCase):
         verts = sorted(list(verts0), cmpmethod)
         p0 = verts[0]
         answer = 0.0
-        for i in xrange(2, len(verts)):
+        for i in range(2, len(verts)):
             answer += (verts[i] - p0).cross(verts[i - 1] - p0).z
         answer *= 0.5
         vertstring = [str(x) for x in verts]

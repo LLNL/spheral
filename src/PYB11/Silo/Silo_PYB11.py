@@ -1024,12 +1024,12 @@ DBPutPointvar1_%(d)s = PYB11TemplateFunction(DBPutPointvar1, ("%(d)s",), pyname=
 
 for d in ("Vector", "Tensor", "SymTensor"):
     for ndim in (2, 3):
-        exec('''
+        exec(('''
 DBPutUcdvar_%(ndim)i = PYB11TemplateFunction(DBPutUcdvar, "Dim<%(ndim)i>::%(d)s", pyname="DBPutUcdvar")
 DBPutQuadvar_%(ndim)i = PYB11TemplateFunction(DBPutQuadvar, "Dim<%(ndim)i>::%(d)s", pyname="DBPutQuadvar")
 DBPutPointvar_%(ndim)i = PYB11TemplateFunction(DBPutPointvar, "Dim<%(ndim)i>::%(d)s", pyname="DBPutPointvar")
 ''') % {"ndim" : ndim,
-        "d" : d}
+        "d" : d})
 
 #-------------------------------------------------------------------------------
 # Taken from the silo.h file, expose the #define variables as module attributes.

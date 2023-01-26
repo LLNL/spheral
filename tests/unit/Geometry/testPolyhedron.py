@@ -34,7 +34,7 @@ def randomPoints(numPoints,
                               sin(theta)*sin(phi),
                               cos(phi)))
     
-    for i in xrange(numPoints):
+    for i in range(numPoints):
         result.append(R*Vector(rangen.uniform(xmin, xmax),
                                rangen.uniform(ymin, ymax),
                                rangen.uniform(zmin, zmax)))
@@ -99,8 +99,8 @@ class TestPolyhedron(unittest.TestCase):
         for p in self.points: # rangen.sample(self.points, 10000):
             result = self.polyhedron.contains(p)
             if not result:
-                print "Bad polyhedron:  ", [str(x) for x in self.polyhedron.vertices]
-                print "Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron)
+                print("Bad polyhedron:  ", [str(x) for x in self.polyhedron.vertices])
+                print("Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron))
             self.failUnless(result,
                             "Polyhedron does not contain seed point: %s" % str(p))
             self.failUnless(result == self.polyhedron.contains(p, useAxom=True),
@@ -115,10 +115,10 @@ class TestPolyhedron(unittest.TestCase):
         for p in rangen.sample(self.points, 5000):
             result = pointInPolyhedron(p, self.polyhedron, True)
             if not result:
-                print "Bad polyhedron:  ", [str(x) for x in self.polyhedron.vertices]
-                print "Distance from polyhedron: ", self.polyhedron.distance(p)
-                print "Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron)
-                print "Min zray distance:  ", min([(Vector2d(p.x, p.y) - Vector2d(vi.x, vi.y)).magnitude() for vi in self.polyhedron.vertices])
+                print("Bad polyhedron:  ", [str(x) for x in self.polyhedron.vertices])
+                print("Distance from polyhedron: ", self.polyhedron.distance(p))
+                print("Test if point on polyhedron:  ", pointOnPolyhedron(p, self.polyhedron))
+                print("Min zray distance:  ", min([(Vector2d(p.x, p.y) - Vector2d(vi.x, vi.y)).magnitude() for vi in self.polyhedron.vertices]))
             self.failUnless(result,
                             "Polyhedron does not contain seed point: %s" % str(p))
             self.failUnless(result == self.polyhedron.contains(p, useAxom=True),
@@ -144,7 +144,7 @@ class TestPolyhedron(unittest.TestCase):
     def testRandomInnerPoints(self):
         rinner, router = self.innerOuterRadii(self.polyhedron)
         centroid = self.polyhedron.centroid
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             p = centroid + randomVector(0.0, rinner)
             result = self.polyhedron.contains(p)
             self.failUnless(result,
@@ -160,7 +160,7 @@ class TestPolyhedron(unittest.TestCase):
     def testRandomOuterPoints(self):
         rinner, router = self.innerOuterRadii(self.polyhedron)
         centroid = self.polyhedron.centroid
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             p = centroid + randomVector(router, 2.0*router)
             result = self.polyhedron.contains(p)
             self.failUnless(not result,
@@ -188,7 +188,7 @@ class TestPolyhedron(unittest.TestCase):
         centroid = self.polyhedron.centroid
         vertices = vector_of_Vector(self.polyhedron.vertices)
         numVerts = len(vertices)
-        for i in xrange(numVerts):
+        for i in range(numVerts):
             vertices[i] = 0.5*(centroid + vertices[i])
             assert self.polyhedron.contains(vertices[i])
         polyhedron2 = Polyhedron(vertices)
@@ -205,7 +205,7 @@ class TestPolyhedron(unittest.TestCase):
         xmin = self.polyhedron.xmin.x
         vertices = vector_of_Vector(self.polyhedron.vertices)
         numVerts = len(vertices)
-        for i in xrange(numVerts):
+        for i in range(numVerts):
             xv = vertices[i].x
             vertices[i].x -= 2.0*(xv - xmin)
         polyhedron2 = Polyhedron(vertices)
@@ -223,7 +223,7 @@ class TestPolyhedron(unittest.TestCase):
         xlength = self.polyhedron.xmax.x - self.polyhedron.xmin.x
         vertices = vector_of_Vector(self.polyhedron.vertices)
         numVerts = len(vertices)
-        for i in xrange(numVerts):
+        for i in range(numVerts):
             xv = vertices[i].x
             vertices[i].x -= 2.0*(xv - xmin) + xlength
         polyhedron2 = Polyhedron(vertices)

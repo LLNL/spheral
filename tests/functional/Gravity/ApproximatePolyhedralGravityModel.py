@@ -14,7 +14,7 @@ from SpheralVisitDump import dumpPhysicsState
 from math import *
 import os, sys
 
-print "Test ApproximatePolyhedralGravityModel"
+print("Test ApproximatePolyhedralGravityModel")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -42,9 +42,9 @@ a = GravModel.acceleration(pos)
 error = 100*(a - nominalAcceleration).magnitude()/nominalAcceleration.magnitude()
 
 
-print "error acceleration field precentage : %0.15f" % error
+print("error acceleration field precentage : %0.15f" % error)
 
 if error > errorThreshold:
-    raise ValueError, "error bounds exceeded"
+    raise ValueError("error bounds exceeded")
 
 

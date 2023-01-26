@@ -32,7 +32,7 @@ def gradF(r):
 # Build the SphericalKernel
 t0 = time.time()
 W1 = SphericalKernel(BSplineKernel3d(), numIntegral, numKernel, useInterpolation)
-print("Required %0.4f sec to construct SphericalKernel(Cubic B spline)"% (time.time() - t0))
+print(("Required %0.4f sec to construct SphericalKernel(Cubic B spline)"% (time.time() - t0)))
 # t0 = time.time()
 # W2 = SphericalKernel(WendlandC4Kernel3d(), numIntegral, numKernel, useInterpolation)
 # print("Required %0.4f sec to construct SphericalKernel(Wendland C4)"% (time.time() - t0))
@@ -64,7 +64,7 @@ for W in (W3,):
     numInternal = nodes.numInternalNodes - numGhost
     nodes.numInternalNodes = numInternal
     nodes.numGhostNodes = numGhost
-    for i in xrange(numGhost):
+    for i in range(numGhost):
         pos[numInternal + i].x = ghostvals[i][0]
         mass[numInternal + i] = ghostvals[i][1]
         rho[numInternal + i] = ghostvals[i][2]
@@ -79,7 +79,7 @@ for W in (W3,):
 
     # Create our constant Field
     field0 = ScalarField1d("Initial field", nodes, F0)
-    for i in xrange(nodes.numNodes):
+    for i in range(nodes.numNodes):
         field0[i] = F(pos[i].x)
 
     # Interpolate to the new field
@@ -97,7 +97,7 @@ for W in (W3,):
         rho1[i] += mj * Wijj
         grad_sum[i] += mj * gradWijj.x
         if i == 0:
-            print " --> (", i, j, ") : ", mj/rhoj, Wijj, gradWijj, " ::: ", grad_field1[i], grad_sum[i]
+            print(" --> (", i, j, ") : ", mj/rhoj, Wijj, gradWijj, " ::: ", grad_field1[i], grad_sum[i])
         # if i == j:
         #     frac = abs(grad_sum[i]/gradWijj.x)
         #     print "    Necessary Correction : ", frac
@@ -106,7 +106,7 @@ for W in (W3,):
     for pair in pairs:
         pair_sum(pair.i_node, pair.j_node)
         pair_sum(pair.j_node, pair.i_node)
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         pair_sum(i, i)
 
     # Plot the results
@@ -117,8 +117,8 @@ for W in (W3,):
     plt.legend()
 
     fig2 = plt.figure()
-    plt.plot(rvals, [gradF(pos[i].x) for i in xrange(nodes.numInternalNodes)], label="Analytic gradient")
-    plt.plot(rvals, [grad_field1[i].x for i in xrange(nodes.numInternalNodes)], label="Numerical gradient")
+    plt.plot(rvals, [gradF(pos[i].x) for i in range(nodes.numInternalNodes)], label="Analytic gradient")
+    plt.plot(rvals, [grad_field1[i].x for i in range(nodes.numInternalNodes)], label="Numerical gradient")
     plt.legend()
 
 plt.show()

@@ -149,7 +149,7 @@ if goalTime is None:
     nu2 = 2.0*nu1
     goalTime = (goalRadius*(answer.alpha*rho0/Espike)**nu1)**(1.0/nu2)
 vs, r2, v2, rho2, P2 = answer.shockState(goalTime)
-print "Predicted shock position %g at goal time %g." % (r2, goalTime)
+print("Predicted shock position %g at goal time %g." % (r2, goalTime))
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -258,19 +258,19 @@ dz = (z1 - z0)/nz
 msum = 0.0
 if problem == "planar":
     epsi = 0.5*Espike/(rho0*dz)
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         if pos[i].x < z0 + dz:
             eps[i] += epsi
             Esum += mass[i]*epsi
 elif problem == "cylindrical":
     epsi = Espike/(rho0*pi*dr*dr)
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         if pos[i].y < r0 + dr:
             eps[i] += epsi
             Esum += mass[i]*epsi
 else:
     Wsum = 0.0
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         Hi = H[i]
         etaij = (Hi*pos[i]).magnitude()
         Wi = WT.kernelValue(etaij/smoothSpikeScale, 1.0) * pos[i].y
@@ -279,7 +279,7 @@ else:
         Wsum += Wi
     Wsum = mpi.allreduce(Wsum, mpi.SUM)
     assert Wsum > 0.0
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         eps[i] = eps[i]/(Wsum*mass[i])
         Esum += eps[i]*mass[i]
         eps[i] += eps0
@@ -290,7 +290,7 @@ elif problem == "cylindrical":
     Eexpect = Espike*(z1 - z0)
 else:
     Eexpect = 0.25*Espike
-print "Initialized a total energy of", Eglobal, Eexpect, Eglobal/Eexpect
+print("Initialized a total energy of", Eglobal, Eexpect, Eglobal/Eexpect)
 assert fuzzyEqual(Eglobal, Eexpect)
 
 #-------------------------------------------------------------------------------
@@ -457,7 +457,7 @@ A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
 # Solution profiles.
 xans, vans, uans, rhoans, Pans, Aans, hans = answer.solution(control.time(), xprof)
 L1 = 0.0
-for i in xrange(len(rho)):
+for i in range(len(rho)):
     L1 = L1 + abs(rho[i]-rhoans[i])
 L1_tot = L1 / len(rho)
 # if mpi.rank == 0 and outputFile != "None":
@@ -557,6 +557,6 @@ if outputFile != "None":
         #     assert filecmp.cmp(outputFile, comparisonFile)
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if checkEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")

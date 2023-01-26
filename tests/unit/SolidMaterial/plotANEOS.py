@@ -51,7 +51,7 @@ eosTillotsonBasalt = TillotsonEquationOfState(materialName = "basalt",
 #-------------------------------------------------------------------------------
 n = 100
 drho = (rhoMax - rhoMin)/n
-rho = [rhoMin + i*drho for i in xrange(n + 1)]
+rho = [rhoMin + i*drho for i in range(n + 1)]
 
 plots = []
 gdata = []
@@ -70,8 +70,8 @@ for eos, label in ((eosSiO2, "SiO2"),
     epsMax = eos.specificThermalEnergy(rhoMax, Tmax)
     deps = (epsMax - epsMin)/n
     dT = (Tmax - Tmin)/n
-    eps = [epsMin + i*deps for i in xrange(n + 1)]
-    T = [Tmin + i*dT for i in xrange(n + 1)]
+    eps = [epsMin + i*deps for i in range(n + 1)]
+    T = [Tmin + i*dT for i in range(n + 1)]
 
     PA, csA, sA, gA, epsT, Teps, epsTratio = [], [], [], [], [], [], []
     for rhoi in rho:
@@ -87,13 +87,13 @@ for eos, label in ((eosSiO2, "SiO2"),
             epsT.append((rhoi, Ti, epsi))
             epsTratio.append((rhoi, Ti, Tii/Ti))
 
-    print "Pressure range for %s    : [%g, %g]" % (label, min([x[2] for x in PA]), max([x[2] for x in PA]))
-    print "Sound speed range for %s : [%g, %g]" % (label, min([x[2] for x in csA]), max([x[2] for x in csA]))
-    print "Entropy range for %s     : [%g, %g]" % (label, min([x[2] for x in sA]), max([x[2] for x in sA]))
-    print "Gamma range for %s       : [%g, %g]" % (label, min([x[2] for x in gA]), max([x[2] for x in gA]))
-    print "eps lookup range for %s  : [%g, %g]" % (label, min([x[2] for x in epsT]), max([x[2] for x in epsT]))
-    print "T lookup range for %s    : [%g, %g]" % (label, 10.0**min([x[2] for x in Teps]), 10.0**max([x[2] for x in Teps]))
-    print "T(rho,eps)/T range for %s: [%g, %g]" % (label, min([x[2] for x in epsTratio]), max([x[2] for x in epsTratio]))
+    print("Pressure range for %s    : [%g, %g]" % (label, min([x[2] for x in PA]), max([x[2] for x in PA])))
+    print("Sound speed range for %s : [%g, %g]" % (label, min([x[2] for x in csA]), max([x[2] for x in csA])))
+    print("Entropy range for %s     : [%g, %g]" % (label, min([x[2] for x in sA]), max([x[2] for x in sA])))
+    print("Gamma range for %s       : [%g, %g]" % (label, min([x[2] for x in gA]), max([x[2] for x in gA])))
+    print("eps lookup range for %s  : [%g, %g]" % (label, min([x[2] for x in epsT]), max([x[2] for x in epsT])))
+    print("T lookup range for %s    : [%g, %g]" % (label, 10.0**min([x[2] for x in Teps]), 10.0**max([x[2] for x in Teps])))
+    print("T(rho,eps)/T range for %s: [%g, %g]" % (label, min([x[2] for x in epsTratio]), max([x[2] for x in epsTratio])))
 
     plotIt(PA,
            "rho (g/cm^3)",

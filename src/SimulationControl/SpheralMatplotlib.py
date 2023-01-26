@@ -83,13 +83,13 @@ def radialVelocityFieldList(positions,
 
     assert positions.numFields == velocities.numFields == radialVelocity.numFields
 
-    for fieldID in xrange(positions.numFields):
+    for fieldID in range(positions.numFields):
         rfield = positions[fieldID]
         vfield = velocities[fieldID]
         vrfield = radialVelocity[fieldID]
         assert rfield.numElements == vfield.numElements == vrfield.numElements
 
-        for nodeID in xrange(rfield.numElements):
+        for nodeID in range(rfield.numElements):
             r = rfield[nodeID]
             v = vfield[nodeID]
             runit = r.unitVector()
@@ -122,13 +122,13 @@ def azimuthalVelocityFieldList(positions,
 
     assert positions.numFields == velocities.numFields == azimuthalVelocity.numFields
 
-    for fieldID in xrange(positions.numFields):
+    for fieldID in range(positions.numFields):
         rfield = positions[fieldID]
         vfield = velocities[fieldID]
         vafield = azimuthalVelocity[fieldID]
         assert rfield.numElements == vfield.numElements == vafield.numElements
 
-        for nodeID in xrange(rfield.numElements):
+        for nodeID in range(rfield.numElements):
             r = rfield[nodeID]
             v = vfield[nodeID]
             raz = r.unitVector()
@@ -153,7 +153,7 @@ def angularMomentum(mass, position, velocity):
         assert (massField.nodeList().numInternalNodes ==
                 positionField.nodeList().numInternalNodes ==
                 velocityField.nodeList().numInternalNodes)
-        for j in xrange(massField.nodeList().numInternalNodes):
+        for j in range(massField.nodeList().numInternalNodes):
             result.append((positionField[j].cross(velocityField[j]))*massField[j])
 
     return result
@@ -225,7 +225,7 @@ def plotFieldList(fieldList,
         assert len(globalX) == len(globalY)
         if colorNodeLists:
             cumulativeNumNodes = 0
-            for fieldID in xrange(len(globalNumNodes)):
+            for fieldID in range(len(globalNumNodes)):
                 n = globalNumNodes[fieldID]
                 if n:
                     if semilogy:
@@ -520,13 +520,13 @@ def plotNodePositions2d(thingy,
             assert len(ylist) == mpi.procs
 
         elif colorNodeLists:
-            for i in xrange(len(nodeLists)):
+            for i in range(len(nodeLists)):
                 xlist.append([])
                 ylist.append([])
             for xDomain, yDomain in zip(globalXNodes, globalYNodes):
                 assert len(xDomain) == len(nodeLists)
                 assert len(yDomain) == len(nodeLists)
-                for i in xrange(len(nodeLists)):
+                for i in range(len(nodeLists)):
                     xlist[i].extend(xDomain[i])
                     ylist[i].extend(yDomain[i])
             assert len(xlist) == len(nodeLists)
@@ -535,10 +535,10 @@ def plotNodePositions2d(thingy,
         else:
             xlist, ylist = [[]], [[]]
             for xDomain, yDomain in zip(globalXNodes, globalYNodes):
-                print len(xDomain), len(nodeLists)
+                print(len(xDomain), len(nodeLists))
                 assert len(xDomain) == len(nodeLists)
                 assert len(yDomain) == len(nodeLists)
-                for i in xrange(len(nodeLists)):
+                for i in range(len(nodeLists)):
                     xlist[0].extend(xDomain[i])
                     ylist[0].extend(yDomain[i])
 
@@ -618,7 +618,7 @@ def plotXYTuples(listOfXYTuples):
         # Build the local arrays of x and y.
         x = np.array([0.0]*len(seq))
         y = np.array([0.0]*len(seq))
-        for i in xrange(len(seq)):
+        for i in range(len(seq)):
             x[i] = seq[i][0]
             y[i] = seq[i][1]
 
@@ -667,11 +667,11 @@ def plotVelocityField2d(dataBase,
 def plotNodeSpacing1d(dataBase):
     pos = dataBase.globalPosition
     xvals = []
-    for ifield in xrange(len(pos)):
-        xvals += [pos[ifield][i].x for i in xrange(pos[ifield].numInternalElements)]
+    for ifield in range(len(pos)):
+        xvals += [pos[ifield][i].x for i in range(pos[ifield].numInternalElements)]
     xvals = mpi.allreduce(xvals, mpi.SUM)
     xvals.sort()
-    deltas = [xvals[i+1] - xvals[i] for i in xrange(len(xvals) - 1)] + [xvals[-1] - xvals[-2]]
+    deltas = [xvals[i+1] - xvals[i] for i in range(len(xvals) - 1)] + [xvals[-1] - xvals[-2]]
     plot = newFigure()
     if plot:
         plot.plot(xvals, deltas)
@@ -696,7 +696,7 @@ def plotVectorField2d(dataBase, fieldList,
     yNodes = []
     vxNodes = []
     vyNodes = []
-    for i in xrange(dataBase.numNodeLists):
+    for i in range(dataBase.numNodeLists):
         nodeList = dataBase.nodeLists()[i]
         assert i < fieldList.numFields
         vectorField = fieldList[i]
@@ -727,7 +727,7 @@ def plotVectorField2d(dataBase, fieldList,
 
         if colorDomains:
             cumulativeN = 0
-            for domain in xrange(len(numNodesPerDomain)):
+            for domain in range(len(numNodesPerDomain)):
                 c = next(color)
                 n = numNodesPerDomain[domain]
                 x = np.array(globalXNodes[cumulativeN:cumulativeN + n])
@@ -739,7 +739,7 @@ def plotVectorField2d(dataBase, fieldList,
 
         elif colorNodeLists:
             cumulativeN = 0
-            for i in xrange(len(globalNumNodes)):
+            for i in range(len(globalNumNodes)):
                 c = next(color)
                 n = globalNumNodes[i]
                 if n > 0:
@@ -784,7 +784,7 @@ def gridSample(fieldList,
     localNumNodes = []
     localX = []
     localY = []
-    for ifield in xrange(fieldList.numFields):
+    for ifield in range(fieldList.numFields):
         field = fieldList[ifield]
         n = field.nodeList().numNodes
         localNumNodes.append(n)
@@ -819,8 +819,8 @@ def gridSample(fieldList,
 
     # Loop over all the grid sampling positions, and figure out this processors
     # contribution.
-    for iy in xrange(ny):
-        for ix in xrange(nx):
+    for iy in range(ny):
+        for ix in range(nx):
             xValues[iy][ix] = xmin + (ix + 0.5)*dx
             yValues[iy][ix] = ymin + (iy + 0.5)*dy
             r = Vector2d(xValues[iy][ix], yValues[iy][ix])
@@ -828,8 +828,8 @@ def gridSample(fieldList,
             localZ = eval(zFunction % "z")
             globalZ = mpi.reduce(localZ, mpi.SUM)
             if mpi.rank == 0:
-                print "%i %i %i %s %g %g" % (mpi.rank, ix, iy, r, z, localZ)
-                print "%i %g" % (mpi.rank, globalZ)
+                print("%i %i %i %s %g %g" % (mpi.rank, ix, iy, r, z, localZ))
+                print("%i %g" % (mpi.rank, globalZ))
                 zValues[iy][ix] = globalZ
 
     return xValues, yValues, zValues

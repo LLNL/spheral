@@ -20,7 +20,7 @@ def addModFile(mfile):
         result.append(mfile)
         f = modulefinder.ModuleFinder()
         f.run_script(mfile)
-        for othername, othermod in f.modules.iteritems():
+        for othername, othermod in f.modules.items():
             if othermod.__file__ != mfile and othermod.__file__ and not max([False] + [othermod.__file__.startswith(x) for x in exclude_paths]):
                 addModFile(othermod.__file__)
 
@@ -29,4 +29,4 @@ addModFile(modfile)
 
 # Output in a make dependency friendly manner
 for x in result[1:]:   # Skip the file that started this all off
-    print " %s \\" % x
+    print(" %s \\" % x)

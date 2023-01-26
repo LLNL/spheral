@@ -58,8 +58,8 @@ def randomSymTensor3d(lam1 = None,
                  cos(theta))
     assert fuzzyEqual(R.Determinant(), 1.0)
     check = R*R.Transpose()
-    for i in xrange(3):
-        for j in xrange(3):
+    for i in range(3):
+        for j in range(3):
             if i == j:
                 assert fuzzyEqual(check(i,j), 1.0)
             else:
@@ -101,7 +101,7 @@ class TestEigenVectors(unittest.TestCase):
     # eigenValues (random input)
     #---------------------------------------------------------------------------
     def testRandomEigenValues(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             A, vlam0, vectors0 = randomSymTensor3d()
             lam0 = [x for x in vlam0]
             lam0.sort()
@@ -117,7 +117,7 @@ class TestEigenVectors(unittest.TestCase):
     # eigenValues (two equal eigenvalues)
     #---------------------------------------------------------------------------
     def testDoublyDegenerateEigenValues(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             lam12 = rangen.uniform(-ranrange, ranrange)
             A, vlam0, vectors0 = randomSymTensor3d(lam1 = lam12,
                                                    lam2 = lam12)
@@ -135,7 +135,7 @@ class TestEigenVectors(unittest.TestCase):
     # eigenValues (three equal eigenvalues)
     #---------------------------------------------------------------------------
     def testTriplyDegenerateEigenValues(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             lam123 = rangen.uniform(-ranrange, ranrange)
             A, vlam0, vectors0 = randomSymTensor3d(lam1 = lam123,
                                                    lam2 = lam123,
@@ -154,7 +154,7 @@ class TestEigenVectors(unittest.TestCase):
     # eigenValues (diagonal matrix input)
     #---------------------------------------------------------------------------
     def testDiagonalEigenValues(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             lam1 = rangen.uniform(-ranrange, ranrange)
             lam2 = rangen.uniform(-ranrange, ranrange)
             lam3 = rangen.uniform(-ranrange, ranrange)
@@ -175,7 +175,7 @@ class TestEigenVectors(unittest.TestCase):
     # eigenVectors (random input)
     #---------------------------------------------------------------------------
     def testRandomEigenVectors(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             A, vlam0, vectors0 = randomSymTensor3d()
             lam0 = [(vlam0(i), vectors0.getColumn(i)) for i in range(3)]
             lam0.sort()
@@ -184,7 +184,7 @@ class TestEigenVectors(unittest.TestCase):
             lam = [(eigenStruct.eigenValues(i), eigenStruct.eigenVectors.getColumn(i)) for i in range(3)]
             lam.sort()
             eigenVecs = [x[1] for x in lam]
-            for i in xrange(len(x)):
+            for i in range(len(x)):
                 lami = lam0[i]
                 veci = eigenVecs[i]
                 vec0 = eigenVecs0[i]
@@ -198,7 +198,7 @@ class TestEigenVectors(unittest.TestCase):
     # eigenVectors (two equal eigenvalues)
     #---------------------------------------------------------------------------
     def testDoublyDegenerateEigenVectors(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             lam12 = rangen.uniform(-ranrange, ranrange)
             A, vlam0, vectors0 = randomSymTensor3d(lam1 = lam12,
                                                    lam2 = lam12)
@@ -254,7 +254,7 @@ class TestEigenVectors(unittest.TestCase):
     # eigenVectors (three equal eigenvalues)
     #---------------------------------------------------------------------------
     def testTriplyDegenerateEigenVectors(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             lam123 = rangen.uniform(-ranrange, ranrange)
             A = SymTensor3d(lam123, 0.0, 0.0,
                             0.0, lam123, 0.0,
@@ -264,9 +264,9 @@ class TestEigenVectors(unittest.TestCase):
                         Vector3d(0, 1, 0),
                         Vector3d(0, 0, 1)]
             eigenStruct = A.eigenVectors()
-            for i in xrange(3):
+            for i in range(3):
                 vec = eigenStruct.eigenVectors.getColumn(i)
-                match = [fuzzyEqual(abs(vec.dot(vectors0[j])), 1.0) for j in xrange(len(vectors0))]
+                match = [fuzzyEqual(abs(vec.dot(vectors0[j])), 1.0) for j in range(len(vectors0))]
                 assert len(match) == len(vectors0)
                 assert sum(match) == 1
                 del vectors0[match.index(True)]
@@ -279,7 +279,7 @@ class TestEigenVectors(unittest.TestCase):
     # eigenVectors (diagonal matrix input)
     #---------------------------------------------------------------------------
     def testDiagonalEigenVectors(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             lam1 = rangen.uniform(-ranrange, ranrange)
             lam2 = rangen.uniform(-ranrange, ranrange)
             lam3 = rangen.uniform(-ranrange, ranrange)

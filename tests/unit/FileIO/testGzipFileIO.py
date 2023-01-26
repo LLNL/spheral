@@ -40,27 +40,27 @@ class GzipFileIOTest(FileIOTestBase, unittest.TestCase):
     # for this with the gzip compress/decompress methods.
     #-------------------------------------------------------------------------------
     def testWriteBox(self):
-        print "Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping"
+        print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
         return
 
     def testWritePolygon(self):
-        print "Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping"
+        print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
         return
 
     def testWritePolyhedron(self):
-        print "Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping"
+        print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
         return
 
     def testVectorFacetedVolume1d(self):
-        print "Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping"
+        print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
         return
 
     def testVectorFacetedVolume2d(self):
-        print "Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping"
+        print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
         return
 
     def testVectorFacetedVolume3d(self):
-        print "Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping"
+        print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
         return
 
 #-------------------------------------------------------------------------------

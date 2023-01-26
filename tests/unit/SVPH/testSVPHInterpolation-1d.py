@@ -127,7 +127,7 @@ nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
 # Optionally randomly jitter the node positions.
 #-------------------------------------------------------------------------------
 dx = (x1 - x0)/nx1
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     nodes1.positions()[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
 
 #-------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ if iterateH:
 # Initialize our field.
 #-------------------------------------------------------------------------------
 f = ScalarField("test field", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     x = nodes1.positions()[i].x
     if testCase == "constant":
         f[i] = y0
@@ -209,7 +209,7 @@ dfSVPH = dfSVPHfl[0]
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
 positions = nodes1.positions()
-xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
+xans = [positions[i].x for i in range(nodes1.numInternalNodes)]
 yans = [func(x) for x in xans]
 dyans = [dfunc(x) for x in xans]
 
@@ -228,8 +228,8 @@ maxdySVPHerror = max([abs(x) for x in errdySVPH])
 # errdySPH = [y - z for y, z in zip(dySPH, dyans)]
 # maxdySPHerror = max([abs(x) for x in errdySPH])
 
-print "Maximum errors (interpolation, gradient): SVPH = (%g, %g)" % (maxySVPHerror,
-                                                                     maxdySVPHerror)
+print("Maximum errors (interpolation, gradient): SVPH = (%g, %g)" % (maxySVPHerror,
+                                                                     maxdySVPHerror))
 
 #-------------------------------------------------------------------------------
 # Plot the things.
@@ -294,6 +294,6 @@ if graphics:
 # Check the maximum SVPH error and fail the test if it's out of bounds.
 #-------------------------------------------------------------------------------
 if maxySVPHerror > interpolationTolerance:
-    raise ValueError, "SVPH interpolation error out of bounds: %g > %g" % (maxySVPHerror, interpolationTolerance)
+    raise ValueError("SVPH interpolation error out of bounds: %g > %g" % (maxySVPHerror, interpolationTolerance))
 if maxdySVPHerror > interpolationTolerance:
-    raise ValueError, "SVPH gradient error out of bounds: %g > %g" % (maxdySVPHerror, interpolationTolerance)
+    raise ValueError("SVPH gradient error out of bounds: %g > %g" % (maxdySVPHerror, interpolationTolerance))

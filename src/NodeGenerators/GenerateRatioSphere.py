@@ -72,11 +72,11 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
         else:
             neff = max(1, int((rmax - rmin)/drStart + 0.5))
             drStart = (rmax - rmin)/neff
-        print "Adjusting initial radial spacing to %g in order to create an integer radial number of bins %i." % (drStart, neff)
+        print("Adjusting initial radial spacing to %g in order to create an integer radial number of bins %i." % (drStart, neff))
 
         # Step in radius (in or out) until we span the full radial range.
         dr = drStart
-        for i in xrange(neff):
+        for i in range(neff):
             if abs(drRatio - 1.0) > 1e-4:
                 if startFromCenter:
                     r0 = min(rmax, rmin + drStart*(1.0 - drRatio**i)/(1.0 - drRatio))
@@ -98,7 +98,7 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
             hr = nNodePerh * dr
             ha = nNodePerh * ri*dtheta
 
-            for j in xrange(ntheta):
+            for j in range(ntheta):
                 theta0 = thetamin + j*dtheta
                 theta1 = thetamin + (j + 1)*dtheta
                 pos0 = perturbFunc(Vector2d(r0*cos(theta0), r0*sin(theta0)))
@@ -238,7 +238,7 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
         self.globalIDs = [0]*n
 
         # Convert the 2-D H tensors to 3-D, and correct the masses.
-        for i in xrange(n):
+        for i in range(n):
             xi = self.x[i]
             yi = self.y[i]
             H2d = SymTensor2d(self.H[i])
@@ -293,7 +293,7 @@ class GenerateRatioSphere3d(NodeGeneratorBase):
         self.m = list(mvec)
         self.H = [SymTensor3d(x) for x in Hvec]
         self.globalIDs = list(globalIDsvec)
-        for i in xrange(len(extras)):
+        for i in range(len(extras)):
             extras[i] = list(extrasVec[i])
 
         self.center = Vector2d(*center)

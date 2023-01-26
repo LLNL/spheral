@@ -12,10 +12,10 @@ W = SphericalKernel(BSplineKernel3d())
 #W = SphericalBiCubicSplineKernel()
 t1 = time.time()
 etamax = W.etamax
-print("Required %0.4f sec to construct SphericalKernel"% (t1 - t0))
+print(("Required %0.4f sec to construct SphericalKernel"% (t1 - t0)))
 
 # The r/h distance from the origin for point i (the central point we're probing around)
-etavals_i = ((i + 1)*0.1 for i in xrange(100))
+etavals_i = ((i + 1)*0.1 for i in range(100))
 
 # The values of h we'll consider
 hvals_i = (0.1, 0.5, 1.0, 2.0, 5.0)

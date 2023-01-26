@@ -5,7 +5,7 @@ def SphericalGenerator(generator):
 
     # Correct the mass.
     n = len(generator.m)
-    for i in xrange(n):
+    for i in range(n):
         ri = generator.localPosition(i).x
         assert ri > 0.0
         generator.m[i] *= ri*ri

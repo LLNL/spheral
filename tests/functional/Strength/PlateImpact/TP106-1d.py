@@ -84,7 +84,7 @@ rho0Al = 2.785
 rho0Ta = 16.654
 if nxTa == 0:
     nxTa = int(rho0Ta/rho0Al * nxAl)
-    print "Selected %i Ta points to mass match with %i Al points." % (nxTa, nxAl)
+    print("Selected %i Ta points to mass match with %i Al points." % (nxTa, nxAl))
 
 # Hydro constructor.
 if crksph:
@@ -249,14 +249,14 @@ nodeSet = [nodesAl, nodesTa]
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
-print "Generating node distribution."
+print("Generating node distribution.")
 from DistributeNodes import distributeNodesInRange1d
 distributeNodesInRange1d([(nodesAl, nxAl, rho0Al, (-1.025, -0.025)),
                           (nodesTa, nxTa, rho0Ta, ( 0.025,  1.025))])
 
 # Set node velocites.
 vel = nodesAl.velocity()
-for i in xrange(nodesAl.numInternalNodes):
+for i in range(nodesAl.numInternalNodes):
     vel[i].x = 0.18
 
 #-------------------------------------------------------------------------------
@@ -351,7 +351,7 @@ for nodes, samplePositions in ((nodesAl, (-0.0375, -0.0625, -0.9875)),
                                (nodesTa, ( 0.0375,  0.0625,  0.9875))):
     pos = nodes.positions()
     for x0 in samplePositions:
-        thpt = [(abs(pos[i].x - x0), i) for i in xrange(nodes.numInternalNodes)] + [(1e100, -1)]
+        thpt = [(abs(pos[i].x - x0), i) for i in range(nodes.numInternalNodes)] + [(1e100, -1)]
         thpt.sort()
         dxmin = mpi.allreduce(thpt[0][0], mpi.MIN)
         if thpt[0][0] == dxmin:

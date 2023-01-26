@@ -85,7 +85,7 @@ if seed == "cubic":
     nx *= nxdomains
     ny *= nxdomains
     nz *= nxdomains
-    print nxdomains, nx, ny, nz
+    print(nxdomains, nx, ny, nz)
 
 #-------------------------------------------------------------------------------
 # A few derived variables.
@@ -176,7 +176,7 @@ if restoreCycle is None:
     nodes.specificThermalEnergy(ScalarField3d("tmp", nodes, eps1))
 
     # Set node velocities
-    for nodeID in xrange(nodes.numNodes):
+    for nodeID in range(nodes.numNodes):
         nodes.velocity()[nodeID] = nodes.positions()[nodeID].unitVector()*vr1
 
 #-------------------------------------------------------------------------------
@@ -301,8 +301,8 @@ acc = nodes.DvelocityDt()
 psiMax = max(psi.internalValues())
 psiMin = min(psi.internalValues())
 accMax = max([a.magnitude() for a in acc.internalValues()])
-print 'Gravitational potential:'
-print '   Max: %g'%psiMax
-print '   Min: %g'%psiMin
-print '   Diff: %g\n'%(psiMax - psiMin)
-print 'Max acceleration: %g'%accMax
+print('Gravitational potential:')
+print('   Max: %g'%psiMax)
+print('   Min: %g'%psiMin)
+print('   Diff: %g\n'%(psiMax - psiMin))
+print('Max acceleration: %g'%accMax)

@@ -55,7 +55,7 @@ class TestSimpsonsRuleIntegration(unittest.TestCase):
     # Iterate over a bunch of randomly selected linear functions.
     #===========================================================================
     def testRandomLinearFunctions(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             a = random.uniform(self.ymin, self.ymax)
             b = random.uniform(-100.0, 100.0)
             x0 = random.uniform(self.xmin, 0.5*self.xmax)
@@ -71,7 +71,7 @@ class TestSimpsonsRuleIntegration(unittest.TestCase):
     # Iterate over a bunch of randomly selected quadratic functions.
     #===========================================================================
     def testRandomQuadraticFunctions(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             a = random.uniform(self.ymin, self.ymax)
             b = random.uniform(-100.0, 100.0)
             c = random.uniform(-100.0, 100.0)

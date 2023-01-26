@@ -1,7 +1,7 @@
 import unittest
 from CXXTests import *
 
-execfile("generate2Dsetup.py")
+exec(compile(open("generate2Dsetup.py").read(), "generate2Dsetup.py", 'exec'))
 
 #===============================================================================
 # Main testing class.
@@ -27,7 +27,7 @@ class TestIndexFieldLists(unittest.TestCase):
         for f, mul in [(self.sfield1, 1.0),
                        (self.sfield2, 10.0),
                        (self.sfield3, 100.0)]:
-            for i in xrange(len(f)):
+            for i in range(len(f)):
                 f[i] = i*mul
 
         self.vfield1 = VectorField2d(nodes1, Vector2d(1.0, 1.0))
@@ -36,7 +36,7 @@ class TestIndexFieldLists(unittest.TestCase):
         for f, mul in [(self.vfield1, 1.0),
                        (self.vfield2, 10.0),
                        (self.vfield3, 100.0)]:
-            for i in xrange(len(f)):
+            for i in range(len(f)):
                 f[i] *= mul
 
         self.scalarfieldlist = ScalarFieldList2d()
@@ -132,7 +132,7 @@ class TestIndexFieldLists(unittest.TestCase):
     # Test the master node iterator (scalar).
     #===========================================================================
     def testMasterNodeIteratorScalar(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
@@ -148,7 +148,7 @@ class TestIndexFieldLists(unittest.TestCase):
     # Test the master node iterator (vector).
     #===========================================================================
     def testMasterNodeIteratorVector(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
@@ -164,7 +164,7 @@ class TestIndexFieldLists(unittest.TestCase):
     # Test the coarse node iterator (scalar).
     #===========================================================================
     def testCoarseNodeIteratorScalar(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
@@ -180,7 +180,7 @@ class TestIndexFieldLists(unittest.TestCase):
     # Test the coarse node iterator (vector).
     #===========================================================================
     def testCoarseNodeIteratorVector(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
@@ -196,7 +196,7 @@ class TestIndexFieldLists(unittest.TestCase):
     # Test the coarse node iterator cache (scalar).
     #===========================================================================
     def testCoarseNodeIteratorCacheScalar(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
@@ -212,7 +212,7 @@ class TestIndexFieldLists(unittest.TestCase):
     # Test the coarse node iterator cache (vector).
     #===========================================================================
     def testCoarseNodeIteratorCacheVector(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
@@ -228,7 +228,7 @@ class TestIndexFieldLists(unittest.TestCase):
     # Test the refine node iterator (scalar).
     #===========================================================================
     def testRefineNodeIteratorScalar(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
@@ -246,7 +246,7 @@ class TestIndexFieldLists(unittest.TestCase):
     # Test the refine node iterator (vector).
     #===========================================================================
     def testRefineNodeIteratorVector(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
@@ -264,7 +264,7 @@ class TestIndexFieldLists(unittest.TestCase):
     # Test the refine node iterator cache (scalar).
     #===========================================================================
     def testRefineNodeIteratorCacheScalar(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes
@@ -280,7 +280,7 @@ class TestIndexFieldLists(unittest.TestCase):
     # Test the refine node iterator cache (vector).
     #===========================================================================
     def testRefineNodeIteratorCacheVector(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             nodes = g.choice([nodes1, nodes2, nodes3])
             inode = g.randint(0, nodes.numInternalNodes - 1)
             assert inode >= 0 and inode < nodes.numInternalNodes

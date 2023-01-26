@@ -139,7 +139,7 @@ ny2 = ny2*reso
 atwood  = (S-1.0)/(S+1.0)
 zdot    = sqrt(freq*atwood*abs(g0))
 
-print "\n\n\nzdot = exp({0:3.3e}*t)  <-<-<-<-<-<-<-<-<-<------\n\n\n".format(zdot)
+print("\n\n\nzdot = exp({0:3.3e}*t)  <-<-<-<-<-<-<-<-<-<------\n\n\n".format(zdot))
 
 
 
@@ -280,10 +280,10 @@ if restoreCycle is None:
     P02  = P0
 
     
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         y = pos1[i].y
         eps1[i] = (P01+g0*rho1*(y-y2))/((gamma-1.0)*rho1)
-    for i in xrange(nodes2.numInternalNodes):
+    for i in range(nodes2.numInternalNodes):
         y = pos2[i].y
         eps2[i] = (P02+g0*rho2*(y-y2))/((gamma-1.0)*rho2)
     #nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
@@ -291,7 +291,7 @@ if restoreCycle is None:
     for nodes in (nodes1,nodes2):
         pos = nodes.positions()
         vel = nodes.velocity()
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             pos[i].y += dy(pos[i])
 
 #-------------------------------------------------------------------------------
@@ -487,14 +487,14 @@ if serialDump:
     rank = mpi.rank
     serialData = []
     i,j = 0,0
-    for i in xrange(procs):
+    for i in range(procs):
         for nodeL in nodeSet:
             if rank == i:
-                for j in xrange(nodeL.numInternalNodes):
+                for j in range(nodeL.numInternalNodes):
                     serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
     serialData = mpi.reduce(serialData,mpi.SUM)
     if rank == 0:
         f = open(dataDir + "/serialDump.ascii",'w')
-        for i in xrange(len(serialData)):
+        for i in range(len(serialData)):
             f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
         f.close()

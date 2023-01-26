@@ -204,11 +204,11 @@ class InterfaceHistory:
 # Identify ourselves!
 #-------------------------------------------------------------------------------
 title("1-D Plate impact strength test")
-print "Sapphire 1 in range [%f, %f]" % Sapphire1Range
-print "Tantalum   in range [%f, %f]" % TantalumRange
-print "Sapphire 2 in range [%f, %f]" % Sapphire2Range
-print "TungCarbid in range [%f, %f]" % TungstenCarbideRange
-print "PMMA       in range [%f, %f]" % PMMARange
+print("Sapphire 1 in range [%f, %f]" % Sapphire1Range)
+print("Tantalum   in range [%f, %f]" % TantalumRange)
+print("Sapphire 2 in range [%f, %f]" % Sapphire2Range)
+print("TungCarbid in range [%f, %f]" % TungstenCarbideRange)
+print("PMMA       in range [%f, %f]" % PMMARange)
 
 #-------------------------------------------------------------------------------
 # Sapphire material properties.
@@ -437,7 +437,7 @@ interfaceHistory = InterfaceHistory(None, None, None, None,
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
     from DistributeNodes import distributeNodesInRange1d
-    print "Generating node distribution."
+    print("Generating node distribution.")
     distributeNodesInRange1d([(nodesSapphire1, nxSapphire1, rhoSapphire, Sapphire1Range),
                               (nodesTantalum, nxTantalum, rhoTantalum, TantalumRange),
                               (nodesSapphire2, nxSapphire2, rhoSapphire, Sapphire2Range),
@@ -466,16 +466,16 @@ if restoreCycle is None:
         P = list(Pf.internalValues())
         Pmin = mpi.allreduce(min(P + [1e100]), mpi.MIN)
         Pmax = mpi.allreduce(max(P + [-1e100]), mpi.MAX)
-        print "Initial pressures for %s : [%g : %g]" % (nodes.name, Pmin, Pmax)
+        print("Initial pressures for %s : [%g : %g]" % (nodes.name, Pmin, Pmax))
     del nodes
 
     # Find the interface nodes between the Sapphire 2 and Tungsten.
-    sapphirelist = zip([pos.x for pos in nodesSapphire1.positions().internalValues()],
-                       range(nodesSapphire1.numInternalNodes),
-                       [mpi.rank]*nodesSapphire1.numInternalNodes) + [(-1e20, None, None)]
-    tantalumlist = zip([pos.x for pos in nodesTantalum.positions().internalValues()],
-                        range(nodesTantalum.numInternalNodes),
-                        [mpi.rank]*nodesTantalum.numInternalNodes) + [(-1e20, None, None)]
+    sapphirelist = list(zip([pos.x for pos in nodesSapphire1.positions().internalValues()],
+                       list(range(nodesSapphire1.numInternalNodes)),
+                       [mpi.rank]*nodesSapphire1.numInternalNodes)) + [(-1e20, None, None)]
+    tantalumlist = list(zip([pos.x for pos in nodesTantalum.positions().internalValues()],
+                        list(range(nodesTantalum.numInternalNodes)),
+                        [mpi.rank]*nodesTantalum.numInternalNodes)) + [(-1e20, None, None)]
     maxsapphire = mpi.allreduce(max(sapphirelist), mpi.MAX)
     maxtantalum = mpi.allreduce(max(tantalumlist), mpi.MAX)
     assert maxsapphire[2] is not None
@@ -591,11 +591,11 @@ else:
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-print "Tantalum diagnositic node is: ", interfaceHistory.tantalumIndex, interfaceHistory.tantalumProc
-print "Sapphire diagnositic node is: ", interfaceHistory.sapphireIndex, interfaceHistory.sapphireProc
+print("Tantalum diagnositic node is: ", interfaceHistory.tantalumIndex, interfaceHistory.tantalumProc)
+print("Sapphire diagnositic node is: ", interfaceHistory.sapphireIndex, interfaceHistory.sapphireProc)
 if not steps is None:
     control.step(steps)
-    raise RuntimeError, "Completed %i steps." % steps
+    raise RuntimeError("Completed %i steps." % steps)
 
 while control.time() < goalTime:
     nextGoalTime = min(control.time() + dtSample, goalTime)
@@ -609,8 +609,8 @@ while control.time() < goalTime:
     if mpi.rank == interfaceHistory.tantalumProc:
         tantalumS = nodesTantalum.deviatoricStress()[interfaceHistory.tantalumIndex].xx
         tantalumPS = nodesTantalum.plasticStrain()[interfaceHistory.tantalumIndex]
-    print "Tantalum deviatoric stress and plastic strain:  %g %g" % (mpi.allreduce(tantalumS, mpi.MIN),
-                                                                     mpi.allreduce(tantalumPS, mpi.MIN))
+    print("Tantalum deviatoric stress and plastic strain:  %g %g" % (mpi.allreduce(tantalumS, mpi.MIN),
+                                                                     mpi.allreduce(tantalumPS, mpi.MIN)))
 
 #-------------------------------------------------------------------------------
 # Read in the reference sapphire velocity history.
@@ -628,13 +628,13 @@ for line in f:
 # Did the test pass?
 #-------------------------------------------------------------------------------
 EError = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Energy discrepency: %g" % EError
+print("Energy discrepency: %g" % EError)
 
 assert len(interfaceHistory.sapphireVelocity) == len(refvhist)
 for vtest, vref in zip(interfaceHistory.sapphireVelocity, refvhist):
     assert fuzzyEqual(vtest, vref, vtol)
 
-print "Test passed."
+print("Test passed.")
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.

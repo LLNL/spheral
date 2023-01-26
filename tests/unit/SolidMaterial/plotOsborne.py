@@ -44,11 +44,11 @@ eosO = OsborneEquationOfState( 1.85, etamin, etamax,     # Parameters from Howel
 n = 50
 rhoMin, rhoMax = 0.05, 50.0
 drho = (rhoMax - rhoMin)/n
-rho = [rhoMin + i*drho for i in xrange(n + 1)]
+rho = [rhoMin + i*drho for i in range(n + 1)]
 
 epsMin, epsMax = 1.0e-5, 1e10
 deps = (log(epsMax) - log(epsMin))/n
-eps = [exp(log(epsMin) + i*deps) for i in xrange(n + 1)]
+eps = [exp(log(epsMin) + i*deps) for i in range(n + 1)]
 
 # Make a fake NodeList so we can call the EOS with Fields.
 nodes = makeVoidNodeList("nodes", numInternal=1)

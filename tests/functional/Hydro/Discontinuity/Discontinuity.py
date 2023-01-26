@@ -168,7 +168,7 @@ for nodes in nodeSet:
     pos = nodes.positions()
     eps = nodes.specificThermalEnergy()
     rho = nodes.massDensity()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         eps[i] = specificEnergy(pos[i].x)
 #rho[i] = specificEnergy(pos[i].x)
 
@@ -295,7 +295,7 @@ if bArtificialConduction:
 if hourglass:
     mask = db.newFluidIntFieldList(1, "mask")
     pos = nodes1.positions()
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         if pos[i].x > (x1 - dx):
             mask[0][i] = 0
     hg = hourglass(WT,
@@ -362,7 +362,7 @@ output("control")
 if restoreCycle is None:
     control.smoothState(smoothIters)
     if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
+        print("Reinitializing node masses.")
         control.voronoiInitializeMass()
 ##     rho = db.fluidMassDensity
 ##     pos = db.fluidPosition
@@ -421,6 +421,6 @@ elif graphics == "gnu":
 
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if checkEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")

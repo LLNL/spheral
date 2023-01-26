@@ -23,7 +23,7 @@ planes.append(PolyClipper.PolyClipperPlane3d(Vector(0, 0, 1),
 t0 = timer()
 PolyClipper.clipPolyhedron(zoidbergPC, planes)
 t1 = timer()
-print "PolyClipper.clipPolyhedron required", t1 - t0
+print("PolyClipper.clipPolyhedron required", t1 - t0)
 chunk = Polyhedron()
 PolyClipper.convertFromPolyhedron(chunk, zoidbergPC)
 writePolyhedronOBJ(chunk, "zoidberg_clipped_PolyClipper.obj")

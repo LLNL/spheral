@@ -243,7 +243,7 @@ def readintFV%(ndim)i(self,
 ''' % {"ndim" : ndim})
 
     #...........................................................................
-    for ndim in xrange(1,4):  # These dimensional methods are always supported
+    for ndim in range(1,4):  # These dimensional methods are always supported
         exec('''
 @PYB11pycppname("write")
 @PYB11noconvert

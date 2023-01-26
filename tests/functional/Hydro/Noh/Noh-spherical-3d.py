@@ -239,7 +239,7 @@ output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
 
 # Set node velocities
-for nodeID in xrange(nodes1.numNodes):
+for nodeID in range(nodes1.numNodes):
     vel[nodeID] = pos[nodeID].unitVector()*vr0
 
 #-------------------------------------------------------------------------------
@@ -478,7 +478,7 @@ output("control")
 if restoreCycle is None:
     control.smoothState(smoothIters)
     if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
+        print("Reinitializing node masses.")
         control.voronoiInitializeMass()
     control.dropRestartFile()
 
@@ -495,9 +495,9 @@ if not steps is None:
         control.loadRestartFile(control.totalSteps)
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
+            raise ValueError("The restarted state does not match!")
         else:
-            print "Restart check PASSED."
+            print("Restart check PASSED.")
 
 else:
     control.advance(goalTime, maxSteps)
@@ -516,10 +516,10 @@ rho = mpi.allreduce(list(nodes1.massDensity().internalValues()), mpi.SUM)
 rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
 if mpi.rank == 0:
         L1 = 0.0
-        for i in xrange(len(rho)):
+        for i in range(len(rho)):
           L1 = L1 + abs(rho[i]-rhoans[i])
         L1_tot = L1 / len(rho)
-        print "L1=",L1_tot,"\n"
+        print("L1=",L1_tot,"\n")
         with open("Converge.txt", "a") as myfile:
           myfile.write("%s %s %s %s %s\n" % (nx, ny,nz,nx+ny+nz, L1_tot))
 if graphics:
@@ -541,7 +541,7 @@ if graphics:
         assert hrfield.numElements == n
         assert htfield.numElements == n
         positions = Hfield.nodeList().positions()
-        for i in xrange(n):
+        for i in range(n):
             runit = positions[i].unitVector()
             tunit = Vector(-(positions[i].y), positions[i].x).unitVector()
             hrfield[i] = (Hfield[i]*runit).magnitude()
@@ -591,18 +591,18 @@ if graphics:
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
         with open("Converge.txt", "a") as myfile:
           myfile.write("%s %s %s %s " % (nx, ny,nz,nx+ny+nz))
-          print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+          print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
           for (name, data, ans) in [("Mass Density", rho, rhoans),
                                   ("Pressure", P, Pans),
                                   ("Velocity", v, vans),
                                   ("Thermal E", eps, epsans)]:
             assert len(data) == len(ans)
-            error = [data[i] - ans[i] for i in xrange(len(data))]
+            error = [data[i] - ans[i] for i in range(len(data))]
             Pn = Pnorm.Pnorm(error, r)
             L1 = Pn.gridpnorm(1, rmin, rmax)
             L2 = Pn.gridpnorm(2, rmin, rmax)
             Linf = Pn.gridpnorm("inf", rmin, rmax)
-            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+            print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
             myfile.write("\t\t%g \t\t%g \t\t%g" % (L1, L2, Linf))
           myfile.write("\n")
 
@@ -678,7 +678,7 @@ if outputFile != "None":
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if compatibleEnergy and abs(Eerror) > 1e-10:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")
 

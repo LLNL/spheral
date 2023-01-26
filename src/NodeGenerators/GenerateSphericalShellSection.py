@@ -66,10 +66,10 @@ class GenerateSphericalShellSection(NodeGeneratorBase):
                          0.0, 0.0, 1.0/dr)/nNodePerh
 
         # Iterate over the angles.
-        for ip1 in xrange(nl):
+        for ip1 in range(nl):
             phi1 = phi0 + (ip1 + 0.5)*dphi
             plane1 = self.computePlane(0.0, phi1)
-            for ip2 in xrange(nl):
+            for ip2 in range(nl):
                 phi2 = phi0 + (ip2 + 0.5)*dphi
                 plane2 = self.computePlane(halfpi, phi2)
 
@@ -78,7 +78,7 @@ class GenerateSphericalShellSection(NodeGeneratorBase):
 
                 # Intersect this line with each radii we want, which gives us
                 # the desired positions.
-                for ir in xrange(nr):
+                for ir in range(nr):
                     r = r0 + (ir + 0.5)*dr
                     pos = self.intersectLineAndSphere(P, N, r)
                     assert fuzzyEqual(pos.magnitude(), r, 1.0e-10)

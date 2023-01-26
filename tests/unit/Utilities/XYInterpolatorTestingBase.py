@@ -54,14 +54,14 @@ class GradPolynomialFunctor(ScalarScalarSymTensor2dFunctor):
 
     def __call__(self, x, y):
         result = SymTensor2d()
-        for i in xrange(1, self.order1):
-            for j in xrange(self.order1):
+        for i in range(1, self.order1):
+            for j in range(self.order1):
                 result.xx = result.xx + self.c[i,j] * i * x**(i-1) * y**j
-        for i in xrange(self.order1):
-            for j in xrange(1, self.order1):
+        for i in range(self.order1):
+            for j in range(1, self.order1):
                 result.yy = result.yy + self.c[i,j] * j * x**i * y**(j - 1)
-        for i in xrange(1, self.order1):
-            for j in xrange(1, self.order1):
+        for i in range(1, self.order1):
+            for j in range(1, self.order1):
                 result.xy = result.xy + self.c[i,j] * i * j * x**(i - 1) * y**(j - 1)
         return result
 
@@ -122,8 +122,8 @@ class XYInterpolatorTestingBase:
         y = np.arange(self.ymin, 1.001*self.ymax, (self.ymax - self.ymin)/100)
         x, y = np.meshgrid(x, y)
         NX, NY = x.shape
-        z0 = np.array([[F(x[j][i], y[j][i]) for j in xrange(NY)] for i in xrange(NX)])
-        z1 = np.array([[Finterp(x[j][i], y[j][i]) for j in xrange(NY)] for i in xrange(NX)])
+        z0 = np.array([[F(x[j][i], y[j][i]) for j in range(NY)] for i in range(NX)])
+        z1 = np.array([[Finterp(x[j][i], y[j][i]) for j in range(NY)] for i in range(NX)])
         zdiff = z1 - z0
 
         fig0 = plt.figure()
@@ -149,7 +149,7 @@ class XYInterpolatorTestingBase:
                 for (nx, ny) in ((2, 2), (3, 3), (10, 10), (3, 20)):
                     F = PolynomialFunctor(2, -10.0, 10.0)
                     Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
-                    for itest in xrange(self.ntests):
+                    for itest in range(self.ntests):
                         x = rangen.uniform(self.xmin, self.xmax)
                         y = rangen.uniform(self.ymin, self.ymax)
                         ix0, iy0, i0 = self.lowerBound_ans(x, y,
@@ -169,7 +169,7 @@ class XYInterpolatorTestingBase:
         for xlog in (False, True):
             for ylog in (False, True):
                 for (nx, ny) in ((2, 2), (3, 3), (10, 10), (3, 20)):
-                    for itest in xrange(self.ntests):
+                    for itest in range(self.ntests):
                         F = PolynomialFunctor(1, -10.0, 10.0)
                         Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
                         tol = self.tol[1] / sqrt(nx*ny)
@@ -187,7 +187,7 @@ class XYInterpolatorTestingBase:
         for xlog in (False, True):
             for ylog in (False, True):
                 for (nx, ny) in ((2, 2), (3, 3), (10, 10), (3, 20)):
-                    for itest in xrange(self.ntests):
+                    for itest in range(self.ntests):
                         F = PolynomialFunctor(2, -10.0, 10.0)
                         Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
                         tol = self.tol[2] / sqrt(nx*ny)
@@ -205,7 +205,7 @@ class XYInterpolatorTestingBase:
         for xlog in (False, True):
             for ylog in (False, True):
                 for (nx, ny) in ((2, 2), (3, 3), (10, 10), (3, 20)):
-                    for itest in xrange(self.ntests):
+                    for itest in range(self.ntests):
                         F = PolynomialFunctor(3, -10.0, 10.0)
                         Finterp = self.generateInterpolator(nx, ny, xlog, ylog, F)
                         tol = self.tol[3] / sqrt(nx*ny)

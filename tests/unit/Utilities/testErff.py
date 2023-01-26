@@ -17,7 +17,7 @@ class TestErrorFunctions(unittest.TestCase):
         self.maxx = 3.0
         self.n = 1000
         self.x = [self.minx + (self.maxx - self.minx)/(self.n - 1)*i
-                  for i in xrange(self.n)]
+                  for i in range(self.n)]
         self.erf = [erff(x) for x in self.x]
         self.erfc = [erffc(x) for x in self.x]
 

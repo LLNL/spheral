@@ -117,7 +117,7 @@ meltFit = NinthOrderPolynomialFit(7.40464217e10,
 strengthModel = SteinbergGuinanStrengthCGS1d(eos,
                                              7.700000e11,        # G0
                                              2.2600e-12,         # A
-                                             4.5500-04,          # B
+                                             4.5500-0o4,          # B
                                              3.4000e9,           # Y0
                                              2.5e10,             # Ymax
                                              1.0e-3,             # Yp
@@ -187,7 +187,7 @@ del n
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    print "Generating node distribution."
+    print("Generating node distribution.")
     from DistributeNodes import distributeNodes1d
     distributeNodes1d([(nodes, nx, (xmin, xmax))])
     output('mpi.reduce(nodes.numInternalNodes, mpi.MIN)')
@@ -209,7 +209,7 @@ if restoreCycle is None:
     nodes.setSpecificThermalEnergy(ScalarField1d("tmp", nodes, u0))
 
     # Set node velocites.
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         nodes.velocity()[i].x = nodes.positions()[i].x/(0.5*xlength)*v0
 
 #-------------------------------------------------------------------------------
@@ -286,7 +286,7 @@ backgroundActivationStrain = 1.0e5*failureEnergy
 
 initialFlaws = vector_of_vector_of_double()
 numFlawedNodes = 0
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     x = nodes.positions()[i].x
     v = vector_of_double()
     if x > xminFlaws and x < xmaxFlaws:
@@ -301,21 +301,21 @@ damageModel = SpecifiedFlawsDamage1d(nodes,
                                      kernelExtent,
                                      0.4,
                                      initialFlaws)
-print "Selected %i flawed nodes" % mpi.allreduce(numFlawedNodes, mpi.SUM)
-print ("Assigned (%g, %g) flaw activation strains to (flawed, regular) nodes." %
-       (flawActivationStrain, backgroundActivationStrain))
+print("Selected %i flawed nodes" % mpi.allreduce(numFlawedNodes, mpi.SUM))
+print(("Assigned (%g, %g) flaw activation strains to (flawed, regular) nodes." %
+       (flawActivationStrain, backgroundActivationStrain)))
 output("damageModel")
 
 #-------------------------------------------------------------------------------
 # Construct constant velocity boundary conditions to be applied to the rod ends.
 #-------------------------------------------------------------------------------
 xNodes = vector_of_int()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     if (nodes.positions()[i].x < -0.5*xlength + 4*dx or
         nodes.positions()[i].x >  0.5*xlength - 4*dx):
         xNodes.append(i)
-print ("Selected %i constant velocity nodes." %
-       (mpi.allreduce(len(xNodes), mpi.SUM)))
+print(("Selected %i constant velocity nodes." %
+       (mpi.allreduce(len(xNodes), mpi.SUM))))
 xbc = ConstantVelocityBoundary1d(nodes, xNodes)
 
 # We need to tell the damage model not to damage the constant velocity nodes,

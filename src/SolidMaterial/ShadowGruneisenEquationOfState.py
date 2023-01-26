@@ -85,12 +85,12 @@ def _GruneisenFactory(*args,
         # Evaluate the arguments to the method.
         if (len(args) > len(expectedArgs) or 
             (len(args) + len(kwargs) < len(expectedArgs))): # insist on formal mandatory arguments 
-            raise ValueError, expectedUsageString
-        for i in xrange(len(args)): # deal with mandatory args
+            raise ValueError(expectedUsageString)
+        for i in range(len(args)): # deal with mandatory args
             exec("%s = args[i]" % expectedArgs[i])
         for arg in kwargs: # deal with optional args
-            if arg not in (expectedArgs + optionalKwArgs.keys() + ["GrunConstructor"]):
-                raise ValueError, expectedUsageString
+            if arg not in (expectedArgs + list(optionalKwArgs.keys()) + ["GrunConstructor"]):
+                raise ValueError(expectedUsageString)
             exec("%s = kwargs['%s']" % (arg, arg))
         for arg in optionalKwArgs: # make sure all optional args have a value
             if arg not in kwargs:
@@ -99,9 +99,9 @@ def _GruneisenFactory(*args,
         # Check that the caller specified a valid material label.
         mat = materialName.lower()
         if mat not in SpheralMaterialPropertiesLib:
-            raise ValueError, "You must specify one of %s" % str(SpheralMaterialPropertiesLib.keys())
+            raise ValueError("You must specify one of %s" % str(list(SpheralMaterialPropertiesLib.keys())))
         if "Gruneisen" not in SpheralMaterialPropertiesLib[mat]:
-            raise ValueError, "The material %s does not provide Gruneisen paramters." % materialName
+            raise ValueError("The material %s does not provide Gruneisen paramters." % materialName)
 
         # Extract the parameters for this material.
         params = dict(SpheralMaterialPropertiesLib[mat]["Gruneisen"])

@@ -88,7 +88,7 @@ def siloMeshDump(dirName, mesh,
                         vals[i] = vali
                 assert len(vals) == ntarget
     else:
-        index2zone = [[i,] for i in xrange(len(mesh.cells))]
+        index2zone = [[i,] for i in range(len(mesh.cells))]
 
     # print "  --> %g sec for index2zone" % (TIME.clock() - start)
     # start = TIME.clock()
@@ -155,7 +155,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         assert silo.DBMkDir(db, "POINTS") == 0      # HACK
 
         # Pattern for constructing per domain variables.
-        domainNamePatterns = [("%s/domain%i.silo:" % (p1, i)) + "%s" for i in xrange(mpi.procs) if numZonesPerDomain[i] > 0]
+        domainNamePatterns = [("%s/domain%i.silo:" % (p1, i)) + "%s" for i in range(mpi.procs) if numZonesPerDomain[i] > 0]
         numDomains = len(domainNamePatterns)
         
         # Write the domain file names and types.
@@ -180,7 +180,7 @@ def writeMasterMeshSiloFile(dirName, mesh, label, nodeLists, time, cycle, fieldw
         
             # Write material names (MESH)
             matnames = vector_of_string([x.name for x in nodeLists])
-            matnos = vector_of_int(range(len(matnames)))
+            matnos = vector_of_int(list(range(len(matnames))))
             material_names = vector_of_string([p % "MATERIAL" for p in domainNamePatterns])
             assert len(material_names) == numDomains
             assert len(matnames) == len(nodeLists)
@@ -362,12 +362,12 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
 
         # Write materials.
         if nodeLists:
-            matnos = vector_of_int(range(len(nodeLists)))
+            matnos = vector_of_int(list(range(len(nodeLists))))
             matnames = vector_of_string([nodeList.name for nodeList in nodeLists])
             matlist = []
             offset = 0
             for imat, nodeList in enumerate(nodeLists):
-                for i in xrange(nodeList.numInternalNodes):
+                for i in range(nodeList.numInternalNodes):
                     for j in index2zone[offset + i]:
                         matlist.append(imat)
                 offset += nodeList.numInternalNodes
@@ -435,7 +435,7 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         
         # Write the shared nodes for each neighbor domain.
         sharedNodes = mesh.sharedNodes
-        for ineighborDomain in xrange(len(mesh.neighborDomains)):
+        for ineighborDomain in range(len(mesh.neighborDomains)):
             nodes = [list(sharedNodes[ineighborDomain])]
             assert len(nodes) == len(sharedNodes[ineighborDomain])
             assert silo.DBPutCompoundarray(db, "DOMAIN_NEIGHBOR%i" % ineighborDomain,
@@ -484,15 +484,15 @@ def writeDomainMeshSiloFile(dirName, mesh, index2zone, label, nodeLists, time, c
         if nodeLists:
             ntot = sum([n.numInternalNodes for n in nodeLists])
             coords = []
-            for j in xrange(nDim):
+            for j in range(nDim):
                 coords.append([])
             for nodes in nodeLists:
                 pos = nodes.positions().internalValues()
                 n = len(pos)
-                for j in xrange(nDim):
-                    for i in xrange(n):
+                for j in range(nDim):
+                    for i in range(n):
                         coords[j].append(pos[i][j])
-            for j in xrange(nDim):
+            for j in range(nDim):
                 assert len(coords[j]) == ntot
             coords = vector_of_vector_of_double([vector_of_double(vals) for vals in coords])
 
@@ -550,7 +550,7 @@ def extractFields(nodeLists, time, cycle, fields,
             for thpt in vals:
                 assert len(thpt) == 2
                 if len(thpt[1]) != nvals:
-                    print "BLAGO : ", name, len(thpt[1]), nvals, (nodes.name in subfields)
+                    print("BLAGO : ", name, len(thpt[1]), nvals, (nodes.name in subfields))
                 assert len(thpt[1]) == nvals
 
             result.append((name, varDef, varType, optlistDef, optlistMV, optlistVar, vals))
@@ -649,7 +649,7 @@ def dummyVectorField(name, n, vals, dim):
                     ["%s_y" % name, [0.0]*n],
                     ["%s_z" % name, [0.0]*n]]
     else:
-        for i in xrange(dim):
+        for i in range(dim):
             vals[i][1].extend([0.0]*n)
     return vals
 
@@ -733,7 +733,7 @@ def dummyTensorField(name, n, vals, dim):
                     ["%s_zy" % name, [0.0]*n],
                     ["%s_zz" % name, [0.0]*n]]
     else:
-        for i in xrange(dim*dim):
+        for i in range(dim*dim):
             vals[i][1].extend([0.0]*n)
     return vals
 

@@ -108,16 +108,16 @@ class PolyhedralMeshGenericTests:
                                             xmax = xmax,
                                             generateVoid = False,
                                             generateParallelConnectivity = False)
-        for i in xrange(self.nodes.numInternalNodes):
+        for i in range(self.nodes.numInternalNodes):
             node = mesh.node(i)
             assert node.ID == i
-        for i in xrange(mesh.numEdges):
+        for i in range(mesh.numEdges):
             edge = mesh.edge(i)
             assert edge.ID == i
-        for i in xrange(mesh.numFaces):
+        for i in range(mesh.numFaces):
             face = mesh.face(i)
             assert face.ID == i
-        for i in xrange(mesh.numZones):
+        for i in range(mesh.numZones):
             zone = mesh.zone(i)
             assert zone.ID == i
         mpi.barrier()
@@ -133,7 +133,7 @@ class PolyhedralMeshGenericTests:
                                             generateVoid = False,
                                             generateParallelConnectivity = False)
         assert mesh.numZones >= self.nodes.numInternalNodes
-        for i in xrange(self.nodes.numInternalNodes):
+        for i in range(self.nodes.numInternalNodes):
             zonehull = mesh.zone(i).convexHull()
             self.failUnless(zonehull.contains(self.pos[i]),
                             "Zone hull does not contain generator:  %s\n     vertices: %s\n   distance: %g" %
@@ -184,10 +184,10 @@ class PolyhedralMeshGenericTests:
         # Check that the communicated mesh nodes are consistent.
         boxInv = xmax - xmin
         boxInv = Vector(1.0/boxInv.x, 1.0/boxInv.y, 1.0/boxInv.z)
-        for sendProc in xrange(numDomains):
+        for sendProc in range(numDomains):
             numChecks = mpi.bcast(len(neighborDomains), root=sendProc)
             assert mpi.allreduce(numChecks, mpi.MIN) == mpi.allreduce(numChecks, mpi.MAX)
-            for k in xrange(numChecks):
+            for k in range(numChecks):
                 if rank == sendProc:
                     ksafe = k
                 else:
@@ -211,9 +211,9 @@ class PolyhedralMeshGenericTests:
                 self.failUnless(mpi.allreduce(ok, mpi.MIN), msg)
 
         # Check that all shared nodes have been found.
-        myHashes = [hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in xrange(mesh.numNodes)]
+        myHashes = [hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in range(mesh.numNodes)]
         myHashSet = set(myHashes)
-        for sendProc in xrange(numDomains):
+        for sendProc in range(numDomains):
             theirHashSet = mpi.bcast(myHashSet, root=sendProc)
             if sendProc != mpi.rank:
                 commonHashes = myHashSet.intersection(theirHashSet)
@@ -239,13 +239,13 @@ class PolyhedralMeshGenericTests:
         mesh, void = generatePolyhedralMesh([self.nodes],
                                             xmin = xmin,
                                             xmax = xmax)
-        pos = [mesh.zone(i).position() for i in xrange(mesh.numZones)] + [mesh.node(i).position() for i in xrange(mesh.numNodes)]
+        pos = [mesh.zone(i).position() for i in range(mesh.numZones)] + [mesh.node(i).position() for i in range(mesh.numNodes)]
         boxInv = xmax - xmin
         boxInv = Vector(1.0/boxInv.x, 1.0/boxInv.y, 1.0/boxInv.z)
         hashes = [hashPosition(x, xmin, xmax, boxInv) for x in pos]
-        blarg = zip(hashes, pos)
+        blarg = list(zip(hashes, pos))
         blarg.sort()
-        for i in xrange(len(blarg) - 1):
+        for i in range(len(blarg) - 1):
             hash0 = blarg[i][0]
             hash1 = blarg[i+1][0]
             self.failIf(hash0 == hash1,
@@ -260,13 +260,13 @@ class PolyhedralMeshGenericTests:
                                             xmin = xmin,
                                             xmax = xmax)
         answer = {}
-        for inode in xrange(mesh.numNodes):
+        for inode in range(mesh.numNodes):
             answer[inode] = set()
-        for izone in xrange(mesh.numZones):
+        for izone in range(mesh.numZones):
             nodeIDs = mesh.zone(izone).nodeIDs
             for inode in nodeIDs:
                 answer[inode].add(izone)
-        for inode in xrange(mesh.numNodes):
+        for inode in range(mesh.numNodes):
             zoneIDs = mesh.node(inode).zoneIDs
             for izone in zoneIDs:
                 self.failUnless(izone in answer[inode] or izone == PolyhedralMesh.UNSETID,
@@ -280,7 +280,7 @@ class PolyhedralMeshGenericTests:
         mesh, void = generatePolyhedralMesh([self.nodes],
                                             xmin = xmin,
                                             xmax = xmax)
-        for izone in xrange(mesh.numZones):
+        for izone in range(mesh.numZones):
             nodeIDs = mesh.zone(izone).nodeIDs
             for inode in nodeIDs:
                 self.failUnless(izone in mesh.node(inode).zoneIDs,
@@ -306,18 +306,18 @@ class PolyhedralMeshGenericTests:
         #     for iface in faces:
         #         answer[iface].append(izone)
 
-        answer = [[] for i in xrange(mesh.numFaces)]
-        zoneHulls = [mesh.zone(i).convexHull() for i in xrange(mesh.numZones)]
-        for iface in xrange(mesh.numFaces):
+        answer = [[] for i in range(mesh.numFaces)]
+        zoneHulls = [mesh.zone(i).convexHull() for i in range(mesh.numZones)]
+        for iface in range(mesh.numFaces):
             fp = mesh.face(iface).position()
-            for izone in xrange(mesh.numZones):
+            for izone in range(mesh.numZones):
                 if zoneHulls[izone].convexContains(fp):
                     answer[iface].append(izone)
             assert len(answer[iface]) in (1,2)
             if len(answer[iface]) == 1:
                 answer[iface].append(PolyhedralMesh.UNSETID)
 
-        for iface in xrange(mesh.numFaces):
+        for iface in range(mesh.numFaces):
             face = mesh.face(iface)
             zoneIDs = answer[iface]
             assert len(zoneIDs) in (1, 2)
@@ -394,12 +394,12 @@ class PolyhedralMeshGenericTests:
 
         # Check that all the generators are contained.
         pos = self.nodes.positions()
-        for i in xrange(self.nodes.numInternalNodes):
+        for i in range(self.nodes.numInternalNodes):
             self.failUnless(bs.contains(pos[i]),
                             "Failed containment for generator %i @ %s" % (i, pos[i]))
 
         # Check that all mesh nodes are contained.
-        for i in xrange(mesh.numNodes):
+        for i in range(mesh.numNodes):
             self.failUnless(bs.contains(mesh.node(i).position()),
                             "Failed containment for mesh node %i @ %s" % (i, mesh.node(i).position()))
 
@@ -442,7 +442,7 @@ class UniformPolyhedralMeshTests(unittest.TestCase, PolyhedralMeshGenericTests):
         self.dxmin = dxavg
         xyznodes = [v for v in (Vector(x0 + (i % nx +         0.5)*dxavg,
                                        y0 + ((i % nxy) / nx + 0.5)*dyavg,
-                                       z0 + (i / nxy +        0.5)*dzavg) for i in xrange(n))
+                                       z0 + (i / nxy +        0.5)*dzavg) for i in range(n))
                     if testPointInBox(v, xminproc, xmaxproc)]
         assert len(xyznodes) == nperdomain
         assert mpi.allreduce(len(xyznodes), mpi.SUM) == n
@@ -452,7 +452,7 @@ class UniformPolyhedralMeshTests(unittest.TestCase, PolyhedralMeshGenericTests):
         #random.shuffle(xyznodes)
 
         # Now we can set the node conditions.
-        for i in xrange(nperdomain):
+        for i in range(nperdomain):
             self.pos[i] = xyznodes[i]
             self.H[i] = SymTensor(1.0/(2.0*dxavg), 0.0, 0.0,
                                   0.0, 1.0/(2.0*dyavg), 0.0,
@@ -505,7 +505,7 @@ class RandomPolyhedralMeshTests(unittest.TestCase, PolyhedralMeshGenericTests):
         # to keep nodes from getting too close together.
         xyznodes_all = []
         occupiedCells = set()
-        for k in xrange(n):
+        for k in range(n):
             i = rangen.randint(0, ncell)
             while i in occupiedCells:
                 i = rangen.randint(0, ncell)
@@ -525,7 +525,7 @@ class RandomPolyhedralMeshTests(unittest.TestCase, PolyhedralMeshGenericTests):
 
         # Now we can set the node conditions.
         self.nodes.numInternalNodes = len(xyznodes)
-        for i in xrange(len(xyznodes)):
+        for i in range(len(xyznodes)):
             self.pos[i] = xyznodes[i]
             self.H[i] = SymTensor(1.0/(2.0*dxavg), 0.0, 0.0,
                                   0.0, 1.0/(2.0*dyavg), 0.0,

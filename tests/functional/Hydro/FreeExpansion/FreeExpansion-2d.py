@@ -15,13 +15,13 @@ from VoronoiDistributeNodes import distributeNodes2d
 
 def smooth(x,window_len=11,window='hanning'):
     if x.ndim != 1:
-        raise ValueError, "smooth only accepts 1 dimension arrays."
+        raise ValueError("smooth only accepts 1 dimension arrays.")
     if x.size < window_len:
-        raise ValueError, "Input vector needs to be bigger than window size."
+        raise ValueError("Input vector needs to be bigger than window size.")
     if window_len<3:
         return x
     if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+        raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
     s=np.r_[2*x[0]-x[window_len-1::-1],x,2*x[-1]-x[-1:-window_len:-1]]
     if window == 'flat': #moving average
         w=np.ones(window_len,'d')
@@ -283,7 +283,7 @@ output("integrator.rigorousBoundaries")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-print "Making controller."
+print("Making controller.")
 control = SpheralController(integrator, WT,
                             SPH = True,
                             statsStep = statsStep,
@@ -402,7 +402,7 @@ if graphics == "gnu":
 # Check the energy error.
 #------------------------------------------------------------------------------
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if compatibleEnergy and abs(Eerror) > 1e-10:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")
 

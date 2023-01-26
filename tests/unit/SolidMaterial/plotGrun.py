@@ -51,19 +51,19 @@ eosANEOS = ANEOS(0,                 # Material number
                  Tmax,              # maximum temperature (K)
                  units)
 eps0ANEOS = eosANEOS.specificThermalEnergy(rho0, 1.0)  # Specific energy at 1K, reference density
-print "eps0ANEOS = ", eps0ANEOS
+print("eps0ANEOS = ", eps0ANEOS)
 
 #-------------------------------------------------------------------------------
 # Plot the pressure as a function of (rho, eps)
 #-------------------------------------------------------------------------------
 n = 50
 drho = (rhoMax - rhoMin)/n
-rho = [rhoMin + i*drho for i in xrange(n + 1)]
+rho = [rhoMin + i*drho for i in range(n + 1)]
 
 epsMin = eosANEOS.specificThermalEnergy(rho0, 0.1*Tmin)
 epsMax = eosANEOS.specificThermalEnergy(rho0, 1.1*Tmax)
 deps = (epsMax - epsMin)/n
-eps = [epsMin + i*deps for i in xrange(n + 1)]
+eps = [epsMin + i*deps for i in range(n + 1)]
 
 # Write the (rho, eps, P, cs) set to a file.
 f = open("SiOS_ANEOS.txt", "w")

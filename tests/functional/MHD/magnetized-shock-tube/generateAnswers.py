@@ -90,7 +90,7 @@ class ShockTubeIC(object):
 
       # Set up the left half of the shock tube.
       dx = (xC - xL) / NL
-      for i in xrange(NL):
+      for i in range(NL):
          v[i] = self.vL
          rho[i] = self.rhoL
          B[i] = self.BL
@@ -98,7 +98,7 @@ class ShockTubeIC(object):
 
       # Set up the right half.
       dx = (xR - xC) / NR
-      for i in xrange(NR):
+      for i in range(NR):
          j = i+NL
          v[j] = self.vR
          rho[j] = self.rhoR
@@ -172,12 +172,12 @@ def runrunrun(config, t):
    ICs = shockTubeICs[config-1]
    fluid = ICs.AthenaFluid(n)
     
-   print t
+   print(t)
    if t is None:
       t = ICs.endTime
 
    # Run the problem.
-   print 'Running %s to t = %g...'%(ICs.name, t)
+   print('Running %s to t = %g...'%(ICs.name, t))
    MHD = Athena.MHD(X.Vector)
    MHD.setBoundaries(*ICs.BCs)
    MHD.run([fluid], 0.0, endTime = t)
@@ -205,7 +205,7 @@ def runrunrun(config, t):
 if config is None:
    # Step through the myriad configurations and run Athena to generate answers 
    # that we can check against.
-   for i in xrange(len(shockTubeICs)):
+   for i in range(len(shockTubeICs)):
       runrunrun(i+1, goalTime)
 else:
    runrunrun(config, goalTime)

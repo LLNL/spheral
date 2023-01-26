@@ -255,10 +255,10 @@ nodes1.massDensity(ScalarField("tmp", nodes1, rho0))
 pos = nodes1.positions()
 vel = nodes1.velocity()
 if problem == "spherical":
-    for i in xrange(nodes1.numNodes):
+    for i in range(nodes1.numNodes):
         vel[i] = -1.0 * pos[i].unitVector()
 else:
-    for i in xrange(nodes1.numNodes):
+    for i in range(nodes1.numNodes):
         vel[i] = Vector(vz0, vr0)
 
 #-------------------------------------------------------------------------------
@@ -450,7 +450,7 @@ A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 L1 = 0.0
-for i in xrange(len(rho)):
+for i in range(len(rho)):
     L1 = L1 + abs(rho[i]-rhoans[i])
 L1_tot = L1 / len(rho)
 # if mpi.rank == 0 and outputFile != "None":
@@ -635,6 +635,6 @@ if outputFile:
 # #     #                                                                             hD[0][2],hD[1][2],hD[2][2],hD[3][2])
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if checkEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")

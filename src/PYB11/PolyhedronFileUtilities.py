@@ -53,7 +53,7 @@ def writePolyhedronOBJ(poly, filename, forceTriangles=False):
         # those up into individual facets for obj output.
         # First, sort topologically so the loops are contiguous
         pairs = [(fac.ipoint1, fac.ipoint2) for fac in facets]
-        for i in xrange(len(pairs) - 1):
+        for i in range(len(pairs) - 1):
             v1 = pairs[i][1]
             j = i + 1
             while j < len(pairs) and v1 != pairs[j][0]:
@@ -64,7 +64,7 @@ def writePolyhedronOBJ(poly, filename, forceTriangles=False):
         # Now we can write the facets.
         f.write("f")
         i = 0
-        for i in xrange(len(pairs)):
+        for i in range(len(pairs)):
             f.write(" %i" % (pairs[i][0] + 1))
             if ((i + 1) < len(pairs) and
                 pairs[i][1] != pairs[i+1][0]):
@@ -76,7 +76,7 @@ def writePolyhedronOBJ(poly, filename, forceTriangles=False):
             ipoints = facet.ipoints
             f.write("f")
             if forceTriangles and len(ipoints > 3):
-                for j in xrange(1, len(ipoints)-1):
+                for j in range(1, len(ipoints)-1):
                     f.write(" %i %i %i\n" % (0, j, j+1))
             else:
                 for i in ipoints:
@@ -102,7 +102,7 @@ def readPolyhedronOFF(filename):
 
     # Read the vertex positions.
     verts = []
-    for i in xrange(nv):
+    for i in range(nv):
         line = f.readline()
         stuff = line.split()
         assert len(stuff) == 3
@@ -110,13 +110,13 @@ def readPolyhedronOFF(filename):
     
     # Read the face vertex indices.
     facets = []
-    for i in xrange(nf):
+    for i in range(nf):
         line = f.readline()
         stuff = line.split()
         assert len(stuff) >= 4
         n = int(stuff[0])
         facet = []
-        for j in xrange(n):
+        for j in range(n):
             k = int(stuff[j+1])
             assert k < nv
             facet.append(k)
@@ -144,7 +144,7 @@ def writePolyhedronOFF(poly, filename):
         # those up into individual facets for obj output.
         # First, sort topologically so the loops are contiguous
         pairs = [(fac.ipoint1, fac.ipoint2) for fac in facets]
-        for i in xrange(len(pairs) - 1):
+        for i in range(len(pairs) - 1):
             v1 = pairs[i][1]
             j = i + 1
             while j < len(pairs) and v1 != pairs[j][0]:
@@ -155,7 +155,7 @@ def writePolyhedronOFF(poly, filename):
         # Now we can extract the faces.
         faces = []
         faces.append([])
-        for i in xrange(len(pairs)):
+        for i in range(len(pairs)):
             faces[-1].append(pairs[i][0])
             if (i + 1) < len(pairs) and pairs[i][1] != pairs[i+1][0]:
                 faces.append([])
@@ -228,7 +228,7 @@ def readPolyhedronSTL(filename):
     nfacets = len(mesh.v0)
     assert len(mesh.v1) == len(mesh.v2) == nfacets
     points, facets = [], []
-    for i in xrange(nfacets):
+    for i in range(nfacets):
         points += [Vector3d(*tuple(mesh.v0[i])), Vector3d(*tuple(mesh.v1[i])), Vector3d(*tuple(mesh.v2[i]))]
         facets.append(vector_of_unsigned([3*i, 3*i + 1, 3*i + 2]))
     assert len(points)/3 == nfacets
@@ -252,13 +252,13 @@ def Polyhedra2NumpySTL(polys):
         for facet in facets:
             n = len(facet)
             assert n >= 3
-            for j in xrange(1, n - 1):
+            for j in range(1, n - 1):
                 faces.append([facet[0],
                               facet[j],
                               facet[j+1]])
         stlPoly = stl.mesh.Mesh(np.zeros(len(faces), dtype=stl.mesh.Mesh.dtype))
         for i, f in enumerate(faces):
-            for j in xrange(3):
+            for j in range(3):
                 stlPoly.vectors[i][j] = vertices[f[j],:]
         result.append(stlPoly)
     assert len(result) == len(polys)
@@ -275,7 +275,7 @@ def writePolyhedraNumpySTL(polys,
     # If requested, union everything to a single STL (across all processors)
     if unionPolys:
         if mpi.rank == 0:
-            for iproc in xrange(1, mpi.procs):
+            for iproc in range(1, mpi.procs):
                 stlpolys += mpi.recv(iproc, tag=100)[0]
             result = stl.mesh.Mesh(np.concatenate([p.data for p in stlpolys]))
             result.save(filename)
@@ -299,9 +299,9 @@ def writePolyhedraNumpySTL(polys,
     else:
         # We assume the filename provided is base path in which we want to write the
         # individual files
-        print "Saving %i individual STL files" % mpi.allreduce(len(stlpolys), mpi.SUM)
+        print("Saving %i individual STL files" % mpi.allreduce(len(stlpolys), mpi.SUM))
         ioff = 0
-        for iproc in xrange(mpi.procs):
+        for iproc in range(mpi.procs):
             nother = mpi.bcast(len(stlpolys), iproc)
             if mpi.rank > iproc:
                 ioff += nother

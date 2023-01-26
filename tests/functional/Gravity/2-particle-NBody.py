@@ -9,7 +9,7 @@ from NodeHistory import *
 from SpheralVisitDump import dumpPhysicsState
 from math import *
 
-print "3-D N-Body Gravity test -- two particle problem"
+print("3-D N-Body Gravity test -- two particle problem")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters

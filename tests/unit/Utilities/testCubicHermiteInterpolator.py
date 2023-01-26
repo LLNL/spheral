@@ -136,7 +136,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
     def test_quad_interp(self):
         xmin = -10.0
         xmax =  40.0
-        for ifunc in xrange(self.nfunc):
+        for ifunc in range(self.nfunc):
             A = rangen.uniform(-100.0, 100.0)
             B = rangen.uniform(-100.0, 100.0)
             C = rangen.uniform(-100.0, 100.0)
@@ -146,7 +146,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
                 if not passing:
-                    print F.vals
+                    print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
@@ -157,7 +157,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
     def test_quad_interp_with_grad(self):
         xmin = -10.0
         xmax =  40.0
-        for ifunc in xrange(self.nfunc):
+        for ifunc in range(self.nfunc):
             A = rangen.uniform(-100.0, 100.0)
             B = rangen.uniform(-100.0, 100.0)
             C = rangen.uniform(-100.0, 100.0)
@@ -167,7 +167,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
                 if not passing:
-                    print F.vals
+                    print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
@@ -178,7 +178,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
     def test_quad_interp_monotonic(self):
         xmin = -10.0
         xmax =  40.0
-        for ifunc in xrange(self.nfunc):
+        for ifunc in range(self.nfunc):
             A = rangen.uniform(-100.0, 100.0)
             B = rangen.uniform(-100.0, 100.0)
             C = rangen.uniform(-100.0, 100.0)
@@ -189,14 +189,14 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
                 if not passing:
-                    print F.vals
+                    print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
                 i0 = F.lowerBound(x)
                 passing = (F(x) - F.vals[i0])*(F(x) - F.vals[i0 + 1]) <= 0.0
                 if not passing:
-                    print F.vals
+                    print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Failing monotonicity test: F(%g) = %g not in [%g, %g]" % (x, F(x), F.vals[i0], F.vals[i0 + 1]))
@@ -207,7 +207,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
     def test_quad_interp_with_grad_monotonic(self):
         xmin = -10.0
         xmax =  40.0
-        for ifunc in xrange(self.nfunc):
+        for ifunc in range(self.nfunc):
             A = rangen.uniform(-100.0, 100.0)
             B = rangen.uniform(-100.0, 100.0)
             C = rangen.uniform(-100.0, 100.0)
@@ -218,14 +218,14 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
                 if not passing:
-                    print F.vals
+                    print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
                 i0 = F.lowerBound(x)
                 passing = (F(x) - F.vals[i0])*(F(x) - F.vals[i0 + 1]) <= 0.0
                 if not passing:
-                    print F.vals
+                    print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Failing monotonicity test: F(%g) = %g not in [%g, %g]" % (x, F(x), F.vals[i0], F.vals[i0 + 1]))
@@ -236,7 +236,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
     def test_cubic_interp(self):
         xmin = -10.0
         xmax =  40.0
-        for ifunc in xrange(self.nfunc):
+        for ifunc in range(self.nfunc):
             A = rangen.uniform(-100.0, 100.0)
             B = rangen.uniform(-100.0, 100.0)
             C = rangen.uniform(-100.0, 100.0)
@@ -247,7 +247,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
                 if not passing:
-                    print F.vals
+                    print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
@@ -258,7 +258,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
     def test_cubic_interp_with_grad(self):
         xmin = -10.0
         xmax =  40.0
-        for ifunc in xrange(self.nfunc):
+        for ifunc in range(self.nfunc):
             A = rangen.uniform(-100.0, 100.0)
             B = rangen.uniform(-100.0, 100.0)
             C = rangen.uniform(-100.0, 100.0)
@@ -269,7 +269,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
                 if not passing:
-                    print F.vals
+                    print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
@@ -280,7 +280,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
     def test_cubic_interp_monotonic(self):
         xmin = -10.0
         xmax =  40.0
-        for ifunc in xrange(self.nfunc):
+        for ifunc in range(self.nfunc):
             A = rangen.uniform(-100.0, 100.0)
             B = rangen.uniform(-100.0, 100.0)
             C = rangen.uniform(-100.0, 100.0)
@@ -292,14 +292,14 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
                 if not passing:
-                    print F.vals
+                    print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
                 i0 = F.lowerBound(x)
                 passing = (F(x) - F.vals[i0])*(F(x) - F.vals[i0 + 1]) <= 0.0
                 if not passing:
-                    print F.vals
+                    print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Failing monotonicity test: F(%g) = %g not in [%g, %g]" % (x, F(x), F.vals[i0], F.vals[i0 + 1]))
@@ -310,7 +310,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
     def test_cubic_interp_with_grad_monotonic(self):
         xmin = -10.0
         xmax =  40.0
-        for ifunc in xrange(self.nfunc):
+        for ifunc in range(self.nfunc):
             A = rangen.uniform(-100.0, 100.0)
             B = rangen.uniform(-100.0, 100.0)
             C = rangen.uniform(-100.0, 100.0)
@@ -322,14 +322,14 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             for x in xgen(self.nsamples, xmin, xmax):
                 passing = err(F(x), func(x)) < tol
                 if not passing:
-                    print F.vals
+                    print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
                 i0 = F.lowerBound(x)
                 passing = (F(x) - F.vals[i0])*(F(x) - F.vals[i0 + 1]) <= 0.0
                 if not passing:
-                    print F.vals
+                    print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
                 self.failUnless(passing,
                                 "Failing monotonicity test: F(%g) = %g not in [%g, %g]" % (x, F(x), F.vals[i0], F.vals[i0 + 1]))

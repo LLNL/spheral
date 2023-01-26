@@ -89,7 +89,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
             self.m0 = m0ForMassMatching
             self.rho0 = targetN*self.m0/self.vol
         
-        print "Found total mass = {0:3.3e} with rho0 = {1:3.3e}".format(targetMass,self.rho0)
+        print("Found total mass = {0:3.3e} with rho0 = {1:3.3e}".format(targetMass,self.rho0))
     
         # compute kappa first
         # k = 3/(self.rho0*rmax**3) * targetMass/(4.0*pi)
@@ -109,10 +109,10 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
 
 
         self.rl = []
-        for i in xrange(len(self.xl)):
+        for i in range(len(self.xl)):
             self.rl.append(sqrt(self.xl[i]**2+self.yl[i]**2+self.zl[i]**2))
         
-        print "Sorting unstretched lattice... %d elements" % len(self.rl)
+        print("Sorting unstretched lattice... %d elements" % len(self.rl))
         
         multiSort(self.rl,self.xl,self.yl,self.zl)
         
@@ -125,7 +125,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         nx  = 2*nlat+1
         eta = (self.xmax[0] - self.xmin[0])/nx
         
-        print "Stretching lattice..."
+        print("Stretching lattice...")
 
         dr  = eta * 0.01    # this will essentially be the error in the new dumb way
         r0p = 0
@@ -134,14 +134,14 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         npp = len(self.rl)/procs
         rankmin = (npp*rank) if (rank>0) else (1)
         rankmax = (npp*(rank+1)) if (rank<procs-1) else (len(self.rl))
-        for i in xrange(rankmin,rankmax):
+        for i in range(rankmin,rankmax):
             #print "%d / %d" % (i,len(self.rl))
             r0 = self.rl[i]
             if (abs(r0-r0p)/r0>1e-10):
                 sol     = r0**3*self.rho0/3.0
                 iter    = int(10*rmax // dr)
                 fn      = 0
-                for j in xrange(iter+1):
+                for j in range(iter+1):
                     rj  = dr*j
                     rjj = dr*(j+1)
                     fj  = rj**2 * densityProfileMethod(rj)
@@ -162,7 +162,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         seededMass = mpi.allreduce(seededMass,mpi.SUM)
         
         mAdj = targetMass / seededMass
-        for i in xrange(len(self.m)):
+        for i in range(len(self.m)):
             self.m[i] = self.m[i] * mAdj
         
         '''
@@ -260,7 +260,7 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         
         result = 0
         dr = (rmax-rmin)/nbins
-        for i in xrange(1,nbins):
+        for i in range(1,nbins):
             r1 = rmin + (i-1)*dr
             r2 = rmin + i*dr
             result += 0.5*dr*(r2*r2*densityProfileMethod(r2)+r1*r1*densityProfileMethod(r1))
@@ -302,9 +302,9 @@ class GenerateStretchedLattice3d(NodeGeneratorBase):
         m = []
         H = []
 
-        for k in xrange(nz):
-            for j in xrange(ny):
-                for i in xrange(nx):
+        for k in range(nz):
+            for j in range(ny):
+                for i in range(nx):
                     xx = xmin[0] + (i + 0.5)*dx
                     yy = xmin[1] + (j + 0.5)*dy
                     zz = xmin[2] + (k + 0.5)*dz

@@ -97,7 +97,7 @@ class SpheralVoronoiSiloDump:
                 try:
                     os.makedirs(outputdir)
                 except:
-                    raise ValueError, "Cannot create output directory %s" % outputdir
+                    raise ValueError("Cannot create output directory %s" % outputdir)
         mpi.barrier()
 
         # Now build the output file name, including directory.  Make sure
@@ -118,16 +118,16 @@ class SpheralVoronoiSiloDump:
             # Are we splitting into triangles/tets, or writing the native polygons/polyhera?
             if self.splitCells:
                 index2zone = []
-                for nodeListi in xrange(len(self.cells)):
+                for nodeListi in range(len(self.cells)):
                     n = self.cells[nodeListi].numInternalElements
-                    for i in xrange(n):
+                    for i in range(n):
                         celli = self.cells(nodeListi, i)
                         verts = celli.vertices()
                         noldnodes = len(mesh.nodes)/nDim
                         noldfaces = len(mesh.faces)
                         noldcells = len(mesh.cells)
-                        for j in xrange(len(verts)):
-                            for k in xrange(nDim):
+                        for j in range(len(verts)):
+                            for k in range(nDim):
                                 mesh.nodes.append(verts[j][k])
 
                         if nDim == 2:
@@ -215,8 +215,8 @@ class SpheralVoronoiSiloDump:
             xmax = vector_of_double([-1e100]*nDim)
             for nodes in self._nodeLists:
                 pos = nodes.positions()
-                for i in xrange(nodes.numInternalNodes):
-                    for j in xrange(nDim):
+                for i in range(nodes.numInternalNodes):
+                    for j in range(nDim):
                         gens.append(pos[i][j])
                         xmin[j] = min(xmin[j], pos[i][j])
                         xmax[j] = max(xmax[j], pos[i][j])
@@ -226,14 +226,14 @@ class SpheralVoronoiSiloDump:
                 try:
                     pb = dynamicCastBoundaryToPlanarBoundary2d(bound)
                     for p in (pb.enterPlane.point, pb.exitPlane.point):
-                        for j in xrange(nDim):
+                        for j in range(nDim):
                             xmin[j] = min(xmin[j], p[j])
                             xmax[j] = max(xmax[j], p[j])
                 except:
                     pass
 
             # Globally reduce and puff up a bit.
-            for j in xrange(nDim):
+            for j in range(nDim):
                 xmin[j] = mpi.allreduce(xmin[j], mpi.MIN)
                 xmax[j] = mpi.allreduce(xmax[j], mpi.MAX)
                 delta = 0.01*(xmax[j] - xmin[j])
@@ -243,7 +243,7 @@ class SpheralVoronoiSiloDump:
             # Build the PLC.
             plc = polytope.PLC2d()
             plc.facets.resize(4)
-            for i in xrange(4):
+            for i in range(4):
                 plc.facets[i].resize(2)
                 plc.facets[i][0] = i
                 plc.facets[i][1] = (i + 1) % 4
@@ -278,7 +278,7 @@ class SpheralVoronoiSiloDump:
                     serial_tessellator = polytope.BoostTessellator2d()
             else:
                 assert self.dimension == "3d"
-                raise RuntimeError, "Sorry: 3D tessellation silo dumps are not supported yet."
+                raise RuntimeError("Sorry: 3D tessellation silo dumps are not supported yet.")
             if mpi.procs > 1:
                 tessellator = eval("polytope.DistributedTessellator%s(serial_tessellator, False, True)" % self.dimension)
             else:
@@ -305,7 +305,7 @@ class SpheralVoronoiSiloDump:
             mineigen = eval("ScalarField%s('%s_eigen_min', n)" % (self.dimension, f.name))
             maxeigen = eval("ScalarField%s('%s_eigen_max', n)" % (self.dimension, f.name))
             fvals = f.internalValues()
-            for i in xrange(n.numInternalNodes):
+            for i in range(n.numInternalNodes):
                 tr[i] = fvals[i].Trace()
                 det[i] = fvals[i].Determinant()
                 eigen = fvals[i].eigenValues()
@@ -369,7 +369,7 @@ class SpheralVoronoiSiloDump:
         redundantSet.sort()
         assert len(redundantSet) > 0
         result = [redundantSet[0][1]]
-        for i in xrange(1, len(redundantSet)):
+        for i in range(1, len(redundantSet)):
             if redundantSet[i][0] != redundantSet[i - 1][0]:
                 result.append(redundantSet[i][1])
         names = [x.name for x in result]
@@ -493,7 +493,7 @@ def dumpPhysicsState(stateThingy,
             fmax.name = "hmax"
             fratio.name = "hmin_hmax_ratio"
             n = H.nodeList().numInternalNodes
-            for i in xrange(n):
+            for i in range(n):
                 ev = H[i].eigenValues()
                 fmin[i] = 1.0/ev.maxElement()
                 fmax[i] = 1.0/ev.minElement()
@@ -515,7 +515,7 @@ def dumpPhysicsState(stateThingy,
         domains = dataBase.newGlobalScalarFieldList()
         for f in domains:
             f.name = "Domains"
-            for i in xrange(f.nodeList().numInternalNodes):
+            for i in range(f.nodeList().numInternalNodes):
                 f[i] = mpi.rank
         fieldLists.append(domains)
     except:

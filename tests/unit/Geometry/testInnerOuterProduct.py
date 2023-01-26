@@ -40,7 +40,7 @@ def fillRandom(Constructor):
     result = Constructor()
     ndim = Constructor.nDimensions
     nelem = Constructor.numElements
-    for i in xrange(Constructor.numElements):
+    for i in range(Constructor.numElements):
         result[i] = rangen.uniform(*ranrange)
     if "Sym" in Constructor.__name__:
         result = 0.5*(result + result.Transpose())
@@ -62,7 +62,7 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(ttype)
                 result = innerProduct(x, y)
                 answer = ttype()
-                for i in xrange(ttype.numElements):
+                for i in range(ttype.numElements):
                     answer[i] = x*y[i]
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch for %s: %s != %s" % (ttype.__name__, result, answer))
         return
@@ -78,7 +78,7 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(ttype)
                 result = innerProduct(y, x)
                 answer = ttype()
-                for i in xrange(ttype.numElements):
+                for i in range(ttype.numElements):
                     answer[i] = x*y[i]
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch for %s: %s != %s" % (ttype.__name__, result, answer))
         return
@@ -93,7 +93,7 @@ class TestInnerProduct(unittest.TestCase):
             y = fillRandom(ttype)
             result = innerProduct(x, y)
             answer = 0.0
-            for i in xrange(dim):
+            for i in range(dim):
                 answer += x[i]*y[i]
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
         return
@@ -110,8 +110,8 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(vtype)
                 result = innerProduct(x, y)
                 answer = vtype()
-                for i in xrange(dim):
-                    for j in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
                         answer[i] += x(i,j)*y(j)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
         return
@@ -128,8 +128,8 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(ttype)
                 result = innerProduct(x, y)
                 answer = vtype()
-                for i in xrange(dim):
-                    for j in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
                         answer[i] += x(j)*y(j,i)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
         return
@@ -146,8 +146,8 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(ttype)
                 result = innerProduct(x, y)
                 answer = vtype()
-                for i in xrange(dim):
-                    for j in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
                         answer[j] += x(i)*y(i,j)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
         return
@@ -164,9 +164,9 @@ class TestInnerProduct(unittest.TestCase):
             y = fillRandom(vtype)
             result = innerProduct(x, y)
             answer = ttype()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
                         answer[dim*i + j] += x(i,j,k)*y(k)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch for %s.%s: %s != %s" % (trttype.__name__, ttype.__name__, result, answer))
         return
@@ -183,9 +183,9 @@ class TestInnerProduct(unittest.TestCase):
             y = fillRandom(trttype)
             result = innerProduct(x, y)
             answer = ttype()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
                         answer[dim*j + k] += x(i)*y(i,j,k)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch for %s.%s: %s != %s" % (vtype.__name__, trttype.__name__, result, answer))
         return
@@ -204,9 +204,9 @@ class TestInnerProduct(unittest.TestCase):
                     y = fillRandom(t2type)
                     result = innerProduct(x, y)
                     answer = atype()
-                    for i in xrange(dim):
-                        for j in xrange(dim):
-                            for k in xrange(dim):
+                    for i in range(dim):
+                        for j in range(dim):
+                            for k in range(dim):
                                 answer[i*dim + j] += x(i,k)*y(k,j)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch for %s.%s: %s != %s, max disc=%s" % (t1type.__name__, t2type.__name__, result, answer, (result - answer).maxAbsElement()))
         return
@@ -223,10 +223,10 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(ttype)
                 result = innerProduct(x, y)
                 answer = trttype()
-                for i in xrange(dim):
-                    for j in xrange(dim):
-                        for k in xrange(dim):
-                            for m in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
+                        for k in range(dim):
+                            for m in range(dim):
                                 z = answer(i, j, k) + x(i, j, m)*y(m, k)
                                 answer(i, j, k, z)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -244,10 +244,10 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(trttype)
                 result = innerProduct(x, y)
                 answer = trttype()
-                for i in xrange(dim):
-                    for j in xrange(dim):
-                        for k in xrange(dim):
-                            for m in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
+                        for k in range(dim):
+                            for m in range(dim):
                                 z = answer(i, j, k) + x(i, m)*y(m, j, k)
                                 answer(i, j, k, z)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -265,10 +265,10 @@ class TestInnerProduct(unittest.TestCase):
             y = fillRandom(vtype)
             result = innerProduct(x, y)
             answer = trttype()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
                             z = answer(i,j,k) + x(i,j,k,m)*y(m)
                             answer(i, j, k, z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -286,10 +286,10 @@ class TestInnerProduct(unittest.TestCase):
             y = fillRandom(frttype)
             result = innerProduct(x, y)
             answer = trttype()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
                             z = answer(i,j,k) + x(m)*y(m,i,j,k)
                             answer(i, j, k, z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -307,11 +307,11 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(r2type)
                 result = innerProduct(x, y)
                 answer = r4type()
-                for i in xrange(dim):
-                    for j in xrange(dim):
-                        for k in xrange(dim):
-                            for m in xrange(dim):
-                                for n in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
+                        for k in range(dim):
+                            for m in range(dim):
+                                for n in range(dim):
                                     z = answer(i, j, k, n) + x(i, j, k, m)*y(m, n)
                                     answer(i, j, k, n, z)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -329,11 +329,11 @@ class TestInnerProduct(unittest.TestCase):
                 y = fillRandom(r4type)
                 result = innerProduct(x, y)
                 answer = r4type()
-                for i in xrange(dim):
-                    for j in xrange(dim):
-                        for k in xrange(dim):
-                            for m in xrange(dim):
-                                for n in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
+                        for k in range(dim):
+                            for m in range(dim):
+                                for n in range(dim):
                                     z = answer(i, k, m, n) + x(i, j)*y(j, k, m, n)
                                     answer(i, k, m, n, z)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -351,12 +351,12 @@ class TestInnerProduct(unittest.TestCase):
             y = fillRandom(r3type)
             result = innerProduct(x, y)
             answer = r5type()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
-                            for n in xrange(dim):
-                                for p in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
+                            for n in range(dim):
+                                for p in range(dim):
                                     z = answer(i, j, k, n, p) + x(i, j, k, m)*y(m, n, p)
                                     answer(i, j, k, n, p, z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -374,12 +374,12 @@ class TestInnerProduct(unittest.TestCase):
             y = fillRandom(r4type)
             result = innerProduct(x, y)
             answer = r5type()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
-                            for n in xrange(dim):
-                                for p in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
+                            for n in range(dim):
+                                for p in range(dim):
                                     z = answer(i, j, m, n, p) + x(i, j, k)*y(k, m, n, p)
                                     answer(i, j, m, n, p, z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -396,11 +396,11 @@ class TestInnerProduct(unittest.TestCase):
             y = fillRandom(r3type)
             result = innerProduct(x, y)
             answer = r4type()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
-                            for n in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
+                            for n in range(dim):
                                 z = answer(i, j, m, n) + x(i, j, k)*y(k, m, n)
                                 answer(i, j, m, n, z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -422,7 +422,7 @@ class TestOuterProduct(unittest.TestCase):
                 y = fillRandom(ttype)
                 result = outerProduct(x, y)
                 answer = ttype()
-                for i in xrange(ttype.numElements):
+                for i in range(ttype.numElements):
                     answer[i] = x*y[i]
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch for %s: %s != %s" % (ttype.__name__, result, answer))
         return
@@ -438,7 +438,7 @@ class TestOuterProduct(unittest.TestCase):
                 y = fillRandom(ttype)
                 result = outerProduct(y, x)
                 answer = ttype()
-                for i in xrange(ttype.numElements):
+                for i in range(ttype.numElements):
                     answer[i] = x*y[i]
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch for %s: %s != %s" % (ttype.__name__, result, answer))
         return
@@ -454,8 +454,8 @@ class TestOuterProduct(unittest.TestCase):
             y = fillRandom(type)
             result = outerProduct(x, y)
             answer = ttype()
-            for i in xrange(dim):
-                for j in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
                     answer(i, j, x[i]*y[j])
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
         return
@@ -473,9 +473,9 @@ class TestOuterProduct(unittest.TestCase):
                 y = fillRandom(vtype)
                 result = outerProduct(x, y)
                 answer = trttype()
-                for i in xrange(dim):
-                    for j in xrange(dim):
-                        for k in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
+                        for k in range(dim):
                             answer(i, j, k, x(i,j)*y(k))
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
         return
@@ -493,9 +493,9 @@ class TestOuterProduct(unittest.TestCase):
                 y = fillRandom(ttype)
                 result = outerProduct(x, y)
                 answer = trttype()
-                for i in xrange(dim):
-                    for j in xrange(dim):
-                        for k in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
+                        for k in range(dim):
                             answer(i, j, k, x(i)*y(j,k))
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
         return
@@ -519,8 +519,8 @@ class TestDoubleInnerProduct(unittest.TestCase):
                     result = innerDoubleProduct(x, y)
                     result2 = x.doubledot(y)
                     answer = 0.0
-                    for i in xrange(dim):
-                        for j in xrange(dim):
+                    for i in range(dim):
+                        for j in range(dim):
                             answer += x(i,j)*y(j,i)
                     self.failUnless(abs(result - answer) < 1.0e-10, "Mismatch: %s != %s" % (result, answer))
                     self.failUnless(abs(result2 - answer) < 1.0e-10, "Mismatch: %s != %s" % (result2, answer))
@@ -539,9 +539,9 @@ class TestDoubleInnerProduct(unittest.TestCase):
                 y = fillRandom(r3type)
                 result = innerDoubleProduct(x, y)
                 answer = vtype()
-                for i in xrange(dim):
-                    for j in xrange(dim):
-                        for k in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
+                        for k in range(dim):
                             answer[k] += x(i, j)*y(j, i, k)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
         return
@@ -559,9 +559,9 @@ class TestDoubleInnerProduct(unittest.TestCase):
                 y = fillRandom(r2type)
                 result = innerDoubleProduct(x, y)
                 answer = vtype()
-                for i in xrange(dim):
-                    for j in xrange(dim):
-                        for k in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
+                        for k in range(dim):
                             answer[i] += x(i, j, k)*y(k, j)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
         return
@@ -577,10 +577,10 @@ class TestDoubleInnerProduct(unittest.TestCase):
             y = fillRandom(r3type)
             result = innerDoubleProduct(x, y)
             answer = r2type()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
                             z = answer(i,m) + x(i,j,k)*y(k,j,m)
                             answer(i,m,z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -599,10 +599,10 @@ class TestDoubleInnerProduct(unittest.TestCase):
                 y = fillRandom(r4type)
                 result = innerDoubleProduct(x, y)
                 answer = ttype()
-                for i in xrange(dim):
-                    for j in xrange(dim):
-                        for k in xrange(dim):
-                            for m in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
+                        for k in range(dim):
+                            for m in range(dim):
                                 z = answer(k, m) + x(i, j)*y(j, i, k, m)
                                 answer(k, m, z)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -621,10 +621,10 @@ class TestDoubleInnerProduct(unittest.TestCase):
                 y = fillRandom(r2type)
                 result = innerDoubleProduct(x, y)
                 answer = ttype()
-                for i in xrange(dim):
-                    for j in xrange(dim):
-                        for k in xrange(dim):
-                            for m in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
+                        for k in range(dim):
+                            for m in range(dim):
                                 z = answer(i, j) + x(i, j, k, m)*y(m, k)
                                 answer(i, j, z)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -641,11 +641,11 @@ class TestDoubleInnerProduct(unittest.TestCase):
             y = fillRandom(r4type)
             result = innerDoubleProduct(x, y)
             answer = r3type()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
-                            for n in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
+                            for n in range(dim):
                                 z = answer(i, m, n) + x(i, j, k)*y(k, j, m, n)
                                 answer(i, m, n, z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -662,11 +662,11 @@ class TestDoubleInnerProduct(unittest.TestCase):
             y = fillRandom(r3type)
             result = innerDoubleProduct(x, y)
             answer = r3type()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
-                            for n in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
+                            for n in range(dim):
                                 z = answer(i, j, n) + x(i, j, k, m)*y(m, k, n)
                                 answer(i, j, n, z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -682,12 +682,12 @@ class TestDoubleInnerProduct(unittest.TestCase):
             y = fillRandom(r4type)
             result = innerDoubleProduct(x, y)
             answer = r4type()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
-                            for n in xrange(dim):
-                                for p in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
+                            for n in range(dim):
+                                for p in range(dim):
                                     z = answer(i, j, n, p) + x(i, j, k, m)*y(m, k, n, p)
                                     answer(i, j, n, p, z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -706,11 +706,11 @@ class TestDoubleInnerProduct(unittest.TestCase):
                 y = fillRandom(r5type)
                 result = innerDoubleProduct(x, y)
                 answer = r3type()
-                for i in xrange(dim):
-                    for j in xrange(dim):
-                        for k in xrange(dim):
-                            for m in xrange(dim):
-                                for n in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
+                        for k in range(dim):
+                            for m in range(dim):
+                                for n in range(dim):
                                     z = answer(k,m,n) + x(i,j)*y(j,i,k,m,n)
                                     answer(k,m,n,z)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -729,11 +729,11 @@ class TestDoubleInnerProduct(unittest.TestCase):
                 y = fillRandom(r2type)
                 result = innerDoubleProduct(x, y)
                 answer = r3type()
-                for i in xrange(dim):
-                    for j in xrange(dim):
-                        for k in xrange(dim):
-                            for m in xrange(dim):
-                                for n in xrange(dim):
+                for i in range(dim):
+                    for j in range(dim):
+                        for k in range(dim):
+                            for m in range(dim):
+                                for n in range(dim):
                                     z = answer(i,j,k) + x(i,j,k,m,n)*y(n,m)
                                     answer(i,j,k,z)
                 self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -751,12 +751,12 @@ class TestDoubleInnerProduct(unittest.TestCase):
             y = fillRandom(r5type)
             result = innerDoubleProduct(x, y)
             answer = r4type()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
-                            for n in xrange(dim):
-                                for p in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
+                            for n in range(dim):
+                                for p in range(dim):
                                     z = answer(i,m,n,p) + x(i,j,k)*y(k,j,m,n,p)
                                     answer(i,m,n,p,z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -774,12 +774,12 @@ class TestDoubleInnerProduct(unittest.TestCase):
             y = fillRandom(r3type)
             result = innerDoubleProduct(x, y)
             answer = r4type()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
-                            for n in xrange(dim):
-                                for p in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
+                            for n in range(dim):
+                                for p in range(dim):
                                     z = answer(i,j,k,p) + x(i,j,k,m,n)*y(n,m,p)
                                     answer(i,j,k,p,z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -796,13 +796,13 @@ class TestDoubleInnerProduct(unittest.TestCase):
             y = fillRandom(r5type)
             result = innerDoubleProduct(x, y)
             answer = r5type()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
-                            for n in xrange(dim):
-                                for p in xrange(dim):
-                                    for q in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
+                            for n in range(dim):
+                                for p in range(dim):
+                                    for q in range(dim):
                                         z = answer(i,j,n,p,q) + x(i,j,k,m)*y(m,k,n,p,q)
                                         answer(i,j,n,p,q,z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))
@@ -819,13 +819,13 @@ class TestDoubleInnerProduct(unittest.TestCase):
             y = fillRandom(r4type)
             result = innerDoubleProduct(x, y)
             answer = r5type()
-            for i in xrange(dim):
-                for j in xrange(dim):
-                    for k in xrange(dim):
-                        for m in xrange(dim):
-                            for n in xrange(dim):
-                                for p in xrange(dim):
-                                    for q in xrange(dim):
+            for i in range(dim):
+                for j in range(dim):
+                    for k in range(dim):
+                        for m in range(dim):
+                            for n in range(dim):
+                                for p in range(dim):
+                                    for q in range(dim):
                                         z = answer(i,j,k,p,q) + x(i,j,k,m,n)*y(n,m,p,q)
                                         answer(i,j,k,p,q,z)
             self.failUnless(isEqual(result, answer, tol=tol), "Mismatch: %s != %s" % (result, answer))

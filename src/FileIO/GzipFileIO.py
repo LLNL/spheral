@@ -125,8 +125,8 @@ class GzipFileIO(PyFileIO):
                     return line[npath:-1]
 
         # Uh oh!  We didn't find the requested path.  Raise an error.
-        raise ValueError, "GzipFileIO.findPath : unable to locate %s in %s!" % (pathName,
-                                                                                self.fileName)
+        raise ValueError("GzipFileIO.findPath : unable to locate %s in %s!" % (pathName,
+                                                                                self.fileName))
 
     #---------------------------------------------------------------------------
     # Standard terminator for encoded strings.
@@ -154,7 +154,7 @@ class GzipFileIO(PyFileIO):
             result = self.findPath(pathName)
             return result
         except Exception as excp:
-            print "WARNING : Unable to restore %s due to exception message: %s" % (pathName, excp)
+            print("WARNING : Unable to restore %s due to exception message: %s" % (pathName, excp))
             pass
 
     #---------------------------------------------------------------------------

@@ -302,7 +302,7 @@ for nodes in nodeSet:
     rho = nodes.massDensity()
     gammai = nodes.eos.gamma
 
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         eps[i] = specificEnergy(pos[i].x, rho[i], gammai)
 
 
@@ -526,7 +526,7 @@ if sumInitialDensity and control.totalSteps == 0:
         eps = nodes.specificThermalEnergy()
         rho = nodes.massDensity()
         gammai = nodes.eos.gamma
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             eps[i] = specificEnergy(pos[i].x, rho[i],gammai)
 
 #-------------------------------------------------------------------------------
@@ -542,9 +542,9 @@ if not steps is None:
         control.loadRestartFile(control.totalSteps)
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
+            raise ValueError("The restarted state does not match!")
         else:
-            print "Restart check PASSED."
+            print("Restart check PASSED.")
 
 else:
     control.advance(goalTime, maxSteps)
@@ -581,8 +581,8 @@ def plotFilter(pos):
 pos = db.fluidPosition
 def createList(x):
     result = []
-    for i in xrange(len(x)):
-        for j in xrange(x[i].numInternalElements):
+    for i in range(len(x)):
+        for j in range(x[i].numInternalElements):
             if plotFilter(pos(i,j)):
                 result.append(x(i,j))
     return mpi.allreduce(result)
@@ -668,9 +668,9 @@ if graphics:
     for p, filename in plots:
         savefig(p, os.path.join(dataDir, filename))
 
-print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
+print("Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],
-                                                                (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0])
+                                                                (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]))
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
@@ -692,7 +692,7 @@ if mpi.rank == 0:
         f.close()
 
     
-    print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+    print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
     failure = False
     hD = []
     for (name, data, ans) in [("Mass Density", rho, rhoans),
@@ -702,16 +702,16 @@ if mpi.rank == 0:
                               ("Entropy", A, Aans),
                               ("h       ", hprof, hans)]:
         assert len(data) == len(ans)
-        error = [data[i] - ans[i] for i in xrange(len(data))]
+        error = [data[i] - ans[i] for i in range(len(data))]
         Pn = Pnorm.Pnorm(error, xprof)
         L1 = Pn.gridpnorm(1, rmin, rmax)
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
-        print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
         #f.write(("\t\t%g") % (L1))
         hD.append([L1,L2,Linf])
     #f.write("\n")
 
-    print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+    print("%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
                                                                                 hD[0][1],hD[1][1],hD[2][1],hD[3][1],
-                                                                                hD[0][2],hD[1][2],hD[2][2],hD[3][2])
+                                                                                hD[0][2],hD[1][2],hD[2][2],hD[3][2]))

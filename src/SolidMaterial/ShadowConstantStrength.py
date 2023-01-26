@@ -59,15 +59,15 @@ def _ConstantStrengthFactory(*args,
         # Evaluate the arguments to the method.
         if len(args) > 0:
             if len(args) != len(expectedArgs):
-                raise ValueError, expectedUsageString
-            for i in xrange(len(expectedArgs)):
+                raise ValueError(expectedUsageString)
+            for i in range(len(expectedArgs)):
                 exec("%s = args[i]" % expectedArgs[i])
             for arg in optionalKwArgs:
                 exec("%s = optionalKwArgs['%s']" % (arg, arg))
         else:
             for arg in kwargs:
-                if arg not in (expectedArgs + optionalKwArgs.keys() + ["CSConstructor"]):
-                    raise ValueError, expectedUsageString
+                if arg not in (expectedArgs + list(optionalKwArgs.keys()) + ["CSConstructor"]):
+                    raise ValueError(expectedUsageString)
                 exec("%s = kwargs['%s']" % (arg, arg))
             for arg in optionalKwArgs:
                 if arg not in kwargs:
@@ -76,10 +76,10 @@ def _ConstantStrengthFactory(*args,
         # Check that the caller specified a valid material label.
         mat = materialName.lower()
         if mat not in SpheralMaterialPropertiesLib:
-            raise ValueError, "You must specify one of %s" % str(SpheralMaterialPropertiesLib.keys())
+            raise ValueError("You must specify one of %s" % str(list(SpheralMaterialPropertiesLib.keys())))
         if ("mu0" not in SpheralMaterialPropertiesLib[mat] or
             "Y0"  not in SpheralMaterialPropertiesLib[mat]):
-            raise ValueError, "The material %s does not provide strength paramters." % materialName
+            raise ValueError("The material %s does not provide strength paramters." % materialName)
 
         # Extract the parameters for this material.
         if mu0 is None:

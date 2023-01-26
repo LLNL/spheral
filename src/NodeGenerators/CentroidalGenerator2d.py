@@ -102,14 +102,14 @@ class CentroidalGenerator2d(NodeGeneratorBase):
             new_generators = self.computeWeightedCentroids(self.tessellation)
             assert len(new_generators) == len(generators)
             maxDelta = 0.0
-            for i in xrange(len(generators)/2):
+            for i in range(len(generators)/2):
                 deltai = sqrt((generators[2*i] - new_generators[2*i])**2 +
                               (generators[2*i+1] - new_generators[2*i+1])**2)
                 maxDelta = max(maxDelta, deltai/length)
                 generators[2*i] = 0.5*(generators[2*i] + new_generators[2*i])
                 generators[2*i+1] = 0.5*(generators[2*i+1] + new_generators[2*i+1])
             iteration += 1
-            print "CentroidalGenerator2d: Iteration %i, maxDelta=%g" % (iteration, maxDelta)
+            print("CentroidalGenerator2d: Iteration %i, maxDelta=%g" % (iteration, maxDelta))
 
         # If requested, write out the final tessellation to a silo file.
         if tessellationFileName:
@@ -130,7 +130,7 @@ class CentroidalGenerator2d(NodeGeneratorBase):
         assert len(centroids) == 2*n
         assert len(masses) == n
         assert len(areas) == n
-        for i in xrange(n):
+        for i in range(n):
             self.x.append(centroids[2*i] + offset[0])
             self.y.append(centroids[2*i+1] + offset[1])
             self.m.append(masses[i])

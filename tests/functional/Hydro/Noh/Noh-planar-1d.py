@@ -313,7 +313,7 @@ nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
 # Set node velocities
 pos = nodes1.positions()
 vel = nodes1.velocity()
-for ix in xrange(nodes1.numNodes):
+for ix in range(nodes1.numNodes):
     if pos[ix].x > xwall:
         vel[ix].x = vr0 + vrSlope*pos[ix].x
     else:
@@ -510,7 +510,7 @@ if bArtificialConduction:
 if hourglass:
     mask = db.newFluidIntFieldList(1, "mask")
     pos = nodes1.positions()
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         if pos[i].x > (x1 - dx):
             mask[0][i] = 0
     hg = hourglass(WT,
@@ -602,13 +602,13 @@ if not steps is None:
     if checkRestart:
         state0 = State(db, integrator.physicsPackages())
         state0.copyState()
-        print control.totalSteps
+        print(control.totalSteps)
         control.loadRestartFile(control.totalSteps)
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
+            raise ValueError("The restarted state does not match!")
         else:
-            print "Restart check PASSED."
+            print("Restart check PASSED.")
 
 else:
     if control.time() < goalTime:
@@ -641,11 +641,11 @@ xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SU
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 L1 = 0.0
-for i in xrange(len(rho)):
+for i in range(len(rho)):
   L1 = L1 + abs(rho[i]-rhoans[i])
 L1_tot = L1 / len(rho)
 if mpi.rank == 0 and outputFile != "None":
- print "L1=",L1_tot,"\n"
+ print("L1=",L1_tot,"\n")
  with open("Converge.txt", "a") as myfile:
     myfile.write("%s %s\n" % (nx1, L1_tot))
 
@@ -779,7 +779,7 @@ if outputFile != "None":
 if mpi.rank == 0 :
     xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
     import Pnorm
-    print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+    print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
     failure = False
     hD = []
 
@@ -800,12 +800,12 @@ if mpi.rank == 0 :
                                              ("Thermal E", epsprof, epsans, L1eps, L2eps, Linfeps),
                                              ("h       ", hprof, hans, L1h, L2h, Linfh)]:
         assert len(data) == len(ans)
-        error = [data[i] - ans[i] for i in xrange(len(data))]
+        error = [data[i] - ans[i] for i in range(len(data))]
         Pn = Pnorm.Pnorm(error, xprof)
         L1 = Pn.gridpnorm(1, rmin, rmax)
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
-        print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
         if normOutputFile != "None":
            f.write((3*"%16.12e ") % (L1, L2, Linf))
         hD.append([L1,L2,Linf])
@@ -813,41 +813,41 @@ if mpi.rank == 0 :
         if checkError:
             if not crksph and not psph and not fsisph and not gsph and not mfm: # if sph use the known error norms
                 if not fuzzyEqual(L1, L1expect, tol):
-                    print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                    print("L1 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                           L1,
-                                                                                          L1expect)
+                                                                                          L1expect))
                     failure = True
                 if not fuzzyEqual(L2, L2expect, tol):
-                    print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                    print("L2 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                           L2,
-                                                                                          L2expect)
+                                                                                          L2expect))
                     failure = True
                 if not fuzzyEqual(Linf, Linfexpect, tol):
-                    print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                    print("Linf error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                             Linf,
-                                                                                            Linfexpect)
+                                                                                            Linfexpect))
                     failure = True
 
             if fsisph or gsph or mfm: # for fsi check if the norms are order of mag same as sph 
             
                 if L1 > 2.0*L1expect:
-                    print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                    print("L1 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                           L1,
-                                                                                          L1expect)
+                                                                                          L1expect))
                     failure = True
                 if L2 > 2.0*L2expect:
-                    print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                    print("L2 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                           L2,
-                                                                                          L2expect)
+                                                                                          L2expect))
                     failure = True
                 if Linf > 2.0 * Linfexpect:
-                    print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                    print("Linf error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                             Linf,
-                                                                                            Linfexpect)
+                                                                                            Linfexpect))
                     failure = True
 
     if checkError and failure:
-        raise ValueError, "Error bounds violated."
+        raise ValueError("Error bounds violated.")
   
     if normOutputFile != "None":
        f.write("\n")
@@ -862,12 +862,12 @@ if mpi.rank == 0 :
 
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if compatibleEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")
 
 
 # Check that SPIO is writing the expected amount of files also need to check if mpi is enabled to see if we are using Spio
 if control.restartFileConstructor is SidreFileIO and mpi.rank is 0 and not mpi.is_fake_mpi() and control.SPIOFileCountPerTimeslice is not None:
     if not control.SPIOFileCountPerTimeslice is len(os.listdir(os.path.join(os.getcwd(), control.restartBaseName + "_cycle%i" % control.totalSteps))):
-        raise ValueError, "The amount of restart files written does not match the amount expected based on input!"
+        raise ValueError("The amount of restart files written does not match the amount expected based on input!")

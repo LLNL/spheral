@@ -24,7 +24,7 @@ def trapzd(func, a, b, s, n):
         it = 2**(n - 2)
         delta = (b - a)/it
         result = 0.0
-        for j in xrange(it):
+        for j in range(it):
             result += func(a + (j + 0.5)*delta)
         return 0.5*(s + (b - a)*result/it)
 
@@ -35,15 +35,15 @@ def polint(xa, ya, x):
     d = ya[:]
     ns = 0
     dif = abs(x - xa[0])
-    for i in xrange(1, n):
+    for i in range(1, n):
         dift = abs(x - xa[i])
         if dift < dif:
             ns = i
             dif = dift
     y = ya[ns]
     ns -= 1
-    for m in xrange(1, n - 1):
-        for i in xrange(n - m):
+    for m in range(1, n - 1):
+        for i in range(n - m):
             ho = xa[i] - x
             hp = xa[i + m] - x
             w = c[i + 1] - d[i]
@@ -69,7 +69,7 @@ def qromb(func, a, b,
     h = [0.0]*(maxIters + 1)
     s = [0.0]*(maxIters + 1)
     h[0] = 1.0
-    for j in xrange(maxIters):
+    for j in range(maxIters):
         jj = j + 1
         s[j] = trapzd(func, a, b, s[j], jj)
         if jj >= K:
@@ -164,7 +164,7 @@ class SedovSolution:
         vs, r2, v2, rho2, P2 = self.shockState(t)
 
         if r is None:
-            r = [0.01*r2*i for i in xrange(101)]
+            r = [0.01*r2*i for i in range(101)]
 
         v = []
         rho = []
@@ -323,7 +323,7 @@ class SedovSolution:
         vlam = []
         rholam = []
         Plam = []
-        for i in xrange(nbins):
+        for i in range(nbins):
             V = Vmin + i*dV
             lam.append(self.lam(V))
             vlam.append(self.vlambda(V))

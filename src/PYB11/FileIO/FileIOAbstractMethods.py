@@ -49,7 +49,7 @@ def read%(Tmangle)s(self,
 
     # More primitive types
     types = []
-    for ndim in xrange(1,4):
+    for ndim in range(1,4):
         types += ["Dim<%i>::Vector" % ndim,
                   "Dim<%i>::Tensor" % ndim,
                   "Dim<%i>::SymTensor" % ndim,

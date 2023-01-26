@@ -225,7 +225,7 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
     from DistributeNodes import distributeNodes2d
-    print "Generating node distribution."
+    print("Generating node distribution.")
     generator1 = GenerateNodeDistribution2d(nx, ny, rho1, seed,
                                             xmin = xmin,
                                             xmax = xmax,
@@ -249,7 +249,7 @@ if restoreCycle is None:
     # Set node velocities
     pos = nodes1.positions()
     vel = nodes1.velocity()
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         vel[i] = Vector(vshear*cos(2.0*pi*pos[i].y), vy)
 
 #-------------------------------------------------------------------------------
@@ -424,7 +424,7 @@ if restoreCycle is not None:
 else:
     control.smoothState(smoothIters)
     if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
+        print("Reinitializing node masses.")
         control.voronoiInitializeMass()
     control.dropRestartFile()
     control.dropViz()
@@ -441,9 +441,9 @@ if not steps is None:
         control.loadRestartFile(control.totalSteps)
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
+            raise ValueError("The restarted state does not match!")
         else:
-            print "Restart check PASSED."
+            print("Restart check PASSED.")
 
 else:
     control.advance(goalTime, maxSteps)
@@ -499,18 +499,18 @@ if graphics:
         import Pnorm
         multiSort(r, rho, v, eps, P)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
-        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+        print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
         for (name, data, ans) in [("Mass Density", rho, rhoans),
                                   ("Pressure", P, Pans),
                                   ("Velocity", v, vans),
                                   ("Thermal E", eps, epsans)]:
             assert len(data) == len(ans)
-            error = [data[i] - ans[i] for i in xrange(len(data))]
+            error = [data[i] - ans[i] for i in range(len(data))]
             Pn = Pnorm.Pnorm(error, r)
             L1 = Pn.gridpnorm(1, rmin, rmax)
             L2 = Pn.gridpnorm(2, rmin, rmax)
             Linf = Pn.gridpnorm("inf", rmin, rmax)
-            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+            print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
@@ -563,6 +563,6 @@ if outputFile != "None":
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e-30, control.conserve.EHistory[0])
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if compatibleEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")

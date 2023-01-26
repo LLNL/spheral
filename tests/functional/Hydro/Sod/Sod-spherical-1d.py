@@ -290,7 +290,7 @@ for nodes in nodeSet:
     rho = nodes.massDensity()
     gammai = nodes.eos.gamma
 
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         eps[i] = specificEnergy(pos[i].x, rho[i], gammai)
 
 #-------------------------------------------------------------------------------
@@ -466,7 +466,7 @@ if sumInitialDensity and control.totalSteps == 0:
         eps = nodes.specificThermalEnergy()
         rho = nodes.massDensity()
         gammai = nodes.eos.gamma
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             eps[i] = specificEnergy(pos[i].x, rho[i],gammai)
 
 #-------------------------------------------------------------------------------
@@ -486,9 +486,9 @@ if not steps is None:
         control.loadRestartFile(control.totalSteps)
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
+            raise ValueError("The restarted state does not match!")
         else:
-            print "Restart check PASSED."
+            print("Restart check PASSED.")
 
 else:
     control.advance(goalTime, maxSteps)
@@ -521,8 +521,8 @@ cs = hydro.soundSpeed
 # Make a flat list from a FieldList
 def createList(x):
     result = []
-    for i in xrange(len(x)):
-        for j in xrange(x[i].numInternalElements):
+    for i in range(len(x)):
+        for j in range(x[i].numInternalElements):
             result.append(x(i,j))
     return mpi.allreduce(result, mpi.SUM)
 
@@ -581,9 +581,9 @@ if graphics:
     for p, filename in plots:
         savefig(p, os.path.join(dataDir, filename))
 
-print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
+print("Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],
-                                                                (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0])
+                                                                (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]))
 
 # #-------------------------------------------------------------------------------
 # # If requested, write out the state in a global ordering to a file.
