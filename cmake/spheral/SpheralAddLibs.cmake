@@ -18,6 +18,7 @@
 #         - List of blt/libs the library depends on
 #
 #-----------------------------------------------------------------------------------
+include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
 
 function(spheral_add_obj_library
          package_name)
@@ -134,7 +135,6 @@ endfunction()
 #-----------------------------------------------------------------------------------
 
 function(spheral_add_pybind11_library package_name)
-  include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
 
   # List directories in which spheral .py files can be found.
   set(PYTHON_ENV 

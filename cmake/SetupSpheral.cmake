@@ -79,6 +79,11 @@ if (NOT PYB11GENERATOR_ROOT_DIR)
   set(PYB11GENERATOR_ROOT_DIR "${SPHERAL_ROOT_DIR}/extern/PYB11Generator" CACHE PATH "")
 endif()
 
+# # Set the pybind11 path
+# if (NOT PYBIND11_ROOT_DIR)
+#   set(PYBDIND11_ROOT_DIR "${SPHERAL_ROOT_DIR}/extern/PYB11Generator/extern/pybind11" CACHE PATH "")
+# endif()
+
 # PolyClipper
 if (NOT polyclipper_DIR)
   set(polyclipper_DIR "${SPHERAL_ROOT_DIR}/extern/PolyClipper" CACHE PATH "")
