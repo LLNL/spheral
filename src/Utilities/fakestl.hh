@@ -36,7 +36,6 @@ namespace std {
 
 // A few fake boost types as well.
 namespace boost {
-  template<typename T> class shared_ptr;
   namespace numeric {
     namespace ublas {
       template<typename T> class vector {
