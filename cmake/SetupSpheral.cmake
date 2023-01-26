@@ -74,6 +74,11 @@ endif()
 
 option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
 
+# Set the PYB11Generator path
+if (NOT PYB11GENERATOR_ROOT_DIR)
+  set(PYB11GENERATOR_ROOT_DIR "${SPHERAL_ROOT_DIR}/extern/PYB11Generator" CACHE PATH "")
+endif()
+
 #-------------------------------------------------------------------------------#
 # Set a default build type if none was specified
 #-------------------------------------------------------------------------------#

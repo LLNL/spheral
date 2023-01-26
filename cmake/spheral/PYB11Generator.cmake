@@ -84,7 +84,7 @@ macro(PYB11_GENERATE_BINDINGS PYB11_MODULE_NAME)
                       )
     endif()
 
-    # Include list of dependent python files
+p    # Include list of dependent python files
     include(${CMAKE_CURRENT_BINARY_DIR}/${PYB11_MODULE_NAME}_stamp.cmake)
   endif()
 

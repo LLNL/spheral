@@ -36,21 +36,17 @@ set (_python_packages
   ArtificialConduction
   KernelIntegrator
   polytope
-  Distributed
   OpenMP
   )
 
+if(ENABLE_MPI)
+  list(APPEND _python_packages Distributed)
+endif()
 if (ENABLE_ANEOS)
   list(APPEND _python_packages ANEOS)
 endif()
 if (ENABLE_HELMHOLTZ)
   list(APPEND _python_packages Helmholtz)
-endif()
-
-if(NOT ENABLE_MPI)
-  list(REMOVE_ITEM _python_packages
-    Distributed
-    )
 endif()
 
 foreach(_python_package ${_python_packages})
@@ -62,13 +58,13 @@ configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/SpheralCompiledPackages.py.in
   ${CMAKE_CURRENT_BINARY_DIR}/SpheralCompiledPackages.py)
 
-set(Pybind11Wraps_python_targets
+set(PYB11_python_targets
   SpheralPickle.py
   PolyhedronFileUtilities.py
   ${CMAKE_CURRENT_BINARY_DIR}/SpheralCompiledPackages.py
   )
 
-install(FILES       ${Pybind11Wraps_python_targets}
+install(FILES       ${PYB11_python_targets}
         DESTINATION Spheral
         )
 

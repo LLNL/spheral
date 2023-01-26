@@ -50,7 +50,7 @@ list(APPEND _packages
 if(NOT ENABLE_CXXONLY)
   list(APPEND _packages 
     SimulationControl
-    Pybind11Wraps
+    PYB11
     )
 endif()
 
