@@ -73,20 +73,26 @@ function(Spheral_Handle_TPL lib_name dep_list target_type)
 
   # Generate full path to lib file for output list
   set(${lib_name}_LIBRARIES )
-  foreach(lib ${${lib_name}_libs})
-    find_file(temp_abs_path
-      NAME ${lib}
-      PATHS ${${lib_name}_DIR}
-      PATH_SUFFIXES lib lib64
-      NO_CACHE
-      NO_DEFAULT_PATH
-      )
+  foreach(libpath ${${lib_name}_libs})
+    if(IS_ABSOLUTE ${libpath})
+      get_filename_component(lib ${libpath} NAME)
+      set(temp_abs_path ${libpath})
+    else()
+      set(lib ${libpath})
+      find_file(temp_abs_path
+        NAME ${lib}
+        PATHS ${${lib_name}_DIR}
+        PATH_SUFFIXES lib lib64
+        NO_CACHE
+        NO_DEFAULT_PATH
+        )
+    endif()
     # set(temp_abs_path "${${lib_name}_DIR}/lib/${lib}")
     list(APPEND ${lib_name}_LIBRARIES $<BUILD_INTERFACE:${temp_abs_path}>)
 
     # Check all necessary files exist during config time when not installing TPL
     if (NOT EXISTS ${temp_abs_path})
-      message(FATAL_ERROR "Cannot find ${lib} in ${${lib_name}_DIR} for TPL ${lib_name}.")
+      message(FATAL_ERROR "Cannot find ${lib} in ${${lib_name}_DIR} for TPL ${lib_name}.  Full path: ${tmp_abs_path}")
     else()
       message("Found: ${temp_abs_path}")
     endif()

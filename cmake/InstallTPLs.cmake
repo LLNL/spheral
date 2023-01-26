@@ -37,7 +37,7 @@ if(NOT ENABLE_CXXONLY)
 endif()
 
 Spheral_Handle_TPL(polytope spheral_depends cxx)
-Spheral_Handle_TPL(polyclipper spheral_depends cxx)
+#Spheral_Handle_TPL(polyclipper spheral_depends cxx)
 
 if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})
   include(${EXTERNAL_SPHERAL_TPL_CMAKE})

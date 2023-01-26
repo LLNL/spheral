@@ -74,6 +74,12 @@ endif()
 
 option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
 
+# Find the appropriate Python
+if (NOT CXXONLY)
+  set(Python3_ROOT_DIR ${python_DIR})
+  find_package(Python3 COMPONENTS Interpreter Development)
+endif()
+
 # Set the PYB11Generator path
 if (NOT PYB11GENERATOR_ROOT_DIR)
   set(PYB11GENERATOR_ROOT_DIR "${SPHERAL_ROOT_DIR}/extern/PYB11Generator" CACHE PATH "")
@@ -88,6 +94,10 @@ endif()
 if (NOT polyclipper_DIR)
   set(polyclipper_DIR "${SPHERAL_ROOT_DIR}/extern/PolyClipper" CACHE PATH "")
 endif()
+set(polyclipper_INCLUDES "${polyclipper_DIR}/src")
+
+# Things all Spheral packages have in their include path
+list(APPEND SPHERAL_INCLUDES ${polyclipper_INCLUDES})
 
 #-------------------------------------------------------------------------------#
 # Set a default build type if none was specified
