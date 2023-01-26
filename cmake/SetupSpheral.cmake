@@ -79,6 +79,11 @@ if (NOT PYB11GENERATOR_ROOT_DIR)
   set(PYB11GENERATOR_ROOT_DIR "${SPHERAL_ROOT_DIR}/extern/PYB11Generator" CACHE PATH "")
 endif()
 
+# PolyClipper
+if (NOT polyclipper_DIR)
+  set(polyclipper_DIR "${SPHERAL_ROOT_DIR}/extern/PolyClipper" CACHE PATH "")
+endif()
+
 #-------------------------------------------------------------------------------#
 # Set a default build type if none was specified
 #-------------------------------------------------------------------------------#

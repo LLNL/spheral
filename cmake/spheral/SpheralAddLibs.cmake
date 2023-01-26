@@ -189,18 +189,19 @@ function(spheral_add_pybind11_library package_name)
   set(MODULE_NAME Spheral${package_name})
   PYB11Generator_add_module(${package_name}
                             MODULE     ${MODULE_NAME}
+                            SOURCE     ${package_name}_PYB11.py
                             DEPENDS    Spheral_CXX ${spheral_blt_depends} ${spheral_blt_py_depends} ${${package_name}_ADDITIONAL_DEPENDS}
                             INCLUDES   ${${package_name}_ADDITIONAL_INCLUDES}
                             )
 
-  target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
+  #target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
 
-  install(TARGETS     ${MODULE_NAME}
+  install(TARGETS     ${package_name}
           DESTINATION Spheral
           )
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
-  set_target_properties(${MODULE_NAME} PROPERTIES
+  set_target_properties(${package_name} PROPERTIES
                         INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${python_DIR}/lib"
                         )
 
