@@ -79,6 +79,8 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('py-gnuplot', type='build')
     depends_on('py-ats', type='build')
     depends_on('py-mpi4py', type='build', when='+mpi')
+    depends_on('py-pybind11', type='build')
+    depends_on('py-pyb11generator', type='build')
 
     depends_on('py-sphinx', type='build')
     depends_on('py-sphinx-rtd-theme', type='build')
@@ -182,7 +184,8 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
         entries.append(cmake_cache_path('opensubdiv_DIR', spec['opensubdiv'].prefix))
 
-        #entries.append(cmake_cache_path('pybind11_DIR', spec['py-pybind11'].prefix))
+        entries.append(cmake_cache_path('pybind11_DIR', spec['py-pybind11'].prefix))
+        entries.append(cmake_cache_path('pyb11generator_DIR', spec['py-pyb11generator'].prefix))
 
         #entries.append(cmake_cache_path('polyclipper_DIR', spec['py-polyclipper'].prefix))
 

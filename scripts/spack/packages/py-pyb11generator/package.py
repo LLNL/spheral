@@ -10,12 +10,13 @@ class PyPyb11generator(PythonPackage):
     """PYB11Generator is a python based code generator that creates pybind11 code for binding C++ libraries as extensions in Python."""
 
     homepage = "https://pypi.org/project/PYB11Generator/"
-    pypi = "PYB11Generator/PYB11Generator-1.0.12.tar.gz" 
+    pypi = "PYB11Generator/PYB11Generator-2.0.1.tar.gz" 
 
     maintainers = ['mdavis36','jmikeowen']
 
-    version('1.0.12', sha256='0a0988e705aebf050180170b25b57e4a6c7652d2099f2ef180eed63c4712d91c')
+    version('2.0.1', sha256='a283ffccb2a4a0cb0bc4ae6470bc710cb60869edfbff75fee3631401d3b35dc9')
 
-    extends('python@2.7:2.8', type=['build', 'run'])
+    extends('python@3:', type=['build', 'run'])
+    depends_on('py-pybind11', type=('build', 'run'))
     depends_on('py-setuptools', type=('build', 'run'))
     depends_on('py-decorator', type=('build', 'run'))
