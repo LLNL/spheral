@@ -643,7 +643,7 @@ Integrator<Dimension>::setGhostNodes() {
       {
         for (auto nodeListi = 0; nodeListi < (int)numNodeLists; ++nodeListi) {
           ENSURE(flags[nodeListi]->numElements() == 0 or
-                 *min_element(flags[nodeListi]->begin(), flags[nodeListi]->end()) == 1);
+                 *std::min_element(flags[nodeListi]->begin(), flags[nodeListi]->end()) == 1);
         }
       }
       END_CONTRACT_SCOPE
