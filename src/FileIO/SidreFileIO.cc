@@ -124,7 +124,6 @@ void sidreReadField(axom::sidre::Group* grp,
 SidreFileIO::SidreFileIO():
     FileIO()
   {
-    // mDataStorePtr = std::make_unique<axom::sidre::DataStore>();
   }
 
 //------------------------------------------------------------------------------
@@ -133,7 +132,6 @@ SidreFileIO::SidreFileIO():
 SidreFileIO::SidreFileIO(const std::string fileName, AccessType access):
   FileIO(fileName, access)
 {
-  // mDataStorePtr = std::make_unique<axom::sidre::DataStore>();
   open(fileName, access);
   ENSURE(mFileOpen && mDataStorePtr != 0);
 }
@@ -144,7 +142,6 @@ SidreFileIO::SidreFileIO(const std::string fileName, AccessType access):
 SidreFileIO::SidreFileIO(const std::string fileName, AccessType access, int numFiles):
   FileIO(fileName, access)
 {
-  // mDataStorePtr = std::make_unique<axom::sidre::DataStore>();
   open(fileName, access);
   ENSURE(mFileOpen && mDataStorePtr != 0);
   if (numFiles > 0 && numFiles <= Process::getTotalNumberOfProcesses())
@@ -203,10 +200,10 @@ void SidreFileIO::close()
   mFileOpen = false;
 }
 
-// void setGroup(axom::sidre::Group* group)
-// {
-//   baseGroup = group;
-// }
+void SidreFileIO::setGroup(axom::sidre::Group* group)
+{
+  baseGroup = group;
+}
 
 //------------------------------------------------------------------------------
 // Check if the specified path is in the file.

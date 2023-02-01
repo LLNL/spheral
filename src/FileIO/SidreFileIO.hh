@@ -30,7 +30,7 @@ public:
   virtual void close() override;
 
   // Used to pass a Sidre group if you don't want to have fileIO as part of the constructor
-  void setGroup(axom::sidre::Group* group) {baseGroup = group;};
+  void setGroup(axom::sidre::Group* group);
 
   //******************************************************************************
   // Methods all FileIO descendent classes must provide.
@@ -160,7 +160,6 @@ private:
   // case this will be the root group. Other codes could pass a group to Spheral to use
   // their datastore.
   axom::sidre::Group* baseGroup;
-  // if this stays a raw pointer then I need to add delete somewhere, have not done that yet
 
   // write() function in sidre needs to have access to file name
   std::string mFileName;
