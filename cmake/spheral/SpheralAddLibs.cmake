@@ -94,6 +94,9 @@ function(spheral_add_cxx_library
                     )
   endif()
 
+  get_target_property(_INTERFACE_INCLUDE_DIRECTORIES Spheral_${package_name} INTERFACE_INCLUDE_DIRECTORIES)
+  set_target_properties(Spheral_${package_name} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "$<BUILD_INTERFACE:${_INTERFACE_INCLUDE_DIRECTORIES}>")
+
   get_target_property(_LINK_LIBRARIES Spheral_${package_name} LINK_LIBRARIES)
   LIST(REMOVE_DUPLICATES _LINK_LIBRARIES)
   set_target_properties(Spheral_${package_name} PROPERTIES LINK_LIBRARIES "${_LINK_LIBRARIES};${_LINK_LIBRARIES}") 
