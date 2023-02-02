@@ -22,7 +22,16 @@ class MinMaxField(FieldBase):
         "Enforce a double ceiling on the values of the Field."
         return
 
+
+@PYB11template("Dimension", "Value")
+@PYB11pycppname("FieldView")
+class MinMaxFieldView(FieldView):
+    PYB11typedefs = """
+  typedef FieldView<%(Dimension)s, %(Value)s> FieldViewType;
+"""
+
 #-------------------------------------------------------------------------------
 # Inject base field methods
 #-------------------------------------------------------------------------------
 PYB11inject(ArithmeticField, MinMaxField)
+PYB11inject(ArithmeticFieldView, MinMaxFieldView)

@@ -11,6 +11,7 @@ class FieldList(FieldListBase):
     PYB11typedefs = """
     typedef FieldList<%(Dimension)s, %(Value)s> FieldListType;
     typedef Field<%(Dimension)s, %(Value)s> FieldType;
+    typedef FieldView<%(Dimension)s, %(Value)s> FieldViewType;
     typedef NodeList<%(Dimension)s> NodeListType;
     typedef %(Dimension)s::Vector Vector;
     typedef %(Dimension)s::SymTensor SymTensor;
@@ -74,10 +75,10 @@ class FieldList(FieldListBase):
         return "void"
 
     @PYB11returnpolicy("reference_internal")
-    @PYB11implementation("[](const FieldListType& self, const NodeListType& nodeList) { return *self.fieldForNodeList(nodeList); }")
+    @PYB11implementation("[](const FieldListType& self, const NodeListType& nodeList) { return **self.fieldForNodeList(nodeList); }")
     def fieldForNodeList(self, nodeList="const NodeListType&"):
         "Return the Field associated with the given NodeList"
-        return "FieldType*"
+        return "FieldType"
 
     @PYB11const
     def setMasterNodeLists(self,
@@ -171,9 +172,10 @@ class FieldList(FieldListBase):
 
     @PYB11cppname("operator[]")
     @PYB11returnpolicy("reference")
+    @PYB11implementation('[](const FieldListType& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n].get(); }')
     @PYB11keepalive(0,1)
     def __getitem__(self, index="const unsigned"):
-        return "FieldType*"
+        return "FieldType"
 
     @PYB11returnpolicy("reference")
     @PYB11implementation("[](const FieldListType& self) { return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0,1>()")

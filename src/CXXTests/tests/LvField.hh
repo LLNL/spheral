@@ -2,7 +2,7 @@
 #define SPHERAL_LVFIELD
 
 #include "LvArray/bufferManipulation.hpp"
-#include "Utilities/lvarray.hh"
+#include "Field/SphArray.hh"
 #include "Field/FieldView.hh"
 
 

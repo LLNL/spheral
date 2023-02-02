@@ -11,7 +11,7 @@
 #ifndef __Spheral_Field_hh__
 #define __Spheral_Field_hh__
 
-#include "Utilities/lvarray.hh"
+#include "Field/SphArray.hh"
 #include "FieldBase.hh"
 #include "axom/sidre.hpp"
 #include "FieldView.hh"
@@ -22,9 +22,6 @@
 #ifdef USE_UVM
 #include "uvm_allocator.hh"
 #endif
-
-template<typename Dimension, typename DataType>
-class FieldView;
 
 namespace Spheral {
 
@@ -61,8 +58,9 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
-  typedef DataType* iterator;
-  typedef const DataType* const_iterator;
+  using StorageType = SphArray<DataType>;
+  typedef SphArrayIterator<SphArrayView<DataType>> iterator;
+  typedef SphArrayIterator<typename SphArrayView<DataType>::ViewTypeConst> const_iterator;
 
   // Constructors.
   explicit Field(FieldName name);

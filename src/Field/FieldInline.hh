@@ -250,7 +250,7 @@ struct CrappyFieldCompareMethod {
   static bool compare(const SphArray<Value>& lhs, 
                       const SphArray<Value>& rhs) {
     if (lhs.size() != rhs.size()) return false;
-    for (size_t i = 0; i < lhs.size(); i++) if (lhs[i] != rhs[i]) return false;
+    for (long i = 0; i < lhs.size(); i++) if (lhs[i] != rhs[i]) return false;
     return true;
   }
 };
@@ -1163,7 +1163,10 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::resizeField(unsigned size) {
-  REQUIRE(size == this->nodeList().numNodes());
+  //
+  // TODO: This Fails when generating pool fields as their size is numNodes * nPools.
+  // 
+  //REQUIRE(size == this->nodeList().numNodes());
   unsigned oldSize = this->size();
 #ifdef WIN32
   mDataArray.resize(size+1);

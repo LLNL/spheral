@@ -5,9 +5,15 @@ namespace Spheral {
 template<typename Dimension, typename DataType>
 inline
 FieldView<Dimension, DataType>::
+FieldView() {}
+
+template<typename Dimension, typename DataType>
+inline
+FieldView<Dimension, DataType>::
 FieldView(const FieldView::FIELD_TYPE& field) :
   mDataView{field.mDataArray},
-  mDataPoolView{field.mDataArray}
+  mDataPoolView{field.mDataArray},
+  mFieldPtr{const_cast<FIELD_TYPE*>(&field)}
 {}
 
 template<typename Dimension, typename DataType>
@@ -16,7 +22,8 @@ FieldView<Dimension, DataType>::
 FieldView(const FieldView::FIELD_TYPE& field,
           const FieldView::FIELD_TYPE& pool) :
   mDataView{field.mDataArray},
-  mDataPoolView{pool.mDataArray}
+  mDataPoolView{pool.mDataArray},
+  mFieldPtr{const_cast<FIELD_TYPE*>(&field)}
 {}
 
 template<typename Dimension, typename DataType>
@@ -33,6 +40,30 @@ typename FieldView<Dimension, DataType>::ARRAY_VIEW_TYPE&
 FieldView<Dimension, DataType>::
 getView() {
   return mDataView;
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldView<Dimension, DataType>::FIELD_TYPE&
+FieldView<Dimension, DataType>::
+operator*() const{
+  return *mFieldPtr;
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldView<Dimension, DataType>::FIELD_TYPE&
+FieldView<Dimension, DataType>::
+get() const {
+  return *mFieldPtr;
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldView<Dimension, DataType>::FIELD_TYPE*
+FieldView<Dimension, DataType>::
+operator->() const {
+  return mFieldPtr;
 }
 
 template<typename Dimension, typename DataType>
@@ -62,9 +93,38 @@ pool(const unsigned index) const {
 template<typename Dimension, typename DataType>
 inline constexpr 
 FieldView<Dimension, DataType>::
-FieldView( FieldView const & source) noexcept :
+FieldView(const FieldView & source) noexcept :
   mDataView{source.mDataView},
-  mDataPoolView{source.mDataPoolView}
+  mDataPoolView{source.mDataPoolView},
+  mFieldPtr{source.mFieldPtr}
 {}
+
+template<typename Dimension, typename DataType>
+inline
+FieldView<Dimension, DataType>&
+FieldView<Dimension, DataType>::
+operator=(const FieldView& rhs) {
+  mDataView = rhs.mDataView;
+  mDataPoolView = rhs.mDataPoolView;
+  mFieldPtr = rhs.mFieldPtr;
+  return *this;
+}
+
+template<typename Dimension, typename DataType>
+inline
+bool
+FieldView<Dimension, DataType>::
+operator==(const FIELD_TYPE& rhs) const { 
+  const FieldView temp(const_cast<FIELD_TYPE&>(rhs));
+  return *this == temp;
+}
+
+template<typename Dimension, typename DataType>
+inline
+bool
+FieldView<Dimension, DataType>::
+operator==(const FieldView& rhs) const { 
+  return mFieldPtr == rhs.mFieldPtr;
+}
 
 } // namespace Spheral

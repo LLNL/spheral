@@ -51,12 +51,12 @@ public:
   typedef Dimension FieldDimension;
   typedef DataType FieldDataType;
 
-  using ElementType = Field<Dimension, DataType>*;
+  using ElementType = FieldView<Dimension, DataType>;
   using value_type = ElementType;    // STL compatibility
-  using StorageType = std::vector<ElementType>;
+  using StorageType = SphArray<ElementType>;
 
-  using iterator = typename StorageType::iterator;
-  using const_iterator = typename StorageType::const_iterator;
+  using iterator = SphArrayIterator<SphArrayView<ElementType>>;
+  using const_iterator = SphArrayIterator<typename SphArrayView<ElementType>::ViewTypeConst>;
 
   typedef std::vector<DataType> CacheElementsType;
   typedef typename CacheElementsType::iterator cache_iterator;

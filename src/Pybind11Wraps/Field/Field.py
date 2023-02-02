@@ -11,6 +11,7 @@ class Field(FieldBase):
 
     PYB11typedefs = """
   typedef Field<%(Dimension)s, %(Value)s> FieldType;
+  typedef FieldView<%(Dimension)s, %(Value)s> FieldViewType;
 """
 
     def pyinit(self, name="std::string"):
@@ -32,21 +33,21 @@ class Field(FieldBase):
     #     "Copy constructor"
 
     #...........................................................................
-    # Comparators
-    def __eq__(self):
-        return
-
-    def __ne__(self):
-        return
-
-    def __eq__(self, rhs="%(Value)s()"):
-        "Equivalence comparision with a %(Value)s"
-        return "bool"
-
-    def __ne__(self, rhs="%(Value)s()"):
-        "Not equal comparision with a %(Value)s"
-        return "bool"
-
+#    # Comparators
+#    def __eq__(self):
+#        return
+#
+#    def __ne__(self):
+#        return
+#
+#    def __eq__(self, rhs="%(Value)s()"):
+#        "Equivalence comparision with a %(Value)s"
+#        return "bool"
+#
+#    def __ne__(self, rhs="%(Value)s()"):
+#        "Not equal comparision with a %(Value)s"
+#        return "bool"
+#
     #...........................................................................
     # Sequence methods
     @PYB11cppname("size")

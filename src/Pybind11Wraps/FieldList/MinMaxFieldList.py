@@ -11,6 +11,7 @@ class MinMaxFieldList(FieldListBase):
     PYB11typedefs = """
     typedef FieldList<%(Dimension)s, %(Value)s> FieldListType;
     typedef Field<%(Dimension)s, %(Value)s> FieldType;
+    typedef FieldView<%(Dimension)s, %(Value)s> FieldViewType;
     typedef NodeList<%(Dimension)s> NodeListType;
     typedef %(Dimension)s::Scalar Scalar;
     typedef %(Dimension)s::Vector Vector;

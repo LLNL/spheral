@@ -15,7 +15,7 @@
 #include <vector>
 #include <algorithm>
 #include "DBC.hh"
-#include "Utilities/lvarray.hh"
+#include "Field/SphArray.hh"
 
 #ifdef USE_UVM
 #include "../Field/uvm_allocator.hh"
