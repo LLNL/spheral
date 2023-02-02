@@ -10,6 +10,10 @@ option(ENABLE_UNUSED_VARIABLE_WARNINGS "show unused variable compiler warnings" 
 option(ENABLE_UNUSED_PARAMETER_WARNINGS "show unused parameter warnings" OFF)
 option(ENABLE_MISSING_INCLUDE_DIR_WARNINGS "show unused parameter warnings" ON)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+endif()
 
 set(CXX_WARNING_FLAGS "")
 if (ENABLE_WARNINGS)
