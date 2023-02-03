@@ -23,16 +23,7 @@ class MinMaxField(FieldBase):
         return
 
 
-@PYB11template("Dimension", "Value")
-@PYB11pycppname("FieldView")
-class MinMaxFieldView(FieldView):
-    PYB11typedefs = """
-    typedef FieldView<%(Dimension)s, %(Value)s> FieldViewType;
-    typedef Field<%(Dimension)s, %(Value)s> FieldType;
-"""
-
 #-------------------------------------------------------------------------------
 # Inject base field methods
 #-------------------------------------------------------------------------------
 PYB11inject(ArithmeticField, MinMaxField)
-PYB11inject(ArithmeticFieldView, MinMaxFieldView)

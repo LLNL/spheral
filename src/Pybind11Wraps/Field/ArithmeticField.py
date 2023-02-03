@@ -2,7 +2,6 @@ import inspect
 from PYB11Generator import *
 from FieldBase import FieldBase
 from Field import Field
-from FieldView import FieldView
 
 #-------------------------------------------------------------------------------
 # Add numeric operations to a Field
@@ -118,16 +117,7 @@ class ArithmeticField(FieldBase):
         return
 
 
-@PYB11template("Dimension", "Value")
-@PYB11pycppname("FieldView")
-class ArithmeticFieldView(FieldView):
-    PYB11typedefs = """
-    typedef FieldView<%(Dimension)s, %(Value)s> FieldViewType;
-    typedef Field<%(Dimension)s, %(Value)s> FieldType;
-"""
-
 #-------------------------------------------------------------------------------
 # Inject base field methods
 #-------------------------------------------------------------------------------
 PYB11inject(Field, ArithmeticField)
-PYB11inject(FieldView, ArithmeticFieldView)

@@ -11,7 +11,6 @@ dims = spheralDimensions()
 
 from FieldBase import *
 from Field import *
-from FieldView import *
 from ArithmeticField import *
 from MinMaxField import *
 
@@ -67,12 +66,6 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
        "value" : value,
        "label" : label})
 
-        exec('''
-%(label)sFieldView%(ndim)sd = PYB11TemplateClass(FieldView, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
-''' % {"ndim" : ndim,
-       "value" : value,
-       "label" : label})
-
     #...........................................................................
     # arithmetic fields
     for (value, label) in (("int",                              "Int"),
@@ -89,24 +82,12 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
        "value" : value,
        "label" : label})
 
-        exec('''
-%(label)sFieldView%(ndim)sd = PYB11TemplateClass(ArithmeticFieldView, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
-''' % {"ndim" : ndim,
-       "value" : value,
-       "label" : label})
-
     #...........................................................................
     # A few fields can apply the min/max with a scalar addtionally
     for (value, label) in (("double",                     "Scalar"),
                            ("Dim<%i>::SymTensor" % ndim,  "SymTensor")):
         exec('''
 %(label)sField%(ndim)sd = PYB11TemplateClass(MinMaxField, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
-''' % {"ndim" : ndim,
-       "value" : value,
-       "label" : label})
-
-        exec('''
-%(label)sFieldView%(ndim)sd = PYB11TemplateClass(MinMaxFieldView, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
        "value" : value,
        "label" : label})
@@ -120,7 +101,6 @@ FieldBase%(ndim)id = PYB11TemplateClass(FieldBase, template_parameters="Dim<%(nd
                          ("Dim<%i>::SymTensor" % ndim, "SymTensor")):
         exec('''
 vector_of_%(label)sField%(ndim)id = PYB11_bind_vector("Field<%(Dimension)s, %(value)s>", opaque=True, local=False)
-vector_of_%(label)sFieldView%(ndim)id = PYB11_bind_vector("FieldView<%(Dimension)s, %(value)s>", opaque=True, local=False)
 vector_of_%(label)sFieldPtr%(ndim)id = PYB11_bind_vector("Field<%(Dimension)s, %(value)s>*", opaque=True, local=False)
 vector_of_vector_of_%(label)sField%(ndim)id = PYB11_bind_vector("std::vector<Field<%(Dimension)s, %(value)s>>", opaque=True, local=False)
 ''' % {"ndim" : ndim,

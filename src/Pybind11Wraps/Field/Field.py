@@ -11,7 +11,6 @@ class Field(FieldBase):
 
     PYB11typedefs = """
   typedef Field<%(Dimension)s, %(Value)s> FieldType;
-  typedef FieldView<%(Dimension)s, %(Value)s> FieldViewType;
 """
 
     def pyinit(self, name="std::string"):
