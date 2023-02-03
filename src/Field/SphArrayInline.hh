@@ -114,24 +114,6 @@ SphArrayFieldIterator<sph_array_t>::
 SphArrayFieldIterator(pointer ptr)
   : mPtr(ptr) {}
 
-//template<typename sph_array_t>
-//inline
-//SphArrayFieldIterator<sph_array_t>::
-//SphArrayFieldIterator(owner_pointer ptr)
-//  : mPtr((*ptr).operator->()) {}
-//
-//template<typename sph_array_t>
-//inline
-//typename SphArrayFieldIterator<sph_array_t>::reference
-//SphArrayFieldIterator<sph_array_t>::
-//operator*() const { return *mPtr; }
-//
-//template<typename sph_array_t>
-//inline
-//typename SphArrayFieldIterator<sph_array_t>::pointer
-//SphArrayFieldIterator<sph_array_t>::
-//operator->(){ return mPtr; }
-
 template<typename sph_array_t>
 inline
 typename SphArrayFieldIterator<sph_array_t>::field_reference
@@ -149,8 +131,6 @@ inline
 SphArrayFieldIterator<sph_array_t>&
 SphArrayFieldIterator<sph_array_t>::
 operator++() { mPtr++; return *this; }
-//operator++() { char* ptr = reinterpret_cast<char*>(mPtr); ptr+=sizeof(owner_value_type); mPtr = reinterpret_cast<pointer>(ptr); return *this; }
-//operator++() { owner_pointer ptr = reinterpret_cast<owner_pointer>(mPtr); ptr++; mPtr = reinterpret_cast<pointer>(ptr); return *this; }
 
 template<typename sph_array_t>
 inline

@@ -13,12 +13,6 @@ class Field(FieldBase):
   typedef Field<%(Dimension)s, %(Value)s> FieldType;
   typedef FieldView<%(Dimension)s, %(Value)s> FieldViewType;
 """
-    @PYB11const
-    @PYB11implementation('[](FieldType& self) { return self; }')
-    def get(self):
-        "Return a reference to the underlying field."
-        return "FieldType&"
-
 
     def pyinit(self, name="std::string"):
         "Construct with a name"
