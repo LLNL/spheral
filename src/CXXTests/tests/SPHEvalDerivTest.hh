@@ -75,8 +75,7 @@ void SpheralEvalDerivTest()
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
   using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
-  using VIEW_TYPE = FIELD_TYPE::view_type;
-  //using VIEW_TYPE = Spheral::FieldView<DIM, DATA_TYPE>;
+  //using VIEW_TYPE = FIELD_TYPE::view_type;
 
   //---------------------------------------------------------------------------
   //
@@ -195,7 +194,7 @@ void SpheralEvalDerivTest()
   // device to reduce when applicable to minize data movement back to the CPU.
   RAJA::forall<DATA_EXEC_POL>(TRS_UINT(0, data_sz),
     [=] RAJA_HOST_DEVICE (unsigned t_idx) {
-      for (int b_idx = 0; b_idx < strat.n_data_pools; b_idx++) {
+      for (unsigned b_idx = 0; b_idx < strat.n_data_pools; b_idx++) {
         auto g_idx = b_idx*data_sz + t_idx;
 
         auto& a = flv(0, t_idx);
@@ -226,9 +225,9 @@ void SpheralEvalDerivTest()
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
 
-  DATA_TYPE check_A[data_sz];
-  DATA_TYPE check_B[data_sz];
-  DATA_TYPE check_C[data_sz];
+  DATA_TYPE check_A[DATA_SZ];
+  DATA_TYPE check_B[DATA_SZ];
+  DATA_TYPE check_C[DATA_SZ];
 
   seq_timer.start();
   std::cout << "C++ Sequential Implementation.\n";

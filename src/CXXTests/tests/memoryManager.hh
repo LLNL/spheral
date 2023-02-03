@@ -53,7 +53,7 @@ void deallocate(T *&ptr)
   }
 #endif
 
-};  // namespace memoryManager
+}  // namespace memoryManager
 
 
 
