@@ -127,20 +127,4 @@ operator==(const FieldView& rhs) const {
   return mFieldPtr == rhs.mFieldPtr;
 }
 
-template<typename Dimension, typename DataType>
-inline
-const NodeList<Dimension>&
-FieldView<Dimension, DataType>::
-nodeList() const{
-  return mFieldPtr->nodeList();
-}
-
-//template<typename Dimension, typename DataType>
-//inline
-//void
-//FieldView<Dimension, DataType>::
-//name(std::string n) {
-//  mFieldPtr->name(n);
-//}
-
 } // namespace Spheral
