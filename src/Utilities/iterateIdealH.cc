@@ -67,7 +67,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     const auto nperh = (*nodeListItr)->nodesPerSmoothingScale();
     nperh0.push_back(nperh);
     if (distinctlyGreaterThan(nPerhForIteration, 0.0)) {
-      auto& Hfield = **(H.fieldForNodeList(**nodeListItr));
+      auto& Hfield = (*(H.fieldForNodeList(**nodeListItr))).get();
       Hfield *= Dimension::rootnu(nperh/nPerhForIteration);
       (*nodeListItr)->nodesPerSmoothingScale(nPerhForIteration);
     }

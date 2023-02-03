@@ -27,7 +27,8 @@ class MinMaxField(FieldBase):
 @PYB11pycppname("FieldView")
 class MinMaxFieldView(FieldView):
     PYB11typedefs = """
-  typedef FieldView<%(Dimension)s, %(Value)s> FieldViewType;
+    typedef FieldView<%(Dimension)s, %(Value)s> FieldViewType;
+    typedef Field<%(Dimension)s, %(Value)s> FieldType;
 """
 
 #-------------------------------------------------------------------------------

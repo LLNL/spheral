@@ -494,6 +494,41 @@ end() const {
   return mFieldPtrs.end();
 }
 
+//------------------------------------------------------------------------------
+// Standard field iterators.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+typename FieldList<Dimension, DataType>::field_iterator
+FieldList<Dimension, DataType>::
+fbegin() {
+  return mFieldPtrs.begin();
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldList<Dimension, DataType>::field_iterator
+FieldList<Dimension, DataType>::
+fend() {
+  return mFieldPtrs.end();
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldList<Dimension, DataType>::const_field_iterator
+FieldList<Dimension, DataType>::
+fbegin() const {
+  return mFieldPtrs.begin();
+}
+
+template<typename Dimension, typename DataType>
+inline
+typename FieldList<Dimension, DataType>::const_field_iterator
+FieldList<Dimension, DataType>::
+fend() const {
+  return mFieldPtrs.end();
+}
+
 
 //------------------------------------------------------------------------------
 // Index operator.

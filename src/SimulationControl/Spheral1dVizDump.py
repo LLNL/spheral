@@ -110,13 +110,13 @@ class Spheral1dVizDump:
                 fieldGroups[field.name].append(field)
             else:
                 fieldGroups[field.name] = [field]
-        if isinstance(field, ScalarField1d):
+        if isinstance(field, (ScalarField1d, ScalarFieldView1d)):
             addFieldToGroup(field, self._scalarFieldGroups)
-        elif isinstance(field, VectorField1d):
+        elif isinstance(field, (VectorField1d, VectorFieldView1d)):
             addFieldToGroup(field, self._vectorFieldGroups)
-        elif isinstance(field, TensorField1d):
+        elif isinstance(field, (TensorField1d, TensorFieldView1d)):
             addFieldToGroup(field, self._tensorFieldGroups)
-        elif isinstance(field, SymTensorField1d):
+        elif isinstance(field, (SymTensorField1d, SymTensorFieldView1d)):
             addFieldToGroup(field, self._symTensorFieldGroups)
         else:
             raise RuntimeError, "What is %s?" % field
@@ -148,7 +148,7 @@ class Spheral1dVizDump:
 
         def findFieldForNodeList(nodes, fname, flist, FieldConstructor):
             for f in flist:
-                if nodes.haveField(f):
+                if nodes.haveField(f.get()):
                     return f
             return FieldConstructor(fname, nodes)
 

@@ -178,7 +178,7 @@ class FieldList(FieldListBase):
         return "FieldType"
 
     @PYB11returnpolicy("reference")
-    @PYB11implementation("[](const FieldListType& self) { return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0,1>()")
+    @PYB11implementation("[](FieldListType& self) { return py::make_iterator(self.fbegin(), self.fend()); }, py::keep_alive<0,1>()")
     def __iter__(self):
         "Python iteration through a FieldList."
 

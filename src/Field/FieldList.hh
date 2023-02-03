@@ -58,6 +58,9 @@ public:
   using iterator = SphArrayIterator<SphArrayView<ElementType>>;
   using const_iterator = SphArrayIterator<typename SphArrayView<ElementType>::ViewTypeConst>;
 
+  using field_iterator = SphArrayFieldIterator<SphArrayView<ElementType>>;
+  using const_field_iterator = SphArrayFieldIterator<typename SphArrayView<ElementType>::ViewTypeConst>;
+
   typedef std::vector<DataType> CacheElementsType;
   typedef typename CacheElementsType::iterator cache_iterator;
   typedef typename CacheElementsType::const_iterator const_cache_iterator;
@@ -110,6 +113,12 @@ public:
 
   const_iterator begin() const;
   const_iterator end() const;
+
+  field_iterator fbegin();
+  field_iterator fend();
+
+  const_field_iterator fbegin() const;
+  const_field_iterator fend() const;
 
   // Index operator.
   ElementType operator[](const unsigned index);

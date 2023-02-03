@@ -52,8 +52,40 @@ private:
   pointer mPtr;
 };
 
+template<typename sph_array_t>
+class SphArrayFieldIterator {
+public:
+  using iterator_category = std::input_iterator_tag;
+  using value_type = typename sph_array_t::ValueType;
+  using difference_type = std::ptrdiff_t;
+  using pointer = value_type*;
+  using reference = value_type&;
 
+  using owner_value_type = typename sph_array_t::ValueType;
+  using owner_pointer = owner_value_type*;
+
+  using field_type = typename value_type::FIELD_TYPE;
+  using field_pointer = field_type*;
+  using field_reference = field_type&;
+
+  SphArrayFieldIterator(pointer ptr);
+  //SphArrayFieldIterator(owner_pointer ptr);
+
+  field_reference operator*() const;
+  field_pointer operator->();
+  //reference operator*() const;
+  //pointer operator->();
+
+  SphArrayFieldIterator& operator++();
+  SphArrayFieldIterator operator++(int);
+
+  bool operator==(const SphArrayFieldIterator& rhs) const;
+
+private:
+  pointer mPtr;
 };
+
+} //  namespace Spheral
 
 #include "SphArrayInline.hh"
 

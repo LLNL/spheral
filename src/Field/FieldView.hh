@@ -44,6 +44,11 @@ public:
   bool operator==(const FIELD_TYPE& rhs) const;
   bool operator==(const FieldView& rhs) const;
 
+  // TODO: Figure out a better way to do this...
+  const NodeList<Dimension>& nodeList() const;
+  //using FieldName = typename FIELD_TYPE::FieldName;
+  //std::string name() const;
+  void name(std::string n);
 
 private:
   ARRAY_VIEW_TYPE mDataView;

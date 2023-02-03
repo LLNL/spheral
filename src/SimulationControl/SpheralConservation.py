@@ -55,7 +55,17 @@ class SpheralConservation:
         total = 0.0
         massFL = self.dataBase.globalMass
         for mass in massFL:
+            #print mass.__class__.__name__
             massValues = mass.internalValues()
+            #print massValues
+            #if isinstance(total, float):
+            #    print "total is float."
+            #elif isinstance(total, int):
+            #    print "total is int."
+            #else:
+            #    print "WTF is total"
+            #print total.__class__.__name__
+            #print total
             total += sum(list(massValues) + [0.0])
         return mpi.allreduce(total, mpi.SUM)
 
