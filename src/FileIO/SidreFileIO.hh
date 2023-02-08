@@ -29,6 +29,9 @@ public:
   virtual void open(const std::string fileName, AccessType access) override;
   virtual void close() override;
 
+  // Used to pass a Sidre group if you don't want to have fileIO as part of the constructor
+  void setGroup(axom::sidre::Group* group);
+
   //******************************************************************************
   // Methods all FileIO descendent classes must provide.
   //******************************************************************************
@@ -151,7 +154,12 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // A pointer to the root of the sidre datastore associated with this object.
-  std::shared_ptr<axom::sidre::DataStore> mDataStorePtr;
+  std::unique_ptr<axom::sidre::DataStore> mDataStorePtr;
+
+  // A pointer to the group that will have data written to it, in standalone Spheral's
+  // case this will be the root group. Other codes could pass a group to Spheral to use
+  // their datastore.
+  axom::sidre::Group* baseGroup = nullptr;
 
   // write() function in sidre needs to have access to file name
   std::string mFileName;
