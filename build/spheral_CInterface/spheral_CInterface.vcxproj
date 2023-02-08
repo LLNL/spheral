@@ -158,7 +158,33 @@
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CUDADebug|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CUDARelease|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>
@@ -181,6 +207,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CUDADebug|x64'">
     <ClCompile>
@@ -204,6 +236,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'">
     <ClCompile>
@@ -228,6 +266,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'">
     <ClCompile>
@@ -253,6 +297,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -279,6 +329,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CUDARelease|x64'">
     <ClCompile>
@@ -306,6 +362,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'">
     <ClCompile>
@@ -332,6 +394,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'">
     <ClCompile>
@@ -359,6 +427,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'">
     <ClCompile>
@@ -386,6 +460,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\CInterface\SpheralC.cc" />
