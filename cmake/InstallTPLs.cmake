@@ -32,12 +32,13 @@ endif()
 # Only needed when building the python interface of spheral
 if(NOT ENABLE_CXXONLY)
   Spheral_Handle_TPL(python spheral_depends py)
-  #Spheral_Handle_TPL(pybind11 spheral_depends py)
+  Spheral_Handle_TPL(pyb11generator spheral_depends py)
+  Spheral_Handle_TPL(pybind11 spheral_depends py)
   list(APPEND spheral_blt_cxx_depends blt_python)
 endif()
 
 Spheral_Handle_TPL(polytope spheral_depends cxx)
-#Spheral_Handle_TPL(polyclipper spheral_depends cxx)
+Spheral_Handle_TPL(polyclipper spheral_depends cxx)
 
 if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})
   include(${EXTERNAL_SPHERAL_TPL_CMAKE})

@@ -18,7 +18,8 @@
 #         - List of blt/libs the library depends on
 #
 #-----------------------------------------------------------------------------------
-include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
+message("*** CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+include(PYB11Generator)
 
 function(spheral_add_obj_library
          package_name)

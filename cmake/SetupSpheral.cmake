@@ -5,12 +5,12 @@ include(ExternalProject)
 #-------------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
-
-if (NOT CMAKE_MODULE_PATH)
-  set(CMAKE_MODULE_PATH "${SPHERAL_ROOT_DIR}/cmake")
-endif()
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
+
+if (NOT SPHERAL_CMAKE_MODULE_PATH)
+  set(SPHERAL_CMAKE_MODULE_PATH "${SPHERAL_ROOT_DIR}/cmake")
+endif()
+list(APPEND CMAKE_MODULE_PATH "${SPHERAL_CMAKE_MODULE_PATH}")
 
 #-------------------------------------------------------------------------------
 # Set Compiler Flags / Options
@@ -82,13 +82,18 @@ endif()
 
 # Set the PYB11Generator path
 if (NOT PYB11GENERATOR_ROOT_DIR)
-  set(PYB11GENERATOR_ROOT_DIR "${SPHERAL_ROOT_DIR}/extern/PYB11Generator" CACHE PATH "")
+  set(PYB11GENERATOR_ROOT_DIR "${pyb11generator_DIR}/lib/python3.9/site-packages/PYB11Generator" CACHE PATH "")
 endif()
+list(APPEND CMAKE_MODULE_PATH "${pyb11generator_DIR}/cmake")
+message("** CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
-# # Set the pybind11 path
-# if (NOT PYBIND11_ROOT_DIR)
-#   set(PYBDIND11_ROOT_DIR "${SPHERAL_ROOT_DIR}/extern/PYB11Generator/extern/pybind11" CACHE PATH "")
-# endif()
+# Set the pybind11 path
+if (NOT PYBIND11_ROOT_DIR)
+  set(PYBIND11_ROOT_DIR "${pybind11_DIR}/include/pybind11" CACHE PATH "")
+endif()
+if (NOT PYBIND111_CMAKE_DIR)
+  set(PYBIND11_CMAKE_DIR "${pybind11_DIR}" CACHE PATH "")
+endif()
 
 # PolyClipper
 if (NOT polyclipper_DIR)

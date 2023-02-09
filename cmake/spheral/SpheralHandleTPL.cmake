@@ -1,7 +1,7 @@
 # Initialize commonly used paths during TPL installs
 set(CACHE_DIR ${CMAKE_BINARY_DIR}/tpl/cache)
 set(PATCH_DIR ${SPHERAL_ROOT_DIR}/src/tpl/patch)
-set(TPL_CMAKE_DIR ${CMAKE_MODULE_PATH}/tpl)
+set(TPL_CMAKE_DIR ${SPHERAL_ROOT_DIR}/cmake/tpl)
 
 # Verboseness of TPL builds
 if (TPL_VERBOSE)
