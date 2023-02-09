@@ -28,6 +28,28 @@ using std::abs;
 
 namespace Spheral {
 
+#ifndef CXXONLY
+//------------------------------------------------------------------------------
+// Get a C++ string from a Python string
+//------------------------------------------------------------------------------
+std::string Py2CPPstring(PyObject* pyobj) {
+  std::string result;
+  if (PyUnicode_Check(pyobj)) {
+    PyObject* temp_bytes = PyUnicode_AsEncodedString(pyobj, "UTF-8", "strict"); // Owned reference
+    if (temp_bytes != nullptr) {
+      char* my_result = PyBytes_AS_STRING(temp_bytes); // Borrowed pointer
+      result = std::string(my_result);
+      Py_DECREF(temp_bytes);
+    } else {
+      VERIFY2(false, "FileIO unable to parse arg expected as string");
+    }
+  } else {
+    VERIFY2(false, "FileIO unable to parse arg expected as string");
+  }
+  return result;
+}
+#endif
+
 //------------------------------------------------------------------------------
 // Empty Constructor.
 //------------------------------------------------------------------------------
@@ -321,7 +343,7 @@ FileIO::
 writeObject(PyObject* thing, PyObject* pathObj) {
 
   // Extract the path.
-  const string path(PyString_AsString(pathObj));
+  const auto path = Py2CPPstring(pathObj);
 
   // Pickle our object.
   PyObject* thingArgs = Py_BuildValue("(O)", thing);
@@ -331,8 +353,8 @@ writeObject(PyObject* thing, PyObject* pathObj) {
   }
 
   // Extract the string representation of the object.
-  CHECK(PyString_Check(pickledThing));
-  string result(PyString_AsString(pickledThing));
+  CHECK(PyUnicode_Check(pickledThing));
+  string result = Py2CPPstring(pickledThing);
 
   // Replace the \n to <<n>> to survive writing to the file.
   boost::replace_all(result, "\n", "<<n>>");
@@ -354,7 +376,7 @@ FileIO::
 readObject(PyObject* pathObj) const {
 
   // Extract the path.
-  const string path(PyString_AsString(pathObj));
+  const auto path = Py2CPPstring(pathObj);
 
   // Read in the pickled string representation.
   string encodedThing;

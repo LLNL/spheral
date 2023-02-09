@@ -82,18 +82,19 @@ endif()
 
 # Set the PYB11Generator path
 if (NOT PYB11GENERATOR_ROOT_DIR)
-  set(PYB11GENERATOR_ROOT_DIR "${pyb11generator_DIR}/lib/python3.9/site-packages/PYB11Generator" CACHE PATH "")
+  set(PYB11GENERATOR_ROOT_DIR "${SPHERAL_ROOT_DIR}/extern/PYB11Generator" CACHE PATH "")
 endif()
-list(APPEND CMAKE_MODULE_PATH "${pyb11generator_DIR}/cmake")
-message("** CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+if (NOT ENABLE_CXXONLY)
+  include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
+endif()
 
-# Set the pybind11 path
-if (NOT PYBIND11_ROOT_DIR)
-  set(PYBIND11_ROOT_DIR "${pybind11_DIR}/include/pybind11" CACHE PATH "")
-endif()
-if (NOT PYBIND111_CMAKE_DIR)
-  set(PYBIND11_CMAKE_DIR "${pybind11_DIR}" CACHE PATH "")
-endif()
+#list(APPEND CMAKE_MODULE_PATH "${PYB11GENERATOR_ROOT_DIR}/cmake")
+#message("** CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+
+# # Set the pybind11 path
+# if (NOT PYBIND11_ROOT_DIR)
+#   set(PYBIND11_ROOT_DIR "${PYB11GENERATOR_ROOT_DIR}/extern/pybind11" CACHE PATH "")
+# endif()
 
 # PolyClipper
 if (NOT polyclipper_DIR)
@@ -102,7 +103,7 @@ endif()
 set(polyclipper_INCLUDES "${polyclipper_DIR}/src")
 
 # Things all Spheral packages have in their include path
-list(APPEND SPHERAL_INCLUDES ${polyclipper_INCLUDES})
+list(APPEND SPHERAL_EXTERN_INCLUDES ${polyclipper_INCLUDES})
 
 #-------------------------------------------------------------------------------#
 # Set a default build type if none was specified

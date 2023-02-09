@@ -18,9 +18,6 @@
 #         - List of blt/libs the library depends on
 #
 #-----------------------------------------------------------------------------------
-message("*** CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
-include(PYB11Generator)
-
 function(spheral_add_obj_library
          package_name)
 
@@ -40,6 +37,7 @@ function(spheral_add_obj_library
                   OBJECT TRUE
                   )
   target_include_directories(Spheral_${package_name} PRIVATE ${SPHERAL_INCLUDES})
+  target_include_directories(Spheral_${package_name} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
 
   # Install the headers
   install(FILES       ${${package_name}_headers}
