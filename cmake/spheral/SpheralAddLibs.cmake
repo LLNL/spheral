@@ -33,7 +33,7 @@ function(spheral_add_obj_library
   blt_add_library(NAME        Spheral_${package_name}
                   HEADERS     ${${package_name}_headers}
                   SOURCES     ${${package_name}_sources}
-                  DEPENDS_ON  ${spheral_blt_depends} ${spheral_blt_cxx_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+                  DEPENDS_ON  ${spheral_depends} ${spheral_blt_depends} ${spheral_blt_cxx_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS}
                   OBJECT TRUE
                   )
   target_include_directories(Spheral_${package_name} PRIVATE ${SPHERAL_INCLUDES})
