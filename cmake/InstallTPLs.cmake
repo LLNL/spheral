@@ -34,7 +34,6 @@ if(NOT ENABLE_CXXONLY)
   Spheral_Handle_TPL(python spheral_depends cxx)
   #Spheral_Handle_TPL(pyb11generator spheral_depends py)
   #Spheral_Handle_TPL(pybind11 spheral_depends py)
-  list(APPEND spheral_depends python)
 endif()
 
 Spheral_Handle_TPL(polytope spheral_depends cxx)
