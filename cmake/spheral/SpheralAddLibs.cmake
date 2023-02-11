@@ -185,13 +185,32 @@ function(spheral_add_pybind11_library package_name)
   STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})
 
   string(JOIN ":" PYTHON_ENV_STR ${PYTHON_ENV_STR} ${SPACK_PYTHONPATH})
+  #message("** PYTHON_ENV_STR to pass to PYB11Generator: ${PYTHON_ENV_STR}")
+  #message("** Using PYTHON_EXE: ${PYTHON_EXE}")
+
+  message("** SPHERAL_INCLUDES : ${spheral_includes}")
+  message("** SPHERAL_EXTERN_INCLUDES : ${spheral_extern_includes}")
+  message("** ${package_name}_ADDITIONAL_INCLUDES : ${${package_name}_ADDITIONAL_INCLUDES}")
+  message("** spheral_depends : ${spheral_depends}")
+  message("** spheral_blt_depends : ${spheral_blt_depends}")
+  message("** spheral_blt_cxx_depends : ${spheral_blt_cxx_depends}")
+  message("** spheral_blt_py_depends : ${spheral_blt_py_depends}")
+  message("** ${package_name}_ADDITIONAL_DEPENDS : ${${package_name}_ADDITIONAL_DEPENDS}")
+  blt_print_target_properties(TARGET blt_zlib)
+  message("** _BLT_BLT_ZLIB_INCLUDES : ${_BLT_BLT_ZLIB_INCLUDES}")
+  #message("** target include directories : $<TARGET_PROPERTY:blt_zlib,INTERFACE_INCLUDE_DIRECTORIES>")
+  #message("** blt_zlib_INCLUDE_DIRS : ${blt_zlib_INCLUDE_DIRS}")
+  #message("** blt_zlib_LIBARARIES : ${blt_zlib_LIBRARIES}")
+  #message("** zlib_INCLUDES : ${zlib_INCLUDES}")
+  #message("** zlib_LIBRARIES : ${zlib_LIBRARIES}")
 
   set(MODULE_NAME Spheral${package_name})
   PYB11Generator_add_module(${package_name}
                             MODULE     ${MODULE_NAME}
                             SOURCE     ${package_name}_PYB11.py
-                            DEPENDS    Spheral_CXX ${spheral_blt_depends} ${spheral_blt_py_depends} ${${package_name}_ADDITIONAL_DEPENDS}
-                            INCLUDES   ${${package_name}_ADDITIONAL_INCLUDES}
+                            DEPENDS    ${spheral_depends} ${spheral_blt_depends} ${spheral_blt_cxx_depends} ${spheral_blt_py_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS} Spheral_CXX
+                            PYTHONPATH ${PYTHON_ENV_STR}
+                            INCLUDES   ${SPHERAL_INCLUDES} ${SPHERAL_EXTERN_INCLUDES} ${${package_name}_ADDITIONAL_INCLUDES} 
                             )
 
   #target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
