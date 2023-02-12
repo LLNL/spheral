@@ -188,29 +188,49 @@ function(spheral_add_pybind11_library package_name)
   #message("** PYTHON_ENV_STR to pass to PYB11Generator: ${PYTHON_ENV_STR}")
   #message("** Using PYTHON_EXE: ${PYTHON_EXE}")
 
-  message("** SPHERAL_INCLUDES : ${spheral_includes}")
-  message("** SPHERAL_EXTERN_INCLUDES : ${spheral_extern_includes}")
-  message("** ${package_name}_ADDITIONAL_INCLUDES : ${${package_name}_ADDITIONAL_INCLUDES}")
-  message("** spheral_depends : ${spheral_depends}")
-  message("** spheral_blt_depends : ${spheral_blt_depends}")
-  message("** spheral_blt_cxx_depends : ${spheral_blt_cxx_depends}")
-  message("** spheral_blt_py_depends : ${spheral_blt_py_depends}")
-  message("** ${package_name}_ADDITIONAL_DEPENDS : ${${package_name}_ADDITIONAL_DEPENDS}")
-  blt_print_target_properties(TARGET blt_zlib)
-  message("** _BLT_BLT_ZLIB_INCLUDES : ${_BLT_BLT_ZLIB_INCLUDES}")
+  # message("** SPHERAL_INCLUDES : ${spheral_includes}")
+  # message("** SPHERAL_EXTERN_INCLUDES : ${spheral_extern_includes}")
+  # message("** ${package_name}_ADDITIONAL_INCLUDES : ${${package_name}_ADDITIONAL_INCLUDES}")
+  # message("** spheral_depends : ${spheral_depends}")
+  # message("** spheral_blt_depends : ${spheral_blt_depends}")
+  # message("** spheral_blt_cxx_depends : ${spheral_blt_cxx_depends}")
+  # message("** spheral_blt_py_depends : ${spheral_blt_py_depends}")
+  # message("** ${package_name}_ADDITIONAL_DEPENDS : ${${package_name}_ADDITIONAL_DEPENDS}")
+  # blt_print_target_properties(TARGET blt_zlib)
+  # message("** _BLT_BLT_ZLIB_INCLUDES : ${_BLT_BLT_ZLIB_INCLUDES}")
+
+  # string(TOUPPER ${arg_TARGET} _target_upper)
+  # set(_target_prefix "_BLT_BLT_ZLIB_")
+  # get_cmake_property(_variable_names VARIABLES)
+  # foreach (prop ${_variable_names})
+  #   if(prop MATCHES "^${_target_prefix}")
+  #     message (STATUS "Our own lookup [${arg_TARGET} property] ${prop}: ${${prop}}")
+  #   endif()
+  # endforeach()
+
   #message("** target include directories : $<TARGET_PROPERTY:blt_zlib,INTERFACE_INCLUDE_DIRECTORIES>")
   #message("** blt_zlib_INCLUDE_DIRS : ${blt_zlib_INCLUDE_DIRS}")
   #message("** blt_zlib_LIBARARIES : ${blt_zlib_LIBRARIES}")
   #message("** zlib_INCLUDES : ${zlib_INCLUDES}")
   #message("** zlib_LIBRARIES : ${zlib_LIBRARIES}")
 
+  message("** BLT_MPI_COMPILE_FLAGS: ${BLT_MPI_COMPILE_FLAGS}")
+  message("** BLT_MPI_LINK_FLAGS: ${BLT_MPI_LINK_FLAGS}")
+  message("** BLT_MPI_INCLUDES: ${BLT_MPI_INCLUDES}")
+  message("** BLT_MPI_LIBRARIES: ${BLT_MPI_LIBRARIES}")
+
+  # Get the TPL dependencies
+  get_property(spheral_tpl_includes GLOBAL PROPERTY spheral_tpl_includes)
+  get_property(spheral_tpl_libraries GLOBAL PROPERTY spheral_tpl_libraries)
+
   set(MODULE_NAME Spheral${package_name})
   PYB11Generator_add_module(${package_name}
                             MODULE     ${MODULE_NAME}
                             SOURCE     ${package_name}_PYB11.py
-                            DEPENDS    ${spheral_depends} ${spheral_blt_depends} ${spheral_blt_cxx_depends} ${spheral_blt_py_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS} Spheral_CXX
+                            DEPENDS    ${spheral_depends} ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS} Spheral_CXX
                             PYTHONPATH ${PYTHON_ENV_STR}
-                            INCLUDES   ${SPHERAL_INCLUDES} ${SPHERAL_EXTERN_INCLUDES} ${${package_name}_ADDITIONAL_INCLUDES} 
+                            INCLUDES   ${SPHERAL_INCLUDES} ${SPHERAL_EXTERN_INCLUDES} ${${package_name}_ADDITIONAL_INCLUDES} ${spheral_tpl_includes}
+                            LINKS      ${spheral_tpl_libraries}
                             )
 
   #target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
