@@ -199,6 +199,7 @@ SPHERALDLL_API
     plasticStrain               : plastic strain per node
     scalarDamage                : scalar damage per node
     particleType                : flag for active (1) or inactive (0) points
+    regionNumber                : integer for the region ID
   ----------------------------------------------------------------------------*/
 SPHERALDLL_API 
   void spheral_update_state(const int       ndims,
@@ -218,7 +219,8 @@ SPHERALDLL_API
                             const double*   yieldStrength,
                             const double*   plasticStrain,
                             const double*   scalarDamage,
-                            const int*      particleType);
+                            const int*      particleType,
+                            const int*      regionNumber);
 
 /*------------------------------------------------------------------------------
   spheral_initialize_boundaries_and_physics
