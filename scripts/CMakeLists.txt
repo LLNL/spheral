@@ -6,7 +6,7 @@ if (NOT ENABLE_CXXONLY)
   # site-packages so we strip away site-packages pack and 
   # copy the full contents of the python library prefix to
   # our virtual env in spheral-setup-venv.sh
-  string(REGEX REPLACE "lib\/python2.7\/site-packages\/?[A-Za-z]*:" "* " VIRTUALENV_PYTHONPATH_COPY "${SPACK_PYTHONPATH}:")
+  string(REGEX REPLACE "lib\/python3.9\/site-packages\/?[A-Za-z]*:" "* " VIRTUALENV_PYTHONPATH_COPY "${SPACK_PYTHONPATH}:")
 
   set(SPHERAL_ATS_BUILD_CONFIG_ARGS )
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
