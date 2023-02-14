@@ -23,8 +23,8 @@ class PyPolyclipper(CMakePackage, PythonPackage):
 
     depends_on('mpi', when='+mpi')
     depends_on('blt')
-    depends_on('py-pybind11')
-    depends_on('py-pyb11generator')
+    #depends_on('py-pybind11')
+    #depends_on('py-pyb11generator')
     depends_on('py-decorator')
 
     def cmake_args(self):
@@ -33,9 +33,9 @@ class PyPolyclipper(CMakePackage, PythonPackage):
 
         args.append(self.define('POLYCLIPPER_BLT_DIR', spec['blt'].prefix))
         args.append(self.define('ENABLE_CXXONLY', True))
-        args.append(self.define('PYTHON_EXE', spec['python'].prefix+'/bin/python'))
-        args.append(self.define('PYBIND11_INCLUDE_PATH', spec['py-pybind11'].prefix+'/include'))
-        args.append(self.define('PYB11GEN_PATH', spec['py-pyb11generator'].prefix+'/lib/python2.7/site-packages'))
+        #args.append(self.define('PYTHON_EXE', spec['python'].prefix+'/bin/python'))
+        #args.append(self.define('PYBIND11_INCLUDE_PATH', spec['py-pybind11'].prefix+'/include'))
+        #args.append(self.define('PYB11GEN_PATH', spec['py-pyb11generator'].prefix+'/lib/python2.7/site-packages'))
 
         args.append(self.define('ENABLE_MPI', '+mpi' in spec))
         if "+mpi" in spec:

@@ -91,10 +91,10 @@ endif()
 #list(APPEND CMAKE_MODULE_PATH "${PYB11GENERATOR_ROOT_DIR}/cmake")
 #message("** CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
-# # Set the pybind11 path
-# if (NOT PYBIND11_ROOT_DIR)
-#   set(PYBIND11_ROOT_DIR "${PYB11GENERATOR_ROOT_DIR}/extern/pybind11" CACHE PATH "")
-# endif()
+# Set the pybind11 path
+if (NOT PYBIND11_ROOT_DIR)
+  set(PYBIND11_ROOT_DIR "${PYB11GENERATOR_ROOT_DIR}/extern/pybind11" CACHE PATH "")
+endif()
 
 # PolyClipper
 if (NOT polyclipper_DIR)
