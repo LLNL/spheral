@@ -93,4 +93,3 @@ src/*/*cc.3.cc
 /build/*/x64
 /build/*/*.user
 *.aps
-/build/Spheral_Version.h
