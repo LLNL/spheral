@@ -208,7 +208,7 @@ def reduce_vector_of_%(value_type)s(obj):
     return vector2string(obj)
 def construct_vector_of_%(value_type)s(strobj):
     return string2vector_of_%(value_type)s(strobj)
-copy_reg.pickle(vector_of_%(value_type)s, reduce_vector_of_%(value_type)s, construct_vector_of_%(value_type)s)
+copyreg.pickle(vector_of_%(value_type)s, reduce_vector_of_%(value_type)s, construct_vector_of_%(value_type)s)
 """
 
 for t in ("int", "unsigned", "ULL", "double", "string"):

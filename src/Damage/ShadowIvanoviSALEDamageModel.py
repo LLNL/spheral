@@ -1,7 +1,7 @@
 import sys
 import mpi
+import io, contextlib
 from math import *
-from io import BytesIO as StringIO
 from SpheralCompiledPackages import *
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
@@ -75,8 +75,8 @@ class IvanoviSALEDamageModel%(dim)s(CXXIvanoviSALEDamageModel%(dim)s):
         validKeys = damage_kwargs.keys() + convenient_kwargs.keys()
         for argname in kwargs:
             if not argname in validKeys:
-                raise ValueError, ("ERROR: argument %%s not a valid option.\\n" %% argname +
-                                   expectedUsageString)
+                raise ValueError("ERROR: argument %%s not a valid option.\\n" %% argname +
+                                 expectedUsageString)
 
         # Did the user try any convenient constructor operations?
         if ((len(args) > 0 and type(args[0]) == str) or
@@ -88,12 +88,12 @@ class IvanoviSALEDamageModel%(dim)s(CXXIvanoviSALEDamageModel%(dim)s):
                 materialName = kwargs["materialName"]
                 del kwargs["materialName"]
             if not materialName in SpheralMaterialPropertiesLib:
-                raise ValueError, (("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
-                                   expectedUsageString)
+                raise ValueError(("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
+                                 expectedUsageString)
             matprops = SpheralMaterialPropertiesLib[materialName]
             if not ("IvanovDamageModel" in matprops):
-                raise ValueError, (("ERROR : material %%s does not provide the required values for the Ivanov damage model.\\n" %% materialName) + 
-                                   expectedUsageString)
+                raise ValueError(("ERROR : material %%s does not provide the required values for the Ivanov damage model.\\n" %% materialName) + 
+                                 expectedUsageString)
             damage_kwargs["minPlasticFailure"] = matprops["IvanovDamageModel"]["epsfb"]
             damage_kwargs["plasticFailurePressureSlope"] = matprops["IvanovDamageModel"]["B"]
             damage_kwargs["plasticFailurePressureOffset"] = matprops["IvanovDamageModel"]["Pc"]
@@ -136,7 +136,7 @@ class IvanoviSALEDamageModel%(dim)s(CXXIvanoviSALEDamageModel%(dim)s):
             if argname in damage_kwargs:
                 damage_kwargs[argname] = kwargs[argname]
             else:
-                raise ValueError, (("ERROR : unknown kwarg %%s.\\n" %% argname) + expectedUsageString)
+                raise ValueError(("ERROR : unknown kwarg %%s.\\n" %% argname) + expectedUsageString)
 
         # If no mask was provided, deafult to all points active
         if damage_kwargs["mask"] is None:
@@ -155,13 +155,9 @@ for dim in dims:
     exec("from SpheralCompiledPackages import IvanoviSALEDamageModel%id as CXXIvanoviSALEDamageModel%id" % (dim, dim))
 
     # Capture the full class help string
-    save_stdout = sys.stdout
-    ss = StringIO()
-    sys.stdout = ss
-    eval("help(CXXIvanoviSALEDamageModel%id)" % dim)
-    sys.stdout = save_stdout
-    ss.seek(0)
-    class_help = ss.read()
+    with contextlib.redirect_stdout(io.StringIO()) as ss:
+        exec("help(CXXIvanoviSALEDamageModel%id)" % dim)
+    class_help = ss.getvalue()
 
     exec(IvanoviSALEDamageModelGenString % {"dim": "%id" % dim,
                                             "help": (expectedUsageString + "\n\n Class help:\n\n" + class_help)})
