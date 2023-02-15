@@ -128,8 +128,8 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
         validKeys = damage_kwargs.keys() + weibull_kwargs.keys() + convenient_kwargs.keys() + deprecated_kwargs
         for argname in kwargs:
             if not argname in validKeys:
-                raise ValueError, ("ERROR: argument %%s not a valid option.\\n" %% argname +
-                                   expectedUsageStringBA)
+                raise ValueError("ERROR: argument %%s not a valid option.\\n" %% argname +
+                                 expectedUsageStringBA)
 
         # Did the user try any convenient constructor operations?
         if ((len(args) > 0 and type(args[0]) == str) or
@@ -141,12 +141,12 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
                 materialName = kwargs["materialName"]
                 del kwargs["materialName"]
             if not materialName in SpheralMaterialPropertiesLib:
-                raise ValueError, (("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
-                                   expectedUsageStringBA)
+                raise ValueError(("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
+                                 expectedUsageStringBA)
             matprops = SpheralMaterialPropertiesLib[materialName]
             if not ("kWeibull" in matprops and "mWeibull" in matprops):
-                raise ValueError, (("ERROR : material %%s does not provide the required values for kWeibull and mWeibull.\\n" %% materialName) + 
-                                   expectedUsageStringBA)
+                raise ValueError(("ERROR : material %%s does not provide the required values for kWeibull and mWeibull.\\n" %% materialName) + 
+                                 expectedUsageStringBA)
             weibull_kwargs["kWeibull"] = matprops["kWeibull"]
             weibull_kwargs["mWeibull"] = matprops["mWeibull"]
 
@@ -281,8 +281,8 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
             if argname in deprecated_kwargs:
                 sys.stdout.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
             elif not argname in validKeys:
-                raise ValueError, ("ERROR: argument %%s not a valid option.\\n" %% argname +
-                                   expectedUsageStringO)
+                raise ValueError("ERROR: argument %%s not a valid option.\\n" %% argname +
+                                 expectedUsageStringO)
 
         # Did the user try any convenient constructor operations?
         if ((len(args) > 0 and type(args[0]) == str) or
@@ -294,12 +294,12 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
                 materialName = kwargs["materialName"]
                 del kwargs["materialName"]
             if not materialName in SpheralMaterialPropertiesLib:
-                raise ValueError, (("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
-                                   expectedUsageStringO)
+                raise ValueError(("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
+                                 expectedUsageStringO)
             matprops = SpheralMaterialPropertiesLib[materialName]
             if not ("kWeibull" in matprops and "mWeibull" in matprops):
-                raise ValueError, (("ERROR : material %%s does not provide the required values for kWeibull and mWeibull.\\n" %% materialName) + 
-                                   expectedUsageStringO)
+                raise ValueError(("ERROR : material %%s does not provide the required values for kWeibull and mWeibull.\\n" %% materialName) + 
+                                 expectedUsageStringO)
             weibull_kwargs["kWeibull"] = matprops["kWeibull"]
             weibull_kwargs["mWeibull"] = matprops["mWeibull"]
 
