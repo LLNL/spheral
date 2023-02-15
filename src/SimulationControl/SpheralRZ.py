@@ -7,6 +7,6 @@ for name in [x for x in Spheral.__dict__ if "2d" in x]:
     exec("%s = Spheral.__dict__['%s']" % (name.replace("2d", ""), name))
 for name in [x for x in Spheral.__dict__ if (x != "RZ" and x[-2:] == "RZ")]:
     exec("%s = Spheral.__dict__['%s']" % (name.replace("RZ", ""), name))
-del x, name
+del name
 from Spheral import *
 GeometryRegistrar.coords(CoordinateType.RZ)
