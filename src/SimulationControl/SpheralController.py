@@ -562,14 +562,14 @@ class SpheralController:
 
         # Now we can invoke the restart!
         import time
-        start = time.clock()
+        start = time.time()
         fileName = self.restartBaseName + "_cycle%i" % self.totalSteps
         if self.restartFileConstructor is SidreFileIO and self.SPIOFileCountPerTimeslice is not None:
             file = self.restartFileConstructor(fileName, Create, self.SPIOFileCountPerTimeslice)
         else:
             file = self.restartFileConstructor(fileName, Create)
         RestartRegistrar.instance().dumpState(file)
-        print("Wrote restart file in %0.2f seconds" % (time.clock() - start))
+        print("Wrote restart file in %0.2f seconds" % (time.time() - start))
 
         file.close()
         del file
@@ -600,13 +600,13 @@ class SpheralController:
         # Read that sucker.
         print('Reading from restart file', fileName)
         import time
-        start = time.clock()
+        start = time.time()
         if self.restartFileConstructor is SidreFileIO and self.SPIOFileCountPerTimeslice is not None:
             file = self.restartFileConstructor(fileName, Read, self.SPIOFileCountPerTimeslice)
         else:
             file = self.restartFileConstructor(fileName, Read)
         RestartRegistrar.instance().restoreState(file)
-        print("Finished: required %0.2f seconds" % (time.clock() - start))
+        print("Finished: required %0.2f seconds" % (time.time() - start))
 
         # Reset neighboring.
         db = self.integrator.dataBase
@@ -617,9 +617,9 @@ class SpheralController:
         if (self.integrator.updateBoundaryFrequency > 1 and
             self.integrator.currentCycle % self.integrator.updateBoundaryFrequency != 0):
             print("Creating ghost nodes.")
-            start = time.clock()
+            start = time.time()
             self.integrator.setGhostNodes()
-            print("Finished: required %0.2f seconds" % (time.clock() - start))
+            print("Finished: required %0.2f seconds" % (time.time() - start))
 
         file.close()
         del file
@@ -820,7 +820,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
                 dt = None):
         mpi.barrier()
         import time
-        start = time.clock()
+        start = time.time()
         db = self.integrator.dataBase
         db.updateConnectivityMap(False)
         bcs = self.integrator.uniqueBoundaryConditions()
@@ -835,7 +835,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
                        dumpGhosts = self.vizGhosts,
                        dumpDerivatives = self.vizDerivs,
                        boundaries = bcs)
-        print("Wrote viz file in %0.2f seconds" % (time.clock() - start))
+        print("Wrote viz file in %0.2f seconds" % (time.time() - start))
         return
 
     #--------------------------------------------------------------------------

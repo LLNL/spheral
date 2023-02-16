@@ -35,14 +35,10 @@ namespace Spheral {
 std::string Py2CPPstring(PyObject* pyobj) {
   std::string result;
   if (PyUnicode_Check(pyobj)) {
-    PyObject* temp_bytes = PyUnicode_AsEncodedString(pyobj, "UTF-8", "strict"); // Owned reference
-    if (temp_bytes != nullptr) {
-      char* my_result = PyBytes_AS_STRING(temp_bytes); // Borrowed pointer
-      result = std::string(my_result);
-      Py_DECREF(temp_bytes);
-    } else {
-      VERIFY2(false, "FileIO unable to parse arg expected as string");
-    }
+    Py_ssize_t size = 0;
+    const char* data = PyUnicode_AsUTF8AndSize(pyobj, &size);
+    VERIFY2(data != nullptr, "FileIO unable to parse arg expected as string");
+    result = std::string(data, size);
   } else {
     VERIFY2(false, "FileIO unable to parse arg expected as string");
   }
@@ -56,21 +52,11 @@ std::string Py2CPPstring(PyObject* pyobj) {
 FileIO::FileIO():
   mFileName(""),
   mAccess(AccessType::Undefined),
-  mFileOpen(false)
+  mFileOpen(false) {
 #ifndef CXXONLY
-  ,
-  mPickleMod(NULL),
-  mPickleDumps(NULL),
-  mPickleLoads(NULL) {
-
   // Import pickle.
-  PyObject* modName = Py_BuildValue("s", "cPickle");
-  mPickleMod = PyImport_Import(modName);
-  mPickleDumps = PyObject_GetAttrString(mPickleMod, "dumps");
-  mPickleLoads = PyObject_GetAttrString(mPickleMod, "loads");
-  Py_DECREF(modName);
-#else
-  {
+  if (mPickleMod == nullptr) mPickleMod = PyImport_ImportModuleNoBlock("pickle");
+  VERIFY2(mPickleMod != nullptr, "FileIO ERROR: Failed to import pickle module");
 #endif
 }
 
@@ -80,21 +66,11 @@ FileIO::FileIO():
 FileIO::FileIO(const string filename, AccessType access):
   mFileName(filename),
   mAccess(access),
-  mFileOpen(false)
+  mFileOpen(false) {
 #ifndef CXXONLY
-  ,
-  mPickleMod(NULL),
-  mPickleDumps(NULL),
-  mPickleLoads(NULL) {
-  
   // Import pickle.
-  PyObject* modName = Py_BuildValue("s", "cPickle");
-  mPickleMod = PyImport_Import(modName);
-  mPickleDumps = PyObject_GetAttrString(mPickleMod, "dumps");
-  mPickleLoads = PyObject_GetAttrString(mPickleMod, "loads");
-  Py_DECREF(modName);
-#else
-  {
+  if (mPickleMod == nullptr) mPickleMod = PyImport_ImportModuleNoBlock("pickle");
+  VERIFY2(mPickleMod != nullptr, "FileIO ERROR: Failed to import pickle module");
 #endif
 }
 
@@ -104,8 +80,6 @@ FileIO::FileIO(const string filename, AccessType access):
 FileIO::~FileIO() {
 #ifndef CXXONLY
   Py_DECREF(mPickleMod);
-  Py_DECREF(mPickleDumps);
-  Py_DECREF(mPickleLoads);
 #endif
 }
 
@@ -346,13 +320,16 @@ writeObject(PyObject* thing, PyObject* pathObj) {
   const auto path = Py2CPPstring(pathObj);
 
   // Pickle our object.
-  PyObject* thingArgs = Py_BuildValue("(O)", thing);
-  PyObject* pickledThing = PyObject_CallObject(mPickleDumps, thingArgs);
-  if (pickledThing == NULL) {
-    PyErr_SetString(PyExc_ValueError, "Unable to pickle object");
+  PyObject* pickledThing = PyObject_CallMethodObjArgs(mPickleMod,
+                                                      PyUnicode_FromString("dumps"),
+                                                      thing,
+                                                      nullptr);
+  if (pickledThing == nullptr) {
+    PyErr_SetString(PyExc_ValueError, "FileIO ERROR: Unable to pickle object");
   }
 
   // Extract the string representation of the object.
+  std::cerr << "pickledThing: " << Py2CPPstring(pickledThing) << std::endl;
   CHECK(PyUnicode_Check(pickledThing));
   string result = Py2CPPstring(pickledThing);
 
@@ -364,7 +341,6 @@ writeObject(PyObject* thing, PyObject* pathObj) {
   this->write(result, string(path));
 
   // Deallocate stuff.
-  Py_DECREF(thingArgs);
   Py_DECREF(pickledThing);
 }
 
@@ -387,15 +363,18 @@ readObject(PyObject* pathObj) const {
   CHECK(encodedThing.find("<<n>>") == string::npos);
 
   // Turn the string into a python object.
-  const char* thpt = encodedThing.c_str();
-  PyObject* pyEncodedThing = Py_BuildValue("s", thpt);
+  // const char* thpt = encodedThing.c_str();
+  // PyObject* pyEncodedThing = Py_BuildValue("s", thpt);
+  PyObject* pyEncodedThing = PyUnicode_FromString(encodedThing.c_str());
 
   // Unpickle our object.
-  PyObject* argsToPickle = Py_BuildValue("(O)", pyEncodedThing);
-  PyObject* result = PyEval_CallObject(mPickleLoads, argsToPickle);
-  if (result == NULL) {
-    PyErr_SetString(PyExc_ValueError, "Unable to unpickle string");
-    return NULL;
+  PyObject* result = PyObject_CallMethodObjArgs(mPickleMod,
+                                                PyUnicode_FromString("loads"),
+                                                pyEncodedThing,
+                                                nullptr);
+  if (result == nullptr) {
+    PyErr_SetString(PyExc_ValueError, "FileIO ERROR: Unable to unpickle string");
+    return nullptr;
   }
 
   // cerr << "      result is ";
@@ -407,12 +386,18 @@ readObject(PyObject* pathObj) const {
 
   // Deallocate stuff.
   Py_DECREF(pyEncodedThing);
-  Py_DECREF(argsToPickle);
 
   // We're done.
   Py_INCREF(result);
   return result;
 }
+#endif
+
+//------------------------------------------------------------------------------
+// Static initialization
+//------------------------------------------------------------------------------
+#ifndef CXXONLY
+PyObject* FileIO::mPickleMod = nullptr;
 #endif
 
 }

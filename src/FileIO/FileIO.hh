@@ -413,9 +413,7 @@ protected:
   bool mFileOpen;
 
 #ifndef CXXONLY
-  PyObject* mPickleMod;
-  PyObject* mPickleDumps;
-  PyObject* mPickleLoads;
+  static PyObject* mPickleMod;
 #endif
 
 private:

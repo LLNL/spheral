@@ -51,7 +51,7 @@ def globalFrame():
 # Provide a standard title text
 #-------------------------------------------------------------------------------
 def title(titleText, lineLength=80):
-    fillerText = "-"*((lineLength - len(titleText))/2)
+    fillerText = "-"*((lineLength - len(titleText))//2)
     print(fillerText, titleText, fillerText)
 
 #-------------------------------------------------------------------------------

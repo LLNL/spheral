@@ -38,7 +38,7 @@ class NodeGeneratorBase:
     # each processor.
     #---------------------------------------------------------------------------
     def globalIDRange(self, ntot):        
-        ndomain0 = ntot/procs
+        ndomain0 = ntot // procs
         remainder = ntot % procs
         assert remainder < procs
         ndomain = ndomain0

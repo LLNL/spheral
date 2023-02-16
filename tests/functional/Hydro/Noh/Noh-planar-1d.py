@@ -868,6 +868,6 @@ if compatibleEnergy and abs(Eerror) > 1e-13:
 
 
 # Check that SPIO is writing the expected amount of files also need to check if mpi is enabled to see if we are using Spio
-if control.restartFileConstructor is SidreFileIO and mpi.rank is 0 and not mpi.is_fake_mpi() and control.SPIOFileCountPerTimeslice is not None:
+if (control.restartFileConstructor is SidreFileIO) and (mpi.rank == 0) and (not mpi.is_fake_mpi()) and (control.SPIOFileCountPerTimeslice is not None):
     if not control.SPIOFileCountPerTimeslice is len(os.listdir(os.path.join(os.getcwd(), control.restartBaseName + "_cycle%i" % control.totalSteps))):
         raise ValueError("The amount of restart files written does not match the amount expected based on input!")
