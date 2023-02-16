@@ -33,6 +33,8 @@ Notable changes include:
     * C++ flag suppression is gaurded with build time CMake generators to only apply to C++ compilers.
     * Python runtime libraries are now managed through Spack / tpl-manager.
     * Added ENABLE_NAN_EXCEPTIONS (default OFF) Cmake flag to raise an exception when a NAN occurs (Gnu only)
+    * Byte-compiling python installed in virtual spheral environment
+    * Invoking spheral no longer byte-compiles Python imported in a spheral script
 
   * Bug Fixes / improvements:
     * spheral-atstest scripts always point to locally installed ATS instance.
@@ -42,6 +44,7 @@ Notable changes include:
     * Protected from division by zero in DEM when points coincide
     * Corrected support for minimum pressure (intact and damaged) with porous materials
     * Removed term driving damaged material to the reference density in solid hydros
+    * Added verbose flag to EquationOfState::specificThermalEnergyForPressure so users can see how the iterative search proceeds
 
 Version v2022.06.1 -- Release date 2022-06-24
 =============================================
