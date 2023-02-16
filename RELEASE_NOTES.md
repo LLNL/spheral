@@ -70,6 +70,7 @@ Notable changes include:
     * Adding some persistent state to the hydro objects to remeber criteria for diagnostics.
     * Moved inferace fields of SlideSurface class into the Hydro class.
     * FSISPH handles same-material damaged strength similarly to Spheral's default SPH solver.
+    * FSISPH interface detection updated to be more robust and applicable to free surfaces.
     * New ProbabilisticDamageModel, which should be used in place of our prior Grady-Kipp implementations.
     * More Damage application options, and new defaults
     * Artificial viscosity for SPH variants now defaults to LimitedMonaghanGingoldViscosity.
