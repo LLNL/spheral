@@ -16,3 +16,4 @@ const std::string Spheral::FSIFieldNames::interfaceFraction = "interfaceFraction
 const std::string Spheral::FSIFieldNames::interfaceSmoothness = "interfaceSmoothness";
 const std::string Spheral::FSIFieldNames::smoothedInterfaceNormals = "smoothedInterfaceNormals";
 const std::string Spheral::FSIFieldNames::smoothnessNormalization = "smoothnessNormalization";
+const std::string Spheral::FSIFieldNames::angleCheck = "interface angle check";

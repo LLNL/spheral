@@ -330,6 +330,17 @@ newInterfaceSmoothness() const {
 }
 
 //------------------------------------------------------------------------------
+// next time step smoothness metric for mixing interfaces
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+angleCheck() const {
+  return mAngleCheck;
+}
+
+//------------------------------------------------------------------------------
 // Ref to the slide surface obj
 //------------------------------------------------------------------------------
 template<typename Dimension>

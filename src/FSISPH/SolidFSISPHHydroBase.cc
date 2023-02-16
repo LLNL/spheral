@@ -179,7 +179,8 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mNewInterfaceNormals(FieldStorageType::CopyFields),
   mSmoothedInterfaceNormals(FieldStorageType::CopyFields),
   mNewInterfaceFraction(FieldStorageType::CopyFields),
-  mNewInterfaceSmoothness(FieldStorageType::CopyFields){
+  mNewInterfaceSmoothness(FieldStorageType::CopyFields),
+  mAngleCheck(FieldStorageType::CopyFields){
 
     mPairDepsDt.clear();
 
@@ -205,6 +206,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mSmoothedInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::smoothedInterfaceNormals);
     mNewInterfaceFraction = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction);
     mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
+    mAngleCheck = dataBase.newFluidFieldList(0.0, FSIFieldNames::angleCheck);
     
   }
 
@@ -304,6 +306,7 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   dataBase.resizeFluidFieldList(mSmoothedInterfaceNormals, Vector::zero,  FSIFieldNames::smoothedInterfaceNormals,false);
   dataBase.resizeFluidFieldList(mNewInterfaceFraction, 0.0,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() +  FSIFieldNames::interfaceFraction,false); 
   dataBase.resizeFluidFieldList(mNewInterfaceSmoothness, 0.0,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness,false);
+  dataBase.resizeFluidFieldList(mAngleCheck, 0.0,  FSIFieldNames::angleCheck,false);
 
   // enroll 
   derivs.enrollAny(HydroFieldNames::pairWork,  mPairDepsDt);
@@ -315,6 +318,7 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   derivs.enroll(mSmoothedInterfaceNormals);
   derivs.enroll(mNewInterfaceFraction);
   derivs.enroll(mNewInterfaceSmoothness);
+  derivs.enroll(mAngleCheck);
 
   TIME_END("SolidFSISPHregisterDerivs");
 }
@@ -332,6 +336,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                           StateDerivatives<Dimension>& derivatives) const {
 
+  // bump out 
+  const double interfaceNeighborAngleThreshold = 0.5; // (equiv to 60 deg opening angle threshold)
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
@@ -426,9 +432,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  newInterfaceNormals = derivatives.fields(ReplaceBoundedFieldList<Dimension, Vector>::prefix() + FSIFieldNames::interfaceNormals, Vector::zero);
   auto  newInterfaceFlags = derivatives.fields(ReplaceBoundedFieldList<Dimension, int>::prefix() + FSIFieldNames::interfaceFlags, int(0));
   auto  newInterfaceAreaVectors = derivatives.fields(ReplaceBoundedFieldList<Dimension, Vector>::prefix() + FSIFieldNames::interfaceAreaVectors, Vector::zero);
-  auto  smoothedInterfaceNormals = derivatives.fields(FSIFieldNames::smoothedInterfaceNormals,Vector::zero);
+  //auto  smoothedInterfaceNormals = derivatives.fields(FSIFieldNames::smoothedInterfaceNormals,Vector::zero);
   auto  newInterfaceFraction = derivatives.fields(ReplaceBoundedFieldList<Dimension, Scalar>::prefix() + FSIFieldNames::interfaceFraction, 0.0);
   auto  newInterfaceSmoothness = derivatives.fields(ReplaceBoundedFieldList<Dimension, Scalar>::prefix() + FSIFieldNames::interfaceSmoothness, 0.0);
+  auto  angleCheck = derivatives.fields(FSIFieldNames::angleCheck, 0.0);
   auto  normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto  DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -450,9 +457,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(newInterfaceFlags.size() == numNodeLists);
   CHECK(newInterfaceAreaVectors.size() == numNodeLists);
   CHECK(newInterfaceNormals.size() == numNodeLists);
-  CHECK(smoothedInterfaceNormals.size() == numNodeLists);
+  //CHECK(smoothedInterfaceNormals.size() == numNodeLists);
   CHECK(newInterfaceFraction.size() == numNodeLists);
   CHECK(newInterfaceSmoothness.size() == numNodeLists);
+  CHECK(angleCheck.size() == numNodeLists);
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -494,9 +502,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto newInterfaceFlags_thread = newInterfaceFlags.threadCopy(threadStack, ThreadReduction::MAX);
     auto newInterfaceAreaVectors_thread = newInterfaceAreaVectors.threadCopy(threadStack);
     auto newInterfaceNormals_thread = newInterfaceNormals.threadCopy(threadStack);
-    auto smoothedInterfaceNormals_thread = smoothedInterfaceNormals.threadCopy(threadStack);
+    //auto smoothedInterfaceNormals_thread = smoothedInterfaceNormals.threadCopy(threadStack);
     auto newInterfaceSmoothness_thread = newInterfaceSmoothness.threadCopy(threadStack);
     auto newInterfaceFraction_thread = newInterfaceFraction.threadCopy(threadStack);
+    auto angleCheck_thread = angleCheck.threadCopy(threadStack, ThreadReduction::MAX);
     auto normalization_thread = normalization.threadCopy(threadStack);
     auto DvDt_thread = DvDt.threadCopy(threadStack);
     auto DepsDt_thread = DepsDt.threadCopy(threadStack);
@@ -523,7 +532,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& interfaceAreaVectorsi = interfaceAreaVectors(nodeListi,i);
       const auto& interfaceNormalsi = interfaceNormals(nodeListi,i);
       const auto& interfaceSmoothnessi = interfaceSmoothness(nodeListi,i);
-      const auto& interfaceFractioni = interfaceFraction(nodeListi,i);
+      //const auto& interfaceFractioni = interfaceFraction(nodeListi,i);
       const auto& ri = position(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
@@ -560,16 +569,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& newInterfaceFlagsi = newInterfaceFlags_thread(nodeListi,i);
       auto& newInterfaceAreaVectorsi = newInterfaceAreaVectors_thread(nodeListi,i);
       auto& newInterfaceNormalsi = newInterfaceNormals_thread(nodeListi,i);
-      auto& smoothedInterfaceNormalsi = smoothedInterfaceNormals_thread(nodeListi,i);
+      //auto& smoothedInterfaceNormalsi = smoothedInterfaceNormals_thread(nodeListi,i);
       auto& newInterfaceSmoothnessi = newInterfaceSmoothness_thread(nodeListi,i);
       auto& newInterfaceFractioni = newInterfaceFraction_thread(nodeListi,i);
-
+      auto& minNeighborAnglei = angleCheck_thread(nodeListi,i);
+      
       // Get the state for node j
       const auto& interfaceFlagsj = interfaceFlags(nodeListj,j);
       const auto& interfaceAreaVectorsj = interfaceAreaVectors(nodeListj,j);
       const auto& interfaceNormalsj = interfaceNormals(nodeListj,j);
       const auto& interfaceSmoothnessj = interfaceSmoothness(nodeListj,j);
-      const auto& interfaceFractionj = interfaceFraction(nodeListj,j);
+      //const auto& interfaceFractionj = interfaceFraction(nodeListj,j);
       const auto& rj = position(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
@@ -606,9 +616,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& newInterfaceFlagsj = newInterfaceFlags_thread(nodeListj,j);
       auto& newInterfaceAreaVectorsj = newInterfaceAreaVectors_thread(nodeListj,j);
       auto& newInterfaceNormalsj = newInterfaceNormals_thread(nodeListj,j);
-      auto& smoothedInterfaceNormalsj = smoothedInterfaceNormals_thread(nodeListj,j);
+      //auto& smoothedInterfaceNormalsj = smoothedInterfaceNormals_thread(nodeListj,j);
       auto& newInterfaceSmoothnessj = newInterfaceSmoothness_thread(nodeListj,j);
       auto& newInterfaceFractionj = newInterfaceFraction_thread(nodeListj,j);
+      auto& minNeighborAnglej = angleCheck_thread(nodeListj,j);
 
       // line of action
       const auto rij = ri - rj;
@@ -699,50 +710,33 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // interface normals 
       //-----------------------------------------------------------
       const auto fSij = ( sameMatij ? 1.0 : -1.0);              // direction parameter
-      // const auto Aij = fSij*(voli*volj)*(gradWi+gradWj);        // "surface area vector"
-      const auto AijMij = fSij*(voli*volj)*(gradWjMj+gradWiMi); // "surface area vector"
+      const auto AijMij = fSij*(voli*volj)*(gradWjMj+gradWiMi); // surface area vector
+
+      const auto alignment = std::max(fSij*interfaceNormalsi.dot(interfaceNormalsj),0.0);
+
       newInterfaceAreaVectorsi -= AijMij;
       newInterfaceAreaVectorsj += AijMij;
 
-      smoothedInterfaceNormalsi += max(interfaceFlagsj-1,0)*fSij*volj*interfaceAreaVectorsj*Wij;
-      smoothedInterfaceNormalsj += max(interfaceFlagsi-1,0)*fSij*voli*interfaceAreaVectorsi*Wij;
+      // we use the angle between normal and neighbors to check for interface control particles (type 2 or 4)
+      if (sameMatij) minNeighborAnglei = std::max(-interfaceAreaVectorsi.unitVector().dot(rhatij),minNeighborAnglei);
+      if (sameMatij) minNeighborAnglej = std::max( interfaceAreaVectorsj.unitVector().dot(rhatij),minNeighborAnglej);
+
+      if(differentMatij) newInterfaceFlagsi=3;
+      if(differentMatij) newInterfaceFlagsj=3;
+      if (sameMatij and interfaceFlagsi == 2) newInterfaceFlagsj=std::max(newInterfaceFlagsj,1);
+      if (sameMatij and interfaceFlagsj == 2) newInterfaceFlagsi=std::max(newInterfaceFlagsi,1);
+
+      if (interfaceFlagsi > 0 and interfaceFlagsj > 0){
+        const double proxWeighti = 1.0 - (interfaceFlagsi % 2);
+        const double proxWeightj = 1.0 - (interfaceFlagsj % 2);
+        newInterfaceNormalsi += proxWeightj*fSij*volj*interfaceAreaVectorsj*Wij;
+        newInterfaceNormalsj += proxWeighti*fSij*voli*interfaceAreaVectorsi*Wij;
+      }
       newInterfaceFractioni += volj*interfaceFlagsj*Wij;
       newInterfaceFractionj += voli*interfaceFlagsi*Wij;
-
-      const auto alignment = max(fSij*interfaceNormalsi.dot(interfaceNormalsj),0.0);
       newInterfaceSmoothnessi += alignment*interfaceFlagsj*volj*Wij;
       newInterfaceSmoothnessj += alignment*interfaceFlagsi*voli*Wij;
 
-      // newInterfaceNormalsi -= Aij;
-      // newInterfaceNormalsj += Aij;
-      // if(interfaceFractioni > tiny and interfaceFractionj > tiny){
-      //   smoothedInterfaceNormalsi += fSij*volj*interfaceFractionj*interfaceNormalsj;
-      //   smoothedInterfaceNormalsj += fSij*voli*interfaceFractioni*interfaceNormalsi;
-      // }
-      // if (differentMatij){
-      //   const auto alignment = max(fSij*interfaceNormalsi.dot(interfaceNormalsj),0.0);
-      //   newInterfaceSmoothnessi += alignment*volj*Wij;
-      //   newInterfaceSmoothnessj += alignment*voli*Wij;
-      //   newInterfaceFractioni += volj*Wij;
-      //   newInterfaceFractionj += voli*Wij;    
-      //   newInterfaceFlagsi=std::max(newInterfaceFlagsi,1);
-      //   newInterfaceFlagsj=std::max(newInterfaceFlagsj,1);
-      // }
-
-      // flag free surface
-      if (Mi.Determinant()> 2.0){
-        newInterfaceFlagsi=10;
-      }
-      if (Mj.Determinant() > 2.0){
-        newInterfaceFlagsj=10;
-      }
-
-      // flag neighbor of free surface
-      if (interfaceFlagsi == 10 or interfaceFlagsj == 10 or differentMatij){
-        newInterfaceFlagsi=std::max(newInterfaceFlagsi,1);
-        newInterfaceFlagsj=std::max(newInterfaceFlagsj,1);
-      }
-      
       // normalization 
       //-----------------------------------------------------------
       normi += volj*Wi;
@@ -766,15 +760,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         const auto cij = (rhoi*ci+rhoj*cj)/(rhoi+rhoj); 
         const auto vij = vi - vj;
 
-        // raw AV
-        // auto etaijQ = etaij;
-        // if(slides.isSlideSurface(nodeListi,nodeListj)){
-        //   const auto nij = (interfaceNormalsj-interfaceNormalsi).unitVector();
-        //   const auto ssij = slides.pairwiseInterfaceSmoothness(interfaceSmoothnessi,interfaceSmoothnessj);
-
-        //   etaijQ = ((1.0-ssij)*etaij + ssij * nij * etaMagij).unitVector() * etaMagij;
-        // }
-        
         std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
                                         ri, etaij, vi, rhoij, cij, Hij,  
                                         rj, etaij, vj, rhoij, cij, Hij); 
@@ -950,8 +935,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& mui = mu(nodeListi, i);
       const auto& interfaceFlagsi = interfaceFlags(nodeListi,i);
       const auto& interfaceAreaVectorsi = interfaceAreaVectors(nodeListi,i);
-      const auto& interfaceFractioni = interfaceFraction(nodeListi,i);
-      const auto& interfaceNormalsi = interfaceNormals(nodeListi,i);
+      //const auto& interfaceFractioni = interfaceFraction(nodeListi,i);
+      //const auto& interfaceNormalsi = interfaceNormals(nodeListi,i);
       const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -973,36 +958,25 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
       auto& DSDti = DSDt(nodeListi, i);
       auto& newInterfaceNormalsi = newInterfaceNormals(nodeListi,i);
-      auto& smoothedInterfaceNormalsi = smoothedInterfaceNormals(nodeListi,i);
+      //auto& smoothedInterfaceNormalsi = smoothedInterfaceNormals(nodeListi,i);
       auto& newInterfaceSmoothnessi = newInterfaceSmoothness(nodeListi,i);
       auto& newInterfaceFractioni = newInterfaceFraction(nodeListi,i);
       auto& newInterfaceFlagsi = newInterfaceFlags(nodeListi,i);
-      auto& Mi = M(nodeListi,i);
+      auto& minNeighborAnglei = angleCheck(nodeListi,i);
 
-      
       // finish our normalization
-      normi /= (1.0-Hdeti*mi/rhoi*W0);// Hdeti*mi/rhoi*W0;
-
-      // add another interface flag for free particles
-      if (normi<0.05){
-        newInterfaceFlagsi = 10;
-      }
+      normi +=  Hdeti*mi/rhoi*W0;
 
       // finish our interface fields.
-      smoothedInterfaceNormalsi +=  max(interfaceFlagsi-1,0) * mi/rhoi*Hdeti*W0 * interfaceAreaVectorsi;
+      if(minNeighborAnglei < interfaceNeighborAngleThreshold)  newInterfaceFlagsi = std::max(2,newInterfaceFlagsi+1);
+      if ( interfaceFlagsi > 0 ){
+        const double proxWeighti = (1.0 - interfaceFlagsi % 2);
+        newInterfaceNormalsi =  (newInterfaceNormalsi + proxWeighti * mi/rhoi*Hdeti*W0 * interfaceAreaVectorsi).unitVector();
+      } else {
+        newInterfaceNormalsi = Vector::zero;
+      }
       newInterfaceFractioni += mi/rhoi*Hdeti*W0 * interfaceFlagsi;
-      if(interfaceFlagsi > 0) newInterfaceNormalsi = smoothedInterfaceNormalsi.unitVector();
-
       newInterfaceSmoothnessi = min(1.0,max(0.0,(newInterfaceSmoothnessi+mi/rhoi*Hdeti*W0 * interfaceFlagsi)/max(newInterfaceFractioni,tiny)));
-      // smoothedInterfaceNormalsi +=  interfaceFractioni * mi/rhoi * interfaceNormalsi; //*Hdeti*W0;
-      // if (newInterfaceFractioni > tiny or newInterfaceFlagsi > 0.5){
-      //   const auto normalSmoothFraction = min(0.9,max(0.1, 20.0*min(interfaceFractioni,0.05)));
-      //   newInterfaceNormalsi = (normalSmoothFraction * newInterfaceNormalsi.unitVector()+
-      //                          (1.0-normalSmoothFraction) * smoothedInterfaceNormalsi.unitVector()).unitVector();
-      //   //newInterfaceNormalsi = newInterfaceNormalsi.unitVector();
-      // }else{
-      //   newInterfaceNormalsi = Vector::zero;
-      // }
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));

@@ -187,6 +187,7 @@ public:
   const FieldList<Dimension, Vector>& smoothedInterfaceNormals() const;
   const FieldList<Dimension, Scalar>& newInterfaceFraction() const;
   const FieldList<Dimension, Scalar>& newInterfaceSmoothness() const;
+  const FieldList<Dimension, Scalar>& angleCheck() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -226,6 +227,7 @@ private:
   FieldList<Dimension, Vector> mSmoothedInterfaceNormals;     // SPH interp of surface normal
   FieldList<Dimension, Scalar> mNewInterfaceFraction;         // fraction of dissimilar neighbor volume     
   FieldList<Dimension, Scalar> mNewInterfaceSmoothness;       // smoothness metric (0-1) next time step 
+  FieldList<Dimension, Scalar> mAngleCheck;                   // check the angle for free-surface master nodes (type 2 -> type 3)
 
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();
