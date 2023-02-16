@@ -263,7 +263,7 @@ registerState(DataBase<Dimension>& dataBase,
   // Override the deviatoric stress if we're doing plane strain
   if(this->planeStrain()){
     auto deviatoricStress = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-    CHECK(specificThermalEnergy.numFields() == dataBase.numFluidNodeLists());
+    CHECK(deviatoricStress.numFields() == dataBase.numFluidNodeLists());
     auto SPolicy = make_shared<IncrementFieldList<Dimension, SymTensor>>();
     state.enroll(deviatoricStress, SPolicy);
   }
