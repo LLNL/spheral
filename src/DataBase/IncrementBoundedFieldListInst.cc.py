@@ -6,7 +6,6 @@ text = """
 #include "DataBase/IncrementBoundedFieldList.cc"
 
 namespace Spheral {
-  template class IncrementBoundedFieldList<Dim< %(ndim)s >, int>;
   template class IncrementBoundedFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;
   template class IncrementBoundedFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>;
   template class IncrementBoundedFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector3d>;

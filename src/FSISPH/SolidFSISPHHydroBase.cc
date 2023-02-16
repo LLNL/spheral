@@ -197,11 +197,11 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mInterfaceAreaVectors = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceAreaVectors);
     mInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceNormals);
     mInterfaceSmoothness = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceSmoothness);
-    mNewInterfaceFlags = dataBase.newFluidFieldList(int(0), ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFlags);
-    mNewInterfaceAreaVectors = dataBase.newFluidFieldList(Vector::one, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceAreaVectors);
-    mNewInterfaceNormals = dataBase.newFluidFieldList(Vector::one, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals);
+    mNewInterfaceFlags = dataBase.newFluidFieldList(int(0), PureReplaceFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags);
+    mNewInterfaceAreaVectors = dataBase.newFluidFieldList(Vector::one, PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors);
+    mNewInterfaceNormals = dataBase.newFluidFieldList(Vector::one, PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals);
     mInterfaceSmoothnessNormalization = dataBase.newFluidFieldList(0.0, FSIFieldNames::interfaceSmoothnessNormalization);
-    mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
+    mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, PureReplaceFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
     mInterfaceAngles = dataBase.newFluidFieldList(0.0, FSIFieldNames::interfaceAngles);
     
   }
@@ -247,10 +247,10 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mInterfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness,false);
   
   auto rawPressurePolicy = make_shared<PressurePolicy<Dimension>>();
-  auto interfaceFlagsPolicy = make_shared<PureReplaceFieldList<Dimension,int>>(ReplaceBoundedFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags);
-  auto interfaceAreaVectorsPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceAreaVectors);
-  auto interfaceNormalsPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals);
-  auto interfaceSmoothnessPolicy = make_shared<PureReplaceFieldList<Dimension,Scalar>>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
+  auto interfaceFlagsPolicy = make_shared<PureReplaceFieldList<Dimension,int>>(PureReplaceFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags);
+  auto interfaceAreaVectorsPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors);
+  auto interfaceNormalsPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals);
+  auto interfaceSmoothnessPolicy = make_shared<PureReplaceFieldList<Dimension,Scalar>>(PureReplaceFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
   
   // Override the specific thermal energy policy if compatible
   if(this->compatibleEnergyEvolution()){
@@ -293,11 +293,11 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   // make sure we're tracking the right number of node lists
   dataBase.resizeFluidFieldList(mDPDx, Vector::zero, FSIFieldNames::pressureGradient, false);
   dataBase.resizeFluidFieldList(mDepsDx, Vector::zero, FSIFieldNames::specificThermalEnergyGradient, false);
-  dataBase.resizeFluidFieldList(mNewInterfaceFlags, 0,  ReplaceBoundedFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags,false);
-  dataBase.resizeFluidFieldList(mNewInterfaceAreaVectors, Vector::zero,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceAreaVectors,false);
-  dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceFlags, 0,  PureReplaceFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceAreaVectors, Vector::zero,  PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero,  PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals,false);
   dataBase.resizeFluidFieldList(mInterfaceSmoothnessNormalization, 0.0, FSIFieldNames::interfaceSmoothnessNormalization,false); 
-  dataBase.resizeFluidFieldList(mNewInterfaceSmoothness, 0.0,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceSmoothness, 0.0,  PureReplaceFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness,false);
   dataBase.resizeFluidFieldList(mInterfaceAngles, 0.0,  FSIFieldNames::interfaceAngles,false);
 
   // enroll 
@@ -418,11 +418,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   const auto  DepsDx = derivatives.fields(FSIFieldNames::specificThermalEnergyGradient, Vector::zero);
   const auto  DPDx = derivatives.fields(FSIFieldNames::pressureGradient, Vector::zero);
-  auto  newInterfaceNormals = derivatives.fields(ReplaceBoundedFieldList<Dimension, Vector>::prefix() + FSIFieldNames::interfaceNormals, Vector::zero);
-  auto  newInterfaceFlags = derivatives.fields(ReplaceBoundedFieldList<Dimension, int>::prefix() + FSIFieldNames::interfaceFlags, int(0));
-  auto  newInterfaceAreaVectors = derivatives.fields(ReplaceBoundedFieldList<Dimension, Vector>::prefix() + FSIFieldNames::interfaceAreaVectors, Vector::zero);
+  auto  newInterfaceNormals = derivatives.fields(PureReplaceFieldList<Dimension, Vector>::prefix() + FSIFieldNames::interfaceNormals, Vector::zero);
+  auto  newInterfaceFlags = derivatives.fields(PureReplaceFieldList<Dimension, int>::prefix() + FSIFieldNames::interfaceFlags, int(0));
+  auto  newInterfaceAreaVectors = derivatives.fields(PureReplaceFieldList<Dimension, Vector>::prefix() + FSIFieldNames::interfaceAreaVectors, Vector::zero);
   auto  interfaceSmoothnessNormalization = derivatives.fields(FSIFieldNames::interfaceSmoothnessNormalization, 0.0);
-  auto  newInterfaceSmoothness = derivatives.fields(ReplaceBoundedFieldList<Dimension, Scalar>::prefix() + FSIFieldNames::interfaceSmoothness, 0.0);
+  auto  newInterfaceSmoothness = derivatives.fields(PureReplaceFieldList<Dimension, Scalar>::prefix() + FSIFieldNames::interfaceSmoothness, 0.0);
   auto  interfaceAngles = derivatives.fields(FSIFieldNames::interfaceAngles, 0.0);
   auto  normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
