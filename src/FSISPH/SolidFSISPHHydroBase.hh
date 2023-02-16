@@ -178,16 +178,14 @@ public:
   const FieldList<Dimension, int>& interfaceFlags() const;
   const FieldList<Dimension, Vector>& interfaceAreaVectors() const;
   const FieldList<Dimension, Vector>& interfaceNormals() const;
-  const FieldList<Dimension, Scalar>& interfaceFraction() const;
   const FieldList<Dimension, Scalar>& interfaceSmoothness() const;
 
   const FieldList<Dimension, int>& newInterfaceFlags() const;
   const FieldList<Dimension, Vector>& newInterfaceAreaVectors() const;
   const FieldList<Dimension, Vector>& newInterfaceNormals() const;
-  const FieldList<Dimension, Vector>& smoothedInterfaceNormals() const;
-  const FieldList<Dimension, Scalar>& newInterfaceFraction() const;
+  const FieldList<Dimension, Scalar>& interfaceSmoothnessNormalization() const;
   const FieldList<Dimension, Scalar>& newInterfaceSmoothness() const;
-  const FieldList<Dimension, Scalar>& angleCheck() const;
+  const FieldList<Dimension, Scalar>& interfaceAngles() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -218,16 +216,14 @@ private:
   FieldList<Dimension, int> mInterfaceFlags;                  // flags indicating interface type
   FieldList<Dimension, Vector> mInterfaceAreaVectors;         // interface area vectors that can be used for BCs
   FieldList<Dimension, Vector> mInterfaceNormals;             // surface normals between nodelists     
-  FieldList<Dimension, Scalar> mInterfaceFraction;            // fraction of dissimilar neighbor volume     
   FieldList<Dimension, Scalar> mInterfaceSmoothness;          // smoothness metric (0-1) 
   
-  FieldList<Dimension, int> mNewInterfaceFlags;               // flags indicating interface type
-  FieldList<Dimension, Vector> mNewInterfaceAreaVectors;      // interface area vectors that can be used for BCs next time step
-  FieldList<Dimension, Vector> mNewInterfaceNormals;          // surface normals between nodelists next time step    
-  FieldList<Dimension, Vector> mSmoothedInterfaceNormals;     // SPH interp of surface normal
-  FieldList<Dimension, Scalar> mNewInterfaceFraction;         // fraction of dissimilar neighbor volume     
-  FieldList<Dimension, Scalar> mNewInterfaceSmoothness;       // smoothness metric (0-1) next time step 
-  FieldList<Dimension, Scalar> mAngleCheck;                   // check the angle for free-surface master nodes (type 2 -> type 3)
+  FieldList<Dimension, int> mNewInterfaceFlags;                   // flags indicating interface type
+  FieldList<Dimension, Vector> mNewInterfaceAreaVectors;          // interface area vectors that can be used for BCs next time step
+  FieldList<Dimension, Vector> mNewInterfaceNormals;              // surface normals between nodelists next time step    
+  FieldList<Dimension, Scalar> mInterfaceSmoothnessNormalization; // normalization for a our smoothness metric
+  FieldList<Dimension, Scalar> mNewInterfaceSmoothness;           // smoothness metric (0-1) next time step 
+  FieldList<Dimension, Scalar> mInterfaceAngles;                  // check the angle for free-surface master nodes (type 2 -> type 3)
 
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();

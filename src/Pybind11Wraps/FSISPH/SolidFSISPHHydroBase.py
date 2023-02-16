@@ -103,12 +103,12 @@ mass density, velocity, and specific thermal energy."""
     interfaceFlags = PYB11property("const FieldList<%(Dimension)s, int>&", "interfaceFlags", returnpolicy="reference_internal")
     interfaceAreaVectors = PYB11property("const FieldList<%(Dimension)s, Vector>&", "interfaceAreaVectors", returnpolicy="reference_internal")
     interfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "interfaceNormals", returnpolicy="reference_internal")
-    interfaceFraction = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "interfaceFraction", returnpolicy="reference_internal")
     interfaceSmoothness = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "interfaceSmoothness", returnpolicy="reference_internal")
     newInterfaceAreaVectors = PYB11property("const FieldList<%(Dimension)s, Vector>&", "newInterfaceAreaVectors", returnpolicy="reference_internal")
     newInterfaceNormals = PYB11property("const FieldList<%(Dimension)s, Vector>&", "newInterfaceNormals", returnpolicy="reference_internal")
-    newInterfaceFraction = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "newInterfaceFraction", returnpolicy="reference_internal")
+    interfaceSmoothnessNormalization = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "interfaceSmoothnessNormalization", returnpolicy="reference_internal")
     newInterfaceSmoothness = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "newInterfaceSmoothness", returnpolicy="reference_internal")
+    interfaceAngles = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "interfaceAngles", returnpolicy="reference_internal")
     
     slideSurfaces = PYB11property("SlideSurface<%(Dimension)s>&", "slideSurface", doc="The slide surface object")
     

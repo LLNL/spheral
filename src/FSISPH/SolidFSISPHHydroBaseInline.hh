@@ -242,17 +242,6 @@ interfaceNormals() const {
 }
 
 //------------------------------------------------------------------------------
-// Return the Interface fraction
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const FieldList<Dimension,  typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
-interfaceFraction() const {
-  return mInterfaceFraction;
-}
-
-//------------------------------------------------------------------------------
 // smoothness metric for mixing interfaces
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -297,25 +286,14 @@ newInterfaceNormals() const {
 }
 
 //------------------------------------------------------------------------------
-// next time step  Interface normal field list ref
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
-smoothedInterfaceNormals() const {
-  return mSmoothedInterfaceNormals;
-}
-
-//------------------------------------------------------------------------------
 // next time step  Interface fraction
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
-newInterfaceFraction() const {
-  return mNewInterfaceFraction;
+interfaceSmoothnessNormalization() const {
+  return mInterfaceSmoothnessNormalization;
 }
 
 //------------------------------------------------------------------------------
@@ -336,8 +314,8 @@ template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
-angleCheck() const {
-  return mAngleCheck;
+interfaceAngles() const {
+  return mInterfaceAngles;
 }
 
 //------------------------------------------------------------------------------

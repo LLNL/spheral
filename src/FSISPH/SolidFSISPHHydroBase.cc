@@ -172,15 +172,13 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mInterfaceFlags(FieldStorageType::CopyFields),
   mInterfaceAreaVectors(FieldStorageType::CopyFields),
   mInterfaceNormals(FieldStorageType::CopyFields),
-  mInterfaceFraction(FieldStorageType::CopyFields),
   mInterfaceSmoothness(FieldStorageType::CopyFields),
   mNewInterfaceFlags(FieldStorageType::CopyFields),
   mNewInterfaceAreaVectors(FieldStorageType::CopyFields),
   mNewInterfaceNormals(FieldStorageType::CopyFields),
-  mSmoothedInterfaceNormals(FieldStorageType::CopyFields),
-  mNewInterfaceFraction(FieldStorageType::CopyFields),
+  mInterfaceSmoothnessNormalization(FieldStorageType::CopyFields),
   mNewInterfaceSmoothness(FieldStorageType::CopyFields),
-  mAngleCheck(FieldStorageType::CopyFields){
+  mInterfaceAngles(FieldStorageType::CopyFields){
 
     mPairDepsDt.clear();
 
@@ -198,15 +196,13 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mInterfaceFlags = dataBase.newFluidFieldList(int(0),  FSIFieldNames::interfaceFlags);
     mInterfaceAreaVectors = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceAreaVectors);
     mInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceNormals);
-    mInterfaceFraction = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceFraction);
     mInterfaceSmoothness = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceSmoothness);
     mNewInterfaceFlags = dataBase.newFluidFieldList(int(0), ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFlags);
     mNewInterfaceAreaVectors = dataBase.newFluidFieldList(Vector::one, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceAreaVectors);
     mNewInterfaceNormals = dataBase.newFluidFieldList(Vector::one, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals);
-    mSmoothedInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::smoothedInterfaceNormals);
-    mNewInterfaceFraction = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction);
+    mInterfaceSmoothnessNormalization = dataBase.newFluidFieldList(0.0, FSIFieldNames::interfaceSmoothnessNormalization);
     mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
-    mAngleCheck = dataBase.newFluidFieldList(0.0, FSIFieldNames::angleCheck);
+    mInterfaceAngles = dataBase.newFluidFieldList(0.0, FSIFieldNames::interfaceAngles);
     
   }
 
@@ -248,14 +244,12 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mInterfaceFlags, int(0), FSIFieldNames::interfaceFlags,false);
   dataBase.resizeFluidFieldList(mInterfaceAreaVectors, Vector::zero, FSIFieldNames::interfaceAreaVectors,false);
   dataBase.resizeFluidFieldList(mInterfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals,false);
-  dataBase.resizeFluidFieldList(mInterfaceFraction, 0.0, FSIFieldNames::interfaceFraction,false); 
   dataBase.resizeFluidFieldList(mInterfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness,false);
   
   auto rawPressurePolicy = make_shared<PressurePolicy<Dimension>>();
   auto interfaceFlagsPolicy = make_shared<PureReplaceFieldList<Dimension,int>>(ReplaceBoundedFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags);
   auto interfaceAreaVectorsPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceAreaVectors);
   auto interfaceNormalsPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals);
-  auto interfaceFractionPolicy = make_shared<PureReplaceFieldList<Dimension,Scalar>>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction);
   auto interfaceSmoothnessPolicy = make_shared<PureReplaceFieldList<Dimension,Scalar>>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
   
   // Override the specific thermal energy policy if compatible
@@ -278,7 +272,6 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mInterfaceFlags,interfaceFlagsPolicy);
   state.enroll(mInterfaceAreaVectors,interfaceAreaVectorsPolicy); 
   state.enroll(mInterfaceNormals,interfaceNormalsPolicy); 
-  state.enroll(mInterfaceFraction,interfaceFractionPolicy);
   state.enroll(mInterfaceSmoothness,interfaceSmoothnessPolicy); 
 
   TIME_END("SolidFSISPHregisterState");
@@ -303,10 +296,9 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   dataBase.resizeFluidFieldList(mNewInterfaceFlags, 0,  ReplaceBoundedFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags,false);
   dataBase.resizeFluidFieldList(mNewInterfaceAreaVectors, Vector::zero,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceAreaVectors,false);
   dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals,false);
-  dataBase.resizeFluidFieldList(mSmoothedInterfaceNormals, Vector::zero,  FSIFieldNames::smoothedInterfaceNormals,false);
-  dataBase.resizeFluidFieldList(mNewInterfaceFraction, 0.0,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() +  FSIFieldNames::interfaceFraction,false); 
+  dataBase.resizeFluidFieldList(mInterfaceSmoothnessNormalization, 0.0, FSIFieldNames::interfaceSmoothnessNormalization,false); 
   dataBase.resizeFluidFieldList(mNewInterfaceSmoothness, 0.0,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness,false);
-  dataBase.resizeFluidFieldList(mAngleCheck, 0.0,  FSIFieldNames::angleCheck,false);
+  dataBase.resizeFluidFieldList(mInterfaceAngles, 0.0,  FSIFieldNames::interfaceAngles,false);
 
   // enroll 
   derivs.enrollAny(HydroFieldNames::pairWork,  mPairDepsDt);
@@ -315,10 +307,9 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   derivs.enroll(mNewInterfaceFlags);
   derivs.enroll(mNewInterfaceAreaVectors);
   derivs.enroll(mNewInterfaceNormals);
-  derivs.enroll(mSmoothedInterfaceNormals);
-  derivs.enroll(mNewInterfaceFraction);
+  derivs.enroll(mInterfaceSmoothnessNormalization);
   derivs.enroll(mNewInterfaceSmoothness);
-  derivs.enroll(mAngleCheck);
+  derivs.enroll(mInterfaceAngles);
 
   TIME_END("SolidFSISPHregisterDerivs");
 }
@@ -385,7 +376,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   const auto interfaceFlags = state.fields(FSIFieldNames::interfaceFlags, int(0));
   const auto interfaceAreaVectors = state.fields(FSIFieldNames::interfaceAreaVectors, Vector::zero);
-  const auto interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
   const auto interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -407,7 +397,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(interfaceFlags.size() == numNodeLists);
   CHECK(interfaceAreaVectors.size() == numNodeLists);
   CHECK(interfaceNormals.size() == numNodeLists);
-  CHECK(interfaceFraction.size() == numNodeLists);
   CHECK(interfaceSmoothness.size() == numNodeLists);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -432,10 +421,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  newInterfaceNormals = derivatives.fields(ReplaceBoundedFieldList<Dimension, Vector>::prefix() + FSIFieldNames::interfaceNormals, Vector::zero);
   auto  newInterfaceFlags = derivatives.fields(ReplaceBoundedFieldList<Dimension, int>::prefix() + FSIFieldNames::interfaceFlags, int(0));
   auto  newInterfaceAreaVectors = derivatives.fields(ReplaceBoundedFieldList<Dimension, Vector>::prefix() + FSIFieldNames::interfaceAreaVectors, Vector::zero);
-  //auto  smoothedInterfaceNormals = derivatives.fields(FSIFieldNames::smoothedInterfaceNormals,Vector::zero);
-  auto  newInterfaceFraction = derivatives.fields(ReplaceBoundedFieldList<Dimension, Scalar>::prefix() + FSIFieldNames::interfaceFraction, 0.0);
+  auto  interfaceSmoothnessNormalization = derivatives.fields(FSIFieldNames::interfaceSmoothnessNormalization, 0.0);
   auto  newInterfaceSmoothness = derivatives.fields(ReplaceBoundedFieldList<Dimension, Scalar>::prefix() + FSIFieldNames::interfaceSmoothness, 0.0);
-  auto  angleCheck = derivatives.fields(FSIFieldNames::angleCheck, 0.0);
+  auto  interfaceAngles = derivatives.fields(FSIFieldNames::interfaceAngles, 0.0);
   auto  normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto  DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -457,10 +445,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(newInterfaceFlags.size() == numNodeLists);
   CHECK(newInterfaceAreaVectors.size() == numNodeLists);
   CHECK(newInterfaceNormals.size() == numNodeLists);
-  //CHECK(smoothedInterfaceNormals.size() == numNodeLists);
-  CHECK(newInterfaceFraction.size() == numNodeLists);
+  CHECK(interfaceSmoothnessNormalization.size() == numNodeLists);
   CHECK(newInterfaceSmoothness.size() == numNodeLists);
-  CHECK(angleCheck.size() == numNodeLists);
+  CHECK(interfaceAngles.size() == numNodeLists);
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -502,10 +489,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto newInterfaceFlags_thread = newInterfaceFlags.threadCopy(threadStack, ThreadReduction::MAX);
     auto newInterfaceAreaVectors_thread = newInterfaceAreaVectors.threadCopy(threadStack);
     auto newInterfaceNormals_thread = newInterfaceNormals.threadCopy(threadStack);
-    //auto smoothedInterfaceNormals_thread = smoothedInterfaceNormals.threadCopy(threadStack);
     auto newInterfaceSmoothness_thread = newInterfaceSmoothness.threadCopy(threadStack);
-    auto newInterfaceFraction_thread = newInterfaceFraction.threadCopy(threadStack);
-    auto angleCheck_thread = angleCheck.threadCopy(threadStack, ThreadReduction::MAX);
+    auto interfaceSmoothnessNormalization_thread = interfaceSmoothnessNormalization.threadCopy(threadStack);
+    auto interfaceAngles_thread = interfaceAngles.threadCopy(threadStack, ThreadReduction::MAX);
     auto normalization_thread = normalization.threadCopy(threadStack);
     auto DvDt_thread = DvDt.threadCopy(threadStack);
     auto DepsDt_thread = DepsDt.threadCopy(threadStack);
@@ -532,7 +518,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& interfaceAreaVectorsi = interfaceAreaVectors(nodeListi,i);
       const auto& interfaceNormalsi = interfaceNormals(nodeListi,i);
       const auto& interfaceSmoothnessi = interfaceSmoothness(nodeListi,i);
-      //const auto& interfaceFractioni = interfaceFraction(nodeListi,i);
       const auto& ri = position(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
@@ -569,17 +554,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& newInterfaceFlagsi = newInterfaceFlags_thread(nodeListi,i);
       auto& newInterfaceAreaVectorsi = newInterfaceAreaVectors_thread(nodeListi,i);
       auto& newInterfaceNormalsi = newInterfaceNormals_thread(nodeListi,i);
-      //auto& smoothedInterfaceNormalsi = smoothedInterfaceNormals_thread(nodeListi,i);
       auto& newInterfaceSmoothnessi = newInterfaceSmoothness_thread(nodeListi,i);
-      auto& newInterfaceFractioni = newInterfaceFraction_thread(nodeListi,i);
-      auto& minNeighborAnglei = angleCheck_thread(nodeListi,i);
+      auto& interfaceSmoothnessNormalizationi = interfaceSmoothnessNormalization_thread(nodeListi,i);
+      auto& minNeighborAnglei = interfaceAngles_thread(nodeListi,i);
       
       // Get the state for node j
       const auto& interfaceFlagsj = interfaceFlags(nodeListj,j);
       const auto& interfaceAreaVectorsj = interfaceAreaVectors(nodeListj,j);
       const auto& interfaceNormalsj = interfaceNormals(nodeListj,j);
       const auto& interfaceSmoothnessj = interfaceSmoothness(nodeListj,j);
-      //const auto& interfaceFractionj = interfaceFraction(nodeListj,j);
       const auto& rj = position(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
@@ -616,10 +599,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& newInterfaceFlagsj = newInterfaceFlags_thread(nodeListj,j);
       auto& newInterfaceAreaVectorsj = newInterfaceAreaVectors_thread(nodeListj,j);
       auto& newInterfaceNormalsj = newInterfaceNormals_thread(nodeListj,j);
-      //auto& smoothedInterfaceNormalsj = smoothedInterfaceNormals_thread(nodeListj,j);
       auto& newInterfaceSmoothnessj = newInterfaceSmoothness_thread(nodeListj,j);
-      auto& newInterfaceFractionj = newInterfaceFraction_thread(nodeListj,j);
-      auto& minNeighborAnglej = angleCheck_thread(nodeListj,j);
+      auto& interfaceSmoothnessNormalizationj = interfaceSmoothnessNormalization_thread(nodeListj,j);
+      auto& minNeighborAnglej = interfaceAngles_thread(nodeListj,j);
 
       // line of action
       const auto rij = ri - rj;
@@ -732,8 +714,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         newInterfaceNormalsi += proxWeightj*fSij*volj*interfaceAreaVectorsj*Wij;
         newInterfaceNormalsj += proxWeighti*fSij*voli*interfaceAreaVectorsi*Wij;
       }
-      newInterfaceFractioni += volj*interfaceFlagsj*Wij;
-      newInterfaceFractionj += voli*interfaceFlagsi*Wij;
+      interfaceSmoothnessNormalizationi += volj*interfaceFlagsj*Wij;
+      interfaceSmoothnessNormalizationj += voli*interfaceFlagsi*Wij;
       newInterfaceSmoothnessi += alignment*interfaceFlagsj*volj*Wij;
       newInterfaceSmoothnessj += alignment*interfaceFlagsi*voli*Wij;
 
@@ -935,8 +917,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& mui = mu(nodeListi, i);
       const auto& interfaceFlagsi = interfaceFlags(nodeListi,i);
       const auto& interfaceAreaVectorsi = interfaceAreaVectors(nodeListi,i);
-      //const auto& interfaceFractioni = interfaceFraction(nodeListi,i);
-      //const auto& interfaceNormalsi = interfaceNormals(nodeListi,i);
       const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -958,11 +938,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
       auto& DSDti = DSDt(nodeListi, i);
       auto& newInterfaceNormalsi = newInterfaceNormals(nodeListi,i);
-      //auto& smoothedInterfaceNormalsi = smoothedInterfaceNormals(nodeListi,i);
       auto& newInterfaceSmoothnessi = newInterfaceSmoothness(nodeListi,i);
-      auto& newInterfaceFractioni = newInterfaceFraction(nodeListi,i);
+      auto& interfaceSmoothnessNormalizationi = interfaceSmoothnessNormalization(nodeListi,i);
       auto& newInterfaceFlagsi = newInterfaceFlags(nodeListi,i);
-      auto& minNeighborAnglei = angleCheck(nodeListi,i);
+      auto& minNeighborAnglei = interfaceAngles(nodeListi,i);
 
       // finish our normalization
       normi +=  Hdeti*mi/rhoi*W0;
@@ -975,8 +954,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       } else {
         newInterfaceNormalsi = Vector::zero;
       }
-      newInterfaceFractioni += mi/rhoi*Hdeti*W0 * interfaceFlagsi;
-      newInterfaceSmoothnessi = min(1.0,max(0.0,(newInterfaceSmoothnessi+mi/rhoi*Hdeti*W0 * interfaceFlagsi)/max(newInterfaceFractioni,tiny)));
+      interfaceSmoothnessNormalizationi += mi/rhoi*Hdeti*W0 * interfaceFlagsi;
+      newInterfaceSmoothnessi = min(1.0,max(0.0,(newInterfaceSmoothnessi+mi/rhoi*Hdeti*W0 * interfaceFlagsi)/max(interfaceSmoothnessNormalizationi,tiny)));
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
@@ -1335,7 +1314,6 @@ applyGhostBoundaries(State<Dimension>& state,
 
   FieldList<Dimension, int> interfaceFlags = state.fields(FSIFieldNames::interfaceFlags, int(0));
   FieldList<Dimension, Vector> interfaceAreaVectors = state.fields(FSIFieldNames::interfaceAreaVectors, Vector::zero);
-  FieldList<Dimension, Scalar> interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
   FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
   FieldList<Dimension, Scalar> rawPressure = state.fields(FSIFieldNames::rawPressure, 0.0);
@@ -1346,7 +1324,6 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceFlags);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceAreaVectors);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceNormals);
-    (*boundaryItr)->applyFieldListGhostBoundary(interfaceFraction);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceSmoothness);
     (*boundaryItr)->applyFieldListGhostBoundary(rawPressure);
   }
@@ -1365,7 +1342,6 @@ enforceBoundaries(State<Dimension>& state,
 
   FieldList<Dimension, int> interfaceFlags = state.fields(FSIFieldNames::interfaceFlags, int(0));
   FieldList<Dimension, Vector> interfaceAreaVectors = state.fields(FSIFieldNames::interfaceAreaVectors, Vector::zero);
-  FieldList<Dimension, Scalar> interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
   FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
   FieldList<Dimension, Scalar> rawPressure = state.fields(FSIFieldNames::rawPressure, 0.0);
@@ -1376,7 +1352,6 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(interfaceFlags);
     (*boundaryItr)->enforceFieldListBoundary(interfaceAreaVectors);
     (*boundaryItr)->enforceFieldListBoundary(interfaceNormals);
-    (*boundaryItr)->enforceFieldListBoundary(interfaceFraction);
     (*boundaryItr)->enforceFieldListBoundary(interfaceSmoothness);
     (*boundaryItr)->enforceFieldListBoundary(rawPressure);
   }
@@ -1400,15 +1375,14 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mInterfaceFlags, pathName + "/interfaceFlags");
   file.write(mInterfaceAreaVectors, pathName + "/interfaceAreaVectors");
   file.write(mInterfaceNormals, pathName + "/interfaceNormals");
-  file.write(mInterfaceFraction, pathName + "/interfaceFraction");
   file.write(mInterfaceSmoothness, pathName + "/interfaceSmoothness");
   
   file.write(mNewInterfaceFlags, pathName + "/newInterfaceFlags");
   file.write(mNewInterfaceAreaVectors, pathName + "/newInterfaceAreaVectors");
   file.write(mNewInterfaceNormals, pathName + "/newInterfaceNormals");
-  file.write(mSmoothedInterfaceNormals, pathName + "/smoothedInterfaceNormals");
-  file.write(mNewInterfaceFraction, pathName + "/newInterfaceFraction");
+  file.write(mInterfaceSmoothnessNormalization, pathName + "/interfaceSmoothnessNormalization");
   file.write(mNewInterfaceSmoothness, pathName + "/newInterfaceSmoothness");
+  file.write(mInterfaceAngles, pathName + "/interfaceAngles");
 }
 
 
@@ -1429,15 +1403,14 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mInterfaceFlags, pathName + "/interfaceFlags");
   file.read(mInterfaceAreaVectors, pathName + "/interfaceAreaVectors");
   file.read(mInterfaceNormals, pathName + "/interfaceNormals");
-  file.read(mInterfaceFraction, pathName + "/interfaceFraction");
   file.read(mInterfaceSmoothness, pathName + "/interfaceSmoothness");
 
   file.read(mNewInterfaceFlags, pathName + "/newInterfaceFlags");
   file.read(mNewInterfaceAreaVectors, pathName + "/newInterfaceAreaVectors");
   file.read(mNewInterfaceNormals, pathName + "/newInterfaceNormals");
-  file.read(mSmoothedInterfaceNormals, pathName + "/smoothedInterfaceNormals");
-  file.read(mNewInterfaceFraction, pathName + "/newInterfaceFraction");
+  file.read(mInterfaceSmoothnessNormalization, pathName + "/interfaceSmoothnessNormalization");
   file.read(mNewInterfaceSmoothness, pathName + "/newInterfaceSmoothness");
+  file.read(mInterfaceAngles, pathName + "/interfaceAngles");
 }
 
 //------------------------------------------------------------------------------
