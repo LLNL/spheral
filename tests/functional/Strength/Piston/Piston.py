@@ -16,7 +16,7 @@ title("1-D Elastic-Plastic copy piston problem")
 
 #-------------------------------------------------------------------------------
 # Maire, et. al., A nominally second-order cell-centered Lagrangian scheme for 
-# simulating elastic–plastic flows on two-dimensional unstructured grids,
+# simulating elastic-plastic flows on two-dimensional unstructured grids,
 # Journal of Computational Physics, 235, 626-665, 2013, 10.1016/j.jcp.2012.10.017
 #-------------------------------------------------------------------------------
             
@@ -203,6 +203,7 @@ eos = GruneisenEquationOfState(referenceDensity = rho0,
 #                                                etamin,
 #                                                etamax,
 #                                                units)
+
 eps0 = eos.specificThermalEnergyForPressure(Ptarget = P0,
                                          rho =rho0,
                                          epsMin = -1e10,
@@ -211,8 +212,6 @@ eps0 = eos.specificThermalEnergyForPressure(Ptarget = P0,
                                          Ptol = 1e-5,
                                          maxIterations = 100)
 
-print eos.soundSpeed(rho0,eps0)
-print sqrt(eos.computeDPDrho(rho0,eps0))
 strengthModel = ConstantStrength(mu0 = mu,
                                  Y0 = Y0,
                                  muD = mu,
@@ -444,23 +443,6 @@ else:
 dx1 = (x1 - x0)/nx1
 h1 = 1.0/(nPerh*dx1)
 
-# answer = SodSolution(nPoints=nx1,
-#                      gamma1 = gamma1,
-#                      gamma2 = gamma2,
-#                      rho1 = rho1,
-#                      P1 = P1,
-#                      Po1 = Po1,
-#                      rho2 = rho2,
-#                      P2 = P2,
-#                      Po2 =Po2,
-#                      x0 = x0,
-#                      x1 = x1,
-#                      x2 = x2,
-#                      h1 = 1.0/h1,
-#                      h2 = 1.0/h2)
-
-
-
 # Make a flat list from a FieldList
 def createList(x):
     result = []
@@ -479,49 +461,29 @@ numNodeLists = db.numNodeLists
 for nodeListi in range(numNodeLists):
     
     for i in range(nodeLists[nodeListi].numInternalNodes):
-        print Ss(nodeListi,i)
-        print Y(nodeListi,i)
-        print mu(nodeListi,i)
         Sxx[nodeListi][i]=Ss(nodeListi,i).xx
 
-print Sxx
+
 SxxList = createList(Sxx)
 #gammaList = createList(gamma)
 
 cs = hydro.soundSpeed
 csList = createList(cs)
 
-#rho = createList(db.fluidMassDensity)
-#P = createList(hydro.pressure)
-#A = [Pi/rhoi**gammai for (Pi, rhoi,gammai) in zip(P, rho,gammaList)]
 
 # The analytic solution for the simulated entropy.
 xprof = [x.x for x in createList(db.fluidPosition)]
-#xans, vans, uans, rhoans, Pans, hans, gammaans = answer.solution(control.time(), xprof)
-#Aans = [Pi/rhoi**gammai for (Pi, rhoi, gammai) in zip(Pans,  rhoans, gammaans)]
-#csAns = [sqrt(gammai*Pi/rhoi) for (Pi, rhoi, gammai) in zip(Pans,  rhoans, gammaans)]
 
 if graphics:
     from SpheralMatplotlib import *
 
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
-    # plotAnswer(answer, control.time(),
-    #            rhoPlot = rhoPlot,
-    #            velPlot = velPlot,
-    #            epsPlot = epsPlot,
-    #            PPlot = PPlot,
-    #            HPlot = HPlot)
+
     pE = plotEHistory(control.conserve)
 
     
     SPlot = plotFieldList(Sxx, winTitle="Sigmaxx")
     csPlot = plotFieldList(cs, winTitle="Sigmaxx")
-    #            label = "Analytic")
-
-    #APlot = newFigure()
-    #APlot.plot(xprof, A, "ro", label="Simulation")
-    #APlot.plot(xans, Aans, "k-", label="Analytic")
-    #plt.title("A entropy")
 
     plots = [(rhoPlot, "Sod-planar-rho.png"),
              (velPlot, "Sod-planar-vel.png"),
@@ -530,37 +492,7 @@ if graphics:
              (HPlot, "Sod-planar-h.png"),
              (SPlot, "Sod-planar-S.png"),
              (csPlot, "Sod-planar-cs.png")]
-             #(APlot, "Sod-planar-entropy.png")]
     
-    # if crksph:
-    #     volPlot = plotFieldList(control.RKCorrections.volume, 
-    #                             winTitle = "volume",
-    #                             colorNodeLists = False, plotGhosts = False)
-    #     splot = plotFieldList(control.RKCorrections.surfacePoint,
-    #                           winTitle = "surface point",
-    #                           colorNodeLists = False)
-    #     plots += [(volPlot, "Sod-planar-vol.png"),
-    #                (splot, "Sod-planar-surfacePoint.png")]
-    # if not (gsph or mfm):
-    #     viscPlot = plotFieldList(hydro.maxViscousPressure,
-    #                          winTitle = "max($\\rho^2 \pi_{ij}$)",
-    #                          colorNodeLists = False)
-    #     plots.append((viscPlot, "Sod-planar-viscosity.png"))
-    
-    #     if boolCullenViscosity:
-    #         cullAlphaPlot = plotFieldList(q.ClMultiplier,
-    #                                   winTitle = "Cullen alpha")
-    #         cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt,
-    #                                    winTitle = "Cullen DalphaDt")
-    #         plots += [(cullAlphaPlot, "Sod-planar-Cullen-alpha.png"),
-    #               (cullDalphaPlot, "Sod-planar-Cullen-DalphaDt.png")]
-
-    #     if boolReduceViscosity:
-    #         alphaPlot = plotFieldList(q.ClMultiplier,
-    #         alphaPlot = plotFieldList(q.ClMultiplier,
-    #                               winTitle = "rvAlpha",
-    #                               colorNodeLists = False)
-
     # Make hardcopies of the plots.
     for p, filename in plots:
         savefig(p, os.path.join(dataDir, filename))
@@ -569,64 +501,3 @@ print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve
                                                                 control.conserve.EHistory[-1],
                                                                 (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0])
 
-'''
-#-------------------------------------------------------------------------------
-# If requested, write out the state in a global ordering to a file.
-#-------------------------------------------------------------------------------
-from SpheralGnuPlotUtilities import multiSort
-mof = mortonOrderIndices(db)
-mo = createList(mof)
-rhoprof = createList(db.fluidMassDensity)
-Pprof = createList(hydro.pressure)
-vprof = [v.x for v in createList(db.fluidVelocity)]
-epsprof = createList(db.fluidSpecificThermalEnergy)
-hprof = [1.0/Hi.xx for Hi in createList(db.fluidHfield)]
-
-rmin = x0
-rmax = x1
-if mpi.rank == 0:
-    multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
-    if outputFile != "None":
-        outputFile = os.path.join(dataDir, outputFile)
-        f = open(outputFile, "w")
-        f.write(("#  " + 17*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "h", "mo",
-                                               "rhoans", "Pans", "vans", "hans",
-                                               "x_UU", "rho_UU", "P_UU", "v_UU", "eps_UU", "h_UU"))
-        for (xi, rhoi, Pi, vi, epsi, hi, mi,
-             rhoansi, Pansi, vansi, hansi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
-                                                         rhoans, Pans, vans, hans):
-            f.write((6*"%16.12e " + "%i " + 4*"%16.12e " + 6*"%i " + '\n') % 
-                    (xi, rhoi, Pi, vi, epsi, hi, mi,
-                     rhoansi, Pansi, vansi,  hansi,
-                     unpackElementUL(packElementDouble(xi)),
-                     unpackElementUL(packElementDouble(rhoi)),
-                     unpackElementUL(packElementDouble(Pi)),
-                     unpackElementUL(packElementDouble(vi)),
-                     unpackElementUL(packElementDouble(epsi)),
-                     unpackElementUL(packElementDouble(hi))))
-        f.close()
-
-    import Pnorm
-    print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
-    failure = False
-    hD = []
-    for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
-                              ("Pressure", Pprof, Pans),
-                              ("Velocity", vprof, vans),
-                              ("Thermal E", epsprof, uans),
-                              ("h       ", hprof, hans)]:
-        assert len(data) == len(ans)
-        error = [data[i] - ans[i] for i in xrange(len(data))]
-        Pn = Pnorm.Pnorm(error, xprof)
-        L1 = Pn.gridpnorm(1, rmin, rmax)
-        L2 = Pn.gridpnorm(2, rmin, rmax)
-        Linf = Pn.gridpnorm("inf", rmin, rmax)
-        print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
-        #f.write(("\t\t%g") % (L1))
-        hD.append([L1,L2,Linf])
-    #f.write("\n")
-
-    print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
-                                                                                hD[0][1],hD[1][1],hD[2][1],hD[3][1],
-                                                                                hD[0][2],hD[1][2],hD[2][2],hD[3][2])
-'''
