@@ -310,22 +310,20 @@ def readFacetedVolume%(ndim)i(self,
         "Return the variable component of a path."
         return "std::string"
 
-    @PYB11implementation("[](FileIO& self, py::handle thing, py::handle path) { self.writeObject(thing.ptr(), path.ptr()); }")
     @PYB11noconvert
     def writeObject(self,
-                    thing = "py::handle",
-                    path = "py::handle"):
+                    thing = "py::object",
+                    path = "const std::string&"):
         "Handle a generic python object through serialization"
         return "void"
 
     @PYB11returnpolicy("take_ownership")
     @PYB11const
-    @PYB11implementation("[](FileIO& self, py::handle path) { return py::handle(self.readObject(path.ptr())); }")
     @PYB11noconvert
     def readObject(self,
-                   path = "py::handle"):
+                   path = "const std::string&"):
         "Return a generic python object from deserialization."
-        return "py::handle"
+        return "py::object"
 
     #...........................................................................
     # Properties

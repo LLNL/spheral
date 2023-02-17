@@ -104,6 +104,9 @@ set(polyclipper_INCLUDES "${polyclipper_DIR}/src")
 
 # Things all Spheral packages have in their include path
 list(APPEND SPHERAL_EXTERN_INCLUDES ${polyclipper_INCLUDES})
+if (NOT ENABLE_CXXONLY)
+  list(APPEND SPHERAL_EXTERN_INCLUDES ${PYBIND11_ROOT_DIR}/include)
+endif()
 
 #-------------------------------------------------------------------------------#
 # Set a default build type if none was specified

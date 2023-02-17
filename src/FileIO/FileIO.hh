@@ -16,11 +16,7 @@
 #include <sstream>
 
 #ifndef CXXONLY
-// Forward declare PyObject
-#ifndef PyObject_HEAD
-struct _object;
-typedef _object PyObject;
-#endif
+#include "pybind11/pybind11.h"
 #endif
 
 namespace Spheral {
@@ -401,8 +397,8 @@ public:
 
 #ifndef CXXONLY
   // These methods are particular to Python file objects.
-  void writeObject(PyObject* thing, PyObject* path);
-  PyObject* readObject(PyObject* path) const;
+  void writeObject(pybind11::object& thing, const std::string& path);
+  pybind11::object readObject(const std::string& path) const;
 #endif
 
 protected:
@@ -411,10 +407,6 @@ protected:
   std::string mFileName;
   AccessType mAccess;
   bool mFileOpen;
-
-#ifndef CXXONLY
-  static PyObject* mPickleMod;
-#endif
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -436,6 +428,13 @@ private:
   // Write/read Fields of vectors.
   template<typename Dimension, typename DataType> void writeFieldVector(const Field<Dimension, std::vector<DataType> >& field, const std::string pathName);
   template<typename Dimension, typename DataType> void readFieldVector(Field<Dimension, std::vector<DataType> >& field, const std::string pathName) const;
+
+// #ifndef CXXONLY
+//   // Hold onto the dumps and loads methods from the Python pickle module
+//   pybind11::object __attribute__ ((visibility ("protected"))) mPickle;
+//   pybind11::object __attribute__ ((visibility ("protected"))) mDumps;
+//   pybind11::object __attribute__ ((visibility ("protected"))) mLoads;
+// #endif
 };
 
 }
