@@ -312,7 +312,7 @@ def readFacetedVolume%(ndim)i(self,
 
     @PYB11noconvert
     def writeObject(self,
-                    thing = "py::object",
+                    thing = "py::object&",
                     path = "const std::string&"):
         "Handle a generic python object through serialization"
         return "void"
