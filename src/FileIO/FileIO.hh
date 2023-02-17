@@ -15,10 +15,6 @@
 #include <string>
 #include <sstream>
 
-#ifndef CXXONLY
-#include "pybind11/pybind11.h"
-#endif
-
 namespace Spheral {
 
 template<typename Dimension> class GeomPlane;
@@ -395,12 +391,6 @@ public:
   AccessType access() const;
   bool fileOpen() const;
 
-#ifndef CXXONLY
-  // These methods are particular to Python file objects.
-  void writeObject(pybind11::object& thing, const std::string& path);
-  pybind11::object readObject(const std::string& path) const;
-#endif
-
 protected:
   //--------------------------- Protected Interface ---------------------------//
   // Descendent class are allowed to directly diddle this common data.
@@ -428,13 +418,6 @@ private:
   // Write/read Fields of vectors.
   template<typename Dimension, typename DataType> void writeFieldVector(const Field<Dimension, std::vector<DataType> >& field, const std::string pathName);
   template<typename Dimension, typename DataType> void readFieldVector(Field<Dimension, std::vector<DataType> >& field, const std::string pathName) const;
-
-// #ifndef CXXONLY
-//   // Hold onto the dumps and loads methods from the Python pickle module
-//   pybind11::object __attribute__ ((visibility ("protected"))) mPickle;
-//   pybind11::object __attribute__ ((visibility ("protected"))) mDumps;
-//   pybind11::object __attribute__ ((visibility ("protected"))) mLoads;
-// #endif
 };
 
 }

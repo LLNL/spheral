@@ -22,10 +22,6 @@ using std::min;
 using std::max;
 using std::abs;
 
-#ifndef CXXONLY
-namespace py = pybind11;
-#endif
-
 namespace Spheral {
 
 //------------------------------------------------------------------------------
@@ -34,21 +30,7 @@ namespace Spheral {
 FileIO::FileIO():
   mFileName(""),
   mAccess(AccessType::Undefined),
-  mFileOpen(false)
-// #ifndef CXXONLY
-//   ,
-//   mPickle(py::module_::import("pickle")),
-//   mDumps(),
-//   mLoads()
-// #endif
-{
-// #ifndef CXXONLY
-//   // VERIFY2(mPickle != nullptr, "FileIO ERROR: Failed to import pickle module");
-//   mDumps = mPickle.attr("dumps");
-//   mLoads = mPickle.attr("loads");
-//   // VERIFY2(mDumps != nullptr and mLoads != nullptr,
-//   //         "FileIO ERROR: Failed to get dumps and loads methods from pickle module");
-// #endif
+  mFileOpen(false) {
 }
 
 //------------------------------------------------------------------------------
@@ -57,21 +39,7 @@ FileIO::FileIO():
 FileIO::FileIO(const string filename, AccessType access):
   mFileName(filename),
   mAccess(access),
-  mFileOpen(false)
-// #ifndef CXXONLY
-//   ,
-//   mPickle(py::module_::import("pickle")),
-//   mDumps(),
-//   mLoads()
-// #endif
-{
-// #ifndef CXXONLY
-//   // VERIFY2(mPickle != nullptr, "FileIO ERROR: Failed to import pickle module");
-//   mDumps = mPickle.attr("dumps");
-//   mLoads = mPickle.attr("loads");
-//   // VERIFY2(mDumps != nullptr and mLoads != nullptr,
-//   //         "FileIO ERROR: Failed to get dumps and loads methods from pickle module");
-// #endif
+  mFileOpen(false) {
 }
 
 //------------------------------------------------------------------------------
@@ -304,70 +272,5 @@ bool
 FileIO::fileOpen() const {
   return mFileOpen;
 }
-
-#ifndef CXXONLY
-//------------------------------------------------------------------------------
-// Write out a python object by pickling it.
-//------------------------------------------------------------------------------
-void
-FileIO::
-writeObject(py::object& thing, const std::string& path) {
-  auto pickle = py::module_::import("pickle");
-  auto dumps = pickle.attr("dumps");
-  py::bytes pickledThing = dumps(thing);
-  this->write(string(pickledThing), path);
-}
-
-//------------------------------------------------------------------------------
-// Read in and decode a pickled python object.
-//------------------------------------------------------------------------------
-py::object
-FileIO::
-readObject(const std::string& path) const {
-  auto pickle = py::module_::import("pickle");
-  auto loads = pickle.attr("loads");
-
-  // Read in the pickled string representation.
-  string encodedThing;
-  this->read(encodedThing, path);
-
-  // // Convert the \n's back to the real thing.
-  // boost::replace_all(encodedThing, "<<n>>", "\n");
-  // CHECK(encodedThing.find("<<n>>") == string::npos);
-
-  // Unpickle
-  py::object result = loads(encodedThing);
-  return result;
-
-  // // Turn the string into a python object.
-  // // const char* thpt = encodedThing.c_str();
-  // // PyObject* pyEncodedThing = Py_BuildValue("s", thpt);
-  // PyObject* pyEncodedThing = PyUnicode_FromString(encodedThing.c_str());
-
-  // // Unpickle our object.
-  // PyObject* result = PyObject_CallMethodObjArgs(mPickleMod,
-  //                                               PyUnicode_FromString("loads"),
-  //                                               pyEncodedThing,
-  //                                               nullptr);
-  // if (result == nullptr) {
-  //   PyErr_SetString(PyExc_ValueError, "FileIO ERROR: Unable to unpickle string");
-  //   return nullptr;
-  // }
-
-  // // cerr << "      result is ";
-  // // PyObject_Print(result, stderr, 0);
-  // // cerr << "   from   ";
-  // // cerr << "           "
-  // //      << encodedThing 
-  // //      << endl;
-
-  // // Deallocate stuff.
-  // Py_DECREF(pyEncodedThing);
-
-  // // We're done.
-  // Py_INCREF(result);
-  // return result;
-}
-#endif
 
 }

@@ -310,16 +310,30 @@ def readFacetedVolume%(ndim)i(self,
         "Return the variable component of a path."
         return "std::string"
 
-    @PYB11noconvert
+    @PYB11implementation("""[](FileIO& self, py::object& thing, const std::string& path) -> void {
+        auto pickle = py::module_::import("pickle");
+        auto dumps = pickle.attr("dumps");
+        py::bytes pickledThing = dumps(thing);
+        //std::cerr << "-- writeObject string size, bytes size: " << std::string(pickledThing).size() << " " << py::len(pickledThing) << std::endl;
+        self.write(std::string(pickledThing), path);
+    }""")
     def writeObject(self,
                     thing = "py::object&",
                     path = "const std::string&"):
         "Handle a generic python object through serialization"
-        return "void"
+        return
 
     @PYB11returnpolicy("take_ownership")
-    @PYB11const
-    @PYB11noconvert
+    @PYB11implementation("""[](FileIO& self, const std::string& path) -> py::object {
+        auto pickle = py::module_::import("pickle");
+        auto loads = pickle.attr("loads");
+        std::string encodedThing;
+        self.read(encodedThing, path);
+        py::bytes encodedBytes(encodedThing);
+        //std::cerr << "-- readObject string size, bytes size: " << encodedThing.size() << " " << py::len(encodedBytes) << std::endl;
+        py::object result = loads(encodedBytes);
+        return result;
+    }""")
     def readObject(self,
                    path = "const std::string&"):
         "Return a generic python object from deserialization."
