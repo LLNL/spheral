@@ -761,7 +761,3 @@ if mpi.rank==0:
 
     if leaveNoTrace:
         os.system("rm -rf "+baseDir)
-
-
-    
-    
