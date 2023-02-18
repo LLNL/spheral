@@ -36,7 +36,7 @@ class SidreFileIOTest(FileIOTestBase, unittest.TestCase):
     # otherwise we remove a file as is the case with the other FileIO types.
     def removeFile(self, filename):
         if mpi.is_fake_mpi():
-            os.remove(filename)
+            os.remove(filename + ".root")
         else:
             shutil.rmtree(filename)
 

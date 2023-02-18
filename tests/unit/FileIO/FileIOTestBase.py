@@ -1572,6 +1572,22 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
+    # writeObject(bool)
+    #---------------------------------------------------------------------------
+    def testWriteObjectBool(self):
+        x0 = g.choice([True, False])
+        f = self.constructor("TestBool", Write)
+        f.writeObject(x0, "FileIOTestBase/TestBool")
+        f.close()
+        f = self.constructor("TestBool", Read)
+        x1 = f.readObject("FileIOTestBase/TestBool")
+        f.close()
+        self.assertTrue(x1 == x0,
+                        "%s != %s in bool OBJECT test" % (x1, x0))
+        self.removeFile("TestBool")
+        return
+
+    #---------------------------------------------------------------------------
     # writeObject(string)
     #---------------------------------------------------------------------------
     def testWriteObjectString(self):

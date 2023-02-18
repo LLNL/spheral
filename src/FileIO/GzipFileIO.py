@@ -59,7 +59,7 @@ class GzipFileIO(PyFileIO):
         if access == Read and self.readToMemory:
             self.lines = {}
             for line in self.f:
-                i = line.index(self.terminator())
+                i = line.index(self.bytes(self.terminator()))
                 assert i < len(line)
                 self.lines[line[:i+1]] = line[i+1:-1]
 
@@ -105,15 +105,12 @@ class GzipFileIO(PyFileIO):
     # path.  If it doesn't exist, raise an error.
     #---------------------------------------------------------------------------
     def findPath(self, pathName):
-        # Convert the pathName to a string (seems silly, but this hides the
-        # details of binary IO).
-        #pathstring = self._string2string(pathName) + self.terminator()
-        pathstring = str(pathName) + self.terminator()
-        npath = len(pathstring)
+        path = self.bytes(pathName + self.terminator())
+        npath = len(path)
 
         # If we read everything to memory, just scan that.
-        if self.readToMemory and pathstring in self.lines:
-            return self.lines[pathstring]
+        if self.readToMemory and path in self.lines:
+            return self.lines[path]
 
         else:
             # Go to the beginning of the file.
@@ -121,7 +118,9 @@ class GzipFileIO(PyFileIO):
 
             # Iterate over the lines in the file until we find what we want.
             for line in self.f:
-                if line[:npath] == pathstring:
+                if line[:npath] == path:
+                    print("Found: ", line[:npath])
+                    print("Returning value: ", line[npath:-1])
                     return line[npath:-1]
 
         # Uh oh!  We didn't find the requested path.  Raise an error.
@@ -138,24 +137,33 @@ class GzipFileIO(PyFileIO):
             return "\0"
 
     #---------------------------------------------------------------------------
+    # bytes conversion
+    #---------------------------------------------------------------------------
+    def bytes(self, x):
+        if type(bytes) == bytes:
+            return x
+        else:
+            return bytes(str(x), 'utf-8')
+
+    #---------------------------------------------------------------------------
     # We have to actually provide the string write and read methods, since these
     # are used by the writeObject/readObject pickling approach used by the other
     # methods.
     #---------------------------------------------------------------------------
     def write_string(self, val, pathName):
         pathString = str(pathName) + self.terminator()
-        valString = str(val) + "\n"
-        self.f.write(pathString + valString)
-        del valString
+        self.f.write(self.bytes(pathString))
+        self.f.write(val)
+        self.f.write(self.bytes('\n'))
         return
 
     def read_string(self, pathName):
-        try:
+        # try:
             result = self.findPath(pathName)
             return result
-        except Exception as excp:
-            print("WARNING : Unable to restore %s due to exception message: %s" % (pathName, excp))
-            pass
+        # except Exception as excp:
+        #     print("WARNING : Unable to restore %s due to exception message: %s" % (pathName, excp))
+        #     pass
 
     #---------------------------------------------------------------------------
     # pathExists
@@ -178,7 +186,11 @@ class GzipFileIO(PyFileIO):
         self.writeObject(val, pathName)
 
     def write_int(self, val, pathName):
-        self.writeObject(val, pathName)
+        import pickle
+        stuff = pickle.dumps(val)
+        print("Storing ", val, stuff)
+        self.write_string(stuff, pathName)
+        #self.writeObject(val, pathName)
 
     def write_bool(self, val, pathName):
         self.writeObject(val, pathName)
@@ -304,7 +316,11 @@ class GzipFileIO(PyFileIO):
         return self.readObject(pathName)
 
     def read_int(self, pathName):
-        return self.readObject(pathName)
+        import pickle
+        stuff = self.read_string(pathName)
+        print("Loading from ", stuff, type(stuff))
+        return pickle.loads(stuff)
+        #return self.readObject(pathName)
 
     def read_bool(self, pathName):
         return self.readObject(pathName)
