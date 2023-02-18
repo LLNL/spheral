@@ -4,7 +4,7 @@
 #
 # Solid FSISPH
 #
-#ATS:t100 = test(        SELF, "--clearDirectories True --checkError True --goalTime 5.0 --fsisph True --nrSpecimen 15 ", label="Diametral Compression Test FSISPH -- 2-D", np=1)
+#ATS:t100 = test(        SELF, "--clearDirectories True --checkError True --goalTime 5.0 --fsisph True --nrSpecimen 15 ", label="Diametral Compression Test FSISPH -- 2-D", np=8)
 
 from Spheral2d import *
 import sys, os
@@ -36,49 +36,34 @@ commandLine(
     tol = 10.0,                  # error toleration (%) average tensile stress
     leaveNoTrace=True,           # delete output dirs
 
-    # Specimen
-    rho0 = 3.24,    # g/cc
-    m = 1.73,       # weibull exponent  (Figuero 2016 Tamdakht H-OC)
-    k = 2.0e8,      # weibull constant  (fit to Figuero 2016 and Zaytsev 2021)
-
-    # Clamps
-    incompressibleClamps = True,
-    rClamp = 0.165,
-
     # Specimen geometry.
     SpecimenDistribution = "conformal",  # node distribution for the rock
     rSpecimen =  0.165,                  # 3.3 mm DIA (Zaytzev 2021)
     nrSpecimen = 20,     	             # number of radial bins
     rotation = 0.0,                      # rotates Specimen distribution (radians)
 
-    # Material parameters 
-    eosChoice = "tillotson",       # (gruneisen, tillotson)
+    # Specimen material 
+    materialSpecimen = "granite",
     isPressureEquilibrium = False, # initialize eps to give pressure equilibrium
     PoissonsRatio = 0.25,          # possion's ratio
-    Y0 = 1000.0 / 1e5,             # yield strength  (Zaytsev 2021)
-    Yultimate = 0.372 ,            # ultimate strength  (Zaytsev 2021)
+    Y0 = 1000.0 / 1e5,             # yield strength 
     etaMin = 0.1,                  # rho/rho0 limit
     etaMax = 6.0,                  # rho/rho0 limit
 
-    # Porosity Model
-    epsEGranite = 0.0,       # Elastic compaction limit (porosity)
-    epsXGranite = -0.4,      # Transition from exponential to power-law distention (porosity)
-    kappaGranite = 0.8,      # Exponential factor for distention (porosity)
-    
-    # Damage Model
-    strengthModel = "collins",      # ("collins", "constant", "null")
-    fullyDamagedSpecimen=False,     # treat Specimen as full damaged to start?
-    useDamage = True,               # turns damage model on
-    strengthInDamage = False,       # this isn't ready right now
-    strainType = BenzAsphaugStrain, # (BenzAsphaugStrain, PseudoPlasticStrain, MeloshRyanAsphaugStrain, PlasticStrain, PseudoPlasticStrain)
+    # Clamps geometry
+    rClamp = 0.0825,
+
+    # Clamps material
+    materialClamps = "granite",
+    PoissonsRatioClamps = 0.25,    # possion's ratio
 
     # hydro selection
     crksph = False,
     fsisph = False,
 
     # Hydro parameters
-    cfl = 0.35,   
-    correctVelocityGradient=False,        # linear order velocity gradient for PSPH SPH or FSISPH
+    cfl = 0.25,   
+    correctVelocityGradient=True,        # linear order velocity gradient for PSPH SPH or FSISPH
     asph = False,                        # turns on elliptic kernels
     xsph = False,                        # updates position based on averaged velocity
     epsilonTensile = 0.00,               # term to fight the tensile instability 
@@ -88,12 +73,13 @@ commandLine(
     totalEnergyEvolution = False,        # evolve the total energy instead of specific thermal energy
     
     # FSISPH parameters
-    fsiSurfaceCoefficient = 0.00,          # adds additional repulsive force to material interfaces)
-    fsiRhoStabilizeCoeff = 0.00,           # coefficient that smooths the density field
-    fsiEpsDiffuseCoeff = 0.00,             # explicit diiffusion of the thermal energy
-    fsiXSPHCoeff = 0.00,                   # fsi uses multiplier for XSPH instead of binary switch
-    fsiInterfaceMethod = NoInterface, # (HLLCInterface, ModulusInterface)
-    
+    fsiSurfaceCoefficient = 0.00,            # adds additional repulsive force to material interfaces)
+    fsiRhoStabilizeCoeff = 0.0,              # coefficient that smooths the density field
+    fsiEpsDiffuseCoeff = 0.0,                # explicit diiffusion of the thermal energy
+    fsiXSPHCoeff = 0.00,                     # fsi uses multiplier for XSPH instead of binary switch
+    fsiInterfaceMethod = ModulusInterface,   # (HLLCInterface, ModulusInterface)
+    planeStrain = True,                    
+
     # CRKSPH parameters
     correctionOrder = LinearOrder,   # for CRKSPH higher order field approximations
     
@@ -107,10 +93,11 @@ commandLine(
     etaCritFrac = None,            
 
     # smoothing scale parameters
-    kernelOrder = None,       # for b spline kernels, None defaults to WendlandC2 
-    nPerh = 3.01,             # number of neighbors / smoothing length     
-    HEvolution =  IntegrateH, # (IdealH , IntegrateH) update method for smoothing kernel
-    iterateInitialH = False,  # to calc initial ideal H in controller constructor
+    KernelConstructor = WendlandC2Kernel, # WendlandC2Kernel, WendlandC4Kernel, WendlandC6Kernel, NBSplineKernel,
+    kernelOrder = None,                   # 3,5,7 for NBSpline Kernels
+    nPerh = 3.01,                         # number of neighbors / smoothing length     
+    HEvolution =  IntegrateH,             # (IdealH , IntegrateH) update method for smoothing kernel
+    iterateInitialH = False,              # to calc initial ideal H in controller constructor
      
     # Times, and simulation control.
     steps = None,
@@ -146,24 +133,16 @@ title("2d diametral compression test.")
 # limits on inputs
 #--------------------------------------------------------------------------------
 
-eosChoice = eosChoice.lower()
-strengthModel = strengthModel.lower()
 SpecimenDistribution = SpecimenDistribution.lower()
 
 # valid options for things
 assert not (fsisph and crksph)
-assert eosChoice in (["gruneisen","tillotson"])
-assert strengthModel in (["constant", "collins"]) 
 assert SpecimenDistribution in (["lattice","conformal"])
-
-assert not (useDamage and strengthModel=="null") # if were using damage strength must be used
-
 assert fsiXSPHCoeff >= 0.0 
 assert fsiEpsDiffuseCoeff >= 0.0 
 assert fsiRhoStabilizeCoeff >= 0.0 
 assert fsiSurfaceCoefficient >= 0.0 
 
-assert useDamage
 
 #--------------------------------------------------------------------------------
 # Path and File Name
@@ -178,7 +157,6 @@ if asph:
 
 # Restart and output files.
 dataDir = os.path.join(baseDir,
-                       "fullyDamage=%s" % fullyDamagedSpecimen,
                        "nrSpecimen%s" % nrSpecimen,
                        "rot%s" % rotation,
                        hydroname)
@@ -201,118 +179,67 @@ if not os.path.exists(restartDir):
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
-# Our Kernel 
+# Interpolation kernels.
 #-------------------------------------------------------------------------------
-if kernelOrder is not None:
-    WT = TableKernel(NBSplineKernel(kernelOrder), 1000)
+if KernelConstructor==NBSplineKernel:
+    assert order in (3,5,7)
+    WT = TableKernel(KernelConstructor(order), 1000)
 else:
-    WT = TableKernel(WendlandC2Kernel(), 1000)
+    WT = TableKernel(KernelConstructor(), 1000) 
+kernelExtent = WT.kernelExtent
 output("WT")
-
 
 #-------------------------------------------------------------------------------
 # SiO2 material properties.
 #-------------------------------------------------------------------------------
 units = CGuS()
 
-if eosChoice == "gruneisen":
-    rho0Granite = 2.68               # g/cc
-    eosSolidGranite = GruneisenEquationOfState(rho0,                      # ref density (g/cc)
-                                               etaMin,      
-                                               etaMax,      
-                                               C0 = 0.36839,              # cm/usec      
-                                               S1 = 1.8954,               # dimensionless
-                                               S2 = 0.0,                  # dimensionless
-                                               S3 = 0.0,                  # dimensionless
-                                               gamma0 = 0.9,              # dimensionless
-                                               b = 1.0,                   # dimensionless
-                                               atomicWeight = 60.0843,    # atomic weight
-                                               constants = units,
-                                               minimumPressure = minimumPressure,
-                                               )
-    T0Granite, eps0Granite = 0.0, 0.0
-elif eosChoice == "tillotson":
-    eosSolidGranite = TillotsonEquationOfState("granite",
-                                               etaMin,
-                                               etaMax,
-                                               units)
-    eosSolidGranite.referenceDensity = rho0
-    T0Granite, eps0Granite = 0.0, 0.0 
-    rho0Granite=rho0
-
-cs0 = eosSolidGranite.soundSpeed(rho0Granite, eps0Granite)
-Ks0 = rho0Granite*cs0*cs0
-Gs = 3.0 * Ks0 * (1.0-2.0*PoissonsRatio)/(2.0*(1.0+PoissonsRatio))
-Ys = 9.0*Ks0*Gs/(3.0*Ks0+Gs)
-
-print "Reference (rho0, T0, eps0, c0) = (%g, %g, %g, %g)" % (rho0Granite, T0Granite, eps0Granite,cs0)
-print "Reference (K, Y, G, nu) = (%g, %g, %g, %g)" % (Ks0, Ys, Gs, PoissonsRatio)
-
-if strengthModel == 'constant':
-    strengthSolidGranite = ConstantStrength(Gs,  # mu = 3.2 GPa
-                                            Y0)  # Y0 = 15 MPa
-elif strengthModel == 'collins':
-    shearModulusModel = ConstantStrength(Gs,     # mu = 3.2 GPa
-                                         Y0)     # Y0 = 15 MPa
-    strengthSolidGranite=CollinsStrength(shearModulusModel, 
-                                         2.0,            # intact coeff of friction
-                                         0.7,            # damaged coeff of friction
-                                         Y0,             # strength at P=0    (15 MPa)
-                                         Yultimate);     # strength as P->oo  (1.5GPa)
-else:
-    strengthSolidGranite = NullStrength()
-
-
-eosSpecimen = eosSolidGranite
-strengthSpecimen = strengthSolidGranite
-
-rho0Specimen = rho0Granite
-c0Specimen = cs0
-
-# Clamps default to granite
-eosClamps = eosSolidGranite
-strengthClamps = strengthSolidGranite
-rho0Clamps = rho0Granite
-cS0Clamps = cs0
-PoissonsRatioClamps = PoissonsRatio
-
-# set up incompressible Clampss as copper with ridic poisson
-if incompressibleClamps:
-    eosSolidCu = TillotsonEquationOfState("copper",
+# specimen
+eos = TillotsonEquationOfState(materialSpecimen,
                                        etaMin,
                                        etaMax,
                                        units)
-    PoissonsRatioCu=0.33
-    rho0Cu = eosSolidCu.referenceDensity 
-    cs0Cu = eosSolidCu.soundSpeed(rho0Cu, 0.0)
-    Ks0Cu = rho0Cu*cs0Cu*cs0Cu
-    GsCu = Ks0Cu / ((2.0*(1.0+PoissonsRatioCu))/(3.0*(1.0-2.0*PoissonsRatioCu)))
-    strengthCu = ConstantStrength(GsCu, 10.0*Y0) 
 
-    print "Reference K (granite, copper) = (%g, %g)" % (Ks0, Ks0Cu)
-    print "Reference G (granite, copper) = (%g, %g)" % (Gs, GsCu)
-    print "Reference rho (granite, copper) = (%g, %g)" % (rho0Specimen, rho0Cu)
-    print "Reference c (granite, copper) = (%g, %g)" % (rho0Specimen, cs0Cu)
+rho0 = eos.referenceDensity
+eps0 = 0.0
+c0 = eos.soundSpeed(rho0, eps0)
+K0 = rho0*c0*c0
+G = 3.0 * K0 * (1.0-2.0*PoissonsRatio)/(2.0*(1.0+PoissonsRatio))
 
-    eosClamps = eosSolidCu
-    strengthClamps = strengthCu
-    rho0Clamps = rho0Cu
-    cS0Clamps = cs0Cu
-    PoissonsRatioClamps = PoissonsRatioCu
+strength = ConstantStrength(G,  Y0)  
+
+# clamps
+eosClamps= TillotsonEquationOfState(materialClamps,
+                                     etaMin,
+                                     etaMax,
+                                     units)
+
+rho0Clamps = eosClamps.referenceDensity 
+c0Clamps = eosClamps.soundSpeed(rho0Clamps, 0.0)
+K0Clamps = rho0Clamps*c0Clamps*c0Clamps
+GClamps = K0Clamps / ((2.0*(1.0+PoissonsRatioClamps))/(3.0*(1.0-2.0*PoissonsRatioClamps)))
+strengthClamps = ConstantStrength(GClamps, 10.0*Y0) 
+
+print "Reference K   (specimen, clamps) = (%g, %g)" % (K0, K0Clamps)
+print "Reference G   (specimen, clamps) = (%g, %g)" % (G, GClamps)
+print "Reference rho (specimen, clamps) = (%g, %g)" % (rho0, rho0Clamps)
+print "Reference c   (specimen, clamps) = (%g, %g)" % (c0, c0Clamps)
+
 #-------------------------------------------------------------------------------
 # Create the NodeLists. 
 #-------------------------------------------------------------------------------
 boxsize = 2.0*rSpecimen
 hmaxSpecimen = boxsize
+
 nodesSpecimen = makeSolidNodeList("Test Specimen",
-                          eosSpecimen,
-                          strengthSpecimen,
+                          eos,
+                          strength,
                           xmin = -boxsize * Vector.one,
                           xmax =  boxsize * Vector.one,
                           hmax = hmaxSpecimen,
                           nPerh = nPerh,
-                          rhoMin = etaMin*rho0Granite,
-                          rhoMax = etaMax*rho0Granite,
+                          rhoMin = etaMin*rho0,
+                          rhoMax = etaMax*rho0,
                           kernelExtent = WT.kernelExtent)
 
 nodesDriver = makeSolidNodeList("Test Driver",
@@ -322,8 +249,8 @@ nodesDriver = makeSolidNodeList("Test Driver",
                                 xmax =  boxsize * Vector.one,
                                 hmax = hmaxSpecimen,
                                 nPerh = nPerh,
-                                rhoMin = etaMin*rho0Granite,
-                                rhoMax = etaMax*rho0Granite,
+                                rhoMin = etaMin*rho0Clamps,
+                                rhoMax = etaMax*rho0Clamps,
                                 kernelExtent = WT.kernelExtent)
 
 nodesBase = makeSolidNodeList("Test Base",
@@ -333,8 +260,8 @@ nodesBase = makeSolidNodeList("Test Base",
                               xmax =  boxsize * Vector.one,
                               hmax = hmaxSpecimen,
                               nPerh = nPerh,
-                              rhoMin = etaMin*rho0Granite,
-                              rhoMax = etaMax*rho0Granite,
+                              rhoMin = etaMin*rho0Clamps,
+                              rhoMax = etaMax*rho0Clamps,
                               kernelExtent = WT.kernelExtent)
 
 
@@ -346,7 +273,8 @@ nodeListSet = [nodesSpecimen,nodesDriver,nodesBase]
 
 # Driver
 #-----------------------------
-radRatio = int(rClamp/rSpecimen)
+radRatio = rClamp/rSpecimen
+
 generatorDriver = GenerateNodeDistribution2d(nRadial = int(nrSpecimen*radRatio), nTheta = int(nrSpecimen*radRatio),
                                                         rho = rho0Clamps,
                                                         distributionType = "constantDTheta",
@@ -370,7 +298,7 @@ generatorBase = GenerateNodeDistribution2d(nRadial = int(nrSpecimen*radRatio), n
 # Specimen
 #-----------------------------
 generatorSpecimen = GenerateNodeDistribution2d(nRadial = nrSpecimen, nTheta = nrSpecimen,
-                                                        rho = rho0Granite,
+                                                        rho = rho0,
                                                         distributionType = "constantDTheta",
                                                         theta = 2.0*pi,
                                                         rotation = rotation,
@@ -426,12 +354,8 @@ elif fsisph:
                    correctVelocityGradient = correctVelocityGradient,
                    compatibleEnergyEvolution = compatibleEnergyEvolution,  
                    evolveTotalEnergy = totalEnergyEvolution,         
-                   ASPH = asph,
                    HUpdate=HEvolution,
-                   epsTensile = epsilonTensile,
-                   nTensile = nTensile,
-                   strengthInDamage=False,
-                   damageRelieveRubble=False)
+                   planeStrain=planeStrain)
 
 else:
     hydro = SPH(dataBase = db,
@@ -484,21 +408,6 @@ if hasattr(hydro.Q, "etaCritFrac"):
 
 packages += [hydro]
 
-
-#-------------------------------------------------------------------------------
-# Physics Package :  construct the damage model.
-#-------------------------------------------------------------------------------
-
-damageModelSpecimen = GradyKippTensorDamage("granite",
-                                            mWeibull = m,
-                                            kWeibull = k,
-                                            nodeList = nodesSpecimen,
-                                            strainAlgorithm = strainType,
-                                            kernel = WT,
-                                            units = units)
-            
-packages.append(damageModelSpecimen)
-
 #-------------------------------------------------------------------------------
 # Create initial conditions.
 #-------------------------------------------------------------------------------
@@ -508,7 +417,7 @@ nodesBase.velocity(VectorField("initial velocity base", nodesBase,Vector(0.0,com
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
 #-------------------------------------------------------------------------------
-integrator = CheapSynchronousRK2Integrator(db)
+integrator = VerletIntegrator(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
 integrator.lastDt = dt
@@ -619,8 +528,6 @@ class loadCurveStorage:
 
     def maxY(self):
         maxy = 0.0
-        #nodeLists = self.db.nodeLists()
-        #for nodeList in nodeLists:
         positions = self.nodes.positions()
         for position in positions:
             maxy = max(maxy,position.y)
@@ -629,8 +536,6 @@ class loadCurveStorage:
 
     def minY(self):
         miny = 0.0
-        #nodeLists = self.db.nodeLists()
-        #for nodeList in nodeLists:
         positions = self.nodes.positions()
         for position in positions:
                 miny = min(miny,position.y)
@@ -657,7 +562,6 @@ class loadCurveStorage:
         # other form of strain calc
         maxy = self.maxY()
         miny = self.minY()
-        print (self.maxy0 - self.miny0) - (maxy-miny)
         delta2 = (self.maxy0 - self.miny0) - (maxy-miny)
         straini2 = delta2/self.diameter
 
@@ -753,32 +657,42 @@ z_sample = LSyy.DATA_Tot[:,2]
 xdiff = x_sample[:-1]-x_sample[1:]
 forceSampled = sum((0.5*Sigmaxx[1:]+0.5*Sigmaxx[:-1])*xdiff)
 
-print sum(xdiff)
-print rSpecimen*2.0
 # plane strain estimate of force
 #--------------------------------
-Kc = rho0Clamps*cS0Clamps**2
-Ks = rho0Specimen*c0Specimen**2
-Es = 3.0*Ks*(1-2.0*PoissonsRatio)
-Ec = 3.0*Kc*(1-2.0*PoissonsRatioClamps)
+Es = 3.0*K0*(1-2.0*PoissonsRatio)
+Ec = 3.0*K0Clamps*(1-2.0*PoissonsRatioClamps)
 oneOverEstar = (1.0-PoissonsRatio**2)/Es + (1.0-PoissonsRatioClamps**2)/Ec
-Estar = 1.0/oneOverEstar
+Estar = 2.0/oneOverEstar
+# penetration depth
+delta = compressionSpeed*goalTime
+# herzian penetration depth
+forceEstimated = pi/4.0*Es*delta
+forceEstimated2 = pi/4.0*Es*LCS.strainHist2[-1]*rSpecimen/100.0
+forceEstimated1 = pi/4.0*Es*LCS.strainHist[-1]*rSpecimen/100.0
 
-delta = 2.0*compressionSpeed*goalTime
 
-print delta
-print LCS.strainHist2[-1]*2.0*rSpecimen/100.0
-print LCS.strainHist[-1]*2.0*rSpecimen/100.0
-
-forceEstimated = pi/10.0*Estar*delta
-
-forceEstimated2 = pi/10.0*Estar*LCS.strainHist2[-1]*2.0*rSpecimen/100.0
-forceEstimated1 = pi/10.0*Estar*LCS.strainHist[-1]*2.0*rSpecimen/100.0
 print "   "
-print "Force from Displacement : %g" % forceEstimated
-print "Force from Displacement2: %g" % forceEstimated2
-print "Force from Displacement1: %g" % forceEstimated1
-print "Force from Sampling     : %g" % forceSampled
+print "---------------------------------------------------------------------------"
+print "Specimen  Bulk Modulus: %g" % K0
+print "Clamps    Bulk Modulus: %g" % K0Clamps
+print "Specimen  Poisson's Ratio: %g" % PoissonsRatio
+print "Clamps    Poisson's Ratio: %g" % PoissonsRatioClamps
+print "Specimen  Elastic Modulus: %g" % (Es/(1.0-PoissonsRatio**2))
+print "Clamps    Elastic Modulus: %g" % (Ec/(1.0-PoissonsRatioClamps**2))
+print "Effective Elastic Modulus: %g" % Estar
+
+print "---------------------------------------------------------------------------"
+print "Displacement from nominal compression rate: %g" % delta
+print "Displacement from nominal compression rate: %g" % (LCS.strainHist[-1]*rSpecimen/100.0)
+print "measured displacement of specimen         : %g" % (LCS.strainHist2[-1]*rSpecimen/100.0)
+
+
+print "---------------------------------------------------------------------------"
+print "Force from Displacement based on nominal compression rate: %g" % forceEstimated
+print "Force from Displacement based on nominal compression rate: %g" % forceEstimated1
+print "Force from Displacement based on the measured compression: %g" % forceEstimated2
+print "Force from integrating the stress : %g" % forceSampled
+print "---------------------------------------------------------------------------"
 print "   "
 
 # analytic herzian soln for stress field
@@ -840,6 +754,8 @@ if mpi.rank==0:
         avgSxxreduced = sum(Sxxreduced)/len(Sxxreduced)
         error = 100.0*abs(avgSxxanalytic - avgSxxreduced)/max(abs(avgSxxanalytic),1e-30)
         
+        print "average analytic Sxx  = %s" % avgSxxanalytic
+        print "average simulated Sxx = %s" % avgSxxreduced
         if error > tol:
             raise ValueError, "tensile stress error bounds violated (error, error tolerance) = (%g,%g)." % (error,tol)
 
