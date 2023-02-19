@@ -23,7 +23,7 @@ class ApproximatePolyhedralGravityModel:
         """Return the gravitation acceleration at a specified point"""
         return "Dim<3>::Vector"
 
-    numQuadraturePoints = PYB11property("Scalar", "numQuadraturePoints", doc="number of quadrature points making up the model")
+    numQuadraturePoints = PYB11property("unsigned int", "numQuadraturePoints", doc="number of quadrature points making up the model")
     quadraturePoints =    PYB11property("const std::vector<Dim<3>::Vector>&", returnpolicy="reference_internal")
     values =              PYB11property("const std::vector<Dim<3>::Vector>&", returnpolicy="reference_internal")
     resolutions =         PYB11property("const std::vector<Dim<3>::Scalar>&", returnpolicy="reference_internal")

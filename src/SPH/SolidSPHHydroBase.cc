@@ -395,6 +395,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
+  const auto fragID = state.fields(SolidFieldNames::fragmentIDs, int(0));
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -408,6 +409,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
+  CHECK(fragID.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto  rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -517,6 +519,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto  Hdeti = Hi.Determinant();
       const auto  safeOmegai = safeInv(omegai, tiny);
       const auto  pTypei = pTypes(nodeListi, i);
+      const auto  fragIDi = fragID(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -551,6 +554,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto  Hdetj = Hj.Determinant();
       const auto  safeOmegaj = safeInv(omegaj, tiny);
       const auto  pTypej = pTypes(nodeListj, j);
+      const auto  fragIDj = fragID(nodeListj, j);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
@@ -576,6 +580,18 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Flag if at least one particle is free (0).
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
+
+      // Flag to turn off forces between different fragments,
+      // only if the two particles are moving away from each other.
+      auto fragdir = true;
+      if (fragIDi != fragIDj) {
+        const auto rdiff = ri-rj;
+        const auto vdiff = vi-vj;
+        const auto vdot = vdiff.dot(rdiff);
+        if (vdot > 0.0) {
+          fragdir = false;
+        }
+      }
 
       // Determine how we're applying damage.
       const auto fDij = pairs[kk].f_couple;
@@ -674,7 +690,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       sigmarhoi = safeOmegai*sigmai/(rhoi*rhoi);
       sigmarhoj = safeOmegaj*sigmaj/(rhoj*rhoj);
       const auto deltaDvDt = sigmarhoi*gradWi + sigmarhoj*gradWj - Qacci - Qaccj;
-      if (freeParticle) {
+      if (freeParticle && fragdir) {
         DvDti += mj*deltaDvDt;
         DvDtj -= mi*deltaDvDt;
       }
@@ -730,14 +746,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     const auto  hminratio = nodeList.hminratio();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
-    // Check if we can identify a reference density.
-    auto rho0 = 0.0;
-    try {
-      rho0 = dynamic_cast<const SolidEquationOfState<Dimension>&>(dynamic_cast<const FluidNodeList<Dimension>&>(nodeList).equationOfState()).referenceDensity();
-      // cerr << "Setting reference density to " << rho0 << endl;
-    } catch(...) {
-      // cerr << "BLAGO!" << endl;
-    }
+    // // Check if we can identify a reference density.
+    // auto rho0 = 0.0;
+    // try {
+    //   rho0 = dynamic_cast<const SolidEquationOfState<Dimension>&>(dynamic_cast<const FluidNodeList<Dimension>&>(nodeList).equationOfState()).referenceDensity();
+    //   // cerr << "Setting reference density to " << rho0 << endl;
+    // } catch(...) {
+    //   // cerr << "BLAGO!" << endl;
+    // }
 
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
@@ -851,12 +867,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 
       // Optionally use damage to ramp down stress on damaged material.
-      const auto Di = max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0));
+      // const auto Di = max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0));
       // Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
       // DHDti = (1.0 - Di)*DHDti + Di*(mHfield0(nodeListi, i) - Hi)*0.25/dt;
 
-      // We also adjust the density evolution in the presence of damage.
-      if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.5/dt*Di*(rhoi - rho0);
+      // // We also adjust the density evolution in the presence of damage.
+      // if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - Di * 0.05*(rhoi - rho0)*ci*Hi.Trace()/Dimension::nDim;
 
       // // In the presence of damage, add a term to reduce the stress on this point.
       // DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;

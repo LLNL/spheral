@@ -871,7 +871,8 @@ updateState(const unsigned* nintpermat,
             const double*  yieldStrength,
             const double*  plasticStrain,
             const double*  scalarDamage,
-            const int*     particleType) {
+            const int*     particleType,
+            const int*     regionNumber) {
 
   // Get our instance.
   auto& me = SpheralPseudoScript<Dimension>::instance();
@@ -905,6 +906,7 @@ updateState(const unsigned* nintpermat,
   auto S = me.mStatePtr->fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   auto ps = me.mStatePtr->fields(SolidFieldNames::plasticStrain, 0.0);
   auto pType = me.mStatePtr->fields(SolidFieldNames::particleTypes, 0);
+  auto fragID = me.mStatePtr->fields(SolidFieldNames::fragmentIDs, 0);
   auto K = me.mStatePtr->fields(SolidFieldNames::bulkModulus, 0.0);
   auto mu = me.mStatePtr->fields(SolidFieldNames::shearModulus, 0.0);
   auto Y = me.mStatePtr->fields(SolidFieldNames::yieldStrength, 0.0);
@@ -925,6 +927,7 @@ updateState(const unsigned* nintpermat,
   if (yieldStrength != NULL)         copyArrayToScalarFieldList(yieldStrength, Y);
   if (plasticStrain != NULL)         copyArrayToScalarFieldList(plasticStrain, ps);
   if (particleType != NULL)          copyArrayToIntFieldList(particleType, pType);
+  if (regionNumber != NULL)          copyArrayToIntFieldList(regionNumber, fragID);
   if (me.mDamage) {
     if (scalarDamage != NULL)        copyArrayToSymTensorFieldList(scalarDamage, D);
   }

@@ -3,8 +3,8 @@
 //
 // Computes RK corrections for other physics packages
 //----------------------------------------------------------------------------//
-#ifndef __LLNLSpheral_RKCorrections__
-#define __LLNLSpheral_RKCorrections__
+#ifndef __Spheral_RKCorrections__
+#define __Spheral_RKCorrections__
 
 #include "RK/RKCorrectionParams.hh"
 #include "RK/ReproducingKernel.hh"

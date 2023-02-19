@@ -503,7 +503,7 @@ reinitializeNeighbors() const {
 
   // Find the current bounding box and average node extent in one loop.
   // Compute the average node extent.
-  auto xmin = Vector(std::numeric_limits<Scalar>::max()), xmax = Vector(std::numeric_limits<Scalar>::lowest());
+  auto xmin = Vector(0.1*std::numeric_limits<Scalar>::max()), xmax = 0.1*Vector(std::numeric_limits<Scalar>::lowest());
   unsigned ntot = 0;
   Scalar havg = 0.0, hmax = 0.0, maxExtent = 0.0;
   for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
@@ -532,20 +532,22 @@ reinitializeNeighbors() const {
   }
   havg = allReduce(havg, MPI_SUM, Communicator::communicator());
   ntot = allReduce(ntot, MPI_SUM, Communicator::communicator());
-  if (ntot > 0) havg /= ntot;
   hmax = allReduce(hmax, MPI_MAX, Communicator::communicator());
+  if (ntot > 0) {
+    havg /= ntot;
 
-  box = std::max(box, maxExtent*hmax);
-  for (auto i = 0; i < Dimension::nDim; ++i) {
-    xmin(i) -= box;
-    xmax(i) += box;
-  }
+    box = std::max(box, maxExtent*hmax);
+    for (auto i = 0; i < Dimension::nDim; ++i) {
+      xmin(i) -= box;
+      xmax(i) += box;
+    }
 
-  // Now initialize the neighbors.
-  for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
-    auto& neighbor = (*itr)->neighbor();
-    neighbor.reinitialize(xmin, xmax, havg);
-    neighbor.updateNodes();
+    // Now initialize the neighbors.
+    for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
+      auto& neighbor = (*itr)->neighbor();
+      neighbor.reinitialize(xmin, xmax, havg);
+      neighbor.updateNodes();
+    }
   }
 }
 
