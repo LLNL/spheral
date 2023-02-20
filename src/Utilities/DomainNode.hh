@@ -20,7 +20,16 @@ struct DomainNode {
   bool operator==(const DomainNode& rhs) const;
   bool operator!=(const DomainNode& rhs) const;
 
-  // And assignment
+  // Copy and assignment
+  DomainNode DomainNode(const DomainNode& rhs):
+    localNodeID(rhs.localNodeID),
+    uniqueLocalNodeID(rhs.uniqueLocalNodeID),
+    globalNodeID(rhs.globalNodeID),
+    nodeListID(rhs.nodeListID),
+    domainID(rhs.domainID),
+    work(rhs.work),
+    position(rhs.position) {
+  }
   DomainNode& operator=(const DomainNode& rhs) {
     localNodeID = rhs.localNodeID;
     uniqueLocalNodeID = rhs.uniqueLocalNodeID;

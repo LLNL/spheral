@@ -26,6 +26,8 @@ class GzipFileIO(PyFileIO):
                  precision = 20,
                  readToMemory = True):
         PyFileIO.__init__(self, fileName, access)
+        self.binary = True
+        self.encoding = "utf-32"
 
         # We enforce the convention that gziped files will have the .gz
         # extension.
@@ -49,17 +51,17 @@ class GzipFileIO(PyFileIO):
         mode = None
         if (access == Create or
             access == Write):
-            mode = "w"
+            mode = "wb"
         elif access == Read:
-            mode = "r"
+            mode = "rb"
         assert not mode is None
-        self.f = gzip.GzipFile(fileName, mode)
+        self.f = gzip.open(fileName, mode=mode)
 
         # If requested, read the file to memory.
         if access == Read and self.readToMemory:
             self.lines = {}
             for line in self.f:
-                i = line.index(self.bytes(self.terminator()))
+                i = line.index(self.terminator())
                 assert i < len(line)
                 self.lines[line[:i+1]] = line[i+1:-1]
 
@@ -105,7 +107,7 @@ class GzipFileIO(PyFileIO):
     # path.  If it doesn't exist, raise an error.
     #---------------------------------------------------------------------------
     def findPath(self, pathName):
-        path = self.bytes(pathName + self.terminator())
+        path = self._bytes(pathName) + self.terminator()
         npath = len(path)
 
         # If we read everything to memory, just scan that.
@@ -118,9 +120,9 @@ class GzipFileIO(PyFileIO):
 
             # Iterate over the lines in the file until we find what we want.
             for line in self.f:
-                if line[:npath] == path:
-                    print("Found: ", line[:npath])
-                    print("Returning value: ", line[npath:-1])
+                if self._bytes(line[:npath]) == path:
+                    #print("Found: ", line[:npath])
+                    #print("Returning value: ", line[npath:-1])
                     return line[npath:-1]
 
         # Uh oh!  We didn't find the requested path.  Raise an error.
@@ -131,19 +133,23 @@ class GzipFileIO(PyFileIO):
     # Standard terminator for encoded strings.
     #---------------------------------------------------------------------------
     def terminator(self):
-#         if self.binary:
-#             return struct.pack("s", "\0")
-#         else:
-            return "\0"
+         # if self.binary:
+         #     return struct.pack("s", bytes("\0", "utf-32"))
+         # else:
+        return self._bytes("\0")
 
     #---------------------------------------------------------------------------
     # bytes conversion
     #---------------------------------------------------------------------------
-    def bytes(self, x):
-        if type(bytes) == bytes:
-            return x
+    def _bytes(self, x):
+        if type(x) == bytes:
+            result = x
         else:
-            return bytes(str(x), 'utf-8')
+            result = bytes(str(x), self.encoding)
+        return result.replace(bytes('\n', self.encoding), bytes('<<<<n>>>>', self.encoding))
+
+    def _frombytes(self, x):
+        return x.replace(bytes('<<<<n>>>>', self.encoding), bytes('\n', self.encoding))
 
     #---------------------------------------------------------------------------
     # We have to actually provide the string write and read methods, since these
@@ -151,19 +157,18 @@ class GzipFileIO(PyFileIO):
     # methods.
     #---------------------------------------------------------------------------
     def write_string(self, val, pathName):
-        pathString = str(pathName) + self.terminator()
-        self.f.write(self.bytes(pathString))
-        self.f.write(val)
-        self.f.write(self.bytes('\n'))
+        self.f.write(self._bytes(pathName))
+        self.f.write(self.terminator())
+        self.f.write(self._bytes(val))
+        self.f.write(self._bytes('\n'))
         return
 
+    def read_bytes(self, pathName):
+        result = self.findPath(pathName)
+        return self._frombytes(result)
+
     def read_string(self, pathName):
-        # try:
-            result = self.findPath(pathName)
-            return result
-        # except Exception as excp:
-        #     print("WARNING : Unable to restore %s due to exception message: %s" % (pathName, excp))
-        #     pass
+        return str(self.read_bytes(pathName), self.encoding)
 
     #---------------------------------------------------------------------------
     # pathExists
@@ -176,72 +181,81 @@ class GzipFileIO(PyFileIO):
             return False
 
     #---------------------------------------------------------------------------
+    # _write: the generic write using pickle
+    #---------------------------------------------------------------------------
+    def _write(self, val, pathName):
+        self.write_string(pickle.dumps(val), pathName)
+
+    #---------------------------------------------------------------------------
+    # _read: the generic read using pickle
+    #---------------------------------------------------------------------------
+    def _read(self, pathName):
+        stuff = self.read_bytes(pathName)
+        return pickle.loads(stuff)
+
+    #---------------------------------------------------------------------------
     # Use pickling for the majority of the write methods.  Most objects we just
     # convert to strings and pickle that.
     #---------------------------------------------------------------------------
     def write_unsigned_int(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_size_t(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_int(self, val, pathName):
-        import pickle
-        stuff = pickle.dumps(val)
-        print("Storing ", val, stuff)
-        self.write_string(stuff, pathName)
-        #self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_bool(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_double(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_vector_int(self, val, pathName):
-        self.writeObject(list(val), pathName)
+        self._write(list(val), pathName)
 
     def write_vector_double(self, val, pathName):
-        self.writeObject(list(val), pathName)
+        self._write(list(val), pathName)
 
     def write_vector_string(self, val, pathName):
-        self.writeObject(list(val), pathName)
+        self._write(list(val), pathName)
 
     def write_Vector1d(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_Tensor1d(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_SymTensor1d(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_ThirdRankTensor1d(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_Vector2d(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_Tensor2d(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_SymTensor2d(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_ThirdRankTensor2d(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_Vector3d(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_Tensor3d(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_SymTensor3d(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_ThirdRankTensor3d(self, val, pathName):
-        self.writeObject(val, pathName)
+        self._write(val, pathName)
 
     def write_ScalarField1d(self, val, pathName):
         self.writeFieldObject(val, pathName)
@@ -310,68 +324,64 @@ class GzipFileIO(PyFileIO):
     # We now use unpickling to read objects.
     #---------------------------------------------------------------------------
     def read_unsigned_int(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_size_t(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_int(self, pathName):
-        import pickle
-        stuff = self.read_string(pathName)
-        print("Loading from ", stuff, type(stuff))
-        return pickle.loads(stuff)
-        #return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_bool(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_double(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_vector_int(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val)
+        self.copyContainer(self._read(pathName), val)
 
     def read_vector_double(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val)
+        self.copyContainer(self._read(pathName), val)
 
     def read_vector_string(self, val, pathName):
-        self.copyContainer(self.readObject(pathName), val)
+        self.copyContainer(self._read(pathName), val)
 
     def read_Vector1d(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_Tensor1d(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_SymTensor1d(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_ThirdRankTensor1d(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_Vector2d(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_Tensor2d(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_SymTensor2d(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_ThirdRankTensor2d(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_Vector3d(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_Tensor3d(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_SymTensor3d(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_ThirdRankTensor3d(self, pathName):
-        return self.readObject(pathName)
+        return self._read(pathName)
 
     def read_ScalarField1d(self, val, pathName):
         self.readFieldObject(val, pathName)

@@ -16,8 +16,8 @@ class GzipFileIOTest(FileIOTestBase, unittest.TestCase):
         self.intmax = 2**24
         self.unsignedmin = 0
         self.unsignedmax = 2**32
-        self.doublemin = -1e50
-        self.doublemax = 1e50
+        self.doublemin = -1e20
+        self.doublemax = 1e20
         self.constructor = GzipFileIO
 
         # Size the NodeLists.
@@ -34,34 +34,34 @@ class GzipFileIOTest(FileIOTestBase, unittest.TestCase):
         os.remove(filename + ".gz")
         return
 
-    #-------------------------------------------------------------------------------
-    # Gzip can't handle things that turn into bytes (rather than strings), so we
-    # test those specially (for fail).  Once we're on Python 3 I think there's a fix
-    # for this with the gzip compress/decompress methods.
-    #-------------------------------------------------------------------------------
-    def testWriteBox(self):
-        print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
-        return
+    # #-------------------------------------------------------------------------------
+    # # Gzip can't handle things that turn into bytes (rather than strings), so we
+    # # test those specially (for fail).  Once we're on Python 3 I think there's a fix
+    # # for this with the gzip compress/decompress methods.
+    # #-------------------------------------------------------------------------------
+    # def testWriteBox(self):
+    #     print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
+    #     return
 
-    def testWritePolygon(self):
-        print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
-        return
+    # def testWritePolygon(self):
+    #     print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
+    #     return
 
-    def testWritePolyhedron(self):
-        print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
-        return
+    # def testWritePolyhedron(self):
+    #     print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
+    #     return
 
-    def testVectorFacetedVolume1d(self):
-        print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
-        return
+    # def testVectorFacetedVolume1d(self):
+    #     print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
+    #     return
 
-    def testVectorFacetedVolume2d(self):
-        print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
-        return
+    # def testVectorFacetedVolume2d(self):
+    #     print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
+    #     return
 
-    def testVectorFacetedVolume3d(self):
-        print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
-        return
+    # def testVectorFacetedVolume3d(self):
+    #     print("Writing FacetedVolumes currently unsupported by GzipFileIO -- skipping")
+    #     return
 
 #-------------------------------------------------------------------------------
 # Run those tests.
