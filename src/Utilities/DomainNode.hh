@@ -20,26 +20,26 @@ struct DomainNode {
   bool operator==(const DomainNode& rhs) const;
   bool operator!=(const DomainNode& rhs) const;
 
-  // Copy and assignment
-  DomainNode DomainNode(const DomainNode& rhs):
-    localNodeID(rhs.localNodeID),
-    uniqueLocalNodeID(rhs.uniqueLocalNodeID),
-    globalNodeID(rhs.globalNodeID),
-    nodeListID(rhs.nodeListID),
-    domainID(rhs.domainID),
-    work(rhs.work),
-    position(rhs.position) {
-  }
-  DomainNode& operator=(const DomainNode& rhs) {
-    localNodeID = rhs.localNodeID;
-    uniqueLocalNodeID = rhs.uniqueLocalNodeID;
-    globalNodeID = rhs.globalNodeID;
-    nodeListID = rhs.nodeListID;
-    domainID = rhs.domainID;
-    work = rhs.work;
-    position = rhs.position;
-    return *this;
-  }
+  // // Copy and assignment
+  // DomainNode(const DomainNode& rhs):
+  //   localNodeID(rhs.localNodeID),
+  //   uniqueLocalNodeID(rhs.uniqueLocalNodeID),
+  //   globalNodeID(rhs.globalNodeID),
+  //   nodeListID(rhs.nodeListID),
+  //   domainID(rhs.domainID),
+  //   work(rhs.work),
+  //   position(rhs.position) {
+  // }
+  // DomainNode& operator=(const DomainNode& rhs) {
+  //   localNodeID = rhs.localNodeID;
+  //   uniqueLocalNodeID = rhs.uniqueLocalNodeID;
+  //   globalNodeID = rhs.globalNodeID;
+  //   nodeListID = rhs.nodeListID;
+  //   domainID = rhs.domainID;
+  //   work = rhs.work;
+  //   position = rhs.position;
+  //   return *this;
+  // }
 
   // Helpful methods for parallel communication of DomainNodes.
   static size_t packSize();
