@@ -28,6 +28,7 @@ class GzipFileIO(PyFileIO):
         PyFileIO.__init__(self, fileName, access)
         self.binary = True
         self.encoding = "utf-32"
+        self.terminator = b'\0'
 
         # We enforce the convention that gziped files will have the .gz
         # extension.
@@ -61,7 +62,7 @@ class GzipFileIO(PyFileIO):
         if access == Read and self.readToMemory:
             self.lines = {}
             for line in self.f:
-                i = line.index(self.terminator())
+                i = line.index(self.terminator)
                 assert i < len(line)
                 self.lines[line[:i+1]] = line[i+1:-1]
 
@@ -107,7 +108,7 @@ class GzipFileIO(PyFileIO):
     # path.  If it doesn't exist, raise an error.
     #---------------------------------------------------------------------------
     def findPath(self, pathName):
-        path = self._bytes(pathName) + self.terminator()
+        path = bytes(pathName, "utf-8") + self.terminator
         npath = len(path)
 
         # If we read everything to memory, just scan that.
@@ -120,7 +121,7 @@ class GzipFileIO(PyFileIO):
 
             # Iterate over the lines in the file until we find what we want.
             for line in self.f:
-                if self._bytes(line[:npath]) == path:
+                if line[:npath] == path:
                     #print("Found: ", line[:npath])
                     #print("Returning value: ", line[npath:-1])
                     return line[npath:-1]
@@ -130,15 +131,6 @@ class GzipFileIO(PyFileIO):
                                                                                 self.fileName))
 
     #---------------------------------------------------------------------------
-    # Standard terminator for encoded strings.
-    #---------------------------------------------------------------------------
-    def terminator(self):
-         # if self.binary:
-         #     return struct.pack("s", bytes("\0", "utf-32"))
-         # else:
-        return self._bytes("\0")
-
-    #---------------------------------------------------------------------------
     # bytes conversion
     #---------------------------------------------------------------------------
     def _bytes(self, x):
@@ -146,10 +138,10 @@ class GzipFileIO(PyFileIO):
             result = x
         else:
             result = bytes(str(x), self.encoding)
-        return result.replace(bytes('\n', self.encoding), bytes('<<<<n>>>>', self.encoding))
+        return result  #.replace(bytes('\n', self.encoding), bytes('<<<<n>>>>', self.encoding))
 
     def _frombytes(self, x):
-        return x.replace(bytes('<<<<n>>>>', self.encoding), bytes('\n', self.encoding))
+        return x # .replace(bytes('<<<<n>>>>', self.encoding), bytes('\n', self.encoding))
 
     #---------------------------------------------------------------------------
     # We have to actually provide the string write and read methods, since these
@@ -157,10 +149,10 @@ class GzipFileIO(PyFileIO):
     # methods.
     #---------------------------------------------------------------------------
     def write_string(self, val, pathName):
-        self.f.write(self._bytes(pathName))
-        self.f.write(self.terminator())
+        self.f.write(bytes(pathName, "utf-8"))
+        self.f.write(self.terminator)
         self.f.write(self._bytes(val))
-        self.f.write(self._bytes('\n'))
+        self.f.write(b'\n')
         return
 
     def read_bytes(self, pathName):
@@ -184,14 +176,15 @@ class GzipFileIO(PyFileIO):
     # _write: the generic write using pickle
     #---------------------------------------------------------------------------
     def _write(self, val, pathName):
-        self.write_string(pickle.dumps(val), pathName)
+        self.write_string(pickle.dumps(val).replace(b"\n", b"<<<<<n>>>>>"),
+                          pathName)
 
     #---------------------------------------------------------------------------
     # _read: the generic read using pickle
     #---------------------------------------------------------------------------
     def _read(self, pathName):
         stuff = self.read_bytes(pathName)
-        return pickle.loads(stuff)
+        return pickle.loads(stuff.replace(b"<<<<<n>>>>>", b"\n"))
 
     #---------------------------------------------------------------------------
     # Use pickling for the majority of the write methods.  Most objects we just
