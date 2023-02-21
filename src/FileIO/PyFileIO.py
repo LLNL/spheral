@@ -26,8 +26,11 @@ class PyFileIO(FileIO):
     #---------------------------------------------------------------------------
     # read
     #---------------------------------------------------------------------------
-    def read(self, path):
-        return self.read_object(path)
+    def read(self, x, path):
+        newx = self.read_object(path)
+        print("Trying to replace ", x, " with ", newx)
+        x = newx
+        return newx
 
     #---------------------------------------------------------------------------
     # read primitive types we can't return by reference

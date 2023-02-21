@@ -213,16 +213,16 @@ class FileIOTestBase:
         self.removeFile("TestEmptyString")
         return
 
-    # #---------------------------------------------------------------------------
-    # # Vector1d
-    # #---------------------------------------------------------------------------
-    # def testVector1d(self):
-    #     x0 = self.randomVector1d()
-    #     x1 = Vector1d()
-    #     result = self.boilerPlate("TestVector1d",
-    #                               "FileIOTestBase/TestVector1d",
-    #                               x0, x1)
-    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    #---------------------------------------------------------------------------
+    # Vector1d
+    #---------------------------------------------------------------------------
+    def testVector1d(self):
+        x0 = self.randomVector1d()
+        x1 = Vector1d()
+        result = self.boilerPlate("TestVector1d",
+                                  "FileIOTestBase/TestVector1d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     # #---------------------------------------------------------------------------
     # # Tensor1d

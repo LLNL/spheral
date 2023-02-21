@@ -28,6 +28,7 @@ class GzipFileIO(PyFileIO):
         PyFileIO.__init__(self, fileName, access)
         self.encoding = "utf-8"
         self.terminator = b'\0'
+        self.mungenewline = b'<><><>n<><><>'
 
         # We enforce the convention that gziped files will have the .gz
         # extension.
@@ -59,24 +60,15 @@ class GzipFileIO(PyFileIO):
         # If requested, read the file to memory.
         if access == Read:
             self.lines = {}
-            lastKey = None
             for line in self.f:
-                if line[0:1] == self.terminator:
-                    # This is a new data line and path
-                    i = line[1:].index(self.terminator)
-                    assert i < len(line)
-                    lastKey = str(line[1:i+1], self.encoding)
-                    if line[-1:] == self.terminator:
-                        self.lines[lastKey] = line[i+2:-1]
-                    else:
-                        self.lines[lastKey] = line[i+2:]
-                else:
-                    # This line must be a continuation of the previous one, so just add it to that data
-                    assert not lastKey is None
-                    if line[-1:] == self.terminator:
-                        self.lines[lastKey] += line[:-1]
-                    else:
-                        self.lines[lastKey] += line
+                #print("read line: ", line)
+                assert line[0:1] == self.terminator
+                assert line[-1:] == self.terminator
+                i = line[1:].index(self.terminator)
+                assert i < len(line)
+                key = str(line[1:i+1], self.encoding)
+                val = line[i+2:-1].replace(self.mungenewline, b'\n')
+                self.lines[key] = val
         return
 
     #---------------------------------------------------------------------------
@@ -120,7 +112,7 @@ class GzipFileIO(PyFileIO):
     #---------------------------------------------------------------------------
     def findPath(self, pathName):
         if not pathName in self.lines:
-            raise(ValueError, "GzipFileIO unknown key: " + pathName)
+            raise ValueError("GzipFileIO unknown key: " + pathName)
         #print("findPath: ", pathName, self.lines[pathName])
         return self.lines[pathName]
 
@@ -145,7 +137,7 @@ class GzipFileIO(PyFileIO):
         #print("write_bytes: ", val)
         self.f.write(self.terminator +
                      bytes(pathName, self.encoding) + self.terminator + 
-                     val + self.terminator)
+                     val.replace(b'\n', self.mungenewline) + self.terminator)
         return
 
     def read_bytes(self, pathName):
