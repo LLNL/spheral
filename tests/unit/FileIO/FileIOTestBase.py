@@ -142,76 +142,76 @@ class FileIOTestBase:
         f.write_int(x0, "FileIOTestBase/a/b/c/d/TestInt")
         f.close()
         f = self.constructor("TestInt", Read)
-        x1 = f.read("FileIOTestBase/a/b/c/d/TestInt")
+        x1 = f.read_int("FileIOTestBase/a/b/c/d/TestInt")
         f.close()
         self.assertTrue(x1 == x0,
                         "%i != %i in int test" % (x1, x0))
         self.removeFile("TestInt")
         return
 
-    # #---------------------------------------------------------------------------
-    # # bool
-    # #---------------------------------------------------------------------------
-    # def testBool(self):
-    #     x0 = g.choice([True, False])
-    #     f = self.constructor("TestBool", Write)
-    #     f.write_bool(x0, "FileIOTestBase/TestBool")
-    #     f.close()
-    #     f = self.constructor("TestBool", Read)
-    #     x1 = f.read_bool("FileIOTestBase/TestBool")
-    #     f.close()
-    #     self.assertTrue(x1 == x0,
-    #                     "%s != %s in bool test" % (x1, x0))
-    #     self.removeFile("TestBool")
-    #     return
+    #---------------------------------------------------------------------------
+    # bool
+    #---------------------------------------------------------------------------
+    def testBool(self):
+        x0 = g.choice([True, False])
+        f = self.constructor("TestBool", Write)
+        f.write_bool(x0, "FileIOTestBase/TestBool")
+        f.close()
+        f = self.constructor("TestBool", Read)
+        x1 = f.read_bool("FileIOTestBase/TestBool")
+        f.close()
+        self.assertTrue(x1 == x0,
+                        "%s != %s in bool test" % (x1, x0))
+        self.removeFile("TestBool")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # float
-    # #---------------------------------------------------------------------------
-    # def testFloat(self):
-    #     x0 = g.uniform(self.doublemin, self.doublemax)
-    #     f = self.constructor("TestFloat", Write)
-    #     f.write_double(x0, "FileIOTestBase/TestFloat")
-    #     f.close()
-    #     f = self.constructor("TestFloat", Read)
-    #     x1 = f.read_double("FileIOTestBase/TestFloat")
-    #     f.close()
-    #     self.assertTrue(x1 == x0,
-    #                     "%s != %s in float test" % (x1, x0))
-    #     self.removeFile("TestFloat")
-    #     return
+    #---------------------------------------------------------------------------
+    # float
+    #---------------------------------------------------------------------------
+    def testFloat(self):
+        x0 = g.uniform(self.doublemin, self.doublemax)
+        f = self.constructor("TestFloat", Write)
+        f.write_double(x0, "FileIOTestBase/TestFloat")
+        f.close()
+        f = self.constructor("TestFloat", Read)
+        x1 = f.read_double("FileIOTestBase/TestFloat")
+        f.close()
+        self.assertTrue(x1 == x0,
+                        "%s != %s in float test" % (x1, x0))
+        self.removeFile("TestFloat")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # string
-    # #---------------------------------------------------------------------------
-    # def testString(self):
-    #     x0 = "abcdefg"
-    #     f = self.constructor("TestString", Write)
-    #     f.write_string(x0, "FileIOTestBase/TestString")
-    #     f.close()
-    #     f = self.constructor("TestString", Read)
-    #     x1 = f.read_string("FileIOTestBase/TestString")
-    #     f.close()
-    #     self.assertTrue(x1 == x0,
-    #                     "%s != %s in string test" % (x1, x0))
-    #     self.removeFile("TestString")
-    #     return
+    #---------------------------------------------------------------------------
+    # string
+    #---------------------------------------------------------------------------
+    def testString(self):
+        x0 = "abcdefg"
+        f = self.constructor("TestString", Write)
+        f.write_string(x0, "FileIOTestBase/TestString")
+        f.close()
+        f = self.constructor("TestString", Read)
+        x1 = f.read_string("FileIOTestBase/TestString")
+        f.close()
+        self.assertTrue(x1 == x0,
+                        "%s != %s in string test" % (x1, x0))
+        self.removeFile("TestString")
+        return
 
-    # #---------------------------------------------------------------------------
-    # # empty string
-    # #---------------------------------------------------------------------------
-    # def testEmptyString(self):
-    #     x0 = ""
-    #     f = self.constructor("TestEmptyString", Write)
-    #     f.write_string(x0, "FileIOTestBase/TestEmptyString")
-    #     f.close()
-    #     f = self.constructor("TestEmptyString", Read)
-    #     x1 = f.read_string("FileIOTestBase/TestEmptyString")
-    #     f.close()
-    #     self.assertTrue(x1 == x0,
-    #                     "%s != %s in empty string test" % (x1, x0))
-    #     self.removeFile("TestEmptyString")
-    #     return
+    #---------------------------------------------------------------------------
+    # empty string
+    #---------------------------------------------------------------------------
+    def testEmptyString(self):
+        x0 = ""
+        f = self.constructor("TestEmptyString", Write)
+        f.write_string(x0, "FileIOTestBase/TestEmptyString")
+        f.close()
+        f = self.constructor("TestEmptyString", Read)
+        x1 = f.read_string("FileIOTestBase/TestEmptyString")
+        f.close()
+        self.assertTrue(x1 == x0,
+                        "%s != %s in empty string test" % (x1, x0))
+        self.removeFile("TestEmptyString")
+        return
 
     # #---------------------------------------------------------------------------
     # # Vector1d

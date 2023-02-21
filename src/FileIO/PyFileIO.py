@@ -28,3 +28,24 @@ class PyFileIO(FileIO):
     #---------------------------------------------------------------------------
     def read(self, path):
         return self.read_object(path)
+
+    #---------------------------------------------------------------------------
+    # read primitive types we can't return by reference
+    #---------------------------------------------------------------------------
+    def read_unsigned_int(self, path):
+        return self.read_object(path)
+        
+    def read_size_t(self, path):
+        return self.read_object(path)
+        
+    def read_int(self, path):
+        return self.read_object(path)
+        
+    def read_bool(self, path):
+        return self.read_object(path)
+        
+    def read_double(self, path):
+        return self.read_object(path)
+        
+    def read_string(self, path):
+        return self.read_object(path)

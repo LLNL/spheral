@@ -67,9 +67,9 @@ class GzipFileIO(PyFileIO):
                     assert i < len(line)
                     lastKey = str(line[1:i+1], self.encoding)
                     if line[-1:] == self.terminator:
-                        self.lines[lastKey] = line[i+1:-1]
+                        self.lines[lastKey] = line[i+2:-1]
                     else:
-                        self.lines[lastKey] = line[i+1:]
+                        self.lines[lastKey] = line[i+2:]
                 else:
                     # This line must be a continuation of the previous one, so just add it to that data
                     assert not lastKey is None
@@ -121,6 +121,7 @@ class GzipFileIO(PyFileIO):
     def findPath(self, pathName):
         if not pathName in self.lines:
             raise(ValueError, "GzipFileIO unknown key: " + pathName)
+        #print("findPath: ", pathName, self.lines[pathName])
         return self.lines[pathName]
 
     #---------------------------------------------------------------------------
@@ -140,6 +141,8 @@ class GzipFileIO(PyFileIO):
     # write_bytes
     #---------------------------------------------------------------------------
     def write_bytes(self, val, pathName):
+        #print("write_bytes: ", pathName)
+        #print("write_bytes: ", val)
         self.f.write(self.terminator +
                      bytes(pathName, self.encoding) + self.terminator + 
                      val + self.terminator)
