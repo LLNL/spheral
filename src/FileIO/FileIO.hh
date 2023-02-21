@@ -17,7 +17,7 @@
 
 #ifndef CXXONLY
 #include "pybind11/pybind11.h"
-#define DLL_PUBLIC __attribute__ ((visibility("default")))
+#include "Utilities/SPHERAL_DLL_EXPORT.hh"
 #endif
 
 namespace Spheral {
@@ -398,12 +398,12 @@ public:
 
 #ifndef CXXONLY
   // PyObjects for Python
-  DLL_PUBLIC virtual void write_object(pybind11::object thing, const std::string& pathName);
-  DLL_PUBLIC virtual pybind11::object read_object(const std::string& pathName) const;
+  SPHERAL_DLL_PUBLIC virtual void write_object(pybind11::object thing, const std::string& pathName);
+  SPHERAL_DLL_PUBLIC virtual pybind11::object read_object(const std::string& pathName) const;
 
   // pybind11::bytes
-  DLL_PUBLIC virtual void write_bytes(pybind11::bytes thing, const std::string& pathName);
-  DLL_PUBLIC virtual pybind11::bytes read_bytes(const std::string& pathName) const;
+  SPHERAL_DLL_PUBLIC virtual void write_bytes(pybind11::bytes thing, const std::string& pathName);
+  SPHERAL_DLL_PUBLIC virtual pybind11::bytes read_bytes(const std::string& pathName) const;
 #endif
 
 protected:
