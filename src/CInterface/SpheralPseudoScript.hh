@@ -95,7 +95,8 @@ public:
                           const double*  yieldStrength,
                           const double*  plasticStrain,
                           const double*  scalarDamage,
-                          const int*     particleType);
+                          const int*     particleType,
+                          const int*     regionNumber);
 
   // initializeBoundariesAndPhysics
   // Called once at problem startup, but after:

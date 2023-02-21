@@ -16,6 +16,14 @@ Notable changes include:
     * ATS default filters for non-MPI, debug and CUDA builds are injected into spheral-atstest script.
     * Latest Develop docker containers hosted on ghcr.io/llnl/spheral:latest
     * External / offline builds are tested through github actions.
+    * New polyhedral gravity solver
+    * Improved DEM timestep choice, so that points that do not overlap do not overly constrain the timestep
+    * Point potential gravity solver can now have non-unit metrics
+    * Pair-max damage algorithm now decouples points in different NodeLists or with different fragmentIDs
+    * Added direct support for FacetedVolumes to FileIO interface
+    * ANEOS now allows shallow copies to be made
+    * Polyhedron contain method can now optionally use Axom methods to test for containment
+    * Adding user specified functions for shear modulus and yield strength as a function of damage    
 
   * Build changes / improvements:
     * The C++ library interface is compiled into a single Spheral_CXX library. 
@@ -24,12 +32,19 @@ Notable changes include:
     * Eigen bumped to 3.4.0 for NVCC compatiblity.
     * C++ flag suppression is gaurded with build time CMake generators to only apply to C++ compilers.
     * Python runtime libraries are now managed through Spack / tpl-manager.
+    * Added ENABLE_NAN_EXCEPTIONS (default OFF) Cmake flag to raise an exception when a NAN occurs (Gnu only)
+    * Byte-compiling python installed in virtual spheral environment
+    * Invoking spheral no longer byte-compiles Python imported in a spheral script
 
   * Bug Fixes / improvements:
     * spheral-atstest scripts always point to locally installed ATS instance.
     * gitlab-ci report-results script for analyzing ATS CI runs.
     * Support for offline Spheral builds (provided TPLs are installed).
-
+    * Fixes for restarting without regenerating the original node positions in the Python script
+    * Protected from division by zero in DEM when points coincide
+    * Corrected support for minimum pressure (intact and damaged) with porous materials
+    * Removed term driving damaged material to the reference density in solid hydros
+    * Added verbose flag to EquationOfState::specificThermalEnergyForPressure so users can see how the iterative search proceeds
 
 Version v2022.06.1 -- Release date 2022-06-24
 =============================================

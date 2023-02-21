@@ -110,11 +110,6 @@ public:
   void epsVapor(double x);
   void atomicWeight(double x);
   
-  // If requested, the user can specify an external pressure to be applied
-  // in the pressure calculation.
-  double externalPressure() const;
-  void externalPressure(double x);
-
   // Compute the derivative of the pressure with respect to the density.
   double computeDPDrho(const Scalar massDensity,
                        const Scalar specificThermalEnergy) const;
@@ -161,7 +156,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   double mEtaMinSolid, mEtaMaxSolid,
          ma, mb, mA, mB, malpha, mbeta, meps0, mepsLiquid, mepsVapor,
-         mAtomicWeight, mCv, mGamma, mExternalPressure;
+         mAtomicWeight, mCv, mGamma;
 
   // Disallow default constructor
   TillotsonEquationOfState();

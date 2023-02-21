@@ -342,24 +342,32 @@ bool
 GeomPolyhedron::
 contains(const GeomPolyhedron::Vector& point,
          const bool countBoundary,
-         const double tol) const {
-  if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
-  if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
-  if (mConvex) {
-    return this->convexContains(point, countBoundary, tol);
-  } else {
-    return pointInPolyhedron(point, *this, countBoundary, tol);
-  }
+         const double tol,
+         const bool useAxom) const {
+  if (useAxom) {
 
-  // Experimental version using Axom
-  // using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
-  // if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
-  // const auto inside = mSurfaceMeshQueryPtr->within(AxPoint(&const_cast<Vector&>(point)[0]));
-  // if (not inside and countBoundary) {
-  //   return this->distance(point) < tol;
-  // } else {
-  //   return inside;
-  // }
+    // Experimental version using Axom
+    using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
+    if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
+    const auto inside = mSurfaceMeshQueryPtr->within(AxPoint(&const_cast<Vector&>(point)[0]));
+    if (not inside and countBoundary) {
+      return this->distance(point) < tol;
+    } else {
+      return inside;
+    }
+
+  } else {
+
+    // Our old internal methods
+    if (not testPointInBox(point, mXmin, mXmax, tol)) return false;
+    if ((point - mCentroid).magnitude2() < mRinterior2 - tol) return true;
+    if (mConvex) {
+      return this->convexContains(point, countBoundary, tol);
+    } else {
+      return pointInPolyhedron(point, *this, countBoundary, tol);
+    }
+
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -733,13 +741,23 @@ closestFacet(const GeomPolyhedron::Vector& p) const {
 //------------------------------------------------------------------------------
 double
 GeomPolyhedron::
-distance(const GeomPolyhedron::Vector& p) const {
-  return (p - this->closestPoint(p)).magnitude();
+distance(const GeomPolyhedron::Vector& p,
+         const bool useAxom) const {
 
-  // Experimental version using Axom
-  // using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
-  // if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
-  // return std::abs(mSignedDistancePtr->computeDistance(AxPoint(&const_cast<Vector&>(p)[0])));
+  if (useAxom) {
+
+    // Experimental version using Axom
+    using AxPoint = axom::quest::InOutOctree<3>::SpacePt;
+    if (mSurfaceMeshPtr == nullptr) this->buildAxomData();
+    return std::abs(mSignedDistancePtr->computeDistance(AxPoint(&const_cast<Vector&>(p)[0])));
+
+  } else {
+    
+    // Not signed currently
+    const auto d = p - this->closestPoint(p);
+    return d.magnitude();
+
+  }
 }
 
 //------------------------------------------------------------------------------

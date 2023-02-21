@@ -13,21 +13,21 @@ namespace Spheral
 // Specialize to read/write a std::string/std::vector type
 //------------------------------------------------------------------------------
 template <typename DataType>
-void sidreWriteVec(std::shared_ptr<axom::sidre::DataStore> dataStorePtr, const DataType& value, const std::string& path)
+void sidreWriteVec(axom::sidre::Group* grp, const DataType& value, const std::string& path)
 {
   axom::sidre::DataTypeId dtype = DataTypeTraits<DataType>::axomTypeID();
-  axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
+  axom::sidre::Buffer* buff = grp->getDataStore()->createBuffer()
                                            ->allocate(dtype, value.size())
                                            ->copyBytesIntoBuffer((void*)value.data(), sizeof(typename DataType::value_type) * (value.size()));
-  dataStorePtr->getRoot()->createView(path, dtype, value.size(), buff);
+  grp->createView(path, dtype, value.size(), buff);
 }
 
 template <typename DataType>
-void sidreReadVec(std::shared_ptr<axom::sidre::DataStore> dataStorePtr, DataType& value, const std::string& path)
+void sidreReadVec(axom::sidre::Group* grp, DataType& value, const std::string& path)
 {
-  int size = dataStorePtr->getRoot()->getView(path)->getNumElements();
+  int size = grp->getView(path)->getNumElements();
   value.resize(size);
-  typename DataType::value_type* data = dataStorePtr->getRoot()->getView(path)->getArray();
+  typename DataType::value_type* data = grp->getView(path)->getArray();
   value.assign(data, data + size);
 }
 
@@ -35,19 +35,19 @@ void sidreReadVec(std::shared_ptr<axom::sidre::DataStore> dataStorePtr, DataType
 // Specialize to read/write a Geometric type
 //------------------------------------------------------------------------------
 template <typename DataType>
-void sidreWriteGeom(std::shared_ptr<axom::sidre::DataStore> dataStorePtr, const DataType& value, const std::string& path)
+void sidreWriteGeom(axom::sidre::Group* grp, const DataType& value, const std::string& path)
 {
   int size = int(DataType::numElements);
-  axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
+  axom::sidre::Buffer* buff = grp->getDataStore()->createBuffer()
                                           ->allocate(axom::sidre::DOUBLE_ID, size)
                                           ->copyBytesIntoBuffer((void*)value.begin(), sizeof(double) * (size));
-  dataStorePtr->getRoot()->createView(path, axom::sidre::DOUBLE_ID, size, buff);
+  grp->createView(path, axom::sidre::DOUBLE_ID, size, buff);
 }
 
 template <typename DataType>
-void sidreReadGeom(std::shared_ptr<axom::sidre::DataStore> dataStorePtr, DataType& value, const std::string& path)
+void sidreReadGeom(axom::sidre::Group* grp, DataType& value, const std::string& path)
 {
-  double* data = dataStorePtr->getRoot()->getView(path)->getArray();
+  double* data = grp->getView(path)->getArray();
   for (int i = 0; i < int(DataType::numElements); ++i)
     value[i] = data[i];
 }
@@ -57,27 +57,27 @@ void sidreReadGeom(std::shared_ptr<axom::sidre::DataStore> dataStorePtr, DataTyp
 template <typename Dimension, typename DataType,
           typename std::enable_if<std::is_arithmetic<DataType>::value,
                                   DataType>::type* = nullptr>
-void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
+void sidreWriteField(axom::sidre::Group* grp,
                      const Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
   int size = field.numInternalElements();
   axom::sidre::DataTypeId dtype = field.getAxomTypeID();
-  axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
+  axom::sidre::Buffer* buff = grp->getDataStore()->createBuffer()
                                           ->allocate(dtype, size)
                                           ->copyBytesIntoBuffer((void*)&field[0], sizeof(DataType) * (size));
-  dataStorePtr->getRoot()->createView(path, dtype, size, buff);
+  grp->createView(path, dtype, size, buff);
 }
 
 template <typename Dimension, typename DataType,
           typename std::enable_if<std::is_arithmetic<DataType>::value,
                                   DataType>::type* = nullptr>
-void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
+void sidreReadField(axom::sidre::Group* grp,
                      Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
-  DataType* data = dataStorePtr->getRoot()->getView(path)->getArray();
-  for (int i = 0; i < dataStorePtr->getRoot()->getView(path)->getNumElements(); ++i)
+  DataType* data = grp->getView(path)->getArray();
+  for (int i = 0; i < grp->getView(path)->getNumElements(); ++i)
     field[i] = data[i];
 }
 
@@ -87,7 +87,7 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
 template <typename Dimension, typename DataType,
           typename std::enable_if<!std::is_arithmetic<DataType>::value,
                                   DataType>::type* = nullptr>
-void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
+void sidreWriteField(axom::sidre::Group* grp,
                      const Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
@@ -98,22 +98,22 @@ void sidreWriteField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
   for (int i = 0; i < size; ++i)
     std::copy(field(i).begin(), field(i).end(), &fieldData[i * DataType::numElements]);
 
-  axom::sidre::Buffer* buff = dataStorePtr->createBuffer()
+  axom::sidre::Buffer* buff = grp->getDataStore()->createBuffer()
                                           ->allocate(dtype, size * DataType::numElements)
                                           ->copyBytesIntoBuffer((void*)fieldData.data(), sizeof(double) * (size * DataType::numElements));
-  dataStorePtr->getRoot()->createView(path, dtype, size * DataType::numElements, buff);
+  grp->createView(path, dtype, size * DataType::numElements, buff);
 }
 
 template <typename Dimension, typename DataType,
           typename std::enable_if<!std::is_arithmetic<DataType>::value,
                                   DataType>::type* = nullptr>
-void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
+void sidreReadField(axom::sidre::Group* grp,
                      Spheral::Field<Dimension, DataType>& field,
                      const std::string& path)
 {
-  double* data = dataStorePtr->getRoot()->getView(path)->getArray();
+  double* data = grp->getView(path)->getArray();
 
-  for (int i = 0; i < (dataStorePtr->getRoot()->getView(path)->getNumElements() / (DataType::numElements)); ++i)
+  for (int i = 0; i < (grp->getView(path)->getNumElements() / (DataType::numElements)); ++i)
     for (int j = 0; j < int(DataType::numElements); ++j)
       field[i][j] = data[(i * (DataType::numElements)) + j];
 }
@@ -122,15 +122,15 @@ void sidreReadField(std::shared_ptr<axom::sidre::DataStore> dataStorePtr,
 // Empty constructor.
 //------------------------------------------------------------------------------
 SidreFileIO::SidreFileIO():
-  FileIO(),
-  mDataStorePtr(0) {}
+    FileIO()
+  {
+  }
 
 //------------------------------------------------------------------------------
 // Construct and open the given file.
 //------------------------------------------------------------------------------
 SidreFileIO::SidreFileIO(const std::string fileName, AccessType access):
-  FileIO(fileName, access),
-  mDataStorePtr(0)
+  FileIO(fileName, access)
 {
   open(fileName, access);
   ENSURE(mFileOpen && mDataStorePtr != 0);
@@ -140,8 +140,7 @@ SidreFileIO::SidreFileIO(const std::string fileName, AccessType access):
 // Construct and open the given file and set number of restart files
 //------------------------------------------------------------------------------
 SidreFileIO::SidreFileIO(const std::string fileName, AccessType access, int numFiles):
-  FileIO(fileName, access),
-  mDataStorePtr(0)
+  FileIO(fileName, access)
 {
   open(fileName, access);
   ENSURE(mFileOpen && mDataStorePtr != 0);
@@ -164,17 +163,18 @@ void SidreFileIO::open(const std::string fileName, AccessType access)
 {
   VERIFY2(mDataStorePtr == 0 and mFileOpen == false,
           "ERROR: attempt to reopen SidreFileIO object.");
-          
-  mDataStorePtr = std::make_shared<axom::sidre::DataStore>();
+
+  mDataStorePtr = std::make_unique<axom::sidre::DataStore>();
+  baseGroup = mDataStorePtr->getRoot();
   mFileName = fileName;
 
   if (access == AccessType::Read)
   {
 #ifdef USE_MPI
     axom::sidre::IOManager reader(Communicator::communicator());
-    reader.read(mDataStorePtr->getRoot(), fileName + ".root");
+    reader.read(baseGroup, fileName + ".root");
 #else
-    mDataStorePtr->getRoot()->load(fileName);
+    baseGroup->load(fileName);
 #endif // USE_MPI
   }
 
@@ -191,13 +191,18 @@ void SidreFileIO::close()
   {
 #ifdef USE_MPI
     axom::sidre::IOManager writer(Communicator::communicator());
-    writer.write(mDataStorePtr->getRoot(), numRestartFiles, mFileName, "sidre_hdf5");
+    writer.write(baseGroup, numRestartFiles, mFileName, "sidre_hdf5");
 #else
-    mDataStorePtr->getRoot()->save(mFileName);
+    baseGroup->save(mFileName);
 #endif // USE_MPI
     mDataStorePtr.reset();
   }
   mFileOpen = false;
+}
+
+void SidreFileIO::setGroup(axom::sidre::Group* group)
+{
+  baseGroup = group;
 }
 
 //------------------------------------------------------------------------------
@@ -205,7 +210,7 @@ void SidreFileIO::close()
 //------------------------------------------------------------------------------
 bool SidreFileIO::pathExists(const std::string pathName) const
 {
-  return mDataStorePtr->getRoot()->hasView(pathName);
+  return baseGroup->hasView(pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -213,7 +218,7 @@ bool SidreFileIO::pathExists(const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const unsigned& value, const std::string pathName)
 {
-  mDataStorePtr->getRoot()->createViewScalar(pathName, value);
+  baseGroup->createViewScalar(pathName, value);
 }
 
 //------------------------------------------------------------------------------
@@ -221,7 +226,7 @@ void SidreFileIO::write(const unsigned& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const size_t& value, const std::string pathName)
 {
-  mDataStorePtr->getRoot()->createViewScalar(pathName, value);
+  baseGroup->createViewScalar(pathName, value);
 }
 
 //------------------------------------------------------------------------------
@@ -229,7 +234,7 @@ void SidreFileIO::write(const size_t& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const int& value, const std::string pathName)
 {
-  mDataStorePtr->getRoot()->createViewScalar(pathName, value);
+  baseGroup->createViewScalar(pathName, value);
 }
 
 // ------------------------------------------------------------------------------
@@ -237,7 +242,7 @@ void SidreFileIO::write(const int& value, const std::string pathName)
 // ------------------------------------------------------------------------------
 void SidreFileIO::write(const bool& value, const std::string pathName)
 {
-  mDataStorePtr->getRoot()->createViewScalar(pathName, (int)value);
+  baseGroup->createViewScalar(pathName, (int)value);
 }
 
 //------------------------------------------------------------------------------
@@ -245,7 +250,7 @@ void SidreFileIO::write(const bool& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const double& value, const std::string pathName)
 {
-  mDataStorePtr->getRoot()->createViewScalar(pathName, value);
+  baseGroup->createViewScalar(pathName, value);
 }
 
 //------------------------------------------------------------------------------
@@ -253,8 +258,8 @@ void SidreFileIO::write(const double& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::string& value, const std::string pathName)
 {
-  // mDataStorePtr->getRoot()->createViewString(pathName, value);
-  sidreWriteVec(mDataStorePtr, value, pathName);
+  // baseGroup->createViewString(pathName, value);
+  sidreWriteVec(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -262,7 +267,7 @@ void SidreFileIO::write(const std::string& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::vector<int>& value, const std::string pathName)
 {
-  sidreWriteVec(mDataStorePtr, value, pathName);
+  sidreWriteVec(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -270,7 +275,7 @@ void SidreFileIO::write(const std::vector<int>& value, const std::string pathNam
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::vector<double>& value, const std::string pathName)
 {
-  sidreWriteVec(mDataStorePtr, value, pathName);
+  sidreWriteVec(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -279,7 +284,7 @@ void SidreFileIO::write(const std::vector<double>& value, const std::string path
 void SidreFileIO::write(const std::vector<std::string>& value, const std::string pathName)
 {
   axom::Path myPath = axom::Path(pathName);
-  axom::sidre::Group* wholeField = mDataStorePtr->getRoot()->createGroup(myPath.dirName());
+  axom::sidre::Group* wholeField = baseGroup->createGroup(myPath.dirName());
 
   for (u_int i = 0; i < value.size(); ++i)
     wholeField->createViewString(myPath.baseName() + std::to_string(i), value[i]);
@@ -290,7 +295,7 @@ void SidreFileIO::write(const std::vector<std::string>& value, const std::string
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Dim<1>::Vector& value, const std::string pathName)
 {
-  sidreWriteGeom(mDataStorePtr, value, pathName);
+  sidreWriteGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -298,7 +303,7 @@ void SidreFileIO::write(const Dim<1>::Vector& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Dim<1>::Tensor& value, const std::string pathName)
 {
-  sidreWriteGeom(mDataStorePtr, value, pathName);
+  sidreWriteGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -306,7 +311,7 @@ void SidreFileIO::write(const Dim<1>::Tensor& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Dim<1>::SymTensor& value, const std::string pathName)
 {
-  sidreWriteGeom(mDataStorePtr, value, pathName);
+  sidreWriteGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -314,7 +319,7 @@ void SidreFileIO::write(const Dim<1>::SymTensor& value, const std::string pathNa
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Dim<1>::ThirdRankTensor& value, const std::string pathName)
 {
-  sidreWriteGeom(mDataStorePtr, value, pathName);
+  sidreWriteGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -322,7 +327,7 @@ void SidreFileIO::write(const Dim<1>::ThirdRankTensor& value, const std::string 
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Dim<2>::Vector& value, const std::string pathName)
 {
-  sidreWriteGeom(mDataStorePtr, value, pathName);
+  sidreWriteGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -330,7 +335,7 @@ void SidreFileIO::write(const Dim<2>::Vector& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Dim<2>::Tensor& value, const std::string pathName)
 {
-  sidreWriteGeom(mDataStorePtr, value, pathName);
+  sidreWriteGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -338,7 +343,7 @@ void SidreFileIO::write(const Dim<2>::Tensor& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Dim<2>::SymTensor& value, const std::string pathName)
 {
-  sidreWriteGeom(mDataStorePtr, value, pathName);
+  sidreWriteGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -346,7 +351,7 @@ void SidreFileIO::write(const Dim<2>::SymTensor& value, const std::string pathNa
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Dim<2>::ThirdRankTensor& value, const std::string pathName)
 {
-  sidreWriteGeom(mDataStorePtr, value, pathName);
+  sidreWriteGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -354,7 +359,7 @@ void SidreFileIO::write(const Dim<2>::ThirdRankTensor& value, const std::string 
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Dim<3>::Vector& value, const std::string pathName)
 {
-  sidreWriteGeom(mDataStorePtr, value, pathName);
+  sidreWriteGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -362,7 +367,7 @@ void SidreFileIO::write(const Dim<3>::Vector& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Dim<3>::Tensor& value, const std::string pathName)
 {
-  sidreWriteGeom(mDataStorePtr, value, pathName);
+  sidreWriteGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -370,7 +375,7 @@ void SidreFileIO::write(const Dim<3>::Tensor& value, const std::string pathName)
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Dim<3>::SymTensor& value, const std::string pathName)
 {
-  sidreWriteGeom(mDataStorePtr, value, pathName);
+  sidreWriteGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -378,7 +383,7 @@ void SidreFileIO::write(const Dim<3>::SymTensor& value, const std::string pathNa
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Dim<3>::ThirdRankTensor& value, const std::string pathName)
 {
-  sidreWriteGeom(mDataStorePtr, value, pathName);
+  sidreWriteGeom(baseGroup, value, pathName);
 }
 
 
@@ -387,7 +392,7 @@ void SidreFileIO::write(const Dim<3>::ThirdRankTensor& value, const std::string 
 // ------------------------------------------------------------------------------
 void SidreFileIO::read(unsigned& value, const std::string pathName) const
 {
-  value = mDataStorePtr->getRoot()->getView(pathName)->getScalar();
+  value = baseGroup->getView(pathName)->getScalar();
 }
 
 //------------------------------------------------------------------------------
@@ -395,7 +400,7 @@ void SidreFileIO::read(unsigned& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(size_t& value, const std::string pathName) const
 {
-  value = mDataStorePtr->getRoot()->getView(pathName)->getScalar();
+  value = baseGroup->getView(pathName)->getScalar();
 }
 
 //------------------------------------------------------------------------------
@@ -403,7 +408,7 @@ void SidreFileIO::read(size_t& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(int& value, const std::string pathName) const
 {
-  value = mDataStorePtr->getRoot()->getView(pathName)->getScalar();
+  value = baseGroup->getView(pathName)->getScalar();
 }
 
 //------------------------------------------------------------------------------
@@ -411,7 +416,7 @@ void SidreFileIO::read(int& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(bool& value, const std::string pathName) const
 {
-  value = (int)mDataStorePtr->getRoot()->getView(pathName)->getScalar();
+  value = (int)baseGroup->getView(pathName)->getScalar();
 }
 
 //------------------------------------------------------------------------------
@@ -419,7 +424,7 @@ void SidreFileIO::read(bool& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(double& value, const std::string pathName) const
 {
-  value = mDataStorePtr->getRoot()->getView(pathName)->getScalar();
+  value = baseGroup->getView(pathName)->getScalar();
 }
 
 //------------------------------------------------------------------------------
@@ -427,8 +432,8 @@ void SidreFileIO::read(double& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::string& value, const std::string pathName) const
 {
-  // value = mDataStorePtr->getRoot()->getView(pathName)->getString();
-  sidreReadVec(mDataStorePtr, value, pathName);
+  // value = baseGroup->getView(pathName)->getString();
+  sidreReadVec(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -436,7 +441,7 @@ void SidreFileIO::read(std::string& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::vector<int>& value, const std::string pathName) const
 {
-  sidreReadVec(mDataStorePtr, value, pathName);
+  sidreReadVec(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -444,7 +449,7 @@ void SidreFileIO::read(std::vector<int>& value, const std::string pathName) cons
 //------------------------------------------------------------------------------
 void SidreFileIO::read(std::vector<double>& value, const std::string pathName) const
 {
-  sidreReadVec(mDataStorePtr, value, pathName);
+  sidreReadVec(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -453,7 +458,7 @@ void SidreFileIO::read(std::vector<double>& value, const std::string pathName) c
 void SidreFileIO::read(vector<std::string>& value, const std::string pathName) const
 {
   axom::Path myPath = axom::Path(pathName);
-  axom::sidre::Group* group = mDataStorePtr->getRoot()->getGroup(myPath.dirName());
+  axom::sidre::Group* group = baseGroup->getGroup(myPath.dirName());
   int size = group->getNumViews();
   value.resize(size);
 
@@ -466,7 +471,7 @@ void SidreFileIO::read(vector<std::string>& value, const std::string pathName) c
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<1>::Vector& value, const std::string pathName) const
 {
-  sidreReadGeom(mDataStorePtr, value, pathName);
+  sidreReadGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -474,7 +479,7 @@ void SidreFileIO::read(Dim<1>::Vector& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<1>::Tensor& value, const std::string pathName) const
 {
-  sidreReadGeom(mDataStorePtr, value, pathName);
+  sidreReadGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -482,7 +487,7 @@ void SidreFileIO::read(Dim<1>::Tensor& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<1>::SymTensor& value, const std::string pathName) const
 {
-  sidreReadGeom(mDataStorePtr, value, pathName);
+  sidreReadGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -490,7 +495,7 @@ void SidreFileIO::read(Dim<1>::SymTensor& value, const std::string pathName) con
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<1>::ThirdRankTensor& value, const std::string pathName) const
 {
-  sidreReadGeom(mDataStorePtr, value, pathName);
+  sidreReadGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -498,7 +503,7 @@ void SidreFileIO::read(Dim<1>::ThirdRankTensor& value, const std::string pathNam
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<2>::Vector& value, const std::string pathName) const
 {
-  sidreReadGeom(mDataStorePtr, value, pathName);
+  sidreReadGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -506,7 +511,7 @@ void SidreFileIO::read(Dim<2>::Vector& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<2>::Tensor& value, const std::string pathName) const
 {
-  sidreReadGeom(mDataStorePtr, value, pathName);
+  sidreReadGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -514,7 +519,7 @@ void SidreFileIO::read(Dim<2>::Tensor& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<2>::SymTensor& value, const std::string pathName) const
 {
-  sidreReadGeom(mDataStorePtr, value, pathName);
+  sidreReadGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -522,7 +527,7 @@ void SidreFileIO::read(Dim<2>::SymTensor& value, const std::string pathName) con
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<2>::ThirdRankTensor& value, const std::string pathName) const
 {
-  sidreReadGeom(mDataStorePtr, value, pathName);
+  sidreReadGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -530,7 +535,7 @@ void SidreFileIO::read(Dim<2>::ThirdRankTensor& value, const std::string pathNam
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<3>::Vector& value, const std::string pathName) const
 {
-  sidreReadGeom(mDataStorePtr, value, pathName);
+  sidreReadGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -538,7 +543,7 @@ void SidreFileIO::read(Dim<3>::Vector& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<3>::Tensor& value, const std::string pathName) const
 {
-  sidreReadGeom(mDataStorePtr, value, pathName);
+  sidreReadGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -546,7 +551,7 @@ void SidreFileIO::read(Dim<3>::Tensor& value, const std::string pathName) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<3>::SymTensor& value, const std::string pathName) const
 {
-  sidreReadGeom(mDataStorePtr, value, pathName);
+  sidreReadGeom(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -554,7 +559,7 @@ void SidreFileIO::read(Dim<3>::SymTensor& value, const std::string pathName) con
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Dim<3>::ThirdRankTensor& value, const std::string pathName) const
 {
-  sidreReadGeom(mDataStorePtr, value, pathName);
+  sidreReadGeom(baseGroup, value, pathName);
 }
 
 #ifdef SPHERAL1D
@@ -563,7 +568,7 @@ void SidreFileIO::read(Dim<3>::ThirdRankTensor& value, const std::string pathNam
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<1>, Dim<1>::Scalar>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -571,7 +576,7 @@ void SidreFileIO::write(const Field<Dim<1>, Dim<1>::Scalar>& value, const std::s
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<1>, Dim<1>::Vector>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -579,7 +584,7 @@ void SidreFileIO::write(const Field<Dim<1>, Dim<1>::Vector>& value, const std::s
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<1>, Dim<1>::Tensor>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -587,7 +592,7 @@ void SidreFileIO::write(const Field<Dim<1>, Dim<1>::Tensor>& value, const std::s
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<1>, Dim<1>::SymTensor>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -595,7 +600,7 @@ void SidreFileIO::write(const Field<Dim<1>, Dim<1>::SymTensor>& value, const std
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -603,7 +608,7 @@ void SidreFileIO::write(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, con
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<1>, int>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -611,7 +616,7 @@ void SidreFileIO::write(const Field<Dim<1>, int>& value, const std::string pathN
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<1>, unsigned>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -619,7 +624,7 @@ void SidreFileIO::write(const Field<Dim<1>, unsigned>& value, const std::string 
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<1>, Dim<1>::Scalar>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -627,7 +632,7 @@ void SidreFileIO::read(Field<Dim<1>, Dim<1>::Scalar>& value, const std::string p
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<1>, Dim<1>::Vector>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -635,7 +640,7 @@ void SidreFileIO::read(Field<Dim<1>, Dim<1>::Vector>& value, const std::string p
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<1>, Dim<1>::Tensor>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -643,7 +648,7 @@ void SidreFileIO::read(Field<Dim<1>, Dim<1>::Tensor>& value, const std::string p
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<1>, Dim<1>::SymTensor>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -651,7 +656,7 @@ void SidreFileIO::read(Field<Dim<1>, Dim<1>::SymTensor>& value, const std::strin
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -659,7 +664,7 @@ void SidreFileIO::read(Field<Dim<1>, Dim<1>::ThirdRankTensor>& value, const std:
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<1>, int>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -667,7 +672,7 @@ void SidreFileIO::read(Field<Dim<1>, int>& value, const std::string pathName) co
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<1>, unsigned>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 #endif
 
@@ -677,7 +682,7 @@ void SidreFileIO::read(Field<Dim<1>, unsigned>& value, const std::string pathNam
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<2>, Dim<2>::Scalar>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -685,7 +690,7 @@ void SidreFileIO::write(const Field<Dim<2>, Dim<2>::Scalar>& value, const std::s
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<2>, Dim<2>::Vector>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -693,7 +698,7 @@ void SidreFileIO::write(const Field<Dim<2>, Dim<2>::Vector>& value, const std::s
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<2>, Dim<2>::Tensor>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -701,7 +706,7 @@ void SidreFileIO::write(const Field<Dim<2>, Dim<2>::Tensor>& value, const std::s
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -709,7 +714,7 @@ void SidreFileIO::write(const Field<Dim<2>, Dim<2>::SymTensor>& value, const std
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -717,7 +722,7 @@ void SidreFileIO::write(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, con
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<2>, int>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -725,7 +730,7 @@ void SidreFileIO::write(const Field<Dim<2>, int>& value, const std::string pathN
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<2>, unsigned>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -733,7 +738,7 @@ void SidreFileIO::write(const Field<Dim<2>, unsigned>& value, const std::string 
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<2>, Dim<2>::Scalar>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -741,7 +746,7 @@ void SidreFileIO::read(Field<Dim<2>, Dim<2>::Scalar>& value, const std::string p
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<2>, Dim<2>::Vector>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -749,7 +754,7 @@ void SidreFileIO::read(Field<Dim<2>, Dim<2>::Vector>& value, const std::string p
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<2>, Dim<2>::Tensor>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -757,7 +762,7 @@ void SidreFileIO::read(Field<Dim<2>, Dim<2>::Tensor>& value, const std::string p
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<2>, Dim<2>::SymTensor>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -765,7 +770,7 @@ void SidreFileIO::read(Field<Dim<2>, Dim<2>::SymTensor>& value, const std::strin
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -773,7 +778,7 @@ void SidreFileIO::read(Field<Dim<2>, Dim<2>::ThirdRankTensor>& value, const std:
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<2>, int>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -781,7 +786,7 @@ void SidreFileIO::read(Field<Dim<2>, int>& value, const std::string pathName) co
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<2>, unsigned>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 #endif
 
@@ -791,7 +796,7 @@ void SidreFileIO::read(Field<Dim<2>, unsigned>& value, const std::string pathNam
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<3>, Dim<3>::Scalar>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -799,7 +804,7 @@ void SidreFileIO::write(const Field<Dim<3>, Dim<3>::Scalar>& value, const std::s
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<3>, Dim<3>::Vector>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -807,7 +812,7 @@ void SidreFileIO::write(const Field<Dim<3>, Dim<3>::Vector>& value, const std::s
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<3>, Dim<3>::Tensor>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -815,7 +820,7 @@ void SidreFileIO::write(const Field<Dim<3>, Dim<3>::Tensor>& value, const std::s
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -823,7 +828,7 @@ void SidreFileIO::write(const Field<Dim<3>, Dim<3>::SymTensor>& value, const std
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -831,7 +836,7 @@ void SidreFileIO::write(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, con
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<3>, int>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -839,7 +844,7 @@ void SidreFileIO::write(const Field<Dim<3>, int>& value, const std::string pathN
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const Field<Dim<3>, unsigned>& value, const std::string pathName)
 {
-  sidreWriteField(mDataStorePtr, value, pathName);
+  sidreWriteField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -847,7 +852,7 @@ void SidreFileIO::write(const Field<Dim<3>, unsigned>& value, const std::string 
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<3>, Dim<3>::Scalar>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -855,7 +860,7 @@ void SidreFileIO::read(Field<Dim<3>, Dim<3>::Scalar>& value, const std::string p
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<3>, Dim<3>::Vector>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -863,7 +868,7 @@ void SidreFileIO::read(Field<Dim<3>, Dim<3>::Vector>& value, const std::string p
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<3>, Dim<3>::Tensor>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -871,7 +876,7 @@ void SidreFileIO::read(Field<Dim<3>, Dim<3>::Tensor>& value, const std::string p
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<3>, Dim<3>::SymTensor>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -879,7 +884,7 @@ void SidreFileIO::read(Field<Dim<3>, Dim<3>::SymTensor>& value, const std::strin
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -887,7 +892,7 @@ void SidreFileIO::read(Field<Dim<3>, Dim<3>::ThirdRankTensor>& value, const std:
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<3>, int>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 
 //------------------------------------------------------------------------------
@@ -895,7 +900,7 @@ void SidreFileIO::read(Field<Dim<3>, int>& value, const std::string pathName) co
 //------------------------------------------------------------------------------
 void SidreFileIO::read(Field<Dim<3>, unsigned>& value, const std::string pathName) const
 {
-  sidreReadField(mDataStorePtr, value, pathName);
+  sidreReadField(baseGroup, value, pathName);
 }
 #endif
 

@@ -19,7 +19,8 @@ class EquationOfState:
                constants = "const PhysicalConstants&",
                minimumPressure = "const double",
                maximumPressure = "const double",
-               minPressureType = "const MaterialPressureMinType"):
+               minPressureType = "const MaterialPressureMinType",
+               externalPressure = ("const double", "0.0")):
         "EOS base constructor"
 
     #...........................................................................
@@ -33,7 +34,8 @@ class EquationOfState:
                                          epsMax = "const Scalar",
                                          epsTol = "const Scalar",
                                          Ptol = "const Scalar",
-                                         maxIterations = ("const unsigned", "100")):
+                                         maxIterations = ("const unsigned", "100"),
+                                         verbose = ("const bool", "false")):
         return "Scalar"
 
     @PYB11virtual
@@ -55,6 +57,7 @@ class EquationOfState:
     minimumPressure = PYB11property("double", "minimumPressure", "minimumPressure", doc="The minimum allowed pressure")
     maximumPressure = PYB11property("double", "maximumPressure", "maximumPressure", doc="The maximum allowed pressure")
     minimumPressureType = PYB11property("MaterialPressureMinType", "minimumPressureType", "minimumPressureType", doc="The algorithm for enforcing the minimum pressure")
+    externalPressure = PYB11property("double", "externalPressure", "externalPressure")
     
 #-------------------------------------------------------------------------------
 # Add the virtual interface

@@ -54,7 +54,8 @@ TillotsonEquationOfState(const double referenceDensity,
                                   minimumPressure,
                                   maximumPressure,
                                   minimumPressureDamage,
-                                  minPressureType),
+                                  minPressureType,
+                                  externalPressure),
   mEtaMinSolid(etamin_solid),
   mEtaMaxSolid(etamax_solid),
   ma(a),
@@ -67,8 +68,7 @@ TillotsonEquationOfState(const double referenceDensity,
   mepsLiquid(epsLiquid),
   mepsVapor(epsVapor),
   mAtomicWeight(atomicWeight),
-  mCv(3.0 * constants.molarGasConstant() / atomicWeight),
-  mExternalPressure(externalPressure) {
+  mCv(3.0 * constants.molarGasConstant() / atomicWeight) {
   VERIFY(distinctlyGreaterThan(mAtomicWeight/constants.molarGasConstant(),0.0));
 }
 
@@ -260,7 +260,7 @@ pressure(const Scalar massDensity,
   }
 
   // That's it.
-  return this->applyPressureLimits(P - mExternalPressure);
+  return this->applyPressureLimits(P);
 }
 
 //------------------------------------------------------------------------------
