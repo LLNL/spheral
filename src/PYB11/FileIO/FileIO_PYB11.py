@@ -21,7 +21,6 @@ PYB11includes += ['"NodeList/NodeList.hh"',
                   '"FileIO/FlatFileIO.hh"',
                   '"FileIO/SidreFileIO.hh"',
                   '"FileIO/SiloFileIO.hh"',
-                  '"FileIO/PyFileIO.hh"',
                   '"FileIO/vectorstringUtilities.hh"']
 
 #-------------------------------------------------------------------------------
@@ -153,7 +152,6 @@ from FileIO import *
 from FlatFileIO import *
 from SidreFileIO import *
 from SiloFileIO import *
-from PyFileIO import *
 
 #-------------------------------------------------------------------------------
 # Module methods

@@ -4,7 +4,6 @@ set(FileIO_sources
     FlatFileIO.cc
     SidreFileIO.cc
     SiloFileIO.cc
-    PyFileIO.cc
     vectorstringUtilities.cc
     )
 
@@ -16,7 +15,6 @@ set(FileIO_headers
     HDF5IO.hh
     HDF5Traits.hh
     HDF5Types.hh
-    PyFileIO.hh
     SidreFileIO.hh
     SiloFileIO.hh
     vectorstringUtilities.hh
@@ -24,6 +22,7 @@ set(FileIO_headers
 
 spheral_install_python_files(
   GzipFileIO.py
+  PyFileIO.py
   PlyFileIO.py
   )
 

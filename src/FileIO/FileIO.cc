@@ -22,6 +22,10 @@ using std::min;
 using std::max;
 using std::abs;
 
+#ifndef CXXONLY
+namespace py = pybind11;
+#endif
+
 namespace Spheral {
 
 //------------------------------------------------------------------------------
@@ -272,5 +276,42 @@ bool
 FileIO::fileOpen() const {
   return mFileOpen;
 }
+
+#ifndef CXXONLY
+//------------------------------------------------------------------------------
+// Python objects (handle with pickle)
+//------------------------------------------------------------------------------
+void
+FileIO::write_object(py::object thing, const std::string& pathName) {
+  auto pickle = py::module_::import("pickle");
+  auto dumps = pickle.attr("dumps");
+  auto stuff = dumps(thing);
+  //std::cerr << "-- writeObject string size, bytes size: " << std::string(stuff).size() << " " << py::len(stuff) << std::endl;
+  this->write_bytes(stuff, pathName);
+}
+
+py::object
+FileIO::read_object(const std::string& pathName) const {
+  auto pickle = py::module_::import("pickle");
+  auto loads = pickle.attr("loads");
+  auto stuff = this->read_bytes(pathName);
+  return loads(stuff);
+}
+
+//------------------------------------------------------------------------------
+// Python bytes
+//------------------------------------------------------------------------------
+void
+FileIO::write_bytes(py::bytes stuff, const std::string& pathName) {
+  this->write(std::string(stuff), pathName);
+}
+
+py::bytes
+FileIO::read_bytes(const std::string& pathName) const {
+  std::string stuff;
+  this->read(stuff, pathName);
+  return py::bytes(stuff);
+}
+#endif
 
 }

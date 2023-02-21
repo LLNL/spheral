@@ -15,6 +15,11 @@
 #include <string>
 #include <sstream>
 
+#ifndef CXXONLY
+#include "pybind11/pybind11.h"
+#define DLL_PUBLIC __attribute__ ((visibility("default")))
+#endif
+
 namespace Spheral {
 
 template<typename Dimension> class GeomPlane;
@@ -390,6 +395,16 @@ public:
   const std::string& fileName() const;
   AccessType access() const;
   bool fileOpen() const;
+
+#ifndef CXXONLY
+  // PyObjects for Python
+  DLL_PUBLIC virtual void write_object(pybind11::object thing, const std::string& pathName);
+  DLL_PUBLIC virtual pybind11::object read_object(const std::string& pathName) const;
+
+  // pybind11::bytes
+  DLL_PUBLIC virtual void write_bytes(pybind11::bytes thing, const std::string& pathName);
+  DLL_PUBLIC virtual pybind11::bytes read_bytes(const std::string& pathName) const;
+#endif
 
 protected:
   //--------------------------- Protected Interface ---------------------------//

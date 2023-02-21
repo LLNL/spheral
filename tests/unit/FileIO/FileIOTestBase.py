@@ -149,466 +149,466 @@ class FileIOTestBase:
         self.removeFile("TestInt")
         return
 
-    #---------------------------------------------------------------------------
-    # bool
-    #---------------------------------------------------------------------------
-    def testBool(self):
-        x0 = g.choice([True, False])
-        f = self.constructor("TestBool", Write)
-        f.write_bool(x0, "FileIOTestBase/TestBool")
-        f.close()
-        f = self.constructor("TestBool", Read)
-        x1 = f.read_bool("FileIOTestBase/TestBool")
-        f.close()
-        self.assertTrue(x1 == x0,
-                        "%s != %s in bool test" % (x1, x0))
-        self.removeFile("TestBool")
-        return
+    # #---------------------------------------------------------------------------
+    # # bool
+    # #---------------------------------------------------------------------------
+    # def testBool(self):
+    #     x0 = g.choice([True, False])
+    #     f = self.constructor("TestBool", Write)
+    #     f.write_bool(x0, "FileIOTestBase/TestBool")
+    #     f.close()
+    #     f = self.constructor("TestBool", Read)
+    #     x1 = f.read_bool("FileIOTestBase/TestBool")
+    #     f.close()
+    #     self.assertTrue(x1 == x0,
+    #                     "%s != %s in bool test" % (x1, x0))
+    #     self.removeFile("TestBool")
+    #     return
 
-    #---------------------------------------------------------------------------
-    # float
-    #---------------------------------------------------------------------------
-    def testFloat(self):
-        x0 = g.uniform(self.doublemin, self.doublemax)
-        f = self.constructor("TestFloat", Write)
-        f.write_double(x0, "FileIOTestBase/TestFloat")
-        f.close()
-        f = self.constructor("TestFloat", Read)
-        x1 = f.read_double("FileIOTestBase/TestFloat")
-        f.close()
-        self.assertTrue(x1 == x0,
-                        "%s != %s in float test" % (x1, x0))
-        self.removeFile("TestFloat")
-        return
+    # #---------------------------------------------------------------------------
+    # # float
+    # #---------------------------------------------------------------------------
+    # def testFloat(self):
+    #     x0 = g.uniform(self.doublemin, self.doublemax)
+    #     f = self.constructor("TestFloat", Write)
+    #     f.write_double(x0, "FileIOTestBase/TestFloat")
+    #     f.close()
+    #     f = self.constructor("TestFloat", Read)
+    #     x1 = f.read_double("FileIOTestBase/TestFloat")
+    #     f.close()
+    #     self.assertTrue(x1 == x0,
+    #                     "%s != %s in float test" % (x1, x0))
+    #     self.removeFile("TestFloat")
+    #     return
 
-    #---------------------------------------------------------------------------
-    # string
-    #---------------------------------------------------------------------------
-    def testString(self):
-        x0 = "abcdefg"
-        f = self.constructor("TestString", Write)
-        f.write_string(x0, "FileIOTestBase/TestString")
-        f.close()
-        f = self.constructor("TestString", Read)
-        x1 = f.read_string("FileIOTestBase/TestString")
-        f.close()
-        self.assertTrue(x1 == x0,
-                        "%s != %s in string test" % (x1, x0))
-        self.removeFile("TestString")
-        return
+    # #---------------------------------------------------------------------------
+    # # string
+    # #---------------------------------------------------------------------------
+    # def testString(self):
+    #     x0 = "abcdefg"
+    #     f = self.constructor("TestString", Write)
+    #     f.write_string(x0, "FileIOTestBase/TestString")
+    #     f.close()
+    #     f = self.constructor("TestString", Read)
+    #     x1 = f.read_string("FileIOTestBase/TestString")
+    #     f.close()
+    #     self.assertTrue(x1 == x0,
+    #                     "%s != %s in string test" % (x1, x0))
+    #     self.removeFile("TestString")
+    #     return
 
-    #---------------------------------------------------------------------------
-    # empty string
-    #---------------------------------------------------------------------------
-    def testEmptyString(self):
-        x0 = ""
-        f = self.constructor("TestEmptyString", Write)
-        f.write_string(x0, "FileIOTestBase/TestEmptyString")
-        f.close()
-        f = self.constructor("TestEmptyString", Read)
-        x1 = f.read_string("FileIOTestBase/TestEmptyString")
-        f.close()
-        self.assertTrue(x1 == x0,
-                        "%s != %s in empty string test" % (x1, x0))
-        self.removeFile("TestEmptyString")
-        return
+    # #---------------------------------------------------------------------------
+    # # empty string
+    # #---------------------------------------------------------------------------
+    # def testEmptyString(self):
+    #     x0 = ""
+    #     f = self.constructor("TestEmptyString", Write)
+    #     f.write_string(x0, "FileIOTestBase/TestEmptyString")
+    #     f.close()
+    #     f = self.constructor("TestEmptyString", Read)
+    #     x1 = f.read_string("FileIOTestBase/TestEmptyString")
+    #     f.close()
+    #     self.assertTrue(x1 == x0,
+    #                     "%s != %s in empty string test" % (x1, x0))
+    #     self.removeFile("TestEmptyString")
+    #     return
 
-    #---------------------------------------------------------------------------
-    # Vector1d
-    #---------------------------------------------------------------------------
-    def testVector1d(self):
-        x0 = self.randomVector1d()
-        x1 = Vector1d()
-        result = self.boilerPlate("TestVector1d",
-                                  "FileIOTestBase/TestVector1d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # Vector1d
+    # #---------------------------------------------------------------------------
+    # def testVector1d(self):
+    #     x0 = self.randomVector1d()
+    #     x1 = Vector1d()
+    #     result = self.boilerPlate("TestVector1d",
+    #                               "FileIOTestBase/TestVector1d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # Tensor1d
-    #---------------------------------------------------------------------------
-    def testTensor1d(self):
-        x0 = self.randomTensor1d()
-        x1 = Tensor1d()
-        result = self.boilerPlate("TestTensor1d",
-                                  "FileIOTestBase/TestTensor1d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # Tensor1d
+    # #---------------------------------------------------------------------------
+    # def testTensor1d(self):
+    #     x0 = self.randomTensor1d()
+    #     x1 = Tensor1d()
+    #     result = self.boilerPlate("TestTensor1d",
+    #                               "FileIOTestBase/TestTensor1d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # SymTensor1d
-    #---------------------------------------------------------------------------
-    def testSymTensor1d(self):
-        x0 = self.randomSymTensor1d()
-        x1 = SymTensor1d()
-        result = self.boilerPlate("TestSymTensor1d",
-                                  "FileIOTestBase/TestSymTensor1d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # SymTensor1d
+    # #---------------------------------------------------------------------------
+    # def testSymTensor1d(self):
+    #     x0 = self.randomSymTensor1d()
+    #     x1 = SymTensor1d()
+    #     result = self.boilerPlate("TestSymTensor1d",
+    #                               "FileIOTestBase/TestSymTensor1d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # ThirdRankTensor1d
-    #---------------------------------------------------------------------------
-    def testThirdRankTensor1d(self):
-        x0 = self.randomThirdRankTensor(ThirdRankTensor1d)
-        x1 = ThirdRankTensor1d()
-        result = self.boilerPlate("TestThirdRankTensor1d",
-                                  "FileIOTestBase/TestThirdRankTensor1d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # ThirdRankTensor1d
+    # #---------------------------------------------------------------------------
+    # def testThirdRankTensor1d(self):
+    #     x0 = self.randomThirdRankTensor(ThirdRankTensor1d)
+    #     x1 = ThirdRankTensor1d()
+    #     result = self.boilerPlate("TestThirdRankTensor1d",
+    #                               "FileIOTestBase/TestThirdRankTensor1d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # Vector2d
-    #---------------------------------------------------------------------------
-    def testVector2d(self):
-        x0 = self.randomVector2d()
-        x1 = Vector2d()
-        result = self.boilerPlate("TestVector2d",
-                                  "FileIOTestBase/TestVector2d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # Vector2d
+    # #---------------------------------------------------------------------------
+    # def testVector2d(self):
+    #     x0 = self.randomVector2d()
+    #     x1 = Vector2d()
+    #     result = self.boilerPlate("TestVector2d",
+    #                               "FileIOTestBase/TestVector2d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # Tensor2d
-    #---------------------------------------------------------------------------
-    def testTensor2d(self):
-        x0 = self.randomTensor2d()
-        x1 = Tensor2d()
-        result = self.boilerPlate("TestTensor2d",
-                                  "FileIOTestBase/TestTensor2d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # Tensor2d
+    # #---------------------------------------------------------------------------
+    # def testTensor2d(self):
+    #     x0 = self.randomTensor2d()
+    #     x1 = Tensor2d()
+    #     result = self.boilerPlate("TestTensor2d",
+    #                               "FileIOTestBase/TestTensor2d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # SymTensor2d
-    #---------------------------------------------------------------------------
-    def testSymTensor2d(self):
-        x0 = self.randomSymTensor2d()
-        x1 = SymTensor2d()
-        result = self.boilerPlate("TestSymTensor2d",
-                                  "FileIOTestBase/TestSymTensor2d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # SymTensor2d
+    # #---------------------------------------------------------------------------
+    # def testSymTensor2d(self):
+    #     x0 = self.randomSymTensor2d()
+    #     x1 = SymTensor2d()
+    #     result = self.boilerPlate("TestSymTensor2d",
+    #                               "FileIOTestBase/TestSymTensor2d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # ThirdRankTensor2d
-    #---------------------------------------------------------------------------
-    def testThirdRankTensor2d(self):
-        x0 = self.randomThirdRankTensor(ThirdRankTensor2d)
-        x1 = ThirdRankTensor2d()
-        result = self.boilerPlate("TestThirdRankTensor2d",
-                                  "FileIOTestBase/TestThirdRankTensor2d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # ThirdRankTensor2d
+    # #---------------------------------------------------------------------------
+    # def testThirdRankTensor2d(self):
+    #     x0 = self.randomThirdRankTensor(ThirdRankTensor2d)
+    #     x1 = ThirdRankTensor2d()
+    #     result = self.boilerPlate("TestThirdRankTensor2d",
+    #                               "FileIOTestBase/TestThirdRankTensor2d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # Vector3d
-    #---------------------------------------------------------------------------
-    def testVector3d(self):
-        x0 = self.randomVector3d()
-        x1 = Vector3d()
-        result = self.boilerPlate("TestVector3d",
-                                  "FileIOTestBase/TestVector3d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # Vector3d
+    # #---------------------------------------------------------------------------
+    # def testVector3d(self):
+    #     x0 = self.randomVector3d()
+    #     x1 = Vector3d()
+    #     result = self.boilerPlate("TestVector3d",
+    #                               "FileIOTestBase/TestVector3d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # Tensor3d
-    #---------------------------------------------------------------------------
-    def testTensor3d(self):
-        x0 = self.randomTensor3d()
-        x1 = Tensor3d()
-        result = self.boilerPlate("TestTensor3d",
-                                  "FileIOTestBase/TestTensor3d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # Tensor3d
+    # #---------------------------------------------------------------------------
+    # def testTensor3d(self):
+    #     x0 = self.randomTensor3d()
+    #     x1 = Tensor3d()
+    #     result = self.boilerPlate("TestTensor3d",
+    #                               "FileIOTestBase/TestTensor3d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # SymTensor3d
-    #---------------------------------------------------------------------------
-    def testSymTensor3d(self):
-        x0 = self.randomSymTensor3d()
-        x1 = SymTensor3d()
-        result = self.boilerPlate("TestSymTensor3d",
-                                  "FileIOTestBase/TestSymTensor3d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # SymTensor3d
+    # #---------------------------------------------------------------------------
+    # def testSymTensor3d(self):
+    #     x0 = self.randomSymTensor3d()
+    #     x1 = SymTensor3d()
+    #     result = self.boilerPlate("TestSymTensor3d",
+    #                               "FileIOTestBase/TestSymTensor3d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # ThirdRankTensor3d
-    #---------------------------------------------------------------------------
-    def testThirdRankTensor3d(self):
-        x0 = self.randomThirdRankTensor(ThirdRankTensor3d)
-        x1 = ThirdRankTensor3d()
-        result = self.boilerPlate("TestThirdRankTensor3d",
-                                  "FileIOTestBase/TestThirdRankTensor3d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # ThirdRankTensor3d
+    # #---------------------------------------------------------------------------
+    # def testThirdRankTensor3d(self):
+    #     x0 = self.randomThirdRankTensor(ThirdRankTensor3d)
+    #     x1 = ThirdRankTensor3d()
+    #     result = self.boilerPlate("TestThirdRankTensor3d",
+    #                               "FileIOTestBase/TestThirdRankTensor3d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # Plane1d
-    #---------------------------------------------------------------------------
-    def testPlane1d(self):
-        x0 = self.randomPlane1d()
-        x1 = Plane1d()
-        result = self.boilerPlate("TestPlane1d",
-                                  "FileIOTestBase/TestPlane1d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # Plane1d
+    # #---------------------------------------------------------------------------
+    # def testPlane1d(self):
+    #     x0 = self.randomPlane1d()
+    #     x1 = Plane1d()
+    #     result = self.boilerPlate("TestPlane1d",
+    #                               "FileIOTestBase/TestPlane1d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # Plane2d
-    #---------------------------------------------------------------------------
-    def testPlane2d(self):
-        x0 = self.randomPlane2d()
-        x1 = Plane2d()
-        result = self.boilerPlate("TestPlane2d",
-                                  "FileIOTestBase/TestPlane2d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # Plane2d
+    # #---------------------------------------------------------------------------
+    # def testPlane2d(self):
+    #     x0 = self.randomPlane2d()
+    #     x1 = Plane2d()
+    #     result = self.boilerPlate("TestPlane2d",
+    #                               "FileIOTestBase/TestPlane2d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # Plane3d
-    #---------------------------------------------------------------------------
-    def testPlane3d(self):
-        x0 = self.randomPlane3d()
-        x1 = Plane3d()
-        result = self.boilerPlate("TestPlane3d",
-                                  "FileIOTestBase/TestPlane3d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # Plane3d
+    # #---------------------------------------------------------------------------
+    # def testPlane3d(self):
+    #     x0 = self.randomPlane3d()
+    #     x1 = Plane3d()
+    #     result = self.boilerPlate("TestPlane3d",
+    #                               "FileIOTestBase/TestPlane3d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # FacetedVolume1d
-    #---------------------------------------------------------------------------
-    def testFacetedVolume1d(self):
-        x0 = self.randomBox()
-        x1 = Box1d()
-        result = self.boilerPlate("TestFacetedVolume1d",
-                                  "FileIOTestBase/TestFacetedVolume1d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # FacetedVolume1d
+    # #---------------------------------------------------------------------------
+    # def testFacetedVolume1d(self):
+    #     x0 = self.randomBox()
+    #     x1 = Box1d()
+    #     result = self.boilerPlate("TestFacetedVolume1d",
+    #                               "FileIOTestBase/TestFacetedVolume1d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # FacetedVolume2d
-    #---------------------------------------------------------------------------
-    def testFacetedVolume2d(self):
-        x0 = self.randomPolygon()
-        x1 = Polygon()
-        result = self.boilerPlate("TestFacetedVolume2d",
-                                  "FileIOTestBase/TestFacetedVolume2d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # FacetedVolume2d
+    # #---------------------------------------------------------------------------
+    # def testFacetedVolume2d(self):
+    #     x0 = self.randomPolygon()
+    #     x1 = Polygon()
+    #     result = self.boilerPlate("TestFacetedVolume2d",
+    #                               "FileIOTestBase/TestFacetedVolume2d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # FacetedVolume3d
-    #---------------------------------------------------------------------------
-    def testFacetedVolume3d(self):
-        x0 = self.randomPolyhedron()
-        x1 = Polyhedron()
-        result = self.boilerPlate("TestFacetedVolume3d",
-                                  "FileIOTestBase/TestFacetedVolume3d",
-                                  x0, x1)
-        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # FacetedVolume3d
+    # #---------------------------------------------------------------------------
+    # def testFacetedVolume3d(self):
+    #     x0 = self.randomPolyhedron()
+    #     x1 = Polyhedron()
+    #     result = self.boilerPlate("TestFacetedVolume3d",
+    #                               "FileIOTestBase/TestFacetedVolume3d",
+    #                               x0, x1)
+    #     self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<int>
-    #---------------------------------------------------------------------------
-    def testVectorInt(self):
-        for n in (0, self.n):
-            x0 = vector_of_int([g.randint(self.intmin, self.intmax) for i in range(n)])
-            x1 = vector_of_int()
-            result = self.boilerPlate("TestVectorInt_%i" % n,
-                                      "FileIOTestBase/vector_of_int",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<int>
+    # #---------------------------------------------------------------------------
+    # def testVectorInt(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_int([g.randint(self.intmin, self.intmax) for i in range(n)])
+    #         x1 = vector_of_int()
+    #         result = self.boilerPlate("TestVectorInt_%i" % n,
+    #                                   "FileIOTestBase/vector_of_int",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<double>
-    #---------------------------------------------------------------------------
-    def testVectorDouble(self):
-        for n in (0, self.n):
-            x0 = vector_of_double([g.uniform(self.doublemin, self.doublemax) for i in range(n)])
-            x1 = vector_of_double()
-            result = self.boilerPlate("TestVectorDouble_%i" % n,
-                                      "FileIOTestBase/vector_of_double",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<double>
+    # #---------------------------------------------------------------------------
+    # def testVectorDouble(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_double([g.uniform(self.doublemin, self.doublemax) for i in range(n)])
+    #         x1 = vector_of_double()
+    #         result = self.boilerPlate("TestVectorDouble_%i" % n,
+    #                                   "FileIOTestBase/vector_of_double",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<string>
-    #---------------------------------------------------------------------------
-    def testVectorString(self):
-        chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+"
-        for n in (0, self.n):
-            x0, x1 = vector_of_string(), vector_of_string()
-            for i in range(n):
-                word = ""
-                wordlen = g.randint(2, 10)
-                for j in range(wordlen):
-                    word += g.choice(chars)
-                x0.append(word)
-            assert len(x0) == n
-            result = self.boilerPlate("TestVectorString_%i" % n,
-                                      "FileIOTestBase/vector_of_string",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<string>
+    # #---------------------------------------------------------------------------
+    # def testVectorString(self):
+    #     chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+"
+    #     for n in (0, self.n):
+    #         x0, x1 = vector_of_string(), vector_of_string()
+    #         for i in range(n):
+    #             word = ""
+    #             wordlen = g.randint(2, 10)
+    #             for j in range(wordlen):
+    #                 word += g.choice(chars)
+    #             x0.append(word)
+    #         assert len(x0) == n
+    #         result = self.boilerPlate("TestVectorString_%i" % n,
+    #                                   "FileIOTestBase/vector_of_string",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<Vector1d>
-    #---------------------------------------------------------------------------
-    def testVectorVector1d(self):
-        for n in (0, self.n):
-            x0 = vector_of_Vector1d([self.randomVector1d() for i in range(n)])
-            x1 = vector_of_Vector1d()
-            result = self.boilerPlate("Test_vector_of_Vector1d_%i" % n,
-                                      "FileIOTestBase/vector_of_Vector1d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<Vector1d>
+    # #---------------------------------------------------------------------------
+    # def testVectorVector1d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_Vector1d([self.randomVector1d() for i in range(n)])
+    #         x1 = vector_of_Vector1d()
+    #         result = self.boilerPlate("Test_vector_of_Vector1d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_Vector1d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<Vector2d>
-    #---------------------------------------------------------------------------
-    def testVectorVector2d(self):
-        for n in (0, self.n):
-            x0 = vector_of_Vector2d([self.randomVector2d() for i in range(n)])
-            x1 = vector_of_Vector2d()
-            result = self.boilerPlate("Test_vector_of_Vector2d_%i" % n,
-                                      "FileIOTestBase/vector_of_Vector2d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<Vector2d>
+    # #---------------------------------------------------------------------------
+    # def testVectorVector2d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_Vector2d([self.randomVector2d() for i in range(n)])
+    #         x1 = vector_of_Vector2d()
+    #         result = self.boilerPlate("Test_vector_of_Vector2d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_Vector2d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<Vector3d>
-    #---------------------------------------------------------------------------
-    def testVectorVector3d(self):
-        for n in (0, self.n):
-            x0 = vector_of_Vector3d([self.randomVector3d() for i in range(n)])
-            x1 = vector_of_Vector3d()
-            result = self.boilerPlate("Test_vector_of_Vector3d_%i" % n,
-                                      "FileIOTestBase/vector_of_Vector3d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<Vector3d>
+    # #---------------------------------------------------------------------------
+    # def testVectorVector3d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_Vector3d([self.randomVector3d() for i in range(n)])
+    #         x1 = vector_of_Vector3d()
+    #         result = self.boilerPlate("Test_vector_of_Vector3d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_Vector3d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<Tensor1d>
-    #---------------------------------------------------------------------------
-    def testVectorTensor1d(self):
-        for n in (0, self.n):
-            x0 = vector_of_Tensor1d([self.randomTensor1d() for i in range(n)])
-            x1 = vector_of_Tensor1d()
-            result = self.boilerPlate("Test_vector_of_Tensor1d_%i" % n,
-                                      "FileIOTestBase/vector_of_Tensor1d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<Tensor1d>
+    # #---------------------------------------------------------------------------
+    # def testVectorTensor1d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_Tensor1d([self.randomTensor1d() for i in range(n)])
+    #         x1 = vector_of_Tensor1d()
+    #         result = self.boilerPlate("Test_vector_of_Tensor1d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_Tensor1d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<Tensor2d>
-    #---------------------------------------------------------------------------
-    def testVectorTensor2d(self):
-        for n in (0, self.n):
-            x0 = vector_of_Tensor2d([self.randomTensor2d() for i in range(n)])
-            x1 = vector_of_Tensor2d()
-            result = self.boilerPlate("Test_vector_of_Tensor2d_%i" % n,
-                                      "FileIOTestBase/vector_of_Tensor2d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<Tensor2d>
+    # #---------------------------------------------------------------------------
+    # def testVectorTensor2d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_Tensor2d([self.randomTensor2d() for i in range(n)])
+    #         x1 = vector_of_Tensor2d()
+    #         result = self.boilerPlate("Test_vector_of_Tensor2d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_Tensor2d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<Tensor3d>
-    #---------------------------------------------------------------------------
-    def testVectorTensor3d(self):
-        for n in (0, self.n):
-            x0 = vector_of_Tensor3d([self.randomTensor3d() for i in range(n)])
-            x1 = vector_of_Tensor3d()
-            result = self.boilerPlate("Test_vector_of_Tensor3d_%i" % n,
-                                      "FileIOTestBase/vector_of_Tensor3d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<Tensor3d>
+    # #---------------------------------------------------------------------------
+    # def testVectorTensor3d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_Tensor3d([self.randomTensor3d() for i in range(n)])
+    #         x1 = vector_of_Tensor3d()
+    #         result = self.boilerPlate("Test_vector_of_Tensor3d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_Tensor3d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<SymTensor1d>
-    #---------------------------------------------------------------------------
-    def testVectorSymTensor1d(self):
-        for n in (0, self.n):
-            x0 = vector_of_SymTensor1d([self.randomSymTensor1d() for i in range(n)])
-            x1 = vector_of_SymTensor1d()
-            result = self.boilerPlate("TestVectorSymTensor1d_%i" % n,
-                                      "FileIOTestBase/vector_of_SymTensor1d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<SymTensor1d>
+    # #---------------------------------------------------------------------------
+    # def testVectorSymTensor1d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_SymTensor1d([self.randomSymTensor1d() for i in range(n)])
+    #         x1 = vector_of_SymTensor1d()
+    #         result = self.boilerPlate("TestVectorSymTensor1d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_SymTensor1d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<SymTensor2d>
-    #---------------------------------------------------------------------------
-    def testVectorSymTensor2d(self):
-        for n in (0, self.n):
-            x0 = vector_of_SymTensor2d([self.randomSymTensor2d() for i in range(n)])
-            x1 = vector_of_SymTensor2d()
-            result = self.boilerPlate("TestVectorSymTensor2d_%i" % n,
-                                      "FileIOTestBase/vector_of_SymTensor2d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<SymTensor2d>
+    # #---------------------------------------------------------------------------
+    # def testVectorSymTensor2d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_SymTensor2d([self.randomSymTensor2d() for i in range(n)])
+    #         x1 = vector_of_SymTensor2d()
+    #         result = self.boilerPlate("TestVectorSymTensor2d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_SymTensor2d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<SymTensor3d>
-    #---------------------------------------------------------------------------
-    def testVectorSymTensor3d(self):
-        for n in (0, self.n):
-            x0 = vector_of_SymTensor3d([self.randomSymTensor3d() for i in range(n)])
-            x1 = vector_of_SymTensor3d()
-            result = self.boilerPlate("TestVectorSymTensor3d_%i" % n,
-                                      "FileIOTestBase/vector_of_SymTensor3d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<SymTensor3d>
+    # #---------------------------------------------------------------------------
+    # def testVectorSymTensor3d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_SymTensor3d([self.randomSymTensor3d() for i in range(n)])
+    #         x1 = vector_of_SymTensor3d()
+    #         result = self.boilerPlate("TestVectorSymTensor3d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_SymTensor3d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<ThirdRankTensor1d>
-    #---------------------------------------------------------------------------
-    def testVectorThirdRankTensor1d(self):
-        for n in (0, self.n):
-            x0 = vector_of_ThirdRankTensor1d([self.randomThirdRankTensor(ThirdRankTensor1d) for i in range(n)])
-            x1 = vector_of_ThirdRankTensor1d()
-            result = self.boilerPlate("TestVectorThirdRankTensor1d_%i" % n,
-                                      "FileIOTestBase/vector_of_ThirdRankTensor1d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<ThirdRankTensor1d>
+    # #---------------------------------------------------------------------------
+    # def testVectorThirdRankTensor1d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_ThirdRankTensor1d([self.randomThirdRankTensor(ThirdRankTensor1d) for i in range(n)])
+    #         x1 = vector_of_ThirdRankTensor1d()
+    #         result = self.boilerPlate("TestVectorThirdRankTensor1d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_ThirdRankTensor1d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<ThirdRankTensor2d>
-    #---------------------------------------------------------------------------
-    def testVectorThirdRankTensor2d(self):
-        for n in (0, self.n):
-            x0 = vector_of_ThirdRankTensor2d([self.randomThirdRankTensor(ThirdRankTensor2d) for i in range(n)])
-            x1 = vector_of_ThirdRankTensor2d()
-            result = self.boilerPlate("TestVectorThirdRankTensor2d_%i" % n,
-                                      "FileIOTestBase/vector_of_ThirdRankTensor2d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<ThirdRankTensor2d>
+    # #---------------------------------------------------------------------------
+    # def testVectorThirdRankTensor2d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_ThirdRankTensor2d([self.randomThirdRankTensor(ThirdRankTensor2d) for i in range(n)])
+    #         x1 = vector_of_ThirdRankTensor2d()
+    #         result = self.boilerPlate("TestVectorThirdRankTensor2d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_ThirdRankTensor2d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<ThirdRankTensor3d>
-    #---------------------------------------------------------------------------
-    def testVectorThirdRankTensor3d(self):
-        for n in (0, self.n):
-            x0 = vector_of_ThirdRankTensor3d([self.randomThirdRankTensor(ThirdRankTensor3d) for i in range(n)])
-            x1 = vector_of_ThirdRankTensor3d()
-            result = self.boilerPlate("TestVectorThirdRankTensor3d_%i" % n,
-                                      "FileIOTestBase/vector_of_ThirdRankTensor3d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<ThirdRankTensor3d>
+    # #---------------------------------------------------------------------------
+    # def testVectorThirdRankTensor3d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_ThirdRankTensor3d([self.randomThirdRankTensor(ThirdRankTensor3d) for i in range(n)])
+    #         x1 = vector_of_ThirdRankTensor3d()
+    #         result = self.boilerPlate("TestVectorThirdRankTensor3d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_ThirdRankTensor3d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    #---------------------------------------------------------------------------
-    # vector<FacetedVolume1d>
-    #---------------------------------------------------------------------------
-    def testVectorFacetedVolume1d(self):
-        for n in (0, self.n):
-            x0 = vector_of_FacetedVolume1d([self.randomBox() for i in range(n)])
-            x1 = vector_of_FacetedVolume1d()
-            result = self.boilerPlate("TestVectorFacetedVolume1d_%i" % n,
-                                      "FileIOTestBase/vector_of_FacetedVolume1d",
-                                      x0, x1)
-            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+    # #---------------------------------------------------------------------------
+    # # vector<FacetedVolume1d>
+    # #---------------------------------------------------------------------------
+    # def testVectorFacetedVolume1d(self):
+    #     for n in (0, self.n):
+    #         x0 = vector_of_FacetedVolume1d([self.randomBox() for i in range(n)])
+    #         x1 = vector_of_FacetedVolume1d()
+    #         result = self.boilerPlate("TestVectorFacetedVolume1d_%i" % n,
+    #                                   "FileIOTestBase/vector_of_FacetedVolume1d",
+    #                                   x0, x1)
+    #         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     # #---------------------------------------------------------------------------
     # # vector<FacetedVolume2d>

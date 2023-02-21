@@ -310,35 +310,32 @@ def readFacetedVolume%(ndim)i(self,
         "Return the variable component of a path."
         return "std::string"
 
-    @PYB11implementation("""[](FileIO& self, py::object& thing, const std::string& path) -> void {
-        auto pickle = py::module_::import("pickle");
-        auto dumps = pickle.attr("dumps");
-        py::bytes pickledThing = dumps(thing);
-        //std::cerr << "-- writeObject string size, bytes size: " << std::string(pickledThing).size() << " " << py::len(pickledThing) << std::endl;
-        self.write(std::string(pickledThing), path);
-    }""")
-    def writeObject(self,
-                    thing = "py::object&",
-                    path = "const std::string&"):
+    def write_object(self,
+                     thing = "py::object",
+                     path = "const std::string&"):
         "Handle a generic python object through serialization"
-        return
+        return "void"
 
     @PYB11returnpolicy("take_ownership")
-    @PYB11implementation("""[](FileIO& self, const std::string& path) -> py::object {
-        auto pickle = py::module_::import("pickle");
-        auto loads = pickle.attr("loads");
-        std::string encodedThing;
-        self.read(encodedThing, path);
-        py::bytes encodedBytes(encodedThing);
-        //std::cerr << "-- readObject string size, bytes size: " << encodedThing.size() << " " << py::len(encodedBytes) << std::endl;
-        py::object result = loads(encodedBytes);
-        return result;
-    }""")
-    def readObject(self,
-                   path = "const std::string&"):
+    @PYB11const
+    def read_object(self,
+                    path = "const std::string&"):
         "Return a generic python object from deserialization."
         return "py::object"
 
+    @PYB11virtual
+    def write_bytes(self,
+                    stuff = "py::bytes",
+                    path = "const std::string&"):
+        "Specialized method for writing py::bytes -- can be overridden"
+        return "void"
+
+    @PYB11virtual
+    @PYB11const
+    def read_bytes(self,
+                   path = "const std::string&"):
+        "Specilized method for reading py::bytes -- can be overridden"
+        return "py::bytes"
     #...........................................................................
     # Properties
     fileName = PYB11property("const std::string&", "fileName", doc="The current file name")
