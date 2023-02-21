@@ -26,7 +26,7 @@ class GzipFileIO(PyFileIO):
                  access,
                  precision = 20):
         PyFileIO.__init__(self, fileName, access)
-        self.encoding = "utf-32"
+        self.encoding = "utf-8"
         self.terminator = b'\0'
 
         # We enforce the convention that gziped files will have the .gz
@@ -121,7 +121,7 @@ class GzipFileIO(PyFileIO):
     def findPath(self, pathName):
         if not pathName in self.lines:
             raise(ValueError, "GzipFileIO unknown key: " + pathName)
-        return self.lines[path]
+        return self.lines[pathName]
 
     #---------------------------------------------------------------------------
     # bytes conversion

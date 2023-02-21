@@ -142,7 +142,7 @@ class FileIOTestBase:
         f.write_int(x0, "FileIOTestBase/a/b/c/d/TestInt")
         f.close()
         f = self.constructor("TestInt", Read)
-        x1 = f.read_int("FileIOTestBase/a/b/c/d/TestInt")
+        x1 = f.read("FileIOTestBase/a/b/c/d/TestInt")
         f.close()
         self.assertTrue(x1 == x0,
                         "%i != %i in int test" % (x1, x0))
