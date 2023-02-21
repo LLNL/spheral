@@ -1,6 +1,7 @@
 include_directories(.)
 set(FileIO_sources
     FileIO.cc
+    PyFileIO.cc
     FlatFileIO.cc
     SidreFileIO.cc
     SiloFileIO.cc
@@ -8,8 +9,8 @@ set(FileIO_sources
     )
 
 set(FileIO_headers
-    DbFileIO.hh
     FileIO.hh
+    PyFileIO.hh
     FileIOInline.hh
     FlatFileIO.hh
     HDF5IO.hh
@@ -22,7 +23,6 @@ set(FileIO_headers
 
 spheral_install_python_files(
   GzipFileIO.py
-  PyFileIO.py
   PlyFileIO.py
   )
 
