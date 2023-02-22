@@ -205,14 +205,14 @@ function(spheral_add_pybind11_library package_name)
                             SOURCE          ${package_name}_PYB11.py
                             DEPENDS         ${spheral_depends} ${spheral_blt_depends} ${${package_name}_DEPENDS} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS} Spheral_CXX
                             PYTHONPATH      ${PYTHON_ENV_STR}
-                            INCLUDES        ${CMAKE_CURRENT_SOURCE_DIR} ${SPHERAL_INCLUDES} ${${package_name}_INCLUDES} ${spheral_tpl_includes} ${PYBIND11_ROOT_DIR}/include ${SPHERAL_EXTERN_INCLUDES}
+                            INCLUDES        ${CMAKE_CURRENT_SOURCE_DIR} ${SPHERAL_INCLUDES} ${${package_name}_INCLUDES} ${spheral_tpl_includes} ${PYBIND11_ROOT_DIR}/include 
                             LINKS           ${spheral_tpl_libraries}
                             COMPILE_OPTIONS ${SPHERAL_PYB11_TARGET_FLAGS}
                             USE_BLT         ON
                             EXTRA_SOURCE    ${${package_name}_SOURCES}
                             )
-  #target_include_directories(${package_name} SYSTEM ${SPHERAL_EXTERN_INCLUDES})
-  #target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
+  target_include_directories(${package_name} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
+  target_compile_options(${package_name} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
 
   install(TARGETS     ${package_name}
           DESTINATION Spheral
