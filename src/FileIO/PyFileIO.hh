@@ -32,95 +32,95 @@ public:
   virtual bool pathExists(const std::string) const override { VERIFY2(false, "pathExists not overridden"); }
 
   // Descendent python objects should provide these write methods.
-  virtual void write_unsigned_int(const unsigned, const std::string)              override { VERIFY2(false, "write_unsigned_int not overridden"); }
-  virtual void write_size_t(const size_t, const std::string)                      override { VERIFY2(false, "write_size_t not overridden"); }
-  virtual void write_int(const int, const std::string)                            override { VERIFY2(false, "write_int not overridden"); }
-  virtual void write_bool(const bool, const std::string)                          override { VERIFY2(false, "write_bool not overridden"); }
-  virtual void write_double(const double, const std::string)                      override { VERIFY2(false, "write_double not overridden"); }
-  virtual void write_string(const std::string, const std::string)                 override { VERIFY2(false, "write_string not overridden"); }
-  virtual void write_vector_int(const std::vector<int>&, const std::string)                { VERIFY2(false, "write_vector_int not overridden"); }
-  virtual void write_vector_double(const std::vector<double>&, const std::string)          { VERIFY2(false, "write_vector_double not overridden"); }
-  virtual void write_vector_string(const std::vector<std::string>&, const std::string)     { VERIFY2(false, "write_vector_string not overridden"); }
+  virtual void write_unsigned_int(const unsigned vale, const std::string)                        override { this->writeObject(value); }
+  virtual void write_size_t(const size_t value, const std::string)                               override { this->writeObject(value); }
+  virtual void write_int(const int value, const std::string)                                     override { this->writeObject(value); }
+  virtual void write_bool(const bool value, const std::string)                                   override { this->writeObject(value); }
+  virtual void write_double(const double value, const std::string)                               override { this->writeObject(value); }
+  virtual void write_string(const std::string value, const std::string)                          override { this->writeObject(value); }
+  virtual void write_vector_int(const std::vector<int>& value, const std::string)                         { this->writeObject(value); }
+  virtual void write_vector_double(const std::vector<double>& value, const std::string)                   { this->writeObject(value); }
+  virtual void write_vector_string(const std::vector<std::string>&value , const std::string)              { this->writeObject(value); }
 
-  virtual void write_Vector1d(const Dim<1>::Vector& value, const std::string pathName) = 0;
-  virtual void write_Tensor1d(const Dim<1>::Tensor& value, const std::string pathName) = 0;
-  virtual void write_SymTensor1d(const Dim<1>::SymTensor& value, const std::string pathName) = 0;
-  virtual void write_ThirdRankTensor1d(const Dim<1>::ThirdRankTensor& value, const std::string pathName) = 0;
+  virtual void write_Vector1d(const Dim<1>::Vector& value, const std::string pathName)                    { this->writeObject(value); }
+  virtual void write_Tensor1d(const Dim<1>::Tensor& value, const std::string pathName)                    { this->writeObject(value); }
+  virtual void write_SymTensor1d(const Dim<1>::SymTensor& value, const std::string pathName)              { this->writeObject(value); }
+  virtual void write_ThirdRankTensor1d(const Dim<1>::ThirdRankTensor& value, const std::string pathName)  { this->writeObject(value); }
 
-  virtual void write_Vector2d(const Dim<2>::Vector& value, const std::string pathName) = 0;
-  virtual void write_Tensor2d(const Dim<2>::Tensor& value, const std::string pathName) = 0;
-  virtual void write_SymTensor2d(const Dim<2>::SymTensor& value, const std::string pathName) = 0;
-  virtual void write_ThirdRankTensor2d(const Dim<2>::ThirdRankTensor& value, const std::string pathName) = 0;
+  virtual void write_Vector2d(const Dim<2>::Vector& value, const std::string pathName)                    { this->writeObject(value); }
+  virtual void write_Tensor2d(const Dim<2>::Tensor& value, const std::string pathName)                    { this->writeObject(value); }
+  virtual void write_SymTensor2d(const Dim<2>::SymTensor& value, const std::string pathName)              { this->writeObject(value); }
+  virtual void write_ThirdRankTensor2d(const Dim<2>::ThirdRankTensor& value, const std::string pathName)  { this->writeObject(value); }
 
-  virtual void write_Vector3d(const Dim<3>::Vector& value, const std::string pathName) = 0;
-  virtual void write_Tensor3d(const Dim<3>::Tensor& value, const std::string pathName) = 0;
-  virtual void write_SymTensor3d(const Dim<3>::SymTensor& value, const std::string pathName) = 0;
-  virtual void write_ThirdRankTensor3d(const Dim<3>::ThirdRankTensor& value, const std::string pathName) = 0;
+  virtual void write_Vector3d(const Dim<3>::Vector& value, const std::string pathName)                    { this->writeObject(value); }
+  virtual void write_Tensor3d(const Dim<3>::Tensor& value, const std::string pathName)                    { this->writeObject(value); }
+  virtual void write_SymTensor3d(const Dim<3>::SymTensor& value, const std::string pathName)              { this->writeObject(value); }
+  virtual void write_ThirdRankTensor3d(const Dim<3>::ThirdRankTensor& value, const std::string pathName)  { this->writeObject(value); }
 
 #ifdef SPHERAL1D
-  virtual void write_ScalarField1d(const Field<Dim<1>, Dim<1>::Scalar>& field, const std::string pathName) = 0;
-  virtual void write_VectorField1d(const Field<Dim<1>, Dim<1>::Vector>& field, const std::string pathName) = 0;
-  virtual void write_TensorField1d(const Field<Dim<1>, Dim<1>::Tensor>& field, const std::string pathName) = 0;
-  virtual void write_SymTensorField1d(const Field<Dim<1>, Dim<1>::SymTensor>& field, const std::string pathName) = 0;
-  virtual void write_ThirdRankTensorField1d(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& field, const std::string pathName) = 0;
-  virtual void write_IntField1d(const Field<Dim<1>, int>& field, const std::string pathName) = 0;
-  virtual void write_UnsignedField1d(const Field<Dim<1>, unsigned>& field, const std::string pathName) = 0;
+  virtual void write_ScalarField1d(const Field<Dim<1>, Dim<1>::Scalar>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_VectorField1d(const Field<Dim<1>, Dim<1>::Vector>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_TensorField1d(const Field<Dim<1>, Dim<1>::Tensor>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_SymTensorField1d(const Field<Dim<1>, Dim<1>::SymTensor>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_ThirdRankTensorField1d(const Field<Dim<1>, Dim<1>::ThirdRankTensor>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_IntField1d(const Field<Dim<1>, int>& field, const std::string pathName)               { this->writeObject(value); }
+  virtual void write_UnsignedField1d(const Field<Dim<1>, unsigned>& field, const std::string pathName)     { this->writeObject(value); }
 #endif
 
 #ifdef SPHERAL2D
-  virtual void write_ScalarField2d(const Field<Dim<2>, Dim<2>::Scalar>& field, const std::string pathName) = 0;
-  virtual void write_VectorField2d(const Field<Dim<2>, Dim<2>::Vector>& field, const std::string pathName) = 0;
-  virtual void write_TensorField2d(const Field<Dim<2>, Dim<2>::Tensor>& field, const std::string pathName) = 0;
-  virtual void write_SymTensorField2d(const Field<Dim<2>, Dim<2>::SymTensor>& field, const std::string pathName) = 0;
-  virtual void write_ThirdRankTensorField2d(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& field, const std::string pathName) = 0;
-  virtual void write_IntField2d(const Field<Dim<2>, int>& field, const std::string pathName) = 0;
-  virtual void write_UnsignedField2d(const Field<Dim<2>, unsigned>& field, const std::string pathName) = 0;
+  virtual void write_ScalarField2d(const Field<Dim<2>, Dim<2>::Scalar>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_VectorField2d(const Field<Dim<2>, Dim<2>::Vector>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_TensorField2d(const Field<Dim<2>, Dim<2>::Tensor>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_SymTensorField2d(const Field<Dim<2>, Dim<2>::SymTensor>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_ThirdRankTensorField2d(const Field<Dim<2>, Dim<2>::ThirdRankTensor>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_IntField2d(const Field<Dim<2>, int>& field, const std::string pathName)               { this->writeObject(value); }
+  virtual void write_UnsignedField2d(const Field<Dim<2>, unsigned>& field, const std::string pathName)     { this->writeObject(value); }
 #endif
 
 #ifdef SPHERAL3D
-  virtual void write_ScalarField3d(const Field<Dim<3>, Dim<3>::Scalar>& field, const std::string pathName) = 0;
-  virtual void write_VectorField3d(const Field<Dim<3>, Dim<3>::Vector>& field, const std::string pathName) = 0;
-  virtual void write_TensorField3d(const Field<Dim<3>, Dim<3>::Tensor>& field, const std::string pathName) = 0;
-  virtual void write_SymTensorField3d(const Field<Dim<3>, Dim<3>::SymTensor>& field, const std::string pathName) = 0;
-  virtual void write_ThirdRankTensorField3d(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& field, const std::string pathName) = 0;
-  virtual void write_IntField3d(const Field<Dim<3>, int>& field, const std::string pathName) = 0;
-  virtual void write_UnsignedField3d(const Field<Dim<3>, unsigned>& field, const std::string pathName) = 0;
+  virtual void write_ScalarField3d(const Field<Dim<3>, Dim<3>::Scalar>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_VectorField3d(const Field<Dim<3>, Dim<3>::Vector>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_TensorField3d(const Field<Dim<3>, Dim<3>::Tensor>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_SymTensorField3d(const Field<Dim<3>, Dim<3>::SymTensor>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_ThirdRankTensorField3d(const Field<Dim<3>, Dim<3>::ThirdRankTensor>& field, const std::string pathName) { this->writeObject(value); }
+  virtual void write_IntField3d(const Field<Dim<3>, int>& field, const std::string pathName)               { this->writeObject(value); }
+  virtual void write_UnsignedField3d(const Field<Dim<3>, unsigned>& field, const std::string pathName)     { this->writeObject(value); }
 #endif
 
   // Descendent python objects should provide these read methods.
-  virtual unsigned read_unsigned_int(const std::string)                          const override { VERIFY2(false, "read_unsigned_int not overridden"); }
-  virtual size_t read_size_t(const std::string)                                  const override { VERIFY2(false, "read_size_t not overridden"); }
-  virtual int read_int(const std::string)                                        const override { VERIFY2(false, "read_int not overridden"); }
-  virtual bool read_bool(const std::string)                                      const override { VERIFY2(false, "read_bool not overridden"); }
-  virtual double read_double(const std::string)                                  const override { VERIFY2(false, "read_double not overridden"); }
-  virtual std::string read_string(const std::string)                             const override { VERIFY2(false, "read_string not overridden"); }
-  virtual void read_vector_int(std::vector<int>*, const std::string) const                { VERIFY2(false, "read_vector_int not overridden"); }
-  virtual void read_vector_double(std::vector<double>*, const std::string) const          { VERIFY2(false, "read_vector_double not overridden"); }
-  virtual void read_vector_string(std::vector<std::string>*, const std::string) const     { VERIFY2(false, "read_vector_string not overridden"); }
+  virtual unsigned read_unsigned_int(const std::string pathName)                         const override { return this->readObject(pathName).cast<unsigned>(); }
+  virtual size_t read_size_t(const std::string pathName)                                 const override { return this->readObject(pathName).cast<size_t>(); }
+  virtual int read_int(const std::string pathName)                                       const override { return this->readObject(pathName).cast<int>(); }
+  virtual bool read_bool(const std::string pathName)                                     const override { return this->readObject(pathName).cast<bool>(); }
+  virtual double read_double(const std::string pathName)                                 const override { return this->readObject(pathName).cast<double>(); }
+  virtual std::string read_string(const std::string pathName)                            const override { return this->readObject(pathName).cast<std::string>(); }
+  virtual void read_vector_int(std::vector<int>* value, const std::string pathName)            const    { *value = this->readObject(pathName).cast<std::vector<int>>(); }
+  virtual void read_vector_double(std::vector<double>* value, const std::string pathName)      const    { *value = this->readObject(pathName).cast<std::vector<double>>(); }
+  virtual void read_vector_string(std::vector<std::string>* value, const std::string pathName) const    { *value = this->readObject(pathName).cast<std::vector<std::string>>(); }
 
-  virtual Dim<1>::Vector read_Vector1d(const std::string pathName) const = 0;
-  virtual Dim<1>::Tensor read_Tensor1d(const std::string pathName) const = 0;
-  virtual Dim<1>::SymTensor read_SymTensor1d(const std::string pathName) const = 0;
-  virtual Dim<1>::ThirdRankTensor read_ThirdRankTensor1d(const std::string pathName) const = 0;
+  virtual Dim<1>::Vector read_Vector1d(const std::string pathName)                    const override { return this->readObject(pathName).cast<Dim<1>::Vector>(); }         
+  virtual Dim<1>::Tensor read_Tensor1d(const std::string pathName)                    const override { return this->readObject(pathName).cast<Dim<1>::Tensor>(); }         
+  virtual Dim<1>::SymTensor read_SymTensor1d(const std::string pathName)              const override { return this->readObject(pathName).cast<Dim<1>::SymTensor>(); }      
+  virtual Dim<1>::ThirdRankTensor read_ThirdRankTensor1d(const std::string pathName)  const override { return this->readObject(pathName).cast<Dim<1>::ThirdRankTensor>(); }
 
-  virtual Dim<2>::Vector read_Vector2d(const std::string pathName) const = 0;
-  virtual Dim<2>::Tensor read_Tensor2d(const std::string pathName) const = 0;
-  virtual Dim<2>::SymTensor read_SymTensor2d(const std::string pathName) const = 0;
-  virtual Dim<2>::ThirdRankTensor read_ThirdRankTensor2d(const std::string pathName) const = 0;
+  virtual Dim<2>::Vector read_Vector2d(const std::string pathName)                    const override { return this->readObject(pathName).cast<Dim<1>::Vector>(); }         
+  virtual Dim<2>::Tensor read_Tensor2d(const std::string pathName)                    const override { return this->readObject(pathName).cast<Dim<1>::Tensor>(); }         
+  virtual Dim<2>::SymTensor read_SymTensor2d(const std::string pathName)              const override { return this->readObject(pathName).cast<Dim<1>::SymTensor>(); }      
+  virtual Dim<2>::ThirdRankTensor read_ThirdRankTensor2d(const std::string pathName)  const override { return this->readObject(pathName).cast<Dim<1>::ThirdRankTensor>(); }
 
-  virtual Dim<3>::Vector read_Vector3d(const std::string pathName) const = 0;
-  virtual Dim<3>::Tensor read_Tensor3d(const std::string pathName) const = 0;
-  virtual Dim<3>::SymTensor read_SymTensor3d(const std::string pathName) const = 0;
-  virtual Dim<3>::ThirdRankTensor read_ThirdRankTensor3d(const std::string pathName) const = 0;
+  virtual Dim<3>::Vector read_Vector3d(const std::string pathName)                    const override { return this->readObject(pathName).cast<Dim<1>::Vector>(); }         
+  virtual Dim<3>::Tensor read_Tensor3d(const std::string pathName)                    const override { return this->readObject(pathName).cast<Dim<1>::Tensor>(); }         
+  virtual Dim<3>::SymTensor read_SymTensor3d(const std::string pathName)              const override { return this->readObject(pathName).cast<Dim<1>::SymTensor>(); }      
+  virtual Dim<3>::ThirdRankTensor read_ThirdRankTensor3d(const std::string pathName)  const override { return this->readObject(pathName).cast<Dim<1>::ThirdRankTensor>(); }
 
 #ifdef SPHERAL1D
-  virtual void read_ScalarField1d(Field<Dim<1>, Dim<1>::Scalar>* field, const std::string pathName) const = 0;
-  virtual void read_VectorField1d(Field<Dim<1>, Dim<1>::Vector>* field, const std::string pathName) const = 0;
-  virtual void read_TensorField1d(Field<Dim<1>, Dim<1>::Tensor>* field, const std::string pathName) const = 0;
-  virtual void read_SymTensorField1d(Field<Dim<1>, Dim<1>::SymTensor>* field, const std::string pathName) const = 0;
-  virtual void read_ThirdRankTensorField1d(Field<Dim<1>, Dim<1>::ThirdRankTensor>* field, const std::string pathName) const = 0;
-  virtual void read_IntField1d(Field<Dim<1>, int>* field, const std::string pathName) const = 0;
-  virtual void read_UnsignedField1d(Field<Dim<1>, unsigned>* field, const std::string pathName) const = 0;
+  virtual void read_ScalarField1d(Field<Dim<1>, Dim<1>::Scalar>* field, const std::string pathName)                   const { field->string(readObject(pathName).cast<std::string>()); } 
+  virtual void read_VectorField1d(Field<Dim<1>, Dim<1>::Vector>* field, const std::string pathName)                   const { field->string(readObject(pathName).cast<std::string>()); } 
+  virtual void read_TensorField1d(Field<Dim<1>, Dim<1>::Tensor>* field, const std::string pathName)                   const { field->string(readObject(pathName).cast<std::string>()); } 
+  virtual void read_SymTensorField1d(Field<Dim<1>, Dim<1>::SymTensor>* field, const std::string pathName)             const { field->string(readObject(pathName).cast<std::string>()); } 
+  virtual void read_ThirdRankTensorField1d(Field<Dim<1>, Dim<1>::ThirdRankTensor>* field, const std::string pathName) const { field->string(readObject(pathName).cast<std::string>()); } 
+  virtual void read_IntField1d(Field<Dim<1>, int>* field, const std::string pathName)                                 const { field->string(readObject(pathName).cast<std::string>()); } 
+  virtual void read_UnsignedField1d(Field<Dim<1>, unsigned>* field, const std::string pathName)                       const { field->string(readObject(pathName).cast<std::string>()); } 
 #endif
 
 #ifdef SPHERAL2D
