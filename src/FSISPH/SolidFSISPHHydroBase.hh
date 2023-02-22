@@ -184,6 +184,7 @@ public:
   const FieldList<Dimension, Vector>& newInterfaceAreaVectors() const;
   const FieldList<Dimension, Vector>& newInterfaceNormals() const;
   const FieldList<Dimension, Scalar>& interfaceSmoothnessNormalization() const;
+  const FieldList<Dimension, Scalar>& interfaceFraction() const;
   const FieldList<Dimension, Scalar>& newInterfaceSmoothness() const;
   const FieldList<Dimension, Scalar>& interfaceAngles() const;
 
@@ -222,6 +223,7 @@ private:
   FieldList<Dimension, Vector> mNewInterfaceAreaVectors;          // interface area vectors that can be used for BCs next time step
   FieldList<Dimension, Vector> mNewInterfaceNormals;              // surface normals between nodelists next time step    
   FieldList<Dimension, Scalar> mInterfaceSmoothnessNormalization; // normalization for a our smoothness metric
+  FieldList<Dimension, Scalar> mInterfaceFraction;                // normalization for same material nodes
   FieldList<Dimension, Scalar> mNewInterfaceSmoothness;           // smoothness metric (0-1) next time step 
   FieldList<Dimension, Scalar> mInterfaceAngles;                  // check the angle for free-surface master nodes (type 2 -> type 3)
 

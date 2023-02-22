@@ -286,7 +286,7 @@ newInterfaceNormals() const {
 }
 
 //------------------------------------------------------------------------------
-// next time step  Interface fraction
+// normalization for our smoothness calculation
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
@@ -294,6 +294,17 @@ const FieldList<Dimension,  typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
 interfaceSmoothnessNormalization() const {
   return mInterfaceSmoothnessNormalization;
+}
+
+//------------------------------------------------------------------------------
+// normalization for only same material nodes
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+interfaceFraction() const {
+  return mInterfaceFraction;
 }
 
 //------------------------------------------------------------------------------

@@ -16,6 +16,7 @@ struct FSIFieldNames {
   static const std::string interfaceAreaVectors;
   static const std::string interfaceNormals;
   static const std::string interfaceSmoothnessNormalization;
+  static const std::string interfaceFraction;
   static const std::string interfaceSmoothness;
   static const std::string interfaceAngles;
 };
