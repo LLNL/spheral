@@ -87,73 +87,73 @@ class PyFileIO(FileIO):
         "Write a std::vector<string>"
         return "void"
 
-    @PYB11pure_virtual
+    @PYB11virtual
     def write_Vector1d(self,
                        value = "const Dim<1>::Vector&",
                        pathName = "const std::string"):
         return "void"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     def write_Tensor1d(self,
                        value = "const Dim<1>::Tensor&",
                        pathName = "const std::string"):
         return "void"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     def write_SymTensor1d(self,
                           value = "const Dim<1>::SymTensor&",
                           pathName = "const std::string"):
         return "void"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     def write_ThirdRankTensor1d(self,
                                 value = "const Dim<1>::ThirdRankTensor&",
                                 pathName = "const std::string"):
         return "void"
 
-    @PYB11pure_virtual
+    @PYB11virtual
     def write_Vector2d(self,
                        value = "const Dim<2>::Vector&",
                        pathName = "const std::string"):
         return "void"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     def write_Tensor2d(self,
                        value = "const Dim<2>::Tensor&",
                        pathName = "const std::string"):
         return "void"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     def write_SymTensor2d(self,
                           value = "const Dim<2>::SymTensor&",
                           pathName = "const std::string"):
         return "void"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     def write_ThirdRankTensor2d(self,
                                 value = "const Dim<2>::ThirdRankTensor&",
                                 pathName = "const std::string"):
         return "void"
 
-    @PYB11pure_virtual
+    @PYB11virtual
     def write_Vector3d(self,
                        value = "const Dim<3>::Vector&",
                        pathName = "const std::string"):
         return "void"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     def write_Tensor3d(self,
                        value = "const Dim<3>::Tensor&",
                        pathName = "const std::string"):
         return "void"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     def write_SymTensor3d(self,
                           value = "const Dim<3>::SymTensor&",
                           pathName = "const std::string"):
         return "void"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     def write_ThirdRankTensor3d(self,
                                 value = "const Dim<3>::ThirdRankTensor&",
                                 pathName = "const std::string"):
@@ -204,7 +204,7 @@ class PyFileIO(FileIO):
     @PYB11virtual
     @PYB11const
     def read_vector_int(self,
-                        value = "std::vector<int>*",
+                        value = "std::vector<int>&",
                         pathName = "const std::string"):
         "Read a std::vector<int>"
         return "void"
@@ -212,86 +212,86 @@ class PyFileIO(FileIO):
     @PYB11virtual
     @PYB11const
     def read_vector_double(self,
-                           value = "std::vector<double>*",
+                           value = "std::vector<double>&",
                            pathName = "const std::string"):
-        "Read a std::vector<double>*"
+        "Read a std::vector<double>&"
         return "void"
 
     @PYB11virtual
     @PYB11const
     def read_vector_string(self,
-                           value = "std::vector<std::string>*",
+                           value = "std::vector<std::string>&",
                            pathName = "const std::string"):
         "Read a std::vector<string>"
         return "void"
 
-    @PYB11pure_virtual
+    @PYB11virtual
     @PYB11const
     def read_Vector1d(self,
                       pathName = "const std::string"):
         return "Dim<1>::Vector"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     @PYB11const
     def read_Tensor1d(self,
                       pathName = "const std::string"):
         return "Dim<1>::Tensor"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     @PYB11const
     def read_SymTensor1d(self,
                          pathName = "const std::string"):
         return "Dim<1>::SymTensor"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     @PYB11const
     def read_ThirdRankTensor1d(self,
                                pathName = "const std::string"):
         return "Dim<1>::ThirdRankTensor"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     @PYB11const
     def read_Vector2d(self,
                       pathName = "const std::string"):
         return "Dim<2>::Vector"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     @PYB11const
     def read_Tensor2d(self,
                       pathName = "const std::string"):
         return "Dim<2>::Tensor"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     @PYB11const
     def read_SymTensor2d(self,
                          pathName = "const std::string"):
         return "Dim<2>::SymTensor"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     @PYB11const
     def read_ThirdRankTensor2d(self,
                                pathName = "const std::string"):
         return "Dim<2>::ThirdRankTensor"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     @PYB11const
     def read_Vector3d(self,
                       pathName = "const std::string"):
         return "Dim<3>::Vector"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     @PYB11const
     def read_Tensor3d(self,
                       pathName = "const std::string"):
         return "Dim<3>::Tensor"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     @PYB11const
     def read_SymTensor3d(self,
                          pathName = "const std::string"):
         return "Dim<3>::SymTensor"
   
-    @PYB11pure_virtual
+    @PYB11virtual
     @PYB11const
     def read_ThirdRankTensor3d(self,
                                pathName = "const std::string"):
@@ -299,97 +299,97 @@ class PyFileIO(FileIO):
   
     for ndim in dims:
         exec('''
-@PYB11pure_virtual
-def write_ScalarField%(ndim)id(self,
-                        field = "const Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Scalar>&",
+@PYB11virtual
+def write_ScalarField{ndim}d(self,
+                        field = "const Field<Dim<{ndim}>, Dim<{ndim}>::Scalar>&",
                         pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
-def write_VectorField%(ndim)id(self,
-                        field = "const Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Vector>&",
+@PYB11virtual
+def write_VectorField{ndim}d(self,
+                        field = "const Field<Dim<{ndim}>, Dim<{ndim}>::Vector>&",
                         pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
-def write_TensorField%(ndim)id(self,
-                        field = "const Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Tensor>&",
+@PYB11virtual
+def write_TensorField{ndim}d(self,
+                        field = "const Field<Dim<{ndim}>, Dim<{ndim}>::Tensor>&",
                         pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
-def write_SymTensorField%(ndim)id(self,
-                           field = "const Field<Dim<%(ndim)i>, Dim<%(ndim)i>::SymTensor>&",
+@PYB11virtual
+def write_SymTensorField{ndim}d(self,
+                           field = "const Field<Dim<{ndim}>, Dim<{ndim}>::SymTensor>&",
                            pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
-def write_ThirdRankTensorField%(ndim)id(self,
-                                 field = "const Field<Dim<%(ndim)i>, Dim<%(ndim)i>::ThirdRankTensor>&",
+@PYB11virtual
+def write_ThirdRankTensorField{ndim}d(self,
+                                 field = "const Field<Dim<{ndim}>, Dim<{ndim}>::ThirdRankTensor>&",
                                  pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
-def write_IntField%(ndim)id(self,
-                     field = "const Field<Dim<%(ndim)i>, int>&",
+@PYB11virtual
+def write_IntField{ndim}d(self,
+                     field = "const Field<Dim<{ndim}>, int>&",
                      pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
-def write_UnsignedField%(ndim)id(self,
-                     field = "const Field<Dim<%(ndim)i>, unsigned>&",
+@PYB11virtual
+def write_UnsignedField{ndim}d(self,
+                     field = "const Field<Dim<{ndim}>, unsigned>&",
                      pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
+@PYB11virtual
 @PYB11const
-def read_ScalarField%(ndim)id(self,
-                       field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Scalar>*",
+def read_ScalarField{ndim}d(self,
+                       field = "Field<Dim<{ndim}>, Dim<{ndim}>::Scalar>&",
                        pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
+@PYB11virtual
 @PYB11const
-def read_VectorField%(ndim)id(self,
-                       field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Vector>*",
+def read_VectorField{ndim}d(self,
+                       field = "Field<Dim<{ndim}>, Dim<{ndim}>::Vector>&",
                        pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
+@PYB11virtual
 @PYB11const
-def read_TensorField%(ndim)id(self,
-                       field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::Tensor>*",
+def read_TensorField{ndim}d(self,
+                       field = "Field<Dim<{ndim}>, Dim<{ndim}>::Tensor>&",
                        pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
+@PYB11virtual
 @PYB11const
-def read_SymTensorField%(ndim)id(self,
-                          field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::SymTensor>*",
+def read_SymTensorField{ndim}d(self,
+                          field = "Field<Dim<{ndim}>, Dim<{ndim}>::SymTensor>&",
                           pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
+@PYB11virtual
 @PYB11const
-def read_ThirdRankTensorField%(ndim)id(self,
-                                field = "Field<Dim<%(ndim)i>, Dim<%(ndim)i>::ThirdRankTensor>*",
+def read_ThirdRankTensorField{ndim}d(self,
+                                field = "Field<Dim<{ndim}>, Dim<{ndim}>::ThirdRankTensor>&",
                                 pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
+@PYB11virtual
 @PYB11const
-def read_IntField%(ndim)id(self,
-                    field = "Field<Dim<%(ndim)i>, int>*",
+def read_IntField{ndim}d(self,
+                    field = "Field<Dim<{ndim}>, int>&",
                     pathName = "const std::string"):
     return "void"
 
-@PYB11pure_virtual
+@PYB11virtual
 @PYB11const
-def read_UnsignedField%(ndim)id(self,
-                    field = "Field<Dim<%(ndim)i>, unsigned>*",
+def read_UnsignedField{ndim}d(self,
+                    field = "Field<Dim<{ndim}>, unsigned>&",
                     pathName = "const std::string"):
     return "void"
-''' % {"ndim" : ndim})
+'''.format(ndim = ndim))
 
 #-------------------------------------------------------------------------------
 # Override the required virtual interface

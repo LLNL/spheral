@@ -63,12 +63,13 @@ class GzipFileIO(PyFileIO):
             for line in self.f:
                 #print("read line: ", line)
                 assert line[0:1] == self.terminator
-                assert line[-1:] == self.terminator
+                assert line[-2:-1] == self.terminator
                 i = line[1:].index(self.terminator)
                 assert i < len(line)
                 key = str(line[1:i+1], self.encoding)
-                val = line[i+2:-1].replace(self.mungenewline, b'\n')
+                val = line[i+2:-2].replace(self.mungenewline, b'\n')
                 self.lines[key] = val
+            #print("Final self.lines: \n", self.lines)
         return
 
     #---------------------------------------------------------------------------
@@ -117,19 +118,6 @@ class GzipFileIO(PyFileIO):
         return self.lines[pathName]
 
     #---------------------------------------------------------------------------
-    # bytes conversion
-    #---------------------------------------------------------------------------
-    def _bytes(self, x):
-        if type(x) == bytes:
-            result = x
-        else:
-            result = bytes(str(x), self.encoding)
-        return result  #.replace(bytes('\n', self.encoding), bytes('<<<<n>>>>', self.encoding))
-
-    def _frombytes(self, x):
-        return x # .replace(bytes('<<<<n>>>>', self.encoding), bytes('\n', self.encoding))
-
-    #---------------------------------------------------------------------------
     # write_bytes
     #---------------------------------------------------------------------------
     def write_bytes(self, val, pathName):
@@ -137,7 +125,7 @@ class GzipFileIO(PyFileIO):
         #print("write_bytes: ", val)
         self.f.write(self.terminator +
                      bytes(pathName, self.encoding) + self.terminator + 
-                     val.replace(b'\n', self.mungenewline) + self.terminator)
+                     val.replace(b'\n', self.mungenewline) + self.terminator + b'\n')
         return
 
     def read_bytes(self, pathName):

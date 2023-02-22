@@ -1,12 +1,15 @@
 include_directories(.)
 set(FileIO_sources
     FileIO.cc
-    PyFileIO.cc
     FlatFileIO.cc
     SidreFileIO.cc
     SiloFileIO.cc
     vectorstringUtilities.cc
     )
+
+if (NOT CXXONLY)
+  list(APPEND FileIO_sources PyFileIO.cc)
+endif()
 
 set(FileIO_headers
     FileIO.hh
