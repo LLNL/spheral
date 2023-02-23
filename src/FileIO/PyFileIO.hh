@@ -44,9 +44,10 @@ public:
   virtual void write_bool(const bool value, const std::string path)                              override { this->write_object(py::cast(value), path); }
   virtual void write_double(const double value, const std::string path)                          override { this->write_object(py::cast(value), path); }
   virtual void write_string(const std::string value, const std::string path)                     override { this->write_object(py::cast(value), path); }
+  virtual void write_vector_char(const std::vector<char>& value, const std::string path)         override;
   virtual void write_vector_int(const std::vector<int>& value, const std::string path)                    { this->write_object(py::cast(value), path); }
   virtual void write_vector_double(const std::vector<double>& value, const std::string path)              { this->write_object(py::cast(value), path); }
-  virtual void write_vector_string(const std::vector<std::string>&value , const std::string path)         { this->write_object(py::cast(value), path); }
+  virtual void write_vector_string(const std::vector<std::string>& value, const std::string path)         { this->write_object(py::cast(value), path); }
 
   virtual void write_Vector1d(const Dim<1>::Vector& value, const std::string path)                        { this->write_object(py::cast(value), path); }
   virtual void write_Tensor1d(const Dim<1>::Tensor& value, const std::string path)                        { this->write_object(py::cast(value), path); }
@@ -106,6 +107,7 @@ public:
   virtual bool read_bool(const std::string path)                                           const override { return this->read_object(path).cast<bool>(); }       
   virtual double read_double(const std::string path)                                       const override { return this->read_object(path).cast<double>(); }     
   virtual std::string read_string(const std::string path)                                  const override { return this->read_object(path).cast<std::string>(); }
+  virtual std::vector<char> read_vector_char(const std::string path)                       const override;
   virtual void read_vector_int(std::vector<int>& value, const std::string path)            const          { value = this->read_object(path).cast<std::vector<int>>(); }
   virtual void read_vector_double(std::vector<double>& value, const std::string path)      const          { value = this->read_object(path).cast<std::vector<double>>(); }
   virtual void read_vector_string(std::vector<std::string>& value, const std::string path) const          { value = this->read_object(path).cast<std::vector<std::string>>(); }

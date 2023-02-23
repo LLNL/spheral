@@ -86,6 +86,14 @@ class FileIO:
         return "void"
 
     @PYB11virtual
+    @PYB11noconvert
+    def write_vector_char(self,
+                          value = "const std::vector<char>&",
+                          pathName = "const std::string"):
+        "Write std::vector<char>"
+        return "void"
+
+    @PYB11virtual
     @PYB11const
     @PYB11noconvert
     def read_unsigned_int(self,
@@ -132,6 +140,14 @@ class FileIO:
                     pathName = "const std::string"):
         "Read a std::string"
         return "std::string"
+
+    @PYB11virtual
+    @PYB11const
+    @PYB11noconvert
+    def read_vector_char(self,
+                         pathName = "const std::string"):
+        "Read a std::vector<char>"
+        return "std::vector<char>"
 
     #...........................................................................
     # Methods
@@ -312,28 +328,28 @@ def readFacetedVolume%(ndim)i(self,
 
     def write_object(self,
                      thing = "py::object",
-                     path = "const std::string&"):
+                     path = "const std::string"):
         "Handle a generic python object through serialization"
         return "void"
 
     @PYB11returnpolicy("take_ownership")
     @PYB11const
     def read_object(self,
-                    path = "const std::string&"):
+                    path = "const std::string"):
         "Return a generic python object from deserialization."
         return "py::object"
 
     @PYB11virtual
     def write_bytes(self,
                     stuff = "py::bytes",
-                    path = "const std::string&"):
+                    path = "const std::string"):
         "Specialized method for writing py::bytes -- can be overridden"
         return "void"
 
     @PYB11virtual
     @PYB11const
     def read_bytes(self,
-                   path = "const std::string&"):
+                   path = "const std::string"):
         "Specilized method for reading py::bytes -- can be overridden"
         return "py::bytes"
     #...........................................................................
