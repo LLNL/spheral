@@ -103,24 +103,28 @@
     <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
     <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CUDADebug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
     <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
     <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
     <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -128,6 +132,7 @@
     <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
     <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CUDARelease|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -135,6 +140,7 @@
     <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
     <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -142,6 +148,7 @@
     <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
     <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -149,6 +156,7 @@
     <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
     <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -156,6 +164,7 @@
     <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
     <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CUDADebug|x64'">
@@ -198,7 +207,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -227,7 +235,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -256,7 +263,6 @@
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <Cpp0xSupport>true</Cpp0xSupport>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -287,7 +293,6 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <Cpp0xSupport>true</Cpp0xSupport>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -318,7 +323,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -351,7 +355,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -383,7 +386,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -415,7 +417,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -448,7 +449,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
