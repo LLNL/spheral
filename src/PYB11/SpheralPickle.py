@@ -5,6 +5,9 @@
 #-------------------------------------------------------------------------------
 import copyreg, pickle
 from SpheralCompiledPackages import *
+FacetedVolume1d = Box1d
+FacetedVolume2d = Polygon
+FacetedVolume3d = Polyhedron
 
 #-------------------------------------------------------------------------------
 # Vector1d
@@ -170,13 +173,15 @@ copyreg.pickle(type(ThirdRankTensor3d()), reduce_ThirdRankTensor3d, construct_Th
 #-------------------------------------------------------------------------------
 # Box1d
 #-------------------------------------------------------------------------------
-def construct_Box1d(encoded_string):
-    return unpackElementBox1d(encoded_string)
+copyreg.pickle(Box1d, lambda x: (Box1d, (x.center, x.extent)))
 
-def reduce_Box1d(obj):
-    return construct_Box1d, (packElementBox1d(obj),)
+# def construct_Box1d(encoded_string):
+#     return unpackElementBox1d(encoded_string)
 
-copyreg.pickle(type(Box1d()), reduce_Box1d, construct_Box1d)
+# def reduce_Box1d(obj):
+#     return construct_Box1d, (packElementBox1d(obj),)
+
+# copyreg.pickle(type(Box1d()), reduce_Box1d, construct_Box1d)
 
 #-------------------------------------------------------------------------------
 # Polygon
@@ -201,20 +206,30 @@ def reduce_Polyhedron(obj):
 copyreg.pickle(type(Polyhedron()), reduce_Polyhedron, construct_Polyhedron)
 
 #------------------------------------------------------------------------------
-# std::vectors
+# std::vectors of primitives
 #------------------------------------------------------------------------------
-vector_template = """
-def reduce_vector_of_%(value_type)s(obj):
-    return vector2string(obj)
-def construct_vector_of_%(value_type)s(strobj):
-    return string2vector_of_%(value_type)s(strobj)
-copyreg.pickle(vector_of_%(value_type)s, reduce_vector_of_%(value_type)s, construct_vector_of_%(value_type)s)
-"""
+def register_std_vector_primitive_for_pickle(T):
+    vec = eval("vector_of_" + T)
+    copyreg.constructor(vec)
+    copyreg.pickle(vec, lambda x: (vec, (tuple(x),)))
+for T in ("char", "unsigned", "ULL", "int", "float", "double", "string",
+          "Vector1d", "Tensor1d", "SymTensor1d", "ThirdRankTensor1d",
+          "Vector2d", "Tensor2d", "SymTensor2d", "ThirdRankTensor2d",
+          "Vector3d", "Tensor3d", "SymTensor3d", "ThirdRankTensor3d"):
+    register_std_vector_primative_for_pickle(T)
+    print("Registered vector_of_" + T)
 
-for t in ("int", "unsigned", "ULL", "double", "string"):
-          # "Vector1d", "Vector2d", "Vector3d", 
-          # "Tensor1d", "Tensor2d", "Tensor3d", 
-          # "SymTensor1d", "SymTensor2d", "SymTensor3d", 
-          # "ThirdRankTensor1d", "ThirdRankTensor2d", "ThirdRankTensor3d"):
-    exec(vector_template % {"value_type" : t})
-
+# #------------------------------------------------------------------------------
+# # std::vectors of general picklable types
+# #------------------------------------------------------------------------------
+# def register_std_vector_picklable_for_pickle(T):
+#     vec = eval("vector_of_" + T)
+#     def generate_constructor(vectype):
+#         def make_vec(
+#     copyreg.constructor(vec)
+#     copyreg.pickle(vec, lambda x: (vec, (tuple(x),)))
+# for T in ("FacetedVolume1d",
+#           "FacetedVolume2d",
+#           "FacetedVolume3d"):
+#     register_std_vector_primative_for_pickle(T)
+#     print("Registered vector_of_" + T)

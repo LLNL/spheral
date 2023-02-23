@@ -23,6 +23,11 @@ import mpi
 # ------------------------------------------------------------------------------
 from SpheralCompiledPackages import *
 
+# Aliases for a few objects
+FacetedVolume1d = Box1d
+FacetedVolume2d = Polygon
+FacetedVolume3d = Polyhedron
+
 # ------------------------------------------------------------------------------
 # Import the Material python extensions.
 # ------------------------------------------------------------------------------
