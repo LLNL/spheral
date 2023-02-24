@@ -229,8 +229,7 @@ void
 FileIO::write(const std::vector<DataType>& x, const std::string path) {
   std::vector<char> buf;
   packElement(x, buf);
-  std::string bufstr(buf.begin(), buf.end());
-  this->write(bufstr, path);
+  this->write_vector_char(buf, path);
 }
 
 // Specialize for some types that can be treated as arrays of doubles more efficiently/portably
@@ -266,9 +265,7 @@ template<typename DataType>
 inline
 void
 FileIO::read(std::vector<DataType>& x, const std::string path) const {
-  std::string bufstr;
-  this->read(bufstr, path);
-  const std::vector<char> buf(bufstr.begin(), bufstr.end());
+  const auto buf = this->read_vector_char(path);
   auto itr = buf.begin();
   unpackElement(x, itr, buf.end());
   ENSURE(itr == buf.end());

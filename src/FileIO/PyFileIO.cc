@@ -42,7 +42,7 @@ void
 PyFileIO::
 write_vector_char(const std::vector<char>& value, const std::string path) {
   py::bytes buf(&(*value.begin()), value.size());
-  this->write_object(buf, path);
+  this->write_bytes(buf, path);
 }
 
 //------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ write_vector_char(const std::vector<char>& value, const std::string path) {
 std::vector<char>
 PyFileIO::
 read_vector_char(const std::string path) const {
-  py::bytes buf = this->read_object(path);
+  py::bytes buf = this->read_bytes(path);
   std::string bufstr = std::string(buf);
   vector<char> result(bufstr.begin(), bufstr.end());
   ENSURE(result.size() == py::len(buf));

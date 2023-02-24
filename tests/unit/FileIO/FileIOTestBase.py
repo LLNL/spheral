@@ -29,6 +29,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def boilerPlate(self, filename, path, x0, x1):
         f = self.constructor(filename, Write)
+        #print("boilerPlate: Attempting to write ", x0)
         f.write(x0, path)
         f.close()
         f = self.constructor(filename, Read)
@@ -634,28 +635,28 @@ class FileIOTestBase:
                                       x0, x1)
             self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
-    # #---------------------------------------------------------------------------
-    # # Intfield1d
-    # #---------------------------------------------------------------------------
-    # def testIntField1d(self):
-    #     v0 = IntField1d("int field 1d control", nodes1d)
-    #     for i in range(self.n):
-    #         v0[i] = g.randint(self.intmin, self.intmax)
-    #     assert len(v0) == self.n
-    #     f = self.constructor("TestIntField1d", Write)
-    #     f.write(v0, "FileIOTestBase/IntField1d")
-    #     f.close()
-    #     f = self.constructor("TestIntField1d", Read)
-    #     v = IntField1d("int field 1d test", nodes1d)
-    #     f.read(v, "FileIOTestBase/IntField1d")
-    #     f.close()
-    #     assert len(v) == len(v0)
-    #     for i in range(self.n):
-    #         self.assertTrue(v[i] == v0[i],
-    #                         "%i != %i @ %i of %i in IntField1d test" %
-    #                         (v[i], v0[i], i, self.n))
-    #     self.removeFile("TestIntField1d")
-    #     return
+    #---------------------------------------------------------------------------
+    # Intfield1d
+    #---------------------------------------------------------------------------
+    def testIntField1d(self):
+        v0 = IntField1d("int field 1d control", nodes1d)
+        for i in range(self.n):
+            v0[i] = g.randint(self.intmin, self.intmax)
+        assert len(v0) == self.n
+        f = self.constructor("TestIntField1d", Write)
+        f.write(v0, "FileIOTestBase/IntField1d")
+        f.close()
+        f = self.constructor("TestIntField1d", Read)
+        v = IntField1d("int field 1d test", nodes1d)
+        f.read(v, "FileIOTestBase/IntField1d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
+                            "%i != %i @ %i of %i in IntField1d test" %
+                            (v[i], v0[i], i, self.n))
+        self.removeFile("TestIntField1d")
+        return
 
     # #---------------------------------------------------------------------------
     # # IntField2d

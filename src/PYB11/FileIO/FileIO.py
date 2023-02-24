@@ -352,6 +352,24 @@ def readFacetedVolume%(ndim)i(self,
                    path = "const std::string"):
         "Specilized method for reading py::bytes -- can be overridden"
         return "py::bytes"
+
+    @PYB11virtual
+    @PYB11pycppname("write")
+    def write_py_bytes(self,
+                       stuff = "py::bytes&",
+                       path = "const std::string"):
+        "Override generic write for py::bytes"
+        return "void"
+
+    @PYB11virtual
+    @PYB11const
+    @PYB11pycppname("read")
+    def read(self,
+             stuff = "py::bytes&",
+             path = "const std::string"):
+        "Override generic read for py::bytes"
+        return "void"
+
     #...........................................................................
     # Properties
     fileName = PYB11property("const std::string&", "fileName", doc="The current file name")

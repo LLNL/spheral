@@ -406,6 +406,10 @@ public:
   // pybind11::bytes
   SPHERAL_DLL_PUBLIC virtual void write_bytes(pybind11::bytes thing, const std::string path);
   SPHERAL_DLL_PUBLIC virtual pybind11::bytes read_bytes(const std::string path) const;
+
+  // When python tries to read/write bytes objects, use the correct method to avoid casting to a string
+  SPHERAL_DLL_PUBLIC virtual void write(pybind11::bytes& thing, const std::string path)       { this->write_bytes(thing, path); }
+  SPHERAL_DLL_PUBLIC virtual void read(pybind11::bytes& thing, const std::string path)  const { thing = this->read_bytes(path); }
 #endif
 
 protected:

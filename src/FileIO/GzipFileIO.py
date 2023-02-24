@@ -10,7 +10,6 @@ import pickle
 import time
 import sys
 
-from PyFileIO import PyFileIO
 from SpheralCompiledPackages import *
 
 #-------------------------------------------------------------------------------

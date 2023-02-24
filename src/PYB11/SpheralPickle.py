@@ -173,15 +173,15 @@ copyreg.pickle(type(ThirdRankTensor3d()), reduce_ThirdRankTensor3d, construct_Th
 #-------------------------------------------------------------------------------
 # Box1d
 #-------------------------------------------------------------------------------
-copyreg.pickle(Box1d, lambda x: (Box1d, (x.center, x.extent)))
+# copyreg.pickle(Box1d, lambda x: (Box1d, (x.center, x.extent)))
 
-# def construct_Box1d(encoded_string):
-#     return unpackElementBox1d(encoded_string)
+def construct_Box1d(encoded_string):
+    return unpackElementBox1d(encoded_string)
 
-# def reduce_Box1d(obj):
-#     return construct_Box1d, (packElementBox1d(obj),)
+def reduce_Box1d(obj):
+    return construct_Box1d, (packElementBox1d(obj),)
 
-# copyreg.pickle(type(Box1d()), reduce_Box1d, construct_Box1d)
+copyreg.pickle(type(Box1d()), reduce_Box1d, construct_Box1d)
 
 #-------------------------------------------------------------------------------
 # Polygon
@@ -216,20 +216,28 @@ for T in ("char", "unsigned", "ULL", "int", "float", "double", "string",
           "Vector1d", "Tensor1d", "SymTensor1d", "ThirdRankTensor1d",
           "Vector2d", "Tensor2d", "SymTensor2d", "ThirdRankTensor2d",
           "Vector3d", "Tensor3d", "SymTensor3d", "ThirdRankTensor3d"):
-    register_std_vector_primative_for_pickle(T)
+    register_std_vector_primitive_for_pickle(T)
     print("Registered vector_of_" + T)
 
-# #------------------------------------------------------------------------------
-# # std::vectors of general picklable types
-# #------------------------------------------------------------------------------
-# def register_std_vector_picklable_for_pickle(T):
-#     vec = eval("vector_of_" + T)
-#     def generate_constructor(vectype):
-#         def make_vec(
-#     copyreg.constructor(vec)
-#     copyreg.pickle(vec, lambda x: (vec, (tuple(x),)))
-# for T in ("FacetedVolume1d",
-#           "FacetedVolume2d",
-#           "FacetedVolume3d"):
-#     register_std_vector_primative_for_pickle(T)
-#     print("Registered vector_of_" + T)
+#------------------------------------------------------------------------------
+# std::vectors of general picklable types
+#------------------------------------------------------------------------------
+def register_std_vector_picklable_for_pickle(T):
+    vec = "vector_of_" + T
+    exec('''
+def make_std_vector_{T}(list_of_pickled_things):
+    return {vec}([pickle.loads(x) for x in list_of_pickled_things])
+def pickle_std_vector_{T}(xvec):
+    args = tuple([pickle.dumps(x) for x in xvec])
+    print("pickle_std_vector_{vec}: ", args)
+    return make_std_vector_{T}, (args,)
+'''.format(vec = vec,
+           T = T))
+    copyreg.constructor(eval("make_std_vector_" + T))
+    copyreg.pickle(eval(vec), eval("pickle_std_vector_" + T))
+    #copyreg.pickle(eval(vec), lambda xvec: (eval("make_std_vector_" + T), (tuple([pickle.dumps(x) for x in xvec]),)))
+for T in ("FacetedVolume1d",
+          "FacetedVolume2d",
+          "FacetedVolume3d"):
+    register_std_vector_picklable_for_pickle(T)
+    print("Registered vector_of_" + T)
