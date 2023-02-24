@@ -3,7 +3,7 @@
 //---------------------------------------------------------------------------
 // Schwartz, S.R. and Richards, D.C. "An implementation of the soft-sphere 
 // discrete element method in a high-performance parallel gravity tree-code,"
-// Granular Matter, (2012) 14:363380, 10.1007/s10035-012-0346-z.
+// Granular Matter, (2012) 14:363–380, 10.1007/s10035-012-0346-z.
 //
 // Zhang et. al. "Rotational Failure of Rubble-pile Bodies: Influences of 
 // Shear and Cohesive Strengths," The Astrophysical Journal, (2018) 857:15, 20
