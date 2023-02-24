@@ -140,7 +140,11 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
       mInitialVolume(i) = mass(i)/rho(i) * mVolumeMultiplier;
       mVmin = std::min(mVmin, mInitialVolume(i));
       mVmax = std::max(mVmax, mInitialVolume(i));
+#ifdef __APPLE__
       std::size_t seedi = mSeed;
+#else
+      Key seedi = mSeed;
+#endif
       boost::hash_combine(seedi, keys(i));
       randomGenerators[i].seed(seedi);      // starting out generating in [0,1)
       randomGenerators[i]();                // Recommended to discard first value in sequence
