@@ -29,23 +29,23 @@ class FileIOAbstractMethods:
         exec("""
 @PYB11pycppname("write")
 @PYB11noconvert
-def write%(Tmangle)s(self,
-                     value = "const %(T)s&",
-                     pathName = "const std::string"):
-    "Write %(T)s"
+def write{Tmangle}(self,
+                   value = "const {T}&",
+                   pathName = "const std::string"):
+    "Write {T}"
     return "void"
 
 @PYB11pycppname("read")
 @PYB11const
 @PYB11noconvert
-def read%(Tmangle)s(self,
-                    value = "%(T)s&",
+def read{Tmangle}(self,
+                    value = "{T}&",
                     pathName = "const std::string"):
-    "Read %(T)s"
+    "Read {T}"
     return "void"
 
-""" % {"T"       : T,
-       "Tmangle" : Tmangle})
+""".format(T = T,
+           Tmangle = Tmangle))
 
     # More primitive types
     types = []
@@ -58,52 +58,19 @@ def read%(Tmangle)s(self,
         exec("""
 @PYB11pycppname("write")
 @PYB11noconvert
-def write%(Tmangle)s(self,
-                     value = "const %(T)s&",
+def write{Tmangle}(self,
+                     value = "const {T}&",
                      pathName = "const std::string"):
-    "Write %(T)s"
+    "Write {T}"
     return "void"
 
 @PYB11pycppname("read")
 @PYB11const
 @PYB11noconvert
-def read%(Tmangle)s(self,
-                    value = "%(T)s&",
+def read{Tmangle}(self,
+                    value = "{T}&",
                     pathName = "const std::string"):
-    "Read %(T)s"
+    "Read {T}"
     return "void"
-""" % {"T"       : T,
-       "Tmangle" : T.replace(":", "_").replace("<", "_").replace(">", "_")})
-
-    #...........................................................................
-    # Abstract interface (Field<primitives>)
-    for ndim in dims:
-        types = ["int",
-                 "unsigned",
-                 "Dim<%i>::Scalar" % ndim,
-                 "Dim<%i>::Vector" % ndim,
-                 "Dim<%i>::Tensor" % ndim,
-                 "Dim<%i>::SymTensor" % ndim,
-                 "Dim<%i>::ThirdRankTensor" % ndim]
-
-        for T in types:
-            exec("""
-@PYB11pycppname("write")
-@PYB11noconvert
-def writeField%(Tmangle)s(self,
-                value = "const Field<Dim<%(ndim)i>, %(T)s>&",
-                pathName = "const std::string"):
-    "Write Field<Dim<%(ndim)i, %(T)s>"
-    return "void"
-
-@PYB11pycppname("read")
-@PYB11const
-@PYB11noconvert
-def readField%(Tmangle)s(self,
-                         value = "Field<Dim<%(ndim)i>, %(T)s>&",
-                         pathName = "const std::string"):
-    "Read %(T)s"
-    return "void"
-""" % {"ndim" : ndim,
-       "T"       : T,
-       "Tmangle" : ("Field<%i%s>" % (ndim, T)).replace(":", "_").replace("<", "_").replace(">", "_")})
+""".format(T = T,
+           Tmangle = T.replace(":", "_").replace("<", "_").replace(">", "_")))

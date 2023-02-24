@@ -11,14 +11,10 @@ namespace Spheral {
 template<typename Dimension, typename DataType>
 inline
 void
-FileIO::writeFieldBlob(const Field<Dimension, DataType>& value,
-                       const std::string path) {
-  const auto n = value.nodeList().numInternalNodes();
-  std::vector<int> inds(n);
-  for (auto i = 0u; i < n; ++i) inds[i] = i;
-  const auto blob = value.packValues(inds);
-  const std::string sblob(blob.begin(), blob.end());
-  this->write(sblob, path);
+FileIO::write(const Field<Dimension, DataType>& value,
+              const std::string path) {
+  const auto buf = value.serialize();
+  this->write(buf, path);
 }
 
 //------------------------------------------------------------------------------
@@ -27,69 +23,45 @@ FileIO::writeFieldBlob(const Field<Dimension, DataType>& value,
 template<typename Dimension, typename DataType>
 inline
 void
-FileIO::readFieldBlob(Field<Dimension, DataType>& value,
-                      const std::string path) const {
-  const auto n = value.nodeList().numInternalNodes();
-  std::vector<int> inds(n);
-  for (auto i = 0u; i < n; ++i) inds[i] = i;
-  std::string sblob;
-  this->read(sblob, path);
-  std::vector<char> blob(sblob.begin(), sblob.end());
-  value.unpackValues(inds, blob);
+FileIO::read(Field<Dimension, DataType>& value,
+             const std::string path) const {
+  vector<char> buf;
+  this->read(buf, path);
+  value.deserialize(buf);
 }
 
 //------------------------------------------------------------------------------
-// Write a FieldList of arbitrary DataType (private)
+// Write a FieldList 
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 void
-FileIO::writeFieldList(const FieldList<Dimension, DataType>& fieldList,
-                       const std::string path) {
-
-  const std::string divider = "|";
+FileIO::write(const FieldList<Dimension, DataType>& fieldList,
+              const std::string path) {
 
   // Is the FieldList responsible for it's own memory?  If so, we have to 
   // provide additional information so it can properly restore itself.
   if (fieldList.storageType() == FieldStorageType::CopyFields) {
-    if (fieldList.numFields() > 0) {
-      std::stringstream names;
-      for (typename FieldList<Dimension, DataType>::const_iterator fieldItr = fieldList.begin();
-           fieldItr != fieldList.end();
-           ++fieldItr) {
-        names << (**fieldItr).nodeList().name() << divider;
-      }
-      names << std::ends;
-      write(names.str(), path + "/NodeListNames");
-    } else {
-      write("", path + "/NodeListNames");
-    }
+    std::vector<std::string> nodeListNames;
+    for (const auto fieldPtr: fieldList) nodeListNames.push_back(fieldPtr->nodeList().name());
+    this->write(nodeListNames, path + "/NodeListNames");
   }
 
   // Loop over each Field, and write each one using the descendent method.
-  for (typename FieldList<Dimension, DataType>::const_iterator fieldItr = fieldList.begin();
-       fieldItr != fieldList.end();
-       ++fieldItr) {
-
-    // Build a unique path name for the Field.
-    std::stringstream varPath;
-    int elementID = std::distance(fieldList.begin(), fieldItr);
-    varPath << path << "/Field" << elementID;
-
-    write(**fieldItr, varPath.str());
+  auto ifield = 0u;
+  for (const auto fieldPtr: fieldList) {
+    this->write(*fieldPtr, path + "/Field" + std::to_string(ifield++));
   }
 }
 
 //------------------------------------------------------------------------------
-// Read a FieldList of arbitrary DataType. (private)
+// Read a FieldList
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 void
-FileIO::readFieldList(FieldList<Dimension, DataType>& fieldList,
-                      const std::string path) const {
-
-  const std::string divider = "|";
+FileIO::read(FieldList<Dimension, DataType>& fieldList,
+             const std::string path) const {
 
   // Is the FieldList responsible for it's own memory?  If so, we have to 
   // first make sure it has memory for each of the NodeLists it's defined against.
@@ -100,14 +72,9 @@ FileIO::readFieldList(FieldList<Dimension, DataType>& fieldList,
     const std::vector<std::string> registeredNames = registrar.registeredNames();
 
     // Read the set of NodeLists this FieldList is associated with.
-    std::string names;
-    read(names, path + "/NodeListNames");
-    while (names.find(divider) != std::string::npos) {
-
-      // Read the name of the next NodeList.
-      const size_t len = names.find(divider);
-      CHECK(len < names.size());
-      const std::string name = names.substr(0, len);
+    std::vector<std::string> nodeListNames;
+    this->read(nodeListNames, path + "/NodeListNames");
+    for (const auto& name: nodeListNames) {
       
       // Find the NodeList this is.
       const size_t nodeListi = std::distance(registeredNames.begin(), 
@@ -119,104 +86,14 @@ FileIO::readFieldList(FieldList<Dimension, DataType>& fieldList,
       if (not fieldList.haveNodeList(nodeList)) {
         fieldList.appendNewField("Unnamed Field", nodeList, DataTypeTraits<DataType>::zero());
       }
-
-      // Remove this name from the list of potentials.
-      names = names.substr(len + 1, names.size());
     }
   }
 
   // Loop over each Field, and read each one using the descendent method.
-  for (typename FieldList<Dimension, DataType>::iterator fieldItr = fieldList.begin();
-       fieldItr != fieldList.end();
-       ++fieldItr) {
-
-    // Build the path name for the individual Field.
-    std::stringstream varPath;
-    int elementID = std::distance(fieldList.begin(), fieldItr);
-    varPath << path << "/Field" << elementID;
-
-    read(**fieldItr, varPath.str());
-    // std::cerr << "  AFTER READING Field: " << (**fieldItr).size() << std::endl;
+  auto ifield = 0u;
+  for (auto fieldPtr: fieldList) {
+    read(*fieldPtr, path + "/Field" + std::to_string(ifield++));
   }
-}
-
-//------------------------------------------------------------------------------
-// Write a Field of std::vector<DataType>. (private)
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-void
-FileIO::writeFieldVector(const Field<Dimension, std::vector<DataType> >& field,
-                         const std::string path) {
-
-  // Build an array with the number of elements per node, and count the total number of elements.
-  std::vector<int> numElementsPerNode;
-  size_t totalNumElements = size_t(0);
-  for (typename Field<Dimension, std::vector<DataType> >::const_iterator itr = field.internalBegin();
-       itr != field.internalEnd();
-       ++itr) {
-    const int ni = (*itr).size();
-    totalNumElements += ni;
-    numElementsPerNode.push_back(ni);
-  }
-  CHECK(numElementsPerNode.size() == field.nodeList().numInternalNodes());
-
-  // Serialize the elements into a flat array.
-  std::vector<DataType> elements(totalNumElements);
-  size_t offset = size_t(0);
-  for (typename Field<Dimension, std::vector<DataType> >::const_iterator itr = field.internalBegin();
-       itr != field.internalEnd();
-       ++itr) {
-    std::copy(itr->begin(), itr->end(), elements.begin() + offset);
-    offset += itr->size();
-  }
-  CHECK(offset == totalNumElements);
-
-  // Now we can use the available methods for writing vector<>'s to store
-  // the data.
-  write(numElementsPerNode, path + "/numElementsPerNode");
-  write(elements, path + "/elements");
-}
-
-//------------------------------------------------------------------------------
-// Read a Field of std::vector<DataType>. (private)
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-void
-FileIO::readFieldVector(Field<Dimension, std::vector<DataType> >& field,
-                        const std::string path) const {
-
-  // Read the serialized data back in.
-  std::vector<int> numElementsPerNode;
-  std::vector<DataType> elements;
-  read(numElementsPerNode, path + "/numElementsPerNode");
-  read(elements, path + "/elements");
-  CHECK(numElementsPerNode.size() == field.nodeList().numInternalNodes());
-
-  // Consistency check...
-  BEGIN_CONTRACT_SCOPE
-  {
-    int numElements = 0;
-    for (std::vector<int>::const_iterator itr = numElementsPerNode.begin();
-         itr != numElementsPerNode.end();
-         ++itr) numElements += *itr;
-    CHECK(numElements == (int)elements.size());
-  }
-  END_CONTRACT_SCOPE
-
-  // Fill the Field back in.
-  typename std::vector<DataType>::const_iterator elementItr = elements.begin();
-  for (auto i = 0u; i != field.nodeList().numInternalNodes(); ++i) {
-    field(i) = std::vector<DataType>();
-    field(i).reserve(numElementsPerNode[i]);
-    for (auto j = 0; j != numElementsPerNode[i]; ++j) {
-      CHECK(elementItr < elements.end());
-      field(i).push_back(*elementItr);
-      ++elementItr;
-    }
-  }
-  CHECK(elementItr == elements.end());
 }
 
 //------------------------------------------------------------------------------

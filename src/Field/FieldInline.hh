@@ -1192,8 +1192,7 @@ Field<Dimension, DataType>::deleteElements(const std::vector<int>& nodeIDs) {
 }
 
 //------------------------------------------------------------------------------
-// Pack the given Field values by appending the elements decomposed into simple
-// Scalars onto the given array.
+// Serialize the chosen Field values onto a buffer
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -1368,41 +1367,38 @@ computeCommBufferSize(const std::vector<int>& packIndices,
 }
 
 //------------------------------------------------------------------------------
-// Pack the Field into a string.
+// Serialize the Field into a vector<char>.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-std::string
+std::vector<char>
 Field<Dimension, DataType>::
-string(const int /*precision*/) const {
-  const int n = numInternalElements();
-  std::vector<int> indices;
-  indices.reserve(n);
-  for (int i = 0; i != n; ++i) indices.push_back(i);
-  CHECK((int)indices.size() == n);
-  const std::vector<char> packedValues = packFieldValues(*this, indices);
-  return std::string(this->name()) + "|" + std::string(packedValues.begin(), packedValues.end());
+serialize() const {
+  const size_t n = numInternalElements();
+  vector<char> buf;
+  packElement(this->name(), buf);
+  packElement(n, buf);
+  for (auto i = 0u; i < n; ++i) packElement((*this)[i], buf);
+  return buf;
 }
 
 //------------------------------------------------------------------------------
-// Unpack the values from a string into this Field.
+// Deserialize the values from a vector<char> into this Field.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::
-string(const std::string& s) {
-  const int n = numInternalElements();
-  std::vector<int> indices;
-  indices.reserve(n);
-  for (int i = 0; i != n; ++i) indices.push_back(i);
-  CHECK((int)indices.size() == n);
-  const size_t j = s.find("|");
-  CHECK(j != std::string::npos and
-        j < s.size());
-  this->name(s.substr(0, j));
-  const std::vector<char> packedValues(s.begin() + j + 1, s.end());
-  unpackFieldValues(*this, indices, packedValues);
+deserialize(const std::vector<char>& buf) {
+  auto itr = buf.begin();
+  std::string nm;
+  unpackElement(nm, itr, buf.end());
+  this->name(nm);
+  size_t n;
+  unpackElement(n, itr, buf.end());
+  VERIFY2(n == this->numInternalElements(),
+          "Field ERROR: attempt to deserialize wrong number of elements: " << n << " != " << this->numInternalElements());
+  for (auto i = 0u; i < n; ++i) unpackElement((*this)[i], itr, buf.end());
 }
 
 //------------------------------------------------------------------------------

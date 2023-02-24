@@ -150,115 +150,6 @@ class FileIO:
         return "std::vector<char>"
 
     #...........................................................................
-    # Methods
-    for ndim in dims:
-        for ttype in ("Scalar",
-                      "Vector",
-                      "Tensor",
-                      "SymTensor",
-                      "ThirdRankTensor"):
-            exec('''
-@PYB11pycppname("write")
-@PYB11virtual
-@PYB11noconvert
-def write%(ttype)sFL%(ndim)i(self,
-                             value = "const FieldList<Dim<%(ndim)i>, Dim<%(ndim)i>::%(ttype)s>&",
-                             pathName = "const std::string"):
-    "Write FieldList<Dim<%(ndim)i, %(ttype)s>"
-    return "void"
-
-@PYB11pycppname("read")
-@PYB11virtual
-@PYB11const
-@PYB11noconvert
-def read%(ttype)sFL%(ndim)i(self,
-                            value = "FieldList<Dim<%(ndim)i>, Dim<%(ndim)i>::%(ttype)s>&",
-                            pathName = "const std::string"):
-    "Read FieldList<Dim<%(ndim)i, %(ttype)s>"
-    return "void"
-
-@PYB11pycppname("write")
-@PYB11virtual
-@PYB11noconvert
-def write%(ttype)sFV%(ndim)i(self,
-                             value = "const Field<Dim<%(ndim)i>, std::vector<Dim<%(ndim)i>::%(ttype)s>>&",
-                             pathName = "const std::string"):
-    "Write Field<Dim<%(ndim)i, vector<%(ttype)s>>"
-    return "void"
-
-@PYB11pycppname("read")
-@PYB11virtual
-@PYB11const
-@PYB11noconvert
-def read%(ttype)sFV%(ndim)i(self,
-                            value = "Field<Dim<%(ndim)i>, std::vector<Dim<%(ndim)i>::%(ttype)s>>&",
-                            pathName = "const std::string"):
-    "Read Field<Dim<%(ndim)i, vector<%(ttype)s>>"
-    return "void"
-''' % {"ndim" : ndim,
-       "ttype" : ttype})
-
-        #......................................................................
-        exec('''
-@PYB11pycppname("write")
-@PYB11virtual
-@PYB11noconvert
-def writeintFL%(ndim)i(self,
-                             value = "const FieldList<Dim<%(ndim)i>, int>&",
-                             pathName = "const std::string"):
-    "Write FieldList<Dim<%(ndim)i, int>"
-    return "void"
-
-@PYB11pycppname("read")
-@PYB11virtual
-@PYB11const
-@PYB11noconvert
-def readintFL%(ndim)i(self,
-                            value = "FieldList<Dim<%(ndim)i>, int>&",
-                            pathName = "const std::string"):
-    "Read FieldList<Dim<%(ndim)i, int>"
-    return "void"
-
-@PYB11pycppname("write")
-@PYB11virtual
-@PYB11noconvert
-def writeunsignedFL%(ndim)i(self,
-                             value = "const FieldList<Dim<%(ndim)i>, unsigned>&",
-                             pathName = "const std::string"):
-    "Write FieldList<Dim<%(ndim)i, unsigned>"
-    return "void"
-
-@PYB11pycppname("read")
-@PYB11virtual
-@PYB11const
-@PYB11noconvert
-def readunsignedFL%(ndim)i(self,
-                            value = "FieldList<Dim<%(ndim)i>, unsigned>&",
-                            pathName = "const std::string"):
-    "Read FieldList<Dim<%(ndim)i, unsigned>"
-    return "void"
-
-@PYB11pycppname("write")
-@PYB11virtual
-@PYB11noconvert
-def writeintFV%(ndim)i(self,
-                             value = "const Field<Dim<%(ndim)i>, std::vector<int>>&",
-                             pathName = "const std::string"):
-    "Write Field<Dim<%(ndim)i, vector<int>>"
-    return "void"
-
-@PYB11pycppname("read")
-@PYB11virtual
-@PYB11const
-@PYB11noconvert
-def readintFV%(ndim)i(self,
-                            value = "Field<Dim<%(ndim)i>, std::vector<int>>&",
-                            pathName = "const std::string"):
-    "Read Field<Dim<%(ndim)i, vector<int>>"
-    return "void"
-''' % {"ndim" : ndim})
-
-    #...........................................................................
     for ndim in range(1,4):  # These dimensional methods are always supported
         exec('''
 @PYB11pycppname("write")
@@ -364,9 +255,9 @@ def readFacetedVolume%(ndim)i(self,
     @PYB11virtual
     @PYB11const
     @PYB11pycppname("read")
-    def read(self,
-             stuff = "py::bytes&",
-             path = "const std::string"):
+    def read_py_bytes(self,
+                      stuff = "py::bytes&",
+                      path = "const std::string"):
         "Override generic read for py::bytes"
         return "void"
 

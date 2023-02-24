@@ -14,7 +14,6 @@
 #include "FieldBase.hh"
 #include "axom/sidre.hpp"
 
-#include <string>
 #include <vector>
 
 #ifdef USE_UVM
@@ -226,9 +225,9 @@ public:
                                     const int sendProc,
                                     const int recvProc) const override;
 
-  // Methods to use the iostream methods converting a Field to/from a string.
-  std::string string(const int precision = 20) const;
-  void string(const std::string& s);
+  // Serialization methods
+  std::vector<char> serialize() const;
+  void deserialize(const std::vector<char>& buf);
 
   // Provide std::vector copies of the data.  This is mostly useful for the
   // python interface.
