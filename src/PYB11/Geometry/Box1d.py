@@ -23,6 +23,11 @@ class Box1d:
                 facetIndices = "const std::vector<std::vector<unsigned> >&"):
         "Construct with explicit vertices and facets"
 
+    def pyinit3(self,
+                center = "const Dim<1>::Vector&",
+                extent = "const double"):
+        "Construct with the given center and width"
+
     #...........................................................................
     # Methods
     @PYB11const
