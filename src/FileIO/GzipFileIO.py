@@ -117,17 +117,17 @@ class GzipFileIO(PyFileIO):
         return self.lines[pathName]
 
     #---------------------------------------------------------------------------
-    # write_bytes
+    # writeBytes
     #---------------------------------------------------------------------------
-    def write_bytes(self, val, pathName):
-        #print("write_bytes: ", pathName)
-        #print("write_bytes: ", val)
+    def writeBytes(self, val, pathName):
+        #print("writeBytes: ", pathName)
+        #print("writeBytes: ", val)
         self.f.write(self.terminator +
                      bytes(pathName, self.encoding) + self.terminator + 
                      val.replace(b'\n', self.mungenewline) + self.terminator + b'\n')
         return
 
-    def read_bytes(self, pathName):
+    def readBytes(self, pathName):
         return self.findPath(pathName)
 
     # #---------------------------------------------------------------------------
@@ -151,7 +151,7 @@ class GzipFileIO(PyFileIO):
     # # _read: the generic read using pickle
     # #---------------------------------------------------------------------------
     # def _read(self, pathName):
-    #     stuff = self.read_bytes(pathName)
+    #     stuff = self.readBytes(pathName)
     #     return pickle.loads(stuff.replace(b"<<<<<n>>>>>", b"\n"))
 
     # #---------------------------------------------------------------------------

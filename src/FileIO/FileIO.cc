@@ -273,18 +273,18 @@ FileIO::fileOpen() const {
 // Python objects (handle with pickle)
 //------------------------------------------------------------------------------
 void
-FileIO::write_object(py::object thing, const std::string path) {
+FileIO::writeObject(py::object thing, const std::string path) {
   auto pickle = py::module_::import("pickle");
   auto dumps = pickle.attr("dumps");
   auto stuff = dumps(thing);
-  this->write_bytes(stuff, path);
+  this->writeBytes(stuff, path);
 }
 
 py::object
-FileIO::read_object(const std::string path) const {
+FileIO::readObject(const std::string path) const {
   auto pickle = py::module_::import("pickle");
   auto loads = pickle.attr("loads");
-  auto stuff = this->read_bytes(path);
+  auto stuff = this->readBytes(path);
   return loads(stuff);
 }
 
@@ -292,7 +292,7 @@ FileIO::read_object(const std::string path) const {
 // Python bytes
 //------------------------------------------------------------------------------
 void
-FileIO::write_bytes(py::bytes stuff, const std::string path) {
+FileIO::writeBytes(py::bytes stuff, const std::string path) {
   std::string stuff_str = std::string(stuff);
   std::vector<char> buf(stuff_str.begin(), stuff_str.end());
   ENSURE(buf.size() == py::len(stuff));
@@ -300,7 +300,7 @@ FileIO::write_bytes(py::bytes stuff, const std::string path) {
 }
 
 py::bytes
-FileIO::read_bytes(const std::string path) const {
+FileIO::readBytes(const std::string path) const {
   auto buf = this->read_vector_char(path);
   return py::bytes(std::string(buf.begin(), buf.end()));
 }

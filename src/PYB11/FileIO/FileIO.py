@@ -217,7 +217,7 @@ def readFacetedVolume%(ndim)i(self,
         "Return the variable component of a path."
         return "std::string"
 
-    def write_object(self,
+    def writeObject(self,
                      thing = "py::object",
                      path = "const std::string"):
         "Handle a generic python object through serialization"
@@ -225,22 +225,22 @@ def readFacetedVolume%(ndim)i(self,
 
     @PYB11returnpolicy("take_ownership")
     @PYB11const
-    def read_object(self,
+    def readObject(self,
                     path = "const std::string"):
         "Return a generic python object from deserialization."
         return "py::object"
 
     @PYB11virtual
-    def write_bytes(self,
-                    stuff = "py::bytes",
-                    path = "const std::string"):
+    def writeBytes(self,
+                   stuff = "py::bytes",
+                   path = "const std::string"):
         "Specialized method for writing py::bytes -- can be overridden"
         return "void"
 
     @PYB11virtual
     @PYB11const
-    def read_bytes(self,
-                   path = "const std::string"):
+    def readBytes(self,
+                  path = "const std::string"):
         "Specilized method for reading py::bytes -- can be overridden"
         return "py::bytes"
 

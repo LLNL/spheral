@@ -1590,15 +1590,15 @@ class FileIOTestBase:
         self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
-    # write_object(int)
+    # writeObject(int)
     #---------------------------------------------------------------------------
     def testWriteObjectInt(self):
         x0 = g.randint(self.intmin, self.intmax)
         f = self.constructor("TestInt", Write)
-        f.write_object(x0, "FileIOTestBase/TestInt")
+        f.writeObject(x0, "FileIOTestBase/TestInt")
         f.close()
         f = self.constructor("TestInt", Read)
-        x1 = f.read_object("FileIOTestBase/TestInt")
+        x1 = f.readObject("FileIOTestBase/TestInt")
         f.close()
         self.assertTrue(x1 == x0,
                         "%i != %i in int OBJECT test" % (x1, x0))
@@ -1606,15 +1606,15 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
-    # write_object(bool)
+    # writeObject(bool)
     #---------------------------------------------------------------------------
     def testWriteObjectBool(self):
         x0 = g.choice([True, False])
         f = self.constructor("TestBool", Write)
-        f.write_object(x0, "FileIOTestBase/TestBool")
+        f.writeObject(x0, "FileIOTestBase/TestBool")
         f.close()
         f = self.constructor("TestBool", Read)
-        x1 = f.read_object("FileIOTestBase/TestBool")
+        x1 = f.readObject("FileIOTestBase/TestBool")
         f.close()
         self.assertTrue(x1 == x0,
                         "%s != %s in bool OBJECT test" % (x1, x0))
@@ -1622,15 +1622,15 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
-    # write_object(string)
+    # writeObject(string)
     #---------------------------------------------------------------------------
     def testWriteObjectString(self):
         x0 = "abcdefg"
         f = self.constructor("TestObject", Write)
-        f.write_object(x0, "FileIOTestBase/TestObject")
+        f.writeObject(x0, "FileIOTestBase/TestObject")
         f.close()
         f = self.constructor("TestObject", Read)
-        x1 = f.read_object("FileIOTestBase/TestObject")
+        x1 = f.readObject("FileIOTestBase/TestObject")
         f.close()
         self.assertTrue(x1 == x0,
                         "%s != %s in string OBJECT test" % (x1, x0))
@@ -1638,15 +1638,15 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
-    # write_object(list)
+    # writeObject(list)
     #---------------------------------------------------------------------------
     def testWriteObjectList(self):
         x0 = [49, 492, 59392, 784761, "ackthpt"]
         f = self.constructor("TestObject", Write)
-        f.write_object(x0, "FileIOTestBase/TestObject")
+        f.writeObject(x0, "FileIOTestBase/TestObject")
         f.close()
         f = self.constructor("TestObject", Read)
-        x1 = f.read_object("FileIOTestBase/TestObject")
+        x1 = f.readObject("FileIOTestBase/TestObject")
         f.close()
         self.assertTrue(x1 == x0,
                         "%s != %s in list OBJECT test" % (x1, x0))
@@ -1654,7 +1654,7 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
-    # write_object(Vector3d)
+    # writeObject(Vector3d)
     #---------------------------------------------------------------------------
     def testWriteObjectVector3d(self):
         x0 = Vector3d(g.uniform(self.doublemin, self.doublemax),
@@ -1662,10 +1662,10 @@ class FileIOTestBase:
                       g.uniform(self.doublemin, self.doublemax))
         x1 = Vector3d()
         f = self.constructor("TestVector3d", Write)
-        f.write_object(x0, "FileIOTestBase/TestVector3d")
+        f.writeObject(x0, "FileIOTestBase/TestVector3d")
         f.close()
         f = self.constructor("TestVector3d", Read)
-        x1 = f.read_object("FileIOTestBase/TestVector3d")
+        x1 = f.readObject("FileIOTestBase/TestVector3d")
         f.close()
         self.assertTrue(x1 == x0,
                         "%s != %s in Vector3d OBJECT test" % (str(x1), str(x0)))
