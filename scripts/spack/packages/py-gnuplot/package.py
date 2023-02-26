@@ -16,3 +16,4 @@ class PyGnuplot(PythonPackage):
     # pip silently replaces distutils with setuptools
     depends_on('py-setuptools', type='build')
     depends_on('py-numpy', type=('build', 'run'))
+    depends_on('py-pandas', type=('build','run'))
