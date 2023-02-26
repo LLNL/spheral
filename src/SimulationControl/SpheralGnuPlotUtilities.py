@@ -1,4 +1,4 @@
-import Gnuplot
+from pygnuplot import gnuplot
 import mpi
 from Spheral import *
 from math import *
@@ -37,7 +37,7 @@ class fakeGnuplot:
 
 def generateNewGnuPlot(persist = False):
     if mpi.rank == 0:
-        result = Gnuplot.Gnuplot(persist = persist)
+        result = gnuplot.Gnuplot(persist = persist)
         if "GNUTERM" in list(os.environ.keys()):
             result("set term %s" % os.environ["GNUTERM"])
         return result
@@ -45,7 +45,7 @@ def generateNewGnuPlot(persist = False):
         return fakeGnuplot()
 
 #-------------------------------------------------------------------------------
-# Since the default Gnuplot.py doesn't support png output, I'll add it here
+# Since the default gnuplot.py doesn't support png output, I'll add it here
 # myself.
 #-------------------------------------------------------------------------------
 def pngFile(plot, filename,
@@ -284,7 +284,7 @@ def plotFieldList(fieldList,
 ##                                                           iNodeList + 1))
                     legend = legendNodeList[iNodeList]
                     legendNodeList[iNodeList] = None
-                    data = Gnuplot.Data(x, y,
+                    data = gnuplot.Data(x, y,
                                         with_ = plotStyle + " lt %i" % iNodeList,
                                         title = legend,
                                         inline = True)
@@ -296,7 +296,7 @@ def plotFieldList(fieldList,
         else:
             x = numpy.array(globalX)
             y = numpy.array(globalY)
-            data = Gnuplot.Data(x, y,
+            data = gnuplot.Data(x, y,
                                 with_ = plotStyle + " lt -1 pt 3",
                                 title = lineTitle,
                                 inline = True)
@@ -483,7 +483,7 @@ def plotAnswer(answerObject, time,
             h = None
 
     if rhoPlot is not None:
-        data = Gnuplot.Data(x, rho,
+        data = gnuplot.Data(x, rho,
                             with_="lines lt 7 lw 2",
                             title="Solution",
                             inline = True)
@@ -491,7 +491,7 @@ def plotAnswer(answerObject, time,
         rhoPlot.replot(data)
 
     if velPlot is not None:
-        data = Gnuplot.Data(x, v,
+        data = gnuplot.Data(x, v,
                             with_="lines lt 7 lw 2",
                             title="Solution",
                             inline = True)
@@ -499,7 +499,7 @@ def plotAnswer(answerObject, time,
         velPlot.replot(data)
 
     if epsPlot is not None:
-        data = Gnuplot.Data(x, u,
+        data = gnuplot.Data(x, u,
                             with_="lines lt 7 lw 2",
                             title="Solution",
                             inline = True)
@@ -507,7 +507,7 @@ def plotAnswer(answerObject, time,
         epsPlot.replot(data)
 
     if PPlot is not None:
-        data = Gnuplot.Data(x, P,
+        data = gnuplot.Data(x, P,
                             with_="lines lt 7 lw 2",
                             title="Solution",
                             inline = True)
@@ -515,7 +515,7 @@ def plotAnswer(answerObject, time,
         PPlot.replot(data)
 
     if APlot is not None and A:
-        data = Gnuplot.Data(x, A,
+        data = gnuplot.Data(x, A,
                             with_="lines lt 7 lw 2",
                             title="Solution",
                             inline = True)
@@ -523,7 +523,7 @@ def plotAnswer(answerObject, time,
         APlot.replot(data)
 
     if HPlot is not None:
-        data = Gnuplot.Data(x, h,
+        data = gnuplot.Data(x, h,
                             with_="lines lt 7 lw 2",
                             title="Solution",
                             inline = True)
@@ -615,7 +615,7 @@ def plotNodePositions2d(thingy,
         plot.title = title
         assert len(xlist) == len(ylist)
         for x, y in zip(xlist, ylist):
-            data = Gnuplot.Data(x, y, 
+            data = gnuplot.Data(x, y, 
                                 with_ = style,
                                 inline = True)
             plot.replot(data)
@@ -698,7 +698,7 @@ def plotXYTuples(listOfXYTuples):
             y[i] = seq[i][1]
 
         # Build the gnuplot data.
-        data = Gnuplot.Data(x, y,
+        data = gnuplot.Data(x, y,
                             with_ = "points",
                             inline = True)
         SpheralGnuPlotCache.append(data)
@@ -755,7 +755,7 @@ def plotNodeSpacing1d(dataBase):
     xvals.sort()
     deltas = [xvals[i+1] - xvals[i] for i in range(len(xvals) - 1)] + [xvals[-1] - xvals[-2]]
     plot = generateNewGnuPlot()
-    d = Gnuplot.Data(xvals, deltas, with_="lines")
+    d = gnuplot.Data(xvals, deltas, with_="lines")
     plot.plot(d)
     return plot
 
@@ -818,7 +818,7 @@ def plotVectorField2d(dataBase, fieldList,
 ##                plot("set linestyle %i lt %i pt %i" % (domain + 1,
 ##                                                       domain + 1,
 ##                                                       domain + 1))
-                data = Gnuplot.Data(x, y, vx, vy,
+                data = gnuplot.Data(x, y, vx, vy,
                                     with_ = "vector ls %i" % (domain + 1),
                                     inline = True)
                 plot.replot(data)
@@ -838,7 +838,7 @@ def plotVectorField2d(dataBase, fieldList,
 ##                    plot("set linestyle %i lt %i pt %i" % (iNodeList + 1,
 ##                                                           iNodeList + 1,
 ##                                                           iNodeList + 1))
-                    data = Gnuplot.Data(x, y, vx, vy,
+                    data = gnuplot.Data(x, y, vx, vy,
                                         with_ = "vector ls %i" % (iNodeList + 1),
                                         inline = True)
                     plot.replot(data)
@@ -849,7 +849,7 @@ def plotVectorField2d(dataBase, fieldList,
             y = numpy.array(globalYNodes)
             vx = numpy.array(globalVxNodes)
             vy = numpy.array(globalVyNodes)
-            data = Gnuplot.Data(x, y, vx, vy,
+            data = gnuplot.Data(x, y, vx, vy,
                                 with_ = "vector",
                                 inline = True)
             plot.replot(data)
@@ -944,19 +944,19 @@ def plotEHistory(conserve):
         KE = conserve.KEHistory
         TE = conserve.TEHistory
         UE = conserve.EEHistory
-        Edata = Gnuplot.Data(t, E,
+        Edata = gnuplot.Data(t, E,
                              with_ = "lines",
                              title = "Total Energy",
                              inline = True)
-        KEdata = Gnuplot.Data(t, KE,
+        KEdata = gnuplot.Data(t, KE,
                               with_ = "lines",
                               title = "Kinetic Energy",
                               inline = True)
-        TEdata = Gnuplot.Data(t, TE,
+        TEdata = gnuplot.Data(t, TE,
                               with_ = "lines",
                               title = "Thermal Energy",
                               inline = True)
-        UEdata = Gnuplot.Data(t, UE,
+        UEdata = gnuplot.Data(t, UE,
                               with_ = "lines",
                               title = "Potential Energy",
                               inline = True)
@@ -982,19 +982,19 @@ def plotpmomHistory(conserve):
         py = [x.y for x in p]
         pz = [x.z for x in p]
         pmag = [x.magnitude() for x in p]
-        pxdata = Gnuplot.Data(t, px,
+        pxdata = gnuplot.Data(t, px,
                               with_ = "lines",
                               title = "x momentum",
                               inline = True)
-        pydata = Gnuplot.Data(t, py,
+        pydata = gnuplot.Data(t, py,
                               with_ = "lines",
                               title = "y momentum ",
                               inline = True)
-        pzdata = Gnuplot.Data(t, pz,
+        pzdata = gnuplot.Data(t, pz,
                               with_ = "lines",
                               title = "z momentum",
                               inline = True)
-        pmagdata = Gnuplot.Data(t, pmag,
+        pmagdata = gnuplot.Data(t, pmag,
                                 with_ = "lines",
                                 title = "total momentum",
                                 inline = True)
@@ -1050,15 +1050,15 @@ def plotPolygon(polygon,
         vlabel, flabel, nlabel = "Vertices", "Facets", "Normals"
     else:
         vlabel, flabel, nlabel = None, None, None
-    dataPoints = Gnuplot.Data(px, py,
+    dataPoints = gnuplot.Data(px, py,
                               with_ = "points pt 1 ps 2",
                               title = vlabel,
                               inline = True)
-    dataFacets = Gnuplot.Data(fx, fy, fdx, fdy,
+    dataFacets = gnuplot.Data(fx, fy, fdx, fdy,
                               with_ = "vectors",
                               title = flabel,
                               inline = True)
-    dataNormals = Gnuplot.Data(nx, ny, ndx, ndy,
+    dataNormals = gnuplot.Data(nx, ny, ndx, ndy,
                                with_ = "vectors",
                                title = nlabel,
                                inline = True)
@@ -1073,7 +1073,7 @@ def plotPolygon(polygon,
 
     if plotCentroid:
         c = polygon.centroid
-        dataCentroid = Gnuplot.Data([c.x], [c.y],
+        dataCentroid = gnuplot.Data([c.x], [c.y],
                                     with_ = "points pt 2 ps 2",
                                     title = "Centroid",
                                     inline = True)
@@ -1099,7 +1099,7 @@ def plotPolygonalMesh(mesh,
     for sendProc in range(mpi.procs):
         polys = mpi.bcast(polylocal, root=sendProc)
         for poly in polys:
-            p.replot(Gnuplot.Data([x.x for x in poly], [x.y for x in poly],
+            p.replot(gnuplot.Data([x.x for x in poly], [x.y for x in poly],
                                   with_ = "lines lt %i lw 2" % 1,
                                   title = None,
                                   inline = True))
@@ -1114,7 +1114,7 @@ def plotPolygonalMesh(mesh,
 ##     for sendProc in xrange(mpi.procs):
 ##         edges = mpi.bcast(edges0, root=sendProc)
 ##         for edge in edges:
-##             datas.append(Gnuplot.Data([edge[0].x, edge[1].x], [edge[0].y, edge[1].y],
+##             datas.append(gnuplot.Data([edge[0].x, edge[1].x], [edge[0].y, edge[1].y],
 ##                                       with_ = "lines %s" % linetype,
 ##                                       title = None,
 ##                                       inline = True))
