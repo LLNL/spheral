@@ -408,11 +408,9 @@ template<> double GeomTensor<1>::maxAbsElement() const;
 template<> double GeomTensor<2>::maxAbsElement() const;
 template<> double GeomTensor<3>::maxAbsElement() const;
 
-#ifndef _WIN32
 template<> const GeomTensor<1> GeomTensor<1>::zero;
 template<> const GeomTensor<2> GeomTensor<2>::zero;
 template<> const GeomTensor<3> GeomTensor<3>::zero;
-#endif
 
 // Forward declare the global functions.
 template<int nDim> GeomTensor<nDim> operator*(double lhs, const GeomTensor<nDim>& rhs);
