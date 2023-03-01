@@ -1,4 +1,5 @@
 from pygnuplot import gnuplot
+import pandas as pd
 import mpi
 from Spheral import *
 from math import *
@@ -35,11 +36,11 @@ class fakeGnuplot:
     def hardcopy(self, *arghs, **keyw):
         return
 
-def generateNewGnuPlot(persist = False):
+def generateNewGnuPlot():
     if mpi.rank == 0:
-        result = gnuplot.Gnuplot(persist = persist)
+        result = gnuplot.Gnuplot()
         if "GNUTERM" in list(os.environ.keys()):
-            result("set term %s" % os.environ["GNUTERM"])
+            result("set term " + os.environ["GNUTERM"])
         return result
     else:
         return fakeGnuplot()
@@ -235,9 +236,9 @@ def plotFieldList(fieldList,
 ##         plot("set linestyle 1 " + lineStyle)
 
         # Set the labels.
-        if winTitle: plot.title(winTitle)
-        if xlabel: plot.xlabel(xlabel)
-        if ylabel: plot.ylabel(ylabel)
+        if winTitle: plot.set(title = '"{}"'.format(winTitle))
+        if xlabel: plot.set(xlabel = '"{}"'.format(xlabel))
+        if ylabel: plot.set(ylabel = '"{}"'.formation(ylabel))
 
         # Set the ranges.
         xmin = 1e30
@@ -260,8 +261,8 @@ def plotFieldList(fieldList,
         if xRange[1] == None: xRange[1] = xmax
         if yRange[0] == None: yRange[0] = ymin - 0.05*max(1e-5, ymax - ymin)
         if yRange[1] == None: yRange[1] = ymax + 0.05*max(1e-5, ymax - ymin)
-        plot("set xrange [%f:%f]" % tuple(xRange))
-        plot("set yrange [%f:%f]" % tuple(yRange))
+        plot.cmd("set xrange [%f:%f]" % tuple(xRange))
+        plot.cmd("set yrange [%f:%f]" % tuple(yRange))
 
         # Finally, loop over the fields and do the deed.
         assert(len(globalX) == len(globalY))
@@ -279,29 +280,25 @@ def plotFieldList(fieldList,
                 y = numpy.array(globalY[cumulativeNumNodes:
                                         cumulativeNumNodes + n])
                 if n:
-##                    plot("set linestyle %i lt %i pt %i" % (iNodeList + 1,
+##                    plot("set linestyle %i linetype %i pt %i" % (iNodeList + 1,
 ##                                                           iNodeList + 1,
 ##                                                           iNodeList + 1))
                     legend = legendNodeList[iNodeList]
                     legendNodeList[iNodeList] = None
-                    data = gnuplot.Data(x, y,
-                                        with_ = plotStyle + " lt %i" % iNodeList,
-                                        title = legend,
-                                        inline = True)
-                    plot.replot(data)
-                    SpheralGnuPlotCache.append(data)
+                    data = pd.DataFrame({"x" : x,
+                                         '"{}"'.format(legend) : y})
 
+                    data = plot.plot_data(data, "using 2:3",
+                                          style = "data " + plotStyle + " linetype %i" % iNodeList)
                     cumulativeNumNodes += n
                 
         else:
             x = numpy.array(globalX)
             y = numpy.array(globalY)
-            data = gnuplot.Data(x, y,
-                                with_ = plotStyle + " lt -1 pt 3",
-                                title = lineTitle,
-                                inline = True)
-            plot.replot(data)
-            SpheralGnuPlotCache.append(data)
+            data = pd.DataFrame({"x" : x,
+                                 '"{}"'.format(lineTitle) : y})
+            plot.plot_data(data, "using 2:3",
+                           style = "data " + plotStyle + " linetype -1 pt 3")
             lineTitle = None
 
     # That's it, return the Gnuplot object.
@@ -483,16 +480,14 @@ def plotAnswer(answerObject, time,
             h = None
 
     if rhoPlot is not None:
-        data = gnuplot.Data(x, rho,
-                            with_="lines lt 7 lw 2",
-                            title="Solution",
-                            inline = True)
+        data = pd.DataFrame({"x" : x, "Solution" : rho})
+        rhoPlot.plot_data(data, "using 2:3",
+                          style =  "lines linetype 7 lw 2")
         SpheralGnuPlotCache.append(data)
-        rhoPlot.replot(data)
 
     if velPlot is not None:
         data = gnuplot.Data(x, v,
-                            with_="lines lt 7 lw 2",
+                            with_="lines linetype 7 lw 2",
                             title="Solution",
                             inline = True)
         SpheralGnuPlotCache.append(data)
@@ -500,7 +495,7 @@ def plotAnswer(answerObject, time,
 
     if epsPlot is not None:
         data = gnuplot.Data(x, u,
-                            with_="lines lt 7 lw 2",
+                            with_="lines linetype 7 lw 2",
                             title="Solution",
                             inline = True)
         SpheralGnuPlotCache.append(data)
@@ -508,7 +503,7 @@ def plotAnswer(answerObject, time,
 
     if PPlot is not None:
         data = gnuplot.Data(x, P,
-                            with_="lines lt 7 lw 2",
+                            with_="lines linetype 7 lw 2",
                             title="Solution",
                             inline = True)
         SpheralGnuPlotCache.append(data)
@@ -516,7 +511,7 @@ def plotAnswer(answerObject, time,
 
     if APlot is not None and A:
         data = gnuplot.Data(x, A,
-                            with_="lines lt 7 lw 2",
+                            with_="lines linetype 7 lw 2",
                             title="Solution",
                             inline = True)
         SpheralGnuPlotCache.append(data)
@@ -524,7 +519,7 @@ def plotAnswer(answerObject, time,
 
     if HPlot is not None:
         data = gnuplot.Data(x, h,
-                            with_="lines lt 7 lw 2",
+                            with_="lines linetype 7 lw 2",
                             title="Solution",
                             inline = True)
         SpheralGnuPlotCache.append(data)
@@ -704,7 +699,7 @@ def plotXYTuples(listOfXYTuples):
         SpheralGnuPlotCache.append(data)
 
         # Plot this set of data.
-##        plot("set linestyle %i lt %i pt 1" % (icolor, icolor))
+##        plot("set linestyle %i linetype %i pt 1" % (icolor, icolor))
         plot.replot(data)
 
     # That"s it, return the plot.
@@ -815,7 +810,7 @@ def plotVectorField2d(dataBase, fieldList,
                 vx = numpy.array(globalVxNodes[cumulativeN:cumulativeN + n])
                 vy = numpy.array(globalVyNodes[cumulativeN:cumulativeN + n])
                 cumulativeN += n
-##                plot("set linestyle %i lt %i pt %i" % (domain + 1,
+##                plot("set linestyle %i linetype %i pt %i" % (domain + 1,
 ##                                                       domain + 1,
 ##                                                       domain + 1))
                 data = gnuplot.Data(x, y, vx, vy,
@@ -835,7 +830,7 @@ def plotVectorField2d(dataBase, fieldList,
                     vx = numpy.array(globalVxNodes[cumulativeN:cumulativeN + n])
                     vy = numpy.array(globalVyNodes[cumulativeN:cumulativeN + n])
                     cumulativeN += n
-##                    plot("set linestyle %i lt %i pt %i" % (iNodeList + 1,
+##                    plot("set linestyle %i linetype %i pt %i" % (iNodeList + 1,
 ##                                                           iNodeList + 1,
 ##                                                           iNodeList + 1))
                     data = gnuplot.Data(x, y, vx, vy,
@@ -1100,7 +1095,7 @@ def plotPolygonalMesh(mesh,
         polys = mpi.bcast(polylocal, root=sendProc)
         for poly in polys:
             p.replot(gnuplot.Data([x.x for x in poly], [x.y for x in poly],
-                                  with_ = "lines lt %i lw 2" % 1,
+                                  with_ = "lines linetype %i lw 2" % 1,
                                   title = None,
                                   inline = True))
     return p

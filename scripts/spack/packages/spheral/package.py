@@ -60,15 +60,16 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope', type='build')
 
-    extends('python@3: +zlib +shared +ssl +readline', type='build')
+    extends('python@3: +zlib +shared +ssl +readline +ctypes +tkinter', type='build')
 
     depends_on('py-pip', type='build')
     depends_on('py-setuptools', type='build')
 
+    #depends_on('py-qtpy', type='build')
     depends_on('py-numpy', type='build')
     depends_on('py-numpy-stl', type='build')
     depends_on('py-python-utils', type='build')
-    depends_on('py-matplotlib', type='build')
+    depends_on('py-matplotlib backend=tkagg', type='build')
     depends_on('py-pillow', type='build')
     depends_on('py-decorator', type='build')
     depends_on('py-h5py', type='build')

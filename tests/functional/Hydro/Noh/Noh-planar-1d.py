@@ -653,7 +653,7 @@ if mpi.rank == 0 and outputFile != "None":
 # Plot the final state.
 #-------------------------------------------------------------------------------
 if graphics:
-    from SpheralGnuPlotUtilities import *
+    from SpheralMatplotlib import *
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
     plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot = HPlot)
     EPlot = plotEHistory(control.conserve)
@@ -664,19 +664,10 @@ if graphics:
              (HPlot, "Noh-planar-h.png")]
 
     # Plot the specific entropy.
-    Aplot = generateNewGnuPlot()
-    AsimData = Gnuplot.Data(xprof, A,
-                            with_ = "points",
-                            title = "Simulation",
-                            inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                            with_ = "lines",
-                            title = "Solution",
-                            inline = True)
-    Aplot.plot(AsimData)
-    Aplot.replot(AansData)
-    Aplot.title("Specific entropy")
-    Aplot.refresh()
+    Aplot = newFigure()
+    Aplot.plot(xprof, A, "ro", label="Simulation")
+    Aplot.plot(xprof, Aans, "b-", label="Solution")
+    Aplot.set_title("Specific entropy")
     plots.append((Aplot, "Noh-planar-A.png"))
     
     if crksph:
@@ -711,9 +702,9 @@ if graphics:
     #                           colorNodeLists = False)
 
     # Make hardcopies of the plots.
+    plt.show()
     for p, filename in plots:
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
-
+        p.figure.savefig(os.path.join(dataDir, filename))
 
 #-------------------------------------------------------------------------------
 # Measure the difference between the simulation and analytic answer.
