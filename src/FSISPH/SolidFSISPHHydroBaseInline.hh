@@ -1,5 +1,28 @@
 namespace Spheral {
 
+template<typename Dimension>
+inline
+const TableKernel<Dimension>&
+SolidFSISPHHydroBase<Dimension>::
+kernel() const {
+  return mKernel;
+}
+
+template<typename Dimension>
+inline
+const SmoothingScaleBase<Dimension>&
+SolidFSISPHHydroBase<Dimension>::
+smoothingScaleMethod() const {
+  return mSmoothingScaleMethod;
+}
+
+template<typename Dimension>
+inline
+SlideSurface<Dimension>&
+SolidFSISPHHydroBase<Dimension>::slideSurface() const {
+  return mSlideSurface;
+}
+
 //------------------------------------------------------------------------------
 // set/get 
 //------------------------------------------------------------------------------
@@ -16,6 +39,66 @@ bool
 SolidFSISPHHydroBase<Dimension>::
 planeStrain() const {
   return mPlaneStrain;
+}
+
+//------------------------------------------------------------------------------
+// Access the flag determining if we're using the compatible energy evolution 
+// algorithm.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SolidFSISPHHydroBase<Dimension>::compatibleEnergyEvolution() const {
+  return mCompatibleEnergyEvolution;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::compatibleEnergyEvolution(bool val) {
+  mCompatibleEnergyEvolution = val;
+}
+
+template<typename Dimension>
+inline
+bool
+SolidFSISPHHydroBase<Dimension>::evolveTotalEnergy() const {
+  return mEvolveTotalEnergy;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
+  mEvolveTotalEnergy = val;
+}
+
+template<typename Dimension>
+inline
+bool
+SolidFSISPHHydroBase<Dimension>::XSPH() const {
+  return mXSPH;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::XSPH(bool val) {
+  mXSPH = val;
+}
+
+template<typename Dimension>
+inline
+bool
+SolidFSISPHHydroBase<Dimension>::correctVelocityGradient() const {
+  return mCorrectVelocityGradient;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::correctVelocityGradient(bool val) {
+  mCorrectVelocityGradient = val;
 }
 
 template<typename Dimension>
@@ -95,8 +178,40 @@ xsphCoefficient() const {
 
 
 //------------------------------------------------------------------------------
-// return our interface method
+// enums
 //------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+MassDensityType
+SolidFSISPHHydroBase<Dimension>::densityUpdate() const {
+  return mDensityUpdate;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+densityUpdate(MassDensityType type) {
+  mDensityUpdate = type;
+}
+
+
+template<typename Dimension>
+inline
+HEvolutionType
+SolidFSISPHHydroBase<Dimension>::HEvolution() const {
+  return mHEvolution;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+HEvolution(HEvolutionType type) {
+  mHEvolution = type;
+}
+
+
 template<typename Dimension>
 inline
 void
@@ -112,9 +227,6 @@ interfaceMethod() const {
   return mInterfaceMethod;
 }
 
-//------------------------------------------------------------------------------
-// return our kernel method
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 void
@@ -165,41 +277,105 @@ sumDensityNodeLists() const {
 }
 
 //------------------------------------------------------------------------------
-// Return ref to our pair-wise energy derivs
+// Parameter to determine the magnitude of the tensile small scale correction.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const std::vector<typename Dimension::Scalar>&
+typename Dimension::Scalar
 SolidFSISPHHydroBase<Dimension>::
-pairDepsDt() const {
-  return mPairDepsDt;
+epsilonTensile() const {
+  return mEpsTensile;
+}
+
+template<typename Dimension>
+void
+SolidFSISPHHydroBase<Dimension>::
+epsilonTensile(typename Dimension::Scalar val) {
+  mEpsTensile = val;
 }
 
 //------------------------------------------------------------------------------
-// Return the pressure gradient field list ref
+// Parameter to set the exponent used in the tensile small scale correction.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldList<Dimension,  typename Dimension::Vector>&
+typename Dimension::Scalar
 SolidFSISPHHydroBase<Dimension>::
-DPDx() const {
-  return mDPDx;
+nTensile() const {
+  return mnTensile;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+nTensile(typename Dimension::Scalar val) {
+  mnTensile = val;
 }
 
 //------------------------------------------------------------------------------
-// Return the specific thermal energy gradient field list ref
+// Access the optional min & max bounds for generating meshes.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const FieldList<Dimension,  typename Dimension::Vector>&
+const typename Dimension::Vector&
 SolidFSISPHHydroBase<Dimension>::
-DepsDx() const {
-  return mDepsDx;
+xmin() const {
+  return mxmin;
 }
 
+template<typename Dimension>
+inline
+const typename Dimension::Vector&
+SolidFSISPHHydroBase<Dimension>::
+xmax() const {
+  return mxmax;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+xmin(const typename Dimension::Vector& x) {
+  mxmin = x;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+xmax(const typename Dimension::Vector& x) {
+  mxmax = x;
+}
+
+
 //------------------------------------------------------------------------------
-// our interface smoothness metric
+// The internal state field lists.
 //------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension, int>&
+SolidFSISPHHydroBase<Dimension>::
+timeStepMask() const {
+  return mTimeStepMask;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+volume() const {
+  return mVolume;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+pressure() const {
+  return mPressure;
+}
+
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
@@ -208,9 +384,206 @@ rawPressure() const {
   return mRawPressure;
 }
 
-//------------------------------------------------------------------------------
-// next time step interface flags
-//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+soundSpeed() const {
+  return mSoundSpeed;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+bulkModulus() const {
+  return mBulkModulus;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+shearModulus() const {
+  return mShearModulus;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+yieldStrength() const {
+  return mYieldStrength;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SolidFSISPHHydroBase<Dimension>::
+Hideal() const {
+  return mHideal;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+maxViscousPressure() const {
+  return mMaxViscousPressure;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+normalization() const {
+  return mNormalization;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+weightedNeighborSum() const {
+  return mWeightedNeighborSum;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SolidFSISPHHydroBase<Dimension>::
+massSecondMoment() const {
+  return mMassSecondMoment;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+XSPHWeightSum() const {
+  return mXSPHWeightSum;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+XSPHDeltaV() const {
+  return mXSPHDeltaV;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+DxDt() const {
+  return mDxDt;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+DvDt() const {
+  return mDvDt;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+DmassDensityDt() const {
+  return mDmassDensityDt;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+DspecificThermalEnergyDt() const {
+  return mDspecificThermalEnergyDt;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SolidFSISPHHydroBase<Dimension>::
+DdeviatoricStressDt() const {
+  return mDdeviatoricStressDt;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SolidFSISPHHydroBase<Dimension>::
+DHDt() const {
+  return mDHDt;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Tensor>&
+SolidFSISPHHydroBase<Dimension>::
+DvDx() const {
+  return mDvDx;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Tensor>&
+SolidFSISPHHydroBase<Dimension>::
+internalDvDx() const {
+  return mInternalDvDx;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+DPDx() const {
+  return mDPDx;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+DepsDx() const {
+  return mDepsDx;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Tensor>&
+SolidFSISPHHydroBase<Dimension>::
+M() const {
+  return mM;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Tensor>&
+SolidFSISPHHydroBase<Dimension>::
+localM() const {
+  return mLocalM;
+}
+
+template<typename Dimension>
+inline
+const std::vector<typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+pairDepsDt() const {
+  return mPairDepsDt;
+}
+
+template<typename Dimension>
+inline
+const std::vector<typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+pairAccelerations() const {
+  return mPairAccelerations;
+}
+
 template<typename Dimension>
 inline
 const FieldList<Dimension,  int>&
@@ -219,9 +592,6 @@ interfaceFlags() const {
   return mInterfaceFlags;
 }
 
-//------------------------------------------------------------------------------
-// Return the interface area vectors field list ref
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Vector>&
@@ -230,9 +600,6 @@ interfaceAreaVectors() const {
   return mInterfaceAreaVectors;
 }
 
-//------------------------------------------------------------------------------
-// Return the interface normal field list ref
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Vector>&
@@ -241,9 +608,6 @@ interfaceNormals() const {
   return mInterfaceNormals;
 }
 
-//------------------------------------------------------------------------------
-// smoothness metric for mixing interfaces
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
@@ -252,9 +616,6 @@ interfaceSmoothness() const {
   return mInterfaceSmoothness;
 }
 
-//------------------------------------------------------------------------------
-// next time step interface flags
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension,  int>&
@@ -263,9 +624,6 @@ newInterfaceFlags() const {
   return mNewInterfaceFlags;
 }
 
-//------------------------------------------------------------------------------
-// next time step interface area vectors field list ref
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Vector>&
@@ -274,9 +632,6 @@ newInterfaceAreaVectors() const {
   return mNewInterfaceAreaVectors;
 }
 
-//------------------------------------------------------------------------------
-// next time step  Interface normal field list ref
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Vector>&
@@ -285,9 +640,6 @@ newInterfaceNormals() const {
   return mNewInterfaceNormals;
 }
 
-//------------------------------------------------------------------------------
-// normalization for our smoothness calculation
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
@@ -296,9 +648,6 @@ interfaceSmoothnessNormalization() const {
   return mInterfaceSmoothnessNormalization;
 }
 
-//------------------------------------------------------------------------------
-// normalization for only same material nodes
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
@@ -307,9 +656,6 @@ interfaceFraction() const {
   return mInterfaceFraction;
 }
 
-//------------------------------------------------------------------------------
-// next time step smoothness metric for mixing interfaces
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
@@ -318,25 +664,12 @@ newInterfaceSmoothness() const {
   return mNewInterfaceSmoothness;
 }
 
-//------------------------------------------------------------------------------
-// next time step smoothness metric for mixing interfaces
-//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
 interfaceAngles() const {
   return mInterfaceAngles;
-}
-
-//------------------------------------------------------------------------------
-// Ref to the slide surface obj
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-SlideSurface<Dimension>&
-SolidFSISPHHydroBase<Dimension>::slideSurface() const {
-  return mSlideSurface;
 }
 
 }
