@@ -129,16 +129,26 @@ packages:
     - spec: elfutils@0.176
       prefix: /usr
     buildable: false
-  mesa:
+  tk:
     externals:
-    - spec: mesa@3.9.1
+    - spec: tk@8.5.19
       prefix: /usr
     buildable: false
-  qt:
+  fontconfig:
     externals:
-    - spec: qt4@4.8.7
-      prefix: /usr/lib64/qt4
-    buildable: false  
+    - spec: fontconfig@2.13.1
+      prefix: /usr
+    buildable: false
+#  mesa:
+#    externals:
+#    - spec: mesa@3.9.1
+#      prefix: /usr
+#    buildable: false
+# qt:
+#   externals:
+#   - spec: qt4@4.8.7
+#     prefix: /usr/lib64/qt4
+#   buildable: false  
 
 #---- Extension Dependencies
 
