@@ -7,7 +7,7 @@ from spack import *
 import socket
 import os
 
-class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
+class Spheral(CachedCMakePackage, CudaPackage):
     """Spheral++ provides a steerable parallel environment for performing coupled hydrodynamical and gravitational numerical simulations."""
 
     homepage = "https://spheral.readthedocs.io/"
@@ -60,7 +60,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope', type='build')
 
-    extends('python@3: +zlib +shared +ssl +tkinter', type='build')
+    extends('python@3.9.10 +zlib +shared +ssl +tkinter', type='build')
 
     #depends_on('py-pip', type='build')
     #depends_on('py-setuptools', type='build')
