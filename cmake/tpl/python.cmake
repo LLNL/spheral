@@ -3,7 +3,7 @@ set(PYTHON_EXE ${PYTHON_INSTALL_DIR}/bin/python)
 set(PYTHON_SITE_PACKAGE_DIR ${PYTHON_INSTALL_DIR}/lib/python3.9/site-packages)
 
 list(APPEND ${lib_name}_libs ${Python3_LIBRARIES})
-list(APPEND ${lib_name}_INCLUDES ${Python3_INCLUDE_DIRS})
+list(APPEND ${lib_name}_INCLUDES $<BUILD_INTERFACE:${Python3_INCLUDE_DIRS}>)
 
 add_custom_target(
   ${lib_name}-install
