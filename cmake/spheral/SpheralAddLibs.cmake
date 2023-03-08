@@ -36,6 +36,8 @@ function(spheral_add_obj_library
                   DEPENDS_ON  ${spheral_blt_depends} ${spheral_blt_cxx_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS}
                   OBJECT TRUE
                   )
+  target_include_directories(Spheral_${package_name} PRIVATE ${SPHERAL_INCLUDES})
+  target_include_directories(Spheral_${package_name} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
 
   # Install the headers
   install(FILES       ${${package_name}_headers}
