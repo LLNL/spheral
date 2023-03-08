@@ -702,7 +702,6 @@ if graphics:
     #                           colorNodeLists = False)
 
     # Make hardcopies of the plots.
-    plt.show()
     for p, filename in plots:
         p.figure.savefig(os.path.join(dataDir, filename))
 
