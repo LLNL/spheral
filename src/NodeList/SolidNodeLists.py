@@ -15,7 +15,7 @@ def SolidNodeListFactory(ndim):
     NullStrength = eval("NullStrength" + suffix)
     def factory(name,
                 eos,
-                strength = NullStrength,
+                strength = NullStrength(),
                 numInternal = 0,
                 numGhost = 0,
                 hmin = 1.0e-20,
@@ -34,10 +34,18 @@ def SolidNodeListFactory(ndim):
                 # Parameters for TreeNeighbor
                 xmin = Vector.one * -10.0,
                 xmax = Vector.one *  10.0):
-        result = SolidNodeList(name, eos, strength, numInternal, numGhost, 
-                               hmin, hmax, hminratio, 
-                               nPerh, maxNumNeighbors,
-                               rhoMin, rhoMax)
+        result = SolidNodeList(name = name,
+                               eos = eos,
+                               strength = strength,
+                               numInternal = numInternal,
+                               numGhost = numGhost,
+                               hmin = hmin,
+                               hmax = hmax,
+                               hminratio = hminratio, 
+                               nPerh = nPerh,
+                               maxNumNeighbors = maxNumNeighbors,
+                               rhoMin = rhoMin,
+                               rhoMax = rhoMax)
         result.eos = eos
         result.strength = strength
         if NeighborType == TreeNeighbor:
