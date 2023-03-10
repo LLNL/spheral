@@ -283,11 +283,11 @@ void SidreFileIO::write(const std::vector<double>& value, const std::string path
 //------------------------------------------------------------------------------
 void SidreFileIO::write(const std::vector<std::string>& value, const std::string path)
 {
-  axom::Path myPath = axom::Path(path);
-  axom::sidre::Group* wholeField = baseGroup->createGroup(myPath.dirName());
-
-  for (u_int i = 0; i < value.size(); ++i)
-    wholeField->createViewString(myPath.baseName() + std::to_string(i), value[i]);
+  size_t n = value.size();
+  this->write(n, path + "/size");
+  for (auto i = 0u; i < n; ++i) {
+    this->write(value[i], path + "/value" + std::to_string(i));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -457,13 +457,12 @@ void SidreFileIO::read(std::vector<double>& value, const std::string path) const
 //------------------------------------------------------------------------------
 void SidreFileIO::read(vector<std::string>& value, const std::string path) const
 {
-  axom::Path myPath = axom::Path(path);
-  axom::sidre::Group* group = baseGroup->getGroup(myPath.dirName());
-  int size = group->getNumViews();
-  value.resize(size);
-
-  for (int i = 0; i < size; ++i)
-    value[i] = group->getView(myPath.baseName() + std::to_string(i))->getString();
+  size_t n;
+  this->read(n, path + "/size");
+  value.resize(n);
+  for (auto i = 0u; i < n; ++i) {
+    this->read(value[i], path + "/value" + std::to_string(i));
+  }
 }
 
 //------------------------------------------------------------------------------
