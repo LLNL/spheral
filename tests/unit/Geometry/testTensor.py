@@ -112,7 +112,7 @@ class TensorTestBase:
 
     def testCopyFullTensor(self):
         n = self.TensorType.nDimensions
-        t = self.FullTensorType(*[0.5*((i/n)*n + (i%n) + (i%n)*n + (i/n))
+        t = self.FullTensorType(*[0.5*((i//n)*n + (i%n) + (i%n)*n + (i//n))
                                   for i in range(n*n)])
         st = self.SymmetricTensorType(t)
         for row in range(n):
@@ -123,7 +123,7 @@ class TensorTestBase:
 
     def testCopySymTensor(self):
         n = self.TensorType.nDimensions
-        st = self.SymmetricTensorType(*[0.5*((i/n)*n + (i%n) + (i%n)*n + (i/n))
+        st = self.SymmetricTensorType(*[0.5*((i//n)*n + (i%n) + (i%n)*n + (i//n))
                                         for i in range(n*n)])
         t = self.FullTensorType(st)
         for row in range(n):
@@ -238,7 +238,7 @@ class TensorTestBase:
     # def testScalarAddition(self):
     #     val = 44.0
     #     result = self.lhs + val
-    #     self.failUnless(isinstance(result, self.TensorType),
+    #     self.assertTrue(isinstance(result, self.TensorType),
     #                     "%s is not instance of %s" % (str(type(result)),
     #                                                   str(type(self.TensorType))))
     #     for row in xrange(self.TensorType.nDimensions):
@@ -328,7 +328,7 @@ class TensorTestBase:
         assert isinstance(result, self.TensorType)
         for row in range(self.TensorType.nDimensions):
             for col in range(self.TensorType.nDimensions):
-                self.failUnless(fuzzyEqual(result(row, col), self.lhs(row, col) / val),
+                self.assertTrue(fuzzyEqual(result(row, col), self.lhs(row, col) / val),
                                 "Tensor inplace division : %g != %g" % (result(row, col),
                                                                         self.lhs(row, col) / val))
         return
@@ -381,7 +381,7 @@ class TensorTestBase:
         assert isinstance(result, self.FullTensorType)
         for row in range(self.TensorType.nDimensions):
             for col in range(self.TensorType.nDimensions):
-                self.failUnless(result(row, col) == 0.5*(self.lhs(row, col) - self.lhs(col, row)),
+                self.assertTrue(result(row, col) == 0.5*(self.lhs(row, col) - self.lhs(col, row)),
                                 "SkewSymmetric failed: %s %s" % (str(self.lhs), result))
         return
 
@@ -400,7 +400,7 @@ class TensorTestBase:
                 if row == col:
                     assert fuzzyEqual(check(row, col), 1.0)
                 else:
-                    self.failUnless(fuzzyEqual(check(row, col), 0.0, 1.0e-5),
+                    self.assertTrue(fuzzyEqual(check(row, col), 0.0, 1.0e-5),
                                     "Off diagonal not zero: %s" % str(check))
         return
 
@@ -451,14 +451,14 @@ class TensorTestBase:
         for row in range(self.TensorType.nDimensions):
             for col in range(self.TensorType.nDimensions):
                 check += self.lhs(row, col)*self.rhs(col, row)
-        self.failUnless(fuzzyEqual(result, check),
+        self.assertTrue(fuzzyEqual(result, check),
                         "Doubledot check failure: %f != %f" % (result, check))
         return
 
     def testSelfDoubleDot(self):
         result = self.lhs.selfDoubledot()
         check = self.lhs.doubledot(self.lhs)
-        self.failUnless(fuzzyEqual(result, check),
+        self.assertTrue(fuzzyEqual(result, check),
                         "selfDoubledot check failure: %f != %f" % (result, check))
         return
 
@@ -467,14 +467,14 @@ class TensorTestBase:
         check = self.lhs * self.lhs
         for row in range(self.TensorType.nDimensions):
             for col in range(self.TensorType.nDimensions):
-                self.failUnless(fuzzyEqual(result(row, col), check(row, col)),
+                self.assertTrue(fuzzyEqual(result(row, col), check(row, col)),
                                 "Bad value: (%i,%i), %g != %g" % (row, col, result(row, col), check(row, col)))
  
     def testSquareElements(self):
         result = self.lhs.squareElements()
         for row in range(self.TensorType.nDimensions):
             for col in range(self.TensorType.nDimensions):
-                self.failUnless(fuzzyEqual(result(row, col), self.lhs(row, col)**2),
+                self.assertTrue(fuzzyEqual(result(row, col), self.lhs(row, col)**2),
                                 "Square matrix elements failure: %g != %g" % (result(row, col), self.lhs(row, col)**2))
         return
 
@@ -538,7 +538,7 @@ class SymmetricTensorTestBase:
             st12squared = st12*st12
             diff = st12squared - st
             check = diff.doubledot(diff)
-            self.failUnless(fuzzyEqual(check, 0.0, tol),
+            self.assertTrue(fuzzyEqual(check, 0.0, tol),
                             "SQRT failure %s != %s, eigen values=%s, %g" % (str(st12squared), str(st),
                                                                             str(st.eigenValues()), check))
         return
@@ -550,7 +550,7 @@ class SymmetricTensorTestBase:
             check = st*st*st
             for row in range(self.TensorType.nDimensions):
                 for col in range(self.TensorType.nDimensions):
-                    self.failUnless(fuzzyEqual(st3(row, col), check(row, col)),
+                    self.assertTrue(fuzzyEqual(st3(row, col), check(row, col)),
                                     "CUBE failure %s != %s" % (str(st3), str(check)))
         return
 
@@ -564,7 +564,7 @@ class SymmetricTensorTestBase:
             st13cube = st13*st13*st13
             diff = st13cube - st
             check = diff.doubledot(diff)
-            self.failUnless(fuzzyEqual(check, 0.0, tol),
+            self.assertTrue(fuzzyEqual(check, 0.0, tol),
                             "CUBEROOT failure %s != %s, eigen values=%s, check=%g" % (str(st13cube), str(st),
                                                                                       str(st.eigenValues()), check))
         return
@@ -580,7 +580,7 @@ class SymmetricTensorTestBase:
 ##             stpi = stp.pow(1.0/p)
 ##             diff = stpi - st
 ##             check = diff.doubledot(diff)
-##             self.failUnless(fuzzyEqual(check, 0.0, tol),
+##             self.assertTrue(fuzzyEqual(check, 0.0, tol),
 ##                             "POW failure %s !=\n                            %s,\n power = %f,\n eigen values=%s\n              %s,\n check=%g" % (str(stpi), str(st), p,
 ##                                                                                                                                                   str(stpi.eigenValues()),
 ##                                                                                                                                                   str(st.eigenValues()),
