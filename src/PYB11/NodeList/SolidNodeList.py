@@ -106,6 +106,11 @@ class SolidNodeList(FluidNodeList):
     def __ne__(self):
         "Inequivalence test with another SolidNodeList"
 
+    @PYB11implementation("[](const SolidNodeList<%(Dimension)s>& self) -> std::uintptr_t { return reinterpret_cast<std::uintptr_t>(&self); }")
+    def __hash__(self):
+        "Make SolidNodeList objects hashable for Python"
+        return "std::uintptr_t"
+
 #-------------------------------------------------------------------------------
 # Inject the restart methods
 #-------------------------------------------------------------------------------

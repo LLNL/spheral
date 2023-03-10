@@ -137,6 +137,11 @@ class NodeList:
     def __ne__(self):
         "Inequivalence test with another NodeList"
 
+    @PYB11implementation("[](const NodeList<%(Dimension)s>& self) -> std::uintptr_t { return reinterpret_cast<std::uintptr_t>(&self); }")
+    def __hash__(self):
+        "Make NodeList objects hashable for Python"
+        return "std::uintptr_t"
+
     #...........................................................................
     # Properties
     name = PYB11property("std::string", doc="Name of the NodeList")

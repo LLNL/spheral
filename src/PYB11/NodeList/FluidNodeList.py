@@ -114,6 +114,11 @@ class FluidNodeList(NodeList):
     def __ne__(self):
         "Inequivalence test with another FluidNodeList"
 
+    @PYB11implementation("[](const FluidNodeList<%(Dimension)s>& self) -> std::uintptr_t { return reinterpret_cast<std::uintptr_t>(&self); }")
+    def __hash__(self):
+        "Make FluidNodeList objects hashable for Python"
+        return "std::uintptr_t"
+
     #...........................................................................
     # Properties
     rhoMin = PYB11property("Scalar", "rhoMin", "rhoMin", doc="The minimum allowed mass density.")

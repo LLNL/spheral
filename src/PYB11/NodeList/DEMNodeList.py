@@ -60,6 +60,11 @@ class DEMNodeList(NodeList):
     def __ne__(self):
         "Inequivalence test with another DEMNodeList"
 
+    @PYB11implementation("[](const DEMNodeList<%(Dimension)s>& self) -> std::uintptr_t { return reinterpret_cast<std::uintptr_t>(&self); }")
+    def __hash__(self):
+        "Make DEMNodeList objects hashable for Python"
+        return "std::uintptr_t"
+
     #...........................................................................
     # Properties
 
