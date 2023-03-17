@@ -109,7 +109,7 @@ class TestEigenVectors(unittest.TestCase):
             lam = [x for x in vlam]
             lam.sort()
             for (x, x0) in zip(lam, lam0):
-                self.failUnless(fuzzyEqual(x, x0, 1e-5),
+                self.assertTrue(fuzzyEqual(x, x0, 1e-5),
                                 "Eigen values %s do not equal expected values %s" % (str(lam), str(lam0)))
         return
 
@@ -127,7 +127,7 @@ class TestEigenVectors(unittest.TestCase):
             lam = [x for x in vlam]
             lam.sort()
             for (x, x0) in zip(lam, lam0):
-                self.failUnless(fuzzyEqual(x, x0, 1e-3),
+                self.assertTrue(fuzzyEqual(x, x0, 1e-3),
                                 "Eigen values %s do not equal expected values %s" % (str(lam), str(lam0)))
         return
 
@@ -146,7 +146,7 @@ class TestEigenVectors(unittest.TestCase):
             lam = [x for x in vlam]
             lam.sort()
             for (x, x0) in zip(lam, lam0):
-                self.failUnless(fuzzyEqual(x, x0, 1e-5),
+                self.assertTrue(fuzzyEqual(x, x0, 1e-5),
                                 "Eigen values %s do not equal expected values %s" % (str(lam), str(lam0)))
         return
 
@@ -167,7 +167,7 @@ class TestEigenVectors(unittest.TestCase):
             lam = [x for x in vlam]
             lam.sort()
             for (x, x0) in zip(lam, lam0):
-                self.failUnless(fuzzyEqual(x, x0, 1e-5),
+                self.assertTrue(fuzzyEqual(x, x0, 1e-5),
                                 "Eigen values %s do not equal expected values %s" % (str(lam), str(lam0)))
         return
 
@@ -184,13 +184,13 @@ class TestEigenVectors(unittest.TestCase):
             lam = [(eigenStruct.eigenValues(i), eigenStruct.eigenVectors.getColumn(i)) for i in range(3)]
             lam.sort()
             eigenVecs = [x[1] for x in lam]
-            for i in range(len(x)):
+            for i in range(len(lam0)):
                 lami = lam0[i]
                 veci = eigenVecs[i]
                 vec0 = eigenVecs0[i]
-                self.failUnless(fuzzyEqual(veci.magnitude(), 1.0),
+                self.assertTrue(fuzzyEqual(veci.magnitude(), 1.0),
                                 "Eigen vector %s does not have unit magnitude" % str(veci))
-                self.failUnless(fuzzyEqual(abs(veci.dot(vec0)), 1.0, degenerateFuzz(i, [x[0] for x in lam0])),
+                self.assertTrue(fuzzyEqual(abs(veci.dot(vec0)), 1.0, degenerateFuzz(i, [x[0] for x in lam0])),
                                 "Eigen vector %s does not equal expected value %s for eigen values %s" % (str(veci), str(vec0), str(vlam0)))
         return
 
@@ -211,7 +211,7 @@ class TestEigenVectors(unittest.TestCase):
             eigenVecs = [x[1] for x in lam]
 
             for x in eigenVecs:
-                self.failUnless(fuzzyEqual(x.magnitude(), 1.0),
+                self.assertTrue(fuzzyEqual(x.magnitude(), 1.0),
                                 "Eigen vector %s does not have unit magnitude %s" % (str(x), str(eigenStruct.eigenVectors)))
 
             # Identify the unique eigen value.
@@ -231,7 +231,7 @@ class TestEigenVectors(unittest.TestCase):
                 thpt = 1.0/thpt
 
             # Does the eigenvector for the unique eigen value match?
-            self.failUnless(fuzzyEqual(abs(eigenVecs[unique].dot(eigenVecs0[unique])), 1.0, degenerateFuzz(unique, [x[0] for x in lam0])),
+            self.assertTrue(fuzzyEqual(abs(eigenVecs[unique].dot(eigenVecs0[unique])), 1.0, degenerateFuzz(unique, [x[0] for x in lam0])),
                             "Eigen vector %s does not equal expected value %s for eigen values %s, %s" % (str(eigenVecs[unique]),
                                                                                                           str(eigenVecs0[unique]),
                                                                                                           str(vlam0),
@@ -239,7 +239,7 @@ class TestEigenVectors(unittest.TestCase):
 
             # The remaining eigen values need only be perpendicular to each other and the unique
             # value.
-            self.failUnless(fuzzyEqual(eigenVecs[0].dot(eigenVecs[1]), 0.0) and
+            self.assertTrue(fuzzyEqual(eigenVecs[0].dot(eigenVecs[1]), 0.0) and
                             fuzzyEqual(eigenVecs[0].dot(eigenVecs[2]), 0.0) and
                             fuzzyEqual(eigenVecs[1].dot(eigenVecs[2]), 0.0),
                             "Eigen vectors (%s, %s, %s) are not orthogonal\n%s" % (str(eigenVecs[0]),
@@ -270,7 +270,7 @@ class TestEigenVectors(unittest.TestCase):
                 assert len(match) == len(vectors0)
                 assert sum(match) == 1
                 del vectors0[match.index(True)]
-            self.failUnless(len(vectors0) == 0,
+            self.assertTrue(len(vectors0) == 0,
                             "Failed triply degenerate eigen vector decomposition: %s %s." %
                             (str(eigenStruct.eigenVectors), str(lam123)))
         return
@@ -299,9 +299,9 @@ class TestEigenVectors(unittest.TestCase):
             lam.sort()
             eigenVecs = [x[1] for x in lam]
             for (x, x0) in zip(eigenVecs, eigenVecs0):
-                self.failUnless(fuzzyEqual(x.magnitude(), 1.0),
+                self.assertTrue(fuzzyEqual(x.magnitude(), 1.0),
                                 "Eigen vector %s does not equal expected value %s" % (str(x), str(x0)))
-                self.failUnless(fuzzyEqual(abs(x.dot(x0)), 1.0),
+                self.assertTrue(fuzzyEqual(abs(x.dot(x0)), 1.0),
                                 "Eigen vector %s does not equal expected value %s" % (str(x), str(x0)))
         return
 

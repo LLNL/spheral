@@ -55,7 +55,7 @@ def distributeNodesInRange1d(listOfNodeTuples,
     totalNumNodes = sum(numNodesPerNodeList)
 
     # Determine the global node ID range for this domain.
-    nNodesPerDomain = totalNumNodes/mpi.procs
+    nNodesPerDomain = totalNumNodes // mpi.procs
     minNodeID = mpi.rank*nNodesPerDomain
     if mpi.rank == mpi.procs - 1:
         maxNodeID = totalNumNodes
@@ -150,7 +150,7 @@ def distributeNodesInSphericalRange3d(listOfNodeTuples,
         globalNumNodes += n
 
     # Determine the global node ID range this process will cover.
-    nNodesPerDomain = globalNumNodes/mpi.procs
+    nNodesPerDomain = globalNumNodes // mpi.procs
     minNodeID = mpi.rank*nNodesPerDomain
     if mpi.rank == mpi.procs - 1:
         maxNodeID = globalNumNodes
