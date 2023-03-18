@@ -1,4 +1,6 @@
 if (NOT ENABLE_CXXONLY)
+   
+  # Testing a different file outside of the external build path conditions...
 
   # We Use the spack generated build time python path to
   # pick up all of the python modules needed for our runtime.
