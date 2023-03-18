@@ -4,8 +4,8 @@ on:
   pull_request:
     paths:
       - .uberenv_config.json
-      - src/scripts/spack/**
-      - src/devtools/**
+      - scripts/spack/**
+      - scripts/devtools/**
 
 env:
   REGISTRY: ghcr.io
