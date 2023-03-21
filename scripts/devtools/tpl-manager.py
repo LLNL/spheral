@@ -35,6 +35,9 @@ def parse_args():
   parser.add_argument('--upstream-dir', type=str, default=default_upstream_dir,
       help='Dir of upstream spack installation.')
 
+  parser.add_argument('--no-upstream', action="store_true",
+      help='Do not use an upstream spack instance.')
+
   parser.add_argument('--spack-url', type=str, default="",
       help='URL of spack to use.')
 
@@ -105,7 +108,7 @@ def build_deps(args):
     spack_config_dir_opt="--spack-config-dir={0}".format(os.path.join(project_dir, "scripts/spack/configs/x86_64"))
 
   spack_upstream_opt=""
-  if os.path.isdir(args.upstream_dir):
+  if os.path.isdir(args.upstream_dir) and not args.no_upstream:
     spack_upstream_opt="--upstream {0}".format(args.upstream_dir)
 
   uberenv_spack_url_opt=""
