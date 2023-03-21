@@ -985,32 +985,13 @@ GeomVector<3>::selfdyad() const {
 //------------------------------------------------------------------------------
 // Return a unit vector with the direction of this one.
 //------------------------------------------------------------------------------
-#ifdef WIN32
-#pragma optimize("", off)
-#endif
 template<int nDim>
-#ifndef WIN32
 inline
-#pragma noinline
-#endif
 GeomVector<nDim>
 GeomVector<nDim>::unitVector() const {
-  const double mag = this->magnitude();
-  if (mag > 1.0e-50) {
-#ifndef WIN32
-     return (*this) / mag;
-#else
-     return (*this) / (mag + 1e-70);
-#endif
-  }
-  else {
-     return GeomVector<nDim>(1.0, 0.0, 0.0);
-  }
-  //return mag > 1.0e-50 ? (*this)/mag : GeomVector<nDim>(1.0, 0.0, 0.0);
+   const double mag = this->magnitude();
+   return mag > 1.0e-50 ? (*this)/mag : GeomVector<nDim>(1.0, 0.0, 0.0);
 }
-#ifdef WIN32
-#pragma optimize("", on)
-#endif
 //------------------------------------------------------------------------------
 // Return the magnitude of the Vector.
 //------------------------------------------------------------------------------

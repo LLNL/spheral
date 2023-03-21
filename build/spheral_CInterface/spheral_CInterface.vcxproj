@@ -416,6 +416,7 @@
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <CCppSupport>Cpp14Support</CCppSupport>
+      <AdditionalOptions>Qfp-speculation:safe %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

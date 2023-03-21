@@ -67,23 +67,6 @@ RKUtilities<Dimension, correctionOrder>::
 evaluateBaseKernelAndGradient(const TableKernel<Dimension>& kernel,
                               const Vector& x,
                               const SymTensor& H) {
-#if WIN32
-      const auto eta = H * x;
-      const auto etaMag = eta.magnitude();
-      const auto Hdet = H.Determinant();
-   if (etaMag > 1.e-50) {
-      const auto etaUnit = eta.unitVector();
-      const auto k = kernel.kernelValue(etaMag, Hdet);
-      const auto dk = kernel.gradValue(etaMag, Hdet);
-      const auto HetaUnit = H * etaUnit;
-      return std::make_pair(k, HetaUnit * dk);
-   }
-   else {
-      const auto HetaUnit = eta * 0.;
-      const auto k = kernel.kernelValue(0., Hdet);
-      return std::make_pair(k, HetaUnit);
-   }
-#else
    const auto eta = H * x;
    const auto etaMag = eta.magnitude();
    const auto etaUnit = eta.unitVector();
@@ -92,7 +75,6 @@ evaluateBaseKernelAndGradient(const TableKernel<Dimension>& kernel,
    const auto dk = kernel.gradValue(etaMag, Hdet);
    const auto HetaUnit = H * etaUnit;
    return std::make_pair(k, HetaUnit * dk);
-#endif
 }
 
 //------------------------------------------------------------------------------
