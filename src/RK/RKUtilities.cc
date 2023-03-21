@@ -67,14 +67,14 @@ RKUtilities<Dimension, correctionOrder>::
 evaluateBaseKernelAndGradient(const TableKernel<Dimension>& kernel,
                               const Vector& x,
                               const SymTensor& H) {
-   const auto eta = H * x;
-   const auto etaMag = eta.magnitude();
-   const auto etaUnit = eta.unitVector();
-   const auto Hdet = H.Determinant();
-   const auto k = kernel.kernelValue(etaMag, Hdet);
-   const auto dk = kernel.gradValue(etaMag, Hdet);
-   const auto HetaUnit = H * etaUnit;
-   return std::make_pair(k, HetaUnit * dk);
+  const auto eta = H * x;
+  const auto etaMag = eta.magnitude();
+  const auto etaUnit = eta.unitVector();
+  const auto Hdet = H.Determinant();
+  const auto k = kernel.kernelValue(etaMag, Hdet);
+  const auto dk = kernel.gradValue(etaMag, Hdet);
+  const auto HetaUnit = H * etaUnit;
+  return std::make_pair(k, HetaUnit * dk);
 }
 
 //------------------------------------------------------------------------------
