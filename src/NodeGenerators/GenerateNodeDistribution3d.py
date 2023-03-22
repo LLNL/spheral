@@ -670,8 +670,8 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                     yy = xmin[1] + (j + 0.5)*dy
                     zz = xmin[2] + (k + 0.5)*dz
                     r = sqrt(xx*xx + yy*yy + zz*zz)
-                    if ((r >= rmin or rmin is None) and
-                        (r <= rmax or rmax is None)):
+                    if ((rmin is None or r >= rmin) and
+                        (rmax is None or r <= rmax)):
                         x.append(xx)
                         y.append(yy)
                         z.append(zz)
