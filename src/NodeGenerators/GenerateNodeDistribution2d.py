@@ -618,8 +618,8 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                 yy = xmin[1] + (j + 0.5)*dy
                 r = sqrt(xx*xx + yy*yy)
                 m0 = dx*dy*rho(Vector2d(xx, yy))
-                if ((r >= rmin or rmin is None) and
-                    (r <= rmax or rmax is None)):
+                if ((rmin is None or r >= rmin) and
+                    (rmax is None or r <= rmax)):
                     x.append(xx)
                     y.append(yy)
                     m.append(m0)
@@ -822,8 +822,8 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                     m0 /= 2.0
                 if jmod == 1 and (i == 0 or i == nxrow - 1):
                     m0 /= 2.0
-                if ((r >= rmin or rmin is None) and
-                    (r <= rmax or rmax is None)):
+                if ((rmin is None or r >= rmin) and
+                    (rmax is None or r <= rmax)):
                     x.append(xx)
                     y.append(yy)
                     m.append(m0)
