@@ -28,13 +28,13 @@ class Polytope(CMakePackage):
         spec = self.spec
 
         options.append(self.define('USE_MPI', 'Off'))   # Turn back on when polytope fixes parallel generation
-        options.append(self.define('Boost_INCLUDE_DIR', spec['boost'].prefix.include))
+        options.append(self.define('BOOST_ROOT', spec['boost'].prefix.include))
         #options.append(self.define('PYB11GENERATOR_ROOT_DIR', 
         #options.append(self.define('PYBIND11_ROOT_DIR', spec['py-pybind11'].prefix.include))
 
         if "+python" in spec:
             options.append(self.define('USE_PYTHON', True))
-            options.append(self.define('PYTHON_EXE', os.path.join(self.spec['python'].prefix.bin, 'python') ) )
+            options.append(self.define('Python3_EXECUTABLE', os.path.join(self.spec['python'].prefix.bin, 'python3') ) )
 
         options.append(self.define('TESTING', False))
 
