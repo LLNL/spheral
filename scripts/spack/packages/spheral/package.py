@@ -192,7 +192,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
         #entries.append(cmake_cache_path('polyclipper_DIR', spec['py-polyclipper'].prefix))
 
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))
-        os.environ['PYTHONPATH'] += ':' + spec['polytope'].prefix + '/lib/python/site-packages/polytope/'
+        os.environ['PYTHONPATH'] += ':' + spec['polytope'].prefix + '/lib/python39/site-packages/polytope/'
 
         entries.append(cmake_cache_option('ENABLE_MPI', '+mpi' in spec))
         if "+mpi" in spec:

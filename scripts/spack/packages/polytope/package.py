@@ -15,7 +15,7 @@ class Polytope(CMakePackage):
 
     git = "https://github.com/pbtoast/polytope.git"
     #version('0.7.2', tag='0.7.2', submodules=True)
-    version("2023-03-23", commit="77c0f29", submodules=True)
+    version("2023-03-24", commit="074ec17", submodules=True)
 
     variant('python', default=True, description='Enable Python Support.')
 
