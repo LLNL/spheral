@@ -42,7 +42,7 @@ class TestErrorFunctions(unittest.TestCase):
     #===========================================================================
     def testSign(self):
         for (x, erf, erfc) in zip(self.x, self.erf, self.erfc):
-            self.failUnless(x*erf >= 0.0,
+            self.assertTrue(x*erf >= 0.0,
                             "Wrong sign for Erf:  %f %f" % (x, erf))
         return
 
@@ -51,7 +51,7 @@ class TestErrorFunctions(unittest.TestCase):
     #===========================================================================
     def testSumUnity(self):
         for (x, erf, erfc) in zip(self.x, self.erf, self.erfc):
-            self.failUnless(fuzzyEqual(erf + erfc, 1.0),
+            self.assertTrue(fuzzyEqual(erf + erfc, 1.0),
                             "Erf(x) + Erfc(x) != 1.0: %f %f %f" % (erf, erfc, x))
         return
 

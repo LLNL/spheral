@@ -159,7 +159,7 @@ class XYInterpolatorTestingBase:
                                                            xlog, ylog)
                         ix, iy, i = Finterp.lowerBound(x, y)
                         passing = (ix == ix0) and (iy == iy0) and (i == i0)
-                        self.failUnless(passing,
+                        self.assertTrue(passing,
                                         "lower bound failure: query=(ix=%i, iy=%i, i0=%i), ans=((ix=%i, iy=%i, i0=%i) @ (%g, %g), (nx,ny)=(%i,%i), (xlog,ylog)=(%s,%s)" % (ix, iy, i, ix0, iy0, i0, x, y, nx, ny, xlog, ylog))
 
     #===========================================================================
@@ -177,7 +177,7 @@ class XYInterpolatorTestingBase:
                             passing = err(Finterp(x, y), F(x, y)) < tol
                             if not passing:
                                 self.plotem(x, y, F, Finterp)
-                            self.failUnless(passing,
+                            self.assertTrue(passing,
                                             "Interpolation off @ (%g,%g) (xlog,ylog)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), err(Finterp(x,y), F(x,y))))
 
     #===========================================================================
@@ -195,7 +195,7 @@ class XYInterpolatorTestingBase:
                             passing = err(Finterp(x, y), F(x, y)) < tol
                             if not passing:
                                 self.plotem(x, y, F, Finterp)
-                            self.failUnless(passing,
+                            self.assertTrue(passing,
                                             "Interpolation off @ (%g,%g) (xlog,ylog)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), err(Finterp(x,y), F(x,y))))
 
     #===========================================================================
@@ -215,5 +215,5 @@ class XYInterpolatorTestingBase:
                             passing = err(Finterp(x, y), F(x, y)) < tol
                             if not passing:
                                 self.plotem(x, y, F, Finterp)
-                            self.failUnless(passing,
+                            self.assertTrue(passing,
                                             "Interpolation off @ (%g,%g) (xlog,ylog)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), err(Finterp(x,y), F(x,y))))

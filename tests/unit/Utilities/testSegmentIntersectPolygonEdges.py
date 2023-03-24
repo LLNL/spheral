@@ -47,7 +47,7 @@ class TestLineSegmentPolygonIntersection(unittest.TestCase):
         for i in range(self.ntests):
             aa0, aa1, polygon, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polygon)
-            self.failUnless(result == False,
+            self.assertTrue(result == False,
                             "Incorrectly intersected edge %s->%s with polygon" %
                             (aa0, aa1))
 
@@ -61,7 +61,7 @@ class TestLineSegmentPolygonIntersection(unittest.TestCase):
             aa0, aa1, polygon, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polygon)
             Tinv = T.Inverse()
-            self.failUnless(result == False,
+            self.assertTrue(result == False,
                             "Incorrectly intersected edge %s->%s with polygon" %
                             (Tinv*aa0, Tinv*aa1))
 
@@ -76,7 +76,7 @@ class TestLineSegmentPolygonIntersection(unittest.TestCase):
             aa0, aa1, polygon, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polygon)
             Tinv = T.Inverse()
-            self.failUnless(result == True,
+            self.assertTrue(result == True,
                             "Incorrectly missed intersection of edge %s->%s with polygon" %
                             (Tinv*aa0, Tinv*aa1))
 
@@ -97,7 +97,7 @@ class TestLineSegmentPolygonIntersection(unittest.TestCase):
             aa0, aa1, polygon, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polygon)
             Tinv = T.Inverse()
-            self.failUnless(result == True,
+            self.assertTrue(result == True,
                             "Incorrectly missed intersection of edge %s->%s with polygon" %
                             (Tinv*aa0, Tinv*aa1))
 

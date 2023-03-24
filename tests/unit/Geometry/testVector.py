@@ -258,7 +258,7 @@ class Vector2dTest(VectorTestBase, unittest.TestCase):
         check = Vector3d(0.0,
                          0.0,
                          self.lhs.x * self.rhs.y - self.lhs.y * self.rhs.x)
-        self.failUnless(result == check,
+        self.assertTrue(result == check,
                         "cross product failure: %s != %s" % (str(result), str(check)))
 
     def testDyad(self):
@@ -309,7 +309,7 @@ class Vector3dTest(VectorTestBase, unittest.TestCase):
         check = Vector3d(self.lhs.y * self.rhs.z - self.lhs.z * self.rhs.y,
                          self.lhs.z * self.rhs.x - self.lhs.x * self.rhs.z,
                          self.lhs.x * self.rhs.y - self.lhs.y * self.rhs.x)
-        self.failUnless(result == check,
+        self.assertTrue(result == check,
                         "cross product failure: %s != %s" % (str(result), str(check)))
 
     def testDyad(self):

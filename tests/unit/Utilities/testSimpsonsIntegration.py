@@ -63,7 +63,7 @@ class TestSimpsonsRuleIntegration(unittest.TestCase):
             result = simpsonsIntegrationDouble(LinearFunction(a, b),
                                                x0, x1, self.numBins)
             ans = (a + 0.5*b*x1)*x1 - (a + 0.5*b*x0)*x0
-            self.failUnless(fuzzyEqual(result, ans, 1.0e-10),
+            self.assertTrue(fuzzyEqual(result, ans, 1.0e-10),
                             "Failed linear integration:  %g != %g" % (result, ans))
         return
 
@@ -80,7 +80,7 @@ class TestSimpsonsRuleIntegration(unittest.TestCase):
             result = simpsonsIntegrationDouble(QuadraticFunction(a, b, c),
                                                x0, x1, self.numBins)
             ans = (a*x1 + 0.5*b*x1**2 + c/3.0*x1**3) - (a*x0 + 0.5*b*x0**2 + c/3.0*x0**3)
-            self.failUnless(fuzzyEqual(result, ans, 1.0e-10),
+            self.assertTrue(fuzzyEqual(result, ans, 1.0e-10),
                             "Failed quadratic integration:  %g != %g" % (result, ans))
         return
 

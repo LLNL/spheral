@@ -64,10 +64,10 @@ class TestTableKernel(unittest.TestCase):
                 H = 0.5*SymTensor.one
                 Hdet = H.Determinant()
                 Wval, gradWval, deltaWsum = WT.kernelAndGrad(Vector.zero, Vector(eta), H)
-                self.failUnless(fuzzyEqual(Wval, WT.kernelValue(eta, Hdet), self.W0tol), 
+                self.assertTrue(fuzzyEqual(Wval, WT.kernelValue(eta, Hdet), self.W0tol), 
                                 "TableKernel value does match single lookup within tolerance:  %g %g" %
                                 (Wval, WT.kernelValue(eta, Hdet)))
-                self.failUnless(fuzzyEqual((gradWval - H*Vector(eta).unitVector()*WT.gradValue(eta, Hdet)).magnitude(), 0.0, self.W1tol),
+                self.assertTrue(fuzzyEqual((gradWval - H*Vector(eta).unitVector()*WT.gradValue(eta, Hdet)).magnitude(), 0.0, self.W1tol),
                                 "TableKernel grad value does match single lookup within tolerance:  %s %s" %
                                 (gradWval, H*Vector(eta).unitVector()*WT.gradValue(eta, Hdet)))
 
@@ -79,11 +79,11 @@ class TestTableKernel(unittest.TestCase):
             deta = W.kernelExtent/(self.nsamples - 1)
             for i in range(self.nsamples):
                 eta = i*deta
-                self.failUnless(fuzzyEqual(WT.kernelValue(eta, 1.0),
+                self.assertTrue(fuzzyEqual(WT.kernelValue(eta, 1.0),
                                            W.kernelValue(eta, 1.0), self.W0tol),
                                 "TableKernel value does match original within tolerance:  %g %g" %
                                 (WT.kernelValue(eta, 1.0), W.kernelValue(eta, 1.0)))
-                self.failUnless(fuzzyEqual(WT.gradValue(eta, 1.0),
+                self.assertTrue(fuzzyEqual(WT.gradValue(eta, 1.0),
                                            W.gradValue(eta, 1.0), self.W1tol),
                                 "TableKernel grad value does match original within tolerance:  %g %g" %
                                 (WT.gradValue(eta, 1.0), W.gradValue(eta, 1.0)))
@@ -97,10 +97,10 @@ class TestTableKernel(unittest.TestCase):
             Wsum = W.WsumValues
             assert len(nperh) == len(Wsum)
             for i in range(len(nperh) - 1):
-                self.failUnless(nperh[i] < nperh[i + 1],
+                self.assertTrue(nperh[i] < nperh[i + 1],
                                 "Failed monotonicity test in nperh table: %f %f" %
                                 (nperh[i], nperh[i + 1]))
-                self.failUnless(Wsum[i] <= Wsum[i + 1],
+                self.assertTrue(Wsum[i] <= Wsum[i + 1],
                                 "Failed monotonicity test in Wsum table: %f %f" %
                                 (Wsum[i], Wsum[i + 1]))
         return
@@ -120,10 +120,10 @@ class TestTableKernel(unittest.TestCase):
                     delta = 2.0*abs(W.gradValue(etax, 1.0))
                     testSum += delta
                     etax += deta
-                self.failUnless(fuzzyEqual(Wsum, testSum, self.Wsumtol),
+                self.assertTrue(fuzzyEqual(Wsum, testSum, self.Wsumtol),
                                 "Wsum failure: %g != %g: " %
                                 (Wsum, testSum))
-                self.failUnless(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
+                self.assertTrue(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
                                            nperh,
                                            self.Wsumtol),
                                 "Lookup n per h failure: %g %g %g" %
@@ -154,10 +154,10 @@ class TestTableKernel(unittest.TestCase):
                         etax += deta
                     etay += deta
                 testSum = sqrt(testSum)
-                self.failUnless(fuzzyEqual(Wsum, testSum, self.Wsumtol),
+                self.assertTrue(fuzzyEqual(Wsum, testSum, self.Wsumtol),
                                 "Wsum failure: %g != %g: " %
                                 (Wsum, testSum))
-                self.failUnless(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
+                self.assertTrue(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
                                            nperh,
                                            self.Wsumtol),
                                 "Lookup n per h failure: %g %g %g" %
@@ -194,10 +194,10 @@ class TestTableKernel(unittest.TestCase):
                         etay += deta
                     etaz += deta
                 testSum = testSum**(1.0/3.0)
-                self.failUnless(fuzzyEqual(Wsum, testSum, self.Wsumtol),
+                self.assertTrue(fuzzyEqual(Wsum, testSum, self.Wsumtol),
                                 "Wsum failure: %g != %g: " %
                                 (Wsum, testSum))
-                self.failUnless(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
+                self.assertTrue(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
                                            nperh,
                                            self.Wsumtol),
                                 "Lookup n per h failure: %g %g %g" %

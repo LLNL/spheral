@@ -145,13 +145,13 @@ class TestASPHIdealH3d(unittest.TestCase):
 ##                h2p, v2p = eigenp.eigenValues.x, eigenp.eigenVectors.getColumn(0)
 ##                h1p, v1p = eigenp.eigenValues.y, eigenp.eigenVectors.getColumn(1)
 
-##            self.failUnless(fuzzyEqual(h1p/h2p, h1/h2, self.ratiofuzz),
+##            self.assertTrue(fuzzyEqual(h1p/h2p, h1/h2, self.ratiofuzz),
 ##                            "H Shape does not match expectation: (%s/%s = %s) != (%s/%s = %s)" %
 ##                            (h1p, h2p, h1p/h2p, h1, h2, h1/h2))
-##            self.failUnless(fuzzyEqual(1.0/sqrt(Hip.Determinant()), 1.0/sqrt(answer.Determinant()), self.volfuzz),
+##            self.assertTrue(fuzzyEqual(1.0/sqrt(Hip.Determinant()), 1.0/sqrt(answer.Determinant()), self.volfuzz),
 ##                            "H Determinant does not match expectation: %s != %s" %
 ##                            (Hip.Determinant(), answer.Determinant()))
-##            self.failUnless(h1/h2 > self.aligncutoff or
+##            self.assertTrue(h1/h2 > self.aligncutoff or
 ##                            (fuzzyEqual(abs(v1.dot(v1p)), 1.0, self.alignfuzz) and
 ##                             fuzzyEqual(abs(v2.dot(v2p)), 1.0, self.alignfuzz)),
 ##                            "H not alinged with expected directions: %s %s %s %s != %s %s %s %s" %

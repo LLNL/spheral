@@ -62,7 +62,7 @@ class TestLineSegmentPolyhedronIntersection(unittest.TestCase):
         for i in range(self.ntests):
             aa0, aa1, polyhedron, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polyhedron)
-            self.failUnless(result == False,
+            self.assertTrue(result == False,
                             "Incorrectly intersected edge %s->%s with polyhedron" %
                             (aa0, aa1))
 
@@ -76,7 +76,7 @@ class TestLineSegmentPolyhedronIntersection(unittest.TestCase):
             aa0, aa1, polyhedron, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polyhedron)
             Tinv = T.Inverse()
-            self.failUnless(result == False,
+            self.assertTrue(result == False,
                             "Incorrectly intersected edge %s->%s with polyhedron" %
                             (Tinv*aa0, Tinv*aa1))
 
@@ -103,7 +103,7 @@ class TestLineSegmentPolyhedronIntersection(unittest.TestCase):
             aa0, aa1, polyhedron, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polyhedron)
             Tinv = T.Inverse()
-            self.failUnless(result == False,
+            self.assertTrue(result == False,
                             "Incorrectly intersected edge %s->%s with polyhedron\n%s->%s" %
                             (aa0, aa1, Tinv*aa0, Tinv*aa1))
 
@@ -119,7 +119,7 @@ class TestLineSegmentPolyhedronIntersection(unittest.TestCase):
             aa0, aa1, polyhedron, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polyhedron)
             Tinv = T.Inverse()
-            self.failUnless(result == True,
+            self.assertTrue(result == True,
                             "Incorrectly missed intersection of edge %s->%s with polyhedron" %
                             (Tinv*aa0, Tinv*aa1))
 
@@ -134,7 +134,7 @@ class TestLineSegmentPolyhedronIntersection(unittest.TestCase):
             aa0, aa1, polyhedron, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polyhedron)
             Tinv = T.Inverse()
-            self.failUnless(result == True,
+            self.assertTrue(result == True,
                             "Incorrectly missed intersection of edge %s->%s with polyhedron" %
                             (Tinv*aa0, Tinv*aa1))
 
@@ -148,7 +148,7 @@ class TestLineSegmentPolyhedronIntersection(unittest.TestCase):
             aa0, aa1, polyhedron, T = self.randomDistortion(a0, a1, self.vertices)
             result = segmentIntersectEdges(aa0, aa1, polyhedron)
             Tinv = T.Inverse()
-            self.failUnless(result == True,
+            self.assertTrue(result == True,
                             "Incorrectly missed intersection of edge %s->%s with polyhedron" %
                             (Tinv*aa0, Tinv*aa1))
 

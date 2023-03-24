@@ -146,7 +146,7 @@ class PolygonalMeshGenericTests:
         assert mesh.numZones >= self.nodes.numInternalNodes
         for i in range(self.nodes.numInternalNodes):
             zonehull = mesh.zone(i).convexHull()
-            self.failUnless(zonehull.contains(self.pos[i]), "Failing generator containment: %i %s" % (i, self.pos[i]))
+            self.assertTrue(zonehull.contains(self.pos[i]), "Failing generator containment: %i %s" % (i, self.pos[i]))
         return
 
     #---------------------------------------------------------------------------
@@ -158,7 +158,7 @@ class PolygonalMeshGenericTests:
                                       xmin = xmin,
                                       xmax = xmax)
         print("Required %f seconds to generate mesh" % (time.clock() - t0))
-        self.failUnless(mesh.minimumScale <= self.dxmin, 
+        self.assertTrue(mesh.minimumScale <= self.dxmin, 
                         "Scales don't match:  %g %g" % (mesh.minimumScale, self.dxmin))
         return
 
@@ -182,7 +182,7 @@ class PolygonalMeshGenericTests:
 ##         p.replot(d)
 
         msg = testParallelConsistency(mesh, xmin, xmax)
-        self.failUnless(msg == "ok", msg)
+        self.assertTrue(msg == "ok", msg)
 
     #---------------------------------------------------------------------------
     # Test the mesh coordinates hash uniquely.
@@ -225,7 +225,7 @@ class PolygonalMeshGenericTests:
         for inode in range(mesh.numNodes):
             zoneIDs = mesh.node(inode).zoneIDs
             for izone in zoneIDs:
-                self.failUnless(izone in answer[inode] or izone == PolygonalMesh.UNSETID,
+                self.assertTrue(izone in answer[inode] or izone == PolygonalMesh.UNSETID,
                                 "Missing zone %i for set in node %i: %s %s" %
                                 (izone, inode, [x for x in zoneIDs], answer[inode]))
 
@@ -239,7 +239,7 @@ class PolygonalMeshGenericTests:
         for izone in range(mesh.numZones):
             nodeIDs = mesh.zone(izone).nodeIDs
             for inode in nodeIDs:
-                self.failUnless(izone in mesh.node(inode).zoneIDs,
+                self.assertTrue(izone in mesh.node(inode).zoneIDs,
                                 "Missing zone %i in neighbors for node %i : %s" % (izone, inode, list(mesh.node(inode).zoneIDs)))
 
     #---------------------------------------------------------------------------
@@ -260,11 +260,11 @@ class PolygonalMeshGenericTests:
             zoneIDs = answer[iface]
             assert len(zoneIDs) in (1, 2)
             if len(zoneIDs) == 2:
-                self.failUnless(mesh.positiveID(face.oppositeZoneID(zoneIDs[0])) == zoneIDs[1],
+                self.assertTrue(mesh.positiveID(face.oppositeZoneID(zoneIDs[0])) == zoneIDs[1],
                                 "Bad opposites:  (%i, %i) != (%i, %i)" %
                                 (zoneIDs[0], zoneIDs[1],
                                  face.oppositeZoneID(zoneIDs[0]), face.oppositeZoneID(zoneIDs[1])))
-                self.failUnless(mesh.positiveID(face.oppositeZoneID(zoneIDs[1])) == zoneIDs[0],
+                self.assertTrue(mesh.positiveID(face.oppositeZoneID(zoneIDs[1])) == zoneIDs[0],
                                 "Bad opposites:  (%i, %i) != (%i, %i)" %
                                 (zoneIDs[0], zoneIDs[1],
                                  face.oppositeZoneID(zoneIDs[0]), face.oppositeZoneID(zoneIDs[1])))
@@ -285,7 +285,7 @@ class PolygonalMeshGenericTests:
         uniqueIDs = set()
         for i in globalIDs:
             uniqueIDs.add(i)
-        self.failUnless(len(uniqueIDs) == len(globalIDs),
+        self.assertTrue(len(uniqueIDs) == len(globalIDs),
                         "Global mesh node IDs not unique!  %i != %i" % (len(globalIDs), len(uniqueIDs)))
 
         # Check that the IDs are unique and consistent across domains.
@@ -307,7 +307,7 @@ class PolygonalMeshGenericTests:
             # Recv the IDs from our neighbors and do the testing.
             for neighbor, localIDs in zip(neighbors, sharedGlobalIDs):
                 otherIDs = mpi.recv(source=neighbor)[0]
-                self.failUnless(otherIDs == list(localIDs),
+                self.assertTrue(otherIDs == list(localIDs),
                                 "Global IDs don't match between domains %i <-> %i\n%s\n%s" % (mpi.rank, neighbor, list(localIDs), otherIDs))
 
             # Wait until all our sends have completed.
@@ -331,12 +331,12 @@ class PolygonalMeshGenericTests:
         # Check that all the generators are contained.
         pos = self.nodes.positions()
         for i in range(self.nodes.numInternalNodes):
-            self.failUnless(bs.contains(pos[i]),
+            self.assertTrue(bs.contains(pos[i]),
                             "Failed containment for generator %i @ %s" % (i, pos[i]))
 
         # Check that all mesh nodes are contained.
         for i in range(mesh.numNodes):
-            self.failUnless(bs.contains(mesh.node(i).position()),
+            self.assertTrue(bs.contains(mesh.node(i).position()),
                             "Failed containment for mesh node %i @ %s" % (i, mesh.node(i).position()))
 
         return

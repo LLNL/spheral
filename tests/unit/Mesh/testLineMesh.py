@@ -104,7 +104,7 @@ class LineMeshGenericTests:
         for i in range(self.nodes.numInternalNodes):
             zone = mesh.zone(i)
             zonehull = zone.convexHull
-            self.failUnless(zonehull.contains(pos[i]),
+            self.assertTrue(zonehull.contains(pos[i]),
                             "Zone does not contain generator %s %s %s %s" %
                             (pos[i], zone.position, 
                              mesh.node(zone.nodeIDs[0]).position,
@@ -129,7 +129,7 @@ class LineMeshGenericTests:
         mesh, void = generateLineMesh([self.nodes],
                                       xmin = xmin,
                                       xmax = xmax)
-        self.failUnless(mesh.minimumScale <= self.dxmin, 
+        self.assertTrue(mesh.minimumScale <= self.dxmin, 
                         "Scales don't match:  %g %g" % (mesh.minimumScale, self.dxmin))
         return
 
@@ -145,7 +145,7 @@ class LineMeshGenericTests:
                                       removeBoundaryZones = False)
 
         msg = testParallelConsistency(mesh, xmin, xmax)
-        self.failUnless(msg == "ok", msg)
+        self.assertTrue(msg == "ok", msg)
 
         # neighborDomains = [int(x) for x in mesh.neighborDomains]
         # sharedNodes = []
@@ -171,7 +171,7 @@ class LineMeshGenericTests:
         # # Check the correct domains are talking to each other.
         # neighborDomainsAnswer = [i for i in xrange(max(0, rank - 1), min(numDomains, rank + 2)) if i != rank]
         # ok = mpi.allreduce((neighborDomains == neighborDomainsAnswer), mpi.MIN)
-        # self.failUnless(ok, "Strange neighbor domains for %i : %s ?= %s" % (rank, str(neighborDomains), str(neighborDomainsAnswer)))
+        # self.assertTrue(ok, "Strange neighbor domains for %i : %s ?= %s" % (rank, str(neighborDomains), str(neighborDomainsAnswer)))
       
         # # Check that the communicated mesh nodes are consistent.
         # boxInv = Vector(1.0/(xmax.x - xmin.x))
@@ -195,7 +195,7 @@ class LineMeshGenericTests:
         #             msg = "Shared node indicies don't match %i %i : %s != %s" % (rank, sendProc, 
         #                                                                          str([hashPosition(mesh.node(i).position, xmin, xmax, boxInv) for i in sharedNodes[kk]]),
         #                                                                          recvHashes)
-        #         self.failUnless(mpi.allreduce(ok, mpi.MIN), msg)
+        #         self.assertTrue(mpi.allreduce(ok, mpi.MIN), msg)
 
         # return
 
@@ -252,12 +252,12 @@ class LineMeshGenericTests:
         # Check that all the generators are contained.
         pos = self.nodes.positions()
         for i in range(self.nodes.numInternalNodes):
-            self.failUnless(bs.contains(pos[i]),
+            self.assertTrue(bs.contains(pos[i]),
                             "Failed containment for generator %i @ %s" % (i, pos[i]))
 
         # Check that all mesh nodes are contained.
         for i in range(mesh.numNodes):
-            self.failUnless(bs.contains(mesh.node(i).position),
+            self.assertTrue(bs.contains(mesh.node(i).position),
                             "Failed containment for mesh node %i @ %s" % (i, mesh.node(i).position))
 
         return
@@ -334,12 +334,12 @@ class UniformLineMeshTests(unittest.TestCase, LineMeshGenericTests):
                                       xmax = 2.0*xmax)
         voidpos = void.positions()
         pos = self.nodes.positions()
-        self.failUnless(mpi.allreduce(void.numNodes, mpi.SUM) == 1, 
+        self.assertTrue(mpi.allreduce(void.numNodes, mpi.SUM) == 1, 
                         "Bad number of void nodes:  %i %s" % (mpi.allreduce(void.numNodes, mpi.SUM), str([x.x for x in void.positions().allValues()])))
         assert mpi.allreduce(mesh.numZones, mpi.SUM) == mpi.allreduce(self.nodes.numInternalNodes, mpi.SUM) + 1
         maxpos = mpi.allreduce(max([pos[i].x for i in range(self.nodes.numInternalNodes)]), mpi.MAX)
         if void.numNodes == 1:
-            self.failUnless(voidpos[0].x > maxpos, "%f %f" % (voidpos[0].x, maxpos))
+            self.assertTrue(voidpos[0].x > maxpos, "%f %f" % (voidpos[0].x, maxpos))
             voidzone = mesh.zone(self.nodes.numInternalNodes)
             voidhull = voidzone.convexHull
             assert voidhull.contains(voidpos[0])
@@ -417,9 +417,9 @@ class UniformGapLineMeshTests(unittest.TestCase, LineMeshGenericTests):
                                       xmax = xmax,
                                       generateVoid = True)
         voidpos = void.positions()
-        self.failUnless(mpi.allreduce(void.numNodes, mpi.SUM) == 2, 
+        self.assertTrue(mpi.allreduce(void.numNodes, mpi.SUM) == 2, 
                         "Bad number of void nodes:  %i %s" % (mpi.allreduce(void.numNodes, mpi.SUM), str([x.x for x in void.positions().allValues()])))
-        self.failUnless(mpi.allreduce(mesh.numZones, mpi.SUM) == mpi.allreduce(self.nodes.numInternalNodes, mpi.SUM) + 2,
+        self.assertTrue(mpi.allreduce(mesh.numZones, mpi.SUM) == mpi.allreduce(self.nodes.numInternalNodes, mpi.SUM) + 2,
                         "Bad number of mesh zones:  %i %i %i" % (mpi.allreduce(mesh.numZones, mpi.SUM),
                                                                  mpi.allreduce(self.nodes.numInternalNodes, mpi.SUM),
                                                                  mpi.allreduce(void.numInternalNodes, mpi.SUM)))

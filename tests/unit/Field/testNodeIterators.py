@@ -15,13 +15,13 @@ class TestNodeIterators(unittest.TestCase):
     # Test the all node iterator.
     def testAllNodeIterator(self):
         result = testGlobalAllNodeIterators2d(dataBase)
-        self.failUnless(result == "OK", result)
+        self.assertTrue(result == "OK", result)
         return
 
     # Test the internal node iterator.
     def testInternalNodeIterator(self):
         result = testGlobalInternalNodeIterators2d(dataBase)
-        self.failUnless(result == "OK", result)
+        self.assertTrue(result == "OK", result)
         return
 
     # Test the ghost node iterator.
@@ -32,7 +32,7 @@ class TestNodeIterators(unittest.TestCase):
         for nodes in dataBase.nodeLists():
             assert nodes1.numGhostNodes > 0
         result = testGlobalGhostNodeIterators2d(dataBase)
-        self.failUnless(result == "OK", result)
+        self.assertTrue(result == "OK", result)
         return
 
     # Test the master node iterator.
@@ -44,7 +44,7 @@ class TestNodeIterators(unittest.TestCase):
             dataBase.setMasterNodeLists(nodes.positions()[inode],
                                         nodes.Hfield()[inode])
             result = testGlobalMasterNodeIterators2d(dataBase)
-            self.failUnless(result == "OK", result)
+            self.assertTrue(result == "OK", result)
         return
 
     # Test the coarse node iterator.
@@ -56,7 +56,7 @@ class TestNodeIterators(unittest.TestCase):
             dataBase.setMasterNodeLists(nodes.positions()[inode],
                                         nodes.Hfield()[inode])
             result = testGlobalCoarseNodeIterators2d(dataBase)
-            self.failUnless(result == "OK", result)
+            self.assertTrue(result == "OK", result)
         return
 
     # Test the refine node iterator.
@@ -70,7 +70,7 @@ class TestNodeIterators(unittest.TestCase):
             dataBase.setRefineNodeLists(nodes.positions()[inode],
                                         nodes.Hfield()[inode])
             result = testGlobalRefineNodeIterators2d(dataBase)
-            self.failUnless(result == "OK", result)
+            self.assertTrue(result == "OK", result)
         return
 
 if __name__ == "__main__":

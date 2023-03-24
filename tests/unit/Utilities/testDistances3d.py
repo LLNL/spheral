@@ -45,7 +45,7 @@ class TestDistances3d(unittest.TestCase):
         for i in range(self.ntests):
             aa0, aa1, bb0, bb1, l = self.randomDistortion(a0, a1, b0, b1)
             result = segmentSegmentDistance(aa0, aa1, bb0, bb1)
-            self.failUnless(fuzzyEqual(result, l*answer),
+            self.assertTrue(fuzzyEqual(result, l*answer),
                             "Distance error:  %g != %g" % (result, l*answer))
 
     #===========================================================================
@@ -61,7 +61,7 @@ class TestDistances3d(unittest.TestCase):
         for i in range(self.ntests):
             aa0, aa1, bb0, bb1, l = self.randomDistortion(a0, a1, b0, b1)
             result = segmentSegmentDistance(aa0, aa1, bb0, bb1)
-            self.failUnless(fuzzyEqual(result, l*answer),
+            self.assertTrue(fuzzyEqual(result, l*answer),
                             "Distance error:  %g != %g" % (result, l*answer))
 
     #===========================================================================
@@ -77,7 +77,7 @@ class TestDistances3d(unittest.TestCase):
         for i in range(self.ntests):
             aa0, aa1, bb0, bb1, l = self.randomDistortion(a0, a1, b0, b1)
             result = segmentSegmentDistance(aa0, aa1, bb0, bb1)
-            self.failUnless(fuzzyEqual(result, l*answer),
+            self.assertTrue(fuzzyEqual(result, l*answer),
                             "Distance error:  %g != %g" % (result, l*answer))
 
     #===========================================================================
@@ -93,7 +93,7 @@ class TestDistances3d(unittest.TestCase):
         for i in range(self.ntests):
             aa0, aa1, bb0, bb1, l = self.randomDistortion(a0, a1, b0, b1)
             result = segmentSegmentDistance(aa0, aa1, bb0, bb1)
-            self.failUnless(fuzzyEqual(result, l*answer),
+            self.assertTrue(fuzzyEqual(result, l*answer),
                             "Distance error:  %g != %g" % (result, l*answer))
 
     #===========================================================================
@@ -109,7 +109,7 @@ class TestDistances3d(unittest.TestCase):
         for i in range(self.ntests):
             aa0, aa1, bb0, bb1, l = self.randomDistortion(a0, a1, b0, b1)
             result = segmentSegmentDistance(aa0, aa1, bb0, bb1)
-            self.failUnless(fuzzyEqual(result, l*answer),
+            self.assertTrue(fuzzyEqual(result, l*answer),
                             "Distance error:  %g != %g" % (result, l*answer))
 
     #===========================================================================
@@ -125,7 +125,7 @@ class TestDistances3d(unittest.TestCase):
         for i in range(self.ntests):
             aa0, aa1, bb0, bb1, l = self.randomDistortion(a0, a1, b0, b1)
             result = segmentSegmentDistance(aa0, aa1, bb0, bb1)
-            self.failUnless(fuzzyEqual(result, l*answer),
+            self.assertTrue(fuzzyEqual(result, l*answer),
                             "Distance error:  %g != %g" % (result, l*answer))
 
 if __name__ == "__main__":

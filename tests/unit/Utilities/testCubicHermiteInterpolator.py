@@ -148,7 +148,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                 if not passing:
                     print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
-                self.failUnless(passing,
+                self.assertTrue(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
 
     #===========================================================================
@@ -169,7 +169,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                 if not passing:
                     print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
-                self.failUnless(passing,
+                self.assertTrue(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
 
     #===========================================================================
@@ -191,14 +191,14 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                 if not passing:
                     print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
-                self.failUnless(passing,
+                self.assertTrue(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
                 i0 = F.lowerBound(x)
                 passing = (F(x) - F.vals[i0])*(F(x) - F.vals[i0 + 1]) <= 0.0
                 if not passing:
                     print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
-                self.failUnless(passing,
+                self.assertTrue(passing,
                                 "Failing monotonicity test: F(%g) = %g not in [%g, %g]" % (x, F(x), F.vals[i0], F.vals[i0 + 1]))
 
     #===========================================================================
@@ -220,14 +220,14 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                 if not passing:
                     print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
-                self.failUnless(passing,
+                self.assertTrue(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
                 i0 = F.lowerBound(x)
                 passing = (F(x) - F.vals[i0])*(F(x) - F.vals[i0 + 1]) <= 0.0
                 if not passing:
                     print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
-                self.failUnless(passing,
+                self.assertTrue(passing,
                                 "Failing monotonicity test: F(%g) = %g not in [%g, %g]" % (x, F(x), F.vals[i0], F.vals[i0 + 1]))
 
     #===========================================================================
@@ -249,7 +249,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                 if not passing:
                     print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
-                self.failUnless(passing,
+                self.assertTrue(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
 
     #===========================================================================
@@ -271,7 +271,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                 if not passing:
                     print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
-                self.failUnless(passing,
+                self.assertTrue(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
 
     #===========================================================================
@@ -294,14 +294,14 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                 if not passing:
                     print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
-                self.failUnless(passing,
+                self.assertTrue(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
                 i0 = F.lowerBound(x)
                 passing = (F(x) - F.vals[i0])*(F(x) - F.vals[i0 + 1]) <= 0.0
                 if not passing:
                     print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
-                self.failUnless(passing,
+                self.assertTrue(passing,
                                 "Failing monotonicity test: F(%g) = %g not in [%g, %g]" % (x, F(x), F.vals[i0], F.vals[i0 + 1]))
 
     #===========================================================================
@@ -324,14 +324,14 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                 if not passing:
                     print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
-                self.failUnless(passing,
+                self.assertTrue(passing,
                                 "Error interpolating F(x): %g != %g, err = %g" % (F(x), func(x), err(F(x), func(x))))
                 i0 = F.lowerBound(x)
                 passing = (F(x) - F.vals[i0])*(F(x) - F.vals[i0 + 1]) <= 0.0
                 if not passing:
                     print(F.vals)
                     self.plotem(x, xmin, xmax, func, F)
-                self.failUnless(passing,
+                self.assertTrue(passing,
                                 "Failing monotonicity test: F(%g) = %g not in [%g, %g]" % (x, F(x), F.vals[i0], F.vals[i0 + 1]))
 
 if __name__ == "__main__":

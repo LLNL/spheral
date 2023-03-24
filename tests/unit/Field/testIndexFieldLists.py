@@ -63,7 +63,7 @@ class TestIndexFieldLists(unittest.TestCase):
         for fieldlist in self.scalarfieldlists:
             result = testIndexScalarFieldListByAllNodeIterators2d(dataBase,
                                                                   fieldlist)
-            self.failUnless(result == "OK", result)
+            self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -73,7 +73,7 @@ class TestIndexFieldLists(unittest.TestCase):
         for fieldlist in self.vectorfieldlists:
             result = testIndexVectorFieldListByAllNodeIterators2d(dataBase,
                                                                   fieldlist)
-            self.failUnless(result == "OK", result)
+            self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -83,7 +83,7 @@ class TestIndexFieldLists(unittest.TestCase):
         for fieldlist in self.scalarfieldlists:
             result = testIndexScalarFieldListByInternalNodeIterators2d(dataBase,
                                                                        fieldlist)
-            self.failUnless(result == "OK", result)
+            self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -93,7 +93,7 @@ class TestIndexFieldLists(unittest.TestCase):
         for fieldlist in self.vectorfieldlists:
             result = testIndexVectorFieldListByInternalNodeIterators2d(dataBase,
                                                                        fieldlist)
-            self.failUnless(result == "OK", result)
+            self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -109,7 +109,7 @@ class TestIndexFieldLists(unittest.TestCase):
             bc.applyFieldListGhostBoundary(fieldlist)
             result = testIndexScalarFieldListByGhostNodeIterators2d(dataBase,
                                                                     fieldlist)
-            self.failUnless(result == "OK", result)
+            self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -125,7 +125,7 @@ class TestIndexFieldLists(unittest.TestCase):
             bc.applyFieldListGhostBoundary(fieldlist)
             result = testIndexVectorFieldListByGhostNodeIterators2d(dataBase,
                                                                     fieldlist)
-            self.failUnless(result == "OK", result)
+            self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -141,7 +141,7 @@ class TestIndexFieldLists(unittest.TestCase):
             for fieldlist in self.scalarfieldlists:
                 result = testIndexScalarFieldListByMasterNodeIterators2d(dataBase,
                                                                          fieldlist)
-                self.failUnless(result == "OK", result)
+                self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -157,7 +157,7 @@ class TestIndexFieldLists(unittest.TestCase):
             for fieldlist in self.vectorfieldlists:
                 result = testIndexVectorFieldListByMasterNodeIterators2d(dataBase,
                                                                          fieldlist)
-                self.failUnless(result == "OK", result)
+                self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -173,7 +173,7 @@ class TestIndexFieldLists(unittest.TestCase):
             for fieldlist in self.scalarfieldlists:
                 result = testIndexScalarFieldListByCoarseNodeIterators2d(dataBase,
                                                                          fieldlist)
-                self.failUnless(result == "OK", result)
+                self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -189,7 +189,7 @@ class TestIndexFieldLists(unittest.TestCase):
             for fieldlist in self.vectorfieldlists:
                 result = testIndexVectorFieldListByCoarseNodeIterators2d(dataBase,
                                                                          fieldlist)
-                self.failUnless(result == "OK", result)
+                self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -205,7 +205,7 @@ class TestIndexFieldLists(unittest.TestCase):
             for fieldlist in self.scalarfieldlists:
                 result = testCacheIndexScalarFieldListByCoarseNodeIterators2d(dataBase,
                                                                               fieldlist)
-                self.failUnless(result == "OK", result)
+                self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -221,7 +221,7 @@ class TestIndexFieldLists(unittest.TestCase):
             for fieldlist in self.vectorfieldlists:
                 result = testCacheIndexVectorFieldListByCoarseNodeIterators2d(dataBase,
                                                                               fieldlist)
-                self.failUnless(result == "OK", result)
+                self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -239,7 +239,7 @@ class TestIndexFieldLists(unittest.TestCase):
             for fieldlist in self.scalarfieldlists:
                 result = testIndexScalarFieldListByRefineNodeIterators2d(dataBase,
                                                                          fieldlist)
-                self.failUnless(result == "OK", result)
+                self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -257,7 +257,7 @@ class TestIndexFieldLists(unittest.TestCase):
             for fieldlist in self.vectorfieldlists:
                 result = testIndexVectorFieldListByRefineNodeIterators2d(dataBase,
                                                                          fieldlist)
-                self.failUnless(result == "OK", result)
+                self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -273,7 +273,7 @@ class TestIndexFieldLists(unittest.TestCase):
             for fieldlist in self.scalarfieldlists:
                 result = testCacheIndexScalarFieldListByRefineNodeIterators2d(dataBase,
                                                                               fieldlist)
-                self.failUnless(result == "OK", result)
+                self.assertTrue(result == "OK", result)
         return
 
     #===========================================================================
@@ -289,7 +289,7 @@ class TestIndexFieldLists(unittest.TestCase):
             for fieldlist in self.vectorfieldlists:
                 result = testCacheIndexVectorFieldListByRefineNodeIterators2d(dataBase,
                                                                               fieldlist)
-                self.failUnless(result == "OK", result)
+                self.assertTrue(result == "OK", result)
         return
 
 if __name__ == "__main__":

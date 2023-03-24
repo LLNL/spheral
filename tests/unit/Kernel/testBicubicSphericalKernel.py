@@ -135,7 +135,7 @@ class TestSphericalKernel(unittest.TestCase):
                 for rj in rprange(ri, hi):
                     W0 = W3S1(rj, ri, hi)
                     Wij = W(Vector(rj/hi), Vector(ri/hi), 1.0/hi)
-                    self.failUnless(error(W0, Wij) < Wtol(rj/hi, ri/hi, etamax),
+                    self.assertTrue(error(W0, Wij) < Wtol(rj/hi, ri/hi, etamax),
                                     "Kernel value outside tolerance @ (%g, %g, %g): %g != %g, %g !<= %g" % (rj, ri, hi, W0, Wij, error(W0, Wij), Wtol(rj/hi, ri/hi, etamax)))
 
     def test_kernel_grad_vals(self):
@@ -148,7 +148,7 @@ class TestSphericalKernel(unittest.TestCase):
                 for j, rj in enumerate(rprange(ri, hi, etastep=0.05)):
                     gradWij = W.grad(Vector(ri/hi), Vector(rj/hi), SymTensor(1.0/hi)).x
                     gradW0 = gradW3S1fine[50*j]
-                    self.failUnless(error(gradW0, gradWij) < gradWtol(rj/hi, ri/hi, etamax),
+                    self.assertTrue(error(gradW0, gradWij) < gradWtol(rj/hi, ri/hi, etamax),
                                     "Kernel gradient value outside tolerance @ (%g, %g, %g): %g != %g, %g !<= %g" % (rj, ri, hi, gradW0, gradWij, error(gradW0, gradWij), gradWtol(rj/hi, ri/hi, etamax)))
 
     def test_simultaneous_kernel_grad_vals(self):
@@ -162,9 +162,9 @@ class TestSphericalKernel(unittest.TestCase):
                     Wij0 = W(Vector(rj/hi), Vector(ri/hi), 1.0/hi)
                     gradWij0 = W.grad(Vector(rj/hi), Vector(ri/hi), SymTensor(1.0/hi)).x
                     Wij1, gradWij1 = W.kernelAndGradValue(Vector(rj/hi), Vector(ri/hi), 1.0/hi)
-                    self.failUnless(self_error(Wij0, Wij1, self_tol) < self_tol,
+                    self.assertTrue(self_error(Wij0, Wij1, self_tol) < self_tol,
                                     "Kernel value lookup inconsistent @ (%g, %g, %g): %g != %g, %g !<= %g" % (rj, ri, hi, Wij0, Wij1, self_error(Wij0, Wij1, self_tol), self_tol))
-                    self.failUnless(self_error(gradWij0, gradWij1.x, self_tol) < self_tol,
+                    self.assertTrue(self_error(gradWij0, gradWij1.x, self_tol) < self_tol,
                                     "Kernel gradient value lookup inconsistent @ (%g, %g, %g): %g != %g, %g !<= %g" % (rj, ri, hi, gradWij0, gradWij1.x, self_error(gradWij0, gradWij1.x, self_tol), self_tol))
 
 if __name__ == "__main__":
