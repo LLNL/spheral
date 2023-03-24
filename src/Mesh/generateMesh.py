@@ -25,7 +25,8 @@ def genericGenerateMesh(nodeLists,
         db = DataBase()
         for nodes in nodeLists:
             db.appendNodeList(nodes)
-        exec("xmin0, xmax0 = Vector%id(), Vector%id()" % (db.nDim, db.nDim))
+        Vector = eval("Vector{}d".format(db.nDim))
+        xmin0, xmax0 = Vector(), Vector()
         db.boundingBox(xmin0, xmax0, ghost=False)
         delta = 0.1*(xmax0 - xmin0)
         xmin0 -= delta
