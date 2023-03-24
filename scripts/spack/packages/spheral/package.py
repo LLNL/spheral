@@ -69,6 +69,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('py-pyb11generator@1.0.12', type='build')
     depends_on('py-virtualenv', type='build')
 
+    depends_on('netlib-lapack', type='build')
     depends_on('py-numpy@1.16.5', type='build')
     depends_on('py-numpy-stl@2.11.2', type='build')
     depends_on('py-enum34', type='build')

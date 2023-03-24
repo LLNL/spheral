@@ -137,8 +137,13 @@ packages:
     - spec: hwloc@5.7.5
       prefix: /usr
     buildable: false
-  netlib-lapack:
-    buildable: false
-    externals:
-    - spec: netlib-lapack@3.9.0
-      prefix: /usr/gapps/bdiv/toss_3_x86_64_ib/clang-10-mvapich2-2.3/lapack/3.9.0
+
+  #  netlib-lapack:
+  #    externals:
+  #    - spec: netlib-lapack@3.4.2
+  #      prefix: /usr
+  #    buildable: false
+  #  all:
+  #    providers:
+  #      blas: [netlib-lapack]
+  #      lapack: [netlib-lapack]
