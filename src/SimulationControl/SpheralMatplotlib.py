@@ -171,7 +171,7 @@ def plotFieldList(fieldList,
                   yRange = [None, None],
                   plotStyle = "ro",
                   markerSize = 4,
-                  lineStyle = "linetype -1 linewidth 1 pointtype 4 pointsize 1.0",
+                  kwords = {},
                   winTitle = None,
                   lineTitle = "",
                   xlabel = None,
@@ -231,17 +231,17 @@ def plotFieldList(fieldList,
                     if semilogy:
                         plot.semilogy(globalX[cumulativeNumNodes:cumulativeNumNodes + n],
                                       globalY[cumulativeNumNodes:cumulativeNumNodes + n],
-                                      plotStyle, ms=markerSize, label = "%s: %s" % (lineTitle, fieldList[i].nodeList().name))
+                                      plotStyle, ms=markerSize, label = "%s: %s" % (lineTitle, fieldList[i].nodeList().name), **kwords)
                     else:
                         plot.plot(globalX[cumulativeNumNodes:cumulativeNumNodes + n],
                                   globalY[cumulativeNumNodes:cumulativeNumNodes + n],
-                                  plotStyle, ms=markerSize, label = "%s: %s" % (lineTitle, fieldList[i].nodeList().name))
+                                  plotStyle, ms=markerSize, label = "%s: %s" % (lineTitle, fieldList[i].nodeList().name), **kwords)
                     cumulativeNumNodes += n
         else:
             if semilogy:
-                plot.semilogy(globalX, globalY, plotStyle, ms=markerSize, label = lineTitle)
+                plot.semilogy(globalX, globalY, plotStyle, ms=markerSize, label = lineTitle, **kwords)
             else:
-                plot.plot(globalX, globalY, plotStyle, ms=markerSize, label = lineTitle)
+                plot.plot(globalX, globalY, plotStyle, ms=markerSize, label = lineTitle, **kwords)
         plot.axes.legend()
 
         # Set the ranges.
@@ -257,6 +257,47 @@ def plotFieldList(fieldList,
     # That's it, return the Gnuplot object.
     mpi.barrier()
     return plot
+
+#-------------------------------------------------------------------------------
+# Plot a Field by promoting it to a FieldList
+#-------------------------------------------------------------------------------
+def plotField(field,
+              xFunction = "%s.x",
+              yFunction = "%s",
+              plotGhosts = False,
+              colorNodeLists = False,
+              plot = None,
+              xRange = [None, None],
+              yRange = [None, None],
+              plotStyle = "ro",
+              markerSize = 4,
+              kwords = {},
+              winTitle = None,
+              lineTitle = "",
+              xlabel = None,
+              ylabel = None,
+              filterFunc = None,
+              semilogy = False):
+    flt = eval(type(field).__name__.replace("Field", "FieldList"))
+    fl = flt()
+    fl.appendField(field)
+    return plotFieldList(fl,
+                         xFunction = xFunction,
+                         yFunction = yFunction,
+                         plotGhosts = plotGhosts,
+                         colorNodeLists = colorNodeLists,
+                         plot = plot,
+                         xRange = xRange,
+                         yRange = yRange,
+                         plotStyle = plotStyle,
+                         markerSize = markerSize,
+                         kwords = kwords,
+                         winTitle = winTitle,
+                         lineTitle = lineTitle,
+                         xlabel = xlabel,
+                         ylabel = ylabel,
+                         filterFunc = filterFunc,
+                         semilogy = semilogy)
 
 #-------------------------------------------------------------------------------
 # Plot the mass density, velocity, pressure, and smoothing scale for the fluid

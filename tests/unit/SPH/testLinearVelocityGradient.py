@@ -204,7 +204,7 @@ dy = (x2 - x0)/(nx1 + nx2)
 dz = (x2 - x0)/(nx1 + nx2)
 pos = nodes1.positions()
 for i in range(nodes1.numInternalNodes):
-    if pos[i] < x1:
+    if pos[i].x < x1:
         dx = dx1
     else:
         dx = dx2
@@ -350,44 +350,36 @@ print("Maximum error in   corrected SPH: %g" % maxdySPHerror1)
 # Plot the things.
 #-------------------------------------------------------------------------------
 if graphics:
-    from SpheralGnuPlotUtilities import *
-    import Gnuplot
-    xans = [positions[i].x for i in range(nodes1.numInternalNodes)]
+    from SpheralMatplotlib import *
 
-    dansdata = Gnuplot.Data(xans, [x.xx for x in dyans.internalValues()],
-                            with_ = "lines",
-                            title = "Answer",
-                            inline = True)
-    dSPH0data = Gnuplot.Data(xans, [x.xx for x in dfSPH0.internalValues()],
-                             with_ = "points",
-                             title = HydroChoice + " (uncorrected)",
-                             inline = True)
-    dSPH1data = Gnuplot.Data(xans, [x.xx for x in dfSPH1.internalValues()],
-                             with_ = "points",
-                             title = HydroChoice + " (corrected)",
-                             inline = True)
-    errdSPH0data = Gnuplot.Data(xans, errdySPH0.internalValues(),
-                                with_ = "points",
-                                title = HydroChoice + " (uncorrected)",
-                                inline = True)
-    errdSPH1data = Gnuplot.Data(xans, errdySPH1.internalValues(),
-                                with_ = "points",
-                                title = HydroChoice + " (corrected)",
-                                inline = True)
-
-    p3 = generateNewGnuPlot()
-    p3.plot(dansdata)
-    p3.replot(dSPH0data)
-    p3.replot(dSPH1data)
-    p3("set key top left")
-    p3.title("Derivative values")
-    p3.refresh()
-
-    p4 = generateNewGnuPlot()
-    p4.replot(errdSPH0data)
-    p4.replot(errdSPH1data)
-    p4.title("Error in derivatives")
-    p4.refresh()
+    p3 = plotField(dyans,
+                   yFunction = "%s.xx",
+                   plotStyle = "k-",
+                   lineTitle = "Answer")
+    plotField(dfSPH0,
+              yFunction = "%s.xx",
+              plotStyle = "r*",
+              lineTitle = HydroChoice + " (uncorrected)",
+              plot = p3)
+    plotField(dfSPH1,
+              yFunction = "%s.xx",
+              plotStyle = "ko",
+              lineTitle = HydroChoice + " (corrected)",
+              kwords = {"fillstyle" : "none"},
+              plot = p3)
+    p3.set_title("Derivative values")
+    p3.legend(loc = "best")
+              
+    p4 = plotField(errdySPH0,
+                   plotStyle = "r*",
+                   lineTitle = HydroChoice + " (uncorrected)")
+    plotField(errdySPH1,
+              plotStyle = "ko",
+              lineTitle = HydroChoice + " (corrected)",
+              kwords = {"fillstyle" : "none"},
+              plot = p4)
+    p4.set_title("Error in derivatives")
+    p4.legend(loc = "best")
 
     # If we're in 2D dump a silo file too.
     if testDim == "2d":

@@ -96,9 +96,9 @@ class TestPolyClipper2d(unittest.TestCase):
             PCpoly = PolyClipperPolygon()
             initializePolygon(PCpoly, points, vertexNeighbors(points))
             vol, centroid = moments(PCpoly)
-            self.failUnless(vol == poly.volume,
+            self.assertTrue(vol == poly.volume,
                             "Volume comparison failure: %g != %g" % (vol, poly.volume))
-            self.failUnless(centroid == poly.centroid,
+            self.assertTrue(centroid == poly.centroid,
                             "Centroid comparison failure: %s != %s" % (centroid, poly.centroid))
 
     #---------------------------------------------------------------------------
@@ -125,9 +125,9 @@ class TestPolyClipper2d(unittest.TestCase):
             PCpoly = convertToPolyClipper(poly)
             assert len(poly.vertices) == len(PCpoly)
             vol, centroid = moments(PCpoly)
-            self.failUnless(vol == poly.volume,
+            self.assertTrue(vol == poly.volume,
                             "Volume comparison failure: %g != %g" % (vol, poly.volume))
-            self.failUnless(centroid == poly.centroid,
+            self.assertTrue(centroid == poly.centroid,
                             "Centroid comparison failure: %s != %s" % (centroid, poly.centroid))
 
 
@@ -177,7 +177,7 @@ class TestPolyClipper2d(unittest.TestCase):
                     writePolyhedronOBJ(poly, "poly.obj")
                     writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
                     writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
-                self.failUnless(success,
+                self.assertTrue(success,
                                 "Plane clipping summing to wrong volumes: %s + %s != %s" % (chunk1.volume,
                                                                                             chunk2.volume,
                                                                                             poly.volume))
@@ -218,7 +218,7 @@ class TestPolyClipper2d(unittest.TestCase):
                     writePolyhedronOBJ(poly, "poly.obj")
                     writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
                     writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
-                self.failUnless(success,
+                self.assertTrue(success,
                                 "Redundant plane clipping wrong volumes: %s != %s" % (chunk1.volume,
                                                                                       chunk2.volume))
 
@@ -242,7 +242,7 @@ class TestPolyClipper2d(unittest.TestCase):
                 if not success:
                     writePolyhedronOBJ(poly, "poly.obj")
                     writePolyhedronOBJ(chunk, "chunk.obj")
-                self.failUnless(success,
+                self.assertTrue(success,
                                 "Null plane clipping failure: %s != %s" % (chunk.volume, poly.volume))
 
     #---------------------------------------------------------------------------
@@ -265,7 +265,7 @@ class TestPolyClipper2d(unittest.TestCase):
                 if not success:
                     writePolyhedronOBJ(poly, "poly.obj")
                     writePolyhedronOBJ(chunk, "chunk.obj")
-                self.failUnless(success,
+                self.assertTrue(success,
                                 "Full plane clipping failure: %s != %s" % (chunk.volume, poly.volume))
 
     #---------------------------------------------------------------------------
@@ -314,7 +314,7 @@ class TestPolyClipper2d(unittest.TestCase):
                     writePolyhedronOBJ(chunk2, "chunk_2TWO_TWOPLANES.obj")
                     writePolyhedronOBJ(chunk3, "chunk_3THREE_TWOPLANES.obj")
                     writePolyhedronOBJ(chunk4, "chunk_4FOUR_TWOPLANES.obj")
-                self.failUnless(success,
+                self.assertTrue(success,
                                 "Two plane clipping summing to wrong volumes: %s + %s + %s + %s = %s != %s" % (chunk1.volume,
                                                                                                                chunk2.volume,
                                                                                                                chunk3.volume,
