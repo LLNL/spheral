@@ -245,11 +245,11 @@ for key, vals in list(globalData.items()):
 import pickle
 dataFilename = os.path.join(dataDir, "connectivity")
 if mpi.procs == 1:
-    with open(dataFilename, 'w') as f:
-        pickle.dump(globalData, f)
+    with open(dataFilename, 'wb') as f:
+        pickle.dump(globalData, file = f)
 else:
     if os.path.exists(dataFilename):
-        with open(dataFilename, 'r') as f:
+        with open(dataFilename, 'rb') as f:
             serialData = pickle.load(f)
     else:
         raise IOError("need to run in serial first")

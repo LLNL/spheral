@@ -271,7 +271,7 @@ class UniformLineMeshTests(unittest.TestCase, LineMeshGenericTests):
     # Create the NodeList we'll use for generating the mesh.
     #---------------------------------------------------------------------------
     def setUp(self):
-        nxperdomain = nx / numDomains
+        nxperdomain = nx // numDomains
         eos = GammaLawGasMKS(5.0/3.0, 1.0)
         self.nodes = makeFluidNodeList("test nodes", eos,
                                        numInternal = nxperdomain,
@@ -354,7 +354,7 @@ class UniformGapLineMeshTests(unittest.TestCase, LineMeshGenericTests):
     # Create the NodeList we'll use for generating the mesh.
     #---------------------------------------------------------------------------
     def setUp(self):
-        nxperdomain = nx / numDomains
+        nxperdomain = nx // numDomains
         eos = GammaLawGasMKS(5.0/3.0, 1.0)
         self.nodes = makeFluidNodeList("test nodes", eos,
                                        numInternal = nxperdomain,
@@ -365,7 +365,7 @@ class UniformGapLineMeshTests(unittest.TestCase, LineMeshGenericTests):
         # Generate initial positions, and split them up between domains appropriately.
         gap = 0.9
         dxavg = (x1 - x0 - gap)/nx
-        xnodes = [x0 + (i + 0.5)*dxavg for i in range(nx/2)] + [0.5*(x0 + x1 + gap) + (i + 0.5)*dxavg for i in range(nx/2)]
+        xnodes = [x0 + (i + 0.5)*dxavg for i in range(nx//2)] + [0.5*(x0 + x1 + gap) + (i + 0.5)*dxavg for i in range(nx//2)]
         xnodes.sort()
         self.dxmin, self.dxmax = meshScales(xnodes, x0, x1)
         for proc in range(numDomains):
@@ -434,7 +434,7 @@ class RandomLineMeshTests(unittest.TestCase, LineMeshGenericTests):
     # Create the NodeList we'll use for generating the mesh.
     #---------------------------------------------------------------------------
     def setUp(self):
-        nxperdomain = nx / numDomains
+        nxperdomain = nx // numDomains
         eos = GammaLawGasMKS(5.0/3.0, 1.0)
         self.nodes = makeFluidNodeList("test nodes", eos,
                                        numInternal = nxperdomain,

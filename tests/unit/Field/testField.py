@@ -56,7 +56,7 @@ class testField(unittest.TestCase):
     # deleteElements (random)
     #---------------------------------------------------------------------------
     def testDeleteElementsRandom(self):
-        elementsToKill = uniqueSequence([g.randint(0, n - 1) for i in range(n/10)])
+        elementsToKill = uniqueSequence([g.randint(0, n - 1) for i in range(n//10)])
         self.nodes.deleteNodes(vector_from_list(elementsToKill))
         answer = list(range(n))
         for i in elementsToKill:
@@ -70,7 +70,7 @@ class testField(unittest.TestCase):
     # deleteElements (front)
     #---------------------------------------------------------------------------
     def testDeleteElementsFront(self):
-        elementsToKill = list(range(n/10))
+        elementsToKill = list(range(n//10))
         self.nodes.deleteNodes(vector_from_list(elementsToKill))
         answer = list(range(n))
         for i in elementsToKill:
@@ -84,7 +84,7 @@ class testField(unittest.TestCase):
     # deleteElements (back)
     #---------------------------------------------------------------------------
     def testDeleteElementsBack(self):
-        elementsToKill = list(range(9*n/10, n))
+        elementsToKill = list(range(9*n//10, n))
         self.nodes.deleteNodes(vector_from_list(elementsToKill))
         answer = list(range(n))
         for i in elementsToKill:
