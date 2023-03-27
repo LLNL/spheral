@@ -12,7 +12,7 @@ import time as TIME
 
 from SpheralCompiledPackages import *
 
-import polytope
+from polytope import polytope
 from siloMeshDump import *
 
 class SpheralVoronoiSiloDump:

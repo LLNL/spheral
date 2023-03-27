@@ -5,6 +5,7 @@
 import os, mpi
 from Spheral import *
 from SpheralCompiledPackages import silo
+from polytope import polytope
 import time as TIME
 
 #-------------------------------------------------------------------------------
