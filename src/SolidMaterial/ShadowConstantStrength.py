@@ -57,24 +57,24 @@ def _ConstantStrengthFactory(*args,
 
         # It looks like the user is trying to use one of the libarary canned values.
         # Evaluate the arguments to the method.
-        if len(args) > 0:
-            if len(args) != len(expectedArgs):
+        if (len(args) > len(expectedArgs) or 
+            (len(args) + len(kwargs) < len(expectedArgs))): # insist on formal mandatory arguments 
+            raise ValueError(expectedUsageString)
+        
+        # Check for any invalid keywords
+        for arg in kwargs: # deal with optional args
+            if arg not in (expectedArgs + list(optionalKwArgs.keys()) + ["TillConstructor"]):
                 raise ValueError(expectedUsageString)
-            for i in range(len(expectedArgs)):
-                exec("%s = args[i]" % expectedArgs[i])
-            for arg in optionalKwArgs:
-                exec("%s = optionalKwArgs['%s']" % (arg, arg))
-        else:
-            for arg in kwargs:
-                if arg not in (expectedArgs + list(optionalKwArgs.keys()) + ["CSConstructor"]):
-                    raise ValueError(expectedUsageString)
-                exec("%s = kwargs['%s']" % (arg, arg))
-            for arg in optionalKwArgs:
-                if arg not in kwargs:
-                    exec("%s = optionalKwArgs['%s']" % (arg, arg))
+
+        # Set the arguments dictionary
+        dargs = {expectedArgs[i] : args[i] for i in range(len(args))}          # Mandatory args
+        dargs.update(optionalKwArgs)
+        dargs.update(kwargs)
+        print(dargs)
+        ARGS = types.SimpleNamespace(**dargs)
 
         # Check that the caller specified a valid material label.
-        mat = materialName.lower()
+        mat = ARGS.materialName.lower()
         if mat not in SpheralMaterialPropertiesLib:
             raise ValueError("You must specify one of %s" % str(list(SpheralMaterialPropertiesLib.keys())))
         if ("mu0" not in SpheralMaterialPropertiesLib[mat] or
@@ -83,21 +83,21 @@ def _ConstantStrengthFactory(*args,
 
         # Extract the parameters for this material.
         if mu0 is None:
-            mu0 = SpheralMaterialPropertiesLib[mat]["mu0"]
+            ARGS.mu0 = SpheralMaterialPropertiesLib[mat]["mu0"]
         if Y0 is None:
-            Y0 = SpheralMaterialPropertiesLib[mat]["Y0"]
+            ARGS.Y0 = SpheralMaterialPropertiesLib[mat]["Y0"]
     
         # Figure out the conversions to the requested units.
-        lconv = cgs.unitLengthMeters / units.unitLengthMeters
-        mconv = cgs.unitMassKg / units.unitMassKg
-        tconv = cgs.unitTimeSec / units.unitTimeSec
+        lconv = cgs.unitLengthMeters / ARGS.units.unitLengthMeters
+        mconv = cgs.unitMassKg / ARGS.units.unitMassKg
+        tconv = cgs.unitTimeSec / ARGS.units.unitTimeSec
         rhoConv = mconv/(lconv*lconv*lconv)
         Pconv = mconv/(lconv*tconv*tconv)
         specificEconv = (lconv/tconv)**2
 
         # Build the arguments for constructing the ConstantStrength.
-        passargs = [mu0 * Pconv,
-                    Y0 * Pconv]
+        passargs = [ARGS.mu0 * Pconv,
+                    ARGS.Y0 * Pconv]
         passkwargs = {}
 
     else:

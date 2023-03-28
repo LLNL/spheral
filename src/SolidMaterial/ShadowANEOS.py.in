@@ -119,48 +119,42 @@ def _ANEOSFactory(RealConstructor,
         izetl = vector_of_int([-1])
         initializeANEOS(filename, "/dev/null", izetl)
 
-    # First set the default values
-    for arg in cppArgs:
-        exec("%s = cppArgs['%s']" % (arg, arg))
-
-    # Deal with arguments
-    for iarg in range(len(args)):
-        exec("%s = args[iarg]" % list(cppArgs.keys())[iarg])
-
-    # Keyword arguments
-    for arg in kwargs:
-        assert arg in cppArgs
-        exec("%s = kwargs['%s']" % (arg, arg))
+    # Set args as namespace
+    dargs = dict(cppArgs)
+    for iarg, val in enumerate(args):
+        dargs[cppArgs.keys()[iarg]] = val
+    dargs.extend(kwargs)
+    ARGS = types.SimpleNamespace(**dargs)
 
     # Make sure all required arguments got set to something
     for arg in cppArgs:
-        if eval("arg") is None:
+        if dargs[args] is None:
             raise ValueError(("ANEOS: did not set required argument %s\n" % arg) + expectedUsageString)
 
     # Did we use default values for rho min/max?  If so, need to check units
-    lconv = 0.01  / constants.unitLengthMeters
-    mconv = 0.001 / constants.unitMassKg
+    lconv = 0.01  / ARGS.constants.unitLengthMeters
+    mconv = 0.001 / ARGS.constants.unitMassKg
     rhoConv = mconv/(lconv**3)
     if len(args) < list(cppArgs.keys()).index("rhoMin") + 1 and not "rhoMin" in kwargs:
-        rhoMin *= rhoConv
+        ARGS.rhoMin *= rhoConv
     if len(args) < list(cppArgs.keys()).index("rhoMax") + 1 and not "rhoMax" in kwargs:
-        rhoMax *= rhoConv
+        ARGS.rhoMax *= rhoConv
 
     # The calling routine must provide the appropriate C++ constructor.
-    return RealConstructor(materialNumber,
-                           numRhoVals,
-                           numTvals,
-                           rhoMin,
-                           rhoMax,
-                           Tmin,
-                           Tmax,
-                           constants,
-                           externalPressure,
-                           minimumPressure,
-                           maximumPressure,
-                           minimumPressureDamage,
-                           minPressureType,
-                           useInterpolation)
+    return RealConstructor(ARGS.materialNumber,
+                           ARGS.numRhoVals,
+                           ARGS.numTvals,
+                           ARGS.rhoMin,
+                           ARGS.rhoMax,
+                           ARGS.Tmin,
+                           ARGS.Tmax,
+                           ARGS.constants,
+                           ARGS.externalPressure,
+                           ARGS.minimumPressure,
+                           ARGS.maximumPressure,
+                           ARGS.minimumPressureDamage,
+                           ARGS.minPressureType,
+                           ARGS.useInterpolation)
 
 #-------------------------------------------------------------------------------
 # Create the dimension specific Gruneisen factories.  These are the ones

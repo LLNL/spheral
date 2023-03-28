@@ -4,6 +4,7 @@
 # Provides convenient constructors for the Tillotson using the canned values
 # in MaterialPropertiesLib.py.
 #-------------------------------------------------------------------------------
+import types
 from spheralDimensions import spheralDimensions
 from CaptureStdout import helpString
 from SpheralCompiledPackages import PhysicalConstants, PressureFloor, ZeroPressure
@@ -93,58 +94,59 @@ def _TillotsonFactory(*args,
         if (len(args) > len(expectedArgs) or 
             (len(args) + len(kwargs) < len(expectedArgs))): # insist on formal mandatory arguments 
             raise ValueError(expectedUsageString)
-        for i in range(len(args)): # deal with mandatory args
-            exec("%s = args[i]" % expectedArgs[i])
+        
+        # Check for any invalid keywords
         for arg in kwargs: # deal with optional args
             if arg not in (expectedArgs + list(optionalKwArgs.keys()) + ["TillConstructor"]):
                 raise ValueError(expectedUsageString)
-            exec("%s = kwargs['%s']" % (arg, arg))
-        for arg in optionalKwArgs: # make sure all optional args have a value
-            if arg not in kwargs:
-                exec("%s = optionalKwArgs['%s']" % (arg, arg))
 
-        import sys
+        # Set the arguments dictionary
+        dargs = {expectedArgs[i] : args[i] for i in range(len(args))}          # Mandatory args
+        dargs.update(optionalKwArgs)
+        dargs.update(kwargs)
+        print(dargs)
+        ARGS = types.SimpleNamespace(**dargs)
 
         # Check that the caller specified a valid material label.
-        mat = materialName.lower()
+        mat = ARGS.materialName.lower()
         if mat not in SpheralMaterialPropertiesLib:
             raise ValueError("You must specify one of %s" % str(list(SpheralMaterialPropertiesLib.keys())))
         if "Tillotson" not in SpheralMaterialPropertiesLib[mat]:
             raise ValueError("The material %s does not provide Tillotson paramters." % materialName)
 
         # Extract the parameters for this material.
-        params = dict(SpheralMaterialPropertiesLib[mat]["Tillotson"])
+        params = types.SimpleNamespace(**dict(SpheralMaterialPropertiesLib[mat]["Tillotson"]))
     
         # Figure out the conversions to the requested units.
-        lconv = CGS.unitLengthMeters / units.unitLengthMeters
-        mconv = CGS.unitMassKg / units.unitMassKg
-        tconv = CGS.unitTimeSec / units.unitTimeSec
+        lconv = CGS.unitLengthMeters / ARGS.units.unitLengthMeters
+        mconv = CGS.unitMassKg / ARGS.units.unitMassKg
+        tconv = CGS.unitTimeSec / ARGS.units.unitTimeSec
         rhoConv = mconv/(lconv*lconv*lconv)
         Pconv = mconv/(lconv*tconv*tconv)
         specificEconv = (lconv/tconv)**2
 
         # Build the arguments for constructing the Tillotson.
         passargs = [SpheralMaterialPropertiesLib[mat]["rho0"] * rhoConv,
-                    etamin,
-                    etamax,
-                    etamin_solid,
-                    etamax_solid,
-                    params["a"],
-                    params["b"],
-                    params["A"] * Pconv,
-                    params["B"] * Pconv,
-                    params["alpha"],
-                    params["beta"],
-                    params["eps0"] * specificEconv,
-                    params["epsLiquid"] * specificEconv,
-                    params["epsVapor"] * specificEconv,
+                    ARGS.etamin,
+                    ARGS.etamax,
+                    ARGS.etamin_solid,
+                    ARGS.etamax_solid,
+                    params.a,
+                    params.b,
+                    params.A * Pconv,
+                    params.B * Pconv,
+                    params.alpha,
+                    params.beta,
+                    params.eps0 * specificEconv,
+                    params.epsLiquid * specificEconv,
+                    params.epsVapor * specificEconv,
                     SpheralMaterialPropertiesLib[mat]["atomicWeight"] * mconv,
-                    units]
-        passargs.extend([externalPressure,
-                         minimumPressure,
-                         maximumPressure,
-                         minimumPressureDamage,
-                         minPressureType])
+                    ARGS.units]
+        passargs.extend([ARGS.externalPressure,
+                         ARGS.minimumPressure,
+                         ARGS.maximumPressure,
+                         ARGS.minimumPressureDamage,
+                         ARGS.minPressureType])
         passkwargs = {}
 
     else:

@@ -86,30 +86,33 @@ def _GruneisenFactory(*args,
         if (len(args) > len(expectedArgs) or 
             (len(args) + len(kwargs) < len(expectedArgs))): # insist on formal mandatory arguments 
             raise ValueError(expectedUsageString)
-        for i in range(len(args)): # deal with mandatory args
-            exec("%s = args[i]" % expectedArgs[i])
+        
+        # Check for any invalid keywords
         for arg in kwargs: # deal with optional args
-            if arg not in (expectedArgs + list(optionalKwArgs.keys()) + ["GrunConstructor"]):
+            if arg not in (expectedArgs + list(optionalKwArgs.keys()) + ["TillConstructor"]):
                 raise ValueError(expectedUsageString)
-            exec("%s = kwargs['%s']" % (arg, arg))
-        for arg in optionalKwArgs: # make sure all optional args have a value
-            if arg not in kwargs:
-                exec("%s = optionalKwArgs['%s']" % (arg, arg))
+
+        # Set the arguments dictionary
+        dargs = {expectedArgs[i] : args[i] for i in range(len(args))}          # Mandatory args
+        dargs.update(optionalKwArgs)
+        dargs.update(kwargs)
+        print(dargs)
+        ARGS = types.SimpleNamespace(**dargs)
 
         # Check that the caller specified a valid material label.
-        mat = materialName.lower()
+        mat = ARGS.materialName.lower()
         if mat not in SpheralMaterialPropertiesLib:
             raise ValueError("You must specify one of %s" % str(list(SpheralMaterialPropertiesLib.keys())))
         if "Gruneisen" not in SpheralMaterialPropertiesLib[mat]:
             raise ValueError("The material %s does not provide Gruneisen paramters." % materialName)
 
         # Extract the parameters for this material.
-        params = dict(SpheralMaterialPropertiesLib[mat]["Gruneisen"])
+        params = types.SimpleNamespace(**dict(SpheralMaterialPropertiesLib[mat]["Gruneisen"]))
     
         # Figure out the conversions to the requested units.
-        lconv = CGS.unitLengthMeters / units.unitLengthMeters
-        mconv = CGS.unitMassKg / units.unitMassKg
-        tconv = CGS.unitTimeSec / units.unitTimeSec
+        lconv = CGS.unitLengthMeters / ARGS.units.unitLengthMeters
+        mconv = CGS.unitMassKg / ARGS.units.unitMassKg
+        tconv = CGS.unitTimeSec / ARGS.units.unitTimeSec
         vconv = lconv/tconv
         rhoConv = mconv/(lconv*lconv*lconv)
         Pconv = mconv/(lconv*tconv*tconv)
@@ -117,21 +120,21 @@ def _GruneisenFactory(*args,
 
         # Build the arguments for constructing the Gruneisen.
         passargs = [SpheralMaterialPropertiesLib[mat]["rho0"] * rhoConv,
-                    etamin,
-                    etamax,
-                    params["C0"] * vconv,
-                    params["S1"],
-                    params["S2"],
-                    params["S3"],
-                    params["gamma0"],
-                    params["b"],
+                    ARGS.etamin,
+                    ARGS.etamax,
+                    params.C0 * vconv,
+                    params.S1,
+                    params.S2,
+                    params.S3,
+                    params.gamma0,
+                    params.b,
                     SpheralMaterialPropertiesLib[mat]["atomicWeight"] * mconv,
                     units]
-        passargs.extend([externalPressure,
-                         minimumPressure,
-                         maximumPressure,
-                         minimumPressureDamage,
-                         minPressureType])
+        passargs.extend([ARGS.externalPressure,
+                         ARGS.minimumPressure,
+                         ARGS.maximumPressure,
+                         ARGS.minimumPressureDamage,
+                         ARGS.minPressureType])
         passkwargs = {}
 
     else:

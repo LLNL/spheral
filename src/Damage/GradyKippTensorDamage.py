@@ -125,7 +125,7 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
             assert (x in weibull_kwargs) or (x in damage_kwargs) or (x in deprecated_kwargs)
 
         # Check the input arguments.
-        validKeys = damage_kwargs.keys() + weibull_kwargs.keys() + convenient_kwargs.keys() + deprecated_kwargs
+        validKeys = list(damage_kwargs.keys()) + list(weibull_kwargs.keys()) + list(convenient_kwargs.keys()) + deprecated_kwargs
         for argname in kwargs:
             if not argname in validKeys:
                 raise ValueError("ERROR: argument %%s not a valid option.\\n" %% argname +
@@ -157,7 +157,7 @@ class GradyKippTensorDamageBenzAsphaug%(dim)s(TensorDamageModel%(dim)s):
                 del kwargs["units"]
 
         # Process the other user arguments.
-        for iarg in xrange(len(args)):
+        for iarg in range(len(args)):
             argname = backCompatOrder[iarg]
             if argname in deprecated_kwargs:
                 sys.stdout.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
@@ -276,7 +276,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
             assert (x in weibull_kwargs) or (x in damage_kwargs) or (x in deprecated_kwargs)
 
         # Check the input arguments.
-        validKeys = damage_kwargs.keys() + weibull_kwargs.keys() + convenient_kwargs.keys() + deprecated_kwargs
+        validKeys = list(damage_kwargs.keys()) + list(weibull_kwargs.keys()) + list(convenient_kwargs.keys()) + deprecated_kwargs
         for argname in kwargs:
             if argname in deprecated_kwargs:
                 sys.stdout.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)
@@ -310,7 +310,7 @@ class GradyKippTensorDamageOwen%(dim)s(TensorDamageModel%(dim)s):
                 del kwargs["units"]
 
         # Process the other user arguments.
-        for iarg in xrange(len(args)):
+        for iarg in range(len(args)):
             argname = backCompatOrder[iarg]
             if argname in deprecated_kwargs:
                 sys.stdout.write("WARNING: constructor argument %%s is deprecated and will be ignored.\\n" %% argname)

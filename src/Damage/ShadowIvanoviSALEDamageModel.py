@@ -72,7 +72,7 @@ class IvanoviSALEDamageModel%(dim)s(CXXIvanoviSALEDamageModel%(dim)s):
                              "units"                    : None}
 
         # Check the input arguments.
-        validKeys = damage_kwargs.keys() + convenient_kwargs.keys()
+        validKeys = list(damage_kwargs.keys()) + list(convenient_kwargs.keys())
         for argname in kwargs:
             if not argname in validKeys:
                 raise ValueError("ERROR: argument %%s not a valid option.\\n" %% argname +
