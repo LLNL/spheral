@@ -25,8 +25,6 @@
 #include "Damage/ThreePointDamagedNodeCoupling.hh"
 #include "Utilities/Timer.hh"
 
-#include "boost/shared_ptr.hpp"
-
 #include <string>
 #include <vector>
 using std::vector;
