@@ -40,18 +40,18 @@ class NeighborTestBase:
     #---------------------------------------------------------------------------
     def randomDistribute(self,
                          n,                  # global number of nodes
-                         range,              # total simulation volume
+                         volrange,              # total simulation volume
                          Vector,             # the vector type
                          SymTensor,          # tensor type
                          nNodesPerh = 2.01): # duh!
         assert Vector.nDimensions == SymTensor.nDimensions
-        assert len(range) == Vector.nDimensions
-        assert min([len(range[i]) == 2 for i in range(Vector.nDimensions)])
+        assert len(volrange) == Vector.nDimensions
+        assert min([len(volrange[i]) == 2 for i in range(Vector.nDimensions)])
 
         adim = 1.0/SymTensor.nDimensions
         vol = 1.0
         for i in range(SymTensor.nDimensions):
-            vol *= range[i][1] - range[i][0]
+            vol *= volrange[i][1] - volrange[i][0]
         assert vol > 0.0
         dx0 = (vol/n)**adim
 
@@ -60,7 +60,7 @@ class NeighborTestBase:
         H = []
         for i in range(n):
             globalNodeIDs.append(i)
-            args = (random.uniform(range[j][0], range[j][1])
+            args = (random.uniform(volrange[j][0], volrange[j][1])
                     for j in range(Vector.nDimensions))
             nodePositions.append(Vector(*args))
 
@@ -84,7 +84,7 @@ class NeighborTestBase:
     # setUp routine common to all instances.
     #---------------------------------------------------------------------------
     def genericSetUp(self, n1, n2, n3,
-                     range1, range2, range3,
+                     volrange1, volrange2, volrange3,
                      EOS,
                      makeFluidNodeList,
                      TableKernel,
@@ -101,11 +101,11 @@ class NeighborTestBase:
         self.nodes1 = makeFluidNodeList("nodes 1", self.eos, NeighborType=NeighborType)
         self.nodes2 = makeFluidNodeList("nodes 2", self.eos, NeighborType=NeighborType)
         self.nodes3 = makeFluidNodeList("nodes 3", self.eos, NeighborType=NeighborType)
-        for nodes, nGlobal, range in ((self.nodes1, n1, range1),
-                                      (self.nodes2, n2, range2),
-                                      (self.nodes3, n3, range3)):
+        for nodes, nGlobal, volrange in ((self.nodes1, n1, volrange1),
+                                      (self.nodes2, n2, volrange2),
+                                      (self.nodes3, n3, volrange3)):
             globalIDs, xyNodes, H = Seeder(nGlobal,
-                                           range,
+                                           volrange,
                                            Vector,
                                            SymTensor)
             n = len(globalIDs)
@@ -405,9 +405,9 @@ class NeighborRandom1d(unittest.TestCase, NeighborTestBase):
         n2 = 2500
         n3 = 500
 
-        range1 = ((-2.0, -1.0),)
-        range2 = ((-1.0, 0.5),)
-        range3 = ((0.5, 2.0),)
+        volrange1 = ((-2.0, -1.0),)
+        volrange2 = ((-1.0, 0.5),)
+        volrange3 = ((0.5, 2.0),)
 
         searchType = GatherScatter
         numGridLevels = 20
@@ -415,7 +415,7 @@ class NeighborRandom1d(unittest.TestCase, NeighborTestBase):
         self.kernelExtent = 2.0
 
         self.genericSetUp(n1, n2, n3,
-                          range1, range2, range3,
+                          volrange1, volrange2, volrange3,
                           GammaLawGasMKS1d,
                           makeFluidNodeList1d,
                           TableKernel1d,
@@ -457,14 +457,14 @@ class NeighborRandom2d(unittest.TestCase, NeighborTestBase):
         n2 = 25000
         n3 = 5000
 
-        range1 = ((-2.0, -1.0), (0.0, 1.0))
-        range2 = ((-1.0, -0.5), (0.0, 1.0))
-        range3 = ((-0.5, 0.0), (0.0, 1.0))
+        volrange1 = ((-2.0, -1.0), (0.0, 1.0))
+        volrange2 = ((-1.0, -0.5), (0.0, 1.0))
+        volrange3 = ((-0.5, 0.0), (0.0, 1.0))
 
         self.kernelExtent = 2.0
 
         self.genericSetUp(n1, n2, n3,
-                          range1, range2, range3,
+                          volrange1, volrange2, volrange3,
                           GammaLawGasMKS2d,
                           makeFluidNodeList2d,
                           TableKernel2d,
@@ -506,9 +506,9 @@ class NeighborRandom3d(unittest.TestCase, NeighborTestBase):
         n2 = 2500
         n3 = 1500
 
-        range1 = ((0.0, 1.0), (0.0, 1.0), (0.0, 1.0))
-        range2 = ((1.0, 1.5), (0.0, 1.0), (0.0, 1.0))
-        range3 = ((1.5, 2.0), (0.0, 1.0), (0.0, 1.0))
+        volrange1 = ((0.0, 1.0), (0.0, 1.0), (0.0, 1.0))
+        volrange2 = ((1.0, 1.5), (0.0, 1.0), (0.0, 1.0))
+        volrange3 = ((1.5, 2.0), (0.0, 1.0), (0.0, 1.0))
 
         searchType = GatherScatter
         numGridLevels = 20
@@ -517,7 +517,7 @@ class NeighborRandom3d(unittest.TestCase, NeighborTestBase):
         self.kernelExtent = 2.0
 
         self.genericSetUp(n1, n2, n3,
-                          range1, range2, range3,
+                          volrange1, volrange2, volrange3,
                           GammaLawGasMKS3d,
                           makeFluidNodeList3d,
                           TableKernel3d,

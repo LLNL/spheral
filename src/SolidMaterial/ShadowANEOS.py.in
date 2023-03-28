@@ -6,6 +6,7 @@
 #-------------------------------------------------------------------------------
 from spheralDimensions import spheralDimensions
 import os, os.path
+import types
 from buildOrderedDict import buildOrderedDict
 from CaptureStdout import helpString
 from SpheralCompiledPackages import PhysicalConstants, PressureFloor, ZeroPressure, vector_of_int, initializeANEOS
@@ -123,12 +124,12 @@ def _ANEOSFactory(RealConstructor,
     dargs = dict(cppArgs)
     for iarg, val in enumerate(args):
         dargs[cppArgs.keys()[iarg]] = val
-    dargs.extend(kwargs)
+    dargs.update(kwargs)
     ARGS = types.SimpleNamespace(**dargs)
 
     # Make sure all required arguments got set to something
     for arg in cppArgs:
-        if dargs[args] is None:
+        if dargs[arg] is None:
             raise ValueError(("ANEOS: did not set required argument %s\n" % arg) + expectedUsageString)
 
     # Did we use default values for rho min/max?  If so, need to check units
