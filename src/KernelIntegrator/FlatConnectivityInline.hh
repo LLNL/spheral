@@ -253,7 +253,7 @@ totalNumNonConstNeighbors() const {
   auto total = 0;
   for (auto locali = 0; locali < mNumInternalLocalNodes; ++locali)
   {
-    total += mNumNeigbors[locali] - mNumConstantBoundaryNeighbors[locali];
+    total += mNumNeighbors[locali] - mNumConstantBoundaryNeighbors[locali];
   }
   return total;
 }
