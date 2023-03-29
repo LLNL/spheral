@@ -9,9 +9,13 @@ from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
 #-------------------------------------------------------------------------------
-# Define help strings for our constructors.
+# ProbabilisticDamageModel factory function
 #-------------------------------------------------------------------------------
-expectedUsageString = """
+def ProbabilisticDamageModelFactory(ndim):
+    IntField = eval("IntField{}d".format(ndim))
+    CXXProbabilisticDamageModel = eval("ProbabilisticDamageModel{}d".format(ndim))
+    def ProbabilsiticDamageModelFactory(*args, **kwargs):
+        """
 ProbabilisticDamageModel is constructed with the following arguments (any 
 default values listed in parens):
 
@@ -41,18 +45,7 @@ default values listed in parens):
         mask                    : (1 on all points) a field of flags: a node with 
                                   zero implies no flaws (and therefore no damage) 
                                   on that point
-"""
-
-#-------------------------------------------------------------------------------
-# ProbabilisticDamageModel
-#-------------------------------------------------------------------------------
-ProbabilisticDamageModelGenString = """
-class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
-    '''%(help)s'''
-
-    def __init__(self, *args_in, **kwargs):
-
-        args = list(args_in)
+    """
 
         # The material library values are in CGS, so build a units object for 
         # conversions.
@@ -83,8 +76,7 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
         validKeys = list(damage_kwargs.keys()) + list(convenient_kwargs.keys())
         for argname in kwargs:
             if not argname in validKeys:
-                raise ValueError("ERROR: argument %%s not a valid option.\\n" %% argname +
-                                 expectedUsageString)
+                raise ValueError("ERROR: argument {} not a valid option.\n".format(argname))
 
         # Did the user try any convenient constructor operations?
         if ((len(args) > 0 and type(args[0]) == str) or
@@ -96,12 +88,10 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
                 materialName = kwargs["materialName"]
                 del kwargs["materialName"]
             if not materialName in SpheralMaterialPropertiesLib:
-                raise ValueError(("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
-                                 expectedUsageString)
+                raise ValueError("ERROR: material {} is not in the library of material values.\n".format(materialName))
             matprops = SpheralMaterialPropertiesLib[materialName]
             if not ("kWeibull" in matprops and "mWeibull" in matprops):
-                raise ValueError(("ERROR : material %%s does not provide the required values for kWeibull and mWeibull.\\n" %% materialName) + 
-                                  expectedUsageString)
+                raise ValueError("ERROR : material {} does not provide the required values for kWeibull and mWeibull.\n".format(materialName))
             damage_kwargs["kWeibull"] = matprops["kWeibull"]
             damage_kwargs["mWeibull"] = matprops["mWeibull"]
 
@@ -127,32 +117,23 @@ class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
             if argname in damage_kwargs:
                 damage_kwargs[argname] = kwargs[argname]
             else:
-                raise ValueError(("ERROR : unknown kwarg %%s.\\n" %% argname) + expectedUsageString)
+                raise ValueError("ERROR : unknown kwarg {}.\n".format(argname))
 
         # If no mask was provided, deafult to all points active
         if damage_kwargs["mask"] is None:
-            damage_kwargs["mask"] = IntField%(dim)s("damage mask", damage_kwargs["nodeList"], 1)
+            damage_kwargs["mask"] = IntField("damage mask", damage_kwargs["nodeList"], 1)
 
         # # If no minFlawsPerNode was specified, set it to a fraction of log(N_points)
         # if damage_kwargs["minFlawsPerNode"] is None:
         #     damage_kwargs["minFlawsPerNode"] = max(1, int(log(mpi.allreduce(damage_kwargs["nodeList"].numInternalNodes, mpi.SUM))))
 
         # Build the damage model.
-        CXXProbabilisticDamageModel%(dim)s.__init__(self, **damage_kwargs)
-        return
+        return CXXProbabilisticDamageModel(**damage_kwargs)
 
-"""
+    return ProbabilisticDamageModelFactory
 
 #-------------------------------------------------------------------------------
-# Make 'em
+# Create the different dimension implementations.
 #-------------------------------------------------------------------------------
-for dim in dims:
-    exec("from SpheralCompiledPackages import ProbabilisticDamageModel%id as CXXProbabilisticDamageModel%id" % (dim, dim))
-
-    # Capture the full class help string
-    with contextlib.redirect_stdout(io.StringIO()) as ss:
-        exec("help(CXXProbabilisticDamageModel%id)" % dim)
-    class_help = ss.getvalue()
-
-    exec(ProbabilisticDamageModelGenString % {"dim": "%id" % dim,
-                                              "help": (expectedUsageString + "\n\n Class help:\n\n" + class_help)})
+for ndim in dims:
+    exec("ProbabilisticDamageModel{ndim}d = ProbabilisticDamageModelFactory({ndim})".format(ndim=ndim))
