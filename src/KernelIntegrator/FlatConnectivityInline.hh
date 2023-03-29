@@ -243,6 +243,21 @@ numNonConstOverlapNeighbors(const int locali) const {
   return mNumOverlapNeighbors[locali] - mNumConstantBoundaryOverlapNeighbors[locali];
 }
 
+template<typename Dimension>
+inline
+int
+FlatConnectivity<Dimension>::
+totalNumNonConstNeighbors() const {
+  CHECK(mIndexingInitialized);
+  CHECK(mBoundaryInformationInitialized);
+  auto total = 0;
+  for (auto locali = 0; locali < mNumInternalLocalNodes; ++locali)
+  {
+    total += mNumNeigbors[locali] - mNumConstantBoundaryNeighbors[locali];
+  }
+  return total;
+}
+
 //------------------------------------------------------------------------------
 // For the point i, for its neighbor j, get the flattened index for point j
 //------------------------------------------------------------------------------
