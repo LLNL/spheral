@@ -14,8 +14,10 @@ dims = spheralDimensions()
 def PDMFactory(ndim):
     IntField = eval("IntField{}d".format(ndim))
     CXXProbabilisticDamageModel = eval("ProbabilisticDamageModel{}d".format(ndim))
-    def ProbabilisticDamageModelFactory(*args, **kwargs):
-        """
+    class ProbabilisticDamageModel(CXXProbabilisticDamageModel):
+
+        def __init__(self, *args, **kwargs):
+            """
 ProbabilisticDamageModel is constructed with the following arguments (any 
 default values listed in parens):
 
@@ -45,104 +47,95 @@ default values listed in parens):
         mask                    : (1 on all points) a field of flags: a node with 
                                   zero implies no flaws (and therefore no damage) 
                                   on that point
-
-C++ class documentation:
 """
 
-        # The material library values are in CGS, so build a units object for 
-        # conversions.
-        cgs = PhysicalConstants(0.01,   # unit length in m
-                                0.001,  # unit mass in kg
-                                1.0)    # unit time in sec
+            # The material library values are in CGS, so build a units object for 
+            # conversions.
+            cgs = PhysicalConstants(0.01,   # unit length in m
+                                    0.001,  # unit mass in kg
+                                    1.0)    # unit time in sec
 
-        # Arguments needed to build the damage model.
-        damage_kwargs = {"nodeList"                 : None,
-                         "kernel"                   : None,
-                         "kWeibull"                 : None,
-                         "mWeibull"                 : None,
-                         "seed"                     : 48927592,
-                         "minFlawsPerNode"          : 1,
-                         "crackGrowthMultiplier"    : 0.4,
-                         "volumeMultiplier"         : 1.0,
-                         "damageCouplingAlgorithm"  : PairMaxDamage,
-                         "strainAlgorithm"          : PseudoPlasticStrain,
-                         "damageInCompression"      : False,
-                         "criticalDamageThreshold"  : 4.0,
-                         "mask"                     : None}
+            # Arguments needed to build the damage model.
+            damage_kwargs = {"nodeList"                 : None,
+                             "kernel"                   : None,
+                             "kWeibull"                 : None,
+                             "mWeibull"                 : None,
+                             "seed"                     : 48927592,
+                             "minFlawsPerNode"          : 1,
+                             "crackGrowthMultiplier"    : 0.4,
+                             "volumeMultiplier"         : 1.0,
+                             "damageCouplingAlgorithm"  : PairMaxDamage,
+                             "strainAlgorithm"          : PseudoPlasticStrain,
+                             "damageInCompression"      : False,
+                             "criticalDamageThreshold"  : 4.0,
+                             "mask"                     : None}
 
-        # Extra arguments for our convenient constructor.
-        convenient_kwargs = {"materialName"          : None,
-                             "units"                 : None}
+            # Extra arguments for our convenient constructor.
+            convenient_kwargs = {"materialName"          : None,
+                                 "units"                 : None}
 
-        # Check the input arguments.
-        validKeys = list(damage_kwargs.keys()) + list(convenient_kwargs.keys())
-        for argname in kwargs:
-            if not argname in validKeys:
-                raise ValueError("ERROR: argument {} not a valid option.\n".format(argname))
+            # Check the input arguments.
+            validKeys = list(damage_kwargs.keys()) + list(convenient_kwargs.keys())
+            for argname in kwargs:
+                if not argname in validKeys:
+                    raise ValueError("ERROR: argument {} not a valid option.\n".format(argname))
 
-        # Did the user try any convenient constructor operations?
-        if ((len(args) > 0 and type(args[0]) == str) or
-            "materialName" in kwargs):
-            if len(args) > 0 and type(args[0]) == str:
-                materialName = args[0]
-                del args[0]
-            else:
-                materialName = kwargs["materialName"]
-                del kwargs["materialName"]
-            if not materialName in SpheralMaterialPropertiesLib:
-                raise ValueError("ERROR: material {} is not in the library of material values.\n".format(materialName))
-            matprops = SpheralMaterialPropertiesLib[materialName]
-            if not ("kWeibull" in matprops and "mWeibull" in matprops):
-                raise ValueError("ERROR : material {} does not provide the required values for kWeibull and mWeibull.\n".format(materialName))
-            damage_kwargs["kWeibull"] = matprops["kWeibull"]
-            damage_kwargs["mWeibull"] = matprops["mWeibull"]
+            # Did the user try any convenient constructor operations?
+            if ((len(args) > 0 and type(args[0]) == str) or
+                "materialName" in kwargs):
+                if len(args) > 0 and type(args[0]) == str:
+                    materialName = args[0]
+                    del args[0]
+                else:
+                    materialName = kwargs["materialName"]
+                    del kwargs["materialName"]
+                if not materialName in SpheralMaterialPropertiesLib:
+                    raise ValueError("ERROR: material {} is not in the library of material values.\n".format(materialName))
+                matprops = SpheralMaterialPropertiesLib[materialName]
+                if not ("kWeibull" in matprops and "mWeibull" in matprops):
+                    raise ValueError("ERROR : material {} does not provide the required values for kWeibull and mWeibull.\n".format(materialName))
+                damage_kwargs["kWeibull"] = matprops["kWeibull"]
+                damage_kwargs["mWeibull"] = matprops["mWeibull"]
 
-            # Any attempt to specify units?
-            if "units" in kwargs:
-                units = kwargs["units"]
-                damage_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
-                del kwargs["units"]
-            elif len(args) > 1 and isinstance(args[1], PhysicalConstants):
-                units = args[1]
-                damage_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
-                del args[1]
+                # Any attempt to specify units?
+                if "units" in kwargs:
+                    units = kwargs["units"]
+                    damage_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
+                    del kwargs["units"]
+                elif len(args) > 1 and isinstance(args[1], PhysicalConstants):
+                    units = args[1]
+                    damage_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
+                    del args[1]
 
-        # Process remaining user arguments.
-        kwarg_order = ["nodeList", "kernel", "kWeibull", "mWeibull", "seed", "minFlawsPerNode", "crackGrowthMultiplier",
-                       "volumeMultiplier", "damageCouplingAlgorithm", "strainAlgorithm", "damageInCompression",
-                       "criticalDamageThreshold", "mask"]
-        for iarg, argval in enumerate(args):
-            damage_kwargs[kward_order[iarg]] = argval
+            # Process remaining user arguments.
+            kwarg_order = ["nodeList", "kernel", "kWeibull", "mWeibull", "seed", "minFlawsPerNode", "crackGrowthMultiplier",
+                           "volumeMultiplier", "damageCouplingAlgorithm", "strainAlgorithm", "damageInCompression",
+                           "criticalDamageThreshold", "mask"]
+            for iarg, argval in enumerate(args):
+                damage_kwargs[kward_order[iarg]] = argval
 
-        # Process any keyword arguments.  Note we already removed any deprecated keywords.
-        for argname in kwargs:
-            if argname in damage_kwargs:
-                damage_kwargs[argname] = kwargs[argname]
-            else:
-                raise ValueError("ERROR : unknown kwarg {}.\n".format(argname))
+            # Process any keyword arguments.  Note we already removed any deprecated keywords.
+            for argname in kwargs:
+                if argname in damage_kwargs:
+                    damage_kwargs[argname] = kwargs[argname]
+                else:
+                    raise ValueError("ERROR : unknown kwarg {}.\n".format(argname))
 
-        # If no mask was provided, deafult to all points active
-        if damage_kwargs["mask"] is None:
-            damage_kwargs["mask"] = IntField("damage mask", damage_kwargs["nodeList"], 1)
+            # If no mask was provided, deafult to all points active
+            if damage_kwargs["mask"] is None:
+                damage_kwargs["mask"] = IntField("damage mask", damage_kwargs["nodeList"], 1)
 
-        # # If no minFlawsPerNode was specified, set it to a fraction of log(N_points)
-        # if damage_kwargs["minFlawsPerNode"] is None:
-        #     damage_kwargs["minFlawsPerNode"] = max(1, int(log(mpi.allreduce(damage_kwargs["nodeList"].numInternalNodes, mpi.SUM))))
+            # # If no minFlawsPerNode was specified, set it to a fraction of log(N_points)
+            # if damage_kwargs["minFlawsPerNode"] is None:
+            #     damage_kwargs["minFlawsPerNode"] = max(1, int(log(mpi.allreduce(damage_kwargs["nodeList"].numInternalNodes, mpi.SUM))))
 
-        # Build the damage model.
-        return CXXProbabilisticDamageModel(**damage_kwargs)
+            # Invoke the parent constructor
+            CXXProbabilisticDamageModel.__init__(self, **damage_kwargs)
 
-    return ProbabilisticDamageModelFactory
+    return ProbabilisticDamageModel
 
 #-------------------------------------------------------------------------------
 # Create the different dimension implementations.
 #-------------------------------------------------------------------------------
 for ndim in dims:
-    # Capture the full class help string
-    exec("from SpheralCompiledPackages import ProbabilisticDamageModel{ndim}d as CXXProbabilisticDamageModel{ndim}d".format(ndim=ndim))
-    with contextlib.redirect_stdout(io.StringIO()) as ss:
-        exec("help(CXXProbabilisticDamageModel{ndim}d)".format(ndim=ndim))
-    class_help = ss.getvalue()
-
-    # Now generate the shadow class
-    exec("ProbabilisticDamageModel{ndim}d = PDMFactory({ndim}); ProbabilisticDamageModel{ndim}d.__doc__ += class_help".format(ndim=ndim))
+    exec("ProbabilisticDamageModel{ndim}d = PDMFactory({ndim})".format(ndim=ndim))
