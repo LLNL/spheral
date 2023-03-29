@@ -45,7 +45,9 @@ default values listed in parens):
         mask                    : (1 on all points) a field of flags: a node with 
                                   zero implies no flaws (and therefore no damage) 
                                   on that point
-        """
+
+C++ class documentation:
+"""
 
         # The material library values are in CGS, so build a units object for 
         # conversions.
@@ -136,4 +138,11 @@ default values listed in parens):
 # Create the different dimension implementations.
 #-------------------------------------------------------------------------------
 for ndim in dims:
-    exec("ProbabilisticDamageModel{ndim}d = PDMFactory({ndim})".format(ndim=ndim))
+    # Capture the full class help string
+    exec("from SpheralCompiledPackages import ProbabilisticDamageModel{ndim}d as CXXProbabilisticDamageModel{ndim}d".format(ndim=ndim))
+    with contextlib.redirect_stdout(io.StringIO()) as ss:
+        exec("help(CXXProbabilisticDamageModel{ndim}d)".format(ndim=ndim))
+    class_help = ss.getvalue()
+
+    # Now generate the shadow class
+    exec("ProbabilisticDamageModel{ndim}d = PDMFactory({ndim}); ProbabilisticDamageModel{ndim}d.__doc__ += class_help".format(ndim=ndim))
