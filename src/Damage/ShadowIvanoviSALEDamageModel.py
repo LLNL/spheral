@@ -41,13 +41,38 @@ default values listed in parens):
 #-------------------------------------------------------------------------------
 # IvanoviSALEDamageModel
 #-------------------------------------------------------------------------------
-IvanoviSALEDamageModelGenString = """
-class IvanoviSALEDamageModel%(dim)s(CXXIvanoviSALEDamageModel%(dim)s):
-    '''%(help)s'''
+def IIDMFactory(ndim):
+    IntField = eval("IntField{}d".format(ndim))
+    CXXIvanoviSALEDamageModel = eval("IvanoviSALEDamageModel{}d".format(ndim))
+    def IvanoviSALEDamageModelFactory(*args, **kwargs):
+        """
+IvanoviSALEDamageModel is constructed with the following arguments (any 
+default values listed in parens):
 
-    def __init__(self, *args_in, **kwargs):
+        materialName            : (optional) label for the material in data base to
+                                  lookup the Weibull parameters
+        units                   : (optional) scale kWeibull/mWeibull lookup from
+                                  material name to given units
+        nodeList                : (required) the FluidNodeList this model should be 
+                                  applied to
+        kernel                  : (required) the interpolation kernel to use
+        minPlasticFailure       : min plastic strain for shearing plastic failure to 
+                                  start
+        plasticFailurePressureSlope  : slope for plastic strain shearing failure law
+        plasticFailurePressureOffset : intercept for plastic strain shearing failure 
+                                       law
+        tensileFailureStress    : threshold stress for tensile failure to start
+        crackGrowthMultiplier   : (0.4) crack growth rate in units of longitudinal
+                                  sound speed
+        damageCouplingAlgorithm : (DirectDamage) how should damaged points couple
+        criticalDamageThreshold : (4.0) prevent any nodes where Trace(D_i) exceeds 
+                                  criticalDamageThreshold from setting timestep
+        mask                    : (1 on all points) a field of flags: a node with 
+                                  zero implies no flaws (and therefore no damage) 
+                                  on that point
 
-        args = list(args_in)
+C++ class documentation:
+"""
 
         # The material library values are in CGS, so build a units object for 
         # conversions.
@@ -75,8 +100,7 @@ class IvanoviSALEDamageModel%(dim)s(CXXIvanoviSALEDamageModel%(dim)s):
         validKeys = list(damage_kwargs.keys()) + list(convenient_kwargs.keys())
         for argname in kwargs:
             if not argname in validKeys:
-                raise ValueError("ERROR: argument %%s not a valid option.\\n" %% argname +
-                                 expectedUsageString)
+                raise ValueError("ERROR: argument {} not a valid option.\n".format(argname)) +
 
         # Did the user try any convenient constructor operations?
         if ((len(args) > 0 and type(args[0]) == str) or
@@ -88,12 +112,11 @@ class IvanoviSALEDamageModel%(dim)s(CXXIvanoviSALEDamageModel%(dim)s):
                 materialName = kwargs["materialName"]
                 del kwargs["materialName"]
             if not materialName in SpheralMaterialPropertiesLib:
-                raise ValueError(("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
-                                 expectedUsageString)
+                raise ValueError("ERROR: material {} is not in the library of material values.\n".format(materialName))
             matprops = SpheralMaterialPropertiesLib[materialName]
             if not ("IvanovDamageModel" in matprops):
-                raise ValueError(("ERROR : material %%s does not provide the required values for the Ivanov damage model.\\n" %% materialName) + 
-                                 expectedUsageString)
+                raise ValueError("ERROR : material {} does not provide the required values for the Ivanov damage model.\n".format(materialName))
+
             damage_kwargs["minPlasticFailure"] = matprops["IvanovDamageModel"]["epsfb"]
             damage_kwargs["plasticFailurePressureSlope"] = matprops["IvanovDamageModel"]["B"]
             damage_kwargs["plasticFailurePressureOffset"] = matprops["IvanovDamageModel"]["Pc"]
@@ -136,28 +159,26 @@ class IvanoviSALEDamageModel%(dim)s(CXXIvanoviSALEDamageModel%(dim)s):
             if argname in damage_kwargs:
                 damage_kwargs[argname] = kwargs[argname]
             else:
-                raise ValueError(("ERROR : unknown kwarg %%s.\\n" %% argname) + expectedUsageString)
+                raise ValueError("ERROR : unknown kwarg {}.\n".format(argname))
 
         # If no mask was provided, deafult to all points active
         if damage_kwargs["mask"] is None:
-            damage_kwargs["mask"] = IntField%(dim)s("damage mask", damage_kwargs["nodeList"], 1)
+            damage_kwargs["mask"] = IntField("damage mask", damage_kwargs["nodeList"], 1)
 
         # Build the damage model.
-        CXXIvanoviSALEDamageModel%(dim)s.__init__(self, **damage_kwargs)
-        return
+        return CXXIvanoviSALEDamageModel(**damage_kwargs)
 
-"""
+    return IvanoviSALEDamageModelFactory
 
 #-------------------------------------------------------------------------------
-# Make 'em
+# Create the different dimension implementations.
 #-------------------------------------------------------------------------------
-for dim in dims:
-    exec("from SpheralCompiledPackages import IvanoviSALEDamageModel%id as CXXIvanoviSALEDamageModel%id" % (dim, dim))
-
+for ndim in dims:
     # Capture the full class help string
+    exec("from SpheralCompiledPackages import IvanoviSALEDamageModel{ndim}d as CXXIvanoviSALEDamageModel{ndim}d".format(ndim=ndim))
     with contextlib.redirect_stdout(io.StringIO()) as ss:
-        exec("help(CXXIvanoviSALEDamageModel%id)" % dim)
+        exec("help(CXXIvanoviSALEDamageModel{ndim}d)".format(ndim=ndim))
     class_help = ss.getvalue()
 
-    exec(IvanoviSALEDamageModelGenString % {"dim": "%id" % dim,
-                                            "help": (expectedUsageString + "\n\n Class help:\n\n" + class_help)})
+    # Now generate the shadow class
+    exec("IvanoviSALEDamageModel{ndim}d = PDMFactory({ndim}); IvanoviSALEDamageModel{ndim}d.__doc__ += class_help".format(ndim=ndim))
