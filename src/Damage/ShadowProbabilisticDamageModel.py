@@ -11,10 +11,10 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # ProbabilisticDamageModel factory function
 #-------------------------------------------------------------------------------
-def ProbabilisticDamageModelFactory(ndim):
+def PDMFactory(ndim):
     IntField = eval("IntField{}d".format(ndim))
     CXXProbabilisticDamageModel = eval("ProbabilisticDamageModel{}d".format(ndim))
-    def ProbabilsiticDamageModelFactory(*args, **kwargs):
+    def ProbabilisticDamageModelFactory(*args, **kwargs):
         """
 ProbabilisticDamageModel is constructed with the following arguments (any 
 default values listed in parens):
@@ -45,7 +45,7 @@ default values listed in parens):
         mask                    : (1 on all points) a field of flags: a node with 
                                   zero implies no flaws (and therefore no damage) 
                                   on that point
-    """
+        """
 
         # The material library values are in CGS, so build a units object for 
         # conversions.
@@ -136,4 +136,4 @@ default values listed in parens):
 # Create the different dimension implementations.
 #-------------------------------------------------------------------------------
 for ndim in dims:
-    exec("ProbabilisticDamageModel{ndim}d = ProbabilisticDamageModelFactory({ndim})".format(ndim=ndim))
+    exec("ProbabilisticDamageModel{ndim}d = PDMFactory({ndim})".format(ndim=ndim))
