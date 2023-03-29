@@ -650,7 +650,7 @@ if graphics:
              (hPlot, "h.png"),
              (dPlot, "damage.png")]
 
-    if isinstance(damageModel, GradyKippTensorDamageBenzAsphaug) or isinstance(damageModel, GradyKippTensorDamageOwen):
+    if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
         ts = damageModel.strain
         s = ScalarField("strain", nodes)
         for i in range(nodes.numInternalNodes):
@@ -672,7 +672,7 @@ if graphics:
         plots += [(sPlot, "strain.png"),
                   (epsPlot, "flaws.png")]
 
-    elif isinstance(damageModel, JohnsonCookDamage):
+    elif DamageModelConstructor in (JohnsonCookDamageWeibull, JohnsonCookDamageGaussian):
         eps = damageModel.failureStrain
         epsl = ScalarFieldList()
         epsl.appendField(eps)
@@ -692,7 +692,7 @@ if graphics:
                   (D1Plot, "D1.png"),
                   (D2Plot, "D2.png")]
 
-    elif isinstance(damageModel, ProbabilisticDamageModel):
+    elif DamageModelConstructor is ProbabilisticDamageModel:
         ts = damageModel.strain
         s = ScalarField("strain", nodes)
         for i in range(nodes.numInternalNodes):
