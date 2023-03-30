@@ -83,6 +83,9 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 ``<TPL-Name-Here>_DIR``
   Directory of previously built TPL.
 
+``ENABLE_STATIC_TPL`` (On, *Off*)
+  Link static libraries instead of shared for HDF5 and Conduit.
+
 ``ENABLE_OPENMP`` (*On*, Off)
   Support for OpenMP.
 

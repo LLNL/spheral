@@ -161,11 +161,7 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
     const unsigned n = mass[nodeListi]->numElements();
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
-#ifdef WIN32
-      if (circi > 0.0) mass(nodeListi, i) /= circi;
-#else
       mass(nodeListi, i) /= circi;
-#endif
     }
   }
 
@@ -177,11 +173,7 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
     const unsigned n = mass[nodeListi]->numElements();
     for (unsigned i = 0; i != n; ++i) {
       const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
-#ifdef WIN32
-      if (circi > 0.0) mass(nodeListi, i) *= circi;
-#else
       mass(nodeListi, i) *= circi;
-#endif
     }
   }
 }

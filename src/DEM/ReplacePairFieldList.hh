@@ -30,7 +30,7 @@ public:
   
   static const std::string prefix() { return "new "; }
   
-  bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
   // Overload the methods describing how to update FieldLists.
   virtual void update(const KeyType& key,

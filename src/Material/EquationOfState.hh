@@ -80,7 +80,8 @@ public:
                                                   const Scalar epsMax,
                                                   const Scalar epsTol,
                                                   const Scalar Ptol,
-                                                  const unsigned maxIterations) const;
+                                                  const unsigned maxIterations,
+                                                  const bool verbose = false) const;
 
   // Optionally provide a molecular weight.
   virtual Scalar molecularWeight() const;
