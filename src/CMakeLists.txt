@@ -14,6 +14,7 @@ list(APPEND _packages
   ArtificialViscosity
   ArtificialConduction
   Boundary
+  CInterface
   CRKSPH
   CXXTests
   Damage
