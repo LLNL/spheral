@@ -1,7 +1,4 @@
 import sys
-import mpi
-import io, contextlib
-from math import *
 from SpheralCompiledPackages import *
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
@@ -69,7 +66,7 @@ default values listed in parens):
             validKeys = list(damage_kwargs.keys()) + list(convenient_kwargs.keys())
             for argname in kwargs:
                 if not argname in validKeys:
-                    raise ValueError("ERROR: argument {} not a valid option.\n".format(argname)) +
+                    raise ValueError("ERROR: argument {} not a valid option.\n".format(argname))
 
             # Did the user try any convenient constructor operations?
             if ((len(args) > 0 and type(args[0]) == str) or
@@ -143,4 +140,4 @@ default values listed in parens):
 # Create the different dimension implementations.
 #-------------------------------------------------------------------------------
 for ndim in dims:
-    exec("IvanoviSALEDamageModel{ndim}d = PDMFactory({ndim})".format(ndim=ndim))
+    exec("IvanoviSALEDamageModel{ndim}d = IIDMFactory({ndim})".format(ndim=ndim))

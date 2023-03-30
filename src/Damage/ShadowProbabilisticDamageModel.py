@@ -1,7 +1,4 @@
 import sys
-import mpi
-import io, contextlib
-from math import *
 from SpheralCompiledPackages import *
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 

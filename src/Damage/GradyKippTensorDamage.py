@@ -1,7 +1,4 @@
 import sys
-import mpi
-import io, contextlib
-from math import *
 from SpheralCompiledPackages import *
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
@@ -110,7 +107,7 @@ GradyKippTensorDamageBenzAsphaug is constructed with the following arguments:
                 "materialName" in kwargs):
                 if len(args) > 0 and type(args[0]) == str:
                     materialName = args[0]
-                    del args[0]
+                    args = tuple(args[1:])                    #  del args[0]
                 else:
                     materialName = kwargs["materialName"]
                     del kwargs["materialName"]
