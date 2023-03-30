@@ -85,14 +85,17 @@ position() const {
   Vector result;
   unsigned i, j;
   double circum = 0.0, dl;
+  const auto p0 = point(0);
   for (i = 0; i != n; ++i) {
     j = (i + 1) % n;
-    dl = (point(i) - point(j)).magnitude();
-    result += (point(i) + point(j)) * dl;
+    const auto p1 = point(i)-point(0);
+    const auto p2 = point(j)-point(0);
+    dl = (p1.cross(p2)).magnitude();
+    result += (p1+p2) * dl;
     circum += dl;
   }
-  result *= safeInvVar(2.0*circum);
-  return result;
+  result *= safeInvVar(3.0*circum);
+  return p0 + result;
 }
 
 //------------------------------------------------------------------------------
@@ -247,6 +250,41 @@ computeNormal() {
   }
   // CHECK2(normal.magnitude2() > 0.0, normal << " " << facetIndices.size());
   mNormal = mNormal.unitVector();
+}
+
+//------------------------------------------------------------------------------
+// ==
+//------------------------------------------------------------------------------
+bool
+GeomFacet3d::
+operator==(const GeomFacet3d& rhs) const {
+  return (*mVerticesPtr == *(rhs.mVerticesPtr) and
+          mPoints == rhs.mPoints and
+          fuzzyEqual(mNormal.dot(rhs.mNormal), 1.0));
+}
+
+//------------------------------------------------------------------------------
+// !=
+//------------------------------------------------------------------------------
+bool
+GeomFacet3d::
+operator!=(const GeomFacet3d& rhs) const {
+  return not (*this == rhs);
+}
+
+//------------------------------------------------------------------------------
+// Output (ostream) operator.
+//------------------------------------------------------------------------------
+std::ostream&
+operator<<(std::ostream& os, const GeomFacet3d& facet) {
+  os << "GeomFacet3d( ivertices : ";
+  const std::vector<unsigned>& ipoints = facet.ipoints();
+  for (unsigned i = 0; i != ipoints.size(); ++i) os << ipoints[i] << " ";
+  os << "\n              vertices : ";
+  for (unsigned i = 0; i != ipoints.size(); ++i) os << facet.point(i) << " ";
+  os << "\n                normal : " << facet.normal() 
+     << "\n)";
+  return os;
 }
 
 }

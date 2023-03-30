@@ -50,7 +50,8 @@ public:
   // Test if the given point is internal to the polyhedron.
   bool contains(const Vector& point,
                 const bool countBoundary = true,
-                const double tol = 1.0e-8) const;
+                const double tol = 1.0e-8,
+                const bool useAxom = false) const;
 
   // If we have a convex polyhedron we can do a faster containment test.
   bool convexContains(const Vector& point,
@@ -89,10 +90,13 @@ public:
   // Spit out a vector<vector<unsigned> > and vector<Vector> that encode the facets.
   std::vector<std::vector<unsigned> > facetVertices() const;
   std::vector<Vector> facetNormals() const;
+  std::vector<Vector> facetAreaVectors() const;
+  std::vector<Vector> facetCentroids() const;
 
   // Useful facet properties.
   double facetArea(const unsigned facetID) const;
   Vector facetAreaNormal(const unsigned facetID) const;
+  Vector facetCentroid(const unsigned facetID) const;
 
   // Reconstruct the internal data given a set of vertices and the vertex
   // indicies that define the facets.
@@ -106,7 +110,8 @@ public:
   unsigned closestFacet(const Vector& p) const;
 
   // Compute the minimum distance to a point.
-  double distance(const Vector& p) const;
+  double distance(const Vector& p,
+                  const bool useAxom = false) const;
 
   // Find the point in the polyhedron closest to the given point.
   Vector closestPoint(const Vector& p) const;

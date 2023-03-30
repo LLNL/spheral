@@ -44,13 +44,13 @@ class SpheralController:
                  initialTime = 0.0,
                  SPH = False,
                  periodicWork = [],
+                 periodicTimeWork = [],
                  skipInitialPeriodicWork = False,
                  iterateInitialH = True,
                  numHIterationsBetweenCycles = 0,
                  reinitializeNeighborsStep = 10,
                  volumeType = RKVolumeType.RKVoronoiVolume,
                  facetedBoundaries = None,
-                 timerName = "",
                  printAllTimers = False):
         self.restart = RestartableObject(self)
         self.integrator = integrator
@@ -73,13 +73,6 @@ class SpheralController:
             self.kernel = kernel.baseKernel1d
         else:
             self.kernel = kernel
-
-        if timerName == "":
-            self.timerName = "time.table"
-        else:
-            self.timerName = timerName
-        self.printAllTimers = printAllTimers
-        startRootTimer()
 
         # Determine the dimensionality of this run, based on the integrator.
         self.dim = "%id" % self.integrator.dataBase.nDim
@@ -123,6 +116,7 @@ class SpheralController:
                                  vizFields = vizFields,
                                  vizFieldLists = vizFieldLists,
                                  periodicWork = periodicWork,
+                                 periodicTimeWork = periodicTimeWork,
                                  skipInitialPeriodicWork = skipInitialPeriodicWork,
                                  iterateInitialH = iterateInitialH,
                                  reinitializeNeighborsStep = reinitializeNeighborsStep,
@@ -140,7 +134,7 @@ class SpheralController:
     # Destructor
     #--------------------------------------------------------------------------
     def __del__(self):
-        stopRootTimer()
+        pass
 
     #--------------------------------------------------------------------------
     # (Re)initialize the current problem (and controller state).
@@ -162,11 +156,15 @@ class SpheralController:
                             vizFields = [],
                             vizFieldLists = [],
                             periodicWork = [],
+                            periodicTimeWork = [],
                             skipInitialPeriodicWork = False,
                             iterateInitialH = True,
                             reinitializeNeighborsStep = 10,
                             volumeType = RKVolumeType.RKVoronoiVolume,
                             facetedBoundaries = None):
+
+        # Call the global C++ initialization method
+        setGlobalFlags()
 
         # Intialize the cycle count.
         self.totalSteps = 0
@@ -244,6 +242,8 @@ class SpheralController:
         self.appendPeriodicWork(self.reinitializeNeighbors, reinitializeNeighborsStep)
         for x, freq in periodicWork:
             self.appendPeriodicWork(x, freq)
+        for x, freq in periodicTimeWork:
+            self.appendPeriodicTimeWork(x, freq)
 
         # Add the dynamic redistribution object to the controller.
         self.addRedistributeNodes(self.kernel)
@@ -386,9 +386,6 @@ class SpheralController:
 
         # Print how much time was spent per integration cycle.
         self.stepTimer.printStatus()
-
-        # Output any timer info
-        Timer.TimerSummary(self.timerName, self.printAllTimers)
 
         return
 

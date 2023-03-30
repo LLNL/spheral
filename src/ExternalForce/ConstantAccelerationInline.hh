@@ -35,7 +35,8 @@ inline
 const Field<Dimension, int>&
 ConstantAcceleration<Dimension>::
 flags() const {
-  return mFlags;
+  VERIFY2(mFlagsPtr, "No flags set for ConstantAcceleration");
+  return *mFlagsPtr;
 }
 
 }

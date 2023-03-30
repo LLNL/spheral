@@ -3,23 +3,15 @@
 
 # Modified version to be compatible with the pybindgen version of Spheral++.
 
-# ------------------------------------------------------------------------------
-# OK, this is nuts.  Check to see if we're built with gcc.  If so, we have to
-# do some magic 'cause type info and dynamic_casts get screwed up between
-# g++ built libraries.  Sigh.
-# ------------------------------------------------------------------------------
-try:
-    import sys, ctypes
-    sys.setdlopenflags(sys.getdlopenflags() | ctypes.RTLD_GLOBAL)
-    #sys.setdlopenflags(ctypes.RTLD_NOW | ctypes.RTLD_GLOBAL)
-    #import sys, DLFCN
-    #sys.setdlopenflags(sys.getdlopenflags() | DLFCN.RTLD_GLOBAL)
-    #sys.setdlopenflags(DLFCN.RTLD_NOW|DLFCN.RTLD_GLOBAL)
-    #import sys
-    #sys.setdlopenflags(0x100|0x2)
-except:
-    print "WARNING: unable to set python dl flags on Spheral import."
-    pass
+from SpheralUtilities import BuildData
+
+if not BuildData.cxx_compiler_id == "GNU":
+    try:
+        import sys, ctypes
+        sys.setdlopenflags(sys.getdlopenflags() | ctypes.RTLD_GLOBAL)
+    except:
+        print "WARNING: unable to set python dl flags on Spheral import."
+        pass
 
 # ------------------------------------------------------------------------------
 # Load up MPI.
@@ -43,6 +35,7 @@ from MaterialEquationsOfState import *
 from FluidNodeLists import *
 from SolidNodeLists import *
 from VoidNodeLists import *
+from DEMNodeLists import *
 
 # ------------------------------------------------------------------------------
 # Import SPH, SVPH, and CRKSPH
@@ -55,6 +48,7 @@ from SlideSurfaces import *
 #from SVPHHydros import *
 from CRKSPHHydros import *
 #from TaylorSPHHydros import *
+from DEM import *
 from SPHUtilities import *
 
 # ------------------------------------------------------------------------------

@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 plt.rc('text', usetex=True)
 plt.rc('text.latex',
        preamble=r'\usepackage{amsmath}')
+plt.rcParams['font.size'] = 14
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters

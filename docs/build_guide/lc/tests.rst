@@ -16,3 +16,7 @@ Running Tests
 .. include:: ../include/tests.rst.inc
    :start-after: [lc_filter_options_cmd-start]
    :end-before: [lc_filter_options_cmd-end]
+
+.. include:: ../include/tests.rst.inc
+   :start-after: [lc_cuda_filter-start]
+   :end-before: [lc_cuda_filter-end]

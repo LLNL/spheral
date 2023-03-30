@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-#source @CMAKE_INSTALL_PREFIX@/.venv/bin/activate
-@CMAKE_INSTALL_PREFIX@/.venv/bin/python "$@"
+# Adding -B to prevent byte-compiling
+@CMAKE_INSTALL_PREFIX@/.venv/bin/python -B "$@"
 exit_result=$?
-#deactivate
 exit $exit_result

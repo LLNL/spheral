@@ -209,8 +209,6 @@ commandLine(KernelConstructor = NBSplineKernel,
             tol = 1.0e-5,
 
             graphics = True,
-
-            timerName = ""
             )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
@@ -586,8 +584,7 @@ control = SpheralController(integrator,
                             restartBaseName = restartBaseName,
                             restartFileConstructor = restartFileConstructor,
                             SPIOFileCountPerTimeslice = SPIOFileCountPerTimeslice,
-                            restoreCycle = restoreCycle,
-                            timerName = timerName
+                            restoreCycle = restoreCycle
                             )
 output("control")
 

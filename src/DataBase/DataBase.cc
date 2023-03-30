@@ -49,6 +49,8 @@ DataBase<Dimension>::DataBase():
   mFluidNodeListAsNodeListPtrs(0),
   mSolidNodeListPtrs(0),
   mSolidNodeListAsNodeListPtrs(0),
+  mDEMNodeListPtrs(0),
+  mDEMNodeListAsNodeListPtrs(0),
   mConnectivityMapPtr(new ConnectivityMap<Dimension>()) {
 }
 
@@ -73,6 +75,8 @@ operator=(const DataBase<Dimension>& rhs) {
     mFluidNodeListAsNodeListPtrs = rhs.mFluidNodeListAsNodeListPtrs;
     mSolidNodeListPtrs = rhs.mSolidNodeListPtrs;
     mSolidNodeListAsNodeListPtrs = rhs.mSolidNodeListAsNodeListPtrs;
+    mDEMNodeListPtrs = rhs.mDEMNodeListPtrs;
+    mDEMNodeListAsNodeListPtrs = rhs.mDEMNodeListAsNodeListPtrs;
     mConnectivityMapPtr = std::shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>());
   }
   ENSURE(valid());
@@ -499,7 +503,7 @@ reinitializeNeighbors() const {
 
   // Find the current bounding box and average node extent in one loop.
   // Compute the average node extent.
-  auto xmin = Vector(std::numeric_limits<Scalar>::max()), xmax = Vector(std::numeric_limits<Scalar>::lowest());
+  auto xmin = Vector(0.1*std::numeric_limits<Scalar>::max()), xmax = 0.1*Vector(std::numeric_limits<Scalar>::lowest());
   unsigned ntot = 0;
   Scalar havg = 0.0, hmax = 0.0, maxExtent = 0.0;
   for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
@@ -528,20 +532,22 @@ reinitializeNeighbors() const {
   }
   havg = allReduce(havg, MPI_SUM, Communicator::communicator());
   ntot = allReduce(ntot, MPI_SUM, Communicator::communicator());
-  if (ntot > 0) havg /= ntot;
   hmax = allReduce(hmax, MPI_MAX, Communicator::communicator());
+  if (ntot > 0) {
+    havg /= ntot;
 
-  box = std::max(box, maxExtent*hmax);
-  for (auto i = 0; i < Dimension::nDim; ++i) {
-    xmin(i) -= box;
-    xmax(i) += box;
-  }
+    box = std::max(box, maxExtent*hmax);
+    for (auto i = 0; i < Dimension::nDim; ++i) {
+      xmin(i) -= box;
+      xmax(i) += box;
+    }
 
-  // Now initialize the neighbors.
-  for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
-    auto& neighbor = (*itr)->neighbor();
-    neighbor.reinitialize(xmin, xmax, havg);
-    neighbor.updateNodes();
+    // Now initialize the neighbors.
+    for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
+      auto& neighbor = (*itr)->neighbor();
+      neighbor.reinitialize(xmin, xmax, havg);
+      neighbor.updateNodes();
+    }
   }
 }
 
@@ -576,6 +582,34 @@ patchConnectivityMap(const FieldList<Dimension, int>& flags,
 //------------------------------------------------------------------------------
 // Add a NodeList to this DataBase.
 //------------------------------------------------------------------------------
+// DEMNodeList
+template<typename Dimension>
+void
+DataBase<Dimension>::
+appendNodeList(DEMNodeList<Dimension>& nodeList) {
+  REQUIRE(valid());
+  if (haveNodeList(nodeList)) {
+    cerr << "DataBase::appendNodeList() Warning: attempt to add DEMNodeList "
+         << &nodeList << " to DataBase " << this
+         << ", which already has it." << endl;
+  } else {
+    const NodeListRegistrar<Dimension>& nlr = NodeListRegistrar<Dimension>::instance();
+    NodeListIterator orderItr = nlr.findInsertionPoint((NodeList<Dimension>*) &nodeList,
+                                                       nodeListBegin(),
+                                                       nodeListEnd());
+    mNodeListPtrs.insert(orderItr, &nodeList);
+    DEMNodeListIterator DEMOrderItr = nlr.findInsertionPoint(&nodeList,
+                                                                 DEMNodeListBegin(),
+                                                                 DEMNodeListEnd());
+    const size_t delta = distance(DEMNodeListBegin(), DEMOrderItr);
+    mDEMNodeListPtrs.insert(DEMOrderItr, &nodeList);
+    mDEMNodeListAsNodeListPtrs.insert(DEMNodeListAsNodeListBegin() + delta,
+                                        &nodeList);
+
+  }
+  ENSURE(valid());
+}
+
 // SolidNodeList
 template<typename Dimension>
 void
@@ -641,6 +675,7 @@ appendNodeList(FluidNodeList<Dimension>& nodeList) {
   ENSURE(valid());
 }
 
+
 // NodeList
 template<typename Dimension>
 void
@@ -664,6 +699,38 @@ appendNodeList(NodeList<Dimension>& nodeList) {
 //------------------------------------------------------------------------------
 // Delete a NodeList from this DataBase.
 //------------------------------------------------------------------------------
+// DEMNodeList
+template<typename Dimension>
+void
+DataBase<Dimension>::
+deleteNodeList(DEMNodeList<Dimension>& nodeList) {
+  REQUIRE(valid());
+  if (!haveNodeList(nodeList)) {
+    cerr << "DataBase::deleteNodeList() Warning: attempt to remove DEMNodeList "
+         << &nodeList << " from DataBase " << this
+         << ", which does not have it." << endl;
+  } else {
+    // Erase from the NodeList vector.
+    NodeListIterator nodeListItr = find(nodeListBegin(), nodeListEnd(),
+                                        &nodeList);
+    CHECK(nodeListItr != nodeListEnd());
+    mNodeListPtrs.erase(nodeListItr);
+
+    // Erase from the DEMNodeList vector.
+    DEMNodeListIterator DEMItr = find(DEMNodeListBegin(), DEMNodeListEnd(), &nodeList);
+    CHECK(DEMItr != DEMNodeListEnd());
+    mDEMNodeListPtrs.erase(DEMItr);
+
+    // Erase from the DEMNodeListAsNodeList vector.
+    nodeListItr = find(DEMNodeListAsNodeListBegin(),
+                       DEMNodeListAsNodeListEnd(),
+                       &nodeList);
+    CHECK(nodeListItr != DEMNodeListAsNodeListEnd());
+    mDEMNodeListAsNodeListPtrs.erase(nodeListItr);
+  }
+  ENSURE(valid());
+}
+
 // SolidNodeList
 template<typename Dimension>
 void
@@ -798,6 +865,15 @@ template<typename Dimension>
 const vector<SolidNodeList<Dimension>*>&
 DataBase<Dimension>::solidNodeListPtrs() const {
   return mSolidNodeListPtrs;
+}
+
+//------------------------------------------------------------------------------
+// Return the const list of DEMNodeList pointers.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const vector<DEMNodeList<Dimension>*>&
+DataBase<Dimension>::DEMNodeListPtrs() const {
+  return mDEMNodeListPtrs;
 }
 
 //------------------------------------------------------------------------------
@@ -1260,6 +1336,99 @@ DataBase<Dimension>::solidParticleTypes() const {
 }
 
 //------------------------------------------------------------------------------
+// Return the DEM mass field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Scalar>
+DataBase<Dimension>::DEMMass() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Scalar> result;
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->mass());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the DEM position field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Vector>
+DataBase<Dimension>::DEMPosition() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Vector> result;
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->positions());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the DEM velocity field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Vector>
+DataBase<Dimension>::DEMVelocity() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Vector> result;
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->velocity());
+  }
+  return result;
+}
+
+
+//------------------------------------------------------------------------------
+// Return the DEM HField.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::SymTensor>
+DataBase<Dimension>::DEMHfield() const {
+  REQUIRE(valid());
+  FieldList<Dimension, SymTensor> result;
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->Hfield());
+  }
+  return result;
+}
+
+
+//------------------------------------------------------------------------------
+// Return the DEM Particle Radii
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Scalar>
+DataBase<Dimension>::DEMParticleRadius() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Scalar> result;
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->particleRadius());
+  }
+  return result;
+}
+
+
+//------------------------------------------------------------------------------
+// Return the DEM Particle Radii
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, int>
+DataBase<Dimension>::DEMCompositeParticleIndex() const {
+  REQUIRE(valid());
+  FieldList<Dimension, int> result;
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->compositeParticleIndex());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
 // Return the node extent for each NodeList.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -1299,6 +1468,21 @@ DataBase<Dimension>::solidNodeExtent() const {
   FieldList<Dimension, Vector> result;
   for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
        nodeListItr < solidNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->neighbor().nodeExtentField());
+  }
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the node extent for each DEMNodeList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, typename Dimension::Vector>
+DataBase<Dimension>::DEMNodeExtent() const {
+  REQUIRE(valid());
+  FieldList<Dimension, Vector> result;
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
     result.appendField((*nodeListItr)->neighbor().nodeExtentField());
   }
   return result;

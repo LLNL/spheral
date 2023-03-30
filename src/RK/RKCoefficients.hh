@@ -3,8 +3,8 @@
 //
 // Wraps the reproducing kernel correction coefficients
 //----------------------------------------------------------------------------//
-#ifndef __LLNLSpheral_RKCoefficients__
-#define __LLNLSpheral_RKCoefficients__
+#ifndef __Spheral_RKCoefficients__
+#define __Spheral_RKCoefficients__
 
 #include "RK/RKCorrectionParams.hh"
 #include <vector>

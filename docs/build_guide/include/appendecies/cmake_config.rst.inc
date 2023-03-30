@@ -83,6 +83,9 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 ``<TPL-Name-Here>_DIR``
   Directory of previously built TPL.
 
+``ENABLE_STATIC_TPL`` (On, *Off*)
+  Link static libraries instead of shared for HDF5 and Conduit.
+
 ``ENABLE_OPENMP`` (*On*, Off)
   Support for OpenMP.
 
@@ -135,6 +138,9 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 ``ENABLE_BOUNDCHECKING`` (On, *Off*)
   If building with the Gnu compilers enable STL bound checking by passing -D_GLIBCXX_DEBUG=1 to the compiler. 
   Note, this is a very expensive option at runtime!
+
+``ENABLE_NAN_EXCEPTIONS`` (On, *Off*)
+  Raise exceptions in the C++ code when floating-point exceptions occur.  Gnu compilers only.
 
 ``ENABLE_DOCS`` (On, *Off*)
   Choose whether or not to build this documentation.

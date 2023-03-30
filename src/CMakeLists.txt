@@ -15,9 +15,11 @@ list(APPEND _packages
   ArtificialConduction
   Boundary
   CRKSPH
+  CXXTests
   Damage
   DataBase
   DataOutput
+  DEM
   Distributed
   ExternalForce
   Field
@@ -29,6 +31,7 @@ list(APPEND _packages
   Hydro
   Integrator
   Kernel
+  KernelIntegrator
   Material
   Mesh
   Neighbor
@@ -62,5 +65,9 @@ include_directories(${extra_packages_DIR})
 foreach(e_package ${extra_packages})
   add_subdirectory(${extra_packages_DIR}/${e_package} ${CMAKE_CURRENT_BINARY_DIR}/${e_package})
 endforeach()
+
+set(CXX_sources spheralCXX.cc)
+
+spheral_add_cxx_library(CXX)
 
 install(EXPORT ${PROJECT_NAME}-targets DESTINATION Spheral/lib/cmake)

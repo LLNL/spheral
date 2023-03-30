@@ -98,6 +98,16 @@ Above we are telling ``tpl-manager`` to build our TPLs with ``gcc`` at version `
 .. note::
    ``gcc@8.3.1`` is the recommended compiler for building Spheral on LC (Livermore Computing). Spheral minimally requires a C++11 compliant compiler.
 
+CUDA Support
+------------
+
+To build Spheral TPLs and configure Spheral to build with CUDA on LC systems we need to add the spack variant ``+cuda`` to our spec. We also need to define the cuda hardware architecture we are targetting Spheral to run on. This can be done with ``cuda_arch=XX``. On most LC NVIDIA systems we will be targetting ``sm_70`` architecture. Therefore a gcc spec with cuda support will look as such.::
+
+  ./scripts/devtools/tpl-manager.py --spec "gcc@8.3.1+cuda cuda_arch=70"
+
+.. note::
+   We need to use "" here as spack requires spacing to define ``cuda_arch``. This ensures tpl-manager doesn't register the spec as separate arguments.
+
 Setup Full TPL List
 -------------------
 

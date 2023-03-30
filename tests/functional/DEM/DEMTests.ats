@@ -1,0 +1,6 @@
+source("LinearSpringDEM/twoParticleCollision-1d.py")
+source("LinearSpringDEM/twoParticleCollision-2d.py")
+source("LinearSpringDEM/twoParticleCollision-3d.py")
+source("LinearSpringDEM/impactingSquares-2d.py")
+source("LinearSpringDEM/impactingSquares-3d.py")
+# source("LinearSpringDEM/fiveParticleCollision-2d.py")   # Restore this test when we sort out how to measure pass/fail with our changes to kernelExtent and timestepping

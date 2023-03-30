@@ -119,15 +119,16 @@ def main():
     if build_result != 0:
       print(build_result)
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-      print("Compilation failed, running make VERBOSE=1")
+      print("Compilation failed")
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-      sexe("{0} {1} --build . --verbose --target install -j 1".format(ml_cmd, cmake_cmd),ret_output=True, echo=True)
       sys.exit(1)
 
-    # Try to import Spheral for a basic sanity test.
-    smoke_test = sexe("{0} {1}/spheral -c \"import Spheral\"".format(ml_cmd, install_dir))
-    if smoke_test != 0:
-      sys.exit(1)
+    # Did we build the python interface?
+    if sexe("grep -i ENABLE_CXXONLY:BOOL=Off {0}/CMakeCache.txt".format(build_dir)) == 0:
+      # Try to import Spheral for a basic sanity test.
+      smoke_test = sexe("{0} {1}/spheral -c \"import Spheral\"".format(ml_cmd, install_dir))
+      if smoke_test != 0:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

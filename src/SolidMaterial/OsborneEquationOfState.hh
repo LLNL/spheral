@@ -112,11 +112,6 @@ public:
   void E0(double val);
   void atomicWeight(double val);
 
-  // If requested, the user can specify an external pressure to be applied
-  // in the pressure calculation.
-  double externalPressure() const;
-  void externalPressure(double P);
-
   // Compute an individual value for DPDrho.
   double DPDrho(const double massDensity,
                 const double specificThermalEnergy) const;
@@ -129,7 +124,6 @@ private:
   double mA1, mA2pos, mA2neg, mB0, mB1, mB2pos, mB2neg, mC0, mC1, mC2pos, mC2neg, mE0;
   double mAtomicWeight;
   double mCv;
-  double mExternalPressure;
 
   // No default constructor, copying, or assignment.
   OsborneEquationOfState();

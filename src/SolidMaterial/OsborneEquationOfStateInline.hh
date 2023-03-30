@@ -230,21 +230,4 @@ OsborneEquationOfState<Dimension>::Cv() const {
   return mCv;
 }
 
-//------------------------------------------------------------------------------
-// Get and set the external pressure.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-OsborneEquationOfState<Dimension>::externalPressure() const {
-  return mExternalPressure;
-}
-
-template<typename Dimension>
-inline
-void
-OsborneEquationOfState<Dimension>::externalPressure(double val) {
-  mExternalPressure = val;
-}
-
 }

@@ -12,8 +12,6 @@
 #include <vector>
 #include <algorithm>
 
-extern Timer TIME_CRKSPH_editMultimaterialSurfaceTopology;
-
 using std::vector;
 using std::cerr;
 using std::endl;
@@ -24,7 +22,7 @@ template<typename Dimension>
 void
 editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
                                  ConnectivityMap<Dimension>& connectivityMap) {
-  TIME_CRKSPH_editMultimaterialSurfaceTopology.start();
+  TIME_BEGIN("CRKSPH_editMultimaterialSurfaceTopology");
 
   // Declare some useful stuff and preconditions.
   const auto  numNodeLists = surfacePoint.size();
@@ -131,7 +129,7 @@ editMultimaterialSurfaceTopology(FieldList<Dimension, int>& surfacePoint,
   // }
   // // BLAGO!
 
-  TIME_CRKSPH_editMultimaterialSurfaceTopology.stop();
+  TIME_END("CRKSPH_editMultimaterialSurfaceTopology");
 }
 
 }

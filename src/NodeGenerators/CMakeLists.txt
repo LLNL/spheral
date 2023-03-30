@@ -26,6 +26,7 @@ set(NodeGenerators_headers
 
 spheral_install_python_files(
   NodeGeneratorBase.py
+  GenerateDEMfromSPHGenerator.py
   GenerateNodeDistribution1d.py
   RejecterBase.py
   GenerateNodeDistribution2d.py
@@ -68,5 +69,5 @@ spheral_install_python_files(
   GenerateSphericalNodeDistribution1d.py
   )
 
-spheral_add_cxx_library(NodeGenerators)
+spheral_add_obj_library(NodeGenerators)
 

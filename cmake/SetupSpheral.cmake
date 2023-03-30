@@ -3,7 +3,7 @@ include(ExternalProject)
 #-------------------------------------------------------------------------------
 # Configure CMake
 #-------------------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 if (NOT CMAKE_MODULE_PATH)
@@ -50,8 +50,11 @@ set(ENABLE_OPENSUBDIV ON CACHE BOOL "enable the Opensubdiv Pixar extension for r
 set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state package")
 
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
+option(ENABLE_SHARED "Building C++ libs shared" ON)
+
 if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_CXXONLY ON)
+  set(ENABLE_SHARED OFF)
 endif()
 
 if(ENABLE_MPI)
@@ -61,6 +64,12 @@ endif()
 
 if(ENABLE_OPENMP)
   list(APPEND spheral_blt_depends openmp)
+endif()
+
+if(ENABLE_CUDA)
+  #set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --extended-lambda -Xcudafe --display_error_number")
+  set(CMAKE_CUDA_STANDARD 14)
+  list(APPEND SPHERAL_CXX_DEPENDS cuda)
 endif()
 
 option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
@@ -119,6 +128,12 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # We need the set of Spheral C++ libraries globally
 #-------------------------------------------------------------------------------
 set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS)
+
+#-------------------------------------------------------------------------------
+# Also globally set the variable for the list we accumulate the obj files from
+# each library into
+#-------------------------------------------------------------------------------
+set_property(GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
 
 #-------------------------------------------------------------------------------
 # Install symlink for spheral->python

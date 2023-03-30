@@ -69,15 +69,15 @@ def main():
 
   # Get the host-config name and path.
   if not args.build_only and not args.host_config:
-    hostconfig="{1}-{2}".format(host, sys_type, args.spec)
-    hostconfig_path=os.path.join(os.getcwd(), "{0}.cmake".format(hostconfig))
+    hostconfig="{1}-{2}.cmake".format(host, sys_type, (args.spec).replace(" ","_"))
+    sexe("cp {0} gitlab.cmake".format(hostconfig))
+    hostconfig_path=os.path.join(os.getcwd(), "gitlab.cmake")
   else:
     hostconfig=(args.host_config).split("/")[-1].split(".cmake")[0]
     hostconfig_path=args.host_config
   print(hostconfig)
 
-  sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build {3}".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules, args.extra_cmake_args))
-
+  if sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build {3}".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules, args.extra_cmake_args)) : sys.exit(1)
 
 if __name__ == "__main__":
   main()

@@ -1,17 +1,57 @@
-Version vYYYY.MM.pp -- Release date 20YY-MM-DD
+Version v2023.03.0 -- Release date 2023-03-29
 ==============================================
 
 This release contains ...
 
   * Important Notes:
+    * Spheral now requires C++ 14
+    * Spheral C++ libs are compiled into a single library (Spheral_CXX)
 
 Notable changes include:
 
   * New features/ API changes:
+    * New Discrete Element Model (DEM) physics package with linear-damped spring approach.
+    * Adding a CUDA smoke test that can be called from the Spheral python API.
+    * NVCC / CUDA 11 gitlab-ci jobs.
+    * ATS default filters for non-MPI, debug and CUDA builds are injected into spheral-atstest script.
+    * Latest Develop docker containers hosted on ghcr.io/llnl/spheral:latest.
+    * External / offline builds are tested through github actions.
+    * New polyhedral gravity solver.
+    * Improved DEM timestep choice, so that points that do not overlap do not overly constrain the timestep.
+    * Point potential gravity solver can now have non-unit metrics.
+    * Pair-max damage algorithm now decouples points in different NodeLists or with different fragmentIDs.
+    * Added direct support for FacetedVolumes to FileIO interface.
+    * ANEOS now allows shallow copies to be made.
+    * Polyhedron contain method can now optionally use Axom methods to test for containment.
+    * Adding user specified functions for shear modulus and yield strength as a function of damage.
 
   * Build changes / improvements:
+    * The C++ library interface is compiled into a single Spheral_CXX library. 
+    * Previous Spheral C++ libraries are still CMAKE targets, but are "ojbect" libraries.
+    * ATS bumped to version 7.0.9 for blueos smpi option support.
+    * Eigen bumped to 3.4.0 for NVCC compatiblity.
+    * C++ flag suppression is gaurded with build time CMake generators to only apply to C++ compilers.
+    * Python runtime libraries are now managed through Spack / tpl-manager.
+    * Added ENABLE_NAN_EXCEPTIONS (default OFF) Cmake flag to raise an exception when a NAN occurs (Gnu only).
+    * Byte-compiling python installed in virtual spheral environment.
+    * Invoking spheral no longer byte-compiles Python imported in a spheral script.
+    * HDF5 links as a shared library. Static lib usage can be forced with ENABLE_STATIC_TPL.
 
   * Bug Fixes / improvements:
+    * spheral-atstest scripts always point to locally installed ATS instance.
+    * gitlab-ci report-results script for analyzing ATS CI runs.
+    * Support for offline Spheral builds (provided TPLs are installed).
+    * Fixes for restarting without regenerating the original node positions in the Python script.
+    * Protected from division by zero in DEM when points coincide.
+    * Corrected support for minimum pressure (intact and damaged) with porous materials.
+    * Removed term driving damaged material to the reference density in solid hydros.
+    * Added verbose flag to EquationOfState::specificThermalEnergyForPressure so users can see how the iterative search proceeds.
+
+Version v2022.06.1 -- Release date 2022-06-24
+=============================================
+
+This is a bugfix release, which corrects a path problem that broke our convenient ANEOS
+constructors using the provided input for quartz, dunite, and serpentine.
 
 
 Version v2022.06.0 -- Release date 2022-06-09
@@ -51,9 +91,3 @@ Notable changes include:
     * CullenDehnen segfault fix.
 
 **Full Changelog**: https://github.com/LLNL/spheral/compare/2022.2.0-pre-spack...v2022.6.0
-
-Version v2022.06.1 -- Release date 2022-06-24
-=============================================
-
-This is a bugfix release, which corrects a path problem that broke our convenient ANEOS
-constructors using the provided input for quartz, dunite, and serpentine.

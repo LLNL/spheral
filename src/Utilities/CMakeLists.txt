@@ -34,15 +34,13 @@ set(Utilities_sources
     refinePolyhedron.cc
     coarsenBinnedValuesInst.cc
     clipFacetedVolume.cc
-    SpheralTimers.cc
-    #SpheralTimersAlternate.cc
-    Timer.cc
     uniform_random.cc
     )
 
 instantiate(Utilities_inst Utilities_sources)
 
 set(Utilities_headers
+    setGlobalFlags.hh
     Bessel.hh
     BuildData.hh
     CounterClockwiseComparator.hh
@@ -142,5 +140,5 @@ set(Utilities_headers
 
 spheral_install_python_files(fitspline.py)
 
-spheral_add_cxx_library(Utilities)
+spheral_add_obj_library(Utilities)
 

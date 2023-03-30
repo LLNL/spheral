@@ -25,7 +25,8 @@ PhysicsEvolvingMaterialLibrary(const double referenceDensity,
                                const double minimumPressure,
                                const double maximumPressure,
                                const double minimumPressureDamage,
-                               const MaterialPressureMinType minPressureType):
+                               const MaterialPressureMinType minPressureType,
+                               const double externalPressure):
   Physics<Dimension>(),
   SolidEquationOfState<Dimension>(referenceDensity,
                                   etamin,
@@ -34,7 +35,8 @@ PhysicsEvolvingMaterialLibrary(const double referenceDensity,
                                   minimumPressure,
                                   maximumPressure,
                                   minimumPressureDamage,
-                                  minPressureType),
+                                  minPressureType,
+                                  externalPressure),
   StrengthModel<Dimension>() {
 }
 

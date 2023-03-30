@@ -46,12 +46,16 @@ class Plane:
         "Test if the plane is below, in, or above the given point (-1, 0, 1)."
 
     # Comparisons
-    def __eq__(self):
+    @PYB11pyname("__eq__")
+    def __eq__self(self):
         return
-    def __ne__(self):
+    @PYB11pyname("__ne__")
+    def __ne__self(self):
         return
-    def __lt__(self):
+    @PYB11pyname("__lt__")
+    def __lt__self(self):
         return
+
     def __eq__(self, rhs="Vector()"):
         return
     def __ne__(self, rhs="Vector()"):
