@@ -173,7 +173,7 @@
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <AdditionalOptions>/bigobj</AdditionalOptions>
-      <CCppSupport>Cpp14Support</CCppSupport>
+      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -194,7 +194,7 @@
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <AdditionalOptions>/bigobj</AdditionalOptions>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -214,7 +214,7 @@
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <Cpp0xSupport>true</Cpp0xSupport>
-      <CCppSupport>Cpp14Support</CCppSupport>
+      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -235,7 +235,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <Cpp0xSupport>true</Cpp0xSupport>
-      <CCppSupport>Cpp14Support</CCppSupport>
+      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -257,7 +257,7 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp14Support</CCppSupport>
+      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -281,7 +281,7 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -305,6 +305,7 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -329,7 +330,7 @@
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp14Support</CCppSupport>
+      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -354,7 +355,7 @@
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp14Support</CCppSupport>
+      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

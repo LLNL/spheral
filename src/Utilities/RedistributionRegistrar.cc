@@ -26,20 +26,6 @@ using std::abs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Weak pointers don't have operator==, so we have to provide something.
-//------------------------------------------------------------------------------
-template<typename T>
-struct CompareWeakPtr: public std::binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool> {
-  typedef typename std::binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::first_argument_type first_argument_type;
-  typedef typename std::binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::second_argument_type second_argument_type;
-  typedef typename std::binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::result_type result_type;
-  result_type operator()(const std::weak_ptr<T>& lhs,
-                         const std::weak_ptr<T>& rhs) const {
-    return lhs.lock() == rhs.lock();
-  }
-};
-
-//------------------------------------------------------------------------------
 // Register a RedistributionNotificationHandle.
 //------------------------------------------------------------------------------
 void
@@ -59,7 +45,11 @@ RedistributionRegistrar::
 unregisterRedistributionNotificationHandle(std::shared_ptr<RedistributionNotificationHandle> redistributionHandlePtr) {
   std::weak_ptr<RedistributionNotificationHandle> wptr(redistributionHandlePtr);
   VERIFY(haveRedistributionNotificationHandle(wptr));
-  iterator itr = find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RedistributionNotificationHandle>(), wptr));
+  iterator itr = find_if(this->begin(), this->end(),
+                         [wptr] (const std::weak_ptr<RedistributionNotificationHandle> val) {
+                           // Weak pointers don't have operator==, so we have to provide something.
+                           return val.lock() == wptr.lock();
+                         });
   CHECK(itr != this->end());
   mRedistributionNotificationHandles.erase(itr);
   ENSURE(not haveRedistributionNotificationHandle(wptr));
@@ -71,7 +61,11 @@ unregisterRedistributionNotificationHandle(std::shared_ptr<RedistributionNotific
 bool
 RedistributionRegistrar::
 haveRedistributionNotificationHandle(std::weak_ptr<RedistributionNotificationHandle> redistributionHandlePtr) const {
-  const_iterator itr = std::find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RedistributionNotificationHandle>(), redistributionHandlePtr));
+  const_iterator itr = std::find_if(this->begin(), this->end(),
+                                    [redistributionHandlePtr] (const std::weak_ptr<RedistributionNotificationHandle> val) {
+                                      // Weak pointers don't have operator==, so we have to provide something.
+                                      return val.lock() == redistributionHandlePtr.lock();
+                                    });
   return itr != mRedistributionNotificationHandles.end();
 }
 
