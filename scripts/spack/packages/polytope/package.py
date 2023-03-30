@@ -10,12 +10,13 @@ import os
 class Polytope(CMakePackage):
     """Polytope is a C++ library for generating polygonal and polyhedral meshes."""
 
-    #url = "https://github.com/pbtoast/polytope/archive/0.7.1.tar.gz"
-    #version('0.7.0', sha256='e7be5a5d06a95309b9100f02ab80c2f3401c11ac6304a3204fb1f25052efd77e')
-
     git = "https://github.com/pbtoast/polytope.git"
+    url = "https://github.com/pbtoast/polytope/archive/0.7.3.tar.gz"
+    version('0.7.3', tag='0.7.3', submodules=True)
+
+    # version('0.7.3', sha256='f32817b44d2a3b98407531980b89d0a31b0c14b8b30de37a6a7bc6ec91e48bf1') # missing submodules
     #version('0.7.2', tag='0.7.2', submodules=True)
-    version("2023-03-24", commit="074ec17", submodules=True)
+    #version("2023-03-24", commit="074ec17", submodules=True)
 
     variant('python', default=True, description='Enable Python Support.')
 
@@ -23,6 +24,8 @@ class Polytope(CMakePackage):
     depends_on('python@3: +zlib +shared', type=('build', 'run'), when='+python')
     depends_on('py-decorator', type=('build', 'run'), when='+python')
     depends_on('boost', type=('build', 'run'))
+
+    parallel = False      # Should be able to remove this at some point
 
     def cmake_args(self):
         options = []
