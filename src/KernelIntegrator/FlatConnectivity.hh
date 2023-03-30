@@ -184,7 +184,7 @@ private:
   // Size information
   int mNumLocalNodes;
   int mNumInternalLocalNodes;
-  int mNumConnectivityNodes; 
+  int mNumConnectivityNodes;
   int mNumGlobalNodes;
   int mNumBoundaryNodes;
   int mFirstGlobalIndex;
