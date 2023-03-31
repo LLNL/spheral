@@ -992,6 +992,7 @@ GeomVector<nDim>::unitVector() const {
   const double mag = this->magnitude();
   return mag > 1.0e-50 ? (*this)/mag : GeomVector<nDim>(1.0, 0.0, 0.0);
 }
+
 //------------------------------------------------------------------------------
 // Return the magnitude of the Vector.
 //------------------------------------------------------------------------------
