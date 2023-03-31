@@ -82,7 +82,7 @@ default values listed in parens):
                 "materialName" in kwargs):
                 if len(args) > 0 and type(args[0]) == str:
                     materialName = args[0]
-                    del args[0]
+                    args = args[1:]
                 else:
                     materialName = kwargs["materialName"]
                     del kwargs["materialName"]
@@ -102,7 +102,7 @@ default values listed in parens):
                 elif len(args) > 1 and isinstance(args[1], PhysicalConstants):
                     units = args[1]
                     damage_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
-                    del args[1]
+                    args = args[1:]
 
             # Process remaining user arguments.
             kwarg_order = ["nodeList", "kernel", "kWeibull", "mWeibull", "seed", "minFlawsPerNode", "crackGrowthMultiplier",
