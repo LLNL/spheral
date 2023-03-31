@@ -750,7 +750,8 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
                     priorities[i] = -2
                 if isinstance(bc, eval("InflowOutflowBoundary%s" % self.dim)):
                     priorities[i] = -1
-            sortedbcs = [x for _,x in sorted(zip(priorities, bcs))]
+            #priorities, sortedbcs = (list(t) for t in zip(*sorted(zip(priorities, bcs))))
+            sortedbcs = [x for _,x in sorted(zip(priorities, bcs), key=lambda tup: tup[0])]
 
             # Add the domain bc if needed
             if self.domainbc:
