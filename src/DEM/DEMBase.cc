@@ -373,7 +373,7 @@ initialize(const Scalar  time,
   // This is a little ugly but we need the connectivity to be constructed
   // and the ghost nodes to be set to initialize our equilibrium overlap.
   if(mFirstCycle){
-    this->initializeOverlap(dataBase);
+    this->initializeOverlap(dataBase,0);
     mFirstCycle=false;
   }
 }
@@ -520,14 +520,13 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 
-
 //------------------------------------------------------------------------------
 // when problem starts set our equilibrium overlap
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 DEMBase<Dimension>::
-initializeOverlap(const DataBase<Dimension>& dataBase){
+initializeOverlap(const DataBase<Dimension>& dataBase, const int startingCompositeParticleIndex){
 
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
@@ -545,24 +544,27 @@ initializeOverlap(const DataBase<Dimension>& dataBase){
     const auto nodeListi = pairs[kk].i_list;
     const auto nodeListj = pairs[kk].j_list;
 
-    const auto storeNodeList = mContactStorageIndices[kk].storeNodeList;
-    const auto storeNode = mContactStorageIndices[kk].storeNode;
-    const auto storeContact = mContactStorageIndices[kk].storeContact;
-
-    // node fields
-    const auto ri = positions(nodeListi,i);
-    const auto Ri = particleRadius(nodeListi,i);
     const auto pIDi = particleIndex(nodeListi,i);
-
-    const auto rj = positions(nodeListj,j);
-    const auto Rj = particleRadius(nodeListj,j);
     const auto pIDj = particleIndex(nodeListj,j);
 
-    // composite particle 
-    if(pIDi==pIDj){
+    if(pIDi==pIDj and pIDi>=startingCompositeParticleIndex){
+
+      const auto storeNodeList = mContactStorageIndices[kk].storeNodeList;
+      const auto storeNode = mContactStorageIndices[kk].storeNode;
+      const auto storeContact = mContactStorageIndices[kk].storeContact;
+
+      // node fields
+      const auto ri = positions(nodeListi,i);
+      const auto Ri = particleRadius(nodeListi,i);
+  
+      const auto rj = positions(nodeListj,j);
+      const auto Rj = particleRadius(nodeListj,j);
+    
+
       const auto rij = ri-rj;
       const auto rijMag = rij.magnitude();
-      const auto delta0 = (Ri+Rj) - rijMag;
+      const auto delta0 = std::max((Ri+Rj) - rijMag,0.0);
+
       mEquilibriumOverlap(storeNodeList,storeNode)[storeContact] = delta0;
     }
   }

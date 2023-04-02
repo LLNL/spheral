@@ -121,7 +121,7 @@ public:
   void removeInactiveContactsFromDerivativePairFieldLists(StateDerivatives<Dimension>& derivs) const;
   //#############################################################################
 
-  void initializeOverlap(const DataBase<Dimension>& dataBase);
+  void initializeOverlap(const DataBase<Dimension>& dataBase, const int startingCompositeParticleIndex);
 
   void updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase);
 
