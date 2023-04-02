@@ -84,6 +84,11 @@ class DEMBase(Physics):
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
+    def initializeOverlap(dataBase = "const DataBase<%(Dimension)s>&",
+                          startCompositeParticleIndex = "const int"):
+        "set the equilibrium overlap pairwise fieldlist for comp. particle id's > specified value"
+        return "void"
+
     @PYB11const
     def momentOfInertia(massi = "const Scalar",
                         partialRadiusi = "const Scalar"):
