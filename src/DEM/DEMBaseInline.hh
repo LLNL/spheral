@@ -41,22 +41,6 @@ xmax(const typename Dimension::Vector& x) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-bool
-DEMBase<Dimension>::
-firstCycle() const {
-  return mFirstCycle;
-}
-
-template<typename Dimension>
-inline
-void
-DEMBase<Dimension>::
-firstCycle(bool x) {
-  mFirstCycle = x;
-}
-
-template<typename Dimension>
-inline
 int
 DEMBase<Dimension>::
 contactRemovalFrequency() const {

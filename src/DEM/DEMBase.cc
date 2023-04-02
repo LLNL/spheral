@@ -77,7 +77,6 @@ DEMBase(const DataBase<Dimension>& dataBase,
         const Vector& xmax):
   Physics<Dimension>(),
   mDataBase(dataBase),
-  mFirstCycle(true),
   mCycle(0),
   mContactRemovalFrequency((int)stepsPerCollision),
   mStepsPerCollision(stepsPerCollision),
@@ -234,7 +233,22 @@ void
 DEMBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
   TIME_BEGIN("DEMinitializeProblemStartup");
-  
+
+  auto particleRadius = dataBase.DEMParticleRadius();
+  auto particleIndex = dataBase.DEMCompositeParticleIndex();
+
+  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+        boundItr != this->boundaryEnd();
+        ++boundItr){
+    (*boundItr)->applyFieldListGhostBoundary(particleRadius);
+    (*boundItr)->applyFieldListGhostBoundary(particleIndex);
+  }
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+
+  this->initializeOverlap(dataBase,0);
+ 
   TIME_END("DEMinitializeProblemStartup");
 }
 
@@ -370,12 +384,7 @@ initialize(const Scalar  time,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs){
 
-  // This is a little ugly but we need the connectivity to be constructed
-  // and the ghost nodes to be set to initialize our equilibrium overlap.
-  if(mFirstCycle){
-    this->initializeOverlap(dataBase,0);
-    mFirstCycle=false;
-  }
+
 }
 
 
@@ -460,7 +469,6 @@ DEMBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
 
   file.write(mCycle, pathName + "/cycle");
-  file.write(mFirstCycle, pathName + "/firstCycle");
 
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mOmega, pathName + "/omega");
@@ -494,7 +502,6 @@ DEMBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
 
   file.read(mCycle, pathName + "/cycle");
-  file.read(mFirstCycle, pathName + "/firstCycle");
   
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mOmega, pathName + "/omega");

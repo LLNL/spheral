@@ -145,9 +145,6 @@ public:
   int  contactRemovalFrequency() const;
   void contactRemovalFrequency(int x);
 
-  bool firstCycle() const;
-  void firstCycle(bool x);
-
   // access for node fieldLists
   const FieldList<Dimension, int>&    timeStepMask() const;
   const FieldList<Dimension, Vector>& DxDt() const;
@@ -196,8 +193,6 @@ protected:
   //---------------------------  Protected Interface ---------------------------//
 
   const DataBase<Dimension>& mDataBase;
-
-  bool mFirstCycle;
 
   int mCycle;
   int mContactRemovalFrequency;
