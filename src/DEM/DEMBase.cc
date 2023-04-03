@@ -236,7 +236,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   auto particleRadius = dataBase.DEMParticleRadius();
   auto particleIndex = dataBase.DEMCompositeParticleIndex();
-
+  
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
         boundItr != this->boundaryEnd();
         ++boundItr){
@@ -247,6 +247,9 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
+  // We're jumping the gun a little herr
+  this->updateContactMapAndNeighborIndices(dataBase);
+  this->addContactsToPairFieldList(mEquilibriumOverlap,0.0);
   this->initializeOverlap(dataBase,0);
  
   TIME_END("DEMinitializeProblemStartup");

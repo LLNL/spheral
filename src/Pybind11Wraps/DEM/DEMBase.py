@@ -89,6 +89,10 @@ class DEMBase(Physics):
         "set the equilibrium overlap pairwise fieldlist for comp. particle id's > specified value"
         return "void"
 
+    def updateContactMapAndNeighborIndices(dataBase = "const DataBase<%(Dimension)s>&"):
+        "update DEM contact/neighbor tracker"
+        return "void"
+        
     @PYB11const
     def momentOfInertia(massi = "const Scalar",
                         partialRadiusi = "const Scalar"):

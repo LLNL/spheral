@@ -18,7 +18,7 @@ title("DEM 2d Drop Test")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(numParticlePerLength = 50,     # number of particles on a side of the box
+commandLine(numParticlePerLength = 10,     # number of particles on a side of the box
             radius = 0.25,                            # particle radius
             normalSpringConstant=10000.0,             # spring constant for LDS model
             normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
@@ -116,22 +116,22 @@ for nodes in nodeSet:
 if restoreCycle is None:
     generator0 = GenerateNodeDistribution2d(numParticlePerLength, numParticlePerLength,
                                             rho = 1.0,
-                                            distributionType = "lattice",
+                                            distributionType = "xstaggeredLattice",
                                             xmin = (-0.5,  0.0),
                                             xmax = ( 0.5,  1.0),
                                             nNodePerh = nPerh)
     
-    # really simple bar shaped particle
-    # def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
-    #     xout = [xi+Ri/3.0,xi-Ri/3.0]
-    #     yout = [yi,yi]
-    #     mout = [mi/2.0,mi/2.0]
-    #     Rout = [Ri/2.0,Ri/2.0]
-    #     return xout,yout,mout,Rout
+    #really simple bar shaped particle
+    def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
+        xout = [xi+Ri/3.0,xi-Ri/3.0]
+        yout = [yi,yi]
+        mout = [mi/2.0,mi/2.0]
+        Rout = [Ri/2.0,Ri/2.0]
+        return xout,yout,mout,Rout
 
     generator1 = GenerateDEMfromSPHGenerator2d(WT,
                                                generator0,
-                                               #DEMParticleGenerator=DEMParticleGenerator,
+                                               DEMParticleGenerator=DEMParticleGenerator,
                                                nPerh=nPerh)
 
     distributeNodes2d((nodes1, generator1))
