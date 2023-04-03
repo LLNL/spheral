@@ -20,7 +20,7 @@ class StiffenedGas(EquationOfState):
                P0 = "const double",
                Cv = "const double",
                constants = "const PhysicalConstants&",
-               minimumPressure = ("const double", "-std::numeric_limits<double>::max()"),
+               minimumPressure = ("const double", "std::numeric_limits<double>::max()"),
                maximumPressure = ("const double",  "std::numeric_limits<double>::max()"),
                minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor"),
                externalPressure = ("const double", "0.0")):

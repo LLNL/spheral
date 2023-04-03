@@ -20,7 +20,7 @@ class PolytropicEquationOfState(EquationOfState):
                index = "const double",
                mu = "const double",
                constants = "const PhysicalConstants&",
-               minimumPressure = ("const double", "-std::numeric_limits<double>::max()"),
+               minimumPressure = ("const double", "std::numeric_limits<double>::lowest()"),
                maximumPressure = ("const double",  "std::numeric_limits<double>::max()"),
                minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor"),
                externalPressure = ("const double", "0.0")):

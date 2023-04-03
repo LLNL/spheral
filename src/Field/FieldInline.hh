@@ -756,7 +756,7 @@ Field<Dimension, DataType>::
 localMax() const {
   DataType result;
   if (size() == 0) {
-    result = -std::numeric_limits<DataType>::max() < std::numeric_limits<DataType>::min() ? -std::numeric_limits<DataType>::max() : std::numeric_limits<DataType>::min();
+    result = std::numeric_limits<DataType>::lowest();
   } else {
     result = *std::max_element(begin(), begin() + numInternalElements());
   }

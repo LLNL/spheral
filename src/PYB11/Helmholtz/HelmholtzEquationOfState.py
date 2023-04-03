@@ -17,13 +17,13 @@ class HelmholtzEquationOfState(EquationOfState):
     # Constructors
     def pyinit(self,
                constants = "const PhysicalConstants&",
-               minimumPressure = ("const double", "-std::numeric_limits<double>::max()"),
+               minimumPressure = ("const double", "std::numeric_limits<double>::lowest()"),
                maximumPressure = ("const double",  "std::numeric_limits<double>::max()"),
-               minimumTemperature = ("const double", "-std::numeric_limits<double>::min()"),
+               minimumTemperature = ("const double", "std::numeric_limits<double>::lowest()"),
                minPressureType = ("const MaterialPressureMinType", "MaterialPressureMinType::PressureFloor"),
                abar0 = ("double", "13.6"),
                zbar0 = ("double", "6.8"),
-               externalPressure = ("double", 0.0)):
+               externalPressure = ("double", "0.0")):
         "Helmholtz constructor"
 
     #...........................................................................
