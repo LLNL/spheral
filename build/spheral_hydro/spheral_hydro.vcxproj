@@ -96,82 +96,80 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings"></ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CUDADebug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CUDARelease|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
-    <Import Project="..\..\..\..\src\Win32\Properties\Solution.Language.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -189,8 +187,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CUDADebug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -208,8 +205,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -227,8 +223,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -248,8 +243,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <Optimization>MinSpace</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -271,8 +265,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CUDARelease|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -294,8 +287,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -317,8 +309,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <Optimization>MinSpace</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -341,8 +332,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <Optimization>MinSpace</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -520,6 +510,5 @@
     <ClInclude Include="..\..\src\Hydro\RZNonSymmetricSpecificThermalEnergyPolicy.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets"></ImportGroup>
 </Project>
