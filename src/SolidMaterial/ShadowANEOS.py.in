@@ -123,7 +123,7 @@ def _ANEOSFactory(RealConstructor,
     # Set args as namespace
     dargs = dict(cppArgs)
     for iarg, val in enumerate(args):
-        dargs[cppArgs.keys()[iarg]] = val
+        dargs[list(cppArgs.keys())[iarg]] = val
     dargs.update(kwargs)
     ARGS = types.SimpleNamespace(**dargs)
 
