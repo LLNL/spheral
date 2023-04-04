@@ -2,7 +2,7 @@ from math import *
 from Spheral1d import *
 from SpheralTestUtilities import *
 import matplotlib.pyplot as plt
-from matplotlib import cm
+from SpheralMatplotlib import plotSurface
 import numpy as np
 
 rho0 = 100.0
@@ -65,10 +65,44 @@ for j in range(n):
         cs_grid[j][i] = soundSpeed[k]
         gam_grid[j][i] = ng[k]
         
-Pplot, Pax = plt.subplots(subplot_kw={"projection" : "3d"})
-Psurf = Pax.plot_surface(np.log(rho_grid), np.log(e_grid), np.log10(P_grid),
-                         cmap = cm.coolwarm)
-Pplot.colorbar(Psurf)
+Pplot, Pax, Psurf = plotSurface(np.log10(rho_grid),
+                                np.log10(e_grid),
+                                np.log10(P_grid),
+                                xlabel = "$\log(\\rho)$",
+                                ylabel = "$\log(\\varepsilon)$",
+                                zlabel = "$\log(P)$",
+                                title = "Pressure")
+
+cs_plot, cs_ax, cs_surf = plotSurface(np.log10(rho_grid),
+                                      np.log10(e_grid),
+                                      np.log10(cs_grid),
+                                      xlabel = "$\log(\\rho)$",
+                                      ylabel = "$\log(\\varepsilon)$",
+                                      zlabel = "$\log(c_s)$",
+                                      title = "Sound speed")
+
+gam_plot, gam_ax, gam_surf = plotSurface(np.log10(rho_grid),
+                                         np.log10(e_grid),
+                                         np.log10(gam_grid),
+                                         xlabel = "$\log(\\rho)$",
+                                         ylabel = "$\log(\\varepsilon)$",
+                                         zlabel = "$\log(\\gamma)$",
+                                         title = "Gamma")
+
+# Pplot, Pax = plt.subplots(subplot_kw={"projection" : "3d"})
+# Psurf = Pax.plot_surface(np.log(rho_grid), np.log(e_grid), np.log10(np.abs(P_grid)),
+#                          cmap = cm.coolwarm)
+# Pplot.colorbar(Psurf)
+
+# csplot, csax = plt.subplots(subplot_kw={"projection" : "3d"})
+# cssurf = csax.plot_surface(np.log(rho_grid), np.log(e_grid), np.log10(np.abs(cs_grid)),
+#                            cmap = cm.coolwarm)
+# csplot.colorbar(cssurf)
+
+# gamplot, gamax = plt.subplots(subplot_kw={"projection" : "3d"})
+# gamsurf = gamax.plot_surface(np.log(rho_grid), np.log(e_grid), np.log10(np.abs(gam_grid)),
+#                              cmap = cm.coolwarm)
+# gamplot.colorbar(gamsurf)
 
 # Pplot = Gnuplot.Gnuplot()
 # Pplot("set term x11")

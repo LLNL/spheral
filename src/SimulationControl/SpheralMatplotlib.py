@@ -912,8 +912,28 @@ def plotpmomHistory(conserve):
     return plot
 
 #-------------------------------------------------------------------------------
-# Plot a polygon.
+# Plot a surface
 #-------------------------------------------------------------------------------
+def plotSurface(x,   # 1D numpy array with x-coordinates for edge of plot : shape nx
+                y,   # 1D numpy array with y-coordinates for edge of plot : shape ny
+                z,   # 2D numpy array with z values for surface : shape (nx, ny)
+                cmap = pltcm.coolwarm,   # Colormap
+                xlabel = None,
+                ylabel = None,
+                zlabel = None,
+                title = None):
+    fig, ax = plt.subplots(subplot_kw = {"projection" : "3d"})
+    surf = ax.plot_surface(x, y, z, cmap = cmap)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_zlabel(zlabel)
+    fig.colorbar(surf)
+    plt.title(title)
+    return fig, ax, surf
+
+# #-------------------------------------------------------------------------------
+# # Plot a polygon.
+# #-------------------------------------------------------------------------------
 # def plotPolygon(polygon,
 #                 plotVertices = True,
 #                 plotFacets = True,
