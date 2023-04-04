@@ -94,27 +94,27 @@ with open("SiOS_ANEOS.txt", "w") as f:
                                           PG_grid[j][i], csG_grid[j][i],
                                           PA_grid[j][i], csA_grid[j][i]))
 
-PGplot, PGax, PGsurf = plotSurface(rho_grid, eps_grid, PG_grid,
-                                   xlabel = "$\\rho$ (g/cm$^3$)",
-                                   ylabel = "$\\varepsilon$ (erg/g)",
+PGplot, PGax, PGsurf = plotSurface(np.log10(rho_grid), np.log10(eps_grid), PG_grid,
+                                   xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                                   ylabel = "$\log(\\varepsilon)$ (erg/g)",
                                    zlabel = "$P$ (dynes)",
                                    title = "Pressure (Gruneisen)")
 
-csGplot, csGax, csGsurf = plotSurface(rho_grid, eps_grid, csG_grid,
-                                      xlabel = "$\\rho$ (g/cm$^3$)",
-                                      ylabel = "$\\varepsilon$ (erg/g)",
+csGplot, csGax, csGsurf = plotSurface(np.log10(rho_grid), np.log10(eps_grid), csG_grid,
+                                      xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                                      ylabel = "$\log(\\varepsilon)$ (erg/g)",
                                       zlabel = "$c_s$ (cm/sec)",
                                       title = "Sound speed (Gruneisen)")
 
-PAplot, PAax, PAsurf = plotSurface(rho_grid, eps_grid, PA_grid,
-                                   xlabel = "$\\rho$ (g/cm$^3$)",
-                                   ylabel = "$\\varepsilon$ (erg/g)",
+PAplot, PAax, PAsurf = plotSurface(np.log10(rho_grid), np.log10(eps_grid), PA_grid,
+                                   xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                                   ylabel = "$\log(\\varepsilon)$ (erg/g)",
                                    zlabel = "$P$ (dynes)",
                                    title = "Pressure (ANEOS)")
 
-csAplot, csAax, csAsurf = plotSurface(rho_grid, eps_grid, csA_grid,
-                                      xlabel = "$\\rho$ (g/cm$^3$)",
-                                      ylabel = "$\\varepsilon$ (erg/g)",
+csAplot, csAax, csAsurf = plotSurface(np.log10(rho_grid), np.log10(eps_grid), csA_grid,
+                                      xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                                      ylabel = "$\log(\\varepsilon)$ (erg/g)",
                                       zlabel = "$c_s$ (cm/sec)",
                                       title = "Sound speed (ANEOS)")
 

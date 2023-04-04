@@ -1,5 +1,8 @@
-from SolidSpheral3d import *
+from Spheral3d import *
 from SpheralGnuPlotUtilities import *
+import matplotlib.pyplot as plt
+from SpheralMatplotlib import plotSurface
+import numpy as np
 
 # We'll work in CGuS units.
 units = PhysicalConstants(0.01,     # Unit length in meters
@@ -49,83 +52,91 @@ eosTillotsonBasalt = TillotsonEquationOfState(materialName = "basalt",
 #-------------------------------------------------------------------------------
 # Plot the pressure, entropy, & sound speed as a function of (rho, eps)
 #-------------------------------------------------------------------------------
-n = 100
-drho = (rhoMax - rhoMin)/n
-rho = [rhoMin + i*drho for i in range(n + 1)]
+n = 50
+rho = np.geomspace(rhoMin, rhoMax, num = n)
 
-plots = []
-gdata = []
-def plotIt(data, xlabel, ylabel, title):
-    gdata.append(Gnuplot.Data(data))
-    plots.append(generateNewGnuPlot())
-    plots[-1].xlabel(xlabel)
-    plots[-1].ylabel(ylabel)
-    plots[-1].splot(gdata[-1], title=title)
+stuff = []
 
 for eos, label in ((eosSiO2, "SiO2"),
                    # (eosForsterite, "Forsterite"),
                    # (eosWater, "water"),
-                   (eosTillotsonBasalt, "Tillotson")):
-    epsMin = eos.specificThermalEnergy(rhoMin, Tmin)
-    epsMax = eos.specificThermalEnergy(rhoMax, Tmax)
-    deps = (epsMax - epsMin)/n
-    dT = (Tmax - Tmin)/n
-    eps = [epsMin + i*deps for i in range(n + 1)]
-    T = [Tmin + i*dT for i in range(n + 1)]
+                   (eosTillotsonBasalt, "Tillotson")
+                   ):
+    rho0 = eos.referenceDensity
+    epsMin = eos.specificThermalEnergy(rho0, Tmin)
+    epsMax = eos.specificThermalEnergy(rho0, Tmax)
+    eps = np.geomspace(epsMin, epsMax, num = n)
+    T = np.geomspace(Tmin, Tmax, num = n)
 
-    PA, csA, sA, gA, epsT, Teps, epsTratio = [], [], [], [], [], [], []
-    for rhoi in rho:
-        for epsi in eps:
-            PA.append((rhoi, epsi, eos.pressure(rhoi,epsi)))
-            csA.append((rhoi, epsi, eos.soundSpeed(rhoi,epsi)))
-            sA.append((rhoi, epsi, eos.entropy(rhoi,epsi)))
-            gA.append((rhoi, epsi, eos.gamma(rhoi,epsi)))
-            Teps.append((rhoi, epsi, log10(eos.temperature(rhoi,epsi))))
-        for Ti in T:
-            epsi = eos.specificThermalEnergy(rhoi,Ti)
-            Tii = eos.temperature(rhoi,epsi)
-            epsT.append((rhoi, Ti, epsi))
-            epsTratio.append((rhoi, Ti, Tii/Ti))
+    rho_grid, eps_grid = np.meshgrid(rho, eps)
+    rho_grid, T_grid = np.meshgrid(rho, T)
+    shape = rho_grid.shape
+    PA_grid, csA_grid = np.zeros(shape), np.zeros(shape)
+    sA_grid, gA_grid = np.zeros(shape), np.zeros(shape)
+    Teps_grid, epsT_grid, epsTratio_grid = np.zeros(shape), np.zeros(shape), np.zeros(shape)
 
-    print("Pressure range for %s    : [%g, %g]" % (label, min([x[2] for x in PA]), max([x[2] for x in PA])))
-    print("Sound speed range for %s : [%g, %g]" % (label, min([x[2] for x in csA]), max([x[2] for x in csA])))
-    print("Entropy range for %s     : [%g, %g]" % (label, min([x[2] for x in sA]), max([x[2] for x in sA])))
-    print("Gamma range for %s       : [%g, %g]" % (label, min([x[2] for x in gA]), max([x[2] for x in gA])))
-    print("eps lookup range for %s  : [%g, %g]" % (label, min([x[2] for x in epsT]), max([x[2] for x in epsT])))
-    print("T lookup range for %s    : [%g, %g]" % (label, 10.0**min([x[2] for x in Teps]), 10.0**max([x[2] for x in Teps])))
-    print("T(rho,eps)/T range for %s: [%g, %g]" % (label, min([x[2] for x in epsTratio]), max([x[2] for x in epsTratio])))
+    for j in range(n):
+        for i in range(n):
+            rhoi = rho_grid[j][i]
+            epsi = rho_grid[j][i]
+            PA_grid[j][i] = eos.pressure(rhoi,epsi)
+            csA_grid[j][i] = eos.soundSpeed(rhoi,epsi)
+            sA_grid[j][i] = eos.entropy(rhoi,epsi)
+            gA_grid[j][i] = eos.gamma(rhoi,epsi)
+            Teps_grid[j][i] = eos.temperature(rhoi,epsi)
 
-    plotIt(PA,
-           "rho (g/cm^3)",
-           "eps (Mb cm^2/g)",
-           "Pressure %s" % label)
+            Ti = T_grid[j][i]
+            epsi = eos.specificThermalEnergy(rhoi, Ti)
+            Tii = eos.temperature(rhoi, epsi)
+            epsT_grid[j][i] = epsi
+            epsTratio_grid[j][i] = Tii/Ti
 
-    plotIt(csA,
-           "rho (g/cm^3)",
-           "eps (Mb cm^2/g)",
-           "sound speed %s" % label)
+    print("Pressure range for %s    : [%g, %g]" % (label, np.min(PA_grid), np.max(PA_grid)))
+    print("Sound speed range for %s : [%g, %g]" % (label, np.min(csA_grid), np.max(csA_grid)))
+    print("Entropy range for %s     : [%g, %g]" % (label, np.min(sA_grid), np.max(sA_grid)))
+    print("Gamma range for %s       : [%g, %g]" % (label, np.min(gA_grid), np.max(gA_grid)))
+    print("eps lookup range for %s  : [%g, %g]" % (label, np.min(epsT_grid), np.max(epsT_grid)))
+    print("T lookup range for %s    : [%g, %g]" % (label, np.min(Teps_grid), np.max(Teps_grid)))
+    print("T(rho,eps)/T range for %s: [%g, %g]" % (label, np.min(epsTratio_grid), np.max(epsTratio_grid)))
 
-    plotIt(sA,
-           "rho (g/cm^3)",
-           "eps (Mb cm^2/g)",
-           "entropy %s" % label)
+    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid), np.log10(PA_grid),
+                             xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                             ylabel = "$\log(\\varepsilon)$ (Mb cm$^2$/g)",
+                             zlabel = "$\log(P)$ (dyne)",
+                             title = "Pressure %s" % label))
 
-    plotIt(gA,
-           "rho (g/cm^3)",
-           "eps (Mb cm^2/g)",
-           "gamma %s" % label)
+    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid), np.log10(csA_grid),
+                             xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                             ylabel = "$\log(\\varepsilon)$ (Mb cm$^2$/g)",
+                             zlabel = "$\log(c_s)$ (cm/sec)",
+                             title = "Sound speed %s" % label))
 
-    plotIt(epsT,
-           "rho (g/cm^3)",
-           "T",
-           "eps(rho,T) %s" % label)
+    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid), np.log10(sA_grid),
+                             xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                             ylabel = "$\log(\\varepsilon)$ (Mb cm$^2$/g)",
+                             zlabel = "$\log(s)$",
+                             title = "entropy %s" % label))
 
-    plotIt(Teps,
-           "rho (g/cm^3)",
-           "eps (Mb cm^2/gm)",
-           "log10[T(rho,eps)] %s" % label)
+    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid), np.log10(gA_grid),
+                             xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                             ylabel = "$\log(\\varepsilon)$ (Mb cm$^2$/g)",
+                             zlabel = "$\log(\\gamma)$",
+                             title = "gamma %s" % label))
 
-    plotIt(epsTratio,
-           "rho (g/cm^3)",
-           "T",
-           "T(rho,eps(rho,T))/T %s" % label)
+    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid), np.log10(epsT_grid),
+                                             xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                                             ylabel = "$\log(\\varepsilon)$ (Mb cm$^2$/g)",
+                                             zlabel = "$\log(\\varepsilon(\\rho, T))$",
+                                             title = "eps(rho,T) %s" % label))
+
+    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid), np.log10(Teps_grid),
+                             xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                             ylabel = "$\log(\\varepsilon)$ (Mb cm$^2$/g)",
+                             zlabel = "$\log(T(\\rho, \\varepsilon))$",
+                             title = "log10[T(rho,eps)] %s" % label))
+
+    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid), np.log10(epsTratio_grid),
+                             xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                             ylabel = "$\log(\\varepsilon)$ (Mb cm$^2$/g)",
+                             zlabel = "$\log(T(\\rho, \\varepsilon)/T)$",
+                             title = "T(rho,eps(rho,T))/T %s" % label))
