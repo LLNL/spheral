@@ -254,7 +254,7 @@ def plotFieldList(fieldList,
         plt.xlim(xmin, xmax)
         plt.ylim(ymin, ymax)
 
-    # That's it, return the Gnuplot object.
+    # That's it
     mpi.barrier()
     return plot
 
