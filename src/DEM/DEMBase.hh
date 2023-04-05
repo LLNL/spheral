@@ -1,6 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// DEMBase -- basic DEM package for Spheral++.
+// DEMBase -- The DEM base class package for Spheral++. THis class implements
+//            much of the machinery needs for DEM physics packages which 
+//            should all be derived from this class or one of its daughters
+//
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_DEMBase_hh__
 #define __Spheral_DEMBase_hh__
 

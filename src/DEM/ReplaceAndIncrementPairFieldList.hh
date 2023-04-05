@@ -5,7 +5,7 @@
 //                            into the new tangential plane of the particle-
 //                            particle contact.
 //
-// Created by JMP, Sun May 8 2022
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_ReplaceAndIncrementPairFieldList_hh__
 #define __Spheral_ReplaceAndIncrementPairFieldList_hh__

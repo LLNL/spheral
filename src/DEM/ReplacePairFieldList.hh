@@ -2,7 +2,7 @@
 // ReplacePairFieldList -- An implementation of FieldListUpdatePolicyBase appropriate for
 // when 'ya just want to Replace by derivatives:  x1 = x0 + A*dx/dt
 //
-// Created by JMO, Sun Oct 27 11:32:51 PDT 2013
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_ReplacePairFieldList_hh__
 #define __Spheral_ReplacePairFieldList_hh__

@@ -10,6 +10,7 @@
 // Shear and Cohesive Strengths," The Astrophysical Journal, (2018) 857:15, 20
 // 10.3847/1538-4357/aab5b2.
 //
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 

@@ -2,6 +2,7 @@
 // DEMFieldNames -- A collection of standard Field names for the DEM 
 // physics package.
 //
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #ifndef _Spheral_DEMFieldNames_
 #define _Spheral_DEMFieldNames_

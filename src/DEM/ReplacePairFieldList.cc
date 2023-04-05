@@ -1,6 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
 // ReplacePairFieldList -- An implementation of UpdatePolicyBase appropriate for
 // when 'ya just want to Replace by derivatives:  x1 = x0 + A*dx/dt
+//
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #include "DEM/ReplacePairFieldList.hh"
 #include "DataBase/State.hh"

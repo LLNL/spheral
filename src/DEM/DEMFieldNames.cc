@@ -2,6 +2,7 @@
 // DEMFieldNames -- A collection of standard Field names for the hydro 
 // physics package.
 //
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 
 #include "DEMFieldNames.hh"

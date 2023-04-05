@@ -1,6 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
 // IncrementPairFieldList -- An implementation of UpdatePolicyBase appropriate for
 // when 'ya just want to increment by derivatives:  x1 = x0 + A*dx/dt
+//
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #include "DEM/IncrementPairFieldList.hh"
 #include "DataBase/State.hh"
