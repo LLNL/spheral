@@ -1,9 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// DEMBase -- The DEM package for Spheral++.
+// DEMBase -- The DEM base class package for Spheral++. THis class implements
+//            much of the machinery needs for DEM physics packages which 
+//            should all be derived from this class or one of its daughters
 //
-//  NOT ADDING IF CONTACT IN ITITALIZED LIKE IN THE 2 PARTICLE TEST
-//  WE're going to use allFields(dataType) to generalize our pairFielldList operations
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
+
 #include "FileIO/FileIO.hh"
 
 #include "Hydro/HydroFieldNames.hh"

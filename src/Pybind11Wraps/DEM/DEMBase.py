@@ -90,7 +90,7 @@ class DEMBase(Physics):
         "set the equilibrium overlap pairwise fieldlist for comp. particle id's > specified value"
         return "void"
 
-    def initializeHfield(dataBase = "const DataBase<%(Dimension)s>&",
+    def initializeHfield(dataBase = "DataBase<%(Dimension)s>&",
                          uniqueIndex = "const int"):
         "set a good H value for the neighbor search based on the particle radius"
         return "void"
