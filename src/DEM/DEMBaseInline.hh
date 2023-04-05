@@ -72,6 +72,26 @@ cycle(int x) {
 }
 
 //------------------------------------------------------------------------------
+// buffer distance for contact detection
+//------------------------------------------------------------------------------
+
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+DEMBase<Dimension>::
+neighborSearchBuffer() const {
+  return mNeighborSearchBuffer;
+}
+
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+neighborSearchBuffer(typename Dimension::Scalar x) {
+  mNeighborSearchBuffer = x;
+}
+
+//------------------------------------------------------------------------------
 // CFL number (ratio to estimated contact duration)
 //------------------------------------------------------------------------------
 

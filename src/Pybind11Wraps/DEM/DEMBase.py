@@ -19,7 +19,8 @@ class DEMBase(Physics):
 """
     
     def pyinit(dataBase = "const DataBase<%(Dimension)s>&",
-               stepsPerCollision = "const double",
+               stepsPerCollision = "const Scalar",
+               neighborSearchBuffer = "const Scalar",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "DEMBase constructor"

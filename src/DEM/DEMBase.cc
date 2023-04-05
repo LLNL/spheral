@@ -73,12 +73,14 @@ template<typename Dimension>
 DEMBase<Dimension>::
 DEMBase(const DataBase<Dimension>& dataBase,
         const Scalar stepsPerCollision,
+        const Scalar neighborSearchBuffer,
         const Vector& xmin,
         const Vector& xmax):
   Physics<Dimension>(),
   mDataBase(dataBase),
   mCycle(0),
   mContactRemovalFrequency((int)stepsPerCollision),
+  mNeighborSearchBuffer(neighborSearchBuffer),
   mStepsPerCollision(stepsPerCollision),
   mxmin(xmin),
   mxmax(xmax),
@@ -253,6 +255,8 @@ void
 DEMBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
   TIME_BEGIN("DEMinitializeProblemStartup");
+
+  this->initializeHfield(dataBase,0);
 
   auto particleRadius = dataBase.DEMParticleRadius();
   auto particleIndex = dataBase.DEMCompositeParticleIndex();
@@ -556,6 +560,39 @@ restoreState(const FileIO& file, const string& pathName) {
 template<typename Dimension>
 void
 DEMBase<Dimension>::
+initializeHfield(DataBase<Dimension>& dataBase, const int uniqueIndex){
+
+  const auto numNodeLists = dataBase.numNodeLists();
+  const auto maxKernelExtent = dataBase.maxKernelExtent();
+
+  const auto& radius = dataBase.DEMParticleRadius();
+  auto Hfield = dataBase.DEMHfield();
+
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+    const auto& nodeList = radius[nodeListi]->nodeList();
+
+    const auto ni = nodeList.numInternalNodes();
+#pragma omp parallel for
+    for (auto i = 0u; i < ni; ++i) {
+
+        const auto ui = mUniqueIndices(nodeListi,i);
+
+        if(ui >= uniqueIndex){
+          const auto Ri = radius(nodeListi,i);
+          auto& Hi = Hfield(nodeListi,i);
+          const auto hInv = safeInv(2.0 * Ri * (1.0+mNeighborSearchBuffer)/maxKernelExtent);
+          Hi = SymTensor::one * hInv;
+        }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// when problem starts set our equilibrium overlap
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DEMBase<Dimension>::
 initializeOverlap(const DataBase<Dimension>& dataBase, const int startingCompositeParticleIndex){
 
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -599,7 +636,6 @@ initializeOverlap(const DataBase<Dimension>& dataBase, const int startingComposi
     }
   }
 }
-
 //------------------------------------------------------------------------------
 // Redistribution methods -- before we redistribute, we are going to make sure
 // that each node in the pairwise interactions agrees regarding the stored

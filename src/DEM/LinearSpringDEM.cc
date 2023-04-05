@@ -73,9 +73,10 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
                 const Scalar cohesiveTensileStrength,
                 const Scalar shapeFactor,
                 const Scalar stepsPerCollision,
+                const Scalar neighborSearchBuffer,
                 const Vector& xmin,
                 const Vector& xmax):
-  DEMBase<Dimension>(dataBase,stepsPerCollision,xmin,xmax),
+  DEMBase<Dimension>(dataBase,stepsPerCollision,neighborSearchBuffer,xmin,xmax),
   mNormalSpringConstant(normalSpringConstant),
   mNormalRestitutionCoefficient(normalRestitutionCoefficient),
   mTangentialSpringConstant(tangentialSpringConstant),
@@ -118,8 +119,12 @@ dt(const DataBase<Dimension>& dataBase,
                                                          this->requireIntersectionConnectivity());
   const auto& pairs = connectivityMap.nodePairList();
 
+  // buffer distance used to set the max allowable timestep
+  const auto f = this->neighborSearchBuffer();
+
   // Compute the spring timestep constraint (except for the mass)
   const auto nsteps = this->stepsPerCollision();
+
   CHECK(nsteps > 0);
   const auto dtSpring0 = M_PI*std::sqrt(0.5/mNormalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)))/nsteps;
 
@@ -128,17 +133,22 @@ dt(const DataBase<Dimension>& dataBase,
   TimeStepType result(dtMin, "DEM error, this message should not get to the end");
   for (const auto& pair: pairs) {
 
+    const auto nodeListi = pair.i_list;
+    const auto nodeListj = pair.j_list;
+    const auto i = pair.i_node;
+    const auto j = pair.j_node;
+
     // node i
-    const auto  mi = mass(pair.i_list, pair.i_node);
-    const auto& xi = position(pair.i_list, pair.i_node);
-    const auto& vi = velocity(pair.i_list, pair.i_node);
-    const auto  ri = r(pair.i_list, pair.i_node);
+    const auto  mi = mass(nodeListi, i);
+    const auto& xi = position(nodeListi, i);
+    const auto& vi = velocity(nodeListi, i);
+    const auto  ri = r(nodeListi, i);
 
     // node j
-    const auto  mj = mass(pair.j_list, pair.j_node);
-    const auto& xj = position(pair.j_list, pair.j_node);
-    const auto& vj = velocity(pair.j_list, pair.j_node);
-    const auto  rj = r(pair.j_list, pair.j_node);
+    const auto  mj = mass(nodeListj, j);
+    const auto& xj = position(nodeListj, j);
+    const auto& vj = velocity(nodeListj, j);
+    const auto  rj = r(nodeListj, j);
     
     // Spring constant timestep for this pair
     const auto dtSpringij = dtSpring0*std::sqrt(std::min(mi, mj));
@@ -173,12 +183,12 @@ dt(const DataBase<Dimension>& dataBase,
     }
   }
 
-  // Ensure no point moves more than its own radius in a step
+  // Ensure no point moves further than the buffer distance in one timestep
   const auto numNodeLists = position.size();
   for (auto k = 0u; k < numNodeLists; ++k) {
     const auto n = position[k]->size();
     for (auto i = 0u; i < n; ++i) {
-      const auto dti = 0.5*r(k,i)*safeInvVar(velocity(k,i).magnitude());
+      const auto dti = 0.5*f*r(k,i)*safeInvVar(velocity(k,i).magnitude());
       if (dti < dtMin) {
         dtMin = dti;
         result = make_pair(dti,

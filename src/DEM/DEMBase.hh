@@ -37,6 +37,7 @@ public:
   // Constructors.
   DEMBase(const DataBase<Dimension>& dataBase,
           const Scalar stepsPerCollision,
+          const Scalar neighborSearchBuffer,
           const Vector& xmin,
           const Vector& xmax);
 
@@ -126,6 +127,8 @@ public:
 
   void initializeOverlap(const DataBase<Dimension>& dataBase, const int startingCompositeParticleIndex);
 
+  void initializeHfield(DataBase<Dimension>& dataBase, const int uniqueIndex);
+
   void updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase);
 
   void updateContactMap(const DataBase<Dimension>& dataBase);
@@ -138,6 +141,9 @@ public:
   const Vector& xmax() const;
   void xmin(const Vector& x);
   void xmax(const Vector& x);
+
+  Scalar neighborSearchBuffer() const;
+  void   neighborSearchBuffer(Scalar x);
 
   Scalar stepsPerCollision() const;
   void   stepsPerCollision(Scalar x);
@@ -199,7 +205,12 @@ protected:
 
   int mCycle;
   int mContactRemovalFrequency;
-  
+
+  // nondimensional buffer distance (in particle radii)
+  // which causes DEM to register a pairwise interaction
+  // before contact is actually made.
+  Scalar mNeighborSearchBuffer;
+
   // number of steps per collision time-scale
   Scalar mStepsPerCollision;              
 
