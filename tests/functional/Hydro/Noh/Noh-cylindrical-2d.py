@@ -662,7 +662,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes1)
     nodes1.pressure(P)
     xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)

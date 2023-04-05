@@ -488,11 +488,11 @@ P = mpi.allreduce(list(Pf.internalValues()), mpi.SUM)
 A = mpi.allreduce([Pi/(rhoi**gamma) for (Pi, rhoi) in zip(Pf.internalValues(), nodes1.massDensity().internalValues())], mpi.SUM)
 
 rans, vans, epsans, rhoans, Pans, Aans, hans = answer.solution(control.time(), r)
-from SpheralGnuPlotUtilities import multiSort
+from SpheralTestUtilities import multiSort
 multiSort(r, rho, v, eps, P, A, rhoans, vans, epsans, Pans, hans)
 
 if mpi.rank == 0:
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     import Pnorm
     multiSort(r, rho, v, eps, P, A)
     print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")

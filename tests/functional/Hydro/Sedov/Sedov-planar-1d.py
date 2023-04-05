@@ -430,7 +430,7 @@ hr = mpi.allreduce([x.xx for x in Hinverse[0].internalValues()], mpi.SUM)
 
 Aans = None
 if mpi.rank == 0:
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     import Pnorm
     multiSort(r, rho, v, eps, P, A, hr)
     rans, vans, epsans, rhoans, Pans, Aans, hans = answer.solution(control.time(), r)

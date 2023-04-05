@@ -371,7 +371,7 @@ print("Total energy error: %g" % Eerror)
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
     P = ScalarField("pressure", nodes1)

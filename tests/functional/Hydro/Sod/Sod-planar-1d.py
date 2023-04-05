@@ -727,7 +727,7 @@ print("Energy conservation: original=%g, final=%g, error=%g" % (control.conserve
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-from SpheralGnuPlotUtilities import multiSort
+from SpheralTestUtilities import multiSort
 mof = mortonOrderIndices(db)
 mo = createList(mof)
 rhoprof = createList(db.fluidMassDensity)

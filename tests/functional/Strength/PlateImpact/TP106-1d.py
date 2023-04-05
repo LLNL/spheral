@@ -395,7 +395,7 @@ else:
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
 if outputFile != "None":
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     state = State(db, integrator.physicsPackages())
     outputFile = os.path.join(dataDir, outputFile)
     pos = state.vectorFields(HydroFieldNames.position)

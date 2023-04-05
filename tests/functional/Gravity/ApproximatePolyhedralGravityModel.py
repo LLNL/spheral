@@ -7,7 +7,6 @@
 #-------------------------------------------------------------------------------
 from Spheral3d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
 from NodeHistory import *
 from PolyhedronFileUtilities import *
 from SpheralVisitDump import dumpPhysicsState

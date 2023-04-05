@@ -451,7 +451,7 @@ for nx1 in nxlist:
     # If requested, write out the state in a global ordering to a file.
     #-------------------------------------------------------------------------------
 
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)

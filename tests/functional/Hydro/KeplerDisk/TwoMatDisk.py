@@ -505,7 +505,7 @@ else:
 
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     P1 = ScalarField("pressure",diskNodes1)
     P2 = ScalarField("pressure",diskNodes2)
     diskNodes1.pressure(P1)

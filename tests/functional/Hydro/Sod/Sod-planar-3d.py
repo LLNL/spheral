@@ -12,7 +12,7 @@ else:
     from DistributeNodes import distributeNodes3d
 
 import Pnorm
-from SpheralGnuPlotUtilities import multiSort
+from SpheralTestUtilities import multiSort
 from SpheralMatplotlib import *
 
 title("3-D integrated hydro test -- planar Sod problem")
