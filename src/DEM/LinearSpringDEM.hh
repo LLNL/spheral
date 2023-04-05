@@ -100,6 +100,12 @@ public:
   Scalar tangentialBeta() const;
   void   tangentialBeta(Scalar x);
 
+  //****************************************************************************
+  // Methods required for restarting.
+  virtual std::string label() const override { return "LinearSpringDEM" ; }
+  //virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  //virtual void restoreState(const FileIO& file, const std::string& pathName);
+  //****************************************************************************
 private:
   //--------------------------- Private Interface ---------------------------//
   Scalar mNormalSpringConstant;
