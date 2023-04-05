@@ -109,6 +109,9 @@ public:
   // special methods for the pair fields if you add pairFieldLists 
   // make sure to follow the pattern in these methods.
   virtual
+  void resizePairFieldLists();
+
+  virtual
   void resizeDerivativePairFieldLists(StateDerivatives<Dimension>& derivs) const;
 
   virtual

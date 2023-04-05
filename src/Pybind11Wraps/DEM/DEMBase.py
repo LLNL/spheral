@@ -92,7 +92,11 @@ class DEMBase(Physics):
     def updateContactMapAndNeighborIndices(dataBase = "const DataBase<%(Dimension)s>&"):
         "update DEM contact/neighbor tracker"
         return "void"
-        
+
+    def resizePairFieldLists(self):
+        "resize all pair fieldlists consistent w/ neighborIndices"
+        return "void"
+
     @PYB11const
     def momentOfInertia(massi = "const Scalar",
                         partialRadiusi = "const Scalar"):

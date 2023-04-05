@@ -137,6 +137,26 @@ DEMBase<Dimension>::
 }
 
 //------------------------------------------------------------------------------
+// update numContacts for pair state field lists
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DEMBase<Dimension>::
+resizePairFieldLists() {
+  this->addContactsToPairFieldList(mEquilibriumOverlap,0.0);
+  this->addContactsToPairFieldList(mShearDisplacement,Vector::zero);
+  this->addContactsToPairFieldList(mRollingDisplacement,Vector::zero);
+  this->addContactsToPairFieldList(mTorsionalDisplacement,0.0);
+  this->addContactsToPairFieldList(mIsActiveContact,0.0);
+  this->addContactsToPairFieldList(mDDtShearDisplacement,Vector::zero);
+  this->addContactsToPairFieldList(mNewShearDisplacement,Vector::zero);
+  this->addContactsToPairFieldList(mDDtRollingDisplacement,Vector::zero);
+  this->addContactsToPairFieldList(mNewRollingDisplacement,Vector::zero);
+  this->addContactsToPairFieldList(mDDtTorsionalDisplacement,0.0);
+  this->addContactsToPairFieldList(mNewTorsionalDisplacement,0.0);
+}
+
+//------------------------------------------------------------------------------
 // update numContacts for pair derivatives field lists
 //------------------------------------------------------------------------------
 template<typename Dimension>
