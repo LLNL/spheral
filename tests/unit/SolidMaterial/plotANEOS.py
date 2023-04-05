@@ -1,7 +1,6 @@
 from Spheral3d import *
-from SpheralGnuPlotUtilities import *
-import matplotlib.pyplot as plt
 from SpheralMatplotlib import plotSurface
+import matplotlib.pyplot as plt
 import numpy as np
 
 # We'll work in CGuS units.
