@@ -61,6 +61,11 @@ class SpheralController:
         self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
         self._break = False
 
+        # test of dem if so throw in a default kernel (all we need is the extent)
+        self.isDEM = self.packagesContainDEM(integrator.physicsPackages())
+        if self.isDEM and kernel is None:
+            kernel = eval("TableKernel{0}d(WendlandC2Kernel{0}d(), 100)".format(integrator.dataBase.nDim))
+
         # Extract the interpolation kernel for iterating H and such
         if kernel is None:
             for package in integrator.physicsPackages():
@@ -936,3 +941,13 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         # That's about it.
         setRho()
         return
+
+    #---------------------------------------------------------------------------
+    # boolean check if we're running DEM instead of SPH
+    #---------------------------------------------------------------------------
+    def packagesContainDEM(self,packages):
+        result = False
+        for package in packages:
+            if eval("isinstance(package,DEMBase{0}d)".format(self.integrator.dataBase.nDim)):
+                result = True
+        return result
