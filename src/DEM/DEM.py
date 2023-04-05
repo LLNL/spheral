@@ -35,7 +35,7 @@ def LinearSpringDEM(dataBase,
     assert rollingFrictionCoefficient >= 0, "rollingFrictionCoefficient must be positive"
     assert torsionalFrictionCoefficient >= 0, "torsionalFrictionCoefficient must be positive"
 
-    if (stepsPerCollision < 10) print("WARNING: stepsPerCollision is very low, reccomended is 25-50")
+    #if (stepsPerCollision < 10) print("WARNING: stepsPerCollision is very low, reccomended is 25-50")
 
     # we might want to allow the user to set less parameters with reasonable defaults
     #if tangentialSpringConstant is None:
