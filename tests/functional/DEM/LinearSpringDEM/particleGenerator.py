@@ -296,7 +296,7 @@ class DEMInflow:
             # fields
     	    mas = self.nodeList.mass()
             rad = self.nodeList.particleRadius()
-            H   = self.nodeList.Hfield()
+            #H   = self.nodeList.Hfield()
             pos = self.nodeList.positions()
             vel = self.nodeList.velocity()
             cId = self.nodeList.compositeParticleIndex()
@@ -315,7 +315,7 @@ class DEMInflow:
                     rad[k] = particles[i].radius[j]
                     pos[k] = particles[i].position[j]
                     vel[k] = self.inflowVelocity
-                    H[k]   = SymTensor.one * 0.25 / rad[k]
+                    #H[k]   = SymTensor.one * 0.25 / rad[k]
                     cId[k] = cIdi
                     uId[k] = uIdi
                     k += 1
@@ -324,6 +324,7 @@ class DEMInflow:
 
         # maybeeee we need to updat those neighbors too???? 
         #print self.nodeList.numInternalNodes
+        self.dem.initializeHfield(db,cId0+1)
         self.db.reinitializeNeighbors()
     	self.db.updateConnectivityMap()
     	self.dem.updateContactMapAndNeighborIndices(db)
