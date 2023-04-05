@@ -47,7 +47,6 @@ public:
                   const Scalar cohesiveTensileStrength,
                   const Scalar shapeFactor,
                   const Scalar stepsPerCollision,
-                  const Scalar neighborSearchBuffer,
                   const Vector& xmin,
                   const Vector& xmax);
 

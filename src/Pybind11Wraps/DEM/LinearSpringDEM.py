@@ -26,7 +26,6 @@ class LinearSpringDEM(DEMBase):
                cohesiveTensileStrength = "const Scalar",
                shapeFactor = "const Scalar",
                stepsPerCollision = "const Scalar",
-               neighborSearchBuffer = "const Scalar",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "DEMBase constructor"

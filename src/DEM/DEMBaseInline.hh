@@ -71,25 +71,6 @@ cycle(int x) {
   mCycle = x;
 }
 
-//------------------------------------------------------------------------------
-// buffer distance for contact detection
-//------------------------------------------------------------------------------
-
-template<typename Dimension>
-inline
-typename Dimension::Scalar
-DEMBase<Dimension>::
-neighborSearchBuffer() const {
-  return mNeighborSearchBuffer;
-}
-
-template<typename Dimension>
-inline
-void
-DEMBase<Dimension>::
-neighborSearchBuffer(typename Dimension::Scalar x) {
-  mNeighborSearchBuffer = x;
-}
 
 //------------------------------------------------------------------------------
 // CFL number (ratio to estimated contact duration)
@@ -152,14 +133,6 @@ const FieldList<Dimension, typename DEMDimension<Dimension>::AngularVector>&
 DEMBase<Dimension>::
 omega() const {
   return mOmega;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, int>&
-DEMBase<Dimension>::
-uniqueIndices() const {
-  return mUniqueIndices;
 }
 
 

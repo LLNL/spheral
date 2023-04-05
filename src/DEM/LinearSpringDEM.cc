@@ -73,10 +73,9 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
                 const Scalar cohesiveTensileStrength,
                 const Scalar shapeFactor,
                 const Scalar stepsPerCollision,
-                const Scalar neighborSearchBuffer,
                 const Vector& xmin,
                 const Vector& xmax):
-  DEMBase<Dimension>(dataBase,stepsPerCollision,neighborSearchBuffer,xmin,xmax),
+  DEMBase<Dimension>(dataBase,stepsPerCollision,xmin,xmax),
   mNormalSpringConstant(normalSpringConstant),
   mNormalRestitutionCoefficient(normalRestitutionCoefficient),
   mTangentialSpringConstant(tangentialSpringConstant),
@@ -120,7 +119,7 @@ dt(const DataBase<Dimension>& dataBase,
   const auto& pairs = connectivityMap.nodePairList();
 
   // buffer distance used to set the max allowable timestep
-  const auto f = this->neighborSearchBuffer();
+  const auto f = dataBase.maxNeighborSearchBuffer();
 
   // Compute the spring timestep constraint (except for the mass)
   const auto nsteps = this->stepsPerCollision();

@@ -20,7 +20,6 @@ class DEMBase(Physics):
     
     def pyinit(dataBase = "const DataBase<%(Dimension)s>&",
                stepsPerCollision = "const Scalar",
-               neighborSearchBuffer = "const Scalar",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "DEMBase constructor"
@@ -88,11 +87,6 @@ class DEMBase(Physics):
     def initializeOverlap(dataBase = "const DataBase<%(Dimension)s>&",
                           startCompositeParticleIndex = "const int"):
         "set the equilibrium overlap pairwise fieldlist for comp. particle id's > specified value"
-        return "void"
-
-    def initializeHfield(dataBase = "const DataBase<%(Dimension)s>&",
-                         uniqueIndex = "const int"):
-        "set a good H value for the neighbor search based on the particle radius"
         return "void"
 
     def updateContactMapAndNeighborIndices(dataBase = "const DataBase<%(Dimension)s>&"):

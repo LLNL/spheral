@@ -34,8 +34,7 @@ commandLine(numParticlePerLength = 3,                 # number of particles on a
             torsionalFriction = 1.3,                  # static friction coefficient for torsion
             cohesiveTensileStrength = 0.0,            # units of pressure
             shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
-            nPerh = 1.01,                             # this should basically always be 1 for DEM
-
+            
             # integration
             IntegratorConstructor = VerletIntegrator,
             stepsPerCollision = 50,  # replaces CFL for DEM
@@ -97,20 +96,10 @@ if restoreCycle is None:
     restoreCycle = findLastRestart(restartBaseName)
 
 #-------------------------------------------------------------------------------
-# This doesn't really matter kernel filler for neighbor algo
-#-------------------------------------------------------------------------------
-WT = TableKernel(WendlandC2Kernel(), 1000)
-
-#-------------------------------------------------------------------------------
 # Make the NodeList.
 #-------------------------------------------------------------------------------
 units = CGuS()
-nodes1 = makeDEMNodeList("nodeList1",
-                          hmin = 1.0e-30,
-                          hmax = 1.0e30,
-                          hminratio = 100.0,
-                          nPerh = nPerh,
-                          kernelExtent = WT.kernelExtent)
+nodes1 = makeDEMNodeList("nodeList1")
 nodeSet = [nodes1]
 for nodes in nodeSet:
     output("nodes.name")
@@ -275,20 +264,18 @@ class DEMInflow:
         self.inflowVelocity = inflowVelocity
         self.maxParticleRadius = maxParticleRadius
 
-    	self.dtGen = maxParticleRadius/inflowVelocity.magnitude()*1.1
+    	self.dtGen = maxParticleRadius/inflowVelocity.magnitude()*1.5
     	self.tGen = -self.dtGen
   	
     def addParticles(self,particles):
-       
+        
+        numParticles = len(particles)
+    	cId0 = max(self.db.DEMCompositeParticleIndex.max(),-1)
+    	uId0 = max(self.dem.uniqueIndices.max(),-1)
+
         if mpi.rank == 0:
 
             # set the particle unique and composite indices
-    	    numParticles = len(particles)
-    	    cId0 = max(self.db.DEMCompositeParticleIndex.max(),-1)
-    	    uId0 = max(self.dem.uniqueIndices.max(),-1)
-            print self.nodeList.numInternalNodes
-            print cId0
-            print uId0
             numNewParticles = 0
     	    for particle in particles:
     	        numNewParticles += particle.numSubParticles
@@ -296,7 +283,6 @@ class DEMInflow:
             # fields
     	    mas = self.nodeList.mass()
             rad = self.nodeList.particleRadius()
-            #H   = self.nodeList.Hfield()
             pos = self.nodeList.positions()
             vel = self.nodeList.velocity()
             cId = self.nodeList.compositeParticleIndex()
@@ -311,20 +297,18 @@ class DEMInflow:
 
             for i in range(numParticles):
                 for j in range(particles[i].numSubParticles):
+                    print k, uId[k], uIdi
                     mas[k] = particles[i].mass[j]
                     rad[k] = particles[i].radius[j]
                     pos[k] = particles[i].position[j]
-                    vel[k] = self.inflowVelocity
-                    #H[k]   = SymTensor.one * 0.25 / rad[k]
-                    cId[k] = cIdi
-                    uId[k] = uIdi
+                    vel[k] = self.inflowVelocity+Vector((random.random()-0.5),(random.random()-0.5),(random.random()-0.5))
+                    cId[k] = 1*cIdi
+                    uId[k] = 1*uIdi
                     k += 1
-                    uId += 1
+                    uIdi += 1
                 cIdi += 1   
-
-        # maybeeee we need to updat those neighbors too???? 
-        #print self.nodeList.numInternalNodes
-        self.dem.initializeHfield(db,cId0+1)
+        
+        self.dem.initializeHfield(db,uId0+1)
         self.db.reinitializeNeighbors()
     	self.db.updateConnectivityMap()
     	self.dem.updateContactMapAndNeighborIndices(db)
@@ -353,8 +337,8 @@ class CubeParticle:
                  cubeMass,
                  cubeCenterOfMass,
                  cubeSideLength,
-                 overLapPercentage = 20,
-                 numParticlesPerLength = 3):
+                 overLapPercentage = 40,
+                 numParticlesPerLength = 4):
 
         self.numSubParticles = numParticlesPerLength ** 3
         self.mass=[]
@@ -387,9 +371,9 @@ class CubeParticle:
 
 inflow = DEMInflow(nodes, db, dem,
                  1.0,
-                 Vector(0.0,0.0, 3.1),
+                 Vector(0.0,0.0, 10.1),
                  Vector(0.0,0.0,-1.0),
-                 Vector(0.0,0.0, -0.01),
+                 Vector(0.0,0.0, -1.0),
                  1.0)
 periodicWork += [(inflow,1)]   
 # MPI = 1 
@@ -404,15 +388,6 @@ periodicWork += [(inflow,1)]
 # random point in a disk
 
 
-# for i in range(db.numNodeLists):
-#    nodeListi = nodeLists[i]
-#    numNodes = nodeListi.numInternalNodes
-#    v = velocity[i]
-#    p = position[i]
-#    for j in range(numNodes):
-#         #radius[i][j] *= 1.5
-#         compositeParticleIndex[i][j]=1
-#         velocity[i][j] = Vector((random.random()-0.5),(random.random()-0.5),(random.random()-0.5))
 
 
 #-------------------------------------------------------------------------------
@@ -429,7 +404,7 @@ periodicWork += [(inflow,1)]
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 from SpheralPointmeshSiloDump import dumpPhysicsState
-control = SpheralController(integrator, WT,
+control = SpheralController(integrator,
                             iterateInitialH = False,
                             initializeDerivatives = True,
                             statsStep = statsStep,
@@ -443,10 +418,8 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = SPH,
                             periodicWork=periodicWork)
 output("control")
-
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.

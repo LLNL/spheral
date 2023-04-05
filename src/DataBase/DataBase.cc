@@ -1414,7 +1414,23 @@ DataBase<Dimension>::DEMParticleRadius() const {
 
 
 //------------------------------------------------------------------------------
-// Return the DEM Particle Radii
+// Return the DEM unique particle index
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, int>
+DataBase<Dimension>::DEMUniqueIndex() const {
+  REQUIRE(valid());
+  FieldList<Dimension, int> result;
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->uniqueIndex());
+  }
+  return result;
+}
+
+
+//------------------------------------------------------------------------------
+// Return the DEM composite particle index
 //------------------------------------------------------------------------------
 template<typename Dimension>
 FieldList<Dimension, int>
@@ -1426,6 +1442,19 @@ DataBase<Dimension>::DEMCompositeParticleIndex() const {
     result.appendField((*nodeListItr)->compositeParticleIndex());
   }
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the DEM Particle Radii
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DataBase<Dimension>::setDEMHfieldFromParticleRadius(const int startUniqueIndex) {
+  REQUIRE(valid());
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    (*nodeListItr)->setHfieldFromParticleRadius(startUniqueIndex);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -1727,6 +1756,20 @@ maxKernelExtent() const {
   for (ConstNodeListIterator nodeListItr = nodeListBegin();
        nodeListItr != nodeListEnd();
        ++nodeListItr) result = std::max(result, (**nodeListItr).neighbor().kernelExtent());
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// The maximum kernel extent being used.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+DataBase<Dimension>::
+maxNeighborSearchBuffer() const {
+  Scalar result = 0.0;
+  for (ConstDEMNodeListIterator DEMNodeListItr = DEMNodeListBegin();
+       DEMNodeListItr != DEMNodeListEnd();
+       ++DEMNodeListItr) result = std::max(result, (**DEMNodeListItr).neighborSearchBuffer());
   return result;
 }
 
