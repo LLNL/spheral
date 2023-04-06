@@ -140,13 +140,11 @@ template<typename Dimension>
 void
 DEMNodeList<Dimension>::
 setHfieldFromParticleRadius(const int startUniqueIndex){
-
+  
   const auto kernelExtent = this->neighbor().kernelExtent();
-
   const auto& radius = this->particleRadius();
   const auto& uniqId = this->uniqueIndex();
-  auto Hfield = this->Hfield();
-  
+  auto& Hfield = this->Hfield();
   const auto ni = this->numInternalNodes();
 
 #pragma omp parallel for
@@ -155,7 +153,6 @@ setHfieldFromParticleRadius(const int startUniqueIndex){
     if(ui >= startUniqueIndex){
       const auto Ri = radius[i];
       auto& Hi = Hfield[i];
-
       const auto hInv = safeInv(2.0 * Ri * (1.0+mNeighborSearchBuffer)/kernelExtent);
       Hi = SymTensor::one * hInv;
     }

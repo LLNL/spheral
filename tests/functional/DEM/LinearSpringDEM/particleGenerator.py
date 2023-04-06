@@ -99,7 +99,7 @@ if restoreCycle is None:
 # Make the NodeList.
 #-------------------------------------------------------------------------------
 units = CGuS()
-nodes1 = makeDEMNodeList("nodeList1")
+nodes1 = makeDEMNodeList("nodeList1",)
 nodeSet = [nodes1]
 for nodes in nodeSet:
     output("nodes.name")
@@ -197,7 +197,7 @@ H = db.DEMHfield
 radius = db.DEMParticleRadius
 compositeParticleIndex = db.DEMCompositeParticleIndex
 
-uniqueIndex = dem.uniqueIndices
+uniqueIndex = db.DEMUniqueIndex
 omega = dem.omega
 
 #-------------------------------------------------------------------------------
@@ -271,7 +271,7 @@ class DEMInflow:
         
         numParticles = len(particles)
     	cId0 = max(self.db.DEMCompositeParticleIndex.max(),-1)
-    	uId0 = max(self.dem.uniqueIndices.max(),-1)
+    	uId0 = max(self.db.DEMUniqueIndex.max(),-1)
 
         if mpi.rank == 0:
 
@@ -286,8 +286,8 @@ class DEMInflow:
             pos = self.nodeList.positions()
             vel = self.nodeList.velocity()
             cId = self.nodeList.compositeParticleIndex()
-            uId = self.dem.uniqueIndices.fieldForNodeList(self.nodeList)
-
+            uId = self.nodeList.uniqueIndex()
+            H = self.nodeList.Hfield()
             # initial new nodes and fill in the data
             k = self.nodeList.numInternalNodes
             cIdi = cId0+1
@@ -302,13 +302,14 @@ class DEMInflow:
                     rad[k] = particles[i].radius[j]
                     pos[k] = particles[i].position[j]
                     vel[k] = self.inflowVelocity+Vector((random.random()-0.5),(random.random()-0.5),(random.random()-0.5))
+                    #H[k] = 1.0/(2.0 * rad[k] *1.1) * SymTensor.one
                     cId[k] = 1*cIdi
                     uId[k] = 1*uIdi
                     k += 1
                     uIdi += 1
                 cIdi += 1   
-        
-        self.dem.initializeHfield(db,uId0+1)
+
+        self.db.setDEMHfieldFromParticleRadius(uId0+1)
         self.db.reinitializeNeighbors()
     	self.db.updateConnectivityMap()
     	self.dem.updateContactMapAndNeighborIndices(db)

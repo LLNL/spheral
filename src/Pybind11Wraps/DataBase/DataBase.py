@@ -650,7 +650,7 @@ will get the new value regardless of resetValues."""
     DEMParticleRadius = PYB11property("FieldList<%(Dimension)s, Scalar>")
     DEMHfield = PYB11property("FieldList<%(Dimension)s, SymTensor>")
     DEMCompositeParticleIndex = PYB11property("FieldList<%(Dimension)s, int>")
-    #DEMUniqueIndex = PYB11property("FieldList<%(Dimension)s, int>") 
+    DEMUniqueIndex = PYB11property("FieldList<%(Dimension)s, int>") 
 
     globalNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")
     fluidNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")
