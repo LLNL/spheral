@@ -9,6 +9,7 @@ dims = spheralDimensions()
 DEMNodeListFactoryString = """
 
 def makeDEMNodeList%(dim)s(name,
+                           neighborSearchBuffer = 0.1,
                            numInternal = 0,
                            numGhost = 0,
                            hmin = 1.0e-20,
@@ -33,7 +34,7 @@ def makeDEMNodeList%(dim)s(name,
                            xmax = Vector%(dim)s.one *  10.0):
     result = DEMNodeList%(dim)s(name, numInternal, numGhost, 
                                   hmin, hmax, hminratio, 
-                                  nPerh, maxNumNeighbors)
+                                  nPerh, neighborSearchBuffer, maxNumNeighbors)
 
     if NeighborType == NestedGridNeighbor%(dim)s:
         print "makeDEMNodeList Deprecation Warning: NestedGridNeighbor is deprecated: suggest using TreeNeighbor."

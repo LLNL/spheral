@@ -75,14 +75,12 @@ template<typename Dimension>
 DEMBase<Dimension>::
 DEMBase(const DataBase<Dimension>& dataBase,
         const Scalar stepsPerCollision,
-        const Scalar neighborSearchBuffer,
         const Vector& xmin,
         const Vector& xmax):
   Physics<Dimension>(),
   mDataBase(dataBase),
   mCycle(0),
   mContactRemovalFrequency((int)stepsPerCollision),
-  mNeighborSearchBuffer(neighborSearchBuffer),
   mStepsPerCollision(stepsPerCollision),
   mxmin(xmin),
   mxmax(xmax),
@@ -91,7 +89,6 @@ DEMBase(const DataBase<Dimension>& dataBase,
   mDvDt(FieldStorageType::CopyFields),
   mOmega(FieldStorageType::CopyFields),
   mDomegaDt(FieldStorageType::CopyFields),
-  mUniqueIndices(FieldStorageType::CopyFields),
   mNeighborIndices(FieldStorageType::CopyFields),
   mEquilibriumOverlap(FieldStorageType::CopyFields),
   mShearDisplacement(FieldStorageType::CopyFields),
@@ -115,8 +112,6 @@ DEMBase(const DataBase<Dimension>& dataBase,
     mOmega = dataBase.newDEMFieldList(DEMDimension<Dimension>::zero, DEMFieldNames::angularVelocity);
     mDomegaDt = dataBase.newDEMFieldList(DEMDimension<Dimension>::zero, IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity);
     
-    mUniqueIndices = dataBase.newDEMFieldList(int(0),  DEMFieldNames::uniqueIndices);
-    mUniqueIndices += globalNodeIDs<Dimension>(dataBase.nodeListBegin(),dataBase.nodeListEnd()); 
     mIsActiveContact = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::isActiveContact);
     mNeighborIndices = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::neighborIndices);
     mShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), DEMFieldNames::shearDisplacement);
@@ -258,7 +253,7 @@ DEMBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
   TIME_BEGIN("DEMinitializeProblemStartup");
 
-  this->initializeHfield(dataBase,0);
+  dataBase.setDEMHfieldFromParticleRadius(0);
 
   auto particleRadius = dataBase.DEMParticleRadius();
   auto particleIndex = dataBase.DEMCompositeParticleIndex();
@@ -294,7 +289,6 @@ registerState(DataBase<Dimension>& dataBase,
 
   dataBase.resizeDEMFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
   dataBase.resizeDEMFieldList(mOmega, DEMDimension<Dimension>::zero, DEMFieldNames::angularVelocity, false);
-  dataBase.resizeDEMFieldList(mUniqueIndices, 0, DEMFieldNames::uniqueIndices, false);
   dataBase.resizeDEMFieldList(mIsActiveContact, vector<int>(), DEMFieldNames::isActiveContact, false);
   dataBase.resizeDEMFieldList(mNeighborIndices, vector<int>(), DEMFieldNames::neighborIndices, false);
   dataBase.resizeDEMFieldList(mShearDisplacement, vector<Vector>(), DEMFieldNames::shearDisplacement, false);
@@ -308,6 +302,7 @@ registerState(DataBase<Dimension>& dataBase,
   auto Hfield = dataBase.DEMHfield();
   auto radius = dataBase.DEMParticleRadius();
   auto compositeParticleIndex = dataBase.DEMCompositeParticleIndex();
+  auto uniqueIndex = dataBase.DEMUniqueIndex();
 
   PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
   PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,true));
@@ -321,7 +316,7 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(radius);
   state.enroll(Hfield);
   state.enroll(compositeParticleIndex);
-  state.enroll(mUniqueIndices);
+  state.enroll(uniqueIndex);
   state.enroll(position, positionPolicy);
   state.enroll(velocity, velocityPolicy);
   state.enroll(mOmega, angularVelocityPolicy);
@@ -448,10 +443,12 @@ applyGhostBoundaries(State<Dimension>& state,
   auto angularVelocity = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
   auto compositeParticleIndex = state.fields(DEMFieldNames::compositeParticleIndex,int(0));
+  auto uniqueIndex = state.fields(DEMFieldNames::uniqueIndices,int(0));
+
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
-    (*boundaryItr)->applyFieldListGhostBoundary(mUniqueIndices);
+    (*boundaryItr)->applyFieldListGhostBoundary(uniqueIndex);
     (*boundaryItr)->applyFieldListGhostBoundary(mass);
     (*boundaryItr)->applyFieldListGhostBoundary(velocity);
     (*boundaryItr)->applyFieldListGhostBoundary(angularVelocity);
@@ -476,10 +473,12 @@ enforceBoundaries(State<Dimension>& state,
   auto angularVelocity = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
   auto compositeParticleIndex = state.fields(DEMFieldNames::compositeParticleIndex,int(0));
+  auto uniqueIndex = state.fields(DEMFieldNames::uniqueIndices,int(0));
+
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
-    (*boundaryItr)->enforceFieldListBoundary(mUniqueIndices);
+    (*boundaryItr)->enforceFieldListBoundary(uniqueIndex);
     (*boundaryItr)->enforceFieldListBoundary(mass);
     (*boundaryItr)->enforceFieldListBoundary(velocity);
     (*boundaryItr)->enforceFieldListBoundary(angularVelocity);
@@ -504,7 +503,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mDomegaDt, pathName + "/DomegaDt");
   file.write(mDxDt, pathName + "/DxDt");
   file.write(mDvDt, pathName + "/DvDt");
-  file.write(mUniqueIndices, pathName + "/uniqueIndices");
 
   file.write(mIsActiveContact, pathName + "/isActiveContact");
   file.write(mNeighborIndices, pathName + "/neighborIndices");
@@ -537,7 +535,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDomegaDt, pathName + "/DomegaDt");
   file.read(mDxDt, pathName + "/DxDt");
   file.read(mDvDt, pathName + "/DvDt");
-  file.read(mUniqueIndices, pathName + "/uniqueIndices");
 
   file.read(mIsActiveContact, pathName + "/isActiveContact");
   file.read(mNeighborIndices, pathName + "/neighborIndices");
@@ -556,38 +553,6 @@ restoreState(const FileIO& file, const string& pathName) {
 }
 
 
-//------------------------------------------------------------------------------
-// when problem starts set our equilibrium overlap
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DEMBase<Dimension>::
-initializeHfield(DataBase<Dimension>& dataBase, const int uniqueIndex){
-
-  const auto numNodeLists = dataBase.numNodeLists();
-  const auto maxKernelExtent = dataBase.maxKernelExtent();
-
-  const auto& radius = dataBase.DEMParticleRadius();
-  auto Hfield = dataBase.DEMHfield();
-
-  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& nodeList = radius[nodeListi]->nodeList();
-
-    const auto ni = nodeList.numInternalNodes();
-#pragma omp parallel for
-    for (auto i = 0u; i < ni; ++i) {
-
-        const auto ui = mUniqueIndices(nodeListi,i);
-
-        if(ui >= uniqueIndex){
-          const auto Ri = radius(nodeListi,i);
-          auto& Hi = Hfield(nodeListi,i);
-          const auto hInv = safeInv(2.0 * Ri * (1.0+mNeighborSearchBuffer)/maxKernelExtent);
-          Hi = SymTensor::one * hInv;
-        }
-    }
-  }
-}
 
 //------------------------------------------------------------------------------
 // when problem starts set our equilibrium overlap
@@ -693,13 +658,13 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 prepNeighborIndicesForRedistribution() {
-
+  const auto& uniqueIndex = mDataBase.DEMUniqueIndex();
   const auto  nContacts = mContactStorageIndices.size();
 #pragma omp for
   for (auto kk = 0u; kk < nContacts; ++kk) {
     const auto& contactkk = mContactStorageIndices[kk];
-    const int numInternalNodes = mUniqueIndices[contactkk.pairNodeList]->numInternalElements();
-    const auto storageUniqueNode = mUniqueIndices(contactkk.storeNodeList,contactkk.storeNode);
+    const int numInternalNodes = uniqueIndex[contactkk.pairNodeList]->numInternalElements();
+    const auto storageUniqueNode = uniqueIndex(contactkk.storeNodeList,contactkk.storeNode);
     if (contactkk.pairNode < numInternalNodes){
       mNeighborIndices(contactkk.pairNodeList,contactkk.pairNode).push_back(storageUniqueNode);
     } 
@@ -773,6 +738,8 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase){
+  
+  const auto& uniqueIndex = dataBase.DEMUniqueIndex();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -790,12 +757,12 @@ updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase){
     const auto nodeListj = pairs[kk].j_list;
 
     // get our unique global ID numbers
-    const auto uIDi = mUniqueIndices(nodeListi,i);
-    const auto uIDj = mUniqueIndices(nodeListj,j);
+    const auto uIDi = uniqueIndex(nodeListi,i);
+    const auto uIDj = uniqueIndex(nodeListj,j);
   
     // get our number of internal nodes
-    const int numInternalNodesi = mUniqueIndices[nodeListi]->numInternalElements();
-    const int numInternalNodesj = mUniqueIndices[nodeListj]->numInternalElements();
+    const int numInternalNodesi = uniqueIndex[nodeListi]->numInternalElements();
+    const int numInternalNodesj = uniqueIndex[nodeListj]->numInternalElements();
 
     // boolean operations to decide which pair-node maintains pair fields
     const auto nodeiIsInternal = i < numInternalNodesi;
@@ -836,6 +803,8 @@ void
 DEMBase<Dimension>::
 updateContactMap(const DataBase<Dimension>& dataBase){
 
+  const auto& uniqueIndex = dataBase.DEMUniqueIndex();
+
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
@@ -852,12 +821,12 @@ updateContactMap(const DataBase<Dimension>& dataBase){
     const auto nodeListj = pairs[kk].j_list;
 
     // get our unique global ID numbers
-    const auto uIDi = mUniqueIndices(nodeListi,i);
-    const auto uIDj = mUniqueIndices(nodeListj,j);
+    const auto uIDi = uniqueIndex(nodeListi,i);
+    const auto uIDj = uniqueIndex(nodeListj,j);
   
     // get our number of internal nodes
-    const int numInternalNodesi = mUniqueIndices[nodeListi]->numInternalElements();
-    const int numInternalNodesj = mUniqueIndices[nodeListj]->numInternalElements();
+    const int numInternalNodesi = uniqueIndex[nodeListi]->numInternalElements();
+    const int numInternalNodesj = uniqueIndex[nodeListj]->numInternalElements();
 
     // boolean operations to decide which pair-node maintains pair fields
     const auto nodeiIsInternal = i < numInternalNodesi;

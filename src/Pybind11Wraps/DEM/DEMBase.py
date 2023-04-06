@@ -20,7 +20,6 @@ class DEMBase(Physics):
     
     def pyinit(dataBase = "const DataBase<%(Dimension)s>&",
                stepsPerCollision = "const Scalar",
-               neighborSearchBuffer = "const Scalar",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "DEMBase constructor"
@@ -90,11 +89,6 @@ class DEMBase(Physics):
         "set the equilibrium overlap pairwise fieldlist for comp. particle id's > specified value"
         return "void"
 
-    def initializeHfield(dataBase = "DataBase<%(Dimension)s>&",
-                         uniqueIndex = "const int"):
-        "set a good H value for the neighbor search based on the particle radius"
-        return "void"
-
     def updateContactMapAndNeighborIndices(dataBase = "const DataBase<%(Dimension)s>&"):
         "update DEM contact/neighbor tracker"
         return "void"
@@ -126,7 +120,6 @@ class DEMBase(Physics):
     DvDt =          PYB11property("const FieldList<%(Dimension)s, Vector>&", "DvDt", returnpolicy="reference_internal")
     DomegaDt =      PYB11property("const FieldList<%(Dimension)s, RotationType>&","DomegaDt", returnpolicy="reference_internal")
     omega =         PYB11property("const FieldList<%(Dimension)s, RotationType>&","omega", returnpolicy="reference_internal")
-    uniqueIndices = PYB11property("const FieldList<%(Dimension)s, int>&","uniqueIndices", returnpolicy="reference_internal")
 
     equilibriumOverlap = PYB11property("const FieldList<%(Dimension)s, vector<Scalar>>&","equilibriumOverlap", returnpolicy="reference_internal")
     neighborIndices = PYB11property("const FieldList<%(Dimension)s, vector<int>>&","neighborIndices", returnpolicy="reference_internal")

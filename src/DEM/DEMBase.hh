@@ -42,7 +42,6 @@ public:
   // Constructors.
   DEMBase(const DataBase<Dimension>& dataBase,
           const Scalar stepsPerCollision,
-          const Scalar neighborSearchBuffer,
           const Vector& xmin,
           const Vector& xmax);
 
@@ -132,8 +131,6 @@ public:
 
   void initializeOverlap(const DataBase<Dimension>& dataBase, const int startingCompositeParticleIndex);
 
-  void initializeHfield(DataBase<Dimension>& dataBase, const int uniqueIndex);
-
   void updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase);
 
   void updateContactMap(const DataBase<Dimension>& dataBase);
@@ -146,9 +143,6 @@ public:
   const Vector& xmax() const;
   void xmin(const Vector& x);
   void xmax(const Vector& x);
-
-  Scalar neighborSearchBuffer() const;
-  void   neighborSearchBuffer(Scalar x);
 
   Scalar stepsPerCollision() const;
   void   stepsPerCollision(Scalar x);
@@ -165,7 +159,6 @@ public:
   const FieldList<Dimension, Vector>& DvDt() const;
   const FieldList<Dimension, RotationType>& omega() const;
   const FieldList<Dimension, RotationType>& DomegaDt() const;
-  const FieldList<Dimension, int>& uniqueIndices() const;
 
   // access for pair fieldLists
   const FieldList<Dimension, std::vector<int>>&    isActiveContact() const;
@@ -211,11 +204,6 @@ protected:
   int mCycle;
   int mContactRemovalFrequency;
 
-  // nondimensional buffer distance (in particle radii)
-  // which causes DEM to register a pairwise interaction
-  // before contact is actually made.
-  Scalar mNeighborSearchBuffer;
-
   // number of steps per collision time-scale
   Scalar mStepsPerCollision;              
 
@@ -228,7 +216,6 @@ protected:
   FieldList<Dimension, Vector>       mDvDt;           // linear acceleration
   FieldList<Dimension, RotationType> mOmega;          // angular velocity
   FieldList<Dimension, RotationType> mDomegaDt;       // angular acceleration
-  FieldList<Dimension,int>           mUniqueIndices;  // each node gets a global unique index
 
   // state fields attached to the pair interactions
   FieldList<Dimension,std::vector<int>>    mNeighborIndices;           // tracks unique indices of contacts-we upate these (note treated specially compared to other state pair field lists)
