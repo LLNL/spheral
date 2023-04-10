@@ -2,6 +2,9 @@ include_directories(.)
 
 set(DEM_inst 
     DEMBase
+    SolidBoundary/SolidBoundary
+    SolidBoundary/DEMBoundaryPolicy
+    SolidBoundary/PlanarWall
     ReplacePairFieldList
     IncrementPairFieldList
     ReplaceAndIncrementPairFieldList
@@ -14,7 +17,10 @@ set(DEM_sources
 
 instantiate(DEM_inst DEM_sources)
 
-set(DEM_headers 
+set(DEM_headers
+    SolidBoundary/SolidBoundary.hh
+    SolidBoundary/DEMBoundaryPolicy.hh
+    SolidBoundary/PlanarWall.hh
     ReplacePairFieldList.hh
     ReplaceAndIncrementPairFieldList.hh
     IncrementPairFieldList.hh
@@ -23,6 +29,8 @@ set(DEM_headers
     DEMDimension.hh
     DEMFieldNames.hh
     ContactStorageLocation.hh)
+
+add_subdirectory(SolidBoundary)
 
 spheral_install_python_files(DEM.py)
 

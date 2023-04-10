@@ -1,11 +1,11 @@
 text = """
 //------------------------------------------------------------------------------
-// Explict instantiation.
+// Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "DEM/ContactBoundary/ContactBoundary.cc"
 #include "Geometry/Dimension.hh"
+#include "DEM/SolidBoundary/DEMBoundaryPolicy.cc"
 
 namespace Spheral {
-  template class ContactBoundary< Dim< %(ndim)s > >;
+  template class DEMBoundaryPolicy<Dim< %(ndim)s >>;
 }
 """

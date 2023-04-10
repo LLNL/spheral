@@ -69,7 +69,7 @@ using std::abs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Construct with the given artificial viscosity and kernels.
+// Constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
 DEMBase<Dimension>::
