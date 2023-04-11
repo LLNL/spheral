@@ -38,7 +38,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
     depends_on('zlib@1.2.11 -shared +pic', type='build')
 
-    depends_on('boost@1.74.0 -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
+    depends_on('boost@1.74.0 +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
     depends_on('qhull@2020.1 +pic', type='build')
     depends_on('m-aneos')
@@ -84,6 +84,12 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
     depends_on('py-sphinx', type='build')
     depends_on('py-sphinx-rtd-theme', type='build')
+
+    #depends_on('py-virtualenv', type='build')
+
+    depends_on('netlib-lapack', type='build')
+    #depends_on('py-enum34', type='build')
+    #depends_on('py-ats@7.0.9', type='build')
 
     # -------------------------------------------------------------------------
     # DEPENDS
