@@ -47,9 +47,9 @@ void
 FlatConnectivity<Dimension>::
 computeIndices(const DataBase<Dimension>& dataBase) {
   // Get information from DataBase
-  const auto numNodeListsDB = dataBase.numNodeLists();
-  const auto numNodesDB = dataBase.numNodes();
-  const auto numInternalNodesDB = dataBase.numInternalNodes();
+  const auto numNodeListsDB = dataBase.numFluidNodeLists();
+  const auto numNodesDB = dataBase.numFluidNodes();
+  const auto numInternalNodesDB = dataBase.numFluidInternalNodes();
 
   const auto& connectivity = dataBase.connectivityMap();
   const auto requireGhostConnectivity = connectivity.buildGhostConnectivity();
@@ -188,9 +188,9 @@ computeOverlapIndices(const DataBase<Dimension>& dataBase) {
   VERIFY(mIndexingInitialized);
   
   // Get information from DataBase
-  const auto numNodeListsDB = dataBase.numNodeLists();
-  const auto numNodesDB = dataBase.numNodes();
-  const auto numInternalNodesDB = dataBase.numInternalNodes();
+  const auto numNodeListsDB = dataBase.numFluidNodeLists();
+  const auto numNodesDB = dataBase.numFluidNodes();
+  const auto numInternalNodesDB = dataBase.numFluidInternalNodes();
   const auto& connectivity = dataBase.connectivityMap();
   const auto requireGhostConnectivity = connectivity.buildGhostConnectivity();
   VERIFY(connectivity.buildOverlapConnectivity());
@@ -299,10 +299,10 @@ computeGlobalIndices(const DataBase<Dimension>& dataBase,
   VERIFY(mIndexingInitialized);
   
   // Get information from DataBase
-  const auto numNodeListsDB = dataBase.numNodeLists();
-  const auto numNodesDB = dataBase.numNodes();
-  const auto numInternalNodesDB = dataBase.numInternalNodes();
-  const auto numGlobalNodesDB = dataBase.globalNumInternalNodes();
+  const auto numNodeListsDB = dataBase.numFluidNodeLists();
+  const auto numNodesDB = dataBase.numFluidNodes();
+  const auto numInternalNodesDB = dataBase.numFluidInternalNodes();
+  const auto numGlobalNodesDB = dataBase.globalNumFluidInternalNodes();
 
   // Make sure number of nodes has not changed since computing indices
   VERIFY(numNodesDB == mNumLocalNodes);
@@ -387,9 +387,9 @@ computeSurfaceIndices(const DataBase<Dimension>& dataBase,
   VERIFY(mGhostIndexingInitialized); // Could consider editing to not require this
   
   // Get information from the DataBase and State
-  const auto numNodeListsDB = dataBase.numNodeLists();
-  const auto numNodesDB = dataBase.numNodes();
-  const auto numInternalNodesDB = dataBase.numInternalNodes();
+  const auto numNodeListsDB = dataBase.numFluidNodeLists();
+  const auto numNodesDB = dataBase.numFluidNodes();
+  const auto numInternalNodesDB = dataBase.numFluidInternalNodes();
   const auto& connectivity = dataBase.connectivityMap();
   const auto cells = state.fields(HydroFieldNames::cells, FacetedVolume());
   const auto cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, std::vector<CellFaceFlag>());
@@ -535,9 +535,9 @@ computeBoundaryInformation(const DataBase<Dimension>& dataBase,
   VERIFY(mIndexingInitialized);
 
   // Get information from the dataBase
-  const auto numNodeListsDB = dataBase.numNodeLists();
-  const auto numNodesDB = dataBase.numNodes();
-  const auto numInternalNodesDB = dataBase.numInternalNodes();
+  const auto numNodeListsDB = dataBase.numFluidNodeLists();
+  const auto numNodesDB = dataBase.numFluidNodes();
+  const auto numInternalNodesDB = dataBase.numFluidInternalNodes();
 
   // Make sure the sizes haven't changed since the indexing was initialized
   VERIFY(numNodesDB == mNumLocalNodes);

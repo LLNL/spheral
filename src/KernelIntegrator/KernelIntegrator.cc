@@ -82,15 +82,15 @@ performIntegration() {
   VERIFY2(omp_get_num_threads() == 1, "integration fails for > 1 OpenMP thread");
   
   // Get some data out of database and state
-  const auto numNodeLists = mDataBase.numNodeLists();
+  const auto numNodeLists = mDataBase.numFluidNodeLists();
   const auto position = mState.fields(HydroFieldNames::position, Vector::zero);
   const auto H = mState.fields(HydroFieldNames::H, SymTensor::zero);
   const auto volume = mState.fields(HydroFieldNames::volume, 0.0);
   const auto cells = mState.fields(HydroFieldNames::cells, FacetedVolume());
 
   // Since we may be receiving state from user, we need to make sure FieldLists aren't empty
-  VERIFY(position.size() == numNodeLists &&
-         H.size() == numNodeLists &&
+  VERIFY(position.size() >= numNodeLists &&
+         H.size() >= numNodeLists &&
          cells.size() == numNodeLists);
   
   // Initialize the integration quadrature for a single triangle
