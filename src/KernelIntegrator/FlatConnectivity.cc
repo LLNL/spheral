@@ -20,6 +20,22 @@
 #include "Utilities/DBC.hh"
 #include "Utilities/globalNodeIDs.hh"
 
+namespace { // anonymous
+template<typename Dimension>
+int
+numFluidNeighbors(const DataBase<Dimension>& dataBase,
+                  const std::vector<std::vector<int>>& connectivity)
+{
+   auto numNeighbors = 0;
+   for (auto nodeListItrj = dataBase.fluidNodeListBegin();
+        nodeListItrj != dataBase.fluidNodeListEnd();
+        ++nodeListItrj, ++nodeListj) {
+      numNeighbors += connectivity[nodeListj].size();
+   }
+   return numNeighbors;
+}
+} // end namespace anonymous
+
 namespace Spheral {
 
 //------------------------------------------------------------------------------
@@ -109,10 +125,10 @@ computeIndices(const DataBase<Dimension>& dataBase) {
       const auto numNodesi = requireGhostConnectivity ? (*nodeListItri)->numNodes() : (*nodeListItri)->numInternalNodes();
       for (auto nodei = 0u; nodei < numNodesi; ++nodei) {
         // Get data from the connectivity map
-        const auto numNeighborsi = connectivity.numNeighborsForNode(nodeListi, nodei);
         const auto connectivityi = connectivity.connectivityForNode(nodeListi, nodei);
         const auto locali = mNodeToLocalIndex[nodeListi][nodei];
-
+        const auto numNeighborsi = numFluidNeighbors(connectivityi, dataBase);
+        
         // Resize the arrays
         CHECK(locali < mNumConnectivityNodes);
         mNumNeighbors[locali] = numNeighborsi + 1;
@@ -213,9 +229,9 @@ computeOverlapIndices(const DataBase<Dimension>& dataBase) {
       const auto numNodesi = requireGhostConnectivity ? (*nodeListItri)->numNodes() : (*nodeListItri)->numInternalNodes();
       for (auto nodei = 0u; nodei < numNodesi; ++nodei) {
         // Get data from the connectivity map
-        const auto numNeighborsi = connectivity.numOverlapNeighborsForNode(nodeListi, nodei);
         const auto connectivityi = connectivity.overlapConnectivityForNode(nodeListi, nodei);
         const auto locali = mNodeToLocalIndex[nodeListi][nodei];
+        const auto numNeighborsi = numFluidNeighbors(connectivityi, dataBase);
         
         // Resize the arrays 
         mNumOverlapNeighbors[locali] = numNeighborsi + 1;
