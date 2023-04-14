@@ -20,13 +20,16 @@
 #include "Utilities/DBC.hh"
 #include "Utilities/globalNodeIDs.hh"
 
+namespace Spheral {
+
 namespace { // anonymous
 template<typename Dimension>
 int
-numFluidNeighbors(const DataBase<Dimension>& dataBase,
-                  const std::vector<std::vector<int>>& connectivity)
+numFluidNeighbors(const std::vector<std::vector<int>>& connectivity,
+                  const DataBase<Dimension>& dataBase)
 {
    auto numNeighbors = 0;
+   auto nodeListj = 0;
    for (auto nodeListItrj = dataBase.fluidNodeListBegin();
         nodeListItrj != dataBase.fluidNodeListEnd();
         ++nodeListItrj, ++nodeListj) {
@@ -35,8 +38,6 @@ numFluidNeighbors(const DataBase<Dimension>& dataBase,
    return numNeighbors;
 }
 } // end namespace anonymous
-
-namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Constructor
