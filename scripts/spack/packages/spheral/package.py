@@ -41,7 +41,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('boost@1.74.0 +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
     depends_on('qhull@2020.1 +pic', type='build')
-    depends_on('m-aneos')
+    depends_on('m-aneos@1.0')
     depends_on('eigen@3.4.0', type='build')
     depends_on('hdf5@1.8.19 ~mpi +hl', type='build', when='~mpi')
     depends_on('hdf5@1.8.19 +mpi +hl', type='build', when='+mpi')
@@ -55,10 +55,10 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
     depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
-    depends_on('caliper ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
+    depends_on('caliper@2.8.0 ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
 
     depends_on('opensubdiv@3.4.3', type='build')
-    depends_on('polytope +python', type='build')
+    depends_on('polytope@0.7 +python', type='build')
 
     extends('python@3.9.10 +zlib +shared +ssl +tkinter', type='build')
 
@@ -67,23 +67,23 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
     #depends_on('py-qtpy', type='build')
     #depends_on('py-qtpy api=pyqt4', type='build')
-    depends_on('py-numpy', type='build')
-    depends_on('py-numpy-stl', type='build')
-    depends_on('py-python-utils', type='build')
-    depends_on('py-matplotlib backend=tkagg +fonts', type='build')
-    depends_on('py-pillow', type='build')
-    depends_on('py-decorator', type='build')
-    depends_on('py-h5py', type='build')
-    depends_on('py-docutils', type='build')
-    depends_on('py-cython', type='build')
-    depends_on('py-scipy', type='build')
-    depends_on('py-importlib-metadata', type='build')
+    depends_on('py-numpy@1.23.4', type='build')
+    depends_on('py-numpy-stl@3.0.0', type='build')
+    depends_on('py-python-utils@2.4.0', type='build')
+    depends_on('py-matplotlib@3.3.4 backend=tkagg +fonts', type='build')
+    depends_on('py-pillow@9.2.0', type='build')
+    depends_on('py-decorator@5.1.1', type='build')
+    depends_on('py-h5py@3.7.0', type='build')
+    depends_on('py-docutils@0.19', type='build')
+    depends_on('py-cython@0.29.32', type='build')
+    depends_on('py-scipy@1.8.1', type='build')
+    depends_on('py-importlib-metadata@4.12.0', type='build')
     #depends_on('py-gnuplot', type='build')
-    depends_on('py-ats', type='build')
-    depends_on('py-mpi4py', type='build', when='+mpi')
+    depends_on('py-ats@7.0.100', type='build')
+    depends_on('py-mpi4py@3.1.4', type='build', when='+mpi')
 
-    depends_on('py-sphinx', type='build')
-    depends_on('py-sphinx-rtd-theme', type='build')
+    depends_on('py-sphinx@5.3.0', type='build')
+    depends_on('py-sphinx-rtd-theme@0.5.1', type='build')
 
     #depends_on('py-virtualenv', type='build')
 
