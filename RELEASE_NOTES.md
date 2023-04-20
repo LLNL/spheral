@@ -1,5 +1,4 @@
-Version vYYYY.MM.pp -- Release date 20YY-MM-DD
-==============================================
+Version vYYYY-MM-DD -- Release date YYYY-MM-DD
 
 This release contains ...
 
@@ -19,9 +18,13 @@ Notable changes include:
   * Build changes / improvements:
     * PYB11Generator and PolyClipper are now submodules (in extern/)
     * Converted our PYB11 generator build rules to use the newly provided PYB11Generator Cmake rules.
+    * toss_4_x86_64_ib system compatibility.
+    * Updated spack version to v0.19.1
+    * `--debug` and `--no-spec` options added to tpl-manager.py for outputing debug and skipping `spack spec` step.
 
   * Bug Fixes / improvements:
     * Fixed numerous compiler warnings with newer compilers such as G++ 9.4.
+    * r-path for additional TPLs can be propogated to Spheral libraries with `SPHERAL_ADDITIONAL_RPATHS`.
  
 Version v2023.03.0 -- Release date 2023-03-29
 ==============================================

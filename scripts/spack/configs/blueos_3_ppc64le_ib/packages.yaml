@@ -152,8 +152,3 @@ packages:
     - spec: hwloc@5.7.5
       prefix: /usr
     buildable: false
-#  netlib-lapack:
-#    buildable: false
-#    externals:
-#    - spec: netlib-lapack@3.9.0
-#      prefix: /usr/gapps/bdiv/blueos_3_ppc64le_ib_p9/gcc-8-cuda-10/lapack/3.9.0

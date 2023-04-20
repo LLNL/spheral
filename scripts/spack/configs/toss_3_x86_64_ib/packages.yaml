@@ -152,13 +152,3 @@ packages:
     - spec: hwloc@5.7.5
       prefix: /usr
     buildable: false
-
-  #  netlib-lapack:
-  #    externals:
-  #    - spec: netlib-lapack@3.4.2
-  #      prefix: /usr
-  #    buildable: false
-  #  all:
-  #    providers:
-  #      blas: [netlib-lapack]
-  #      lapack: [netlib-lapack]

@@ -19,6 +19,12 @@ if not BuildData.cxx_compiler_id == "GNU":
 import mpi
 
 # ------------------------------------------------------------------------------
+# Import a scipy module to initialize scipy's shared qhull library before
+# spheral's static qhull library.
+# ------------------------------------------------------------------------------
+import scipy.spatial
+
+# ------------------------------------------------------------------------------
 # Import the compiled packages.
 # ------------------------------------------------------------------------------
 from SpheralCompiledPackages import *
