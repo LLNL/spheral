@@ -343,4 +343,55 @@ rollingMoment(const Dim<3>::Vector rhatij,
 
 
 
+//------------------------------------------------------------------------------
+// Add a Boundary condition to the end of the current boundary list.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+appendSolidBoundary(SolidBoundary<Dimension>& boundary) {
+    mSolidBoundaries.push_back(&boundary);
+}
+
+//------------------------------------------------------------------------------
+// Add a Boundary condition to the beginning of the current boundary list.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+prependSolidBoundary(SolidBoundary<Dimension>& boundary) {
+    mSolidBoundaries.insert(mSolidBoundaries.begin(), &boundary);
+}
+
+//------------------------------------------------------------------------------
+// Clear (erase) the boundary condition list.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+clearSolidBoundaries() {
+  mSolidBoundaries = std::vector<SolidBoundary<Dimension>*>();
+}
+
+//------------------------------------------------------------------------------
+// Test if the given Boundary condition is listed in the physics package.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+DEMBase<Dimension>::
+haveSolidBoundary(const SolidBoundary<Dimension>& boundary) const {
+  return std::count(mSolidBoundaries.begin(), mSolidBoundaries.end(), &boundary) > 0;
+}
+
+template<typename Dimension>
+inline
+const std::vector<SolidBoundary<Dimension>*>&
+DEMBase<Dimension>::solidBoundaryConditions() const {
+  return mSolidBoundaries;
+}
+
 }

@@ -20,6 +20,7 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class SolidBoundary;
 class FileIO;
 class RedistributionNotificationHandle;
 struct ContactIndex;
@@ -188,7 +189,15 @@ public:
   RotationType rollingMoment(const Vector rhatij,
                              const Vector vroti,
                              const Vector vrotj) const;
-                             
+
+  // Solid Bounderies 
+  void appendSolidBoundary(SolidBoundary<Dimension>& boundary);
+  void prependSolidBoundary(SolidBoundary<Dimension>& boundary);
+  void clearSolidBoundaries();
+  bool haveSolidBoundary(const SolidBoundary<Dimension>& boundary) const;
+  const std::vector<SolidBoundary<Dimension>*>& solidBoundaryConditions() const;
+
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "DEMBase" ; }
@@ -203,6 +212,8 @@ protected:
 
   int mCycle;
   int mContactRemovalFrequency;
+
+  std::vector<SolidBoundary<Dimension>*> mSolidBoundaries;
 
   // number of steps per collision time-scale
   Scalar mStepsPerCollision;              
