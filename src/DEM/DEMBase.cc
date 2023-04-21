@@ -65,6 +65,7 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+using std::make_shared;
 
 namespace Spheral {
 
@@ -285,8 +286,7 @@ DEMBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   TIME_BEGIN("DEMregister");
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-
+  
   dataBase.resizeDEMFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
   dataBase.resizeDEMFieldList(mOmega, DEMDimension<Dimension>::zero, DEMFieldNames::angularVelocity, false);
   dataBase.resizeDEMFieldList(mIsActiveContact, vector<int>(), DEMFieldNames::isActiveContact, false);
@@ -304,12 +304,12 @@ registerState(DataBase<Dimension>& dataBase,
   auto compositeParticleIndex = dataBase.DEMCompositeParticleIndex();
   auto uniqueIndex = dataBase.DEMUniqueIndex();
 
-  PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
-  PolicyPointer velocityPolicy(new IncrementFieldList<Dimension, Vector>(HydroFieldNames::position,true));
-  PolicyPointer angularVelocityPolicy(new IncrementFieldList<Dimension, RotationType>());
-  PolicyPointer shearDisplacementPolicy(new ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>());
-  PolicyPointer rollingDisplacementPolicy(new ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>());
-  PolicyPointer torsionalDisplacementPolicy(new ReplaceAndIncrementPairFieldList<Dimension,std::vector<Scalar>>());
+  auto positionPolicy = make_shared<IncrementFieldList<Dimension,Vector>>();
+  auto velocityPolicy = make_shared<IncrementFieldList<Dimension,Vector>>(HydroFieldNames::position,true);
+  auto angularVelocityPolicy = make_shared<IncrementFieldList<Dimension,RotationType>>();
+  auto shearDisplacementPolicy = make_shared<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
+  auto rollingDisplacementPolicy = make_shared<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
+  auto torsionalDisplacementPolicy = make_shared<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Scalar>>>();
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);
