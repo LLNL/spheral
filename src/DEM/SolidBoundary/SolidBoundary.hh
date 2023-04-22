@@ -29,7 +29,8 @@ public:
 
   virtual ~SolidBoundary();
 
-  virtual Scalar value(const Vector& position) const = 0;
+  virtual Vector distance(const Vector& position) const = 0;
+  virtual Vector velocity(const Vector& position) const = 0;
 
   virtual void update(const double multiplier,
                       const double t,
@@ -38,7 +39,6 @@ public:
 
 private:
 
-//  std::vector<SolidBoundary<Dimension>*> mClipSurfaces;
 };
 
 

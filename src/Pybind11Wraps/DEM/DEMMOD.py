@@ -10,6 +10,7 @@ dims = spheralDimensions()
 
 from DEMBase import *
 from LinearSpringDEM import *
+from SolidBoundaries import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -17,6 +18,8 @@ from LinearSpringDEM import *
 PYB11includes += ['"DEM/DEMBase.hh"',
                   '"DEM/DEMFieldNames.hh"',
                   '"DEM/LinearSpringDEM.hh"',
+                  '"DEM/SolidBoundary/SolidBoundary.hh"',
+                  '"DEM/SolidBoundary/PlanarWall.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
@@ -31,6 +34,8 @@ for ndim in dims:
     exec('''
 DEMBase%(ndim)id = PYB11TemplateClass(DEMBase, template_parameters="%(Dimension)s")
 LinearSpringDEM%(ndim)id = PYB11TemplateClass(LinearSpringDEM, template_parameters="%(Dimension)s")
+SolidBoundary%(ndim)id = PYB11TemplateClass(SolidBoundary, template_parameters="%(Dimension)s")
+PlanarWall%(ndim)id = PYB11TemplateClass(PlanarWall, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 

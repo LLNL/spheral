@@ -38,6 +38,8 @@ public:
 
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef typename std::vector<SolidBoundary<Dimension>*>::iterator SolidBoundaryIterator;
+  typedef typename std::vector<SolidBoundary<Dimension>*>::const_iterator ConstSolidBoundaryIterator;
   typedef std::shared_ptr<RedistributionNotificationHandle> RedistributionRegistrationType;
   
   // Constructors.
@@ -193,6 +195,7 @@ public:
   void prependSolidBoundary(SolidBoundary<Dimension>& boundary);
   void clearSolidBoundaries();
   bool haveSolidBoundary(const SolidBoundary<Dimension>& boundary) const;
+  unsigned int numSolidBoundaries();
   const std::vector<SolidBoundary<Dimension>*>& solidBoundaryConditions() const;
 
 

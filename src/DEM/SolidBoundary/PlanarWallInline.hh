@@ -31,4 +31,21 @@ PlanarWall<Dimension>::
 normal(const typename Dimension::Vector& value)  {
   mNormal=value;
 }
+
+template<typename Dimension>
+inline
+const typename Dimension::Vector&
+PlanarWall<Dimension>::
+velocity() const {
+  return mVelocity;
+}
+
+template<typename Dimension>
+inline
+void
+PlanarWall<Dimension>::
+velocity(const typename Dimension::Vector& value)  {
+  mVelocity=value;
+}
+
 }

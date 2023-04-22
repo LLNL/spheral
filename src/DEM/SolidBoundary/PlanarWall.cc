@@ -17,7 +17,8 @@ PlanarWall<Dimension>::
 PlanarWall(const Vector& point, const Vector& normal):
   SolidBoundary<Dimension>(),
   mPoint(point),
-  mNormal(normal){
+  mNormal(normal),
+  mVelocity(Vector::zero){
 }
 
 template<typename Dimension>
@@ -26,10 +27,17 @@ PlanarWall<Dimension>::
 }
 
 template<typename Dimension>
-typename Dimension::Scalar
+typename Dimension::Vector
 PlanarWall<Dimension>::
-value(const Vector& position) const { 
-  return (position - mPoint).dot(mNormal);
+distance(const Vector& position) const { 
+  return (position - mPoint).dot(mNormal)*mNormal;
+}
+
+template<typename Dimension>
+typename Dimension::Vector
+PlanarWall<Dimension>::
+velocity(const Vector& position) const { 
+  return mVelocity;
 }
 
 template<typename Dimension>

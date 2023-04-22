@@ -30,7 +30,8 @@ public:
 
   ~PlanarWall();
 
-  virtual Scalar value(const Vector& position) const override;
+  virtual Vector distance(const Vector& position) const override;
+  virtual Vector velocity(const Vector& position) const override;
 
   virtual void update(const double multiplier,
                       const double time,
@@ -42,11 +43,17 @@ public:
   const Vector& normal() const;
   void normal(const Vector& value);
 
+  const Vector& velocity() const;
+  void velocity(const Vector& value);
+
+
 protected:
   //-------------------------- Protected Interface --------------------------//
   Vector mPoint;
   Vector mNormal;
 
+  Vector mVelocity;
+  
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.

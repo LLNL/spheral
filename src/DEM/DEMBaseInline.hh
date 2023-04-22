@@ -389,6 +389,14 @@ haveSolidBoundary(const SolidBoundary<Dimension>& boundary) const {
 
 template<typename Dimension>
 inline
+unsigned int
+DEMBase<Dimension>::
+numSolidBoundaries() {
+  return mSolidBoundaries.size();
+}
+
+template<typename Dimension>
+inline
 const std::vector<SolidBoundary<Dimension>*>&
 DEMBase<Dimension>::solidBoundaryConditions() const {
   return mSolidBoundaries;

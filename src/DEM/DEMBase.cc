@@ -393,8 +393,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     this->identifyInactiveContacts(dataBase);                              // create pairFieldList tracking active/inactive contacts
     this->removeInactiveContactsFromStatePairFieldLists(state);            // use it to remove old contacts from state fields
     this->removeInactiveContactsFromDerivativePairFieldLists(derivatives); // use it to remove old contacts from the derivatives
-
-    this->updateContactMap(dataBase);
+    this->updateContactMap(dataBase);                                      // now we update the contact map to account for changes
 
   }
 
@@ -748,13 +747,23 @@ updateContactMap(const DataBase<Dimension>& dataBase){
   
   const auto& uniqueIndex = dataBase.DEMUniqueIndex();
 
+  // fields we need
+  const auto radius = dataBase.DEMParticleRadius();
+  const auto position = dataBase.DEMPosition();
+
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
+  const auto& nodeLists = connectivityMap.nodeLists();
   const auto& pairs = connectivityMap.nodePairList();
+  const auto  numNodeLists = nodeLists.size();
   const auto  numPairs = pairs.size();
   
-  mContactStorageIndices.resize(numPairs);
+  const auto& solidBoundaries = this->solidBoundaryConditions();
+  const auto  numSolidBoundaries = this->numSolidBoundaries();
 
+  // Particle-Particle Contacts
+  //---------------------------------------------------------------
+  mContactStorageIndices.resize(numPairs);
 #pragma omp for
   for (auto kk = 0u; kk < numPairs; ++kk) {
 
@@ -800,7 +809,38 @@ updateContactMap(const DataBase<Dimension>& dataBase){
       mNeighborIndices(contactkk.storeNodeList,contactkk.storeNode).push_back(uniqueSearchIndex);
     }
   }
-}
+
+  /// Particle-Solid-Boundary Contacts
+  //--------------------------------------------------------------
+  // Iterate over solid boundaries, we're going to treat the solid
+  // boundaries like contacts between dem particles to leverage all
+  // the machinery in place which integrates pairwise values
+  for (auto ibc = 0u; ibc < numSolidBoundaries; ++ibc){
+    const auto solidBoundaryi = solidBoundaries[ibc];
+
+    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+    const auto nodeList = nodeLists[nodeListi];
+    const auto ni = nodeList->numInternalNodes();
+#pragma omp parallel for
+      for (auto i = 0u; i < ni; ++i) {
+        const auto Ri = radius(nodeListi,i);
+        const auto ri = position(nodeListi,i);
+
+        const auto disBc = solidBoundaryi->distance(ri);
+        //const auto velBc = solidBoundaryi->velocity(ri);
+
+        if (disBc.magnitude() < Ri){
+          mNeighborIndices(nodeListi,i).push_back(-ibc);
+          mContactStorageIndices.push_back(ContactIndex(nodeListi,                               // storage nodelist
+                                                        i,                                       // storage node
+                                                        mNeighborIndices(nodeListi,i).size()-1,  // storage contact index
+                                                        -ibc,                                    // pair nodeList (boundary index)
+                                                        0));                                     // pair node (n/a no more data needed for bcs)
+        } //if statement
+      }   // loop nodes
+    }     // loop nodelists
+  }       // loop solid boundaries
+}         // method
 
 //------------------------------------------------------------------------------
 // remove old contacts from our pair storage every so often
@@ -812,9 +852,7 @@ identifyInactiveContacts(const DataBase<Dimension>& dataBase){
 
   const auto  numNodeLists = dataBase.numNodeLists();
   const auto  nodeListPtrs = dataBase.DEMNodeListPtrs();
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
+  const auto  nContacts = mContactStorageIndices.size();
 
   // initialize our tracker for contact activity as a vector of zeros
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
@@ -828,11 +866,12 @@ identifyInactiveContacts(const DataBase<Dimension>& dataBase){
 
   // set all our active contacts to 1
 #pragma omp for
-  for (auto kk = 0u; kk < npairs; ++kk) {
+  for (auto kk = 0u; kk < nContacts; ++kk) {
     const auto& contactkk = mContactStorageIndices[kk];
     mIsActiveContact(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact] = 1;
   }
 }
+
 
 
 } //spheral namespace
