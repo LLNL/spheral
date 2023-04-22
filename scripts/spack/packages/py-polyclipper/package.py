@@ -6,7 +6,7 @@
 from spack import *
 
 
-class PyPolyclipper(CMakePackage, PythonPackage):
+class PyPolyclipper(CMakePackage):
     """Polyclipper"""
 
     homepage = "https://pypi.org/project/PYB11Generator/"

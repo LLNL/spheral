@@ -64,7 +64,7 @@ Above we are telling ``tpl-manager`` to build our TPLs with the ``gcc`` that is 
    By default we have ``python`` bindings enabled (``+python``) and docs disabled (``~docs``). Therefore the spec ``gcc+mpi+python~docs`` will build the same TPL set as just ``gcc``.For more information on ``spec`` syntax please see the spack documentation on `specs-dependencies <https://spack.readthedocs.io/en/latest/basic_usage.html#specs-dependencies>`_.
 
 .. note::
-   Spheral minimally requires a C++11 compliant compiler.
+   Spheral minimally requires a C++14 compliant compiler.
 
 [ex_running_tpl_manager-end]
 
@@ -96,7 +96,7 @@ Above we are telling ``tpl-manager`` to build our TPLs with ``gcc`` at version `
    By default we have ``python`` bindings enabled (``+python``) and docs disabled (``~docs``). Therefore the spec ``gcc@8.3.1+mpi+python~docs`` will build the same TPL set as just ``gcc@8.3.1``.For more information on ``spec`` syntax please see the spack documentation on `specs-dependencies <https://spack.readthedocs.io/en/latest/basic_usage.html#specs-dependencies>`_.
 
 .. note::
-   ``gcc@8.3.1`` is the recommended compiler for building Spheral on LC (Livermore Computing). Spheral minimally requires a C++11 compliant compiler.
+   ``gcc@8.3.1`` is the recommended compiler for building Spheral on LC (Livermore Computing). Spheral minimally requires a C++14 compliant compiler.
 
 CUDA Support
 ------------
