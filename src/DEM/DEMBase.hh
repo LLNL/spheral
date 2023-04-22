@@ -210,10 +210,10 @@ protected:
 
   const DataBase<Dimension>& mDataBase;
 
+  std::vector<SolidBoundary<Dimension>*> mSolidBoundaries;
+  
   int mCycle;
   int mContactRemovalFrequency;
-
-  std::vector<SolidBoundary<Dimension>*> mSolidBoundaries;
 
   // number of steps per collision time-scale
   Scalar mStepsPerCollision;              

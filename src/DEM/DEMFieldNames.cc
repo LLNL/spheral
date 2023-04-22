@@ -17,3 +17,4 @@ const std::string Spheral::DEMFieldNames::shearDisplacement = "shear displacemen
 const std::string Spheral::DEMFieldNames::rollingDisplacement = "rolling displacement";
 const std::string Spheral::DEMFieldNames::torsionalDisplacement = "torsional displacement";
 const std::string Spheral::DEMFieldNames::equilibriumOverlap = "equilibrium overlap";
+const std::string Spheral::DEMFieldNames::solidBoundaries = "solid boundaries";

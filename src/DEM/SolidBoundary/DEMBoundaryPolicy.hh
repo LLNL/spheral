@@ -26,7 +26,7 @@ public:
   typedef typename std::vector<SolidBoundary<Dimension>*>::const_iterator ConstSolidBoundaryIterator;
 
   // Constructors, destructor.
-  DEMBoundaryPolicy();
+  DEMBoundaryPolicy(const std::vector<SolidBoundary<Dimension>*>& solidBoundaries);
 
   virtual ~DEMBoundaryPolicy();
   
@@ -42,19 +42,14 @@ public:
 
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
-
-  // Solid Bounderies 
-  void appendSolidBoundary(SolidBoundary<Dimension>& boundary);
-  void prependSolidBoundary(SolidBoundary<Dimension>& boundary);
-  void clearSolidBoundaries();
-  bool haveSolidBoundary(const SolidBoundary<Dimension>& boundary) const;
   
-  const std::vector<SolidBoundary<Dimension>*>& solidBoundaryConditions() const;
+  //const std::vector<SolidBoundary<Dimension>*>* solidBoundaryConditions() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  std::vector<SolidBoundary<Dimension>*> mSolidBoundaries;
+  const std::vector<SolidBoundary<Dimension>*>& mSolidBoundariesRef;
 
+  DEMBoundaryPolicy();
   DEMBoundaryPolicy(const DEMBoundaryPolicy& rhs);
   DEMBoundaryPolicy& operator=(const DEMBoundaryPolicy& rhs);
 };

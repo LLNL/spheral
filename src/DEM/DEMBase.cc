@@ -38,6 +38,8 @@
 #include "DEM/DEMBase.hh"
 #include "DEM/DEMDimension.hh"
 #include "DEM/DEMFieldNames.hh"
+#include "DEM/SolidBoundary/DEMBoundaryPolicy.hh"
+#include "DEM/SolidBoundary/SolidBoundary.hh"
 
 #include "Utilities/Timer.hh"
 
@@ -80,6 +82,7 @@ DEMBase(const DataBase<Dimension>& dataBase,
         const Vector& xmax):
   Physics<Dimension>(),
   mDataBase(dataBase),
+  mSolidBoundaries(),
   mCycle(0),
   mContactRemovalFrequency((int)stepsPerCollision),
   mStepsPerCollision(stepsPerCollision),
@@ -310,6 +313,10 @@ registerState(DataBase<Dimension>& dataBase,
   auto shearDisplacementPolicy = make_shared<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
   auto rollingDisplacementPolicy = make_shared<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
   auto torsionalDisplacementPolicy = make_shared<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Scalar>>>();
+
+  auto boundaryPolicy = make_shared<DEMBoundaryPolicy<Dimension>>(mSolidBoundaries);
+
+  state.enroll(DEMFieldNames::solidBoundaries,boundaryPolicy);
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);

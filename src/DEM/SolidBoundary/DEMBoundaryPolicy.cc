@@ -16,9 +16,9 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 DEMBoundaryPolicy<Dimension>::
-DEMBoundaryPolicy():
+DEMBoundaryPolicy(const std::vector<SolidBoundary<Dimension>*>& solidBoundaries):
   UpdatePolicyBase<Dimension>(),
-  mSolidBoundaries() {
+  mSolidBoundariesRef(solidBoundaries) {
 }
 
 //------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ DEMBoundaryPolicy<Dimension>::
 
 //------------------------------------------------------------------------------
 // Update the field.
+//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 DEMBoundaryPolicy<Dimension>::
@@ -41,52 +42,11 @@ update(const KeyType& /*key*/,
        const double t,
        const double dt) {
 
-  for (ConstSolidBoundaryIterator solidboundItr = mSolidBoundaries.begin();
-        solidboundItr != mSolidBoundaries.end();
+  for (ConstSolidBoundaryIterator solidboundItr = mSolidBoundariesRef.begin();
+        solidboundItr != mSolidBoundariesRef.end();
         ++solidboundItr){
     (*solidboundItr)->update(multiplier,t,dt);
   }
-}
-
-
-//------------------------------------------------------------------------------
-// Add a Boundary condition to the end of the current boundary list.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DEMBoundaryPolicy<Dimension>::
-appendSolidBoundary(SolidBoundary<Dimension>& boundary) {
-    mSolidBoundaries.push_back(&boundary);
-}
-
-//------------------------------------------------------------------------------
-// Add a Boundary condition to the beginning of the current boundary list.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DEMBoundaryPolicy<Dimension>::
-prependSolidBoundary(SolidBoundary<Dimension>& boundary) {
-    mSolidBoundaries.insert(mSolidBoundaries.begin(), &boundary);
-}
-
-//------------------------------------------------------------------------------
-// Clear (erase) the boundary condition list.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DEMBoundaryPolicy<Dimension>::
-clearSolidBoundaries() {
-  mSolidBoundaries = std::vector<SolidBoundary<Dimension>*>();
-}
-
-//------------------------------------------------------------------------------
-// Test if the given Boundary condition is listed in the physics package.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-bool
-DEMBoundaryPolicy<Dimension>::
-haveSolidBoundary(const SolidBoundary<Dimension>& boundary) const {
-  return std::count(mSolidBoundaries.begin(), mSolidBoundaries.end(), &boundary) > 0;
 }
 
 //------------------------------------------------------------------------------
