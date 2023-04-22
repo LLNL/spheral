@@ -312,7 +312,7 @@ class DEMInflow:
         self.db.setDEMHfieldFromParticleRadius(uId0+1)
         self.db.reinitializeNeighbors()
     	self.db.updateConnectivityMap()
-    	self.dem.updateContactMapAndNeighborIndices(db)
+    	self.dem.updateContactMap(db)
         self.dem.resizePairFieldLists()
     	self.dem.initializeOverlap(db,cId0+1)
 

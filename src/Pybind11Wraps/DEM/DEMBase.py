@@ -89,7 +89,7 @@ class DEMBase(Physics):
         "set the equilibrium overlap pairwise fieldlist for comp. particle id's > specified value"
         return "void"
 
-    def updateContactMapAndNeighborIndices(dataBase = "const DataBase<%(Dimension)s>&"):
+    def updateContactMap(dataBase = "const DataBase<%(Dimension)s>&"):
         "update DEM contact/neighbor tracker"
         return "void"
 

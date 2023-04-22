@@ -273,7 +273,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
   // We're jumping the gun a little herr
-  this->updateContactMapAndNeighborIndices(dataBase);
+  this->updateContactMap(dataBase);
   this->addContactsToPairFieldList(mEquilibriumOverlap,0.0);
   this->initializeOverlap(dataBase,0);
  
@@ -383,9 +383,9 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   TIME_BEGIN("DEMpreStepInitialize");
 
   // update our state pair fields for the current connectivity
-  this->updateContactMapAndNeighborIndices(dataBase);  // set our contactMap and neighborIndices pairFieldList
-  this->resizeStatePairFieldLists(state);              // add entries for new contacts
-  this->resizeDerivativePairFieldLists(derivatives);   // do same for derivs in case we're storing from last cycle
+  this->updateContactMap(dataBase);                  // set our contactMap and neighborIndices pairFieldList
+  this->resizeStatePairFieldLists(state);            // add entries for new contacts
+  this->resizeDerivativePairFieldLists(derivatives); // do same for derivs in case we're storing from last cycle
   
   if (mCycle % mContactRemovalFrequency == 0){ 
 
@@ -744,7 +744,7 @@ removeInactiveContactsFromPairFieldList(Value& pairFieldList) const {
 template<typename Dimension>
 void
 DEMBase<Dimension>::
-updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase){
+updateContactMap(const DataBase<Dimension>& dataBase){
   
   const auto& uniqueIndex = dataBase.DEMUniqueIndex();
 
@@ -799,66 +799,6 @@ updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase){
     if (contactIndexPtr == neighborContacts.end()){
       mNeighborIndices(contactkk.storeNodeList,contactkk.storeNode).push_back(uniqueSearchIndex);
     }
-  }
-}
-
-//------------------------------------------------------------------------------
-// reset contacts
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DEMBase<Dimension>::
-updateContactMap(const DataBase<Dimension>& dataBase){
-
-  const auto& uniqueIndex = dataBase.DEMUniqueIndex();
-
-  // The connectivity.
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  numPairs = pairs.size();
-  
-  mContactStorageIndices.resize(numPairs);
-
-#pragma omp for
-  for (auto kk = 0u; kk < numPairs; ++kk) {
-
-    const auto i = pairs[kk].i_node;
-    const auto j = pairs[kk].j_node;
-    const auto nodeListi = pairs[kk].i_list;
-    const auto nodeListj = pairs[kk].j_list;
-
-    // get our unique global ID numbers
-    const auto uIDi = uniqueIndex(nodeListi,i);
-    const auto uIDj = uniqueIndex(nodeListj,j);
-  
-    // get our number of internal nodes
-    const int numInternalNodesi = uniqueIndex[nodeListi]->numInternalElements();
-    const int numInternalNodesj = uniqueIndex[nodeListj]->numInternalElements();
-
-    // boolean operations to decide which pair-node maintains pair fields
-    const auto nodeiIsInternal = i < numInternalNodesi;
-    const auto nodejIsGhost = j >= numInternalNodesj;
-    const auto nodeiIsMinUnique = uIDi <= uIDj;
-    const auto selectNodei = nodeiIsInternal and (nodeiIsMinUnique or nodejIsGhost);
-
-    // store info on storage/dummy locations
-    auto& contactkk = mContactStorageIndices[kk];
-
-    contactkk.storeNodeList = (selectNodei ? nodeListi : nodeListj);
-    contactkk.storeNode     = (selectNodei ? i         : j);
-    contactkk.pairNodeList  = (selectNodei ? nodeListj : nodeListi);
-    contactkk.pairNode      = (selectNodei ? j         : i);
-
-    // find contact if it already exists 
-    const auto uniqueSearchIndex = (selectNodei ? uIDj : uIDi);
-    const auto neighborContacts = mNeighborIndices(contactkk.storeNodeList,
-                                                   contactkk.storeNode);
-    const auto contactIndexPtr = std::find(neighborContacts.begin(),
-                                           neighborContacts.end(),
-                                           uniqueSearchIndex);
-    const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);
-    contactkk.storeContact = storageContactIndex;
-
   }
 }
 
