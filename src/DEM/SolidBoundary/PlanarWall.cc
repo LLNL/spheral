@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidBoundary -- this is a base class for solid wall contact bcs
+// PlanarWall -- rigid planar wall contact for DEM
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//

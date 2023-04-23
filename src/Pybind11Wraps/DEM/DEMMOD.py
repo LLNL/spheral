@@ -50,4 +50,7 @@ class DEMFieldNames:
     isActiveContact = PYB11readonly(static=True, returnpolicy="copy")
     neighborIndices = PYB11readonly(static=True, returnpolicy="copy")
     shearDisplacement = PYB11readonly(static=True, returnpolicy="copy")
+    rollingDisplacement = PYB11readonly(static=True, returnpolicy="copy")
+    torsionalDisplacement = PYB11readonly(static=True, returnpolicy="copy")
     equilibriumOverlap = PYB11readonly(static=True, returnpolicy="copy")
+    solidBoundaries = PYB11readonly(static=True, returnpolicy="copy")

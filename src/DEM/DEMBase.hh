@@ -12,6 +12,7 @@
 #include <string>
 #include "Physics/Physics.hh"
 #include "DEM/DEMDimension.hh"
+#include "DEM/ContactStorageLocation.hh"
 
 namespace Spheral {
 
@@ -23,7 +24,7 @@ template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class SolidBoundary;
 class FileIO;
 class RedistributionNotificationHandle;
-struct ContactIndex;
+//struct ContactIndex;
 
 template<typename Dimension>
 class DEMBase: public Physics<Dimension> {
@@ -198,6 +199,9 @@ public:
   unsigned int numSolidBoundaries() const;
   const std::vector<SolidBoundary<Dimension>*>& solidBoundaryConditions() const;
 
+  int numInternalContacts() const;
+  int numBoundaryContacts() const;
+  int numContacts() const;
 
   //****************************************************************************
   // Methods required for restarting.

@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// ReplaceAndIncrementPairFieldList -- Update policy for the shearDisplacement pairwise
+// ReplaceAndIncrementPairFieldList -- Update policy for the shearDisplacement
 //                            pairwise field. This one increments a replaced 
 //                            field. The replacement reorients the displacment
 //                            into the new tangential plane of the particle-

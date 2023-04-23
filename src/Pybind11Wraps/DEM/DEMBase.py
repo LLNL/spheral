@@ -149,6 +149,10 @@ class DEMBase(Physics):
     DDtShearDisplacement = PYB11property("const FieldList<%(Dimension)s, vector<Vector>>&","DDtShearDisplacement", returnpolicy="reference_internal")
     isActiveContact = PYB11property("const FieldList<%(Dimension)s, vector<int>>&","isActiveContact", returnpolicy="reference_internal")
     
+    numContacts = PYB11property("int", "numContacts", doc="Total number of contacts")
+    numInternalContacts = PYB11property("int", "numInternalContacts", doc="Number of interactions with other dem particles")
+    numBoundaryContacts = PYB11property("int", "numBoundaryContacts", doc="Number interactions with solid boundaries")
+
     solidBoundaryConditions = PYB11property("const std::vector<SolidBoundary<%(Dimension)s>*>&", "solidBoundaryConditions", doc="The set of NodeLists in the DataBase")
 #-------------------------------------------------------------------------------
 # Inject methods

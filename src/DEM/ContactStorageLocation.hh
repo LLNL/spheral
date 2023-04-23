@@ -1,13 +1,11 @@
-
-
 //---------------------------------Spheral++----------------------------------//
-// DEM type alias for the particle rotation
+// ContactIndex -- Simple structure used to track where pairwise variables 
+//                 are stored in the pairFieldLists. 
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_ContactStorageLocation_hh__
 #define __Spheral_ContactStorageLocation_hh__
 
 namespace Spheral{
-
   struct ContactIndex {
     ContactIndex();
     ContactIndex(const int storeNodeListIndex, 
@@ -23,7 +21,7 @@ namespace Spheral{
       int pairNodeList;
       int pairNode;
   };
-
+}
 
 #else
 
@@ -33,4 +31,3 @@ namespace Spheral {
 }
 
 #endif
-}

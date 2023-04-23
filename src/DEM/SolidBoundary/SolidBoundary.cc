@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidBoundary -- this is a base class for solid wall contact bcs
+// SolidBoundary -- a base class for solid wall contact bcs
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//

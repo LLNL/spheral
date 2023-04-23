@@ -1,14 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidBoundary -- this is a base class for solid wall contact bcs
+// SolidBoundary -- A base class for solid wall contact bcs
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_SolidBoundary_hh__
 #define __Spheral_SolidBoundary_hh__
-
-//#include <string>
-
-#include <vector>
 
 namespace Spheral {
 

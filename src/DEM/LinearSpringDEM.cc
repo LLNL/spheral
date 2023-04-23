@@ -1,7 +1,7 @@
 
 //---------------------------------Spheral++----------------------------------//
 // DEM -- damped linear spring contact model based on pkdgrav immplementation
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 // Schwartz, S.R. and Richards, D.C. "An implementation of the soft-sphere 
 // discrete element method in a high-performance parallel gravity tree-code,"
 // Granular Matter, (2012) 14:363–380, 10.1007/s10035-012-0346-z.

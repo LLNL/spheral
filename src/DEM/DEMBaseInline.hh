@@ -402,4 +402,35 @@ DEMBase<Dimension>::solidBoundaryConditions() const {
   return mSolidBoundaries;
 }
 
+
+//------------------------------------------------------------------------------
+// contact counts
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+int
+DEMBase<Dimension>::
+numInternalContacts() const {
+  const auto& cm = mDataBase.connectivityMap();
+  const auto& pairs = cm.nodePairList();
+  return (int)pairs.size();
+}
+
+template<typename Dimension>
+inline
+int
+DEMBase<Dimension>::
+numContacts() const {
+  return (int)mContactStorageIndices.size();
+}
+
+template<typename Dimension>
+inline
+int
+DEMBase<Dimension>::
+numBoundaryContacts() const {
+  return (int)(mContactStorageIndices.size()-this->numInternalContacts());
+}
+
+
 }

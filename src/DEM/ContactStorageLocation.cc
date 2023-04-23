@@ -1,3 +1,8 @@
+//---------------------------------Spheral++----------------------------------//
+// ContactIndex -- Simple structure used to track where pairwise variables 
+//                 are stored in the pairFieldLists. 
+//----------------------------------------------------------------------------//
+
 #include <vector>
 
 #include "DEM/ContactStorageLocation.hh"

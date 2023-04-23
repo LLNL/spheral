@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
-// ReplacePairFieldList -- An implementation of FieldListUpdatePolicyBase appropriate for
-// when 'ya just want to Replace by derivatives:  x1 = x0 + A*dx/dt
+// ReplaceAndIncrementPairFieldList -- Update policy which replaces the values
+//                                     of a pairFieldList.
 //
 // J.M. Pearl 2022
 //----------------------------------------------------------------------------//
