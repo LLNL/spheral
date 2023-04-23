@@ -244,12 +244,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto tangentialDampingTerms = 4.0/5.0*ks/(1.0+mTangentialBeta*mTangentialBeta);
  
   // The connectivity.
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto& nodeLists = connectivityMap.nodeLists();
+  const auto& nodeLists = dataBase.DEMNodeListPtrs();
   const auto  numNodeLists = nodeLists.size();
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
   
+  // contact contacts for different types
+  const unsigned int numP2PContacts = this->numParticleParticleContacts();
+  const unsigned int numP2BContacts = this->numParticleBoundaryContacts();
+  const unsigned int numTotContacts = this->numContacts();
+
   // Get the state FieldLists.
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -257,6 +259,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto omega = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   const auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
   const auto uniqueIndices = state.fields(DEMFieldNames::uniqueIndices, (int)0);
+  const auto compositeIndex = state.fields(DEMFieldNames::compositeParticleIndex, (int)0);
   
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -264,6 +267,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(radius.size() == numNodeLists);
   CHECK(omega.size() == numNodeLists);
   CHECK(uniqueIndices.size() == numNodeLists);
+  CHECK(compositeIndex.size() == numNodeLists);
 
   // Get the state pairFieldLists.
   const auto equilibriumOverlap = state.fields(DEMFieldNames::equilibriumOverlap, std::vector<Scalar>());
@@ -308,69 +312,29 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 #pragma omp parallel
   {
     // Thread private scratch variables
-    int i, j, nodeListi, nodeListj;
+    int i, j, nodeListi, nodeListj, contacti;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
     auto DomegaDt_thread = DomegaDt.threadCopy(threadStack);
 
 #pragma omp for
-    for (auto kk = 0u; kk < npairs; ++kk) {
-
-      i = pairs[kk].i_node;
-      j = pairs[kk].j_node;
-      nodeListi = pairs[kk].i_list;
-      nodeListj = pairs[kk].j_list;
+    for (auto kk = 0u; kk < numP2PContacts; ++kk) {
       
-      const int storeNodeList = contacts[kk].storeNodeList;
-      const int storeNode = contacts[kk].storeNode;
-      const int storeContact = contacts[kk].storeContact;
-      const int pairNodeList = contacts[kk].pairNodeList;
-      const int pairNode = contacts[kk].pairNode;
-
-      // simple test for our store/pair selection
-      const bool orientationOne = (storeNodeList==nodeListi and storeNode==i and pairNodeList==nodeListj and pairNode==j);
-      const bool orientationTwo = (storeNodeList==nodeListj and storeNode==j and pairNodeList==nodeListi and pairNode==i);
-      if(not(orientationOne or orientationTwo)) throw std::invalid_argument("AddPositiveIntegers arguments must be positive");
-
+      nodeListi = contacts[kk].storeNodeList;
+      nodeListj = contacts[kk].pairNodeList;
+      i = contacts[kk].storeNode;
+      j = contacts[kk].pairNode;
+      contacti = contacts[kk].storeContact;
       
-      // storage sign, this makes pairwise values i-j independent
-      const auto uIdi = uniqueIndices(nodeListi,i);
-      const auto uIds = uniqueIndices(storeNodeList,storeNode);
-      const auto uIdp = uniqueIndices(pairNodeList,pairNode);
-      const int storageSign = (uIdi == std::min(uIds,uIdp) ? 1 : -1);
-
-      // stored pair-wise values
-      const auto overlapij = equilibriumOverlap(storeNodeList,storeNode)[storeContact];
-      const auto deltaSlidij = storageSign*shearDisplacement(storeNodeList,storeNode)[storeContact];
-      const auto deltaRollij =             rollingDisplacement(storeNodeList,storeNode)[storeContact];
-      const auto deltaTorsij =             torsionalDisplacement(storeNodeList,storeNode)[storeContact];
-
-      // Get the state for node i.
+      // Get the state for node i needed for prox check
       const auto& ri = position(nodeListi, i);
-      const auto& mi = mass(nodeListi, i);
-      const auto& vi = velocity(nodeListi, i);
-      const auto& omegai = omega(nodeListi, i);
       const auto& Ri = radius(nodeListi, i);
-
-      // Get the state for node j
-      const auto& rj = position(nodeListj, j);
-      const auto& mj = mass(nodeListj, j);
-      const auto& vj = velocity(nodeListj, j);
-      const auto& omegaj = omega(nodeListj, j);
-      const auto& Rj = radius(nodeListj, j);
-
-      // Get the derivs from node i
-      auto& DvDti = DvDt_thread(nodeListi, i);
-      auto& DomegaDti = DomegaDt_thread(nodeListi, i);
-
-      // Get the derivs from node j
-      auto& DvDtj = DvDt_thread(nodeListj, j);
-      auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
-
-      CHECK(mi > 0.0);
-      CHECK(mj > 0.0);
       CHECK(Ri > 0.0);
+
+      // Get the state for node j needed for prox check
+      const auto& rj = position(nodeListj, j);
+      const auto& Rj = radius(nodeListj, j);
       CHECK(Rj > 0.0);
 
       // are we overlapping ? 
@@ -381,6 +345,42 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       
       // if so do the things
       if (delta0 > 0.0){
+
+        // get remaining state for node i
+        const auto cIdi = compositeIndex(nodeListi,i);
+        const auto uIdi = uniqueIndices(nodeListi,i);
+        const auto& vi = velocity(nodeListi, i);
+        const auto& omegai = omega(nodeListi, i);
+        const auto& mi = mass(nodeListi, i);
+        CHECK(mi > 0.0);
+
+        // get remaining state for node j
+        const auto cIdj = compositeIndex(nodeListj,j);
+        const auto uIdj = uniqueIndices(nodeListj,j);
+        const auto& vj = velocity(nodeListj, j);
+        const auto& omegaj = omega(nodeListj, j);
+        const auto& mj = mass(nodeListj, j);
+        CHECK(mj > 0.0);
+
+        // Get the derivs from node i
+        auto& DvDti = DvDt_thread(nodeListi, i);
+        auto& DomegaDti = DomegaDt_thread(nodeListi, i);
+
+        // Get the derivs from node j
+        auto& DvDtj = DvDt_thread(nodeListj, j);
+        auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
+
+        // storage sign, this makes pairwise values i-j independent
+        const int storageSign = (uIdi <= uIdj ? 1 : -1);
+
+        // stored pair-wise values
+        const auto overlapij   = equilibriumOverlap(nodeListi,i)[contacti];
+        const auto deltaSlidij = shearDisplacement(nodeListi,i)[contacti]*storageSign;
+        const auto deltaRollij = rollingDisplacement(nodeListi,i)[contacti];
+        const auto deltaTorsij = torsionalDisplacement(nodeListi,i)[contacti];
+
+        // boolean checks
+        const auto isBondedParticle = (cIdi == cIdj);
 
         // effective delta
         const auto delta = delta0 - overlapij;
@@ -430,7 +430,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
               Vector ft = ft0spring + ft0damp;
 
         // static friction limit
-        if  (ft.magnitude() > muS*fnMag){
+        if  (!isBondedParticle and (ft.magnitude() > muS*fnMag)){
 
           const Scalar ftDynamic = muD*fnMag;
           ft = ftDynamic*ft.unitVector();
@@ -453,7 +453,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const Scalar MtStatic = muT*shapeFactor*muS*fnMag;
 
         // limit to static
-        if  (std::abs(MtorsionMag) > MtStatic){
+        if  (!isBondedParticle and (std::abs(MtorsionMag) > MtStatic)){
          MtorsionMag =  (MtorsionMag > 0.0 ? 1.0 : -1.0)*MtStatic;
          newDeltaTorsij = (std::abs(Mt0damp) > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
         }
@@ -470,7 +470,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const Scalar MrStatic = muR*shapeFactor*fnMag;
 
         // limit to static
-        if  (effectiveRollingForce.magnitude() > MrStatic){
+        if  (!isBondedParticle and (effectiveRollingForce.magnitude() > MrStatic)){
          effectiveRollingForce =  MrStatic*effectiveRollingForce.unitVector();
          newDeltaRollij = (Mr0damp.magnitude() > MrStatic ?
                            Vector::zero :  
@@ -492,12 +492,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         DomegaDtj += Msliding*lj + (Mtorsion + Mrolling) * lij;
 
         // for spring updates
-        newShearDisplacement(storeNodeList,storeNode)[storeContact] = storageSign*newDeltaSlidij;
-        DDtShearDisplacement(storeNodeList,storeNode)[storeContact] = storageSign*vs;
-        newTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaTorsij;
-        DDtTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = vt;
-        newRollingDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaRollij;
-        DDtRollingDisplacement(storeNodeList,storeNode)[storeContact] = vr;
+        newShearDisplacement(nodeListi,i)[contacti] = storageSign*newDeltaSlidij;
+        DDtShearDisplacement(nodeListi,i)[contacti] = storageSign*vs;
+        newTorsionalDisplacement(nodeListi,i)[contacti] = newDeltaTorsij;
+        DDtTorsionalDisplacement(nodeListi,i)[contacti] = vt;
+        newRollingDisplacement(nodeListi,i)[contacti] = newDeltaRollij;
+        DDtRollingDisplacement(nodeListi,i)[contacti] = vr;
     
       }  
     } // loop over pairs
