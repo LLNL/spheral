@@ -199,9 +199,9 @@ public:
   unsigned int numSolidBoundaries() const;
   const std::vector<SolidBoundary<Dimension>*>& solidBoundaryConditions() const;
 
-  int numInternalContacts() const;
-  int numBoundaryContacts() const;
-  int numContacts() const;
+  unsigned int numParticleParticleContacts() const;
+  unsigned int numParticleBoundaryContacts() const;
+  unsigned int numContacts() const;
 
   //****************************************************************************
   // Methods required for restarting.

@@ -408,28 +408,28 @@ DEMBase<Dimension>::solidBoundaryConditions() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+unsigned int
 DEMBase<Dimension>::
-numInternalContacts() const {
+numParticleParticleContacts() const {
   const auto& cm = mDataBase.connectivityMap();
   const auto& pairs = cm.nodePairList();
-  return (int)pairs.size();
+  return pairs.size();
 }
 
 template<typename Dimension>
 inline
-int
+unsigned int
 DEMBase<Dimension>::
 numContacts() const {
-  return (int)mContactStorageIndices.size();
+  return mContactStorageIndices.size();
 }
 
 template<typename Dimension>
 inline
-int
+unsigned int
 DEMBase<Dimension>::
-numBoundaryContacts() const {
-  return (int)(mContactStorageIndices.size()-this->numInternalContacts());
+numParticleBoundaryContacts() const {
+  return (mContactStorageIndices.size()-this->numParticleParticleContacts());
 }
 
 
