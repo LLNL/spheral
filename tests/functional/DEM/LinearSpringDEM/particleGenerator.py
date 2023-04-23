@@ -165,6 +165,8 @@ dem = DEM(db,
 
 packages = [dem]
 
+solidWall = PlanarWall(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0))
+dem.appendSolidBoundary(solidWall)
 
 # #-------------------------------------------------------------------------------
 # # PhysicsPackage : gravity
@@ -176,13 +178,13 @@ packages += [gravity]
 # #-------------------------------------------------------------------------------
 # # Create boundary conditions.
 # #-------------------------------------------------------------------------------
-plane1 = Plane(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0))
-bc1 = ReflectingBoundary(plane1)
-bcSet = [bc1]
+# plane1 = Plane(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0))
+# bc1 = ReflectingBoundary(plane1)
+# bcSet = [bc1]
 
-for p in packages:
-    for bc in bcSet:
-        p.appendBoundary(bc)
+# for p in packages:
+#     for bc in bcSet:
+#         p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
 # Fields and Variables

@@ -195,7 +195,7 @@ public:
   void prependSolidBoundary(SolidBoundary<Dimension>& boundary);
   void clearSolidBoundaries();
   bool haveSolidBoundary(const SolidBoundary<Dimension>& boundary) const;
-  unsigned int numSolidBoundaries();
+  unsigned int numSolidBoundaries() const;
   const std::vector<SolidBoundary<Dimension>*>& solidBoundaryConditions() const;
 
 

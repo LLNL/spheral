@@ -45,8 +45,7 @@ class DEMBase(Physics):
         return "void"
 
     @PYB11virtual
-    def preStepInitialize(self,
-                          dataBase = "const DataBase<%(Dimension)s>&", 
+    def preStepInitialize(dataBase = "const DataBase<%(Dimension)s>&", 
                           state = "State<%(Dimension)s>&",
                           derivs = "StateDerivatives<%(Dimension)s>&"):
         "Optional hook to be called at the beginning of a time step."
@@ -101,6 +100,29 @@ class DEMBase(Physics):
     def momentOfInertia(massi = "const Scalar",
                         partialRadiusi = "const Scalar"):
         return "Scalar"
+
+    def appendSolidBoundary(boundary = "SolidBoundary<%(Dimension)s>&"):
+        "add a solid boundary to the end of the list"
+        return "void"
+
+    def prependSolidBoundary(boundary = "SolidBoundary<%(Dimension)s>&"):
+        "add a solid boundary to the begining of the list"
+        return "void"
+
+    def clearSolidBoundaries(self):
+        "remove all solid boundaries from the dem package"
+        return "void"
+
+    @PYB11const
+    def numSolidBoundaries(self):
+        "return the number of solid boundaries being tracked"
+        return "unsigned int"
+
+    @PYB11const
+    def haveSolidBoundary(boundary = "const SolidBoundary<%(Dimension)s>&"):
+        "is this boundary being tracked?"
+        return "bool"
+
     #...........................................................................
     # Properties
     xmin = PYB11property("const Vector&", "xmin", "xmin",
@@ -127,6 +149,7 @@ class DEMBase(Physics):
     DDtShearDisplacement = PYB11property("const FieldList<%(Dimension)s, vector<Vector>>&","DDtShearDisplacement", returnpolicy="reference_internal")
     isActiveContact = PYB11property("const FieldList<%(Dimension)s, vector<int>>&","isActiveContact", returnpolicy="reference_internal")
     
+    solidBoundaryConditions = PYB11property("const std::vector<SolidBoundary<%(Dimension)s>*>&", "solidBoundaryConditions", doc="The set of NodeLists in the DataBase")
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------

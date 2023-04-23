@@ -391,7 +391,7 @@ template<typename Dimension>
 inline
 unsigned int
 DEMBase<Dimension>::
-numSolidBoundaries() {
+numSolidBoundaries() const {
   return mSolidBoundaries.size();
 }
 
