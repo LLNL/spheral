@@ -1,6 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// DEMBoundaryPolicy -- general policy to allow solid boundaries to move in
-//                      DEM. 
+// DEMBoundaryPolicy -- policy which allows solid boundaries to move in DEM.
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
