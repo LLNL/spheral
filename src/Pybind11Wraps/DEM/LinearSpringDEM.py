@@ -54,10 +54,20 @@ class LinearSpringDEM(DEMBase):
         "calculate the derivatives for Linear Spring DEM."
         return "void"
 
+    @PYB11virtual 
+    def registerState(dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
+        "Register the state Hydro expects to use and evolve."
+        return "void"
+
     @PYB11const
     def momentOfInertia(massi = "const Scalar",
                         partialRadiusi = "const Scalar"):
         return "Scalar"
+
+
+    def setMomentOfInertia(self):
+        return "void"
         
     normalSpringConstant = PYB11property("Scalar", "normalSpringConstant", "normalSpringConstant", doc="normal spring constant")
     normalRestitutionCoefficient = PYB11property("Scalar", "normalRestitutionCoefficient", "normalRestitutionCoefficient", doc="normal restitution coefficient")

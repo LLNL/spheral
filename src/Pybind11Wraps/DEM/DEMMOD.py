@@ -44,6 +44,7 @@ PlanarWall%(ndim)id = PYB11TemplateClass(PlanarWall, template_parameters="%(Dime
 #-------------------------------------------------------------------------------
 class DEMFieldNames:
     particleRadius = PYB11readonly(static=True, returnpolicy="copy")
+    momentOfInertia = PYB11readonly(static=True, returnpolicy="copy")
     compositeParticleIndex = PYB11readonly(static=True, returnpolicy="copy")
     angularVelocity = PYB11readonly(static=True, returnpolicy="copy")
     uniqueIndices = PYB11readonly(static=True, returnpolicy="copy")

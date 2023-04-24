@@ -36,6 +36,14 @@ class PlanarWall(SolidBoundary):
         "solid planar boundary"
 
     @PYB11virtual
+    def update(self,
+               multiplier = "const double",
+               t = "const double",
+               dt = "const double",):
+        "distance vector to bc."
+        return "void"
+
+    @PYB11virtual
     @PYB11const
     def velocity(self,
                  position = "const Vector&"):
@@ -49,6 +57,7 @@ class PlanarWall(SolidBoundary):
         "distance vector to bc."
         return "Vector"
 
+    velocity = PYB11property("const Vector&", "velocity",  "velocity", returnpolicy="reference_internal", doc="velocity of plane")
     point  = PYB11property("const Vector&", "point",  "point", returnpolicy="reference_internal", doc="point  in plane definition")
     normal = PYB11property("const Vector&", "normal", "normal",returnpolicy="reference_internal", doc="normal in plane definition")
     
