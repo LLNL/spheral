@@ -6,6 +6,7 @@ from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator2d
 
+sys.path.insert(0, '..')
 from DEMConservationTracker import TrackConservation2d as TrackConservation
 
 if mpi.procs > 1:
@@ -14,6 +15,9 @@ else:
     from DistributeNodes import distributeNodes2d
 
 title("DEM 2d Drop Test")
+# tests pairing with a gravitational field and the
+# use of ghost-particle-based boundary conditions
+# with the DEM package.
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters

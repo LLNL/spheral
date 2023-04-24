@@ -1,6 +1,7 @@
 #ATS:DEM2dImpact = test(          SELF, "--clearDirectories True  --checkConservation True --goalTime 1.0", label="DEM impacting squares -- 3-D (parallel)", np=8)
 
 import os, sys, shutil, mpi
+
 from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
@@ -8,6 +9,7 @@ from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator2d
 
+sys.path.insert(0, '..')
 from DEMConservationTracker import TrackConservation2d as TrackConservation
 
 if mpi.procs > 1:

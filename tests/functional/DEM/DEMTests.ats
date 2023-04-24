@@ -1,6 +1,11 @@
-source("LinearSpringDEM/twoParticleCollision-1d.py")
-source("LinearSpringDEM/twoParticleCollision-2d.py")
-source("LinearSpringDEM/twoParticleCollision-3d.py")
-source("LinearSpringDEM/impactingSquares-2d.py")
-source("LinearSpringDEM/impactingSquares-3d.py")
-# source("LinearSpringDEM/fiveParticleCollision-2d.py")   # Restore this test when we sort out how to measure pass/fail with our changes to kernelExtent and timestepping
+# direct tests of the pairwise spring-damper implementation 
+source("LinearSpringDEM/TwoParticleCollision/twoParticleCollision-1d.py")
+source("LinearSpringDEM/TwoParticleCollision/twoParticleCollision-2d.py")
+source("LinearSpringDEM/TwoParticleCollision/twoParticleCollision-3d.py")
+
+# test for neighbor structure required for integrated pairwise values
+source("LinearSpringDEM/TwoParticleCollision/fiveParticleCollision-2d.py")
+
+# tests conservation of linear & rotational momentum in 2d and 3d
+source("LinearSpringDEM/ImpactingSquares/impactingSquares-2d.py")
+source("LinearSpringDEM/ImpactingSquares/impactingSquares-3d.py")

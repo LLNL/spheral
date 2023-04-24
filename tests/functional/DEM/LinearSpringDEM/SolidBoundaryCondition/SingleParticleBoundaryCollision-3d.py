@@ -1,9 +1,4 @@
-#ATS:DEM3d0 = test(        SELF, "--clearDirectories True  --checkError True  --checkConservation True --normalRestitutionCoefficient 1.0 --steps 100", label="DEM perfectly elastic 2 particle collision -- 3-D (serial)")
-#ATS:DEM3d1 = test(        SELF, "--clearDirectories True  --checkError True  --checkConservation True --normalRestitutionCoefficient 0.8 --steps 100", label="DEM perfectly inelastic 2 particle collision -- 3-D (serial)")
-#ATS:DEM3d2 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckSlidingFriction True --checkConservation True --normalRestitutionCoefficient 0.8 --steps 100", label="DEM inelastic 2 particle collision - sliding friction -- 3-D (serial)")
-#ATS:DEM3d3 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckRollingFriction True --checkConservation True --normalRestitutionCoefficient 0.8 --steps 100", label="DEM inelastic 2  particle collision - rolling friction -- 3-D (serial)")
-#ATS:DEM3d4 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckTorsionalFriction True --checkConservation True --normalRestitutionCoefficient 0.8 --steps 100", label="DEM inelastic 2  particle collision - torsional friction -- 3-D (serial)")
-#ATS:DEM3d5 = test(        SELF, "--clearDirectories True  --checkError True --boolCheckTorsionalObjectivity True --checkConservation True --normalRestitutionCoefficient 0.8 --steps 100", label="DEM inelastic 2  particle collision - torsional objectivity -- 3-D (serial)")
+#ATS:DEM3dSPBC = test(        SELF, "--clearDirectories True  --checkError True  --checkConservation True --normalRestitutionCoefficient 1.0 --steps 100", label="DEM perfectly elastic 2 particle collision -- 3-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
@@ -13,6 +8,7 @@ from findLastRestart import *
 from GenerateNodeDistribution3d import *
 from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator3d
 
+sys.path.insert(0, '..')
 from DEMConservationTracker import TrackConservation3d as TrackConservation
 
 if mpi.procs > 1:
@@ -28,7 +24,7 @@ title("DEM Restitution Coefficient Test")
 commandLine(vImpact = 1.0,                            # impact velocity
             omega0 = 0.1,                             # initial angular velocity it we're doing that
 
-            radius = 0.25,                            # particle radius
+            radius = 0.95,                            # particle radius
             normalSpringConstant=10000.0,             # spring constant for LDS model
             normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
             tangentialSpringConstant=2857.0,          # spring constant for LDS model
@@ -50,7 +46,7 @@ commandLine(vImpact = 1.0,                            # impact velocity
             dtMin = 1.0e-8, 
             dtMax = 0.1,
             dtGrowth = 2.0,
-            steps = 500,
+            steps = None,
             maxSteps = None,
             statsStep = 10,
             domainIndependent = False,
@@ -58,13 +54,13 @@ commandLine(vImpact = 1.0,                            # impact velocity
             dtverbose = False,
             
             # output control
-            vizCycle = None,
-            vizTime = None,
+            vizCycle = 0.1,
+            vizTime = 10.0,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 1000,
             redistributeStep = 500,
-            dataDir = "dumps-DEM-2particle-3d", 
+            dataDir = "dumps-DEM-particle-boundary-3d", 
 
              # ats parameters
             checkError = False,                    # turn on error checking for restitution coefficient
@@ -101,7 +97,7 @@ if boolCheckSlidingFriction:
 #-------------------------------------------------------------------------------
 # file things
 #-------------------------------------------------------------------------------
-testName = "DEM-twoParticleCollision-3d"
+testName = "DEM-SingleParticleBoundaryCollision-3d"
 
 dataDir = os.path.join(dataDir,
                   "restitutionCoefficient=%s" % normalRestitutionCoefficient,
@@ -165,8 +161,8 @@ for nodes in nodeSet:
 generator0 = GenerateNodeDistribution3d(2, 1, 1,
                                         rho = 1.0,
                                         distributionType = "lattice",
-                                        xmin = (0.0,  0.0, 0.0),
-                                        xmax = (1.0,  0.5, 0.5),
+                                        xmin = (-2.0,  -1.0, 0.1),
+                                        xmax = (2.0,  1.0, 2.1),
                                         nNodePerh = nPerh)
 
 generator1 = GenerateDEMfromSPHGenerator3d(WT,
@@ -205,24 +201,34 @@ dem = DEM(db,
 packages = [dem]
 
 
+
+solidWall = PlanarWall(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0))
+dem.appendSolidBoundary(solidWall)
+
+#-------------------------------------------------------------------------------
+# PhysicsPackage : gravity
+#-------------------------------------------------------------------------------
+gravity = ConstantAcceleration(a0 = Vector(0.0, 0.0,-1.0),
+                               nodeList = nodes1)
+packages += [gravity]
+
+
 #-------------------------------------------------------------------------------
 # initial conditions
 #-------------------------------------------------------------------------------
 
 velocity = nodes1.velocity()
-velocity[0] = Vector(vImpact,0.0,0.0)
-velocity[1] = Vector(-vImpact,0.0,0.0)
+velocity[0] = Vector(0.0,0.0,-0.1)
+velocity[1] = Vector(0.0,0.0,-0.1)
 
 particleRadius = nodes1.particleRadius()
 particleRadius[0] = radius
 particleRadius[1] = radius
 
-bonusSpace = radius
-position = nodes1.positions()
-position[0].x -= bonusSpace
-position[1].x += bonusSpace
-
 omega = dem.omega
+omega[0][0] = Vector(0.0,0.0, omega0)
+omega[0][1] = Vector(0.0,0.0,-omega0)
+
 if boolCheckSlidingFriction:
     omega[0][0] = Vector(0.0,0.0,omega0)
     omega[0][1] = Vector(0.0,0.0,omega0)
@@ -276,6 +282,7 @@ periodicWork = [(conservation.periodicWorkFunction,1)]
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+from SpheralPointmeshSiloDump import dumpPhysicsState
 control = SpheralController(integrator, WT,
                             iterateInitialH = False,
                             initializeDerivatives = True,
@@ -284,6 +291,7 @@ control = SpheralController(integrator, WT,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             vizBaseName = vizBaseName,
+                            vizMethod=dumpPhysicsState,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,

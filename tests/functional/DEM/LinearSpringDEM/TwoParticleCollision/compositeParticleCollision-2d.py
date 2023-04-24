@@ -14,7 +14,7 @@ if mpi.procs > 1:
 else:
     from DistributeNodes import distributeNodes2d
 
-title("DEM Restitution Coefficient Test")
+title("DEM Composite-Particle Restitution Coefficient Test")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters

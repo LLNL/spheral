@@ -7,8 +7,10 @@ from Spheral2d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution2d import *
-from DEMConservationTracker import TrackConservation2d as TrackConservation
 from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator2d
+
+sys.path.insert(0, '../.')
+from DEMConservationTracker import TrackConservation1d as TrackConservation
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes2d
@@ -35,6 +37,7 @@ commandLine(vImpact = 1.0,                            # impact velocity
             shapeFactor = 0.5,                        # shape irregularity parameter 0-1 (1 most irregular)
             
             nPerh = 1.01,                             # this should basically always be 1 for DEM
+            neighborSearchBuffer = 0.01,              # multiplicative buffer to radius for neighbor search algo
 
             # integration
             IntegratorConstructor = VerletIntegrator,    # Verlet only integrator that garentees conservation of Rot Mom w/ DEM
@@ -123,10 +126,7 @@ WT = TableKernel(WendlandC2Kernel(), 1000)
 #-------------------------------------------------------------------------------
 units = CGuS()
 nodes1 = makeDEMNodeList("nodeList1",
-                          hmin = 1.0e-30,
-                          hmax = 1.0e30,
-                          hminratio = 100.0,
-                          nPerh = nPerh,
+                          neighborSearchBuffer = neighborSearchBuffer,
                           kernelExtent = WT.kernelExtent)
 nodeSet = [nodes1]
 for nodes in nodeSet:
@@ -140,6 +140,7 @@ for nodes in nodeSet:
 # Set the node properties.
 #-------------------------------------------------------------------------------
 
+# used to generate 5 points, locations and properties changed later
 generator0 = GenerateNodeDistribution2d(5, 1,
                                         rho = 1.0,
                                         distributionType = "lattice",
@@ -147,6 +148,7 @@ generator0 = GenerateNodeDistribution2d(5, 1,
                                         xmax = (2.0,  0.5),
                                         nNodePerh = nPerh)
 
+# make it a DEM generator
 generator1 = GenerateDEMfromSPHGenerator2d(WT,
                                            generator0,
                                            nPerh=nPerh)
