@@ -169,11 +169,8 @@ packages = [dem]
 #-------------------------------------------------------------------------------
 # PhysicsPackage : gravity
 #-------------------------------------------------------------------------------
-allindices = vector_of_int(range(nodes1.numInternalNodes))
-
 gravity = ConstantAcceleration(a0 = Vector(0.0,-1.0),
-                               nodeList = nodes1,
-                               indices = allindices)
+                               nodeList = nodes1)
 packages += [gravity]
 
 #-------------------------------------------------------------------------------
