@@ -193,7 +193,6 @@ public:
 
   // Solid Bounderies 
   void appendSolidBoundary(SolidBoundary<Dimension>& boundary);
-  //void prependSolidBoundary(SolidBoundary<Dimension>& boundary); // this will break things
   void clearSolidBoundaries();
   bool haveSolidBoundary(const SolidBoundary<Dimension>& boundary) const;
   unsigned int numSolidBoundaries() const;
