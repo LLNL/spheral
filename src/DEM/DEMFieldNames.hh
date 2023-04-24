@@ -12,6 +12,7 @@
 namespace Spheral {
 
 struct DEMFieldNames {
+  static const std::string momentOfInertia;
   static const std::string particleRadius;
   static const std::string compositeParticleIndex;
   static const std::string angularVelocity;

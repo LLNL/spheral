@@ -53,10 +53,16 @@ public:
 
   ~LinearSpringDEM();
  
+  // physics package methods
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar time) const override;
+
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+
+  virtual void registerState(DataBase<Dimension>& dataBase,
+                             State<Dimension>& state) override;
 
   virtual void evaluateDerivatives(const Scalar time,
                                    const Scalar dt,
@@ -64,6 +70,7 @@ public:
                                    const State<Dimension>& state,
                                          StateDerivatives<Dimension>& derivs) const override;
 
+  // set/gets
   Scalar normalSpringConstant() const;
   void   normalSpringConstant(Scalar x);
 
@@ -100,6 +107,17 @@ public:
   Scalar tangentialBeta() const;
   void   tangentialBeta(Scalar x);
 
+  // set moment of inertia on start up
+  void setMomentOfInertia();
+
+  // specialization for moment of Inertia different dimension
+  Scalar momentOfInertia(const Scalar massi,
+                         const Scalar particleRadiusi) const;
+
+  // get methods for class FieldLists
+  const FieldList<Dimension,Scalar>& momentOfInertia() const;
+
+  
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "LinearSpringDEM" ; }
@@ -121,6 +139,9 @@ private:
 
   Scalar mNormalBeta;
   Scalar mTangentialBeta;
+
+  // field Lists
+  FieldList<Dimension,Scalar> mMomentOfInertia;
 
   // No default constructor, copying, or assignment.
   LinearSpringDEM();

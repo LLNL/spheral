@@ -7,6 +7,7 @@
 
 #include "DEMFieldNames.hh"
 
+const std::string Spheral::DEMFieldNames::momentOfInertia = "moment of inertia";
 const std::string Spheral::DEMFieldNames::particleRadius = "particle radius";
 const std::string Spheral::DEMFieldNames::compositeParticleIndex = "composite particle flags";
 const std::string Spheral::DEMFieldNames::angularVelocity = "angular velocity";

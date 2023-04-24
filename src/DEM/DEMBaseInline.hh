@@ -247,33 +247,13 @@ contactStorageIndices() const {
   return mContactStorageIndices;
 }
 
-//------------------------------------------------------------------------------
-// moment of interia specializations
-//------------------------------------------------------------------------------
-template<>
+template<typename Dimension>
 inline
-Dim<1>::Scalar
-DEMBase<Dim<1>>::
-momentOfInertia(const Dim<1>::Scalar m, const Dim<1>::Scalar R) const {
-  return 0.5*m*R*R;
+const DataBase<Dimension>&
+DEMBase<Dimension>::
+dataBase() const {
+  return mDataBase;
 }
-
-template<>
-inline
-Dim<2>::Scalar
-DEMBase<Dim<2>>::
-momentOfInertia(const Dim<2>::Scalar m, const Dim<2>::Scalar R) const {
-  return 0.5*m*R*R;
-}
-
-template<>
-inline
-Dim<3>::Scalar
-DEMBase<Dim<3>>::
-momentOfInertia(const Dim<3>::Scalar m, const Dim<3>::Scalar R) const {
-  return 0.4*m*R*R;
-}
-
 //------------------------------------------------------------------------------
 // torsion specializations
 //------------------------------------------------------------------------------

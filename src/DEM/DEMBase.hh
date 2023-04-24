@@ -155,6 +155,9 @@ public:
   int  contactRemovalFrequency() const;
   void contactRemovalFrequency(int x);
 
+  // access the dataBase 
+  const DataBase<Dimension>& dataBase() const;
+
   // access for node fieldLists
   const FieldList<Dimension, int>&    timeStepMask() const;
   const FieldList<Dimension, Vector>& DxDt() const;
@@ -180,9 +183,6 @@ public:
 
 
   // inlined and specialized for different dimensions
-  Scalar momentOfInertia(const Scalar massi,
-                         const Scalar particleRadiusi) const;
-
   RotationType torsionMoment(const Vector rhatij,
                              const RotationType omegai,
                              const RotationType omegaj) const;
@@ -199,6 +199,7 @@ public:
   unsigned int numSolidBoundaries() const;
   const std::vector<SolidBoundary<Dimension>*>& solidBoundaryConditions() const;
 
+  // counts
   unsigned int numParticleParticleContacts() const;
   unsigned int numParticleBoundaryContacts() const;
   unsigned int numContacts() const;

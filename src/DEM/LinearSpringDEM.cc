@@ -29,6 +29,7 @@
 #include "DEM/DEMDimension.hh"
 #include "DEM/LinearSpringDEM.hh"
 #include "DEM/ContactStorageLocation.hh"
+#include "DEM/SolidBoundary/SolidBoundary.hh"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -88,7 +89,9 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
   mCohesiveTensileStrength(cohesiveTensileStrength),
   mShapeFactor(shapeFactor),
   mNormalBeta(M_PI/std::log(std::max(normalRestitutionCoefficient,1.0e-3))),
-  mTangentialBeta(M_PI/std::log(std::max(tangentialRestitutionCoefficient,1.0e-3))) { // everything but the mass
+  mTangentialBeta(M_PI/std::log(std::max(tangentialRestitutionCoefficient,1.0e-3))),
+  mMomentOfInertia(FieldStorageType::CopyFields) { 
+    mMomentOfInertia = dataBase.newDEMFieldList(0.0, DEMFieldNames::momentOfInertia);
 }
 
 //------------------------------------------------------------------------------
@@ -129,7 +132,7 @@ dt(const DataBase<Dimension>& dataBase,
   const auto dtSpring0 = M_PI*std::sqrt(0.5/mNormalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)))/nsteps;
 
   // Check each pair to see how much they are closing.
-  auto dtMin = std::numeric_limits<Scalar>::max();
+  auto dtMin = dtSpring0;//std::numeric_limits<Scalar>::max();
   TimeStepType result(dtMin, "DEM error, this message should not get to the end");
   for (const auto& pair: pairs) {
 
@@ -204,8 +207,32 @@ dt(const DataBase<Dimension>& dataBase,
   return result;
 }
 
+
 //------------------------------------------------------------------------------
-// get our acceleration and other things
+// method that fires once on startup
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+initializeProblemStartup(DataBase<Dimension>& dataBase){
+  DEMBase<Dimension>::initializeProblemStartup(dataBase);
+  this->setMomentOfInertia();
+}
+
+//------------------------------------------------------------------------------
+// Register the state we need/are going to evolve.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+registerState(DataBase<Dimension>& dataBase,
+              State<Dimension>& state) {
+  DEMBase<Dimension>::registerState(dataBase,state);
+  dataBase.resizeDEMFieldList(mMomentOfInertia, 0.0, DEMFieldNames::momentOfInertia, false);
+  state.enroll(mMomentOfInertia);
+}
+//------------------------------------------------------------------------------
+// evaluate the derivatives
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -252,8 +279,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const unsigned int numP2BContacts = this->numParticleBoundaryContacts();
   const unsigned int numTotContacts = this->numContacts();
 
+  std::cout<< "numP2P: " <<numP2PContacts<<std::endl;
+  std::cout<< "numP2B: " <<numP2BContacts<<std::endl;
+  std::cout<< "nomTot: " <<numTotContacts<<std::endl;
+
   // Get the state FieldLists.
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto momentOfInertia = state.fields(DEMFieldNames::momentOfInertia, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto omega = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
@@ -309,6 +341,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // storage locations in our pairwise FieldLists
   const auto& contacts = this->contactStorageIndices();
 
+  // vec of ptrs to our solid boundary conditions
+  const auto& solidBoundaries = this->solidBoundaryConditions();
+
+
 #pragma omp parallel
   {
     // Thread private scratch variables
@@ -327,12 +363,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       j = contacts[kk].pairNode;
       contacti = contacts[kk].storeContact;
       
-      // Get the state for node i needed for prox check
+      // Get the state vars for node i needed for prox check
       const auto& ri = position(nodeListi, i);
       const auto& Ri = radius(nodeListi, i);
       CHECK(Ri > 0.0);
 
-      // Get the state for node j needed for prox check
+      // Get the state vars for node j needed for prox check
       const auto& rj = position(nodeListj, j);
       const auto& Rj = radius(nodeListj, j);
       CHECK(Rj > 0.0);
@@ -352,7 +388,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto& vi = velocity(nodeListi, i);
         const auto& omegai = omega(nodeListi, i);
         const auto& mi = mass(nodeListi, i);
+        const auto  Ii = momentOfInertia(nodeListi,i);
         CHECK(mi > 0.0);
+        CHECK(Ii > 0.0);
 
         // get remaining state for node j
         const auto cIdj = compositeIndex(nodeListj,j);
@@ -360,7 +398,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto& vj = velocity(nodeListj, j);
         const auto& omegaj = omega(nodeListj, j);
         const auto& mj = mass(nodeListj, j);
+        const auto  Ij = momentOfInertia(nodeListj,j);
         CHECK(mj > 0.0);
+        CHECK(Ij > 0.0);
 
         // Get the derivs from node i
         auto& DvDti = DvDt_thread(nodeListi, i);
@@ -488,8 +528,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto Msliding = -DEMDimension<Dimension>::cross(rhatij,fij);
         const auto Mrolling = -DEMDimension<Dimension>::cross(rhatij,effectiveRollingForce);
         const auto Mtorsion = MtorsionMag * this->torsionMoment(rhatij,omegai,omegaj); // rename torsionDirection
-        DomegaDti += Msliding*li - (Mtorsion + Mrolling) * lij;
-        DomegaDtj += Msliding*lj + (Mtorsion + Mrolling) * lij;
+        DomegaDti += (Msliding*li - (Mtorsion + Mrolling) * lij)/Ii;
+        DomegaDtj += (Msliding*lj + (Mtorsion + Mrolling) * lij)/Ij;
 
         // for spring updates
         newShearDisplacement(nodeListi,i)[contacti] = storageSign*newDeltaSlidij;
@@ -501,27 +541,201 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     
       }  
     } // loop over pairs
-    threadReduceFieldLists<Dimension>(threadStack);
-  }   // OpenMP parallel region
-
   
-  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& nodeList = mass[nodeListi]->nodeList();
+    for (auto kk = numP2PContacts; kk < numTotContacts; ++kk) {
+    
+      nodeListi = contacts[kk].storeNodeList;
+      i = contacts[kk].storeNode;
+      contacti = contacts[kk].storeContact;
+      const auto boundaryIndex = contacts[kk].pairNodeList;
+      CHECK2(contacts[kk].pairNodeList < 0, "ERROR: SolidBoundary should be flagged as negative indices")
 
-    const auto ni = nodeList.numInternalNodes();
+      //Get the state vars for node i needed for prox check
+      const auto& ri = position(nodeListi, i);
+      const auto& Ri = radius(nodeListi, i);
+      CHECK(Ri > 0.0);
+
+      //solid boundary and distance vector to particle i
+      const auto& solidBoundary = solidBoundaries[boundaryIndex];
+      const auto rib = solidBoundary->distance(ri);
+
+      //effective delta
+      const auto delta = Ri-rib.magnitude();
+
+      // are overlapping?
+      if (delta > 0.0){
+
+        // get remaining state for node i
+        const auto& vi = velocity(nodeListi, i);
+        const auto& omegai = omega(nodeListi, i);
+        const auto& mi = mass(nodeListi, i);
+        const auto& Ii = momentOfInertia(nodeListi, i);
+        CHECK(Ii > 0.0);
+        CHECK(mi > 0.0);
+
+        // Get the derivs from node i
+        auto& DvDti = DvDt_thread(nodeListi, i);
+        auto& DomegaDti = DomegaDt_thread(nodeListi, i);
+
+        // velocity of boundary @ ri
+        const auto vb =solidBoundary->velocity(ri);
+
+        // pairwise variables
+        const auto deltaSlidib = shearDisplacement(nodeListi,i)[contacti];
+        const auto deltaRollib = rollingDisplacement(nodeListi,i)[contacti];
+        const auto deltaTorsib = torsionalDisplacement(nodeListi,i)[contacti];
+
+        // line of action for the contact
+        const auto rhatib = rib.unitVector();
+
+        // lever arm 
+        const auto li = rib.magnitude();
+
+        // damping constants -- ct and cr derived quantities ala Zhang 2017
+        const auto Cn = std::sqrt(mi*normalDampingTerms);
+        const auto Cs = std::sqrt(mi*tangentialDampingTerms);
+        const auto Ct = 0.50 * Cs * shapeFactor2;
+        const auto Cr = 0.25 * Cn * shapeFactor2;
+
+        // velocities
+        const Vector vroti = -DEMDimension<Dimension>::cross(omegai,rhatib);
+
+        const Vector vib = vi-vb + li*vroti;
+
+        const Scalar vn = vib.dot(rhatib);                                 // normal velocity
+        const Vector vs = vib - vn*rhatib;                                 // sliding velocity
+        const Vector vr = -li*vroti;                                       // rolling velocity
+        const Scalar vt = -li*DEMDimension<Dimension>::dot(omegai,rhatib); // torsion velocity
+
+        // normal forces 
+        //------------------------------------------------------------
+        const Vector fn = (kn*delta - Cn*vn)*rhatib;        // normal spring
+        const Vector fc = Cc*shapeFactor2*li*li*rhatib;     // normal cohesion
+        const Scalar fnMag = fn.magnitude();                // magnitude of normal spring force
+
+        // sliding
+        //------------------------------------------------------------
+        // project onto new tangential plane -- maintain magnitude
+        Vector newDeltaSlidib = (deltaSlidib - rhatib.dot(deltaSlidib)*rhatib).unitVector()*deltaSlidib.magnitude();
+        
+        // spring dashpot
+        const Vector ft0spring = - ks*newDeltaSlidib;
+        const Vector ft0damp = - Cs*vs;
+              Vector ft = ft0spring + ft0damp;
+
+        // static friction limit
+        if (ft.magnitude() > muS*fnMag){
+
+          const Scalar ftDynamic = muD*fnMag;
+          ft = ftDynamic*ft.unitVector();
+
+          newDeltaSlidib = ( ft0damp.magnitude() > ftDynamic ? 
+                                Vector::zero : 
+                               -(ft-ft0damp)*invKs );
+
+        }
+
+        // torsion
+        //------------------------------------------------------------
+        // since we use a scalar no need to modify here
+        auto newDeltaTorsib = deltaTorsib;
+        
+        // spring dashpot
+        const Scalar Mt0spring = - kt*newDeltaTorsib;
+        const Scalar Mt0damp = - Ct*vt;
+              Scalar MtorsionMag = (Mt0spring + Mt0damp); 
+        const Scalar MtStatic = muT*shapeFactor*muS*fnMag;
+
+        // limit to static
+        if (std::abs(MtorsionMag) > MtStatic){
+         MtorsionMag =  (MtorsionMag > 0.0 ? 1.0 : -1.0)*MtStatic;
+         newDeltaTorsib = (std::abs(Mt0damp) > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
+        }
+
+        // rolling
+        //------------------------------------------------------------
+        // project onto new tangential plane -- maintain magnitude
+        Vector newDeltaRollib = (deltaRollib - rhatib.dot(deltaRollib)*rhatib).unitVector()*deltaRollib.magnitude();
+    
+        // spring dashpot
+        const Vector Mr0spring = - kr*newDeltaRollib;
+        const Vector Mr0damp = - Cr*vr;
+              Vector effectiveRollingForce = (Mr0spring + Mr0damp); 
+        const Scalar MrStatic = muR*shapeFactor*fnMag;
+
+        // limit to static
+        if (effectiveRollingForce.magnitude() > MrStatic){
+         effectiveRollingForce =  MrStatic*effectiveRollingForce.unitVector();
+         newDeltaRollib = (Mr0damp.magnitude() > MrStatic ?
+                           Vector::zero :  
+                           -(effectiveRollingForce-Mr0damp)*invKr);
+        }
+
+        // accelerations
+        //------------------------------------------------------------
+        // Rectilinear Acceleration 
+        const Vector fib = fn - fc + ft;
+        DvDti += fib/mi;
+
+        // angular acceleration
+        const auto Msliding = -DEMDimension<Dimension>::cross(rhatib,fib);
+        const auto Mrolling = -DEMDimension<Dimension>::cross(rhatib,effectiveRollingForce);
+        const auto Mtorsion = MtorsionMag * this->torsionMoment(rhatib,omegai,0*omegai); // rename torsionDirection
+        DomegaDti += (Msliding*li - (Mtorsion + Mrolling) * li)/Ii;
+
+        // for spring updates
+        newShearDisplacement(nodeListi,i)[contacti] = newDeltaSlidib;
+        DDtShearDisplacement(nodeListi,i)[contacti] = vs;
+        newTorsionalDisplacement(nodeListi,i)[contacti] = newDeltaTorsib;
+        DDtTorsionalDisplacement(nodeListi,i)[contacti] = vt;
+        newRollingDisplacement(nodeListi,i)[contacti] = newDeltaRollib;
+        DDtRollingDisplacement(nodeListi,i)[contacti] = vr;
+
+     } // if statement
+   }   // loop pairs
+threadReduceFieldLists<Dimension>(threadStack);
+  }    // omp parfor
+
+  // finish with loop over nodelists
+  //-----------------------------------------------------------
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+    const auto& nodeList = nodeLists[nodeListi];
+    const auto ni = nodeList->numInternalNodes();
+#pragma omp parallel for
+    for (auto i = 0u; i < ni; ++i) {
+        const auto veli = velocity(nodeListi,i);
+        DxDt(nodeListi,i) = veli;
+    }   // loop nodes
+  }     // loop nodelists
+}       // method
+
+
+//------------------------------------------------------------------------------
+// method that fires once on startup
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+setMomentOfInertia() {
+
+  const auto& db = this->dataBase();
+  const auto  mass   = db.DEMMass();
+  const auto  radius = db.DEMParticleRadius();
+  const auto  numNodeLists = db.numNodeLists();
+  const auto& nodeLists = db.DEMNodeListPtrs();
+
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+    const auto& nodeList = nodeLists[nodeListi];
+    const auto ni = nodeList->numInternalNodes();
+
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
         const auto mi = mass(nodeListi,i);
         const auto Ri = radius(nodeListi,i);
-        const auto veli = velocity(nodeListi,i);
-        const auto Ii = this->momentOfInertia(mi,Ri);
+        mMomentOfInertia(nodeListi,i) = this->momentOfInertia(mi,Ri); 
 
-        DxDt(nodeListi,i) = veli;
-        DomegaDt(nodeListi,i) /= Ii;
-    }
-  }
-
-}
-
-}
+    }   // loop nodes
+  }     // loop nodelists
+}       // method
+}       // namespace
 

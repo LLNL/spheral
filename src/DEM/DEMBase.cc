@@ -764,6 +764,7 @@ updateContactMap(const DataBase<Dimension>& dataBase){
   // Particle-Particle Contacts
   //---------------------------------------------------------------
   mContactStorageIndices.resize(numPairs);
+
 #pragma omp for
   for (auto kk = 0u; kk < numPairs; ++kk) {
 
@@ -821,22 +822,37 @@ updateContactMap(const DataBase<Dimension>& dataBase){
     for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto nodeList = nodeLists[nodeListi];
     const auto ni = nodeList->numInternalNodes();
-#pragma omp parallel for
+    
       for (auto i = 0u; i < ni; ++i) {
         const auto Ri = radius(nodeListi,i);
         const auto ri = position(nodeListi,i);
 
         const auto disBc = solidBoundaryi->distance(ri);
-        //const auto velBc = solidBoundaryi->velocity(ri);
+
+        
 
         if (disBc.magnitude() < Ri){
-          mNeighborIndices(nodeListi,i).push_back(-ibc);
-          mContactStorageIndices.push_back(ContactIndex(nodeListi,                               // storage nodelist
-                                                        i,                                       // storage node
-                                                        mNeighborIndices(nodeListi,i).size()-1,  // storage contact index
-                                                        -ibc,                                    // pair nodeList (boundary index)
-                                                        0));                                     // pair node (n/a no more data needed for bcs)
-        } //if statement
+          // create a unique index for the boundary condition
+          const auto uId_bc = -ibc-1;
+
+          // check to see if it already exists
+          const auto neighborContacts = mNeighborIndices(nodeListi,i);
+          const auto contactIndexPtr = std::find(neighborContacts.begin(),
+                                                 neighborContacts.end(),
+                                                 uId_bc);
+          const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);  
+
+          // if it doesn't exists create it 
+          if (contactIndexPtr == neighborContacts.end()) mNeighborIndices(nodeListi,i).push_back(-ibc-1);
+
+          // now add our contact
+          mContactStorageIndices.push_back(ContactIndex(nodeListi,            // storage nodelist
+                                                        i,                    // storage node
+                                                        storageContactIndex,  // storage contact index
+                                                        ibc,                  // pair nodeList (boundary index)
+                                                        0)); 
+
+        } //if contacting
       }   // loop nodes
     }     // loop nodelists
   }       // loop solid boundaries

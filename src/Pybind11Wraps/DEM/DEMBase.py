@@ -96,11 +96,6 @@ class DEMBase(Physics):
         "resize all pair fieldlists consistent w/ neighborIndices"
         return "void"
 
-    @PYB11const
-    def momentOfInertia(massi = "const Scalar",
-                        partialRadiusi = "const Scalar"):
-        return "Scalar"
-
     def appendSolidBoundary(boundary = "SolidBoundary<%(Dimension)s>&"):
         "add a solid boundary to the end of the list"
         return "void"
