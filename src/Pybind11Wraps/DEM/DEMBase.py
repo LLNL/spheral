@@ -100,10 +100,6 @@ class DEMBase(Physics):
         "add a solid boundary to the end of the list"
         return "void"
 
-    def prependSolidBoundary(boundary = "SolidBoundary<%(Dimension)s>&"):
-        "add a solid boundary to the begining of the list"
-        return "void"
-
     def clearSolidBoundaries(self):
         "remove all solid boundaries from the dem package"
         return "void"
@@ -117,6 +113,11 @@ class DEMBase(Physics):
     def haveSolidBoundary(boundary = "const SolidBoundary<%(Dimension)s>&"):
         "is this boundary being tracked?"
         return "bool"
+
+    @PYB11const
+    def getSolidBoundaryUniqueIndex(x="const int"):
+        "Unique index for neighborIndices pairFieldList (returns -x-1)"
+        return "int"
 
     #...........................................................................
     # Properties

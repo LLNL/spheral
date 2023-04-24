@@ -335,17 +335,6 @@ appendSolidBoundary(SolidBoundary<Dimension>& boundary) {
 }
 
 //------------------------------------------------------------------------------
-// Add a Boundary condition to the beginning of the current boundary list.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-DEMBase<Dimension>::
-prependSolidBoundary(SolidBoundary<Dimension>& boundary) {
-    mSolidBoundaries.insert(mSolidBoundaries.begin(), &boundary);
-}
-
-//------------------------------------------------------------------------------
 // Clear (erase) the boundary condition list.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -412,5 +401,12 @@ numParticleBoundaryContacts() const {
   return (mContactStorageIndices.size()-this->numParticleParticleContacts());
 }
 
+template<typename Dimension>
+inline
+int
+DEMBase<Dimension>::
+getSolidBoundaryUniqueIndex(const int x) const {
+  return -x-1;
+}
 
 }

@@ -193,11 +193,12 @@ public:
 
   // Solid Bounderies 
   void appendSolidBoundary(SolidBoundary<Dimension>& boundary);
-  void prependSolidBoundary(SolidBoundary<Dimension>& boundary);
+  //void prependSolidBoundary(SolidBoundary<Dimension>& boundary); // this will break things
   void clearSolidBoundaries();
   bool haveSolidBoundary(const SolidBoundary<Dimension>& boundary) const;
   unsigned int numSolidBoundaries() const;
   const std::vector<SolidBoundary<Dimension>*>& solidBoundaryConditions() const;
+  int getSolidBoundaryUniqueIndex(const int x) const;
 
   // counts
   unsigned int numParticleParticleContacts() const;

@@ -276,12 +276,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   
   // contact contacts for different types
   const unsigned int numP2PContacts = this->numParticleParticleContacts();
-  const unsigned int numP2BContacts = this->numParticleBoundaryContacts();
+  //const unsigned int numP2BContacts = this->numParticleBoundaryContacts();
   const unsigned int numTotContacts = this->numContacts();
-
-  std::cout<< "numP2P: " <<numP2PContacts<<std::endl;
-  std::cout<< "numP2B: " <<numP2BContacts<<std::endl;
-  std::cout<< "nomTot: " <<numTotContacts<<std::endl;
 
   // Get the state FieldLists.
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -344,25 +340,34 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // vec of ptrs to our solid boundary conditions
   const auto& solidBoundaries = this->solidBoundaryConditions();
 
-
 #pragma omp parallel
   {
     // Thread private scratch variables
-    int i, j, nodeListi, nodeListj, contacti;
+    int i, j, nodeListi, nodeListj, contacti,bci;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
     auto DomegaDt_thread = DomegaDt.threadCopy(threadStack);
 
+    //------------------------------------
+    // particle-particle contacts
+    //------------------------------------
 #pragma omp for
     for (auto kk = 0u; kk < numP2PContacts; ++kk) {
       
+      CHECK(contacts[kk].storeNodeList >= 0)
+      CHECK(contacts[kk].storeNode >= 0)
+      CHECK(contacts[kk].pairNodeList >= 0)
+      CHECK(contacts[kk].pairNode >= 0)
+      CHECK(contacts[kk].solidBoundary == -1)
+
       nodeListi = contacts[kk].storeNodeList;
       nodeListj = contacts[kk].pairNodeList;
       i = contacts[kk].storeNode;
       j = contacts[kk].pairNode;
       contacti = contacts[kk].storeContact;
-      
+
+
       // Get the state vars for node i needed for prox check
       const auto& ri = position(nodeListi, i);
       const auto& Ri = radius(nodeListi, i);
@@ -539,16 +544,24 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         newRollingDisplacement(nodeListi,i)[contacti] = newDeltaRollij;
         DDtRollingDisplacement(nodeListi,i)[contacti] = vr;
     
-      }  
-    } // loop over pairs
-  
+      } // if contacing
+    }   // loop over pairs
+
+    //------------------------------------
+    // Loop the particle-boundary contacts
+    //------------------------------------
     for (auto kk = numP2PContacts; kk < numTotContacts; ++kk) {
     
+      CHECK(contacts[kk].storeNodeList >= 0)
+      CHECK(contacts[kk].storeNode >= 0)
+      CHECK(contacts[kk].pairNodeList >= -1)
+      CHECK(contacts[kk].pairNode >= -1)
+      CHECK(contacts[kk].solidBoundary >= 0)
+
       nodeListi = contacts[kk].storeNodeList;
       i = contacts[kk].storeNode;
       contacti = contacts[kk].storeContact;
-      const auto boundaryIndex = contacts[kk].pairNodeList;
-      CHECK2(contacts[kk].pairNodeList < 0, "ERROR: SolidBoundary should be flagged as negative indices")
+      bci = contacts[kk].solidBoundary;
 
       //Get the state vars for node i needed for prox check
       const auto& ri = position(nodeListi, i);
@@ -556,7 +569,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(Ri > 0.0);
 
       //solid boundary and distance vector to particle i
-      const auto& solidBoundary = solidBoundaries[boundaryIndex];
+      const auto& solidBoundary = solidBoundaries[bci];
       const auto rib = solidBoundary->distance(ri);
 
       //effective delta
@@ -577,13 +590,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         auto& DvDti = DvDt_thread(nodeListi, i);
         auto& DomegaDti = DomegaDt_thread(nodeListi, i);
 
-        // velocity of boundary @ ri
-        const auto vb =solidBoundary->velocity(ri);
-
-        // pairwise variables
+        // get pairwise variables
         const auto deltaSlidib = shearDisplacement(nodeListi,i)[contacti];
         const auto deltaRollib = rollingDisplacement(nodeListi,i)[contacti];
         const auto deltaTorsib = torsionalDisplacement(nodeListi,i)[contacti];
+
+        // velocity of boundary @ ri
+        const auto vb =solidBoundary->velocity(ri);
 
         // line of action for the contact
         const auto rhatib = rib.unitVector();
@@ -693,7 +706,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
      } // if statement
    }   // loop pairs
-threadReduceFieldLists<Dimension>(threadStack);
+  threadReduceFieldLists<Dimension>(threadStack);
   }    // omp parfor
 
   // finish with loop over nodelists

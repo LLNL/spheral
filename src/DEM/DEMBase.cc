@@ -829,11 +829,11 @@ updateContactMap(const DataBase<Dimension>& dataBase){
 
         const auto disBc = solidBoundaryi->distance(ri);
 
-        
-
+        // if node i contacts boundary ibc
         if (disBc.magnitude() < Ri){
-          // create a unique index for the boundary condition
-          const auto uId_bc = -ibc-1;
+
+          // create a unique index for the boundary condition 
+          const auto uId_bc = this->getSolidBoundaryUniqueIndex(ibc);
 
           // check to see if it already exists
           const auto neighborContacts = mNeighborIndices(nodeListi,i);
@@ -843,14 +843,13 @@ updateContactMap(const DataBase<Dimension>& dataBase){
           const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);  
 
           // if it doesn't exists create it 
-          if (contactIndexPtr == neighborContacts.end()) mNeighborIndices(nodeListi,i).push_back(-ibc-1);
+          if (contactIndexPtr == neighborContacts.end()) mNeighborIndices(nodeListi,i).push_back(uId_bc);
 
           // now add our contact
-          mContactStorageIndices.push_back(ContactIndex(nodeListi,            // storage nodelist
-                                                        i,                    // storage node
+          mContactStorageIndices.push_back(ContactIndex(nodeListi,            // storage nodelist index
+                                                        i,                    // storage node index
                                                         storageContactIndex,  // storage contact index
-                                                        ibc,                  // pair nodeList (boundary index)
-                                                        0)); 
+                                                        ibc));                // bc index
 
         } //if contacting
       }   // loop nodes
@@ -867,10 +866,17 @@ DEMBase<Dimension>::
 identifyInactiveContacts(const DataBase<Dimension>& dataBase){
 
   const auto  numNodeLists = dataBase.numNodeLists();
-  const auto  nodeListPtrs = dataBase.DEMNodeListPtrs();
-  const auto  nContacts = mContactStorageIndices.size();
+  const auto& nodeListPtrs = dataBase.DEMNodeListPtrs();
+  const auto& radius = dataBase.DEMParticleRadius();
+  const auto& position = dataBase.DEMPosition();
+
+  const auto& solidBoundaries = this->solidBoundaryConditions();
+
+  const unsigned int numP2PContacts = this->numParticleParticleContacts();
+  const unsigned int numTotContacts = this->numContacts();
 
   // initialize our tracker for contact activity as a vector of zeros
+  //-----------------------------------------------------------------
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto numNodes = nodeListPtrs[nodeListi]->numInternalNodes();
 #pragma omp parallel for
@@ -880,14 +886,32 @@ identifyInactiveContacts(const DataBase<Dimension>& dataBase){
     }
   }
 
-  // set all our active contacts to 1
+  // set all our active particle-particle contacts to 1 
+  //-----------------------------------------------------------------
 #pragma omp for
-  for (auto kk = 0u; kk < nContacts; ++kk) {
+  for (auto kk = 0u; kk < numP2PContacts; ++kk) {
     const auto& contactkk = mContactStorageIndices[kk];
     mIsActiveContact(contactkk.storeNodeList,contactkk.storeNode)[contactkk.storeContact] = 1;
   }
+
+  // set all our active particle-solid boundary contacts to 1 
+  //-----------------------------------------------------------------
+#pragma omp for
+  for (auto kk = numP2PContacts; kk < numTotContacts; ++kk) {
+    const auto& contactkk = mContactStorageIndices[kk];
+    
+    const auto nodeListi = contactkk.storeNodeList;
+    const auto i = contactkk.storeNode;
+    const auto contacti = contactkk.storeContact;
+    const auto ibc = contactkk.solidBoundary;
+
+    const auto& ri = position(nodeListi, i);
+    const auto  Ri = radius(nodeListi, i);
+
+    const auto& solidBoundary = solidBoundaries[ibc];
+    const auto  rib = solidBoundary->distance(ri);
+
+    if (rib.magnitude() < Ri) mIsActiveContact(nodeListi,i)[contacti] = 1;
+  }
 }
-
-
-
-} //spheral namespace
+}
