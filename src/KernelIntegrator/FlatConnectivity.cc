@@ -63,6 +63,8 @@ template<typename Dimension>
 void 
 FlatConnectivity<Dimension>::
 computeIndices(const DataBase<Dimension>& dataBase) {
+  VERIFY(fluidNodeListsFirst(dataBase));
+  
   // Get information from DataBase
   const auto numNodeListsDB = dataBase.numFluidNodeLists();
   const auto numNodesDB = dataBase.numFluidNodes();
@@ -802,6 +804,28 @@ globalOverlapNeighborIndices(const int locali,
     }
   }
   CHECK(index == numNonConstNeighbors);
+}
+
+//------------------------------------------------------------------------------
+// Check whether NodeList ordering is appropriate for this function
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+FlatConnectivity<Dimension>::
+fluidNodeListsFirst(const DataBase<Dimension>& dataBase) const
+{
+  const auto numFluidNodeLists = dataBase.numFluidNodeLists();
+  auto nodeListi = 0;
+  auto nodeListItri = dataBase.nodeListBegin();
+  auto nodeListItrj = dataBase.fluidNodeListBegin();
+  for (; nodeListItrj != dataBase.fluidNodeListEnd();
+       ++nodeListItri, ++nodeListItrj, ++nodeListi) {
+     if (*nodeListItri != *nodeListItrj)
+     {
+        return false;
+     }
+  }
+  return true;
 }
 
 // //------------------------------------------------------------------------------

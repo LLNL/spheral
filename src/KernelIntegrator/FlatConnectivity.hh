@@ -172,7 +172,7 @@ public:
   //                   const Scalar extent) const;
   
 private:
-  
+
   // Keep track of what has been initialized
   bool mIndexingInitialized;
   bool mGhostIndexingInitialized;
@@ -233,6 +233,18 @@ private:
   
   // Scratch
   mutable ArrayDim mScratchArray;
+   
+  // The functions in this class assume that the FluidNodeLists come first in the
+  // connectivity order; that is, that the standard NodeLists are at the end of
+  // the alphabetical ordering in the DataBase. This is not generally true, but
+  // this class isn't used at the moment when this is not true. This function
+  // checks whether the standard NodeLists are at the end of the ordering.
+  // The root of the issue is that the connectivity for a point takes an integer index,
+  // while we iterate over NodeList iterators. We could either have the point connectivity
+  // accept a NodeList iterator or we could iterate over FluidNodeList indices. 
+  // This function checks that the NodeLists are ordered as expected.
+  bool fluidNodeListsFirst(const DataBase<Dimension>& dataBase) const;
+  
 };
 
 } // end namespace Spheral
