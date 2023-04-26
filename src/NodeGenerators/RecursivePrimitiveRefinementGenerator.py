@@ -286,9 +286,9 @@ class RPRPSGenerator3d(NodeGeneratorBase):
                     p = 0
                     npp = 0
                     if mpi.procs > 2:
-                        npp = nshell/(mpi.procs -1)
+                        npp = nshell//(mpi.procs -1)
                     else:
-                        npp = (nshell/2) if (rank == 0) else (nshell - nshell/2)
+                        npp = (nshell//2) if (rank == 0) else (nshell - nshell//2)
                     print("npp = %d"%npp)
                     
                     if(rank>0 and rank*npp!=nshell):
@@ -477,7 +477,7 @@ class RPRPSGenerator3d(NodeGeneratorBase):
         
         result = 0
         dr = (rmax-rmin)/nbins
-        nbp = nbins/procs
+        nbp = nbins//procs
         binmin = nbp*rank if (rank!=0) else (1)
         binmax = nbp*(rank+1) if (rank!=procs-1) else (nbins)
         for i in range(binmin,binmax):

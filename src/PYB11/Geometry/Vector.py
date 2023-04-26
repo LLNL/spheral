@@ -96,14 +96,14 @@ class Vector:
     @PYB11pycppname("__rmul__")
     def __rmul__f(self, rhs="double()"):
         return
-    @PYB11pycppname("__div__")
-    def __div__f(self, rhs="double()"):
+    @PYB11pycppname("__truediv__")
+    def __truediv__f(self, rhs="double()"):
         return
     @PYB11pycppname("__imul__")
     def __imul__f(self, rhs="double()"):
         return
-    @PYB11pycppname("__idiv__")
-    def __idiv__f(self, rhs="double()"):
+    @PYB11pycppname("__itruediv__")
+    def __itruediv__f(self, rhs="double()"):
         return
 
     # Sequence methods

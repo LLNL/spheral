@@ -130,14 +130,17 @@ public:
 //   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
 //   operator*(const OtherDataType& rhs) const;
 
-  Field<Dimension, DataType>& operator*=(const Field<Dimension, Scalar>& rhs);
-  Field<Dimension, DataType>& operator*=(const Scalar& rhs);
-
-  // Division.  Only meaningful when dividing by a scalar field.
+  // Multiplication and division by scalar(s)
+  Field<Dimension, DataType> operator*(const Field<Dimension, Scalar>& rhs) const;
   Field<Dimension, DataType> operator/(const Field<Dimension, Scalar>& rhs) const;
+
+  Field<Dimension, DataType>& operator*=(const Field<Dimension, Scalar>& rhs);
   Field<Dimension, DataType>& operator/=(const Field<Dimension, Scalar>& rhs);
-       
+
+  Field<Dimension, DataType> operator*(const Scalar& rhs) const;
   Field<Dimension, DataType> operator/(const Scalar& rhs) const;
+
+  Field<Dimension, DataType>& operator*=(const Scalar& rhs);
   Field<Dimension, DataType>& operator/=(const Scalar& rhs);
 
   // Some useful reduction operations.

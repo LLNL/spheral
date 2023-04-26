@@ -160,13 +160,13 @@ indices that define the facets."""
     def __imul__(self, rhs="double()"):
         return
     
-    def __idiv__(self, rhs="double()"):
+    def __itruediv__(self, rhs="double()"):
         return
     
     def __mul__(self, rhs="double()"):
         return
     
-    def __div__(self, rhs="double()"):
+    def __truediv__(self, rhs="double()"):
         return
     
     def __eq__(self):

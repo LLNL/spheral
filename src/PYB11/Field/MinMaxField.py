@@ -12,6 +12,8 @@ class MinMaxField(FieldBase):
 
     PYB11typedefs = """
   typedef Field<%(Dimension)s, %(Value)s> FieldType;
+  using Scalar = typename FieldType::Scalar;
+  using ScalarFieldType = Field<%(Dimension)s, Scalar>;
 """
 
     def applyScalarMin(self):

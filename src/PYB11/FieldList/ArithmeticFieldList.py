@@ -56,15 +56,15 @@ class ArithmeticFieldList(FieldListBase):
     def __imul__(self, rhs="double()"):
         return
 
-    def __idiv__(self, rhs="double()"):
+    def __itruediv__(self, rhs="double()"):
         return
 
     @PYB11pyname("__imul__")
     def __imul__SFL(self, rhs="FieldList<%(Dimension)s, Scalar>()"):
         return
 
-    @PYB11pyname("__idiv__")
-    def __idiv__SFL(self, rhs="FieldList<%(Dimension)s, Scalar>()"):
+    @PYB11pyname("__itruediv__")
+    def __itruediv__SFL(self, rhs="FieldList<%(Dimension)s, Scalar>()"):
         return
 
     @PYB11const

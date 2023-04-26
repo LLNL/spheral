@@ -582,8 +582,37 @@ Field<Dimension, DataType>::operator-=(const DataType& rhs) {
 }
 
 //------------------------------------------------------------------------------
-// Multiplication by another Field in place.  Only meaningful when multiplying
-// by a scalar field.
+// Multiplication by a Scalar Field
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+Field<Dimension, DataType>
+Field<Dimension, DataType>::
+operator*(const Field<Dimension, Scalar>& rhs) const {
+  REQUIRE(valid() && rhs.valid());
+  REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
+  Field<Dimension, DataType> result(*this);
+  result *= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Division by a Scalar Field
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+Field<Dimension, DataType>
+Field<Dimension, DataType>::
+operator/(const Field<Dimension, Scalar>& rhs) const {
+  REQUIRE(valid() && rhs.valid());
+  REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
+  Field<Dimension, DataType> result(*this);
+  result /= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Multiplication by a Scalar Field in place.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -598,41 +627,7 @@ operator*=(const Field<Dimension, Scalar>& rhs) {
 }
 
 //------------------------------------------------------------------------------
-// Multiplication by a Scalar in place.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-Field<Dimension, DataType>&
-Field<Dimension, DataType>::
-operator*=(const Scalar& rhs) {
-  REQUIRE(valid());
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) (*this)(i) *= rhs;
-  return *this;
-}
-
-//------------------------------------------------------------------------------
-// Division by another Field.
-// Only meaningful for Scalar Fields!
-//-------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-Field<Dimension, DataType>
-Field<Dimension, DataType>::
-operator/(const Field<Dimension, typename Dimension::Scalar>& rhs) const {
-  REQUIRE(valid() && rhs.valid());
-  REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
-  Field<Dimension, DataType> result(*this);
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) {
-    result(i) *= safeInvVar(rhs(i), 1.0e-60);
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Division by another Field in place.
-// Only meaningful for Scalar Fields!
+// Division by a Scalar Field in place.
 //-------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -649,8 +644,22 @@ operator/=(const Field<Dimension, typename Dimension::Scalar>& rhs) {
 }
 
 //------------------------------------------------------------------------------
-// Division by a Scalar value.
-//-------------------------------------------------------------------------------
+// Multiplication by a Scalar
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+Field<Dimension, DataType>
+Field<Dimension, DataType>::
+operator*(const Scalar& rhs) const {
+  REQUIRE(valid());
+  Field<Dimension, DataType> result(*this);
+  result *= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Division by a Scalar
+//------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>
@@ -664,7 +673,21 @@ operator/(const Scalar& rhs) const {
 }
 
 //------------------------------------------------------------------------------
-// Division by a Scalar value in place.
+// Multiplication by a Scalar in place
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+Field<Dimension, DataType>&
+Field<Dimension, DataType>::
+operator*=(const Scalar& rhs) {
+  REQUIRE(valid());
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) (*this)(i) *= rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// Division by a Scalar value in place
 //-------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -674,9 +697,7 @@ operator/=(const Scalar& rhs) {
   REQUIRE(valid());
   REQUIRE(rhs != 0.0);
   const unsigned n = this->numElements();
-  for (int i = 0; i < (int)n; ++i) {
-    (*this)(i) /= rhs;
-  }
+  for (int i = 0; i < (int)n; ++i) (*this)(i) /= rhs;
   return *this;
 }
 

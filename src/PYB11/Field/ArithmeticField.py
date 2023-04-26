@@ -11,7 +11,9 @@ from Field import Field
 class ArithmeticField(FieldBase):
 
     PYB11typedefs = """
-  typedef Field<%(Dimension)s, %(Value)s> FieldType;
+  using FieldType = Field<%(Dimension)s, %(Value)s>;
+  using Scalar = typename FieldType::Scalar;
+  using ScalarFieldType = Field<%(Dimension)s, Scalar>;
 """
 
     def __add__(self):
@@ -27,25 +29,55 @@ class ArithmeticField(FieldBase):
         return
 
     @PYB11pyname("__add__")
-    def __add__V(self, rhs="%(Value)s()"):
+    def __add__V__(self, rhs="%(Value)s()"):
         return
 
     @PYB11pyname("__sub__")
-    def __sub__V(self, rhs="%(Value)s()"):
+    def __sub__V__(self, rhs="%(Value)s()"):
         return
 
     @PYB11pyname("__iadd__")
-    def __iadd__V(self, rhs="%(Value)s()"):
+    def __iadd__V__(self, rhs="%(Value)s()"):
         return
 
     @PYB11pyname("__isub__")
-    def __isub__V(self, rhs="%(Value)s()"):
+    def __isub__V__(self, rhs="%(Value)s()"):
         return
 
-    def __imul__(self, rhs="double()"):
+    @PYB11implementation("[](const FieldType& self, const ScalarFieldType& rhs) { return self * rhs; }")
+    @PYB11operator
+    def __mul__(self, rhs="const ScalarFieldType&"):
+        return "FieldType"
+
+    @PYB11implementation("[](const FieldType& self, const ScalarFieldType& rhs) { return self / rhs; }")
+    @PYB11operator
+    def __truediv__(self, rhs="const ScalarFieldType&"):
+        return "FieldType"
+
+    @PYB11implementation("[](FieldType& self, const ScalarFieldType& rhs) { return self *= rhs; }")
+    @PYB11operator
+    def __imul__(self, rhs="const ScalarFieldType&"):
         return
 
-    def __idiv__(self, rhs="double()"):
+    @PYB11implementation("[](FieldType& self, const ScalarFieldType& rhs) { return self /= rhs; }")
+    @PYB11operator
+    def __itruediv__(self, rhs="const ScalarFieldType&"):
+        return
+
+    @PYB11pyname("__mul__")
+    def __mul__S__(self, rhs="Scalar()"):
+        return
+
+    @PYB11pyname("__truediv__")
+    def __truediv__S__(self, rhs="Scalar()"):
+        return
+
+    @PYB11pyname("__imul__")
+    def __imul__S__(self, rhs="Scalar()"):
+        return
+
+    @PYB11pyname("__itruediv__")
+    def __itruediv__S__(self, rhs="Scalar()"):
         return
 
     @PYB11const

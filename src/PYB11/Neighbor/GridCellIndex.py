@@ -124,9 +124,9 @@ class GridCellIndex:
         return
     def __rmul__(self, rhs="int()"):
         return
-    def __div__(self, rhs="int()"):
+    def __truediv__(self, rhs="int()"):
         return
-    def __iadd__(self, rhs="int()"):
+    def __add__(self, rhs="int()"):
         return
     def __isub__(self, rhs="int()"):
         return

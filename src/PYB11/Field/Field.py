@@ -16,7 +16,7 @@ class Field(FieldBase):
     def pyinit(self, name="std::string"):
         "Construct with a name"
 
-    def pyinit1(self, name="std::string", nodeList="const FieldType&"):
+    def pyinit1(self, name="std::string", field="const FieldType&"):
         "Construct as a copy of a Field with a new name"
 
     def pyinit2(self, name="std::string", nodeList="const NodeList<%(Dimension)s>&"):
