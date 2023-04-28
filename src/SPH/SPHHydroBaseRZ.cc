@@ -213,11 +213,11 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 void
 SPHHydroBaseRZ::
-evaluateDerivatives(const Dim<2>::Scalar /*time*/,
-                    const Dim<2>::Scalar /*dt*/,
+evaluateDerivatives(const Dim<2>::Scalar time,
+                    const Dim<2>::Scalar dt,
                     const DataBase<Dim<2> >& dataBase,
                     const State<Dim<2> >& state,
-                    StateDerivatives<Dim<2> >& derivatives) const {
+                    StateDerivatives<Dim<2> >& derivs) const {
 
   //static double totalLoopTime = 0.0;
   // Get the ArtificialViscosity.
@@ -229,8 +229,8 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   const auto  oneKernel = (W == WQ);
 
   // A few useful constants we'll use in the following loop.
-  const double tiny = 1.0e-30;
-  const Scalar W0 = W(0.0, 1.0);
+  const auto tiny = 1.0e-30;
+  const auto W0 = W(0.0, 1.0);
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -257,26 +257,26 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(omega.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  rhoSum = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  auto  normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
-  auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-  auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
-  auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
-  auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
-  auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
-  auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
+  auto  rhoSum = derivs.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  normalization = derivs.fields(HydroFieldNames::normalization, 0.0);
+  auto  DxDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto  DrhoDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  auto  DepsDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  auto  localDvDx = derivs.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
+  auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto  localM = derivs.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto  DHDt = derivs.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto  Hideal = derivs.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
+  auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
+  auto  viscousWork = derivs.fields(HydroFieldNames::viscousWork, 0.0);
+  auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
+  auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
+  auto  weightedNeighborSum = derivs.fields(HydroFieldNames::weightedNeighborSum, 0.0);
+  auto  massSecondMoment = derivs.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
@@ -304,6 +304,10 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   // Size up the pair-wise accelerations before we start.
   if (mCompatibleEnergyEvolution) pairAccelerations.resize(2*npairs);
 
+  // Assume all NodeLists have the same nPerh;
+  const auto& nodeList = mass[0]->nodeList();
+  const auto  nPerh = nodeList.nodesPerSmoothingScale();
+
   // Walk all the interacting pairs.
 #pragma omp parallel
   {
@@ -312,8 +316,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
     Vector gradWi, gradWj, gradWQi, gradWQj;
     Tensor QPiij, QPiji;
-
-    typename SpheralThreads<Dim<2>>::FieldListStack threadStack;
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto rhoSum_thread = rhoSum.threadCopy(threadStack);
     auto normalization_thread = normalization.threadCopy(threadStack);
     auto DvDt_thread = DvDt.threadCopy(threadStack);
@@ -339,19 +342,21 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
 
       // Get the state for node i.
       const auto& posi = position(nodeListi, i);
-      const auto  ri = abs(posi.y());
+      const auto& Hi = H(nodeListi, i);
+      const auto  zetai = abs((Hi*posi).y());
+      CHECK(zetai > 0.0);
+      const auto  hri = posi.y()*safeInv(zetai);
+      const auto  ri = reff(posi.y(), hri, nPerh);
       const auto  circi = 2.0*M_PI*ri;
       const auto  mi = mass(nodeListi, i);
       const auto  mRZi = mi/circi;
       const auto& vi = velocity(nodeListi, i);
-      const auto  rhoi = massDensity(nodeListi, i);
-      const auto  Pi = pressure(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
-      const auto  ci = soundSpeed(nodeListi, i);
+      const auto& rhoi = massDensity(nodeListi, i);
+      const auto& Pi = pressure(nodeListi, i);
+      const auto& ci = soundSpeed(nodeListi, i);
       const auto& omegai = omega(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  safeOmegai = safeInv(omegai, tiny);
-      const auto  zetai = abs((Hi*posi).y());
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
@@ -373,19 +378,21 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
 
       // Get the state for node j
       const auto& posj = position(nodeListj, j);
-      const auto  rj = abs(posj.y());
+      const auto& Hj = H(nodeListj, j);
+      const auto  zetaj = abs((Hj*posj).y());
+      CHECK(zetaj > 0.0);
+      const auto  hrj = posj.y()*safeInv(zetaj);
+      const auto  rj = reff(posj.y(), hrj, nPerh);
       const auto  circj = 2.0*M_PI*rj;
       const auto  mj = mass(nodeListj, j);
       const auto  mRZj = mj/circj;
       const auto& vj = velocity(nodeListj, j);
-      const auto  rhoj = massDensity(nodeListj, j);
-      const auto  Pj = pressure(nodeListj, j);
-      const auto& Hj = H(nodeListj, j);
-      const auto  cj = soundSpeed(nodeListj, j);
+      const auto& rhoj = massDensity(nodeListj, j);
+      const auto& Pj = pressure(nodeListj, j);
+      const auto& cj = soundSpeed(nodeListj, j);
       const auto& omegaj = omega(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
       const auto  safeOmegaj = safeInv(omegaj, tiny);
-      const auto  zetaj = abs((Hj*posj).y());
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
@@ -539,17 +546,18 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
 
       // Get the state for node i.
       const auto& posi = position(nodeListi, i);
-      const auto  ri = abs(posi.y());
+      const auto& Hi = H(nodeListi, i);
+      const auto  zetai = abs((Hi*posi).y());
+      CHECK(zetai > 0.0);
+      const auto  hri = posi.y()*safeInv(zetai);
+      const auto  ri = reff(posi.y(), hri, nPerh);
       const auto  circi = 2.0*M_PI*ri;
       const auto  mi = mass(nodeListi, i);
       const auto  mRZi = mi/circi;
       const auto& vi = velocity(nodeListi, i);
-      const auto  rhoi = massDensity(nodeListi, i);
-      const auto  Pi = pressure(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
+      const auto& rhoi = massDensity(nodeListi, i);
+      const auto& Pi = pressure(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
-      const auto  zetai = abs((Hi*posi).y());
-      const auto  hri = ri*safeInv(zetai);
       const auto  riInv = safeInv(ri, 0.25*hri);
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       CHECK(rhoi > 0.0);
@@ -717,6 +725,24 @@ enforceBoundaries(State<Dim<2> >& state,
       mass(nodeListi, i) *= circi;
     }
   }
+}
+
+//------------------------------------------------------------------------------
+// Compute the weighted definition of rz for a point
+//------------------------------------------------------------------------------
+Dim<2>::Scalar
+SPHHydroBaseRZ::
+reff(const Dim<2>::Scalar ri,
+     const Dim<2>::Scalar hri,
+     const Dim<2>::Scalar nPerh) {
+  REQUIRE(hri > 0.0);
+  REQUIRE(nPerh > 0.0);
+  return std::abs(ri);
+  // const auto deltai = 0.5*hri/nPerh;
+  // const auto a = std::max(0.0, std::abs(ri) - deltai);
+  // const auto b = std::abs(ri) + deltai;
+  // CHECK(b > a);
+  // return 2.0/3.0 * (b*b*b - a*a*a)/(b*b - a*a);
 }
 
 }

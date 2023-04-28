@@ -88,3 +88,10 @@ mass density, velocity, and specific thermal energy."""
     @PYB11const
     def label(self):
         return "std::string"
+
+    @PYB11static
+    def reff(ri = "const Scalar",
+             hri = "const Scalar",
+             nPerh = "const Scalar"):
+        "Return the effective radius of the particle torus, weighted by mass."
+        return "Scalar"

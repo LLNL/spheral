@@ -95,6 +95,11 @@ public:
   virtual std::string label() const override { return "SPHHydroBaseRZ" ; }
   //****************************************************************************
 
+  // Compute the effective radius used for area-weighting of points
+  static Scalar reff(const Scalar ri,
+                     const Scalar hri,
+                     const Scalar nPerh);
+
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.

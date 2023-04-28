@@ -3,7 +3,7 @@ from math import *
 from NodeGeneratorBase import *
 
 from Spheral import Vector2d, Tensor2d, SymTensor2d, \
-     rotationMatrix2d, testPointInBox2d
+     rotationMatrix2d, testPointInBox2d, SPHHydroBaseRZ
 from SpheralTestUtilities import fuzzyEqual
 
 #-------------------------------------------------------------------------------
@@ -1516,6 +1516,12 @@ def RZGenerator(generator):
     # Correct the mass.
     n = len(generator.m)
     for i in range(n):
-        generator.m[i] *= 2.0*pi*generator.localPosition(i).y
+        Hi = generator.localHtensor(i)
+        posi = generator.localPosition(i)
+        zetai = (Hi*posi).y
+        assert zetai > 0.0
+        hri = posi.y/zetai
+        ri = SPHHydroBaseRZ.reff(posi.y, hri, generator.nNodePerh)
+        generator.m[i] *= 2.0*pi*ri
 
     return generator

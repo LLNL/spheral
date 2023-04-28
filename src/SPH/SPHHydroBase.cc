@@ -786,7 +786,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
-      const auto& ri = position(nodeListi, i);
+      const auto& posi = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
@@ -817,7 +817,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
 
       // Get the state for node j
-      const auto& rj = position(nodeListj, j);
+      const auto& posj = position(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& rhoj = massDensity(nodeListj, j);
@@ -851,9 +851,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
 
       // Node displacement.
-      const auto rij = ri - rj;
-      const auto etai = Hi*rij;
-      const auto etaj = Hj*rij;
+      const auto xij = posi - posj;
+      const auto etai = Hi*xij;
+      const auto etaj = Hj*xij;
       const auto etaMagi = etai.magnitude();
       const auto etaMagj = etaj.magnitude();
       const auto etaUnit = etai*safeInvVar(etaMagi);
@@ -880,8 +880,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
       const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
-      const auto rij2 = rij.magnitude2();
-      const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
+      const auto xij2 = xij.magnitude2();
+      const auto thpt = xij.selfdyad()*safeInvVar(xij2*xij2*xij2);
       weightedNeighborSumi +=     fweightij*std::abs(gWi);
       weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
       massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
@@ -898,8 +898,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      ri, etai, vi, rhoi, ci, Hi,
-                                      rj, etaj, vj, rhoj, cj, Hj);
+                                      posi, etai, vi, rhoi, ci, Hi,
+                                      posj, etaj, vj, rhoj, cj, Hj);
       const auto Qacci = 0.5*(QPiij*gradWQi);
       const auto Qaccj = 0.5*(QPiji*gradWQj);
       // const auto workQi = 0.5*(QPiij*vij).dot(gradWQi);
@@ -956,11 +956,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       }
 
       // Linear gradient correction term.
-      Mi -= mj*rij.dyad(gradWi);
-      Mj -= mi*rij.dyad(gradWj);
+      Mi -= mj*xij.dyad(gradWi);
+      Mj -= mi*xij.dyad(gradWj);
       if (sameMatij) {
-        localMi -= mj*rij.dyad(gradWi);
-        localMj -= mi*rij.dyad(gradWj);
+        localMi -= mj*xij.dyad(gradWi);
+        localMj -= mi*xij.dyad(gradWj);
       }
 
     } // loop over pairs
@@ -985,7 +985,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
-      const auto& ri = position(nodeListi, i);
+      const auto& posi = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
@@ -1057,14 +1057,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // The H tensor evolution.
       DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                             ri,
+                                                             posi,
                                                              DvDxi,
                                                              hmin,
                                                              hmax,
                                                              hminratio,
                                                              nPerh);
       Hideali = mSmoothingScaleMethod.newSmoothingScale(Hi,
-                                                        ri,
+                                                        posi,
                                                         weightedNeighborSumi,
                                                         massSecondMomenti,
                                                         W,
