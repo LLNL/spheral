@@ -507,7 +507,7 @@ elif 'blue' in SYS_TYPE:
     machineSettings = blueosSettings
 
 elif 'toss_3' in SYS_TYPE:
-    if 'rzgenie' in LCSCHEDCLUSTER or 'jadedev' == LCSCHEDCLUSTER or 'zindev' == LCSCHEDCLUSTER:
+    if 'ruby' in LCSCHEDCLUSTER or 'rzgenie' in LCSCHEDCLUSTER or 'jadedev' == LCSCHEDCLUSTER or 'zindev' == LCSCHEDCLUSTER:
         # Developer machines are interactive
         machineSettings = toss3Settings
     elif '--partition=pdebug' in sys.argv and not '--batch' in sys.argv:
@@ -738,7 +738,7 @@ def getUniqueTestPath():
         for name in ['zin', 'max']:
             filesystems[name] = ['/p/lscratch2', '/p/lustre1', '/p/lscratch1']
 
-        for name in ['jade', 'agate', 'mica', 'magma']:
+        for name in ['jade', 'agate', 'mica', 'magma', 'ruby']:
             filesystems[name] = ['/p/lustre2', '/p/lustre1']
 
         for name in ['sierra', 'tron']:
@@ -748,7 +748,7 @@ def getUniqueTestPath():
         for name in ['rzalastor', 'rzcereal', 'rzzeus', 'rzmerl', 'rzgenie', 'rztopaz']:
             filesystems[name] = [ '/p/lscratchrza' ]
 
-        for name in ['rzansel']:
+        for name in ['rzansel', 'lassen']:
             filesystems[name] = [ '/p/gpfs1' ]
 
         # Don't use NFS filesystems with BG/Q, terrible latency issues.
