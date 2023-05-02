@@ -204,14 +204,14 @@ class AttributeDict (dict):
     def __setattr__(self, name, value):
         self[name] = value
     def __repr__(self):
-        from cStringIO import StringIO
+        from io import StringIO
         out = StringIO()
-        print >>out, "AttributeDict("
-        keys = self.keys()
+        print("AttributeDict(", file=out)
+        keys = list(self.keys())
         keys.sort()
         for key in keys:
-            print >>out, "  ", key, " = ", repr(self[key]), ","
-        print >>out, ")"
+            print("  ", key, " = ", repr(self[key]), ",", file=out)
+        print(")", file=out)
         s = out.getvalue()
         out.close()
         return s
@@ -494,7 +494,7 @@ if 'chaos_5' in SYS_TYPE:
 elif platform.processor() == 'ppc64':
     machineSettings = bgqSettings
 
-elif os.environ.has_key('PRGENVMODULES'):   # cray machine
+elif 'PRGENVMODULES' in os.environ:   # cray machine
     machineSettings = craySettings
 
 elif 'chama' in SYS_TYPE:
@@ -517,10 +517,10 @@ elif 'toss_3' in SYS_TYPE:
         # Put it in batch.
         machineSettings = toss3Batch
 else:
-    print "Could not determine machine settings to use."
+    print("Could not determine machine settings to use.")
     sys.exit(1)
 
-print "Selected machine settings for: ", machineSettings.options.name
+print("Selected machine settings for: ", machineSettings.options.name)
 
 #----------------------------------------------------------
 # inits and defaults
@@ -645,32 +645,32 @@ if options.wcid:
     machineSettings.options.wcid = options.wcid
 
 if (d_debug==1):
-    print "options= ", options
+    print("options= ", options)
 
 
 whichAts= sys.argv[0]
 atsArgs = sys.argv[1:]
 
 if "--help" in atsArgs or "-h" in atsArgs or "-help" in atsArgs:
-    print "------------------------------------------------------------------"
-    print "Options available for only ezats: "
-    print "------------------------------------------------------------------"
+    print("------------------------------------------------------------------")
+    print("Options available for only ezats: ")
+    print("------------------------------------------------------------------")
     parser.print_help()
-    print "------------------------------------------------------------------"
-    print "Options for ats: "
-    print "------------------------------------------------------------------"
+    print("------------------------------------------------------------------")
+    print("Options for ats: ")
+    print("------------------------------------------------------------------")
     from subprocess import check_call
     check_call([options.atsExe, "-h"])
 
-    print "\n\n------------------------------------------------------------------"
-    print "ezats sets these ATS options: "
-    print "------------------------------------------------------------------"
-    print '\n'.join(machineSettings.options.atsArgs)
-    print '\n\n'
+    print("\n\n------------------------------------------------------------------")
+    print("ezats sets these ATS options: ")
+    print("------------------------------------------------------------------")
+    print('\n'.join(machineSettings.options.atsArgs))
+    print('\n\n')
 
     sys.exit(0)
 
-atsArgs= string.join(atsArgs) # note: lose user-intended grouping here
+atsArgs= " ".join(atsArgs) # note: lose user-intended grouping here
 
 #---------------------------------------------------------------------------
 # Added this section to allow ezats to determine an appropriate filesystem
@@ -770,13 +770,13 @@ def getUniqueTestPath():
         assert 'USER' in os.environ, "ezats: No environment variable 'USER' found."
 
         filesystem = None
-        for name in filesystems.keys():
+        for name in list(filesystems.keys()):
             if name in nodeName:
                 filesystem = filesystems[name]
         assert filesystem, "ezats: Could not find file system entry for '%s'" % nodeName
 
-        print "ezats: Searching for a filesystem to use..."
-        print "ezats: If this process hangs, you need to manually specify a file system to use via: ezats --testpath=\"/my/output/path\""
+        print("ezats: Searching for a filesystem to use...")
+        print("ezats: If this process hangs, you need to manually specify a file system to use via: ezats --testpath=\"/my/output/path\"")
 
         # Try to access file system, if no response within 4 seconds, try next file system.
         fileSystemOK = False
@@ -785,7 +785,7 @@ def getUniqueTestPath():
             thePath = os.path.join( entry, os.environ['USER'], kullTestSubDir, uniqueSubDir )
             fileSystemOK = checkFileSystem( thePath )
             if not fileSystemOK:
-                print "ezats: Could not write to filesystem location '%s', trying next file system." % thePath
+                print("ezats: Could not write to filesystem location '%s', trying next file system." % thePath)
             else:
                 fileSystemOK = True
                 filesystem = thePath
@@ -793,7 +793,7 @@ def getUniqueTestPath():
 
         assert fileSystemOK, "ezats: Could not locate a write accessable file system, aborting..."
 
-        print "Found and verified file system location: %s" % filesystem
+        print("Found and verified file system location: %s" % filesystem)
 
         return filesystem
 
@@ -809,7 +809,7 @@ else:
 # Examine options:
 #----------------------------------------------------------
 
-print  "Note:  the srun message 'error: ioctl(TIOCGWINSZ)' can be ignored.  \n[It means the process is trying to do something that requires a tty \nbut it's not doing either a read or write.]\n"
+print("Note:  the srun message 'error: ioctl(TIOCGWINSZ)' can be ignored.  \n[It means the process is trying to do something that requires a tty \nbut it's not doing either a read or write.]\n")
 
 #----------------------------------------------------------
 # if batch, add allInteractive flag
@@ -890,20 +890,20 @@ if len(listCommandsToRemove) > 0:
     for unwantedCommand in listCommandsToRemove[:]:
         startPos= finalCommandToRun.find(unwantedCommand)
         if d_debug:
-            print "DEBUG: ", unwantedCommand, "-- found start pos= ", startPos
+            print("DEBUG: ", unwantedCommand, "-- found start pos= ", startPos)
         if startPos!= -1:        #if found
             endPos= finalCommandToRun.find(" -", startPos+2)
             if d_debug:
-                print "DEBUG: ", "end pos= ", endPos
+                print("DEBUG: ", "end pos= ", endPos)
 
             if endPos== -1:
                 endPos= finalCommandToRun.find("--", startPos+2)
                 if d_debug:
-                    print "DEBUG: ", "found end pos= ", endPos
+                    print("DEBUG: ", "found end pos= ", endPos)
             if endPos== -1: # looking at last option, backtrack to find the last space..
                endPos= finalCommandToRun.rfind(' ')
                if d_debug:
-                   print "DEBUG: ", "rfind() found end pos= ", endPos
+                   print("DEBUG: ", "rfind() found end pos= ", endPos)
 
             if endPos < startPos:
                finalCommandToRun= finalCommandToRun[:endPos]
@@ -911,7 +911,7 @@ if len(listCommandsToRemove) > 0:
                finalCommandToRun= finalCommandToRun[:startPos] + finalCommandToRun[endPos:]
 
             if d_debug:
-                print "DEBUG: ", unwantedCommand, "-----> ", finalCommandToRun
+                print("DEBUG: ", unwantedCommand, "-----> ", finalCommandToRun)
 
 #finalCommandToRun= finalCommandToRun.replace(options.extraEzatsArgs, '', 1)
 realFinalCommandToRun= None
@@ -920,35 +920,35 @@ realFinalCommandToRun= None
 # if MSUB, SBATCH or BSUB
 #----------------------------------------------------------
 if machineSettings.options.batch:
-    print "--- ATS COMMAND ---\n", finalCommandToRun
+    print("--- ATS COMMAND ---\n", finalCommandToRun)
     if "blueos" in SYS_TYPE:
         bsubFilename= createBsubFile(finalCommandToRun, options)
         batchtype = 'bsub < ' # have to have an input file redirect for bsub
-        print "\nWritten to %s batch filename: %s " %(batchtype, bsubFilename)
+        print("\nWritten to %s batch filename: %s " %(batchtype, bsubFilename))
         cmd = batchtype + ' ' + bsubFilename
     elif 'magma' in LCSCHEDCLUSTER:
         sbatchFilename= createSbatchFile(finalCommandToRun, options)
         batchtype = 'sbatch'
-        print "\nWritten to %s batch filename: %s " %(batchtype, sbatchFilename)
+        print("\nWritten to %s batch filename: %s " %(batchtype, sbatchFilename))
         cmd = batchtype + ' ' + sbatchFilename
     else:
         msubFilename= createMsubFile(finalCommandToRun, options)
         batchtype = 'msub'
-        print "\nWritten to %s batch filename: %s " %(batchtype, msubFilename)
+        print("\nWritten to %s batch filename: %s " %(batchtype, msubFilename))
         cmd = batchtype + ' ' + msubFilename
 
     if not options.skip:
         from subprocess import check_call
-        print "Running: ", cmd
+        print("Running0: ", cmd)
         #check_call( cmd.split() )
         os.system( cmd )
     else:
         if 'msub' in batchtype:
-            print "SKIP option in ats command.  ' msub ",  msubFilename, "' was not executed."
+            print("SKIP option in ats command.  ' msub ",  msubFilename, "' was not executed.")
         elif 'sbatch' in batchtype:
-            print "SKIP option in ats command.  ' sbatch ",  sbatchFilename, "' was not executed."
+            print("SKIP option in ats command.  ' sbatch ",  sbatchFilename, "' was not executed.")
         else:
-            print "SKIP option in ats command.  ' bsub ",  bsubFilename, "' was not executed."
+            print("SKIP option in ats command.  ' bsub ",  bsubFilename, "' was not executed.")
 
 
     sys.exit()
@@ -983,7 +983,7 @@ else:
     if machineSettings.options.name in ['chama', 'glory']:
         HERT_WC_ID = ' --account=' + machineSettings.options.wcid
 
-    print finalCommandToRun
+    print(finalCommandToRun)
 
     # Threaded tests under ats should NOT use salloc
     if not options.threaded and 'blue' not in os.environ['SYS_TYPE']:
@@ -998,19 +998,19 @@ else:
     else:
         finalCommandToRun += " --numNodes="+ str(machineSettings.options.numNodes)
 
-    print finalCommandToRun
+    print(finalCommandToRun)
     #sys.exit()
 
 if (d_debug==1):
-    print "whichAts= ", whichAts
-    print "finalCommandToRun after= ", finalCommandToRun
+    print("whichAts= ", whichAts)
+    print("finalCommandToRun after= ", finalCommandToRun)
 
 
 #----------------------------------------------------------
 
 if (d_debug==1):
-    print "whichAts= ", whichAts
-    print "finalCommandToRun after= ", finalCommandToRun
+    print("whichAts= ", whichAts)
+    print("finalCommandToRun after= ", finalCommandToRun)
 
 #----------------------------------------------------------
 # Find filter part and keep whole
@@ -1031,20 +1031,20 @@ else:
     argsToUse= finalCommandToRun.split()
 
 if realFinalCommandToRun is not None:
-    print "Running:\n ", realFinalCommandToRun
+    print("Running:\n ", realFinalCommandToRun)
     if (d_debug==1):
-        print "Really running:\n ", finalCommandToRun
+        print("Really running:\n ", finalCommandToRun)
 else:
-    print "Running:\n ", finalCommandToRun
+    print("Running:\n ", finalCommandToRun)
 if (d_debug==1):
-    print "atsExe= ", options.atsExe
-    print "atsArgs= ", argsToUse
+    print("atsExe= ", options.atsExe)
+    print("atsArgs= ", argsToUse)
 
 #os.system(finalCommandToRun) # [SD] Problem was execv & the way it took the args split up was breaking the filter, and cmd failed.
 # Tested on rzgenie (pdebug), rztopaz (pbatch), and bgq (pdebug)
-from subprocess import check_call
-print "Running: ", finalCommandToRun
-check_call( finalCommandToRun,shell=True )
+from subprocess import run
+print("Running: ", finalCommandToRun)
+run( finalCommandToRun,shell=True )
 
 #  [SD] This was the former call before adding threaded option
 #import os
