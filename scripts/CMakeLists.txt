@@ -46,6 +46,7 @@ if (NOT ENABLE_CXXONLY)
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
+      "${CMAKE_CURRENT_SOURCE_DIR}/lc/lcats"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
     )
 
