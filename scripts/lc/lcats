@@ -428,7 +428,7 @@ toss3Settings= MachineInfo(
     machineType='SlurmProcessorScheduled',
     batch= False,
     #allocTime = 240,
-    allocTime = 180,
+    allocTime = 45,
     partition='pdebug',
     #numNodes=4,
     numNodes=2,
@@ -438,7 +438,7 @@ toss3Settings= MachineInfo(
               '--allInteractive',
               "--npMax=%s"%(useCpu),
               "--continueFreq=15",
-              "--timelimit=120",
+              "--timelimit=30",
             ],
 
 )
