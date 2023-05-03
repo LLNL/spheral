@@ -79,7 +79,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('py-scipy@1.8.1', type='build')
     depends_on('py-importlib-metadata@4.12.0', type='build')
     #depends_on('py-gnuplot', type='build')
-    depends_on('py-ats@atsr', type='build')
+    depends_on('py-ats@exit', type='build')
     depends_on('py-mpi4py@3.1.4', type='build', when='+mpi')
 
     depends_on('py-sphinx@5.3.0', type='build')

@@ -17,7 +17,7 @@ class PyAts(PythonPackage):
     maintainers = ['white238']
 
     version('main', branch='main')
-    version('atsr', branch='bugfix/py3-atsr-py')
+    version('exit', branch='bugfix/exit-code')
     version('7.0.100', tag='7.0.100')
     version('7.0.9', tag='7.0.9')
     version('7.0.5', tag='7.0.5')
