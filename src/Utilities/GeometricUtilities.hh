@@ -318,7 +318,8 @@ template<>
 inline
 void
 tensorElementWiseDivide<Dim<2>::Tensor>(Dim<2>::Tensor& lhs, const Dim<2>::Tensor& rhs) {
-  REQUIRE(std::find_if(rhs.begin(), rhs.end(), std::bind2nd(std::equal_to<double>(), 0.0)) == rhs.end());
+  REQUIRE(std::find_if(rhs.begin(), rhs.end(),
+                       [] (double val) { return val == 0.0; }) == rhs.end());
   lhs.xx(lhs.xx() / rhs.xx());
   lhs.xy(lhs.xy() / rhs.xy());
   lhs.yx(lhs.yx() / rhs.yx());
@@ -329,7 +330,8 @@ template<>
 inline
 void
 tensorElementWiseDivide<Dim<3>::Tensor>(Dim<3>::Tensor& lhs, const Dim<3>::Tensor& rhs) {
-  REQUIRE(std::find_if(rhs.begin(), rhs.end(), std::bind2nd(std::equal_to<double>(), 0.0)) == rhs.end());
+  REQUIRE(std::find_if(rhs.begin(), rhs.end(),
+                       [] (double val) { return val == 0.0; }) == rhs.end());
   lhs.xx(lhs.xx() / rhs.xx());
   lhs.xy(lhs.xy() / rhs.xy());
   lhs.xz(lhs.xz() / rhs.xz());

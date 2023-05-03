@@ -1,4 +1,23 @@
-Version vYYYY.MM.pp -- Release date 20YY-MM-DD
+Version vYYYY-MM-DD -- Release date YYYY-MM-DD
+==============================================
+
+This release contains ...
+
+  * Important Notes:
+
+Notable changes include:
+
+  * New features/ API changes:
+
+  * Build changes / improvements:
+    * toss_4_x86_64_ib system compatibility.
+    * Updated spack version to v0.19.1
+    * `--debug` and `--no-spec` options added to tpl-manager.py for outputing debug and skipping `spack spec` step.
+
+  * Bug Fixes / improvements:
+    * r-path for additional TPLs can be propogated to Spheral libraries with `SPHERAL_ADDITIONAL_RPATHS`.
+
+Version v2023.03.0 -- Release date 2023-03-29
 ==============================================
 
 This release contains ...
@@ -10,20 +29,20 @@ This release contains ...
 Notable changes include:
 
   * New features/ API changes:
-    * New Discrete Element Model (DEM) physics package with linear-damped spring approach
+    * New Discrete Element Model (DEM) physics package with linear-damped spring approach.
     * Adding a CUDA smoke test that can be called from the Spheral python API.
     * NVCC / CUDA 11 gitlab-ci jobs.
     * ATS default filters for non-MPI, debug and CUDA builds are injected into spheral-atstest script.
-    * Latest Develop docker containers hosted on ghcr.io/llnl/spheral:latest
+    * Latest Develop docker containers hosted on ghcr.io/llnl/spheral:latest.
     * External / offline builds are tested through github actions.
-    * New polyhedral gravity solver
-    * Improved DEM timestep choice, so that points that do not overlap do not overly constrain the timestep
-    * Point potential gravity solver can now have non-unit metrics
-    * Pair-max damage algorithm now decouples points in different NodeLists or with different fragmentIDs
-    * Added direct support for FacetedVolumes to FileIO interface
-    * ANEOS now allows shallow copies to be made
-    * Polyhedron contain method can now optionally use Axom methods to test for containment
-    * Adding user specified functions for shear modulus and yield strength as a function of damage    
+    * New polyhedral gravity solver.
+    * Improved DEM timestep choice, so that points that do not overlap do not overly constrain the timestep.
+    * Point potential gravity solver can now have non-unit metrics.
+    * Pair-max damage algorithm now decouples points in different NodeLists or with different fragmentIDs.
+    * Added direct support for FacetedVolumes to FileIO interface.
+    * ANEOS now allows shallow copies to be made.
+    * Polyhedron contain method can now optionally use Axom methods to test for containment.
+    * Adding user specified functions for shear modulus and yield strength as a function of damage.
 
   * Build changes / improvements:
     * The C++ library interface is compiled into a single Spheral_CXX library. 
@@ -32,19 +51,20 @@ Notable changes include:
     * Eigen bumped to 3.4.0 for NVCC compatiblity.
     * C++ flag suppression is gaurded with build time CMake generators to only apply to C++ compilers.
     * Python runtime libraries are now managed through Spack / tpl-manager.
-    * Added ENABLE_NAN_EXCEPTIONS (default OFF) Cmake flag to raise an exception when a NAN occurs (Gnu only)
-    * Byte-compiling python installed in virtual spheral environment
-    * Invoking spheral no longer byte-compiles Python imported in a spheral script
+    * Added ENABLE_NAN_EXCEPTIONS (default OFF) Cmake flag to raise an exception when a NAN occurs (Gnu only).
+    * Byte-compiling python installed in virtual spheral environment.
+    * Invoking spheral no longer byte-compiles Python imported in a spheral script.
+    * HDF5 links as a shared library. Static lib usage can be forced with ENABLE_STATIC_TPL.
 
   * Bug Fixes / improvements:
     * spheral-atstest scripts always point to locally installed ATS instance.
     * gitlab-ci report-results script for analyzing ATS CI runs.
     * Support for offline Spheral builds (provided TPLs are installed).
-    * Fixes for restarting without regenerating the original node positions in the Python script
-    * Protected from division by zero in DEM when points coincide
-    * Corrected support for minimum pressure (intact and damaged) with porous materials
-    * Removed term driving damaged material to the reference density in solid hydros
-    * Added verbose flag to EquationOfState::specificThermalEnergyForPressure so users can see how the iterative search proceeds
+    * Fixes for restarting without regenerating the original node positions in the Python script.
+    * Protected from division by zero in DEM when points coincide.
+    * Corrected support for minimum pressure (intact and damaged) with porous materials.
+    * Removed term driving damaged material to the reference density in solid hydros.
+    * Added verbose flag to EquationOfState::specificThermalEnergyForPressure so users can see how the iterative search proceeds.
 
 Version v2022.06.1 -- Release date 2022-06-24
 =============================================

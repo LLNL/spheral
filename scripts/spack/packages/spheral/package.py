@@ -7,7 +7,7 @@ from spack import *
 import socket
 import os
 
-class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
+class Spheral(CachedCMakePackage, CudaPackage):
     """Spheral++ provides a steerable parallel environment for performing coupled hydrodynamical and gravitational numerical simulations."""
 
     homepage = "https://spheral.readthedocs.io/"
@@ -38,7 +38,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
     depends_on('zlib@1.2.11 -shared +pic', type='build')
 
-    depends_on('boost@1.74.0 -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
+    depends_on('boost@1.74.0 +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
     depends_on('qhull@2020.1 +pic', type='build')
     depends_on('m-aneos')
@@ -50,8 +50,8 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('silo@4.10.2 +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
-    depends_on('conduit@0.8.2 +shared +mpi +hdf5 -test', type='build', when='+mpi')
-    depends_on('conduit@0.8.2 +shared ~mpi +hdf5 -test', type='build', when='~mpi')
+    depends_on('conduit@0.8.2 +shared +mpi +hdf5 -test ~parmetis', type='build', when='+mpi')
+    depends_on('conduit@0.8.2 +shared ~mpi +hdf5 -test ~parmetis', type='build', when='~mpi')
 
     depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
     depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
@@ -69,6 +69,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('py-pyb11generator@1.0.12', type='build')
     depends_on('py-virtualenv', type='build')
 
+    depends_on('netlib-lapack', type='build')
     depends_on('py-numpy@1.16.5', type='build')
     depends_on('py-numpy-stl@2.11.2', type='build')
     depends_on('py-enum34', type='build')
@@ -77,7 +78,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('py-pillow@6.2.2', type='build')
     depends_on('py-decorator@4.4.2', type='build')
     depends_on('py-h5py@2.10.0', type='build')
-    depends_on('py-docutils@0.17.1', type='build')
+    depends_on('py-docutils@0.16', type='build')
     depends_on('py-cython@0.29.21', type='build')
     depends_on('py-scipy@1.2.3', type='build')
     depends_on('py-pipreqs@0.4.10', type='build')

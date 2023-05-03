@@ -2,7 +2,6 @@
 #define MHD_CurrentDensityUPDATEPOLICY_HH
 
 #include <string>
-#include "boost/shared_ptr.hpp"
 #include "DataBase/UpdatePolicyBase.hh"
 #include "Geometry/Dimension.hh"
 #include "Kernel/TableKernel.hh"

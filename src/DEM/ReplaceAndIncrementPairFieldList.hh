@@ -34,7 +34,7 @@ public:
   static const std::string incrementPrefix() { return "delta "; }
   static const std::string replacePrefix() { return "new "; }
 
-  bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
   // Overload the methods describing how to update FieldLists.
   virtual void update(const KeyType& key,
