@@ -94,6 +94,9 @@ function(spheral_add_cxx_library
                     )
   endif()
 
+  get_target_property(_INTERFACE_INCLUDE_DIRECTORIES Spheral_${package_name} INTERFACE_INCLUDE_DIRECTORIES)
+  set_target_properties(Spheral_${package_name} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "$<BUILD_INTERFACE:${_INTERFACE_INCLUDE_DIRECTORIES}>")
+
   get_target_property(_LINK_LIBRARIES Spheral_${package_name} LINK_LIBRARIES)
   LIST(REMOVE_DUPLICATES _LINK_LIBRARIES)
   set_target_properties(Spheral_${package_name} PROPERTIES LINK_LIBRARIES "${_LINK_LIBRARIES};${_LINK_LIBRARIES}") 
@@ -110,7 +113,7 @@ function(spheral_add_cxx_library
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(Spheral_${package_name} PROPERTIES
-                        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib"
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${hdf5_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}"
                         )
 endfunction()
 
@@ -158,7 +161,7 @@ function(spheral_add_pybind11_library package_name)
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(${MODULE_NAME} PROPERTIES
-                        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${python_DIR}/lib"
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${python_DIR}/lib;${hdf5_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}"
                         )
 
 endfunction()

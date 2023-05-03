@@ -28,20 +28,6 @@ using std::abs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Weak pointers don't have operator==, so we have to provide something.
-//------------------------------------------------------------------------------
-template<typename T>
-struct CompareWeakPtr: public std::binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool> {
-  typedef typename std::binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::first_argument_type first_argument_type;
-  typedef typename std::binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::second_argument_type second_argument_type;
-  typedef typename std::binary_function<std::weak_ptr<T>, std::weak_ptr<T>, bool>::result_type result_type;
-  result_type operator()(const std::weak_ptr<T> lhs,
-                         const std::weak_ptr<T> rhs) const {
-    return lhs.lock() == rhs.lock();
-  }
-};
-
-//------------------------------------------------------------------------------
 // Register a RestartHandle.
 //------------------------------------------------------------------------------
 void
@@ -70,7 +56,11 @@ unregisterRestartHandle(std::shared_ptr<RestartHandle> restartHandlePtr) {
   this->removeExpiredPointers();
   std::weak_ptr<RestartHandle> wptr(restartHandlePtr);
   VERIFY(haveRestartHandle(restartHandlePtr));
-  iterator itr = find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RestartHandle>(), wptr));
+  iterator itr = find_if(this->begin(), this->end(),
+                         [wptr] (const std::weak_ptr<RestartHandle> val) {
+                           // Weak pointers don't have operator==, so we have to provide something.
+                           return val.lock() == wptr.lock();
+                         });
   CHECK(itr != this->end());
   const size_t delta = distance(this->begin(), itr);
   mRestartHandles.erase(itr);
@@ -85,7 +75,11 @@ unregisterRestartHandle(std::shared_ptr<RestartHandle> restartHandlePtr) {
 bool
 RestartRegistrar::
 haveRestartHandle(const std::shared_ptr<RestartHandle> restartHandlePtr) const {
-  // const_iterator itr = std::find_if(this->begin(), this->end(), bind2nd(CompareWeakPtr<RestartHandle>(), restartHandlePtr));
+  // const_iterator itr = std::find_if(this->begin(), this->end(),
+  //                                   [restartHandlePtr] (const std::weak_ptr<RestartHandle> val) {
+  //                                     // Weak pointers don't have operator==, so we have to provide something.
+  //                                     return val.lock() == restartHandlePtr.lock();
+  //                                   });
   // return (itr != this->end());
   const_iterator itr = this->begin();
   while (itr < this->end() and

@@ -35,11 +35,23 @@ def parse_args():
   parser.add_argument('--upstream-dir', type=str, default=default_upstream_dir,
       help='Dir of upstream spack installation.')
 
+  parser.add_argument('--no-upstream', action="store_true",
+      help='Do not use an upstream spack instance.')
+
   parser.add_argument('--spack-url', type=str, default="",
       help='URL of spack to use.')
 
-  parser.add_argument('--no-clean', type=bool, default=False,
+  parser.add_argument('--no-clean', action='store_true',
       help='Do not clean spack generated log files.')
+
+  parser.add_argument('--debug', action='store_true',
+      help='Run spack commands with -d debug output.')
+
+  parser.add_argument('--verbose', action='store_true',
+      help='Run spack install with -v for tpl build output.')
+
+  parser.add_argument('--no-spec', action='store_true',
+      help='Skip output of the dependency graph.')
 
   return parser.parse_args()
 
@@ -96,7 +108,7 @@ def build_deps(args):
     spack_config_dir_opt="--spack-config-dir={0}".format(os.path.join(project_dir, "scripts/spack/configs/x86_64"))
 
   spack_upstream_opt=""
-  if os.path.isdir(args.upstream_dir):
+  if os.path.isdir(args.upstream_dir) and not args.no_upstream:
     spack_upstream_opt="--upstream {0}".format(args.upstream_dir)
 
   uberenv_spack_url_opt=""
@@ -117,6 +129,10 @@ def build_deps(args):
   os.environ["SPACK_DISABLE_LOCAL_CONFIG"] = "1"
   spack_cmd=os.path.join(args.spheral_spack_dir, "spack/bin/spack")
 
+  # Add -d to spack command when requesting debug output
+  if args.debug:
+    spack_cmd += " -d"
+
   with open(uberenv_project_json) as f:
     package_name=json.loads(f.read())["package_name"]
 
@@ -125,8 +141,9 @@ def build_deps(args):
     print("** Building TPL's and generating host-config for {0}%{1} ...".format(package_name,s))
     os.environ["SPEC"] = s
     os.environ["LC_ALL"] = "en_US.UTF-8"
-    if sexe("{0} spec -I {1}@develop%{2}".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
-    if sexe("{0} dev-build --deprecated --quiet -d {1} -u initconfig {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
+    if not args.no_spec:
+        if sexe("{0} spec --fresh -I {1}@develop%{2}".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
+    if sexe("{0} dev-build --fresh --quiet --deprecated -u initconfig {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
 
   if not args.no_clean:
     sexe("rm dev-build-* spack-build-* spack-configure-args.txt")
