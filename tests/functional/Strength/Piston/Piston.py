@@ -2,7 +2,7 @@
 # Solid FSISPH
 #
 #ATS:fsisph1 = test(           SELF, "--fsisph True --solid True --nx1 500 --cfl 0.45 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Copper plastic-wave problem with FSISPH -- 1-D (serial)")
-#ATS:fsisph2 = testif(fsisph1, SELF, "--fsisph True --solid True --nx1 500 --cfl 0.45 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Copper plastic-wave problem with FSISPH -- 1-D (serial) RESTART CHECK")
+##ATS:fsisph2 = testif(fsisph1, SELF, "--fsisph True --solid True --nx1 500 --cfl 0.45 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Copper plastic-wave problem with FSISPH -- 1-D (serial) RESTART CHECK")
 
 
 import os, sys, shutil
@@ -12,7 +12,7 @@ from SpheralTestUtilities import *
 from GenerateNodeProfile import GenerateNodeProfile1d
 from VoronoiDistributeNodes import distributeNodes1d
 
-title("1-D Elastic-Plastic copy piston problem")
+title("1-D Elastic-Plastic copper piston problem")
 
 #-------------------------------------------------------------------------------
 # Maire, et. al., A nominally second-order cell-centered Lagrangian scheme for 
@@ -109,7 +109,7 @@ commandLine(# materials properties
             boolHopkinsCorrection = True,
             
             # integrator settings
-            IntegratorConstructor = CheapSynchronousRK2Integrator,            
+            IntegratorConstructor = SynchronousRK2Integrator,            
             cfl = 0.25,
             goalTime = 150e-6,
             dt = 1.0e-13,
