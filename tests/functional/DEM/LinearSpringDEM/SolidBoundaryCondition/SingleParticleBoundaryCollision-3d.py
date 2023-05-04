@@ -23,10 +23,12 @@ title("DEM Restitution Coefficient Test")
 #-------------------------------------------------------------------------------
 commandLine(vImpact = 1.0,                            # impact velocity
             omega0 = 0.1,                             # initial angular velocity it we're doing that
+            g0 = 0.0,                                 # grav acceleration
 
+            h0 = 1.00,                                # initial height above the solid bc plane
             radius = 0.95,                            # particle radius
             normalSpringConstant=10000.0,             # spring constant for LDS model
-            normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
+            normalRestitutionCoefficient=1.00,        # restitution coefficient to get damping const
             tangentialSpringConstant=2857.0,          # spring constant for LDS model
             tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
             dynamicFriction = 1.0,                    # static friction coefficient sliding
@@ -36,12 +38,12 @@ commandLine(vImpact = 1.0,                            # impact velocity
             cohesiveTensileStrength = 0.0,            # units of pressure
             shapeFactor = 0.5,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
 
-            nPerh = 1.01,                             # this should basically always be 1 for DEM
+            nPerh = 1.01,                             # we need this as an input for thing but doesn't affect DEM
             
             # integration
             IntegratorConstructor = VerletIntegrator, # Verlet one integrator to garenteee conservation
-            stepsPerCollision = 50,                   # replaces CFL for DEM
-            goalTime = None,
+            stepsPerCollision = 100,                   # replaces CFL for DEM
+            goalTime = 3.0,
             dt = 1e-8,
             dtMin = 1.0e-8, 
             dtMax = 0.1,
@@ -54,8 +56,8 @@ commandLine(vImpact = 1.0,                            # impact velocity
             dtverbose = False,
             
             # output control
-            vizCycle = 0.1,
-            vizTime = 10.0,
+            vizCycle = None,
+            vizTime = 0.1,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 1000,
@@ -80,6 +82,8 @@ commandLine(vImpact = 1.0,                            # impact velocity
 #-------------------------------------------------------------------------------
 assert mpi.procs == 1 
 assert nPerh >= 1
+assert g0 <= 0.0
+assert h0 > radius
 assert shapeFactor <= 1.0 and shapeFactor >= 0.0
 assert dynamicFriction >= 0.0
 assert staticFriction >= 0.0
@@ -156,13 +160,13 @@ for nodes in nodeSet:
     output("nodes.nodesPerSmoothingScale")
 
 #-------------------------------------------------------------------------------
-# Set the node properties.
+# Set the node properties. (gen 2 particles visit doesn't like just one)
 #-------------------------------------------------------------------------------
 generator0 = GenerateNodeDistribution3d(2, 1, 1,
                                         rho = 1.0,
                                         distributionType = "lattice",
-                                        xmin = (-2.0,  -1.0, 0.1),
-                                        xmax = (2.0,  1.0, 2.1),
+                                        xmin = (-2.0,  -1.0, -1+h0),
+                                        xmax = (2.0,  1.0, 1+h0),
                                         nNodePerh = nPerh)
 
 generator1 = GenerateDEMfromSPHGenerator3d(WT,
@@ -208,7 +212,7 @@ dem.appendSolidBoundary(solidWall)
 #-------------------------------------------------------------------------------
 # PhysicsPackage : gravity
 #-------------------------------------------------------------------------------
-gravity = ConstantAcceleration(a0 = Vector(0.0, 0.0,-1.0),
+gravity = ConstantAcceleration(a0 = Vector(0.0,0.0,g0),
                                nodeList = nodes1)
 packages += [gravity]
 
@@ -218,8 +222,8 @@ packages += [gravity]
 #-------------------------------------------------------------------------------
 
 velocity = nodes1.velocity()
-velocity[0] = Vector(0.0,0.0,-0.1)
-velocity[1] = Vector(0.0,0.0,-0.1)
+velocity[0] = Vector(0.0,0.0,-vImpact)
+velocity[1] = Vector(0.0,0.0,-vImpact)
 
 particleRadius = nodes1.particleRadius()
 particleRadius[0] = radius
@@ -270,14 +274,6 @@ output("integrator.domainDecompositionIndependent")
 output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
-#-------------------------------------------------------------------------------
-# Periodic Work Function : track conservation
-#-------------------------------------------------------------------------------
-conservation = TrackConservation(db,
-                                  dem,
-                                  verbose=False)
-                                  
-periodicWork = [(conservation.periodicWorkFunction,1)]
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
@@ -294,8 +290,7 @@ control = SpheralController(integrator, WT,
                             vizMethod=dumpPhysicsState,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime,
-                            periodicWork=periodicWork)
+                            vizTime = vizTime)
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -335,21 +330,6 @@ if checkError:
     if  restitutionError > restitutionErrorThreshold:
         raise ValueError, ("relative restitution coefficient error, %g, exceeds bounds" % restitutionError)
 
-if checkConservation:
-# check momentum conservation
-#-------------------------------------------------------------
-    if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX()
-    if  conservation.deltaLinearMomentumY() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY()
-    if  conservation.deltaLinearMomentumZ() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - z conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumZ()
-    if  conservation.deltaRotationalMomentumX() > conservationErrorThreshold:
-        raise ValueError, "rotational momentum - x conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumX()
-    if  conservation.deltaRotationalMomentumY() > conservationErrorThreshold:
-        raise ValueError, "rotational momentum - y conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumY()
-    if  conservation.deltaRotationalMomentumZ() > conservationErrorThreshold:
-        raise ValueError, "rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ()
 
 if boolCheckSlidingFriction or boolCheckRollingFriction or boolCheckTorsionalFriction:
 # check for non-physical behavior

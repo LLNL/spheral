@@ -7,6 +7,8 @@
 //                 solid boundary interactions and there store* and 
 //                 solidBoundary are used. In both case, unused properties are
 //                 flagged as invalid (-1).
+//
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_ContactStorageLocation_hh__
 #define __Spheral_ContactStorageLocation_hh__

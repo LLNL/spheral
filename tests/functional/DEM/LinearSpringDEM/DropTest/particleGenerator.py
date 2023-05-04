@@ -16,9 +16,10 @@ if mpi.procs > 1:
 else:
     from DistributeNodes import distributeNodes3d
 
-title("DEM 3d Impacting Squares")
-# This tests the conservation properties of the DEM package when
-# distribution across multiple processors
+title("DEM 3d Drop Test with Particle Generation")
+# this tests the ability to generate particle on the fly
+# during the course of a simulation using a periodic 
+# work function. It also tests the solid boundary condition
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters

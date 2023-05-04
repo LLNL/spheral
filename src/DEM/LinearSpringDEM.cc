@@ -117,81 +117,142 @@ dt(const DataBase<Dimension>& dataBase,
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  r = state.fields(DEMFieldNames::particleRadius, 0.0);
-  const auto& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity(),
-                                                         this->requireOverlapConnectivity(),
-                                                         this->requireIntersectionConnectivity());
-  const auto& pairs = connectivityMap.nodePairList();
+  //const auto& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity(),
+  //                                                       this->requireOverlapConnectivity(),
+  //                                                       this->requireIntersectionConnectivity());
+  
+
+  const auto& contacts = this->contactStorageIndices();
+  const unsigned int numP2PContacts = this->numParticleParticleContacts();
+  const unsigned int numTotContacts = this->numContacts();
+
+  // vec of ptrs to our solid boundary conditions
+  const auto& solidBoundaries = this->solidBoundaryConditions();
 
   // buffer distance used to set the max allowable timestep
-  const auto f = dataBase.maxNeighborSearchBuffer();
+  const auto bufferDistance = dataBase.maxNeighborSearchBuffer();
 
   // Compute the spring timestep constraint (except for the mass)
   const auto nsteps = this->stepsPerCollision();
-
-  CHECK(nsteps > 0);
   const auto dtSpring0 = M_PI*std::sqrt(0.5/mNormalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)))/nsteps;
 
-  // Check each pair to see how much they are closing.
-  auto dtMin = dtSpring0;//std::numeric_limits<Scalar>::max();
-  TimeStepType result(dtMin, "DEM error, this message should not get to the end");
-  for (const auto& pair: pairs) {
+  CHECK(nsteps > 0);
 
-    const auto nodeListi = pair.i_list;
-    const auto nodeListj = pair.j_list;
-    const auto i = pair.i_node;
-    const auto j = pair.j_node;
+  // Check each pair to see how much they are closing.
+  auto dtMin = std::numeric_limits<Scalar>::max();
+  TimeStepType result(dtMin, "DEM error, this message should not get to the end");
+
+  // start with the particle to particle contacts
+  for (auto kk = 0u; kk < numP2PContacts; ++kk) {
+
+    const auto nodeListi = contacts[kk].storeNodeList;
+    const auto nodeListj = contacts[kk].pairNodeList;
+    const auto  i = contacts[kk].storeNode;
+    const auto  j = contacts[kk].pairNode;
 
     // node i
     const auto  mi = mass(nodeListi, i);
-    const auto& xi = position(nodeListi, i);
+    const auto& ri = position(nodeListi, i);
     const auto& vi = velocity(nodeListi, i);
-    const auto  ri = r(nodeListi, i);
+    const auto  Ri = r(nodeListi, i);
 
     // node j
     const auto  mj = mass(nodeListj, j);
-    const auto& xj = position(nodeListj, j);
+    const auto& rj = position(nodeListj, j);
     const auto& vj = velocity(nodeListj, j);
-    const auto  rj = r(nodeListj, j);
+    const auto  Rj = r(nodeListj, j);
     
     // Spring constant timestep for this pair
-    const auto dtSpringij = dtSpring0*std::sqrt(std::min(mi, mj));
 
     // Compare closing speed to separation
-    const auto xji = xj - xi;
+    const auto rji = rj - ri;
     const auto vji = vj - vi;
-    const auto hatji = xji.unitVector();
-    const auto closing_speed = -min(0.0, vji.dot(hatji));
-    const auto overlap = max(0.0, 1.0 - (xi - xj).magnitude()/(ri + rj));
-    if (closing_speed > 0.0 or
-        overlap > 0.0) {
-      const auto dtji = (overlap > 0.0 ?
-                         dtSpringij :
-                         max(dtSpringij, 0.5*(xji.magnitude() - ri - rj)*safeInvVar(closing_speed)));
+    const auto rhatji = rji.unitVector();
+    const auto rmagji = rji.magnitude();
+    const auto closing_speed = -min(0.0, vji.dot(rhatji));
+    const auto overlap = (Ri + Rj) - rmagji;
+
+    if (closing_speed > 0.0 or overlap > 0.0) {
+      const auto dtSpringkk = dtSpring0*std::sqrt(std::min(mi, mj));
+      const auto dtji = ( overlap > 0.0 ?
+                          dtSpringkk :
+                          max(dtSpringkk, -0.5*overlap*safeInvVar(closing_speed)));
       if (dtji < dtMin) {
         dtMin = dtji;
         result = make_pair(dtji,
-                           (dtji > dtSpringij ?
+                           (dtji > dtSpringkk ?
                             std::string("DEM pairwise closing rate:\n") :
                             std::string("DEM spring constraint:\n")) +
-                           "  (listi, i, rank) = (" + to_string(pair.i_list) + " " + to_string(pair.i_node) + " " + to_string(Process::getRank()) + ")\n" +
-                           "  (listj, j, rank) = (" + to_string(pair.j_list) + " " + to_string(pair.j_node) + " " + to_string(Process::getRank()) + ")\n" +
-                           "        position_i = " + vec_to_string(xi) + "\n" +
+                           "  (listi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                           "  (listj, j, rank) = (" + to_string(nodeListj) + " " + to_string(j) + " " + to_string(Process::getRank()) + ")\n" +
+                           "        position_i = " + vec_to_string(ri) + "\n" +
                            "        velocity_i = " + vec_to_string(vi) +"\n" +
-                           "          radius_i = " + to_string(ri) + "\n" +
-                           "        position_j = " + vec_to_string(xj) + "\n" +
+                           "          radius_i = " + to_string(Ri) + "\n" +
+                           "        position_j = " + vec_to_string(rj) + "\n" +
                            "        velocity_j = " + vec_to_string(vj) + "\n" +
-                           "          radius_j = " + to_string(rj) + "\n" +
-                           "         spring_dt = " + to_string(dtSpringij) + "\n");
+                           "          radius_j = " + to_string(Rj) + "\n" +
+                           "         spring_dt = " + to_string(dtSpringkk) + "\n");
       }
     }
   }
+
+  // particle to boundary contacts
+  for (auto kk = numP2PContacts; kk < numTotContacts; ++kk) {
+
+    const auto nodeListi = contacts[kk].storeNodeList;
+    const auto i = contacts[kk].storeNode;
+    const auto bci = contacts[kk].solidBoundary;
+
+    // node i
+    const auto  mi = mass(nodeListi, i);
+    const auto& ri = position(nodeListi, i);
+    const auto& vi = velocity(nodeListi, i);
+    const auto  Ri = r(nodeListi, i);
+
+    //solid boundary and distance vector to particle i
+    const auto& solidBoundary = solidBoundaries[bci];
+    const auto rib = solidBoundary->distance(ri);
+    const auto vb = solidBoundary->velocity(ri);
+
+    // Compare closing speed to separation
+    const auto vib = vi-vb;
+    const auto rhatib = rib.unitVector();
+    const auto rmagib = rib.magnitude();
+
+    const auto closing_speed = -min(0.0, vib.dot(rhatib));
+    const auto overlap =  Ri - rmagib;
+    
+    if (closing_speed > 0.0 or overlap > 0.0) {
+
+      const auto dtSpringkk = dtSpring0*std::sqrt(mi);
+      // Spring constant timestep for this pair
+      const auto dtji = (overlap > 0.0 ?
+                         dtSpringkk:
+                         max(dtSpringkk, -0.5*overlap*safeInvVar(closing_speed)));
+      if (dtji < dtMin) {
+        dtMin = dtji;
+        result = make_pair(dtji,
+                           (dtji > dtSpringkk ?
+                            std::string("DEM pairwise closing rate:\n") :
+                            std::string("DEM spring constraint:\n")) +
+                           "  (listi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                           "        position_i = " + vec_to_string(ri) + "\n" +
+                           "        velocity_i = " + vec_to_string(vi) +"\n" +
+                           "          radius_i = " + to_string(Ri) + "\n" +
+                           "    distance to bc = " + vec_to_string(rib) + "\n" +
+                           "    velocity of bc = " + vec_to_string(vb) + "\n" +
+                           "         spring_dt = " + to_string(dtSpringkk) + "\n");
+      }
+    }
+  }
+
 
   // Ensure no point moves further than the buffer distance in one timestep
   const auto numNodeLists = position.size();
   for (auto k = 0u; k < numNodeLists; ++k) {
     const auto n = position[k]->size();
     for (auto i = 0u; i < n; ++i) {
-      const auto dti = 0.5*f*r(k,i)*safeInvVar(velocity(k,i).magnitude());
+      const auto dti = 0.5* bufferDistance *r(k,i)*safeInvVar(velocity(k,i).magnitude());
       if (dti < dtMin) {
         dtMin = dti;
         result = make_pair(dti,
@@ -547,9 +608,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       } // if contacing
     }   // loop over pairs
 
+
+    //?????????????????????????????????????????????????????????????????//
     //------------------------------------
     // Loop the particle-boundary contacts
     //------------------------------------
+    //?????????????????????????????????????????????????????????????????//
     for (auto kk = numP2PContacts; kk < numTotContacts; ++kk) {
     
       CHECK(contacts[kk].storeNodeList >= 0)
@@ -605,8 +669,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto li = rib.magnitude();
 
         // damping constants -- ct and cr derived quantities ala Zhang 2017
-        const auto Cn = std::sqrt(mi*normalDampingTerms);
-        const auto Cs = std::sqrt(mi*tangentialDampingTerms);
+        //----------------------------To-Do-----------------------------------
+        // oh man okay, solid bc's were overdamping. The 0.5 factor got the
+        // coeff of restitution right (i guess i missed a factor of 2 somewhere)
+        // need to go back and do the math later.
+        //--------------------------------------------------------------------
+        const auto Cn = std::sqrt(0.5*mi*normalDampingTerms);
+        const auto Cs = std::sqrt(0.5*mi*tangentialDampingTerms);
         const auto Ct = 0.50 * Cs * shapeFactor2;
         const auto Cr = 0.25 * Cn * shapeFactor2;
 

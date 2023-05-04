@@ -24,21 +24,21 @@ title("DEM 2d Drop Test")
 #-------------------------------------------------------------------------------
 commandLine(numParticlePerLength = 10,     # number of particles on a side of the box
             radius = 0.25,                            # particle radius
-            normalSpringConstant=10000.0,             # spring constant for LDS model
+            normalSpringConstant=1000.0,             # spring constant for LDS model
             normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
-            tangentialSpringConstant=2857.0,          # spring constant for LDS model
+            tangentialSpringConstant=285.70,          # spring constant for LDS model
             tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
             cohesiveTensileStrength = 0.0,            # units of pressure
             dynamicFriction = 1.0,                    # static friction coefficient sliding
             staticFriction = 1.0,                     # dynamic friction coefficient sliding
-            rollingFriction = 1.05,                   # static friction coefficient for rolling
+            rollingFriction = 10.0,                   # static friction coefficient for rolling
             torsionalFriction = 1.3,                  # static friction coefficient for torsion
             shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
             nPerh = 1.01,                             # this should basically always be 1 for DEM
 
             # integration
             IntegratorConstructor = VerletIntegrator,
-            stepsPerCollision = 50,  # replaces CFL for DEM
+            stepsPerCollision = 25,  # replaces CFL for DEM
             goalTime = 25.0,
             dt = 1e-8,
             dtMin = 1.0e-8, 
@@ -121,16 +121,23 @@ if restoreCycle is None:
     generator0 = GenerateNodeDistribution2d(numParticlePerLength, numParticlePerLength,
                                             rho = 1.0,
                                             distributionType = "xstaggeredLattice",
-                                            xmin = (-0.5,  0.0),
-                                            xmax = ( 0.5,  1.0),
+                                            xmin = (-0.5,  0.05),
+                                            xmax = ( 0.5,  1.05),
                                             nNodePerh = nPerh)
     
     #really simple bar shaped particle
+    # def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
+    #     xout = [xi+Ri/3.0,xi-Ri/3.0]
+    #     yout = [yi,yi]
+    #     mout = [mi/2.0,mi/2.0]
+    #     Rout = [Ri/2.0,Ri/2.0]
+    #     return xout,yout,mout,Rout
+
     def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
-        xout = [xi+Ri/3.0,xi-Ri/3.0]
-        yout = [yi,yi]
-        mout = [mi/2.0,mi/2.0]
-        Rout = [Ri/2.0,Ri/2.0]
+        xout = [xi]
+        yout = [yi]
+        mout = [mi]
+        Rout = [Ri/2.0]
         return xout,yout,mout,Rout
 
     generator1 = GenerateDEMfromSPHGenerator2d(WT,
@@ -170,6 +177,10 @@ dem = DEM(db,
 
 packages = [dem]
 
+
+solidWall = PlanarWall(Vector(0.0, 0.0, 0.0), Vector(  0.0, 1.0))
+dem.appendSolidBoundary(solidWall)
+
 #-------------------------------------------------------------------------------
 # PhysicsPackage : gravity
 #-------------------------------------------------------------------------------
@@ -180,15 +191,15 @@ packages += [gravity]
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
 #-------------------------------------------------------------------------------
-plane1 = Plane(Vector(0.0, 0.0), Vector(  0.0, 1.0))
-#plane2 = Plane(Vector(0.0, 0.0), Vector( -1.0, 1.0))
-bc1 = ReflectingBoundary(plane1)
-#bc2 = ReflectingBoundary(plane2)
-bcSet = [bc1]#, bc2]
+# plane1 = Plane(Vector(0.0, 0.0), Vector(  0.0, 1.0))
+# #plane2 = Plane(Vector(0.0, 0.0), Vector( -1.0, 1.0))
+# bc1 = ReflectingBoundary(plane1)
+# #bc2 = ReflectingBoundary(plane2)
+# bcSet = [bc1]#, bc2]
 
-for p in packages:
-    for bc in bcSet:
-        p.appendBoundary(bc)
+# for p in packages:
+#     for bc in bcSet:
+#         p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
