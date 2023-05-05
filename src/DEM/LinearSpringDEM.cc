@@ -431,12 +431,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Get the state vars for node i needed for prox check
       const auto& ri = position(nodeListi, i);
-      const auto& Ri = radius(nodeListi, i);
+      const auto  Ri = radius(nodeListi, i);
       CHECK(Ri > 0.0);
 
       // Get the state vars for node j needed for prox check
       const auto& rj = position(nodeListj, j);
-      const auto& Rj = radius(nodeListj, j);
+      const auto  Rj = radius(nodeListj, j);
       CHECK(Rj > 0.0);
 
       // are we overlapping ? 
@@ -449,21 +449,21 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       if (delta0 > 0.0){
 
         // get remaining state for node i
-        const auto cIdi = compositeIndex(nodeListi,i);
-        const auto uIdi = uniqueIndices(nodeListi,i);
+        const auto  cIdi = compositeIndex(nodeListi,i);
+        const auto  uIdi = uniqueIndices(nodeListi,i);
         const auto& vi = velocity(nodeListi, i);
         const auto& omegai = omega(nodeListi, i);
-        const auto& mi = mass(nodeListi, i);
+        const auto  mi = mass(nodeListi, i);
         const auto  Ii = momentOfInertia(nodeListi,i);
         CHECK(mi > 0.0);
         CHECK(Ii > 0.0);
 
         // get remaining state for node j
-        const auto cIdj = compositeIndex(nodeListj,j);
-        const auto uIdj = uniqueIndices(nodeListj,j);
+        const auto  cIdj = compositeIndex(nodeListj,j);
+        const auto  uIdj = uniqueIndices(nodeListj,j);
         const auto& vj = velocity(nodeListj, j);
         const auto& omegaj = omega(nodeListj, j);
-        const auto& mj = mass(nodeListj, j);
+        const auto  mj = mass(nodeListj, j);
         const auto  Ij = momentOfInertia(nodeListj,j);
         CHECK(mj > 0.0);
         CHECK(Ij > 0.0);
@@ -480,10 +480,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const int storageSign = (uIdi <= uIdj ? 1 : -1);
 
         // stored pair-wise values
-        const auto overlapij   = equilibriumOverlap(nodeListi,i)[contacti];
-        const auto deltaSlidij = shearDisplacement(nodeListi,i)[contacti]*storageSign;
-        const auto deltaRollij = rollingDisplacement(nodeListi,i)[contacti];
-        const auto deltaTorsij = torsionalDisplacement(nodeListi,i)[contacti];
+        const auto  overlapij   = equilibriumOverlap(nodeListi,i)[contacti];
+        const auto& deltaSlidij = shearDisplacement(nodeListi,i)[contacti]*storageSign;
+        const auto& deltaRollij = rollingDisplacement(nodeListi,i)[contacti];
+        const auto  deltaTorsij = torsionalDisplacement(nodeListi,i)[contacti];
 
         // boolean checks
         const auto isBondedParticle = (cIdi == cIdj);
@@ -655,12 +655,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         auto& DomegaDti = DomegaDt_thread(nodeListi, i);
 
         // get pairwise variables
-        const auto deltaSlidib = shearDisplacement(nodeListi,i)[contacti];
-        const auto deltaRollib = rollingDisplacement(nodeListi,i)[contacti];
-        const auto deltaTorsib = torsionalDisplacement(nodeListi,i)[contacti];
+        const auto& deltaSlidib = shearDisplacement(nodeListi,i)[contacti];
+        const auto& deltaRollib = rollingDisplacement(nodeListi,i)[contacti];
+        const auto  deltaTorsib = torsionalDisplacement(nodeListi,i)[contacti];
 
         // velocity of boundary @ ri
-        const auto vb =solidBoundary->velocity(ri);
+        const auto vb = solidBoundary->velocity(ri);
 
         // line of action for the contact
         const auto rhatib = rib.unitVector();
