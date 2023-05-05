@@ -1,4 +1,8 @@
-#ATS:DEM3dSPBC = test(        SELF, "--clearDirectories True  --checkError True  --checkConservation True --normalRestitutionCoefficient 1.0 --steps 100", label="DEM perfectly elastic 2 particle collision -- 3-D (serial)")
+#ATS:DEM3dSPBC1 = test( SELF, "--clearDirectories True  --boolCheckRestitutionCoefficient True  --normalRestitutionCoefficient 1.0 --g0 0.0 --steps 100", label="DEM perfectly elastic collision with solid boundary -- 3-D (serial)")
+#ATS:DEM3dSPBC2 = test( SELF, "--clearDirectories True  --boolCheckRestitutionCoefficient True  --normalRestitutionCoefficient 0.5 --g0 0.0 --steps 100", label="DEM inelastic collision with solid boundary -- 3-D (serial)")
+#ATS:DEM3dSPBC2 = test( SELF, "--clearDirectories True  --boolCheckSlidingFrictionX True  --normalRestitutionCoefficient 0.5 --g0 0.0 --steps 100", label="DEM sliding check x with solid boundary -- 3-D (serial)")
+#ATS:DEM3dSPBC2 = test( SELF, "--clearDirectories True  --boolCheckSlidingFrictionY True  --normalRestitutionCoefficient 0.5 --g0 0.0 --steps 100", label="DEM sliding check y with solid boundary -- 3-D (serial)")
+#ATS:DEM3dSPBC2 = test( SELF, "--clearDirectories True  --boolCheckTorsionalFriction True  --normalRestitutionCoefficient 0.5 --g0 0.0 --steps 100", label="DEM torsion check with solid boundary -- 3-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
@@ -65,16 +69,12 @@ commandLine(vImpact = 1.0,                            # impact velocity
             dataDir = "dumps-DEM-particle-boundary-3d", 
 
              # ats parameters
-            checkError = False,                    # turn on error checking for restitution coefficient
-            boolCheckSlidingFriction=False,        # checks sliding friction reduces relative rotation
-            boolCheckRollingFriction=False,        # checks rolling friction reduces relative rotation 
+            boolCheckRestitutionCoefficient=False, # turn on error checking for restitution coefficient
+            boolCheckSlidingFrictionX=False,       # checks sliding friction reduces relative rotation
+            boolCheckSlidingFrictionY=False,       # checks rolling friction reduces relative rotation 
             boolCheckTorsionalFriction=False,      # checks torsional friction reduces relative rotation
-            boolCheckTorsionalObjectivity=False,   # checks to make sure torsion is objective
-            checkRestart = False,                  # turn on error checking for restartability
-            checkConservation = False,             # turn on error checking for momentum conservation
             restitutionErrorThreshold = 0.02,      # relative error actual restitution vs nominal
-            conservationErrorThreshold = 1e-15,    # relative error for momentum conservation
-            torsionalObjectivityThreshold = 1e-10  # relative error bounds on torsion objectivity test
+            omegaThreshold = 1e-14,                # theshold for perpendicular components that should stay zero
             )
 
 #-------------------------------------------------------------------------------
@@ -90,12 +90,12 @@ assert staticFriction >= 0.0
 assert torsionalFriction >= 0.0
 assert rollingFriction >= 0.0
 assert cohesiveTensileStrength >= 0.0
-assert sum([boolCheckSlidingFriction,
-            boolCheckRollingFriction,
-            boolCheckTorsionalFriction,
-            boolCheckTorsionalObjectivity]) <= 1
+assert sum([boolCheckRestitutionCoefficient,
+            boolCheckSlidingFrictionX,
+            boolCheckSlidingFrictionY,
+            boolCheckTorsionalFriction]) <= 1
 
-if boolCheckSlidingFriction:
+if boolCheckSlidingFrictionX or boolCheckSlidingFrictionY:
     shapeFactor = 0.0
     
 #-------------------------------------------------------------------------------
@@ -105,10 +105,10 @@ testName = "DEM-SingleParticleBoundaryCollision-3d"
 
 dataDir = os.path.join(dataDir,
                   "restitutionCoefficient=%s" % normalRestitutionCoefficient,
-                  "boolCheckSlidingFriction=%s" % boolCheckSlidingFriction,
-                  "boolCheckRollingFriction=%s" % boolCheckRollingFriction,
-                  "boolCheckTorsionalFriction=%s" % boolCheckTorsionalFriction,
-                  "boolCheckTorsionalObjectivity=%s" % boolCheckTorsionalObjectivity)
+                  "boolCheckRestitutionCoefficient=%s" % boolCheckRestitutionCoefficient,
+                  "boolCheckSlidingFrictionX=%s" % boolCheckSlidingFrictionX,
+                  "boolCheckSlidingFrictionY=%s" % boolCheckSlidingFrictionY,
+                  "boolCheckTorsionalFriction=%s" % boolCheckTorsionalFriction)
 
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
@@ -162,11 +162,11 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 # Set the node properties. (gen 2 particles visit doesn't like just one)
 #-------------------------------------------------------------------------------
-generator0 = GenerateNodeDistribution3d(2, 1, 1,
+generator0 = GenerateNodeDistribution3d(1, 1, 1,
                                         rho = 1.0,
                                         distributionType = "lattice",
-                                        xmin = (-2.0,  -1.0, -1+h0),
-                                        xmax = (2.0,  1.0, 1+h0),
+                                        xmin = (-1.0,  -1.0, -1+h0),
+                                        xmax = (1.0,  1.0, 1+h0),
                                         nNodePerh = nPerh)
 
 generator1 = GenerateDEMfromSPHGenerator3d(WT,
@@ -204,8 +204,6 @@ dem = DEM(db,
 
 packages = [dem]
 
-
-
 solidWall = PlanarWall(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0))
 dem.appendSolidBoundary(solidWall)
 
@@ -220,37 +218,23 @@ packages += [gravity]
 #-------------------------------------------------------------------------------
 # initial conditions
 #-------------------------------------------------------------------------------
-
 velocity = nodes1.velocity()
-velocity[0] = Vector(0.0,0.0,-vImpact)
-velocity[1] = Vector(0.0,0.0,-vImpact)
-
 particleRadius = nodes1.particleRadius()
-particleRadius[0] = radius
-particleRadius[1] = radius
-
 omega = dem.omega
-omega[0][0] = Vector(0.0,0.0, omega0)
-omega[0][1] = Vector(0.0,0.0,-omega0)
 
-if boolCheckSlidingFriction:
-    omega[0][0] = Vector(0.0,0.0,omega0)
-    omega[0][1] = Vector(0.0,0.0,omega0)
-elif boolCheckRollingFriction:  
-    omega[0][0] = Vector(0.0,0.0, omega0)
-    omega[0][1] = Vector(0.0,0.0,-omega0)
+velocity[0] = Vector(0.0,0.0,-vImpact)
+particleRadius[0] = radius
+
+if boolCheckSlidingFrictionX:
+    omega[0][0] = Vector(0.0,omega0,0.0)
+elif boolCheckSlidingFrictionY:  
+    omega[0][0] = Vector(omega0,0.0,0.0)
 elif boolCheckTorsionalFriction:
-    omega[0][0] = Vector( omega0,0.0,0.0)
-    omega[0][1] = Vector(-omega0,0.0,0.0)
-elif boolCheckTorsionalObjectivity:
-    omega[0][0] = Vector( omega0,0.0,0.0)
-    omega[0][1] = Vector( omega0,0.0,0.0)
+    omega[0][0] = Vector(0.0,0.0,omega0)
     
-
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
 #-------------------------------------------------------------------------------
-
 integrator = IntegratorConstructor(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
@@ -274,7 +258,6 @@ output("integrator.domainDecompositionIndependent")
 output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
-
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
@@ -296,10 +279,7 @@ output("control")
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-
 if not steps is None:
-    if checkRestart:
-        control.setRestartBaseName(restartBaseName + "_CHECK")
     control.step(steps)
 else:
     control.advance(goalTime, maxSteps)
@@ -307,39 +287,33 @@ else:
 #-------------------------------------------------------------------------------
 # Great success?
 #-------------------------------------------------------------------------------
-if checkRestart:
-# check reproducibility when restarted
-#-------------------------------------------------------------
-    control.setRestartBaseName(restartBaseName)
-    state0 = State(db, integrator.physicsPackages())
-    state0.copyState()
-    control.loadRestartFile(control.totalSteps)
-    state1 = State(db, integrator.physicsPackages())
-    if not state1 == state0:
-        raise ValueError, "The restarted state does not match!"
-    else:
-        print "Restart check PASSED."
-
-if checkError:
+if boolCheckRestitutionCoefficient:
 # check our restitution coefficient is correct
 #-------------------------------------------------------------
-    vijPostImpact = velocity[0].x - velocity[1].x
-    vijPreImpact = 2.0*vImpact
+    vijPostImpact = -velocity[0].z
+    vijPreImpact = vImpact
     restitutionEff = vijPostImpact/vijPreImpact
     restitutionError = abs(restitutionEff + normalRestitutionCoefficient)/normalRestitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
-        raise ValueError, ("relative restitution coefficient error, %g, exceeds bounds" % restitutionError)
+        print("    final velocity = {0}".format(vijPostImpact))
+        print("  initial velocity = {0}".format(vijPreImpact))
+        raise ValueError, ("  relative restitution coefficient error, %g, exceeds bounds" % restitutionError)
 
-
-if boolCheckSlidingFriction or boolCheckRollingFriction or boolCheckTorsionalFriction:
 # check for non-physical behavior
 #-------------------------------------------------------------
-    if omega[0][0].magnitude()+omega[0][1].magnitude() > 2*omega0:
+if boolCheckSlidingFrictionX:
+    if omega[0][0].magnitude() > omega0:
         raise ValueError, "particles are rotating faster post-collision"
+    if omega[0][0].y > omegaThreshold or omega[0][0].z > omegaThreshold:
+        raise ValueError, "erroneous spin-up in perpendicular direction"
+if boolCheckSlidingFrictionY:
+    if omega[0][0].magnitude() > omega0:
+        raise ValueError, "particles are rotating faster post-collision"
+    if omega[0][0].x > omegaThreshold or omega[0][0].z > omegaThreshold:
+        raise ValueError, "erroneous spin-up in perpendicular direction"
+if boolCheckTorsionalFriction:
+    if omega[0][0].magnitude() > omega0:
+        raise ValueError, "particles are rotating faster post-collision"
+    if omega[0][0].x > omegaThreshold or omega[0][0].y > omegaThreshold:
+        raise ValueError, "erroneous spin-up in perpendicular direction"
 
-if boolCheckTorsionalObjectivity:
-# to satify objectivity omega (along axis) should not change when equal
-#-------------------------------------------------------------
-    omegaError = (2*omega0 - omega[0][0][0] - omega[0][1][0]) / (2*omega0)
-    if omegaError > torsionalObjectivityThreshold:
-        raise ValueError, ("torsional objectivity failure with relative angular velocity error, %g, exceeds bounds" % omegaError)
