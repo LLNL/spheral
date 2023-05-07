@@ -1,12 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
-// PlanarWall -- rigid planar wall contact for DEM
+// CircularFinitePlane -- solid planar boundary for DEM with finite extent
+//                           and circular shape.
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_PlanarWall_hh__
-#define __Spheral_PlanarWall_hh__
 
-//#include <string>
+#ifndef __Spheral_CircularFinitePlane_hh__
+#define __Spheral_CircularFinitePlane_hh__
 
 #include "DEM/SolidBoundary/SolidBoundary.hh"
 
@@ -17,7 +17,7 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
 
 template<typename Dimension>
-class PlanarWall : public SolidBoundary<Dimension> {
+class CircularFinitePlane : public SolidBoundary<Dimension> {
 
     typedef typename Dimension::Scalar Scalar;
     typedef typename Dimension::Vector Vector;
@@ -25,10 +25,11 @@ class PlanarWall : public SolidBoundary<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
 
-  PlanarWall(const Vector& point, 
-             const Vector& normal);
+  CircularFinitePlane(const Vector& point,
+                      const Vector& normal,
+                      const Scalar& exent);
 
-  ~PlanarWall();
+  ~CircularFinitePlane();
 
   virtual Vector distance(const Vector& position) const override;
   virtual Vector velocity(const Vector& position) const override;
@@ -40,37 +41,39 @@ public:
   const Vector& point() const;
   void point(const Vector& value);
 
-  const Vector& normal() const;
+    const Vector& normal() const;
   void normal(const Vector& value);
+
+  const Scalar& extent() const;
+  void extent(const Scalar& value);
 
   const Vector& velocity() const;
   void velocity(const Vector& value);
-
 
 protected:
   //-------------------------- Protected Interface --------------------------//
   Vector mPoint;
   Vector mNormal;
-
+  Scalar mExtent;
   Vector mVelocity;
-  
+
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
-  PlanarWall();
-  PlanarWall(const PlanarWall&);
-  PlanarWall& operator=(const PlanarWall&);
+  CircularFinitePlane();
+  CircularFinitePlane(const CircularFinitePlane&);
+  CircularFinitePlane& operator=(const CircularFinitePlane&);
 };
 
 }
 
-#include "PlanarWallInline.hh"
+#include "CircularFinitePlaneInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class PlanarWall;
+  template<typename Dimension> class CircularFinitePlane;
 }
 
 #endif
