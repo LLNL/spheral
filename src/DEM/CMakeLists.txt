@@ -4,7 +4,9 @@ set(DEM_inst
     DEMBase
     SolidBoundary/SolidBoundary
     SolidBoundary/DEMBoundaryPolicy
-    SolidBoundary/PlanarWall
+    SolidBoundary/InfinitePlane
+    SolidBoundary/CircularFinitePlane
+    SolidBoundary/RectangularFinitePlane
     ReplacePairFieldList
     IncrementPairFieldList
     ReplaceAndIncrementPairFieldList
@@ -20,7 +22,9 @@ instantiate(DEM_inst DEM_sources)
 set(DEM_headers
     SolidBoundary/SolidBoundary.hh
     SolidBoundary/DEMBoundaryPolicy.hh
-    SolidBoundary/PlanarWall.hh
+    SolidBoundary/InfinitePlane.hh
+    SolidBoundary/CircularFinitePlane.hh
+    SolidBoundary/RectangularFinitePlane.hh
     ReplacePairFieldList.hh
     ReplaceAndIncrementPairFieldList.hh
     IncrementPairFieldList.hh

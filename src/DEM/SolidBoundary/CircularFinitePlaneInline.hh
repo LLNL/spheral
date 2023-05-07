@@ -35,7 +35,7 @@ normal(const typename Dimension::Vector& value) {
 
 template<typename Dimension>
 inline
-const typename Dimension::Scalar&
+typename Dimension::Scalar
 CircularFinitePlane<Dimension>::
 extent() const {
   return mExtent;
@@ -45,7 +45,7 @@ template<typename Dimension>
 inline
 void
 CircularFinitePlane<Dimension>::
-extent(const typename Dimension::Scalar& value) {
+extent(typename Dimension::Scalar value) {
   mExtent=value;
 }
 

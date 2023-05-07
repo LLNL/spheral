@@ -44,8 +44,8 @@ public:
     const Vector& normal() const;
   void normal(const Vector& value);
 
-  const Scalar& extent() const;
-  void extent(const Scalar& value);
+  Scalar extent() const;
+  void extent(Scalar value);
 
   const Vector& velocity() const;
   void velocity(const Vector& value);

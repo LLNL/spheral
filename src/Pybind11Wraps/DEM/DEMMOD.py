@@ -19,7 +19,9 @@ PYB11includes += ['"DEM/DEMBase.hh"',
                   '"DEM/DEMFieldNames.hh"',
                   '"DEM/LinearSpringDEM.hh"',
                   '"DEM/SolidBoundary/SolidBoundary.hh"',
-                  '"DEM/SolidBoundary/PlanarWall.hh"',
+                  '"DEM/SolidBoundary/InfinitePlane.hh"',
+                  '"DEM/SolidBoundary/RectangularFinitePlane.hh"',
+                  '"DEM/SolidBoundary/CircularFinitePlane.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
@@ -35,7 +37,9 @@ for ndim in dims:
 DEMBase%(ndim)id = PYB11TemplateClass(DEMBase, template_parameters="%(Dimension)s")
 LinearSpringDEM%(ndim)id = PYB11TemplateClass(LinearSpringDEM, template_parameters="%(Dimension)s")
 SolidBoundary%(ndim)id = PYB11TemplateClass(SolidBoundary, template_parameters="%(Dimension)s")
-PlanarWall%(ndim)id = PYB11TemplateClass(PlanarWall, template_parameters="%(Dimension)s")
+InfinitePlane%(ndim)id = PYB11TemplateClass(InfinitePlane, template_parameters="%(Dimension)s")
+RectangularFinitePlane%(ndim)id = PYB11TemplateClass(RectangularFinitePlane, template_parameters="%(Dimension)s")
+CircularFinitePlane%(ndim)id = PYB11TemplateClass(CircularFinitePlane, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
