@@ -16,6 +16,7 @@
 #include "State.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/globalBoundingVolumes.hh"
+#include "Utilities/globalNodeIDs.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
@@ -1445,7 +1446,7 @@ DataBase<Dimension>::DEMCompositeParticleIndex() const {
 }
 
 //------------------------------------------------------------------------------
-// Return the DEM Particle Radii
+// calculated appropriates H from a given radius for each nodelist
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -1456,6 +1457,18 @@ DataBase<Dimension>::setDEMHfieldFromParticleRadius(const int startUniqueIndex) 
     (*nodeListItr)->setHfieldFromParticleRadius(startUniqueIndex);
   }
 }
+
+//------------------------------------------------------------------------------
+// calculated appropriates H from a given radius for each nodelist
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DataBase<Dimension>::setDEMUniqueIndices() {
+  REQUIRE(valid());
+    auto uniqueIndices = this->DEMUniqueIndex();
+    uniqueIndices += globalNodeIDs<Dimension>(this->nodeListBegin(),this->nodeListEnd());
+}
+
 
 //------------------------------------------------------------------------------
 // Return the node extent for each NodeList.

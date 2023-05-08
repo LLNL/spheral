@@ -29,7 +29,6 @@
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
-#include "Utilities/globalNodeIDs.hh"
 #include "Utilities/registerWithRedistribution.hh"
 
 #include "DEM/ContactStorageLocation.hh"
@@ -40,6 +39,7 @@
 #include "DEM/DEMFieldNames.hh"
 #include "DEM/SolidBoundary/DEMBoundaryPolicy.hh"
 #include "DEM/SolidBoundary/SolidBoundary.hh"
+#include "DEM/setUniqueNodeIDs.hh"
 
 #include "Utilities/Timer.hh"
 
@@ -257,11 +257,14 @@ DEMBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
   TIME_BEGIN("DEMinitializeProblemStartup");
 
-  dataBase.setDEMHfieldFromParticleRadius(0);
-
   auto particleRadius = dataBase.DEMParticleRadius();
   auto particleIndex = dataBase.DEMCompositeParticleIndex();
-  
+  auto uniqueIndex = dataBase.DEMUniqueIndex();
+
+  setUniqueNodeIDs(uniqueIndex);
+
+  dataBase.setDEMHfieldFromParticleRadius(0);
+
   for (ConstBoundaryIterator boundItr = this->boundaryBegin();
         boundItr != this->boundaryEnd();
         ++boundItr){
@@ -381,6 +384,12 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivatives) {
   TIME_BEGIN("DEMpreStepInitialize");
+
+  // make sure we have a valid set of unique indices
+  auto uniqueIndex = state.fields(DEMFieldNames::uniqueIndices,int(0));
+  if(uniqueIndex.min()==0){
+    setUniqueNodeIDs(uniqueIndex);
+  }
 
   // update our state pair fields for the current connectivity
   this->updateContactMap(dataBase);                  // set our contactMap and neighborIndices pairFieldList

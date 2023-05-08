@@ -32,7 +32,9 @@ set(DEM_headers
     DEMBase.hh
     DEMDimension.hh
     DEMFieldNames.hh
-    ContactStorageLocation.hh)
+    ContactStorageLocation.hh
+    setUniqueNodeIDs.hh
+    setUniqueNodeIDsInline.hh)
 
 add_subdirectory(SolidBoundary)
 

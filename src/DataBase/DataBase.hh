@@ -267,6 +267,7 @@ public:
   FieldList<Dimension, int> DEMUniqueIndex() const;
 
   void setDEMHfieldFromParticleRadius(const int startUniqueIndex);
+  void setDEMUniqueIndices();
   Scalar maxNeighborSearchBuffer() const;
 
   // We can also return the node extent Fields stored in the Neighbor objects.

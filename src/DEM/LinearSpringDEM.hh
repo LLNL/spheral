@@ -142,6 +142,7 @@ private:
 
   // field Lists
   FieldList<Dimension,Scalar> mMomentOfInertia;
+//  FieldList<Dimension,Scalar> mOptimalSpringConstant;
 
   // No default constructor, copying, or assignment.
   LinearSpringDEM();
