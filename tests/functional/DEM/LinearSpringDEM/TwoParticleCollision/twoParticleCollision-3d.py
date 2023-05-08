@@ -14,7 +14,7 @@ from GenerateNodeDistribution3d import *
 from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator3d
 
 sys.path.insert(0, '..')
-from DEMConservationTracker import TrackConservation1d as TrackConservation
+from DEMConservationTracker import TrackConservation3d as TrackConservation
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes3d

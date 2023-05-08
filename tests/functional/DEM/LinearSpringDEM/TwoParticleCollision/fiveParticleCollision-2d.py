@@ -10,7 +10,7 @@ from GenerateNodeDistribution2d import *
 from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator2d
 
 sys.path.insert(0, '../.')
-from DEMConservationTracker import TrackConservation1d as TrackConservation
+from DEMConservationTracker import TrackConservation2d as TrackConservation
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes2d
@@ -192,7 +192,7 @@ velocity = nodes1.velocity()
 position = nodes1.positions()
 particleRadius = nodes1.particleRadius()
 
-uniqueIndices = dem.uniqueIndices
+uniqueIndices = db.DEMUniqueIndex
 omega = dem.omega 
 neighborIndices = dem.neighborIndices
 
