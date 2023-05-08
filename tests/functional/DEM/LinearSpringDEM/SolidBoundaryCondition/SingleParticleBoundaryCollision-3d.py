@@ -284,6 +284,8 @@ if not steps is None:
 else:
     control.advance(goalTime, maxSteps)
 
+print omega[0][0]
+print velocity[0]
 #-------------------------------------------------------------------------------
 # Great success?
 #-------------------------------------------------------------------------------

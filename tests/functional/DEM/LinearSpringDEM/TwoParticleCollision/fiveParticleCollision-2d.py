@@ -17,7 +17,7 @@ if mpi.procs > 1:
 else:
     from DistributeNodes import distributeNodes2d
 
-title("DEM Restitution Coefficient Test")
+title("DEM Neighbor Tracking Check")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -37,7 +37,7 @@ commandLine(vImpact = 1.0,                            # impact velocity
             shapeFactor = 0.5,                        # shape irregularity parameter 0-1 (1 most irregular)
             
             nPerh = 1.01,                             # this should basically always be 1 for DEM
-            neighborSearchBuffer = 0.01,              # multiplicative buffer to radius for neighbor search algo
+            neighborSearchBuffer = 0.001,             # multiplicative buffer to radius for neighbor search algo
 
             # integration
             IntegratorConstructor = VerletIntegrator,    # Verlet only integrator that garentees conservation of Rot Mom w/ DEM
@@ -61,7 +61,7 @@ commandLine(vImpact = 1.0,                            # impact velocity
             restoreCycle = None,
             restartStep = 10,
             redistributeStep = 500,
-            dataDir = "dumps-DEM-2particle-2d",
+            dataDir = "dumps-DEM-5particle-2d",
 
              # ats parameters
             checkAngularMomentum = True,       # soft check to make sure angular velocity of central particle drops
@@ -201,28 +201,28 @@ for i in range(nodes.numInternalNodes):
         velocity[i] = Vector(0,0.0)
         position[i] = Vector( 0.25, 0.25)
         omega[0][i]=1
-        uniqueIndices[0][i]=0
+        uniqueIndices[0][i]=1
         particleRadius[i] = radius
     elif position[i][0]<0.5:
         velocity[i] = Vector( vImpact,0.0)
         position[i] = Vector(-0.25, 0.25)
         particleRadius[i] = radius
-        uniqueIndices[0][i]=1
+        uniqueIndices[0][i]=2
     elif position[i][0]<1.0:
         velocity[i] = Vector(-vImpact,0.0)
         position[i] = Vector( 0.75, 0.25)
         particleRadius[i] = radius
-        uniqueIndices[0][i]=2
+        uniqueIndices[0][i]=3
     elif position[i][0]<1.5:
         velocity[i] = Vector(0.0, vImpact)
         position[i] = Vector( 0.25,-0.25)
         particleRadius[i] = radius
-        uniqueIndices[0][i]=3
+        uniqueIndices[0][i]=4
     elif position[i][0]<2.0:
         velocity[i] = Vector(0.0,-vImpact)
         position[i] = Vector( 0.25, 0.75)
         particleRadius[i] = radius
-        uniqueIndices[0][i]=4
+        uniqueIndices[0][i]=5
 
 
 
@@ -307,40 +307,40 @@ if checkRestart:
 
 if checkContacts and mpi.procs==5:
     for i in range(nodes.numInternalNodes):
-        if  uniqueIndices[0][i]==0:
-            if set(neighborIndices[0][i]) != set([1,2,3,4]):
+        if  uniqueIndices[0][i]==1:
+            if set(neighborIndices[0][i]) != set([2,3,4,5]):
                 print "-----------------------------"
                 print "unique index   : %s" % uniqueIndices[0][i]
                 print "mpi rank       : %s" % mpi.rank
                 print "neighborIndices: %s" % neighborIndices[0][i]
                 print "-----------------------------"
                 raise ValueError, "Central node contact list is incorrect "
-        elif uniqueIndices[0][i]==1:
-            if set(neighborIndices[0][i]) != set([0]):
+        elif uniqueIndices[0][i]==2:
+            if set(neighborIndices[0][i]) != set([1]):
                 print "-----------------------------"
                 print "unique index   : %s" % uniqueIndices[0][i]
                 print "mpi rank       : %s" % mpi.rank
                 print "neighborIndices: %s" % neighborIndices[0][i]
                 print "-----------------------------"
                 raise ValueError, "node 1 contact list is incorrect "
-        elif uniqueIndices[0][i]==2:
-            if set(neighborIndices[0][i]) != set([0]):
+        elif uniqueIndices[0][i]==3:
+            if set(neighborIndices[0][i]) != set([1]):
                 print "-----------------------------"
                 print "unique index   : %s" % uniqueIndices[0][i]
                 print "mpi rank       : %s" % mpi.rank
                 print "neighborIndices: %s" % neighborIndices[0][i]
                 print "-----------------------------"
                 raise ValueError, "node 2 contact list is incorrect "
-        elif uniqueIndices[0][i]==3:
-            if set(neighborIndices[0][i]) != set([0]):
+        elif uniqueIndices[0][i]==4:
+            if set(neighborIndices[0][i]) != set([1]):
                 print "-----------------------------"
                 print "unique index   : %s" % uniqueIndices[0][i]
                 print "mpi rank       : %s" % mpi.rank
                 print "neighborIndices: %s" % neighborIndices[0][i]
                 print "-----------------------------"
                 raise ValueError, "node 3 contact list is incorrect "
-        elif uniqueIndices[0][i]==4:
-            if set(neighborIndices[0][i]) != set([0]):
+        elif uniqueIndices[0][i]==5:
+            if set(neighborIndices[0][i]) != set([1]):
                 print "-----------------------------"
                 print "unique index   : %s" % uniqueIndices[0][i]
                 print "mpi rank       : %s" % mpi.rank
@@ -351,22 +351,14 @@ if checkContacts and mpi.procs==5:
 
 if checkContacts and mpi.procs==1:
     for i in range(nodes.numInternalNodes):
-        if  uniqueIndices[0][i]==0:
-            if set(neighborIndices[0][i]) != set([1,2,3,4]):
+        if  uniqueIndices[0][i]==1:
+            if set(neighborIndices[0][i]) != set([2,3,4,5]):
                 print "-----------------------------"
                 print "unique index   : %s" % uniqueIndices[0][i]
                 print "mpi rank       : %s" % mpi.rank
                 print "neighborIndices: %s" % neighborIndices[0][i]
                 print "-----------------------------"
                 raise ValueError, "Central node contact list is incorrect "
-        elif uniqueIndices[0][i]==1:
-            if set(neighborIndices[0][i]) != set([]):
-                print "-----------------------------"
-                print "unique index   : %s" % uniqueIndices[0][i]
-                print "mpi rank       : %s" % mpi.rank
-                print "neighborIndices: %s" % neighborIndices[0][i]
-                print "-----------------------------"
-                raise ValueError, "node 1 contact list is incorrect "
         elif uniqueIndices[0][i]==2:
             if set(neighborIndices[0][i]) != set([]):
                 print "-----------------------------"
@@ -374,7 +366,7 @@ if checkContacts and mpi.procs==1:
                 print "mpi rank       : %s" % mpi.rank
                 print "neighborIndices: %s" % neighborIndices[0][i]
                 print "-----------------------------"
-                raise ValueError, "node 2 contact list is incorrect "
+                raise ValueError, "node 1 contact list is incorrect "
         elif uniqueIndices[0][i]==3:
             if set(neighborIndices[0][i]) != set([]):
                 print "-----------------------------"
@@ -382,8 +374,16 @@ if checkContacts and mpi.procs==1:
                 print "mpi rank       : %s" % mpi.rank
                 print "neighborIndices: %s" % neighborIndices[0][i]
                 print "-----------------------------"
-                raise ValueError, "node 3 contact list is incorrect "
+                raise ValueError, "node 2 contact list is incorrect "
         elif uniqueIndices[0][i]==4:
+            if set(neighborIndices[0][i]) != set([]):
+                print "-----------------------------"
+                print "unique index   : %s" % uniqueIndices[0][i]
+                print "mpi rank       : %s" % mpi.rank
+                print "neighborIndices: %s" % neighborIndices[0][i]
+                print "-----------------------------"
+                raise ValueError, "node 3 contact list is incorrect "
+        elif uniqueIndices[0][i]==5:
             if set(neighborIndices[0][i]) != set([]):
                 print "-----------------------------"
                 print "unique index   : %s" % uniqueIndices[0][i]
