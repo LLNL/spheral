@@ -46,7 +46,7 @@ commandLine(vImpact = 1.0,                            # impact velocity
             
             # integration
             IntegratorConstructor = VerletIntegrator, # Verlet one integrator to garenteee conservation
-            stepsPerCollision = 100,                   # replaces CFL for DEM
+            stepsPerCollision = 50,                   # replaces CFL for DEM
             goalTime = 3.0,
             dt = 1e-8,
             dtMin = 1.0e-8, 

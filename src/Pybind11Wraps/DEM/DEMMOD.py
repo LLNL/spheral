@@ -11,6 +11,7 @@ dims = spheralDimensions()
 from DEMBase import *
 from LinearSpringDEM import *
 from SolidBoundaries import *
+from ContactIndex import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -18,6 +19,7 @@ from SolidBoundaries import *
 PYB11includes += ['"DEM/DEMBase.hh"',
                   '"DEM/DEMFieldNames.hh"',
                   '"DEM/LinearSpringDEM.hh"',
+                  '"DEM/ContactStorageLocation.hh"',
                   '"DEM/SolidBoundary/SolidBoundary.hh"',
                   '"DEM/SolidBoundary/InfinitePlane.hh"',
                   '"DEM/SolidBoundary/RectangularFinitePlane.hh"',

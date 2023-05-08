@@ -614,6 +614,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     // Loop the particle-boundary contacts
     //------------------------------------
     //?????????????????????????????????????????????????????????????????//
+    #pragma omp for
     for (auto kk = numP2PContacts; kk < numTotContacts; ++kk) {
     
       CHECK(contacts[kk].storeNodeList >= 0)
@@ -668,14 +669,18 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         // lever arm 
         const auto li = rib.magnitude();
 
+        // effective quantities
+        const auto mib = 2*mi;
+        const auto lib = 2*li;
+
         // damping constants -- ct and cr derived quantities ala Zhang 2017
         //----------------------------To-Do-----------------------------------
         // oh man okay, solid bc's were overdamping. The 0.5 factor got the
         // coeff of restitution right (i guess i missed a factor of 2 somewhere)
         // need to go back and do the math later.
         //--------------------------------------------------------------------
-        const auto Cn = std::sqrt(0.5*mi*normalDampingTerms);
-        const auto Cs = std::sqrt(0.5*mi*tangentialDampingTerms);
+        const auto Cn = std::sqrt(mib*normalDampingTerms);
+        const auto Cs = std::sqrt(mib*tangentialDampingTerms);
         const auto Ct = 0.50 * Cs * shapeFactor2;
         const auto Cr = 0.25 * Cn * shapeFactor2;
 
@@ -684,15 +689,15 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
         const Vector vib = vi-vb + li*vroti;
 
-        const Scalar vn = vib.dot(rhatib);                                 // normal velocity
-        const Vector vs = vib - vn*rhatib;                                 // sliding velocity
-        const Vector vr = -li*vroti;                                       // rolling velocity
-        const Scalar vt = -li*DEMDimension<Dimension>::dot(omegai,rhatib); // torsion velocity
+        const Scalar vn = vib.dot(rhatib);                                  // normal velocity
+        const Vector vs = vib - vn*rhatib;                                  // sliding velocity
+        const Vector vr = -li*vroti;                                        // rolling velocity
+        const Scalar vt = -lib*DEMDimension<Dimension>::dot(omegai,rhatib); // torsion velocity
 
         // normal forces 
         //------------------------------------------------------------
         const Vector fn = (kn*delta - Cn*vn)*rhatib;        // normal spring
-        const Vector fc = Cc*shapeFactor2*li*li*rhatib;     // normal cohesion
+        const Vector fc = Cc*shapeFactor2*lib*lib*rhatib;     // normal cohesion
         const Scalar fnMag = fn.magnitude();                // magnitude of normal spring force
 
         // sliding
@@ -763,7 +768,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto Msliding = -DEMDimension<Dimension>::cross(rhatib,fib);
         const auto Mrolling = -DEMDimension<Dimension>::cross(rhatib,effectiveRollingForce);
         const auto Mtorsion = MtorsionMag * this->torsionMoment(rhatib,omegai,0*omegai); // rename torsionDirection
-        DomegaDti += (Msliding*li - (Mtorsion + Mrolling) * li)/Ii;
+        DomegaDti += (Msliding*li - (Mtorsion + Mrolling) * lib)/Ii;
 
         // for spring updates
         newShearDisplacement(nodeListi,i)[contacti] = newDeltaSlidib;
