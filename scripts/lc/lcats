@@ -730,6 +730,9 @@ def getUniqueTestPath():
 
         filesystems = {}
 
+        for name in ['lassen']:
+            filesystems[name] = ['/p/gpfs1', '/p/gpfs2']
+
         # SCF LLNL machines
         # BG/Q -- seq entry must be before the rzuseq entry, or rzuseq will match 'seq' and try to use 'lscratch1'.
         for name in ['seq']:
@@ -748,7 +751,7 @@ def getUniqueTestPath():
         for name in ['rzalastor', 'rzcereal', 'rzzeus', 'rzmerl', 'rzgenie', 'rztopaz']:
             filesystems[name] = [ '/p/lscratchrza' ]
 
-        for name in ['rzansel', 'lassen']:
+        for name in ['rzansel']:
             filesystems[name] = [ '/p/gpfs1' ]
 
         # Don't use NFS filesystems with BG/Q, terrible latency issues.
