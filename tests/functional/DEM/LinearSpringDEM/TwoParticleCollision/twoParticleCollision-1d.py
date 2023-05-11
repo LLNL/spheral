@@ -35,7 +35,8 @@ commandLine(vImpact = 1.0,                       # impact velocity
             cohesiveTensileStrength = 0.0,
             shapeFactor = 0.5,
             
-            nPerh = 1.01,                        # this should basically always be 1 for DEM
+            neighborSearchBuffer = 0.1,             # multiplicative buffer to radius for neighbor search algo
+
 
             # integration
             IntegratorConstructor = VerletIntegrator,   # Verlet integrator currently needed for rot momentum conservation w/ DEM
@@ -73,7 +74,6 @@ commandLine(vImpact = 1.0,                       # impact velocity
 # check for bad inputs
 #-------------------------------------------------------------------------------
 assert mpi.procs == 1 
-assert nPerh >= 1
 assert shapeFactor <= 1.0 and shapeFactor >= 0.0
 assert dynamicFriction >= 0.0
 assert staticFriction >= 0.0
@@ -124,7 +124,7 @@ nodes1 = makeDEMNodeList("nodeList1",
                           hmin = 1.0e-30,
                           hmax = 1.0e30,
                           hminratio = 100.0,
-                          nPerh = nPerh,
+                          neighborSearchBuffer = neighborSearchBuffer,
                           kernelExtent = WT.kernelExtent)
 nodeSet = [nodes1]
 for nodes in nodeSet:
@@ -140,13 +140,12 @@ for nodes in nodeSet:
 generator0 = GenerateNodeDistribution1d(2,
                                         rho = 1.0,
                                         xmin = 0.0,
-                                        xmax = 1.0,
-                                        nNodePerh = nPerh)
+                                        xmax = 1.0)
 
 
 generator1 = GenerateDEMfromSPHGenerator1d(WT,
                                            generator0,
-                                           nPerh=nPerh)
+                                           particleRadius=radius)
 
 distributeNodes1d((nodes1, generator1))
 
@@ -155,11 +154,6 @@ velocity = nodes1.velocity()
 velocity[0] = Vector(vImpact,0.0)
 velocity[1] = Vector(-vImpact,0.0)
 
-# set particle radius by hand (SPH generator won't do this)
-particleRadius = nodes1.particleRadius()
-
-particleRadius[0] = radius
-particleRadius[1] = radius
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list

@@ -34,7 +34,8 @@ commandLine(numParticlePerLength = 10,     # number of particles on a side of th
             rollingFriction = 10.0,                   # static friction coefficient for rolling
             torsionalFriction = 1.3,                  # static friction coefficient for torsion
             shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
-            nPerh = 1.01,                             # this should basically always be 1 for DEM
+
+            neighborSearchBuffer = 0.1,             # multiplicative buffer to radius for neighbor search algo
 
             # integration
             IntegratorConstructor = VerletIntegrator,
@@ -104,7 +105,7 @@ nodes1 = makeDEMNodeList("nodeList1",
                           hmin = 1.0e-30,
                           hmax = 1.0e30,
                           hminratio = 100.0,
-                          nPerh = nPerh,
+                          neighborSearchBuffer = neighborSearchBuffer,
                           kernelExtent = WT.kernelExtent)
 nodeSet = [nodes1]
 for nodes in nodeSet:
@@ -122,10 +123,9 @@ if restoreCycle is None:
                                             rho = 1.0,
                                             distributionType = "xstaggeredLattice",
                                             xmin = (-0.5,  0.05),
-                                            xmax = ( 0.5,  1.05),
-                                            nNodePerh = nPerh)
+                                            xmax = ( 0.5,  1.05))
     
-    #really simple bar shaped particle
+    # replaces each particle with a composite bar particle
     # def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
     #     xout = [xi+Ri/3.0,xi-Ri/3.0]
     #     yout = [yi,yi]
@@ -133,6 +133,7 @@ if restoreCycle is None:
     #     Rout = [Ri/2.0,Ri/2.0]
     #     return xout,yout,mout,Rout
 
+    # reduces every particle's radius by 1/2
     def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
         xout = [xi]
         yout = [yi]
@@ -142,8 +143,8 @@ if restoreCycle is None:
 
     generator1 = GenerateDEMfromSPHGenerator2d(WT,
                                                generator0,
-                                               DEMParticleGenerator=DEMParticleGenerator,
-                                               nPerh=nPerh)
+                                               particleRadius = 0.5/(numParticlePerLength+1),
+                                               DEMParticleGenerator=DEMParticleGenerator)
 
     distributeNodes2d((nodes1, generator1))
    

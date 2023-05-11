@@ -41,8 +41,8 @@ commandLine(vImpact = 1.0,                            # impact velocity
             cohesiveTensileStrength = 0.0,            # units of pressure
             shapeFactor = 0.5,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
 
-            nPerh = 1.01,                             # this should basically always be 1 for DEM
-            
+            neighborSearchBuffer = 0.1,               # multiplicative buffer to radius for neighbor search algo
+
             # integration
             IntegratorConstructor = VerletIntegrator, # Verlet one integrator to garenteee conservation
             stepsPerCollision = 50,                   # replaces CFL for DEM
@@ -80,11 +80,10 @@ commandLine(vImpact = 1.0,                            # impact velocity
             torsionalObjectivityThreshold = 1e-10  # relative error bounds on torsion objectivity test
             )
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # check for bad inputs
 #-------------------------------------------------------------------------------
 assert mpi.procs == 1 
-assert nPerh >= 1
 assert shapeFactor <= 1.0 and shapeFactor >= 0.0
 assert dynamicFriction >= 0.0
 assert staticFriction >= 0.0
@@ -150,7 +149,7 @@ nodes1 = makeDEMNodeList("nodeList1",
                           hmin = 1.0e-30,
                           hmax = 1.0e30,
                           hminratio = 100.0,
-                          nPerh = nPerh,
+                          neighborSearchBuffer = neighborSearchBuffer,
                           kernelExtent = WT.kernelExtent)
 nodeSet = [nodes1]
 for nodes in nodeSet:
@@ -167,12 +166,11 @@ generator0 = GenerateNodeDistribution3d(2, 1, 1,
                                         rho = 1.0,
                                         distributionType = "lattice",
                                         xmin = (0.0,  0.0, 0.0),
-                                        xmax = (1.0,  0.5, 0.5),
-                                        nNodePerh = nPerh)
+                                        xmax = (1.0,  0.5, 0.5))
 
 generator1 = GenerateDEMfromSPHGenerator3d(WT,
                                            generator0,
-                                           nPerh=nPerh)
+                                           particleRadius=radius)
 distributeNodes3d((nodes1, generator1))
  
 #-------------------------------------------------------------------------------

@@ -37,6 +37,8 @@ commandLine(numParticlePerLength = 3,                 # number of particles on a
             cohesiveTensileStrength = 0.0,            # units of pressure
             shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
             
+            neighborSearchBuffer = 0.1,             # multiplicative buffer to radius for neighbor search algo
+
             # integration
             IntegratorConstructor = VerletIntegrator,
             stepsPerCollision = 50,  # replaces CFL for DEM
@@ -101,7 +103,9 @@ if restoreCycle is None:
 # Make the NodeList.
 #-------------------------------------------------------------------------------
 units = CGuS()
-nodes1 = makeDEMNodeList("nodeList1",)
+nodes1 = makeDEMNodeList("nodeList1",
+                          neighborSearchBuffer = neighborSearchBuffer,
+                          kernelExtent = WT.kernelExtent)
 nodeSet = [nodes1]
 for nodes in nodeSet:
     output("nodes.name")

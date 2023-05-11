@@ -38,7 +38,7 @@ commandLine(vImpact = 1.0,                            # impact velocity
             cohesiveTensileStrength =0.0,             # units of pressure
             shapeFactor = 0.5,                        # shape irregularity parameter 0-1 (1 most irregular)
             
-            nPerh = 1.01,                             # this should basically always be 1 for DEM
+            neighborSearchBuffer = 0.1,             # multiplicative buffer to radius for neighbor search algo
 
             # integration
             IntegratorConstructor = VerletIntegrator,    # Verlet only integrator that garentees conservation of Rot Mom w/ DEM
@@ -76,7 +76,6 @@ commandLine(vImpact = 1.0,                            # impact velocity
 # check for bad inputs
 #-------------------------------------------------------------------------------
 assert mpi.procs == 1 
-assert nPerh >= 1
 assert shapeFactor <= 1.0 and shapeFactor >= 0.0
 assert dynamicFriction >= 0.0
 assert staticFriction >= 0.0
@@ -127,10 +126,7 @@ WT = TableKernel(WendlandC2Kernel(), 1000)
 #-------------------------------------------------------------------------------
 units = CGuS()
 nodes1 = makeDEMNodeList("nodeList1",
-                          hmin = 1.0e-30,
-                          hmax = 1.0e30,
-                          hminratio = 100.0,
-                          nPerh = nPerh,
+                          neighborSearchBuffer = neighborSearchBuffer,
                           kernelExtent = WT.kernelExtent)
 nodeSet = [nodes1]
 for nodes in nodeSet:
@@ -148,12 +144,11 @@ generator0 = GenerateNodeDistribution2d(2, 1,
                                         rho = 1.0,
                                         distributionType = "lattice",
                                         xmin = (0.0,  0.0),
-                                        xmax = (1.0,  0.5),
-                                        nNodePerh = nPerh)
+                                        xmax = (1.0,  0.5))
 
 generator1 = GenerateDEMfromSPHGenerator2d(WT,
                                            generator0,
-                                           nPerh=nPerh)
+                                           particleRadius=radius)
 distributeNodes2d((nodes1, generator1))
 
 # initial conditions : when directly using SPH generator need to set particle radius
@@ -161,9 +156,6 @@ velocity = nodes1.velocity()
 velocity[0] = Vector( vImpact,0.0)
 velocity[1] = Vector(-vImpact,0.0)
 
-particleRadius = nodes1.particleRadius()
-particleRadius[0] = radius
-particleRadius[1] = radius
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list

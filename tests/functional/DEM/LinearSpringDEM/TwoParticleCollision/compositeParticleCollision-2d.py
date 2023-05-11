@@ -23,10 +23,11 @@ commandLine(vImpact = 1.0,                 # impact velocity
             normalSpringConstant=10000.0,  # spring constant for LDS model
             restitutionCoefficient=0.8,    # restitution coefficient to get damping const
             radius = 0.25,                 # particle radius
-            nPerh = 1.01,                  # this should basically always be 1 for DEM
+            
+            neighborSearchBuffer = 0.1,    # multiplicative buffer to radius for neighbor search algo
 
             # integration
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
+            IntegratorConstructor = Verlet,
             stepsPerCollision = 50,  # replaces CFL for DEM
             goalTime = None,
             dt = 1e-8,
@@ -95,7 +96,6 @@ nodes1 = makeDEMNodeList("nodeList1",
                           hmin = 1.0e-30,
                           hmax = 1.0e30,
                           hminratio = 100.0,
-                          nPerh = nPerh,
                           kernelExtent = WT.kernelExtent)
 nodeSet = [nodes1]
 for nodes in nodeSet:
@@ -113,8 +113,7 @@ if restoreCycle is None:
                                             rho = 1.0,
                                             distributionType = "lattice",
                                             xmin = (-0.5,  0.0),
-                                            xmax = ( 1.0,  0.5),
-                                            nNodePerh = nPerh)
+                                            xmax = ( 1.0,  0.5))
 
 
     distributeNodes2d((nodes1, generator1))

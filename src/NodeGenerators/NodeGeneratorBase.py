@@ -46,8 +46,6 @@ class NodeGeneratorBase:
             ndomain += 1
         minGlobalID = rank*ndomain0 + min(rank, remainder)
         maxGlobalID = minGlobalID + ndomain
-        print mpi.allreduce(maxGlobalID, mpi.MAX)
-        print ntot
         
         assert mpi.allreduce(minGlobalID, mpi.MIN) == 0
         assert mpi.allreduce(maxGlobalID, mpi.MAX) == ntot

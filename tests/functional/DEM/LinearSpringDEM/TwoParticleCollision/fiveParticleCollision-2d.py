@@ -36,7 +36,6 @@ commandLine(vImpact = 1.0,                            # impact velocity
             cohesiveTensileStrength =0.0,             # units of pressure
             shapeFactor = 0.5,                        # shape irregularity parameter 0-1 (1 most irregular)
             
-            nPerh = 1.01,                             # this should basically always be 1 for DEM
             neighborSearchBuffer = 0.001,             # multiplicative buffer to radius for neighbor search algo
 
             # integration
@@ -75,7 +74,6 @@ commandLine(vImpact = 1.0,                            # impact velocity
 # check for bad inputs
 #-------------------------------------------------------------------------------
 assert mpi.procs == 1 or mpi.procs==5
-assert nPerh >= 1
 assert shapeFactor <= 1.0 and shapeFactor >= 0.0
 assert dynamicFriction >= 0.0
 assert staticFriction >= 0.0
@@ -145,13 +143,12 @@ generator0 = GenerateNodeDistribution2d(5, 1,
                                         rho = 1.0,
                                         distributionType = "lattice",
                                         xmin = (-0.5,  0.0),
-                                        xmax = (2.0,  0.5),
-                                        nNodePerh = nPerh)
+                                        xmax = (2.0,  0.5))
 
 # make it a DEM generator
 generator1 = GenerateDEMfromSPHGenerator2d(WT,
                                            generator0,
-                                           nPerh=nPerh)
+                                           particleRadius=radius)
 distributeNodes2d((nodes1, generator1))
 
 #-------------------------------------------------------------------------------
@@ -202,26 +199,21 @@ for i in range(nodes.numInternalNodes):
         position[i] = Vector( 0.25, 0.25)
         omega[0][i]=1
         uniqueIndices[0][i]=1
-        particleRadius[i] = radius
     elif position[i][0]<0.5:
         velocity[i] = Vector( vImpact,0.0)
         position[i] = Vector(-0.25, 0.25)
-        particleRadius[i] = radius
         uniqueIndices[0][i]=2
     elif position[i][0]<1.0:
         velocity[i] = Vector(-vImpact,0.0)
         position[i] = Vector( 0.75, 0.25)
-        particleRadius[i] = radius
         uniqueIndices[0][i]=3
     elif position[i][0]<1.5:
         velocity[i] = Vector(0.0, vImpact)
         position[i] = Vector( 0.25,-0.25)
-        particleRadius[i] = radius
         uniqueIndices[0][i]=4
     elif position[i][0]<2.0:
         velocity[i] = Vector(0.0,-vImpact)
         position[i] = Vector( 0.25, 0.75)
-        particleRadius[i] = radius
         uniqueIndices[0][i]=5
 
 

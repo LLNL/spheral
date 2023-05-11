@@ -13,32 +13,45 @@ class GenerateDEMfromSPHGenerator1d(NodeGeneratorBase):
     #---------------------------------------------------------------------------
     # Constructor
     #---------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
+    # Constructor
+    #---------------------------------------------------------------------------
     def __init__(self,
                  W,
                  SPHGenerator,
                  DEMParticleGenerator=None,
-                 particleRadius=None,
-                 nPerh=None,
-                 kernelExtentOverParticleRadius=4.05): 
+                 particleRadius=None): 
 
-        assert (particleRadius or nPerh), "a constant particle radius or the nPerh must be specified"
-        assert (kernelExtentOverParticleRadius >= 4.0)
+        # set kernel equal extent to 2x particle radius
+        # this is a dummy val for now. DEM package 
+        # will re-adjust to appropriate H later.
+        hOverR = 2.0/W.kernelExtent
 
-        hOverR = kernelExtentOverParticleRadius/W.kernelExtent
+        def constantRadiusFunc(position):
+                return particleRadius
 
         # set up our initial radius
         #--------------------------------------------------
-        initialParticleRadius=[]
-        if not particleRadius:
-            for i in range(SPHGenerator.localNumNodes()):
-                hi = 1.0/SPHGenerator.H[i](0,0)
-                di = hi/nPerh
-                initialParticleRadius.append(di/2.0)
-        elif isfloat(particleRadius):
-            for i in range(SPHGenerator.localNumNodes()):
-                initialParticleRadius.append(particleRadius)
+        if type(particleRadius) in [float,int]:
+            self.particleRadiusFunc = constantRadiusFunc
+        elif hasattr(particleRadius,"__call__"):
+            self.particleRadiusFunc = particleRadius
         else:
-            raise ValueError, "particleRadius must be none or float"
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("WARNING: no particle radius specified, attempting to put something together...")
+            print("         calculating min h from SPH generator...")
+            hmin = 1e100
+            for Hi in SPHGenerator.H:
+                hi = Hi.Inverse().Trace() / SymTensor1d.nDimensions
+                hmin = min(hmin,hi)
+            print("         calculating node spacing from min h...")
+            nodeSpacing = hmin/SPHGenerator.nNodePerh
+            print("         calculating constant particle radius...")
+            particleRadius = 0.48*nodeSpacing
+            self.particleRadiusFunc = constantRadiusFunc
+            print("         it worked, check your particle radii to make sure its what you wanted.")
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            
 
         # create composite particle distribution from base
         #--------------------------------------------------
@@ -47,15 +60,14 @@ class GenerateDEMfromSPHGenerator1d(NodeGeneratorBase):
             self.m = []
             self.particleRadius = []
             self.compositeParticleIndex = []
-            self.H = []
             for i in range(SPHGenerator.localNumNodes()):
 
                 xi,mi,Ri = DEMParticleGenerator(SPHGenerator.x[i],
                                                 SPHGenerator.H[i],
                                                 SPHGenerator.m[i],
-                                                initialParticleRadius[i])
+                                                self.particleRadiusFunc(Vector1d(SPHGenerator.x[i])))
 
-                pIDi = [SPHGenerator.globalIDs[i] for entry in Ri]
+                pIDi = [SPHGenerator.globalIDs[i]+1 for entry in Ri]
                 self.x.extend(xi)
                 self.m.extend(mi)
                 self.particleRadius.extend(Ri)
@@ -64,9 +76,9 @@ class GenerateDEMfromSPHGenerator1d(NodeGeneratorBase):
         else:
             self.x = SPHGenerator.x
             self.m = SPHGenerator.m
-            self.particleRadius = initialParticleRadius
+            self.particleRadius = [self.particleRadiusFunc(Vector1d(SPHGenerator.x[i])) for i in range(len(self.x))]
             self.compositeParticleIndex = SPHGenerator.globalIDs
-                
+    
         self.H = [SymTensor1d(1.0/(Rj*hOverR)) for Rj in self.particleRadius]
 
         NodeGeneratorBase.__init__(self, False,
@@ -122,29 +134,38 @@ class GenerateDEMfromSPHGenerator2d(NodeGeneratorBase):
                  W,
                  SPHGenerator,
                  DEMParticleGenerator=None,
-                 particleRadius=None,
-                 nPerh=None,
-                 kernelExtentOverParticleRadius=4.05): 
+                 particleRadius=None): 
 
-        assert (particleRadius or nPerh), "a constant particle radius or the nPerh must be specified"
-        assert (kernelExtentOverParticleRadius >= 4.0)
+        # set kernel equal extent to 2x particle radius
+        # this is a dummy val for now. DEM package 
+        # will re-adjust to appropriate H later.
+        hOverR = 2.0/W.kernelExtent
 
-        hOverR = kernelExtentOverParticleRadius/W.kernelExtent
+        def constantRadiusFunc(position):
+                return particleRadius
 
         # set up our initial radius
         #--------------------------------------------------
-        initialParticleRadius=[]
-        if not particleRadius:
-            SPHGenerator.makeHround()
-            for i in range(SPHGenerator.localNumNodes()):
-                hi = 1.0/SPHGenerator.H[i](0,0)
-                di = hi/nPerh
-                initialParticleRadius.append(di/2.0)
-        elif isfloat(particleRadius):
-            for i in range(SPHGenerator.localNumNodes()):
-                initialParticleRadius.append(particleRadius)
+        if type(particleRadius) in [float,int]:
+            self.particleRadiusFunc = constantRadiusFunc
+        elif hasattr(particleRadius,"__call__"):
+            self.particleRadiusFunc = particleRadius
         else:
-            raise ValueError, "particleRadius must be none or float"
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("WARNING: no particle radius specified, attempting to put something together...")
+            print("         calculating min h from SPH generator...")
+            hmin = 1e100
+            for Hi in SPHGenerator.H:
+                hi = Hi.Inverse().Trace() / SymTensor2d.nDimensions
+                hmin = min(hmin,hi)
+            print("         calculating node spacing from min h...")
+            nodeSpacing = hmin/SPHGenerator.nNodePerh
+            print("         calculating constant particle radius...")
+            particleRadius = 0.48*nodeSpacing
+            self.particleRadiusFunc = constantRadiusFunc
+            print("         it worked, check your particle radii to make sure its what you wanted.")
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            
 
         # create composite particle distribution from base
         #--------------------------------------------------
@@ -160,9 +181,9 @@ class GenerateDEMfromSPHGenerator2d(NodeGeneratorBase):
                                                    SPHGenerator.y[i],
                                                    SPHGenerator.H[i],
                                                    SPHGenerator.m[i],
-                                                   initialParticleRadius[i])
+                                                   self.particleRadiusFunc(Vector2d(SPHGenerator.x[i],SPHGenerator.y[i])))
 
-                pIDi = [SPHGenerator.globalIDs[i] for entry in Ri]
+                pIDi = [SPHGenerator.globalIDs[i]+1 for entry in Ri]
                 self.x.extend(xi)
                 self.y.extend(yi)
                 self.m.extend(mi)
@@ -173,7 +194,7 @@ class GenerateDEMfromSPHGenerator2d(NodeGeneratorBase):
             self.x = SPHGenerator.x
             self.y = SPHGenerator.y
             self.m = SPHGenerator.m
-            self.particleRadius = initialParticleRadius
+            self.particleRadius = [self.particleRadiusFunc(Vector2d(SPHGenerator.x[i],SPHGenerator.y[i])) for i in range(len(self.x))]
             self.compositeParticleIndex = SPHGenerator.globalIDs
     
         self.H = [SymTensor2d(1.0/(Rj*hOverR), 0.0, 0.0, 1.0/(Rj*hOverR)) for Rj in self.particleRadius]
@@ -219,7 +240,6 @@ class GenerateDEMfromSPHGenerator2d(NodeGeneratorBase):
         return self.H[i]
     
 
-
 #-------------------------------------------------------------------------------
 # Wrapper Generator for DEM based on SPH generators
 #-------------------------------------------------------------------------------
@@ -232,29 +252,40 @@ class GenerateDEMfromSPHGenerator3d(NodeGeneratorBase):
                  W,
                  SPHGenerator,
                  DEMParticleGenerator=None,
-                 particleRadius=None,
-                 nPerh=None,
-                 kernelExtentOverParticleRadius=4.05): 
+                 particleRadius=None): 
 
-        assert (particleRadius or nPerh), "a constant particle radius or the nPerh must be specified"
-        assert (kernelExtentOverParticleRadius >= 4.0)
+        # set kernel equal extent to 2x particle radius
+        # this is a dummy val for now. DEM package 
+        # will re-adjust to appropriate H later.
+        hOverR = 2.0/W.kernelExtent
 
-        hOverR = kernelExtentOverParticleRadius/W.kernelExtent
+        def constantRadiusFunc(position):
+            return particleRadius
 
         # set up our initial radius
         #--------------------------------------------------
-        initialParticleRadius=[]
-        if not particleRadius:
-            SPHGenerator.makeHround()
-            for i in range(SPHGenerator.localNumNodes()):
-                hi = 1.0/SPHGenerator.H[i](0,0)
-                di = hi/nPerh
-                initialParticleRadius.append(di/2.0)
-        elif isfloat(particleRadius):
-            for i in range(SPHGenerator.localNumNodes()):
-                initialParticleRadius.append(particleRadius)
+        if type(particleRadius) in [float,int]:
+            def constantRadiusFunc(position):
+                return particleRadius
+            self.particleRadiusFunc = constantRadiusFunc
+        elif hasattr(particleRadius,"__call__"):
+            self.particleRadiusFunc = constantRadiusFunc
         else:
-            raise ValueError, "particleRadius must be none or float"
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("WARNING: no particle radius specified, attempting to put something together...")
+            print("         calculating min h from SPH generator...")
+            hmin = 1e100
+            for Hi in SPHGenerator.H:
+                hi = Hi.Inverse().Trace() / SymTensor3d.nDimensions
+                hmin = min(hmin,hi)
+            print("         calculating node spacing from min h...")
+            nodeSpacing = hmin/SPHGenerator.nNodePerh
+            print("         calculating constant particle radius...")
+            particleRadius = 0.48*nodeSpacing
+            self.particleRadiusFunc = constantRadiusFunc
+            print("         it worked, check your particle radii to make sure its what you wanted.")
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            
 
         # create composite particle distribution from base
         #--------------------------------------------------
@@ -265,17 +296,16 @@ class GenerateDEMfromSPHGenerator3d(NodeGeneratorBase):
             self.m = []
             self.particleRadius = []
             self.compositeParticleIndex = []
-            self.H = []
             for i in range(SPHGenerator.localNumNodes()):
 
                 xi,yi,zi,mi,Ri = DEMParticleGenerator(SPHGenerator.x[i],
-                                                   SPHGenerator.y[i],
-                                                   SPHGenerator.z[i],
-                                                   SPHGenerator.H[i],
-                                                   SPHGenerator.m[i],
-                                                   initialParticleRadius[i])
+                                                      SPHGenerator.y[i],
+                                                      SPHGenerator.z[i],
+                                                      SPHGenerator.H[i],
+                                                      SPHGenerator.m[i],
+                                                      self.particleRadiusFunc(Vector3d(SPHGenerator.x[i],SPHGenerator.y[i],SPHGenerator.z[i])))
 
-                pIDi = [SPHGenerator.globalIDs[i] for entry in Ri]
+                pIDi = [SPHGenerator.globalIDs[i]+1 for entry in Ri]
                 self.x.extend(xi)
                 self.y.extend(yi)
                 self.z.extend(zi)
@@ -288,9 +318,9 @@ class GenerateDEMfromSPHGenerator3d(NodeGeneratorBase):
             self.y = SPHGenerator.y
             self.z = SPHGenerator.z
             self.m = SPHGenerator.m
-            self.particleRadius = initialParticleRadius
+            self.particleRadius = [self.particleRadiusFunc(Vector3d(SPHGenerator.x[i],SPHGenerator.y[i],SPHGenerator.z[i])) for i in range(len(self.x))]
             self.compositeParticleIndex = SPHGenerator.globalIDs
-                
+    
         self.H = [SymTensor3d(1.0/(Rj*hOverR), 0.0, 0.0, 0.0, 1.0/(Rj*hOverR), 0.0, 0.0, 0.0, 1.0/(Rj*hOverR)) for Rj in self.particleRadius]
 
         NodeGeneratorBase.__init__(self, False,

@@ -35,7 +35,8 @@ commandLine(numParticlePerLength = 4,                 # number of particles on a
             torsionalFriction = 1.3,                  # static friction coefficient for torsion
             cohesiveTensileStrength = 0.0,            # units of pressure
             shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
-            nPerh = 1.01,                             # this should basically always be 1 for DEM
+
+            neighborSearchBuffer = 0.1,             # multiplicative buffer to radius for neighbor search algo
 
             # integration
             IntegratorConstructor = VerletIntegrator,
@@ -110,7 +111,7 @@ nodes1 = makeDEMNodeList("nodeList1",
                           hmin = 1.0e-30,
                           hmax = 1.0e30,
                           hminratio = 100.0,
-                          nPerh = nPerh,
+                          neighborSearchBuffer = neighborSearchBuffer,
                           kernelExtent = WT.kernelExtent)
 nodeSet = [nodes1]
 for nodes in nodeSet:
@@ -125,11 +126,10 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
     generator0 = GenerateNodeDistribution3d(2* numParticlePerLength, numParticlePerLength, numParticlePerLength,
-                                            rho = 1.0,
+                                            rho = 1.0, # dummy value
                                             distributionType = "lattice",
                                             xmin = (-1.0,  0.0, 0.0),
-                                            xmax = ( 1.0,  1.0, 1.0),
-                                            nNodePerh = nPerh)
+                                            xmax = ( 1.0,  1.0, 1.0)) # dummy value
     
     # really simple bar shaped particle
     def DEMParticleGenerator(xi,yi,zi,Hi,mi,Ri):
@@ -142,8 +142,8 @@ if restoreCycle is None:
 
     generator1 = GenerateDEMfromSPHGenerator3d(WT,
                                                generator0,
-                                               DEMParticleGenerator=DEMParticleGenerator,
-                                               nPerh=nPerh)
+                                               particleRadius= 0.5/(numParticlePerLength+1),
+                                               DEMParticleGenerator=DEMParticleGenerator)
 
     distributeNodes3d((nodes1, generator1))
    
