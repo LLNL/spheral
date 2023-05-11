@@ -1,8 +1,8 @@
 #ATS:DEM3dSPBC1 = test( SELF, "--clearDirectories True  --boolCheckRestitutionCoefficient True  --normalRestitutionCoefficient 1.0 --g0 0.0 --steps 100", label="DEM perfectly elastic collision with solid boundary -- 3-D (serial)")
 #ATS:DEM3dSPBC2 = test( SELF, "--clearDirectories True  --boolCheckRestitutionCoefficient True  --normalRestitutionCoefficient 0.5 --g0 0.0 --steps 100", label="DEM inelastic collision with solid boundary -- 3-D (serial)")
-#ATS:DEM3dSPBC2 = test( SELF, "--clearDirectories True  --boolCheckSlidingFrictionX True  --normalRestitutionCoefficient 0.5 --g0 0.0 --steps 100", label="DEM sliding check x with solid boundary -- 3-D (serial)")
-#ATS:DEM3dSPBC2 = test( SELF, "--clearDirectories True  --boolCheckSlidingFrictionY True  --normalRestitutionCoefficient 0.5 --g0 0.0 --steps 100", label="DEM sliding check y with solid boundary -- 3-D (serial)")
-#ATS:DEM3dSPBC2 = test( SELF, "--clearDirectories True  --boolCheckTorsionalFriction True  --normalRestitutionCoefficient 0.5 --g0 0.0 --steps 100", label="DEM torsion check with solid boundary -- 3-D (serial)")
+#ATS:DEM3dSPBC3 = test( SELF, "--clearDirectories True  --boolCheckSlidingFrictionX True  --normalRestitutionCoefficient 0.5 --g0 0.0 --steps 100", label="DEM sliding check x with solid boundary -- 3-D (serial)")
+#ATS:DEM3dSPBC4 = test( SELF, "--clearDirectories True  --boolCheckSlidingFrictionY True  --normalRestitutionCoefficient 0.5 --g0 0.0 --steps 100", label="DEM sliding check y with solid boundary -- 3-D (serial)")
+#ATS:DEM3dSPBC5 = test( SELF, "--clearDirectories True  --boolCheckTorsionalFriction True  --normalRestitutionCoefficient 0.5 --g0 0.0 --steps 100", label="DEM torsion check with solid boundary -- 3-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *

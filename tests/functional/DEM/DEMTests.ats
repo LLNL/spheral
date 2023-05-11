@@ -12,3 +12,4 @@ source("LinearSpringDEM/ImpactingSquares/impactingSquares-3d.py")
 
 # test restitution coefficient and friction against solid boundaries
 source("LinearSpringDEM/SolidBoundaryCondition/SingleParticleBoundaryCollision-3d.py")
+source("LinearSpringDEM/SolidBoundaryCondition/finiteSolidPlanes-3d.py")

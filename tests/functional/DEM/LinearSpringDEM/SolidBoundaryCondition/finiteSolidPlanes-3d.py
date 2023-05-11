@@ -1,46 +1,53 @@
-import os, sys, shutil, mpi, random
+#ATS:DEM3dTPBC1 = test( SELF, "--clearDirectories True  --checkError True  --normalRestitutionCoefficient 1.0 --g0 0.0 --steps 100", label="DEM perfectly elastic collision with infinite solid boundary -- 3-D (serial)")
+#ATS:DEM3dTPBC2 = test( SELF, "--clearDirectories True  --checkError True --planeType "circular"  --normalRestitutionCoefficient 1.0 --g0 0.0 --steps 100", label="DEM perfectly elastic collision with finite circular plane solid boundary -- 3-D (serial)")
+#ATS:DEM3dTPBC3 = test( SELF, "--clearDirectories True  --checkError True --planeType "rectangular"  --normalRestitutionCoefficient 1.0 --g0 0.0 --steps 100", label="DEM perfectly elastic collision with finite rectangular plane solid boundary -- 3-D (serial)")
+
+import os, sys, shutil, mpi
 from math import *
-from Spheral2d import *
+from Spheral3d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
-from GenerateNodeDistribution2d import *
-from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator2d
+from GenerateNodeDistribution3d import *
+from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator3d
 
 sys.path.insert(0, '..')
-from DEMConservationTracker import TrackConservation2d as TrackConservation
+from DEMConservationTracker import TrackConservation3d as TrackConservation
 
 if mpi.procs > 1:
-    from PeanoHilbertDistributeNodes import distributeNodes2d
+    from PeanoHilbertDistributeNodes import distributeNodes3d
 else:
-    from DistributeNodes import distributeNodes2d
+    from DistributeNodes import distributeNodes3d
 
-title("DEM 2d Drop Test")
-# tests pairing with a gravitational field and the
-# use of ghost-particle-based boundary conditions
-# with the DEM package.
+title("DEM Solid Planar Boundary Test")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(numParticlePerLength = 10,     # number of particles on a side of the box
-            radius = 0.25,                            # particle radius
-            normalSpringConstant=1000.0,             # spring constant for LDS model
-            normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
-            tangentialSpringConstant=285.70,          # spring constant for LDS model
+commandLine(vImpact = 1.0,                            # impact velocity
+            omega0 = 0.1,                             # initial angular velocity it we're doing that
+            g0 = -0.0,                                # grav acceleration
+
+            h0 = 1.00,                                # initial height above the solid bc plane
+            radius = 0.95,                            # particle radius
+            normalSpringConstant=10000.0,             # spring constant for LDS model
+            normalRestitutionCoefficient=1.00,        # restitution coefficient to get damping const
+            tangentialSpringConstant=2857.0,          # spring constant for LDS model
             tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
-            cohesiveTensileStrength = 0.0,            # units of pressure
             dynamicFriction = 1.0,                    # static friction coefficient sliding
             staticFriction = 1.0,                     # dynamic friction coefficient sliding
-            rollingFriction = 10.0,                   # static friction coefficient for rolling
+            rollingFriction = 1.05,                   # static friction coefficient for rolling
             torsionalFriction = 1.3,                  # static friction coefficient for torsion
-            shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
+            cohesiveTensileStrength = 0.0,            # units of pressure
+            shapeFactor = 0.5,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
 
             neighborSearchBuffer = 0.1,             # multiplicative buffer to radius for neighbor search algo
 
+            planeType = "infinite",
+
             # integration
-            IntegratorConstructor = VerletIntegrator,
-            stepsPerCollision = 25,  # replaces CFL for DEM
-            goalTime = 25.0,
+            IntegratorConstructor = VerletIntegrator, # Verlet one integrator to garenteee conservation
+            stepsPerCollision = 50,                   # replaces CFL for DEM
+            goalTime = 3.0,
             dt = 1e-8,
             dtMin = 1.0e-8, 
             dtMax = 0.1,
@@ -54,25 +61,51 @@ commandLine(numParticlePerLength = 10,     # number of particles on a side of th
             
             # output control
             vizCycle = None,
-            vizTime = 0.1, 
+            vizTime = 0.1,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 1000,
-            redistributeStep = 100,
-            dataDir = "dumps-DEM-2d",
+            redistributeStep = 500,
+            dataDir = "dumps-DEM-finite-solid-plane-3d", 
 
-            # ats type things
-            checkRestart=False,
+             # ats parameters
+            checkError = True,
+            restitutionErrorThreshold = 0.02,      # relative error actual restitution vs nominal
             )
 
 #-------------------------------------------------------------------------------
+# check for bad inputs
+#-------------------------------------------------------------------------------
+planeType=planeType.lower()
+
+assert planeType in ['infinite','circular','rectangular']
+assert mpi.procs == 1 
+assert g0 <= 0.0
+assert h0 > radius
+assert shapeFactor <= 1.0 and shapeFactor >= 0.0
+assert dynamicFriction >= 0.0
+assert staticFriction >= 0.0
+assert torsionalFriction >= 0.0
+assert rollingFriction >= 0.0
+assert cohesiveTensileStrength >= 0.0
+
+    
+#-------------------------------------------------------------------------------
 # file things
 #-------------------------------------------------------------------------------
-testName = "DEM-dropTest-2d"
+testName = "DEM-testFiniteSolidPlaneBoundaries-3d"
+
+dataDir = os.path.join(dataDir,
+                       "planeType=%s" % planeType,
+                       "restitutionCoefficient=%s" % normalRestitutionCoefficient)
+
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
 vizBaseName = testName
+
+if vizCycle is None and vizTime is None:
+    vizBaseName=None
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -116,39 +149,19 @@ for nodes in nodeSet:
     output("nodes.nodesPerSmoothingScale")
 
 #-------------------------------------------------------------------------------
-# Set the node properties.
+# Set the node properties. (gen 2 particles visit doesn't like just one)
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    generator0 = GenerateNodeDistribution2d(numParticlePerLength, numParticlePerLength,
-                                            rho = 1.0,
-                                            distributionType = "xstaggeredLattice",
-                                            xmin = (-0.5,  0.05),
-                                            xmax = ( 0.5,  1.05),
-                                            rotation=0.001)
-    
-    # replaces each particle with a composite bar particle
-    # def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
-    #     xout = [xi+Ri/3.0,xi-Ri/3.0]
-    #     yout = [yi,yi]
-    #     mout = [mi/2.0,mi/2.0]
-    #     Rout = [Ri/2.0,Ri/2.0]
-    #     return xout,yout,mout,Rout
+generator0 = GenerateNodeDistribution3d(3, 1, 1,
+                                        rho = 1.0,
+                                        distributionType = "lattice",
+                                        xmin = (-3.0,  -1.0, -1+h0),
+                                        xmax = ( 3.0,   1.0,  1+h0))
 
-    # reduces every particle's radius by 1/2
-    def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
-        xout = [xi]
-        yout = [yi]
-        mout = [mi]
-        Rout = [Ri/2.0]
-        return xout,yout,mout,Rout
-
-    generator1 = GenerateDEMfromSPHGenerator2d(WT,
-                                               generator0,
-                                               particleRadius = 0.5/(numParticlePerLength+1),
-                                               DEMParticleGenerator=DEMParticleGenerator)
-
-    distributeNodes2d((nodes1, generator1))
-   
+generator1 = GenerateDEMfromSPHGenerator3d(WT,
+                                           generator0,
+                                           particleRadius=radius)
+distributeNodes3d((nodes1, generator1))
+ 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -162,7 +175,7 @@ output("db.numFluidNodeLists")
 
 
 #-------------------------------------------------------------------------------
-# PhysicsPackage : DEM
+# DEM
 #-------------------------------------------------------------------------------
 dem = DEM(db,
           normalSpringConstant = normalSpringConstant,
@@ -173,40 +186,44 @@ dem = DEM(db,
           staticFrictionCoefficient = staticFriction,
           rollingFrictionCoefficient = rollingFriction,
           torsionalFrictionCoefficient = torsionalFriction,
-          cohesiveTensileStrength = cohesiveTensileStrength,
+          cohesiveTensileStrength =cohesiveTensileStrength,
           shapeFactor = shapeFactor,
           stepsPerCollision = stepsPerCollision)
 
 packages = [dem]
 
-
-solidWall = CircularFinitePlane(Vector(0.0, 0.0, 0.0),Vector(  0.0, 1.0),0.5)
+if planeType == "infinite":
+    solidWall = InfinitePlane(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0))
+elif planeType == "circular":
+    solidWall = CircularFinitePlane(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0),0.25)
+elif planeType == "rectangular":
+    basis = Tensor(0.0,0.0,1.0,
+                   1.0,0.0,0.0,
+                   0.0,1.0,0.0,)
+    extent = Vector(0.0,0.25,0.25)
+    solidWall = RectangularFinitePlane(Vector(0.0, 0.0, 0.0), extent, basis)
 dem.appendSolidBoundary(solidWall)
 
 #-------------------------------------------------------------------------------
 # PhysicsPackage : gravity
 #-------------------------------------------------------------------------------
-gravity = ConstantAcceleration(a0 = Vector(0.0,-1.0),
+gravity = ConstantAcceleration(a0 = Vector(0.0,0.0,g0),
                                nodeList = nodes1)
 packages += [gravity]
 
-#-------------------------------------------------------------------------------
-# Create boundary conditions.
-#-------------------------------------------------------------------------------
-# plane1 = Plane(Vector(0.0, 0.0), Vector(  0.0, 1.0))
-# #plane2 = Plane(Vector(0.0, 0.0), Vector( -1.0, 1.0))
-# bc1 = ReflectingBoundary(plane1)
-# #bc2 = ReflectingBoundary(plane2)
-# bcSet = [bc1]#, bc2]
 
-# for p in packages:
-#     for bc in bcSet:
-#         p.appendBoundary(bc)
+#-------------------------------------------------------------------------------
+# initial conditions
+#-------------------------------------------------------------------------------
+velocity = nodes1.velocity()
 
+velocity[0] = Vector(0.0,0.0,-vImpact)
+velocity[1] = Vector(0.0,0.0,-vImpact)
+velocity[2] = Vector(0.0,0.0,-vImpact)
+    
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
 #-------------------------------------------------------------------------------
-
 integrator = IntegratorConstructor(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
@@ -231,16 +248,6 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
-# Periodic Work Function: Track conservation
-#-------------------------------------------------------------------------------
-
-conservation = TrackConservation(db,
-                                  dem,
-                                  verbose=True)
-                                  
-periodicWork = [(conservation.periodicWorkFunction,1)]
-
-#-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 from SpheralPointmeshSiloDump import dumpPhysicsState
@@ -249,38 +256,36 @@ control = SpheralController(integrator, WT,
                             initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            redistributeStep=redistributeStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             vizBaseName = vizBaseName,
-                            vizMethod = dumpPhysicsState,
-                            vizGhosts=True,
+                            vizMethod=dumpPhysicsState,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime,
-                            SPH = SPH,
-                            periodicWork=periodicWork)
+                            vizTime = vizTime)
 output("control")
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-
 if not steps is None:
-    if checkRestart:
-        control.setRestartBaseName(restartBaseName + "_CHECK")
     control.step(steps)
 else:
     control.advance(goalTime, maxSteps)
 
+#-------------------------------------------------------------------------------
+# Great success?
+#-------------------------------------------------------------------------------
+if checkError:
+# check plan geometry
+#-------------------------------------------------------------
+    if planeType == "infinite":
+        assert abs(velocity[0].z/vImpact - 1) < restitutionErrorThreshold
+        assert abs(velocity[1].z/vImpact - 1) < restitutionErrorThreshold
+        assert abs(velocity[2].z/vImpact - 1) < restitutionErrorThreshold
+    elif planeType in ["circular","rectangular"]:
+        assert abs(-velocity[0].z/vImpact - 1) < restitutionErrorThreshold
+        assert abs(velocity[1].z/vImpact - 1) < restitutionErrorThreshold
+        assert abs(-velocity[2].z/vImpact - 1) < restitutionErrorThreshold
+    
 
-if checkRestart:
-    control.setRestartBaseName(restartBaseName)
-    state0 = State(db, integrator.physicsPackages())
-    state0.copyState()
-    control.loadRestartFile(control.totalSteps)
-    state1 = State(db, integrator.physicsPackages())
-    if not state1 == state0:
-        raise ValueError, "The restarted state does not match!"
-    else:
-        print "Restart check PASSED."
