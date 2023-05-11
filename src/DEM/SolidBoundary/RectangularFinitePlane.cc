@@ -34,8 +34,16 @@ template<typename Dimension>
 typename Dimension::Vector
 RectangularFinitePlane<Dimension>::
 distance(const Vector& position) const { 
-
-  return mBasis*(position-mPoint);
+  const auto q = mBasis*(position-mPoint);
+  const double signX = (q.x() > 0.0 ? 1. : -1.);
+  const double signY = (q.y() > 0.0 ? 1. : -1.);
+  const double signZ = (q.z() > 0.0 ? 1. : -1.);
+  const auto signedExtent = Vector((q.x() > mExtent.x() ? 1 : 0)*signX*mExtent.x(),
+                                   (q.y() > mExtent.y() ? 1 : 0)*signY*mExtent.y(),
+                                   (q.z() > mExtent.z() ? 1 : 0)*signZ*mExtent.z());
+  // PPPPOOOOOOOOP
+  //THIS NEEDS TO BE FIXED.
+  return mBasis.Transpose()*(q-signedExtent);
 
 }
 
