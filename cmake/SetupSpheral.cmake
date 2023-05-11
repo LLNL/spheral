@@ -127,15 +127,6 @@ set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 #-------------------------------------------------------------------------------
 set_property(GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
 
-##-------------------------------------------------------------------------------
-## Install symlink for spheral->python
-##-------------------------------------------------------------------------------
-#if (NOT ENABLE_CXXONLY)
-#  install(CODE "execute_process( \
-#    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
-#    WORKING_DIRECTORY ${SPHERAL_TPL_DIR})")
-#endif()
-
 #-------------------------------------------------------------------------------
 # Prepare to build the src
 #-------------------------------------------------------------------------------
