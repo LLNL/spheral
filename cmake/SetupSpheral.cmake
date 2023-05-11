@@ -75,7 +75,7 @@ endif()
 option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
 
 # Find the appropriate Python
-if (NOT CXXONLY)
+if (NOT ENABLE_CXXONLY)
   set(Python3_ROOT_DIR ${python_DIR})
   find_package(Python3 COMPONENTS Interpreter Development)
 endif()
@@ -87,9 +87,6 @@ endif()
 if (NOT ENABLE_CXXONLY)
   include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
 endif()
-
-#list(APPEND CMAKE_MODULE_PATH "${PYB11GENERATOR_ROOT_DIR}/cmake")
-#message("** CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 # Set the pybind11 path
 if (NOT PYBIND11_ROOT_DIR)
