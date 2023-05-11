@@ -62,11 +62,6 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
     extends('python@3.9.10 +zlib +shared +ssl +tkinter', type='build')
 
-    #depends_on('py-pip', type='build')
-    #depends_on('py-setuptools', type='build')
-
-    #depends_on('py-qtpy', type='build')
-    #depends_on('py-qtpy api=pyqt4', type='build')
     depends_on('py-numpy@1.23.4', type='build')
     depends_on('py-numpy-stl@3.0.0', type='build')
     depends_on('py-python-utils@2.4.0', type='build')
@@ -78,18 +73,13 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('py-cython@0.29.32', type='build')
     depends_on('py-scipy@1.8.1', type='build')
     depends_on('py-importlib-metadata@4.12.0', type='build')
-    #depends_on('py-gnuplot', type='build')
     depends_on('py-ats@exit', type='build')
     depends_on('py-mpi4py@3.1.4', type='build', when='+mpi')
 
     depends_on('py-sphinx@5.3.0', type='build')
     depends_on('py-sphinx-rtd-theme@0.5.1', type='build')
 
-    #depends_on('py-virtualenv', type='build')
-
     depends_on('netlib-lapack', type='build')
-    #depends_on('py-enum34', type='build')
-    #depends_on('py-ats@7.0.9', type='build')
 
     # -------------------------------------------------------------------------
     # DEPENDS
