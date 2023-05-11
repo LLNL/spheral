@@ -9,24 +9,8 @@ set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM 1)
 # Submodules
 #-----------------------------------------------------------------------------------
 
-# Find the appropriate Python
-if (NOT ENABLE_CXXONLY)
-  set(Python3_ROOT_DIR ${python_DIR})
-  find_package(Python3 COMPONENTS Interpreter Development)
-endif()
-
-# Set the PYB11Generator path
-if (NOT PYB11GENERATOR_ROOT_DIR)
-  set(PYB11GENERATOR_ROOT_DIR "${SPHERAL_ROOT_DIR}/extern/PYB11Generator" CACHE PATH "")
-endif()
-if (NOT ENABLE_CXXONLY)
-  include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
-endif()
-
-# Set the pybind11 path
-if (NOT PYBIND11_ROOT_DIR)
-  set(PYBIND11_ROOT_DIR "${PYB11GENERATOR_ROOT_DIR}/extern/pybind11" CACHE PATH "")
-endif()
+# Things all Spheral packages have in their include path
+set(SPHERAL_EXTERN_INCLUDES )
 
 # PolyClipper
 if (NOT polyclipper_DIR)
@@ -34,9 +18,25 @@ if (NOT polyclipper_DIR)
 endif()
 set(polyclipper_INCLUDES "${polyclipper_DIR}/src")
 
-# Things all Spheral packages have in their include path
 list(APPEND SPHERAL_EXTERN_INCLUDES ${polyclipper_INCLUDES})
+
+
 if (NOT ENABLE_CXXONLY)
+  # Find the appropriate Python
+  set(Python3_ROOT_DIR ${python_DIR})
+  find_package(Python3 COMPONENTS Interpreter Development)
+
+  # Set the PYB11Generator path
+  if (NOT PYB11GENERATOR_ROOT_DIR)
+    set(PYB11GENERATOR_ROOT_DIR "${SPHERAL_ROOT_DIR}/extern/PYB11Generator" CACHE PATH "")
+  endif()
+  include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
+
+  # Set the pybind11 path
+  if (NOT PYBIND11_ROOT_DIR)
+    set(PYBIND11_ROOT_DIR "${PYB11GENERATOR_ROOT_DIR}/extern/pybind11" CACHE PATH "")
+  endif()
+
   list(APPEND SPHERAL_EXTERN_INCLUDES ${PYBIND11_ROOT_DIR}/include)
 endif()
 
