@@ -52,7 +52,8 @@ velocity(const Vector& position) const {
 template<typename Dimension>
 void
 CircularFinitePlane<Dimension>::
-update(const double multiplier, const double t, const double dt) {   
+update(const double multiplier, const double t, const double dt) {
+  mPoint += multiplier*mVelocity;
 }
 
 

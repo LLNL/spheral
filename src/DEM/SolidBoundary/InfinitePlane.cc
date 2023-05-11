@@ -44,6 +44,7 @@ template<typename Dimension>
 void
 InfinitePlane<Dimension>::
 update(const double multiplier, const double t, const double dt) {   
+  mPoint += multiplier*mVelocity;
 }
 
 
