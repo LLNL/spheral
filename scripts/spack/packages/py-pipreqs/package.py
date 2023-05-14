@@ -16,4 +16,5 @@ class PyPipreqs(PythonPackage):
 
     version('0.4.10', sha256='9e351d644b28b98d7386b046a73806cbb3bb66b23a30e74feeb95ed9571db939')
 
-    extends('python@2.7:2.8', type=['build', 'run'])
+    depends_on('python@2.7:2.8', type=['build', 'run'])
+    depends_on("py-setuptools", type="build")

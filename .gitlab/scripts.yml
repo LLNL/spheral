@@ -42,7 +42,7 @@
   script:
     - ml load mpifileutils
     - cd $SPHERAL_BUILDS_DIR
-    - source $CI_PROJECT_DIR/$SCRIPT_DIR/gitlab/clean_spheral_builds.sh 50
+    - source $CI_PROJECT_DIR/$SCRIPT_DIR/gitlab/clean_spheral_builds.sh 40
   extends: [.toss_resource_general]
   when: always
 
