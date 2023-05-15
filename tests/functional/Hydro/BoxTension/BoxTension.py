@@ -27,7 +27,7 @@ class EllipticalRejecter:
         return
     def __call__(self, x0, y0, m0, H0):
         x, y, m, H = [], [], [], []
-        for i in xrange(len(x0)):
+        for i in range(len(x0)):
             xi = x0[i]
             yi = y0[i]
             test = (sqrt(((xi - 0.5)/a)**2 + ((yi - 0.5)/b)**2) <= 1.0)
@@ -320,7 +320,7 @@ else:
 distributeNodes2d((outerNodes, generatorOuter),
                   (innerNodes, generatorInner))
 for nodes in nodeSet:
-    print nodes.name, ":"
+    print(nodes.name, ":")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
@@ -334,10 +334,10 @@ for (nodes, gamma, rho, P) in ((outerNodes, gamma1, rho1, P1),
 del nodes
 
 vel = outerNodes.velocity()
-for i in xrange(outerNodes.numInternalNodes):
+for i in range(outerNodes.numInternalNodes):
     vel[i]=Vector(velx,vely)
 vel = innerNodes.velocity()
-for i in xrange(innerNodes.numInternalNodes):
+for i in range(innerNodes.numInternalNodes):
     vel[i]=Vector(velx,vely)
 
 #-------------------------------------------------------------------------------
@@ -556,15 +556,15 @@ if serialDump:
   rank = mpi.rank
   serialData = []
   i,j = 0,0
-  for i in xrange(procs):
+  for i in range(procs):
     for nodeL in nodeSet:
       if rank == i:
-        for j in xrange(nodeL.numInternalNodes):
+        for j in range(nodeL.numInternalNodes):
           serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
   serialData = mpi.reduce(serialData,mpi.SUM)
   if rank == 0:
     f = open(dataDir + "/serialDump.ascii",'w')
-    for i in xrange(len(serialData)):
+    for i in range(len(serialData)):
       f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
     f.close()
 

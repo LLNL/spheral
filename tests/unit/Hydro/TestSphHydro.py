@@ -10,14 +10,14 @@ def plotFieldList(fieldList, plotGhost=0):
             numPoints = nodeList.numInternalNodes
         x = []
         y = []
-        print numPoints
-        for nodeID in xrange(numPoints):
+        print(numPoints)
+        for nodeID in range(numPoints):
             x.append(nodeList.positions[nodeID].x)
             y.append(field[nodeID].x)
         xarray = array(x)
         yarray = array(y)
-        print x
-        print y
+        print(x)
+        print(y)
         plg(yarray, xarray)
 
 ################################################################################
@@ -66,8 +66,8 @@ output('WT')
 
 # Set node positions
 dx, dy = (x1 - x0)/nx, (y1 - y0)/ny
-for iy in xrange(ny):
-    for ix in xrange(nx):
+for iy in range(ny):
+    for ix in range(nx):
         nodeID = ix + nx*iy
         nodes1.positions[nodeID] = ((ix + 0.5)*dx, (iy + 0.5)*dy)
 
@@ -75,11 +75,11 @@ for iy in xrange(ny):
 nodes1.mass[:] = [m1]*nodes1.numNodes
 
 # Set node specific thermal energies
-for nodeID in xrange(nodes1.numNodes):
+for nodeID in range(nodes1.numNodes):
     nodes1.specificThermalEnergy[nodeID] = eps0 + epsMultiplier*(nodes1.positions[nodeID].magnitude2())
 
 # Set node velocities
-for nodeID in xrange(nodes1.numNodes):
+for nodeID in range(nodes1.numNodes):
     unit = nodes1.positions[nodeID]
     mag = unit.magnitude() + 1.0e-10
     unit = Vector2d(unit.x/mag, unit.y/mag)
@@ -173,7 +173,7 @@ output('hydro.valid')
 constructFieldsTimer = SpheralTimer('Construct FieldLists')
 constructFieldsTimer.start()
 
-print 'Build FieldLists'
+print('Build FieldLists')
 rhoSum = ScalarFieldList2d()
 maxQPressure = ScalarFieldList2d()
 DrhoDt = ScalarFieldList2d()
@@ -195,9 +195,9 @@ DHDt.copyFields()
 ##DepsDt = ScalarFieldList2d(copyFields)
 ##DvDx = TensorFieldList2d(copyFields)
 ##DHDt = SymTensorFieldList2d(copyFields)
-print 'done.'
+print('done.')
 
-print 'Add Fields to FieldLists'
+print('Add Fields to FieldLists')
 rhoSum.appendField(ScalarField2d(nodes1))
 maxQPressure.appendField(ScalarField2d(nodes1))
 DrhoDt.appendField(ScalarField2d(nodes1))
@@ -207,7 +207,7 @@ DvDx.appendField(TensorField2d(nodes1))
 DHDt.appendField(SymTensorField2d(nodes1))
 constructFieldsTimer.stop()
 constructFieldsTimer.printStatus()
-print 'done.'
+print('done.')
 
 derivTimer = SpheralTimer('Calculate derivatives')
 derivTimer.start()
@@ -228,7 +228,7 @@ plg(answer1[:nodes1.numInternalNodes], r1[:nodes1.numInternalNodes], type=0, mar
 
 # Plot DH/Dt as a function of radius
 window(2)
-DHDtr = array(map(lambda x: x.xx, DHDt[0]))
+DHDtr = array([x.xx for x in DHDt[0]])
 plg(DHDtr[:nodes1.numInternalNodes], r1[:nodes1.numInternalNodes],
     type=0, marker='\4', color='blue')
 pltitle('DH/Dt as a function of radius.')
@@ -240,15 +240,15 @@ plg(answer2[:nodes1.numInternalNodes], r1[:nodes1.numInternalNodes], type=0, mar
 # Plot ||DvDx|| as a function of radius.
 window(3)
 DetDvDxr = array([0.0]*nodes1.numNodes)
-for i in xrange(nodes1.numNodes):
+for i in range(nodes1.numNodes):
     DetDvDxr[i] = DvDx[0][i].Determinant()
 plg(DetDvDxr[:nodes1.numInternalNodes], r1[:nodes1.numInternalNodes], type=0, marker='\2', color='blue')
 pltitle('||DvDx|| as a function of radius.')
 
 # Plot |DvDt| as a function of radius.
 window(4)
-DvDtMag = array(map(lambda x: x.magnitude(), DvDt[0]))
-for i in xrange(nodes1.numNodes):
+DvDtMag = array([x.magnitude() for x in DvDt[0]])
+for i in range(nodes1.numNodes):
     DvDtMag[i] = DvDt[0][i].magnitude()
 plg(DvDtMag[:nodes1.numInternalNodes], r1[:nodes1.numInternalNodes], type=0, marker='\2', color='blue')
 pltitle('|DvDt| as a function of radius.')

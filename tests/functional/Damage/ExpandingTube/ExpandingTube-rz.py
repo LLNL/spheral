@@ -452,7 +452,7 @@ del n
 # Set node properties (positions, velocites, etc.)
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    print "Generating node distribution."
+    print("Generating node distribution.")
     from GenerateNodeDistribution2d import *
     from CompositeNodeDistribution import *
     from ParMETISDistributeNodes import distributeNodes3d
@@ -514,7 +514,7 @@ if restoreCycle is None:
                                                   nNodePerh = nPerh,
                                                   SPH = not isinstance(nodesCuAnvil, AsphSolidNodeList3d))
 
-    print "Starting node distribution..."
+    print("Starting node distribution...")
     distributeNodes3d((nodesSteel, generatorTube),
                       (nodesPlug, generatorPlug),
                       (nodesProj, generatorProj),
@@ -523,13 +523,13 @@ if restoreCycle is None:
                       (nodesCuAnvil, generatorCuAnvil))
     nGlobalNodes = 0
     for n in nodeSet:
-        print "Generator info for %s" % n.name()
+        print("Generator info for %s" % n.name())
         output("    mpi.allreduce(n.numInternalNodes, mpi.MIN)")
         output("    mpi.allreduce(n.numInternalNodes, mpi.MAX)")
         output("    mpi.allreduce(n.numInternalNodes, mpi.SUM)")
         nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
     del n
-    print "Total number of (internal) nodes in simulation: ", nGlobalNodes
+    print("Total number of (internal) nodes in simulation: ", nGlobalNodes)
 
     # Bevel the inner opening surface of the target tube.
     numNodesBeveled = bevelTubeEntrance(nodesSteel,
@@ -538,18 +538,18 @@ if restoreCycle is None:
                                         rtubeInner,
                                         tubeThickness,
                                         xBevelBegin)
-    print "Beveled %i nodes in the tube opening." % mpi.allreduce(numNodesBeveled,
-                                                                  mpi.SUM)
+    print("Beveled %i nodes in the tube opening." % mpi.allreduce(numNodesBeveled,
+                                                                  mpi.SUM))
 
     # Adjust the diameter of the projectile inward a bit, so it will slide
     # into the tube properly.
     drProj = 0.75*nPerh*rproj/nrproj
     projMultiplier = (rproj - drProj)/rproj
-    for i in xrange(nodesProj.numInternalNodes):
+    for i in range(nodesProj.numInternalNodes):
         nodesProj.positions()[i].y *= projMultiplier
 
     # Adjust the plug to match.
-    for i in xrange(nodesPlug.numInternalNodes):
+    for i in range(nodesPlug.numInternalNodes):
         nodesPlug.positions()[i].y *= projMultiplier
 
     # Iterate over the NodeLists and set some initial conditions.
@@ -563,8 +563,8 @@ if restoreCycle is None:
         # Set node specific thermal energies
         u0 = n.equationOfState().specificThermalEnergy(rho0, 300.0)
         n.specificThermalEnergy(ScalarField3d("tmp", n, u0))
-        print "Initial pressure for %s: %g" % (n.name(),
-                                               n.equationOfState().pressure(rho0, u0))
+        print("Initial pressure for %s: %g" % (n.name(),
+                                               n.equationOfState().pressure(rho0, u0)))
     del n
 
     # Set the projectile velocities.
@@ -628,8 +628,8 @@ output("strength")
 nfull = max(1, (2.0*pi*(rtubeInner + 0.5*tubeThickness)/(tubeThickness/nrtube) *
                 mpi.allreduce(nodesSteel.numInternalNodes, mpi.SUM)))
 nflaws = int(nfull*log(nfull))
-print "Computing equivalent 3-D number of nodes in tube: %i" % nfull
-print "Resulting in effective total number of flaws in volume: %i" % nflaws
+print("Computing equivalent 3-D number of nodes in tube: %i" % nfull)
+print("Resulting in effective total number of flaws in volume: %i" % nflaws)
 damageModel = DamageModelConstructor(nodesSteel,
                                      kWeibullSteel,
                                      mWeibullSteel,
@@ -699,12 +699,12 @@ class SelectVISARNodes:
         return
     def __call__(self, nodes):
         r = nodes.positions()
-        potentials = [i for i in xrange(nodes.numInternalNodes)
+        potentials = [i for i in range(nodes.numInternalNodes)
                       if abs(r[i].x - self.x0) < self.dx]
         ymax = mpi.allreduce(max([r[i].y for i in potentials] + [-1e50]), mpi.MAX)
         result = [i for i in potentials if r[i].y > ymax - self.dy]
-        print "Selected %i %s velocimetry test points." % (mpi.allreduce(len(result), mpi.SUM),
-                                                           self.label)
+        print("Selected %i %s velocimetry test points." % (mpi.allreduce(len(result), mpi.SUM),
+                                                           self.label))
         return result
 
 #-------------------------------------------------------------------------------
@@ -760,7 +760,7 @@ def viz(fields = [],
     svol = ScalarField3d("strain vol", nodesSteel)
     smin = ScalarField3d("strain min", nodesSteel)
     smax = ScalarField3d("strain max", nodesSteel)
-    for i in xrange(nodesSteel.numInternalNodes):
+    for i in range(nodesSteel.numInternalNodes):
         dtrace[i] = damage[i].Trace()
         dev = damage[i].eigenValues()
         dmin[i] = dev.minElement()

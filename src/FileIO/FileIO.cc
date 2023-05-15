@@ -3,10 +3,6 @@
 //
 // Created by J. Michael Owen, Wed Feb  7 22:59:14 PST 2001
 //----------------------------------------------------------------------------//
-#ifndef CXXONLY
-#include "Python.h"
-#endif
-
 #include "FileIO.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -26,6 +22,10 @@ using std::min;
 using std::max;
 using std::abs;
 
+#ifndef CXXONLY
+namespace py = pybind11;
+#endif
+
 namespace Spheral {
 
 //------------------------------------------------------------------------------
@@ -34,22 +34,7 @@ namespace Spheral {
 FileIO::FileIO():
   mFileName(""),
   mAccess(AccessType::Undefined),
-  mFileOpen(false)
-#ifndef CXXONLY
-  ,
-  mPickleMod(NULL),
-  mPickleDumps(NULL),
-  mPickleLoads(NULL) {
-
-  // Import pickle.
-  PyObject* modName = Py_BuildValue("s", "cPickle");
-  mPickleMod = PyImport_Import(modName);
-  mPickleDumps = PyObject_GetAttrString(mPickleMod, "dumps");
-  mPickleLoads = PyObject_GetAttrString(mPickleMod, "loads");
-  Py_DECREF(modName);
-#else
-  {
-#endif
+  mFileOpen(false) {
 }
 
 //------------------------------------------------------------------------------
@@ -58,33 +43,13 @@ FileIO::FileIO():
 FileIO::FileIO(const string filename, AccessType access):
   mFileName(filename),
   mAccess(access),
-  mFileOpen(false)
-#ifndef CXXONLY
-  ,
-  mPickleMod(NULL),
-  mPickleDumps(NULL),
-  mPickleLoads(NULL) {
-  
-  // Import pickle.
-  PyObject* modName = Py_BuildValue("s", "cPickle");
-  mPickleMod = PyImport_Import(modName);
-  mPickleDumps = PyObject_GetAttrString(mPickleMod, "dumps");
-  mPickleLoads = PyObject_GetAttrString(mPickleMod, "loads");
-  Py_DECREF(modName);
-#else
-  {
-#endif
+  mFileOpen(false) {
 }
 
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
 FileIO::~FileIO() {
-#ifndef CXXONLY
-  Py_DECREF(mPickleMod);
-  Py_DECREF(mPickleDumps);
-  Py_DECREF(mPickleLoads);
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -109,49 +74,49 @@ FileIO::joinPathComponents(const std::vector<std::string>& components) const {
 // Write GeomPlanes.
 //------------------------------------------------------------------------------
 void
-FileIO::write(const GeomPlane<Dim<1> >& value, const string pathName) {
-  write(value.point(), pathName + "/point");
-  write(value.normal(), pathName + "/normal");
+FileIO::write(const GeomPlane<Dim<1> >& value, const string path) {
+  write(value.point(), path + "/point");
+  write(value.normal(), path + "/normal");
 }
 
 void
-FileIO::write(const GeomPlane<Dim<2> >& value, const string pathName) {
-  write(value.point(), pathName + "/point");
-  write(value.normal(), pathName + "/normal");
+FileIO::write(const GeomPlane<Dim<2> >& value, const string path) {
+  write(value.point(), path + "/point");
+  write(value.normal(), path + "/normal");
 }
 
 void
-FileIO::write(const GeomPlane<Dim<3> >& value, const string pathName) {
-  write(value.point(), pathName + "/point");
-  write(value.normal(), pathName + "/normal");
+FileIO::write(const GeomPlane<Dim<3> >& value, const string path) {
+  write(value.point(), path + "/point");
+  write(value.normal(), path + "/normal");
 }
 
 //------------------------------------------------------------------------------
 // Read GeomPlanes.
 //------------------------------------------------------------------------------
 void
-FileIO::read(GeomPlane<Dim<1> >& value, const string pathName) const {
+FileIO::read(GeomPlane<Dim<1> >& value, const string path) const {
   Dim<1>::Vector point, normal;
-  read(point, pathName + "/point");
-  read(normal, pathName + "/normal");
+  read(point, path + "/point");
+  read(normal, path + "/normal");
   value.point(point);
   value.normal(normal);
 }
 
 void
-FileIO::read(GeomPlane<Dim<2> >& value, const string pathName) const {
+FileIO::read(GeomPlane<Dim<2> >& value, const string path) const {
   Dim<2>::Vector point, normal;
-  read(point, pathName + "/point");
-  read(normal, pathName + "/normal");
+  read(point, path + "/point");
+  read(normal, path + "/normal");
   value.point(point);
   value.normal(normal);
 }
 
 void
-FileIO::read(GeomPlane<Dim<3> >& value, const string pathName) const {
+FileIO::read(GeomPlane<Dim<3> >& value, const string path) const {
   Dim<3>::Vector point, normal;
-  read(point, pathName + "/point");
-  read(normal, pathName + "/normal");
+  read(point, path + "/point");
+  read(normal, path + "/normal");
   value.point(point);
   value.normal(normal);
 }
@@ -160,57 +125,48 @@ FileIO::read(GeomPlane<Dim<3> >& value, const string pathName) const {
 // Write polytopes
 //------------------------------------------------------------------------------
 void
-FileIO::write(const Dim<1>::FacetedVolume& value, const string pathName) {
+FileIO::write(const Dim<1>::FacetedVolume& value, const string path) {
   std::vector<char> buf;
   packElement(value, buf);
-  std::string bufstr(buf.begin(), buf.end());
-  this->write(bufstr, pathName);
+  this->write_vector_char(buf, path);
 }
 
 void
-FileIO::write(const Dim<2>::FacetedVolume& value, const string pathName) {
+FileIO::write(const Dim<2>::FacetedVolume& value, const string path) {
   std::vector<char> buf;
   packElement(value, buf);
-  std::string bufstr(buf.begin(), buf.end());
-  this->write(bufstr, pathName);
+  this->write_vector_char(buf, path);
 }
 
 void
-FileIO::write(const Dim<3>::FacetedVolume& value, const string pathName) {
+FileIO::write(const Dim<3>::FacetedVolume& value, const string path) {
   std::vector<char> buf;
   packElement(value, buf);
-  std::string bufstr(buf.begin(), buf.end());
-  this->write(bufstr, pathName);
+  this->write_vector_char(buf, path);
 }
 
 //------------------------------------------------------------------------------
 // Read polytopes
 //------------------------------------------------------------------------------
 void
-FileIO::read(Dim<1>::FacetedVolume& value, const string pathName) const {
-  std::string bufstr;
-  this->read(bufstr, pathName);
-  const std::vector<char> buf(bufstr.begin(), bufstr.end());
+FileIO::read(Dim<1>::FacetedVolume& value, const string path) const {
+  const auto buf = this->read_vector_char(path);
   auto itr = buf.begin();
   unpackElement(value, itr, buf.end());
   ENSURE(itr == buf.end());
 }
 
 void
-FileIO::read(Dim<2>::FacetedVolume& value, const string pathName) const {
-  std::string bufstr;
-  this->read(bufstr, pathName);
-  const std::vector<char> buf(bufstr.begin(), bufstr.end());
+FileIO::read(Dim<2>::FacetedVolume& value, const string path) const {
+  const auto buf = this->read_vector_char(path);
   auto itr = buf.begin();
   unpackElement(value, itr, buf.end());
   ENSURE(itr == buf.end());
 }
 
 void
-FileIO::read(Dim<3>::FacetedVolume& value, const string pathName) const {
-  std::string bufstr;
-  this->read(bufstr, pathName);
-  const std::vector<char> buf(bufstr.begin(), bufstr.end());
+FileIO::read(Dim<3>::FacetedVolume& value, const string path) const {
+  const auto buf = this->read_vector_char(path);
   auto itr = buf.begin();
   unpackElement(value, itr, buf.end());
   ENSURE(itr == buf.end());
@@ -220,24 +176,24 @@ FileIO::read(Dim<3>::FacetedVolume& value, const string pathName) const {
 // Write uniform_random
 //------------------------------------------------------------------------------
 void
-FileIO::write(const uniform_random& value, const string pathName) {
-  write((unsigned) value.seed(), pathName + "/seed");
-  write((unsigned) value.numCalls(), pathName + "/numCalls");
-  write(value.min(), pathName + "/min");
-  write(value.max(), pathName + "/max");
+FileIO::write(const uniform_random& value, const string path) {
+  write((unsigned) value.seed(), path + "/seed");
+  write((unsigned) value.numCalls(), path + "/numCalls");
+  write(value.min(), path + "/min");
+  write(value.max(), path + "/max");
 }
 
 //------------------------------------------------------------------------------
 // Read uniform_random
 //------------------------------------------------------------------------------
 void
-FileIO::read(uniform_random& value, const string pathName) const {
+FileIO::read(uniform_random& value, const string path) const {
   unsigned seed, numCalls;
   double a, b;
-  read(seed, pathName + "/seed");
-  read(numCalls, pathName + "/numCalls");
-  read(a, pathName + "/min");
-  read(b, pathName + "/max");
+  read(seed, path + "/seed");
+  read(numCalls, path + "/numCalls");
+  read(a, path + "/min");
+  read(b, path + "/max");
   value.seed(seed);
   value.range(a, b);
   value.advance(numCalls);
@@ -247,17 +203,17 @@ FileIO::read(uniform_random& value, const string pathName) const {
 // Provide access to the string write method with char*
 //------------------------------------------------------------------------------
 void
-FileIO::write(const char* value, const string pathName) {
-  write(string(value, strlen(value)), pathName);
+FileIO::write(const char* value, const string path) {
+  write(string(value, strlen(value)), path);
 }
 
 //------------------------------------------------------------------------------
 // Provide access to the string read method with char*
 //------------------------------------------------------------------------------
 void
-FileIO::read(char* value, const string pathName) const {
+FileIO::read(char* value, const string path) const {
   string strValue;
-  read(strValue, pathName);
+  read(strValue, path);
   strcpy(value, strValue.c_str());
 }
 
@@ -265,9 +221,9 @@ FileIO::read(char* value, const string pathName) const {
 // Return the group (directory) component of the given path.
 //------------------------------------------------------------------------------
 string
-FileIO::groupName(const string pathName) const {
+FileIO::groupName(const string path) const {
 
-  const vector<string> components = splitPathComponents(pathName);
+  const vector<string> components = splitPathComponents(path);
   CHECK(components.size() > 0);
 
   string groupName = "";
@@ -282,8 +238,8 @@ FileIO::groupName(const string pathName) const {
 // Return the variable name component of the given path.
 //------------------------------------------------------------------------------
 string
-FileIO::variableName(const string pathName) const {
-  const vector<string> components = splitPathComponents(pathName);
+FileIO::variableName(const string path) const {
+  const vector<string> components = splitPathComponents(path);
   CHECK(components.size() > 0);
   return components[components.size() - 1];
 }
@@ -314,82 +270,39 @@ FileIO::fileOpen() const {
 
 #ifndef CXXONLY
 //------------------------------------------------------------------------------
-// Write out a python object by pickling it.
+// Python objects (handle with pickle)
 //------------------------------------------------------------------------------
 void
-FileIO::
-writeObject(PyObject* thing, PyObject* pathObj) {
+FileIO::writeObject(py::object thing, const std::string path) {
+  auto pickle = py::module_::import("pickle");
+  auto dumps = pickle.attr("dumps");
+  auto stuff = dumps(thing);
+  this->writeBytes(stuff, path);
+}
 
-  // Extract the path.
-  const string path(PyString_AsString(pathObj));
-
-  // Pickle our object.
-  PyObject* thingArgs = Py_BuildValue("(O)", thing);
-  PyObject* pickledThing = PyObject_CallObject(mPickleDumps, thingArgs);
-  if (pickledThing == NULL) {
-    PyErr_SetString(PyExc_ValueError, "Unable to pickle object");
-  }
-
-  // Extract the string representation of the object.
-  CHECK(PyString_Check(pickledThing));
-  string result(PyString_AsString(pickledThing));
-
-  // Replace the \n to <<n>> to survive writing to the file.
-  boost::replace_all(result, "\n", "<<n>>");
-  CHECK(result.find("\n") == string::npos);
-
-  // Now we can finally write the sucker out.
-  this->write(result, string(path));
-
-  // Deallocate stuff.
-  Py_DECREF(thingArgs);
-  Py_DECREF(pickledThing);
+py::object
+FileIO::readObject(const std::string path) const {
+  auto pickle = py::module_::import("pickle");
+  auto loads = pickle.attr("loads");
+  auto stuff = this->readBytes(path);
+  return loads(stuff);
 }
 
 //------------------------------------------------------------------------------
-// Read in and decode a pickled python object.
+// Python bytes
 //------------------------------------------------------------------------------
-PyObject*
-FileIO::
-readObject(PyObject* pathObj) const {
+void
+FileIO::writeBytes(py::bytes stuff, const std::string path) {
+  std::string stuff_str = std::string(stuff);
+  std::vector<char> buf(stuff_str.begin(), stuff_str.end());
+  ENSURE(buf.size() == py::len(stuff));
+  this->write_vector_char(buf, path);
+}
 
-  // Extract the path.
-  const string path(PyString_AsString(pathObj));
-
-  // Read in the pickled string representation.
-  string encodedThing;
-  this->read(encodedThing, path);
-
-  // Convert the \n's back to the real thing.
-  boost::replace_all(encodedThing, "<<n>>", "\n");
-  CHECK(encodedThing.find("<<n>>") == string::npos);
-
-  // Turn the string into a python object.
-  const char* thpt = encodedThing.c_str();
-  PyObject* pyEncodedThing = Py_BuildValue("s", thpt);
-
-  // Unpickle our object.
-  PyObject* argsToPickle = Py_BuildValue("(O)", pyEncodedThing);
-  PyObject* result = PyEval_CallObject(mPickleLoads, argsToPickle);
-  if (result == NULL) {
-    PyErr_SetString(PyExc_ValueError, "Unable to unpickle string");
-    return NULL;
-  }
-
-  // cerr << "      result is ";
-  // PyObject_Print(result, stderr, 0);
-  // cerr << "   from   ";
-  // cerr << "           "
-  //      << encodedThing 
-  //      << endl;
-
-  // Deallocate stuff.
-  Py_DECREF(pyEncodedThing);
-  Py_DECREF(argsToPickle);
-
-  // We're done.
-  Py_INCREF(result);
-  return result;
+py::bytes
+FileIO::readBytes(const std::string path) const {
+  auto buf = this->read_vector_char(path);
+  return py::bytes(std::string(buf.begin(), buf.end()));
 }
 #endif
 

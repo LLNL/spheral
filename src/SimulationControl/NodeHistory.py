@@ -37,7 +37,7 @@ class NodeHistory:
         # redistributed, deleted, added, or what have you.
         self.nodeFlags = FieldConstructor("flag nodes", nodeList, 0)
         if nodeIndices is None:
-            nodeIndices = range(nodeList.numInternalNodes)
+            nodeIndices = list(range(nodeList.numInternalNodes))
         self.nodeIndices = nodeIndices
         if isinstance(nodeIndices, list):
             for i in nodeIndices:
@@ -108,7 +108,7 @@ class NodeHistory:
             assert len(self.timeHistory) == n
             assert len(self.sampleHistory) == n
             if mpi.rank == 0:
-                for i in xrange(n):
+                for i in range(n):
                     if isinstance(self.sampleHistory[i], tuple):
                         samplestr = ""
                         for x in self.sampleHistory[i]:
@@ -141,7 +141,7 @@ class NodeHistory:
             file.read(self.nodeFlags, path + "/nodeFlags")
             self.flushHistory()
         except RuntimeError:
-            print "WARNING: unable to restore NodeHistory restart state"
+            print("WARNING: unable to restore NodeHistory restart state")
         return
 
     def __call__(self, cycle, t, dt):

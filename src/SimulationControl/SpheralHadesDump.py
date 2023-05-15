@@ -8,6 +8,7 @@ from writeSiloQuadMesh import writeSiloQuadMesh
 import mpi
 import sys, os, struct, time, bisect
 from operator import mul
+from functools import reduce
 
 #-------------------------------------------------------------------------------
 # Write a silo file resampling to a fixed cartesian mesh for the density.
@@ -30,7 +31,7 @@ def hadesDump(integrator,
     elif db.nDim == 3:
         import Spheral3d as sph
     else:
-        raise RuntimeError, "hadesDump ERROR: must be 2D or 3D"
+        raise RuntimeError("hadesDump ERROR: must be 2D or 3D")
 
     # Prepare to time how long this takes.
     t0 = time.clock()
@@ -47,13 +48,13 @@ def hadesDump(integrator,
         try:
             os.makedirs(baseDirectory)
         except:
-            raise RuntimeError, "Cannot create output directory %s" % baseDirectory
+            raise RuntimeError("Cannot create output directory %s" % baseDirectory)
     mpi.barrier()
 
     # Sample the density.
     ntot = reduce(mul, nsample)
     for nodes in materials:
-        print "hadesDump: sampling density for %s..." % nodes.name
+        print("hadesDump: sampling density for %s..." % nodes.name)
         r = sph.VectorFieldList()
         H = sph.SymTensorFieldList()
         rho = sph.ScalarFieldList()
@@ -64,7 +65,7 @@ def hadesDump(integrator,
         mf = nodes.mass()
         rhof = nodes.massDensity()
         wf = sph.ScalarField("volume", nodes)
-        for i in xrange(nodes.numNodes):
+        for i in range(nodes.numNodes):
             wf[i] = mf[i]/max(1e-100, rhof[i])
         w = sph.ScalarFieldList()
         w.copyFields()
@@ -93,7 +94,7 @@ def hadesDump(integrator,
                                                                W,
                                                                xmin, xmax,
                                                                sph.vector_of_int(nsample))
-        print "Generated %i scalar fields" % len(scalar_samples)
+        print("Generated %i scalar fields" % len(scalar_samples))
 
         # Write out the silo info
         writeSiloQuadMesh(scalar_data = scalar_samples,
@@ -110,5 +111,5 @@ def hadesDump(integrator,
                           RZ = (GeometryRegistrar.coords() == CoordinateType.RZ))
 
     mpi.barrier()
-    print "hadesDump finished: required %0.2f seconds" % (time.clock() - t0)
+    print("hadesDump finished: required %0.2f seconds" % (time.clock() - t0))
     return

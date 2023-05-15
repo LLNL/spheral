@@ -73,9 +73,9 @@ class quaqua():
         
         #self.qua = self.qua + self.sph
         
-        print "X Y Z value"
-        for i in xrange(len(self.qua)):
-            print self.qua[i][0], self.qua[i][1], self.qua[i][2], 1
+        print("X Y Z value")
+        for i in range(len(self.qua)):
+            print(self.qua[i][0], self.qua[i][1], self.qua[i][2], 1)
         
         return
 
@@ -83,21 +83,21 @@ class quaqua():
         b = pow(8,self.maxLevel)
         #print "This will produce %e points" % b
         
-        for i in xrange(8):
-            for j in xrange(4):
+        for i in range(8):
+            for j in range(4):
                 b = 0
-                for k in xrange(4):
+                for k in range(4):
                     b = b + self.mm[i][j][k]
         #if (b!=1):
         #print "b = %f,%i,%i" %(b,i,j)
         return
             
     def moveCenter(self,vec):
-        for i in xrange(4):
+        for i in range(4):
             j = i*3
         #print "%f %f %f" % (vec[j],vec[j+1],vec[j+2])
         
-        for j in xrange(4):
+        for j in range(4):
             i = j*3
             vec[i] += (1.0-self.fixpt[0])
             vec[i+1] += sqrt(3.0)*self.fixpt[1]
@@ -106,7 +106,7 @@ class quaqua():
         return vec
 
     def savePositions(self,vec):
-        for i in xrange(4):
+        for i in range(4):
             self.corners.append([vec[i*3],vec[i*3+1],vec[i*3+2]])
         self.corners.append([vec[6],vec[7],vec[8]])
         self.corners.append([vec[0],vec[1],vec[2]])
@@ -114,7 +114,7 @@ class quaqua():
 
     def writeCenter(self,vec):
         cntr = np.zeros(3)
-        for i in xrange(3):
+        for i in range(3):
             cntr[i] = vec[3+i] + (1.0-self.fixpt[0])*(vec[9+i]-vec[6+i])
             cntr[i] += self.fixpt[1]*(vec[i]-vec[3+i])
             cntr[i] += self.fixpt[2]*(vec[6+i]-vec[3+i])
@@ -126,7 +126,7 @@ class quaqua():
         
         radius = 0.0
         
-        for i in xrange(3):
+        for i in range(3):
             radius += cntr[i]*cntr[i]
         radius = sqrt(radius)
         
@@ -142,12 +142,12 @@ class quaqua():
             return vec
         else:
             level += 1
-            for ii in xrange(8):
-                for i in xrange(12):
+            for ii in range(8):
+                for i in range(12):
                     vec2[i] = 0
-                for i in xrange(4):
-                    for k in xrange(3):
-                        for j in xrange(4):
+                for i in range(4):
+                    for k in range(3):
+                        for j in range(4):
                             vec2[k+3*i] += self.mm[ii][i][j] * vec[k+3*j]
                 vec2 = self.recurse(level,ii,vec2)
             

@@ -162,11 +162,11 @@ DDtShearDisplacement = hydro.DDtShearDisplacement
 neighborIndices[0][0]=vector_of_int([uniqueIndices(0,1)])
 eqOverlap[0][0]=vector_of_double([0.25])
 
-print(neighborIndices(0,0))
-print eqOverlap(0,0)
-print eqOverlap(0,0)
-print uniqueIndices(0,0)
-print uniqueIndices(0,1)
+print((neighborIndices(0,0)))
+print(eqOverlap(0,0))
+print(eqOverlap(0,0))
+print(uniqueIndices(0,0))
+print(uniqueIndices(0,1))
 packages = [hydro]
 
 #-------------------------------------------------------------------------------
@@ -197,11 +197,11 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 def printFunc(cycle,time,dt):
-    print [eqOverlap(0,0),eqOverlap(0,1),eqOverlap(0,2)]
-    print [uniqueIndices(0,0),uniqueIndices(0,1),uniqueIndices(0,2)]
-    print [neighborIndices(0,0),neighborIndices(0,1),neighborIndices(0,2)]
-    print [shearDisplacement(0,0),shearDisplacement(0,1),shearDisplacement(0,2)]
-    print [DDtShearDisplacement(0,0),DDtShearDisplacement(0,1),DDtShearDisplacement(0,2)]
+    print([eqOverlap(0,0),eqOverlap(0,1),eqOverlap(0,2)])
+    print([uniqueIndices(0,0),uniqueIndices(0,1),uniqueIndices(0,2)])
+    print([neighborIndices(0,0),neighborIndices(0,1),neighborIndices(0,2)])
+    print([shearDisplacement(0,0),shearDisplacement(0,1),shearDisplacement(0,2)])
+    print([DDtShearDisplacement(0,0),DDtShearDisplacement(0,1),DDtShearDisplacement(0,2)])
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
@@ -242,9 +242,9 @@ if checkRestart:
     control.loadRestartFile(control.totalSteps)
     state1 = State(db, integrator.physicsPackages())
     if not state1 == state0:
-        raise ValueError, "The restarted state does not match!"
+        raise ValueError("The restarted state does not match!")
     else:
-        print "Restart check PASSED."
+        print("Restart check PASSED.")
 
 if checkError:
     # check our restitution coefficient is correct
@@ -254,4 +254,4 @@ if checkError:
     restitutionEff = vijPostImpact/vijPreImpact
     restitutionError = abs(restitutionEff + restitutionCoefficient)/restitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
-        raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
+        raise ValueError("relative restitution coefficient error, %g, exceeds bounds" % restitutionError)

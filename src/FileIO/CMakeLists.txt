@@ -4,23 +4,26 @@ set(FileIO_sources
     FlatFileIO.cc
     SidreFileIO.cc
     SiloFileIO.cc
-    PyFileIO.cc
     vectorstringUtilities.cc
     )
 
 set(FileIO_headers
-    DbFileIO.hh
     FileIO.hh
     FileIOInline.hh
     FlatFileIO.hh
     HDF5IO.hh
     HDF5Traits.hh
     HDF5Types.hh
-    PyFileIO.hh
     SidreFileIO.hh
     SiloFileIO.hh
     vectorstringUtilities.hh
     )
+
+  if (NOT ENABLE_CXXONLY)
+  list(APPEND FileIO_sources PyFileIO.cc)
+  list(APPEND FileIO_headers PyFileIO.hh)
+endif()
+
 
 spheral_install_python_files(
   GzipFileIO.py

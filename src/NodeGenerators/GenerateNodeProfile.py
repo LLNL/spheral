@@ -37,8 +37,8 @@ class GenerateNodeProfile1d(NodeGeneratorBase):
             # In the constant rho case, no need to kill ourselves figuring out complicated fits...
             dx = (xmax - xmin)/nx
             mi = dx*rho
-            self.x = [xmin + (i+0.5)*dx for i in xrange(nx)]
-            self.H = [SymTensor1d(1.0/(nNodePerh*dx)) for i in xrange(nx)]
+            self.x = [xmin + (i+0.5)*dx for i in range(nx)]
+            self.H = [SymTensor1d(1.0/(nNodePerh*dx)) for i in range(nx)]
             self.m = [mi]*nx
             self.rho = [rho]*nx
 
@@ -49,7 +49,7 @@ class GenerateNodeProfile1d(NodeGeneratorBase):
             ok = False
             while not ok:
                 dx = (xmax - xmin)/numbins
-                mcum = np.cumsum(np.array([0.0] + [0.5*dx*(self.rhofunc(xmin + i*dx) + self.rhofunc(xmin + (i + 1)*dx)) for i in xrange(numbins)]))
+                mcum = np.cumsum(np.array([0.0] + [0.5*dx*(self.rhofunc(xmin + i*dx) + self.rhofunc(xmin + (i + 1)*dx)) for i in range(numbins)]))
 
                 # Find the target mass per node.
                 mi = mcum[-1]/nx
@@ -57,7 +57,7 @@ class GenerateNodeProfile1d(NodeGeneratorBase):
                 # Do we need to have a finer binning?
                 if mcum[-1]/mi > 0.5*numbins:
                     numbins = int(2*mcum[-1]/mi)
-                    print "Warning, boosting numbins to %i to increase mass resolution for interpolation" % numbins
+                    print("Warning, boosting numbins to %i to increase mass resolution for interpolation" % numbins)
                 else:
                     ok = True
 
@@ -78,12 +78,12 @@ class GenerateNodeProfile1d(NodeGeneratorBase):
                 else:
                     xi = xmax
             n = len(self.x)
-            print "Generated %i 1D points." % n
+            print("Generated %i 1D points." % n)
             self.m = [mi]*n
 
             # Figure out the H.
             self.H = []
-            for i in xrange(n):
+            for i in range(n):
                 if i == 0:
                     dxavg = self.x[i+1] - self.x[i]
                 elif i == n-1:
@@ -174,7 +174,7 @@ class GeneratePlanarNodeProfile2d(NodeGeneratorBase):
         self.H = []
         dy = (xmax[1] - xmin[1])/ny
         hyinv = 1.0/(nNodePerh*dy)
-        for iy in xrange(ny):
+        for iy in range(ny):
             self.x += gen1d.x
             self.y += [xmin[1] + (iy + 0.5)*dy]*n1d
             self.m += [mi*(xmax[1] - xmin[1])/ny for mi in gen1d.m]
@@ -274,8 +274,8 @@ class GeneratePlanarNodeProfile3d(NodeGeneratorBase):
         dz = (xmax[2] - xmin[2])/nz
         hyinv = 1.0/(nNodePerh*dy)
         hzinv = 1.0/(nNodePerh*dz)
-        for iz in xrange(nz):
-            for iy in xrange(ny):
+        for iz in range(nz):
+            for iy in range(ny):
                 self.x += gen1d.x
                 self.y += [xmin[1] + (iy + 0.5)*dy]*n1d
                 self.z += [xmin[2] + (iz + 0.5)*dz]*n1d

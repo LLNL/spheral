@@ -42,7 +42,7 @@ class StandingWaveSolution:
                                   numInternal = n)
         rhof = ScalarField("density", nodes)
         uf = ScalarField("sp energy", nodes)
-        for i in xrange(n):
+        for i in range(n):
             rhof[i] = rho[i]
             uf[i] = u[i]
         Pf = ScalarField("pressure", nodes)

@@ -120,7 +120,7 @@ vel = nodes1.velocity()
 rho = nodes1.massDensity()
 mass = nodes1.mass()
 dx = (x1-x0)/nx1
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     rho[i] = rho1*(1.0 + A*sin(twopi*kfreq*(pos[i].x-x0)/(x1-x0)))
     vel[i].x = A*cs*sin(twopi*kfreq*(pos[i].x-x0)/(x1-x0))
     mass[i] = rho[i]*(x1-x0)/nx1
@@ -132,7 +132,7 @@ for i in xrange(nodes1.numInternalNodes):
     rho[i] = rho1*(1.0 + A*sin(twopi*kfreq*(pos[i].x-x0)/(x1-x0)))
     vel[i].x = A*cs*sin(twopi*kfreq*(pos[i].x-x0)/(x1-x0))
     '''
-print "position 0 has {0} and position N has {1}".format((pos[0].x - x0),pos[nx1-1].x-x1)
+print("position 0 has {0} and position N has {1}".format((pos[0].x - x0),pos[nx1-1].x-x1))
 
 
 #-------------------------------------------------------------------------------
@@ -232,7 +232,7 @@ output("integrator.rigorousBoundaries")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-print "Making controller."
+print("Making controller.")
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -247,7 +247,7 @@ if steps is None:
     if control.time() < goalTime:
         control.advance(goalTime, maxSteps)
     if checkReversibility:
-        for i in xrange(nodes1.numNodes):
+        for i in range(nodes1.numNodes):
             vel[i] = -vel[i]
         control.advance(2*goalTime, maxSteps)
 else:
@@ -314,7 +314,7 @@ if graphics == "gnu":
     elif CRKSPH:
         A0=hydro.A0()
 	print("ARRAY LENGTH:")
-        print(A0[0].__len__())
+        print((A0[0].__len__()))
         tmp=[]
         for i in range(A0[0].__len__()):
 		tmp.append(A0[0][i])
@@ -365,9 +365,9 @@ if graphics == "gnu":
           #plt.show()
           diff=np.array(rho)-np.array(rhoans)
           L1Norm=(1.0/len(diff))*np.sum(np.abs(diff))
-          print "\n\nL1Norm=",L1Norm, "\n\n"
+          print("\n\nL1Norm=",L1Norm, "\n\n")
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")

@@ -26,18 +26,18 @@ nperh = 2.0
 deta = 1.0/nperh
 neta = 5
 etas1d, etas2d, etas3d = [], [], []
-for ix in xrange(neta):
+for ix in range(neta):
     etas1d.append(Vector1d((ix + 0.5)*deta))
-    for iy in xrange(-neta + 1, neta):
+    for iy in range(-neta + 1, neta):
         etas2d.append(Vector2d((ix + 0.5)*deta, (iy + 0.5)*deta))
-        for iz in xrange(-neta + 1, neta):
+        for iz in range(-neta + 1, neta):
             etas3d.append(Vector3d((ix + 0.5)*deta, (iy + 0.5)*deta, (iz + 0.5)*deta))
 
 for (W, ndim, etas, zero) in ((TableKernel1d(BSplineKernel1d(), 1000), 1, etas1d, Vector1d.zero),
                               (TableKernel2d(BSplineKernel2d(), 1000), 2, etas2d, Vector2d.zero),
                               (TableKernel3d(BSplineKernel3d(), 1000), 3, etas3d, Vector3d.zero)):
     result = simpsonsIntegrationDouble(Wintegral(W, ndim, True), 0.0, W.kernelExtent, 1000)
-    print "Expected half zeroth moment in %i dimensions:  %g" % (ndim, result)
+    print("Expected half zeroth moment in %i dimensions:  %g" % (ndim, result))
 
     Wsum = 0.0
     W1sum = zero
@@ -46,6 +46,6 @@ for (W, ndim, etas, zero) in ((TableKernel1d(BSplineKernel1d(), 1000), 1, etas1d
         Wsum += Wi
         W1sum += Wi*eta
     W1sum /= Wsum
-    print "Result of summing W: ", Wsum, Wsum**(1.0/ndim), W1sum.magnitude() # , (Wsum/W.volumeNormalization)**(1.0/ndim), Wsum**(1.0/ndim)/W.volumeNormalization
+    print("Result of summing W: ", Wsum, Wsum**(1.0/ndim), W1sum.magnitude()) # , (Wsum/W.volumeNormalization)**(1.0/ndim), Wsum**(1.0/ndim)/W.volumeNormalization
 
 

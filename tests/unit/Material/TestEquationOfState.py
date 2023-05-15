@@ -14,7 +14,7 @@ nodes = SphNodeList3d(10)
 output("nodes")
 
 rho = ScalarField3d(nodes, 1.0)
-u = ScalarField3d(nodes, range(10))
+u = ScalarField3d(nodes, list(range(10)))
 output("rho")
 output("rho[:]")
 output("u")

@@ -138,12 +138,12 @@ def checkRho(steps, t, dt):
             state = State(db, integrator.physicsPackages())
             rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state, plotGhosts=True)
         pos = nodes1.positions()
-        for i in xrange(nodes1.numInternalNodes):
+        for i in range(nodes1.numInternalNodes):
             if rho[i] == rhoMin:
                 sys.stderr.write("rho min @ %i %s\n" % (i, pos[i]))
             if rho[i] == rhoMax:
                 sys.stderr.write("rho max @ %i %s\n" % (i, pos[i]))
-        raise ValueError, "rho outside bounds : [%16.12e, %16.12e]" % (rhoMin, rhoMax)
+        raise ValueError("rho outside bounds : [%16.12e, %16.12e]" % (rhoMin, rhoMax))
     return
 
 #-------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ control.appendPeriodicWork(checkRho, 1)
 # Advance to the end time.
 #-------------------------------------------------------------------------------
 control.step(steps)
-print "** PASS **"
+print("** PASS **")
 
 #-------------------------------------------------------------------------------
 # Plot the final state.

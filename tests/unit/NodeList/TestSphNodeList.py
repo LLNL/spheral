@@ -58,8 +58,8 @@ def TestNodes(nodesName):
     output(nodesName + ".haveField(pmom)")
     output("pmom[:]")
 
-    nodes.mass[:nodes.numInternalNodes] = range(nodes.numInternalNodes)
-    nodes.mass[nodes.numInternalNodes:] = 0.1*array(range(nodes.numGhostNodes))
+    nodes.mass[:nodes.numInternalNodes] = list(range(nodes.numInternalNodes))
+    nodes.mass[nodes.numInternalNodes:] = 0.1*array(list(range(nodes.numGhostNodes)))
     nodes.velocity[:nodes.numInternalNodes] = [(1, 2, 3)]*nodes.numInternalNodes
     nodes.velocity[nodes.numInternalNodes:] = [(-1, -2, -3)]*nodes.numGhostNodes
     pmom = nodes.linearMomentum
@@ -68,8 +68,8 @@ def TestNodes(nodesName):
     output(nodesName + ".haveField(pmom)")
     output("pmom[:]")
 
-    nodes.massDensity[:nodes.numInternalNodes] = range(nodes.numInternalNodes)
-    nodes.massDensity[nodes.numInternalNodes:] = 0.1*array(range(nodes.numGhostNodes))
+    nodes.massDensity[:nodes.numInternalNodes] = list(range(nodes.numInternalNodes))
+    nodes.massDensity[nodes.numInternalNodes:] = 0.1*array(list(range(nodes.numGhostNodes)))
     nodes.specificThermalEnergy[:nodes.numInternalNodes] = [10.0]*nodes.numInternalNodes
     nodes.specificThermalEnergy[nodes.numInternalNodes:] = [0.1]*nodes.numGhostNodes
     output(nodesName + ".massDensity[:]")

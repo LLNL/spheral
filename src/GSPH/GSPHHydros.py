@@ -150,10 +150,10 @@ def GSPH(dataBase,
     nfluid = dataBase.numFluidNodeLists
     nsolid = dataBase.numSolidNodeLists
     if nsolid > 0 and nsolid != nfluid:
-        print "GSPH Error: you have provided both solid and fluid NodeLists, which is currently not supported."
-        print "            If you want some fluids active, provide SolidNodeList without a strength option specfied,"
-        print "            which will result in fluid behaviour for those nodes."
-        raise RuntimeError, "Cannot mix solid and fluid NodeLists."
+        print("GSPH Error: you have provided both solid and fluid NodeLists, which is currently not supported.")
+        print("            If you want some fluids active, provide SolidNodeList without a strength option specfied,")
+        print("            which will result in fluid behaviour for those nodes.")
+        raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
     if ASPH:
         Constructor = eval("AGSPHHydro%id" % ndim)
@@ -228,10 +228,10 @@ def MFM(dataBase,
     nfluid = dataBase.numFluidNodeLists
     nsolid = dataBase.numSolidNodeLists
     if nsolid > 0 and nsolid != nfluid:
-        print "MFM  Error: you have provided both solid and fluid NodeLists, which is currently not supported."
-        print "            If you want some fluids active, provide SolidNodeList without a strength option specfied,"
-        print "            which will result in fluid behaviour for those nodes."
-        raise RuntimeError, "Cannot mix solid and fluid NodeLists."
+        print("MFM  Error: you have provided both solid and fluid NodeLists, which is currently not supported.")
+        print("            If you want some fluids active, provide SolidNodeList without a strength option specfied,")
+        print("            which will result in fluid behaviour for those nodes.")
+        raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
     if ASPH:
         Constructor = eval("AMFMHydro%id" % ndim)

@@ -582,8 +582,37 @@ Field<Dimension, DataType>::operator-=(const DataType& rhs) {
 }
 
 //------------------------------------------------------------------------------
-// Multiplication by another Field in place.  Only meaningful when multiplying
-// by a scalar field.
+// Multiplication by a Scalar Field
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+Field<Dimension, DataType>
+Field<Dimension, DataType>::
+operator*(const Field<Dimension, Scalar>& rhs) const {
+  REQUIRE(valid() && rhs.valid());
+  REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
+  Field<Dimension, DataType> result(*this);
+  result *= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Division by a Scalar Field
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+Field<Dimension, DataType>
+Field<Dimension, DataType>::
+operator/(const Field<Dimension, Scalar>& rhs) const {
+  REQUIRE(valid() && rhs.valid());
+  REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
+  Field<Dimension, DataType> result(*this);
+  result /= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Multiplication by a Scalar Field in place.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -598,41 +627,7 @@ operator*=(const Field<Dimension, Scalar>& rhs) {
 }
 
 //------------------------------------------------------------------------------
-// Multiplication by a Scalar in place.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-Field<Dimension, DataType>&
-Field<Dimension, DataType>::
-operator*=(const Scalar& rhs) {
-  REQUIRE(valid());
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) (*this)(i) *= rhs;
-  return *this;
-}
-
-//------------------------------------------------------------------------------
-// Division by another Field.
-// Only meaningful for Scalar Fields!
-//-------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-Field<Dimension, DataType>
-Field<Dimension, DataType>::
-operator/(const Field<Dimension, typename Dimension::Scalar>& rhs) const {
-  REQUIRE(valid() && rhs.valid());
-  REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
-  Field<Dimension, DataType> result(*this);
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) {
-    result(i) *= safeInvVar(rhs(i), 1.0e-60);
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Division by another Field in place.
-// Only meaningful for Scalar Fields!
+// Division by a Scalar Field in place.
 //-------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -649,8 +644,22 @@ operator/=(const Field<Dimension, typename Dimension::Scalar>& rhs) {
 }
 
 //------------------------------------------------------------------------------
-// Division by a Scalar value.
-//-------------------------------------------------------------------------------
+// Multiplication by a Scalar
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+Field<Dimension, DataType>
+Field<Dimension, DataType>::
+operator*(const Scalar& rhs) const {
+  REQUIRE(valid());
+  Field<Dimension, DataType> result(*this);
+  result *= rhs;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Division by a Scalar
+//------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>
@@ -664,7 +673,21 @@ operator/(const Scalar& rhs) const {
 }
 
 //------------------------------------------------------------------------------
-// Division by a Scalar value in place.
+// Multiplication by a Scalar in place
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+Field<Dimension, DataType>&
+Field<Dimension, DataType>::
+operator*=(const Scalar& rhs) {
+  REQUIRE(valid());
+  const unsigned n = this->numElements();
+  for (unsigned i = 0; i != n; ++i) (*this)(i) *= rhs;
+  return *this;
+}
+
+//------------------------------------------------------------------------------
+// Division by a Scalar value in place
 //-------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -674,9 +697,7 @@ operator/=(const Scalar& rhs) {
   REQUIRE(valid());
   REQUIRE(rhs != 0.0);
   const unsigned n = this->numElements();
-  for (int i = 0; i < (int)n; ++i) {
-    (*this)(i) /= rhs;
-  }
+  for (int i = 0; i < (int)n; ++i) (*this)(i) /= rhs;
   return *this;
 }
 
@@ -756,7 +777,7 @@ Field<Dimension, DataType>::
 localMax() const {
   DataType result;
   if (size() == 0) {
-    result = -std::numeric_limits<DataType>::max() < std::numeric_limits<DataType>::min() ? -std::numeric_limits<DataType>::max() : std::numeric_limits<DataType>::min();
+    result = std::numeric_limits<DataType>::lowest();
   } else {
     result = *std::max_element(begin(), begin() + numInternalElements());
   }
@@ -1184,8 +1205,7 @@ Field<Dimension, DataType>::deleteElements(const std::vector<int>& nodeIDs) {
 }
 
 //------------------------------------------------------------------------------
-// Pack the given Field values by appending the elements decomposed into simple
-// Scalars onto the given array.
+// Serialize the chosen Field values onto a buffer
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
@@ -1351,41 +1371,38 @@ computeCommBufferSize(const std::vector<int>& packIndices,
 }
 
 //------------------------------------------------------------------------------
-// Pack the Field into a string.
+// Serialize the Field into a vector<char>.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-std::string
+std::vector<char>
 Field<Dimension, DataType>::
-string(const int /*precision*/) const {
-  const int n = numInternalElements();
-  std::vector<int> indices;
-  indices.reserve(n);
-  for (int i = 0; i != n; ++i) indices.push_back(i);
-  CHECK((int)indices.size() == n);
-  const std::vector<char> packedValues = packFieldValues(*this, indices);
-  return std::string(this->name()) + "|" + std::string(packedValues.begin(), packedValues.end());
+serialize() const {
+  const size_t n = numInternalElements();
+  vector<char> buf;
+  packElement(this->name(), buf);
+  packElement(n, buf);
+  for (auto i = 0u; i < n; ++i) packElement((*this)[i], buf);
+  return buf;
 }
 
 //------------------------------------------------------------------------------
-// Unpack the values from a string into this Field.
+// Deserialize the values from a vector<char> into this Field.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::
-string(const std::string& s) {
-  const int n = numInternalElements();
-  std::vector<int> indices;
-  indices.reserve(n);
-  for (int i = 0; i != n; ++i) indices.push_back(i);
-  CHECK((int)indices.size() == n);
-  const size_t j = s.find("|");
-  CHECK(j != std::string::npos and
-        j < s.size());
-  this->name(s.substr(0, j));
-  const std::vector<char> packedValues(s.begin() + j + 1, s.end());
-  unpackFieldValues(*this, indices, packedValues);
+deserialize(const std::vector<char>& buf) {
+  auto itr = buf.begin();
+  std::string nm;
+  unpackElement(nm, itr, buf.end());
+  this->name(nm);
+  size_t n;
+  unpackElement(n, itr, buf.end());
+  VERIFY2(n == this->numInternalElements(),
+          "Field ERROR: attempt to deserialize wrong number of elements: " << n << " != " << this->numInternalElements());
+  for (auto i = 0u; i < n; ++i) unpackElement((*this)[i], itr, buf.end());
 }
 
 //------------------------------------------------------------------------------

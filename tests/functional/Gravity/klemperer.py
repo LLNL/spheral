@@ -9,7 +9,7 @@ from NodeHistory import *
 from SpheralVisitDump import dumpPhysicsState
 from math import *
 
-print "Klemperer Rosette problem with 4 bodies"
+print("Klemperer Rosette problem with 4 bodies")
 
 
 '''
@@ -206,7 +206,7 @@ def sampleMethod(nodes, indices):
     assert nodes.numInternalNodes == 4
     r = []
     ke = []
-    for j in xrange(4):
+    for j in range(4):
         r.append(pos[j].magnitude())
         ke.append(0.5*m[j]*vel[j].magnitude()*vel[j].magnitude())
     return (m[0], pos[0].x, pos[0].y, pos[0].z, vel[0].x, vel[0].y, vel[0].z,r[0],

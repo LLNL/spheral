@@ -37,7 +37,7 @@ def bevelTubeEntrance(tubeNodeList,
 
     # Iterate over the nodes in the node list.
     numNodesBeveled = 0
-    for i in xrange(tubeNodeList.numInternalNodes):
+    for i in range(tubeNodeList.numInternalNodes):
 
         # Is this node in the x-range to be beveled?
         xi = position[i].x

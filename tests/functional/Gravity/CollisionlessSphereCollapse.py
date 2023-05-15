@@ -19,7 +19,7 @@ from PeanoHilbertDistributeNodes import distributeNodes3d
 from math import *
 import numpy as np
 
-print "3-D N-Body Gravity test -- collisionless sphere."
+print("3-D N-Body Gravity test -- collisionless sphere.")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -143,8 +143,8 @@ output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 mass = nodes.mass()
 msum = mpi.allreduce(sum(nodes.mass().internalValues()), mpi.SUM)
 fmass = M0/msum
-print "Renormalizing masses by ", fmass
-for i in xrange(nodes.numInternalNodes):
+print("Renormalizing masses by ", fmass)
+for i in range(nodes.numInternalNodes):
     mass[i] *= fmass
 
 #-------------------------------------------------------------------------------
@@ -217,12 +217,12 @@ if not steps is None:
         control.loadRestartFile(control.totalSteps)
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
+            raise ValueError("The restarted state does not match!")
         else:
-            print "Restart check PASSED."
+            print("Restart check PASSED.")
 
 else:
-    print "Advancing to %g sec = %g years" % (goalTime, goalTime/(365.24*24*3600))
+    print("Advancing to %g sec = %g years" % (goalTime, goalTime/(365.24*24*3600)))
     control.advance(goalTime)
 
 #-------------------------------------------------------------------------------
@@ -246,9 +246,9 @@ if mpi.rank == 0:
     # Fit phi(r)
     coefs = poly.polyfit(rprof, np.log(-np.array(phiprof)), 2)
     phifit = -np.exp(poly.polyval(rprof, coefs))
-    print "Fit coefficients: ", coefs
+    print("Fit coefficients: ", coefs)
     sigphi = np.std(np.array(phiprof) - phifit)
-    print "Standard deviation: ", sigphi
+    print("Standard deviation: ", sigphi)
 
 coefs = mpi.bcast(coefs, root=0)
 phifit = mpi.bcast(phifit, root=0)
@@ -276,8 +276,8 @@ if outputFile != "None" and mpi.rank == 0:
 # Check the answer againt references
 #-------------------------------------------------------------------------------
 if checkRef:
-    print(coefs, coefsRef)
-    print(sigphi, sigmaPhiRef)
+    print((coefs, coefsRef))
+    print((sigphi, sigmaPhiRef))
     assert np.absolute(coefs - coefsRef).max() < tol
     assert abs(sigphi - sigmaPhiRef)/sigmaPhiRef < tol
-    print "Pass"
+    print("Pass")

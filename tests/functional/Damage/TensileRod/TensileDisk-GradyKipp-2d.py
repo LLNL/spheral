@@ -256,7 +256,7 @@ del n
 #-------------------------------------------------------------------------------
 eps0 = 0.0
 if restoreCycle is None:
-    print "Generating node distribution."
+    print("Generating node distribution.")
     from GenerateNodeDistribution2d import *
     from ParMETISDistributeNodes import distributeNodes2d
     generator = GenerateNodeDistribution2d(nr,
@@ -280,7 +280,7 @@ if restoreCycle is None:
     nodes.specificThermalEnergy(ScalarField2d("tmp", nodes, eps0))
 
     # Set node velocites.
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         vr = nodes.positions()[i].magnitude()/radius*v0
         vunit = nodes.positions()[i].unitVector()
         nodes.velocity()[i] = vunit*vr
@@ -313,9 +313,9 @@ if theta == 0.5*pi:
 #-------------------------------------------------------------------------------
 rNodes = vector_of_int()
 dr = radius/nr
-rNodes.extend([i for i in xrange(nodes.numInternalNodes)
+rNodes.extend([i for i in range(nodes.numInternalNodes)
                if nodes.positions()[i].magnitude() > radius - 4*dr])
-print "Selected %i constant velocity nodes." % mpi.allreduce(len(rNodes), mpi.SUM)
+print("Selected %i constant velocity nodes." % mpi.allreduce(len(rNodes), mpi.SUM))
 rbc = ConstantVelocityBoundary2d(nodes, rNodes)
 # bcs += [rbc]
 
@@ -393,7 +393,7 @@ else:
     if neff is None:
         neff = max(1, mpi.allreduce(nodes.numInternalNodes, mpi.SUM)*nthick)
     nflaws = int(neff * log(neff))
-    print "nthick, nflaws = ", nthick, nflaws
+    print("nthick, nflaws = ", nthick, nflaws)
     damageModel = DamageModelConstructor(nodes,
                                          kWeibull,
                                          mWeibull,
@@ -478,7 +478,7 @@ def viz(nodes, nodesDamaged, damageModel):
         sstrain = ScalarField2d("strain average", nodes)
         sstrainmin = ScalarField2d("strain min", nodes)
         sstrainmax = ScalarField2d("strain max", nodes)
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             runit = nodes.positions()[i].unitVector()
             vr[i] = nodes.velocity()[i].dot(runit)
             sdamage[i] = tdamage[i].Trace()

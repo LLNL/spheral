@@ -165,13 +165,13 @@ The example below shows how you can take the ``gcc`` host-config from above, and
 [ex_add_cmake_example-start]
 ::
 
-  python3 scripts/devtools/host-config-build.py --host-config <sys_type>-gcc.cmake" -DCMAKE_BUILD_TYPE=Release -Dpyb11generator_DIR=<PYB11generator_install_prefix>/lib/python2.7/site-packages/
+  python3 scripts/devtools/host-config-build.py --host-config <sys_type>-gcc.cmake" -DCMAKE_BUILD_TYPE=Release -Dpyb11generator_DIR=<PYB11generator_install_prefix>/lib/python3.9/site-packages/
 
 [ex_add_cmake_example-end]
 [lc_add_cmake_example-start]
 ::
 
-  ./scripts/devtools/host-config-build.py --host-config <sys_type>-gcc.cmake" -DCMAKE_BUILD_TYPE=Release -Dpyb11generator_DIR=<PYB11generator_install_prefix>/lib/python2.7/site-packages/
+  ./scripts/devtools/host-config-build.py --host-config <sys_type>-gcc.cmake" -DCMAKE_BUILD_TYPE=Release -Dpyb11generator_DIR=<PYB11generator_install_prefix>/lib/python3.9/site-packages/
 
 [lc_add_cmake_example-end]
 
