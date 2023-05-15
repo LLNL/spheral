@@ -187,7 +187,7 @@ nodeSet = [nodes]
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 eps0 = 0.0
-print "Generating node distribution."
+print("Generating node distribution.")
 from DistributeNodes import distributeNodesInRange1d
 distributeNodesInRange1d([(nodes, nx, rho0, (xmin, xmax))])
 output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
@@ -203,7 +203,7 @@ eos.setSpecificThermalEnergy(eps, rho, T)
 # Set node velocites.
 pos = nodes.positions()
 vel = nodes.velocity()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     if pos[i].x < 0.0:
         vel[i].x = v0
     else:
@@ -310,7 +310,7 @@ if steps is not None:
     else:
         points = [49, 50]
     for p in points:
-        print pos[p], rho[p], vel[p], eps[p], P[p], S[p]
+        print(pos[p], rho[p], vel[p], eps[p], P[p], S[p])
 
 else:
     while control.time() < goalTime:
@@ -319,9 +319,9 @@ else:
         control.dropRestartFile()
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if compatibleEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")
 
 #-------------------------------------------------------------------------------
 # Plot the state.
@@ -370,10 +370,10 @@ if outputFile != "None":
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(internalValues(mof), mpi.SUM)
     if mpi.rank == 0:
-        thpt = zip(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof)
-        thpt = [thpt[i] for i in xrange(len(thpt)) if thpt[i][1] > 0.0]
+        thpt = list(zip(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof))
+        thpt = [thpt[i] for i in range(len(thpt)) if thpt[i][1] > 0.0]
         thpt.sort()
-        mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof = zip(*thpt)
+        mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof = list(zip(*thpt))
         f = open(outputFile, "w")
         f.write(("#" + 7*" %16s" + "\n") % ("x", "rho", "P", "v", "eps", "h", "S"))
         for (xi, rhoi, Pi, vi, epsi, hi, si, mi) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, mo):
@@ -387,7 +387,7 @@ if outputFile != "None":
         if referenceFile != "None":
             import filearraycmp as fcomp
             assert fcomp.filearraycmp(outputFile, referenceFile, testtol, testtol)
-            print "Floating point comparison test passed."
+            print("Floating point comparison test passed.")
 
         #---------------------------------------------------------------------------
         # Also we can optionally compare the current results with another file for
@@ -395,5 +395,5 @@ if outputFile != "None":
         #---------------------------------------------------------------------------
         if comparisonFile != "None" and BuildData.cxx_compiler_id != "IntelLLVM":
             import filecmp
-            print "Compare files : %s     <--->     %s" % (outputFile, comparisonFile)
+            print("Compare files : %s     <--->     %s" % (outputFile, comparisonFile))
             assert filecmp.cmp(outputFile, comparisonFile)

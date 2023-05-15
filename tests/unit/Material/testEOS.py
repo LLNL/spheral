@@ -58,11 +58,11 @@ class EOSTest(unittest.TestCase):
         #         return abs(x - y)/y < reltol
         # passfailLookup = np.vectorize(passfail)
         # Perr = np.minimum(P0, np.abs((P - P0)/np.maximum(1.0e-10, P0)))
-        # self.failUnless(passfailLookup(P, P0).all(),
+        # self.assertTrue(passfailLookup(P, P0).all(),
         #                 "Pressure error out of tolerance: %s vs %s" % (Perr.max(), Ptol))
         # assert passfailLookup(P, P0).all()
         Perr = np.minimum(P0, np.abs((P - P0)/np.maximum(1.0e-10, P0)))
-        self.failUnless((Perr < Perrcheck).all(),
+        self.assertTrue((Perr < Perrcheck).all(),
                         "Pressure error out of tolerance: %s > %s" % (Perr.max(), Perrcheck))
         return
 

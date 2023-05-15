@@ -11,14 +11,14 @@ def plotFieldList(fieldList, plotGhost=0, color='black'):
             numPoints = nodeList.numInternalNodes
         x = []
         y = []
-        print numPoints
-        for nodeID in xrange(numPoints):
+        print(numPoints)
+        for nodeID in range(numPoints):
             x.append(nodeList.positions[nodeID].x)
             y.append(field[nodeID])
         xarray = array(x)
         yarray = array(y)
-        print x
-        print y
+        print(x)
+        print(y)
         plg(yarray, xarray, color=color)
 
 ################################################################################
@@ -62,9 +62,9 @@ output('WT')
 
 dx1 = 0.5*(x1 - x0)/n1
 dx2 = 0.5*(x1 - x0)/n2
-for i in xrange(n1):
+for i in range(n1):
     nodes1.positions[i] = (i + 0.5)*dx1
-for i in xrange(n2):
+for i in range(n2):
     nodes2.positions[i] = 0.5 + (i + 0.5)*dx2
 
 output('nodes1.positions[:]')

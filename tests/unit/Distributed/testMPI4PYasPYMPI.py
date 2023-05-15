@@ -52,7 +52,7 @@ class MPI4PYasPYMPI(unittest.TestCase):
     # generic reduce test
     #---------------------------------------------------------------------------
     def reduceObjImpl(self, x, op, ans):
-        for root in xrange(mpi.procs):
+        for root in range(mpi.procs):
             globalx = mpi.reduce(x, op=op, root=root)
             ok = True
             if mpi.rank == root:
@@ -60,7 +60,7 @@ class MPI4PYasPYMPI(unittest.TestCase):
             else:
                 ok = (globalx is None)
             if not ok:
-                print globalx, ans
+                print(globalx, ans)
             self.check(ok)
 
     #---------------------------------------------------------------------------
@@ -98,8 +98,8 @@ class MPI4PYasPYMPI(unittest.TestCase):
     # reduce list SUM
     #---------------------------------------------------------------------------
     def testReduceListSum(self):
-        x = range(10*mpi.rank, 10*mpi.rank + 10)
-        self.reduceObjImpl(x, mpi.SUM, range(10*mpi.procs))
+        x = list(range(10*mpi.rank, 10*mpi.rank + 10))
+        self.reduceObjImpl(x, mpi.SUM, list(range(10*mpi.procs)))
 
     #---------------------------------------------------------------------------
     # allreduce float MIN
@@ -127,8 +127,8 @@ class MPI4PYasPYMPI(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testGatherInt(self):
         x = 10*mpi.rank
-        ans = range(0, 10*mpi.procs, 10)
-        for root in xrange(mpi.procs):
+        ans = list(range(0, 10*mpi.procs, 10))
+        for root in range(mpi.procs):
             globalx = mpi.gather(x, root = root)
             if mpi.rank == root:
                 self.check(globalx == ans)
@@ -140,7 +140,7 @@ class MPI4PYasPYMPI(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testAllgatherInt(self):
         x = 10*mpi.rank
-        ans = range(0, 10*mpi.procs, 10)
+        ans = list(range(0, 10*mpi.procs, 10))
         globalx = mpi.allgather(x)
         self.check(globalx == ans)
 
@@ -148,10 +148,10 @@ class MPI4PYasPYMPI(unittest.TestCase):
     # allgather list(int)
     #---------------------------------------------------------------------------
     def testAllgatherInt(self):
-        x = range(10*mpi.rank, 10*mpi.rank + 10)
+        x = list(range(10*mpi.rank, 10*mpi.rank + 10))
         ans = []
-        for i in xrange(mpi.procs):
-            ans.append(range(10*i, 10*i + 10))
+        for i in range(mpi.procs):
+            ans.append(list(range(10*i, 10*i + 10)))
         globalx = mpi.allgather(x)
         self.check(globalx == ans)
 
@@ -159,9 +159,9 @@ class MPI4PYasPYMPI(unittest.TestCase):
     # blocking send/recv
     #---------------------------------------------------------------------------
     def testBlockSend(self):
-        for sendProc in xrange(mpi.procs):
+        for sendProc in range(mpi.procs):
             if mpi.rank == sendProc:
-                for j in xrange(mpi.procs):
+                for j in range(mpi.procs):
                     if j != mpi.rank:
                         obj = 10*mpi.rank + 1
                         mpi.send(obj, dest=j, tag=100)
@@ -173,9 +173,9 @@ class MPI4PYasPYMPI(unittest.TestCase):
     # non-blocking send/blocking recv
     #---------------------------------------------------------------------------
     def testNonBlockSend(self):
-        for sendProc in xrange(mpi.procs):
+        for sendProc in range(mpi.procs):
             if mpi.rank == sendProc:
-                for j in xrange(mpi.procs):
+                for j in range(mpi.procs):
                     if j != mpi.rank:
                         obj = 10*mpi.rank + 1
                         mpi.isend(obj, dest=j, tag=100)

@@ -43,7 +43,7 @@ class OverrideNodeProperties:
         return
 
     def override(self, cycle, t, dt):
-        ids = [i for i in xrange(self.nodeList.numInternalNodes)
+        ids = [i for i in range(self.nodeList.numInternalNodes)
                if self.controlNodeFlags[i] > 0.5]
         for i in ids:
             self.nodeList.massDensity()[i] = self.rho0
@@ -290,7 +290,7 @@ nodeSet = [nodes]
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 eps0 = 0.0
-print "Generating node distribution."
+print("Generating node distribution.")
 from GenerateNodeDistribution3d import *
 #from ParMETISDistributeNodes import distributeNodes3d
 #from MortonOrderDistributeNodes import distributeNodes3d
@@ -316,7 +316,7 @@ generator = GenerateNodeDistribution3d(ny,
 R = Tensor(0, 0, 1,
            0, 1, 0,
           -1, 0, 0)
-for i in xrange(generator.localNumNodes()):
+for i in range(generator.localNumNodes()):
     vi = generator.localPosition(i)
     Hi = generator.localHtensor(i)
     v1 = R.dot(vi)
@@ -336,14 +336,14 @@ output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 # nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
 
 # Set node velocites.
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     nodes.velocity()[i].x = nodes.positions()[i].x/(0.5*length)*v0
 
 # Set an initial damage if requested.
 if initialBreakRadius > 0.0:
     pos = nodes.positions()
     D = nodes.damage()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         if abs(pos[i].x) < initialBreakRadius:
             D[i] = SymTensor.one
 
@@ -363,11 +363,11 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 x0Nodes = vector_of_int()
 x1Nodes = vector_of_int()
-[x0Nodes.append(i) for i in xrange(nodes.numInternalNodes)
+[x0Nodes.append(i) for i in range(nodes.numInternalNodes)
  if nodes.positions()[i].x < -0.5*length + 5*dx]
-[x1Nodes.append(i) for i in xrange(nodes.numInternalNodes)
+[x1Nodes.append(i) for i in range(nodes.numInternalNodes)
  if nodes.positions()[i].x >  0.5*length - 5*dx]
-print "Selected %i constant velocity nodes." % (mpi.allreduce(len(x0Nodes) + len(x1Nodes), mpi.SUM))
+print("Selected %i constant velocity nodes." % (mpi.allreduce(len(x0Nodes) + len(x1Nodes), mpi.SUM)))
 
 # Set the nodes we're going to control to one single velocity at each end.
 v0 = mpi.allreduce(min([nodes.velocity()[i].x for i in x0Nodes] + [100.0]), mpi.MIN)
@@ -564,7 +564,7 @@ if plotFlaws and DamageModelConstructor is StochasticWeibullTensorDamageModel:
     from SpheralGnuPlotUtilities import generateNewGnuPlot
     import Gnuplot
     flaws = [x for x in damageModel.sortedFlaws()]
-    f = [i/volume for i in xrange(len(flaws))]
+    f = [i/volume for i in range(len(flaws))]
     fans = [kWeibull * x**mWeibull for x in flaws]
     d = Gnuplot.Data(flaws, f,
                      title = "Simulation",

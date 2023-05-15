@@ -105,59 +105,59 @@ class TensorTestBase:
 
     def testCopy(self):
         t = self.TensorType(self.lhs)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert t(row, col) == self.lhs(row, col)
         return
 
     def testCopyFullTensor(self):
         n = self.TensorType.nDimensions
-        t = self.FullTensorType(*[0.5*((i/n)*n + (i%n) + (i%n)*n + (i/n))
+        t = self.FullTensorType(*[0.5*((i//n)*n + (i%n) + (i%n)*n + (i//n))
                                   for i in range(n*n)])
         st = self.SymmetricTensorType(t)
-        for row in xrange(n):
-            for col in xrange(n):
+        for row in range(n):
+            for col in range(n):
                 assert st(row, col) == 0.5*(row*n + col +
                                             col*n + row)
         return
 
     def testCopySymTensor(self):
         n = self.TensorType.nDimensions
-        st = self.SymmetricTensorType(*[0.5*((i/n)*n + (i%n) + (i%n)*n + (i/n))
+        st = self.SymmetricTensorType(*[0.5*((i//n)*n + (i%n) + (i%n)*n + (i//n))
                                         for i in range(n*n)])
         t = self.FullTensorType(st)
-        for row in xrange(n):
-            for col in xrange(n):
+        for row in range(n):
+            for col in range(n):
                 assert t(row, col) == 0.5*(row*n + col +
                                            col*n + row)
         return
 
     def testGetRow(self):
-        for row in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
             vec = self.lhs.getRow(row)
-            for col in xrange(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert vec(col) == self.lhs(row, col)
         return
 
     def testGetColumn(self):
-        for col in xrange(self.TensorType.nDimensions):
+        for col in range(self.TensorType.nDimensions):
             vec = self.lhs.getColumn(col)
-            for row in xrange(self.TensorType.nDimensions):
+            for row in range(self.TensorType.nDimensions):
                 assert vec(row) == self.lhs(row, col)
         return
 
     def testZero(self):
         self.lhs.Zero()
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert self.lhs(row, col) == 0.0
         return
 
 
     def testIdentity(self):
         self.lhs.Identity()
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 if row == col:
                     assert self.lhs(row, col) == 1.0
                 else:
@@ -166,34 +166,34 @@ class TensorTestBase:
 
     def testNegative(self):
         ten = -(self.lhs)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert ten(row, col) == -(self.lhs(row, col))
         return
 
     def testTensorAddition(self):
         result = self.lhs + self.rhs
         assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert result(row, col) == self.lhs(row, col) + self.rhs(row, col)
         return
 
     def testTensorSubtraction(self):
         result = self.lhs - self.rhs
         assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert result(row, col) == self.lhs(row, col) - self.rhs(row, col)
         return
 
     def testTensorMultiplication(self):
         result = self.lhs * self.rhs
         assert isinstance(result, self.FullTensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 check = 0.0
-                for i in xrange(self.TensorType.nDimensions):
+                for i in range(self.TensorType.nDimensions):
                     check += self.lhs(row, i) * self.rhs(i, col)
                 assert fuzzyEqual(result(row, col), check)
         return
@@ -201,26 +201,26 @@ class TensorTestBase:
     def testOtherTensorAddition(self):
         result = self.lhs + self.other
         assert isinstance(result, self.FullTensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert result(row, col) == self.lhs(row, col) + self.other(row, col)
         return
 
     def testOtherTensorSubtraction(self):
         result = self.lhs - self.other
         assert isinstance(result, self.FullTensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert result(row, col) == self.lhs(row, col) - self.other(row, col)
         return
 
     def testOtherTensorMultiplication(self):
         result = self.lhs * self.other
         assert isinstance(result, self.FullTensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 check = 0.0
-                for i in xrange(self.TensorType.nDimensions):
+                for i in range(self.TensorType.nDimensions):
                     check += self.lhs(row, i) * self.other(i, col)
                 assert fuzzyEqual(result(row, col), check)
         return
@@ -228,9 +228,9 @@ class TensorTestBase:
     def testVectorMultiplication(self):
         result = self.lhs * self.vec
         assert isinstance(result, self.VectorType)
-        for row in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
             check = 0.0
-            for col in xrange(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 check += self.lhs(row, col) * self.vec(col)
             assert result(row) == check
         return
@@ -238,7 +238,7 @@ class TensorTestBase:
     # def testScalarAddition(self):
     #     val = 44.0
     #     result = self.lhs + val
-    #     self.failUnless(isinstance(result, self.TensorType),
+    #     self.assertTrue(isinstance(result, self.TensorType),
     #                     "%s is not instance of %s" % (str(type(result)),
     #                                                   str(type(self.TensorType))))
     #     for row in xrange(self.TensorType.nDimensions):
@@ -259,8 +259,8 @@ class TensorTestBase:
         val = 44.0
         result = self.lhs * val
         assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert result(row, col) == self.lhs(row, col) * val
         return
 
@@ -268,8 +268,8 @@ class TensorTestBase:
         val = 44.0
         result = self.lhs / val
         assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert fuzzyEqual(result(row, col), self.lhs(row, col) / val)
         return
 
@@ -277,8 +277,8 @@ class TensorTestBase:
         result = self.TensorType(self.lhs)
         result += self.rhs
         assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert result(row, col) == self.lhs(row, col) + self.rhs(row, col)
         return
 
@@ -286,8 +286,8 @@ class TensorTestBase:
         result = self.TensorType(self.lhs)
         result -= self.rhs
         assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert result(row, col) == self.lhs(row, col) - self.rhs(row, col)
         return
 
@@ -316,8 +316,8 @@ class TensorTestBase:
         result = self.TensorType(self.lhs)
         result *= val
         assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert result(row, col) == self.lhs(row, col) * val
         return
 
@@ -326,9 +326,9 @@ class TensorTestBase:
         result = self.TensorType(self.lhs)
         result /= val
         assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
-                self.failUnless(fuzzyEqual(result(row, col), self.lhs(row, col) / val),
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
+                self.assertTrue(fuzzyEqual(result(row, col), self.lhs(row, col) / val),
                                 "Tensor inplace division : %g != %g" % (result(row, col),
                                                                         self.lhs(row, col) / val))
         return
@@ -370,8 +370,8 @@ class TensorTestBase:
     def testSymmetric(self):
         result = self.lhs.Symmetric()
         assert isinstance(result, self.SymmetricTensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert result(row, col) == 0.5*(self.lhs(row, col) +
                                                 self.lhs(col, row))
         return
@@ -379,42 +379,42 @@ class TensorTestBase:
     def testSkewSymmetric(self):
         result = self.lhs.SkewSymmetric()
         assert isinstance(result, self.FullTensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
-                self.failUnless(result(row, col) == 0.5*(self.lhs(row, col) - self.lhs(col, row)),
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
+                self.assertTrue(result(row, col) == 0.5*(self.lhs(row, col) - self.lhs(col, row)),
                                 "SkewSymmetric failed: %s %s" % (str(self.lhs), result))
         return
 
     def testTranspose(self):
         result = self.lhs.Transpose()
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert result(row, col) == self.lhs(col, row)
         return
 
     def testInverse(self):
         result = self.lhs.Inverse()
         check = result*self.lhs
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 if row == col:
                     assert fuzzyEqual(check(row, col), 1.0)
                 else:
-                    self.failUnless(fuzzyEqual(check(row, col), 0.0, 1.0e-5),
+                    self.assertTrue(fuzzyEqual(check(row, col), 0.0, 1.0e-5),
                                     "Off diagonal not zero: %s" % str(check))
         return
 
     def testDiagonal(self):
         result = self.lhs.diagonalElements()
         assert isinstance(result, self.VectorType)
-        for i in xrange(self.TensorType.nDimensions):
+        for i in range(self.TensorType.nDimensions):
             assert result(i) == self.lhs(i,i)
         return
 
     def testTrace(self):
         result = self.lhs.Trace()
         check = 0.0
-        for i in xrange(self.TensorType.nDimensions):
+        for i in range(self.TensorType.nDimensions):
             check += self.lhs(i,i)
         assert result == check
         return
@@ -429,8 +429,8 @@ class TensorTestBase:
         one = self.SymmetricTensorType.one
         resultr = one * self.rhs
         resultl = self.lhs * one
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert fuzzyEqual(resultl(row, col), self.lhs(row, col))
                 assert fuzzyEqual(resultr(row, col), self.rhs(row, col))
         return
@@ -439,8 +439,8 @@ class TensorTestBase:
         one = self.FullTensorType.one
         resultr = one * self.rhs
         resultl = self.lhs * one
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert fuzzyEqual(resultl(row, col), self.lhs(row, col))
                 assert fuzzyEqual(resultr(row, col), self.rhs(row, col))
         return
@@ -448,33 +448,33 @@ class TensorTestBase:
     def testDoubleDot(self):
         result = self.lhs.doubledot(self.rhs)
         check = 0
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 check += self.lhs(row, col)*self.rhs(col, row)
-        self.failUnless(fuzzyEqual(result, check),
+        self.assertTrue(fuzzyEqual(result, check),
                         "Doubledot check failure: %f != %f" % (result, check))
         return
 
     def testSelfDoubleDot(self):
         result = self.lhs.selfDoubledot()
         check = self.lhs.doubledot(self.lhs)
-        self.failUnless(fuzzyEqual(result, check),
+        self.assertTrue(fuzzyEqual(result, check),
                         "selfDoubledot check failure: %f != %f" % (result, check))
         return
 
     def testSquare(self):
         result = self.lhs.square()
         check = self.lhs * self.lhs
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
-                self.failUnless(fuzzyEqual(result(row, col), check(row, col)),
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
+                self.assertTrue(fuzzyEqual(result(row, col), check(row, col)),
                                 "Bad value: (%i,%i), %g != %g" % (row, col, result(row, col), check(row, col)))
  
     def testSquareElements(self):
         result = self.lhs.squareElements()
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
-                self.failUnless(fuzzyEqual(result(row, col), self.lhs(row, col)**2),
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
+                self.assertTrue(fuzzyEqual(result(row, col), self.lhs(row, col)**2),
                                 "Square matrix elements failure: %g != %g" % (result(row, col), self.lhs(row, col)**2))
         return
 
@@ -483,8 +483,8 @@ class TensorTestBase:
         assert fuzzyEqual(R.Determinant(), 1.0)
         check = R*self.lhs*R.Transpose()
         self.lhs.rotationalTransform(R)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert fuzzyEqual(self.lhs(row, col), check(row, col))
         return
 
@@ -497,8 +497,8 @@ class FullTensorTestBase:
         result = self.TensorType(self.lhs)
         result += self.other
         assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert result(row, col) == self.lhs(row, col) + self.other(row, col)
         return
 
@@ -506,8 +506,8 @@ class FullTensorTestBase:
         result = self.TensorType(self.lhs)
         result -= self.other
         assert isinstance(result, self.TensorType)
-        for row in xrange(self.TensorType.nDimensions):
-            for col in xrange(self.TensorType.nDimensions):
+        for row in range(self.TensorType.nDimensions):
+            for col in range(self.TensorType.nDimensions):
                 assert result(row, col) == self.lhs(row, col) - self.other(row, col)
         return
 
@@ -532,25 +532,25 @@ class SymmetricTensorTestBase:
         tol = {1: 1e-5,
                2: 1e-5,
                3: 1e-3}[self.TensorType.nDimensions]
-        for t in xrange(nrandom):
+        for t in range(nrandom):
             st = randomPositiveSymmetricMatrix(self.TensorType.nDimensions)
             st12 = st.sqrt()
             st12squared = st12*st12
             diff = st12squared - st
             check = diff.doubledot(diff)
-            self.failUnless(fuzzyEqual(check, 0.0, tol),
+            self.assertTrue(fuzzyEqual(check, 0.0, tol),
                             "SQRT failure %s != %s, eigen values=%s, %g" % (str(st12squared), str(st),
                                                                             str(st.eigenValues()), check))
         return
 
     def testCube(self):
-        for t in xrange(nrandom):
+        for t in range(nrandom):
             st = randomSymmetricMatrix(self.TensorType.nDimensions)
             st3 = st.cube()
             check = st*st*st
-            for row in xrange(self.TensorType.nDimensions):
-                for col in xrange(self.TensorType.nDimensions):
-                    self.failUnless(fuzzyEqual(st3(row, col), check(row, col)),
+            for row in range(self.TensorType.nDimensions):
+                for col in range(self.TensorType.nDimensions):
+                    self.assertTrue(fuzzyEqual(st3(row, col), check(row, col)),
                                     "CUBE failure %s != %s" % (str(st3), str(check)))
         return
 
@@ -558,13 +558,13 @@ class SymmetricTensorTestBase:
         tol = {1: 1e-5,
                2: 1e-5,
                3: 5e-4}[self.TensorType.nDimensions]
-        for t in xrange(nrandom):
+        for t in range(nrandom):
             st = randomSymmetricMatrix(self.TensorType.nDimensions)
             st13 = st.cuberoot()
             st13cube = st13*st13*st13
             diff = st13cube - st
             check = diff.doubledot(diff)
-            self.failUnless(fuzzyEqual(check, 0.0, tol),
+            self.assertTrue(fuzzyEqual(check, 0.0, tol),
                             "CUBEROOT failure %s != %s, eigen values=%s, check=%g" % (str(st13cube), str(st),
                                                                                       str(st.eigenValues()), check))
         return
@@ -580,7 +580,7 @@ class SymmetricTensorTestBase:
 ##             stpi = stp.pow(1.0/p)
 ##             diff = stpi - st
 ##             check = diff.doubledot(diff)
-##             self.failUnless(fuzzyEqual(check, 0.0, tol),
+##             self.assertTrue(fuzzyEqual(check, 0.0, tol),
 ##                             "POW failure %s !=\n                            %s,\n power = %f,\n eigen values=%s\n              %s,\n check=%g" % (str(stpi), str(st), p,
 ##                                                                                                                                                   str(stpi.eigenValues()),
 ##                                                                                                                                                   str(st.eigenValues()),

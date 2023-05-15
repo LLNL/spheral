@@ -292,7 +292,7 @@ class FacetedSurfaceASPHHydro(Physics):
         #assert len(posfl) == 1
         pos = posfl[imat]
         n = pos.numInternalElements
-        for i in xrange(n):
+        for i in range(n):
             if nodes2facets[i] >= 0:
                 rmin = 1e300
                 fimin = None

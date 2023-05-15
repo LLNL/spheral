@@ -232,21 +232,21 @@ class RiemannSolution:
                 fr, frd = prefun(pold, dr, pr, cr)
                 p = pold - (fl + fr + udiff)/(fld + frd)
                 change = 2.0*abs((p - pold)/(p + pold))
-                print '\t', i, "\t\t", change
+                print('\t', i, "\t\t", change)
                 if (p < 0.0):
                     p = tolpre
                 pold = p
                 i += 1
             if (i > nriter):
-                print "divergence in Newton-Raphson iteration"
+                print("divergence in Newton-Raphson iteration")
         
             # compute velocity in star region
             u = 0.5*(vl + vr + fr - fl)
-            print "----------------------------------------\n" \
+            print("----------------------------------------\n" \
                   "     Pressure           Velocity\n"         \
                   "----------------------------------------\n" \
                   "     ", p/pscale, "\t\t", u, '\n'           \
-                  "----------------------------------------"
+                  "----------------------------------------")
             return p, u
         
         #---------------------------------------------------------------------------
@@ -349,7 +349,7 @@ class RiemannSolution:
         
         # the pressure positivity condition is tested for
         if (g4*(cl+cr) <= (vr-vl)):
-            raise RunTimeError, ("the initial data is such that vacuum is generated"
+            raise RunTimeError("the initial data is such that vacuum is generated"
                                  "\nstopping program")
         
         # exact solution for pressure and velocity in star region is found
@@ -362,7 +362,7 @@ class RiemannSolution:
         eps = np.empty(n)
         A = np.empty(n)
         h = np.empty(n)
-        for i in xrange(n):
+        for i in range(n):
             s = (x[i] - xdiaph)/max(1e-10, out_time)
             ds, vs, ps, hs = sample(pm, vm, s)
             d[i] = ds
@@ -532,5 +532,5 @@ If specified as the empty string "" (or None), the full state must be specified 
             plt.show()
 
         except:
-            print "ERROR: unable to import matplotlib for graphics."
+            print("ERROR: unable to import matplotlib for graphics.")
             pass

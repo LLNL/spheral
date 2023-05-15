@@ -91,7 +91,7 @@ class EulerianTracerHistory(Spheral.RestartableObject):
         self.db.setMasterNodeLists(self.position, Hmin, masterLists, coarseNeighbors)
         assert len(coarseNeighbors) == numNodeLists
         self.db.setRefineNodeLists(self.position, Hmin, coarseNeighbors, refineNeighbors)
-        for nodeListj in xrange(numNodeLists):
+        for nodeListj in range(numNodeLists):
             for j in refineNeighbors[nodeListj]:
 
                 # Compute the weighting for this position.
@@ -107,12 +107,12 @@ class EulerianTracerHistory(Spheral.RestartableObject):
                 assert len(fieldvals) == nvals
 
                 # Increment the sampled values for this position.
-                for i in xrange(nvals):
+                for i in range(nvals):
                     self.sampleHistory[-1][i] += Wj*fieldvals[i]
 
         # Normalize the measurements.
         Wsum = max(1.0e-10, mpi.allreduce(Wsum, mpi.SUM))
-        for i in xrange(nvals):
+        for i in range(nvals):
             self.sampleHistory[-1][i] = mpi.allreduce(self.sampleHistory[-1][i], mpi.SUM)/Wsum
 
         # Update the history file.
@@ -134,7 +134,7 @@ class EulerianTracerHistory(Spheral.RestartableObject):
             assert len(self.timeHistory) == n
             assert len(self.sampleHistory) == n
             if mpi.rank == 0:
-                for i in xrange(n):
+                for i in range(n):
                     samplestr = ""
                     for x in self.sampleHistory[i]:
                         samplestr += str(x) + " "

@@ -21,8 +21,8 @@ class TestPeanoHilbertOrderRedistribute2d(TestDistributeByPosition2d):
     # Create a PeanoHilbertOrderRedistributeNodes object, have it redistribute the
     # nodes.
     def testIt(self):
-        print "Testing PeanoHilbertOrderRedistributeNodes2d on domain %i of %i domains" % \
-              (domainID, nDomains)
+        print("Testing PeanoHilbertOrderRedistributeNodes2d on domain %i of %i domains" % \
+              (domainID, nDomains))
 
         # Record how many nodes we're starting with.
         nNodesGlobal = []
@@ -88,7 +88,7 @@ def randomDistribute3d(thisDomain,     # domain ID to be calculated
     g = random.Random()
     globalNodeIDs = []
     nodePositions = []
-    for globalNodeID in xrange(0, nNodesGlobal):
+    for globalNodeID in range(0, nNodesGlobal):
         mpi.barrier()
         domain0 = g.randint(0, nDomains - 1)
         domain = mpi.bcast(domain0)
@@ -158,7 +158,7 @@ class TestPeanoHilbertOrderRedistribute3d(unittest.TestCase):
             n = len(globalIDs)
             nodes.numInternalNodes = n
             Hi = determineH3d(nGlobal, globalRange)
-            for i in xrange(n):
+            for i in range(n):
                 nodes.mass()[i] = 1.0
                 nodes.positions()[i] = xyzNodes[i]
                 nodes.Hfield()[i] = Hi
@@ -186,8 +186,8 @@ class TestPeanoHilbertOrderRedistribute3d(unittest.TestCase):
     # Create a PeanoHilbertOrderRedistributeNodes object, have it redistribute the
     # nodes.
     def testIt(self):
-        print "Testing PeanoHilbertOrderRedistributeNodes3d on domain %i of %i domains" % \
-              (domainID, nDomains)
+        print("Testing PeanoHilbertOrderRedistributeNodes3d on domain %i of %i domains" % \
+              (domainID, nDomains))
 
         # Record how many nodes we're starting with.
         nNodesGlobal = []

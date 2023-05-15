@@ -462,7 +462,7 @@ class ExpandingDomain:
                 activeNodeLists[j].deleteNodes(vector_of_int(indices)) 
                 self.nDeleted+=len(indices) 
                 print('--------------------------------')
-                print('Total Nodes Deleted: ',self.nDeleted)
+                print(('Total Nodes Deleted: ',self.nDeleted))
                 print('-------------------------------')
 
         def setConstantBoundary(self,cycle,t,dt):
@@ -600,8 +600,8 @@ class ExpandingDomain:
                 # code ghost data to new internal slots
                 fromIDs = []
                 toIDs = []
-                fromIDs.extend(range(activeNodeLists[i].firstGhostNode,activeNodeLists[i].numNodes,1))
-                toIDs.extend(range(activeNodeLists[i].firstGhostNode-Ng,activeNodeLists[i].numNodes-Ng,1))
+                fromIDs.extend(list(range(activeNodeLists[i].firstGhostNode,activeNodeLists[i].numNodes,1)))
+                toIDs.extend(list(range(activeNodeLists[i].firstGhostNode-Ng,activeNodeLists[i].numNodes-Ng,1)))
                 for j in range(numFieldsi):
                     self.activeFields[i][j].copyElements(vector_of_int(fromIDs),vector_of_int(toIDs))
 

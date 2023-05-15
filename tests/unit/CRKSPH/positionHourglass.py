@@ -32,10 +32,10 @@ def positionHourglass(db, WT, boundaries,
         bc.finalizeGhostBoundary()
 
     result = 0
-    for nodeListi in xrange(db.numFluidNodeLists):
-        for i in xrange(nodeLists[nodeListi].numInternalNodes):
+    for nodeListi in range(db.numFluidNodeLists):
+        for i in range(nodeLists[nodeListi].numInternalNodes):
             connectivity = cm.connectivityForNode(nodeListi, i)
-            for nodeListj in xrange(db.numFluidNodeLists):
+            for nodeListj in range(db.numFluidNodeLists):
                 for j in connectivity[nodeListj]:
                     xji = position[nodeListj][j] - position[nodeListi][i]
                     xjihat = xji.unitVector()

@@ -186,7 +186,7 @@ for nodes in nodeSet:
     eps = nodes.specificThermalEnergy()
     rho = nodes.massDensity()
     vel = nodes.velocity()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         x = pos[i].x
         y = pos[i].y
         vel[i][0] = sin(2*3.14159*y)
@@ -321,7 +321,7 @@ if bArtificialConduction:
 if hourglass:
     mask = db.newFluidIntFieldList(1, "mask")
     pos = nodes1.positions()
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         if pos[i].x > (x1 - dx):
             mask[0][i] = 0
     hg = hourglass(WT,
@@ -444,6 +444,6 @@ elif graphics == "gnu":
 
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if checkEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")

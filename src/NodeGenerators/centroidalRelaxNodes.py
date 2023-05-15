@@ -6,7 +6,7 @@ from siloPointmeshDump import *
 try:
     from SpheralVoronoiSiloDump import SpheralVoronoiSiloDump
 except:
-    print "centroidalRelaxNoddes unable to import SpheralVoronoiSiloDump -- no tessellation output supported."
+    print("centroidalRelaxNoddes unable to import SpheralVoronoiSiloDump -- no tessellation output supported.")
     SpheralVoronoiSiloDump = None
 
 #-------------------------------------------------------------------------------
@@ -128,9 +128,9 @@ def centroidalRelaxNodes(nodeListsAndBounds,
     massf = db.fluidMass
     rhof = db.fluidMassDensity
     numNodeLists = db.numFluidNodeLists
-    for k in xrange(numNodeLists):
+    for k in range(numNodeLists):
         n = massf[k].numInternalElements
-        for i in xrange(n):
+        for i in range(n):
             assert massf(k,i) > 0.0, "Bad mass (%i,%i), %g" % (k, i, massf(k,i))
             assert rhof(k,i) > 0.0, "Bad density (%i,%i), %g" % (k, i, rhof(k,i))
             vol[k][i] = massf(k,i)/rhof(k,i)
@@ -179,7 +179,7 @@ def centroidalRelaxNodes(nodeListsAndBounds,
     for k, nodes in enumerate(db.fluidNodeLists()):
         n = nodes.numInternalNodes
         mass = nodes.mass()
-        for i in xrange(n):
+        for i in range(n):
             assert vol(k,i) > 0.0
             mass[k] = vol(k,i)*rho(k,i)
 

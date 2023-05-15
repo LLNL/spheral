@@ -18,10 +18,10 @@ def zbrent(func,x1,x2,tol):
     fa=func(a)
     fb=func(b)
     if(fb*fa > 0.):
-        print 'root must be bracketed for zbrent.'
+        print('root must be bracketed for zbrent.')
         return 0.0
     fc=fb
-    for iter in xrange(itmax):
+    for iter in range(itmax):
         if(fb*fc >= 0.):
             c=a
             fc=fa
@@ -68,7 +68,7 @@ def zbrent(func,x1,x2,tol):
             b = b + sign(tol1,xm)
         fb=func(b)
     
-    print 'zbrent exceeding maximum iterations.'
+    print('zbrent exceeding maximum iterations.')
     return b
 
 ################################################################################
@@ -109,7 +109,7 @@ class SodSolution:
         thpt = 1. - rho2/self.rhom2
         self.vs = self.vm*thpt/(1.0e-50 + thpt*thpt)
         self.x = []
-        for i in xrange(self.nPoints):
+        for i in range(self.nPoints):
             self.x.append(x0 + i*self.dx)
 
         return
@@ -217,7 +217,7 @@ class SodSolutionGasGas:
         thpt = 1. - rho2/self.rhom2
         self.vs = self.vm*thpt/(1.0e-50 + thpt*thpt)
         self.x = []
-        for i in xrange(self.nPoints):
+        for i in range(self.nPoints):
             self.x.append(x0 + i*self.dx)
 
         return
@@ -329,7 +329,7 @@ class SodSolutionStiffGasStiffGas:
         thpt = 1. - rho2/self.rhom2
         self.vs = self.vm*thpt/(1.0e-50 + thpt*thpt)
         self.x = []
-        for i in xrange(self.nPoints):
+        for i in range(self.nPoints):
             self.x.append(x0 + i*self.dx)
 
         return

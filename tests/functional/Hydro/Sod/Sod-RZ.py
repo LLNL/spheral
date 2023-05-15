@@ -419,10 +419,10 @@ else:
     assert problem == "spherical"
     boundNodes = vector_of_int()
     pos = nodes2.positions()
-    for i in xrange(nodes2.numInternalNodes):
+    for i in range(nodes2.numInternalNodes):
         if pos[i].magnitude() > rmax2:
             boundNodes.append(i)
-    print "Selected %i boundary nodes" % mpi.allreduce(len(boundNodes), mpi.SUM)
+    print("Selected %i boundary nodes" % mpi.allreduce(len(boundNodes), mpi.SUM))
     denialPlane = Plane(Vector(-2.0*rmax2, 0.0), Vector(1.0, 0.0))  # A fake denial plane since we're working in circles.
     bcs = [ReflectingBoundary(Plane(Vector(0.0, 0.0), Vector( 1.0,  0.0))),
            ConstantBoundary(nodes2, boundNodes, denialPlane)]
@@ -519,6 +519,6 @@ if graphics:
                    rhoPlot, velPlot, epsPlot, PPlot, HPlot)
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if checkEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")

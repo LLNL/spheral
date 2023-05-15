@@ -12,13 +12,13 @@ import numpy as np
 
 def smooth(x,window_len=11,window='hanning'):
     if x.ndim != 1:
-        raise ValueError, "smooth only accepts 1 dimension arrays."
+        raise ValueError("smooth only accepts 1 dimension arrays.")
     if x.size < window_len:
-        raise ValueError, "Input vector needs to be bigger than window size."
+        raise ValueError("Input vector needs to be bigger than window size.")
     if window_len<3:
         return x
     if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+        raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
     s=np.r_[2*x[0]-x[window_len-1::-1],x,2*x[-1]-x[-1:-window_len:-1]]
     if window == 'flat': #moving average
         w=np.ones(window_len,'d')
@@ -132,7 +132,7 @@ output("nodes1.numNodes")
 # Find the cumulative mass at each point.
 Mi = ScalarField("Cumulative mass", nodes1)
 positions = mpi.allreduce([(nodes1.positions()[i].x, i, mpi.rank)
-                           for i in xrange(nodes1.numInternalNodes)], mpi.SUM)
+                           for i in range(nodes1.numInternalNodes)], mpi.SUM)
 assert len(positions) == nx1
 positions.sort()
 Msum = 0.0
@@ -164,7 +164,7 @@ cs = sqrt(cs2)
 pos = nodes1.positions()
 vel = nodes1.velocity()
 rho = nodes1.massDensity()
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     func0 = MassFunctor(max(0.0, Mi[i] - mi))
     func1 = MassFunctor(Mi[i])
     xi0 = newtonRaphsonFindRoot(func0, 0.0, 1.0, 1.0e-15, 1.0e-15)
@@ -271,7 +271,7 @@ output("integrator.rigorousBoundaries")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-print "Making controller."
+print("Making controller.")
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -315,8 +315,8 @@ if graphics == "gnu":
 
     from momentHourglass import *
     from positionHourglass import *
-    for i in xrange(hourglassIters):
-        print "Iteration %i: %i" % (i, positionHourglass(db, WT, integrator.uniqueBoundaryConditions(), minfrac=0.0, maxfrac=1.0))
+    for i in range(hourglassIters):
+        print("Iteration %i: %i" % (i, positionHourglass(db, WT, integrator.uniqueBoundaryConditions(), minfrac=0.0, maxfrac=1.0)))
         control.iterateIdealH()
     control.step()
 
@@ -340,7 +340,7 @@ if graphics == "gnu":
     elif CRKSPH:
         A0=hydro.A0()
 	print("ARRAY LENGTH:")
-        print(A0[0].__len__())
+        print((A0[0].__len__()))
         tmp=[]
         for i in range(A0[0].__len__()):
 		tmp.append(A0[0][i])
@@ -381,7 +381,7 @@ if graphics == "gnu":
         m0smooth = interpolateCRKSPH(m0, db.fluidPosition, db.fluidMass, db.fluidHfield,
                                    hydro.A(), hydro.B(), cm, WT)
         m0var = db.newFluidScalarFieldList(0.0, "m0 variation")
-        for i in xrange(nodes1.numInternalNodes):
+        for i in range(nodes1.numInternalNodes):
             m0var[0][i] = abs(m0smooth[0][i] - m0[0][i])/m0[0][i]
         m0varPlot = plotFieldList(m0var,
                                   winTitle = "abs(<m0> - m0)/m0",
@@ -393,6 +393,6 @@ if graphics == "gnu":
                                   colorNodeLists = False)
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")

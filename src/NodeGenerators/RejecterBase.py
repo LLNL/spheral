@@ -62,13 +62,13 @@ class RejecterBase:
 
         # Find the indices of the points we're keeping
         if threeD:
-            localIndices = [i for i in xrange(imin, imax) if self.accept(x0[i], y0[i], z0[i])]
+            localIndices = [i for i in range(imin, imax) if self.accept(x0[i], y0[i], z0[i])]
         else:
-            localIndices = [i for i in xrange(imin, imax) if self.accept(x0[i], y0[i])]
+            localIndices = [i for i in range(imin, imax) if self.accept(x0[i], y0[i])]
 
         # Cull the values
         x1, y1, z1, m1, H1 = [], [], [], [], []
-        for iproc in xrange(mpi.procs):
+        for iproc in range(mpi.procs):
             otherIndices = mpi.bcast(localIndices, iproc)
             x1 += [x0[i] for i in otherIndices]
             y1 += [y0[i] for i in otherIndices]

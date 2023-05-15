@@ -50,7 +50,7 @@ class LaneEmdenSolver():
             r = a * s
             # get the eos for this radius
             if(eoscount>1):
-                for i in xrange(eoscount):
+                for i in range(eoscount):
                     ermin = eostup[2*i+1][0]
                     ermax = eostup[2*i+1][1]
                     if(r<=ermax and r>=ermin):
@@ -89,7 +89,7 @@ class LaneEmdenSolver():
 
     def density(self,r):
         rho = self.rho0
-        for i in xrange(len(self.soln)):
+        for i in range(len(self.soln)):
             if(self.soln[i][0] > r):
                 if(i>0):
                     f1  = self.soln[i][1]
@@ -106,7 +106,7 @@ class LaneEmdenSolver():
                 
     def energy(self,r):
         e   = self.e0
-        for i in xrange(len(self.soln)):
+        for i in range(len(self.soln)):
             if(self.soln[i][0] > r):
                 if(i>0):
                     e1  = self.soln[i][2]
@@ -188,7 +188,7 @@ class EarthLikeProfileConstantTemp3d():
         while(r>0):
             # get the eos for this radius
             if(eoscount>1):
-                for i in xrange(eoscount):
+                for i in range(eoscount):
                     ermin = eostup[2*i+1][0]
                     ermax = eostup[2*i+1][1]
                     if(r<=ermax and r>=ermin):
@@ -220,7 +220,7 @@ class EarthLikeProfileConstantTemp3d():
                 #rho = 10.0*rho
                 while ((abs(d)>tol) and (iter < 1000)):
                     if (d>1.0 and iter ==1 ):
-                        print "i think eos just changed?"
+                        print("i think eos just changed?")
                         #rho = 10.0*rhoold
                     rhof[0] = rho
                     eos.setSpecificThermalEnergy(ef,rhof,tempf)
@@ -252,7 +252,7 @@ class EarthLikeProfileConstantTemp3d():
                 y   = y + dy
             step    += 1
         
-        print "\n\n\n\nNow Forward...\n\n\n\n"
+        print("\n\n\n\nNow Forward...\n\n\n\n")
         # got central density, now solve outward until Mtot = M0
         self.soln.append([0,rho])
         Mt  = 0
@@ -265,7 +265,7 @@ class EarthLikeProfileConstantTemp3d():
             Mt = Mt + 4.0*pi*r*r*rho*dr
             # get the eos for this radius
             if(eoscount>1):
-                for i in xrange(eoscount):
+                for i in range(eoscount):
                     ermin = eostup[2*i+1][0]
                     ermax = eostup[2*i+1][1]
                     if(r<=ermax and r>=ermin):
@@ -295,7 +295,7 @@ class EarthLikeProfileConstantTemp3d():
                 #print "old rho was %f" % rho
                 while ((abs(d)>tol) and (iter < 1000)):
                     if (abs(d) > 1 and iter ==1):
-                        print "i think the eos just changed?"
+                        print("i think the eos just changed?")
                     rhof[0] = rho
                     eos.setSpecificThermalEnergy(ef,rhof,tempf)
                     eos.setPressure(Pf,rhof,ef)
@@ -327,7 +327,7 @@ class EarthLikeProfileConstantTemp3d():
         self.rMax = r - dr  # to call inside the script to reset rMax
 
         totM = 0.0
-        for i in xrange(len(self.soln)-1):
+        for i in range(len(self.soln)-1):
             r1 = self.soln[i+1][0]
             r0 = self.soln[i][0]
             f1 = self.soln[i+1][1]*r1*r1
@@ -337,7 +337,7 @@ class EarthLikeProfileConstantTemp3d():
 
     def __call__(self,r):
         rho = self.rho0
-        for i in xrange(len(self.soln)):
+        for i in range(len(self.soln)):
             if(self.soln[i][0] > r):
                 if(i>0):
                     f1  = self.soln[i][1]
@@ -403,7 +403,7 @@ class HydroStaticProfileConstantTemp3d():
         while(r>0):
             # get the eos for this radius
             if(eoscount>1):
-                for i in xrange(eoscount):
+                for i in range(eoscount):
                     ermin = eostup[2*i+1][0]
                     ermax = eostup[2*i+1][1]
                     if(r<=ermax and r>=ermin):
@@ -420,7 +420,7 @@ class HydroStaticProfileConstantTemp3d():
                 eos = eostup[0]
             
             if eosSwitch:
-                print "Switching eos at r=%e" % r
+                print("Switching eos at r=%e" % r)
                 #print eosold,eos
                 # compute a new rho based on pressure and the new eos
                 # first get old rho -> pressure
@@ -433,7 +433,7 @@ class HydroStaticProfileConstantTemp3d():
                 tol = 0.0001
                 d = 1.0
                 iter = 0
-                print "old rho was %f" % rho
+                print("old rho was %f" % rho)
                 while ((abs(d)>tol) and (iter < 1000)):
                     rhof[0] = rho
                     eos.setSpecificThermalEnergy(ef,rhof,tempf)
@@ -445,7 +445,7 @@ class HydroStaticProfileConstantTemp3d():
                     d = (Pn-P)/Kn
                     rho *= (1.0-d)
                     iter += 1
-                print "new rho is %f after %d iterations, d was %f" % (rho,iter,d)
+                print("new rho is %f after %d iterations, d was %f" % (rho,iter,d))
             
             
             rhof[0] = rho
@@ -475,7 +475,7 @@ class HydroStaticProfileConstantTemp3d():
             Mt = Mt + 4.0*pi*r*r*rho*dr
             # get the eos for this radius
             if(eoscount>1):
-                for i in xrange(eoscount):
+                for i in range(eoscount):
                     ermin = eostup[2*i+1][0]
                     ermax = eostup[2*i+1][1]
                     if(r<=ermax and r>=ermin):
@@ -492,7 +492,7 @@ class HydroStaticProfileConstantTemp3d():
                 eos = eostup[0]
             
             if eosSwitch:
-                print "Switching eos at r=%e" % r
+                print("Switching eos at r=%e" % r)
                 #print eosold,eos
                 # compute a new rho based on pressure and the new eos
                 # first get old rho -> pressure
@@ -505,7 +505,7 @@ class HydroStaticProfileConstantTemp3d():
                 tol = 0.0001
                 d = 1.0
                 iter = 0
-                print "old rho was %f" % rho
+                print("old rho was %f" % rho)
                 while ((abs(d)>tol) and (iter < 1000)):
                     rhof[0] = rho
                     eos.setSpecificThermalEnergy(ef,rhof,tempf)
@@ -517,7 +517,7 @@ class HydroStaticProfileConstantTemp3d():
                     d = (Pn-P)/Kn
                     rho *= (1.0-d)
                     iter += 1
-                print "new rho is %f after %d iterations, d was %f" % (rho,iter,d)
+                print("new rho is %f after %d iterations, d was %f" % (rho,iter,d))
             
             rhof[0] = rho
             eos.setSpecificThermalEnergy(ef,rhof,tempf)
@@ -538,7 +538,7 @@ class HydroStaticProfileConstantTemp3d():
     
     def __call__(self,r):
         rho = self.rho0
-        for i in xrange(len(self.soln)):
+        for i in range(len(self.soln)):
             if(self.soln[i][0] > r):
                 if(i>0):
                     f1  = self.soln[i][1]
@@ -601,7 +601,7 @@ class OldHydroStaticProfileConstantTemp3d():
         while(r>0):
             # get the eos for this radius
             if(eoscount>1):
-                for i in xrange(eoscount):
+                for i in range(eoscount):
                     ermin = eostup[2*i+1][0]
                     ermax = eostup[2*i+1][1]
                     if(r<=ermax and r>=ermin):
@@ -616,7 +616,7 @@ class OldHydroStaticProfileConstantTemp3d():
             eos.setBulkModulus(Kf,rhof,ef)
             K       = Kf[0]
             
-            print "dy, dr, rho, y, G, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e}".format(dy,dr,rho,y,units.G,K)
+            print("dy, dr, rho, y, G, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e}".format(dy,dr,rho,y,units.G,K))
             
             dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
             self.soln.append([r,rho])
@@ -628,7 +628,7 @@ class OldHydroStaticProfileConstantTemp3d():
     
     def __call__(self,r):
         rho = self.rho0
-        for i in xrange(len(self.soln)):
+        for i in range(len(self.soln)):
             if(self.soln[i][0] > r):
                 if(i>0):
                     f1  = self.soln[i][1]
@@ -693,7 +693,7 @@ class HydroStaticProfileConstantTemp2d():
         while(r>0):
             # get the eos for this radius
             if(eoscount>1):
-                for i in xrange(eoscount):
+                for i in range(eoscount):
                     ermin = eostup[2*i+1][0]
                     ermax = eostup[2*i+1][1]
                     if(r<=ermax and r>=ermin):
@@ -713,7 +713,7 @@ class HydroStaticProfileConstantTemp2d():
             rho     = rho - y*dr
             r       = r - dr
     
-        print "Now Forward..."
+        print("Now Forward...")
         # got central density, now solve outward until Mtot = M0
         self.soln.append([0,rho])
         Mt  = 0
@@ -723,7 +723,7 @@ class HydroStaticProfileConstantTemp2d():
             Mt = Mt + 2.0*pi*r*rho*dr
             # get the eos for this radius
             if(eoscount>1):
-                for i in xrange(eoscount):
+                for i in range(eoscount):
                     ermin = eostup[2*i+1][0]
                     ermax = eostup[2*i+1][1]
                     if(r<=ermax and r>=ermin):
@@ -738,7 +738,7 @@ class HydroStaticProfileConstantTemp2d():
             eos.setBulkModulus(Kf,rhof,ef)
             K       = Kf[0]
             
-            print "dy, dr, rho, y, r, Mt, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e} {6:3.3e}".format(dy,dr,rho,y,r,Mt,K)
+            print("dy, dr, rho, y, r, Mt, K = {0:3.3e} {1:3.3e} {2:3.3e} {3:3.3e} {4:3.3e} {5:3.3e} {6:3.3e}".format(dy,dr,rho,y,r,Mt,K))
             dy      = dr*(2.0/rho*y*y - 2.0/r*y - units.G/K*4.0*pi*pow(rho,3.0))
             #self.soln.append([r,rho])
             y       = y + dy
@@ -753,7 +753,7 @@ class HydroStaticProfileConstantTemp2d():
     
     def __call__(self,r):
         rho = self.rho0
-        for i in xrange(len(self.soln)):
+        for i in range(len(self.soln)):
             if(self.soln[i][0] > r):
                 if(i>0):
                     f1  = self.soln[i][1]
@@ -816,7 +816,7 @@ class OldHydroStaticProfileConstantTemp2d():
         while(r>0):
             # get the eos for this radius
             if(eoscount>1):
-                for i in xrange(eoscount):
+                for i in range(eoscount):
                     ermin = eostup[2*i+1][0]
                     ermax = eostup[2*i+1][1]
                     if(r<=ermax and r>=ermin):
@@ -840,7 +840,7 @@ class OldHydroStaticProfileConstantTemp2d():
     
     def __call__(self,r):
         rho = self.rho0
-        for i in xrange(len(self.soln)):
+        for i in range(len(self.soln)):
             if(self.soln[i][0] > r):
                 if(i>0):
                     f1  = self.soln[i][1]
@@ -908,7 +908,7 @@ class EarthLikeProfileConstantTemp2d():
         while(r>0):
             # get the eos for this radius
             if(eoscount>1):
-                for i in xrange(eoscount):
+                for i in range(eoscount):
                     ermin = eostup[2*i+1][0]
                     ermax = eostup[2*i+1][1]
                     if(r<=ermax and r>=ermin):
@@ -978,7 +978,7 @@ class EarthLikeProfileConstantTemp2d():
             Mt = Mt + 4.0*pi*r*r*rho*dr
             # get the eos for this radius
             if(eoscount>1):
-                for i in xrange(eoscount):
+                for i in range(eoscount):
                     ermin = eostup[2*i+1][0]
                     ermax = eostup[2*i+1][1]
                     if(r<=ermax and r>=ermin):
@@ -1038,7 +1038,7 @@ class EarthLikeProfileConstantTemp2d():
         self.rMax = r - dr  # to call inside the script to reset rMax
         
         totM = 0.0
-        for i in xrange(len(self.soln)-1):
+        for i in range(len(self.soln)-1):
             r1 = self.soln[i+1][0]
             r0 = self.soln[i][0]
             f1 = self.soln[i+1][1]*r1*r1
@@ -1048,7 +1048,7 @@ class EarthLikeProfileConstantTemp2d():
     
     def __call__(self,r):
         rho = self.rho0
-        for i in xrange(len(self.soln)):
+        for i in range(len(self.soln)):
             if(self.soln[i][0] > r):
                 if(i>0):
                     f1  = self.soln[i][1]

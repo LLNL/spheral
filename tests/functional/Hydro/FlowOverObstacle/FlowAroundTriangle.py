@@ -121,7 +121,7 @@ output("nodes.numNodes")
 
 # Set node velocities
 vel = nodes.velocity()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     vel[i].x = v0
 
 #-------------------------------------------------------------------------------

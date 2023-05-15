@@ -36,7 +36,7 @@ class Pnorm:
 
         # Make a copy to work on, and sort it.
         n = len(positionData)
-        rData = zip(positionData[:], range(n))
+        rData = list(zip(positionData[:], list(range(n))))
         rData.sort()
 
         if rmin is None:
@@ -46,7 +46,7 @@ class Pnorm:
 
         n = len(positionData)
         weightData = np.zeros(n)
-        for i in xrange(n):
+        for i in range(n):
             if positionData[i] >= rmin and positionData[i] <= rmax:
                 weightData[i] = 1.0
         return weightData
@@ -58,7 +58,7 @@ class Pnorm:
 
         # Make a copy to work on, and sort it.
         n = len(positionData)
-        rData = zip(positionData[:], range(n))
+        rData = list(zip(positionData[:], list(range(n))))
         rData.sort()
 
         if rmin is None:
@@ -68,7 +68,7 @@ class Pnorm:
 
         # Now build up the grid weighting based on the dr steps.
         weightData = np.zeros(n)
-        for j in xrange(n):
+        for j in range(n):
             i = rData[j][1]
             if j == 0:
                 r0 = max(rmin, min(rmax, rData[j][0]))

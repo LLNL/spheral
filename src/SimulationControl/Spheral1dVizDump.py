@@ -78,7 +78,7 @@ class Spheral1dVizDump:
                 try:
                     os.makedirs(outputdir)
                 except:
-                    raise ValueError, "Cannot create output directory %s" % outputdir
+                    raise ValueError("Cannot create output directory %s" % outputdir)
         mpi.barrier()
 
         # Now build the output file name, including directory.  Make sure
@@ -119,7 +119,7 @@ class Spheral1dVizDump:
         elif isinstance(field, SymTensorField1d):
             addFieldToGroup(field, self._symTensorFieldGroups)
         else:
-            raise RuntimeError, "What is %s?" % field
+            raise RuntimeError("What is %s?" % field)
         self._nodeLists.add(field.nodeList())
         return
 
@@ -164,7 +164,7 @@ class Spheral1dVizDump:
             tensorFields = [findFieldForNodeList(nodes, fname, tensorFieldGroups[fname], TensorField1d) for fname in tensorFieldGroups]
             symTensorFields = [findFieldForNodeList(nodes, fname, symTensorFieldGroups[fname], SymTensorField1d) for fname in symTensorFieldGroups]
             pos = nodes.positions()
-            for i in xrange(nodes.numInternalNodes):
+            for i in range(nodes.numInternalNodes):
                 values.append([pos[i].x, nodeListID])
                 for f in scalarFields:
                     values[-1].append(f[i])
@@ -284,7 +284,7 @@ def dumpPhysicsState(stateThingy,
             fmax.name = "hmax"
             fratio.name = "hmin_hmax_ratio"
             n = H.nodeList().numInternalNodes
-            for i in xrange(n):
+            for i in range(n):
                 ev = H[i].eigenValues()
                 fmin[i] = 1.0/ev.maxElement()
                 fmax[i] = 1.0/ev.minElement()
@@ -306,7 +306,7 @@ def dumpPhysicsState(stateThingy,
         domains = dataBase.newGlobalScalarFieldList()
         for f in domains:
             f.name = "Domains"
-            for i in xrange(f.nodeList().numInternalNodes):
+            for i in range(f.nodeList().numInternalNodes):
                 f[i] = mpi.rank
         fieldLists.append(domains)
     except:

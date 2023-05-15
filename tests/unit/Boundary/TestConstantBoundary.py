@@ -60,7 +60,7 @@ class ConstantBoundaryTest1d(ConstantBoundaryTest, unittest.TestCase):
         self.nodes.setHfield(SymTensorField1d(self.nodes, H1))
         self.nodes.setMassDensity(ScalarField1d(self.nodes, self.rho))
         constantNodeIDs = vector_of_int()
-        for i in xrange(self.n, self.n + self.nghost):
+        for i in range(self.n, self.n + self.nghost):
             constantNodeIDs.append(i)
         self.field = ScalarField1d(self.nodes)
         for i in constantNodeIDs:
@@ -113,7 +113,7 @@ class ConstantBoundaryTest2d(ConstantBoundaryTest, unittest.TestCase):
         nodeInfo = distributeNodes2d([(self.nodes, n1, generator)])
         self.nodes.setMassDensity(ScalarField2d(self.nodes, self.rho))
         constantNodeIDs = vector_of_int()
-        for i in xrange(n1):
+        for i in range(n1):
             if self.nodes.positions()[i].magnitude() > self.rmax:
                 constantNodeIDs.append(i)
         self.nghost = len(constantNodeIDs)
@@ -174,7 +174,7 @@ class ConstantBoundaryTest3d(ConstantBoundaryTest, unittest.TestCase):
         nodeInfo = distributeNodes3d([(self.nodes, n1, generator)])
         self.nodes.setMassDensity(ScalarField3d(self.nodes, self.rho))
         constantNodeIDs = vector_of_int()
-        for i in xrange(n1):
+        for i in range(n1):
             if self.nodes.positions()[i].magnitude() > self.rmax:
                 constantNodeIDs.append(i)
         self.nghost = len(constantNodeIDs)

@@ -20,14 +20,14 @@ class TestNestedGridRedistribute1d(TestDistributeByPosition1d):
 
     # The actual test itself!
     def runTest(self):
-        print "Testing NestedGridRedistribute1d on domain %i of %i domains" % \
-              (domainID, nDomains)
+        print("Testing NestedGridRedistribute1d on domain %i of %i domains" % \
+              (domainID, nDomains))
 
         # Record how many nodes we're starting with.
         nNodesGlobal = []
-        for nodeList in [self.dataBase.nodeLists()[i] for i in xrange(self.dataBase.numNodeLists)]:
+        for nodeList in [self.dataBase.nodeLists()[i] for i in range(self.dataBase.numNodeLists)]:
             nNodesGlobal.append(mpi.allreduce(nodeList.numInternalNodes, mpi.SUM))
-        print "Total num nodes: ", nNodesGlobal, sum(nNodesGlobal)
+        print("Total num nodes: ", nNodesGlobal, sum(nNodesGlobal))
 
         # Go ahead and redistribute those nodes!
         repartition = NestedGridRedistributeNodes1d(2.0)
@@ -35,7 +35,7 @@ class TestNestedGridRedistribute1d(TestDistributeByPosition1d):
 
         # Make sure that the numbers of nodes are correct.
         assert self.dataBase.numNodeLists == len(nNodesGlobal)
-        for nodeList, nGlobal in zip([self.dataBase.nodeLists()[i] for i in xrange(self.dataBase.numNodeLists)],
+        for nodeList, nGlobal in zip([self.dataBase.nodeLists()[i] for i in range(self.dataBase.numNodeLists)],
                                      nNodesGlobal):
             n = mpi.allreduce(nodeList.numInternalNodes, mpi.SUM)
             if n != nGlobal:
@@ -52,10 +52,10 @@ class TestNestedGridRedistribute1d(TestDistributeByPosition1d):
         # is exclusive in x range.
         localxmin = 1e10
         localxmax = -1e10
-        for nodeList in [self.dataBase.nodeLists()[i] for i in xrange(self.dataBase.numNodeLists)]:
+        for nodeList in [self.dataBase.nodeLists()[i] for i in range(self.dataBase.numNodeLists)]:
             if nodeList.numInternalNodes > 0:
-                localxmin = min(localxmin, min([r.x for r in [nodeList.positions().internalValues()[i] for i in xrange(nodeList.numInternalNodes())]]))
-                localxmax = max(localxmax, max([r.x for r in [nodeList.positions().internalValues()[i] for i in xrange(nodeList.numInternalNodes())]]))
+                localxmin = min(localxmin, min([r.x for r in [nodeList.positions().internalValues()[i] for i in range(nodeList.numInternalNodes())]]))
+                localxmax = max(localxmax, max([r.x for r in [nodeList.positions().internalValues()[i] for i in range(nodeList.numInternalNodes())]]))
 
         sys.stderr.write("Process %i in x range (%f, %f)\n" % (domainID, localxmin, localxmax))
 
@@ -68,8 +68,8 @@ class TestNestedGridRedistribute2d(TestParmetisRedistribute2d):
     # Create a NestedGridRedistributeNodes object, have it redistribute the
     # nodes.
     def testDistribute(self):
-        print "Testing NestedGridRedistributeNodes2d on domain %i of %i domains" % \
-              (domainID, nDomains)
+        print("Testing NestedGridRedistributeNodes2d on domain %i of %i domains" % \
+              (domainID, nDomains))
 
         # Record how many nodes we're starting with.
         nNodesGlobal = []

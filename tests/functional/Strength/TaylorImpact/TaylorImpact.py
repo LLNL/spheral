@@ -299,7 +299,7 @@ output('WT')
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
-print "Generating node distribution."
+print("Generating node distribution.")
 #...............................................................................
 # 2D
 if geometry == "2d":
@@ -547,7 +547,7 @@ output("control")
 # in order to avoid interpenetration at the interface.
 #-------------------------------------------------------------------------------
 if (not reflect) and control.totalSteps == 0:
-    print "Smoothing initial velocity field."
+    print("Smoothing initial velocity field.")
     state = State(db, integrator.physicsPackages())
     derivs = StateDerivatives(db, integrator.physicsPackages())
     integrator.initialize(state, derivs)
@@ -572,7 +572,7 @@ else:
 #-------------------------------------------------------------------------------
 if siloSnapShotFile:
     from siloPointmeshDump import siloPointmeshDump
-    print "Generating snapshot in silo files."
+    print("Generating snapshot in silo files.")
 
     # First generate the state and derivatives.
     state = State(db, integrator.physicsPackages())

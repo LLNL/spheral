@@ -151,7 +151,7 @@ def checkRho(steps, t, dt):
     rhoMin = rho.min()
     rhoMax = rho.max()
     fluc = abs(rhoMin/rhoMax - 1.0)
-    print "rho bounds : [%g, %g], variation %g" % (rhoMin, rhoMax, fluc)
+    print("rho bounds : [%g, %g], variation %g" % (rhoMin, rhoMax, fluc))
     if fluc > tol:
         dumpPhysicsState(integrator,
                          baseFileName = "periodic_boundary_2d",
@@ -159,7 +159,7 @@ def checkRho(steps, t, dt):
                          currentTime = t,
                          currentCycle = steps,
                          dumpGhosts = False)
-        raise ValueError, "rho fluctuation outside bounds"
+        raise ValueError("rho fluctuation outside bounds")
     return
 
 #-------------------------------------------------------------------------------
@@ -176,4 +176,4 @@ control.appendPeriodicWork(checkRho, 1)
 # Advance to the end time.
 #-------------------------------------------------------------------------------
 control.step(steps)
-print "** PASS **"
+print("** PASS **")

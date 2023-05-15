@@ -26,7 +26,7 @@ def randomDistribute(thisDomain,     # domain ID to be calculated
     g = random.Random()
     globalNodeIDs = []
     nodePositions = []
-    for globalNodeID in xrange(0, nNodesGlobal):
+    for globalNodeID in range(0, nNodesGlobal):
         mpi.barrier()
         domain0 = g.randint(0, nDomains - 1)
         domain = mpi.bcast(domain0)
@@ -91,7 +91,7 @@ class TestDistributeByPosition2d(unittest.TestCase):
             n = len(globalIDs)
             nodes.numInternalNodes = n
             Hi = determineH(nGlobal, globalRange)
-            for i in xrange(n):
+            for i in range(n):
                 nodes.mass()[i] = 1.0
                 nodes.positions()[i] = xyNodes[i]
                 nodes.Hfield()[i] = Hi
@@ -120,8 +120,8 @@ class TestDistributeByPosition2d(unittest.TestCase):
     # nodes, and check that each domains x distribution is contiguous and
     # in the right order.
     def testIt(self):
-        print "Testing DistributeByXPosition2d on domain %i of %i domains" % \
-              (domainID, nDomains)
+        print("Testing DistributeByXPosition2d on domain %i of %i domains" % \
+              (domainID, nDomains))
 
         # Record how many nodes we're starting with.
         nNodesGlobal = []
@@ -148,15 +148,15 @@ class TestDistributeByPosition2d(unittest.TestCase):
         localxmax = -1e10
         for nodeList in self.dataBase.nodeLists():
             if nodeList.numInternalNodes > 0:
-                localxmin = min(localxmin, min([nodeList.positions()[i].x for i in xrange(nodeList.numNodes)]))
-                localxmax = max(localxmax, max([nodeList.positions()[i].x for i in xrange(nodeList.numNodes)]))
+                localxmin = min(localxmin, min([nodeList.positions()[i].x for i in range(nodeList.numNodes)]))
+                localxmax = max(localxmax, max([nodeList.positions()[i].x for i in range(nodeList.numNodes)]))
 
         # Now make sure that our (xmin,xmax) range is greater than any processor
         # less than us, and less than any processor greater.
         localDomRange = [(domainID, localxmin, localxmax)]
         globalDomRange = mpi.allreduce(localDomRange, mpi.SUM)
         globalDomRange.sort()
-        for i in xrange(1, len(globalDomRange)):
+        for i in range(1, len(globalDomRange)):
             if globalDomRange[i][1] < globalDomRange[i-1][1]:
                 self.fail("(proc,xmin) not in order")
             if globalDomRange[i][2] < globalDomRange[i-1][2]:

@@ -88,7 +88,7 @@ class SpheralPolytopeSiloDump:
                 try:
                     os.makedirs(outputdir)
                 except:
-                    raise ValueError, "Cannot create output directory %s" % outputdir
+                    raise ValueError("Cannot create output directory %s" % outputdir)
         mpi.barrier()
 
         # Now build the output file name.
@@ -98,7 +98,7 @@ class SpheralPolytopeSiloDump:
         gens = vector_of_double()
         for nodes in self._nodeLists:
             pos = nodes.positions()
-            for i in xrange(nodes.numInternalNodes):
+            for i in range(nodes.numInternalNodes):
                 for coord in pos[i]:
                     gens.append(coord)
 
@@ -112,7 +112,7 @@ class SpheralPolytopeSiloDump:
                 serial_tessellator = polytope.BoostTessellator2d()
         else:
             assert self.ndim == 3
-            raise RuntimeError, "Sorry: 3D tessellation silo dumps are not supported yet."
+            raise RuntimeError("Sorry: 3D tessellation silo dumps are not supported yet.")
         if mpi.procs > 1:
             tessellator = eval("polytope.DistributedTessellator%s(serial_tessellator)" % self.dimension)
         else:
@@ -133,7 +133,7 @@ class SpheralPolytopeSiloDump:
             det = eval("ScalarField%s('%s_determinant', n)" % (self.dimension, f.name))
             mineigen = eval("ScalarField%s('%s_eigen_min', n)" % (self.dimension, f.name))
             maxeigen = eval("ScalarField%s('%s_eigen_max', n)" % (self.dimension, f.name))
-            for i in xrange(n.numInternalNodes):
+            for i in range(n.numInternalNodes):
                 tr[i] = f[i].Trace()
                 det[i] = f[i].Determinant()
                 eigen = f[i].eigenValues()
@@ -224,7 +224,7 @@ class SpheralPolytopeSiloDump:
         redundantSet.sort()
         assert len(redundantSet) > 0
         result = [redundantSet[0][1]]
-        for i in xrange(1, len(redundantSet)):
+        for i in range(1, len(redundantSet)):
             if redundantSet[i][0] != redundantSet[i - 1][0]:
                 result.append(redundantSet[i][1])
         names = [x.name for x in result]
@@ -320,7 +320,7 @@ def dumpPhysicsState(stateThingy,
             fmax.name = "hmax"
             fratio.name = "hmin_hmax_ratio"
             n = H.nodeList().numInternalNodes
-            for i in xrange(n):
+            for i in range(n):
                 ev = H[i].eigenValues()
                 fmin[i] = 1.0/ev.maxElement()
                 fmax[i] = 1.0/ev.minElement()
@@ -342,7 +342,7 @@ def dumpPhysicsState(stateThingy,
         domains = dataBase.newGlobalScalarFieldList()
         for f in domains:
             f.name = "Domains"
-            for i in xrange(f.nodeList().numInternalNodes):
+            for i in range(f.nodeList().numInternalNodes):
                 f[i] = mpi.rank
         fieldLists.append(domains)
     except:

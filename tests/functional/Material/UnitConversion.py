@@ -49,10 +49,10 @@ elif unitType == "mixed":
     
 for val, ref, desc in vals:
     if abs(val - ref) / ref > 1.e-10:
-        print("{} test for {} failed\n\tcalculated: {} \t expected: {}".format(unitType, desc, val, ref))
+        print(("{} test for {} failed\n\tcalculated: {} \t expected: {}".format(unitType, desc, val, ref)))
         checksum += 1
             
 if checksum > 0:
-    raise ValueError, "number of tests failed: {}".format(checksum)
+    raise ValueError("number of tests failed: {}".format(checksum))
 else:
     print("all tests passed")

@@ -52,8 +52,8 @@ class KidderIsentropicCapsuleBoundary1d(Boundary1d):
     #---------------------------------------------------------------------------
     def setGhostNodes(self, nodeList):
         self.addNodeList(self.nodes)
-        self.nodeIDs = range(self.nodes.numNodes,
-                             self.nodes.numNodes + self.nr)
+        self.nodeIDs = list(range(self.nodes.numNodes,
+                             self.nodes.numNodes + self.nr))
         nodeList.numGhostNodes = self.nodes.numGhostNodes + self.nr
         boundNodes = self.accessBoundaryNodes(nodeList)
         for i in self.nodeIDs:
@@ -91,7 +91,7 @@ class KidderIsentropicCapsuleBoundary1d(Boundary1d):
 
         mass = nodeList.mass()
         self.massBoundary(mass)
-        print "mass: ", [mass[i] for i in self.nodeIDs]
+        print("mass: ", [mass[i] for i in self.nodeIDs])
 
         nodeList.neighbor().updateNodes()
         return
@@ -104,10 +104,10 @@ class KidderIsentropicCapsuleBoundary1d(Boundary1d):
     def applyGhostBoundary(self, field):
 
         if field.name not in self.fieldToMethodMap:
-            print "KidderBoundary WARNING: unable to apply boundary condition to %s" % field.name
+            print("KidderBoundary WARNING: unable to apply boundary condition to %s" % field.name)
             return
 
-        print "Apply GHOST to ", field.name
+        print("Apply GHOST to ", field.name)
         self.fieldToMethodMap[field.name](field)
         return
 
@@ -136,12 +136,12 @@ class KidderIsentropicCapsuleBoundary1d(Boundary1d):
         assert field.name == HydroFieldNames.mass
         t = self.integrator.currentTime
         pos = self.nodes.positions()
-        print "Applying mass boundary"
+        print("Applying mass boundary")
         for i in self.nodeIDs:
             rhoi = self.answer.rho(t, pos[i].x)
             field[i] = rhoi * self.dr
             assert field[i] > 0.0
-            print " --> ", i, rhoi, field[i]
+            print(" --> ", i, rhoi, field[i])
         return
 
     #---------------------------------------------------------------------------
@@ -253,7 +253,7 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
         Hi = SymTensor1d(1.0/max(self.hmin, min(self.hmax, self.hinitial*hfrac)))
 
         # Now set these variables for the nodes we're controlling.
-        for k in xrange(len(self.nodeIDs)):
+        for k in range(len(self.nodeIDs)):
             i = self.nodeIDs[k]
             ri = self.initialRadii[k]*hfrac
             voli = self.dr0*hfrac
@@ -301,7 +301,7 @@ class KidderIsentropicCapsuleEnforcementBoundary1d(Physics1d):
         Hi = SymTensor1d(1.0/max(self.hmin, min(self.hmax, self.hinitial*hfrac)))
 
         # Now set these variables for the nodes we're controlling.
-        for k in xrange(len(self.nodeIDs)):
+        for k in range(len(self.nodeIDs)):
             i = self.nodeIDs[k]
             ri = self.initialRadii[k]*hfrac
             rhoi = mass[i]/(self.dr0*hfrac)   # self.answer.rho(t, ri)

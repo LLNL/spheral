@@ -32,7 +32,7 @@ rangen = random.Random()
 # Return a random string to help make test files unique.
 #===============================================================================
 def randomString():
-    l = range(20)
+    l = list(range(20))
     random.shuffle(l)
     result = ""
     for x in l:
@@ -145,7 +145,7 @@ class UniformPolygonalMeshTests(unittest.TestCase, PolygonalMeshSiloGenericTests
         dxavg = (x1 - x0)/nx
         dyavg = (y1 - y0)/ny
         self.dxmin = dxavg
-        xynodes_all = [Vector(x0 + (i % nx + 0.5)*dxavg, y0 + (i / nx + 0.5)*dyavg) for i in xrange(n)]
+        xynodes_all = [Vector(x0 + (i % nx + 0.5)*dxavg, y0 + (i / nx + 0.5)*dyavg) for i in range(n)]
         xynodes = [v for v in xynodes_all if testPointInBox(v, xminproc, xmaxproc)]
         assert len(xynodes) == nperdomain
         assert mpi.allreduce(len(xynodes), mpi.SUM) == n
@@ -155,7 +155,7 @@ class UniformPolygonalMeshTests(unittest.TestCase, PolygonalMeshSiloGenericTests
         random.shuffle(xynodes)
 
         # Now we can set the node conditions.
-        for i in xrange(nperdomain):
+        for i in range(nperdomain):
             self.pos[i] = xynodes[i]
             self.H[i] = SymTensor(1.0/(2.0*dxavg), 0.0,
                                   0.0, 1.0/(2.0*dyavg))
@@ -208,7 +208,7 @@ class RandomPolygonalMeshTests(unittest.TestCase, PolygonalMeshSiloGenericTests)
         # to keep nodes from getting too close together.
         xynodes_all = []
         occupiedCells = set()
-        for k in xrange(n):
+        for k in range(n):
             i = rangen.randint(0, ncell)
             while i in occupiedCells:
                 i = rangen.randint(0, ncell)
@@ -226,7 +226,7 @@ class RandomPolygonalMeshTests(unittest.TestCase, PolygonalMeshSiloGenericTests)
 
         # Now we can set the node conditions.
         self.nodes.numInternalNodes = len(xynodes)
-        for i in xrange(len(xynodes)):
+        for i in range(len(xynodes)):
             self.pos[i] = xynodes[i]
             self.H[i] = SymTensor(1.0/(2.0*dxavg), 0.0,
                                   0.0, 1.0/(2.0*dyavg))

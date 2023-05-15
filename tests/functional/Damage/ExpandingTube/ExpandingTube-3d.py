@@ -47,7 +47,7 @@ class VelocityDiffuser(Physics):
         assert len(velocities) == len(specificEnergies)
         for vel, eps in zip(velocities, specificEnergies):
             assert vel.numInternalElements == eps.numInternalElements
-            for i in xrange(vel.numInternalElements):
+            for i in range(vel.numInternalElements):
                 vmag2 = vel[i].magnitude2()
                 if vmag2 > self.vmax2:
                     deps = 0.5*(vmag2 - self.vmax2)
@@ -543,7 +543,7 @@ del n
 # Set node properties (positions, velocites, etc.)
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    print "Generating node distribution."
+    print("Generating node distribution.")
     from GenerateNodeDistribution3d import *
     from CompositeNodeDistribution import *
     from VoronoiDistributeNodes import distributeNodes3d
@@ -648,13 +648,13 @@ if restoreCycle is None:
                       (nodesCuAnvil, generatorCuAnvil))
     nGlobalNodes = 0
     for n in nodeSet:
-        print "Generator info for %s" % n.name
+        print("Generator info for %s" % n.name)
         output("    mpi.allreduce(n.numInternalNodes, mpi.MIN)")
         output("    mpi.allreduce(n.numInternalNodes, mpi.MAX)")
         output("    mpi.allreduce(n.numInternalNodes, mpi.SUM)")
         nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
     del n
-    print "Total number of (internal) nodes in simulation: ", nGlobalNodes
+    print("Total number of (internal) nodes in simulation: ", nGlobalNodes)
 
     # Bevel the inner opening surface of the target tube.
     numNodesBeveled = bevelTubeEntrance(nodesSteel,
@@ -663,19 +663,19 @@ if restoreCycle is None:
                                         rtubeInner,
                                         tubeThickness,
                                         zBevelBegin)
-    print "Beveled %i nodes in the tube opening." % mpi.allreduce(numNodesBeveled,
-                                                                  mpi.SUM)
+    print("Beveled %i nodes in the tube opening." % mpi.allreduce(numNodesBeveled,
+                                                                  mpi.SUM))
 
     # Adjust the diameter of the projectile inward a bit, so it will slide
     # into the tube properly.
     drProj = compressProjectile*nPerh*rproj/nrproj
     projMultiplier = (rproj - drProj)/rproj
-    for i in xrange(nodesProj.numInternalNodes):
+    for i in range(nodesProj.numInternalNodes):
         nodesProj.positions()[i].x *= projMultiplier
         nodesProj.positions()[i].y *= projMultiplier
 
     # Adjust the plug to match.
-    for i in xrange(nodesPlug.numInternalNodes):
+    for i in range(nodesPlug.numInternalNodes):
         nodesPlug.positions()[i].x *= projMultiplier
         nodesPlug.positions()[i].y *= projMultiplier
 
@@ -690,8 +690,8 @@ if restoreCycle is None:
         # Set node specific thermal energies
         u0 = n.equationOfState().specificThermalEnergy(rho0, 300.0)
         n.specificThermalEnergy(ScalarField("tmp", n, u0))
-        print "Initial pressure for %s: %g" % (n.name,
-                                               n.equationOfState().pressure(rho0, u0))
+        print("Initial pressure for %s: %g" % (n.name,
+                                               n.equationOfState().pressure(rho0, u0)))
     del n
 
     # Set the projectile velocities.
@@ -859,12 +859,12 @@ class SelectVISARNodes:
         return
     def __call__(self, nodes):
         r = nodes.positions()
-        potentials = [i for i in xrange(nodes.numInternalNodes)
+        potentials = [i for i in range(nodes.numInternalNodes)
                       if abs(r[i].z - self.z0) < self.dz]
         rxymax = mpi.allreduce(max([xymagnitude(r[i]) for i in potentials] + [-1e50]), mpi.MAX)
         result = [i for i in potentials if xymagnitude(r[i]) > rxymax - self.dr]
-        print "Selected %i %s velocimetry test points." % (mpi.allreduce(len(result), mpi.SUM),
-                                                           self.label)
+        print("Selected %i %s velocimetry test points." % (mpi.allreduce(len(result), mpi.SUM),
+                                                           self.label))
         return result
 
 #-------------------------------------------------------------------------------
@@ -926,7 +926,7 @@ def viz(fields = [],
     maxedamage = ScalarField("effective damage magnitude max", nodesSteel)
     sstrain = ScalarField("strain average", nodesSteel)
     esstrain = ScalarField("effective strain average", nodesSteel)
-    for i in xrange(nodesSteel.numInternalNodes):
+    for i in range(nodesSteel.numInternalNodes):
         sdamage[i] = tdamage[i].Trace()
         esdamage[i] = etdamage[i].Trace()
         ev = tdamage[i].eigenValues()
@@ -970,7 +970,7 @@ else:
 #-------------------------------------------------------------------------------
 if not steps is None:
     control.step(steps)
-    raise ValueError, "Completed %i steps." % steps
+    raise ValueError("Completed %i steps." % steps)
 else:
     while control.time() < goalTime:
         nextGoalTime = min(int((control.time() + 1.001*dtSample)/dtSample)*dtSample,

@@ -99,8 +99,8 @@ class GenerateSquareNodeDistribution(NodeGeneratorBase):
         self.y = []
         self.m = []
         self.H = []
-        for iy in xrange(iymin, iymax):
-            for ix in xrange(ixmin, ixmax):
+        for iy in range(iymin, iymax):
+            for ix in range(ixmin, ixmax):
                 self.x.append(xmin[0] + (ix + 0.5)*dx)
                 self.y.append(xmin[1] + (iy + 0.5)*dy)
                 self.m.append(m0)
@@ -242,9 +242,9 @@ class GenerateCubicNodeDistribution(NodeGeneratorBase):
         self.z = []
         self.m = []
         self.H = []
-        for iz in xrange(izmin, izmax):
-            for iy in xrange(iymin, iymax):
-                for ix in xrange(ixmin, ixmax):
+        for iz in range(izmin, izmax):
+            for iy in range(iymin, iymax):
+                for ix in range(ixmin, ixmax):
                     self.x.append(xmin[0] + (ix + 0.5)*dx)
                     self.y.append(xmin[1] + (iy + 0.5)*dy)
                     self.z.append(xmin[2] + (iz + 0.5)*dz)

@@ -68,7 +68,7 @@ class TestQuadraticInterpolator(unittest.TestCase):
     #===========================================================================
     def test_yinterp(self):
         for x in xgen(self.ntests, self.xmin, self.xmax):
-            self.failUnless(fuzzyEqual(self.F(x), self.func(x), self.fuzz),
+            self.assertTrue(fuzzyEqual(self.F(x), self.func(x), self.fuzz),
                             "Error interpolating F(x): %g != %g" % (self.F(x), self.func(x)))
 
     #===========================================================================
@@ -76,7 +76,7 @@ class TestQuadraticInterpolator(unittest.TestCase):
     #===========================================================================
     def test_dyinterp(self):
         for x in xgen(self.ntests, self.xmin, self.xmax):
-            self.failUnless(fuzzyEqual(self.F.prime(x), self.func.prime(x), self.fuzz),
+            self.assertTrue(fuzzyEqual(self.F.prime(x), self.func.prime(x), self.fuzz),
                             "Error interpolating F'(x): %g != %g" % (self.F.prime(x), self.func.prime(x)))
 
     #===========================================================================
@@ -84,7 +84,7 @@ class TestQuadraticInterpolator(unittest.TestCase):
     #===========================================================================
     def test_dy2interp(self):
         for x in xgen(self.ntests, self.xmin, self.xmax):
-            self.failUnless(fuzzyEqual(self.F.prime2(x), self.func.prime2(x), self.fuzz),
+            self.assertTrue(fuzzyEqual(self.F.prime2(x), self.func.prime2(x), self.fuzz),
                             "Error interpolating F''(x): %g != %g" % (self.F.prime2(x), self.func.prime2(x)))
 
 if __name__ == "__main__":

@@ -251,7 +251,7 @@ else:
     from DistributeNodes import distributeNodes2d
 
 distributeNodes2d((nodes, generator))
-print nodes.name, ":"
+print(nodes.name, ":")
 output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
 output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
 output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
@@ -260,7 +260,7 @@ output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 vel = nodes.velocity()
 eps = nodes.specificThermalEnergy()
 pos = nodes.positions()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     xi, yi = pos[i]
     r2=(xi-xc)*(xi-xc)+(yi-yc)*(yi-yc)
     ri=sqrt(r2)
@@ -296,14 +296,14 @@ output("db.numFluidNodeLists")
 # Build the conservation check.
 #------------------------------------------------------------------------------
 conserve = SpheralConservation(db)
-print "Initial conservation check:"
+print("Initial conservation check:")
 for lab, q in (("M", conserve.massHistory), 
                ("pmom.x", [x.x for x in conserve.pmomHistory]), 
                ("pmom.y", [x.y for x in conserve.pmomHistory]), 
                ("KE", conserve.KEHistory),
                ("TE", conserve.TEHistory), 
                ("E", conserve.EHistory)):
-    print "%10s: %g %s" % (lab, (q[-1] - q[0])/q[0], q)
+    print("%10s: %g %s" % (lab, (q[-1] - q[0])/q[0], q))
 
 #------------------------------------------------------------------------------
 # Write the starting conditions.
@@ -337,14 +337,14 @@ overlayNodeList(nodes, generator2,
 # Conservation check.
 #------------------------------------------------------------------------------
 conserve.updateHistory()
-print "Final conservation check:"
+print("Final conservation check:")
 for lab, q in (("M", conserve.massHistory), 
                ("pmom.x", [x.x for x in conserve.pmomHistory]), 
                ("pmom.y", [x.y for x in conserve.pmomHistory]), 
                ("KE", conserve.KEHistory),
                ("TE", conserve.TEHistory), 
                ("E", conserve.EHistory)):
-    print "%10s: %g %s" % (lab, (q[-1] - q[0])/q[0], q)
+    print("%10s: %g %s" % (lab, (q[-1] - q[0])/q[0], q))
 
 #------------------------------------------------------------------------------
 # Write the overlayed results.

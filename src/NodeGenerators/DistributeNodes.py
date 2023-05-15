@@ -18,7 +18,7 @@ def makeDistributeNodesMethod(distribute, SpheralModule):
         import mpi
         if mpi.procs > 1:
             if not hasattr(SpheralModule, distribute):
-                raise RuntimeError, "ERROR: %s is not available in the Spheral module" % distribute
+                raise RuntimeError("ERROR: %s is not available in the Spheral module" % distribute)
             distributeNodesGeneric.distributeNodesGeneric(listOfNodeTuples,
                                                           SpheralModule.DataBase,
                                                           SpheralModule.globalNodeIDs,
@@ -55,7 +55,7 @@ def distributeNodesInRange1d(listOfNodeTuples,
     totalNumNodes = sum(numNodesPerNodeList)
 
     # Determine the global node ID range for this domain.
-    nNodesPerDomain = totalNumNodes/mpi.procs
+    nNodesPerDomain = totalNumNodes // mpi.procs
     minNodeID = mpi.rank*nNodesPerDomain
     if mpi.rank == mpi.procs - 1:
         maxNodeID = totalNumNodes
@@ -85,7 +85,7 @@ def distributeNodesInRange1d(listOfNodeTuples,
                     nodes.numInternalNodes += numNewNodes
                     dx = (x1 - x0)/max(1, n)
                     Hi = SymTensor1d(1.0/max(nodes.hmin, min(nodes.hmax, nPerh*dx)))
-                    for i in xrange(numNewNodes):
+                    for i in range(numNewNodes):
                         if reverse:
                             xi = x1 - (nodeOffset + i + 0.5)*dx
                         else:
@@ -115,7 +115,7 @@ def distributeNodesInRange1d(listOfNodeTuples,
                 nodes.numInternalNodes += numNewNodes
                 dx = (x1 - x0)/max(1, n)
                 Hi = SymTensor1d(1.0/max(nodes.hmin, min(nodes.hmax, nPerh*dx)))
-                for i in xrange(numNewNodes):
+                for i in range(numNewNodes):
                     if reverse:
                         xi = x1 - (nodeOffset + i + 0.5)*dx
                     else:
@@ -150,7 +150,7 @@ def distributeNodesInSphericalRange3d(listOfNodeTuples,
         globalNumNodes += n
 
     # Determine the global node ID range this process will cover.
-    nNodesPerDomain = globalNumNodes/mpi.procs
+    nNodesPerDomain = globalNumNodes // mpi.procs
     minNodeID = mpi.rank*nNodesPerDomain
     if mpi.rank == mpi.procs - 1:
         maxNodeID = globalNumNodes
@@ -177,7 +177,7 @@ def distributeNodesInSphericalRange3d(listOfNodeTuples,
         neff = vol/dr**3
         mi = vol*rho/neff
 
-        for globalNodeID in xrange(minGlobalNodeListID, maxGlobalNodeListID):
+        for globalNodeID in range(minGlobalNodeListID, maxGlobalNodeListID):
             localNodeID = globalNodeID - minGlobalNodeListID
             if reverse:
                 nodeList.positions()[localNodeID].x = r1 - (globalNodeID + 0.5)*dr

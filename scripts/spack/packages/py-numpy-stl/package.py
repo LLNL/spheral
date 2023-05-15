@@ -10,13 +10,9 @@ class PyNumpyStl(PythonPackage):
     """"""
 
     homepage = "https://pypi.org/project/numpy-stl/"
-    pypi = "numpy-stl/numpy-stl-2.11.2.tar.gz" 
+    pypi = "numpy-stl/numpy-stl-3.0.0.tar.gz" 
 
-    #maintainers = ['mdavis36','jmikeowen']
+    version('3.0.0', sha256='578b78eacb0529ac9aba2f17dcc363d58c7c3c5708710c18f8c1e9965f2e81ac')
 
-    version('2.11.2', sha256='192556df794b9ef0c1333fd5f034e4a3905d63f52345a0cc1e359045670e34b6')
-
-    extends('python@2.7:2.8', type=['build', 'run'])
+    extends('python@3:', type=['build', 'run'])
     depends_on('py-setuptools', type='build')
-    depends_on('py-enum34', type='build')
-    depends_on('py-python-utils@2.4.0', type='build')

@@ -98,15 +98,15 @@ commandLine(
 )
 
 if useOldKernel and useBaseKernel:
-    raise ValueError, "cannot use both old and base kernel"
+    raise ValueError("cannot use both old and base kernel")
 if useOldKernel and correctionOrder > QuadraticOrder:
-    raise ValueError, "correction order must be quadratic to use old kernel"
+    raise ValueError("correction order must be quadratic to use old kernel")
 
 if nPerh < int(correctionOrder):
-    print "nPerh is not large enough for correction order: {} < {}".format(nPerh, int(correctionOrder))
+    print("nPerh is not large enough for correction order: {} < {}".format(nPerh, int(correctionOrder)))
     
 if mpi.procs > 1:
-    raise ValueError, "parallel node generation not working"
+    raise ValueError("parallel node generation not working")
     
 #-------------------------------------------------------------------------------
 # Choose correct dimension aliases
@@ -241,7 +241,7 @@ if randomizeNodes:
     dy = (y1 - y0)/ny
     dz = (z1 - z0)/nz
     pos = nodes.positions()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         if dimension == 1:
             pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
         elif dimension == 2:
@@ -452,7 +452,7 @@ elif funcType == "sinusoidal":
         def ddfunc(x):
             return [[-50.*np.sin(5*x[0]), 0, 0], [0, -50.*np.sin(5*x[1]), 0], [0, 0, -50.*np.sin(5*x[2])]]
 else:
-    raise ValueError, "function type {} not found".format(funcType)
+    raise ValueError("function type {} not found".format(funcType))
 
 #-------------------------------------------------------------------------------
 # Create RK object
@@ -507,16 +507,16 @@ if quitAfterTiming:
 #-------------------------------------------------------------------------------
 # Get the nodes to check
 if numToCheck == -1:
-    nodesToCheck = range(nodes.numNodes)
+    nodesToCheck = list(range(nodes.numNodes))
 elif numToCheck > 0:
-    nodesToCheck = random.sample(range(nodes.numNodes), numToCheck)
+    nodesToCheck = random.sample(list(range(nodes.numNodes)), numToCheck)
 else:
-    raise ValueError, "numToCheck must be -1 or positive"
+    raise ValueError("numToCheck must be -1 or positive")
 
 # Fill the FieldList we're interpolating from
 fill_time = time.time()
 answer_vals = dataBase.newGlobalScalarFieldList(0.0, name="initial values")
-for i in xrange(nodes.numNodes):
+for i in range(nodes.numNodes):
     answer_vals[0][i] = func(position(0,i))
 fill_time = time.time() - fill_time
 output("fill_time")
@@ -540,7 +540,7 @@ for i in nodesToCheck:
     dvals[i,:,0] = grad_vals(0,i)
     dvals[i,:,1] =  dfunc(position(0,i))
     if testHessian:
-        for irow in xrange(dimension):
+        for irow in range(dimension):
             ddvals[i,irow,:,0] = hess_vals(0,i).getRow(irow)
         ddvals[i,:,:,1] = ddfunc(position(0,i))
 check_time = time.time() - check_time
@@ -626,15 +626,15 @@ if correctionOrder == RKOrder.ZerothOrder:
         zerothErr[i] = getError(np.array(corrections(ni, i)), np.array(zerothCorrections(ni, i)))
     output("np.amax(zerothErr)")
     if checkConditions and any([e0 > tolerance for e0 in zerothErr]):
-        raise ValueError, "zeroth corrections do not agree"
+        raise ValueError("zeroth corrections do not agree")
 
 if checkConditions:
     if error > tolerance:
-        raise ValueError, "error is greater than tolerance"
+        raise ValueError("error is greater than tolerance")
     if funcType != "constant":
         if any([de > 10*tolerance for de in derror]):
-            raise ValueError, "gradient error is greater than tolerance"
+            raise ValueError("gradient error is greater than tolerance")
     if testHessian and funcType != "constant" and funcType != "linear":
         if any([dde > 100*tolerance for dde in dderror]):
-            raise ValueError, "hessian error is greater than tolerance"
+            raise ValueError("hessian error is greater than tolerance")
         

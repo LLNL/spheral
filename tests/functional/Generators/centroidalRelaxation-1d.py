@@ -99,13 +99,13 @@ output("nodes.numNodes")
 # Randomly jitter the node positions.
 dx = (x1 - x0)/nx
 pos = nodes.positions()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
    pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
 
 # Initialize the mass and densities.
 m = nodes.mass()
 rho = nodes.massDensity()
-for i in xrange(nodes.numNodes):
+for i in range(nodes.numNodes):
    rho[i] = rhofunc(pos[i])
    m[i] = rho[i]*dx
 
@@ -132,7 +132,7 @@ boundaries = [] # [xbc0, xbc1]
 # Call the centroidal relaxer.
 #-------------------------------------------------------------------------------
 # Report the initial mass matching.
-print "Initial mass (min, max, avg, std dev) : ", fieldStatistics(m)
+print("Initial mass (min, max, avg, std dev) : ", fieldStatistics(m))
 
 vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, Box1d(Vector(0.5*(x0 + x1)), 0.5*(x1 - x0)))],
                                          W = WT,
@@ -143,7 +143,7 @@ vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, Box1d(Vec
                                          fracTol = tol)
 
 # Report the final mass matching.
-print "Final mass (min, max, avg, std dev) : ", fieldStatistics(m)
+print("Final mass (min, max, avg, std dev) : ", fieldStatistics(m))
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
@@ -174,8 +174,8 @@ if graphics:
                              plotGhosts = False)
 
     # delta points
-    deltaData = Gnuplot.Data([0.5*(xprof[i] + xprof[i+1]) for i in xrange(len(xprof)-1)],
-                             [xprof[i+1] - xprof[i] for i in xrange(len(xprof)-1)],
+    deltaData = Gnuplot.Data([0.5*(xprof[i] + xprof[i+1]) for i in range(len(xprof)-1)],
+                             [xprof[i+1] - xprof[i] for i in range(len(xprof)-1)],
                              with_ = "linespoints",
                              title = "Delta spacing",
                              inline = True)

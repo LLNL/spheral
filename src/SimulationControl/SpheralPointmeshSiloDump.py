@@ -104,7 +104,7 @@ def dumpPhysicsState(stateThingy,
                 n = H.nodeList().numNodes
             else:
                 n = H.nodeList().numInternalNodes
-            for i in xrange(n):
+            for i in range(n):
                 ev = H[i].eigenValues()
                 fmin[i] = 1.0/ev.maxElement()
                 fmax[i] = 1.0/max(1e-30, ev.minElement())
@@ -123,7 +123,7 @@ def dumpPhysicsState(stateThingy,
                 n = f.nodeList().numNodes
             else:
                 n = f.nodeList().numInternalNodes
-            for i in xrange(n):
+            for i in range(n):
                 f[i] = mpi.rank
         fieldLists.append(domains)
     except:
@@ -148,7 +148,7 @@ def dumpPhysicsState(stateThingy,
         mf.close()
 
     t2 = time.time()
-    print "SpheralPointMeshSiloDump: spent %g seconds on preliminaries, %g writing files." % (t1 - t0, t2 - t1)
+    print("SpheralPointMeshSiloDump: spent %g seconds on preliminaries, %g writing files." % (t1 - t0, t2 - t1))
 
     return
 

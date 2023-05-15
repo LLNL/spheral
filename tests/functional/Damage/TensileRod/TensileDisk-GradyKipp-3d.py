@@ -250,7 +250,7 @@ del n
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    print "Generating node distribution."
+    print("Generating node distribution.")
     from GenerateNodeDistribution3d import *
     from ParMETISDistributeNodes import distributeNodes3d
     generator = GenerateCylindricalNodeDistribution3d(nx,
@@ -270,7 +270,7 @@ if restoreCycle is None:
     output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 
     # Set node velocites.
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         ri = nodes.positions()[i]
         vunit = Vector3d(0.0, ri.y, ri.z).unitVector()
         vr = sqrt(ri.y*ri.y + ri.z*ri.z)/radius * v0
@@ -459,7 +459,7 @@ def viz(nodes, nodesDamaged, damageModel):
         sstrain = ScalarField3d("strain average", nodes)
         sstrainmin = ScalarField3d("strain min", nodes)
         sstrainmax = ScalarField3d("strain max", nodes)
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             sdamage[i] = tdamage[i].Trace()
             sdamagemin[i] = tdamage[i].eigenValues().minElement()
             sdamagemax[i] = tdamage[i].eigenValues().maxElement()

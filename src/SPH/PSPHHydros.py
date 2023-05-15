@@ -30,8 +30,8 @@ def PSPH(dataBase,
     nfluid = dataBase.numFluidNodeLists
     nsolid = dataBase.numSolidNodeLists
     if nsolid > 0 and nsolid != nfluid:
-        print "PSPH Warning: you have provided solid NodeLists, but PSPH currently does not have a solid option."
-        print "              The fluid limit will be provided for now."
+        print("PSPH Warning: you have provided solid NodeLists, but PSPH currently does not have a solid option.")
+        print("              The fluid limit will be provided for now.")
 
     # Pick the appropriate C++ constructor from dimensionality and coordinates
     ndim = dataBase.nDim

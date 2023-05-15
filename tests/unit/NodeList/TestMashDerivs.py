@@ -40,7 +40,7 @@ output('nodes1.numNodes')
 
 # Set node positions.
 dx = (x1 - x0)/n1
-for i in xrange(n1):
+for i in range(n1):
     nodes1.positions[i] = x0 + i*dx
 
 # Set node masses
@@ -48,7 +48,7 @@ nodes1.mass[:] = [m1]*n1
 
 # Set node specific thermal energies
 deps = (eps1 - eps0)/n1
-for i in xrange(n1):
+for i in range(n1):
     nodes1.specificThermalEnergy[i] = eps0 + i*deps
 
 # Set node densities.
@@ -56,7 +56,7 @@ nodes1.massDensity[:] = [rho1]*n1
 
 # Set node velocities
 dv = (v1 - v0)/n1
-for i in xrange(n1):
+for i in range(n1):
     nodes1.velocity[i].x = v0 + i*dv
 
 # Set node weights.
@@ -158,7 +158,7 @@ output('control')
 # Enforce boundaries on the specific thermal energy and velocities.
 depsdx = (eps1 - eps0)/(x1 - x0)
 dvdx = (v1 - v0)/(x1 - x0)
-for i in xrange(nodes1.firstGhostNode, nodes1.numNodes):
+for i in range(nodes1.firstGhostNode, nodes1.numNodes):
     x = nodes1.positions[i].x
     nodes1.specificThermalEnergy[i] = eps0 + (x - x0)*depsdx
     nodes1.velocity[i].x = v0 + (x - x0)*dvdx
