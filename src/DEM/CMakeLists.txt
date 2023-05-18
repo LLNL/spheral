@@ -7,6 +7,7 @@ set(DEM_inst
     SolidBoundary/InfinitePlane
     SolidBoundary/CircularFinitePlane
     SolidBoundary/RectangularFinitePlane
+    SolidBoundary/FiniteCylinder
     ReplacePairFieldList
     IncrementPairFieldList
     ReplaceAndIncrementPairFieldList
@@ -25,6 +26,7 @@ set(DEM_headers
     SolidBoundary/InfinitePlane.hh
     SolidBoundary/CircularFinitePlane.hh
     SolidBoundary/RectangularFinitePlane.hh
+    SolidBoundary/FiniteCylinder.hh
     ReplacePairFieldList.hh
     ReplaceAndIncrementPairFieldList.hh
     IncrementPairFieldList.hh

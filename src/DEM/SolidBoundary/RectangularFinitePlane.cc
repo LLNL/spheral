@@ -29,7 +29,6 @@ RectangularFinitePlane<Dimension>::
 }
 
 
-// needs to get fixed
 template<typename Dimension>
 typename Dimension::Vector
 RectangularFinitePlane<Dimension>::
@@ -41,10 +40,7 @@ distance(const Vector& position) const {
   const auto signedExtent = Vector((q.x() > mExtent.x() ? 1 : 0)*signX*mExtent.x(),
                                    (q.y() > mExtent.y() ? 1 : 0)*signY*mExtent.y(),
                                    (q.z() > mExtent.z() ? 1 : 0)*signZ*mExtent.z());
-  // PPPPOOOOOOOOP
-  //THIS NEEDS TO BE FIXED.
   return mBasis.Transpose()*(q-signedExtent);
-
 }
 
 template<typename Dimension>
