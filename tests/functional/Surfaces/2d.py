@@ -230,7 +230,7 @@ if restoreCycle is None:
         from DistributeNodes import distributeNodes2d
 
     distributeNodes2d((innerNodes,generatorInner))
-    print innerNodes.name, ":"
+    print(innerNodes.name, ":")
     output("    mpi.reduce(innerNodes.numInternalNodes, mpi.MIN)")
     output("    mpi.reduce(innerNodes.numInternalNodes, mpi.MAX)")
     output("    mpi.reduce(innerNodes.numInternalNodes, mpi.SUM)")
@@ -245,7 +245,7 @@ if restoreCycle is None:
     #  for i in xrange(nodes.numInternalNodes):
     #    vel[i]=Vector(velx,vely)
     vel = innerNodes.velocity()
-    for i in xrange(innerNodes.numInternalNodes):
+    for i in range(innerNodes.numInternalNodes):
         vel[i]=Vector(velx,vely)
 
 

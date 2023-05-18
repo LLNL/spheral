@@ -6,51 +6,47 @@ dims = spheralDimensions()
 #-------------------------------------------------------------------------------
 # The generic SolidNodeList defintion.
 #-------------------------------------------------------------------------------
-DEMNodeListFactoryString = """
+def DEMNodeListFactory(ndim):
+    suffix = "{}d".format(ndim)
+    DEMNodeList = eval("DEMNodeList" + suffix)
+    TreeNeighbor = eval("TreeNeighbor" + suffix)
+    NestedGridNeighbor = eval("NestedGridNeighbor" + suffix)
+    Vector = eval("Vector" + suffix)
+    def factory(name,
+                numInternal = 0,
+                numGhost = 0,
+                hmin = 1.0e-20,
+                hmax = 1.0e20,
+                hminratio = 0.1,
+                nPerh = 1.01,
+                maxNumNeighbors = 500,
 
-def makeDEMNodeList%(dim)s(name,
-                           neighborSearchBuffer = 0.1,
-                           numInternal = 0,
-                           numGhost = 0,
-                           hmin = 1.0e-20,
-                           hmax = 1.0e20,
-                           hminratio = 0.1,
-                           nPerh = 1.01,
-                           maxNumNeighbors = 500,
+                # Neighboring stuff
+                NeighborType = TreeNeighbor,
+                searchType = GatherScatter,
+                kernelExtent = 1.0,
 
-                           # Neighboring stuff
-                           NeighborType = TreeNeighbor%(dim)s,
-                           searchType = GatherScatter,
-                           kernelExtent = 1.0,
+                # Parameters for TreeNeighbor
+                xmin = Vector.one * -10.0,
+                xmax = Vector.one *  10.0):
+        result = DEMNodeList(name, numInternal, numGhost, 
+                             hmin, hmax, hminratio, 
+                             nPerh, maxNumNeighbors)
 
-                           # Parameters only for NestedGridNeighbor (deprecated)
-                           # numGridLevels = 31,
-                           # topGridCellSize = 100.0,
-                           # origin = Vector%(dim)s.zero,
-                           # gridCellInfluenceRadius = 1,
-
-                           # Parameters for TreeNeighbor
-                           xmin = Vector%(dim)s.one * -10.0,
-                           xmax = Vector%(dim)s.one *  10.0):
-    result = DEMNodeList%(dim)s(name, numInternal, numGhost, 
-                                  hmin, hmax, hminratio, 
-                                  nPerh, neighborSearchBuffer, maxNumNeighbors)
-
-    if NeighborType == NestedGridNeighbor%(dim)s:
-        print "makeDEMNodeList Deprecation Warning: NestedGridNeighbor is deprecated: suggest using TreeNeighbor."
-        result._neighbor = NestedGridNeighbor%(dim)s(result, searchType, 
-                                                     kernelExtent = kernelExtent)
-                                                     #numGridLevels, topGridCellSize, 
-                                                     #origin, kernelExtent, 
-                                                     #gridCellInfluenceRadius)
-    else:
-        result._neighbor = TreeNeighbor%(dim)s(result, searchType, kernelExtent, xmin, xmax)
-    result.registerNeighbor(result._neighbor)
-    return result
-"""
+        if NeighborType == TreeNeighbor:
+            result._neighbor = TreeNeighbor(result, searchType, kernelExtent, xmin, xmax)
+        elif NeighborType == NestedGridNeighbor:
+            print("DEMNodeList Deprecation Warning: NestedGridNeighbor is deprecated: suggest using TreeNeighbor.")
+            result._neighbor = NestedGridNeighbor(result, searchType, 
+                                                  kernelExtent = kernelExtent)
+        else:
+            raise ValueError("Unknown NeighborType")
+        result.registerNeighbor(result._neighbor)
+        return result
+    return factory
 
 #-------------------------------------------------------------------------------
 # Create the different SolidNodeLists.
 #-------------------------------------------------------------------------------
-for dim in dims:
-    exec(DEMNodeListFactoryString % {"dim" : "%id" % dim})
+for ndim in dims:
+    exec("makeDEMNodeList{ndim}d = DEMNodeListFactory({ndim})".format(ndim=ndim))

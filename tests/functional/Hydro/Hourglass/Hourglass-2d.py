@@ -125,7 +125,7 @@ output("nodes1.numNodes")
 nodes1.specificThermalEnergy(ScalarField2d("tmp", nodes1, eps1))
 
 # Displace the nodes in a pattern that looks like hourglassing.
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     dx = amplitude*sin(2.0*pi*nodes1.positions()[i].x/wavelength)
     nodes1.positions()[i].x += dx
 
@@ -189,7 +189,7 @@ output("hydro.valid()")
 # Construct a constant acceleration package.
 #-------------------------------------------------------------------------------
 indicies = vector_of_int()
-indicies.extend(range(nodes1.numInternalNodes))
+indicies.extend(list(range(nodes1.numInternalNodes)))
 accel = ConstantAcceleration2d(a0, nodes1, indicies)
 
 #-------------------------------------------------------------------------------

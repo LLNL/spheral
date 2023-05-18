@@ -14,9 +14,9 @@ def readRestartData(file):
 
 def testLists(list1, list2, message):
     if list1 != list2:
-        print 'Test ', message, ' FAILED'
-        print list1
-        print list2
+        print('Test ', message, ' FAILED')
+        print(list1)
+        print(list2)
         return 0
     else:
         return 1
@@ -39,5 +39,5 @@ def compareRestarts(file1, file2):
         testEnergy and testH):
         return 1
     else:
-        print file1, ' and ', file2, ' DO NOT MATCH'
+        print(file1, ' and ', file2, ' DO NOT MATCH')
         return 0

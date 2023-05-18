@@ -28,8 +28,9 @@ GeomFacet2d(const std::vector<GeomFacet2d::Vector>& vertices,
   mPoints[0] = point1;
   mPoints[1] = point2;
   // REQUIRE((this->point2() - this->point1()).magnitude2() > 0.0);
-  REQUIRE2(fuzzyEqual((this->point2() - this->point1()).unitVector().dot(mNormal), 0.0, 1.0e-6),
-           "ERROR with orthogonal face normal: " << this->point1() << " " << this->point2() << " " << mNormal << " " << (this->point2() - this->point1()).unitVector().dot(mNormal));
+  REQUIRE2((this->point2() - this->point1()).magnitude2() < 1e-20 or
+           fuzzyEqual((this->point2() - this->point1()).unitVector().dot(mNormal.unitVector()), 0.0, 1.0e-10),
+           "ERROR with orthogonal face normal: " << this->point1() << " " << this->point2() << " " << mNormal << " " << (this->point2() - this->point1()).dot(mNormal.unitVector()));
   REQUIRE((this->point2() - this->point1()).unitVector().cross(mNormal).z() <= 0.0);
 }
 

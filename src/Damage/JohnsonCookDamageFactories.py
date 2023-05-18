@@ -63,19 +63,19 @@ from SpheralCompiledPackages import mortonOrderIndices%(ndim)sd as mortonOrderIn
         nglobal = max(0, ordering.max() + 1)
 
         # Reverse lookup in the ordering.
-        order2local = [ordering[i] for i in xrange(nodeList.numInternalNodes)]
+        order2local = [ordering[i] for i in range(nodeList.numInternalNodes)]
 
         # Generate random numbers in batches.
         iglobal = 0
         nbatch = max(1, nglobal/mpi.procs)
-        for iproc in xrange(mpi.procs):
+        for iproc in range(mpi.procs):
             if iproc == mpi.procs - 1:
                 nlocal = nglobal - iglobal
             else:
                 nlocal = nbatch
             D1vals = D1method(nlocal)
             D2vals = D2method(nlocal)
-            for i in xrange(nlocal):
+            for i in range(nlocal):
                 try:
                     j = order2local.index(iglobal + i)
                     fD1[j] = D1vals[i]
@@ -89,7 +89,7 @@ from SpheralCompiledPackages import mortonOrderIndices%(ndim)sd as mortonOrderIn
         # In the non-domain independent case we can generate more quickly in parallel.
         D1vals = D1method(nodeList.numInternalNodes)
         D2vals = D2method(nodeList.numInternalNodes)
-        for i in xrange(nodeList.numInternalNodes):
+        for i in range(nodeList.numInternalNodes):
             fD1[i] = vals[i]
             fD2[i] = vals[i]
 

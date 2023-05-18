@@ -85,10 +85,10 @@ def SVPH(dataBase,
     nfluid = dataBase.numFluidNodeLists
     nsolid = dataBase.numSolidNodeLists
     if nsolid > 0 and nsolid != nfluid:
-        print "SVPH Error: you have provided both solid and fluid NodeLists, which is currently not supported."
-        print "            If you want some fluids active, provide SolidNodeList without a strength option specfied,"
-        print "            which will result in fluid behaviour for those nodes."
-        raise RuntimeError, "Cannot mix solid and fluid NodeLists."
+        print("SVPH Error: you have provided both solid and fluid NodeLists, which is currently not supported.")
+        print("            If you want some fluids active, provide SolidNodeList without a strength option specfied,")
+        print("            which will result in fluid behaviour for those nodes.")
+        raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
     # Decide on the hydro object.
     if ASPH:

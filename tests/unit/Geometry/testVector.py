@@ -19,7 +19,7 @@ class VectorTestBase:
 
     def testCopy(self):
         v = self.VectorType(self.lhs)
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             assert v(i) == self.lhs(i)
         return
 
@@ -34,27 +34,27 @@ class VectorTestBase:
 
     def testZero(self):
         self.lhs.Zero()
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             assert self.lhs(i) == 0.0
         return
 
     def testNegative(self):
         v = -(self.lhs)
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             assert v(i) == -(self.lhs(i))
         return
 
     def testVectorAddition(self):
         result = self.lhs + self.rhs
         assert isinstance(result, self.VectorType)
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             assert result(i) == self.lhs(i) + self.rhs(i)
         return
 
     def testVectorSubtraction(self):
         result = self.lhs - self.rhs
         assert isinstance(result, self.VectorType)
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             assert result(i) == self.lhs(i) - self.rhs(i)
         return
 
@@ -62,7 +62,7 @@ class VectorTestBase:
         val = 44.0
         result = self.lhs * val
         assert isinstance(result, self.VectorType)
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             assert result(i) == self.lhs(i) * val
         return
 
@@ -70,7 +70,7 @@ class VectorTestBase:
         val = 44.0
         result = self.lhs / val
         assert isinstance(result, self.VectorType)
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             assert fuzzyEqual(result(i), self.lhs(i) / val)
         return
 
@@ -78,7 +78,7 @@ class VectorTestBase:
         result = self.VectorType(self.lhs)
         result += self.rhs
         assert isinstance(result, self.VectorType)
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             assert result(i) == self.lhs(i) + self.rhs(i)
         return
 
@@ -86,7 +86,7 @@ class VectorTestBase:
         result = self.VectorType(self.lhs)
         result -= self.rhs
         assert isinstance(result, self.VectorType)
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             assert result(i) == self.lhs(i) - self.rhs(i)
         return
 
@@ -95,7 +95,7 @@ class VectorTestBase:
         result = self.VectorType(self.lhs)
         result *= val
         assert isinstance(result, self.VectorType)
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             assert result(i) == self.lhs(i) * val
         return
 
@@ -104,7 +104,7 @@ class VectorTestBase:
         result = self.VectorType(self.lhs)
         result /= val
         assert isinstance(result, self.VectorType)
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             assert fuzzyEqual(result(i), self.lhs(i) / val)
         return
 
@@ -145,7 +145,7 @@ class VectorTestBase:
     def testDot(self):
         result = self.lhs.dot(self.rhs)
         check = 0.0
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             check += self.lhs(i) * self.rhs(i)
         assert result == check
 
@@ -153,8 +153,8 @@ class VectorTestBase:
         result = self.lhs.selfdyad()
         check = self.lhs.dyad(self.lhs)
         assert isinstance(result, self.SymTensorType)
-        for i in xrange(self.VectorType.nDimensions):
-            for j in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
+            for j in range(self.VectorType.nDimensions):
                 assert result(i,j) == check(i,j)
 
     def testVectorMultiplication(self):
@@ -172,7 +172,7 @@ class VectorTestBase:
     def testMagnitude(self):
         result = self.lhs.magnitude()
         check = 0.0
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             check += (self.lhs(i))**2
         check = sqrt(check)
         assert fuzzyEqual(result, check)
@@ -180,7 +180,7 @@ class VectorTestBase:
     def testMagnitude2(self):
         result = self.lhs.magnitude2()
         check = 0.0
-        for i in xrange(self.VectorType.nDimensions):
+        for i in range(self.VectorType.nDimensions):
             check += (self.lhs(i))**2
         assert fuzzyEqual(result, check)
 
@@ -258,7 +258,7 @@ class Vector2dTest(VectorTestBase, unittest.TestCase):
         check = Vector3d(0.0,
                          0.0,
                          self.lhs.x * self.rhs.y - self.lhs.y * self.rhs.x)
-        self.failUnless(result == check,
+        self.assertTrue(result == check,
                         "cross product failure: %s != %s" % (str(result), str(check)))
 
     def testDyad(self):
@@ -309,7 +309,7 @@ class Vector3dTest(VectorTestBase, unittest.TestCase):
         check = Vector3d(self.lhs.y * self.rhs.z - self.lhs.z * self.rhs.y,
                          self.lhs.z * self.rhs.x - self.lhs.x * self.rhs.z,
                          self.lhs.x * self.rhs.y - self.lhs.y * self.rhs.x)
-        self.failUnless(result == check,
+        self.assertTrue(result == check,
                         "cross product failure: %s != %s" % (str(result), str(check)))
 
     def testDyad(self):

@@ -95,9 +95,9 @@ for nodes in nodeSet:
 Mcore = 4.0*pi*rhocore0*(Rcore - Rc*atan2(Rcore, Rc))
 Mmantle = 4.0*pi*rhomantle0*(Rmantle - Rcore)
 nmantle = int(Mmantle/Mcore*ncore + 0.5)
-print "  Core mass: ", Mcore
-print "Mantle mass: ", Mmantle
-print "Resulting target point mass and number of points in mantle: ", Mcore/ncore, nmantle
+print("  Core mass: ", Mcore)
+print("Mantle mass: ", Mmantle)
+print("Resulting target point mass and number of points in mantle: ", Mcore/ncore, nmantle)
 
 generatorCore = MedialSphereGenerator3d(n = ncore,
                                         rho = rhocore,
@@ -157,4 +157,4 @@ rhoPlot.hardcopy("test_medial3d_rho.png", terminal="png")
 
 from fieldStatistics import fieldStatistics
 for nodes in nodeSet:
-    print "Mass statistics for ", nodes.name, " (min, max, avg, std dev) : ", fieldStatistics(nodes.mass())
+    print("Mass statistics for ", nodes.name, " (min, max, avg, std dev) : ", fieldStatistics(nodes.mass()))

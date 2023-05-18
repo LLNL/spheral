@@ -186,15 +186,15 @@ void
 BoundingVolumeDistributedBoundary<Dimension>::
 packNodeListBuffers(const DataBase<Dimension>& dataBase,
                     vector<int>& numNodesPerNodeList,
-                    vector<string>& positionBuffers,
-                    vector<string>& Hbuffers) const {
+                    vector<vector<char>>& positionBuffers,
+                    vector<vector<char>>& Hbuffers) const {
 
   for (typename DataBase<Dimension>::ConstNodeListIterator nodeListItr = dataBase.nodeListBegin();
        nodeListItr != dataBase.nodeListEnd();
        ++nodeListItr) {
     numNodesPerNodeList.push_back((**nodeListItr).numInternalNodes());
-    positionBuffers.push_back((**nodeListItr).positions().string());
-    Hbuffers.push_back((**nodeListItr).Hfield().string());
+    positionBuffers.push_back((**nodeListItr).positions().serialize());
+    Hbuffers.push_back((**nodeListItr).Hfield().serialize());
   }
 
   ENSURE(numNodesPerNodeList.size() == dataBase.numNodeLists());

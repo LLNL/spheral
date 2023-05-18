@@ -97,6 +97,21 @@ packages:
     - spec: elfutils@0.176
       prefix: /usr
     buildable: false
+  tcl:
+     externals:
+     - spec: tcl@8.6
+       prefix: /usr
+     buildable: false
+  tk:
+     externals:
+     - spec: tk@8.6
+       prefix: /usr
+     buildable: false
+  fontconfig:
+    externals:
+    - spec: fontconfig@2.13.1
+      prefix: /usr
+    buildable: false
   netlib-lapack:
     externals:
     - spec: netlib-lapack@3.9.0

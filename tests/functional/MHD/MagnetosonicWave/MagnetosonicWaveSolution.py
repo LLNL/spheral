@@ -60,7 +60,7 @@ class MagnetosonicWaveSolution:
         # Figure out the pressure and specific thermal energy.
         P = [self.eos.pressure(rhoi, ui) for (rhoi, ui) in zip(rho, u)]
         if isinstance(self.eos, GammaLawGasMKS3d):
-           u = [P[i]/(eos.getGamma()-1)*rho[i] for i in xrange(len(xvals))]
+           u = [P[i]/(eos.getGamma()-1)*rho[i] for i in range(len(xvals))]
         else:
            u = [self.u0]*len(xvals)
 

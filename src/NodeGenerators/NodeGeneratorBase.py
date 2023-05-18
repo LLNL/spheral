@@ -21,14 +21,14 @@ class NodeGeneratorBase:
         if serialInitialization:
             ntot = len(vars[0])
             minGlobalID, maxGlobalID = self.globalIDRange(ntot)
-            self.globalIDs = range(minGlobalID, maxGlobalID)
+            self.globalIDs = list(range(minGlobalID, maxGlobalID))
             self._cullVars(minGlobalID, maxGlobalID, *vars)
 
         else:
             ntot = 0
-            for proc in xrange(mpi.procs):
+            for proc in range(mpi.procs):
                 if mpi.rank == proc:
-                    self.globalIDs = range(ntot, ntot + len(vars[0]))
+                    self.globalIDs = list(range(ntot, ntot + len(vars[0])))
                 ntot += mpi.bcast(len(vars[0]), proc)
 
         return
@@ -38,7 +38,7 @@ class NodeGeneratorBase:
     # each processor.
     #---------------------------------------------------------------------------
     def globalIDRange(self, ntot):        
-        ndomain0 = ntot/procs
+        ndomain0 = ntot // procs
         remainder = ntot % procs
         assert remainder < procs
         ndomain = ndomain0
@@ -115,7 +115,7 @@ class NodeGeneratorBase:
         if n > 0:
             SymTensor = {type(SymTensor2d.zero) : SymTensor2d,
                          type(SymTensor3d.zero) : SymTensor3d}[type(self.H[0])]
-            for i in xrange(n):
+            for i in range(n):
                 h0 = self.H[i].Inverse().Trace() / SymTensor.nDimensions
                 assert h0 > 0.0
                 self.H[i] = 1.0/h0 * SymTensor.one
@@ -200,7 +200,7 @@ def refineNodes2d(gen,
             Vector2d( 1, -1) * deta,
             Vector2d( 1,  1) * deta]
 
-    for i in xrange(n):
+    for i in range(n):
         ri = gen.localPosition(i)
         mi = gen.localMass(i)
         Hi = gen.localHtensor(i)
@@ -272,7 +272,7 @@ def refineNodes3d(gen,
             Vector3d( 1,  1, -1) * deta,
             Vector3d( 1,  1,  1) * deta]
 
-    for i in xrange(n):
+    for i in range(n):
         ri = gen.localPosition(i)
         mi = gen.localMass(i)
         Hi = gen.localHtensor(i)

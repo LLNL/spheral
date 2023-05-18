@@ -76,6 +76,7 @@ public:
        const std::vector<std::vector<unsigned> >& edgeNodes,
        const std::vector<std::vector<unsigned> >& faceEdges,
        const std::vector<std::vector<int> >& zoneFaces);
+  Mesh(const Mesh& rhs);
   Mesh& operator=(const Mesh& rhs);
   virtual ~Mesh();
 

@@ -73,7 +73,7 @@ class SpheralController:
                     kernel = package.kernel
                     break
         if kernel is None:
-            raise RuntimeError, "SpheralController: unable to extract an appropriate interpolation kernel, please provide in constructor arguments"
+            raise RuntimeError("SpheralController: unable to extract an appropriate interpolation kernel, please provide in constructor arguments")
         if isinstance(kernel, SphericalKernel):
             self.kernel = kernel.baseKernel1d
         else:
@@ -130,7 +130,7 @@ class SpheralController:
 
         # Read the restart information if requested.
         if not restoreCycle is None:
-            print "Reading from restart file ", restoreCycle
+            print("Reading from restart file ", restoreCycle)
             self.loadRestartFile(restoreCycle)
         
         return
@@ -310,7 +310,7 @@ class SpheralController:
         scalarSmooth = eval("smoothScalarFields%id" % db.nDim)
         vectorSmooth = eval("smoothVectorFields%id" % db.nDim)
         tensorSmooth = eval("smoothSymTensorFields%id" % db.nDim)
-        for iter in xrange(smoothIters):
+        for iter in range(smoothIters):
             state = eval("State%id(db, self.integrator.physicsPackages())" % db.nDim)
             derivs = eval("StateDerivatives%id(db, self.integrator.physicsPackages())" % db.nDim)
             self.integrator.setGhostNodes()
@@ -385,9 +385,9 @@ class SpheralController:
         numActualGhostNodes = 0
         for bc in bcs:
             numActualGhostNodes += bc.numGhostNodes
-        print "Total number of (internal, ghost, active ghost) nodes : (%i, %i, %i)" % (mpi.allreduce(db.numInternalNodes, mpi.SUM),
+        print("Total number of (internal, ghost, active ghost) nodes : (%i, %i, %i)" % (mpi.allreduce(db.numInternalNodes, mpi.SUM),
                                                                                         mpi.allreduce(db.numGhostNodes, mpi.SUM),
-                                                                                        mpi.allreduce(numActualGhostNodes, mpi.SUM))
+                                                                                        mpi.allreduce(numActualGhostNodes, mpi.SUM)))
 
         # Print how much time was spent per integration cycle.
         self.stepTimer.printStatus()
@@ -454,7 +454,7 @@ class SpheralController:
             i += 1
 
         if i == len(self._periodicWork):
-            print "Error, could not find periodic work calling ", method
+            print("Error, could not find periodic work calling ", method)
             return
         else:
             self._periodicWork[i] = (method, frequency)
@@ -478,7 +478,7 @@ class SpheralController:
     # A method for printing the cycle information.
     #--------------------------------------------------------------------------
     def printCycleStatus(self, cycle, Time, dt):
-        print "Cycle=%i, \tTime=%g, \tTimeStep=%g" % (cycle, Time, dt)
+        print("Cycle=%i, \tTime=%g, \tTimeStep=%g" % (cycle, Time, dt))
         return
 
     #--------------------------------------------------------------------------
@@ -548,8 +548,8 @@ class SpheralController:
     # Find the name associated with the given object.
     #--------------------------------------------------------------------------
     def findname(thing):
-        for mod in sys.modules.values():
-            for name, val in mod.__dict__.items():
+        for mod in list(sys.modules.values()):
+            for name, val in list(mod.__dict__.items()):
                 if val is thing:
                     return name
 
@@ -567,14 +567,14 @@ class SpheralController:
 
         # Now we can invoke the restart!
         import time
-        start = time.clock()
+        start = time.time()
         fileName = self.restartBaseName + "_cycle%i" % self.totalSteps
         if self.restartFileConstructor is SidreFileIO and self.SPIOFileCountPerTimeslice is not None:
             file = self.restartFileConstructor(fileName, Create, self.SPIOFileCountPerTimeslice)
         else:
             file = self.restartFileConstructor(fileName, Create)
         RestartRegistrar.instance().dumpState(file)
-        print "Wrote restart file in %0.2f seconds" % (time.clock() - start)
+        print("Wrote restart file in %0.2f seconds" % (time.time() - start))
 
         file.close()
         del file
@@ -595,7 +595,7 @@ class SpheralController:
             fileName += ".silo"
         # Sidre already adds ".root" to the end of the file so we need to run the check without adding anything to the fileName
         if self.restartFileConstructor is SidreFileIO:
-            if not os.path.exists(fileName + ".root") and mpi.rank is 0 and not mpi.is_fake_mpi():
+            if (not os.path.exists(fileName + ".root")) and (mpi.rank == 0) and (not mpi.is_fake_mpi()):
                 raise RuntimeError("File %s does not exist or is inaccessible." %
                                    fileName)
         elif not os.path.exists(fileName):
@@ -603,15 +603,15 @@ class SpheralController:
                                fileName)
 
         # Read that sucker.
-        print 'Reading from restart file', fileName
+        print('Reading from restart file', fileName)
         import time
-        start = time.clock()
+        start = time.time()
         if self.restartFileConstructor is SidreFileIO and self.SPIOFileCountPerTimeslice is not None:
             file = self.restartFileConstructor(fileName, Read, self.SPIOFileCountPerTimeslice)
         else:
             file = self.restartFileConstructor(fileName, Read)
         RestartRegistrar.instance().restoreState(file)
-        print "Finished: required %0.2f seconds" % (time.clock() - start)
+        print("Finished: required %0.2f seconds" % (time.time() - start))
 
         # Reset neighboring.
         db = self.integrator.dataBase
@@ -621,10 +621,10 @@ class SpheralController:
         # Do we need to force a boundary update to create ghost nodes?
         if (self.integrator.updateBoundaryFrequency > 1 and
             self.integrator.currentCycle % self.integrator.updateBoundaryFrequency != 0):
-            print "Creating ghost nodes."
-            start = time.clock()
+            print("Creating ghost nodes.")
+            start = time.time()
             self.integrator.setGhostNodes()
-            print "Finished: required %0.2f seconds" % (time.clock() - start)
+            print("Finished: required %0.2f seconds" % (time.time() - start))
 
         file.close()
         del file
@@ -680,7 +680,7 @@ class SpheralController:
                     index = ipack
         if rkorders:
             if W is None:
-                raise RuntimeError, "SpheralController ERROR: the base interpolation kernel 'W' must be specified to the SpheralController when using Reproducing Kernels"
+                raise RuntimeError("SpheralController ERROR: the base interpolation kernel 'W' must be specified to the SpheralController when using Reproducing Kernels")
             self.RKCorrections = RKCorrections(orders = rkorders,
                                                dataBase = db,
                                                W = W,
@@ -749,13 +749,14 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
             # Make a copy of the current set of boundary conditions for this package,
             # and assign priorities to enforce the desired order
             bcs = list(package.boundaryConditions())
-            priorities = range(len(bcs))
+            priorities = list(range(len(bcs)))
             for i, bc in enumerate(bcs):
                 if isinstance(bc, eval("ConstantBoundary%s" % self.dim)):
                     priorities[i] = -2
                 if isinstance(bc, eval("InflowOutflowBoundary%s" % self.dim)):
                     priorities[i] = -1
-            sortedbcs = [x for _,x in sorted(zip(priorities, bcs))]
+            #priorities, sortedbcs = (list(t) for t in zip(*sorted(zip(priorities, bcs))))
+            sortedbcs = [x for _,x in sorted(zip(priorities, bcs), key=lambda tup: tup[0])]
 
             # Add the domain bc if needed
             if self.domainbc:
@@ -787,8 +788,8 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
                 self.redistribute = eval("PeanoHilbertOrderRedistributeNodes%s(W.kernelExtent)" % self.dim)
                 #self.redistribute = eval("VoronoiRedistributeNodes%s(W.kernelExtent)" % self.dim)
             except:
-                print "Warning: this appears to be a parallel run, but Controller cannot construct"
-                print "         dynamic redistributer."
+                print("Warning: this appears to be a parallel run, but Controller cannot construct")
+                print("         dynamic redistributer.")
                 pass
         return
 
@@ -825,7 +826,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
                 dt = None):
         mpi.barrier()
         import time
-        start = time.clock()
+        start = time.time()
         db = self.integrator.dataBase
         db.updateConnectivityMap(False)
         bcs = self.integrator.uniqueBoundaryConditions()
@@ -840,7 +841,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
                        dumpGhosts = self.vizGhosts,
                        dumpDerivatives = self.vizDerivs,
                        boundaries = bcs)
-        print "Wrote viz file in %0.2f seconds" % (time.clock() - start)
+        print("Wrote viz file in %0.2f seconds" % (time.time() - start))
         return
 
     #--------------------------------------------------------------------------
@@ -850,7 +851,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
     def iterateIdealH(self, 
                       maxIdealHIterations = 50,
                       idealHTolerance = 1.0e-4):
-        print "SpheralController: Initializing H's..."
+        print("SpheralController: Initializing H's...")
         db = self.integrator.dataBase
         bcs = self.integrator.uniqueBoundaryConditions()
         if self.SPH:
@@ -878,7 +879,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         for nodes in nodeLists:
             mass = nodes.mass()
             rho = nodes.massDensity()
-            for i in xrange(nodes.numInternalNodes):
+            for i in range(nodes.numInternalNodes):
                 mass[i] = rho[i]*mesh.zone(nodes, i).volume()
         return
 
@@ -908,7 +909,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
             for nodes in nodeLists:
                 pos = nodes.positions()
                 massDensity = nodes.massDensity()
-                for i in xrange(nodes.numInternalNodes):
+                for i in range(nodes.numInternalNodes):
                     massDensity[i] = rho(pos[i])
         setRho()
 
@@ -936,7 +937,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
             for (oldf, newf) in zip(oldpos, newpos):
                 maxDisp = max([(old - new).magnitude() for old, new in zip(oldf.internalValues(), newf.internalValues())] + [0.0])
             maxDisp = mpi.allreduce(maxDisp, mpi.MAX)
-            print " --> Iteration %i : max change = %g" % (iter, maxDisp)
+            print(" --> Iteration %i : max change = %g" % (iter, maxDisp))
 
         # That's about it.
         setRho()

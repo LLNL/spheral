@@ -261,9 +261,9 @@ if checkRestart:
     control.loadRestartFile(control.totalSteps)
     state1 = State(db, integrator.physicsPackages())
     if not state1 == state0:
-        raise ValueError, "The restarted state does not match!"
+        raise ValueError("The restarted state does not match!")
     else:
-        print "Restart check PASSED."
+        print("Restart check PASSED.")
 
 if checkError:
     # check our restitution coefficient is correct
@@ -273,14 +273,14 @@ if checkError:
     restitutionEff = vijPostImpact/vijPreImpact
     restitutionError = abs(restitutionEff + normalRestitutionCoefficient)/normalRestitutionCoefficient
     if  restitutionError > restitutionErrorThreshold and cohesiveTensileStrength < 1e-10:
-        raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
+        raise ValueError("relative restitution coefficient error, %g, exceeds bounds" % restitutionError)
     elif restitutionEff > normalRestitutionCoefficient:
-        raise ValueError, "cohesion increased the restitution coefficient!" % restitutionError
+        raise ValueError("cohesion increased the restitution coefficient!" % restitutionError)
 
 if checkConservation:
     if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX()
+        raise ValueError("linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX())
     if  conservation.deltaLinearMomentumY() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY()
+        raise ValueError("linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY())
     if  conservation.deltaRotationalMomentumZ() > conservationErrorThreshold:
-        raise ValueError, "rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ()
+        raise ValueError("rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ())

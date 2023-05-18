@@ -293,9 +293,9 @@ if checkRestart:
     control.loadRestartFile(control.totalSteps)
     state1 = State(db, integrator.physicsPackages())
     if not state1 == state0:
-        raise ValueError, "The restarted state does not match!"
+        raise ValueError("The restarted state does not match!")
     else:
-        print "Restart check PASSED."
+        print("Restart check PASSED.")
 
 if checkContacts and mpi.procs==5:
     for i in range(nodes.numInternalNodes):
@@ -377,26 +377,26 @@ if checkContacts and mpi.procs==1:
                 raise ValueError, "node 3 contact list is incorrect "
         elif uniqueIndices[0][i]==5:
             if set(neighborIndices[0][i]) != set([]):
-                print "-----------------------------"
-                print "unique index   : %s" % uniqueIndices[0][i]
-                print "mpi rank       : %s" % mpi.rank
-                print "neighborIndices: %s" % neighborIndices[0][i]
-                print "-----------------------------"
-                raise ValueError, "node 4 contact list is incorrect "
+                print("-----------------------------")
+                print("unique index   : %s" % uniqueIndices[0][i])
+                print("mpi rank       : %s" % mpi.rank)
+                print("neighborIndices: %s" % neighborIndices[0][i])
+                print("-----------------------------")
+                raise ValueError("node 4 contact list is incorrect ")
 
 if checkAngularMomentum:
     if  uniqueIndices[0][i]==0:
             if omega[0][i] > 1:
-                print "-----------------------------"
-                print "Angular momentum : %s" % omega[0][i]
-                print "mpi rank       : %s" % mpi.rank
-                print "-----------------------------"
-                raise ValueError, "Central particles spin increased!"
+                print("-----------------------------")
+                print("Angular momentum : %s" % omega[0][i])
+                print("mpi rank       : %s" % mpi.rank)
+                print("-----------------------------")
+                raise ValueError("Central particles spin increased!")
 
 if checkConservation:
     if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX()
+        raise ValueError("linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX())
     if  conservation.deltaLinearMomentumY() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY()
+        raise ValueError("linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY())
     if  conservation.deltaRotationalMomentumZ() > conservationErrorThreshold:
-        raise ValueError, "rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ()
+        raise ValueError("rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ())

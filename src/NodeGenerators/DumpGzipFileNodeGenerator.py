@@ -66,7 +66,7 @@ class DumpGzipFileNodeGenerator:
             self.writeField(nodes.specificThermalEnergy(), nodes.name, "specificThermalEnergy")
             Hinv2 = SymTensorField("Hinv2", nodes)
             nodes.Hinverse(Hinv2)
-            for i in xrange(nodes.numInternalNodes):
+            for i in range(nodes.numInternalNodes):
                 thpt = (Hinv2[i]*Hinv2[i]).Symmetric()
                 Hinv2[i] = thpt
             self.writeField(Hinv2, nodes.name, "Hinverse2")
@@ -106,7 +106,7 @@ class DumpGzipFileNodeGenerator:
                    field,
                    materialName,
                    fieldName):
-        print "Writing %s for %s." % (fieldName, materialName)
+        print("Writing %s for %s." % (fieldName, materialName))
         vals = list(field.internalValues())
         n = len(vals)
         if self.serialize:
@@ -115,10 +115,10 @@ class DumpGzipFileNodeGenerator:
             self.f.write(materialName + self.delimiter +
                          fieldName)
         if self.serialize:
-            for sendProc in xrange(mpi.procs):
-                print "Collecting from ", sendProc
+            for sendProc in range(mpi.procs):
+                print("Collecting from ", sendProc)
                 otherVals = mpi.bcast(vals, sendProc)
-                print "  Received %i values" % len(otherVals)
+                print("  Received %i values" % len(otherVals))
                 if self.writing:
                     for x in otherVals:
                         self.f.write(self.delimiter + self._toString[type(x)](x))

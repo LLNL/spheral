@@ -312,9 +312,9 @@ if checkRestart:
     control.loadRestartFile(control.totalSteps)
     state1 = State(db, integrator.physicsPackages())
     if not state1 == state0:
-        raise ValueError, "The restarted state does not match!"
+        raise ValueError("The restarted state does not match!")
     else:
-        print "Restart check PASSED."
+        print("Restart check PASSED.")
 
 if checkError:
 # check our restitution coefficient is correct
@@ -324,33 +324,33 @@ if checkError:
     restitutionEff = vijPostImpact/vijPreImpact
     restitutionError = abs(restitutionEff + normalRestitutionCoefficient)/normalRestitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
-        raise ValueError, ("relative restitution coefficient error, %g, exceeds bounds" % restitutionError)
+        raise ValueError("relative restitution coefficient error, %g, exceeds bounds" % restitutionError)
 
 if checkConservation:
 # check momentum conservation
 #-------------------------------------------------------------
     if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX()
+        raise ValueError("linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX())
     if  conservation.deltaLinearMomentumY() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY()
+        raise ValueError("linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY())
     if  conservation.deltaLinearMomentumZ() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - z conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumZ()
+        raise ValueError("linear momentum - z conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumZ())
     if  conservation.deltaRotationalMomentumX() > conservationErrorThreshold:
-        raise ValueError, "rotational momentum - x conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumX()
+        raise ValueError("rotational momentum - x conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumX())
     if  conservation.deltaRotationalMomentumY() > conservationErrorThreshold:
-        raise ValueError, "rotational momentum - y conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumY()
+        raise ValueError("rotational momentum - y conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumY())
     if  conservation.deltaRotationalMomentumZ() > conservationErrorThreshold:
-        raise ValueError, "rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ()
+        raise ValueError("rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ())
 
 if boolCheckSlidingFriction or boolCheckRollingFriction or boolCheckTorsionalFriction:
 # check for non-physical behavior
 #-------------------------------------------------------------
     if omega[0][0].magnitude()+omega[0][1].magnitude() > 2*omega0:
-        raise ValueError, "particles are rotating faster post-collision"
+        raise ValueError("particles are rotating faster post-collision")
 
 if boolCheckTorsionalObjectivity:
 # to satify objectivity omega (along axis) should not change when equal
 #-------------------------------------------------------------
     omegaError = (2*omega0 - omega[0][0][0] - omega[0][1][0]) / (2*omega0)
     if omegaError > torsionalObjectivityThreshold:
-        raise ValueError, ("torsional objectivity failure with relative angular velocity error, %g, exceeds bounds" % omegaError)
+        raise ValueError("torsional objectivity failure with relative angular velocity error, %g, exceeds bounds" % omegaError)

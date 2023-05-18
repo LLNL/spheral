@@ -63,9 +63,9 @@ class AdaptiveRefinement:
             assert nodeList.numInternalNodes == firstNewNode + numNewNodes
 
             # Build the set of daughter particle IDs for each parent.
-            daughters = [range(firstNewNode + i*numNewNodesPerRefineNode,
-                               firstNewNode + (i + 1)*numNewNodesPerRefineNode)
-                         for i in xrange(len(refineIDs))]
+            daughters = [list(range(firstNewNode + i*numNewNodesPerRefineNode,
+                               firstNewNode + (i + 1)*numNewNodesPerRefineNode))
+                         for i in range(len(refineIDs))]
             assert len(daughters) == len(refineIDs)
             for x in daughters:
                 assert len(x) == numNewNodesPerRefineNode

@@ -86,7 +86,7 @@ if seed == "cubic":
     nx *= nxdomains
     ny *= nxdomains
     nz *= nxdomains
-    print nxdomains, nx, ny, nz
+    print(nxdomains, nx, ny, nz)
 
 #-------------------------------------------------------------------------------
 # A few derived variables.
@@ -188,7 +188,7 @@ if restoreCycle is None:
     v = nodes.velocity()
     u = nodes.specificThermalEnergy()
     B = nodes.magneticInduction()
-    for i in xrange(nodes.numNodes):
+    for i in range(nodes.numNodes):
         xi,yi = x[i].x,x[i].y
         rho[i] = rho0
         v[i] = Vector3d(-v0*sin(2*pi*yi) + v0*sin(2*pi*xi), 0)
@@ -317,8 +317,8 @@ vMin = min([u.magnitude() for u in v.internalValues()])
 BMax = max([u.magnitude() for u in B.internalValues()])
 BMin = min([u.magnitude() for u in B.internalValues()])
 accMax = max([a.magnitude() for a in acc.internalValues()])
-print 'max |v|: %g'%vMax
-print 'min |v|: %g'%vMin
-print 'max |B|: %g'%BMax
-print 'min |B|: %g'%BMin
-print 'Max |dv/dt|: %g'%accMax
+print('max |v|: %g'%vMax)
+print('min |v|: %g'%vMin)
+print('max |B|: %g'%BMax)
+print('min |B|: %g'%BMin)
+print('Max |dv/dt|: %g'%accMax)

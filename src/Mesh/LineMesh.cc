@@ -278,8 +278,8 @@ Dim<1>::FacetedVolume
 Mesh<Dim<1> >::
 boundingSurface() const {
   // The best we can do is the bounding vertex positions.
-  double xmin =  std::numeric_limits<double>::max(), 
-         xmax = -std::numeric_limits<double>::max();
+  double xmin = std::numeric_limits<double>::max(), 
+         xmax = std::numeric_limits<double>::lowest();
   for (unsigned i = 0; i != mNodePositions.size(); ++i) {
     xmin = std::min(xmin, mNodePositions[i].x());
     xmax = std::max(xmax, mNodePositions[i].x());

@@ -160,7 +160,7 @@ class SpheralConservation:
         for lab in labels:
             f.write('%14s ' % lab)
         f.write('\n')
-        for i in xrange(len(self.cycleHistory)):
+        for i in range(len(self.cycleHistory)):
             for var in [self.cycleHistory[i], self.timeHistory[i],
                         self.massHistory[i],
                         self.pmomHistory[i].magnitude(),

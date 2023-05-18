@@ -2,6 +2,7 @@
 # Unit tests for the Polygon class
 
 import unittest
+import functools
 from math import *
 from SpheralTestUtilities import fuzzyEqual
 
@@ -29,7 +30,7 @@ def randomPoints(numPoints,
         theta = rangen.uniform(0.0, 2.0*pi)
     R = rotationMatrix(Vector(cos(theta), sin(theta)))
     
-    for i in xrange(numPoints):
+    for i in range(numPoints):
         result.append(R*Vector(rangen.uniform(xmin, xmax),
                                rangen.uniform(ymin, ymax)))
 
@@ -93,7 +94,7 @@ class TestPolygon(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testContainSeeds(self):
         for p in self.points:
-            self.failUnless(self.polygon.contains(p),
+            self.assertTrue(self.polygon.contains(p),
                             "Polygon does not contain seed point: %s" % str(p))
         return
 
@@ -103,7 +104,7 @@ class TestPolygon(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testGenericContainSeeds(self):
         for p in self.points:
-            self.failUnless(pointInPolygon(p, self.polygon, True),
+            self.assertTrue(pointInPolygon(p, self.polygon, True),
                             "Polygon does not contain seed point: %s" % str(p))
         return
 
@@ -113,10 +114,10 @@ class TestPolygon(unittest.TestCase):
     def testRandomInnerPoints(self):
         rinner, router = self.innerOuterRadii(self.polygon)
         centroid = self.polygon.centroid
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             theta = rangen.uniform(0.0, 2.0*pi)
             p = centroid + rangen.uniform(0.0, rinner) * Vector(cos(theta), sin(theta))
-            self.failUnless(self.polygon.contains(p),
+            self.assertTrue(self.polygon.contains(p),
                             "Polygon should contain %s but reports it does not." % str(p))
         return
 
@@ -126,10 +127,10 @@ class TestPolygon(unittest.TestCase):
     def testRandomOuterPoints(self):
         rinner, router = self.innerOuterRadii(self.polygon)
         centroid = self.polygon.centroid
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             theta = rangen.uniform(0.0, 2.0*pi)
             p = centroid + rangen.uniform(router, 2.0*router) * Vector(cos(theta), sin(theta))
-            self.failUnless(not self.polygon.contains(p),
+            self.assertTrue(not self.polygon.contains(p),
                             "%s should be outside polygon but polygon reports it is contained." % str(p))
         return
 
@@ -139,9 +140,9 @@ class TestPolygon(unittest.TestCase):
     def testVertexPointContainment(self):
         vertices = self.polygon.vertices
         for v in vertices:
-            self.failUnless(self.polygon.contains(v),
+            self.assertTrue(self.polygon.contains(v),
                             "%s vertex position should be contained." % str(v))
-            self.failUnless(not self.polygon.contains(v, False),
+            self.assertTrue(not self.polygon.contains(v, False),
                             "%s vertex position should not be contained." % str(v))
         return
 
@@ -152,13 +153,13 @@ class TestPolygon(unittest.TestCase):
         centroid = self.polygon.centroid
         vertices = vector_of_Vector(self.polygon.vertices)
         numVerts = len(vertices)
-        for i in xrange(numVerts):
+        for i in range(numVerts):
             vertices[i] = 0.5*(centroid + vertices[i])
             assert self.polygon.contains(vertices[i])
         polygon2 = Polygon(vertices)
-        self.failUnless(self.polygon.intersect(polygon2),
+        self.assertTrue(self.polygon.intersect(polygon2),
                         "Failed to intersect with a contained polygon.")
-        self.failUnless(polygon2.intersect(self.polygon),
+        self.assertTrue(polygon2.intersect(self.polygon),
                         "Failed to intersect when entirely contained within a polygon.")
         return
         
@@ -169,13 +170,13 @@ class TestPolygon(unittest.TestCase):
         xmin = self.polygon.xmin.x
         vertices = vector_of_Vector(self.polygon.vertices)
         numVerts = len(vertices)
-        for i in xrange(numVerts):
+        for i in range(numVerts):
             xv = vertices[i].x
             vertices[i].x -= 2.0*(xv - xmin)
         polygon2 = Polygon(vertices)
-        self.failUnless(self.polygon.intersect(polygon2),
+        self.assertTrue(self.polygon.intersect(polygon2),
                         "Failed to intersect with polygon touching at a vertex")
-        self.failUnless(polygon2.intersect(self.polygon),
+        self.assertTrue(polygon2.intersect(self.polygon),
                         "Failed to intersect with polygon touching at a vertex")
         return
 
@@ -187,13 +188,13 @@ class TestPolygon(unittest.TestCase):
         xlength = self.polygon.xmax.x - self.polygon.xmin.x
         vertices = vector_of_Vector(self.polygon.vertices)
         numVerts = len(vertices)
-        for i in xrange(numVerts):
+        for i in range(numVerts):
             xv = vertices[i].x
             vertices[i].x -= 2.0*(xv - xmin) + xlength
         polygon2 = Polygon(vertices)
         #plots.append(plotPolygon(self.polygon))
         #plots.append(plotPolygon(polygon2))
-        self.failUnless(not self.polygon.intersect(polygon2),
+        self.assertTrue(not self.polygon.intersect(polygon2),
                         "Erroneously claiming polygons intersect : [[%g,%g], [%g,%g], [[%g,%g], [%g,%g]]" % (self.polygon.xmin.x, 
                                                                                                              self.polygon.xmax.x,
                                                                                                              self.polygon.xmin.y,
@@ -202,7 +203,7 @@ class TestPolygon(unittest.TestCase):
                                                                                                              polygon2.xmax.x,
                                                                                                              polygon2.xmin.y,
                                                                                                              polygon2.xmax.y))
-        self.failUnless(not polygon2.intersect(self.polygon),
+        self.assertTrue(not polygon2.intersect(self.polygon),
                         "Erroneously claiming polygons intersect : [[%g,%g], [%g,%g], [[%g,%g], [%g,%g]]" % (self.polygon.xmin.x, 
                                                                                                              self.polygon.xmax.x,
                                                                                                              self.polygon.xmin.y,
@@ -221,7 +222,7 @@ class TestPolygon(unittest.TestCase):
         centroid = self.polygon.centroid
         box = (centroid - 0.95*rinner*Vector.one,
                centroid + 0.95*rinner*Vector.one)
-        self.failUnless(self.polygon.intersect(box),
+        self.assertTrue(self.polygon.intersect(box),
                         "Failed to intersect with a contained box.")
         return
         
@@ -233,7 +234,7 @@ class TestPolygon(unittest.TestCase):
         centroid = self.polygon.centroid
         box = (centroid - 2.0*router*Vector.one,
                centroid + 2.0*router*Vector.one)
-        self.failUnless(self.polygon.intersect(box),
+        self.assertTrue(self.polygon.intersect(box),
                         "Failed to intersect with a box we are in.")
         return
         
@@ -248,7 +249,7 @@ class TestPolygon(unittest.TestCase):
                 vertex = v
         assert not vertex is None
         box = (Vector(v.x - 2.0, v.y - 2.0), v)
-        self.failUnless(self.polygon.intersect(box),
+        self.assertTrue(self.polygon.intersect(box),
                         "Failed to intersect with a box touching on one side.")
 
     #---------------------------------------------------------------------------
@@ -258,7 +259,7 @@ class TestPolygon(unittest.TestCase):
         xmin, xmax = self.polygon.xmin, self.polygon.xmax
         delta = xmax - xmin
         box = (xmin - 2.0*delta, xmax - 2.0*delta)
-        self.failUnless(not self.polygon.intersect(box),
+        self.assertTrue(not self.polygon.intersect(box),
                         "Erroneously intersect external box.")
 
     #---------------------------------------------------------------------------
@@ -268,7 +269,7 @@ class TestPolygon(unittest.TestCase):
         polygon2 = Polygon()
         polygon2.reconstruct(self.polygon.vertices,
                              self.polygon.facetVertices)
-        self.failUnless(polygon2 == self.polygon,
+        self.assertTrue(polygon2 == self.polygon,
                         "Failed to properly reconstruct polygon from vertices and facets.")
         return
 
@@ -279,14 +280,15 @@ class TestPolygon(unittest.TestCase):
         verts0 = self.polygon.vertices
         c = self.polygon.centroid
         cmpmethod = SortCounterClockwise(c)
-        verts = sorted(list(verts0), cmpmethod)
+        keymethod = functools.cmp_to_key(cmpmethod)
+        verts = sorted(list(verts0), key=keymethod)
         p0 = verts[0]
         answer = 0.0
-        for i in xrange(2, len(verts)):
+        for i in range(2, len(verts)):
             answer += (verts[i] - p0).cross(verts[i - 1] - p0).z
         answer *= 0.5
         vertstring = [str(x) for x in verts]
-        self.failUnless(fuzzyEqual(self.polygon.volume, answer, 1.0e-10),
+        self.assertTrue(fuzzyEqual(self.polygon.volume, answer, 1.0e-10),
                         "Failed volume computation: %g != %g\n verts = %s" % (self.polygon.volume,
                                                                               answer,
                                                                               vertstring))
@@ -298,7 +300,7 @@ class TestPolygon(unittest.TestCase):
         verts = self.polygon.vertices
         for p in verts:
             cp = self.polygon.closestPoint(p)
-            self.failUnless(fuzzyEqual((cp - p).magnitude(), 0.0, 1.0e-10),
+            self.assertTrue(fuzzyEqual((cp - p).magnitude(), 0.0, 1.0e-10),
                             "Closest point to vertex %s : %s" % (p, cp))
 
     #---------------------------------------------------------------------------
@@ -310,7 +312,7 @@ class TestPolygon(unittest.TestCase):
         for f in facets:
             p = f.position
             cp = self.polygon.closestPoint(p)
-            self.failUnless(fuzzyEqual((cp - p).magnitude(), 0.0, 1.0e-10),
+            self.assertTrue(fuzzyEqual((cp - p).magnitude(), 0.0, 1.0e-10),
                             "Closest point to facet position %s : %s" % (p, cp))
 
     #---------------------------------------------------------------------------
@@ -323,14 +325,14 @@ class TestPolygon(unittest.TestCase):
             cp0 = f.position
             p = cp0 + chi*f.normal
             cp = self.polygon.closestPoint(p)
-            self.failUnless(fuzzyEqual((cp0 - cp).magnitude(), 0.0, 1.0e-10),
+            self.assertTrue(fuzzyEqual((cp0 - cp).magnitude(), 0.0, 1.0e-10),
                             "Closest point to position off of facet position %s : %s" % (cp0, cp))
 
     #---------------------------------------------------------------------------
     # Test ==
     #---------------------------------------------------------------------------
     def testEqual(self):
-        self.failUnless(self.polygon == self.polygon,
+        self.assertTrue(self.polygon == self.polygon,
                         "Failed self equivalence.")
 
     #---------------------------------------------------------------------------
@@ -338,7 +340,7 @@ class TestPolygon(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testNotEqual(self):
         polygon2 = Polygon()
-        self.failUnless(polygon2 != self.polygon,
+        self.assertTrue(polygon2 != self.polygon,
                         "Failed not equal.")
 
     #---------------------------------------------------------------------------
@@ -346,7 +348,7 @@ class TestPolygon(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testCopy(self):
         polygon2 = Polygon(self.polygon)
-        self.failUnless(polygon2 == self.polygon,
+        self.assertTrue(polygon2 == self.polygon,
                         "Failed to copy construct.")
 
     #---------------------------------------------------------------------------
@@ -360,7 +362,7 @@ class TestPolygon(unittest.TestCase):
         for p0, p1 in zip([self.polygon.xmin, self.polygon.xmax] + list(self.polygon.vertices),
                           [polygon2.xmin, polygon2.xmax] + list(polygon2.vertices)):
             pshift = p0 + shift
-            self.failUnless(pshift == p1, "In-place shift point comparison failed: %s != %s" % (pshift, p1))
+            self.assertTrue(pshift == p1, "In-place shift point comparison failed: %s != %s" % (pshift, p1))
 
 if __name__ == "__main__":
     unittest.main()

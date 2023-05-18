@@ -187,7 +187,7 @@ output("  nodes.rhoMax")
 #-------------------------------------------------------------------------------
 eps0 = 0.0
 if restoreCycle is None:
-    print "Generating node distribution."
+    print("Generating node distribution.")
     from GenerateNodeDistribution2d import *
     from DistributeNodes import distributeNodes2d
     generator = GenerateNodeDistribution2d(nx,
@@ -206,7 +206,7 @@ if restoreCycle is None:
     nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
 
     # Set node velocites.
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         xi = nodes.positions()[i]
         r = xi.magnitude()
         runit = xi.unitVector()

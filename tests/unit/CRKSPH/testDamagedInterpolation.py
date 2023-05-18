@@ -159,15 +159,15 @@ elif testDim == "3d":
     distributeNodes3d((nodes1, gen))
 
 else:
-    raise ValueError, "Only tests cases for 1d,2d and 3d." 
+    raise ValueError("Only tests cases for 1d,2d and 3d.") 
 
 output("nodes1.numNodes")
 
 # Set node properties.
 eps = nodes1.specificThermalEnergy()
-for i in xrange(nx1):
+for i in range(nx1):
     eps[i] = eps1
-for i in xrange(nx2):
+for i in range(nx2):
     eps[i + nx1] = eps2
 
 #-------------------------------------------------------------------------------
@@ -175,7 +175,7 @@ for i in xrange(nx2):
 #-------------------------------------------------------------------------------
 dx1 = (x1 - x0)/nx1
 dx2 = (x2 - x1)/nx2
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     if i < nx1:
         dx = dx1
     else:
@@ -210,7 +210,7 @@ if iterateH:
 D_fl = db.newFluidSymTensorFieldList(SymTensor.one * 0.01, "D")
 D = D_fl[0]
 pos = nodes1.positions()
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     if abs(pos[i].x - x1) < breakRadius:
         D[i] = SymTensor.one
 
@@ -234,7 +234,7 @@ weight = weight_fl[0]
 mass = mass_fl[0]
 rho = rho_fl[0]
 
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     weight[i] = mass[i]/rho[i]
     Dt[i] = D[i].Trace()
 
@@ -245,7 +245,7 @@ gradD_fl[0].name = "grad D"
 # Initialize our field.
 #-------------------------------------------------------------------------------
 f = ScalarField("test field", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     x = nodes1.positions()[i].x
     if testCase == "linear":
         f[i] = y0 + m0*x
@@ -294,10 +294,10 @@ dfCRKSPH = dfCRKSPH_fl[0]
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
-xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
+xans = [positions[i].x for i in range(nodes1.numInternalNodes)]
 yans = ScalarField("interpolation answer", nodes1)
 dyans = ScalarField("derivative answer", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     if testCase == "linear":
         yans[i] = y0 + m0*xans[i]
         dyans[i] = m0
@@ -316,15 +316,15 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 erryCRKSPH = ScalarField("CRKSPH interpolation error", nodes1)
 errdyCRKSPH = ScalarField("CRKSPH derivative error", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     erryCRKSPH[i] =  fCRKSPH[i] - yans[i]
     errdyCRKSPH[i] = dfCRKSPH[i].x - dyans[i]
 
 maxyCRKSPHerror = max([abs(x) for x in erryCRKSPH])
 maxdyCRKSPHerror = max([abs(x) for x in errdyCRKSPH])
 
-print "Maximum errors (interpolation): CRKSPH = %g" % (maxyCRKSPHerror)
-print "Maximum errors   (derivatives): CRKSPH = %g" % (maxdyCRKSPHerror)
+print("Maximum errors (interpolation): CRKSPH = %g" % (maxyCRKSPHerror))
+print("Maximum errors   (derivatives): CRKSPH = %g" % (maxdyCRKSPHerror))
 
 #-------------------------------------------------------------------------------
 # Plot the things.
@@ -332,7 +332,7 @@ print "Maximum errors   (derivatives): CRKSPH = %g" % (maxdyCRKSPHerror)
 if graphics:
     from SpheralGnuPlotUtilities import *
     import Gnuplot
-    xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
+    xans = [positions[i].x for i in range(nodes1.numInternalNodes)]
 
     # Interpolated values.
     ansdata = Gnuplot.Data(xans, yans.internalValues(),
@@ -409,7 +409,7 @@ if graphics:
 # Check the maximum CRKSPH error and fail the test if it's out of bounds.
 #-------------------------------------------------------------------------------
 if maxyCRKSPHerror > interpolationTolerance:
-    raise ValueError, "CRKSPH interpolation error out of bounds: %g > %g" % (maxyCRKSPHerror, interpolationTolerance)
+    raise ValueError("CRKSPH interpolation error out of bounds: %g > %g" % (maxyCRKSPHerror, interpolationTolerance))
 
 if maxdyCRKSPHerror > derivativeTolerance:
-    raise ValueError, "CRKSPH derivative error out of bounds: %g > %g" % (maxdyCRKSPHerror, derivativeTolerance)
+    raise ValueError("CRKSPH derivative error out of bounds: %g > %g" % (maxdyCRKSPHerror, derivativeTolerance))

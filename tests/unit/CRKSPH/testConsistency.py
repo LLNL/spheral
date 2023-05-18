@@ -193,15 +193,15 @@ elif testDim == "3d":
     distributeNodes3d((nodes1, gen))
 
 else:
-    raise ValueError, "Only tests cases for 1d,2d and 3d." 
+    raise ValueError("Only tests cases for 1d,2d and 3d.") 
 
 output("nodes1.numNodes")
 
 # Set node properties.
 eps = nodes1.specificThermalEnergy()
-for i in xrange(nx1):
+for i in range(nx1):
     eps[i] = eps1
-for i in xrange(nx2):
+for i in range(nx2):
     eps[i + nx1] = eps2
 
 #-------------------------------------------------------------------------------
@@ -220,7 +220,7 @@ rposz = np.random.uniform(x0,x2,nodes1.numInternalNodes)
 rposx = np.sort(rposx)
 rposy = np.sort(rposy)
 rposz = np.sort(rposz)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     if pos[i] < x1:
         dx = dx1
     else:
@@ -269,7 +269,7 @@ if iterateH:
 #-------------------------------------------------------------------------------
 f = ScalarField("test field", nodes1)
 gf = ScalarField("gradient test field", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     x = nodes1.positions()[i].x
     if testCase == "linear":
         f[i] = y0 + m0*x
@@ -369,7 +369,7 @@ boundIndx = []
 if testDim == "1d":
   boundIndx = [0,nodes1.numInternalNodes - 1]
 elif testDim == "2d":
-  for iglobal in xrange(nodes1.numInternalNodes):
+  for iglobal in range(nodes1.numInternalNodes):
      nx = nx1 + nx2
      ny = nx1 + nx2
      i = iglobal % nx
@@ -377,7 +377,7 @@ elif testDim == "2d":
      if i == 0 or i == nx - 1 or j == 0 or j == ny - 1:
        boundIndx.append(iglobal)
 elif testDim == "3d":
-  for iglobal in xrange(nodes1.numInternalNodes):
+  for iglobal in range(nodes1.numInternalNodes):
        nx = nx1 + nx2
        ny = nx1 + nx2
        nz = nx1 + nx2
@@ -387,7 +387,7 @@ elif testDim == "3d":
        if i == 0 or i == nx - 1 or j == 0 or j == ny - 1 or k == 0 or k == nz - 1:
            boundIndx.append(iglobal)
 
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
   if i in boundIndx:
     isBound[i] = True
   else:
@@ -402,7 +402,7 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 # Calculate the Acceration for all the RK schemes
 #-------------------------------------------------------------------------------
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     ri = positions[i]
     Hi = H[i]
     Hdeti = H[i].Determinant()
@@ -513,11 +513,11 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
-xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
+xans = [positions[i].x for i in range(nodes1.numInternalNodes)]
 axans = ScalarField("accelertion answer x component", nodes1)
 ayans = ScalarField("accelertion answer y component", nodes1)
 azans = ScalarField("accelertion answer z component", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     if testCase == "linear":
         axans[i] = -m0/rho1
         ayans[i] = 0.0
@@ -555,7 +555,7 @@ errxSPH     =  ScalarField("SPH consistency error", nodes1)
 errxBCRKSPH  =  ScalarField("BCRKSPH consistency error", nodes1)
 errxBRKSPHII =  ScalarField("BRKSPHII consistency error", nodes1)
 errxBRKSPHIV =  ScalarField("BRKSPHIV consistency error", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     errfRK[i]      =  fRK[i] - f[i]
     errgfRK[i]     =  gfRK[i][0] - gf[i]
 
@@ -582,7 +582,7 @@ maxaxSPHerror = max([abs(x) for x in errxSPH])
 maxaxBCRKSPHerror  = max([abs(x) for x in errxBCRKSPH])
 maxaxBRKSPHIIerror = max([abs(x) for x in errxBRKSPHII])
 maxaxBRKSPHIVerror = max([abs(x) for x in errxBRKSPHIV])
-xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
+xans = [positions[i].x for i in range(nodes1.numInternalNodes)]
 xidx = [i for i in range(len(xans)) if xans[i] <= dataCutMax and xans[i] >= dataCutMin]
 xans = [xans[i] for i in xidx]
 gfRK = [gfRK.internalValues()[i].x for i in xidx]
@@ -833,7 +833,7 @@ if graphics:
 
 
 from Pnorm import Pnorm
-print "L1 errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g, BCRKSPH = %g, BRKSPHII = %g, BRKSPHIV = %g," % (Pnorm(errxCRKSPH, xans).pnorm(1),
+print("L1 errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g, BCRKSPH = %g, BRKSPHII = %g, BRKSPHIV = %g," % (Pnorm(errxCRKSPH, xans).pnorm(1),
                                                                                                   Pnorm(errxRKSPHI, xans).pnorm(1),
                                                                                                   Pnorm(errxRKSPHII, xans).pnorm(1),
                                                                                                   Pnorm(errxRKSPHIV, xans).pnorm(1),
@@ -841,9 +841,9 @@ print "L1 errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH
                                                                                                   Pnorm(errxSPH, xans).pnorm(1),
             											  Pnorm(errxBCRKSPH, xans).pnorm(1),
             											  Pnorm(errxBRKSPHII, xans).pnorm(1),
-            											  Pnorm(errxBRKSPHIV, xans).pnorm(1))
-print "Maximum errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g, BCRKSPH = %g, BRKSPHII = %g, BRKSPHIV = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror, maxaxSPHerror, maxaxBCRKSPHerror, maxaxBRKSPHIIerror, maxaxBRKSPHIVerror)
-print "L1 Interpolation Error RK = %g, Max err = %g, L1 Derivative Error Rk = %g, Max err = %g" % (Pnorm(errfRK, xans).pnorm(1),maxfRKerror, Pnorm(errgfRK, xans).pnorm(1),maxgfRKerror)
+            											  Pnorm(errxBRKSPHIV, xans).pnorm(1)))
+print("Maximum errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g, BCRKSPH = %g, BRKSPHII = %g, BRKSPHIV = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror, maxaxSPHerror, maxaxBCRKSPHerror, maxaxBRKSPHIIerror, maxaxBRKSPHIVerror))
+print("L1 Interpolation Error RK = %g, Max err = %g, L1 Derivative Error Rk = %g, Max err = %g" % (Pnorm(errfRK, xans).pnorm(1),maxfRKerror, Pnorm(errgfRK, xans).pnorm(1),maxgfRKerror))
 if outfile != "None": 
   fl = open(outfile+".ascii", "w") 
   fl.write(("# " + 8*"%15s \t " + "\n") % ("x", "Dv/Dt", "CRK", "RK Type 1", "SPH", "CRK Error (difference)", "RK Error", "SPH Error"))

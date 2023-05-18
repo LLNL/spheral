@@ -33,7 +33,7 @@ bool fuzzyEqual(const DataType& lhs, const DataType& rhs,
   // } else { // use relative error
   //   return diff / std::min((absA + absB), std::numeric_limits<DataType>::max()) < fuzz;
   // }
-  return std::abs(lhs - rhs)/std::max(1.0, std::abs(lhs) + std::abs(rhs)) < fuzz;
+  return std::abs(lhs - rhs) <= fuzz * std::max(1.0, std::abs(lhs) + std::abs(rhs));
 }
 
 template<typename DataType>

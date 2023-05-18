@@ -54,7 +54,7 @@ for nodes in nodeSet:
 nc = 60
 bcpoints = vector_of_Vector(nc)
 bcfacets = vector_of_vector_of_unsigned(nc,vector_of_unsigned(2))
-for i in xrange(nc):
+for i in range(nc):
     bcpoints[i] = Vector(cos(i*2.0*pi/nc),sin(i*2.0*pi/nc))
     bcfacets[i][0] = i
     bcfacets[i][1] = (i+1) % nc
@@ -78,7 +78,7 @@ def integrate(densityProfileMethod,
     
     result = 0
     dr = (rmax-rmin)/nbins
-    for i in xrange(1,nbins):
+    for i in range(1,nbins):
         r1 = rmin + (i-1)*dr
         r2 = rmin + i*dr
         result += 0.5*dr*(r2*densityProfileMethod(r2)+r1*densityProfileMethod(r1))
@@ -113,7 +113,7 @@ m0   = norm/float(n)
 pmax = 0
 
 dr = rmax/1000.0
-for i in xrange(1000):
+for i in range(1000):
     ri = dr*i
     pmax = max(rho(ri)/norm,pmax)
 
@@ -163,7 +163,7 @@ k = 0
 
 while (dds > fracTol) and (k < maxIterations):
     maxs = 0.0
-    for i in xrange(len(points)):
+    for i in range(len(points)):
         # get point i
         xi = points[i][0]
         yi = points[i][1]
@@ -171,7 +171,7 @@ while (dds > fracTol) and (k < maxIterations):
         # reset forces
         forces[i][0] = 0.0
         forces[i][1] = 0.0
-        for j in xrange(len(points)):
+        for j in range(len(points)):
             if (i!=j):
                 # get point j
                 xj = points[j][0]
@@ -195,7 +195,7 @@ while (dds > fracTol) and (k < maxIterations):
         #print "[%3.3e,%3.3e] [%3.3e,%3.3e] [%3.3e,%3.3e]" % (xi,yi,-Fx,-Fy,forces[i][0],forces[i][1])
         forces[i][0] += -Fx
         forces[i][1] += -Fy
-    for i in xrange(len(points)):
+    for i in range(len(points)):
         # compute movement for point i
         dx = forces[i][0] * ds
         dy = forces[i][1] * ds
@@ -224,7 +224,7 @@ while (dds > fracTol) and (k < maxIterations):
 
     dds = maxs
     k += 1
-    print k,dds
+    print(k,dds)
 
 # now that the positions and sizes are fixed, fill the nodelist
 nodes1.numInternalNodes = n
@@ -232,7 +232,7 @@ r = nodes1.positions()
 m = nodes1.mass()
 rho = nodes1.massDensity()
 H = nodes1.Hfield()
-for i in xrange(n):
+for i in range(n):
     r[i] = Vector(points[i][0],points[i][1])
     s = points[i][2]
     m[i] = m0
@@ -303,14 +303,14 @@ computeCRKSPHMoments(cm, WT, vol, pos, H, correctionOrder, NodeCoupling(),
 print "computed moments"
 '''
 
-for i in xrange(len(weight[0])):
+for i in range(len(weight[0])):
     weight[0][i] = points[i][2]
 
 computeVoronoiVolume(pos, H, cm, WT.kernelExtent, bounds, holes,
                      ScalarFieldList(),
                      surfacePoint, vol,deltaCentroid, cells)
 
-print "computed volumes"
+print("computed volumes")
 
 
 p = plotPolygon(outerCircle, plotVertices=False, plotLabels=False)
@@ -318,20 +318,20 @@ xmin = -1.5*Vector.one
 xmax = 1.5*Vector.one
 p("set size square; set xrange [%g:%g]; set yrange [%g:%g]" % (xmin.x,xmax.x,xmin.y,xmax.y))
 p.refresh()
-for i in xrange(len(cells[0])):
+for i in range(len(cells[0])):
     plotPolygon(cells[0][i],plot=p,plotVertices=False,plotLabels=False)
 
 computeWeightedVoronoiVolume(pos, H, rhof, gradRhof, cm, WT.kernelExtent, bounds, holes, weight,
                              surfacePoint, vol,deltaCentroid, cells)
                      
-print "computed weighted volumes"
+print("computed weighted volumes")
 
 pp = plotPolygon(outerCircle, plotVertices=False, plotLabels=False)
 xmin = -1.5*Vector.one
 xmax = 1.5*Vector.one
 pp("set size square; set xrange [%g:%g]; set yrange [%g:%g]" % (xmin.x,xmax.x,xmin.y,xmax.y))
 pp.refresh()
-for i in xrange(len(cells[0])):
+for i in range(len(cells[0])):
     plotPolygon(cells[0][i],plot=pp,plotVertices=False,plotLabels=False)
 
 
@@ -345,7 +345,7 @@ for i in xrange(len(cells[0])):
 Hfield = nodes1.Hfield()
 HfieldInv = SymTensorField("H inverse", nodes1)
 Sfield = ScalarField("Size", nodes1, 0.0)
-for i in xrange(nodes1.numNodes):
+for i in range(nodes1.numNodes):
     HfieldInv[i] = Hfield[i].Inverse()
     Sfield[i] = pi*(0.5*points[i][2])**2
 

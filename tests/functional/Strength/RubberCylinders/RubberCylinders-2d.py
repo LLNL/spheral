@@ -231,7 +231,7 @@ for nodes in nodeSet:
 # Set node properties (positions, velocites, etc.)
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    print "Generating node distribution."
+    print("Generating node distribution.")
     
     if seed == "lattice":
         ny = nx
@@ -262,13 +262,13 @@ if restoreCycle is None:
 
     # Displace the nodes to the correct centering.
     assert generator1.localNumNodes() == generator2.localNumNodes()
-    for i in xrange(generator1.localNumNodes()):
+    for i in range(generator1.localNumNodes()):
         generator1.x[i] += x0
         generator1.y[i] += y0
         generator2.x[i] -= x0
         generator2.y[i] += y0
 
-    print "Starting node distribution..."
+    print("Starting node distribution...")
     if twoCylinders:
         distributeNodes2d((nodes1, generator1),
                           (nodes2, generator2))
@@ -281,10 +281,10 @@ if restoreCycle is None:
         output("    mpi.allreduce(nodes.numInternalNodes, mpi.SUM)")
 
     # Set node specific thermal energies
-    print "Initial pressure for %s: %g" % (nodes1.name,
-                                           nodes1.eos.pressure(rho0, 0.0))
-    print "Initial pressure for %s: %g" % (nodes2.name,
-                                           nodes2.eos.pressure(rho0, 0.0))
+    print("Initial pressure for %s: %g" % (nodes1.name,
+                                           nodes1.eos.pressure(rho0, 0.0)))
+    print("Initial pressure for %s: %g" % (nodes2.name,
+                                           nodes2.eos.pressure(rho0, 0.0)))
 
     # Set the projectile velocities.
     nodes1.velocity(VectorField2d("tmp", nodes1, Vector2d(vx0, 0.0)))

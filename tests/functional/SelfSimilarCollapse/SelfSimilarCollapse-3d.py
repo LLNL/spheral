@@ -138,7 +138,7 @@ if restoreCycle is None:
                                            SPH = (HydroConstructor == SPHHydro))
 
     distributeNodes((nodes, generator))
-    print "Num internal nodes for ", nodes.name, " : ", mpi.allreduce(nodes.numInternalNodes, mpi.SUM)
+    print("Num internal nodes for ", nodes.name, " : ", mpi.allreduce(nodes.numInternalNodes, mpi.SUM))
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -238,7 +238,7 @@ if restoreCycle is None:
     control.iterateIdealH(hydro)
     control.smoothState(smoothIters)
     if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
+        print("Reinitializing node masses.")
         control.voronoiInitializeMass()
     control.dropRestartFile()
     control.dropViz()

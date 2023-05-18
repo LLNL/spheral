@@ -176,7 +176,7 @@ if serialDump:
     
     f = open(dataDir + "/one-node.ascii",'w')
     #&ident,&x,&y,&z,&h,&mass,&rho,&temp
-    for j in xrange(nodes.numInternalNodes):
+    for j in range(nodes.numInternalNodes):
         f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(j,nodes.positions()[j][0],
                                                                    nodes.positions()[j][1],
                                                                    0.0,

@@ -189,7 +189,7 @@ if restoreCycle is None:
 
     distributeNodes2d((nodes1, generator1),)
     for nodes in nodeSet:
-        print nodes.name, ":"
+        print(nodes.name, ":")
         output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
         output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
         output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
@@ -199,7 +199,7 @@ if restoreCycle is None:
     pos = nodes1.positions()
     vel = nodes1.velocity()
     eps = nodes1.specificThermalEnergy()
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         xi, yi = pos[i]
 
         vx = sin(pi*xi) * cos(pi*yi)

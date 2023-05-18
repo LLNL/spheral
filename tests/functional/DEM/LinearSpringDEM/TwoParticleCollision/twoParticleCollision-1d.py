@@ -261,9 +261,9 @@ if checkRestart:
     control.loadRestartFile(control.totalSteps)
     state1 = State(db, integrator.physicsPackages())
     if not state1 == state0:
-        raise ValueError, "The restarted state does not match!"
+        raise ValueError("The restarted state does not match!")
     else:
-        print "Restart check PASSED."
+        print("Restart check PASSED.")
 
 if checkError:
     # check our restitution coefficient is correct
@@ -273,10 +273,10 @@ if checkError:
     restitutionEff = vijPostImpact/vijPreImpact
     restitutionError = abs(restitutionEff + normalRestitutionCoefficient)/normalRestitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
-        raise ValueError, "relative restitution coefficient error, %g, exceeds bounds" % restitutionError
+        raise ValueError("relative restitution coefficient error, %g, exceeds bounds" % restitutionError)
 
 
 if checkConservation:
     if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX()
+        raise ValueError("linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX())
     

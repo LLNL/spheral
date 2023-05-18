@@ -280,7 +280,7 @@ output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps0))
 
 # Set node velocities
-for nodeID in xrange(nodes1.numNodes):
+for nodeID in range(nodes1.numNodes):
     vel[nodeID] = pos[nodeID].unitVector()*vr0
 
 #-------------------------------------------------------------------------------
@@ -517,7 +517,7 @@ output("control")
 if restoreCycle is None:
     control.smoothState(smoothIters)
     if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
+        print("Reinitializing node masses.")
         control.voronoiInitializeMass()
     control.dropRestartFile()
 
@@ -538,9 +538,9 @@ if not steps is None:
         control.loadRestartFile(control.totalSteps)
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
+            raise ValueError("The restarted state does not match!")
         else:
-            print "Restart check PASSED."
+            print("Restart check PASSED.")
 
 else:
     control.advance(goalTime, maxSteps)
@@ -573,7 +573,7 @@ if graphics:
         assert hrfield.numElements == n
         assert htfield.numElements == n
         positions = Hfield.nodeList().positions()
-        for i in xrange(n):
+        for i in range(n):
             runit = positions[i].unitVector()
             tunit = Vector(-(positions[i].y), positions[i].x).unitVector()
             hrfield[i] = (Hfield[i]*runit).magnitude()
@@ -644,25 +644,25 @@ if graphics:
         import Pnorm
         multiSort(r, rho, v, eps, P)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
-        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+        print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
         for (name, data, ans) in [("Mass Density", rho, rhoans),
                                   ("Pressure", P, Pans),
                                   ("Velocity", v, vans),
                                   ("Thermal E", eps, epsans)]:
             assert len(data) == len(ans)
-            error = [data[i] - ans[i] for i in xrange(len(data))]
+            error = [data[i] - ans[i] for i in range(len(data))]
             Pn = Pnorm.Pnorm(error, r)
             L1 = Pn.gridpnorm(1, rmin, rmax)
             L2 = Pn.gridpnorm(2, rmin, rmax)
             Linf = Pn.gridpnorm("inf", rmin, rmax)
-            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+            print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes1)
     nodes1.pressure(P)
     xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
@@ -681,7 +681,7 @@ if outputFile != "None":
     #print "np=%d" % np
     vprof = []
     if mpi.rank == 0:
-        for i in xrange(np):
+        for i in range(np):
             vprof.append(xprof[i]*vx[i]/rprof[i] + yprof[i]*vy[i]/rprof[i])
     #vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
     epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
@@ -719,6 +719,6 @@ if outputFile != "None":
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e-30, control.conserve.EHistory[0])
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if compatibleEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")

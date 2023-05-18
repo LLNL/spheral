@@ -109,7 +109,7 @@ nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
 
 # Displace the nodes in a pattern that looks like the tensile instability clumping.
 dx = (x1 - x0)/nx1
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     delta = amplitude*((-1.0)**(i % 2))*dx # amplitude*sin(2.0*pi*nodes1.positions()[i].x/wavelength)
     nodes1.positions()[i].x += delta
 

@@ -45,7 +45,7 @@ vel = nodes.velocity()
 eps = nodes.specificThermalEnergy()
 abund = []
 
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     vel[i].x = generator.vx[i]
     vel[i].y = generator.vy[i]
     vel[i].z = generator.vz[i]
@@ -58,7 +58,7 @@ distributeNodes((nodes, generator),)
 #-------------------------------------------------------------------------------
 Hfield = nodes.Hfield()
 HfieldInv = SymTensorField("H inverse", nodes)
-for i in xrange(nodes.numNodes):
+for i in range(nodes.numNodes):
     HfieldInv[i] = Hfield[i].Inverse()
 vizfile = SpheralVisitDump(baseFileName = "Ascii_file_test",
                            listOfFields = [nodes.massDensity(),

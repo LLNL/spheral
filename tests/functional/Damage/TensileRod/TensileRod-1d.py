@@ -51,7 +51,7 @@ class OverrideNodeProperties:
         return
 
     def override(self, cycle, t, dt):
-        ids = [i for i in xrange(self.nodeList.numInternalNodes)
+        ids = [i for i in range(self.nodeList.numInternalNodes)
                if self.controlNodeFlags[i] > 0.5]
         for i in ids:
             self.nodeList.massDensity()[i] = self.rho0
@@ -233,7 +233,7 @@ class AverageStrain:
         strain = self.damageModel.strain
 
         n = nodes.numInternalNodes
-        result = (mpi.allreduce(sum([mass[i]*(strain[i].Trace()) for i in xrange(n)]), mpi.SUM)/
+        result = (mpi.allreduce(sum([mass[i]*(strain[i].Trace()) for i in range(n)]), mpi.SUM)/
                   mpi.allreduce(sum(mass.internalValues()), mpi.SUM))
 
         self.timeHistory.append(atime)
@@ -257,7 +257,7 @@ class AverageStrain:
             n = len(self.timeHistory)
             assert len(self.strainHistory) == n
             if mpi.rank == 0:
-                for i in xrange(n):
+                for i in range(n):
                     self.file.write("%g   %g\n" % (self.timeHistory[i],
                                                    self.strainHistory[i]))
             self.file.flush()
@@ -357,7 +357,7 @@ nodeSet = [nodes]
 # Set node properties (positions, masses, H's, etc.)
 #-------------------------------------------------------------------------------
 eps0 = 0.0
-print "Generating node distribution."
+print("Generating node distribution.")
 from DistributeNodes import distributeNodesInRange1d
 distributeNodesInRange1d([(nodes, nx, rho0, (xmin, xmax))])
 output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
@@ -369,7 +369,7 @@ output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 # nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
 
 # Set node velocites.
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     nodes.velocity()[i].x = nodes.positions()[i].x/(0.5*length)*v0
 
 # Set an initial damage if requested.
@@ -377,7 +377,7 @@ if initialBreakRadius > 0.0:
     pos = nodes.positions()
     D = nodes.damage()
     fragIDs = nodes.fragmentIDs()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         if abs(pos[i].x) < initialBreakRadius:
             D[i] = SymTensor.one
         if pos[i].x < 0.0:
@@ -401,11 +401,11 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 x0Nodes = vector_of_int()
 x1Nodes = vector_of_int()
-dummy = [x0Nodes.append(i) for i in xrange(nodes.numInternalNodes)
+dummy = [x0Nodes.append(i) for i in range(nodes.numInternalNodes)
          if nodes.positions()[i].x < -0.5*length + 5*dx]
-dummy = [x1Nodes.append(i) for i in xrange(nodes.numInternalNodes)
+dummy = [x1Nodes.append(i) for i in range(nodes.numInternalNodes)
          if nodes.positions()[i].x >  0.5*length - 5*dx]
-print "Selected %i constant velocity nodes." % (mpi.allreduce(len(x0Nodes) + len(x1Nodes), mpi.SUM))
+print("Selected %i constant velocity nodes." % (mpi.allreduce(len(x0Nodes) + len(x1Nodes), mpi.SUM)))
 
 # Set the nodes we're going to control to one single velocity at each end.
 v0 = mpi.allreduce(min([nodes.velocity()[i].x for i in x0Nodes] + [100.0]), mpi.MIN)
@@ -610,7 +610,7 @@ if graphics:
     state = State(db, integrator.physicsPackages())
     H = state.symTensorFields("H")
     h = db.newFluidScalarFieldList(0.0, "h")
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         h[0][i] = 1.0/H[0][i].xx
     rhoPlot = plotFieldList(state.scalarFields("mass density"),
                             plotStyle="o-",
@@ -650,10 +650,10 @@ if graphics:
              (hPlot, "h.png"),
              (dPlot, "damage.png")]
 
-    if isinstance(damageModel, GradyKippTensorDamageBenzAsphaug) or isinstance(damageModel, GradyKippTensorDamageOwen):
+    if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
         ts = damageModel.strain
         s = ScalarField("strain", nodes)
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             s[i] = ts[i].xx
         sl = ScalarFieldList()
         sl.appendField(s)
@@ -661,7 +661,7 @@ if graphics:
                               plotStyle="o-")
         eps = damageModel.sumActivationEnergiesPerNode
         nflaws = damageModel.numFlawsPerNode
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             assert nflaws[i] > 0
             eps[i] /= nflaws[i]
         epsl = ScalarFieldList()
@@ -672,7 +672,7 @@ if graphics:
         plots += [(sPlot, "strain.png"),
                   (epsPlot, "flaws.png")]
 
-    elif isinstance(damageModel, JohnsonCookDamage):
+    elif DamageModelConstructor in (JohnsonCookDamageWeibull, JohnsonCookDamageGaussian):
         eps = damageModel.failureStrain
         epsl = ScalarFieldList()
         epsl.appendField(eps)
@@ -692,10 +692,10 @@ if graphics:
                   (D1Plot, "D1.png"),
                   (D2Plot, "D2.png")]
 
-    elif isinstance(damageModel, ProbabilisticDamageModel):
+    elif DamageModelConstructor is ProbabilisticDamageModel:
         ts = damageModel.strain
         s = ScalarField("strain", nodes)
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             s[i] = ts[i].xx
         sl = ScalarFieldList()
         sl.appendField(s)
@@ -763,7 +763,7 @@ if outputFile != "None":
         #---------------------------------------------------------------------------
         import filearraycmp as fcomp
         assert fcomp.filearraycmp(outputFile, referenceFile, testtol, testtol)
-        print "Floating point comparison test passed."
+        print("Floating point comparison test passed.")
 
         #---------------------------------------------------------------------------
         # Also we can optionally compare the current results with another file for

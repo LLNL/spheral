@@ -55,7 +55,7 @@ class TestSimpsonsRuleIntegration(unittest.TestCase):
     # Iterate over a bunch of randomly selected linear functions.
     #===========================================================================
     def testRandomLinearFunctions(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             a = random.uniform(self.ymin, self.ymax)
             b = random.uniform(-100.0, 100.0)
             x0 = random.uniform(self.xmin, 0.5*self.xmax)
@@ -63,7 +63,7 @@ class TestSimpsonsRuleIntegration(unittest.TestCase):
             result = simpsonsIntegrationDouble(LinearFunction(a, b),
                                                x0, x1, self.numBins)
             ans = (a + 0.5*b*x1)*x1 - (a + 0.5*b*x0)*x0
-            self.failUnless(fuzzyEqual(result, ans, 1.0e-10),
+            self.assertTrue(fuzzyEqual(result, ans, 1.0e-10),
                             "Failed linear integration:  %g != %g" % (result, ans))
         return
 
@@ -71,7 +71,7 @@ class TestSimpsonsRuleIntegration(unittest.TestCase):
     # Iterate over a bunch of randomly selected quadratic functions.
     #===========================================================================
     def testRandomQuadraticFunctions(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             a = random.uniform(self.ymin, self.ymax)
             b = random.uniform(-100.0, 100.0)
             c = random.uniform(-100.0, 100.0)
@@ -80,7 +80,7 @@ class TestSimpsonsRuleIntegration(unittest.TestCase):
             result = simpsonsIntegrationDouble(QuadraticFunction(a, b, c),
                                                x0, x1, self.numBins)
             ans = (a*x1 + 0.5*b*x1**2 + c/3.0*x1**3) - (a*x0 + 0.5*b*x0**2 + c/3.0*x0**3)
-            self.failUnless(fuzzyEqual(result, ans, 1.0e-10),
+            self.assertTrue(fuzzyEqual(result, ans, 1.0e-10),
                             "Failed quadratic integration:  %g != %g" % (result, ans))
         return
 
