@@ -24,7 +24,7 @@ def fitspline(y, x,
     else:
         y2[0] = -0.5
         u[0] = 3.0/(x[1] - x[0]) * (y[1] - y[0])/(x[1] - x[0])
-    for i in xrange(1, n-1):
+    for i in range(1, n-1):
         i0 = i - 1
         i1 = i + 1
         sig = (x[i] - x[i0])/(x[i1] - x[i0])
@@ -40,7 +40,7 @@ def fitspline(y, x,
         qn = 0.5
         un = 3.0/(x[n - 1] - x[n - 2]) * (yp1 - (y[n - 1] - y[n - 2])/(x[n - 1] - x[n - 2]))
     y2[n - 1] = (un - qn*u[n - 2])/(qn*y2[n - 2] + 1.0)
-    for k in xrange(n - 2, 0, -1):
+    for k in range(n - 2, 0, -1):
         y2[k] = y2[k]*y[k + 1] + u[k]
     return (x, y, y2)
 

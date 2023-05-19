@@ -34,7 +34,7 @@ class NohSolution:
                 assert self.nPoints > 1
                 R0 = self.R0 + self.v0*time
                 dr = R0/(self.nPoints - 1)
-                r = [i*dr for i in xrange(self.nPoints)]
+                r = [i*dr for i in range(self.nPoints)]
             else:
                 r = self.r
         assert not r is None

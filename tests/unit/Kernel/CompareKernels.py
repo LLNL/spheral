@@ -8,25 +8,25 @@ from SpheralGnuPlotUtilities import *
 def plotW(plot, W, xmin=0.0, xmax=2.0, numPnts=200, Hdet=1.0, title='',
           lineTitle=''):
     dx = (xmax - xmin)/(numPnts - 1)
-    x = numpy.array(range(numPnts))
+    x = numpy.array(list(range(numPnts)))
     y = numpy.array([0.0]*numPnts)
     i1,i2,i3 = 0,0,0
     x = dx*x + xmin
-    for i in xrange(numPnts):
+    for i in range(numPnts):
         y[i] = W(x[i], Hdet)
         if (i>0):
             i1 += abs(y[i]+y[i-1])/2.0 * dx
             i2 += abs(y[i]+y[i-1])/2.0 * dx * x[i]
             i3 += abs(y[i]+y[i-1])/2.0 * dx * x[i]*x[i]
     Pi = 3.14159
-    print "{0:3.3f} {1:3.3f} {2:3.3f}".format(i1*2.0,i2*2.0,i3)
+    print("{0:3.3f} {1:3.3f} {2:3.3f}".format(i1*2.0,i2*2.0,i3))
     plot('set xrange [0:1]')
     plot.xlabel('eta')
     plot.ylabel('W')
     if title:
         plot.title(title)
     ymax = 0
-    for i in xrange(numPnts):
+    for i in range(numPnts):
         if abs(y[i]) > ymax:
             ymax = abs(y[i])
     data = Gnuplot.Data(x/xmax, y/ymax, with_='lines', title=lineTitle)
@@ -36,8 +36,8 @@ def plotW(plot, W, xmin=0.0, xmax=2.0, numPnts=200, Hdet=1.0, title='',
     return
 
 import sys, string
-kernels = map(string.lower, sys.argv[1:])
-print kernels
+kernels = list(map(string.lower, sys.argv[1:]))
+print(kernels)
 
 numPts = 51
 dx = 1.0/(numPts - 1)
@@ -107,7 +107,7 @@ titleDict = {'spline':  'B Spline Kernel',
              }
 
 plots = []
-for i in xrange(2):
+for i in range(2):
     plots.append(generateNewGnuPlot())
 for kernel in kernels:
     title(titleDict[kernel])

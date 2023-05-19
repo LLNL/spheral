@@ -13,7 +13,7 @@ def trapezoidalIntegration(func,       # Function to be evaluated.
     dx = (b - a)/(numPoints - 1)
 
     result = 0.0
-    for i in xrange(1, numPoints - 1):
+    for i in range(1, numPoints - 1):
         result += func(a + i*dx)
 
     return dx*(result + 0.5*(func(a) + func(b)))
@@ -33,12 +33,12 @@ def simpsonsRuleIntegration(func,       # Function to be evaluated.
     dx = (b - a)/(numPoints - 1)
 
     result1 = 0.0
-    for i in xrange(1, numPoints, 2):
+    for i in range(1, numPoints, 2):
         x = a + i*dx
         result1 += func(x)
 
     result2 = 0.0
-    for i in xrange(2, numPoints, 2):
+    for i in range(2, numPoints, 2):
         x = a + i*dx
         result2 += func(x)
         

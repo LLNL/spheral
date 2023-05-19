@@ -21,7 +21,7 @@ def vector_from_list(l):
     n = len(l)
     try:
         result = vector_of_int(n)    # pybindgen
-        for i in xrange(n):
+        for i in range(n):
             result[i] = l[i]
     except:
         result = vector_of_int(l)    # pybind11
@@ -40,7 +40,7 @@ class testField(unittest.TestCase):
                                        eos,
                                        n)
         self.field = IntField("test field", self.nodes)
-        for i in xrange(n):
+        for i in range(n):
             self.field[i] = i
         return
 
@@ -56,13 +56,13 @@ class testField(unittest.TestCase):
     # deleteElements (random)
     #---------------------------------------------------------------------------
     def testDeleteElementsRandom(self):
-        elementsToKill = uniqueSequence([g.randint(0, n - 1) for i in xrange(n/10)])
+        elementsToKill = uniqueSequence([g.randint(0, n - 1) for i in range(n//10)])
         self.nodes.deleteNodes(vector_from_list(elementsToKill))
-        answer = range(n)
+        answer = list(range(n))
         for i in elementsToKill:
             answer.remove(i)
         assert len(answer) == self.nodes.numInternalNodes
-        for i in xrange(len(answer)):
+        for i in range(len(answer)):
             assert self.field[i] == answer[i]
         return
 
@@ -70,13 +70,13 @@ class testField(unittest.TestCase):
     # deleteElements (front)
     #---------------------------------------------------------------------------
     def testDeleteElementsFront(self):
-        elementsToKill = range(n/10)
+        elementsToKill = list(range(n//10))
         self.nodes.deleteNodes(vector_from_list(elementsToKill))
-        answer = range(n)
+        answer = list(range(n))
         for i in elementsToKill:
             answer.remove(i)
         assert len(answer) == self.nodes.numInternalNodes
-        for i in xrange(len(answer)):
+        for i in range(len(answer)):
             assert self.field[i] == answer[i]
         return
 
@@ -84,13 +84,13 @@ class testField(unittest.TestCase):
     # deleteElements (back)
     #---------------------------------------------------------------------------
     def testDeleteElementsBack(self):
-        elementsToKill = range(9*n/10, n)
+        elementsToKill = list(range(9*n//10, n))
         self.nodes.deleteNodes(vector_from_list(elementsToKill))
-        answer = range(n)
+        answer = list(range(n))
         for i in elementsToKill:
             answer.remove(i)
         assert len(answer) == self.nodes.numInternalNodes
-        for i in xrange(len(answer)):
+        for i in range(len(answer)):
             assert self.field[i] == answer[i]
         return
 

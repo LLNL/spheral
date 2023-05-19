@@ -278,22 +278,22 @@ if checkRestart:
     control.loadRestartFile(control.totalSteps)
     state1 = State(db, integrator.physicsPackages())
     if not state1 == state0:
-        raise ValueError, "The restarted state does not match!"
+        raise ValueError("The restarted state does not match!")
     else:
-        print "Restart check PASSED."
+        print("Restart check PASSED.")
 
 if checkConservation:
 # check momentum conservation
 #-------------------------------------------------------------
     if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX()
+        raise ValueError("linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX())
     if  conservation.deltaLinearMomentumY() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY()
+        raise ValueError("linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY())
     if  conservation.deltaLinearMomentumZ() > conservationErrorThreshold:
-        raise ValueError, "linear momentum - z conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumZ()
+        raise ValueError("linear momentum - z conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumZ())
     if  conservation.deltaRotationalMomentumX() > conservationErrorThreshold:
-        raise ValueError, "rotational momentum - x conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumX()
+        raise ValueError("rotational momentum - x conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumX())
     if  conservation.deltaRotationalMomentumY() > conservationErrorThreshold:
-        raise ValueError, "rotational momentum - y conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumY()
+        raise ValueError("rotational momentum - y conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumY())
     if  conservation.deltaRotationalMomentumZ() > conservationErrorThreshold:
-        raise ValueError, "rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ()
+        raise ValueError("rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ())

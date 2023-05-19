@@ -189,7 +189,7 @@ siloPointmeshDump("one-node-test",
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
@@ -237,7 +237,7 @@ if serialDump:
     
     f = open(dataDir + "/one-node.ascii",'w')
     #&ident,&x,&y,&z,&h,&mass,&rho,&temp
-    for j in xrange(nodes1.numInternalNodes):
+    for j in range(nodes1.numInternalNodes):
         f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(j,nodes1.positions()[j][0],
                                                                    nodes1.positions()[j][1],
                                                                    0.0,

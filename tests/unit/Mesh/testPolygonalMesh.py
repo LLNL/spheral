@@ -97,7 +97,7 @@ class PolygonalMeshGenericTests:
                                            xmax = xmax,
                                            generateVoid = False,
                                            generateParallelConnectivity = False)
-        print "Required %f seconds to generate mesh" % (time.clock() - t0)
+        print("Required %f seconds to generate mesh" % (time.clock() - t0))
         assert mesh.numZones == self.nodes.numInternalNodes
 ##         p = plotPolygonalMesh(mesh, persist=True)
 ##         p("set xrange [-0.1:1.1]; set yrange [-0.1:1.1]; set size square"); p.refresh()
@@ -117,17 +117,17 @@ class PolygonalMeshGenericTests:
                                            xmax = xmax,
                                            generateVoid = False,
                                            generateParallelConnectivity = False)
-        print "Required %f seconds to generate mesh" % (time.clock() - t0)
-        for i in xrange(self.nodes.numInternalNodes):
+        print("Required %f seconds to generate mesh" % (time.clock() - t0))
+        for i in range(self.nodes.numInternalNodes):
             node = mesh.node(i)
             assert node.ID == i
-        for i in xrange(mesh.numEdges):
+        for i in range(mesh.numEdges):
             edge = mesh.edge(i)
             assert edge.ID == i
-        for i in xrange(mesh.numFaces):
+        for i in range(mesh.numFaces):
             face = mesh.face(i)
             assert face.ID == i
-        for i in xrange(mesh.numZones):
+        for i in range(mesh.numZones):
             zone = mesh.zone(i)
             assert zone.ID == i
         return
@@ -142,11 +142,11 @@ class PolygonalMeshGenericTests:
                                            xmax = xmax,
                                            generateVoid = False,
                                            generateParallelConnectivity = False)
-        print "Required %f seconds to generate mesh" % (time.clock() - t0)
+        print("Required %f seconds to generate mesh" % (time.clock() - t0))
         assert mesh.numZones >= self.nodes.numInternalNodes
-        for i in xrange(self.nodes.numInternalNodes):
+        for i in range(self.nodes.numInternalNodes):
             zonehull = mesh.zone(i).convexHull()
-            self.failUnless(zonehull.contains(self.pos[i]), "Failing generator containment: %i %s" % (i, self.pos[i]))
+            self.assertTrue(zonehull.contains(self.pos[i]), "Failing generator containment: %i %s" % (i, self.pos[i]))
         return
 
     #---------------------------------------------------------------------------
@@ -157,8 +157,8 @@ class PolygonalMeshGenericTests:
         mesh, void = generatePolygonalMesh([self.nodes],
                                       xmin = xmin,
                                       xmax = xmax)
-        print "Required %f seconds to generate mesh" % (time.clock() - t0)
-        self.failUnless(mesh.minimumScale <= self.dxmin, 
+        print("Required %f seconds to generate mesh" % (time.clock() - t0))
+        self.assertTrue(mesh.minimumScale <= self.dxmin, 
                         "Scales don't match:  %g %g" % (mesh.minimumScale, self.dxmin))
         return
 
@@ -171,7 +171,7 @@ class PolygonalMeshGenericTests:
                                       xmin = xmin,
                                       xmax = xmax,
                                       generateParallelConnectivity = True)
-        print "Required %f seconds to generate mesh" % (time.clock() - t0)
+        print("Required %f seconds to generate mesh" % (time.clock() - t0))
 
 ##         p = plotPolygonalMesh(mesh, persist=True)
 ##         p("set xrange [-0.1:1.1]; set yrange [-0.1:1.1]; set size square"); p.refresh()
@@ -182,7 +182,7 @@ class PolygonalMeshGenericTests:
 ##         p.replot(d)
 
         msg = testParallelConsistency(mesh, xmin, xmax)
-        self.failUnless(msg == "ok", msg)
+        self.assertTrue(msg == "ok", msg)
 
     #---------------------------------------------------------------------------
     # Test the mesh coordinates hash uniquely.
@@ -192,14 +192,14 @@ class PolygonalMeshGenericTests:
         mesh, void = generatePolygonalMesh([self.nodes],
                                            xmin = xmin,
                                            xmax = xmax)
-        print "Required %f seconds to generate mesh" % (time.clock() - t0)
-        pos = [mesh.zone(i).position() for i in xrange(mesh.numZones)] + [mesh.node(i).position() for i in xrange(mesh.numNodes)]
+        print("Required %f seconds to generate mesh" % (time.clock() - t0))
+        pos = [mesh.zone(i).position() for i in range(mesh.numZones)] + [mesh.node(i).position() for i in range(mesh.numNodes)]
         boxInv = xmax - xmin
         boxInv = Vector(1.0/boxInv.x, 1.0/boxInv.y)
         hashes = [hashPosition(x, xmin, xmax, boxInv) for x in pos]
-        blarg = zip(hashes, pos)
+        blarg = list(zip(hashes, pos))
         blarg.sort()
-        for i in xrange(len(blarg) - 1):
+        for i in range(len(blarg) - 1):
             hash0 = blarg[i][0]
             hash1 = blarg[i+1][0]
             self.failIf(hash0 == hash1,
@@ -214,18 +214,18 @@ class PolygonalMeshGenericTests:
         mesh, void = generatePolygonalMesh([self.nodes],
                                            xmin = xmin,
                                            xmax = xmax)
-        print "Required %f seconds to generate mesh" % (time.clock() - t0)
+        print("Required %f seconds to generate mesh" % (time.clock() - t0))
         answer = {}
-        for inode in xrange(mesh.numNodes):
+        for inode in range(mesh.numNodes):
             answer[inode] = set()
-        for izone in xrange(mesh.numZones):
+        for izone in range(mesh.numZones):
             nodeIDs = mesh.zone(izone).nodeIDs
             for inode in nodeIDs:
                 answer[inode].add(izone)
-        for inode in xrange(mesh.numNodes):
+        for inode in range(mesh.numNodes):
             zoneIDs = mesh.node(inode).zoneIDs
             for izone in zoneIDs:
-                self.failUnless(izone in answer[inode] or izone == PolygonalMesh.UNSETID,
+                self.assertTrue(izone in answer[inode] or izone == PolygonalMesh.UNSETID,
                                 "Missing zone %i for set in node %i: %s %s" %
                                 (izone, inode, [x for x in zoneIDs], answer[inode]))
 
@@ -236,10 +236,10 @@ class PolygonalMeshGenericTests:
         mesh, void = generatePolygonalMesh([self.nodes],
                                            xmin = xmin,
                                            xmax = xmax)
-        for izone in xrange(mesh.numZones):
+        for izone in range(mesh.numZones):
             nodeIDs = mesh.zone(izone).nodeIDs
             for inode in nodeIDs:
-                self.failUnless(izone in mesh.node(inode).zoneIDs,
+                self.assertTrue(izone in mesh.node(inode).zoneIDs,
                                 "Missing zone %i in neighbors for node %i : %s" % (izone, inode, list(mesh.node(inode).zoneIDs)))
 
     #---------------------------------------------------------------------------
@@ -249,22 +249,22 @@ class PolygonalMeshGenericTests:
         mesh, void = generatePolygonalMesh([self.nodes],
                                            xmin = xmin,
                                            xmax = xmax)
-        answer = [[] for i in xrange(mesh.numFaces)]
-        for izone in xrange(mesh.numZones):
+        answer = [[] for i in range(mesh.numFaces)]
+        for izone in range(mesh.numZones):
             faces = mesh.zone(izone).faceIDs
             for iface in faces:
                 answer[mesh.positiveID(iface)].append(izone)
 
-        for iface in xrange(mesh.numFaces):
+        for iface in range(mesh.numFaces):
             face = mesh.face(iface)
             zoneIDs = answer[iface]
             assert len(zoneIDs) in (1, 2)
             if len(zoneIDs) == 2:
-                self.failUnless(mesh.positiveID(face.oppositeZoneID(zoneIDs[0])) == zoneIDs[1],
+                self.assertTrue(mesh.positiveID(face.oppositeZoneID(zoneIDs[0])) == zoneIDs[1],
                                 "Bad opposites:  (%i, %i) != (%i, %i)" %
                                 (zoneIDs[0], zoneIDs[1],
                                  face.oppositeZoneID(zoneIDs[0]), face.oppositeZoneID(zoneIDs[1])))
-                self.failUnless(mesh.positiveID(face.oppositeZoneID(zoneIDs[1])) == zoneIDs[0],
+                self.assertTrue(mesh.positiveID(face.oppositeZoneID(zoneIDs[1])) == zoneIDs[0],
                                 "Bad opposites:  (%i, %i) != (%i, %i)" %
                                 (zoneIDs[0], zoneIDs[1],
                                  face.oppositeZoneID(zoneIDs[0]), face.oppositeZoneID(zoneIDs[1])))
@@ -285,7 +285,7 @@ class PolygonalMeshGenericTests:
         uniqueIDs = set()
         for i in globalIDs:
             uniqueIDs.add(i)
-        self.failUnless(len(uniqueIDs) == len(globalIDs),
+        self.assertTrue(len(uniqueIDs) == len(globalIDs),
                         "Global mesh node IDs not unique!  %i != %i" % (len(globalIDs), len(uniqueIDs)))
 
         # Check that the IDs are unique and consistent across domains.
@@ -307,7 +307,7 @@ class PolygonalMeshGenericTests:
             # Recv the IDs from our neighbors and do the testing.
             for neighbor, localIDs in zip(neighbors, sharedGlobalIDs):
                 otherIDs = mpi.recv(source=neighbor)[0]
-                self.failUnless(otherIDs == list(localIDs),
+                self.assertTrue(otherIDs == list(localIDs),
                                 "Global IDs don't match between domains %i <-> %i\n%s\n%s" % (mpi.rank, neighbor, list(localIDs), otherIDs))
 
             # Wait until all our sends have completed.
@@ -330,13 +330,13 @@ class PolygonalMeshGenericTests:
 
         # Check that all the generators are contained.
         pos = self.nodes.positions()
-        for i in xrange(self.nodes.numInternalNodes):
-            self.failUnless(bs.contains(pos[i]),
+        for i in range(self.nodes.numInternalNodes):
+            self.assertTrue(bs.contains(pos[i]),
                             "Failed containment for generator %i @ %s" % (i, pos[i]))
 
         # Check that all mesh nodes are contained.
-        for i in xrange(mesh.numNodes):
-            self.failUnless(bs.contains(mesh.node(i).position()),
+        for i in range(mesh.numNodes):
+            self.assertTrue(bs.contains(mesh.node(i).position()),
                             "Failed containment for mesh node %i @ %s" % (i, mesh.node(i).position()))
 
         return
@@ -372,7 +372,7 @@ class UniformPolygonalMeshTests(unittest.TestCase, PolygonalMeshGenericTests):
         dxavg = (x1 - x0)/nx
         dyavg = (y1 - y0)/ny
         self.dxmin = dxavg
-        xynodes_all = [Vector(x0 + (i % nx + 0.5)*dxavg, y0 + (i / nx + 0.5)*dyavg) for i in xrange(n)]
+        xynodes_all = [Vector(x0 + (i % nx + 0.5)*dxavg, y0 + (i / nx + 0.5)*dyavg) for i in range(n)]
         xynodes = [v for v in xynodes_all if testPointInBox(v, xminproc, xmaxproc)]
         assert len(xynodes) == nperdomain
         assert mpi.allreduce(len(xynodes), mpi.SUM) == n
@@ -382,7 +382,7 @@ class UniformPolygonalMeshTests(unittest.TestCase, PolygonalMeshGenericTests):
         random.shuffle(xynodes)
 
         # Now we can set the node conditions.
-        for i in xrange(nperdomain):
+        for i in range(nperdomain):
             self.pos[i] = xynodes[i]
             self.H[i] = SymTensor(1.0/(2.0*dxavg), 0.0,
                                   0.0, 1.0/(2.0*dyavg))
@@ -431,7 +431,7 @@ class RandomPolygonalMeshTests(unittest.TestCase, PolygonalMeshGenericTests):
         # to keep nodes from getting too close together.
         xynodes_all = []
         occupiedCells = set()
-        for k in xrange(n):
+        for k in range(n):
             i = rangen.randint(0, ncell)
             while i in occupiedCells:
                 i = rangen.randint(0, ncell)
@@ -449,7 +449,7 @@ class RandomPolygonalMeshTests(unittest.TestCase, PolygonalMeshGenericTests):
 
         # Now we can set the node conditions.
         self.nodes.numInternalNodes = len(xynodes)
-        for i in xrange(len(xynodes)):
+        for i in range(len(xynodes)):
             self.pos[i] = xynodes[i]
             self.H[i] = SymTensor(1.0/(2.0*dxavg), 0.0,
                                   0.0, 1.0/(2.0*dyavg))

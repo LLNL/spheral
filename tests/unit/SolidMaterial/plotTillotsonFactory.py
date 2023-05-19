@@ -23,12 +23,12 @@ n = 50
 rhoMin, rhoMax = 0.2, 50.0
 #rhoMin, rhoMax = 200.0, 5e4
 drho = (rhoMax - rhoMin)/n
-rho = [rhoMin + i*drho for i in xrange(n + 1)]
+rho = [rhoMin + i*drho for i in range(n + 1)]
 
 #epsMin, epsMax = 1.0, 1e15
 epsMin, epsMax = 1.0e-2, 1e2
 deps = (log(epsMax) - log(epsMin))/n
-eps = [exp(log(epsMin) + i*deps) for i in xrange(n + 1)]
+eps = [exp(log(epsMin) + i*deps) for i in range(n + 1)]
 
 # Make a fake NodeList so we can call the EOS with Fields.
 nodes = makeVoidNodeList("nodes", numInternal=1)

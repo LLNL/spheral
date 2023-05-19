@@ -83,7 +83,7 @@ commandLine(NodeListConstructor = SphNodeList3d,
 
 # For this test, nx, ny, and nz must all be odd.
 if (2*(nx/2) == nx) or (2*(ny/2) == ny) or (2*(nz/2) == nz):
-   raise ValueError, 'nx, ny, and nz must all be odd.'
+   raise ValueError('nx, ny, and nz must all be odd.')
 
 #-------------------------------------------------------------------------------
 # If we're using the cubic node generator, then scale things so we get a
@@ -96,7 +96,7 @@ if seed == "cubic":
     nx *= nxdomains
     ny *= nxdomains
     nz *= nxdomains
-    print nxdomains, nx, ny, nz
+    print(nxdomains, nx, ny, nz)
 
 #-------------------------------------------------------------------------------
 # A few derived variables.
@@ -197,7 +197,7 @@ if restoreCycle is None:
 
     # Set node positions and velocities.
     A = -5*(1+zc)/2
-    for nodeID in xrange(nodes.numNodes):
+    for nodeID in range(nodes.numNodes):
         q = nodes.positions()[nodeID].x
         nodes.positions()[nodeID] += Vector3d(0.4*a1*A*sin(q), 0, 0)
         nodes.velocity()[nodeID] += Vector3d(0.4*a1dot*A*sin(q), 0, 0)
@@ -314,7 +314,7 @@ dumpPhysicsState(integrator,
 # Advance.
 #-------------------------------------------------------------------------------
 #nextGoalTime = min(control.time() + dtSample, goalTime)
-print 'Running from t = %g to %g'%(t1, t2)
+print('Running from t = %g to %g'%(t1, t2))
 control.advance(t2, 1000)
 dumpPhysicsState(integrator,
                  "Zeldovich-pancake-SPH-%ix%ix%i-visit" % (nx, ny, nz),

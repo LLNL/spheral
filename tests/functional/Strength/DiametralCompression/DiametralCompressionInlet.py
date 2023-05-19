@@ -241,8 +241,8 @@ Ks0 = rho0Granite*cs0*cs0
 Gs = 3.0 * Ks0 * (1.0-2.0*PoissonsRatio)/(2.0*(1.0+PoissonsRatio))
 Ys = 9.0*Ks0*Gs/(3.0*Ks0+Gs)
 
-print "Reference (rho0, T0, eps0, c0) = (%g, %g, %g, %g)" % (rho0Granite, T0Granite, eps0Granite,cs0)
-print "Reference (K, Y, G, nu) = (%g, %g, %g, %g)" % (Ks0, Ys, Gs, PoissonsRatio)
+print("Reference (rho0, T0, eps0, c0) = (%g, %g, %g, %g)" % (rho0Granite, T0Granite, eps0Granite,cs0))
+print("Reference (K, Y, G, nu) = (%g, %g, %g, %g)" % (Ks0, Ys, Gs, PoissonsRatio))
 
 if strengthModel == 'constant':
     strengthSolidGranite = ConstantStrength(Gs,  # mu = 3.2 GPa
@@ -283,13 +283,13 @@ if incompressibleClamps:
     cs0Cu = eosSolidCu.soundSpeed(rho0Cu, 0.0)
     Ks0Cu = rho0Cu*cs0Cu*cs0Cu
     GsCu = Ks0Cu / ((2.0*(1.0+PoissonsRatioCu))/(3.0*(1.0-2.0*PoissonsRatioCu)))
-    print ((2.0*(1.0+PoissonsRatioCu))/(3.0*(1.0-2.0*PoissonsRatioCu)))
+    print(((2.0*(1.0+PoissonsRatioCu))/(3.0*(1.0-2.0*PoissonsRatioCu))))
     strengthCu = ConstantStrength(GsCu, 10.0*Y0) 
 
-    print "Reference K   (granite, copper) = (%g, %g)" % (Ks0, Ks0Cu)
-    print "Reference G   (granite, copper) = (%g, %g)" % (Gs, GsCu)
-    print "Reference rho (granite, copper) = (%g, %g)" % (rho0Specimen, rho0Cu)
-    print "Reference c   (granite, copper) = (%g, %g)" % (c0Specimen, cs0Cu)
+    print("Reference K   (granite, copper) = (%g, %g)" % (Ks0, Ks0Cu))
+    print("Reference G   (granite, copper) = (%g, %g)" % (Gs, GsCu))
+    print("Reference rho (granite, copper) = (%g, %g)" % (rho0Specimen, rho0Cu))
+    print("Reference c   (granite, copper) = (%g, %g)" % (c0Specimen, cs0Cu))
 
     eosClamps = eosSolidCu
     strengthClamps = strengthCu
@@ -420,7 +420,7 @@ distributeNodes((nodesSpecimen,generatorSpecimen),(nodesDriver,generatorDriver),
 db = DataBase()
 for n in nodeListSet:
     db.appendNodeList(n)
-    print n.name
+    print(n.name)
 del n
 nodeLists = db.nodeLists()
 
@@ -821,10 +821,10 @@ Estar = 1.0/oneOverEstar
 delta = compressionSpeed*goalTime
 forceEstimated = 1.0*pi/4.0*Estar*delta
 
-print " "
-print "force from displacement : %g" % forceEstimated
-print "Force from sampling     : %g" % forceSampled
-print " "
+print(" ")
+print("force from displacement : %g" % forceEstimated)
+print("Force from sampling     : %g" % forceSampled)
+print(" ")
 
 # analytic soln
 #--------------------------------
@@ -950,7 +950,7 @@ if mpi.rank==0:
         error = 100.0*abs(avgSxxanalytic - avgSxxreduced)/max(abs(avgSxxanalytic),1e-30)
         
         if error > tol:
-            raise ValueError, "tensile stress error bounds violated (error, error tolerance) = (%g,%g)." % (error,tol)
+            raise ValueError("tensile stress error bounds violated (error, error tolerance) = (%g,%g)." % (error,tol))
 
     if leaveNoTrace:
         os.system("rm -rf "+baseDir)

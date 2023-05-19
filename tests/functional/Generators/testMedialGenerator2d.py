@@ -77,7 +77,7 @@ bcfacets = vector_of_vector_of_unsigned()
 for p in [(0,0), (1,0), (1,1), (2,1), (2,0), (3,0),
           (3,3), (2,3), (2,2), (1,2), (1,3), (0,3)]:
     bcpoints.append(Vector(*p))
-for i in xrange(len(bcpoints)):
+for i in range(len(bcpoints)):
     bcfacets.append(vector_of_unsigned(2))
     bcfacets[-1][0] = i
     bcfacets[-1][1] = (i + 1) % len(bcpoints)
@@ -88,7 +88,7 @@ n = 30
 bcpoints1 = vector_of_Vector(n)
 bcpoints2 = vector_of_Vector(n)
 bcfacets = vector_of_vector_of_unsigned(n, vector_of_unsigned(2))
-for i in xrange(n):
+for i in range(n):
     bcpoints1[i] = Vector(5.0 + 1.5*cos(i*2.0*pi/n), 1.5 + 1.5*sin(i*2.0*pi/n))
     bcpoints2[i] = Vector(5.0 + 0.5*cos(i*2.0*pi/n), 1.5 + 0.5*sin(i*2.0*pi/n))
     bcfacets[i][0] = i
@@ -102,7 +102,7 @@ bcpoints1_left = vector_of_Vector(n)
 bcpoints1_right = vector_of_Vector(n)
 bcpoints2_left = vector_of_Vector(n)
 bcpoints2_right = vector_of_Vector(n)
-for i in xrange(nhalf):
+for i in range(nhalf):
     theta = i*pi/(nhalf - 1) - pi/2.0
     bcpoints1_right[i]       = Vector(5.0 + 1.5*cos(theta),      1.5 + 1.5*sin(theta))
     bcpoints1_right[i+nhalf] = Vector(5.0 + 0.5*cos(-theta),     1.5 + 0.5*sin(-theta))
@@ -116,7 +116,7 @@ bcpoints = vector_of_Vector()
 bcfacets = vector_of_vector_of_unsigned()
 for p in [(-1,-1), (8,-1), (8,4), (-1,4)]:
     bcpoints.append(Vector(*p))
-for i in xrange(len(bcpoints)):
+for i in range(len(bcpoints)):
     bcfacets.append(vector_of_unsigned(2))
     bcfacets[-1][0] = i
     bcfacets[-1][1] = (i + 1) % len(bcpoints)
@@ -130,7 +130,7 @@ for p in [(-1,-1), (3,-1),
           (0,3), (1,3), (1,2), (2,2), (2,3), (3,3),
           (3,4), (-1,4)]:
     bcpoints.append(Vector(*p))
-for i in xrange(len(bcpoints)):
+for i in range(len(bcpoints)):
     bcfacets.append(vector_of_unsigned(2))
     bcfacets[-1][0] = i
     bcfacets[-1][1] = (i + 1) % len(bcpoints)
@@ -140,12 +140,12 @@ bcpoints = vector_of_Vector()
 bcfacets = vector_of_vector_of_unsigned()
 for p in [(3,-1), (5, -1)]:
     bcpoints.append(Vector(*p))
-for i in xrange(nhalf):
+for i in range(nhalf):
     theta = 1.5*pi - i*pi/(nhalf - 1)
     bcpoints.append(Vector(5.0 + 1.5*cos(theta),      1.5 + 1.5*sin(theta)))
 for p in [(5, 4), (3,4)]:
     bcpoints.append(Vector(*p))
-for i in xrange(len(bcpoints)):
+for i in range(len(bcpoints)):
     bcfacets.append(vector_of_unsigned(2))
     bcfacets[-1][0] = i
     bcfacets[-1][1] = (i + 1) % len(bcpoints)
@@ -155,10 +155,10 @@ bcpoints = vector_of_Vector()
 bcfacets = vector_of_vector_of_unsigned()
 for p in [(5, -1), (8,-1), (8,4), (5,4)]:
     bcpoints.append(Vector(*p))
-for i in xrange(nhalf):
+for i in range(nhalf):
     theta = 0.5*pi - i*pi/(nhalf - 1)
     bcpoints.append(Vector(5.0 + 1.5*cos(theta),      1.5 + 1.5*sin(theta)))
-for i in xrange(len(bcpoints)):
+for i in range(len(bcpoints)):
     bcfacets.append(vector_of_unsigned(2))
     bcfacets[-1][0] = i
     bcfacets[-1][1] = (i + 1) % len(bcpoints)
@@ -171,7 +171,7 @@ def rhoprofile1(posi):
     r = (posi - Vector(1.5,1.5)).magnitude()
     return exp(-r*r/(rhoscale*rhoscale))
 
-print "Generator 1"
+print("Generator 1")
 generator1 = MedialGenerator2d(n = n1,
                                rho = rhoprofile1,
                                boundary = Hboundary,
@@ -180,7 +180,7 @@ generator1 = MedialGenerator2d(n = n1,
                                #tessellationFileName = "test_medial_nodes1_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                nNodePerh = nPerh)
 
-print "Generator 2"
+print("Generator 2")
 generator2 = MedialGenerator2d(n = n2,
                                rho = 1.0,
                                boundary = outerCircle,
@@ -190,7 +190,7 @@ generator2 = MedialGenerator2d(n = n2,
                                #tessellationFileName = "test_medial_nodes2_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                nNodePerh = nPerh)
 
-print "Generator 3"
+print("Generator 3")
 generator3 = MedialGenerator2d(n = n3,
                                rho = 0.1,
                                boundary = innerCircle,
@@ -199,7 +199,7 @@ generator3 = MedialGenerator2d(n = n3,
                                #tessellationFileName = "test_medial_nodes3_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                nNodePerh = nPerh)
 
-print "Generator 4"
+print("Generator 4")
 generator4 = MedialGenerator2d(n = n4,
                                rho = 0.1,
                                boundary = outerBox,
@@ -220,7 +220,7 @@ distributeNodes((nodes1, generator1),
 Hfield = nodes.Hfield()
 HfieldInv = SymTensorField("H inverse", nodes)
 domainField = IntField("Domain", nodes)
-for i in xrange(nodes.numNodes):
+for i in range(nodes.numNodes):
     HfieldInv[i] = Hfield[i].Inverse()
     domainField[i] = mpi.rank
 vizfile = siloPointmeshDump(baseName = "test_medial_maxiter=%i_tol=%g" % (maxIterations, fracTol),

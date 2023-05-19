@@ -62,7 +62,7 @@ def loadLastConservationHistory(baseName):
     restartCycle = findLastRestart(baseName)
     if restartCycle is None:
         raise "Unable to find appropriate restart cycle for path %s" % baseName
-    print "Selected restart cycle ", restartCycle
+    print("Selected restart cycle ", restartCycle)
 
     # Get the directory path for the restart files.
     dirPath, fileBase = os.path.split(baseName)

@@ -55,7 +55,7 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
         self.nf = 0
         self.nv = 0
         
-        print "using " + str(mpi.procs) +  " procs"
+        print("using " + str(mpi.procs) +  " procs")
         
         if mpi.rank == 0:
             f = open(filename,'r')
@@ -75,8 +75,8 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
             
             self.f.close()
             
-            for i in xrange(len(self.fieldNames[0])):
-                print self.fieldNames[0][i]
+            for i in range(len(self.fieldNames[0])):
+                print(self.fieldNames[0][i])
                 self.nf = self.nf + 1
         
         
@@ -85,35 +85,35 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
         self.fieldNames = mpi.bcast(self.fieldNames, root=0)
         mpi.barrier()
         
-        for i in xrange(len(self.fieldNames[0])):
+        for i in range(len(self.fieldNames[0])):
             self.__dict__[self.fieldNames[0][i]] = []
         
         assert self.nf == len(self.fieldNames[0])
         
         if mpi.rank == 0:
             n = len(vals)
-            for i in xrange(n):
-                for j in xrange(len(self.fieldNames[0])):
+            for i in range(n):
+                for j in range(len(self.fieldNames[0])):
                     self.__dict__[self.fieldNames[0][j]].append(float(vals[i][j]))
                 self.H.append((1.0/self.h[i]) * SymTensor2d.one)
         
-        for j in xrange(len(self.fieldNames[0])):
+        for j in range(len(self.fieldNames[0])):
             self.__dict__[self.fieldNames[0][j]] = mpi.bcast(self.__dict__[self.fieldNames[0][j]], root=0)
         
         self.H = mpi.bcast(self.H, root=0)
 
         if offset:
-            for i in xrange(n):
+            for i in range(n):
                 self.x[i] += offset[0]
                 self.y[i] += offset[1]
         
         try:
             test = self.vx
         except AttributeError:
-            print "Ascii file did not supply velocities (intentional?)"
+            print("Ascii file did not supply velocities (intentional?)")
             self.vx = []
             self.vy = []
-            for i in xrange(len(self.x)):
+            for i in range(len(self.x)):
                 self.vx.append(0.0)
                 self.vy.append(0.0)
     
@@ -124,7 +124,7 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
             NodeGeneratorBase.__init__(self, self.serialfile, *fields)
         
         # Apply the requested number of refinements.
-        for i in xrange(refineNodes):
+        for i in range(refineNodes):
             refineNodes2d(self)
         
         # Finally, if the user provided a NodeList convert all our stored data to Fields
@@ -136,12 +136,12 @@ class AsciiFileNodeGenerator2D(NodeGeneratorBase):
                 stuff = self.__dict__[name]
                 assert len(stuff) == n0
                 field = ScalarField2d("generator_" + name, nodes)
-                for i in xrange(n0):
+                for i in range(n0):
                     field[i] = stuff[i]
                 self.__dict__[name] = field
             # H is a SymTensor, so do it separately.
             field = SymTensorField2d("generator_H", nodes)
-            for i in xrange(n0):
+            for i in range(n0):
                 field[i] = self.H[i]
             self.H = field
 
@@ -221,7 +221,7 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
         self.nf = 0
         self.nv = 0
         
-        print "using " + str(mpi.procs) +  " procs"
+        print("using " + str(mpi.procs) +  " procs")
 
         if mpi.rank == 0:
             f = open(filename,'r')
@@ -241,8 +241,8 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
             
             self.f.close()
                 
-            for i in xrange(len(self.fieldNames[0])):
-                print self.fieldNames[0][i]
+            for i in range(len(self.fieldNames[0])):
+                print(self.fieldNames[0][i])
                 self.nf = self.nf + 1
                 
         
@@ -251,7 +251,7 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
         self.fieldNames = mpi.bcast(self.fieldNames, root=0)
         mpi.barrier()
 
-        for i in xrange(len(self.fieldNames[0])):
+        for i in range(len(self.fieldNames[0])):
             self.__dict__[self.fieldNames[0][i]] = []
 
         assert self.nf == len(self.fieldNames[0])
@@ -260,12 +260,12 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
 
         if mpi.rank == 0:
             n = len(vals)
-            for i in xrange(n):
-                for j in xrange(len(self.fieldNames[0])):
+            for i in range(n):
+                for j in range(len(self.fieldNames[0])):
                     self.__dict__[self.fieldNames[0][j]].append(float(vals[i][j]))
                 self.H.append((1.0/self.h[i]) * SymTensor3d.one)
         
-        for j in xrange(len(self.fieldNames[0])):
+        for j in range(len(self.fieldNames[0])):
             self.__dict__[self.fieldNames[0][j]] = mpi.bcast(self.__dict__[self.fieldNames[0][j]], root=0)
         
         self.H = mpi.bcast(self.H, root=0)
@@ -273,7 +273,7 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
         n = mpi.bcast(n,root=0)
         
         if offset:
-            for i in xrange(n):
+            for i in range(n):
                 self.x[i] += offset[0]
                 self.y[i] += offset[1]
                 self.z[i] += offset[2]
@@ -281,34 +281,34 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
         if rejecter:
             self.newH = []
                 
-            for i in xrange(len(self.fieldNames[0])):
+            for i in range(len(self.fieldNames[0])):
                 name = self.fieldNames[0][i] + 'new'
                 self.__dict__[name] = []
 
-            for i in xrange(n):
+            for i in range(n):
                 #print rejecter.xmin, rejecter.xmax
                 #print self.x
                 if ((self.x[i] < rejecter.xmax and self.x[i] > rejecter.xmin) and (self.y[i] < rejecter.ymax and self.y[i] > rejecter.ymin) and (self.z[i] < rejecter.zmax and self.z[i] > rejecter.zmin)):
                     #print "condition green"
                     self.newH.append(self.H[i])
-                    for j in xrange(len(self.fieldNames[0])):
+                    for j in range(len(self.fieldNames[0])):
                         name = self.fieldNames[0][j] + 'new'
                         self.__dict__[name].append(self.__dict__[self.fieldNames[0][j]][i])
 
             self.H = self.newH
 
-            for j in xrange(len(self.fieldNames[0])):
+            for j in range(len(self.fieldNames[0])):
                 name = self.fieldNames[0][j] + 'new'
                 self.__dict__[self.fieldNames[0][j]] = self.__dict__[name]
 
         try:
             test = self.vx
         except AttributeError:
-            print "Ascii file did not supply velocities (intentional?)"
+            print("Ascii file did not supply velocities (intentional?)")
             self.vx = []
             self.vy = []
             self.vz = []
-            for i in xrange(len(self.x)):
+            for i in range(len(self.x)):
                 self.vx.append(0.0)
                 self.vy.append(0.0)
                 self.vz.append(0.0)
@@ -322,7 +322,7 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
 
 
         # Apply the requested number of refinements.
-        for i in xrange(refineNodes):
+        for i in range(refineNodes):
             refineNodes3d(self)
 
         # Finally, if the user provided a NodeList convert all our stored data to Fields
@@ -334,12 +334,12 @@ class AsciiFileNodeGenerator3D(NodeGeneratorBase):
                 stuff = self.__dict__[name]
                 assert len(stuff) == n0
                 field = ScalarField3d("generator_" + name, nodes)
-                for i in xrange(n0):
+                for i in range(n0):
                     field[i] = stuff[i]
                 self.__dict__[name] = field
             # H is a SymTensor, so do it separately.
             field = SymTensorField3d("generator_H", nodes)
-            for i in xrange(n0):
+            for i in range(n0):
                 field[i] = self.H[i]
             self.H = field
 

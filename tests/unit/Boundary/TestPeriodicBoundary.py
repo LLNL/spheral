@@ -29,9 +29,9 @@ dx = 1.0
 dy = 1.0
 dz = 1.0
 nxyNodes = nxNodes*nyNodes
-for i in xrange(nzNodes):
-    for j in xrange(nyNodes):
-        for k in xrange(nxNodes):
+for i in range(nzNodes):
+    for j in range(nyNodes):
+        for k in range(nxNodes):
             iNode = i*nxyNodes + j*nxNodes + k
             nodes.positions[iNode] = Vector3d((k + 0.5)*dx,
                                               (j + 0.5)*dy,
@@ -58,7 +58,7 @@ output('ybc')
 output('zbc')
 
 # Apply the boundary conditions to the node list.
-print 'Applying boundary conditions to node list.'
+print('Applying boundary conditions to node list.')
 output('nodes.numNodes, nodes.numInternalNodes, nodes.numGhostNodes')
 output('xbc.setNodeListGhostNodes(nodes)')
 output('nodes.numNodes, nodes.numInternalNodes, nodes.numGhostNodes')
@@ -87,9 +87,9 @@ test = checkNeighbors(nestedNeighbor.refineNeighborList,
 checkTimer.stop()
 
 if test:
-    print '3-D Sph Nested Neighbor test PASSED'
+    print('3-D Sph Nested Neighbor test PASSED')
 else:
-    print '3-D Sph Nested Neighbor test FAILED'
+    print('3-D Sph Nested Neighbor test FAILED')
 
 neighborTimer.printStatus()
 checkTimer.printStatus()
@@ -115,8 +115,8 @@ nodes = SphNodeList2d(eos, nNodes)
 
 dx = 1.0
 dy = 1.0
-for i in xrange(nyNodes):
-    for j in xrange(nxNodes):
+for i in range(nyNodes):
+    for j in range(nxNodes):
         iNode = i*nxNodes + j
         nodes.positions[iNode] = Vector2d((j + 0.5)*dx,
                                           (i + 0.5)*dy)
@@ -140,7 +140,7 @@ output('xbc')
 output('ybc')
 
 # Apply the boundary conditions to the node list.
-print 'Applying boundary conditions to node list.'
+print('Applying boundary conditions to node list.')
 output('nodes.numNodes, nodes.numInternalNodes, nodes.numGhostNodes')
 output('xbc.setNodeListGhostNodes(nodes)')
 output('nodes.numNodes, nodes.numInternalNodes, nodes.numGhostNodes')
@@ -169,9 +169,9 @@ test = checkNeighbors(nestedNeighbor.refineNeighborList, answer)
 checkTimer.stop()
 
 if test:
-    print '2-D Sph Nested Neighbor test PASSED'
+    print('2-D Sph Nested Neighbor test PASSED')
 else:
-    print '2-D Sph Nested Neighbor test FAILED'
+    print('2-D Sph Nested Neighbor test FAILED')
 
 neighborTimer.printStatus()
 checkTimer.printStatus()

@@ -26,7 +26,7 @@ class TestRandom01(unittest.TestCase):
         gen3 = uniform_random(seed3)
         assert gen1 == gen2
         assert gen1 != gen3
-        for i in xrange(ntests):
+        for i in range(ntests):
             assert gen1() == gen2()
 
     #===========================================================================
@@ -40,7 +40,7 @@ class TestRandom01(unittest.TestCase):
         assert gen1 != gen2
         gen2.seed = seed
         assert gen2.seed == seed
-        for i in xrange(ntests):
+        for i in range(ntests):
             assert gen1() == gen2()
 
     #===========================================================================
@@ -64,11 +64,11 @@ class TestRandom01(unittest.TestCase):
     def testAdvance(self):
         seed = rangen.randint(1, 2**64)
         gen1 = uniform_random(seed)
-        throwaway = [gen1() for i in xrange(ntests)]
-        vals1 = [gen1() for i in xrange(ntests)]
+        throwaway = [gen1() for i in range(ntests)]
+        vals1 = [gen1() for i in range(ntests)]
         gen2 = uniform_random(seed)
         gen2.advance(ntests)
-        vals2 = [gen2() for i in xrange(ntests)]
+        vals2 = [gen2() for i in range(ntests)]
         assert vals1 == vals2
 
     #===========================================================================
@@ -89,14 +89,14 @@ class TestRandom01(unittest.TestCase):
     def testSerialize(self):
         seed = rangen.randint(1, 2**64)
         gen1 = uniform_random(seed)
-        throwaway = [gen1() for i in xrange(ntests)]
+        throwaway = [gen1() for i in range(ntests)]
         buf = vector_of_char()
         gen1.serialize(buf)
         gen2 = uniform_random()
         i = gen2.deserialize(buf, 0)
         assert i == len(buf)
-        vals1 = [gen1() for i in xrange(ntests)]
-        vals2 = [gen2() for i in xrange(ntests)]
+        vals1 = [gen1() for i in range(ntests)]
+        vals2 = [gen2() for i in range(ntests)]
         assert vals1 == vals2
 
 if __name__ == "__main__":

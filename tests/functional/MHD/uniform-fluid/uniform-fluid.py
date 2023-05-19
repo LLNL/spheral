@@ -87,7 +87,7 @@ if seed == "cubic":
     nx *= nxdomains
     ny *= nxdomains
     nz *= nxdomains
-    print nxdomains, nx, ny, nz
+    print(nxdomains, nx, ny, nz)
 
 #-------------------------------------------------------------------------------
 # A few derived variables.
@@ -183,7 +183,7 @@ if restoreCycle is None:
     nodes.specificThermalEnergy(ScalarField3d("tmp", nodes, u0))
 
     # Set nodal magnetic inductions.
-    for nodeID in xrange(nodes.numNodes):
+    for nodeID in range(nodes.numNodes):
         nodes.magneticInduction()[nodeID] = B0
 
 #-------------------------------------------------------------------------------
@@ -308,8 +308,8 @@ vMin = min([u.magnitude() for u in v.internalValues()])
 BMax = max([u.magnitude() for u in B.internalValues()])
 BMin = min([u.magnitude() for u in B.internalValues()])
 accMax = max([a.magnitude() for a in acc.internalValues()])
-print 'max |v|: %g'%vMax
-print 'min |v|: %g'%vMin
-print 'max |B|: %g'%BMax
-print 'min |B|: %g'%BMin
-print 'Max |dv/dt|: %g'%accMax
+print('max |v|: %g'%vMax)
+print('min |v|: %g'%vMin)
+print('max |B|: %g'%BMax)
+print('min |B|: %g'%BMin)
+print('Max |dv/dt|: %g'%accMax)

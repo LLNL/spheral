@@ -20,7 +20,7 @@ class VelocityKiller:
         nthump = 0
         for vel, eps in zip(velocities, specificEnergies):
             assert vel.numInternalElements == eps.numInternalElements
-            for i in xrange(vel.numInternalElements):
+            for i in range(vel.numInternalElements):
                 vmag2 = vel[i].magnitude2()
                 if vmag2 > self.vmax2:
                     deps = 0.5*(vmag2 - self.vmax2)
@@ -29,6 +29,6 @@ class VelocityKiller:
                     if self.restoreEnergy:
                         eps[i] += deps
                     nthump += 1
-        print "Velocity killer subdued %i nodes." % mpi.allreduce(nthump, mpi.SUM)
+        print("Velocity killer subdued %i nodes." % mpi.allreduce(nthump, mpi.SUM))
         return
 

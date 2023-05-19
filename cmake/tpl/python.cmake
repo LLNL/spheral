@@ -1,9 +1,9 @@
 set(PYTHON_INSTALL_DIR ${${lib_name}_DIR})
 set(PYTHON_EXE ${PYTHON_INSTALL_DIR}/bin/python)
-set(PYTHON_SITE_PACKAGE_DIR ${PYTHON_INSTALL_DIR}/lib/python2.7/site-packages)
+set(PYTHON_SITE_PACKAGE_DIR ${PYTHON_INSTALL_DIR}/lib/python3.9/site-packages)
 
-set(${lib_name}_libs libpython2.7.so)
-set(${lib_name}_INCLUDES $<BUILD_INTERFACE:${PYTHON_INSTALL_DIR}/include/python2.7/>)
+list(APPEND ${lib_name}_libs ${Python3_LIBRARIES})
+list(APPEND ${lib_name}_INCLUDES $<BUILD_INTERFACE:${Python3_INCLUDE_DIRS}>)
 
 add_custom_target(
   ${lib_name}-install

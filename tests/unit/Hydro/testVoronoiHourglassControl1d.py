@@ -72,7 +72,7 @@ output("nodes.numNodes")
 def setRho():
     pos = nodes.positions()
     rho = nodes.massDensity()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         rho[i] = rho0 + rhoSlope*pos[i].x
     return
 
@@ -124,8 +124,8 @@ def plotDx(p):
     mesh, void = generateLineMesh([nodes], Vector(x0), Vector(x1), False, False, False)
     xarray = numpy.array([x.x for x in pos.internalValues()])
     n = len(xarray)
-    dxarray = numpy.array([float(i) for i in xrange(n)])
-    for i in xrange(n):
+    dxarray = numpy.array([float(i) for i in range(n)])
+    for i in range(n):
         dxarray[i] = mesh.zone(i).volume()
     d = Gnuplot.Data(xarray, dxarray, with_="linesp", title="iteration %i" % iter, inline=True)
     p.replot(d)
@@ -136,7 +136,7 @@ if graphics:
     p1.title("Summed density profile")
     p2.title("Delta x")
     
-for iter in xrange(iterations):
+for iter in range(iterations):
     setRho()
     if graphics:
         plotRho(p0)

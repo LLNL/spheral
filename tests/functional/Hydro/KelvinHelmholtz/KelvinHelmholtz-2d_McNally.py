@@ -301,7 +301,7 @@ if numNodeLists == 2:
         rho = nodes.massDensity()
         eps = nodes.specificThermalEnergy()
         mass = nodes.mass()
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             yval = pos[i].y
             xval = pos[i].x
             velx = 0.0
@@ -331,7 +331,7 @@ else:
     rho = nodes1.massDensity()
     eps = nodes1.specificThermalEnergy()
     mass = nodes1.mass()
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
             yval = pos[i].y
             xval = pos[i].x
             velx = 0.0
@@ -587,7 +587,7 @@ def mixingScale(cycle, t, dt):
      hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodeL.Hfield().internalValues()], mpi.SUM)
      rhoprof = mpi.reduce(nodeL.massDensity().internalValues(), mpi.SUM)
      if mpi.rank == 0:
-      for j in xrange (len(xprof)):
+      for j in range (len(xprof)):
         ke.append(0.5*rhoprof[j]*vely[j]*vely[j])
         if yprof[j] < 0.5:
           si.append(vely[j]*hprof[j]*hprof[j]*sin(4*pi*xprof[j])*exp(-4.0*pi*abs(yprof[j]-0.25)))
@@ -603,7 +603,7 @@ def mixingScale(cycle, t, dt):
       D=sum(di)
       M=sqrt((S/D)*(S/D)+(C/D)*(C/D))*2.0
       KE = max(ke)
-      print "At time t = %s, Mixing Amp M = %s \n" % (t,M)
+      print("At time t = %s, Mixing Amp M = %s \n" % (t,M))
       with open(os.path.join(dataDir, mixFile), "a") as myfile:
         myfile.write("%s\t %s\t %s\n" % (t, M, KE))
 
@@ -679,14 +679,14 @@ if serialDump:
   rank = mpi.rank
   serialData = []
   i,j = 0,0
-  for i in xrange(procs):
+  for i in range(procs):
     for nodeL in nodeSet:
       if rank == i:
-        for j in xrange(nodeL.numInternalNodes):
+        for j in range(nodeL.numInternalNodes):
           serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j]])
   serialData = mpi.reduce(serialData,mpi.SUM)
   if rank == 0:
     f = open(os.path.join(dataDir, "./serialDump.ascii"),'w')
-    for i in xrange(len(serialData)):
+    for i in range(len(serialData)):
       f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
     f.close()

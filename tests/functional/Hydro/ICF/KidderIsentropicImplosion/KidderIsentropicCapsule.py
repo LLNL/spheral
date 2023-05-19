@@ -105,7 +105,7 @@ else:
 # Construct the analytic solution for this set up.
 answer = KidderIsentropicCapsuleAnalyticSolution(1, r0, r1, P0, P1, rho1)
 goalTime = goalTau * answer.tau
-print "Capsule collapses at %g, goal time is %g." % (answer.tau, goalTime)
+print("Capsule collapses at %g, goal time is %g." % (answer.tau, goalTime))
 
 dataDir = os.path.join(dataDirBase, 
                        hydroname,
@@ -176,7 +176,7 @@ pos = nodes.positions()
 mass = nodes.mass()
 rho = nodes.massDensity()
 eps = nodes.specificThermalEnergy()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     ri = pos[i].x
     #mi = trapezoidalIntegration(answer.rhoInitial, ri - 0.5*dr, ri + 0.5*dr, 200)
     #rho[i] = mi/dr
@@ -273,19 +273,19 @@ output("integrator.domainDecompositionIndependent")
 mindicesFL = mortonOrderIndices(db)
 mindices = mindicesFL[0]
 positions = nodes.positions()
-nodeSet = mpi.allreduce([(positions[i].x, mindices[i]) for i in xrange(nodes.numInternalNodes)],
+nodeSet = mpi.allreduce([(positions[i].x, mindices[i]) for i in range(nodes.numInternalNodes)],
                         mpi.SUM)
 nodeSet.sort()
 
 innerIndices = [tup[1] for tup in nodeSet[:nrGhost]]
-innerNodes = [i for i in xrange(nodes.numInternalNodes) if mindices[i] in innerIndices]
+innerNodes = [i for i in range(nodes.numInternalNodes) if mindices[i] in innerIndices]
 assert mpi.allreduce(len(innerNodes), mpi.SUM) == nrGhost
 
 outerIndices = [tup[1] for tup in nodeSet[-nrGhost:]]
-outerNodes = [i for i in xrange(nodes.numInternalNodes) if mindices[i] in outerIndices]
+outerNodes = [i for i in range(nodes.numInternalNodes) if mindices[i] in outerIndices]
 assert mpi.allreduce(len(outerNodes), mpi.SUM) == nrGhost
 
-interiorNodes = [i for i in xrange(nodes.numInternalNodes)
+interiorNodes = [i for i in range(nodes.numInternalNodes)
                  if ((i not in innerIndices) and
                      (i not in outerIndices))]
 
@@ -341,20 +341,20 @@ output("control")
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-print "Starting energy (measured, analytic, error): ", (control.conserve.EHistory[0],
+print("Starting energy (measured, analytic, error): ", (control.conserve.EHistory[0],
                                                         answer.totalEnergy(0.0),
                                                         (control.conserve.EHistory[0] - answer.totalEnergy(0.0))/
-                                                        answer.totalEnergy(0.0))
+                                                        answer.totalEnergy(0.0)))
 
 if not steps is None:
     control.step(steps)
 else:
     control.advance(goalTime, maxSteps)
 
-print "Final energy (measured, analytic, error): ", (control.conserve.EHistory[-1],
+print("Final energy (measured, analytic, error): ", (control.conserve.EHistory[-1],
                                                      answer.totalEnergy(goalTime),
                                                      (control.conserve.EHistory[-1] - answer.totalEnergy(0.0))/
-                                                     answer.totalEnergy(goalTime))
+                                                     answer.totalEnergy(goalTime)))
 
 #-------------------------------------------------------------------------------
 # Plot the results.
@@ -381,8 +381,8 @@ Sans = [answer.S for ri in r]
 # The ratio of the entropy to the expected value.
 alpha = [ss/sa for ss, sa in zip(S, Sans)]
 S0 = answer.S
-print "Entropy L1, Linf in fractional error: ", (sum([abs(alphai - 1.0) for alphai in alpha])/len(alpha),
-                                                     max(abs(max(alpha) - 1.0), abs(min(alpha) - 1.0)))
+print("Entropy L1, Linf in fractional error: ", (sum([abs(alphai - 1.0) for alphai in alpha])/len(alpha),
+                                                     max(abs(max(alpha) - 1.0), abs(min(alpha) - 1.0))))
 
 # Now plot the suckers.
 if mpi.rank == 0:

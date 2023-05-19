@@ -127,7 +127,7 @@ nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
 # Optionally randomly jitter the node positions.
 #-------------------------------------------------------------------------------
 dx = (x1 - x0)/nx1
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     nodes1.positions()[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
 
 #-------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ if iterateH:
 # Initialize our field.
 #-------------------------------------------------------------------------------
 f = ScalarField("test field", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     x = nodes1.positions()[i].x
     if testCase == "constant":
         f[i] = y0
@@ -209,7 +209,7 @@ dfSVPH = dfSVPHfl[0]
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
 positions = nodes1.positions()
-xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
+xans = [positions[i].x for i in range(nodes1.numInternalNodes)]
 yans = [func(x) for x in xans]
 dyans = [dfunc(x) for x in xans]
 
@@ -228,72 +228,39 @@ maxdySVPHerror = max([abs(x) for x in errdySVPH])
 # errdySPH = [y - z for y, z in zip(dySPH, dyans)]
 # maxdySPHerror = max([abs(x) for x in errdySPH])
 
-print "Maximum errors (interpolation, gradient): SVPH = (%g, %g)" % (maxySVPHerror,
-                                                                     maxdySVPHerror)
+print("Maximum errors (interpolation, gradient): SVPH = (%g, %g)" % (maxySVPHerror,
+                                                                     maxdySVPHerror))
 
 #-------------------------------------------------------------------------------
 # Plot the things.
 #-------------------------------------------------------------------------------
 if graphics:
-    from SpheralGnuPlotUtilities import *
-    import Gnuplot
+    from SpheralMatplotlib import *
 
-    # Interpolated values.
-    ansdata = Gnuplot.Data(xans, yans,
-                           with_ = "lines",
-                           title = "Answer",
-                           inline = True)
-    SVPHdata = Gnuplot.Data(xans, ySVPH,
-                            with_ = "points",
-                            title = "SVPH",
-                            inline = True)
-    errSVPHdata = Gnuplot.Data(xans, errySVPH,
-                               with_ = "points",
-                               title = "SVPH",
-                               inline = True)
+    p1 = newFigure()
+    p1.plot(xans, yans, "k-", label = "Answer")
+    p1.plot(xans, ySVPH, "ro", fillstyle = "none", label = "SVPH")
+    p1.set_title("Interpolated values")
+    p1.legend()
 
-    p1 = generateNewGnuPlot()
-    p1.plot(ansdata)
-    p1.replot(SVPHdata)
-    p1("set key top left")
-    p1.title("Interpolated values")
-    p1.refresh()
+    p2 = newFigure()
+    p2.plot(xans, errySVPH, "ro", fillstyle = "none", label = "SVPH")
+    p2.set_title("Error in interpolation")
 
-    p2 = generateNewGnuPlot()
-    p2.replot(errSVPHdata)
-    p2.title("Error in interpolation")
-    p2.refresh()
+    p3 = newFigure()
+    p3.plot(xans, dyans, "k-", label = "Answer")
+    p3.plot(xans, dySVPH, "ro", fillstyle = "none", label = "SVPH")
+    p3.set_title("Derivative values")
+    p3.legend()
 
-    # Derivative values.
-    dansdata = Gnuplot.Data(xans, dyans,
-                            with_ = "lines",
-                            title = "Answer",
-                            inline = True)
-    dSVPHdata = Gnuplot.Data(xans, dySVPH,
-                             with_ = "points",
-                             title = "SVPH",
-                             inline = True)
-    errdSVPHdata = Gnuplot.Data(xans, errdySVPH,
-                                with_ = "points",
-                                title = "SVPH",
-                                inline = True)
-
-    p3 = generateNewGnuPlot()
-    p3.plot(dansdata)
-    p3.replot(dSVPHdata)
-    p3("set key top left")
-    p3.title("Derivative values")
-    p3.refresh()
-
-    p4 = generateNewGnuPlot()
-    p4.replot(errdSVPHdata)
-    p4.title("Error in derivatives")
-    p4.refresh()
+    p4 = newFigure()
+    p4.plot(xans, errdySVPH, "ro", fillstyle = "none", label = "SVPH")
+    p4.set_title("Error in derivatives")
 
 #-------------------------------------------------------------------------------
 # Check the maximum SVPH error and fail the test if it's out of bounds.
 #-------------------------------------------------------------------------------
 if maxySVPHerror > interpolationTolerance:
-    raise ValueError, "SVPH interpolation error out of bounds: %g > %g" % (maxySVPHerror, interpolationTolerance)
+    raise ValueError("SVPH interpolation error out of bounds: %g > %g" % (maxySVPHerror, interpolationTolerance))
 if maxdySVPHerror > interpolationTolerance:
-    raise ValueError, "SVPH gradient error out of bounds: %g > %g" % (maxdySVPHerror, interpolationTolerance)
+    raise ValueError("SVPH gradient error out of bounds: %g > %g" % (maxdySVPHerror, interpolationTolerance))

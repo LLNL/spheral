@@ -83,7 +83,7 @@ class GenerateRatioSlab1d(NodeGeneratorBase):
                 drStart = (rmax - rmin)/neff
             return drStart, neff
         dxSurface, nxeff = adjustRatio(dxSurface, xratio, xmin, xmax)
-        print "Adjusting initial spacing to (%g) in order to create integer numbers of bins (%i) to edges." % (dxSurface, nxeff)
+        print("Adjusting initial spacing to (%g) in order to create integer numbers of bins (%i) to edges." % (dxSurface, nxeff))
 
         def flipcoord(xi, x0, x1):
             return x0 + x1 - xi
@@ -193,7 +193,7 @@ class GenerateRatioSlab2d(NodeGeneratorBase):
             return drStart, neff
         dxSurface, nxeff = adjustRatio(dxSurface, xratio, xmin[0], xmax[0])
         dySurface, nyeff = adjustRatio(dySurface, yratio, xmin[1], xmax[1])
-        print "Adjusting initial spacing to (%g, %g) in order to create integer numbers of bins (%i, %i) to edges." % (dxSurface, dySurface, nxeff, nyeff)
+        print("Adjusting initial spacing to (%g, %g) in order to create integer numbers of bins (%i, %i) to edges." % (dxSurface, dySurface, nxeff, nyeff))
 
         def flipcoord(xi, x0, x1):
             return x0 + x1 - xi

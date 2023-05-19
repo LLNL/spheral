@@ -235,10 +235,10 @@ velShockedAir = v1S-v0S                         # air velocity in lab-frame
 
 print("----------------------------------")
 print('Shock Properties')
-print "(M...............%s" % M
-print "(P/P0............%s" % pRatio
-print "(rho/rho0........%s" % rhoRatio
-print("inflow velocity..%s" % velShockedAir)
+print("(M...............%s" % M)
+print("(P/P0............%s" % pRatio)
+print("(rho/rho0........%s" % rhoRatio)
+print(("inflow velocity..%s" % velShockedAir))
 
 xmax = [  0.4*boxwidth,  0.5*boxheight]
 xmin = [ -0.6*boxwidth, -0.5*boxheight]
@@ -259,8 +259,8 @@ nxU = int((xmaxU[0]-xminU[0])/rColumn*nrColumn/lengthRatio/lengthRatio*1.2)
 nyU = int((xmaxU[1]-xminU[1])/rColumn*nrColumn/lengthRatio/lengthRatio*1.2)
 
 print("----------------------------------")
-print("shock air lattice  : %s, %s" % (nxS, nyS))
-print("unshock air lattice: %s, %s" % (nxU, nyU))
+print(("shock air lattice  : %s, %s" % (nxS, nyS)))
+print(("unshock air lattice: %s, %s" % (nxU, nyU)))
 
 if halfDomain:
     xmin[1]=0.0
@@ -277,14 +277,14 @@ hmaxAir = boxheight
 #-------------------------------------------------------------------------------
 tstar = 2*rColumn/(velShockedAir)
 print("----------------------------------")
-print("t* = %s" % tstar)
+print(("t* = %s" % tstar))
 
-print("goalTime = %s - tstar" % goalTime)
+print(("goalTime = %s - tstar" % goalTime))
 goalTime *= tstar
 vizTime *= tstar
 outputTime *= tstar
-print("goalTime = %s - t" % goalTime)
-print("vizTime = %s - t" % vizTime)
+print(("goalTime = %s - t" % goalTime))
+print(("vizTime = %s - t" % vizTime))
 print("----------------------------------")
 
 #-------------------------------------------------------------------------------
@@ -324,7 +324,7 @@ class CircularRejecter:
         assert (len(y) == n and len(m) == n and len(H) == n)
         xnew, ynew, mnew, Hnew = [], [], [], []
         R2 = self.radius**2
-        for i in xrange(n):
+        for i in range(n):
             if ((x[i] - self.origin[0])**2 +
                 (y[i] - self.origin[1])**2 > R2):
                 xnew.append(x[i])
@@ -398,7 +398,7 @@ posFieldAir = [posi + f * Vector(0.0,np.random.rand()-0.5,np.random.rand()-0.5) 
 #-------------------------------------------------------------------------------
 db = DataBase()
 for n in nodeListSet:
-    print(n.name)
+    print((n.name))
     db.appendNodeList(n)
 del n
 output("db")

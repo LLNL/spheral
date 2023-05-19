@@ -35,6 +35,6 @@ class CRKSPH_mod_package(Physics):
         A = A_fl[0]
         B = B_fl[0]
 
-        print "A", A.internalValues()
+        print("A", A.internalValues())
         return
 

@@ -36,10 +36,10 @@ class sDump(object):
         rank = mpi.rank
         serialData = []
         i,j = 0,0
-        for i in xrange(procs):
+        for i in range(procs):
             for nodeL in self.nodeSet:
                 if rank == i:
-                    for j in xrange(nodeL.numInternalNodes):
+                    for j in range(nodeL.numInternalNodes):
                         serialData.append([nodeL.positions()[j],
                                            3.0/(nodeL.Hfield()[j].Trace()),
                                            nodeL.mass()[j],nodeL.massDensity()[j],
@@ -48,7 +48,7 @@ class sDump(object):
         serialData = mpi.reduce(serialData,mpi.SUM)
         if rank == 0:
             f = open(self.directory + "/serialDump" + str(cycle) + ".ascii",'w')
-            for i in xrange(len(serialData)):
+            for i in range(len(serialData)):
                 f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
             f.close()
 
@@ -299,7 +299,7 @@ diskProfile2 = KeplerianPressureDiskProfile(G0, M0, polytropicIndex, Rc, rho0*0.
 
 # Set node positions, masses, and H's for this domain.
 from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
-print "Generating node distribution."
+print("Generating node distribution.")
 generator1 = GenerateNodesMatchingProfile2d(n*0.25, diskProfile1,
                                             rmin = rmin,
                                             rmax = rmax*0.25,
@@ -317,7 +317,7 @@ generator2 = GenerateNodesMatchingProfile2d(n*0.75, diskProfile2,
 n1 = generator1.globalNumNodes()
 n2 = generator2.globalNumNodes()
 
-print "Distributing nodes amongst processors."
+print("Distributing nodes amongst processors.")
 distributeNodes((diskNodes1, generator1),(diskNodes2,generator2))
 output('mpi.reduce(diskNodes1.numInternalNodes, mpi.MIN)')
 output('mpi.reduce(diskNodes1.numInternalNodes, mpi.MAX)')
@@ -325,7 +325,7 @@ output('mpi.reduce(diskNodes1.numInternalNodes, mpi.SUM)')
 
 # Loop over the nodes, and set the specific energies and velocities.
 for nodes in [diskNodes1,diskNodes2]:
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         r = nodes.positions()[i].magnitude()
         #nodes.specificThermalEnergy()[i] = diskProfile.eps(r)
 
@@ -505,7 +505,7 @@ else:
 
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     P1 = ScalarField("pressure",diskNodes1)
     P2 = ScalarField("pressure",diskNodes2)
     diskNodes1.pressure(P1)
@@ -539,9 +539,9 @@ if outputFile != "None":
     vprof1 = []
     vprof2 = []
     if mpi.rank == 0:
-        for i in xrange(np1):
+        for i in range(np1):
             vprof1.append(xprof1[i]*vx1[i]/rprof1[i]+yprof1[i]*vy1[i]/rprof1[i])
-        for i in xrange(np2):
+        for i in range(np2):
             vprof2.append(xprof2[i]*vx2[i]/rprof2[i]+yprof2[i]*vy2[i]/rprof2[i])
 
     mof = mortonOrderIndices(db)

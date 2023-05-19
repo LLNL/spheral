@@ -39,10 +39,10 @@ def FSISPH(dataBase,
     ######################################################################
     
     if compatibleEnergyEvolution and evolveTotalEnergy:
-        raise RuntimeError, "compatibleEnergyEvolution and evolveTotalEnergy are incompatible"
+        raise RuntimeError("compatibleEnergyEvolution and evolveTotalEnergy are incompatible")
 
     if strengthInDamage and damageRelieveRubble:
-        raise RuntimeError, "strengthInDamage and damageRelieveRubble are incompatible"
+        raise RuntimeError("strengthInDamage and damageRelieveRubble are incompatible")
 
     # create the map nodelist --> index
     nodeLists = dataBase.nodeLists()
@@ -63,20 +63,20 @@ def FSISPH(dataBase,
     nfluid = dataBase.numFluidNodeLists
     nsolid = dataBase.numSolidNodeLists
     if nsolid > 0 and nsolid != nfluid:
-        print "SPH Error: you have provided both solid and fluid NodeLists, which is currently not supported."
-        print "           If you want some fluids active, provide SolidNodeList without a strength option specfied,"
-        print "           which will result in fluid behaviour for those nodes."
-        raise RuntimeError, "Cannot mix solid and fluid NodeLists."
+        print("SPH Error: you have provided both solid and fluid NodeLists, which is currently not supported.")
+        print("           If you want some fluids active, provide SolidNodeList without a strength option specfied,")
+        print("           which will result in fluid behaviour for those nodes.")
+        raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
     # Decide on the hydro object.
     if RZ:
-        raise RuntimeError, "RZ is not implemented yet"
+        raise RuntimeError("RZ is not implemented yet")
     else:
         # Cartesian ---------------------------------
         if nsolid > 0:
             Constructor = eval("SolidFSISPHHydroBase%id" % ndim)
         else:
-            raise RuntimeError, "currently only implemented for solid nodelists"
+            raise RuntimeError("currently only implemented for solid nodelists")
 
 
     # Artificial viscosity.

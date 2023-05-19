@@ -19,7 +19,7 @@ def plotState(nodes, color='black', plotGhosts=0):
 
     window(1)
     vNodes = array([0.0]*nx)
-    for i in xrange(nx):
+    for i in range(nx):
         vNodes[i] = nodes.velocity[i].x
     plg(vNodes, xNodes, color=color)
     pltitle('Velocity')
@@ -32,7 +32,7 @@ def plotState(nodes, color='black', plotGhosts=0):
 
     window(3)
     HNodes = array([0.0]*nx)
-    for i in xrange(nx):
+    for i in range(nx):
         HNodes[i] = 1.0/nodes.Hfield[i].xx
     plg(HNodes, xNodes, color=color)
     pltitle('Smoothing scale')
@@ -85,12 +85,12 @@ kernelExtent = W.kernelExtent
 
 # Set node positions
 dx1 = (x1 - x0)/nx1
-for ix in xrange(nx1 + nx2):
+for ix in range(nx1 + nx2):
     nodeID = ix
     nodes1.positions[nodeID] = x0 + (ix + 0.5)*dx1
 
 dx2 = (x2 - x1)/nx2
-for ix in xrange(nx2):
+for ix in range(nx2):
     nodeID = ix + nx1
     nodes1.positions[nodeID] = x1 + (ix + 0.5)*dx2
 
@@ -100,23 +100,23 @@ nodes1.mass[nx1:] = [m2]*nx2
 
 # Set node specific thermal energies
 eps1 = P1/((gamma - 1.0)*rho1)
-for nodeID in xrange(nx1):
+for nodeID in range(nx1):
     nodes1.specificThermalEnergy[nodeID] = eps1
 
 eps2 = P2/((gamma - 1.0)*rho2)
-for nodeID in xrange(nx1, nx1 + nx2):
+for nodeID in range(nx1, nx1 + nx2):
     nodes1.specificThermalEnergy[nodeID] = eps2
 
 # Set node velocities
-for nodeID in xrange(nodes1.numNodes):
+for nodeID in range(nodes1.numNodes):
     nodes1.velocity[nodeID] = (0.0)
 
 # Set the smoothing scales.
 h1 = 1.0/(2.01*dx1)
 h2 = 1.0/(2.01*dx2)
-for i in xrange(nx1):
+for i in range(nx1):
     nodes1.Hfield[i].xx = h1
-for i in xrange(nx2, nx1 + nx2):
+for i in range(nx2, nx1 + nx2):
     nodes1.Hfield[i].xx = h2
 
 # Set the mass densities if required.

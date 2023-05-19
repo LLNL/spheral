@@ -65,7 +65,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
             # The holes were not entirely contained in the bounding volume, so we punt.
             boundvol = 0.5*boundary.volume
         boxvol = 1.0
-        for idim in xrange(ndim):
+        for idim in range(ndim):
             boxvol *= box[idim]
         fracOccupied = min(1.0, boxvol/boundvol)
         assert fracOccupied > 0.0 and fracOccupied <= 1.0
@@ -102,7 +102,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
                 nlocal = len(seedPositions)
                 assert mpi.allreduce(nlocal, mpi.SUM) == n
                 nodes.numInternalNodes = nlocal
-                for i in xrange(nlocal):
+                for i in range(nlocal):
                     pos[i] = seedPositions[i]
                     rhoi = rhofunc(pos[i])
                     rhof[i] = rhoi
@@ -130,7 +130,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
                             i = 0
                         nglobal += mpi.allreduce(i, mpi.SUM)
                     rhomax = mpi.allreduce(rhomax, mpi.MAX)
-                print "MedialGenerator: selected a maximum density of ", rhomax
+                print("MedialGenerator: selected a maximum density of ", rhomax)
             
                 # It's a bit tricky to properly use the Sobol sequence in parallel.  We handle this by searching for the lowest
                 # seeds that give us the desired number of points.
@@ -171,7 +171,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
                     extraseeds = []
                 extraseeds = mpi.allreduce(extraseeds, mpi.SUM)
                 seeds = seeds[:nlocal]
-                for iproc in xrange(mpi.procs):
+                for iproc in range(mpi.procs):
                     ngrab = max(0, nlocal - len(seeds))
                     ntaken = mpi.bcast(ngrab, root=iproc)
                     if mpi.rank == iproc:
@@ -223,7 +223,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
         
             # Store the values the descendent generators will need.
             self.vol, self.surface, self.pos, self.m, self.H = [], [], [], [], []
-            for i in xrange(nodes.numInternalNodes):
+            for i in range(nodes.numInternalNodes):
                 self.vol.append(vol(0,i))
                 self.surface.append(surfacePoint(0,i))
                 self.pos.append(sph.Vector(pos[i]))
@@ -269,7 +269,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
             result = (cacheFileName and os.path.exists(cacheFileName))
         result = mpi.bcast(result, root=0)
         if result:
-            print "Restoring MedialGenerator state from %s" % cacheFileName
+            print("Restoring MedialGenerator state from %s" % cacheFileName)
             if mpi.rank == 0:
                 f = SiloFileIO(cacheFileName, Read)
                 numGeneratingProcs = f.readObject("numGeneratingProcs")
@@ -277,7 +277,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
                 # Decide how to divide the generating domains between our current processes.
                 n0 = numGeneratingProcs/mpi.procs
                 remainder = numGeneratingProcs % mpi.procs
-                for iproc in xrange(mpi.procs):
+                for iproc in range(mpi.procs):
                     if iproc >= numGeneratingProcs:
                         imin, imax = 0, 0
                     else:
@@ -286,7 +286,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
                         if iproc < remainder:
                             imax += 1
                     pos, m, H, vol, surface = [], [], [], [], []
-                    for igenproc in xrange(imin, imax):
+                    for igenproc in range(imin, imax):
                         posi, mi, Hi, voli, surfacei = readNodeData(f, igenproc)
                         pos += posi
                         m += mi
@@ -323,7 +323,7 @@ class MedialGeneratorBase(NodeGeneratorBase):
             f = SiloFileIO(cacheFileName, Create)
             f.writeObject(mpi.procs, "numGeneratingProcs")
             writeNodeData(f, 0, self.pos, self.m, self.H, self.vol, self.surface)
-            for iproc in xrange(1, mpi.procs):
+            for iproc in range(1, mpi.procs):
                 pos, m, H, vol, surface = mpi.recv(source=iproc)[0]
                 writeNodeData(f, iproc, pos, m, H, vol, surface)
             f.close()
@@ -583,7 +583,7 @@ class MedialSphereGenerator3d(MedialGeneratorBase):
         myn    = nlocal
         if mpi.rank == nprocs-1:
             myn += nrem
-        for i in xrange(myn):
+        for i in range(myn):
             j = i + mpi.rank*nlocal
             seedPositions.append(Vector(SphericallyConformalMap.positions[j][0],
                                         SphericallyConformalMap.positions[j][1],
@@ -593,7 +593,7 @@ class MedialSphereGenerator3d(MedialGeneratorBase):
         # Now construct boundaries based on rmin and rmax
         bpoints = vector_of_Vector()
         nshell = 300 # fix this later
-        for i in xrange(1,nshell+1):
+        for i in range(1,nshell+1):
             h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
             t = acos(h)
             if (i>1 and i<nshell):
@@ -606,7 +606,7 @@ class MedialSphereGenerator3d(MedialGeneratorBase):
         bound1 = Polyhedron(bpoints)
 
         if (rmin > 0.0):
-            for i in xrange(nshell):
+            for i in range(nshell):
                 bpoints[i] *= rmin/rmax
             bound2 = Polyhedron(bpoints)
         

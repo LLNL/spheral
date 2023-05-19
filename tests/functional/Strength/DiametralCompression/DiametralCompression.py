@@ -315,7 +315,7 @@ distributeNodes((nodesSpecimen,generatorSpecimen),(nodesDriver,generatorDriver),
 db = DataBase()
 for n in nodeListSet:
     db.appendNodeList(n)
-    print n.name
+    print(n.name)
 del n
 nodeLists = db.nodeLists()
 
@@ -757,7 +757,7 @@ if mpi.rank==0:
         print "average analytic Sxx  = %s" % avgSxxanalytic
         print "average simulated Sxx = %s" % avgSxxreduced
         if error > tol:
-            raise ValueError, "tensile stress error bounds violated (error, error tolerance) = (%g,%g)." % (error,tol)
+            raise ValueError("tensile stress error bounds violated (error, error tolerance) = (%g,%g)." % (error,tol))
 
     if leaveNoTrace:
         os.system("rm -rf "+baseDir)

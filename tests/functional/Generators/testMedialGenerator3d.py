@@ -77,7 +77,7 @@ def rhoprofile1(posi):
     r = (posi - Vector(1.5,1.5)).magnitude()
     return exp(-r*r/(rhoscale*rhoscale))
 
-print "Generator 1"
+print("Generator 1")
 generator1 = MedialGenerator3d(n = n1,
                                rho = 1.0,
                                boundary = innerBoundary,
@@ -86,7 +86,7 @@ generator1 = MedialGenerator3d(n = n1,
                                #tessellationFileName = "test_medial_nodes1_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                                nNodePerh = nPerh)
 
-print "Generator 2"
+print("Generator 2")
 generator2 = MedialGenerator3d(n = n2,
                                rho = 1.0,
                                boundary = outerBoundary,
@@ -104,7 +104,7 @@ distributeNodes((nodes1, generator1),
 #-------------------------------------------------------------------------------
 Hfield = nodes.Hfield()
 HfieldInv = SymTensorField("H inverse", nodes)
-for i in xrange(nodes.numNodes):
+for i in range(nodes.numNodes):
     HfieldInv[i] = Hfield[i].Inverse()
 vizfile = siloPointmeshDump(baseName = "test_medial3d_maxiter=%i_tol=%g" % (maxIterations, fracTol),
                             baseDirectory = "test_medial3d",

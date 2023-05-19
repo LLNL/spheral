@@ -11,13 +11,13 @@ import numpy as np
 
 def smooth(x,window_len=11,window='hanning'):
     if x.ndim != 1:
-        raise ValueError, "smooth only accepts 1 dimension arrays."
+        raise ValueError("smooth only accepts 1 dimension arrays.")
     if x.size < window_len:
-        raise ValueError, "Input vector needs to be bigger than window size."
+        raise ValueError("Input vector needs to be bigger than window size.")
     if window_len<3:
         return x
     if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+        raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
     s=np.r_[2*x[0]-x[window_len-1::-1],x,2*x[-1]-x[-1:-window_len:-1]]
     if window == 'flat': #moving average
         w=np.ones(window_len,'d')
@@ -149,11 +149,11 @@ m0 = rho1*dx
 Hdet0 = 1.0/(nPerh*dx)
 rhoscale = m0*WT.kernelValue(0.0, Hdet0)
 deta = 1.0/nPerh
-for i in xrange(1, int(WT.kernelExtent * (nPerh + 1))):
+for i in range(1, int(WT.kernelExtent * (nPerh + 1))):
     rhoscale += 2.0*m0*WT.kernelValue(i*deta, Hdet0)
 rhoscale = rho1/rhoscale
-print "Compute analytic rho scaling of %16.12e." % rhoscale
-for i in xrange(nodes1.numInternalNodes):
+print("Compute analytic rho scaling of %16.12e." % rhoscale)
+for i in range(nodes1.numInternalNodes):
     mass[i] *= rhoscale
 
 #-------------------------------------------------------------------------------
@@ -232,7 +232,7 @@ output("integrator.rigorousBoundaries")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-print "Making controller."
+print("Making controller.")
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -269,7 +269,7 @@ if graphics == "gnu":
     elif crksph:
         A=hydro.A()
 	print("ARRAY LENGTH:")
-        print(A[0].__len__())
+        print((A[0].__len__()))
         tmp=[]
         for i in range(A[0].__len__()):
 		tmp.append(A[0][i])
@@ -311,7 +311,7 @@ if graphics == "gnu":
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
     P = ScalarField("pressure", nodes1)
@@ -342,7 +342,7 @@ if outputFile != "None":
 # Check the energy error.
 #------------------------------------------------------------------------------
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if compatibleEnergy and abs(Eerror) > 1e-10:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")
 

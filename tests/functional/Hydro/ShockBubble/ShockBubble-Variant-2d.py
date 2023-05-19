@@ -278,7 +278,7 @@ if restoreCycle is None:
                     (nodesHe, generatorHe),
                     (nodesAir2, generatorAir2))
     for nodes in nodeSet:
-        print "Num internal nodes for ", nodes.name, " : ", mpi.allreduce(nodes.numInternalNodes, mpi.SUM)
+        print("Num internal nodes for ", nodes.name, " : ", mpi.allreduce(nodes.numInternalNodes, mpi.SUM))
 
     # Set initial conditions.
     nodesAir1.specificThermalEnergy(ScalarField("eps", nodesAir1, airEnergy))
