@@ -1,7 +1,9 @@
+from math import *
 from Spheral1d import *
-import Gnuplot
 from SpheralTestUtilities import *
-
+import matplotlib.pyplot as plt
+from SpheralMatplotlib import plotSurface
+import numpy as np
 
 rho0 = 100.0
 Pmin = 1e-6
@@ -29,55 +31,101 @@ nodes1 = makeFluidNodeList("nodes1", eos,
                            hmax = hmax,
                            nPerh = nPerh)
 
-nodes1.numInternalNodes = 1
-
-n = 20
+n = 50
 rhoMin, rhoMax = 100.0, 1.0e9
-drho = (1.0/n) * log1p(rhoMax/rhoMin)
-rho = [rhoMin * exp(drho*i) for i in xrange(n + 1)]
+rho = np.geomspace(rhoMin, rhoMax, num = n)
 
 eMin, eMax = 1.0e17, 1.0e20
-de = (1.0/n) * log1p(eMax/eMin)
-e = [eMin * exp(de*j) for j in xrange(n+1)]
+e = np.geomspace(eMin, eMax, num = n)
 
+rho_grid, e_grid = np.meshgrid(rho, e)
+shape = rho_grid.shape
+P_grid, cs_grid, gam_grid = np.zeros(shape), np.zeros(shape), np.zeros(shape)
 
-
-P, cs, gam = [], [], []
-for rhoi in rho:
-    for ei in e:
-        nRho = ScalarField("testRho", nodes1, rhoi)
-        ne = ScalarField("testU", nodes1, ei)
-        Pr = ScalarField("testP", nodes1)
-        ng = ScalarField("testGamma", nodes1)
-        soundSpeed = ScalarField("testCs", nodes1)
-        eos.setPressure(Pr,nRho,ne)
-        eos.setSoundSpeed(soundSpeed,nRho,ne)
-        eos.setGammaField(ng,nRho,ne)
-        P.append((rhoi, ei, Pr[0]))
-        cs.append((rhoi, ei, soundSpeed[0]))
-        gam.append((rhoi,ei,ng[0]))
+nodes1.numInternalNodes = shape[0] * shape[1]
+nRho = ScalarField("testRho", nodes1)
+ne = ScalarField("testU", nodes1)
+Pr = ScalarField("testP", nodes1)
+ng = ScalarField("testGamma", nodes1)
+soundSpeed = ScalarField("testCs", nodes1)
+rho = rho_grid.flatten()
+e = e_grid.flatten()
+for j in range(n):
+    for i in range(n):
+        k = i + j*n
+        nRho[k] = rho_grid[j][i]
+        ne[k] = e_grid[j][i]
+eos.setPressure(Pr,nRho,ne)
+eos.setSoundSpeed(soundSpeed,nRho,ne)
+eos.setGammaField(ng,nRho,ne)
+for j in range(n):
+    for i in range(n):
+        k = i + j*n
+        P_grid[j][i] = Pr[k]
+        cs_grid[j][i] = soundSpeed[k]
+        gam_grid[j][i] = ng[k]
         
+Pplot, Pax, Psurf = plotSurface(np.log10(rho_grid),
+                                np.log10(e_grid),
+                                np.log10(P_grid),
+                                xlabel = "$\log(\\rho)$",
+                                ylabel = "$\log(\\varepsilon)$",
+                                zlabel = "$\log(P)$",
+                                title = "Pressure")
 
-Pplot = Gnuplot.Gnuplot()
-Pplot("set term x11")
-Pplot("set logscale xy")
-Pplot.xlabel("rho/rho0")
-Pplot.ylabel("eps (J/kg)")
-Pdata = Gnuplot.Data(P)
-Pplot.splot(Pdata, title="Pressure")
+cs_plot, cs_ax, cs_surf = plotSurface(np.log10(rho_grid),
+                                      np.log10(e_grid),
+                                      np.log10(cs_grid),
+                                      xlabel = "$\log(\\rho)$",
+                                      ylabel = "$\log(\\varepsilon)$",
+                                      zlabel = "$\log(c_s)$",
+                                      title = "Sound speed")
 
-csplot = Gnuplot.Gnuplot()
-csplot("set term x11")
-csplot("set logscale xy")
-csplot.xlabel("rho/rho0")
-csplot.ylabel("eps (J/kg)")
-csdata = Gnuplot.Data(cs)
-csplot.splot(csdata, title="sound speed")
+gam_plot, gam_ax, gam_surf = plotSurface(np.log10(rho_grid),
+                                         np.log10(e_grid),
+                                         np.log10(gam_grid),
+                                         xlabel = "$\log(\\rho)$",
+                                         ylabel = "$\log(\\varepsilon)$",
+                                         zlabel = "$\log(\\gamma)$",
+                                         title = "Gamma")
 
-gamplot = Gnuplot.Gnuplot()
-gamplot("set term x11")
-gamplot("set logscale xy")
-gamplot.xlabel("rho/rho0")
-gamplot.ylabel("eps (J/kg)")
-gamdata = Gnuplot.Data(gam)
-gamplot.splot(gamdata, title="gamma")
+# Pplot, Pax = plt.subplots(subplot_kw={"projection" : "3d"})
+# Psurf = Pax.plot_surface(np.log(rho_grid), np.log(e_grid), np.log10(np.abs(P_grid)),
+#                          cmap = cm.coolwarm)
+# Pplot.colorbar(Psurf)
+
+# csplot, csax = plt.subplots(subplot_kw={"projection" : "3d"})
+# cssurf = csax.plot_surface(np.log(rho_grid), np.log(e_grid), np.log10(np.abs(cs_grid)),
+#                            cmap = cm.coolwarm)
+# csplot.colorbar(cssurf)
+
+# gamplot, gamax = plt.subplots(subplot_kw={"projection" : "3d"})
+# gamsurf = gamax.plot_surface(np.log(rho_grid), np.log(e_grid), np.log10(np.abs(gam_grid)),
+#                              cmap = cm.coolwarm)
+# gamplot.colorbar(gamsurf)
+
+# Pplot = Gnuplot.Gnuplot()
+# Pplot("set term x11")
+# Pplot("set logscale xy")
+# Pplot.xlabel("rho/rho0")
+# Pplot.ylabel("eps (J/kg)")
+# Pdata = Gnuplot.Data(P)
+# Pplot.splot(Pdata, title="Pressure")
+
+# csplot = Gnuplot.Gnuplot()
+# csplot("set term x11")
+# csplot("set logscale xy")
+# csplot.xlabel("rho/rho0")
+# csplot.ylabel("eps (J/kg)")
+# csdata = Gnuplot.Data(cs)
+# csplot.splot(csdata, title="sound speed")
+
+# gamplot = Gnuplot.Gnuplot()
+# gamplot("set term x11")
+# gamplot("set logscale xy")
+# gamplot.xlabel("rho/rho0")
+# gamplot.ylabel("eps (J/kg)")
+# gamdata = Gnuplot.Data(gam)
+# gamplot.splot(gamdata, title="gamma")
+
+plt.show()

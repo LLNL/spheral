@@ -53,7 +53,7 @@ class PolarSplineNodeGenerator2d(self,
     # The length of curve 1.
     nc = len(radcurve1)
     dtheta = (thetamax - thetamin)/(nc - 1)*pi
-    thetas = [thetamin + i*dtheta for i in xrange(nc)]
+    thetas = [thetamin + i*dtheta for i in range(nc)]
     assert min([x >= thetamin and x <= thetamax for x in thetas])
     coefs = fitspline(radcurve1, thetas)
     L0 = self.computeLength(coefs, thetamin, thetamax)
@@ -64,16 +64,16 @@ class PolarSplineNodeGenerator2d(self,
     self.y = []
     self.m = []
     self.rho = []
-    drad = [(radcurve2[i] - radcurve1[i])/(nbetween - 1) for i in xrange(nc)]
-    for ishell in xrange(nbetween):
+    drad = [(radcurve2[i] - radcurve1[i])/(nbetween - 1) for i in range(nc)]
+    for ishell in range(nbetween):
 
         # Compute the spline curves for this shell.
-        rsp0 = [radcurve1[i] + drad[i]*ishell         for i in xrange(nc)]
-        rsp1 = [radcurve1[i] + drad[i]*(ishell + 0.5) for i in xrange(nc)]
-        rsp2 = [radcurve1[i] + drad[i]*(ishell + 1)   for i in xrange(nc)]
-        assert min([rsp0[i] >= radcurve1[i] and rsp0[i] <= radcurve2[i] for i in xrange(nc)])
-        assert min([rsp1[i] >= radcurve1[i] and rsp1[i] <= radcurve2[i] for i in xrange(nc)])
-        assert min([rsp2[i] >= radcurve1[i] and rsp2[i] <= radcurve2[i] for i in xrange(nc)])
+        rsp0 = [radcurve1[i] + drad[i]*ishell         for i in range(nc)]
+        rsp1 = [radcurve1[i] + drad[i]*(ishell + 0.5) for i in range(nc)]
+        rsp2 = [radcurve1[i] + drad[i]*(ishell + 1)   for i in range(nc)]
+        assert min([rsp0[i] >= radcurve1[i] and rsp0[i] <= radcurve2[i] for i in range(nc)])
+        assert min([rsp1[i] >= radcurve1[i] and rsp1[i] <= radcurve2[i] for i in range(nc)])
+        assert min([rsp2[i] >= radcurve1[i] and rsp2[i] <= radcurve2[i] for i in range(nc)])
         coefs0 = fitspline(rsp0, thetas)
         coefs1 = fitspline(rsp1, thetas)
         coefs2 = fitspline(rsp2, thetas)
@@ -97,7 +97,7 @@ class PolarSplineNodeGenerator2d(self,
         p22 = origin + Vector2d(cos(thetamin), sin(thetamin))*evaluniformspline(coefs2, thetamin)
 
         # Integrate along the splines, filling in the values for this shell.
-        for i in xrange(nshell):
+        for i in range(nshell):
             p00 = p20
             p01 = p21
             p02 = p22

@@ -40,36 +40,36 @@ class NeighborTestBase:
     #---------------------------------------------------------------------------
     def randomDistribute(self,
                          n,                  # global number of nodes
-                         range,              # total simulation volume
+                         volrange,              # total simulation volume
                          Vector,             # the vector type
                          SymTensor,          # tensor type
                          nNodesPerh = 2.01): # duh!
         assert Vector.nDimensions == SymTensor.nDimensions
-        assert len(range) == Vector.nDimensions
-        assert min([len(range[i]) == 2 for i in xrange(Vector.nDimensions)])
+        assert len(volrange) == Vector.nDimensions
+        assert min([len(volrange[i]) == 2 for i in range(Vector.nDimensions)])
 
         adim = 1.0/SymTensor.nDimensions
         vol = 1.0
-        for i in xrange(SymTensor.nDimensions):
-            vol *= range[i][1] - range[i][0]
+        for i in range(SymTensor.nDimensions):
+            vol *= volrange[i][1] - volrange[i][0]
         assert vol > 0.0
         dx0 = (vol/n)**adim
 
         globalNodeIDs = []
         nodePositions = []
         H = []
-        for i in xrange(n):
+        for i in range(n):
             globalNodeIDs.append(i)
-            args = (random.uniform(range[j][0], range[j][1])
-                    for j in xrange(Vector.nDimensions))
+            args = (random.uniform(volrange[j][0], volrange[j][1])
+                    for j in range(Vector.nDimensions))
             nodePositions.append(Vector(*args))
 
             dx = [nNodesPerh * random.uniform(0.5, 2.0)*dx0
-                  for j in xrange(SymTensor.nDimensions)]
+                  for j in range(SymTensor.nDimensions)]
             assert len(dx) == SymTensor.nDimensions
             assert min(dx) > 0.0
             args = [0.0] * SymTensor.nDimensions**2
-            for j in xrange(SymTensor.nDimensions):
+            for j in range(SymTensor.nDimensions):
                 args[j + j*SymTensor.nDimensions] = 1.0/dx[j]
             Hi = SymTensor(*tuple(args))
             applyRandomRotation(Hi, SymTensor.nDimensions)
@@ -84,7 +84,7 @@ class NeighborTestBase:
     # setUp routine common to all instances.
     #---------------------------------------------------------------------------
     def genericSetUp(self, n1, n2, n3,
-                     range1, range2, range3,
+                     volrange1, volrange2, volrange3,
                      EOS,
                      makeFluidNodeList,
                      TableKernel,
@@ -101,16 +101,16 @@ class NeighborTestBase:
         self.nodes1 = makeFluidNodeList("nodes 1", self.eos, NeighborType=NeighborType)
         self.nodes2 = makeFluidNodeList("nodes 2", self.eos, NeighborType=NeighborType)
         self.nodes3 = makeFluidNodeList("nodes 3", self.eos, NeighborType=NeighborType)
-        for nodes, nGlobal, range in ((self.nodes1, n1, range1),
-                                      (self.nodes2, n2, range2),
-                                      (self.nodes3, n3, range3)):
+        for nodes, nGlobal, volrange in ((self.nodes1, n1, volrange1),
+                                      (self.nodes2, n2, volrange2),
+                                      (self.nodes3, n3, volrange3)):
             globalIDs, xyNodes, H = Seeder(nGlobal,
-                                           range,
+                                           volrange,
                                            Vector,
                                            SymTensor)
             n = len(globalIDs)
             nodes.numInternalNodes = n
-            for i in xrange(n):
+            for i in range(n):
                 nodes.mass()[i] = 1.0
                 nodes.positions()[i] = xyNodes[i]
                 nodes.Hfield()[i] = H[i]
@@ -141,7 +141,7 @@ class NeighborTestBase:
             H = nodes.Hfield()
 
             # Randomly select nodes from each NodeList to explicitly test.
-            for nodeID in random.sample(range(nodes.numInternalNodes - 1), self.ncheck):
+            for nodeID in random.sample(list(range(nodes.numInternalNodes - 1)), self.ncheck):
                 ri = pos[nodeID]
                 Hi = H[nodeID]
 
@@ -173,14 +173,14 @@ class NeighborTestBase:
                 if not test:
                     neighborIDs.sort()
                     answerIDs.sort()
-                    print 'SPH Neighbor test FAILED'
-                    print ' refine: ', neighborIDs
-                    print ' answer: ', answerIDs
+                    print('SPH Neighbor test FAILED')
+                    print(' refine: ', neighborIDs)
+                    print(' answer: ', answerIDs)
                     missing = [i for i in answerIDs if i not in neighborIDs]
-                    print 'missing: ', missing
-                    print 'deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing]
+                    print('missing: ', missing)
+                    print('deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing])
                 else:
-                    print "Passed for node %i : %f %f %f" % (nodeID, t1 - t0, t2 - t1, t3 - t2)
+                    print("Passed for node %i : %f %f %f" % (nodeID, t1 - t0, t2 - t1, t3 - t2))
                 assert test
 
     #---------------------------------------------------------------------------
@@ -199,7 +199,7 @@ class NeighborTestBase:
             H = inodes.Hfield()
 
             # Randomly select nodes from each NodeList to explicitly test.
-            for i in random.sample(range(inodes.numInternalNodes - 1), self.ncheck):
+            for i in random.sample(list(range(inodes.numInternalNodes - 1)), self.ncheck):
                 ri = pos[i]
                 Hi = H[i]
                 cmneighbors = cm.connectivityForNode(inodes, i)
@@ -211,15 +211,15 @@ class NeighborTestBase:
                     if iNL == jNL:
                         answer.remove(i)
                     if not cmcheck == answer:
-                        print 'SPH ConnectivityMap neighbor test FAILED for node %i' % i
-                        print '     CM: ', cmcheck
-                        print ' answer: ', answer
+                        print('SPH ConnectivityMap neighbor test FAILED for node %i' % i)
+                        print('     CM: ', cmcheck)
+                        print(' answer: ', answer)
                         missing = [i for i in answer if i not in cmcheck]
-                        print 'missing: ', missing
-                        print 'deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing]
-                        raise RuntimeError, "Failed test"
+                        print('missing: ', missing)
+                        print('deltas: ', [((Hi*(pos[i] - ri)).x, (H[i]*(pos[i] - ri)).x) for i in missing])
+                        raise RuntimeError("Failed test")
                     else:
-                        print "Passed for node %i" % i
+                        print("Passed for node %i" % i)
 
     #---------------------------------------------------------------------------
     # Test ConnectivityMap NodePairList
@@ -235,10 +235,10 @@ class NeighborTestBase:
         # Build the answer based on the node neighbors
         answer = []
         for iNL, inodes in enumerate(self.dataBase.nodeLists()):
-            for i in xrange(inodes.numInternalNodes):
+            for i in range(inodes.numInternalNodes):
                 cmneighbors = cm.connectivityForNode(inodes, i)
                 assert len(cmneighbors) == numNodeLists
-                for jNL in xrange(iNL, numNodeLists):
+                for jNL in range(iNL, numNodeLists):
                     for j in cmneighbors[jNL]:
                         if jNL > iNL or j > i:
                             answer.append(NodePairIdxType(i, iNL, j, jNL))
@@ -280,7 +280,7 @@ class NeighborTestBase:
             for (kNL, nghbs) in enumerate(actual):
                 for k in nghbs:
                     rk = pos(kNL, k)
-                    print "    --> ", k, (Hi*(ri - rk)).magnitude(), (Hj*(rj - rk)).magnitude()
+                    print("    --> ", k, (Hi*(ri - rk)).magnitude(), (Hj*(rj - rk)).magnitude())
 
         def actualIntersection(iNL, i, jNL, j):
             actual = []
@@ -296,8 +296,8 @@ class NeighborTestBase:
         for iNL, inodes in enumerate(self.dataBase.nodeLists()):
 
             # Randomly select nodes from each NodeList to explicitly test.
-            for i in random.sample(range(inodes.numInternalNodes - 1), self.noverlapcheck):
-                print "Checking ", i
+            for i in random.sample(list(range(inodes.numInternalNodes - 1)), self.noverlapcheck):
+                print("Checking ", i)
                 ri = pos(iNL, i)
                 Hi = H(iNL, i)
                 cmneighbors = cm.overlapConnectivityForNode(inodes, i)
@@ -310,33 +310,33 @@ class NeighborTestBase:
                     if iNL == jNL:
                         answer.remove(i)
                     if not cmcheck == answer:
-                        print 'SPH ConnectivityMap overlap neighbor test FAILED for node %i' % i
-                        print '     CM: ', cmcheck
-                        print ' answer: ', answer
+                        print('SPH ConnectivityMap overlap neighbor test FAILED for node %i' % i)
+                        print('     CM: ', cmcheck)
+                        print(' answer: ', answer)
                         missing = [j for j in answer if not j in cmcheck]
-                        print 'missing: ', missing
-                        print 'intersections for missing:'
+                        print('missing: ', missing)
+                        print('intersections for missing:')
                         for j in missing:
                             rj = pos(jNL, j)
                             Hj = H(jNL, j)
-                            print '   %i: ' % j, [list(x) for x in cm.connectivityIntersectionForNodes(iNL, i, jNL, j)]
+                            print('   %i: ' % j, [list(x) for x in cm.connectivityIntersectionForNodes(iNL, i, jNL, j)])
                             actual = actualIntersection(iNL, i, jNL, j)
-                            print '   %i: ' % j, actual
+                            print('   %i: ' % j, actual)
                             etaNeighborStats(iNL, i, jNL, j, actual)
-                            print "Finished"
+                            print("Finished")
                         extra = [j for j in cmcheck if not j in answer]
-                        print 'extra: ', extra
-                        print 'intersections for extra:'
+                        print('extra: ', extra)
+                        print('intersections for extra:')
                         for j in extra:
-                            print '   %i: ' % j, [list(x) for x in cm.connectivityIntersectionForNodes(iNL, i, jNL, j)]
+                            print('   %i: ' % j, [list(x) for x in cm.connectivityIntersectionForNodes(iNL, i, jNL, j)])
                             actual = actualIntersection(iNL, i, jNL, j)
-                            print '   %i: ' % j, actual
+                            print('   %i: ' % j, actual)
                             etaNeighborStats(iNL, i, jNL, j, actual)
-                            print "Finished"
-                        print "REALLY Finished"
+                            print("Finished")
+                        print("REALLY Finished")
                         sys.stdin.flush()
-                        raise RuntimeError, "Failed test"
-                print "    Passed for node %i" % i
+                        raise RuntimeError("Failed test")
+                print("    Passed for node %i" % i)
 
         return
 
@@ -359,7 +359,7 @@ class NeighborTestBase:
         def intersectionAnswer(pair):
             neighborsi = cm.connectivityForNode(pair.i_list, pair.i_node)
             neighborsj = cm.connectivityForNode(pair.j_list, pair.j_node)
-            result = [set(neighborsi[kNL]) & set(neighborsj[kNL]) for kNL in xrange(numNodeLists)]
+            result = [set(neighborsi[kNL]) & set(neighborsj[kNL]) for kNL in range(numNodeLists)]
             result[pair.i_list].add(pair.i_node)
             result[pair.j_list].add(pair.j_node)
             return result
@@ -371,15 +371,15 @@ class NeighborTestBase:
 
         # Randomly select pairs to test
         for pair in random.sample(pairs, self.ncheck):
-            print "Checking ", pair
+            print("Checking ", pair)
             answer = intersectionAnswer(pair)
             intersect = convertToSets(answer)
             assert len(intersect) == numNodeLists
-            print answer
-            print intersect
+            print(answer)
+            print(intersect)
             self.assertEqual(intersect, answer,
                             ("\nIntersection computed from Neighbor set intersections does not match: \nintersect: %s\nanswer: %s\n" % (intersect, answer)))
-            print "    Passed for pair ", pair
+            print("    Passed for pair ", pair)
 
         return
 
@@ -393,9 +393,9 @@ class NeighborRandom1d(unittest.TestCase, NeighborTestBase):
     #---------------------------------------------------------------------------
     def setUp(self):
 
-        print "--------------------------------------------------------------------------------"
-        print "1-D %s random test." % NeighborRandom1d._NeighborType.__name__
-        print "--------------------------------------------------------------------------------"
+        print("--------------------------------------------------------------------------------")
+        print("1-D %s random test." % NeighborRandom1d._NeighborType.__name__)
+        print("--------------------------------------------------------------------------------")
 
         self.ncheck = 10
         self.noverlapcheck = 2
@@ -405,9 +405,9 @@ class NeighborRandom1d(unittest.TestCase, NeighborTestBase):
         n2 = 2500
         n3 = 500
 
-        range1 = ((-2.0, -1.0),)
-        range2 = ((-1.0, 0.5),)
-        range3 = ((0.5, 2.0),)
+        volrange1 = ((-2.0, -1.0),)
+        volrange2 = ((-1.0, 0.5),)
+        volrange3 = ((0.5, 2.0),)
 
         searchType = GatherScatter
         numGridLevels = 20
@@ -415,7 +415,7 @@ class NeighborRandom1d(unittest.TestCase, NeighborTestBase):
         self.kernelExtent = 2.0
 
         self.genericSetUp(n1, n2, n3,
-                          range1, range2, range3,
+                          volrange1, volrange2, volrange3,
                           GammaLawGasMKS1d,
                           makeFluidNodeList1d,
                           TableKernel1d,
@@ -445,9 +445,9 @@ class NeighborRandom2d(unittest.TestCase, NeighborTestBase):
     #---------------------------------------------------------------------------
     def setUp(self):
 
-        print "--------------------------------------------------------------------------------"
-        print "2-D %s random test." % NeighborRandom2d._NeighborType.__name__
-        print "--------------------------------------------------------------------------------"
+        print("--------------------------------------------------------------------------------")
+        print("2-D %s random test." % NeighborRandom2d._NeighborType.__name__)
+        print("--------------------------------------------------------------------------------")
 
         self.ncheck = 10
         self.noverlapcheck = 2
@@ -457,14 +457,14 @@ class NeighborRandom2d(unittest.TestCase, NeighborTestBase):
         n2 = 25000
         n3 = 5000
 
-        range1 = ((-2.0, -1.0), (0.0, 1.0))
-        range2 = ((-1.0, -0.5), (0.0, 1.0))
-        range3 = ((-0.5, 0.0), (0.0, 1.0))
+        volrange1 = ((-2.0, -1.0), (0.0, 1.0))
+        volrange2 = ((-1.0, -0.5), (0.0, 1.0))
+        volrange3 = ((-0.5, 0.0), (0.0, 1.0))
 
         self.kernelExtent = 2.0
 
         self.genericSetUp(n1, n2, n3,
-                          range1, range2, range3,
+                          volrange1, volrange2, volrange3,
                           GammaLawGasMKS2d,
                           makeFluidNodeList2d,
                           TableKernel2d,
@@ -494,9 +494,9 @@ class NeighborRandom3d(unittest.TestCase, NeighborTestBase):
     #---------------------------------------------------------------------------
     def setUp(self):
 
-        print "--------------------------------------------------------------------------------"
-        print "3-D %s random test." % NeighborRandom3d._NeighborType.__name__
-        print "--------------------------------------------------------------------------------"
+        print("--------------------------------------------------------------------------------")
+        print("3-D %s random test." % NeighborRandom3d._NeighborType.__name__)
+        print("--------------------------------------------------------------------------------")
 
         self.ncheck = 10
         self.noverlapcheck = 0
@@ -506,9 +506,9 @@ class NeighborRandom3d(unittest.TestCase, NeighborTestBase):
         n2 = 2500
         n3 = 1500
 
-        range1 = ((0.0, 1.0), (0.0, 1.0), (0.0, 1.0))
-        range2 = ((1.0, 1.5), (0.0, 1.0), (0.0, 1.0))
-        range3 = ((1.5, 2.0), (0.0, 1.0), (0.0, 1.0))
+        volrange1 = ((0.0, 1.0), (0.0, 1.0), (0.0, 1.0))
+        volrange2 = ((1.0, 1.5), (0.0, 1.0), (0.0, 1.0))
+        volrange3 = ((1.5, 2.0), (0.0, 1.0), (0.0, 1.0))
 
         searchType = GatherScatter
         numGridLevels = 20
@@ -517,7 +517,7 @@ class NeighborRandom3d(unittest.TestCase, NeighborTestBase):
         self.kernelExtent = 2.0
 
         self.genericSetUp(n1, n2, n3,
-                          range1, range2, range3,
+                          volrange1, volrange2, volrange3,
                           GammaLawGasMKS3d,
                           makeFluidNodeList3d,
                           TableKernel3d,
@@ -547,9 +547,9 @@ class NeighborCylindrical2d(unittest.TestCase, NeighborTestBase):
     #---------------------------------------------------------------------------
     def setUp(self):
 
-        print "--------------------------------------------------------------------------------"
-        print "2-D %s regular cylindrical test." % self._NeighborType
-        print "--------------------------------------------------------------------------------"
+        print("--------------------------------------------------------------------------------")
+        print("2-D %s regular cylindrical test." % self._NeighborType)
+        print("--------------------------------------------------------------------------------")
 
         self.ncheck = 50
         self.noverlapcheck = 2

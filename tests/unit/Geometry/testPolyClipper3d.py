@@ -141,9 +141,9 @@ class TestPolyhedronClipping(unittest.TestCase):
             PCpoly = PolyClipperPolyhedron()
             initializePolyhedron(PCpoly, points, neighbors)
             vol, centroid = moments(PCpoly)
-            self.failUnless(vol == poly.volume,
+            self.assertTrue(vol == poly.volume,
                             "Volume comparison failure: %g != %g" % (vol, poly.volume))
-            self.failUnless(centroid == poly.centroid,
+            self.assertTrue(centroid == poly.centroid,
                             "Centroid comparison failure: %s != %s" % (centroid, poly.centroid))
 
     #---------------------------------------------------------------------------
@@ -171,9 +171,9 @@ class TestPolyhedronClipping(unittest.TestCase):
             PCpoly = convertToPolyClipper(poly)
             assert len(poly.vertices) == len(PCpoly)
             vol, centroid = moments(PCpoly)
-            self.failUnless(vol == poly.volume,
+            self.assertTrue(vol == poly.volume,
                             "Volume comparison failure: %g != %g" % (vol, poly.volume))
-            self.failUnless(centroid == poly.centroid,
+            self.assertTrue(centroid == poly.centroid,
                             "Centroid comparison failure: %s != %s" % (centroid, poly.centroid))
 
 
@@ -196,7 +196,7 @@ class TestPolyhedronClipping(unittest.TestCase):
         for points, neighbors, facets in self.polyData:
             poly = Polyhedron(points, facets)
             PCpoly = convertToPolyClipper(poly)
-            for i in xrange(self.ntests):
+            for i in range(self.ntests):
                 planes1, planes2 = [], []
                 p0 = Vector(rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0),
@@ -214,18 +214,18 @@ class TestPolyhedronClipping(unittest.TestCase):
                 chunk2, clips = convertFromPolyClipper(PCchunk2)
                 success = fuzzyEqual(chunk1.volume + chunk2.volume, poly.volume)
                 if not success:
-                    print "Failed on pass ", i
-                    print "Plane: ", p0, phat
-                    print "Poly:\n", poly
-                    print "Chunk 1:\n ", chunk1
-                    print "Chunk 2:\n ", chunk2
+                    print("Failed on pass ", i)
+                    print("Plane: ", p0, phat)
+                    print("Poly:\n", poly)
+                    print("Chunk 1:\n ", chunk1)
+                    print("Chunk 2:\n ", chunk2)
                     vol1, cent1 = moments(PCchunk1)
                     vol2, cent2 = moments(PCchunk2)
-                    print "Vol check: %g + %g = %g" % (vol1, vol2, vol1 + vol2)
+                    print("Vol check: %g + %g = %g" % (vol1, vol2, vol1 + vol2))
                     writePolyhedronOBJ(poly, "poly.obj")
                     writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
                     writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
-                self.failUnless(success,
+                self.assertTrue(success,
                                 "Plane clipping summing to wrong volumes: %s + %s != %s" % (chunk1.volume,
                                                                                             chunk2.volume,
                                                                                             poly.volume))
@@ -238,7 +238,7 @@ class TestPolyhedronClipping(unittest.TestCase):
         for points, neighbors, facets in self.polyData:
             poly = Polyhedron(points, facets)
             PCpoly = convertToPolyClipper(poly)
-            for i in xrange(self.ntests):
+            for i in range(self.ntests):
                 planes1, planes2 = [], []
                 p0 = Vector(rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0))
@@ -255,18 +255,18 @@ class TestPolyhedronClipping(unittest.TestCase):
                 chunk2, clips = convertFromPolyClipper(PCchunk2)
                 success = fuzzyEqual(chunk1.volume, chunk2.volume)
                 if not success:
-                    print "Failed on pass ", i
-                    print "Plane: ", p0, phat
-                    print "Poly:\n", poly
-                    print "Chunk 1:\n ", chunk1
-                    print "Chunk 2:\n ", chunk2
+                    print("Failed on pass ", i)
+                    print("Plane: ", p0, phat)
+                    print("Poly:\n", poly)
+                    print("Chunk 1:\n ", chunk1)
+                    print("Chunk 2:\n ", chunk2)
                     vol1, cent1 = moments(PCchunk1)
                     vol2, cent2 = moments(PCchunk2)
-                    print "Vol check: %g = %g" % (vol1, vol2)
+                    print("Vol check: %g = %g" % (vol1, vol2))
                     writePolyhedronOBJ(poly, "poly.obj")
                     writePolyhedronOBJ(chunk1, "chunk_ONE.obj")
                     writePolyhedronOBJ(chunk2, "chunk_TWO.obj")
-                self.failUnless(success,
+                self.assertTrue(success,
                                 "Redundant plane clipping wrong volumes: %s != %s" % (chunk1.volume,
                                                                                       chunk2.volume))
         return
@@ -277,7 +277,7 @@ class TestPolyhedronClipping(unittest.TestCase):
     def testNullClipOnePlane(self):
         for points, neighbors, facets in self.polyData:
             poly = Polyhedron(points, facets)
-            for i in xrange(self.ntests):
+            for i in range(self.ntests):
                 r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
                 theta = rangen.uniform(0.0, 2.0*pi)
                 phat = Vector(cos(theta), sin(theta))
@@ -291,7 +291,7 @@ class TestPolyhedronClipping(unittest.TestCase):
                 if not success:
                     writePolyhedronOBJ(poly, "poly.obj")
                     writePolyhedronOBJ(chunk, "chunk.obj")
-                self.failUnless(success,
+                self.assertTrue(success,
                                 "Null plane clipping failure: %s != %s" % (chunk.volume, poly.volume))
         return
 
@@ -301,7 +301,7 @@ class TestPolyhedronClipping(unittest.TestCase):
     def testFullClipOnePlane(self):
         for points, neighbors, facets in self.polyData:
             poly = Polyhedron(points, facets)
-            for i in xrange(self.ntests):
+            for i in range(self.ntests):
                 planes = []
                 r = rangen.uniform(2.0, 100.0) * (poly.xmax - poly.xmin).magnitude()
                 theta = rangen.uniform(0.0, 2.0*pi)
@@ -315,7 +315,7 @@ class TestPolyhedronClipping(unittest.TestCase):
                 if not success:
                     writePolyhedronOBJ(poly, "poly.obj")
                     writePolyhedronOBJ(chunk, "chunk.obj")
-                self.failUnless(success,
+                self.assertTrue(success,
                                 "Full plane clipping failure: %s != %s" % (chunk.volume, poly.volume))
         return
 
@@ -326,7 +326,7 @@ class TestPolyhedronClipping(unittest.TestCase):
         for points, neighbors, facets in self.polyData:
             poly = Polyhedron(points, facets)
             PCpoly = convertToPolyClipper(poly)
-            for i in xrange(self.ntests):
+            for i in range(self.ntests):
                 p0 = Vector(rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0),
                             rangen.uniform(0.0, 1.0))
@@ -363,7 +363,7 @@ class TestPolyhedronClipping(unittest.TestCase):
                     writePolyhedronOBJ(chunk2, "chunk_2TWO_TWOPLANES.obj")
                     writePolyhedronOBJ(chunk3, "chunk_3THREE_TWOPLANES.obj")
                     writePolyhedronOBJ(chunk4, "chunk_4FOUR_TWOPLANES.obj")
-                self.failUnless(success,
+                self.assertTrue(success,
                                 "Two plane clipping summing to wrong volumes: %s + %s + %s + %s = %s != %s" % (chunk1.volume,
                                                                                                                chunk2.volume,
                                                                                                                chunk3.volume,

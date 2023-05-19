@@ -190,7 +190,7 @@ mass = nodes.mass()
 rhoFunc = ExponentialDensity(rhoB,
                              rhoT,
                              delta)
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     xi = pos[i].x
     P0 = rhoT/gamma
     rho[i] = rhoFunc(xi)
@@ -288,7 +288,7 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 pos = nodes.positions()
 nodeIndices = vector_of_int()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     if pos[i].x > x0 and pos[i].x < x1:
         nodeIndices.append(i)
 
@@ -308,7 +308,7 @@ xp2 = Plane(Vector(x1), Vector(-1.0))
 # the x-cutoffs.
 pos = nodes.positions()
 xlow, xhigh = vector_of_int(), vector_of_int()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     if pos[i].x < x0:
         xlow.append(i)
     elif pos[i].x > x1:
@@ -380,13 +380,13 @@ if serialDump:
     rank = mpi.rank
     serialData = []
     i,j = 0,0
-    for i in xrange(procs):
+    for i in range(procs):
         if rank == i:
-            for j in xrange(nodes.numInternalNodes):
+            for j in range(nodes.numInternalNodes):
                 serialData.append([nodes.positions()[j],3.0/(nodes.Hfield()[j].Trace()),nodes.mass()[j],nodes.massDensity()[j],nodes.specificThermalEnergy()[j]])
     serialData = mpi.reduce(serialData,mpi.SUM)
     if rank == 0:
         f = open(dataDir + "/serialDump.ascii",'w')
-        for i in xrange(len(serialData)):
+        for i in range(len(serialData)):
             f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
         f.close()

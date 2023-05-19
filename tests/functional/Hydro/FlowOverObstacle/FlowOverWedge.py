@@ -132,7 +132,7 @@ output("nodes.numNodes")
 # Set node initial conditions
 vel = nodes.velocity()
 eps = nodes.specificThermalEnergy()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     vel[i].x = v0
     eps[i] = eps0
 

@@ -73,7 +73,7 @@ distributeNodes((nodes, generator))
 #-------------------------------------------------------------------------------
 Hfield = nodes.Hfield()
 HfieldInv = SymTensorField("H inverse", nodes)
-for i in xrange(nodes.numNodes):
+for i in range(nodes.numNodes):
     HfieldInv[i] = Hfield[i].Inverse()
 vizfile = siloPointmeshDump(baseName = "ratio_disk_test_" + distributionType,
                             baseDirectory = "ratio_disk_test_" + distributionType,

@@ -88,7 +88,7 @@ class Generate3dTestSetup:
             nodes.setMassDensity(ScalarField3d(nodes, rho))
             nodes.setHfield(SymTensorField3d(nodes, Hi))
             nodes.updateWeight(self.dataBase.connectivityMap())
-            for i in xrange(n):
+            for i in range(n):
                 nodes.positions()[i] = xyzNodes[i]
 
             neighbor = NestedGridNeighbor3d(nodes,
@@ -133,7 +133,7 @@ class Generate3dTestSetup:
                          rmin, rmax):    # total simulation volume
 
         nodePositions = []
-        for globalNodeID in xrange(n):
+        for globalNodeID in range(n):
             nodePositions.append(Vector3d(self.g.uniform(rmin.x, rmax.x),
                                           self.g.uniform(rmin.y, rmax.y),
                                           self.g.uniform(rmin.z, rmax.z)))
@@ -156,9 +156,9 @@ class Generate3dTestSetup:
             dy = (rmax.y - rmin.y)/nx
             dz = (rmax.z - rmin.z)/nx
 
-            for ix in xrange(nx):
-                for iy in xrange(nx):
-                    for iz in xrange(nx):
+            for ix in range(nx):
+                for iy in range(nx):
+                    for iz in range(nx):
                         nodePositions.append(Vector3d((ix + 0.5)*dx,
                                                       (iy + 0.5)*dy,
                                                       (iz + 0.5)*dz))

@@ -42,7 +42,7 @@ class AngularMomentumHistory:
         Lz = self.LzHistory[-1]
 
         # Walk the nodes and build Lz.
-        for i in xrange(self.nodeList.numInternalNodes):
+        for i in range(self.nodeList.numInternalNodes):
             Lz[i] = pos[i].cross(vel[i]).z
 
         return
@@ -54,7 +54,7 @@ class AngularMomentumHistory:
         file.writeObject(self.cycleHistory, path + "/cycleHistory")
         file.writeObject(self.timeHistory, path + "/timeHistory")
         file.writeObject(len(self.LzHistory), path + "/lenLz")
-        for i in xrange(len(self.LzHistory)):
+        for i in range(len(self.LzHistory)):
             file.write(self.LzHistory[i], path + "/Lz%i" % i)
         return
 
@@ -62,7 +62,7 @@ class AngularMomentumHistory:
         self.cycleHistory = file.readObject(path + "/cycleHistory")
         self.timeHistory = file.readObject(path + "/timeHistory")
         n = file.readObject(path + "/lenLz")
-        for i in xrange(n):
+        for i in range(n):
             field = ScalarField("tmp", self.nodeList)
             file.read(field, path + "/Lz%i" % i)
             self.LzHistory.append(field)

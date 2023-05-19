@@ -16,13 +16,13 @@ from DistributeNodes import distributeNodesInRange1d
 
 def smooth(x,window_len=11,window='hanning'):
     if x.ndim != 1:
-        raise ValueError, "smooth only accepts 1 dimension arrays."
+        raise ValueError("smooth only accepts 1 dimension arrays.")
     if x.size < window_len:
-        raise ValueError, "Input vector needs to be bigger than window size."
+        raise ValueError("Input vector needs to be bigger than window size.")
     if window_len<3:
         return x
     if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+        raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
     s=np.r_[2*x[0]-x[window_len-1::-1],x,2*x[-1]-x[-1:-window_len:-1]]
     if window == 'flat': #moving average
         w=np.ones(window_len,'d')
@@ -219,7 +219,7 @@ output("nodes1.numNodes")
 # Find the cumulative mass at each point.
 Mi = ScalarField("Cumulative mass", nodes1)
 positions = mpi.allreduce([(nodes1.positions()[i].x, i, mpi.rank)
-                           for i in xrange(nodes1.numInternalNodes)], mpi.SUM)
+                           for i in range(nodes1.numInternalNodes)], mpi.SUM)
 assert len(positions) == nx1
 positions.sort()
 Msum = 0.0
@@ -253,9 +253,7 @@ eps = nodes1.specificThermalEnergy()
 H = nodes1.Hfield()
 dx = (x1 - x0)/nx1
 xi = x0
-eps1 = cs2/(gamma1*(gamma1-1.0))
-P1 = (gamma1-1.0)*rho1*eps1
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     func0 = MassFunctor(max(0.0, Mi[i] - mi))
     func1 = MassFunctor(Mi[i])
     xi0 = newtonRaphsonFindRoot(func0, xi, xi + 2.0*dx, 1.0e-35, 1.0e-35)
@@ -287,11 +285,11 @@ m0 = rho1*dx
 Hdet0 = 1.0/(nPerh*dx)
 rhoscale = m0*WT.kernelValue(0.0, Hdet0)
 deta = 1.0/nPerh
-for i in xrange(1, int(WT.kernelExtent * (nPerh + 1))):
+for i in range(1, int(WT.kernelExtent * (nPerh + 1))):
     rhoscale += 2.0*m0*WT.kernelValue(i*deta, Hdet0)
 rhoscale = rho1/rhoscale
-print "Compute analytic rho scaling of %16.12e." % rhoscale
-for i in xrange(nodes1.numInternalNodes):
+print("Compute analytic rho scaling of %16.12e." % rhoscale)
+for i in range(nodes1.numInternalNodes):
     mass[i] *= rhoscale
     #print 1.0-rhoscale
     #print rho[i]
@@ -477,16 +475,16 @@ def printTotalEnergy(cycle,time,dt):
     Etot = mpi.allreduce(Etot,mpi.SUM)
     Etherm = mpi.allreduce(Etherm,mpi.SUM)
     Ekinetic = mpi.allreduce(Ekinetic,mpi.SUM)
-    print(" TOTAL   VOLUME   : %.15g" % Vtot)
+    print((" TOTAL   VOLUME   : %.15g" % Vtot))
     #print([" TOTAL   MOMENTUM : ",Ptot])
-    print(" TOTAL   ENERGY   : %.15g" % Etot)
-    print(" KINETIC ENERGY   : %.15g" % Ekinetic)
-    print(" THERMAL ENERGY   : %.15g" % Etherm)
+    print((" TOTAL   ENERGY   : %.15g" % Etot))
+    print((" KINETIC ENERGY   : %.15g" % Ekinetic))
+    print((" THERMAL ENERGY   : %.15g" % Etherm))
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-print "Making controller."
+print("Making controller.")
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
@@ -503,7 +501,7 @@ if steps is None:
     if control.time() < goalTime:
         control.advance(goalTime, maxSteps)
     if checkReversibility:
-        for i in xrange(nodes1.numNodes):
+        for i in range(nodes1.numNodes):
             vel[i] = -vel[i]
         control.advance(2*goalTime, maxSteps)
 else:
@@ -573,14 +571,14 @@ if graphics:
     for p, filename in plots:
         savefig(p, os.path.join(dataDir, filename))
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[1])/control.conserve.EHistory[1]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
     rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
     P = ScalarField("pressure", nodes1)
@@ -608,7 +606,7 @@ if outputFile != "None":
 
         # While we're at it compute and report the error norms.
         import Pnorm
-        print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+        print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
         if normOutputFile != "None":
             f = open(normOutputFile, "a")
             if writeOutputLabel:
@@ -625,7 +623,7 @@ if outputFile != "None":
                                   ("Velocity", vprof, vans),
                                   ("h       ", hprof, hans)]:
             assert len(data) == len(ans)
-            error = [data[i] - ans[i] for i in xrange(len(data))]
+            error = [data[i] - ans[i] for i in range(len(data))]
             #Pn = Pnorm.Pnorm(error, xprof)
             L1 = sum([abs(data[i] - ans[i]) for i in range(len(data))])/len(data)#Pn.pnorm(1, xmin, xmax)
             L2 = (sum([abs(data[i] - ans[i])**2.0 for i in range(len(data))]))**(1.0/2.0)/len(data)

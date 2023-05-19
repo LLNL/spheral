@@ -50,11 +50,11 @@ def overlayNodeList(nodes,
     elif isinstance(nodes, SolidSpheral.NodeList3d):
         ndim = 3
     else:
-        raise ValueError, "Unknown thing %s handed in: expected a NodeList" % nodes
+        raise ValueError("Unknown thing %s handed in: expected a NodeList" % nodes)
     ndim0 = ndim
-    exec "from SolidSpheral%id import *" % ndim   # Load the aliases for our dimensionality
+    exec("from SolidSpheral%id import *" % ndim)   # Load the aliases for our dimensionality
     ndim = ndim0
-    exec "from VoronoiDistributeNodes import distributeNodes%id as distributor" % ndim
+    exec("from VoronoiDistributeNodes import distributeNodes%id as distributor" % ndim)
 
     # Clear out any initial ghost nodes.
     nodes.numGhostNodes = 0
@@ -67,7 +67,7 @@ def overlayNodeList(nodes,
         solid = False
         NLF = makeFluidNodeList
     else:
-        raise RuntimeError, "Unknown NodeList type."
+        raise RuntimeError("Unknown NodeList type.")
 
     # Check how to set the new neighbor info.
     boundaries = vector_of_Boundary()
@@ -89,7 +89,7 @@ def overlayNodeList(nodes,
             boundaries.append(dbc)
             #raise RuntimeError, "Need a parallel policy for TreeNeighbor."
     else:
-        raise RuntimeError, "Unknown Neighbor type."
+        raise RuntimeError("Unknown Neighbor type.")
 
     # Build a temporary NodeList we'll use to sample to.
     newnodes = NLF(name = "zza_newnodes", 
@@ -113,7 +113,7 @@ def overlayNodeList(nodes,
     eps0 = nodes.specificThermalEnergy()
     momentum0 = VectorField(vel0)
     thermalenergy0 = ScalarField(eps0)
-    for i in xrange(nodes.numNodes):
+    for i in range(nodes.numNodes):
         vol0[i] /= rho0[i] + 1.0e-30
         momentum0[i] *= mass0[i]
         thermalenergy0[i] *= mass0[i]
@@ -124,7 +124,7 @@ def overlayNodeList(nodes,
         mS0 = SymTensorField(S0)
         mps0 = ScalarField(ps0)
         mD0 = SymTensorField(D0)
-        for i in xrange(nodes.numNodes):
+        for i in range(nodes.numNodes):
             mS0[i] *= mass0[i]
             mps0[i] *= mass0[i]
             mD0[i] *= mass0[i]
@@ -167,16 +167,16 @@ def overlayNodeList(nodes,
         acceptorSymTensorFields.append(mS1)
         acceptorScalarFields.append(mps1)
         acceptorSymTensorFields.append(mD1)
-    print "Splatting fields..."
+    print("Splatting fields...")
     t0 = time.time()
     overlayRemapFields(boundaries,
                        donorScalarFields, donorVectorFields, donorTensorFields, donorSymTensorFields,
                        acceptorScalarFields, acceptorVectorFields, acceptorTensorFields, acceptorSymTensorFields)
-    print "Done splatting, required %g seconds." % (time.time() - t0)
+    print("Done splatting, required %g seconds." % (time.time() - t0))
 
     # Denormalize the mapped values and fill them in as new values for the nodes.
     nodes.numInternalNodes = newnodes.numInternalNodes
-    for i in xrange(newnodes.numInternalNodes):
+    for i in range(newnodes.numInternalNodes):
         j = i
         pos0[j] = pos1[i]
         H0[j] = H1[i]
@@ -187,7 +187,7 @@ def overlayNodeList(nodes,
             vel0[j] = momentum1[i]/mass1[i]
             eps0[j] = thermalenergy1[i]/mass1[i]
     if solid:
-        for i in xrange(newnodes.numInternalNodes):
+        for i in range(newnodes.numInternalNodes):
             j = i
             if mass1[i] > 0.0:
                 S0[j] = mS1[i]/mass1[i]
@@ -197,12 +197,12 @@ def overlayNodeList(nodes,
     # Look for any nodes that didn't get any information in the new set and delete them.
     if removeUnusedNodes:
         nodes2kill = vector_of_int()
-        for i in xrange(newnodes.numInternalNodes):
+        for i in range(newnodes.numInternalNodes):
             if mass0[i] == 0.0:
                 nodes2kill.append(i)
         if nodes2kill.size() > 0:
             nodes.deleteNodes(nodes2kill)
 
     # Whew!
-    print "Finished resampling nodes: final node count %i." % mpi.allreduce(nodes.numInternalNodes, mpi.SUM)
+    print("Finished resampling nodes: final node count %i." % mpi.allreduce(nodes.numInternalNodes, mpi.SUM))
     return

@@ -40,6 +40,6 @@ class AcousticWaveSolution:
         rho = [self.rho0*(1.0 + self.A*sin(self.k*(x - self.x0)/length - omegat)) for x in xvals]
         h = [self.h0*self.rho0/rhoi for rhoi in rho]
         P = [self.eos.pressure(rhoi,ui) for (rhoi,ui) in zip(rho,u)]
-        print(max(rho))
-        print(max(xvals))
+        print((max(rho)))
+        print((max(xvals)))
         return xvals, v, u, rho, P, h

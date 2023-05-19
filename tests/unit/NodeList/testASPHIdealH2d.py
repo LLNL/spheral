@@ -88,7 +88,7 @@ class TestASPHIdealH(unittest.TestCase):
     # desired mapping to the node positions.
     #===========================================================================
     def distortNodeDistribution(self, T):
-        for i in xrange(self.testdata.nodes1.numNodes):
+        for i in range(self.testdata.nodes1.numNodes):
             self.testdata.nodes1.positions()[i] = T*self.testdata.nodes1.positions()[i]
         self.testdata.nodes1.neighbor().updateNodes()
         return
@@ -107,7 +107,7 @@ class TestASPHIdealH(unittest.TestCase):
 
         plot = Gnuplot.Gnuplot(persist = True)
 
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
 
             # Pick a random multiplicative distortion to apply to the node
             # position field.
@@ -122,8 +122,8 @@ class TestASPHIdealH(unittest.TestCase):
             T = R*T0
             Rinverse = R.Inverse()
             Tinverse = T.Inverse()
-            print "mx, my, theta/pi: ", mx, my, theta/pi
-            print "T, Ti: ", T, Tinverse
+            print("mx, my, theta/pi: ", mx, my, theta/pi)
+            print("T, Ti: ", T, Tinverse)
 
             # Compute the expected answer for the ideal H.
             answer = (R*(T0.Inverse()*Hi).Symmetric()*R.Inverse()).Symmetric()
@@ -133,7 +133,7 @@ class TestASPHIdealH(unittest.TestCase):
 
             # Run the ideal H algorithm by evaluating the fluid derivatives.
             H = self.testdata.dataBase.globalHfield
-            for iter in xrange(self.iterations):
+            for iter in range(self.iterations):
                 self.testdata.dataBase.updateConnectivityMap()
                 packages = vector_of_Physics2d_ptr()
                 packages.append(self.hydro)
@@ -141,10 +141,10 @@ class TestASPHIdealH(unittest.TestCase):
                 derivs = StateDerivatives2d(self.testdata.dataBase, packages)
                 self.hydro.evaluateDerivatives(1.0, 1.0, self.testdata.dataBase, state, derivs)
                 Hnew = self.hydro.Hideal()
-                print "(%s %s) : (%s %s %s)" % (str(Hi), str(answer),
+                print("(%s %s) : (%s %s %s)" % (str(Hi), str(answer),
                                                 str(Hnew[0][self.inode]),
                                                 str(Hnew[0][self.inode0]),
-                                                str(Hnew[0][self.inode1]))
+                                                str(Hnew[0][self.inode1])))
 ##                self.testdata.nodes1.Hfield()[self.inode] = Hip
                 H.assignFields(Hnew)
                 self.testdata.nodes1.neighbor().updateNodes()
@@ -189,13 +189,13 @@ class TestASPHIdealH(unittest.TestCase):
                 h2p, v2p = eigenp.eigenValues.x, eigenp.eigenVectors.getColumn(0)
                 h1p, v1p = eigenp.eigenValues.y, eigenp.eigenVectors.getColumn(1)
 
-            self.failUnless(fuzzyEqual(h1p/h2p, h1/h2, self.ratiofuzz),
+            self.assertTrue(fuzzyEqual(h1p/h2p, h1/h2, self.ratiofuzz),
                             "H Shape does not match expectation: (%s/%s = %s) != (%s/%s = %s)" %
                             (h1p, h2p, h1p/h2p, h1, h2, h1/h2))
-            self.failUnless(fuzzyEqual(1.0/sqrt(Hip.Determinant()), 1.0/sqrt(answer.Determinant()), self.volfuzz),
+            self.assertTrue(fuzzyEqual(1.0/sqrt(Hip.Determinant()), 1.0/sqrt(answer.Determinant()), self.volfuzz),
                             "H Determinant does not match expectation: %s != %s" %
                             (Hip.Determinant(), answer.Determinant()))
-            self.failUnless(h1/h2 > self.aligncutoff or
+            self.assertTrue(h1/h2 > self.aligncutoff or
                             (fuzzyEqual(abs(v1.dot(v1p)), 1.0, self.alignfuzz) and
                              fuzzyEqual(abs(v2.dot(v2p)), 1.0, self.alignfuzz)),
                             "H not alinged with expected directions: %s %s %s %s != %s %s %s %s" %

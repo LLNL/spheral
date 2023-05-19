@@ -17,12 +17,14 @@ class PyAts(PythonPackage):
     maintainers = ['white238']
 
     version('main', branch='main')
+    version('exit', branch='bugfix/exit-code')
     version('7.0.100', tag='7.0.100')
     version('7.0.9', tag='7.0.9')
     version('7.0.5', tag='7.0.5')
 
     # TODO: Add flux variant when Flux functionality works in ATS
 
-    #depends_on("python@3.8:", type=('build', 'run'))
+    depends_on("python@3.8:", type=('build', 'run'))
     depends_on("py-numpy", type=('build', 'run'))
     depends_on('py-setuptools', type='build')
+    depends_on('py-poetry-core', type='build')

@@ -1,5 +1,9 @@
-from SolidSpheral3d import *
-import Gnuplot
+from math import *
+from Spheral1d import *
+from SpheralTestUtilities import *
+import matplotlib.pyplot as plt
+from SpheralMatplotlib import plotSurface
+import numpy as np
 
 # We'll work in CGS units.
 units = PhysicalConstants(0.01,  # Unit length in meters
@@ -38,77 +42,80 @@ eosSiO2 = GruneisenEquationOfState(rho0,            # ref density (g/cc)
 #-------------------------------------------------------------------------------
 # Build an ANEOS SiO2 like thing.
 #-------------------------------------------------------------------------------
-izetl = vector_of_int(1, -1)
+izetl = [-1]
 initializeANEOS("ANEOS.INPUT", "ANEOS.barf", izetl)
 rhoMin, rhoMax = 0.9*etaMin*rho0, 1.1*etaMax*rho0
 Tmin, Tmax = 1.0, 1.0e8
-eosANEOS = ANEOS(0,                 # Material number
-                 1000,              # num rho vals
-                 1000,              # num T vals
+eosANEOS = ANEOS(1,                 # Material number
+                 100,               # num rho vals
+                 100,               # num T vals
                  rhoMin,            # minimum density (kg/m^3)
                  rhoMax,            # maximum density (kg/m^3)
                  Tmin,              # minimum temperature (K)
                  Tmax,              # maximum temperature (K)
                  units)
 eps0ANEOS = eosANEOS.specificThermalEnergy(rho0, 1.0)  # Specific energy at 1K, reference density
-print "eps0ANEOS = ", eps0ANEOS
+print("eps0ANEOS = ", eps0ANEOS)
 
 #-------------------------------------------------------------------------------
 # Plot the pressure as a function of (rho, eps)
 #-------------------------------------------------------------------------------
 n = 50
-drho = (rhoMax - rhoMin)/n
-rho = [rhoMin + i*drho for i in xrange(n + 1)]
+rho = np.geomspace(rhoMin, rhoMax, num = n)
 
 epsMin = eosANEOS.specificThermalEnergy(rho0, 0.1*Tmin)
 epsMax = eosANEOS.specificThermalEnergy(rho0, 1.1*Tmax)
-deps = (epsMax - epsMin)/n
-eps = [epsMin + i*deps for i in xrange(n + 1)]
+eps = np.geomspace(epsMin, epsMax, num = n)
+
+rho_grid, eps_grid = np.meshgrid(rho, eps)
+shape = rho_grid.shape
+PG_grid, csG_grid = np.zeros(shape), np.zeros(shape)
+PA_grid, csA_grid = np.zeros(shape), np.zeros(shape)
 
 # Write the (rho, eps, P, cs) set to a file.
-f = open("SiOS_ANEOS.txt", "w")
-f.write("""
-# ANEOS vs. Gruneisen EOS dump for SiO2 like material (all units CGS).
-#
-# ANEOS eps(1K) = %g
-#
-""" % (eps0ANEOS))
-f.write((6*'"%20s "' + "\n") % ("rho (g/cm^3)", "eps (erg/g)", 
-                                "P Grun (dyne)", "cs Grun (cm/sec)", 
-                                "P ANEOS (dyne)", "cs ANEOS (cm/sec)"))
+with open("SiOS_ANEOS.txt", "w") as f:
+    f.write("""
+    # ANEOS vs. Gruneisen EOS dump for SiO2 like material (all units CGS).
+    #
+    # ANEOS eps(1K) = %g
+    #
+    """ % (eps0ANEOS))
+    f.write((6*'"%20s "' + "\n") % ("rho (g/cm^3)", "eps (erg/g)", 
+                                    "P Grun (dyne)", "cs Grun (cm/sec)", 
+                                    "P ANEOS (dyne)", "cs ANEOS (cm/sec)"))
 
-PG, csG, PA, csA = [], [], [], []
-for rhoi in rho:
-    for epsi in eps:
-        PG.append((rhoi, epsi, eosSiO2.pressure(rhoi, epsi - epsMin)))
-        csG.append((rhoi, epsi, eosSiO2.soundSpeed(rhoi, epsi - epsMin)))
-        PA.append((rhoi, epsi, eosANEOS.pressure(rhoi, epsi)))
-        csA.append((rhoi, epsi, eosANEOS.soundSpeed(rhoi, epsi)))
-        f.write((6*"%20g " + "\n") % (rhoi, epsi, PG[-1][-1], csG[-1][-1], PA[-1][-1], csA[-1][-1]))
-f.close()
+    for j in range(n):
+        for i in range(n):
+            PG_grid[j][i] = eosSiO2.pressure(rho_grid[j][i], eps_grid[j][i] - epsMin)
+            csG_grid[j][i] = eosSiO2.soundSpeed(rho_grid[j][i], eps_grid[j][i])
+            PA_grid[j][i] = eosANEOS.pressure(rho_grid[j][i], eps_grid[j][i])
+            csA_grid[j][i] = eosANEOS.soundSpeed(rho_grid[j][i], eps_grid[j][i])
+            f.write((6*"%20g " + "\n") % (rho_grid[j][i], eps_grid[j][i],
+                                          PG_grid[j][i], csG_grid[j][i],
+                                          PA_grid[j][i], csA_grid[j][i]))
 
-PGplot = Gnuplot.Gnuplot()
-PGplot.xlabel("rho (g/cm^3)")
-PGplot.ylabel("eps (erg/g)")
-PGdata = Gnuplot.Data(PG)
-PGplot.splot(PGdata, title="Pressure (Gruneisen)")
+PGplot, PGax, PGsurf = plotSurface(np.log10(rho_grid), np.log10(eps_grid), PG_grid,
+                                   xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                                   ylabel = "$\log(\\varepsilon)$ (erg/g)",
+                                   zlabel = "$P$ (dynes)",
+                                   title = "Pressure (Gruneisen)")
 
+csGplot, csGax, csGsurf = plotSurface(np.log10(rho_grid), np.log10(eps_grid), csG_grid,
+                                      xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                                      ylabel = "$\log(\\varepsilon)$ (erg/g)",
+                                      zlabel = "$c_s$ (cm/sec)",
+                                      title = "Sound speed (Gruneisen)")
 
-csGplot = Gnuplot.Gnuplot()
-csGplot.xlabel("rho (g/cm^3)")
-csGplot.ylabel("eps (erg/g)")
-csGdata = Gnuplot.Data(csG)
-csGplot.splot(csGdata, title="sound speed (Gruneisen)")
+PAplot, PAax, PAsurf = plotSurface(np.log10(rho_grid), np.log10(eps_grid), PA_grid,
+                                   xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                                   ylabel = "$\log(\\varepsilon)$ (erg/g)",
+                                   zlabel = "$P$ (dynes)",
+                                   title = "Pressure (ANEOS)")
 
-PAplot = Gnuplot.Gnuplot()
-PAplot.xlabel("rho (g/cm^3)")
-PAplot.ylabel("eps (erg/g)")
-PAdata = Gnuplot.Data(PA)
-PAplot.splot(PAdata, title="Pressure (ANEOS)")
+csAplot, csAax, csAsurf = plotSurface(np.log10(rho_grid), np.log10(eps_grid), csA_grid,
+                                      xlabel = "$\log(\\rho)$ (g/cm$^3$)",
+                                      ylabel = "$\log(\\varepsilon)$ (erg/g)",
+                                      zlabel = "$c_s$ (cm/sec)",
+                                      title = "Sound speed (ANEOS)")
 
-
-csAplot = Gnuplot.Gnuplot()
-csAplot.xlabel("rho (g/cm^3)")
-csAplot.ylabel("eps (erg/g)")
-csAdata = Gnuplot.Data(csA)
-csAplot.splot(csAdata, title="sound speed (ANEOS)")
+plt.show()

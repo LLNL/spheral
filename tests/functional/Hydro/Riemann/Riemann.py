@@ -115,10 +115,10 @@ nx2 = nx - nx1
 assert min(nx1, nx2) > 0
 assert nx1 + nx2 == nx
 
-print "Problem parameters:   (x0, x1, x2) = (%g, %g, %g)" % (x0, x1, x2)
-print "                    (rho1, v1, P1) = (%g, %g, %g)" % (rho1, v1, P1)
-print "                    (rho2, v2, P2) = (%g, %g, %g)" % (rho2, v2, P2)
-print "                        (nx1, nx2) = (%i, %i)" % (nx1, nx2)
+print("Problem parameters:   (x0, x1, x2) = (%g, %g, %g)" % (x0, x1, x2))
+print("                    (rho1, v1, P1) = (%g, %g, %g)" % (rho1, v1, P1))
+print("                    (rho2, v2, P2) = (%g, %g, %g)" % (rho2, v2, P2))
+print("                        (nx1, nx2) = (%i, %i)" % (nx1, nx2))
 
 # Directories and naming.
 if svph:
@@ -239,7 +239,7 @@ for nodes in nodeSet:
     eps = nodes.specificThermalEnergy()
     rho = nodes.massDensity()
     vel = nodes.velocity()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         eps[i] = specificEnergy(pos[i].x, rho[i])
         vel[i].x = vel_initial(pos[i].x)
 
@@ -379,9 +379,9 @@ if not steps is None:
         control.loadRestartFile(control.totalSteps)
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
+            raise ValueError("The restarted state does not match!")
         else:
-            print "Restart check PASSED."
+            print("Restart check PASSED.")
 
 else:
     control.advance(goalTime, maxSteps)
@@ -415,8 +415,8 @@ cs = hydro.soundSpeed()
 # Make a flat list from a FieldList
 def createList(x):
     result = []
-    for i in xrange(len(x)):
-        for j in xrange(x[i].numInternalElements):
+    for i in range(len(x)):
+        for j in range(x[i].numInternalElements):
             result.append(x(i,j))
     return mpi.allreduce(result, mpi.SUM)
 
@@ -495,14 +495,14 @@ if graphics:
         p.figure.savefig(os.path.join(dataDir, filename))
     pE.figure.savefig(os.path.join(dataDir, "Sod-planar-E" + suffix))
 
-print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
+print("Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],
-                                                                (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0])
+                                                                (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]))
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-from SpheralGnuPlotUtilities import multiSort
+from SpheralTestUtilities import multiSort
 mof = mortonOrderIndices(db)
 mo = createList(mof)
 rhoprof = createList(db.fluidMassDensity)
@@ -536,7 +536,7 @@ if mpi.rank == 0:
         f.close()
 
     import Pnorm
-    print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+    print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
     failure = False
     hD = []
     for (name, data, ans) in [("Mass Density", rhoprof, rhoans),
@@ -546,16 +546,16 @@ if mpi.rank == 0:
                               ("Entropy", A, Aans),
                               ("h       ", hprof, hans)]:
         assert len(data) == len(ans)
-        error = [data[i] - ans[i] for i in xrange(len(data))]
+        error = [data[i] - ans[i] for i in range(len(data))]
         Pn = Pnorm.Pnorm(error, xprof)
         L1 = Pn.gridpnorm(1, rmin, rmax)
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
-        print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
         #f.write(("\t\t%g") % (L1))
         hD.append([L1,L2,Linf])
     #f.write("\n")
 
-    print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
+    print("%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nx1+nx2,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
                                                                                 hD[0][1],hD[1][1],hD[2][1],hD[3][1],
-                                                                                hD[0][2],hD[1][2],hD[2][2],hD[3][2])
+                                                                                hD[0][2],hD[1][2],hD[2][2],hD[3][2]))
