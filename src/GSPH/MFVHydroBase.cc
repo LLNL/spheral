@@ -84,11 +84,12 @@ MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                                  nTensile,
                                  xmin,
                                  xmax),
+  mDthermalEnergyDt(FieldStorageType::CopyFields),
+  mDmomentumDt(FieldStorageType::CopyFields),
   mDvolumeDt(FieldStorageType::CopyFields){
-    
+    mDthermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
+    mDmomentumDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum);
     mDvolumeDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume);
-
-
 }
 
 //------------------------------------------------------------------------------
@@ -154,7 +155,8 @@ MFVHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   GenericRiemannHydro<Dimension>::registerDerivatives(dataBase,derivs);
-
+  dataBase.resizeFluidFieldList(mDmomentumDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, false);
+  dataBase.resizeFluidFieldList(mDthermalEnergyDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy, false);
   dataBase.resizeFluidFieldList(mDvolumeDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume, false);
   derivs.enroll(mDvolumeDt);
 }
@@ -204,25 +206,7 @@ initialize(const typename Dimension::Scalar time,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
-
-  // initialize spatial gradients so we can store them 
-  if (this->isFirstCycle()){
-    this->computeMCorrection(time,dt,dataBase,state,derivs);
-    }
-
   GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs); 
-
-  if (this->isFirstCycle()){
-    auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-    auto  newRiemannDpDx = derivs.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient,Vector::zero);
-    auto  newRiemannDvDx = derivs.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient,Tensor::zero);
-  
-    M.Zero();
-    newRiemannDpDx.Zero();
-    newRiemannDvDx.Zero();
-    this->isFirstCycle(false);
-  }
-
 }
 
 //------------------------------------------------------------------------------
@@ -270,7 +254,8 @@ void
 MFVHydroBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   GenericRiemannHydro<Dimension>::dumpState(file,pathName);
-
+  file.write(mDmomentumDt, pathName + "/DmomentumDt");
+  file.write(mDthermalEnergyDt, pathName + "/DthermalEnergyDt");
   file.write(mDvolumeDt, pathName + "/DvolumeDt");
 }
 
@@ -282,7 +267,8 @@ void
 MFVHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   GenericRiemannHydro<Dimension>::restoreState(file,pathName);
-
+  file.read(mDmomentumDt, pathName + "/DmomentumDt");
+  file.read(mDthermalEnergyDt, pathName + "/DthermalEnergyDt");
   file.read(mDvolumeDt, pathName + "/DvolumeDt");
 }
 

@@ -71,6 +71,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  DvolDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume, 0.0);
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DEDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy, 0.0);
+  auto  DpDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, Vector::zero);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
@@ -81,13 +83,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   auto  newRiemannDpDx = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient,Vector::zero);
   auto  newRiemannDvDx = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient,Tensor::zero);
-  
+
   CHECK(M.size() == numNodeLists);
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DvolDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DepsDt.size() == numNodeLists);
+  CHECK(DEDt.size() == numNodeLists);
+  CHECK(DpDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
   CHECK(DHDt.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
@@ -117,6 +121,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
     auto DepsDt_thread = DepsDt.threadCopy(threadStack);
+    auto DEDt_thread = DEDt.threadCopy(threadStack);
+    auto DpDt_thread = DpDt.threadCopy(threadStack);
     auto DvDx_thread = DvDx.threadCopy(threadStack);
     auto newRiemannDpDx_thread = newRiemannDpDx.threadCopy(threadStack);
     auto newRiemannDvDx_thread = newRiemannDvDx.threadCopy(threadStack);
@@ -150,6 +156,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       auto& normi = normalization_thread(nodeListi,i);
       auto& DepsDti = DepsDt_thread(nodeListi, i);
+      auto& DEDti = DEDt_thread(nodeListi, i);
+      auto& DpDti = DpDt_thread(nodeListi, i);
       auto& DvDti = DvDt_thread(nodeListi, i);
       auto& newRiemannDpDxi = newRiemannDpDx_thread(nodeListi,i);
       auto& newRiemannDvDxi = newRiemannDvDx_thread(nodeListi,i);
@@ -181,6 +189,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& normj = normalization_thread(nodeListj,j);
       auto& DvDtj = DvDt_thread(nodeListj, j);
       auto& DepsDtj = DepsDt_thread(nodeListj, j);
+      auto& DEDtj = DEDt_thread(nodeListj, j);
+      auto& DpDtj = DpDt_thread(nodeListj, j);
       auto& newRiemannDpDxj = newRiemannDpDx_thread(nodeListj,j);
       auto& newRiemannDvDxj = newRiemannDvDx_thread(nodeListj,j);
       auto& DvDxj = DvDx_thread(nodeListj, j);
@@ -264,17 +274,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       
       // acceleration
       //------------------------------------------------------
-      const auto deltaDvDt = Pstar*Astar;
-      DvDti -= deltaDvDt;
-      DvDtj += deltaDvDt;
+      const auto fluxSwitch = 1;
+      const auto vflux = vstar-(vi+vj)/2.0;
+      const auto rhostar = (vflux.dot(rhatij) > 0 ? rhostarj : rhostari);
+      const auto deltaDvDt = Pstar*Astar + fluxSwitch * (rhostar*vflux.dyad(vstar)).dot(Astar); 
+      DpDti -= deltaDvDt;
+      DpDtj += deltaDvDt;
 
       // energy
       //------------------------------------------------------
-      const auto deltaDepsDti = Pstar*Astar.dot(vi-vstar);
-      const auto deltaDepsDtj = Pstar*Astar.dot(vstar-vj);
+      const auto deltaDepsDti = Pstar*Astar.dot(vi-vstar) + rhostar*epsstar*vflux.dot(Astar);
+      const auto deltaDepsDtj = Pstar*Astar.dot(vstar-vj) + rhostar*epsstar*vflux.dot(Astar);
 
-      DepsDti += deltaDepsDti;
-      DepsDtj += deltaDepsDtj;
+      DEDti += deltaDepsDti;
+      DEDtj += deltaDepsDtj;
      
       if(compatibleEnergy){
         const auto invmij = 1.0/(mi*mj);
@@ -373,9 +386,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
 
-      DvDti /= mi;
-      DepsDti /= mi;
-
       normi += voli*Hdeti*W0;
 
       DvolDti = voli * DvDxi.Trace() ;
@@ -432,7 +442,8 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
                          StateDerivatives<Dimension>& derivatives) const {
 
   const auto calcSpatialGradients =  (this->gradientType() == GradientType::SPHSameTimeGradient 
-                                  or  this->isFirstCycle());
+                                  or  this->gradientType() == GradientType::SPHUncorrectedGradient);
+  const auto correctSpatialGradients = (this->gradientType() == GradientType::SPHSameTimeGradient);
   // The kernels and such.
   const auto& W = this->kernel();
 
@@ -565,7 +576,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
 
       Mi = ( goodM ? Mi.Inverse() : Tensor::one);
 
-      if (calcSpatialGradients){
+      if (correctSpatialGradients){
         auto& newRiemannDpDxi = newRiemannDpDx(nodeListi, i);
         auto& newRiemannDvDxi = newRiemannDvDx(nodeListi, i);
 

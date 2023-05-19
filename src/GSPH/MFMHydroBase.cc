@@ -88,7 +88,6 @@ MFMHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     
     mDvolumeDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume);
 
-
 }
 
 //------------------------------------------------------------------------------

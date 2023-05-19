@@ -12,6 +12,8 @@
 namespace Spheral {
 
 struct GSPHFieldNames {
+  static const std::string momentum;
+  static const std::string thermalEnergy;
   static const std::string densityGradient;
   static const std::string pressureGradient;
   static const std::string deviatoricStressTensorGradient;
