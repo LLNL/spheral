@@ -70,7 +70,7 @@ dx = (x1 - x0)/nxcells
 dy = (y1 - y0)/nxcells
 H0 = SymTensor(1.0/1.0, 0.0,
                0.0, 1.0/1.0)
-cells = random.sample(xrange(ncells), n)
+cells = random.sample(range(ncells), n)
 i = 0
 for cell in cells:
     ix = cell % nxcells
@@ -79,7 +79,7 @@ for cell in cells:
     pos[i] = Vector((ix + 0.5)*dx, (iy + 0.5)*dy)
     H[i] = H0
     i += 1
-print i
+print(i)
 assert i == n
 
 ## nx = int(sqrt(float(n)))
@@ -98,7 +98,7 @@ nodes.neighbor().updateNodes()
 def setRho():
     pos = nodes.positions()
     rho = nodes.massDensity()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         rho[i] = rho0 + rhoSlope*pos[i].magnitude()
     return
 
@@ -178,7 +178,7 @@ rho = nodes.massDensity()
 packages = vector_of_Physics()
 packages.append(hg)
 
-for iter in xrange(iterations):
+for iter in range(iterations):
     setRho()
     state = State()
     for f in (pos, mass, rho, H):

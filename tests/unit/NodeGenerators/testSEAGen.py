@@ -80,7 +80,7 @@ distributeNodes((nodes, generator))
 #-------------------------------------------------------------------------------
 Hfield = nodes.Hfield()
 HfieldInv = SymTensorField("H inverse", nodes)
-for i in xrange(nodes.numNodes):
+for i in range(nodes.numNodes):
     HfieldInv[i] = Hfield[i].Inverse()
 vizfile = SpheralVisitDump(baseFileName = "icosahedron_test",
                            listOfFields = [nodes.massDensity(),
@@ -96,14 +96,14 @@ procs = mpi.procs
 rank = mpi.rank
 serialData = []
 i,j = 0,0
-for i in xrange(procs):
+for i in range(procs):
     if rank == i:
-        for j in xrange(nodes.numInternalNodes):
+        for j in range(nodes.numInternalNodes):
             serialData.append([nodes.positions()[j],3.0/(nodes.Hfield()[j].Trace()),nodes.mass()[j],nodes.massDensity()[j],nodes.specificThermalEnergy()[j]])
 serialData = mpi.reduce(serialData,mpi.SUM)
 if rank == 0:
     f = open("serialIcoDump.ascii",'w')
-    for i in xrange(len(serialData)):
+    for i in range(len(serialData)):
         f.write("{0} {1} {2} {3} {4}\n".format(i,sqrt(pow(serialData[i][0][0],2.0)+pow(serialData[i][0][1],2.0)+pow(serialData[i][0][2],2.0)),serialData[i][1],serialData[i][2],serialData[i][3]))
     f.close()
 

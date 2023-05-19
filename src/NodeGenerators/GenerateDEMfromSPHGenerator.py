@@ -38,7 +38,7 @@ class GenerateDEMfromSPHGenerator1d(NodeGeneratorBase):
             for i in range(SPHGenerator.localNumNodes()):
                 initialParticleRadius.append(particleRadius)
         else:
-            raise ValueError, "particleRadius must be none or float"
+            raise ValueError("particleRadius must be none or float")
 
         # create composite particle distribution from base
         #--------------------------------------------------
@@ -144,7 +144,7 @@ class GenerateDEMfromSPHGenerator2d(NodeGeneratorBase):
             for i in range(SPHGenerator.localNumNodes()):
                 initialParticleRadius.append(particleRadius)
         else:
-            raise ValueError, "particleRadius must be none or float"
+            raise ValueError("particleRadius must be none or float")
 
         # create composite particle distribution from base
         #--------------------------------------------------
@@ -254,7 +254,7 @@ class GenerateDEMfromSPHGenerator3d(NodeGeneratorBase):
             for i in range(SPHGenerator.localNumNodes()):
                 initialParticleRadius.append(particleRadius)
         else:
-            raise ValueError, "particleRadius must be none or float"
+            raise ValueError("particleRadius must be none or float")
 
         # create composite particle distribution from base
         #--------------------------------------------------

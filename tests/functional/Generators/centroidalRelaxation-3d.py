@@ -119,7 +119,7 @@ dx = (x1 - x0)/nx
 dy = (y1 - y0)/ny
 dz = (z1 - z0)/nz
 pos = nodes.positions()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
    pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
    pos[i].y += ranfrac * dy * rangen.uniform(-1.0, 1.0)
    pos[i].z += ranfrac * dz * rangen.uniform(-1.0, 1.0)
@@ -127,7 +127,7 @@ for i in xrange(nodes.numInternalNodes):
 # Initialize the mass and densities.
 m = nodes.mass()
 rho = nodes.massDensity()
-for i in xrange(nodes.numNodes):
+for i in range(nodes.numNodes):
    rho[i] = rhofunc(pos[i])
    m[i] = rho[i]*dx*dy*dz
 
@@ -165,7 +165,7 @@ boundaries = []
 # Call the centroidal relaxer.
 #-------------------------------------------------------------------------------
 # Report the initial mass matching.
-print "Initial mass (min, max, avg, std dev) : ", fieldStatistics(m)
+print("Initial mass (min, max, avg, std dev) : ", fieldStatistics(m))
 
 bcpoints = vector_of_Vector()
 for p in [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0),
@@ -182,7 +182,7 @@ vol, surfacePoint = centroidalRelaxNodes(nodeListsAndBounds = [(nodes, boundary)
                                          tessellationFileName = baseName)
 
 # Report the final mass matching.
-print "Final mass (min, max, avg, std dev) : ", fieldStatistics(m)
+print("Final mass (min, max, avg, std dev) : ", fieldStatistics(m))
 
 #-------------------------------------------------------------------------------
 # Plot the final state.

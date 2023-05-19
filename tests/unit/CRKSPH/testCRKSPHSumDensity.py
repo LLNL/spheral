@@ -145,7 +145,7 @@ elif testDim == "3d":
     distributeNodes3d((nodes1, gen))
 
 else:
-    raise ValueError, "Only tests cases for 1d,2d and 3d." 
+    raise ValueError("Only tests cases for 1d,2d and 3d.") 
 
 output("nodes1.numNodes")
 
@@ -154,7 +154,7 @@ output("nodes1.numNodes")
 #-------------------------------------------------------------------------------
 dx1 = (x1 - x0)/nx1
 dx2 = (x2 - x1)/nx2
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     if i < nx1:
         dx = dx1
     else:
@@ -187,7 +187,7 @@ if iterateH:
 # Initialize the density field.
 #-------------------------------------------------------------------------------
 rho = nodes1.massDensity()
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     x = nodes1.positions()[i].x
     if testCase == "linear":
         rho[i] = y0 + m0*x
@@ -215,7 +215,7 @@ vol_fl = db.newFluidScalarFieldList(1.0, "volume")
 polyvol_fl = db.newFluidFacetedVolumeFieldList(FacetedVolume(), "polyvols")
 #computeHullVolumes(cm, WT.kernelExtent, position_fl, H_fl, polyvol_fl, vol_fl)
 #computeHVolumes(WT.kernelExtent, H_fl, vol_fl)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     vol_fl[0][i] = mass_fl[0][i]/rho_fl[0][i]
 boundaries = vector_of_Boundary()
 #computeCRKSPHSumMassDensity(cm, WT, position_fl, mass_fl, vol_fl, H_fl, boundaries, rho_fl)
@@ -224,9 +224,9 @@ computeHullSumMassDensity(cm, WT, position_fl, mass_fl, H_fl, rho_fl)
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
-xans = [position_fl(0,i).x for i in xrange(nodes1.numInternalNodes)]
+xans = [position_fl(0,i).x for i in range(nodes1.numInternalNodes)]
 yans = ScalarField("Mass density answer", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     if testCase == "linear":
         yans[i] = y0 + m0*xans[i]
     elif testCase == "quadratic":
@@ -241,10 +241,10 @@ for i in xrange(nodes1.numInternalNodes):
 # Check our answers accuracy.
 #-------------------------------------------------------------------------------
 erryCRKSPH =  ScalarField("CRKSPH mass density error", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     erryCRKSPH[i] =   rho[i] - yans[i]
 maxyCRKSPHerror = erryCRKSPH.max()
-print "Maximum error: CRKSPH = %g" % (maxyCRKSPHerror)
+print("Maximum error: CRKSPH = %g" % (maxyCRKSPHerror))
 
 #-------------------------------------------------------------------------------
 # Plot the things.
@@ -252,7 +252,7 @@ print "Maximum error: CRKSPH = %g" % (maxyCRKSPHerror)
 if graphics:
     from SpheralGnuPlotUtilities import *
     import Gnuplot
-    xans = [position_fl(0,i).x for i in xrange(nodes1.numInternalNodes)]
+    xans = [position_fl(0,i).x for i in range(nodes1.numInternalNodes)]
 
     # Interpolated values.
     ansdata = Gnuplot.Data(xans, yans.internalValues(),
@@ -297,4 +297,4 @@ if graphics:
 # Check the maximum CRKSPH error and fail the test if it's out of bounds.
 #-------------------------------------------------------------------------------
 if maxyCRKSPHerror > tolerance:
-    raise ValueError, "CRKSPH error out of bounds: %g > %g" % (maxyCRKSPHerror, tolerance)
+    raise ValueError("CRKSPH error out of bounds: %g > %g" % (maxyCRKSPHerror, tolerance))

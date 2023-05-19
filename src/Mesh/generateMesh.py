@@ -25,7 +25,8 @@ def genericGenerateMesh(nodeLists,
         db = DataBase()
         for nodes in nodeLists:
             db.appendNodeList(nodes)
-        exec("xmin0, xmax0 = Vector%id(), Vector%id()" % (db.nDim, db.nDim))
+        Vector = eval("Vector{}d".format(db.nDim))
+        xmin0, xmax0 = Vector(), Vector()
         db.boundingBox(xmin0, xmax0, ghost=False)
         delta = 0.1*(xmax0 - xmin0)
         xmin0 -= delta
@@ -39,7 +40,7 @@ def genericGenerateMesh(nodeLists,
     # Clip the range by any boundaries.
     for b in boundaries:
         b.clip(xmin, xmax)
-    print "New range : %s %s" % (xmin, xmax)
+    print("New range : %s %s" % (xmin, xmax))
 
     nodeListsVec = vector_of_NodeList()
     for x in nodeLists:
@@ -62,7 +63,7 @@ def genericGenerateMesh(nodeLists,
                  voidThreshold,
                  mesh,
                  voidNodes)
-    print "Required %g seconds to generate mesh." % (time.time() - t0)
+    print("Required %g seconds to generate mesh." % (time.time() - t0))
     del nodeListsVec
     if not generateVoid:
         del voidNodes

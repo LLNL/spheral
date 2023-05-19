@@ -21,7 +21,7 @@ class CompositeNodeDistribution(NodeGeneratorBase):
         self.globalIDs = []
         offset = 0
         for g in generators:
-            for i in xrange(g.localNumNodes()):
+            for i in range(g.localNumNodes()):
                 self.positions.append(g.localPosition(i))
                 self.m.append(g.localMass(i))
                 self.rho.append(g.localMassDensity(i))

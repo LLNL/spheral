@@ -317,7 +317,7 @@ else:
     from DistributeNodes import distributeNodes2d
 
 distributeNodes2d((nodes, generator))
-print nodes.name, ":"
+print(nodes.name, ":")
 output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
 output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
 output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
@@ -327,7 +327,7 @@ vel = nodes.velocity()
 eps = nodes.specificThermalEnergy()
 pos = nodes.positions()
 rho = nodes.massDensity()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     xi, yi = pos[i]
     xci = (xi-xc)
     yci = (yi-yc)
@@ -494,10 +494,10 @@ elif boolCullenViscosity:
 #-------------------------------------------------------------------------------
 pos = nodes.positions()
 boundNodes = vector_of_int()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     if pos[i].magnitude() > rmax:
         boundNodes.append(i)
-print "Selected %i boundary nodes" % mpi.allreduce(len(boundNodes), mpi.SUM)
+print("Selected %i boundary nodes" % mpi.allreduce(len(boundNodes), mpi.SUM))
 denialPlane = Plane(Vector(-2.0*rmax, 0.0), Vector(1.0, 0.0))  # A fake denial plane since we're working in circles.
 bc = ConstantBoundary(db,nodes, boundNodes, denialPlane)
 for p in packages:
@@ -531,7 +531,7 @@ output("integrator.verbose")
 # If requested, smooth the initial conditions.
 #-------------------------------------------------------------------------------
 if smooth:
-    for iter in xrange(smooth):
+    for iter in range(smooth):
         db.updateConnectivityMap(False)
         cm = db.connectivityMap()
         position_fl = db.fluidPosition
@@ -636,8 +636,8 @@ else:
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
 if outputFile != "None":
-    #outputFile = os.path.join(baseDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    outputFile = os.path.join(baseDir, outputFile)
+    from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes)
     nodes.pressure(P)
     xprof = mpi.reduce([x.x for x in nodes.positions().internalValues()], mpi.SUM)
@@ -662,7 +662,7 @@ if outputFile != "None":
         rhoans = []
         velans = []
         Pans = []
-        for i in xrange(len(xprof)):
+        for i in range(len(xprof)):
            r = (Vector(xprof[i],yprof[i]) - Vector(xc, yc)).magnitude()
            r2 = r*r
            temp = temp_inf - (gamma-1.0)*beta*beta*exp(1.0-r2)/(8.0*gamma*pi*pi)

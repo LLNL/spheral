@@ -81,7 +81,7 @@ class Generate2dTestSetup:
             nodes.massDensity(ScalarField2d("tmp", nodes, rho))
             nodes.Hfield(SymTensorField2d("tmp", nodes, Hi))
             nodes.updateWeight(self.dataBase.connectivityMap())
-            for i in xrange(n):
+            for i in range(n):
                 nodes.positions()[i] = xyNodes[i]
 
             neighbor = NestedGridNeighbor2d(nodes,
@@ -125,7 +125,7 @@ class Generate2dTestSetup:
                          rmin, rmax):    # total simulation volume
 
         nodePositions = []
-        for globalNodeID in xrange(nNodesGlobal):
+        for globalNodeID in range(nNodesGlobal):
             nodePositions.append(Vector2d(self.g.uniform(rmin.x, rmax.x),
                                           self.g.uniform(rmin.y, rmax.y)))
 
@@ -147,8 +147,8 @@ class Generate2dTestSetup:
             dx = (rmax.x - rmin.x)/nx
             dy = (rmax.y - rmin.y)/nx
 
-            for ix in xrange(nx):
-                for iy in xrange(nx):
+            for ix in range(nx):
+                for iy in range(nx):
                     nodePositions.append(Vector2d((ix + 0.5)*dx, (iy + 0.5)*dy))
 
         assert len(nodePositions) == n

@@ -86,14 +86,14 @@ class GenerateNodeDistribution2dRatio(NodeGeneratorBase):
         if rotation:
             nhat = Vector2d(cos(rotation), -sin(rotation))
             R = rotationMatrix2d(nhat)
-            for i in xrange(len(self.x)):
+            for i in range(len(self.x)):
                 v = R*Vector2d(self.x[i], self.y[i])
                 self.x[i], self.y[i] = v.x, v.y
                 self.H[i].rotationalTransform(R)
 
         # If requested, shift the nodes.
         if offset:
-            for i in xrange(len(self.x)):
+            for i in range(len(self.x)):
                 self.x[i] += offset[0]
                 self.y[i] += offset[1]
 
@@ -212,8 +212,8 @@ class GenerateNodeDistribution2dRatio(NodeGeneratorBase):
         m = []
         H = []
 
-        for j in xrange(ny):
-            for i in xrange(nx):
+        for j in range(ny):
+            for i in range(nx):
                 if i*dx < xlmin or i*dx > xlmax:
                     xx = xmin[0] + (i + 0.5)*dx
                     yy = xmin[1] + (j + 0.5)*dy
@@ -278,8 +278,8 @@ class GenerateNodeDistribution2dRatio(NodeGeneratorBase):
         mc = []
         Hc = []
         
-        for j in xrange(ny):
-            for i in xrange(nx):
+        for j in range(ny):
+            for i in range(nx):
                 xx = xmin[0] + (i + 0.5)*dx
                 yy = xmin[1] + (j + 0.5)*dy
                 r = sqrt(xx*xx + yy*yy)
@@ -320,7 +320,7 @@ class GenerateNodeDistribution2dRatio(NodeGeneratorBase):
                              0.0, 1.0/hi)
 
             # Now assign the nodes for this radius.
-            for i in xrange(nTheta):
+            for i in range(nTheta):
                 thetai = (i + 0.5)*dTheta
                 xc.append(ri*cos(thetai))
                 yc.append(ri*sin(thetai))
@@ -351,7 +351,7 @@ class GenerateNodeDistribution2dRatio(NodeGeneratorBase):
                     #else:
                     minddr = nx
                     mink = 2*k
-                    for j in xrange(k):
+                    for j in range(k):
                         ddr = sqrt((xl[j]-xi)**2+(yl[j]-yi)**2)
                         if (ddr < minddr):
                             minddr = ddr
@@ -360,7 +360,7 @@ class GenerateNodeDistribution2dRatio(NodeGeneratorBase):
                     yi = yi+(yl[mink]-yi)*func
                     
                     minddr = nx
-                    for j in xrange(np):
+                    for j in range(np):
                         ddr = sqrt((x[j]-xi)**2 + (y[j]-yi)**2)
                         if (ddr < minddr):
                             minddr = ddr

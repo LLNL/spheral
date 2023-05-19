@@ -48,7 +48,7 @@ distributeNodes((nodes, generator),)
 #-------------------------------------------------------------------------------
 Hfield = nodes.Hfield()
 HfieldInv = SymTensorField("H inverse", nodes)
-for i in xrange(nodes.numNodes):
+for i in range(nodes.numNodes):
     HfieldInv[i] = Hfield[i].Inverse()
 vizfile = SpheralVisitDump(baseFileName = "Abaqus_file_test",
                            listOfFields = [nodes.massDensity(),

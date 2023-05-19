@@ -33,7 +33,7 @@ def copyNodeListFields(nodes0, nodes1, mask, solid):
         D1 =  nodes1.damage()
 
     j = 0
-    for i in xrange(nodes0.numInternalNodes):
+    for i in range(nodes0.numInternalNodes):
         if mask[i] == 1:
             assert j < nodes1.numInternalNodes
             m1[j] = m0[i]
@@ -68,11 +68,11 @@ def resampleNodeList(nodes,
     elif isinstance(nodes, SolidSpheral.NodeList3d):
         ndim = 3
     else:
-        raise ValueError, "Unknown thing %s handed in: expected a NodeList" % nodes
+        raise ValueError("Unknown thing %s handed in: expected a NodeList" % nodes)
     ndim0 = ndim
-    exec "from SolidSpheral%id import *" % ndim   # Load the aliases for our dimensionality
+    exec("from SolidSpheral%id import *" % ndim)   # Load the aliases for our dimensionality
     ndim = ndim0
-    exec "from VoronoiDistributeNodes import distributeNodes%id as distributor" % ndim
+    exec("from VoronoiDistributeNodes import distributeNodes%id as distributor" % ndim)
 
     # Clear out any initial ghost nodes.
     nodes.numGhostNodes = 0
@@ -85,7 +85,7 @@ def resampleNodeList(nodes,
         solid = False
         NLF = makeFluidNodeList
     else:
-        raise RuntimeError, "Unknown NodeList type."
+        raise RuntimeError("Unknown NodeList type.")
 
     # Check how to set the new neighbor info.
     if isinstance(nodes._neighbor, NestedGridNeighbor):
@@ -104,7 +104,7 @@ def resampleNodeList(nodes,
             dbc = BoundingVolumeDistributedBoundary.instance()
             #raise RuntimeError, "Need a parallel policy for TreeNeighbor."
     else:
-        raise RuntimeError, "Unknown Neighbor type."
+        raise RuntimeError("Unknown Neighbor type.")
 
     # Build a temporary NodeList we'll use to sample to.
     newnodes = NLF(name = "zza_newnodes", 
@@ -146,13 +146,13 @@ def resampleNodeList(nodes,
 
         # Copy the field values from the original masked nodes to the temporary mask set.
         nmask = mask.localSumElements()
-        print "Copying %i masked nodes from the original NodeList." % mpi.allreduce(nmask, mpi.SUM)
+        print("Copying %i masked nodes from the original NodeList." % mpi.allreduce(nmask, mpi.SUM))
         masknodes.numInternalNodes = nmask
         copyNodeListFields(nodes, masknodes, mask, solid)
 
         # Remove the mask nodes from the starting NodeList.
         nodes2kill = vector_of_int()
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             if mask[i] == 1:
                 nodes2kill.append(i)
         assert nodes2kill.size() == nmask
@@ -181,7 +181,7 @@ def resampleNodeList(nodes,
         posnew = newnodes.positions()
         Hnew = newnodes.Hfield()
         nodes2kill = vector_of_int()
-        for i in xrange(newnodes.numInternalNodes):
+        for i in range(newnodes.numInternalNodes):
             fullconnectivity = cm.connectivityForNode(0, i)
             for j in fullconnectivity[1]:
                 eta = min(( Hnew[i]*(posmask[j] - posnew[i])).magnitude(),
@@ -189,7 +189,7 @@ def resampleNodeList(nodes,
                 if eta < etaExclude:
                     nodes2kill.append(i)
 
-        print "Removing %i nodes from new list due to overlap with masked nodes." % mpi.allreduce(len(nodes2kill), mpi.SUM)
+        print("Removing %i nodes from new list due to overlap with masked nodes." % mpi.allreduce(len(nodes2kill), mpi.SUM))
         newnodes.deleteNodes(nodes2kill)
 
     # Build the connectivity so we can do the overlay.
@@ -213,7 +213,7 @@ def resampleNodeList(nodes,
     eps = nodes.specificThermalEnergy()
     momentum = VectorField(vel)
     thermalenergy = ScalarField(eps)
-    for i in xrange(nodes.numNodes):
+    for i in range(nodes.numNodes):
         vol[i] /= rho[i] + 1.0e-30
         momentum[i] *= mass[i]
         thermalenergy[i] *= mass[i]
@@ -224,7 +224,7 @@ def resampleNodeList(nodes,
         mS = SymTensorField(S)
         mps = ScalarField(ps)
         mD = SymTensorField(D)
-        for i in xrange(nodes.numNodes):
+        for i in range(nodes.numNodes):
             mS[i] *= mass[i]
             mps[i] *= mass[i]
             mD[i] *= mass[i]
@@ -294,12 +294,12 @@ def resampleNodeList(nodes,
             bc.applyFieldListGhostBoundary(fl)
         bc.finalizeGhostBoundary()
 
-    print "Splatting fields..."
+    print("Splatting fields...")
     newfls = splatMultipleFieldsMash(fls,
                                      pos0_fl, mass0_fl, H0_fl, W,
                                      pos1_fl, mass1_fl, H1_fl,
                                      bcs)
-    print "Done splatting."
+    print("Done splatting.")
 
     # Grab the FieldLists
     pos0 = nodes.positions()
@@ -313,7 +313,7 @@ def resampleNodeList(nodes,
 
     # Denormalize the mapped values and fill them in as new values for the nodes.
     nodes.numInternalNodes = nmask + newnodes.numInternalNodes
-    for i in xrange(newnodes.numInternalNodes):
+    for i in range(newnodes.numInternalNodes):
         j = nmask + i
         pos0[j] = pos1[i]
         H0[j] = H1[i]
@@ -332,7 +332,7 @@ def resampleNodeList(nodes,
         mS1 = newfls.SymTensorFieldLists[0][0]
         mps1 = newfls.ScalarFieldLists[3][0]
         mD1 = newfls.SymTensorFieldLists[1][0]
-        for i in xrange(newnodes.numInternalNodes):
+        for i in range(newnodes.numInternalNodes):
             j = nmask + i
             if mass1[i] > 0.0:
                 S[j] = mS1[i]/mass1[i]
@@ -342,7 +342,7 @@ def resampleNodeList(nodes,
     # Look for any nodes that didn't get any information in the new set and delete them.
     if removeUnusedNodes:
         nodes2kill = vector_of_int()
-        for i in xrange(newnodes.numInternalNodes):
+        for i in range(newnodes.numInternalNodes):
             if mass1[i] == 0.0:
                 nodes2kill.append(i)
         if nodes2kill.size() > 0:
@@ -354,5 +354,5 @@ def resampleNodeList(nodes,
         copyNodeListFields(masknodes, nodes, newmask, solid)
 
     # Whew!
-    print "Finished resampling nodes: final node count %i." % mpi.allreduce(nodes.numInternalNodes, mpi.SUM)
+    print("Finished resampling nodes: final node count %i." % mpi.allreduce(nodes.numInternalNodes, mpi.SUM))
     return

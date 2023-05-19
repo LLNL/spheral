@@ -82,10 +82,10 @@ correctionOrder = LinearOrder # We don't actually use this
 useOverlap = False
 
 if nPerh < correctionOrderIntegration:
-    print "nPerh is not large enough for correction order: {} < {}".format(nPerh, correctionOrderIntegration)
+    print("nPerh is not large enough for correction order: {} < {}".format(nPerh, correctionOrderIntegration))
     
 if mpi.procs > 1:
-    raise ValueError, "test is not written for parallel"
+    raise ValueError("test is not written for parallel")
     
 #-------------------------------------------------------------------------------
 # Choose correct dimension aliases
@@ -230,7 +230,7 @@ if randomizeNodes:
     dy = delta[1]
     dz = delta[2]
     pos = nodes.positions()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         if dimension == 1:
             pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
         elif dimension == 2:
@@ -371,20 +371,20 @@ output("integrator.totalNumSubcells()")
 output("integrator.totalNumSubfacets()")
 
 # Get the integrals
-vlK = vlK_f.values()
-vlG = vlG_f.values()
-vbKK = vbKK_f.values()
-vbGK = vbGK_f.values()
-vbKG = vbKG_f.values()
-vbGdG = vbGdG_f.values()
-vbGpG = vbGpG_f.values()
-slKn = slKn_f.values()
-sbKKn = sbKKn_f.values()
-sbKGdn = sbKGdn_f.values()
-sbKKn2 = sbKKn2_f.values()
-slKn2 = vlG_f.values() # The surface integral is the linear integral for constant coefficients
-vcc = vcc_f.values()
-scn = scn_f.values()
+vlK = list(vlK_f.values())
+vlG = list(vlG_f.values())
+vbKK = list(vbKK_f.values())
+vbGK = list(vbGK_f.values())
+vbKG = list(vbKG_f.values())
+vbGdG = list(vbGdG_f.values())
+vbGpG = list(vbGpG_f.values())
+slKn = list(slKn_f.values())
+sbKKn = list(sbKKn_f.values())
+sbKGdn = list(sbKGdn_f.values())
+sbKKn2 = list(sbKKn2_f.values())
+slKn2 = list(vlG_f.values()) # The surface integral is the linear integral for constant coefficients
+vcc = list(vcc_f.values())
+scn = list(scn_f.values())
 
 #-------------------------------------------------------------------------------
 # Check volumes
@@ -403,15 +403,15 @@ volumes = [analytic_volume, totcell, totvol, totint]
 output("volumes")
 for v in volumes:
     if np.abs(v - analytic_volume) > tolerance:
-        print "volumes not correct"
+        print("volumes not correct")
         checksum += 1
 
 totarea = 0.
 for i in range(nodes.numNodes):
     totarea += np.sum(np.abs(scn[i]))
-print "areas: ", totarea, analytic_surface
+print("areas: ", totarea, analytic_surface)
 if np.abs(totarea - analytic_surface) > tolerance:
-    print "areas not correct"
+    print("areas not correct")
     checksum += 1
 
 #-------------------------------------------------------------------------------
@@ -441,14 +441,14 @@ if (nx == 20) and (dimension == 1) and (not useRK) and (nPerh == nPerhTest) and 
                 ["vbKG",  vbKG[indi][indij].x, 7.48643093476],
                 ["vbGdG",  vbGdG[indi][indij], -5.83078993373],
                 ["vbGpG",  vbGpG[indi][indij].xx, -5.83078993373]]
-    print "x: ", position(0, indi), position(0, indj)
-    print "H: ", H(0, indi), H(0, indj)
-    print "delta: ", delta[0]
+    print("x: ", position(0, indi), position(0, indj))
+    print("H: ", H(0, indi), H(0, indj))
+    print("delta: ", delta[0])
     for val in vals:
         err = val[1] - val[2]
-        print "\t{}\t{}\t{}\t{}".format(val[0], val[1], val[2], err)
+        print("\t{}\t{}\t{}\t{}".format(val[0], val[1], val[2], err))
         if np.abs(err) > tolerance:
-            print "tolerance fail"
+            print("tolerance fail")
             checksum += 1
 
     indi = 0
@@ -459,9 +459,9 @@ if (nx == 20) and (dimension == 1) and (not useRK) and (nPerh == nPerhTest) and 
         indj = 1
         indij = flatConnectivity.localToFlat(indi, indj)
     numSurfaces = flatConnectivity.numSurfaces(indi)
-    print "x: ", position(0, indi), position(0, indj)
-    print "H: ", H(0, indi), H(0, indj)
-    print "delta: ", 2*delta[0]
+    print("x: ", position(0, indi), position(0, indj))
+    print("H: ", H(0, indi), H(0, indj))
+    print("delta: ", 2*delta[0])
     if useOverlap:
         vals = [["slKn1",  slKn[indi][0].x, -0.7981466844744088],
                 ["slKn2",  slKn[indj][0].x, -0.32244298020359935],
@@ -490,16 +490,16 @@ if (nx == 20) and (dimension == 1) and (not useRK) and (nPerh == nPerhTest) and 
                 ["vbGpG",  vbGpG[indi][indij].xx, 4.06585331025]]
     for val in vals:
         err = val[1] - val[2]
-        print "\t{}\t{}\t{}\t{}".format(val[0], val[1], val[2], err)
+        print("\t{}\t{}\t{}\t{}".format(val[0], val[1], val[2], err))
         if np.abs(err) > tolerance:
-            print "tolerance fail"
+            print("tolerance fail")
             checksum += 1
 
 if (nx == 10) and (ny == 10) and (dimension == 2) and (not useRK) and (nPerh == nPerhTest) and (not randomizeNodes) and (correctionOrderIntegration < 0):
     indi = 5
     indj = 14
-    print "xi/j: ", position(0, indi), position(0, indj)
-    print "H: ", H(0, indi), H(0, indj)
+    print("xi/j: ", position(0, indi), position(0, indj))
+    print("H: ", H(0, indi), H(0, indj))
     if useOverlap:
         indij = flatConnectivity.localToFlatOverlap(indi, indj)
     else:
@@ -556,16 +556,16 @@ if (nx == 10) and (ny == 10) and (dimension == 2) and (not useRK) and (nPerh == 
                 ["vbGpGyy",  vbGpG[indi][indij].yy, -0.535400825501]]
     for val in vals:
         err = val[1] - val[2]
-        print "\t{}\t{}\t{}\t{}".format(val[0], val[1], val[2], err)
+        print("\t{}\t{}\t{}\t{}".format(val[0], val[1], val[2], err))
         if np.abs(err) > tolerance:
-            print "tolerance fail"
+            print("tolerance fail")
             checksum += 1
 
 if (nx == 5) and (ny == 5) and (nz == 5) and (dimension == 3) and (not useRK) and (nPerh == nPerhTest) and (not randomizeNodes) and (correctionOrderIntegration < 0) and not useOverlap:
     indi = 30
     indj = 31
-    print "xi/j: ", position(0, indi), position(0, indj)
-    print "H: ", H(0, indi), H(0, indj)
+    print("xi/j: ", position(0, indi), position(0, indj))
+    print("H: ", H(0, indi), H(0, indj))
     indij = flatConnectivity.localToFlat(indi, indj)
     normali1 = Vector(-1.0, 0.0, 0.0)
     normali2 = Vector(0.0, -1.0, 0.0)
@@ -604,15 +604,15 @@ if (nx == 5) and (ny == 5) and (nz == 5) and (dimension == 3) and (not useRK) an
              ["vbGpGzy",  vbGpG[indi][indij].zz, 0.118432184928]]
     for val in vals:
         err = val[1] - val[2]
-        print "\t{}\t{}\t{}\t{}".format(val[0], val[1], val[2], err)
+        print("\t{}\t{}\t{}\t{}".format(val[0], val[1], val[2], err))
         if np.abs(err) > tolerance:
-            print "tolerance fail"
+            print("tolerance fail")
             checksum += 1
             
 #-------------------------------------------------------------------------------
 # Check whether surface and volume integrals agree
 #-------------------------------------------------------------------------------
-print "surface-volume equivalence"
+print("surface-volume equivalence")
 av_neighbors = 0.
 av_surfaces = 0.
 num_overlaps = 0
@@ -623,10 +623,10 @@ bil_sum = [0., 0.]
 sv_time = time.time()
 if checkAllSurfaceVolume:
     num_tested = nodes.numNodes
-    ivals = range(nodes.numNodes)
+    ivals = list(range(nodes.numNodes))
 else:
     num_tested = 20
-    ivals = np.random.choice(range(nodes.numNodes), size=num_tested)
+    ivals = np.random.choice(list(range(nodes.numNodes)), size=num_tested)
     # num_tested = 2
     # ivals = [0, 1]
 
@@ -652,7 +652,7 @@ for i in ivals:
         bil_sum[0] += t2.magnitude()
         bil_sum[1] += t2.magnitude2()
         if outputAllSurfaceVolume:
-            print "\tsbKKn\t{}\t{}\t{}\t{}\t{}".format(i, j, t1, t2, t2 - t1)
+            print("\tsbKKn\t{}\t{}\t{}\t{}\t{}".format(i, j, t1, t2, t2 - t1))
         num_overlaps += 1
     t1 = slKn2[i]
     t2 = Vector()
@@ -664,7 +664,7 @@ for i in ivals:
     lin_sum[0] += t2.magnitude()
     lin_sum[1] += t2.magnitude2()
     if outputAllSurfaceVolume:
-        print "\tslKn\ti\t{}\t{}\t{}".format(i, t1, t2, t2 - t1)
+        print("\tslKn\ti\t{}\t{}\t{}".format(i, t1, t2, t2 - t1))
 sv_time = time.time() - sv_time
 av_neighbors /= num_tested
 av_surfaces /= num_tested
@@ -678,12 +678,12 @@ output("av_surfaces")
 for err in bil_err:
     if err > tolerance:
         checksum += 1
-        print "bilinear error too high"
+        print("bilinear error too high")
 output("bil_err")
 for err in lin_err:
     if err > tolerance:
         checksum += 1
-        print "linear error too high"
+        print("linear error too high")
 output("lin_err")
 output("sv_time")
     
@@ -692,4 +692,4 @@ output("sv_time")
 #-------------------------------------------------------------------------------
 output("checksum")
 if checksum > 0:
-    raise ValueError, "too many errors"
+    raise ValueError("too many errors")

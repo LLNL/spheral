@@ -9,10 +9,10 @@ from SpheralGnuPlotUtilities import *
 def plotW(plot, W, xmin=0.0, xmax=2.0, numPnts=200, Hdet=1.0, title='',
           lineTitle=''):
     dx = (xmax - xmin)/(numPnts - 1)
-    x = numpy.array(range(numPnts))
+    x = numpy.array(list(range(numPnts)))
     y = numpy.array([0.0]*numPnts)
     x = dx*x + xmin
-    for i in xrange(numPnts):
+    for i in range(numPnts):
         y[i] = W(x[i], Hdet)
     plot('set xrange [%f:%f]' % (xmin, xmax))
     plot.xlabel('r')
@@ -24,8 +24,8 @@ def plotW(plot, W, xmin=0.0, xmax=2.0, numPnts=200, Hdet=1.0, title='',
     return
 
 import sys, string
-kernels = map(string.lower, sys.argv[1:])
-print kernels
+kernels = list(map(string.lower, sys.argv[1:]))
+print(kernels)
 
 numPts = 51
 dx = 1.0/(numPts - 1)
@@ -91,18 +91,18 @@ for kernel in kernels:
             Wsum = 0.0
 
             eta = 0.0
-            for i in xrange(-npoints, npoints):
+            for i in range(-npoints, npoints):
                 eta = abs(i*deta)
                 if nDim == 1 and eta > 1.0e-5:
                     Wsum += abs(WT.gradValue(eta, 1.0))
                 if nDim > 1:
-                    for j in xrange(-npoints, npoints):
+                    for j in range(-npoints, npoints):
                         eta = sqrt((i*deta)**2 +
                                    (j*deta)**2)
                         if nDim == 2 and eta > 1.0e-5:
                             Wsum += abs(WT.gradValue(eta, 1.0))
                         if nDim > 2:
-                            for k in xrange(-npoints, npoints):
+                            for k in range(-npoints, npoints):
                                 eta = sqrt((i*deta)**2 +
                                            (j*deta)**2 +
                                            (k*deta)**2)

@@ -55,14 +55,14 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
 
         # Apply any rejecter.
         if rejecter:
-            print "Applying rejection..."
+            print("Applying rejection...")
             mask = [rejecter.accept(ri.x, ri.y, ri.z) for ri in pos]
         else:
             mask = [True]*len(pos)
         n0 = len(pos)
-        self.x = [pos[i].x for i in xrange(n0) if mask[i]]
-        self.y = [pos[i].y for i in xrange(n0) if mask[i]]
-        self.z = [pos[i].z for i in xrange(n0) if mask[i]]
+        self.x = [pos[i].x for i in range(n0) if mask[i]]
+        self.y = [pos[i].y for i in range(n0) if mask[i]]
+        self.z = [pos[i].z for i in range(n0) if mask[i]]
         n = len(self.x)
 
         # Pick a mass per point so we get exactly the correct total mass inside the surface
@@ -151,7 +151,7 @@ class CentroidalPolyhedralSurfaceGenerator(PolyhedralSurfaceGenerator):
         W = TableKernel(BSplineKernel(), 1000)
         eos = GammaLawGasMKS(2.0, 2.0)
         n = self.localNumNodes()
-        nodes = makeFluidNodeList("nodes" + "".join([random.choice(string.ascii_letters + string.digits) for nnn in xrange(32)]),
+        nodes = makeFluidNodeList("nodes" + "".join([random.choice(string.ascii_letters + string.digits) for nnn in range(32)]),
                                   eos,
                                   numInternal = n,
                                   kernelExtent = W.kernelExtent,
@@ -162,7 +162,7 @@ class CentroidalPolyhedralSurfaceGenerator(PolyhedralSurfaceGenerator):
         H = nodes.Hfield()
         mass = nodes.mass()
         rhof = nodes.massDensity()
-        for i in xrange(n):
+        for i in range(n):
             pos[i] = self.localPosition(i)
             H[i] = self.localHtensor(i)
             mass[i] = self.localMass(i)
@@ -237,11 +237,11 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
         # Get the facets we need to extrude.
         if flags is None:
             facets = surfaceFacets
-            realFacetIDs = range(len(facets))
+            realFacetIDs = list(range(len(facets)))
             flags = [1]*len(facets)
         else:
             assert len(flags) == len(surfaceFacets)
-            realFacetIDs = [fi for fi in xrange(len(surfaceFacets)) if (flags[fi] == 1)]
+            realFacetIDs = [fi for fi in range(len(surfaceFacets)) if (flags[fi] == 1)]
             facets = [surfaceFacets[i] for i in realFacetIDs]
         
         # Find the maximum extent we need to use to cover the volumes of all extruded
@@ -278,7 +278,7 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             l = dltarget*(1.0 - ratio**nratioed)/(1.0 - ratio)
             dx = dltarget # * lratioed/l
         if mpi.rank == 0:
-            print "FacetedSurfaceGenerator: selected ratio=%g, dxfirst=%g, l=%g." % (ratio, dx, l)
+            print("FacetedSurfaceGenerator: selected ratio=%g, dxfirst=%g, l=%g." % (ratio, dx, l))
         
         # Build the template values we'll use to stamp into each facet volume.
         rt, mt, Ht = [], [], []
@@ -297,9 +297,9 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             nz = max(1, int((zmax - zmin)/ds + 0.5))
             dy = (ymax - ymin)/ny
             dz = (zmax - zmin)/nz
-            for iy in xrange(ny):
+            for iy in range(ny):
                 yi = ymin + (iy + 0.5)*dy
-                for iz in xrange(nz):
+                for iz in range(nz):
                     zi = zmin + (iz + 0.5)*dz
                     rt.append(Vector(xi, yi, zi))
                     mt.append(rho*dxi*dy*dz)
@@ -307,7 +307,7 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                                         0.0, 1.0/(nNodePerh*dy), 0.0,
                                         0.0, 0.0, 1.0/(nNodePerh*dz)))
         if mpi.rank == 0:
-            print "FacetedSurfaceGenerator: built template block of %i points per facet." % len(rt)
+            print("FacetedSurfaceGenerator: built template block of %i points per facet." % len(rt))
         
         # Figure out a crude partitioning of the facets between processors.
         if len(facets) > mpi.procs:
@@ -328,9 +328,9 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                 imax = 0
                     
         # We need all the extruded facet polyhedra.  In general these may be intersecting!
-        print "FacetedSurfaceGenerator: building extruded facets..."
+        print("FacetedSurfaceGenerator: building extruded facets...")
         self.extrudedFacets, localExtrudedFacets = [], []
-        for i in xrange(imin, imax):
+        for i in range(imin, imax):
             f = facets[i]
             p = f.position
             verts = vector_of_Vector()
@@ -340,14 +340,14 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
                 verts.append(vi)
                 verts.append(vi - vertexNorms[ip]*lextrude)
             localExtrudedFacets.append(Polyhedron(verts))   # Better be convex!
-        for i in xrange(mpi.procs):
+        for i in range(mpi.procs):
             self.extrudedFacets.extend(mpi.bcast(localExtrudedFacets, i))
         assert len(self.extrudedFacets) == len(facets)
 
         # Now walk the facets and build our values.
-        print "FacetedSurfaceGenerator: seeding points..."
+        print("FacetedSurfaceGenerator: seeding points...")
         self.x, self.y, self.z, self.m, self.H, self.nodes2facets = [], [], [], [], [], []
-        for i in xrange(imin, imax):
+        for i in range(imin, imax):
             f = facets[i]
             fi = realFacetIDs[i]
             neighbors = facetNeighbors[fi]
@@ -355,7 +355,7 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             nhat = f.normal
             T = rotationMatrix(nhat)
             Ti = T.Transpose()
-            for j in xrange(len(rt)):
+            for j in range(len(rt)):
                 rj = Ti*rt[j] + p
                 if self.extrudedFacets[i].contains(rj): # and surface.contains(rj):
                     stuff = [(surfaceFacets[k].distance(rj), k) for k in neighbors if flags[k] == 1]

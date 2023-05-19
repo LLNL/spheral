@@ -14,7 +14,7 @@ tmp_stamp_name = current_stamp_name + ".tmp"
 newF = open(tmp_stamp_name, "w")
 newF.write("set("+mod_name+"_DEPENDS \n")
 
-for name, mod in finder.modules.iteritems():
+for name, mod in finder.modules.items():
   if (mod.__file__):
     if not ("lib/python2.7" in mod.__file__):
       newF.write(mod.__file__)

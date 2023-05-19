@@ -10,7 +10,7 @@ if not BuildData.cxx_compiler_id == "GNU":
         import sys, ctypes
         sys.setdlopenflags(sys.getdlopenflags() | ctypes.RTLD_GLOBAL)
     except:
-        print "WARNING: unable to set python dl flags on Spheral import."
+        print("WARNING: unable to set python dl flags on Spheral import.")
         pass
 
 # ------------------------------------------------------------------------------
@@ -28,6 +28,11 @@ import scipy.spatial
 # Import the compiled packages.
 # ------------------------------------------------------------------------------
 from SpheralCompiledPackages import *
+
+# Aliases for a few objects
+FacetedVolume1d = Box1d
+FacetedVolume2d = Polygon
+FacetedVolume3d = Polyhedron
 
 # ------------------------------------------------------------------------------
 # Import the Material python extensions.
@@ -107,7 +112,7 @@ from SpheralOptionParser import commandLine
 try:
     import polytope
 except:
-    print "WARNING: unable to import polytope python bindings."
+    print("WARNING: unable to import polytope python bindings.")
 
 # ------------------------------------------------------------------------------
 # Import our shadow layers for augmenting C++ types.
@@ -130,11 +135,11 @@ for shadowedthing in ("TillotsonEquationOfState",
 # ------------------------------------------------------------------------------
 # Output some useful Spheral configuration info to stdout
 # ------------------------------------------------------------------------------
-print "/------------------------------------------------------------------------------\\"
+print("/------------------------------------------------------------------------------\\")
 import Spheral_banner
-print "|  %-76s|" % ("  number of MPI tasks       : " + str(mpi.procs))
-print "|  %-76s|" % ("  number of threads per rank: " + str(omp_get_num_threads()))
-print "\\------------------------------------------------------------------------------/"
+print("|  %-76s|" % ("  number of MPI tasks       : " + str(mpi.procs)))
+print("|  %-76s|" % ("  number of threads per rank: " + str(omp_get_num_threads())))
+print("\\------------------------------------------------------------------------------/")
 
 # ------------------------------------------------------------------------------
 # Set the prompt just to clear to folks they now have Spheral

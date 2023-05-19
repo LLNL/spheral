@@ -163,16 +163,16 @@ distributeNodes((nodes, gen))
 # Force the mass to be exactly the desired total.
 mass = nodes.mass()
 M1 = mass.sumElements()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     mass[i] *= M0/M1
 
-print "Num internal nodes for ", nodes.name, " : ", mpi.allreduce(nodes.numInternalNodes, mpi.SUM)
-print "Total mass: ", mass.sumElements()
+print("Num internal nodes for ", nodes.name, " : ", mpi.allreduce(nodes.numInternalNodes, mpi.SUM))
+print("Total mass: ", mass.sumElements())
 
 # Set specific thermal energy.
 eps0 = 0.05
 eps = nodes.specificThermalEnergy()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     eps[i] = eps0
 
 #-------------------------------------------------------------------------------
@@ -315,10 +315,10 @@ rho = nodes.massDensity()
 vel = nodes.velocity()
 P = ScalarField("pressure", nodes)
 nodes.pressure(P)
-stuff = zip(mpi.allreduce([x.magnitude() for x in pos.internalValues()], mpi.SUM),
+stuff = list(zip(mpi.allreduce([x.magnitude() for x in pos.internalValues()], mpi.SUM),
             mpi.allreduce(list(rho.internalValues()), mpi.SUM),
-            mpi.allreduce([vel[i].dot(pos[i].unitVector()) for i in xrange(nodes.numInternalNodes)], mpi.SUM),
-            mpi.allreduce(list(P.internalValues()), mpi.SUM))
+            mpi.allreduce([vel[i].dot(pos[i].unitVector()) for i in range(nodes.numInternalNodes)], mpi.SUM),
+            mpi.allreduce(list(P.internalValues()), mpi.SUM)))
 stuff.sort()
 if mpi.rank == 0:
     f = open(os.path.join(dataDir, "EvrardCollapseRadialProfiles.gnu"), "w")

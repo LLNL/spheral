@@ -20,14 +20,14 @@ class TestSortAndDivideRedistribute1d(TestDistributeByPosition1d):
 
     # The actual test itself!
     def testIt(self):
-        print "Testing SortAndDivideRedistribute1d on domain %i of %i domains" % \
-              (domainID, nDomains)
+        print("Testing SortAndDivideRedistribute1d on domain %i of %i domains" % \
+              (domainID, nDomains))
 
         # Record how many nodes we're starting with.
         nNodesGlobal = []
-        for nodeList in [self.dataBase.nodeLists()[i] for i in xrange(self.dataBase.numNodeLists)]:
+        for nodeList in [self.dataBase.nodeLists()[i] for i in range(self.dataBase.numNodeLists)]:
             nNodesGlobal.append(mpi.allreduce(nodeList.numInternalNodes, mpi.SUM))
-        print "Total num nodes: ", nNodesGlobal, sum(nNodesGlobal)
+        print("Total num nodes: ", nNodesGlobal, sum(nNodesGlobal))
 
         # Go ahead and redistribute those nodes!
         repartition = SortAndDivideRedistributeNodes1d(2.0)
@@ -35,7 +35,7 @@ class TestSortAndDivideRedistribute1d(TestDistributeByPosition1d):
 
         # Make sure that the numbers of nodes are correct.
         assert self.dataBase.numNodeLists == len(nNodesGlobal)
-        for nodeList, nGlobal in zip([self.dataBase.nodeLists()[i] for i in xrange(self.dataBase.numNodeLists)],
+        for nodeList, nGlobal in zip([self.dataBase.nodeLists()[i] for i in range(self.dataBase.numNodeLists)],
                                      nNodesGlobal):
             n = mpi.allreduce(nodeList.numInternalNodes, mpi.SUM)
             if n != nGlobal:
@@ -52,7 +52,7 @@ class TestSortAndDivideRedistribute1d(TestDistributeByPosition1d):
         # is exclusive in x range.
         localxmin = 1e10
         localxmax = -1e10
-        for nodeList in [self.dataBase.nodeLists()[i] for i in xrange(self.dataBase.numNodeLists)]:
+        for nodeList in [self.dataBase.nodeLists()[i] for i in range(self.dataBase.numNodeLists)]:
             if nodeList.numInternalNodes > 0:
                 localxmin = min(localxmin, min([r.x for r in nodeList.positions().internalValues()] + [1e60]))
                 localxmax = max(localxmax, max([r.x for r in nodeList.positions().internalValues()] + [-1e60]))
@@ -80,8 +80,8 @@ class TestSortAndDivideRedistribute2d(TestParmetisRedistribute2d):
     # Create a SortAndDivideRedistributeNodes object, have it redistribute the
     # nodes.
     def testIt(self):
-        print "Testing SortAndDivideRedistributeNodes2d on domain %i of %i domains" % \
-              (domainID, nDomains)
+        print("Testing SortAndDivideRedistributeNodes2d on domain %i of %i domains" % \
+              (domainID, nDomains))
 
         # Record how many nodes we're starting with.
         nNodesGlobal = []
@@ -122,8 +122,8 @@ class TestSortAndDivideRedistribute3d(TestParmetisRedistribute3d):
     # Create a SortAndDivideRedistributeNodes object, have it redistribute the
     # nodes.
     def testIt(self):
-        print "Testing SortAndDivideRedistributeNodes3d on domain %i of %i domains" % \
-              (domainID, nDomains)
+        print("Testing SortAndDivideRedistributeNodes3d on domain %i of %i domains" % \
+              (domainID, nDomains))
 
         # Record how many nodes we're starting with.
         nNodesGlobal = []

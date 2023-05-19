@@ -132,7 +132,7 @@ class SpheralVisitDump:
             try:
                 os.makedirs(outputdir)
             except:
-                raise ValueError, "Cannot create output directory %s" % outputdir
+                raise ValueError("Cannot create output directory %s" % outputdir)
         mpi.barrier()
 
         # Now build the output file name, including directory.  Make sure
@@ -147,7 +147,7 @@ class SpheralVisitDump:
         try:
             f = open(filename, "w")
         except:
-            raise ValueError, "Unable to open file %s for output" % filename
+            raise ValueError("Unable to open file %s for output" % filename)
 
         # Build the header info for this file, and write it.
         header = self.constructHeader(simulationTime, cycle)
@@ -196,14 +196,14 @@ class SpheralVisitDump:
             try:
                 f = open(rootfile, "w")
             except:
-                raise ValueError, "Unable to open root file %s for output" % rootfile
+                raise ValueError("Unable to open root file %s for output" % rootfile)
 
             # Write the standard header info.
             f.writelines(header)
 
             # Now write the individual domain file names.
             f.write(self.keyWords["filelist"] + " %i\n" % mpi.procs)
-            for domain in xrange(mpi.procs):
+            for domain in range(mpi.procs):
                 filename = "domain%04i" % domain + "/" + \
                            self.baseFileName % (simulationTime, cycle) + \
                            self.extension
@@ -247,7 +247,7 @@ class SpheralVisitDump:
                 det = eval("ScalarFieldConstructor('%s_determinant', n)" % (field.name))
                 mineigen = eval("ScalarFieldConstructor('%s_eigen_min', n)" % (field.name))
                 maxeigen = eval("ScalarFieldConstructor('%s_eigen_max', n)" % (field.name))
-                for i in xrange(n.numInternalNodes):
+                for i in range(n.numInternalNodes):
                     eigen = field[i].eigenValues()
                     tr[i] = field[i].Trace()
                     det[i] = field[i].Determinant()
@@ -274,7 +274,7 @@ class SpheralVisitDump:
         redundantSet.sort()
         assert len(redundantSet) > 0
         result = [redundantSet[0][1]]
-        for i in xrange(1, len(redundantSet)):
+        for i in range(1, len(redundantSet)):
             if redundantSet[i][0] != redundantSet[i - 1][0]:
                 result.append(redundantSet[i][1])
         names = [x.name for x in result]
@@ -341,7 +341,7 @@ class SpheralVisitDump:
         import string
 
         # Write the field description.
-        assert type(field) in self.dataType.keys()
+        assert type(field) in list(self.dataType.keys())
         file.write(self.keyWords["field"] +
                    ' "' +
                    self._processName(field.name) +
@@ -391,7 +391,7 @@ class SpheralVisitDump:
     #---------------------------------------------------------------------------
     def _dumpVector(self, element, file):
         buf = ""
-        for i in xrange(type(element).nDimensions):
+        for i in range(type(element).nDimensions):
             buf += "%30.25g " % element(i)
         buf += "\n"
         file.write(buf)
@@ -403,8 +403,8 @@ class SpheralVisitDump:
     def _dumpTensor(self, element, file):
         buf = ""
         ndim = type(element).nDimensions
-        for i in xrange(ndim):
-            for j in xrange(ndim):
+        for i in range(ndim):
+            for j in range(ndim):
                 buf += "%30.25g " % element(i,j)
         buf += "\n"
         file.write(buf)
@@ -486,7 +486,7 @@ def dumpPhysicsState(stateThingy,
             fmax.name = "hmax"
             fratio.name = "hmin_hmax_ratio"
             n = H.nodeList().numInternalNodes
-            for i in xrange(n):
+            for i in range(n):
                 ev = H[i].eigenValues()
                 fmin[i] = 1.0/ev.maxElement()
                 fmax[i] = 1.0/ev.minElement()
@@ -501,7 +501,7 @@ def dumpPhysicsState(stateThingy,
         domains = dataBase.newGlobalScalarFieldList()
         for f in domains:
             f.name = "Domains"
-            for i in xrange(f.nodeList().numInternalNodes):
+            for i in range(f.nodeList().numInternalNodes):
                 f[i] = mpi.rank
         fieldLists.append(domains)
     except:
@@ -624,9 +624,9 @@ def dumpPhysicsState2Lattice(stateThingy,
              (xmax.y - xmin.y)/nsample[1],
              (xmax.z - xmin.z)/nsample[2])
     coords = vector_of_vector_of_double(3)
-    for idim in xrange(3):
+    for idim in range(3):
         coords[idim] = vector_of_double(nsample[idim] + 1)
-        for i in xrange(nsample[idim] + 1):
+        for i in range(nsample[idim] + 1):
             coords[idim][i] = xmin[idim] + i*delta[idim]
     
     # Get the state fields.
@@ -696,11 +696,11 @@ def dumpPhysicsState2Lattice(stateThingy,
     # fields back together.  Note this won't work if there are too many grid points!
     ntot = nsample[0]*nsample[1]*nsample[2]
     def gatherVector(vec):
-        for i in xrange(len(vec)):
+        for i in range(len(vec)):
             if mpi.rank == 0:
-                for sendProc in xrange(1, mpi.procs):
+                for sendProc in range(1, mpi.procs):
                     vals = mpi.recv(sendProc)[0]
-                    print "Received %i values from processor %i" % (len(vals), sendProc)
+                    print("Received %i values from processor %i" % (len(vals), sendProc))
                     vec[i] += vals
             else:
                 mpi.send(vec[i], 0)
@@ -714,7 +714,7 @@ def dumpPhysicsState2Lattice(stateThingy,
     # We have to remove the spaces from field names before passing them
     # to visit.
     def stripSpaces(vec):
-        for i in xrange(len(vec)):
+        for i in range(len(vec)):
             vec[i].replace(" ", "_")
     stripSpaces(scalarNames)
     stripSpaces(vectorNames)
@@ -728,17 +728,17 @@ def dumpPhysicsState2Lattice(stateThingy,
         try:
             os.makedirs(baseDirectory)
         except:
-            raise ValueError, "Cannot create output directory %s" % baseDirectory
+            raise ValueError("Cannot create output directory %s" % baseDirectory)
     mpi.barrier()
 
     # Dump the sucker.
     baseName = "%s-time=%g-cycle=%i" % (baseFileName, currentTime, currentCycle)
     filename = os.path.join(baseDirectory, baseName)
     mastername = os.path.join(baseDirectory, baseFileName + "-samplemaster.visit")
-    print "Preparing to write %i fields" % (len(scalarNames) +
+    print("Preparing to write %i fields" % (len(scalarNames) +
                                             len(vectorNames) +
                                             len(tensorNames) +
-                                            len(symTensorNames))
+                                            len(symTensorNames)))
     if mpi.rank == 0:
         writeRectilinearMesh3d(filename,
                                binary,
@@ -759,6 +759,6 @@ def dumpPhysicsState2Lattice(stateThingy,
         mf.close()
 
     mpi.barrier()
-    print "Finished: required %0.2f seconds" % (time.clock() - t0)
+    print("Finished: required %0.2f seconds" % (time.clock() - t0))
 
     return

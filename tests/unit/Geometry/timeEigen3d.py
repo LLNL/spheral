@@ -9,7 +9,7 @@ from testEigen3d import rangen, randomSymTensor3d
 ntests = 10000
 
 # Build a list of random symmetric tensors.
-tensors = [randomSymTensor3d()[0] for i in xrange(ntests)]
+tensors = [randomSymTensor3d()[0] for i in range(ntests)]
 assert len(tensors) == ntests
 
 # First time the GeomTensor::eigenVectors method.
