@@ -38,7 +38,7 @@
 #include "DEM/DEMDimension.hh"
 #include "DEM/DEMFieldNames.hh"
 #include "DEM/SolidBoundary/DEMBoundaryPolicy.hh"
-#include "DEM/SolidBoundary/SolidBoundary.hh"
+#include "DEM/SolidBoundary/SolidBoundaryBase.hh"
 #include "DEM/setUniqueNodeIDs.hh"
 
 #include "Utilities/Timer.hh"

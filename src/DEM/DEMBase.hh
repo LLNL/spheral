@@ -21,7 +21,7 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
-template<typename Dimension> class SolidBoundary;
+template<typename Dimension> class SolidBoundaryBase;
 class FileIO;
 class RedistributionNotificationHandle;
 //struct ContactIndex;
@@ -39,8 +39,8 @@ public:
 
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
-  typedef typename std::vector<SolidBoundary<Dimension>*>::iterator SolidBoundaryIterator;
-  typedef typename std::vector<SolidBoundary<Dimension>*>::const_iterator ConstSolidBoundaryIterator;
+  typedef typename std::vector<SolidBoundaryBase<Dimension>*>::iterator SolidBoundaryIterator;
+  typedef typename std::vector<SolidBoundaryBase<Dimension>*>::const_iterator ConstSolidBoundaryIterator;
   typedef std::shared_ptr<RedistributionNotificationHandle> RedistributionRegistrationType;
   
   // Constructors.
@@ -192,11 +192,11 @@ public:
                              const Vector vrotj) const;
 
   // Solid Bounderies 
-  void appendSolidBoundary(SolidBoundary<Dimension>& boundary);
+  void appendSolidBoundary(SolidBoundaryBase<Dimension>& boundary);
   void clearSolidBoundaries();
-  bool haveSolidBoundary(const SolidBoundary<Dimension>& boundary) const;
+  bool haveSolidBoundary(const SolidBoundaryBase<Dimension>& boundary) const;
   unsigned int numSolidBoundaries() const;
-  const std::vector<SolidBoundary<Dimension>*>& solidBoundaryConditions() const;
+  const std::vector<SolidBoundaryBase<Dimension>*>& solidBoundaryConditions() const;
   int getSolidBoundaryUniqueIndex(const int x) const;
 
   // counts
@@ -216,7 +216,7 @@ protected:
 
   const DataBase<Dimension>& mDataBase;
 
-  std::vector<SolidBoundary<Dimension>*> mSolidBoundaries;
+  std::vector<SolidBoundaryBase<Dimension>*> mSolidBoundaries;
 
   int mCycle;
   int mContactRemovalFrequency;

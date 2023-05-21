@@ -1,11 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidBoundary -- A base class for solid wall contact bcs
+// SolidBoundaryBase -- A base class for solid wall contact bcs
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
-#ifndef __Spheral_SolidBoundary_hh__
-#define __Spheral_SolidBoundary_hh__
+#ifndef __Spheral_SolidBoundaryBase_hh__
+#define __Spheral_SolidBoundaryBase_hh__
 
 namespace Spheral {
 
@@ -14,7 +14,7 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
 
 template<typename Dimension>
-class SolidBoundary {
+class SolidBoundaryBase {
 
 public:
 //--------------------------- Public Interface ---------------------------//
@@ -22,9 +22,9 @@ public:
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
 
-  SolidBoundary();
+  SolidBoundaryBase();
 
-  virtual ~SolidBoundary();
+  virtual ~SolidBoundaryBase();
 
   virtual Vector distance(const Vector& position) const = 0;
   virtual Vector velocity(const Vector& position) const = 0;
@@ -42,13 +42,13 @@ private:
 
 }
 
-#include "SolidBoundaryInline.hh"
+#include "SolidBoundaryBaseInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class SolidBoundary;
+  template<typename Dimension> class SolidBoundaryBase;
 }
 
 #endif

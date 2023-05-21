@@ -3,7 +3,7 @@ namespace Spheral {
 template<typename Dimension>
 inline
 const typename Dimension::Vector&
-InfinitePlane<Dimension>::
+InfinitePlaneSolidBoundary<Dimension>::
 point() const {
   return mPoint;
 }
@@ -11,7 +11,7 @@ point() const {
 template<typename Dimension>
 inline
 void
-InfinitePlane<Dimension>::
+InfinitePlaneSolidBoundary<Dimension>::
 point(const typename Dimension::Vector& value) {
   mPoint=value;
 }
@@ -19,7 +19,7 @@ point(const typename Dimension::Vector& value) {
 template<typename Dimension>
 inline
 const typename Dimension::Vector&
-InfinitePlane<Dimension>::
+InfinitePlaneSolidBoundary<Dimension>::
 normal() const {
   return mNormal;
 }
@@ -27,7 +27,7 @@ normal() const {
 template<typename Dimension>
 inline
 void
-InfinitePlane<Dimension>::
+InfinitePlaneSolidBoundary<Dimension>::
 normal(const typename Dimension::Vector& value) {
   mNormal = value;
 }
@@ -35,7 +35,7 @@ normal(const typename Dimension::Vector& value) {
 template<typename Dimension>
 inline
 const typename Dimension::Vector&
-InfinitePlane<Dimension>::
+InfinitePlaneSolidBoundary<Dimension>::
 velocity() const {
   return mVelocity;
 }
@@ -43,7 +43,7 @@ velocity() const {
 template<typename Dimension>
 inline
 void
-InfinitePlane<Dimension>::
+InfinitePlaneSolidBoundary<Dimension>::
 velocity(const typename Dimension::Vector& value)  {
   mVelocity=value;
 }

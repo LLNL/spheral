@@ -13,7 +13,7 @@
 
 namespace Spheral {
 
-template<typename Dimension> class SolidBoundary;
+template<typename Dimension> class SolidBoundaryBase;
 
 template<typename Dimension>
 class DEMBoundaryPolicy: public UpdatePolicyBase<Dimension> {
@@ -21,11 +21,11 @@ public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
-  typedef typename std::vector<SolidBoundary<Dimension>*>::iterator SolidBoundaryIterator;
-  typedef typename std::vector<SolidBoundary<Dimension>*>::const_iterator ConstSolidBoundaryIterator;
+  typedef typename std::vector<SolidBoundaryBase<Dimension>*>::iterator SolidBoundaryIterator;
+  typedef typename std::vector<SolidBoundaryBase<Dimension>*>::const_iterator ConstSolidBoundaryIterator;
 
   // Constructors, destructor.
-  DEMBoundaryPolicy(const std::vector<SolidBoundary<Dimension>*>& solidBoundaries);
+  DEMBoundaryPolicy(const std::vector<SolidBoundaryBase<Dimension>*>& solidBoundaries);
 
   virtual ~DEMBoundaryPolicy();
   
@@ -46,7 +46,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const std::vector<SolidBoundary<Dimension>*>& mSolidBoundariesRef;
+  const std::vector<SolidBoundaryBase<Dimension>*>& mSolidBoundariesRef;
 
   DEMBoundaryPolicy();
   DEMBoundaryPolicy(const DEMBoundaryPolicy& rhs);

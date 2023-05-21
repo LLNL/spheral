@@ -20,11 +20,11 @@ PYB11includes += ['"DEM/DEMBase.hh"',
                   '"DEM/DEMFieldNames.hh"',
                   '"DEM/LinearSpringDEM.hh"',
                   '"DEM/ContactStorageLocation.hh"',
-                  '"DEM/SolidBoundary/SolidBoundary.hh"',
-                  '"DEM/SolidBoundary/InfinitePlane.hh"',
-                  '"DEM/SolidBoundary/RectangularFinitePlane.hh"',
-                  '"DEM/SolidBoundary/CircularFinitePlane.hh"',
-                  '"DEM/SolidBoundary/FiniteCylinder.hh"',
+                  '"DEM/SolidBoundary/SolidBoundaryBase.hh"',
+                  '"DEM/SolidBoundary/InfinitePlaneSolidBoundary.hh"',
+                  '"DEM/SolidBoundary/RectangularPlaneSolidBoundary.hh"',
+                  '"DEM/SolidBoundary/CircularPlaneSolidBoundary.hh"',
+                  '"DEM/SolidBoundary/CylinderSolidBoundary.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
@@ -39,11 +39,11 @@ for ndim in dims:
     exec('''
 DEMBase%(ndim)id = PYB11TemplateClass(DEMBase, template_parameters="%(Dimension)s")
 LinearSpringDEM%(ndim)id = PYB11TemplateClass(LinearSpringDEM, template_parameters="%(Dimension)s")
-SolidBoundary%(ndim)id = PYB11TemplateClass(SolidBoundary, template_parameters="%(Dimension)s")
-InfinitePlane%(ndim)id = PYB11TemplateClass(InfinitePlane, template_parameters="%(Dimension)s")
-RectangularFinitePlane%(ndim)id = PYB11TemplateClass(RectangularFinitePlane, template_parameters="%(Dimension)s")
-CircularFinitePlane%(ndim)id = PYB11TemplateClass(CircularFinitePlane, template_parameters="%(Dimension)s")
-FiniteCylinder%(ndim)id = PYB11TemplateClass(FiniteCylinder, template_parameters="%(Dimension)s")
+SolidBoundaryBase%(ndim)id = PYB11TemplateClass(SolidBoundaryBase, template_parameters="%(Dimension)s")
+InfinitePlaneSolidBoundary%(ndim)id = PYB11TemplateClass(InfinitePlaneSolidBoundary, template_parameters="%(Dimension)s")
+RectangularPlaneSolidBoundary%(ndim)id = PYB11TemplateClass(RectangularPlaneSolidBoundary, template_parameters="%(Dimension)s")
+CircularPlaneSolidBoundary%(ndim)id = PYB11TemplateClass(CircularPlaneSolidBoundary, template_parameters="%(Dimension)s")
+CylinderSolidBoundary%(ndim)id = PYB11TemplateClass(CylinderSolidBoundary, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 

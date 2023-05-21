@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// CircularFinitePlane -- solid planar boundary for DEM with finite extent
+// CircularPlaneSolidBoundary -- solid planar boundary for DEM with finite extent
 //                           and rectangular shape.
 //
 // J.M. Pearl 2023
@@ -9,14 +9,14 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 
-#include "DEM/SolidBoundary/CircularFinitePlane.hh"
+#include "DEM/SolidBoundary/CircularPlaneSolidBoundary.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-CircularFinitePlane<Dimension>::
-CircularFinitePlane(const Vector& point, const Vector& normal, const Scalar& extent):
-  SolidBoundary<Dimension>(),
+CircularPlaneSolidBoundary<Dimension>::
+CircularPlaneSolidBoundary(const Vector& point, const Vector& normal, const Scalar& extent):
+  SolidBoundaryBase<Dimension>(),
   mPoint(point),
   mNormal(normal),
   mExtent(extent),
@@ -24,15 +24,15 @@ CircularFinitePlane(const Vector& point, const Vector& normal, const Scalar& ext
 }
 
 template<typename Dimension>
-CircularFinitePlane<Dimension>::
-~CircularFinitePlane(){
+CircularPlaneSolidBoundary<Dimension>::
+~CircularPlaneSolidBoundary(){
 }
 
 
 // needs to get fixed
 template<typename Dimension>
 typename Dimension::Vector
-CircularFinitePlane<Dimension>::
+CircularPlaneSolidBoundary<Dimension>::
 distance(const Vector& position) const { 
   const auto p = position - mPoint;
   const Vector pn = p.dot(mNormal)*mNormal;
@@ -44,14 +44,14 @@ distance(const Vector& position) const {
 
 template<typename Dimension>
 typename Dimension::Vector
-CircularFinitePlane<Dimension>::
+CircularPlaneSolidBoundary<Dimension>::
 velocity(const Vector& position) const { 
   return mVelocity;
 }
 
 template<typename Dimension>
 void
-CircularFinitePlane<Dimension>::
+CircularPlaneSolidBoundary<Dimension>::
 update(const double multiplier, const double t, const double dt) {
   mPoint += multiplier*mVelocity;
 }

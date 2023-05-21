@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// FiniteCylinder -- solid planar boundary for DEM with finite extent
+// CylinderSolidBoundary -- solid planar boundary for DEM with finite extent
 //                           and rectangular shape.
 //
 // J.M. Pearl 2023
@@ -9,17 +9,17 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 
-#include "DEM/SolidBoundary/FiniteCylinder.hh"
+#include "DEM/SolidBoundary/CylinderSolidBoundary.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-FiniteCylinder<Dimension>::
-FiniteCylinder(const Vector& point, 
+CylinderSolidBoundary<Dimension>::
+CylinderSolidBoundary(const Vector& point, 
                const Vector& axis, 
                const Scalar radius, 
                const Scalar length):
-  SolidBoundary<Dimension>(),
+  SolidBoundaryBase<Dimension>(),
   mPoint(point),
   mAxis(axis),
   mRadius(radius),
@@ -28,14 +28,14 @@ FiniteCylinder(const Vector& point,
 }
 
 template<typename Dimension>
-FiniteCylinder<Dimension>::
-~FiniteCylinder(){
+CylinderSolidBoundary<Dimension>::
+~CylinderSolidBoundary(){
 }
 
 
 template<typename Dimension>
 typename Dimension::Vector
-FiniteCylinder<Dimension>::
+CylinderSolidBoundary<Dimension>::
 distance(const Vector& position) const { 
   const auto p = position-mPoint;
   const auto pnMag = p.dot(mAxis);
@@ -47,14 +47,14 @@ distance(const Vector& position) const {
 
 template<typename Dimension>
 typename Dimension::Vector
-FiniteCylinder<Dimension>::
+CylinderSolidBoundary<Dimension>::
 velocity(const Vector& position) const { 
   return mVelocity;
 }
 
 template<typename Dimension>
 void
-FiniteCylinder<Dimension>::
+CylinderSolidBoundary<Dimension>::
 update(const double multiplier, const double t, const double dt) {   
   mPoint += multiplier*mVelocity;
 }

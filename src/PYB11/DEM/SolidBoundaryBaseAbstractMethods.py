@@ -4,7 +4,7 @@
 from PYB11Generator import *
 
 @PYB11ignore
-class SolidBoundaryAbstractMethods:
+class SolidBoundaryBaseAbstractMethods:
 
     @PYB11const
     def velocity(self,

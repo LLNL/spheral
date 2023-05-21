@@ -1,14 +1,13 @@
 //---------------------------------Spheral++----------------------------------//
-// CircularFinitePlane -- solid planar boundary for DEM with finite extent
-//                           and circular shape.
+// CylinderSolidBoundary -- cylinder with finite length solid boundary for DEM
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
-#ifndef __Spheral_CircularFinitePlane_hh__
-#define __Spheral_CircularFinitePlane_hh__
+#ifndef __Spheral_CylinderSolidBoundary_hh__
+#define __Spheral_CylinderSolidBoundary_hh__
 
-#include "DEM/SolidBoundary/SolidBoundary.hh"
+#include "DEM/SolidBoundary/SolidBoundaryBase.hh"
 
 namespace Spheral {
 
@@ -17,19 +16,21 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
 
 template<typename Dimension>
-class CircularFinitePlane : public SolidBoundary<Dimension> {
+class CylinderSolidBoundary : public SolidBoundaryBase<Dimension> {
 
     typedef typename Dimension::Scalar Scalar;
     typedef typename Dimension::Vector Vector;
+    typedef typename Dimension::Tensor Tensor;
 
 public:
   //--------------------------- Public Interface ---------------------------//
 
-  CircularFinitePlane(const Vector& point,
-                      const Vector& normal,
-                      const Scalar& exent);
+  CylinderSolidBoundary(const Vector& point,
+                 const Vector& axis, 
+                 const Scalar  radius,
+                 const Scalar  length);
 
-  ~CircularFinitePlane();
+  ~CylinderSolidBoundary();
 
   virtual Vector distance(const Vector& position) const override;
   virtual Vector velocity(const Vector& position) const override;
@@ -41,11 +42,14 @@ public:
   const Vector& point() const;
   void point(const Vector& value);
 
-    const Vector& normal() const;
-  void normal(const Vector& value);
+  const Vector& axis() const;
+  void axis(const Vector& value);
 
-  Scalar extent() const;
-  void extent(Scalar value);
+  Scalar length() const;
+  void length(Scalar value);
+
+  Scalar radius() const;
+  void radius(Scalar value);
 
   const Vector& velocity() const;
   void velocity(const Vector& value);
@@ -53,27 +57,29 @@ public:
 protected:
   //-------------------------- Protected Interface --------------------------//
   Vector mPoint;
-  Vector mNormal;
-  Scalar mExtent;
+  Vector mAxis;
+  Scalar mRadius;
+  Scalar mLength;
+
   Vector mVelocity;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
-  CircularFinitePlane();
-  CircularFinitePlane(const CircularFinitePlane&);
-  CircularFinitePlane& operator=(const CircularFinitePlane&);
+  CylinderSolidBoundary();
+  CylinderSolidBoundary(const CylinderSolidBoundary&);
+  CylinderSolidBoundary& operator=(const CylinderSolidBoundary&);
 };
 
 }
 
-#include "CircularFinitePlaneInline.hh"
+#include "CylinderSolidBoundaryInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class CircularFinitePlane;
+  template<typename Dimension> class CylinderSolidBoundary;
 }
 
 #endif

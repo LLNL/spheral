@@ -2,12 +2,12 @@ include_directories(.)
 
 set(DEM_inst 
     DEMBase
-    SolidBoundary/SolidBoundary
+    SolidBoundary/SolidBoundaryBase
     SolidBoundary/DEMBoundaryPolicy
-    SolidBoundary/InfinitePlane
-    SolidBoundary/CircularFinitePlane
-    SolidBoundary/RectangularFinitePlane
-    SolidBoundary/FiniteCylinder
+    SolidBoundary/InfinitePlaneSolidBoundary
+    SolidBoundary/CircularPlaneSolidBoundary
+    SolidBoundary/RectangularPlaneSolidBoundary
+    SolidBoundary/CylinderSolidBoundary
     ReplacePairFieldList
     IncrementPairFieldList
     ReplaceAndIncrementPairFieldList
@@ -21,12 +21,12 @@ set(DEM_sources
 instantiate(DEM_inst DEM_sources)
 
 set(DEM_headers
-    SolidBoundary/SolidBoundary.hh
+    SolidBoundary/SolidBoundaryBase.hh
     SolidBoundary/DEMBoundaryPolicy.hh
-    SolidBoundary/InfinitePlane.hh
-    SolidBoundary/CircularFinitePlane.hh
-    SolidBoundary/RectangularFinitePlane.hh
-    SolidBoundary/FiniteCylinder.hh
+    SolidBoundary/InfinitePlaneSolidBoundary.hh
+    SolidBoundary/CircularPlaneSolidBoundary.hh
+    SolidBoundary/RectangularPlaneSolidBoundary.hh
+    SolidBoundary/CylinderSolidBoundary.hh
     ReplacePairFieldList.hh
     ReplaceAndIncrementPairFieldList.hh
     IncrementPairFieldList.hh

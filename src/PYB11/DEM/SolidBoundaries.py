@@ -1,12 +1,12 @@
 from PYB11Generator import *
-from SolidBoundaryAbstractMethods import *
+from SolidBoundaryBaseAbstractMethods import *
 
 #-------------------------------------------------------------------------------
 # Base class for riemann solver wave speeds
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralDEM")
-class SolidBoundary:
+class SolidBoundaryBase:
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -15,14 +15,14 @@ class SolidBoundary:
     def pyinit():
         "constructor for base class DEM solid boundary conditions"
 
-PYB11inject(SolidBoundaryAbstractMethods, SolidBoundary, pure_virtual=True)
+PYB11inject(SolidBoundaryBaseAbstractMethods, SolidBoundaryBase, pure_virtual=True)
 
 #-------------------------------------------------------------------------------
 # Infinite planar solid boundary
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralDEM")
-class InfinitePlane(SolidBoundary):
+class InfinitePlaneSolidBoundary(SolidBoundaryBase):
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
@@ -64,7 +64,7 @@ class InfinitePlane(SolidBoundary):
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralDEM")
-class RectangularFinitePlane(SolidBoundary):
+class RectangularPlaneSolidBoundary(SolidBoundaryBase):
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
@@ -109,7 +109,7 @@ class RectangularFinitePlane(SolidBoundary):
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralDEM")
-class CircularFinitePlane(SolidBoundary):
+class CircularPlaneSolidBoundary(SolidBoundaryBase):
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
@@ -148,9 +148,12 @@ class CircularFinitePlane(SolidBoundary):
     extent  = PYB11property("Scalar", "extent",  "extent", returnpolicy="reference_internal", doc="extent of rectangle")
     normal = PYB11property("const Vector&", "normal", "normal",returnpolicy="reference_internal", doc="normal in plane definition")
 
+#-------------------------------------------------------------------------------
+# Cylinder solid boundary. In 2d this would be two planes.
+#-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralDEM")
-class FiniteCylinder(SolidBoundary):
+class CylinderSolidBoundary(SolidBoundaryBase):
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;

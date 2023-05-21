@@ -29,7 +29,7 @@
 #include "DEM/DEMDimension.hh"
 #include "DEM/LinearSpringDEM.hh"
 #include "DEM/ContactStorageLocation.hh"
-#include "DEM/SolidBoundary/SolidBoundary.hh"
+#include "DEM/SolidBoundary/SolidBoundaryBase.hh"
 
 #ifdef _OPENMP
 #include "omp.h"

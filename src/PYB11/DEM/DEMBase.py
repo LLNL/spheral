@@ -96,7 +96,7 @@ class DEMBase(Physics):
         "resize all pair fieldlists consistent w/ neighborIndices"
         return "void"
 
-    def appendSolidBoundary(boundary = "SolidBoundary<%(Dimension)s>&"):
+    def appendSolidBoundary(boundary = "SolidBoundaryBase<%(Dimension)s>&"):
         "add a solid boundary to the end of the list"
         return "void"
 
@@ -110,7 +110,7 @@ class DEMBase(Physics):
         return "unsigned int"
 
     @PYB11const
-    def haveSolidBoundary(boundary = "const SolidBoundary<%(Dimension)s>&"):
+    def haveSolidBoundary(boundary = "const SolidBoundaryBase<%(Dimension)s>&"):
         "is this boundary being tracked?"
         return "bool"
 
@@ -149,7 +149,7 @@ class DEMBase(Physics):
     numParticleParticleContacts = PYB11property("unsigned int", "numParticleBoundaryContacts", doc="Number of interactions with other dem particles")
     numParticleBoundaryContacts = PYB11property("unsigned int", "numParticleBoundaryContacts", doc="Number interactions with solid boundaries")
     contactStorageIndices = PYB11property("const std::vector<ContactIndex>&", "contactStorageIndices", doc="")
-    solidBoundaryConditions = PYB11property("const std::vector<SolidBoundary<%(Dimension)s>*>&", "solidBoundaryConditions", doc="The set of NodeLists in the DataBase")
+    solidBoundaryConditions = PYB11property("const std::vector<SolidBoundaryBase<%(Dimension)s>*>&", "solidBoundaryConditions", doc="The set of NodeLists in the DataBase")
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------

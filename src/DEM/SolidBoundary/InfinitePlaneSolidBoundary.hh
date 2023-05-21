@@ -1,36 +1,33 @@
 //---------------------------------Spheral++----------------------------------//
-// RectangularFinitePlane -- solid planar boundary for DEM with finite extent
-//                           and rectangular shape.
+// InfinitePlaneSolidBoundary -- rigid planar wall contact for DEM
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
+#ifndef __Spheral_InfinitePlaneSolidBoundary_hh__
+#define __Spheral_InfinitePlaneSolidBoundary_hh__
 
-#ifndef __Spheral_RectangularFinitePlane_hh__
-#define __Spheral_RectangularFinitePlane_hh__
-
-#include "DEM/SolidBoundary/SolidBoundary.hh"
+#include "DEM/SolidBoundary/SolidBoundaryBase.hh"
 
 namespace Spheral {
+
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
 
 template<typename Dimension>
-class RectangularFinitePlane : public SolidBoundary<Dimension> {
+class InfinitePlaneSolidBoundary : public SolidBoundaryBase<Dimension> {
 
     typedef typename Dimension::Scalar Scalar;
     typedef typename Dimension::Vector Vector;
-    typedef typename Dimension::Tensor Tensor;
 
 public:
   //--------------------------- Public Interface ---------------------------//
 
-  RectangularFinitePlane(const Vector& point,
-                         const Vector& exent, 
-                         const Tensor& basis);
+  InfinitePlaneSolidBoundary(const Vector& point, 
+                const Vector& normal);
 
-  ~RectangularFinitePlane();
+  ~InfinitePlaneSolidBoundary();
 
   virtual Vector distance(const Vector& position) const override;
   virtual Vector velocity(const Vector& position) const override;
@@ -42,11 +39,8 @@ public:
   const Vector& point() const;
   void point(const Vector& value);
 
-  const Tensor& basis() const;
-  void basis(const Tensor& value);
-
-  const Vector& extent() const;
-  void extent(const Vector& value);
+  const Vector& normal() const;
+  void normal(const Vector& value);
 
   const Vector& velocity() const;
   void velocity(const Vector& value);
@@ -54,27 +48,26 @@ public:
 protected:
   //-------------------------- Protected Interface --------------------------//
   Vector mPoint;
-  Tensor mBasis;
-  Vector mExtent;
+  Vector mNormal;
   Vector mVelocity;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
-  RectangularFinitePlane();
-  RectangularFinitePlane(const RectangularFinitePlane&);
-  RectangularFinitePlane& operator=(const RectangularFinitePlane&);
+  InfinitePlaneSolidBoundary();
+  InfinitePlaneSolidBoundary(const InfinitePlaneSolidBoundary&);
+  InfinitePlaneSolidBoundary& operator=(const InfinitePlaneSolidBoundary&);
 };
 
 }
 
-#include "RectangularFinitePlaneInline.hh"
+#include "InfinitePlaneSolidBoundaryInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class RectangularFinitePlane;
+  template<typename Dimension> class InfinitePlaneSolidBoundary;
 }
 
 #endif

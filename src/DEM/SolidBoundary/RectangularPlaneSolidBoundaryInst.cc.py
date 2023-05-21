@@ -2,10 +2,10 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "DEM/SolidBoundary/CircularFinitePlane.cc"
+#include "DEM/SolidBoundary/RectangularPlaneSolidBoundary.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class CircularFinitePlane< Dim< %(ndim)s > >;
+  template class RectangularPlaneSolidBoundary< Dim< %(ndim)s > >;
 }
 """

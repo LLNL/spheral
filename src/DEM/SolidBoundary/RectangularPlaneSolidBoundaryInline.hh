@@ -3,7 +3,7 @@ namespace Spheral {
 template<typename Dimension>
 inline
 const typename Dimension::Vector&
-RectangularFinitePlane<Dimension>::
+RectangularPlaneSolidBoundary<Dimension>::
 point() const {
   return mPoint;
 }
@@ -11,7 +11,7 @@ point() const {
 template<typename Dimension>
 inline
 void
-RectangularFinitePlane<Dimension>::
+RectangularPlaneSolidBoundary<Dimension>::
 point(const typename Dimension::Vector& value) {
   mPoint=value;
 }
@@ -19,7 +19,7 @@ point(const typename Dimension::Vector& value) {
 template<typename Dimension>
 inline
 const typename Dimension::Vector&
-RectangularFinitePlane<Dimension>::
+RectangularPlaneSolidBoundary<Dimension>::
 extent() const {
   return mExtent;
 }
@@ -27,7 +27,7 @@ extent() const {
 template<typename Dimension>
 inline
 void
-RectangularFinitePlane<Dimension>::
+RectangularPlaneSolidBoundary<Dimension>::
 extent(const typename Dimension::Vector& value) {
   mExtent=value;
 }
@@ -35,7 +35,7 @@ extent(const typename Dimension::Vector& value) {
 template<typename Dimension>
 inline
 const typename Dimension::Tensor&
-RectangularFinitePlane<Dimension>::
+RectangularPlaneSolidBoundary<Dimension>::
 basis() const {
   return mBasis;
 }
@@ -43,7 +43,7 @@ basis() const {
 template<typename Dimension>
 inline
 void
-RectangularFinitePlane<Dimension>::
+RectangularPlaneSolidBoundary<Dimension>::
 basis(const typename Dimension::Tensor& value) {
   mBasis=value;
 }
@@ -52,7 +52,7 @@ basis(const typename Dimension::Tensor& value) {
 template<typename Dimension>
 inline
 const typename Dimension::Vector&
-RectangularFinitePlane<Dimension>::
+RectangularPlaneSolidBoundary<Dimension>::
 velocity() const {
   return mVelocity;
 }
@@ -60,7 +60,7 @@ velocity() const {
 template<typename Dimension>
 inline
 void
-RectangularFinitePlane<Dimension>::
+RectangularPlaneSolidBoundary<Dimension>::
 velocity(const typename Dimension::Vector& value)  {
   mVelocity=value;
 }

@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// RectangularFinitePlane -- solid planar boundary for DEM with finite extent
+// RectangularPlaneSolidBoundary -- solid planar boundary for DEM with finite extent
 //                           and rectangular shape.
 //
 // J.M. Pearl 2023
@@ -9,14 +9,14 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 
-#include "DEM/SolidBoundary/RectangularFinitePlane.hh"
+#include "DEM/SolidBoundary/RectangularPlaneSolidBoundary.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-RectangularFinitePlane<Dimension>::
-RectangularFinitePlane(const Vector& point, const Vector& extent, const Tensor& basis):
-  SolidBoundary<Dimension>(),
+RectangularPlaneSolidBoundary<Dimension>::
+RectangularPlaneSolidBoundary(const Vector& point, const Vector& extent, const Tensor& basis):
+  SolidBoundaryBase<Dimension>(),
   mPoint(point),
   mBasis(basis),
   mExtent(extent),
@@ -24,14 +24,14 @@ RectangularFinitePlane(const Vector& point, const Vector& extent, const Tensor& 
 }
 
 template<typename Dimension>
-RectangularFinitePlane<Dimension>::
-~RectangularFinitePlane(){
+RectangularPlaneSolidBoundary<Dimension>::
+~RectangularPlaneSolidBoundary(){
 }
 
 
 template<typename Dimension>
 typename Dimension::Vector
-RectangularFinitePlane<Dimension>::
+RectangularPlaneSolidBoundary<Dimension>::
 distance(const Vector& position) const { 
   const auto q = mBasis*(position-mPoint);
   const double signX = (q.x() > 0.0 ? 1. : -1.);
@@ -45,14 +45,14 @@ distance(const Vector& position) const {
 
 template<typename Dimension>
 typename Dimension::Vector
-RectangularFinitePlane<Dimension>::
+RectangularPlaneSolidBoundary<Dimension>::
 velocity(const Vector& position) const { 
   return mVelocity;
 }
 
 template<typename Dimension>
 void
-RectangularFinitePlane<Dimension>::
+RectangularPlaneSolidBoundary<Dimension>::
 update(const double multiplier, const double t, const double dt) {   
   mPoint += multiplier*mVelocity;
 }

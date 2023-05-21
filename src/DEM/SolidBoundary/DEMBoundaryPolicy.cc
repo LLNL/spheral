@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------//
 
 #include "DEM/SolidBoundary/DEMBoundaryPolicy.hh"
-#include "DEM/SolidBoundary/SolidBoundary.hh"
+#include "DEM/SolidBoundary/SolidBoundaryBase.hh"
 
 
 namespace Spheral {
@@ -15,7 +15,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 DEMBoundaryPolicy<Dimension>::
-DEMBoundaryPolicy(const std::vector<SolidBoundary<Dimension>*>& solidBoundaries):
+DEMBoundaryPolicy(const std::vector<SolidBoundaryBase<Dimension>*>& solidBoundaries):
   UpdatePolicyBase<Dimension>(),
   mSolidBoundariesRef(solidBoundaries) {
 }

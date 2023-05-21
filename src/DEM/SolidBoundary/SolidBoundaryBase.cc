@@ -1,17 +1,17 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidBoundary -- a base class for solid wall contact bcs
+// SolidBoundaryBase -- a base class for solid wall contact bcs
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
 
-#include "DEM/SolidBoundary/SolidBoundary.hh"
+#include "DEM/SolidBoundary/SolidBoundaryBase.hh"
 
 namespace Spheral {
 template<typename Dimension>
-SolidBoundary<Dimension>::
-SolidBoundary(){} 
+SolidBoundaryBase<Dimension>::
+SolidBoundaryBase(){} 
 template<typename Dimension>
-SolidBoundary<Dimension>::
-~SolidBoundary(){} 
+SolidBoundaryBase<Dimension>::
+~SolidBoundaryBase(){} 
 }

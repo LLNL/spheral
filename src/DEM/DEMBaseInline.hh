@@ -330,7 +330,7 @@ template<typename Dimension>
 inline
 void
 DEMBase<Dimension>::
-appendSolidBoundary(SolidBoundary<Dimension>& boundary) {
+appendSolidBoundary(SolidBoundaryBase<Dimension>& boundary) {
     mSolidBoundaries.push_back(&boundary);
 }
 
@@ -342,7 +342,7 @@ inline
 void
 DEMBase<Dimension>::
 clearSolidBoundaries() {
-  mSolidBoundaries = std::vector<SolidBoundary<Dimension>*>();
+  mSolidBoundaries = std::vector<SolidBoundaryBase<Dimension>*>();
 }
 
 //------------------------------------------------------------------------------
@@ -352,7 +352,7 @@ template<typename Dimension>
 inline
 bool
 DEMBase<Dimension>::
-haveSolidBoundary(const SolidBoundary<Dimension>& boundary) const {
+haveSolidBoundary(const SolidBoundaryBase<Dimension>& boundary) const {
   return std::count(mSolidBoundaries.begin(), mSolidBoundaries.end(), &boundary) > 0;
 }
 
@@ -366,7 +366,7 @@ numSolidBoundaries() const {
 
 template<typename Dimension>
 inline
-const std::vector<SolidBoundary<Dimension>*>&
+const std::vector<SolidBoundaryBase<Dimension>*>&
 DEMBase<Dimension>::solidBoundaryConditions() const {
   return mSolidBoundaries;
 }
