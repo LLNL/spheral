@@ -38,9 +38,11 @@ typename Dimension::Vector
 FiniteCylinder<Dimension>::
 distance(const Vector& position) const { 
   const auto p = position-mPoint;
-  const auto pn = p.dot(mAxis);
+  const auto pnMag = p.dot(mAxis);
+  const auto pn = pnMag * mAxis;
+  const auto paxis = (pnMag > 0 ? max(pnMag-mLength,0.0) : pnMag)*mAxis;
   const auto pr = p-pn;
-  return (pr.magnitude() - mRadius)*pr.unitVector();
+  return (pr.magnitude() - mRadius)*pr.unitVector() + paxis;
 }
 
 template<typename Dimension>

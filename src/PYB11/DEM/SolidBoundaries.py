@@ -147,3 +147,46 @@ class CircularFinitePlane(SolidBoundary):
     point  = PYB11property("const Vector&", "point",  "point", returnpolicy="reference_internal", doc="point in plane definition")
     extent  = PYB11property("Scalar", "extent",  "extent", returnpolicy="reference_internal", doc="extent of rectangle")
     normal = PYB11property("const Vector&", "normal", "normal",returnpolicy="reference_internal", doc="normal in plane definition")
+
+@PYB11template("Dimension")
+@PYB11module("SpheralDEM")
+class FiniteCylinder(SolidBoundary):
+
+    PYB11typedefs = """
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+  """
+
+    def pyinit(point  = "const Vector&",
+               axis  = "const Vector&",
+               radius = "const Scalar",
+               length = "const Scalar"):
+        "solid planar boundary"
+
+    @PYB11virtual
+    def update(self,
+               multiplier = "const double",
+               t = "const double",
+               dt = "const double",):
+        "distance vector to bc."
+        return "void"
+
+    @PYB11virtual
+    @PYB11const
+    def velocity(self,
+                 position = "const Vector&"):
+        "velocity of bc."
+        return "Vector"
+
+    @PYB11virtual
+    @PYB11const
+    def distance(self,
+                 position = "const Vector&"):
+        "distance vector to bc."
+        return "Vector"
+
+    velocity = PYB11property("const Vector&", "velocity",  "velocity", returnpolicy="reference_internal", doc="velocity of plane")
+    point  = PYB11property("const Vector&", "point",  "point", returnpolicy="reference_internal", doc="point in plane definition")
+    axis  = PYB11property("const Vector&", "axis",  "axis", returnpolicy="reference_internal", doc="extent of rectangle")
+    radius = PYB11property("Scalar", "radius", "radius", doc="normal in plane definition")
+    length = PYB11property("Scalar", "length", "length", doc="normal in plane definition")
