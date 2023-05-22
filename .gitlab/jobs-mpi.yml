@@ -2,24 +2,24 @@
 # BUILD JOBS
 
 toss_gcc_mvapich2_cxxonly_build:
-  extends: [.gcc_mvapich2_cxxonly, .build_and_test, .toss_resource1]
+  extends: [.build_and_test, .toss_resource1, .gcc_mvapich2_cxxonly]
 
 
 
 toss_gcc_mvapich2_build:
-  extends: [.gcc_mvapich2, .build_and_test, .toss_resource2]
+  extends: [.build_and_test, .toss_resource2, .gcc_mvapich2]
 
 toss_gcc_mvapich2_test:
-  extends: [.gcc_mvapich2, .run_ats, .toss_resource2]
+  extends: [.run_ats, .toss_resource2, .gcc_mvapich2]
   needs: [toss_gcc_mvapich2_build]
 
 
 
 toss_clang_mvapich2_build:
-  extends: [.clang_mvapich2, .build_and_test, .toss_resource1]
+  extends: [.build_and_test, .toss_resource1, .clang_mvapich2]
 
 toss_clang_mvapich2_test:
-  extends: [.clang_mvapich2, .run_ats, .toss_resource2]
+  extends: [.run_ats, .toss_resource2, .clang_mvapich2]
   needs: [toss_clang_mvapich2_build]
 
 
@@ -30,19 +30,19 @@ toss_clang_mvapich2_test:
 
 
 blueos_gcc_spectrum_build:
-  extends: [.gcc_spectrum, .build_and_test, .blueos_resource1]
+  extends: [.build_and_test, .blueos_resource1, .gcc_spectrum]
 
 blueos_gcc_spectrum_test:
-  extends: [.gcc_spectrum, .run_ats, .blueos_resource1]
+  extends: [.run_ats, .blueos_resource1, .gcc_spectrum]
   needs: [blueos_gcc_spectrum_build]
 
 
 
 blueos_cuda_11_gcc_spectrum_build:
-  extends: [.cuda_11_gcc_spectrum, .build_and_test, .blueos_resource2]
+  extends: [.build_and_test, .blueos_resource2, .cuda_11_gcc_spectrum]
 
 blueos_cuda_11_gcc_spectrum_test:
-  extends: [.cuda_11_gcc_spectrum, .run_ats, .blueos_resource2]
+  extends: [.run_ats, .blueos_resource2, .cuda_11_gcc_spectrum]
   needs: [blueos_cuda_11_gcc_spectrum_build]
   allow_failure: true
 

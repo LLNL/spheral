@@ -11,16 +11,16 @@ toss_gcc_~mpi_test:
 
 
 blueos_cuda_11_gcc_~mpi_build:
-  extends: [.cuda_11_gcc_~mpi, .build_and_test, .blueos_resource2]
+  extends: [.blueos_resource2, .cuda_11_gcc_~mpi, .build_and_test]
 
 blueos_cuda_11_gcc_~mpi_test:
-  extends: [.cuda_11_gcc_~mpi, .run_ats, .blueos_resource2]
+  extends: [.blueos_resource2, .cuda_11_gcc_~mpi, .run_ats]
   needs: [blueos_cuda_11_gcc_~mpi_build]
 
 
 blueos_gcc_~mpi_Debug_build:
-  extends: [.gcc_~mpi_Debug, .build_and_test, .blueos_resource1]
+  extends: [.blueos_resource1, .gcc_~mpi_Debug, .build_and_test]
 
 blueos_gcc_~mpi_Debug_test:
-  extends: [.gcc_~mpi_Debug, .run_ats, .blueos_resource1]
+  extends: [.blueos_resource1, .gcc_~mpi_Debug, .run_ats]
   needs: [blueos_gcc_~mpi_Debug_build]
