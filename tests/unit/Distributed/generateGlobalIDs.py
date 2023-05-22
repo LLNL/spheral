@@ -8,7 +8,7 @@ def generateGlobalIDs(nodeLists,
     offset = 0
     for nodes in nodeLists:
         ids = globalNodeIDs(nodes)
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             ids[i] += offset
         offset += numGlobalNodes(nodes)
         result.append(ids)

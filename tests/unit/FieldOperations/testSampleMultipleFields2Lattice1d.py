@@ -68,7 +68,7 @@ class TestSampleMultipleFields2Lattice1d(TestSampleMultipleFields2Lattice,
             self.bcs.append(TreeDistributedBoundary1d.instance())
         except:
             if mpi.procs > 1:
-                raise RuntimeError, "Unable to get parallel boundary condition"
+                raise RuntimeError("Unable to get parallel boundary condition")
             else:
                 pass
 

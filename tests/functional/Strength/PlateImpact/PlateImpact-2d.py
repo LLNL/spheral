@@ -412,7 +412,7 @@ neighborTimer.printStatus()
 if restoreCycle is None:
     from GenerateNodeDistribution2d import *
     from DistributeNodes import distributeNodes2d
-    print "Generating node distribution."
+    print("Generating node distribution.")
     generatorSapphire1 = GenerateNodeDistribution2d(nxSapphire1,
                                                     nySapphire1,
                                                     rhoSapphire1,

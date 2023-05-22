@@ -169,7 +169,7 @@ packages = [dem]
 #-------------------------------------------------------------------------------
 # PhysicsPackage : gravity
 #-------------------------------------------------------------------------------
-allindices = vector_of_int(range(nodes1.numInternalNodes))
+allindices = vector_of_int(list(range(nodes1.numInternalNodes)))
 
 gravity = ConstantAcceleration(a0 = Vector(0.0,-1.0),
                                nodeList = nodes1,
@@ -267,6 +267,6 @@ if checkRestart:
     control.loadRestartFile(control.totalSteps)
     state1 = State(db, integrator.physicsPackages())
     if not state1 == state0:
-        raise ValueError, "The restarted state does not match!"
+        raise ValueError("The restarted state does not match!")
     else:
-        print "Restart check PASSED."
+        print("Restart check PASSED.")

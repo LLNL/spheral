@@ -57,10 +57,10 @@ commandLine(
 )
 
 if nPerh < int(correctionOrder):
-    print "nPerh is not large enough for correction order: {} < {}".format(nPerh, int(correctionOrder))
+    print("nPerh is not large enough for correction order: {} < {}".format(nPerh, int(correctionOrder)))
     
 if mpi.procs > 1:
-    raise ValueError, "parallel node generation not working"
+    raise ValueError("parallel node generation not working")
     
 #-------------------------------------------------------------------------------
 # Choose correct corrections
@@ -93,7 +93,7 @@ if dimension == 1:
         RKCorrections = RKCorrections1d7
         RKUtilities = RKUtilities1d7
     else:
-        raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
+        raise ValueError("correction order \"{}\" not found".format(correctionOrder))
 elif dimension == 2:
     from Spheral2d import *
     ZerothRKUtilities = RKUtilities2d0
@@ -122,7 +122,7 @@ elif dimension == 2:
         RKCorrections = RKCorrections2d7
         RKUtilities = RKUtilities2d7
     else:
-        raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
+        raise ValueError("correction order \"{}\" not found".format(correctionOrder))
 else:
     from Spheral3d import *
     ZerothRKUtilities = RKUtilities3d0
@@ -151,7 +151,7 @@ else:
         RKCorrections = RKCorrections3d7
         RKUtilities = RKUtilities3d7
     else:
-        raise ValueError, "correction order \"{}\" not found".format(correctionOrder)
+        raise ValueError("correction order \"{}\" not found".format(correctionOrder))
 
 #-------------------------------------------------------------------------------
 # Set up data
@@ -275,12 +275,12 @@ rangen = random.Random()
 rangen.seed(seed)
 
 if randomizeNodes:
-    print "randomizing nodes"
+    print("randomizing nodes")
     dx = (x1 - x0)/nx
     dy = (y1 - y0)/ny
     dz = (z1 - z0)/nz
     pos = nodes.positions()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         if dimension == 1:
             pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
         elif dimension == 2:
@@ -418,7 +418,7 @@ for i in range(nodes.numNodes):
     si = surfaceArea(ni, i)
     totalNS += normali * si
     totalS += si
-    print xi, si, normali
+    print(xi, si, normali)
 
 output("expectedNS")
 output("totalNS")
@@ -630,7 +630,7 @@ for i in range(nodes.numNodes):
     def addToValues(nj, j):
         xj = position(nj, j)
         if type(xj) is not type(xi):
-            raise TypeError, "error in xj, i = {}, j = {}".format(i, j)
+            raise TypeError("error in xj, i = {}, j = {}".format(i, j))
         fj = func(xj)
         vj = volume(nj, j)
         w, dw, ddw = getKernel(ni, i, nj, j)
@@ -698,11 +698,11 @@ if needHessian:
     output("dderror")
     
 if error > tolerance:
-    raise ValueError, "error is greater than tolerance"
+    raise ValueError("error is greater than tolerance")
 if funcType != "constant":
     if any([de > tolerance for de in derror]):
-        raise ValueError, "gradient error is greater than tolerance"
+        raise ValueError("gradient error is greater than tolerance")
 if needHessian and funcType != "constant" and funcType != "linear":
     if any([dde > tolerance for dde in dderror]):
-        raise ValueError, "hessian error is greater than tolerance"
+        raise ValueError("hessian error is greater than tolerance")
         

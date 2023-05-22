@@ -1,4 +1,32 @@
-Version vYYYY.MM.pp -- Release date 20YY-MM-DD
+Version vYYYY-MM-DD -- Release date YYYY-MM-DD
+
+This release contains ...
+
+  * Important Notes:
+    * This is the first release using Python 3.
+    * Restart files are not backwards compatible with prior releases.
+
+Notable changes include:
+
+  * New features/ API changes:
+    * We now use Python 3 rather than Python 2. The conversion from Python 2->3 is larger than most prior Python updates, which is part of why we held off for so long on this conversion. Python 2 is no longer supported however, and most other Python packages are only Python 3 now as well. Python comes with a tool (2to3) which can do most of the work converting a Python 2 script to Python 3, so we recommend when updating one of your old Python 2 run scripts or utilities you first let run 2to3 over that script.
+    * FileIO has been simplified in how it handles Fields, which has reduced the API of FileIO.  However, this has two compromises:
+      * Restart files are not backwards compatible with older releases.
+      * Fields in restart files are pretty much binary blobs, and so are not easily inspected by hand.
+    * We have removed support for the Python interface to Gnuplot, since the Python Gnuplot package had significant interface changes. Please convert such interactive graphics to Matplotlib, which has very similar support to our older Gnuplot utilities by importing SpheralMatplotlib.
+
+  * Build changes / improvements:
+    * PYB11Generator and PolyClipper are now submodules (in extern/)
+    * Converted our PYB11 generator build rules to use the newly provided PYB11Generator Cmake rules.
+    * toss_4_x86_64_ib system compatibility.
+    * Updated spack version to v0.19.1
+    * `--debug` and `--no-spec` options added to tpl-manager.py for outputing debug and skipping `spack spec` step.
+
+  * Bug Fixes / improvements:
+    * Fixed numerous compiler warnings with newer compilers such as G++ 9.4.
+    * r-path for additional TPLs can be propogated to Spheral libraries with `SPHERAL_ADDITIONAL_RPATHS`.
+ 
+Version v2023.03.0 -- Release date 2023-03-29
 ==============================================
 
 This release contains ...

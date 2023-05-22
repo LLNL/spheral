@@ -18,7 +18,7 @@
     - shell
   variables:
     HOSTNAME: "lassen"
-    BUILD_ALLOC: lalloc 1
+    BUILD_ALLOC: lalloc 1 -W 60
     TEST_ALLOC: $BUILD_ALLOC
   extends: [.on_blueos]
 

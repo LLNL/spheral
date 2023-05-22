@@ -13,11 +13,11 @@ def multiSort(*args):
         assert len(l) == len(args[0])
 
     # This is the obscure zip trick!
-    result = zip(*sorted(zip(*args)))
+    result = list(zip(*sorted(zip(*args))))
 
     # Copy the sorted stuff back to the input arguments.
-    for ilist in xrange(len(args)):
-        for i in xrange(len(args[ilist])):
+    for ilist in range(len(args)):
+        for i in range(len(args[ilist])):
             args[ilist][i] = result[ilist][i]
 
     return
@@ -51,8 +51,8 @@ def globalFrame():
 # Provide a standard title text
 #-------------------------------------------------------------------------------
 def title(titleText, lineLength=80):
-    fillerText = "-"*((lineLength - len(titleText))/2)
-    print fillerText, titleText, fillerText
+    fillerText = "-"*((lineLength - len(titleText))//2)
+    print(fillerText, titleText, fillerText)
 
 #-------------------------------------------------------------------------------
 # Provide a standard title text
@@ -61,7 +61,7 @@ def output(cmd, dict=None):
     if not dict:
         frame = globalFrame()
         dict = frame.f_globals
-    print cmd, " : ", eval(cmd, dict)
+    print(cmd, " : ", eval(cmd, dict))
 
 #-------------------------------------------------------------------------------
 # Functions to help testing neighbor selection.
@@ -120,7 +120,7 @@ def findOverlapNeighbors(pos1, H1, radius, db):
 
 def findOverlapRegion(pos1, H1, pos2, H2, radius, nodes):
     pos = nodes.positions()
-    result = [i for i in xrange(nodes.numInternalNodes)
+    result = [i for i in range(nodes.numInternalNodes)
               if ((H1*(pos[i] - pos1)).magnitude() <= radius and
                   (H2*(pos[i] - pos2)).magnitude() <= radius)]
     return result
@@ -152,20 +152,20 @@ def hstats(nodeSet):
         hratmin = mpi.allreduce(hratmin, mpi.MIN)
         hratmax = mpi.allreduce(hratmax, mpi.MAX)
         hratavg = mpi.allreduce(hratavg, mpi.SUM)/n
-        print "%20s : %g %g %g %g %g %g" % (nodes.name, hmin, hmax, havg, hratmin, hratmax, hratavg)
+        print("%20s : %g %g %g %g %g %g" % (nodes.name, hmin, hmax, havg, hratmin, hratmax, hratavg))
 
 #-------------------------------------------------------------------------------
 # Print statistic about the numbers of neighbors per node.
 #-------------------------------------------------------------------------------
 def neighborStats(connectivityMap):
     import mpi
-    for inodes in xrange(connectivityMap.numNodeLists()):
+    for inodes in range(connectivityMap.numNodeLists()):
         nodes = connectivityMap.nodeList(inodes)
-        n = [connectivityMap.numNeighborsForNode(nodes, i) for i in xrange(nodes.numInternalNodes)]
-        print "%20s : %g %g %g" % (nodes.name,
+        n = [connectivityMap.numNeighborsForNode(nodes, i) for i in range(nodes.numInternalNodes)]
+        print("%20s : %g %g %g" % (nodes.name,
                                    mpi.allreduce(min(n + [1e10]), mpi.MIN),
                                    mpi.allreduce(max(n + [0]), mpi.MAX),
-                                   mpi.allreduce(sum(n), mpi.SUM)/max(1, mpi.allreduce(len(n), mpi.SUM)))
+                                   mpi.allreduce(sum(n), mpi.SUM)/max(1, mpi.allreduce(len(n), mpi.SUM))))
 
 #-------------------------------------------------------------------------------
 # Grab the node set values (internal, ghost, or all) for FieldLists.
@@ -276,7 +276,7 @@ def testParallelConsistency(mesh, xmin, xmax):
 
     # Bounding box scale for hashing positions.
     boxInv = xmax - xmin
-    for i in xrange(len(boxInv)):
+    for i in range(len(boxInv)):
         boxInv[i] = 1.0/boxInv[i]
 
     # Local method to help accumulating the error messages in parallel.
@@ -294,10 +294,10 @@ def testParallelConsistency(mesh, xmin, xmax):
     def checkConsistentCommInfo(myHashes, sharedIDs):
         msg = "ok"
         positions = [quantizedPosition(hashi, xmin, xmax) for hashi in myHashes]
-        for sendProc in xrange(numDomains):
+        for sendProc in range(numDomains):
             numChecks = mpi.bcast(len(neighborDomains), root=sendProc)
             assert mpi.allreduce(numChecks, mpi.MIN) == mpi.allreduce(numChecks, mpi.MAX)
-            for k in xrange(numChecks):
+            for k in range(numChecks):
                 if rank == sendProc:
                     ksafe = k
                 else:
@@ -325,7 +325,7 @@ def testParallelConsistency(mesh, xmin, xmax):
     def checkHashConsistency(myHashes, sharedIDs, allowEmptyComm):
         msg = "ok"
         myHashSet = set(myHashes)
-        for sendProc in xrange(numDomains):
+        for sendProc in range(numDomains):
             theirHashSet = mpi.bcast(myHashSet, root=sendProc)
             if sendProc != mpi.rank:
                 commonHashes = myHashSet.intersection(theirHashSet)
@@ -353,7 +353,7 @@ def testParallelConsistency(mesh, xmin, xmax):
         return msg
 
     # Check that the communicated mesh nodes.
-    nodeHashes = [hashPosition(mesh.node(i).position, xmin, xmax, boxInv) for i in xrange(mesh.numNodes)]
+    nodeHashes = [hashPosition(mesh.node(i).position, xmin, xmax, boxInv) for i in range(mesh.numNodes)]
     msg = checkConsistentCommInfo(nodeHashes, sharedNodes)
     if msg != "ok":
         return "Node failure : " + msg
@@ -362,7 +362,7 @@ def testParallelConsistency(mesh, xmin, xmax):
         return "Node failure : " + msg
 
     # Check that the communicated mesh faces.
-    faceHashes = [hashPosition(mesh.face(i).position, xmin, xmax, boxInv) for i in xrange(mesh.numFaces)]
+    faceHashes = [hashPosition(mesh.face(i).position, xmin, xmax, boxInv) for i in range(mesh.numFaces)]
     msg = checkConsistentCommInfo(faceHashes, sharedFaces)
     if msg != "ok":
         return "Face failure : " + msg

@@ -32,7 +32,7 @@ class SiloPolyMeshGenerator(NodeGeneratorBase):
             vol = vector_of_double()
             H = vector_of_SymTensor3d()
             readSiloPolyMesh(fileName, meshName, pos, vol, H)
-            print "Read %i points from %s." % (len(pos), fileName)
+            print("Read %i points from %s." % (len(pos), fileName))
             assert len(pos) == len(vol) == len(H)
 
             self.x = [scale * x.x for x in pos]

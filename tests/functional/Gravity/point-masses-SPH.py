@@ -80,7 +80,7 @@ commandLine(NodeListConstructor = SphNodeList3d,
 
 # For this test, nx, ny, and nz must all be odd.
 if (2*(nx/2) == nx) or (2*(ny/2) == ny) or (2*(nz/2) == nz):
-   raise ValueError, 'nx, ny, and nz must all be odd.'
+   raise ValueError('nx, ny, and nz must all be odd.')
 
 #-------------------------------------------------------------------------------
 # If we're using the cubic node generator, then scale things so we get a
@@ -93,7 +93,7 @@ if seed == "cubic":
     nx *= nxdomains
     ny *= nxdomains
     nz *= nxdomains
-    print nxdomains, nx, ny, nz
+    print(nxdomains, nx, ny, nz)
 
 #-------------------------------------------------------------------------------
 # A few derived variables.
@@ -184,12 +184,12 @@ if restoreCycle is None:
     nodes.specificThermalEnergy(ScalarField3d("tmp", nodes, eps1))
 
     # Set node velocities
-    for nodeID in xrange(nodes.numNodes):
+    for nodeID in range(nodes.numNodes):
         nodes.velocity()[nodeID] = nodes.positions()[nodeID].unitVector()*vr1
 
     # Set node masses.  All of them are tiny except the one in the center.
     nodes.mass(ScalarField3d("tmp", nodes, meps))
-    for nodeID in xrange(nodes.numNodes):
+    for nodeID in range(nodes.numNodes):
         x = nodes.positions()[nodeID]
         if x == GeomVector3d(0.0, 0.0, 0.0):
            nodes.mass()[nodeID] = M
@@ -316,9 +316,9 @@ def answer(G, points):
     from numpy import zeros, array
     from math import pi, cos
     psis = zeros(len(points))
-    for l in xrange(1, 10):
-        for m in xrange(1, 10):
-            for n in xrange(1, 10):
+    for l in range(1, 10):
+        for m in range(1, 10):
+            for n in range(1, 10):
                 psis += array([((-8.0*G/pi)/(l*l+m*m+n*n)) * \
                     cos(2*pi*l*x.x)*cos(2*pi*m*x.y)*cos(2*pi*n*x.z) for x in points])
 
@@ -346,17 +346,17 @@ ion()
 if mpi.rank == 0:
     import Pnorm
     assert(len(psiProf) == len(psiAns))
-    error = [psiProf[i] - psiAns[i] for i in xrange(len(psiAns))]
+    error = [psiProf[i] - psiAns[i] for i in range(len(psiAns))]
     Pn = Pnorm.Pnorm(error, xprof)
     L1 = Pn.pnorm(1)
     L2 = Pn.pnorm(2)
     Linf = Pn.pnorm("inf")
-    print "Error norms for gravitational potential:"
-    print "L1: %g"%L1
-    print "L2: %g"%L2
-    print "Linf: %g"%Linf
+    print("Error norms for gravitational potential:")
+    print("L1: %g"%L1)
+    print("L2: %g"%L2)
+    print("Linf: %g"%Linf)
 
-    idxs = [i for i in xrange(len(xprof)) if xprof[i].y == 0.0 and xprof[i].z == 0.0]
+    idxs = [i for i in range(len(xprof)) if xprof[i].y == 0.0 and xprof[i].z == 0.0]
     xs = [xprof[i].x for i in idxs]
     psis = [psiProf[i] for i in idxs]
     psiAnses = [psiAns[i] for i in idxs]

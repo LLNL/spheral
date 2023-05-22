@@ -264,7 +264,7 @@ nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
 # Set the velocity of the node closest to the origin to zero to kick things off
 pos = nodes1.positions()
 vel = nodes1.velocity()
-for ix in xrange(nodes1.numNodes):
+for ix in range(nodes1.numNodes):
     vel[ix].x = vr0 + vrSlope*pos[ix].x
 
 #-------------------------------------------------------------------------------
@@ -467,13 +467,13 @@ if not steps is None:
     if checkRestart:
         state0 = State(db, integrator.physicsPackages())
         state0.copyState()
-        print control.totalSteps
+        print(control.totalSteps)
         control.loadRestartFile(control.totalSteps)
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
+            raise ValueError("The restarted state does not match!")
         else:
-            print "Restart check PASSED."
+            print("Restart check PASSED.")
 
 else:
     if control.time() < goalTime:
@@ -503,11 +503,11 @@ xprof = mpi.allreduce([x.x for x in nodes1.positions().internalValues()], mpi.SU
 xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 L1 = 0.0
-for i in xrange(len(rho)):
+for i in range(len(rho)):
   L1 = L1 + abs(rho[i]-rhoans[i])
 L1_tot = L1 / len(rho)
 if mpi.rank == 0 and outputFile != "None":
- print "L1=",L1_tot,"\n"
+ print("L1=",L1_tot,"\n")
  with open("Converge.txt", "a") as myfile:
     myfile.write("%s %s\n" % (nr, L1_tot))
 
@@ -515,7 +515,7 @@ if mpi.rank == 0 and outputFile != "None":
 # Plot the final state.
 #-------------------------------------------------------------------------------
 if graphics:
-    from SpheralGnuPlotUtilities import *
+    from SpheralMatplotlib import *
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(db)
     plotAnswer(answer, control.time(), rhoPlot, velPlot, epsPlot, PPlot, HPlot = HPlot)
     EPlot = plotEHistory(control.conserve)
@@ -526,19 +526,10 @@ if graphics:
              (HPlot, "Noh-spherical-h.png")]
 
     # Plot the specific entropy.
-    Aplot = generateNewGnuPlot()
-    AsimData = Gnuplot.Data(xprof, A,
-                            with_ = "points",
-                            title = "Simulation",
-                            inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                            with_ = "lines",
-                            title = "Solution",
-                            inline = True)
-    Aplot.plot(AsimData)
-    Aplot.replot(AansData)
-    Aplot.title("Specific entropy")
-    Aplot.refresh()
+    Aplot = newFigure()
+    Aplot.plot(xprof, A, "ro", label="Simulation")
+    Aplot.plot(xprof, Aans, "b-", label="Solution")
+    Aplot.set_title("Specific entropy")
     plots.append((Aplot, "Noh-spherical-A.png"))
     
     if crksph:
@@ -574,8 +565,7 @@ if graphics:
 
     # Make hardcopies of the plots.
     for p, filename in plots:
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
-
+        p.figure.savefig(os.path.join(dataDir, filename))
 
 #-------------------------------------------------------------------------------
 # Measure the difference between the simulation and analytic answer.
@@ -595,7 +585,7 @@ xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
@@ -641,7 +631,7 @@ if outputFile != "None":
 if mpi.rank == 0 :
     xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
     import Pnorm
-    print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
+    print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
     failure = False
     hD = []
 
@@ -662,12 +652,12 @@ if mpi.rank == 0 :
                                              ("Thermal E", epsprof, epsans, L1eps, L2eps, Linfeps),
                                              ("h       ", hprof, hans, L1h, L2h, Linfh)]:
         assert len(data) == len(ans)
-        error = [data[i] - ans[i] for i in xrange(len(data))]
+        error = [data[i] - ans[i] for i in range(len(data))]
         Pn = Pnorm.Pnorm(error, xprof)
         L1 = Pn.gridpnorm(1, rmin, rmax)
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
-        print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+        print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
         if normOutputFile != "None":
            f.write((3*"%16.12e ") % (L1, L2, Linf))
         hD.append([L1,L2,Linf])
@@ -675,42 +665,42 @@ if mpi.rank == 0 :
         if checkError:
             if not crksph and not psph and not fsisph and not gsph: # if sph use the known error norms
                 if not fuzzyEqual(L1, L1expect, tol):
-                    print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                    print("L1 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                           L1,
-                                                                                          L1expect)
+                                                                                          L1expect))
                     failure = True
                 if not fuzzyEqual(L2, L2expect, tol):
-                    print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                    print("L2 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                           L2,
-                                                                                          L2expect)
+                                                                                          L2expect))
                     failure = True
                 if not fuzzyEqual(Linf, Linfexpect, tol):
-                    print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                    print("Linf error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                             Linf,
-                                                                                            Linfexpect)
+                                                                                            Linfexpect))
                     failure = True
                 if failure:
-                    raise ValueError, "Error bounds violated."
+                    raise ValueError("Error bounds violated.")
 
             if fsisph or gsph: # for fsi check if the norms are order of mag same as sph 
             
                 if L1 > 2.0*L1expect:
-                    print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                    print("L1 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                           L1,
-                                                                                          L1expect)
+                                                                                          L1expect))
                     failure = True
                 if L2 > 2.0*L2expect:
-                    print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                    print("L2 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                           L2,
-                                                                                          L2expect)
+                                                                                          L2expect))
                     failure = True
                 if Linf > 2.0 * Linfexpect:
-                    print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                    print("Linf error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                                             Linf,
-                                                                                            Linfexpect)
+                                                                                            Linfexpect))
                     failure = True
                 if failure:
-                    raise ValueError, "Error bounds violated."
+                    raise ValueError("Error bounds violated.")
   
     if normOutputFile != "None":
        f.write("\n")
@@ -725,6 +715,6 @@ if mpi.rank == 0 :
 
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if compatibleEnergy and abs(Eerror) > 1e-13:
-    raise ValueError, "Energy error outside allowed bounds."
+    raise ValueError("Energy error outside allowed bounds.")

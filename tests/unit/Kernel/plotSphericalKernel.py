@@ -22,7 +22,7 @@ x = np.arange(0.0, W.baseKernel3d.kernelExtent, W.baseKernel3d.kernelExtent/100)
 y = np.arange(0.0, W.baseKernel3d.kernelExtent, W.baseKernel3d.kernelExtent/100)
 x, y = np.meshgrid(x, y)
 NX, NY = x.shape
-z0 = np.array([[W.Winterpolator(x[j][i], y[j][i]) for j in xrange(NY)] for i in xrange(NX)])
+z0 = np.array([[W.Winterpolator(x[j][i], y[j][i]) for j in range(NY)] for i in range(NX)])
 ax0 = fig0.add_subplot(111, projection='3d')
 surf0 = ax0.plot_surface(x, y, z0, cmap=cm.coolwarm,
                          linewidth=0, antialiased=False)
@@ -107,7 +107,7 @@ for eta in etavals:
     rp = rprange(r, h, etastep=0.05)
     gyvals = np.array([W.grad(Vector1d(rpi/h), Vector1d(r/h), SymTensor1d(1.0/h)).x for rpi in rp])
     gyvals0 = np.array([gradW3S1(rpi, r, h) for rpi in rp])
-    errvals = np.array([error(gyvals0[i], gyvals[i]) for i in xrange(len(gyvals))])
+    errvals = np.array([error(gyvals0[i], gyvals[i]) for i in range(len(gyvals))])
     ax.semilogy((rp - r)/h, errvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$|\langle \partial_r W_{3S1}(r^\prime, r, h) \rangle - \partial_r W_{3S1}(r^\prime, r, h)|/|\partial_r W_{3S1}(r^\prime, r, h)|$")

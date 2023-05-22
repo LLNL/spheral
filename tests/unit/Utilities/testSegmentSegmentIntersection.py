@@ -39,7 +39,7 @@ class TestSegmentSegmentIntersection(unittest.TestCase):
         a1 = Vector(2.0, 2.0)
         b0 = Vector(1.0, 2.0)
         b1 = Vector(2.0, 3.0)
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             aa0, aa1, bb0, bb1, T = self.randomDistortion(a0, a1, b0, b1)
             assert segmentSegmentIntersection(aa0, aa1, bb0, bb1)[0] == '0'
 
@@ -51,7 +51,7 @@ class TestSegmentSegmentIntersection(unittest.TestCase):
         a1 = Vector(2.0, 2.0)
         b0 = Vector(1.0, 2.0)
         b1 = Vector(2.0, 1.0)
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             aa0, aa1, bb0, bb1, T = self.randomDistortion(a0, a1, b0, b1)
             code, result1, result2 = segmentSegmentIntersection(aa0, aa1, bb0, bb1)
             assert code == '1'
@@ -66,7 +66,7 @@ class TestSegmentSegmentIntersection(unittest.TestCase):
         a1 = Vector(2.0, 2.0)
         b0 = Vector(1.0, 2.0)
         b1 = Vector(1.5, 1.5)
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             aa0, aa1, bb0, bb1, T = self.randomDistortion(a0, a1, b0, b1)
             code, result1, result2 = segmentSegmentIntersection(aa0, aa1, bb0, bb1)
             assert code == 'v'
@@ -81,7 +81,7 @@ class TestSegmentSegmentIntersection(unittest.TestCase):
         a1 = Vector(2.0, 2.0)
         b0 = Vector(3.0, 3.0)
         b1 = Vector(1.5, 1.5)
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
             aa0, aa1, bb0, bb1, T = self.randomDistortion(a0, a1, b0, b1)
             code, result1, result2 = segmentSegmentIntersection(aa0, aa1, bb0, bb1)
             assert code == 'e'

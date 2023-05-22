@@ -33,7 +33,7 @@ distributeNodes3d((nodes, gen))
 
 H = nodes.Hfield()
 Hinv = SymTensorField("H inverse", nodes)
-for i in xrange(nodes.numNodes):
+for i in range(nodes.numNodes):
     Hinv[i] = H[i].Inverse()
 
 siloPointmeshDump("test_void", 

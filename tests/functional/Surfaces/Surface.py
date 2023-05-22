@@ -19,7 +19,7 @@ class Rejecter(object):
         nY = []
         nM = []
         nH = []
-        for i in xrange(len(x)):
+        for i in range(len(x)):
             ri = sqrt(x[i]*x[i]+y[i]*y[i])
             if (ri > self.radius):
                 nX.append(x[i])
@@ -45,7 +45,7 @@ class dSurface(object):
         f.write("i\tSi\txi\n")
         self.db.updateConnectivityMap(True)
         cm = self.db.connectivityMap()
-        for i in xrange(self.nodes.numInternalNodes):
+        for i in range(self.nodes.numInternalNodes):
             xi = self.nodes.positions()[i]
             Hi = self.nodes.Hfield()[i]
             neighbors = cm.connectivityForNode(self.nodes, i)
@@ -66,7 +66,7 @@ class dSurface(object):
     def momentNorm(self):
         f = open(self.file, 'w')
         f.write("i\tSi\txi\tSSi\n")
-        for i in xrange(self.nodes.numInternalNodes):
+        for i in range(self.nodes.numInternalNodes):
             xi = self.nodes.positions()[i]
             m0i = self.hydro.m0()[0][i]
             m1i = self.hydro.m1()[0][i]
@@ -254,7 +254,7 @@ if restoreCycle is None:
     output("mpi.reduce(nodes1.numInternalNodes, mpi.MAX)")
     output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 
-    for nodeID in xrange(nodes1.numInternalNodes):
+    for nodeID in range(nodes1.numInternalNodes):
         eps[nodeID] = eps0
 
 #-------------------------------------------------------------------------------
@@ -381,10 +381,10 @@ else:
 if checkAnswer:
     sp = hydro.surfacePoint()
     count = 0
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         if sp[0][i] == 1:
             count += 1
     if not count == 212:
-        raise ValueError, "The surface detection algorithm failed!"
+        raise ValueError("The surface detection algorithm failed!")
     else:
-        print "Surface Detection PASSED."
+        print("Surface Detection PASSED.")

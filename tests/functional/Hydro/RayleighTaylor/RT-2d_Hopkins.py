@@ -252,7 +252,7 @@ vel = nodes.velocity()
 eps = nodes.specificThermalEnergy()
 pos = nodes.positions()
 rho = nodes.massDensity()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     xi, yi = pos[i]
     P0 = rhoT/gamma
     Pi = P0 + gval*rho[i]*(yi-0.5)
@@ -379,7 +379,7 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 pos = nodes.positions()
 nodeIndices = vector_of_int()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     if pos[i].y > y0 and pos[i].y < y1:
         nodeIndices.append(i)
 
@@ -402,7 +402,7 @@ xbc = PeriodicBoundary(xp1, xp2)
 # the y-cutoffs.
 pos = nodes.positions()
 ylow, yhigh = vector_of_int(), vector_of_int()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     if pos[i].y < y0:
         ylow.append(i)
     elif pos[i].y > y1:
@@ -493,13 +493,13 @@ if serialDump:
     rank = mpi.rank
     serialData = []
     i,j = 0,0
-    for i in xrange(procs):
+    for i in range(procs):
             if rank == i:
-                for j in xrange(nodes.numInternalNodes):
+                for j in range(nodes.numInternalNodes):
                     serialData.append([nodes.positions()[j],3.0/(nodes.Hfield()[j].Trace()),nodes.mass()[j],nodes.massDensity()[j],nodes.specificThermalEnergy()[j]])
     serialData = mpi.reduce(serialData,mpi.SUM)
     if rank == 0:
         f = open(outputFile,'w')
-        for i in xrange(len(serialData)):
+        for i in range(len(serialData)):
             f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
         f.close()

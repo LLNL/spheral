@@ -135,7 +135,7 @@ class ShockTubeGenerator(NodeGeneratorBase):
       elif dim == 3:
          self.nx = self.ny = self.nz = n
       else:
-         raise ValueError, 'Invalid dimension: %d'%dim
+         raise ValueError('Invalid dimension: %d'%dim)
 
       # Set the dimensions of the computational bounding box, accounting for 
       # symmetry.
@@ -309,7 +309,7 @@ class ShockTubeIC(object):
          B = nodes.magneticInduction()
          if dim == 1:
             # 1D configuration: left-right boundary is at x = 0.
-            for i in xrange(nodes.numNodes):
+            for i in range(nodes.numNodes):
                if x[i].x <= 0.0:
                   rho[i] = self.rhoL
                   v[i] = self.vL
@@ -322,7 +322,7 @@ class ShockTubeIC(object):
                   B[i] = self.BR
          elif dim == 2:
             # 2D configuration: left-right boundary is at x = y.
-            for i in xrange(nodes.numInternalNodes):
+            for i in range(nodes.numInternalNodes):
                if x[i].x <= x[i].y:
                   rho[i] = self.rhoL
                   v[i] = self.vL
@@ -335,7 +335,7 @@ class ShockTubeIC(object):
                   B[i] = self.BR
          else:
             # 3D configuration: left-right boundary is at x = y = z.
-            for i in xrange(nodes.numInternalNodes):
+            for i in range(nodes.numInternalNodes):
                if x[i].x <= x[i].y and x[i].y <= x[i].z:
                   rho[i] = self.rhoL
                   v[i] = self.vL
@@ -465,7 +465,7 @@ shockTubeICs = \
 # Construct our node list.
 #-------------------------------------------------------------------------------
 ICs = shockTubeICs[config-1]
-print 'Running %s...'%ICs.name
+print('Running %s...'%ICs.name)
 (nodes, nx, ny, nz, xmin, xmax) = ICs.Fluid(n, dim)
 if goalTime is None:
    goalTime = ICs.endTime
@@ -662,7 +662,7 @@ file = open('shock-tube-answers-%d-%g.dat'%(config, goalTime), 'r')
 file.close()
 
 # Toss the data that falls outside of [-0.5, 0.5].
-bad = [i for i in xrange(len(axs)) if axs[i] < -0.5 or axs[i] > 0.5]
+bad = [i for i in range(len(axs)) if axs[i] < -0.5 or axs[i] > 0.5]
 bad.reverse()
 for ibad in bad:
    del axs[ibad]
@@ -712,7 +712,7 @@ Js.appendField(nodes.currentDensity())
 JSamples = [Js(xi, WT) for xi in points]
 
 # Paint some pretty pictures.
-print 'Generating plots along y = z = 0:'
+print('Generating plots along y = z = 0:')
 from pylab import *
 ion()
 
@@ -723,7 +723,7 @@ def plotLine(quantity, x, Q, Qans, filename, deriv = None):
        plot(x, deriv, 'r.')
    title(quantity)
    xlabel('x')
-   print '%s -> %s'%(quantity, filename)
+   print('%s -> %s'%(quantity, filename))
    savefig(filename)
    
 plotLine('Mass density', axs, rhos, arhos, 'rho-%d-%d.png'%(config, n))

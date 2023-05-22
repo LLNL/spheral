@@ -28,7 +28,7 @@ def randomDistribute(nNodesGlobal,   # global number of nodes in this nodelist
                      xyRangeTotal):  # total simulation volume
 
     nodePositions = []
-    for globalNodeID in xrange(nNodesGlobal):
+    for globalNodeID in range(nNodesGlobal):
         nodePositions.append(Vector2d(g.uniform(xyRangeTotal[0][0],
                                                 xyRangeTotal[1][0]),
                                       g.uniform(xyRangeTotal[0][1],
@@ -69,7 +69,7 @@ for thpt in ((nodes1, n1, range1),
     n = nGlobal
     nodes.numInternalNodes = n
     Hi = determineH(nGlobal, globalRange)
-    for i in xrange(n):
+    for i in range(n):
         nodes.mass()[i] = 1.0
         nodes.positions()[i] = xyNodes[i]
         nodes.Hfield()[i] = Hi

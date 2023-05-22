@@ -55,7 +55,7 @@ for W in (W1,):
 
     # Create our constant Field
     field0 = ScalarField1d("Initial field", nodes, F0)
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         field0[i] = F(pos[i].x)
 
     # Interpolate to the new field
@@ -74,7 +74,7 @@ for W in (W1,):
     for pair in pairs:
         pair_sum(pair.i_node, pair.j_node)
         pair_sum(pair.j_node, pair.i_node)
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         pair_sum(i, i)
 
     # Plot the results
@@ -85,8 +85,8 @@ for W in (W1,):
     plt.legend()
 
     fig2 = plt.figure()
-    plt.plot(rvals, [gradF(pos[i].x) for i in xrange(nodes.numInternalNodes)], label="Analytic gradient")
-    plt.plot(rvals, [grad_field1[i].x for i in xrange(nodes.numInternalNodes)], label="Numerical gradient")
+    plt.plot(rvals, [gradF(pos[i].x) for i in range(nodes.numInternalNodes)], label="Analytic gradient")
+    plt.plot(rvals, [grad_field1[i].x for i in range(nodes.numInternalNodes)], label="Numerical gradient")
     plt.legend()
 
 plt.show()

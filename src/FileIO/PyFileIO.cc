@@ -15,7 +15,6 @@
 
 namespace Spheral {
 
-
 //------------------------------------------------------------------------------
 // Constructors.
 //------------------------------------------------------------------------------
@@ -34,6 +33,29 @@ PyFileIO(const std::string filename, AccessType access):
 //------------------------------------------------------------------------------
 PyFileIO::
 ~PyFileIO() {
+}
+
+//------------------------------------------------------------------------------
+// write vector<char> as py::bytes
+//------------------------------------------------------------------------------
+void
+PyFileIO::
+write_vector_char(const std::vector<char>& value, const std::string path) {
+  py::bytes buf(&(*value.begin()), value.size());
+  this->writeBytes(buf, path);
+}
+
+//------------------------------------------------------------------------------
+// read vector<char>
+//------------------------------------------------------------------------------
+std::vector<char>
+PyFileIO::
+read_vector_char(const std::string path) const {
+  py::bytes buf = this->readBytes(path);
+  std::string bufstr = std::string(buf);
+  vector<char> result(bufstr.begin(), bufstr.end());
+  ENSURE(result.size() == py::len(buf));
+  return result;
 }
 
 }

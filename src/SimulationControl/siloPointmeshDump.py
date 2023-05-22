@@ -21,7 +21,7 @@ def siloPointmeshDump(baseName,
 
     # You have to give us something!
     if len(fields) + len(fieldLists) == 0:
-        raise ValueError, "siloPointmeshDump called with no information to write."
+        raise ValueError("siloPointmeshDump called with no information to write.")
 
     # Get the set of NodeLists we're working with.
     nodeListsDict = {}
@@ -39,7 +39,7 @@ def siloPointmeshDump(baseName,
     if mpi.rank == 0:
         if not os.path.exists(baseDirectory):
             os.makedirs(baseDirectory)
-        for i in xrange(mpi.procs):
+        for i in range(mpi.procs):
             dire = os.path.join(baseDirectory, procDirBaseName % i)
             if not os.path.exists(dire):
                 os.makedirs(dire)
@@ -48,7 +48,7 @@ def siloPointmeshDump(baseName,
     # We can only pretend this is an RZ mesh if it's 2D.
     ndim = dimension(nodeLists[0])
     if not ndim in (2, 3):
-        raise ValueError, "You need to provide 2D or 3D information for siloPointMeshDump."
+        raise ValueError("You need to provide 2D or 3D information for siloPointMeshDump.")
     
     # Characterize the fields we're going to write.
     allfields = fields[:]
@@ -68,7 +68,7 @@ def siloPointmeshDump(baseName,
         elif isinstance(f, eval("SymTensorField%id" % ndim)):
             symTensorFields.append(f)
         else:
-            print "siloPointmeshDump WARNING: ignoring unknown field type."
+            print("siloPointmeshDump WARNING: ignoring unknown field type.")
 
     # For any tensor fields, dump the trace, determinant, min, and max eigen values.
     for f in (tensorFields + symTensorFields):
@@ -81,7 +81,7 @@ def siloPointmeshDump(baseName,
             nvals = n.numNodes
         else:
             nvals = n.numInternalNodes
-        for i in xrange(nvals):
+        for i in range(nvals):
             eigen = f[i].eigenValues()
             tr[i] = f[i].Trace()
             det[i] = f[i].Determinant()
@@ -131,11 +131,11 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
         nloc = sum([n.numNodes for n in nodeLists])
     else:
         nloc = sum([n.numInternalNodes for n in nodeLists])
-    for iproc in xrange(mpi.procs):
+    for iproc in range(mpi.procs):
         ntot.append(mpi.bcast(nloc, iproc))
 
     # Pattern for constructing per domain variables.
-    domainNamePatterns = [os.path.join(procDirBaseName % i, baseName + ".silo:%s") for i in xrange(mpi.procs) if ntot[i] > 0]
+    domainNamePatterns = [os.path.join(procDirBaseName % i, baseName + ".silo:%s") for i in range(mpi.procs) if ntot[i] > 0]
     ndoms = len(domainNamePatterns)
 
     # Create the master file.
@@ -165,7 +165,7 @@ def writeMasterSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
             matnos = []
             for p in domainNamePatterns:
                 material_names.append(p % "material")
-            for (name, i) in zip(materialNames, range(len(materialNames))):
+            for (name, i) in zip(materialNames, list(range(len(materialNames)))):
                 matnames.append(name)
                 matnos.append(i)
             assert len(material_names) == ndoms
@@ -237,17 +237,17 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
         nullOpts = silo.DBoptlist()
 
         # Read the per material info.
-        coords = [[] for i in xrange(ndim)]
+        coords = [[] for i in range(ndim)]
         for nodes in nodeLists:
             if dumpGhosts:
                 pos = nodes.positions().allValues()
             else:
                 pos = nodes.positions().internalValues()
             n = len(pos)
-            for j in xrange(ndim):
-                for i in xrange(n):
+            for j in range(ndim):
+                for i in range(n):
                     coords[j].append(pos[i][j])
-        for j in xrange(ndim):
+        for j in range(ndim):
             assert len(coords[j]) == ntot
         coords = vector_of_vector_of_double([vector_of_double(icoords) for icoords in coords])
 
@@ -258,11 +258,11 @@ def writeDomainSiloFile(ndim, baseDirectory, baseName, procDirBaseName, nodeList
         assert silo.DBPutPointmesh(db, "mesh", coords, meshOpts) == 0
 
         # Write materials.
-        matnos = [i for i in xrange(len(nodeLists))]
+        matnos = [i for i in range(len(nodeLists))]
         assert len(matnos) == len(nodeLists)
         matlist = []
         matnames = []
-        for (nodeList, imat) in zip(nodeLists, xrange(len(nodeLists))):
+        for (nodeList, imat) in zip(nodeLists, range(len(nodeLists))):
             if dumpGhosts:
                 matlist += [imat]*nodeList.numNodes
             else:
@@ -452,7 +452,7 @@ def dummyVectorField(name, n, vals, dim):
                     ["%s_y" % name, vector_of_double([0.0]*n)],
                     ["%s_z" % name, vector_of_double([0.0]*n)]]
     else:
-        for i in xrange(dim):
+        for i in range(dim):
             vals[i][1].extend(vector_of_double([0.0]*n))
     return vals
 
@@ -529,7 +529,7 @@ def dummyTensorField(name, n, vals, dim):
                     ["%s_zy" % name, vector_of_double([0.0]*n)],
                     ["%s_zz" % name, vector_of_double([0.0]*n)]]
     else:
-        for i in xrange(dim*dim):
+        for i in range(dim*dim):
             vals[i][1].extend(vector_of_double([0.0]*n))
     return vals
 

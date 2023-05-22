@@ -18,7 +18,6 @@
 #         - List of blt/libs the library depends on
 #
 #-----------------------------------------------------------------------------------
-
 function(spheral_add_obj_library
          package_name)
 
@@ -37,8 +36,10 @@ function(spheral_add_obj_library
                   DEPENDS_ON  ${spheral_blt_depends} ${spheral_blt_cxx_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS}
                   OBJECT TRUE
                   )
+  target_include_directories(Spheral_${package_name} PRIVATE ${SPHERAL_INCLUDES})
+  target_include_directories(Spheral_${package_name} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
 
-  ## Install the headers
+  # Install the headers
   install(FILES       ${${package_name}_headers}
           DESTINATION include/${package_name}
           )
@@ -113,7 +114,7 @@ function(spheral_add_cxx_library
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(Spheral_${package_name} PROPERTIES
-                        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${hdf5_DIR}/lib"
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}"
                         )
 endfunction()
 
@@ -122,13 +123,13 @@ endfunction()
 # spheral_add_pybind11_library
 #     - Generate the python friendly Spheral package lib
 #
-# package_name : *name* of spheral package to make into a library
-#
+# Args:
+#   package_name : *name* of spheral package to make into a library
+#   INCLUDES     : optional, any additional include paths
+#   SOURCES      : optional, any additional source files to compile into the library
+#   DEPENDS      : optional, extra dependencies
+# 
 # Variables that must be set before calling spheral_add_obj_library:
-#     <package_Name>_ADDITIONAL_INCLUDES
-#         - List of addition includes needed by a given package
-#     <package_name>_ADDITIONAL_SOURCE
-#         - List of additional sources to build library with
 #     spheral_depends
 #         - List of targets the library depends on
 #     spheral_blt_depends
@@ -137,31 +138,92 @@ endfunction()
 #-----------------------------------------------------------------------------------
 
 function(spheral_add_pybind11_library package_name)
-  include(${CMAKE_MODULE_PATH}/spheral/PYB11Generator.cmake)
 
-  # Generate the pybind11 C++ source file
-  PYB11_GENERATE_BINDINGS(${package_name})
+  # Define our arguments
+  set(options )
+  set(oneValueArgs )
+  set(multiValueArgs INCLUDES SOURCES DEPENDS)
+  cmake_parse_arguments(${package_name} "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+  # message("** ${package_name}_INCLUDES: ${${package_name}_INCLUDES}")
+  # message("** ${package_name}_SOURCES: ${${package_name}_SOURCES}")
+  # message("** ${package_name}_DEPENDS: ${${package_name}_DEPENDS}")
 
-  # Build python friendly spheral lib
+  # List directories in which spheral .py files can be found.
+  set(PYTHON_ENV 
+      ${EXTRA_PYB11_SPHERAL_ENV_VARS}
+      "${BUILDTIME_PYTHONENV_STR}:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/${PYB11_MODULE_NAME}:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/polytope:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Distributed:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/OpenMP:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/CXXTypes:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Geometry:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/PolyClipper:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Silo:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/DataOutput:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/NodeList:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Field:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/FieldList:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Kernel:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Neighbor:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Material:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/FileIO:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/DataBase:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Boundary:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Physics:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Hydro:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/ExternalForce:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Gravity:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Integrator:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Utilities:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/NodeGenerators:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/FieldOperations:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/SPH:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/RK:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/CRKSPH:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/ArtificialViscosity:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/SVPH:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Mesh:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Damage:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/SolidMaterial:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Strength:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/ArtificialConduction:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/KernelIntegrator:"
+      "${CMAKE_BINARY_DIR}/src/SimulationControl"
+      )
+
+  # Format list into a one line shell friendly format
+  STRING(REPLACE ";" "<->" PYTHON_ENV_STR ${PYTHON_ENV})
+
+  string(JOIN ":" PYTHON_ENV_STR ${PYTHON_ENV_STR} ${SPACK_PYTHONPATH})
+
+  # Get the TPL dependencies
+  get_property(spheral_tpl_includes GLOBAL PROPERTY spheral_tpl_includes)
+  get_property(spheral_tpl_libraries GLOBAL PROPERTY spheral_tpl_libraries)
+
   set(MODULE_NAME Spheral${package_name})
-  blt_add_library(NAME         ${MODULE_NAME}
-                  SOURCES      ${PYB11_GENERATED_SOURCE} ${${package_name}_ADDITIONAL_SOURCES}
-                  DEPENDS_ON   Spheral_CXX ${spheral_blt_depends} ${spheral_blt_py_depends} ${${package_name}_ADDITIONAL_DEPENDS}
-                  INCLUDES     ${${package_name}_ADDITIONAL_INCLUDES}
-                  OUTPUT_NAME  ${MODULE_NAME}
-                  CLEAR_PREFIX TRUE
-                  SHARED       TRUE
-                  )
+  PYB11Generator_add_module(${package_name}
+                            MODULE          ${MODULE_NAME}
+                            SOURCE          ${package_name}_PYB11.py
+                            DEPENDS         ${spheral_depends} ${spheral_blt_depends} ${${package_name}_DEPENDS} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS} Spheral_CXX
+                            PYTHONPATH      ${PYTHON_ENV_STR}
+                            INCLUDES        ${CMAKE_CURRENT_SOURCE_DIR} ${SPHERAL_INCLUDES} ${${package_name}_INCLUDES} ${spheral_tpl_includes} ${PYBIND11_ROOT_DIR}/include 
+                            LINKS           ${spheral_tpl_libraries}
+                            COMPILE_OPTIONS ${SPHERAL_PYB11_TARGET_FLAGS}
+                            USE_BLT         ON
+                            EXTRA_SOURCE    ${${package_name}_SOURCES}
+                            )
+  target_include_directories(${package_name} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
+  target_compile_options(${package_name} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
 
-  target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
-
-  install(TARGETS     ${MODULE_NAME}
+  install(TARGETS     ${package_name}
           DESTINATION Spheral
           )
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
-  set_target_properties(${MODULE_NAME} PROPERTIES
-    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${python_DIR}/lib;${hdf5_DIR}/lib"
+  set_target_properties(${package_name} PROPERTIES
+                        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${python_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}"
                         )
 
 endfunction()

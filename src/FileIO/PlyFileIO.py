@@ -15,7 +15,7 @@ def PolyFromPly(filename):
                 faces = int(data[2])
     f.close()
 
-    print "Got %d points in %d faces" % (points,faces)
+    print("Got %d points in %d faces" % (points,faces))
 
     vertices = []
     indices  = []
@@ -35,21 +35,21 @@ def PolyFromPly(filename):
             start = i + 1
         i += 1
     f.close()
-    for i in xrange(len(vertices)):
-        for j in xrange(len(vertices[i])):
+    for i in range(len(vertices)):
+        for j in range(len(vertices[i])):
             vertices[i][j] = float(vertices[i][j])
-    for i in xrange(len(indices)):
-        for j in xrange(len(indices[i])):
+    for i in range(len(indices)):
+        for j in range(len(indices[i])):
             indices[i][j] = int(indices[i][j])
 
     vvert = vector_of_Vector()
     vindx = vector_of_vector_of_unsigned()
 
-    for i in xrange(len(vertices)):
+    for i in range(len(vertices)):
         vvert.append(Vector(vertices[i]))
-    for i in xrange(len(indices)):
+    for i in range(len(indices)):
         vuns = vector_of_unsigned()
-        for j in xrange(len(indices[i])):
+        for j in range(len(indices[i])):
             vuns.append(indices[i][j])
         vindx.append(vuns)
 

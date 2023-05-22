@@ -89,7 +89,7 @@ elif dim == 2:
 elif dim == 3:
    nx = ny = nz = n
 else:
-   raise ValueError, 'Invalid dimension: %d'%dim
+   raise ValueError('Invalid dimension: %d'%dim)
 
 # Set the dimensions of the computational bounding box, accounting for 
 # symmetry.
@@ -119,8 +119,8 @@ elif waveType == 'isothermal':
     B0 = Vector3d(2, 0, 0)
     u0 = 1.0
 else:
-   raise ValueError, 'Unknown wave type: \'%s\''%waveType
-print 'Running %s wave...'%waveType
+   raise ValueError('Unknown wave type: \'%s\''%waveType)
+print('Running %s wave...'%waveType)
 
 #-------------------------------------------------------------------------------
 # Make the NodeList.
@@ -176,7 +176,7 @@ else:
 # Find the cumulative mass at each point.
 Mi = ScalarField3d("Cumulative mass", nodes)
 positions = mpi.allreduce([(nodes.positions()[i].x, i, mpi.rank)
-                           for i in xrange(nodes.numInternalNodes)], mpi.SUM)
+                           for i in range(nodes.numInternalNodes)], mpi.SUM)
 assert len(positions) == nx
 positions.sort()
 Msum = 0.0
@@ -201,7 +201,7 @@ class MassFunctor:
 # Set the node positions, velocities, and densities.
 import newtonRaphson
 cs = sqrt(cs2)
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     func = MassFunctor(Mi[i] - 0.5*mi)
     xi = newtonRaphson.newtonRaphson(func, 0.0, 1.0)
     nodes.positions()[i].x = xi
@@ -342,6 +342,6 @@ answer = MagnetosonicWaveSolution.MagnetosonicWaveSolution(eos, rho0, rho1, u0, 
 ##Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 if abs(Eerror) > 1e-15:
     raise "Energy error outside allowed bounds."

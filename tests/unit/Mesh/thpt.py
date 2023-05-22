@@ -12,7 +12,7 @@ def createNodes(gens):
     mass = nodes.mass()
     rho = nodes.massDensity()
     vel = nodes.velocity()
-    for i in xrange(len(gens)):
+    for i in range(len(gens)):
         xi = gens[i]
         pos[i] = xi
         H[i] = SymTensor.one
@@ -24,24 +24,24 @@ def createNodes(gens):
 generators = vector_of_Vector()
 nx = 4
 dx = 1.0
-print "Creating generators for regular mesh."
-for iz in xrange(nx):
-    for iy in xrange(nx):
-        for ix in xrange(nx):
+print("Creating generators for regular mesh.")
+for iz in range(nx):
+    for iy in range(nx):
+        for ix in range(nx):
             generators.append(Vector((ix + 0.5)*dx,
                                      (iy + 0.5)*dx,
                                      (iz + 0.5)*dx))
 nodes = createNodes(generators)
-print "Generating regular mesh."
+print("Generating regular mesh.")
 mesh = PolyhedralMesh(generators, Vector(0,0,0), Vector(nx,nx,nx))
-print "Writing..."
+print("Writing...")
 siloMeshDump("testPolyhedralHexes", mesh, nodeLists = [nodes])
-print "Done."
+print("Done.")
 del nodes
 
 generators = vector_of_Vector()
 n = nx**3
-print "Creating generators for random mesh."
+print("Creating generators for random mesh.")
 rangen = random.Random()
 nxcell = KeyTraits.maxKey1d/4
 nxycell = nxcell**2
@@ -51,7 +51,7 @@ dxcell = 1.0/nxcell
 dycell = 1.0/nxcell
 dzcell = 1.0/nxcell
 occupiedCells = set()
-for i in xrange(n):
+for i in range(n):
     i = rangen.randint(0, ncell)
     while i in occupiedCells:
         i = rangen.randint(0, ncell)
@@ -62,9 +62,9 @@ for i in xrange(n):
     occupiedCells.add(i)
 assert len(occupiedCells) == n
 nodes = createNodes(generators)
-print "Generating random mesh."
+print("Generating random mesh.")
 mesh = PolyhedralMesh(generators, Vector(0,0,0), Vector(1,1,1))
-print "Writing..."
+print("Writing...")
 siloMeshDump("testPolyhedralRandom", mesh, nodeLists = [nodes])
-print "Done."
+print("Done.")
 

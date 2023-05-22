@@ -1,9 +1,9 @@
 ################################
 # Build spheral packages 
 ################################
-include(${CMAKE_MODULE_PATH}/spheral/InstantiateCXX.cmake)
-include(${CMAKE_MODULE_PATH}/spheral/SpheralAddLibs.cmake)
-include(${CMAKE_MODULE_PATH}/spheral/SpheralInstallPythonFiles.cmake)
+include(${SPHERAL_CMAKE_MODULE_PATH}/spheral/InstantiateCXX.cmake)
+include(${SPHERAL_CMAKE_MODULE_PATH}/spheral/SpheralAddLibs.cmake)
+include(${SPHERAL_CMAKE_MODULE_PATH}/spheral/SpheralInstallPythonFiles.cmake)
 
 include_directories(.)
 include_directories(${PROJECT_BINARY_DIR}/src)
@@ -51,7 +51,7 @@ list(APPEND _packages
 if(NOT ENABLE_CXXONLY)
   list(APPEND _packages 
     SimulationControl
-    Pybind11Wraps
+    PYB11
     )
 endif()
 
