@@ -15,8 +15,10 @@ set(SPHERAL_EXTERN_INCLUDES )
 # PolyClipper
 if (NOT polyclipper_DIR)
   set(polyclipper_DIR "${SPHERAL_ROOT_DIR}/extern/PolyClipper" CACHE PATH "")
+  set(polyclipper_INCLUDES "${polyclipper_DIR}/src")
+else()
+  set(polyclipper_INCLUDES "${polyclipper_DIR}/include")
 endif()
-set(polyclipper_INCLUDES "${polyclipper_DIR}/src")
 
 list(APPEND SPHERAL_EXTERN_INCLUDES ${polyclipper_INCLUDES})
 
