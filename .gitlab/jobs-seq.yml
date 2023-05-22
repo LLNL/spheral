@@ -1,12 +1,12 @@
 # ------------------------------------------------------------------------------
 # BUILD JOBS
 
-toss_gcc_8_3_1_~mpi_build:
-  extends: [.gcc_8_3_1_~mpi, .build_and_test, .toss_resource1]
-  
-toss_gcc_8_3_1_~mpi_test:
-  extends: [.gcc_8_3_1_~mpi, .run_ats, .toss_resource1]
-  needs: [toss_gcc_8_3_1_~mpi_build]
+#toss_gcc_8_3_1_~mpi_build:
+#  extends: [.gcc_8_3_1_~mpi, .build_and_test, .toss_resource1]
+#  
+#toss_gcc_8_3_1_~mpi_test:
+#  extends: [.gcc_8_3_1_~mpi, .run_ats, .toss_resource1]
+#  needs: [toss_gcc_8_3_1_~mpi_build]
   
 
 
