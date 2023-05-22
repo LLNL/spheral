@@ -84,6 +84,11 @@ packages:
     - spec: pkg-config@0.27.1
       prefix: /usr
     buildable: false
+  m4:
+    externals:
+    - spec: m4@1.4.18
+      prefix: /usr
+    buildable: false
   tar:
     externals:
     - spec: tar@1.26
