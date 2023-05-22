@@ -24,11 +24,6 @@ packages:
     - spec: ncurses@5.9
       prefix: /usr
     buildable: false
-  readline:
-    externals:
-    - spec: readline@7.0
-      prefix: /usr
-    buildable: false
   autoconf:
     externals:
     - spec: autoconf@2.69
