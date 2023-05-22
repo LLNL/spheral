@@ -25,6 +25,7 @@ PYB11includes += ['"DEM/DEMBase.hh"',
                   '"DEM/SolidBoundary/RectangularPlaneSolidBoundary.hh"',
                   '"DEM/SolidBoundary/CircularPlaneSolidBoundary.hh"',
                   '"DEM/SolidBoundary/CylinderSolidBoundary.hh"',
+                  '"DEM/SolidBoundary/SphereSolidBoundary.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
@@ -44,6 +45,7 @@ InfinitePlaneSolidBoundary%(ndim)id = PYB11TemplateClass(InfinitePlaneSolidBound
 RectangularPlaneSolidBoundary%(ndim)id = PYB11TemplateClass(RectangularPlaneSolidBoundary, template_parameters="%(Dimension)s")
 CircularPlaneSolidBoundary%(ndim)id = PYB11TemplateClass(CircularPlaneSolidBoundary, template_parameters="%(Dimension)s")
 CylinderSolidBoundary%(ndim)id = PYB11TemplateClass(CylinderSolidBoundary, template_parameters="%(Dimension)s")
+SphereSolidBoundary%(ndim)id = PYB11TemplateClass(SphereSolidBoundary, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 

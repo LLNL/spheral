@@ -22,7 +22,7 @@ title("DEM 2d Drop Test")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(numParticlePerLength = 10,     # number of particles on a side of the box
+commandLine(numParticlePerLength = 50,     # number of particles on a side of the box
             radius = 0.25,                            # particle radius
             normalSpringConstant=1000.0,             # spring constant for LDS model
             normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
@@ -180,7 +180,10 @@ dem = DEM(db,
 packages = [dem]
 
 
-solidWall = CircularFinitePlane(Vector(0.0, 0.0, 0.0),Vector(  0.0, 1.0),0.5)
+solidWall = SphereSolidBoundary(Vector(0.0, 0.0),        # center
+                                   0.4,                  # radius
+                                   Vector(  0.0, 0.0),   # clip plane point
+                                   Vector(  0.0, 1.0))   # clip plane normal
 dem.appendSolidBoundary(solidWall)
 
 #-------------------------------------------------------------------------------
