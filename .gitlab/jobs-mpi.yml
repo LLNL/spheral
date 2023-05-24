@@ -24,8 +24,8 @@ toss_clang_mvapich2_test:
 
 
 
-toss_oneapi_2022_1_mvapich2:
-  extends: [.oneapi_2022_1_mvapich2, .build_and_test, .toss_resource]
+#toss_oneapi_2022_1_mvapich2:
+#  extends: [.oneapi_2022_1_mvapich2, .build_and_test, .toss_resource]
 
 
 
