@@ -60,3 +60,4 @@ const std::string Spheral::HydroFieldNames::ArtificialViscousCqMultiplier = "Cq 
 const std::string Spheral::HydroFieldNames::specificHeat = "specific heat";
 const std::string Spheral::HydroFieldNames::normal = "outward normal direction";
 const std::string Spheral::HydroFieldNames::surfaceArea = "boundary surface area";
+const std::string Spheral::HydroFieldNames::reff = "effective radius";

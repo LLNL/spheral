@@ -3,6 +3,7 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from SPHHydroBase import *
+from RestartMethods import *
 
 @PYB11template()            # Override the fact SPHHydroBase is templated
 @PYB11template_dict({"Dimension" : "Dim<2>"})
@@ -84,14 +85,18 @@ mass density, velocity, and specific thermal energy."""
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
-    @PYB11virtual
-    @PYB11const
-    def label(self):
-        return "std::string"
-
     @PYB11static
     def reff(ri = "const Scalar",
              hri = "const Scalar",
              nPerh = "const Scalar"):
         "Return the effective radius of the particle torus, weighted by mass."
         return "Scalar"
+
+    #...........................................................................
+    # Properties
+    effectiveRadius = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "effectiveRadius", returnpolicy="reference_internal")
+
+#-------------------------------------------------------------------------------
+# Inject methods
+#-------------------------------------------------------------------------------
+PYB11inject(RestartMethods, SPHHydroBaseRZ)

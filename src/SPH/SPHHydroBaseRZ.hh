@@ -93,7 +93,12 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "SPHHydroBaseRZ" ; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
+
+  // The effective radius FieldList
+  const FieldList<Dimension, Scalar>& effectiveRadius() const;
 
   // Compute the effective radius used for area-weighting of points
   static Scalar reff(const Scalar ri,
@@ -102,6 +107,8 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  FieldList<Dimension, Scalar> mEffectiveRadius;
+
   // No default constructor, copying, or assignment.
   SPHHydroBaseRZ();
   SPHHydroBaseRZ(const SPHHydroBaseRZ&);
