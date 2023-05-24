@@ -1,8 +1,8 @@
 # ------------------------------------------------------------------------------
 # BUILD JOBS
 
-#toss_gcc_mvapich2_cxxonly_build:
-#  extends: [.toss_resource1, .gcc_mvapich2_cxxonly, .build_and_test]
+toss_gcc_mvapich2_cxxonly_build:
+  extends: [.toss_resource1, .gcc_mvapich2_cxxonly, .build]
 
 
 
