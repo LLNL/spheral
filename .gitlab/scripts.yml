@@ -17,6 +17,8 @@
 .build_and_test:
   extends: [.build]
   after_script:
+    - echo $CI_BUILD_DIR
+    - cd $CI_BUILD_DIR
     - ./build_gitlab/install/spheral -c "import $SPHERAL_MODULE"
   artifacts:
     paths:
