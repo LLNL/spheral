@@ -18,8 +18,9 @@
 .build_and_test:
   extends: [.build]
   after_script:
+    - CI_BUILD_DIR=$(cat ci-dir.txt)
+    - cd $CI_BUILD_DIR && cat job-name.txt
     - echo $CI_BUILD_DIR
-    - cd $CI_BUILD_DIR
     #- ./build_gitlab/install/spheral -c "import $SPHERAL_MODULE"
   artifacts:
     paths:
@@ -30,6 +31,7 @@
   stage: run_ats
   script:
     - CI_BUILD_DIR=$(cat ci-dir.txt)
+    - cat ci-dir.txt
     - cd $CI_BUILD_DIR && cat job-name.txt
 
     - cat build_gitlab/install/spheral-lcatstest
