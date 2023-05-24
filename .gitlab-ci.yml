@@ -5,6 +5,7 @@ variables:
   SPHERAL_BUILDS_DIR: /usr/WS2/sphapp/.jacamar-ci/spheral-builds
   SCRIPT_DIR: "scripts"
   ATS_FILE: "tests/integration.ats"
+  SPHERAL_MODULE: "Spheral"
 
 stages:
   - build_and_install

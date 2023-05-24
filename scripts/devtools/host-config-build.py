@@ -123,13 +123,5 @@ def main():
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
       sys.exit(1)
 
-    ## Did we build the python interface?
-    #if sexe("grep -i ENABLE_CXXONLY:BOOL=Off {0}/CMakeCache.txt".format(build_dir)) == 0:
-    #  # Try to import Spheral for a basic sanity test.
-    #  smoke_test = sexe("{0} {1}/spheral -c \"import Spheral\"".format("module load gcc/10.3.1 &&", install_dir))
-    #  if smoke_test != 0:
-    #    sys.exit(1)
-
-
 if __name__ == "__main__":
   main()
