@@ -12,16 +12,15 @@
     - echo $SPEC
 
     - ml load python/3
-    - echo $PWD
-    #- $BUILD_ALLOC python3 $SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - $BUILD_ALLOC python3 $SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
 
 .build_and_test:
   extends: [.build]
   after_script:
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
-    - echo $CI_BUILD_DIR
-    #- ./build_gitlab/install/spheral -c "import $SPHERAL_MODULE"
+
+    - ./build_gitlab/install/spheral -c "import $SPHERAL_MODULE"
   artifacts:
     paths:
       - ci-dir.txt
@@ -31,7 +30,6 @@
   stage: run_ats
   script:
     - CI_BUILD_DIR=$(cat ci-dir.txt)
-    - cat ci-dir.txt
     - cd $CI_BUILD_DIR && cat job-name.txt
 
     - cat build_gitlab/install/spheral-lcatstest
