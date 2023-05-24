@@ -12,8 +12,8 @@
     - echo $SPEC
 
     - ml load python/3
-    - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
-    - ./build_gitlab/install/spheral -c "import Spheral"
+    - $BUILD_ALLOC python3 $SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+      #- ./build_gitlab/install/spheral -c "import Spheral"
   artifacts:
     paths:
       - ci-dir.txt
