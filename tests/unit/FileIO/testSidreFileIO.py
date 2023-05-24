@@ -35,9 +35,11 @@ class SidreFileIOTest(FileIOTestBase, unittest.TestCase):
     # If we are using MPI then we need to remove a directory because we are using Spio,
     # otherwise we remove a file as is the case with the other FileIO types.
     def removeFile(self, filename):
-        os.remove(filename + ".root")
         if not mpi.is_fake_mpi():
+            os.remove(filename + ".root")
             shutil.rmtree(filename)
+        else:
+            os.remove(filename)
 
 #-------------------------------------------------------------------------------
 # Run those tests.

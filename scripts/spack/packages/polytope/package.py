@@ -14,10 +14,6 @@ class Polytope(CMakePackage):
     url = "https://github.com/pbtoast/polytope/archive/0.7.3.tar.gz"
     version('0.7.3', tag='0.7.3', submodules=True)
 
-    # version('0.7.3', sha256='f32817b44d2a3b98407531980b89d0a31b0c14b8b30de37a6a7bc6ec91e48bf1') # missing submodules
-    #version('0.7.2', tag='0.7.2', submodules=True)
-    #version("2023-03-24", commit="074ec17", submodules=True)
-
     variant('python', default=True, description='Enable Python Support.')
 
     extends('python', when='+python')
@@ -33,8 +29,6 @@ class Polytope(CMakePackage):
 
         options.append(self.define('USE_MPI', 'Off'))   # Turn back on when polytope fixes parallel generation
         options.append(self.define('BOOST_ROOT', spec['boost'].prefix.include))
-        #options.append(self.define('PYB11GENERATOR_ROOT_DIR', 
-        #options.append(self.define('PYBIND11_ROOT_DIR', spec['py-pybind11'].prefix.include))
 
         if "+python" in spec:
             options.append(self.define('USE_PYTHON', True))
