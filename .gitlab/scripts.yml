@@ -69,4 +69,21 @@
     - if: '$CI_COMMIT_REF_NAME == "develop"'
       when: always
 
+.install_risky_production:
+  stage: install_production
+  script:
+    - ./$SCRIPT_DIR/devtools/tpl-manager.py --init-only --spheral-spack-dir=$UPSTREAM_DIR --spec=none
+    - source $UPSTREAM_DIR/spack/share/spack/setup-env.sh
+    - spack env create spheral-risky
+    - spack env activate spheral-risky
+    - spack add spheral@develop%gcc@10.3.1
+    - spack concretize
+
+    - ml load mpifileutils
+    - srun -N 1 -p $PARTITION -n 20 -t 10 drm $UPSTREAM_DIR/risky-cache
+    - mkdir -p $UPSTREAM_DIR/risky-cache
+
+    - spack buildcache create -au -d $UPSTREAM_DIR/risky-cache $(spack find --format /{hash})
+
+    - spack env rm spheral-risky
 

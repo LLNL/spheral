@@ -8,11 +8,12 @@ variables:
   SPHERAL_MODULE: "Spheral"
 
 stages:
-  - build_and_install
-  - run_ats
-  - cleanup
-  - update_tpls
-  - update_permissions
+  #- build_and_install
+  #- run_ats
+  #- cleanup
+  #- update_tpls
+  #- update_permissions
+  - install_production
 
 include:
   - local: .gitlab/os.yml

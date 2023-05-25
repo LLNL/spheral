@@ -68,3 +68,6 @@ toss_update_tpls:
 
 toss_update_permissions:
   extends: [.toss_resource_general, .toss_update_permissions, .merge_pr_rule]
+
+toss_install_risky:
+  extends: [.toss_resource_generl, .install_risky_production]
