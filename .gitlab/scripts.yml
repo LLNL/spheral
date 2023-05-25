@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # JOB TEMPLATES
 
-.build_and_test:
+.build:
   stage: build_and_install
   script:
     - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID
@@ -9,10 +9,18 @@
     - echo $CI_BUILD_DIR && echo $CI_PROJECT_DIR
     - mkdir -p $CI_BUILD_DIR && cp -a $CI_PROJECT_DIR/. $CI_BUILD_DIR
     - cd $CI_BUILD_DIR
+    - echo $SPEC
 
-    - ml load python/3.8.2
-    - ml load $LC_MODULES
-    - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - ml load python/3
+    - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+
+.build_and_test:
+  extends: [.build]
+  after_script:
+    - CI_BUILD_DIR=$(cat ci-dir.txt)
+    - cd $CI_BUILD_DIR && cat job-name.txt
+
+    - ./build_gitlab/install/spheral -c "import $SPHERAL_MODULE"
   artifacts:
     paths:
       - ci-dir.txt
