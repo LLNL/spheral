@@ -1,10 +1,10 @@
 toss_generate_buildcache_risky:
-  extends: [.toss_resource_general, .gcc_mvapich2, .buildcache_risky]
+  extends: [.toss_resource_general, .gcc_mvapich2, .buildcache_risky, .merge_pr_rule]
 
 toss_install_risky:
-  extends: [.toss_resource_general, .gcc_mvapich2, .install_production_risky]
+  extends: [.toss_resource_general, .gcc_mvapich2, .install_production_risky, .merge_pr_rule]
   needs: [toss_generate_buildcache_risky]
 
 toss_risky_module_install:
-  extends: [.toss_resource_general, .module_prod_risky]
+  extends: [.toss_resource_general, .module_prod_risky, .merge_pr_rule]
   needs: [toss_install_risky]
