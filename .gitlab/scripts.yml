@@ -1,5 +1,6 @@
 # ------------------------------------------------------------------------------
-# JOB TEMPLATES
+# CI Job Scripts
+# ------------------------------------------------------------------------------
 
 .build:
   stage: build_and_install
@@ -42,6 +43,87 @@
       - ci-dir.txt
       - test-logs/
 
+# ------------------------------------------------------------------------------
+# Shared TPL scripts.
+# ------------------------------------------------------------------------------
+
+.update_tpls:
+  stage: update_tpls
+  script:
+    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=$UPSTREAM_DIR
+
+.toss_update_permissions:
+  stage: update_permissions
+  script:
+    - ml load mpifileutils
+    - srun -N 1 -p $PARTITION -n 20 -t 10 dchmod --mode go+rx $UPSTREAM_DIR
+
+# ------------------------------------------------------------------------------
+# Production Installation scripts
+# ------------------------------------------------------------------------------
+
+.buildcache_risky:
+  stage: generate_buildcache
+  extends: [.spheral_rev_str]
+  script:
+    ### Initialize the upstream spack instance for this platform.
+    ###   - We do this to load system configs / externals for this machine.
+    - ./$SCRIPT_DIR/devtools/tpl-manager.py --init-only --spheral-spack-dir=$UPSTREAM_DIR --spec=none
+    - source $UPSTREAM_DIR/spack/share/spack/setup-env.sh
+
+    ### Installation Directory w/ Spheral rev numbers.
+    - INSTALL_DIR=/usr/gapps/Spheral/$SYS_TYPE/spheral-$SPHERAL_REV_STR
+    - echo $INSTALL_DIR &> install-dir.txt
+
+    ### Create a temporary spack environement with only the TPL specs for this specific commit of Spheral
+    - spack env create -d $INSTALL_DIR
+    - spack env activate $INSTALL_DIR
+    - spack add $SPACK_NAME@develop%$SPEC
+    - spack concretize --fresh -f
+
+    ### The buildcache stores binary builds of all necessary TPLs for this specific produciton build.
+    - spack buildcache create -auf -d $INSTALL_DIR $(spack find --format /{hash})
+  artifacts:
+    paths:
+      - install-dir.txt
+
+
+.install_production_risky:
+  stage: install_production
+  script:
+    - INSTALL_DIR=$(cat install-dir.txt)
+
+    # Initialize local spack instance in $INSTALL_DIR, ensure we do not enable the upstream spack instance.
+    - ./$SCRIPT_DIR/devtools/tpl-manager.py --init-only --spheral-spack-dir=$INSTALL_DIR/spheral-spack-tpls --spec=none --no-upstream
+    - source $INSTALL_DIR/spheral-spack-tpls/spack/share/spack/setup-env.sh
+
+    ### Initialize the buildcache we previously built and install all TPLs of Spheral.
+    - spack mirror add risky-mirror $INSTALL_DIR
+    - spack buildcache update-index -d $INSTALL_DIR
+    - $BUILD_ALLOC spack install --fresh --no-check-signature --only dependencies $SPACK_NAME@develop%$SPEC
+
+    ## Generate the Host config from the now locally installed TPLs.
+    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spec $SPEC --spheral-spack-dir=$INSTALL_DIR/spheral-spack-tpls --no-upstream
+    - HOST_CONFIG_FILE=$(ls -t | grep -E "*\.cmake" | head -1)
+
+    ## Build and Install Spheral
+    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config $HOST_CONFIG_FILE -i $INSTALL_DIR --build --no-clean
+  artifacts:
+    paths:
+      - install-dir.txt
+
+.module_prod_risky:
+  stage: update_permissions
+  script:
+    - INSTALL_DIR=$(cat install-dir.txt)
+    - ml load mpifileutils
+    - srun -N 1 -p $PARTITION -n 20 -t 10 dchmod --mode go+rx $INSTALL_DIR
+    - ln -sfn $INSTALL_DIR /usr/gapps/Spheral/$SYS_TYPE/risky
+
+# ------------------------------------------------------------------------------
+# Script Utilities
+# ------------------------------------------------------------------------------
+
 # This job searches our SPHERAL_BUILDS_DIR and deletes all but the N most recent builds.
 # This should be enough of a buffer that we likely won't delete a build mid pipeline,
 # and never fill the sphapp workspace storage.
@@ -54,36 +136,9 @@
   extends: [.toss_resource_general]
   when: always
 
-.update_tpls:
-  stage: update_tpls
-  script:
-    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=$UPSTREAM_DIR
-
-.toss_update_permissions:
-  stage: update_permissions
-  script:
-    - ml load mpifileutils
-    - srun -N 1 -p $PARTITION -n 20 -t 10 dchmod --mode go+rx $UPSTREAM_DIR
 .merge_pr_rule:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "develop"'
       when: always
 
-.install_risky_production:
-  stage: install_production
-  script:
-    - ./$SCRIPT_DIR/devtools/tpl-manager.py --init-only --spheral-spack-dir=$UPSTREAM_DIR --spec=none
-    - source $UPSTREAM_DIR/spack/share/spack/setup-env.sh
-    - spack env create spheral-risky
-    - spack env activate spheral-risky
-    - spack add spheral@develop%gcc@10.3.1
-    - spack concretize
-
-    - ml load mpifileutils
-    - srun -N 1 -p $PARTITION -n 20 -t 10 drm $UPSTREAM_DIR/risky-cache
-    - mkdir -p $UPSTREAM_DIR/risky-cache
-
-    - spack buildcache create -au -d $UPSTREAM_DIR/risky-cache $(spack find --format /{hash})
-
-    - spack env rm spheral-risky
 
