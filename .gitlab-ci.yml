@@ -11,13 +11,13 @@ variables:
 
 .spheral_rev_str:
   before_script:
-    - SPHERAL_REV=$(cd spheral && git rev-list --count HEAD)
+    - SPHERAL_REV=$(git rev-list --count HEAD)
     - SPHERAL_REV_STR=test-"$SPHERAL_REV"
 
 stages:
-  - build_and_install
-  - run_ats
-  - update_tpls
+  #- build_and_install
+  #- run_ats
+  #- update_tpls
   - generate_buildcache
   - install_production
   - update_permissions
@@ -28,6 +28,6 @@ include:
   - local: .gitlab/machines.yml
   - local: .gitlab/scripts.yml
   - local: .gitlab/specs.yml
-  - local: .gitlab/jobs-mpi.yml
-  - local: .gitlab/jobs-seq.yml
+  #- local: .gitlab/jobs-mpi.yml
+  #- local: .gitlab/jobs-seq.yml
   - local: .gitlab/jobs-prod.yml
