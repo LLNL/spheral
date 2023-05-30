@@ -358,9 +358,6 @@
     <ClCompile Include="..\..\src\FileIO\FileIO.cc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\FileIO\DbFileIO.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\FileIO\FileIO.hh">
       <FileType>Document</FileType>
     </None>
