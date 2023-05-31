@@ -96,7 +96,8 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings"></ImportGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
@@ -195,7 +196,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -216,13 +218,14 @@
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
-      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
       <Message>Build Spheral_Version.h</Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CUDADebug|x64'">
     <ClCompile>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -243,13 +246,14 @@
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
-      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
       <Message>Build Spheral_Version.h</Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'">
     <ClCompile>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -271,13 +275,14 @@
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
-      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
       <Message>Build Spheral_Version.h</Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'">
     <ClCompile>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;_NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -300,14 +305,15 @@
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
-      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
       <Message>Build Spheral_Version.h</Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -330,14 +336,15 @@
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
-      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
       <Message>Build Spheral_Version.h</Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CUDARelease|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -361,14 +368,15 @@
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
-      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
       <Message>Build Spheral_Version.h</Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -391,14 +399,15 @@
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
-      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
       <Message>Build Spheral_Version.h</Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -422,14 +431,15 @@
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
-      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
       <Message>Build Spheral_Version.h</Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader></PrecompiledHeader>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -453,7 +463,7 @@
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
-      <Command>powershell  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
       <Message>Build Spheral_Version.h</Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -598,5 +608,6 @@
     <ResourceCompile Include="spheral_CInterface.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets"></ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
 </Project>
