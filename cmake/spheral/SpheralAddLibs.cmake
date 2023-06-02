@@ -213,6 +213,7 @@ function(spheral_add_pybind11_library package_name)
                             COMPILE_OPTIONS ${SPHERAL_PYB11_TARGET_FLAGS}
                             USE_BLT         ON
                             EXTRA_SOURCE    ${${package_name}_SOURCES}
+                            INSTALL         OFF
                             )
   target_include_directories(${package_name} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
   target_compile_options(${package_name} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
