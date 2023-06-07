@@ -420,7 +420,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(contacts[kk].storeNode >= 0)
       CHECK(contacts[kk].pairNodeList >= 0)
       CHECK(contacts[kk].pairNode >= 0)
-      CHECK(contacts[kk].solidBoundary == -1)
+      CHECK2(contacts[kk].solidBoundary == -1, "ERROR: pair ("<< kk <<") of (" << numP2PContacts << ") with particles (" << nodeListi << " " << i << ") and (" << nodeListj << " " << j << ") appear to have bc index " << contacts[kk].solidBoundary)
 
       nodeListi = contacts[kk].storeNodeList;
       nodeListj = contacts[kk].pairNodeList;
