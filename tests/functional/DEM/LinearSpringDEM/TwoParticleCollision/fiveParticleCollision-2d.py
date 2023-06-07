@@ -301,80 +301,80 @@ if checkContacts and mpi.procs==5:
     for i in range(nodes.numInternalNodes):
         if  uniqueIndices[0][i]==1:
             if set(neighborIndices[0][i]) != set([2,3,4,5]):
-                print "-----------------------------"
-                print "unique index   : %s" % uniqueIndices[0][i]
-                print "mpi rank       : %s" % mpi.rank
-                print "neighborIndices: %s" % neighborIndices[0][i]
-                print "-----------------------------"
-                raise ValueError, "Central node contact list is incorrect "
+                print("-----------------------------")
+                print("unique index   : %s" % uniqueIndices[0][i])
+                print("mpi rank       : %s" % mpi.rank)
+                print("neighborIndices: %s" % neighborIndices[0][i])
+                print("-----------------------------")
+                raise ValueError("Central node contact list is incorrect ")
         elif uniqueIndices[0][i]==2:
             if set(neighborIndices[0][i]) != set([1]):
-                print "-----------------------------"
-                print "unique index   : %s" % uniqueIndices[0][i]
-                print "mpi rank       : %s" % mpi.rank
-                print "neighborIndices: %s" % neighborIndices[0][i]
-                print "-----------------------------"
-                raise ValueError, "node 1 contact list is incorrect "
+                print("-----------------------------")
+                print("unique index   : %s" % uniqueIndices[0][i])
+                print("mpi rank       : %s" % mpi.rank)
+                print("neighborIndices: %s" % neighborIndices[0][i])
+                print("-----------------------------")
+                raise ValueError("node 1 contact list is incorrect ")
         elif uniqueIndices[0][i]==3:
             if set(neighborIndices[0][i]) != set([1]):
-                print "-----------------------------"
-                print "unique index   : %s" % uniqueIndices[0][i]
-                print "mpi rank       : %s" % mpi.rank
-                print "neighborIndices: %s" % neighborIndices[0][i]
-                print "-----------------------------"
-                raise ValueError, "node 2 contact list is incorrect "
+                print("-----------------------------")
+                print("unique index   : %s" % uniqueIndices[0][i])
+                print("mpi rank       : %s" % mpi.rank)
+                print("neighborIndices: %s" % neighborIndices[0][i])
+                print("-----------------------------")
+                raise ValueError("node 2 contact list is incorrect ")
         elif uniqueIndices[0][i]==4:
             if set(neighborIndices[0][i]) != set([1]):
-                print "-----------------------------"
-                print "unique index   : %s" % uniqueIndices[0][i]
-                print "mpi rank       : %s" % mpi.rank
-                print "neighborIndices: %s" % neighborIndices[0][i]
-                print "-----------------------------"
-                raise ValueError, "node 3 contact list is incorrect "
+                print("-----------------------------")
+                print("unique index   : %s" % uniqueIndices[0][i])
+                print("mpi rank       : %s" % mpi.rank)
+                print("neighborIndices: %s" % neighborIndices[0][i])
+                print("-----------------------------")
+                raise ValueError("node 3 contact list is incorrect ")
         elif uniqueIndices[0][i]==5:
             if set(neighborIndices[0][i]) != set([1]):
-                print "-----------------------------"
-                print "unique index   : %s" % uniqueIndices[0][i]
-                print "mpi rank       : %s" % mpi.rank
-                print "neighborIndices: %s" % neighborIndices[0][i]
-                print "-----------------------------"
-                raise ValueError, "node 4 contact list is incorrect "
+                print("-----------------------------")
+                print("unique index   : %s" % uniqueIndices[0][i])
+                print("mpi rank       : %s" % mpi.rank)
+                print("neighborIndices: %s" % neighborIndices[0][i])
+                print("-----------------------------")
+                raise ValueError("node 4 contact list is incorrect ")
 
 
 if checkContacts and mpi.procs==1:
     for i in range(nodes.numInternalNodes):
         if  uniqueIndices[0][i]==1:
             if set(neighborIndices[0][i]) != set([2,3,4,5]):
-                print "-----------------------------"
-                print "unique index   : %s" % uniqueIndices[0][i]
-                print "mpi rank       : %s" % mpi.rank
-                print "neighborIndices: %s" % neighborIndices[0][i]
-                print "-----------------------------"
-                raise ValueError, "Central node contact list is incorrect "
+                print("-----------------------------")
+                print("unique index   : %s" % uniqueIndices[0][i])
+                print("mpi rank       : %s" % mpi.rank)
+                print("neighborIndices: %s" % neighborIndices[0][i])
+                print("-----------------------------")
+                raise ValueError("Central node contact list is incorrect ")
         elif uniqueIndices[0][i]==2:
             if set(neighborIndices[0][i]) != set([]):
-                print "-----------------------------"
-                print "unique index   : %s" % uniqueIndices[0][i]
-                print "mpi rank       : %s" % mpi.rank
-                print "neighborIndices: %s" % neighborIndices[0][i]
-                print "-----------------------------"
-                raise ValueError, "node 1 contact list is incorrect "
+                print("-----------------------------")
+                print("unique index   : %s" % uniqueIndices[0][i])
+                print("mpi rank       : %s" % mpi.rank)
+                print("neighborIndices: %s" % neighborIndices[0][i])
+                print("-----------------------------")
+                raise ValueError("node 1 contact list is incorrect ")
         elif uniqueIndices[0][i]==3:
             if set(neighborIndices[0][i]) != set([]):
-                print "-----------------------------"
-                print "unique index   : %s" % uniqueIndices[0][i]
-                print "mpi rank       : %s" % mpi.rank
-                print "neighborIndices: %s" % neighborIndices[0][i]
-                print "-----------------------------"
-                raise ValueError, "node 2 contact list is incorrect "
+                print("-----------------------------")
+                print("unique index   : %s" % uniqueIndices[0][i])
+                print("mpi rank       : %s" % mpi.rank)
+                print("neighborIndices: %s" % neighborIndices[0][i])
+                print("-----------------------------")
+                raise ValueError("node 2 contact list is incorrect ")
         elif uniqueIndices[0][i]==4:
             if set(neighborIndices[0][i]) != set([]):
-                print "-----------------------------"
-                print "unique index   : %s" % uniqueIndices[0][i]
-                print "mpi rank       : %s" % mpi.rank
-                print "neighborIndices: %s" % neighborIndices[0][i]
-                print "-----------------------------"
-                raise ValueError, "node 3 contact list is incorrect "
+                print("-----------------------------")
+                print("unique index   : %s" % uniqueIndices[0][i])
+                print("mpi rank       : %s" % mpi.rank)
+                print("neighborIndices: %s" % neighborIndices[0][i])
+                print("-----------------------------")
+                raise ValueError("node 3 contact list is incorrect ")
         elif uniqueIndices[0][i]==5:
             if set(neighborIndices[0][i]) != set([]):
                 print("-----------------------------")
