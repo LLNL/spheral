@@ -1,6 +1,6 @@
 #ATS:DEM3dTPBC1 = test( SELF, "--clearDirectories True  --checkError True  --normalRestitutionCoefficient 1.0 --g0 0.0 --steps 100", label="DEM perfectly elastic collision with infinite solid boundary -- 3-D (serial)")
-#ATS:DEM3dTPBC2 = test( SELF, "--clearDirectories True  --checkError True --planeType "circular"  --normalRestitutionCoefficient 1.0 --g0 0.0 --steps 100", label="DEM perfectly elastic collision with finite circular plane solid boundary -- 3-D (serial)")
-#ATS:DEM3dTPBC3 = test( SELF, "--clearDirectories True  --checkError True --planeType "rectangular"  --normalRestitutionCoefficient 1.0 --g0 0.0 --steps 100", label="DEM perfectly elastic collision with finite rectangular plane solid boundary -- 3-D (serial)")
+#ATS:DEM3dTPBC2 = test( SELF, "--clearDirectories True  --checkError True --planeType circular  --normalRestitutionCoefficient 1.0 --g0 0.0 --steps 100", label="DEM perfectly elastic collision with finite circular plane solid boundary -- 3-D (serial)")
+#ATS:DEM3dTPBC3 = test( SELF, "--clearDirectories True  --checkError True --planeType rectangular  --normalRestitutionCoefficient 1.0 --g0 0.0 --steps 100", label="DEM perfectly elastic collision with finite rectangular plane solid boundary -- 3-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
@@ -193,15 +193,16 @@ dem = DEM(db,
 packages = [dem]
 
 if planeType == "infinite":
-    solidWall = InfinitePlane(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0))
+    solidWall = InfinitePlaneSolidBoundary(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0))
 elif planeType == "circular":
-    solidWall = CircularFinitePlane(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0),0.25)
+    solidWall = CircularPlaneSolidBoundary(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0),0.25)
 elif planeType == "rectangular":
     basis = Tensor(0.0,0.0,1.0,
                    1.0,0.0,0.0,
                    0.0,1.0,0.0,)
     extent = Vector(0.0,0.25,0.25)
-    solidWall = RectangularFinitePlane(Vector(0.0, 0.0, 0.0), extent, basis)
+    solidWall = RectangularPlaneSolidBoundary(Vector(0.0, 0.0, 0.0), extent, basis)
+
 dem.appendSolidBoundary(solidWall)
 
 #-------------------------------------------------------------------------------

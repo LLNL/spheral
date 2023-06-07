@@ -20,7 +20,7 @@ if mpi.procs > 1:
 else:
     from DistributeNodes import distributeNodes3d
 
-title("DEM Restitution Coefficient Test")
+title("DEM Boundary Restitution Coefficient Test")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -201,7 +201,7 @@ dem = DEM(db,
 
 packages = [dem]
 
-solidWall = InfinitePlane(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0))
+solidWall = InfinitePlaneSolidBoundary(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0))
 dem.appendSolidBoundary(solidWall)
 
 #-------------------------------------------------------------------------------
@@ -281,8 +281,6 @@ if not steps is None:
 else:
     control.advance(goalTime, maxSteps)
 
-print omega[0][0]
-print velocity[0]
 #-------------------------------------------------------------------------------
 # Great success?
 #-------------------------------------------------------------------------------
@@ -296,23 +294,23 @@ if boolCheckRestitutionCoefficient:
     if  restitutionError > restitutionErrorThreshold:
         print("    final velocity = {0}".format(vijPostImpact))
         print("  initial velocity = {0}".format(vijPreImpact))
-        raise ValueError, ("  relative restitution coefficient error, %g, exceeds bounds" % restitutionError)
+        raise ValueError("  relative restitution coefficient error, %g, exceeds bounds" % restitutionError)
 
 # check for non-physical behavior
 #-------------------------------------------------------------
 if boolCheckSlidingFrictionX:
     if omega[0][0].magnitude() > omega0:
-        raise ValueError, "particles are rotating faster post-collision"
+        raise ValueError("particles are rotating faster post-collision")
     if omega[0][0].y > omegaThreshold or omega[0][0].z > omegaThreshold:
-        raise ValueError, "erroneous spin-up in perpendicular direction"
+        raise ValueError("erroneous spin-up in perpendicular direction")
 if boolCheckSlidingFrictionY:
     if omega[0][0].magnitude() > omega0:
-        raise ValueError, "particles are rotating faster post-collision"
+        raise ValueError("particles are rotating faster post-collision")
     if omega[0][0].x > omegaThreshold or omega[0][0].z > omegaThreshold:
-        raise ValueError, "erroneous spin-up in perpendicular direction"
+        raise ValueError("erroneous spin-up in perpendicular direction")
 if boolCheckTorsionalFriction:
     if omega[0][0].magnitude() > omega0:
-        raise ValueError, "particles are rotating faster post-collision"
+        raise ValueError("particles are rotating faster post-collision")
     if omega[0][0].x > omegaThreshold or omega[0][0].y > omegaThreshold:
-        raise ValueError, "erroneous spin-up in perpendicular direction"
+        raise ValueError("erroneous spin-up in perpendicular direction")
 
