@@ -146,9 +146,9 @@ class DEMBase(Physics):
     isActiveContact = PYB11property("const FieldList<%(Dimension)s, vector<int>>&","isActiveContact", returnpolicy="reference_internal")
     
     numContacts = PYB11property("unsigned int", "numContacts", doc="Total number of contacts")
-    numParticleParticleContacts = PYB11property("unsigned int", "numParticleBoundaryContacts", doc="Number of interactions with other dem particles")
+    numParticleParticleContacts = PYB11property("unsigned int", "numParticleParticleContacts", doc="Number of interactions with other dem particles")
     numParticleBoundaryContacts = PYB11property("unsigned int", "numParticleBoundaryContacts", doc="Number interactions with solid boundaries")
-    contactStorageIndices = PYB11property("const std::vector<ContactIndex>&", "contactStorageIndices", doc="")
+    contactStorageIndices = PYB11property("const std::vector<ContactIndex>&", "contactStorageIndices")
     solidBoundaryConditions = PYB11property("const std::vector<SolidBoundaryBase<%(Dimension)s>*>&", "solidBoundaryConditions", doc="The set of NodeLists in the DataBase")
 #-------------------------------------------------------------------------------
 # Inject methods

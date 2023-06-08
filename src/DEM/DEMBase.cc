@@ -585,7 +585,7 @@ initializeOverlap(const DataBase<Dimension>& dataBase, const int startingComposi
   const auto& particleRadius = dataBase.DEMParticleRadius();
   const auto& particleIndex = dataBase.DEMCompositeParticleIndex();
 
-#pragma omp for
+#pragma omp parallel for
   for (auto kk = 0u; kk < numPairs; ++kk) {
 
     const auto i = pairs[kk].i_node;
@@ -658,8 +658,7 @@ template<typename Value>
 void
 DEMBase<Dimension>::
 prepPairFieldListForRedistribution(Value& pairFieldList) {
-  const auto  nContacts = mContactStorageIndices.size();
-#pragma omp for
+  const auto  nContacts = this->numParticleParticleContacts();
   for (auto kk = 0u; kk < nContacts; ++kk) {
     const auto& contactkk = mContactStorageIndices[kk];
     const int numInternalNodes = pairFieldList[contactkk.pairNodeList]->numInternalElements();
@@ -674,8 +673,7 @@ void
 DEMBase<Dimension>::
 prepNeighborIndicesForRedistribution() {
   const auto& uniqueIndex = mDataBase.DEMUniqueIndex();
-  const auto  nContacts = mContactStorageIndices.size();
-#pragma omp for
+  const auto  nContacts = this->numParticleParticleContacts();
   for (auto kk = 0u; kk < nContacts; ++kk) {
     const auto& contactkk = mContactStorageIndices[kk];
     const int numInternalNodes = uniqueIndex[contactkk.pairNodeList]->numInternalElements();
@@ -723,6 +721,7 @@ removeInactiveContactsFromPairFieldList(Value& pairFieldList) const {
 
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto numNodes = nodeListPtrs[nodeListi]->numInternalNodes();
+
 #pragma omp parallel for
     for (auto nodei = 0u; nodei < numNodes; ++nodei) {
       
@@ -774,14 +773,14 @@ updateContactMap(const DataBase<Dimension>& dataBase){
   //---------------------------------------------------------------
   mContactStorageIndices.resize(numPairs);
 
-#pragma omp for
+#pragma omp parallel for
   for (auto kk = 0u; kk < numPairs; ++kk) {
 
     const auto i = pairs[kk].i_node;
     const auto j = pairs[kk].j_node;
     const auto nodeListi = pairs[kk].i_list;
     const auto nodeListj = pairs[kk].j_list;
-
+    
     // get our unique global ID numbers
     const auto uIDi = uniqueIndex(nodeListi,i);
     const auto uIDj = uniqueIndex(nodeListj,j);
@@ -798,11 +797,12 @@ updateContactMap(const DataBase<Dimension>& dataBase){
 
     // store info on storage/dummy locations
     auto& contactkk = mContactStorageIndices[kk];
-
+    
     contactkk.storeNodeList = (selectNodei ? nodeListi : nodeListj);
     contactkk.storeNode     = (selectNodei ? i         : j);
     contactkk.pairNodeList  = (selectNodei ? nodeListj : nodeListi);
     contactkk.pairNode      = (selectNodei ? j         : i);
+    contactkk.solidBoundary = -1;
 
     // find contact if it already exists 
     const auto uniqueSearchIndex = (selectNodei ? uIDj : uIDi);
@@ -816,7 +816,10 @@ updateContactMap(const DataBase<Dimension>& dataBase){
 
     // add the contact if it is new
     if (contactIndexPtr == neighborContacts.end()){
-      mNeighborIndices(contactkk.storeNodeList,contactkk.storeNode).push_back(uniqueSearchIndex);
+      #pragma omp critical
+      {
+        mNeighborIndices(contactkk.storeNodeList,contactkk.storeNode).push_back(uniqueSearchIndex);
+      }
     }
   }
 
@@ -825,13 +828,15 @@ updateContactMap(const DataBase<Dimension>& dataBase){
   // Iterate over solid boundaries, we're going to treat the solid
   // boundaries like contacts between dem particles to leverage all
   // the machinery in place which integrates pairwise values
+  
   for (auto ibc = 0u; ibc < numSolidBoundaries; ++ibc){
     const auto solidBoundaryi = solidBoundaries[ibc];
-
+    
     for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto nodeList = nodeLists[nodeListi];
     const auto ni = nodeList->numInternalNodes();
-    
+
+    #pragma omp parallel for
       for (auto i = 0u; i < ni; ++i) {
         const auto Ri = radius(nodeListi,i);
         const auto ri = position(nodeListi,i);
@@ -855,11 +860,13 @@ updateContactMap(const DataBase<Dimension>& dataBase){
           if (contactIndexPtr == neighborContacts.end()) mNeighborIndices(nodeListi,i).push_back(uId_bc);
 
           // now add our contact
-          mContactStorageIndices.push_back(ContactIndex(nodeListi,            // storage nodelist index
+          #pragma omp critical
+          {
+            mContactStorageIndices.push_back(ContactIndex(nodeListi,            // storage nodelist index
                                                         i,                    // storage node index
                                                         storageContactIndex,  // storage contact index
                                                         ibc));                // bc index
-
+          }
         } //if contacting
       }   // loop nodes
     }     // loop nodelists
@@ -898,6 +905,9 @@ identifyInactiveContacts(const DataBase<Dimension>& dataBase){
 
   // set all our active particle-particle contacts to 1 
   //-----------------------------------------------------------------
+#pragma omp parallel
+{
+
 #pragma omp for
   for (auto kk = 0u; kk < numP2PContacts; ++kk) {
     const auto& contactkk = mContactStorageIndices[kk];
@@ -922,6 +932,8 @@ identifyInactiveContacts(const DataBase<Dimension>& dataBase){
     const auto  rib = solidBoundary->distance(ri);
 
     if (rib.magnitude() <Ri*(1+bufferDistance)) mIsActiveContact(nodeListi,i)[contacti] = 1;
-  }
-}
-}
+
+  } // loop particle bc contacts
+}   // omp parallel region
+}   // class
+}   // namespace

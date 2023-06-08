@@ -420,14 +420,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(contacts[kk].storeNode >= 0)
       CHECK(contacts[kk].pairNodeList >= 0)
       CHECK(contacts[kk].pairNode >= 0)
-      CHECK2(contacts[kk].solidBoundary == -1, "ERROR: pair ("<< kk <<") of (" << numP2PContacts << ") with particles (" << nodeListi << " " << i << ") and (" << nodeListj << " " << j << ") appear to have bc index " << contacts[kk].solidBoundary)
+      CHECK(contacts[kk].solidBoundary == -1)
 
       nodeListi = contacts[kk].storeNodeList;
       nodeListj = contacts[kk].pairNodeList;
       i = contacts[kk].storeNode;
       j = contacts[kk].pairNode;
       contacti = contacts[kk].storeContact;
-
 
       // Get the state vars for node i needed for prox check
       const auto& ri = position(nodeListi, i);
@@ -619,8 +618,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     
       CHECK(contacts[kk].storeNodeList >= 0)
       CHECK(contacts[kk].storeNode >= 0)
-      CHECK(contacts[kk].pairNodeList >= -1)
-      CHECK(contacts[kk].pairNode >= -1)
+      CHECK(contacts[kk].pairNodeList == -1)
+      CHECK(contacts[kk].pairNode == -1)
       CHECK(contacts[kk].solidBoundary >= 0)
 
       nodeListi = contacts[kk].storeNodeList;
