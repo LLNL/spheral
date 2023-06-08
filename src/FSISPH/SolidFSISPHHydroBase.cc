@@ -185,6 +185,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mBulkModulus(FieldStorageType::CopyFields),
   mShearModulus(FieldStorageType::CopyFields),
   mYieldStrength(FieldStorageType::CopyFields),
+  mPlasticStrain0(FieldStorageType::CopyFields),
   mHideal(FieldStorageType::CopyFields),
   mMaxViscousPressure(FieldStorageType::CopyFields),
   mNormalization(FieldStorageType::CopyFields),
@@ -237,6 +238,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mBulkModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::bulkModulus);
     mShearModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::shearModulus);
     mYieldStrength = dataBase.newSolidFieldList(0.0, SolidFieldNames::yieldStrength);
+    mPlasticStrain0 = dataBase.newSolidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
     mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
     mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
     mNormalization = dataBase.newFluidFieldList(0.0, HydroFieldNames::normalization);
@@ -346,13 +348,14 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mRawPressure, 0.0, FSIFieldNames::rawPressure, false);
   dataBase.resizeFluidFieldList(mBulkModulus, 0.0, SolidFieldNames::bulkModulus, false);
   dataBase.resizeFluidFieldList(mShearModulus, 0.0, SolidFieldNames::shearModulus, false);
+  dataBase.resizeFluidFieldList(mPlasticStrain0, 0.0, SolidFieldNames::plasticStrain + "0", false);
   dataBase.resizeFluidFieldList(mYieldStrength, 0.0, SolidFieldNames::yieldStrength, false);
   dataBase.resizeFluidFieldList(mInterfaceFlags, int(0), FSIFieldNames::interfaceFlags,false);
   dataBase.resizeFluidFieldList(mInterfaceAreaVectors, Vector::zero, FSIFieldNames::interfaceAreaVectors,false);
   dataBase.resizeFluidFieldList(mInterfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals,false);
   dataBase.resizeFluidFieldList(mInterfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness,false);
   dataBase.resizeFluidFieldList(mVolume, 0.0, HydroFieldNames::volume,false);
-
+  
   auto positionPolicy = make_shared<IncrementFieldList<Dimension, Vector>>();
   auto plasticStrainPolicy = make_shared<PlasticStrainPolicy<Dimension>>();
   auto bulkModulusPolicy = make_shared<BulkModulusPolicy<Dimension>>();
@@ -408,8 +411,21 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(deviatoricStress, deviatoricStressPolicy);
   }
 
+  auto nodeListi = 0;
+  for (auto itr = dataBase.solidNodeListBegin();
+       itr != dataBase.solidNodeListEnd();
+       ++itr, ++nodeListi) {
+    // Make a copy of the beginning plastic strain.
+    *mPlasticStrain0[nodeListi] = (*itr)->plasticStrain();
+    (*mPlasticStrain0[nodeListi]).name(SolidFieldNames::plasticStrain + "0");
+  }
+
   state.enroll(mTimeStepMask);
   state.enroll(mass);
+  state.enroll(damage);
+  state.enroll(fragIDs);
+  state.enroll(pTypes);
+  state.enroll(mPlasticStrain0);
   state.enroll(mVolume,volumePolicy);
   state.enroll(massDensity, rhoPolicy);
   state.enroll(Hfield, Hpolicy);
@@ -425,10 +441,6 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mInterfaceAreaVectors,interfaceAreaVectorsPolicy); 
   state.enroll(mInterfaceNormals,interfaceNormalsPolicy); 
   state.enroll(mInterfaceSmoothness,interfaceSmoothnessPolicy); 
-  state.enroll(damage);
-  state.enroll(fragIDs);
-  state.enroll(pTypes);
-
 
   TIME_END("SolidFSISPHregisterState");
 }
@@ -464,7 +476,7 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   dataBase.resizeFluidFieldList(mDepsDx, Vector::zero, FSIFieldNames::specificThermalEnergyGradient, false);
   dataBase.resizeFluidFieldList(mM, Tensor::zero, HydroFieldNames::M_SPHCorrection, false);
   dataBase.resizeFluidFieldList(mLocalM, Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection, false);
-  dataBase.resizeFluidFieldList(mNewInterfaceFlags, 0,  PureReplaceFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceFlags, int(0),  PureReplaceFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags,false);
   dataBase.resizeFluidFieldList(mNewInterfaceAreaVectors, Vector::zero,  PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors,false);
   dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero,  PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals,false);
   dataBase.resizeFluidFieldList(mInterfaceSmoothnessNormalization, 0.0, FSIFieldNames::interfaceSmoothnessNormalization,false); 
@@ -1694,6 +1706,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mBulkModulus, pathName + "/bulkModulus");
   file.write(mShearModulus, pathName + "/shearModulus");
   file.write(mYieldStrength, pathName + "/yieldStrength");
+  file.write(mPlasticStrain0, pathName + "/plasticStrain0");
 
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
@@ -1719,6 +1732,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mNewInterfaceNormals, pathName + "/newInterfaceNormals");
   file.write(mInterfaceSmoothnessNormalization, pathName + "/interfaceSmoothnessNormalization");
   file.write(mNewInterfaceSmoothness, pathName + "/newInterfaceSmoothness");
+  file.write(mInterfaceFraction, pathName + "/interfaceFraction");
   file.write(mInterfaceAngles, pathName + "/interfaceAngles");
 
   file.write(mHideal, pathName + "/Hideal");
@@ -1739,7 +1753,7 @@ template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
-
+  
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mVolume, pathName + "/volume");
   file.read(mPressure, pathName + "/pressure");
@@ -1748,6 +1762,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mBulkModulus, pathName + "/bulkModulus");
   file.read(mShearModulus, pathName + "/shearModulus");
   file.read(mYieldStrength, pathName + "/yieldStrength");
+  file.read(mPlasticStrain0, pathName + "/plasticStrain0");
 
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
@@ -1773,6 +1788,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mNewInterfaceNormals, pathName + "/newInterfaceNormals");
   file.read(mInterfaceSmoothnessNormalization, pathName + "/interfaceSmoothnessNormalization");
   file.read(mNewInterfaceSmoothness, pathName + "/newInterfaceSmoothness");
+  file.read(mInterfaceFraction, pathName + "/interfaceFraction");
   file.read(mInterfaceAngles, pathName + "/interfaceAngles");
 
   file.read(mHideal, pathName + "/Hideal");

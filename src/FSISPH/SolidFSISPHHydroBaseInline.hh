@@ -418,6 +418,15 @@ yieldStrength() const {
 
 template<typename Dimension>
 inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+plasticStrain0() const {
+  return mPlasticStrain0;
+}
+
+
+template<typename Dimension>
+inline
 const FieldList<Dimension, typename Dimension::SymTensor>&
 SolidFSISPHHydroBase<Dimension>::
 Hideal() const {

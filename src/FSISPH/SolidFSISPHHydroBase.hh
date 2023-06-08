@@ -218,7 +218,8 @@ public:
   const FieldList<Dimension, Scalar>& bulkModulus() const;
   const FieldList<Dimension, Scalar>& shearModulus() const;
   const FieldList<Dimension, Scalar>& yieldStrength() const;
-
+  const FieldList<Dimension, Scalar>& plasticStrain0() const;
+  
   const FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldList<Dimension, Scalar>& maxViscousPressure() const;
   const FieldList<Dimension, Scalar>& normalization() const;
@@ -306,6 +307,7 @@ private:
   FieldList<Dimension, Scalar> mBulkModulus;
   FieldList<Dimension, Scalar> mShearModulus;
   FieldList<Dimension, Scalar> mYieldStrength;
+  FieldList<Dimension, Scalar> mPlasticStrain0;
 
   FieldList<Dimension, SymTensor> mHideal;
   FieldList<Dimension, Scalar>    mMaxViscousPressure;
