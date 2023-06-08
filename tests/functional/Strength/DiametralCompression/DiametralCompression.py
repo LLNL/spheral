@@ -7,11 +7,11 @@
 #ATS:t100 = test(        SELF, "--clearDirectories True --checkError True --goalTime 5.0 --fsisph True --nrSpecimen 15 ", label="Diametral Compression Test FSISPH -- 2-D", np=8)
 
 from Spheral2d import *
-import sys, os
-import shutil
+
+import sys, os, shutil, mpi
 from math import *
-import mpi
 import numpy as np
+
 from SpheralTestUtilities import *
 from findLastRestart import *
 
@@ -220,10 +220,10 @@ K0Clamps = rho0Clamps*c0Clamps*c0Clamps
 GClamps = K0Clamps / ((2.0*(1.0+PoissonsRatioClamps))/(3.0*(1.0-2.0*PoissonsRatioClamps)))
 strengthClamps = ConstantStrength(GClamps, 10.0*Y0) 
 
-print "Reference K   (specimen, clamps) = (%g, %g)" % (K0, K0Clamps)
-print "Reference G   (specimen, clamps) = (%g, %g)" % (G, GClamps)
-print "Reference rho (specimen, clamps) = (%g, %g)" % (rho0, rho0Clamps)
-print "Reference c   (specimen, clamps) = (%g, %g)" % (c0, c0Clamps)
+print("Reference K   (specimen, clamps) = (%g, %g)" % (K0, K0Clamps))
+print("Reference G   (specimen, clamps) = (%g, %g)" % (G, GClamps))
+print("Reference rho (specimen, clamps) = (%g, %g)" % (rho0, rho0Clamps))
+print("Reference c   (specimen, clamps) = (%g, %g)" % (c0, c0Clamps))
 
 #-------------------------------------------------------------------------------
 # Create the NodeLists. 
@@ -671,29 +671,29 @@ forceEstimated2 = pi/4.0*Es*LCS.strainHist2[-1]*rSpecimen/100.0
 forceEstimated1 = pi/4.0*Es*LCS.strainHist[-1]*rSpecimen/100.0
 
 
-print "   "
-print "---------------------------------------------------------------------------"
-print "Specimen  Bulk Modulus: %g" % K0
-print "Clamps    Bulk Modulus: %g" % K0Clamps
-print "Specimen  Poisson's Ratio: %g" % PoissonsRatio
-print "Clamps    Poisson's Ratio: %g" % PoissonsRatioClamps
-print "Specimen  Elastic Modulus: %g" % (Es/(1.0-PoissonsRatio**2))
-print "Clamps    Elastic Modulus: %g" % (Ec/(1.0-PoissonsRatioClamps**2))
-print "Effective Elastic Modulus: %g" % Estar
+print("   ")
+print("---------------------------------------------------------------------------")
+print("Specimen  Bulk Modulus: %g" % K0)
+print("Clamps    Bulk Modulus: %g" % K0Clamps)
+print("Specimen  Poisson's Ratio: %g" % PoissonsRatio)
+print("Clamps    Poisson's Ratio: %g" % PoissonsRatioClamps)
+print("Specimen  Elastic Modulus: %g" % (Es/(1.0-PoissonsRatio**2)))
+print("Clamps    Elastic Modulus: %g" % (Ec/(1.0-PoissonsRatioClamps**2)))
+print("Effective Elastic Modulus: %g" % Estar)
 
-print "---------------------------------------------------------------------------"
-print "Displacement from nominal compression rate: %g" % delta
-print "Displacement from nominal compression rate: %g" % (LCS.strainHist[-1]*rSpecimen/100.0)
-print "measured displacement of specimen         : %g" % (LCS.strainHist2[-1]*rSpecimen/100.0)
+print("---------------------------------------------------------------------------")
+print("Displacement from nominal compression rate: %g" % delta)
+print("Displacement from nominal compression rate: %g" % (LCS.strainHist[-1]*rSpecimen/100.0))
+print("measured displacement of specimen         : %g" % (LCS.strainHist2[-1]*rSpecimen/100.0))
 
 
-print "---------------------------------------------------------------------------"
-print "Force from Displacement based on nominal compression rate: %g" % forceEstimated
-print "Force from Displacement based on nominal compression rate: %g" % forceEstimated1
-print "Force from Displacement based on the measured compression: %g" % forceEstimated2
-print "Force from integrating the stress : %g" % forceSampled
-print "---------------------------------------------------------------------------"
-print "   "
+print("---------------------------------------------------------------------------")
+print("Force from Displacement based on nominal compression rate: %g" % forceEstimated)
+print("Force from Displacement based on nominal compression rate: %g" % forceEstimated1)
+print("Force from Displacement based on the measured compression: %g" % forceEstimated2)
+print("Force from integrating the stress : %g" % forceSampled)
+print("---------------------------------------------------------------------------")
+print("   ")
 
 # analytic herzian soln for stress field
 #----------------------------------------
@@ -754,8 +754,8 @@ if mpi.rank==0:
         avgSxxreduced = sum(Sxxreduced)/len(Sxxreduced)
         error = 100.0*abs(avgSxxanalytic - avgSxxreduced)/max(abs(avgSxxanalytic),1e-30)
         
-        print "average analytic Sxx  = %s" % avgSxxanalytic
-        print "average simulated Sxx = %s" % avgSxxreduced
+        print("average analytic Sxx  = %s" % avgSxxanalytic)
+        print("average simulated Sxx = %s" % avgSxxreduced)
         if error > tol:
             raise ValueError("tensile stress error bounds violated (error, error tolerance) = (%g,%g)." % (error,tol))
 
