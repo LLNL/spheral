@@ -142,6 +142,7 @@
     - INSTALL_DIR=$(cat install-dir.txt)
 
     - sed 's/YYYY\.MM\.p/'"$ALIAS"'/g' $SCRIPT_DIR/lc/modulefile-template.lua > /usr/gapps/Spheral/modulefiles/Spheral/"$ALIAS".lua
+    - chmod go+r /usr/gapps/Spheral/modulefiles/Spheral/"$ALIAS".lua
 
     - ml load mpifileutils
     - srun -N 1 -p $PARTITION -n 20 -t 10 dchmod --mode go+rx $INSTALL_DIR
