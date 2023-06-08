@@ -1,6 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
 // JohnsonCookStrength -- Implements the Johnson-Cook strength model.
-//   ** Need reference **
+//
+//   Johnson, G.R, Cook, W.R., A constitutive mdoel and data for metals 
+//   subjected to large strains, high strain rates and high temperatures,
+//   Proc. 7th Int. Symp. on BuNistics, pp. 541-547. The Hague, The Netherlands 
+//   (April 1983)
 //
 // Created by JMO, Tue Jul 28 13:39:50 PDT 2015
 //----------------------------------------------------------------------------//
