@@ -47,25 +47,4 @@ blueos_cuda_11_gcc_spectrum_test:
   allow_failure: true
 
 
-# ------------------------------------------------------------------------------
-# CLEAN OLD BUILD DIRS
 
-cleanup_build_dirs:
-  extends: [.clean_dirs]
-
-
-# ------------------------------------------------------------------------------
-# UPDATE TPL JOBS
-
-toss_update_tpls:
-  extends: [.toss_resource2, .update_tpls, .merge_pr_rule]
-
-blueos_update_tpls:
-  extends: [.blueos_resource2, .update_tpls, .merge_pr_rule]
-  needs: [toss_update_tpls]
-
-# ------------------------------------------------------------------------------
-# UPDATE PERM JOBS
-
-shared_tpls_update_permissions:
-  extends: [.toss_resource_general, .toss_update_permissions, .merge_pr_rule]

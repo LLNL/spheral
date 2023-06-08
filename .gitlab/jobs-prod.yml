@@ -1,10 +1,52 @@
-toss_generate_buildcache_risky:
-  extends: [.toss_resource_general, .gcc_mvapich2, .buildcache_risky, .merge_pr_rule]
+# ------------------------------------------------------------------------------
+# UPDATE TPL JOBS
 
-toss_install_risky:
-  extends: [.toss_resource_general, .gcc_mvapich2, .install_production_risky, .merge_pr_rule]
-  needs: [toss_generate_buildcache_risky]
+toss_update_tpls:
+  extends: [.toss_resource2, .update_tpls, .merge_pr_rule]
 
-toss_risky_module_install:
-  extends: [.toss_resource_general, .module_prod_risky, .merge_pr_rule]
-  needs: [toss_install_risky]
+blueos_update_tpls:
+  extends: [.blueos_resource2, .update_tpls, .merge_pr_rule]
+  needs: [toss_update_tpls]
+
+# ------------------------------------------------------------------------------
+# UPDATE PERM JOBS
+
+shared_tpls_update_permissions:
+  extends: [.toss_resource_general, .toss_update_permissions, .merge_pr_rule]
+
+# ------------------------------------------------------------------------------
+# PROD BUILD JOBS
+
+### RISKY ###
+toss_build_dev_pkg_risky:
+  extends: [.toss_resource_general, .gcc_mvapich2, .build_dev_pkg, .merge_pr_rule]
+
+toss_install_dev_pkg_risky:
+  extends: [.toss_resource_general, .gcc_mvapich2, .install_dev_pkg, .merge_pr_rule]
+  needs: [toss_build_dev_pkg_risky]
+
+toss_risky_permissions:
+  variables:
+    ALIAS: 'test-risky'
+  extends: [.toss_resource_general, .prod_permissions, .merge_pr_rule]
+  needs: [toss_install_dev_pkg_risky]
+
+### TAG RELEASE ###
+toss_build_dev_pkg_release:
+  extends: [.toss_resource_general, .gcc_mvapich2, .build_dev_pkg, .tag_release_rule]
+
+toss_install_dev_pkg_release:
+  extends: [.toss_resource_general, .gcc_mvapich2, .install_dev_pkg, .tag_release_rule]
+  needs: [toss_build_dev_pkg_release]
+
+toss_release_permissions:
+  variables:
+    ALIAS: $CI_COMMIT_TAG
+  extends: [.toss_resource_general, .prod_permissions, .tag_release_rule]
+  needs: [toss_install_dev_pkg_release]
+# ------------------------------------------------------------------------------
+# CLEAN OLD BUILD DIRS
+
+cleanup_build_dirs:
+  extends: [.clean_dirs]
+

@@ -62,63 +62,91 @@
 # Production Installation scripts
 # ------------------------------------------------------------------------------
 
-.buildcache_risky:
+### Create a tar file containing:
+#
+# dev-pkg/
+#   *cloned spheral repo.*
+#   resources/
+#     mirror/
+#     build_cache/
+#     bootstrap/
+#       metadata/
+#       bootstrap_cache/
+
+.build_dev_pkg:
   stage: generate_buildcache
   extends: [.spheral_rev_str]
   script:
+    - INSTALL_DIR=/usr/gapps/Spheral/$SYS_TYPE/spheral-$SPHERAL_REV_STR
+    - DEV_PKG_NAME=$SYS_TYPE-spheral-dev-pkg-$SPHERAL_REV_STR
+    - DEV_PKG_PATH=$INSTALL_DIR/$DEV_PKG_NAME
+    - echo $INSTALL_DIR &> install-dir.txt
+    - echo $DEV_PKG_NAME &> dev-pkg-name.txt
+    
+    # *** Copy spheral src and all submodules. ***
+    - mkdir -p $DEV_PKG_PATH/resources && cp -a $CI_PROJECT_DIR/. $DEV_PKG_PATH
+
     ### Initialize the upstream spack instance for this platform.
     ###   - We do this to load system configs / externals for this machine.
     - ./$SCRIPT_DIR/devtools/tpl-manager.py --init-only --spheral-spack-dir=$UPSTREAM_DIR --spec=none
     - source $UPSTREAM_DIR/spack/share/spack/setup-env.sh
 
     ### Installation Directory w/ Spheral rev numbers.
-    - INSTALL_DIR=/usr/gapps/Spheral/$SYS_TYPE/spheral-$SPHERAL_REV_STR
-    - echo $INSTALL_DIR &> install-dir.txt
 
     ### Create a temporary spack environement with only the TPL specs for this specific commit of Spheral
     - spack env create -d $INSTALL_DIR
     - spack env activate $INSTALL_DIR
-    - spack add $SPACK_NAME@develop%$SPEC
+    - spack add $SPACK_PKG_NAME@develop%$SPEC
     - spack concretize --fresh -f
 
-    ### The buildcache stores binary builds of all necessary TPLs for this specific produciton build.
-    - spack buildcache create -auf -d $INSTALL_DIR $(spack find --format /{hash})
+    # *** Pre-built binaries for $SYS_TYPE. ***
+    - spack buildcache create -auf -d $DEV_PKG_PATH/resources $(spack find --format /{hash})
+    # *** All TPL tar files. ***
+    - spack mirror create -a -d $DEV_PKG_PATH/resources/mirror --exclude-specs "llnlspheral spheral"
+    # *** Spack bootstrapping resources. ***
+    - spack bootstrap mirror --binary-packages $DEV_PKG_PATH/resources
+
+    ### Wrap it all up. 
+    - tar -czvf "$DEV_PKG_PATH".tar.gz -C $INSTALL_DIR $DEV_PKG_NAME
+
+    ### Cleanup
+    - rm -rf $DEV_PKG_PATH
+
   artifacts:
     paths:
       - install-dir.txt
+      - dev-pkg-name.txt
 
 
-.install_production_risky:
+.install_dev_pkg:
   stage: install_production
   script:
     - INSTALL_DIR=$(cat install-dir.txt)
+    - DEV_PKG_NAME=$(cat dev-pkg-name.txt)
 
-    # Initialize local spack instance in $INSTALL_DIR, ensure we do not enable the upstream spack instance.
-    - ./$SCRIPT_DIR/devtools/tpl-manager.py --init-only --spheral-spack-dir=$INSTALL_DIR/spheral-spack-tpls --spec=none --no-upstream
-    - source $INSTALL_DIR/spheral-spack-tpls/spack/share/spack/setup-env.sh
+    - cp $INSTALL_DIR/$DEV_PKG_NAME.tar.gz .
+    - tar -xzf $DEV_PKG_NAME.tar.gz
+    - cd $DEV_PKG_NAME
 
-    ### Initialize the buildcache we previously built and install all TPLs of Spheral.
-    - spack mirror add risky-mirror $INSTALL_DIR
-    - spack buildcache update-index -d $INSTALL_DIR
-    - $BUILD_ALLOC spack install --fresh --no-check-signature --only dependencies $SPACK_NAME@develop%$SPEC
+    - env INSTALL_DIR=$INSTALL_DIR SPEC=$SPEC SPACK_PKG_NAME=$SPACK_PKG_NAME BUILD_ALLOC="$BUILD_ALLOC" SCRIPT_DIR=$SCRIPT_DIR
+      bash ./$SCRIPT_DIR/lc/install-from-dev-pkg.sh
 
-    ## Generate the Host config from the now locally installed TPLs.
-    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spec $SPEC --spheral-spack-dir=$INSTALL_DIR/spheral-spack-tpls --no-upstream
-    - HOST_CONFIG_FILE=$(ls -t | grep -E "*\.cmake" | head -1)
-
-    ## Build and Install Spheral
-    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config $HOST_CONFIG_FILE -i $INSTALL_DIR --build --no-clean
   artifacts:
     paths:
       - install-dir.txt
 
-.module_prod_risky:
+
+.prod_permissions:
   stage: update_permissions
   script:
     - INSTALL_DIR=$(cat install-dir.txt)
+
+    - sed 's/YYYY\.MM\.p/'"$ALIAS"'/g' $SCRIPT_DIR/lc/modulefile-template.lua > /usr/gapps/Spheral/modulefiles/Spheral/"$ALIAS".lua
+
     - ml load mpifileutils
     - srun -N 1 -p $PARTITION -n 20 -t 10 dchmod --mode go+rx $INSTALL_DIR
-    - ln -sfn $INSTALL_DIR /usr/gapps/Spheral/$SYS_TYPE/risky
+    - ln -sfn $INSTALL_DIR /usr/gapps/Spheral/$SYS_TYPE/$ALIAS
+
 
 # ------------------------------------------------------------------------------
 # Script Utilities
@@ -141,4 +169,7 @@
     - if: '$CI_COMMIT_REF_NAME == "develop"'
       when: always
 
-
+.tag_release_rule:
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: manual
