@@ -813,7 +813,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // line of action
       const auto rij = ri - rj;
       const auto rhatij = rij.unitVector();
-      const auto rMagij = rij.magnitude();
+      //const auto rMagij = rij.magnitude();
 
       // decoupling and boolean switches
       //-------------------------------------------------------
@@ -899,25 +899,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // interface normals 
       //-----------------------------------------------------------
-      const auto fSij = ( sameMatij ? 1.0 : 0.0);              // direction parameter
-      const auto fSij3 = ( sameMatij ? 1.0 : -1.0);              // direction parameter
-      const auto AijMij = fSij3*(voli*volj)*(gradWjMj+gradWiMi); // surface area vector
+      const auto fSij = ( sameMatij ? 1.0 : -1.0);              // direction parameter
+      const auto AijMij = fSij*(voli*volj)*(gradWjMj+gradWiMi); // surface area vector
 
       const auto alignment = (interfaceFlagsi == 5 or interfaceFlagsj == 5 ? 
                               0.0:
-                              std::max(fSij3*interfaceNormalsi.dot(interfaceNormalsj),0.0));
+                              std::max(fSij*interfaceNormalsi.dot(interfaceNormalsj),0.0));
 
       newInterfaceAreaVectorsi -= AijMij;
       newInterfaceAreaVectorsj += AijMij;
 
       if (sameMatij){
+
         interfaceFractioni += volj * Wij;
         interfaceFractionj += voli * Wij;
+
         // we use the angle between normal and neighbors to check for interface control particles (type 2 or 4)
         if (interfaceFlagsj != 5) minNeighborAnglei = std::max(-interfaceAreaVectorsi.unitVector().dot(rhatij),minNeighborAnglei);
         if (interfaceFlagsi != 5) minNeighborAnglej = std::max( interfaceAreaVectorsj.unitVector().dot(rhatij),minNeighborAnglej);
         if (interfaceFlagsj == 2) newInterfaceFlagsi = std::max(newInterfaceFlagsi,1);
         if (interfaceFlagsi == 2) newInterfaceFlagsj = std::max(newInterfaceFlagsj,1);
+
       }
 
       if(differentMatij and (interfaceFlagsi!=5 and interfaceFlagsj!=5)){
@@ -930,18 +932,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       if (interfaceFlagsi > 0 and interfaceFlagsj > 0){
         const double proxWeighti = 1.0 - (interfaceFlagsi % 2);
         const double proxWeightj = 1.0 - (interfaceFlagsj % 2);
-        newInterfaceNormalsi += proxWeightj*fSij3*volj*interfaceAreaVectorsj*Wij;
-        newInterfaceNormalsj += proxWeighti*fSij3*voli*interfaceAreaVectorsi*Wij;
-        // interfaceSmoothnessNormalizationi -= volj*(fSij3*interfaceNormalsi-interfaceNormalsj).dot(gradWiMi);//volj*interfaceFlagsj*Wij;
-        // interfaceSmoothnessNormalizationj -= voli*(fSij3*interfaceNormalsi-interfaceNormalsj).dot(gradWjMj);//voli*interfaceFlagsi*Wij;  
+        newInterfaceNormalsi += proxWeightj*fSij*volj*interfaceAreaVectorsj*Wij;
+        newInterfaceNormalsj += proxWeighti*fSij*voli*interfaceAreaVectorsi*Wij;
+        //newInterfaceSmoothnessi += volj*(interfaceNormalsi-interfaceNormalsj).dot(gradWiMi);//alignment*interfaceFlagsj*volj*Wij;
+        //newInterfaceSmoothnessj += voli*(interfaceNormalsi-interfaceNormalsj).dot(gradWjMj);//alignment*interfaceFlagsi*voli*Wij;
+        // interfaceSmoothnessNormalizationi -= volj*(fSij*interfaceNormalsi-interfaceNormalsj).dot(gradWiMi);//volj*interfaceFlagsj*Wij;
+        // interfaceSmoothnessNormalizationj -= voli*(fSij*interfaceNormalsi-interfaceNormalsj).dot(gradWjMj);//voli*interfaceFlagsi*Wij;  
       }
-      const auto ninja = interfaceNormalsi.magnitude() * interfaceNormalsj.magnitude();
-      interfaceSmoothnessNormalizationi -= ninja*volj*(rij).dot(gradWiMi);//volj*interfaceFlagsj*Wij;
-      interfaceSmoothnessNormalizationj -= ninja*voli*(rij).dot(gradWjMj);//voli*interfaceFlagsi*Wij;
-      newInterfaceSmoothnessi += ninja*volj*(fSij3*interfaceNormalsi-interfaceNormalsj).dot(gradWiMi);//alignment*interfaceFlagsj*volj*Wij;
-      newInterfaceSmoothnessj += ninja*voli*(fSij3*interfaceNormalsi-interfaceNormalsj).dot(gradWjMj);//alignment*interfaceFlagsi*voli*Wij;
-      //newInterfaceSmoothnessi += 2.0*fSij*volj*rij.dot(gradWiMi)*safeInv(rMagij,tiny);//fSij*std::min(interfaceFlagsj,1)*std::min(interfaceFlagsi,1)*volj*(fSij3*interfaceNormalsi-interfaceNormalsj).dot(gradWiMi);//alignment*interfaceFlagsj*volj*Wij;
-      //newInterfaceSmoothnessj += 2.0*fSij*voli*rij.dot(gradWjMj)*safeInv(rMagij,tiny);
+      //const auto ninja = interfaceNormalsi.magnitude() * interfaceNormalsj.magnitude();
+      const auto interfaceSwitch = std::min(std::min(interfaceFlagsj,interfaceFlagsi),1);
+      interfaceSmoothnessNormalizationi += interfaceSwitch*volj*Wij;
+      interfaceSmoothnessNormalizationj += interfaceSwitch*voli*Wij;
+      newInterfaceSmoothnessi += interfaceSwitch*alignment*volj*Wij;
+      newInterfaceSmoothnessj += interfaceSwitch*alignment*voli*Wij;
       // normalization 
       //-----------------------------------------------------------
       normi += volj*Wi;
@@ -1180,16 +1183,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       if ( interfaceFlagsi > 0 ){
         const double proxWeighti = 100*(1.0 - interfaceFlagsi % 2);
         newInterfaceNormalsi = (newInterfaceNormalsi + proxWeighti * psi * interfaceAreaVectorsi).unitVector();
+        //interfaceSmoothnessNormalizationi += psi * interfaceFlagsi;
+        newInterfaceSmoothnessi = newInterfaceSmoothnessi/max(interfaceSmoothnessNormalizationi,tiny);
       } else {
         newInterfaceNormalsi = Vector::zero;
-        //newInterfaceSmoothnessi = 0.0;
       }
-      //interfaceSmoothnessNormalizationi += psi * interfaceFlagsi;
-      //newInterfaceSmoothnessi = min(1.0,max(0.0,(newInterfaceSmoothnessi+psi * interfaceFlagsi)/max(interfaceSmoothnessNormalizationi,tiny)));
-      newInterfaceSmoothnessi = newInterfaceSmoothnessi/max(interfaceSmoothnessNormalizationi,tiny);
-      // Complete the moments of the node distribution for use in the ideal H calculation.
-      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
-      massSecondMomenti /= Hdeti*Hdeti;
  
       // continuity
       DrhoDti -=  rhoi*DvDxi.Trace();
@@ -1206,6 +1204,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
 
       // H - Evolution
+      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
+      massSecondMomenti /= Hdeti*Hdeti;
+
       DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
                                                             ri,
                                                             DvDxi,
