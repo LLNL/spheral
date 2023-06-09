@@ -357,7 +357,6 @@ elif fsisph:
         sumDensityNodeLists += [nodes2]
     hydro = FSISPH(dataBase = db,
                    W = WT,
-                   filter = filter,
                    cfl = cfl,
                    sumDensityNodeLists=sumDensityNodeLists,                       
                    densityStabilizationCoefficient = 0.00,

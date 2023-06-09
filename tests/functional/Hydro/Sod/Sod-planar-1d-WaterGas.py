@@ -306,7 +306,6 @@ elif psph:
 elif fsisph:
     hydro = FSISPH(dataBase = db,
                    W = WT,
-                   filter = filter,
                    cfl = cfl,
                    sumDensityNodeLists=[nodes2],                       
                    densityStabilizationCoefficient = fsiRhoStabilizeCoeff,

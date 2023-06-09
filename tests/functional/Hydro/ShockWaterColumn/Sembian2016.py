@@ -504,7 +504,6 @@ output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
-output("hydro.XSPH")
 
 packages += [hydro]
 

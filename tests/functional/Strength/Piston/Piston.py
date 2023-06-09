@@ -65,7 +65,8 @@ commandLine(# materials properties
             fsiEpsDiffuseCoeff = 0.0,           # diffusion coeff for specific thermal energy
             fsiXSPHCoeff = 0.0,                 # ramps xsph up
             fsiInterfaceMethod = HLLCInterface, # (HLLCInterface, ModulusInterface, NoInterface)
-
+            fsiPlaneStrain = True,
+            
             # CRK parameters
             correctionOrder = LinearOrder,
             volumeType = RKSumVolume,
@@ -109,7 +110,7 @@ commandLine(# materials properties
             boolHopkinsCorrection = True,
             
             # integrator settings
-            IntegratorConstructor = SynchronousRK2Integrator,            
+            IntegratorConstructor = SynchronousRK1Integrator,            
             cfl = 0.25,
             goalTime = 150e-6,
             dt = 1.0e-13,
@@ -154,12 +155,7 @@ else:
 if solid:
     hydroname = "Solid" + hydroname
 
-dataDir = os.path.join(dataDirBase, 
-                       hydroname,
-                       "nPerh=%f" % nPerh,
-                       "compatibleEnergy=%s" % compatibleEnergy,
-                       "Cullen=%s" % boolCullenViscosity,
-                       "%i" % (nx1))
+dataDir = os.path.join(dataDirBase)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Piston-1d-Cu-%i" % (nx1))
 
@@ -190,19 +186,6 @@ eos = GruneisenEquationOfState(referenceDensity = rho0,
                                atomicWeight = MW,
                                externalPressure = 0.0,
                                constants=units)
-
-# gammaStiff = 6.0
-# Pstiff = 1.6e10
-# eos = StiffenedGas(gamma=gammaStiff, 
-#                     P0=Pstiff, 
-#                     Cv=3000,
-#                     constants=units)
-
-#eps0 = (P0+gammaStiff*Pstiff)/((gammaStiff - 1.0)*rho0)
-# eos = TillotsonEquationOfState("copper",
-#                                                etamin,
-#                                                etamax,
-#                                                units)
 
 eps0 = eos.specificThermalEnergyForPressure(Ptarget = P0,
                                          rho =rho0,
@@ -257,7 +240,7 @@ pos = nodes.positions()
 eps = nodes.specificThermalEnergy()
 rho = nodes.massDensity()
 vel = nodes.velocity()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     vel[i].x = v0
     eps[i] = eps0
 #-------------------------------------------------------------------------------
@@ -282,7 +265,7 @@ if crksph:
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
-                   densityUpdate = RigorousSumDensity,#densityUpdate,
+                   densityUpdate = densityUpdate,
                    HUpdate = HUpdate)
 elif psph:
     hydro = PSPH(dataBase = db,
@@ -297,7 +280,6 @@ elif psph:
 elif fsisph:
     hydro = FSISPH(dataBase = db,
                    W = WT,
-                   filter = filter,
                    cfl = cfl,
                    sumDensityNodeLists=[],                       
                    densityStabilizationCoefficient = fsiRhoStabilizeCoeff,
@@ -307,7 +289,8 @@ elif fsisph:
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    correctVelocityGradient = correctVelocityGradient,
-                   HUpdate = HUpdate)
+                   HUpdate = HUpdate,
+                   planeStrain=fsiPlaneStrain)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -370,11 +353,11 @@ elif boolCullenViscosity:
 #-------------------------------------------------------------------------------
 xPlane0 = Plane(Vector(x0), Vector( 1.0))
 xPlane1 = Plane(Vector(x1), Vector(-1.0))
-xbc0 = InflowOutflowBoundary(db,xPlane0)
+#xbc0 = InflowOutflowBoundary(db,xPlane0) # not restart safe
 xbc1 = ReflectingBoundary(xPlane1)
 
 for p in packages:
-    p.appendBoundary(xbc0)
+    #p.appendBoundary(xbc0)
     p.appendBoundary(xbc1)
 
 #-------------------------------------------------------------------------------
@@ -424,14 +407,26 @@ if not steps is None:
 
     # Are we doing the restart test?
     if checkRestart:
+
         state0 = State(db, integrator.physicsPackages())
         state0.copyState()
+        derivs0 = StateDerivatives(db, integrator.physicsPackages())
+        derivs0.copyState()
+        
         control.loadRestartFile(control.totalSteps)
+
         state1 = State(db, integrator.physicsPackages())
+        derivs1 = StateDerivatives(db, integrator.physicsPackages())
+        
         if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
+            raise ValueError("The restarted state does not match!")
         else:
-            print "Restart check PASSED."
+            print("Restart check PASSED.")
+
+        if not derivs1 == derivs0:
+            raise ValueError("The restarted derivs do not match!")
+        else:
+            print("Restart check PASSED.")
 
 else:
     control.advance(goalTime, maxSteps)
@@ -446,8 +441,8 @@ h1 = 1.0/(nPerh*dx1)
 # Make a flat list from a FieldList
 def createList(x):
     result = []
-    for i in xrange(len(x)):
-        for j in xrange(x[i].numInternalElements):
+    for i in range(len(x)):
+        for j in range(x[i].numInternalElements):
             result.append(x(i,j))
     return mpi.allreduce(result, mpi.SUM)
 
@@ -497,7 +492,7 @@ if graphics:
     for p, filename in plots:
         savefig(p, os.path.join(dataDir, filename))
 
-print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
+print("Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],
-                                                                (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0])
+                                                                (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]))
 

@@ -391,7 +391,6 @@ output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
-output("hydro.XSPH")
 if hasattr(hydro, "correctionOrder"):
     output("hydro.correctionOrder")
 if hasattr(hydro, "volumeType"):
