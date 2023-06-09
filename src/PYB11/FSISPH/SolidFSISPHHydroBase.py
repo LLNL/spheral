@@ -36,8 +36,6 @@ class SolidFSISPHHydroBase(GenericHydro):
                useVelocityMagnitudeForDt = "const bool",
                compatibleEnergyEvolution = "const bool",
                evolveTotalEnergy = "const bool",
-               gradhCorrection = "const bool",
-               XSPH = "const bool",
                correctVelocityGradient = "const bool",
                densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
@@ -46,7 +44,6 @@ class SolidFSISPHHydroBase(GenericHydro):
                interfacePmin = "const double",
                planeStrain = "const bool",
                damageRelieveRubble = "const bool",
-               strengthInDamage = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "SolidFSISPHHydroBase constructor"
@@ -94,8 +91,6 @@ mass density, velocity, and specific thermal energy."""
         "non-op place filler"
         return "void"
 
-
-
     #...........................................................................
     # Properties
     timeStepMask =                     PYB11property("const FieldList<%(Dimension)s, int>&",      "timeStepMask",         returnpolicy="reference_internal")
@@ -106,6 +101,7 @@ mass density, velocity, and specific thermal energy."""
     bulkModulus =                      PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "bulkModulus",         returnpolicy="reference_internal")
     shearModulus =                     PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "shearModulus",        returnpolicy="reference_internal")
     yieldStrength =                    PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "yieldStrength",       returnpolicy="reference_internal")
+    plasticStrain0 =                   PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "plasticStrain0",      returnpolicy="reference_internal")
     Hideal =                           PYB11property("const FieldList<%(Dimension)s, SymTensor>&","Hideal",               returnpolicy="reference_internal")
     maxViscousPressure =               PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "maxViscousPressure",   returnpolicy="reference_internal")
     normalization =                    PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "normalization",        returnpolicy="reference_internal")
@@ -126,6 +122,7 @@ mass density, velocity, and specific thermal energy."""
     localM =                           PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "localM",               returnpolicy="reference_internal")
     pairAccelerations =                PYB11property("const std::vector<Vector>&",                "pairAccelerations",    returnpolicy="reference_internal")
     pairDepsDt =                       PYB11property("const std::vector<Scalar>&",                "pairDepsDt",           returnpolicy="reference_internal")
+    interfaceFraction =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "interfaceFraction",    returnpolicy="reference_internal")
     interfaceFlags =                   PYB11property("const FieldList<%(Dimension)s, int>&",      "interfaceFlags",       returnpolicy="reference_internal")
     interfaceAreaVectors =             PYB11property("const FieldList<%(Dimension)s, Vector>&",   "interfaceAreaVectors", returnpolicy="reference_internal")
     interfaceNormals =                 PYB11property("const FieldList<%(Dimension)s, Vector>&",   "interfaceNormals",     returnpolicy="reference_internal")
@@ -159,8 +156,6 @@ mass density, velocity, and specific thermal energy."""
                                               doc="Flag to determine if we're using the total energy conserving compatible energy evolution scheme.")
     evolveTotalEnergy = PYB11property("bool", "evolveTotalEnergy", "evolveTotalEnergy",
                                       doc="Flag controlling if we evolve total or specific energy.")
-    XSPH = PYB11property("bool", "XSPH", "XSPH",
-                         doc="Flag to determine if we're using the XSPH algorithm.")
     correctVelocityGradient = PYB11property("bool", "correctVelocityGradient", "correctVelocityGradient",
                                             doc="Flag to determine if we're applying the linear correction for the velocity gradient.")
     epsilonTensile = PYB11property("double", "epsilonTensile", "epsilonTensile",

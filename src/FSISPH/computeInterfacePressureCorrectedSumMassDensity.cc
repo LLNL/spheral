@@ -33,8 +33,8 @@ computeInterfacePressureCorrectedSumMassDensity(const ConnectivityMap<Dimension>
 
   // Some useful variables.
   const auto W0 = W.kernelValue(0.0, 1.0);
-  const auto linEtaMax = 1.0;
-  const auto linEtaMin = 0.5;
+  const auto linEtaMax = 0.25;
+  const auto linEtaMin = 0.25;
   const auto tiny = std::numeric_limits<double>::epsilon();
 
   // The set of interacting node pairs.
@@ -96,8 +96,8 @@ computeInterfacePressureCorrectedSumMassDensity(const ConnectivityMap<Dimension>
         const auto rhoi = mi*safeInv(Vi,tiny);
         const auto rhoj = mj*safeInv(Vj,tiny);
 
-        const auto drhodPi = std::min(std::max((Pj-Pi)*safeInv(ci*ci,tiny),rhoi*linEtaMax),-rhoi*linEtaMin);
-        const auto drhodPj = std::min(std::max((Pi-Pj)*safeInv(cj*cj,tiny),rhoj*linEtaMax),-rhoi*linEtaMin);
+        const auto drhodPi = std::max(std::min((Pj-Pi)*safeInv(ci*ci,tiny),rhoi*linEtaMax),-rhoi*linEtaMin);
+        const auto drhodPj = std::max(std::min((Pi-Pj)*safeInv(cj*cj,tiny),rhoj*linEtaMax),-rhoj*linEtaMin);
         meffi = Vi*(rhoj+drhodPj);
         meffj = Vj*(rhoi+drhodPi);
       }

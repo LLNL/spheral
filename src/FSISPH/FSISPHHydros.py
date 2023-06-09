@@ -26,7 +26,6 @@ def FSISPH(dataBase,
         interfacePmin=0.0,
         planeStrain = True,
         damageRelieveRubble = False,    # zombie input for backward compat
-        strengthInDamage = False,       # zombie input for backward compat
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
         ASPH = False,
@@ -40,9 +39,6 @@ def FSISPH(dataBase,
     
     if compatibleEnergyEvolution and evolveTotalEnergy:
         raise RuntimeError("compatibleEnergyEvolution and evolveTotalEnergy are incompatible")
-
-    if strengthInDamage and damageRelieveRubble:
-        raise RuntimeError("strengthInDamage and damageRelieveRubble are incompatible")
 
     # create the map nodelist --> index
     nodeLists = dataBase.nodeLists()
@@ -116,8 +112,6 @@ def FSISPH(dataBase,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
               "evolveTotalEnergy" : evolveTotalEnergy,
-              "gradhCorrection" : False,
-              "XSPH" : False,
               "correctVelocityGradient" : correctVelocityGradient,
               "densityUpdate" : IntegrateDensity,
               "HUpdate" : HUpdate,
@@ -126,7 +120,6 @@ def FSISPH(dataBase,
               "interfacePmin" : interfacePmin,
               "planeStrain" : planeStrain,
               "damageRelieveRubble" : damageRelieveRubble,
-              "strengthInDamage" : strengthInDamage,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
 

@@ -19,6 +19,12 @@ enum class InterfaceMethod {
   NoInterface = 2,
 };
 
+enum class FSIMassDensityMethod {
+  FSISumMassDensity = 0,
+  PressureCorrectSumMassDensity = 1,
+  HWeightedSumMassDensity = 2,
+};
+
 enum class KernelAveragingMethod {
   NeverAverageKernels = 0,
   AlwaysAverageKernels = 1,
@@ -66,8 +72,6 @@ public:
                     const bool useVelocityMagnitudeForDt,
                     const bool compatibleEnergyEvolution,
                     const bool evolveTotalEnergy,
-                    const bool gradhCorrection,
-                    const bool XSPH,
                     const bool correctVelocityGradient,
                     const MassDensityType densityUpdate,
                     const HEvolutionType HUpdate,
@@ -76,7 +80,6 @@ public:
                     const double interfacePmin,
                     const bool planeStrain,
                     const bool damageRelieveRubble,
-                    const bool strengthInDamage,
                     const Vector& xmin,
                     const Vector& xmax);
 
@@ -159,9 +162,6 @@ public:
   bool evolveTotalEnergy() const;
   void evolveTotalEnergy(bool val);
 
-  bool XSPH() const;
-  void XSPH(bool val);
-
   bool correctVelocityGradient() const;
   void correctVelocityGradient(bool val);
 
@@ -219,7 +219,7 @@ public:
   const FieldList<Dimension, Scalar>& shearModulus() const;
   const FieldList<Dimension, Scalar>& yieldStrength() const;
   const FieldList<Dimension, Scalar>& plasticStrain0() const;
-  
+
   const FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldList<Dimension, Scalar>& maxViscousPressure() const;
   const FieldList<Dimension, Scalar>& normalization() const;
@@ -276,7 +276,6 @@ private:
   bool mPlaneStrain;                                  // switch to update deviatoric stress according to plane-strain model
   bool mCompatibleEnergyEvolution;
   bool mEvolveTotalEnergy;
-  bool mXSPH; 
   bool mCorrectVelocityGradient;
 
   double mInterfacePmin;                              // minimum pressure allowed between material interfaces
@@ -349,27 +348,15 @@ private:
   std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
   std::vector<Vector> mPairAccelerations;
 
-  // The interpolation kernels.
-  
-
-  // The method defining how we evolve smoothing scales.
-  
-
-  // A bunch of switches.
-  
-
-
-  // Some internal scratch fields.
-
-
-  
-
-
-
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();
   SolidFSISPHHydroBase(const SolidFSISPHHydroBase&);
   SolidFSISPHHydroBase& operator=(const SolidFSISPHHydroBase&);
+
+protected:
+  //--------------------------- Protected Interface ---------------------------//
+  // The restart registration.
+  RestartRegistrationType mRestart;
 };
 
 }

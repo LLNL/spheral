@@ -76,20 +76,6 @@ SolidFSISPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
 template<typename Dimension>
 inline
 bool
-SolidFSISPHHydroBase<Dimension>::XSPH() const {
-  return mXSPH;
-}
-
-template<typename Dimension>
-inline
-void
-SolidFSISPHHydroBase<Dimension>::XSPH(bool val) {
-  mXSPH = val;
-}
-
-template<typename Dimension>
-inline
-bool
 SolidFSISPHHydroBase<Dimension>::correctVelocityGradient() const {
   return mCorrectVelocityGradient;
 }
