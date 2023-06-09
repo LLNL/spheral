@@ -814,7 +814,6 @@ bool
 FlatConnectivity<Dimension>::
 fluidNodeListsFirst(const DataBase<Dimension>& dataBase) const
 {
-  const auto numFluidNodeLists = dataBase.numFluidNodeLists();
   auto nodeListi = 0;
   auto nodeListItri = dataBase.nodeListBegin();
   auto nodeListItrj = dataBase.fluidNodeListBegin();
