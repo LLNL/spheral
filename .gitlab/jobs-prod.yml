@@ -17,17 +17,17 @@ shared_tpls_update_permissions:
 # ------------------------------------------------------------------------------
 # PROD BUILD JOBS
 
-### RISKY ###
-toss_build_dev_pkg_risky:
+### DEV ###
+toss_build_dev_pkg_dev:
   extends: [.toss_resource_general, .gcc_mvapich2, .build_dev_pkg, .merge_pr_rule]
 
-toss_install_dev_pkg_risky:
+toss_install_dev_pkg_dev:
   extends: [.toss_resource_general, .gcc_mvapich2, .install_dev_pkg, .merge_pr_rule]
   needs: [toss_build_dev_pkg_risky]
 
-toss_risky_permissions:
+toss_dev_permissions:
   variables:
-    ALIAS: 'test-risky'
+    ALIAS: 'dev'
   extends: [.toss_resource_general, .prod_permissions, .merge_pr_rule]
   needs: [toss_install_dev_pkg_risky]
 
