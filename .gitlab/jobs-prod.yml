@@ -23,13 +23,13 @@ toss_build_dev_pkg_dev:
 
 toss_install_dev_pkg_dev:
   extends: [.toss_resource_general, .gcc_mvapich2, .install_dev_pkg, .merge_pr_rule]
-  needs: [toss_build_dev_pkg_risky]
+  needs: [toss_build_dev_pkg_dev]
 
 toss_dev_permissions:
   variables:
     ALIAS: 'dev'
   extends: [.toss_resource_general, .prod_permissions, .merge_pr_rule]
-  needs: [toss_install_dev_pkg_risky]
+  needs: [toss_install_dev_pkg_dev]
 
 ### TAG RELEASE ###
 toss_build_dev_pkg_release:
