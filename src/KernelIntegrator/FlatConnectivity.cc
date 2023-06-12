@@ -22,6 +22,23 @@
 
 namespace Spheral {
 
+namespace { // anonymous
+template<typename Dimension>
+int
+numFluidNeighbors(const std::vector<std::vector<int>>& connectivity,
+                  const DataBase<Dimension>& dataBase)
+{
+   auto numNeighbors = 0;
+   auto nodeListj = 0;
+   for (auto nodeListItrj = dataBase.fluidNodeListBegin();
+        nodeListItrj != dataBase.fluidNodeListEnd();
+        ++nodeListItrj, ++nodeListj) {
+      numNeighbors += connectivity[nodeListj].size();
+   }
+   return numNeighbors;
+}
+} // end namespace anonymous
+
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
@@ -46,10 +63,12 @@ template<typename Dimension>
 void 
 FlatConnectivity<Dimension>::
 computeIndices(const DataBase<Dimension>& dataBase) {
+  VERIFY(fluidNodeListsFirst(dataBase));
+  
   // Get information from DataBase
-  const auto numNodeListsDB = dataBase.numNodeLists();
-  const auto numNodesDB = dataBase.numNodes();
-  const auto numInternalNodesDB = dataBase.numInternalNodes();
+  const auto numNodeListsDB = dataBase.numFluidNodeLists();
+  const auto numNodesDB = dataBase.numFluidNodes();
+  const auto numInternalNodesDB = dataBase.numFluidInternalNodes();
 
   const auto& connectivity = dataBase.connectivityMap();
   const auto requireGhostConnectivity = connectivity.buildGhostConnectivity();
@@ -109,10 +128,10 @@ computeIndices(const DataBase<Dimension>& dataBase) {
       const auto numNodesi = requireGhostConnectivity ? (*nodeListItri)->numNodes() : (*nodeListItri)->numInternalNodes();
       for (auto nodei = 0u; nodei < numNodesi; ++nodei) {
         // Get data from the connectivity map
-        const auto numNeighborsi = connectivity.numNeighborsForNode(nodeListi, nodei);
         const auto connectivityi = connectivity.connectivityForNode(nodeListi, nodei);
         const auto locali = mNodeToLocalIndex[nodeListi][nodei];
-
+        const auto numNeighborsi = numFluidNeighbors(connectivityi, dataBase);
+        
         // Resize the arrays
         CHECK(locali < mNumConnectivityNodes);
         mNumNeighbors[locali] = numNeighborsi + 1;
@@ -188,9 +207,9 @@ computeOverlapIndices(const DataBase<Dimension>& dataBase) {
   VERIFY(mIndexingInitialized);
   
   // Get information from DataBase
-  const auto numNodeListsDB = dataBase.numNodeLists();
-  const auto numNodesDB = dataBase.numNodes();
-  const auto numInternalNodesDB = dataBase.numInternalNodes();
+  const auto numNodeListsDB = dataBase.numFluidNodeLists();
+  const auto numNodesDB = dataBase.numFluidNodes();
+  const auto numInternalNodesDB = dataBase.numFluidInternalNodes();
   const auto& connectivity = dataBase.connectivityMap();
   const auto requireGhostConnectivity = connectivity.buildGhostConnectivity();
   VERIFY(connectivity.buildOverlapConnectivity());
@@ -213,9 +232,9 @@ computeOverlapIndices(const DataBase<Dimension>& dataBase) {
       const auto numNodesi = requireGhostConnectivity ? (*nodeListItri)->numNodes() : (*nodeListItri)->numInternalNodes();
       for (auto nodei = 0u; nodei < numNodesi; ++nodei) {
         // Get data from the connectivity map
-        const auto numNeighborsi = connectivity.numOverlapNeighborsForNode(nodeListi, nodei);
         const auto connectivityi = connectivity.overlapConnectivityForNode(nodeListi, nodei);
         const auto locali = mNodeToLocalIndex[nodeListi][nodei];
+        const auto numNeighborsi = numFluidNeighbors(connectivityi, dataBase);
         
         // Resize the arrays 
         mNumOverlapNeighbors[locali] = numNeighborsi + 1;
@@ -299,10 +318,10 @@ computeGlobalIndices(const DataBase<Dimension>& dataBase,
   VERIFY(mIndexingInitialized);
   
   // Get information from DataBase
-  const auto numNodeListsDB = dataBase.numNodeLists();
-  const auto numNodesDB = dataBase.numNodes();
-  const auto numInternalNodesDB = dataBase.numInternalNodes();
-  const auto numGlobalNodesDB = dataBase.globalNumInternalNodes();
+  const auto numNodeListsDB = dataBase.numFluidNodeLists();
+  const auto numNodesDB = dataBase.numFluidNodes();
+  const auto numInternalNodesDB = dataBase.numFluidInternalNodes();
+  const auto numGlobalNodesDB = dataBase.globalNumFluidInternalNodes();
 
   // Make sure number of nodes has not changed since computing indices
   VERIFY(numNodesDB == mNumLocalNodes);
@@ -387,9 +406,9 @@ computeSurfaceIndices(const DataBase<Dimension>& dataBase,
   VERIFY(mGhostIndexingInitialized); // Could consider editing to not require this
   
   // Get information from the DataBase and State
-  const auto numNodeListsDB = dataBase.numNodeLists();
-  const auto numNodesDB = dataBase.numNodes();
-  const auto numInternalNodesDB = dataBase.numInternalNodes();
+  const auto numNodeListsDB = dataBase.numFluidNodeLists();
+  const auto numNodesDB = dataBase.numFluidNodes();
+  const auto numInternalNodesDB = dataBase.numFluidInternalNodes();
   const auto& connectivity = dataBase.connectivityMap();
   const auto cells = state.fields(HydroFieldNames::cells, FacetedVolume());
   const auto cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, std::vector<CellFaceFlag>());
@@ -535,9 +554,9 @@ computeBoundaryInformation(const DataBase<Dimension>& dataBase,
   VERIFY(mIndexingInitialized);
 
   // Get information from the dataBase
-  const auto numNodeListsDB = dataBase.numNodeLists();
-  const auto numNodesDB = dataBase.numNodes();
-  const auto numInternalNodesDB = dataBase.numInternalNodes();
+  const auto numNodeListsDB = dataBase.numFluidNodeLists();
+  const auto numNodesDB = dataBase.numFluidNodes();
+  const auto numInternalNodesDB = dataBase.numFluidInternalNodes();
 
   // Make sure the sizes haven't changed since the indexing was initialized
   VERIFY(numNodesDB == mNumLocalNodes);
@@ -785,6 +804,27 @@ globalOverlapNeighborIndices(const int locali,
     }
   }
   CHECK(index == numNonConstNeighbors);
+}
+
+//------------------------------------------------------------------------------
+// Check whether NodeList ordering is appropriate for this function
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+FlatConnectivity<Dimension>::
+fluidNodeListsFirst(const DataBase<Dimension>& dataBase) const
+{
+  auto nodeListi = 0;
+  auto nodeListItri = dataBase.nodeListBegin();
+  auto nodeListItrj = dataBase.fluidNodeListBegin();
+  for (; nodeListItrj != dataBase.fluidNodeListEnd();
+       ++nodeListItri, ++nodeListItrj, ++nodeListi) {
+     if (*nodeListItri != *nodeListItrj)
+     {
+        return false;
+     }
+  }
+  return true;
 }
 
 // //------------------------------------------------------------------------------

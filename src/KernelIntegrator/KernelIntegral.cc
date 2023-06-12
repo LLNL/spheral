@@ -60,7 +60,7 @@ LinearKernelVector<Dimension>::
 addToIntegral(const KernelIntegrationData<Dimension>& kid) {
   const auto coeff = this->mCoefficient->evaluateCoefficient(kid);
   const auto numIndices = kid.indices.size();
-  CHECK(kid.dvalues.size() == numIndices);
+  CHECK(kid.values.size() == numIndices);
   CHECK(kid.indices.size() == numIndices);
   for (auto i = 0u; i < numIndices; ++i) {
     const size_t locali = kid.indices[i];

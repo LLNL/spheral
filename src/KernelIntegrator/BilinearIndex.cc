@@ -36,7 +36,7 @@ computeConnectivity(const DataBase<Dimension>& dataBase) {
     mConnectivityInitialized = true;
   }
   
-  const auto numNodeLists = dataBase.numNodeLists();
+  const auto numNodeLists = dataBase.numFluidNodeLists();
   const auto& connectivityMap = dataBase.connectivityMap();
 
   // Clear the index arrays and make a guess about how many indices there will be
@@ -128,7 +128,7 @@ computeSurfaceIndexing(const DataBase<Dimension>& dataBase,
   }
 
   // Get DataBase values
-  const auto numNodeLists = dataBase.numNodeLists();
+  const auto numNodeLists = dataBase.numFluidNodeLists();
   const auto& connectivityMap = dataBase.connectivityMap();
 
   // Get State values
