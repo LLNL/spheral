@@ -83,15 +83,15 @@ This simple script will install Spheral from an unzipped ``dev-pkg`` file to the
 given location. There are a few environment variables that can be used to 
 configure this script.
 
-``SPACK_PKG_NAME`` (default : spehral)
-The name of the target spack package you want built and it's dependencies.
+``SPACK_PKG_NAME`` (default : spheral)
+The name of the target spack package you want built and its dependencies.
 
-``SPACK_URL`` (defualt : https://github.com/spack/spack)
-Spack location. A local clone of the spack repolsitory can be used as well (e.g.
+``SPACK_URL`` (default : https://github.com/spack/spack)
+Spack location. A local clone of the spack repository can be used as well (e.g.
 ``SPACK_URL=file:///usr/mydir/spack``).
 
 ``BUILD_ALLOC``
-Useful for schedule based systems ( e.g. ``BUILD_ALLOC="salloc -N 1 --exlcusive"``).
+Useful for schedule based systems ( e.g. ``BUILD_ALLOC="salloc -N 1 --exclusive"``).
 
 ``SCRIPT_DIR``
 If the Spheral scripts have been moved, override this option.
