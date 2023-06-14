@@ -32,17 +32,9 @@ public:
   virtual void update(const double multiplier,
                       const double t,
                       const double dt) = 0;
-
-
-private:
-
 };
 
-
-
 }
-
-#include "SolidBoundaryBaseInline.hh"
 
 #else
 

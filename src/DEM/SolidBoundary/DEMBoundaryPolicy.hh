@@ -55,10 +55,6 @@ private:
 
 }
 
-#ifndef __GCCXML__
-#include "DEMBoundaryPolicyInline.hh"
-#endif
-
 #else
 
 // Forward declaration.
