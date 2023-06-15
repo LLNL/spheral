@@ -71,6 +71,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  DvolDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume, 0.0);
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DmDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::mass, 0.0);
   auto  DEDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy, 0.0);
   auto  DpDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, Vector::zero);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
@@ -120,7 +121,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto DvDt_thread = DvDt.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
-    auto DepsDt_thread = DepsDt.threadCopy(threadStack);
+    //auto DepsDt_thread = DepsDt.threadCopy(threadStack);
+    auto DmDt_thread = DmDt.threadCopy(threadStack);
     auto DEDt_thread = DEDt.threadCopy(threadStack);
     auto DpDt_thread = DpDt.threadCopy(threadStack);
     auto DvDx_thread = DvDx.threadCopy(threadStack);
@@ -144,7 +146,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& voli = volume(nodeListi, i);
-      //const auto& epsi = specificThermalEnergy(nodeListi, i);
+      const auto& epsi = specificThermalEnergy(nodeListi, i);
       const auto& Pi = pressure(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
@@ -155,12 +157,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(Hdeti > 0.0);
 
       auto& normi = normalization_thread(nodeListi,i);
-      auto& DepsDti = DepsDt_thread(nodeListi, i);
+      //auto& DepsDti = DepsDt_thread(nodeListi, i);
+      auto& DmDti = DmDt_thread(nodeListi, i);
       auto& DEDti = DEDt_thread(nodeListi, i);
       auto& DpDti = DpDt_thread(nodeListi, i);
       auto& DvDti = DvDt_thread(nodeListi, i);
-      auto& newRiemannDpDxi = newRiemannDpDx_thread(nodeListi,i);
-      auto& newRiemannDvDxi = newRiemannDvDx_thread(nodeListi,i);
+      auto& newRiemannDpDxi = newRiemannDpDx_thread(nodeListi, i);
+      auto& newRiemannDvDxi = newRiemannDvDx_thread(nodeListi, i);
       auto& DvDxi = DvDx_thread(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
@@ -176,7 +179,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& vj = velocity(nodeListj, j);
       const auto& rhoj = massDensity(nodeListj, j);
       const auto& volj = volume(nodeListj, j);
-      //const auto& epsj = specificThermalEnergy(nodeListj, j);
+      const auto& epsj = specificThermalEnergy(nodeListj, j);
       const auto& Pj = pressure(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto& cj = soundSpeed(nodeListj, j);
@@ -188,7 +191,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       auto& normj = normalization_thread(nodeListj,j);
       auto& DvDtj = DvDt_thread(nodeListj, j);
-      auto& DepsDtj = DepsDt_thread(nodeListj, j);
+      //auto& DepsDtj = DepsDt_thread(nodeListj, j);
+      auto& DmDtj = DmDt_thread(nodeListj, j);
       auto& DEDtj = DEDt_thread(nodeListj, j);
       auto& DpDtj = DpDt_thread(nodeListj, j);
       auto& newRiemannDpDxj = newRiemannDpDx_thread(nodeListj,j);
@@ -212,6 +216,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
 
       // Symmetrized kernel weight and gradient.
+      //------------------------------------------------------
       W.kernelAndGradValue(etaMagi, Hdeti, Wi, gWi);
       const auto Hetai = Hi*etai.unitVector();
       const auto gradWi = gWi*Hetai;
@@ -219,6 +224,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       W.kernelAndGradValue(etaMagj, Hdetj, Wj, gWj);
       const auto Hetaj = Hj*etaj.unitVector();
       const auto gradWj = gWj*Hetaj;
+
+      psii = voli*Wi;
+      psij = volj*Wj;
+      gradPsii =  voli * Mi.Transpose()*gradWi;
+      gradPsij =  volj * Mj.Transpose()*gradWj;
+
+      const auto Astar = voli*gradPsii + volj*gradPsij;
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -237,6 +249,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto Peffi = Pi + Ri;
       const auto Peffj = Pj + Rj;
 
+      // Reimann Solver and Fluxes
+      //------------------------------------------------------
       // we'll clean this up when we have a gradient 
       // implementation we're in love with
       auto gradPi = riemannDpDxi;
@@ -263,28 +277,31 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                    rhostari,  //output
                                    rhostarj); //output
 
-      // get our basis function and interface area vectors
-      //--------------------------------------------------------
-      psii = voli*Wi;
-      psij = volj*Wj;
-      gradPsii =  voli * Mi.Transpose()*gradWi;
-      gradPsij =  volj * Mj.Transpose()*gradWj;
-
-      const auto Astar = voli*gradPsii + volj*gradPsij;
-      
-      // acceleration
-      //------------------------------------------------------
       const auto fluxSwitch = 1;
       const auto vflux = vstar-(vi+vj)/2.0;
-      const auto rhostar = (vflux.dot(rhatij) > 0 ? rhostarj : rhostari);
-      const auto deltaDvDt = Pstar*Astar + fluxSwitch * (rhostar*vflux.dyad(vstar)).dot(Astar); 
+      const auto fluxTowardsNodei = vflux.dot(rhatij) > 0;
+      const auto rhostar = (fluxTowardsNodei ? rhostarj : rhostari); // we'll need to fix these later
+      const auto epsstar = (fluxTowardsNodei ? epsj : epsi);         // we'll need to fix these later
+
+      const auto massFlux = fluxSwitch * rhostar * vflux.dot(Astar);
+      const auto momentumFlux = massFlux * vstar;
+      const auto energyFlux = massFlux * epsstar;
+
+      // mass
+      //------------------------------------------------------
+      DmDti -= massFlux;
+      DmDtj += massFlux;
+
+      // momentum
+      //------------------------------------------------------
+      const auto deltaDvDt = Pstar*Astar + momentumFlux; 
       DpDti -= deltaDvDt;
       DpDtj += deltaDvDt;
 
       // energy
       //------------------------------------------------------
-      const auto deltaDepsDti = Pstar*Astar.dot(vi-vstar) + rhostar*epsstar*vflux.dot(Astar);
-      const auto deltaDepsDtj = Pstar*Astar.dot(vstar-vj) + rhostar*epsstar*vflux.dot(Astar);
+      const auto deltaDepsDti = Pstar*Astar.dot(vi-vstar) - energyFlux;
+      const auto deltaDepsDtj = Pstar*Astar.dot(vstar-vj) + energyFlux;
 
       DEDti += deltaDepsDti;
       DEDtj += deltaDepsDtj;

@@ -29,6 +29,7 @@
 #include "GSPH/computeSumVolume.hh"
 #include "GSPH/computeMFMDensity.hh"
 #include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
+#include "GSPH/Policies/IncrementSpecificFromTotalPolicy.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 #ifdef _OPENMP
@@ -84,9 +85,11 @@ MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                                  nTensile,
                                  xmin,
                                  xmax),
+  mDmassDt(FieldStorageType::CopyFields),
   mDthermalEnergyDt(FieldStorageType::CopyFields),
   mDmomentumDt(FieldStorageType::CopyFields),
   mDvolumeDt(FieldStorageType::CopyFields){
+    mDmassDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::mass);
     mDthermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
     mDmomentumDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum);
     mDvolumeDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume);
@@ -125,6 +128,8 @@ registerState(DataBase<Dimension>& dataBase,
   
   auto massDensity = dataBase.fluidMassDensity();
   auto volume = state.fields(HydroFieldNames::volume, 0.0);
+  auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
 
   std::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > volumePolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
   for (auto itr = dataBase.fluidNodeListBegin();
@@ -137,13 +142,22 @@ registerState(DataBase<Dimension>& dataBase,
                                                                          maxVolume));
   }
 
-  PolicyPointer rhoPolicy(new ReplaceWithRatioPolicy<Dimension,Scalar>(HydroFieldNames::mass,
-                                                                       HydroFieldNames::volume,
-                                                                       HydroFieldNames::volume));
-  
+  auto rhoPolicy = std::make_shared<ReplaceWithRatioPolicy<Dimension,Scalar>>(HydroFieldNames::mass,
+                                                                         HydroFieldNames::volume,
+                                                                         HydroFieldNames::volume);
+
+  auto massPolicy = std::make_shared<IncrementFieldList<Dimension, Vector>>(true);
+  auto momentumPolicy = std::make_shared<IncrementSpecificFromTotalPolicy<Dimension, Vector>>(HydroFieldNames::velocity, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum);
+  auto thermalEnergyPolicy = std::make_shared<IncrementSpecificFromTotalPolicy<Dimension, Scalar>>(HydroFieldNames::specificThermalEnergy, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
+
+  // special policies to get velocity update from momentum deriv
+  state.enroll(GSPHFieldNames::momentumPolicy,momentumPolicy);
+  state.enroll(GSPHFieldNames::thermalEnergyPolicy,thermalEnergyPolicy);
+
   // normal state variables
+  state.enroll(mass,        massPolicy);
   state.enroll(massDensity, rhoPolicy);
-  state.enroll(volume, volumePolicy);
+  state.enroll(volume,      volumePolicy);
 }
 
 //------------------------------------------------------------------------------
@@ -155,9 +169,13 @@ MFVHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   GenericRiemannHydro<Dimension>::registerDerivatives(dataBase,derivs);
-  dataBase.resizeFluidFieldList(mDmomentumDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, false);
+  dataBase.resizeFluidFieldList(mDmassDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::mass, false);
   dataBase.resizeFluidFieldList(mDthermalEnergyDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy, false);
+  dataBase.resizeFluidFieldList(mDmomentumDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, false);
   dataBase.resizeFluidFieldList(mDvolumeDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume, false);
+  derivs.enroll(mDmassDt);
+  derivs.enroll(mDthermalEnergyDt);
+  derivs.enroll(mDmomentumDt);
   derivs.enroll(mDvolumeDt);
 }
 
@@ -254,8 +272,9 @@ void
 MFVHydroBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   GenericRiemannHydro<Dimension>::dumpState(file,pathName);
-  file.write(mDmomentumDt, pathName + "/DmomentumDt");
+  file.write(mDmassDt, pathName + "/DmassDt");
   file.write(mDthermalEnergyDt, pathName + "/DthermalEnergyDt");
+  file.write(mDmomentumDt, pathName + "/DmomentumDt");
   file.write(mDvolumeDt, pathName + "/DvolumeDt");
 }
 
@@ -267,8 +286,9 @@ void
 MFVHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   GenericRiemannHydro<Dimension>::restoreState(file,pathName);
-  file.read(mDmomentumDt, pathName + "/DmomentumDt");
+  file.read(mDmassDt, pathName + "/DmassDt");
   file.read(mDthermalEnergyDt, pathName + "/DthermalEnergyDt");
+  file.read(mDmomentumDt, pathName + "/DmomentumDt");
   file.read(mDvolumeDt, pathName + "/DvolumeDt");
 }
 

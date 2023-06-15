@@ -6,6 +6,13 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 MFVHydroBase<Dimension>::
+DmassDt() const {
+  return mDmassDt;
+}
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+MFVHydroBase<Dimension>::
 DthermalEnergyDt() const {
   return mDthermalEnergyDt;
 }

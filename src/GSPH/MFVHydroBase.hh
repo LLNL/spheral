@@ -123,6 +123,7 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
+  const FieldList<Dimension,Scalar>& DmassDt() const;
   const FieldList<Dimension,Scalar>& DthermalEnergyDt() const;
   const FieldList<Dimension,Vector>& DmomentumDt() const;
   const FieldList<Dimension,Scalar>& DvolumeDt() const;
@@ -134,6 +135,7 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************           
 private:
+  FieldList<Dimension, Scalar> mDmassDt;
   FieldList<Dimension, Scalar> mDthermalEnergyDt;
   FieldList<Dimension, Vector> mDmomentumDt;
   FieldList<Dimension, Scalar> mDvolumeDt;

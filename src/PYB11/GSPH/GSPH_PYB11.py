@@ -12,6 +12,7 @@ dims = spheralDimensions()
 from GenericRiemannHydro import *
 from GSPHHydroBase import *
 from MFMHydroBase import *
+from MFVHydroBase import *
 from WaveSpeeds import *
 from Limiters import *
 from RiemannSolvers import *
@@ -22,6 +23,7 @@ from RiemannSolvers import *
 PYB11includes += ['"GSPH/GenericRiemannHydro.hh"',
                   '"GSPH/GSPHHydroBase.hh"',
                   '"GSPH/MFMHydroBase.hh"',
+                  '"GSPH/MFVHydroBase.hh"',
                   '"GSPH/WaveSpeeds/WaveSpeedBase.hh"',
                   '"GSPH/WaveSpeeds/AcousticWaveSpeed.hh"',
                   '"GSPH/WaveSpeeds/DavisWaveSpeed.hh"',
@@ -61,6 +63,7 @@ for ndim in dims:
 GenericRiemannHydro%(ndim)id = PYB11TemplateClass(GenericRiemannHydro, template_parameters="%(Dimension)s")
 GSPHHydroBase%(ndim)id = PYB11TemplateClass(GSPHHydroBase, template_parameters="%(Dimension)s")
 MFMHydroBase%(ndim)id = PYB11TemplateClass(MFMHydroBase, template_parameters="%(Dimension)s")
+MFVHydroBase%(ndim)id = PYB11TemplateClass(MFVHydroBase, template_parameters="%(Dimension)s")
 WaveSpeedBase%(ndim)id = PYB11TemplateClass(WaveSpeedBase, template_parameters="%(Dimension)s")
 AcousticWaveSpeed%(ndim)id = PYB11TemplateClass(AcousticWaveSpeed, template_parameters="%(Dimension)s")
 DavisWaveSpeed%(ndim)id = PYB11TemplateClass(DavisWaveSpeed, template_parameters="%(Dimension)s")

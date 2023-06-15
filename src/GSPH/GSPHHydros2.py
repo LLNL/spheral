@@ -3,118 +3,7 @@ from SpheralCompiledPackages import *
 from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
-#-------------------------------------------------------------------------------
-# density-based GSPH factory string
-#-------------------------------------------------------------------------------
-GSPHHydroFactoryString = """
-class %(classname)s%(dim)s(GSPHHydroBase%(dim)s):
-
-    def __init__(self,
-                 dataBase,
-                 riemannSolver,
-                 W,
-                 epsDiffusionCoeff = 0.0,
-                 cfl = 0.25,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 XSPH = True,
-                 correctVelocityGradient = True,
-                 gradientType = HydroAccelerationGradient,
-                 densityUpdate = IntegrateDensity,
-                 HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
-                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
-                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
-        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-        GSPHHydroBase%(dim)s.__init__(self,
-                                     self._smoothingScaleMethod,
-                                     dataBase,
-                                     riemannSolver,
-                                     W,
-                                     epsDiffusionCoeff,
-                                     cfl,
-                                     useVelocityMagnitudeForDt,
-                                     compatibleEnergyEvolution,
-                                     evolveTotalEnergy,
-                                     XSPH,
-                                     correctVelocityGradient,
-                                     gradientType,
-                                     densityUpdate,
-                                     HUpdate,
-                                     epsTensile,
-                                     nTensile,
-                                     xmin,
-                                     xmax)
-        return
-"""
-
-#-------------------------------------------------------------------------------
-# volume-based GSPH factory string (MFM)
-#-------------------------------------------------------------------------------
-MFMHydroFactoryString = """
-class %(classname)s%(dim)s(MFMHydroBase%(dim)s):
-
-    def __init__(self,
-                 dataBase,
-                 riemannSolver,
-                 W,
-                 epsDiffusionCoeff = 0.0,
-                 cfl = 0.25,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 XSPH = True,
-                 correctVelocityGradient = True,
-                 gradientType = HydroAccelerationGradient,
-                 densityUpdate = IntegrateDensity,
-                 HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
-                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
-                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
-        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-        MFMHydroBase%(dim)s.__init__(self,
-                                     self._smoothingScaleMethod,
-                                     dataBase,
-                                     riemannSolver,
-                                     W,
-                                     epsDiffusionCoeff,
-                                     cfl,
-                                     useVelocityMagnitudeForDt,
-                                     compatibleEnergyEvolution,
-                                     evolveTotalEnergy,
-                                     XSPH,
-                                     correctVelocityGradient,
-                                     gradientType,
-                                     densityUpdate,
-                                     HUpdate,
-                                     epsTensile,
-                                     nTensile,
-                                     xmin,
-                                     xmax)
-        return
-"""
-
-#-------------------------------------------------------------------------------
-# Make 'em.
-#-------------------------------------------------------------------------------
-for dim in dims:
-    exec(GSPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                  "classname"            : "GSPHHydro",
-                                  "smoothingScaleMethod" : "SPHSmoothingScale"})
-    exec(GSPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                  "classname"            : "AGSPHHydro",
-                                  "smoothingScaleMethod" : "ASPHSmoothingScale"})
-
-    exec(MFMHydroFactoryString % {"dim"                  : "%id" % dim,
-                                  "classname"            : "MFMHydro",
-                                  "smoothingScaleMethod" : "SPHSmoothingScale"})
-    exec(MFMHydroFactoryString % {"dim"                  : "%id" % dim,
-                                  "classname"            : "AMFMHydro",
-                                  "smoothingScaleMethod" : "ASPHSmoothingScale"})
-                                  
+                               
 #-------------------------------------------------------------------------------
 # GSPH convience wrapper function
 #-------------------------------------------------------------------------------
@@ -155,10 +44,7 @@ def GSPH(dataBase,
         print("            which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
-    if ASPH:
-        Constructor = eval("AGSPHHydro%id" % ndim)
-    else:
-        Constructor = eval("GSPHHydro%id" % ndim)
+    Constructor = eval("GSPHHydroBase%id" % ndim)
 
     if riemannSolver is None:
         waveSpeedMethod = eval("DavisWaveSpeed%id()" % (ndim))
@@ -170,24 +56,30 @@ def GSPH(dataBase,
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
 
-    kwargs = {"riemannSolver" : riemannSolver,
+    # Smoothing scale update
+    if ASPH:
+        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
+    else:
+        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
+
+    kwargs = {"smoothingScaleMethod" : smoothingScaleMethod,
+              "dataBase" : dataBase,
+              "riemannSolver" : riemannSolver,
               "W" : W,
               "epsDiffusionCoeff" : specificThermalEnergyDiffusionCoefficient,
-              "dataBase" : dataBase,
               "cfl" : cfl,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
               "evolveTotalEnergy" : evolveTotalEnergy,
               "XSPH" : XSPH,
               "correctVelocityGradient" : correctVelocityGradient,
-              "gradientType" : gradientType,
+              "gradType" : gradientType,
               "densityUpdate" : densityUpdate,
               "HUpdate" : HUpdate,
               "epsTensile" : epsTensile,
               "nTensile" : nTensile,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
-
 
     # Build and return the thing.
     result = Constructor(**kwargs)
@@ -235,13 +127,6 @@ def MFM(dataBase,
 
     Constructor = eval("MFMHydroBase%id" % ndim)
 
-    # Smoothing scale update
-    if ASPH:
-        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
-    else:
-        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
-
-
     if riemannSolver is None:
         waveSpeedMethod = eval("DavisWaveSpeed%id()" % (ndim))
         slopeLimiter = eval("VanLeerLimiter%id()" % (ndim))
@@ -252,12 +137,17 @@ def MFM(dataBase,
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
 
+    # Smoothing scale update
+    if ASPH:
+        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
+    else:
+        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
+        
     kwargs = {"smoothingScaleMethod" : smoothingScaleMethod,
               "dataBase" : dataBase,
               "riemannSolver" : riemannSolver,
               "W" : W,
               "epsDiffusionCoeff" : specificThermalEnergyDiffusionCoefficient,
-              "dataBase" : dataBase,
               "cfl" : cfl,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
@@ -275,9 +165,6 @@ def MFM(dataBase,
 
     # Build and return the thing.
     result = Constructor(**kwargs)
-    #result._smoothingScaleMethod = smoothingScaleMethod
-    result.riemannSolver = riemannSolver
-
     return result
 
 
@@ -317,19 +204,12 @@ def MFV(dataBase,
     nfluid = dataBase.numFluidNodeLists
     nsolid = dataBase.numSolidNodeLists
     if nsolid > 0 and nsolid != nfluid:
-        print("MFM  Error: you have provided both solid and fluid NodeLists, which is currently not supported.")
+        print("MFV  Error: you have provided both solid and fluid NodeLists, which is currently not supported.")
         print("            If you want some fluids active, provide SolidNodeList without a strength option specfied,")
         print("            which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
     Constructor = eval("MFVHydroBase%id" % ndim)
-
-    # Smoothing scale update
-    if ASPH:
-        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
-    else:
-        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
-
 
     if riemannSolver is None:
         waveSpeedMethod = eval("DavisWaveSpeed%id()" % (ndim))
@@ -341,12 +221,17 @@ def MFV(dataBase,
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
 
+    # Smoothing scale update
+    if ASPH:
+        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
+    else:
+        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
+
     kwargs = {"smoothingScaleMethod" : smoothingScaleMethod,
               "dataBase" : dataBase,
               "riemannSolver" : riemannSolver,
               "W" : W,
               "epsDiffusionCoeff" : specificThermalEnergyDiffusionCoefficient,
-              "dataBase" : dataBase,
               "cfl" : cfl,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
@@ -364,8 +249,5 @@ def MFV(dataBase,
 
     # Build and return the thing.
     result = Constructor(**kwargs)
-    #result._smoothingScaleMethod = smoothingScaleMethod
-    #result.riemannSolver = riemannSolver
-    
     return result
 

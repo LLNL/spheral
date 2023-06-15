@@ -11,6 +11,7 @@ set(GSPH_inst
     MFVHydroBase
     Policies/PureReplaceFieldList
     Policies/ReplaceWithRatioPolicy
+    Policies/IncrementSpecificFromTotalPolicy
     Limiters/LimiterBase
     Limiters/VanLeerLimiter
     Limiters/SuperbeeLimiter
@@ -40,6 +41,7 @@ set(GSPH_headers
     MFVHydroBase.hh
     Policies/PureReplaceFieldList.hh
     Policies/ReplaceWithRatioPolicy.hh
+    Policies/IncrementSpecificFromTotalPolicy.hh
     Limiters/LimiterBase.hh
     Limiters/VanLeerLimiter.hh
     Limiters/SuperbeeLimiter.hh
