@@ -141,6 +141,7 @@ commandLine(order = 5,
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert not((gsph or mfm) and (boolReduceViscosity or boolCullenViscosity))
 assert not(fsisph and not solid)
+assert sum([crksph,psph,fsisph,svph,gsph,mfm])<=1
 assert thetaFactor in (0.5, 1.0, 2.0)
 theta = thetaFactor * pi
 
@@ -163,6 +164,8 @@ elif crksph:
     hydroname = os.path.join("CRKSPH",
                              str(correctionOrder),
                              str(volumeType))
+elif fsisph:
+    hydroname = "FSISPH"
 elif gsph:
     hydroname = "GSPH"
 elif mfm:
