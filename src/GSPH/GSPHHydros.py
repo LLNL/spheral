@@ -4,118 +4,6 @@ from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
 #-------------------------------------------------------------------------------
-# density-based GSPH factory string
-#-------------------------------------------------------------------------------
-GSPHHydroFactoryString = """
-class %(classname)s%(dim)s(GSPHHydroBase%(dim)s):
-
-    def __init__(self,
-                 dataBase,
-                 riemannSolver,
-                 W,
-                 epsDiffusionCoeff = 0.0,
-                 cfl = 0.25,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 XSPH = True,
-                 correctVelocityGradient = True,
-                 gradientType = HydroAccelerationGradient,
-                 densityUpdate = IntegrateDensity,
-                 HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
-                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
-                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
-        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-        GSPHHydroBase%(dim)s.__init__(self,
-                                     self._smoothingScaleMethod,
-                                     dataBase,
-                                     riemannSolver,
-                                     W,
-                                     epsDiffusionCoeff,
-                                     cfl,
-                                     useVelocityMagnitudeForDt,
-                                     compatibleEnergyEvolution,
-                                     evolveTotalEnergy,
-                                     XSPH,
-                                     correctVelocityGradient,
-                                     gradientType,
-                                     densityUpdate,
-                                     HUpdate,
-                                     epsTensile,
-                                     nTensile,
-                                     xmin,
-                                     xmax)
-        return
-"""
-
-#-------------------------------------------------------------------------------
-# volume-based GSPH factory string (MFM)
-#-------------------------------------------------------------------------------
-MFMHydroFactoryString = """
-class %(classname)s%(dim)s(MFMHydroBase%(dim)s):
-
-    def __init__(self,
-                 dataBase,
-                 riemannSolver,
-                 W,
-                 epsDiffusionCoeff = 0.0,
-                 cfl = 0.25,
-                 useVelocityMagnitudeForDt = False,
-                 compatibleEnergyEvolution = True,
-                 evolveTotalEnergy = False,
-                 XSPH = True,
-                 correctVelocityGradient = True,
-                 gradientType = HydroAccelerationGradient,
-                 densityUpdate = IntegrateDensity,
-                 HUpdate = IdealH,
-                 epsTensile = 0.0,
-                 nTensile = 4.0,
-                 xmin = Vector%(dim)s(-1e100, -1e100, -1e100),
-                 xmax = Vector%(dim)s( 1e100,  1e100,  1e100)):
-        self._smoothingScaleMethod = %(smoothingScaleMethod)s%(dim)s()
-        MFMHydroBase%(dim)s.__init__(self,
-                                     self._smoothingScaleMethod,
-                                     dataBase,
-                                     riemannSolver,
-                                     W,
-                                     epsDiffusionCoeff,
-                                     cfl,
-                                     useVelocityMagnitudeForDt,
-                                     compatibleEnergyEvolution,
-                                     evolveTotalEnergy,
-                                     XSPH,
-                                     correctVelocityGradient,
-                                     gradientType,
-                                     densityUpdate,
-                                     HUpdate,
-                                     epsTensile,
-                                     nTensile,
-                                     xmin,
-                                     xmax)
-        return
-"""
-
-#-------------------------------------------------------------------------------
-# Make 'em.
-#-------------------------------------------------------------------------------
-for dim in dims:
-    exec(GSPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                  "classname"            : "GSPHHydro",
-                                  "smoothingScaleMethod" : "SPHSmoothingScale"})
-    exec(GSPHHydroFactoryString % {"dim"                  : "%id" % dim,
-                                  "classname"            : "AGSPHHydro",
-                                  "smoothingScaleMethod" : "ASPHSmoothingScale"})
-
-    exec(MFMHydroFactoryString % {"dim"                  : "%id" % dim,
-                                  "classname"            : "MFMHydro",
-                                  "smoothingScaleMethod" : "SPHSmoothingScale"})
-    exec(MFMHydroFactoryString % {"dim"                  : "%id" % dim,
-                                  "classname"            : "AMFMHydro",
-                                  "smoothingScaleMethod" : "ASPHSmoothingScale"})
-                                  
-#-------------------------------------------------------------------------------
 # GSPH convience wrapper function
 #-------------------------------------------------------------------------------
 def GSPH(dataBase,
@@ -155,10 +43,13 @@ def GSPH(dataBase,
         print("            which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
+    Constructor = eval("GSPHHydroBase%id" % ndim)
+
+    # Smoothing scale update
     if ASPH:
-        Constructor = eval("AGSPHHydro%id" % ndim)
+        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
     else:
-        Constructor = eval("GSPHHydro%id" % ndim)
+        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
 
     if riemannSolver is None:
         waveSpeedMethod = eval("DavisWaveSpeed%id()" % (ndim))
@@ -170,7 +61,9 @@ def GSPH(dataBase,
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
 
-    kwargs = {"riemannSolver" : riemannSolver,
+    kwargs = {"smoothingScaleMethod" : smoothingScaleMethod,
+              "dataBase" : dataBase,
+              "riemannSolver" : riemannSolver,
               "W" : W,
               "epsDiffusionCoeff" : specificThermalEnergyDiffusionCoefficient,
               "dataBase" : dataBase,
@@ -180,7 +73,7 @@ def GSPH(dataBase,
               "evolveTotalEnergy" : evolveTotalEnergy,
               "XSPH" : XSPH,
               "correctVelocityGradient" : correctVelocityGradient,
-              "gradientType" : gradientType,
+              "gradType" : gradientType,
               "densityUpdate" : densityUpdate,
               "HUpdate" : HUpdate,
               "epsTensile" : epsTensile,
@@ -191,8 +84,10 @@ def GSPH(dataBase,
 
     # Build and return the thing.
     result = Constructor(**kwargs)
-    return result
+    result._smoothingScaleMethod = smoothingScaleMethod
 
+    return result
+    
 #-------------------------------------------------------------------------------
 # MFM convience wrapper function
 #-------------------------------------------------------------------------------
@@ -275,8 +170,7 @@ def MFM(dataBase,
 
     # Build and return the thing.
     result = Constructor(**kwargs)
-    #result._smoothingScaleMethod = smoothingScaleMethod
-    result.riemannSolver = riemannSolver
+    result._smoothingScaleMethod = smoothingScaleMethod
 
     return result
 
@@ -364,8 +258,7 @@ def MFV(dataBase,
 
     # Build and return the thing.
     result = Constructor(**kwargs)
-    #result._smoothingScaleMethod = smoothingScaleMethod
-    #result.riemannSolver = riemannSolver
+    result._smoothingScaleMethod = smoothingScaleMethod
     
     return result
 
