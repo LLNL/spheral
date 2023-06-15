@@ -40,6 +40,8 @@ set(DEM_headers
     setUniqueNodeIDs.hh
     setUniqueNodeIDsInline.hh)
 
+add_subdirectory(SolidBoundary)
+
 spheral_install_python_files(DEM.py)
 
 spheral_add_obj_library(DEM)
