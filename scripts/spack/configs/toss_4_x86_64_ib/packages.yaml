@@ -24,11 +24,6 @@ packages:
     - spec: ncurses@5.9
       prefix: /usr
     buildable: false
-  readline:
-    externals:
-    - spec: readline@7.0
-      prefix: /usr
-    buildable: false
   autoconf:
     externals:
     - spec: autoconf@2.69
@@ -87,6 +82,11 @@ packages:
   pkg-config:
     externals:
     - spec: pkg-config@0.27.1
+      prefix: /usr
+    buildable: false
+  m4:
+    externals:
+    - spec: m4@1.4.18
       prefix: /usr
     buildable: false
   tar:

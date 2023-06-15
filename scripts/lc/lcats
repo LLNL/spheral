@@ -65,7 +65,7 @@ def createMsubFile(inCommand, inAllOptions):
     FILE.write("#MSUB -N " + inFilename + '\n')
     FILE.write("#MSUB -j oe "+ '\n')                       # directs all err output to stdout ")
     FILE.write("#MSUB -o " + msubOutputFilename + '\n')
-    if 'toss_3' in SYS_TYPE:
+    if 'toss' in SYS_TYPE:
         # cpu_count() returns 72, only 36 available
         FILE.write("#MSUB -l nodes=" +  str(machineSettings.options.numNodes)+ ":ppn=36\n")
     else:
@@ -125,7 +125,7 @@ def createSbatchFile(inCommand, inAllOptions):
     FILE.write("#SBATCH --job-name=" + inFilename + '\n')
     FILE.write("#SBATCH --error="+ sbatchErrorFilename + '\n')                       # directs all err output to stdout ")
     FILE.write("#SBATCH --output="+ sbatchOutputFilename + '\n')                       # directs all other output to stdout ")
-    if 'toss_3' in SYS_TYPE:
+    if 'toss' in SYS_TYPE:
         # cpu_count() returns 72, only 36 available
         FILE.write("#SBATCH --nodes=" +  str(machineSettings.options.numNodes)+ "\n")
         FILE.write("#SBATCH --ntasks=36" + "\n") # Is this OKay?  Not sure if we want to default ntasks.
@@ -260,7 +260,7 @@ parser= NoErrOptionParser(add_help_option=False)
 
 #---------------------------------------------------------------------------
 useCpu= cpu_count()
-if 'toss_3' in os.environ['SYS_TYPE']:
+if 'toss' in os.environ['SYS_TYPE']:
     useCpu = 36                             # max cpu_count on rzgenie and jade is 36 even though 72 is returned by cpu_count().
     if 'rzalastor' in platform.node() or 'zin' in platform.node():
         useCpu = 16
@@ -423,7 +423,7 @@ glorySettings= MachineInfo(
 
 )
 
-toss3Settings= MachineInfo(
+tossSettings= MachineInfo(
     name='rzgenie',
     machineType='SlurmProcessorScheduled',
     batch= False,
@@ -443,7 +443,7 @@ toss3Settings= MachineInfo(
 
 )
 
-toss3Batch= MachineInfo(
+tossBatch= MachineInfo(
     name='rztopaz',
     machineType='SlurmProcessorScheduled',
     batch= True,
@@ -506,16 +506,16 @@ elif 'glory' in SYS_TYPE:
 elif 'blue' in SYS_TYPE:
     machineSettings = blueosSettings
 
-elif 'toss_3' in SYS_TYPE:
+elif 'toss' in SYS_TYPE:
     if 'ruby' in LCSCHEDCLUSTER or 'rzgenie' in LCSCHEDCLUSTER or 'jadedev' == LCSCHEDCLUSTER or 'zindev' == LCSCHEDCLUSTER:
         # Developer machines are interactive
-        machineSettings = toss3Settings
+        machineSettings = tossSettings
     elif '--partition=pdebug' in sys.argv and not '--batch' in sys.argv:
         # Need short queue settings
         machineSettings = rztopazSettings
     else:
         # Put it in batch.
-        machineSettings = toss3Batch
+        machineSettings = tossBatch
 else:
     print("Could not determine machine settings to use.")
     sys.exit(1)
@@ -966,7 +966,7 @@ else:
         numProcsLine = ""
         # informs srun-wrapper.sh to not use kull's forkserver as ATS will run it
         os.environ["KULLINATS"] = "yes"
-    elif 'toss_3' in os.environ['SYS_TYPE']:
+    elif 'toss' in os.environ['SYS_TYPE']:
         numProcsLine = " -n %d" % ( machineSettings.options.numNodes* ( useCpu ) )   
     else:
         numProcsLine = " -n %d" % ( machineSettings.options.numNodes* cpu_count() )

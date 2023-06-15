@@ -46,10 +46,17 @@ public:
   int firstGlobalIndex() const;
   int lastGlobalIndex() const;
   
-  // Local and global number of elements
+  // Number of nodes owned by this processor, including constant boundary nodes
   int numNodes() const;
+
+  // Number of variable nodes owned by this processor
   int numInternalNodes() const;
+
+  // Total number of variable nodes among all processors
   int numGlobalNodes() const;
+
+  // Number of constant boundary nodes on this processor
+  // This doesn't include ghost nodes that are variable and owned by this or another processor
   int numBoundaryNodes() const;
   
   // Get local index from NodeList and Node indices
@@ -64,10 +71,18 @@ public:
   // Number of neighbors, including self, for this point
   int numNeighbors(const int locali) const;
   int numOverlapNeighbors(const int locali) const;
+
+  // Number of neighbors that are constant due to boundaries
   int numConstNeighbors(const int locali) const;
   int numConstOverlapNeighbors(const int locali) const;
+
+  // Number of neighbors that are variables, on this proc or another
   int numNonConstNeighbors(const int locali) const;
   int numNonConstOverlapNeighbors(const int locali) const;
+
+  // The sum of non-const neighbors over all internal nodes
+  // Corresponds to the size of the flattened connectivity in a matrix solve
+  int totalNumNonConstNeighbors() const;
   
   // For the point i, for its neighbor j, get the flattened index for point j
   int localToFlat(const int locali, const int localj) const; // return flatj
@@ -157,7 +172,7 @@ public:
   //                   const Scalar extent) const;
   
 private:
-  
+
   // Keep track of what has been initialized
   bool mIndexingInitialized;
   bool mGhostIndexingInitialized;
@@ -218,6 +233,18 @@ private:
   
   // Scratch
   mutable ArrayDim mScratchArray;
+   
+  // The functions in this class assume that the FluidNodeLists come first in the
+  // connectivity order; that is, that the standard NodeLists are at the end of
+  // the alphabetical ordering in the DataBase. This is not generally true, but
+  // this class isn't used at the moment when this is not true. This function
+  // checks whether the standard NodeLists are at the end of the ordering.
+  // The root of the issue is that the connectivity for a point takes an integer index,
+  // while we iterate over NodeList iterators. We could either have the point connectivity
+  // accept a NodeList iterator or we could iterate over FluidNodeList indices. 
+  // This function checks that the NodeLists are ordered as expected.
+  bool fluidNodeListsFirst(const DataBase<Dimension>& dataBase) const;
+  
 };
 
 } // end namespace Spheral
