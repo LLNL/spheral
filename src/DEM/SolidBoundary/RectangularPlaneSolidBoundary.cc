@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
-// RectangularPlaneSolidBoundary -- solid planar boundary for DEM with finite extent
-//                           and rectangular shape.
+// RectangularPlaneSolidBoundary -- solid planar boundary for DEM with finite 
+//                                  extent and rectangular shape.
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//

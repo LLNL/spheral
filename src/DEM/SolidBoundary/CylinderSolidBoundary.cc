@@ -1,6 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// CylinderSolidBoundary -- solid planar boundary for DEM with finite extent
-//                           and rectangular shape.
+// CylinderSolidBoundary -- cylinder with finite length solid boundary for DEM
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
