@@ -5,15 +5,26 @@
   variables:
     LLNL_SERVICE_USER: sphapp
     UPSTREAM_DIR: /usr/WS2/wciuser/Spheral/spheral-spack-tpls
-    DISPLAY: ":0.0"
+    DISPLAY: ':0.0'
 
-.on_toss:
+.on_toss_3_x86:
   variables:
-    ARCH: "toss_3_x86_64_ib"
+    ARCH: 'toss_3_x86_64_ib'
+    GCC_VERSION: '8.3.1'
+    CLANG_VERSION: '9.0.0'
   extends: [.sys_config]
 
-.on_blueos:
+.on_toss_4_x86:
   variables:
-    ARCH: "blueos_3_ppc64le_ib_p9"
+    ARCH: 'toss_4_x86_64_ib'
+    GCC_VERSION: '10.3.1'
+    CLANG_VERSION: '14.0.6'
+  extends: [.sys_config]
+
+.on_blueos_3_ppc64:
+  variables:
+    ARCH: 'blueos_3_ppc64le_ib_p9'
+    GCC_VERSION: '8.3.1'
+    CLANG_VERSION: '9.0.0'
   extends: [.sys_config]
 

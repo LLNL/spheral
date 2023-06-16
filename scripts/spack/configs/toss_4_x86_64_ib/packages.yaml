@@ -1,30 +1,27 @@
 packages:
-  mpich:
-    externals:
-    - spec: mpich@3.3.2
-      prefix: /usr
-    buildable: false
-  #openmpi:
-  #  externals:
-  #  - spec: openmpi@4.1.2
-  #    prefix: /usr/
-  #  buildable: false
-
+  all:
+    # This defaults us to machine specific flags of ivybridge which allows
+    # us to run on broadwell as well
+    target: [ivybridge]
+    compiler: [gcc, clang]
   cmake:
+    version: [3.23.1]
+    buildable: false
     externals:
-    - spec: cmake@3.16.3
-      prefix: /usr
+    - spec: cmake@3.23.1
+      prefix: /usr/tce/packages/cmake/cmake-3.23.1
+
+  mvapich2:
+    externals:
+    - spec: mvapich2@2.3.6%gcc@10.3.1~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
+        file_systems=lustre,nfs,ufs process_managers=slurm
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3.6-gcc-10.3.1
     buildable: false
 
 # ------ SYSTEM LIBS -------
   ncurses:
     externals:
-    - spec: ncurses@6.2
-      prefix: /usr
-    buildable: false
-  readline:
-    externals:
-    - spec: readline@7.0
+    - spec: ncurses@5.9
       prefix: /usr
     buildable: false
   autoconf:
@@ -87,6 +84,11 @@ packages:
     - spec: pkg-config@0.27.1
       prefix: /usr
     buildable: false
+  m4:
+    externals:
+    - spec: m4@1.4.18
+      prefix: /usr
+    buildable: false
   tar:
     externals:
     - spec: tar@1.26
@@ -99,12 +101,12 @@ packages:
     buildable: false
   tcl:
      externals:
-     - spec: tcl@8.6
+     - spec: tcl@8.6.8
        prefix: /usr
      buildable: false
   tk:
      externals:
-     - spec: tk@8.6
+     - spec: tk@8.6.8
        prefix: /usr
      buildable: false
   fontconfig:
@@ -112,8 +114,17 @@ packages:
     - spec: fontconfig@2.13.1
       prefix: /usr
     buildable: false
+
+
+#---- Extension Dependencies
+
+  hwloc:
+    externals:
+    - spec: hwloc@5.7.5
+      prefix: /usr
+    buildable: false
   netlib-lapack:
+    buildable: false
     externals:
     - spec: netlib-lapack@3.9.0
       prefix: /usr
-    buildable: false
