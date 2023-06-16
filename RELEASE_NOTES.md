@@ -21,11 +21,18 @@ Notable changes include:
     * toss_4_x86_64_ib system compatibility.
     * Updated spack version to v0.19.1
     * `--debug` and `--no-spec` options added to tpl-manager.py for outputing debug and skipping `spack spec` step.
+    * `--init-only` option in tpl-manager.py will only initialize a local spack instance, skipping any TPL configuration.
+    * TOSS4 compatibility for LC systems.
+    * "risky" builds are installed on LC machines through gitlab CI to keep up to date with develop.
 
   * Bug Fixes / improvements:
     * Fixed numerous compiler warnings with newer compilers such as G++ 9.4.
     * r-path for additional TPLs can be propogated to Spheral libraries with `SPHERAL_ADDITIONAL_RPATHS`.
- 
+    * The DEM package has received a significant updated.
+      * Added simple analytic solid boundaries (planes,cylinder,sphere).
+      * User given more control over DEM fast time stepping.
+      * Simplified initialization and improved robustness.
+
 Version v2023.03.0 -- Release date 2023-03-29
 ==============================================
 
