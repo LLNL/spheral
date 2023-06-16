@@ -88,6 +88,9 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
     depends_on('py-sphinx@1.8.5', type='build')
     depends_on('py-sphinx-rtd-theme@0.5.0', type='build')
+
+    depends_on('netlib-lapack', type='build')
+
     # -------------------------------------------------------------------------
     # DEPENDS
     # -------------------------------------------------------------------------
