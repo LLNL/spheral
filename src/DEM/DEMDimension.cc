@@ -1,3 +1,8 @@
+//---------------------------------Spheral++----------------------------------//
+// DEM type alias for the particle rotation
+//
+// J.M. Pearl 2022
+//----------------------------------------------------------------------------//
 #include "DEMDimension.hh"
 
 namespace Spheral{

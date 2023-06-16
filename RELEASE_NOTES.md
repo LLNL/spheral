@@ -28,7 +28,11 @@ Notable changes include:
   * Bug Fixes / improvements:
     * Fixed numerous compiler warnings with newer compilers such as G++ 9.4.
     * r-path for additional TPLs can be propogated to Spheral libraries with `SPHERAL_ADDITIONAL_RPATHS`.
- 
+    * The DEM package has received a significant updated.
+      * Added simple analytic solid boundaries (planes,cylinder,sphere).
+      * User given more control over DEM fast time stepping.
+      * Simplified initialization and improved robustness.
+
 Version v2023.03.0 -- Release date 2023-03-29
 ==============================================
 

@@ -573,6 +573,8 @@ will get the new value regardless of resetValues."""
     def DEMNodeLists(self):
         return "const std::vector<DEMNodeList<%(Dimension)s>*>&"
 
+    def setDEMHfieldFromParticleRadius(self, startUniqueIndex = "const int"):
+        return "void"
 
     nodeListPtrs = PYB11property("const std::vector<NodeList<%(Dimension)s>*>&", "nodeListPtrs", doc="The set of NodeLists in the DataBase")
     fluidNodeListPtrs = PYB11property("const std::vector<FluidNodeList<%(Dimension)s>*>&", "fluidNodeListPtrs", doc="The set of FluidNodeLists in the DataBase")
@@ -612,7 +614,8 @@ will get the new value regardless of resetValues."""
     solidNodeListPtrs = PYB11property("const std::vector<SolidNodeList<%(Dimension)s>*>&", "solidNodeListPtrs", doc="The set of SolidNodeLists in the DataBase")
     DEMNodeListPtrs = PYB11property("const std::vector<DEMNodeList<%(Dimension)s>*>&", "DEMNodeListPtrs", doc="The set of NodeLists in the DataBase")
     
-    maxKernelExtent = PYB11property("double")
+    maxKernelExtent = PYB11property("Scalar")
+    maxNeighborSearchBuffer = PYB11property("Scalar")
 
     globalMass = PYB11property("FieldList<%(Dimension)s, Scalar>")
     globalPosition = PYB11property("FieldList<%(Dimension)s, Vector>")
@@ -647,6 +650,7 @@ will get the new value regardless of resetValues."""
     DEMParticleRadius = PYB11property("FieldList<%(Dimension)s, Scalar>")
     DEMHfield = PYB11property("FieldList<%(Dimension)s, SymTensor>")
     DEMCompositeParticleIndex = PYB11property("FieldList<%(Dimension)s, int>")
+    DEMUniqueIndex = PYB11property("FieldList<%(Dimension)s, int>") 
 
     globalNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")
     fluidNodeExtent = PYB11property("FieldList<%(Dimension)s, Vector>")

@@ -3,6 +3,26 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// buffer distance for contact detection
+//------------------------------------------------------------------------------
+
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+DEMNodeList<Dimension>::
+neighborSearchBuffer() const {
+  return mNeighborSearchBuffer;
+}
+
+template<typename Dimension>
+inline
+void
+DEMNodeList<Dimension>::
+neighborSearchBuffer(typename Dimension::Scalar x) {
+  mNeighborSearchBuffer = x;
+}
+
+//------------------------------------------------------------------------------
 // particle radius per node.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -39,5 +59,24 @@ const Field<Dimension, int>&
 DEMNodeList<Dimension>::compositeParticleIndex() const {
   REQUIRE(mCompositeParticleIndex.nodeListPtr() == this);
   return mCompositeParticleIndex;
+}
+
+//------------------------------------------------------------------------------
+// unique particle indices
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+Field<Dimension, int>&
+DEMNodeList<Dimension>::uniqueIndex() {
+  REQUIRE(mUniqueIndex.nodeListPtr() == this);
+  return mUniqueIndex;
+}
+
+template<typename Dimension>
+inline
+const Field<Dimension, int>&
+DEMNodeList<Dimension>::uniqueIndex() const {
+  REQUIRE(mUniqueIndex.nodeListPtr() == this);
+  return mUniqueIndex;
 }
 }

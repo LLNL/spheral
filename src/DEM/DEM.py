@@ -23,6 +23,17 @@ def LinearSpringDEM(dataBase,
 
     assert dataBase.numDEMNodeLists == dataBase.numNodeLists, "all nodelists must be dem nodelists"
     assert stepsPerCollision > 1, "stepsPerCollision too low, reccomended is 25-50"
+    assert cohesiveTensileStrength >= 0, "cohesiveTensileStrength must be positive"
+    assert normalSpringConstant >= 0, "normalSpringConstant must be positive"
+    assert normalRestitutionCoefficient >= 0 and normalRestitutionCoefficient <= 1, "normalSpringConstant must be between 1 and 0"
+    assert tangentialSpringConstant >= 0, "normalSpringConstant must be positive"
+    assert tangentialRestitutionCoefficient >= 0 and tangentialRestitutionCoefficient <= 1, "normalSpringConstant must be between 1 and 0"
+    assert dynamicFrictionCoefficient >= 0, "dynamicFrictionCoefficient must be positive"
+    assert dynamicFrictionCoefficient >= 0, "dynamicFrictionCoefficient must be positive"
+    assert rollingFrictionCoefficient >= 0, "rollingFrictionCoefficient must be positive"
+    assert torsionalFrictionCoefficient >= 0, "torsionalFrictionCoefficient must be positive"
+
+    #if (stepsPerCollision < 10) print("WARNING: stepsPerCollision is very low, reccomended is 25-50")
 
     # we might want to allow the user to set less parameters with reasonable defaults
     #if tangentialSpringConstant is None:

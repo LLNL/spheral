@@ -1,11 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// ReplaceAndIncrementPairFieldList -- Update policy for the shearDisplacement pairwise
-//                            pairwise field. This one increments a replaced 
-//                            field. The replacement reorients the displacment
-//                            into the new tangential plane of the particle-
-//                            particle contact.
+// ReplaceAndIncrementPairFieldList -- Update policy which first replaces the
+//                                     pairFieldList in question then increments
+//                                     it. Naturally two derivatives fields
+//                                     are required one for each of the two
+//                                     steps.
 //
-// Created by JMP, Sun May 8 2022
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_ReplaceAndIncrementPairFieldList_hh__
 #define __Spheral_ReplaceAndIncrementPairFieldList_hh__
