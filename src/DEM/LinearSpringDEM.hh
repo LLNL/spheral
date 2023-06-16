@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
 // DEM -- damped linear spring contact model based on pkdgrav immplementation
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 // Schwartz, S.R. and Richards, D.C. "An implementation of the soft-sphere 
 // discrete element method in a high-performance parallel gravity tree-code,"
 // Granular Matter, (2012) 14:363–380, 10.1007/s10035-012-0346-z.
@@ -9,6 +9,7 @@
 // Shear and Cohesive Strengths," The Astrophysical Journal, (2018) 857:15, 20
 // 10.3847/1538-4357/aab5b2.
 //
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_LinearSpringDEM_hh__
 #define __Spheral_LinearSpringDEM_hh__
@@ -52,10 +53,16 @@ public:
 
   ~LinearSpringDEM();
  
+  // physics package methods
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar time) const override;
+
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+
+  virtual void registerState(DataBase<Dimension>& dataBase,
+                             State<Dimension>& state) override;
 
   virtual void evaluateDerivatives(const Scalar time,
                                    const Scalar dt,
@@ -63,6 +70,7 @@ public:
                                    const State<Dimension>& state,
                                          StateDerivatives<Dimension>& derivs) const override;
 
+  // set/gets
   Scalar normalSpringConstant() const;
   void   normalSpringConstant(Scalar x);
 
@@ -99,6 +107,23 @@ public:
   Scalar tangentialBeta() const;
   void   tangentialBeta(Scalar x);
 
+  // set moment of inertia on start up
+  void setMomentOfInertia();
+
+  // specialization for moment of Inertia different dimension
+  Scalar momentOfInertia(const Scalar massi,
+                         const Scalar particleRadiusi) const;
+
+  // get methods for class FieldLists
+  const FieldList<Dimension,Scalar>& momentOfInertia() const;
+
+  
+  //****************************************************************************
+  // Methods required for restarting.
+  virtual std::string label() const override { return "LinearSpringDEM" ; }
+  //virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  //virtual void restoreState(const FileIO& file, const std::string& pathName);
+  //****************************************************************************
 private:
   //--------------------------- Private Interface ---------------------------//
   Scalar mNormalSpringConstant;
@@ -114,6 +139,10 @@ private:
 
   Scalar mNormalBeta;
   Scalar mTangentialBeta;
+
+  // field Lists
+  FieldList<Dimension,Scalar> mMomentOfInertia;
+//  FieldList<Dimension,Scalar> mOptimalSpringConstant;
 
   // No default constructor, copying, or assignment.
   LinearSpringDEM();

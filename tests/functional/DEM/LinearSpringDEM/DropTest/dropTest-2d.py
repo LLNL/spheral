@@ -1,39 +1,51 @@
-#ATS:DEM2d0COMP = test(              SELF, "--clearDirectories True  --checkError True  --restartStep 10 --steps 100", label="DEM composite particle collision -- 2-D (serial)")
-#ATS:DEM2d1COMP = testif(DEM2d0COMP, SELF, "--clearDirectories False --checkError False  --restartStep 10 --restoreCycle 10 --steps 90 --checkRestart True", label="DEM composite particle collision -- 2-D (serial) RESTART CHECK")
-#ATS:DEM2d2COMP = test(              SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM composite particle collision -- 2-D (serial)")
-
-import os, sys, shutil, mpi
+import os, sys, shutil, mpi, random
 from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution2d import *
+from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator2d
+
+sys.path.insert(0, '..')
+from DEMConservationTracker import TrackConservation2d as TrackConservation
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes2d
 else:
     from DistributeNodes import distributeNodes2d
 
-title("DEM Restitution Coefficient Test")
+title("DEM 2d Drop Test")
+# tests pairing with a gravitational field and the
+# use of ghost-particle-based boundary conditions
+# with the DEM package.
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(vImpact = 1.0,                 # impact velocity
-            normalSpringConstant=10000.0,  # spring constant for LDS model
-            restitutionCoefficient=0.8,    # restitution coefficient to get damping const
-            radius = 0.25,                 # particle radius
-            nPerh = 1.01,                  # this should basically always be 1 for DEM
+commandLine(numParticlePerLength = 50,     # number of particles on a side of the box
+            radius = 0.25,                            # particle radius
+            normalSpringConstant=1000.0,             # spring constant for LDS model
+            normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
+            tangentialSpringConstant=285.70,          # spring constant for LDS model
+            tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
+            cohesiveTensileStrength = 0.0,            # units of pressure
+            dynamicFriction = 1.0,                    # static friction coefficient sliding
+            staticFriction = 1.0,                     # dynamic friction coefficient sliding
+            rollingFriction = 10.0,                   # static friction coefficient for rolling
+            torsionalFriction = 1.3,                  # static friction coefficient for torsion
+            shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
+
+            neighborSearchBuffer = 0.1,             # multiplicative buffer to radius for neighbor search algo
 
             # integration
-            IntegratorConstructor = CheapSynchronousRK2Integrator,
-            stepsPerCollision = 50,  # replaces CFL for DEM
-            goalTime = None,
+            IntegratorConstructor = VerletIntegrator,
+            stepsPerCollision = 25,  # replaces CFL for DEM
+            goalTime = 25.0,
             dt = 1e-8,
             dtMin = 1.0e-8, 
             dtMax = 0.1,
             dtGrowth = 2.0,
-            steps = 100,
+            steps = None,
             maxSteps = None,
             statsStep = 10,
             domainIndependent = False,
@@ -41,24 +53,22 @@ commandLine(vImpact = 1.0,                 # impact velocity
             dtverbose = False,
             
             # output control
-            vizCycle = 10,#None,
-            vizTime = None,
+            vizCycle = None,
+            vizTime = 0.1, 
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 1000,
-            redistributeStep = 500,
-            dataDir = "dumps-DEM-2d-CompositeParticleCollision",
+            redistributeStep = 100,
+            dataDir = "dumps-DEM-2d",
 
-            # ats parameters
-            checkError = False,
-            checkRestart = False,
-            restitutionErrorThreshold = 0.01, # relative error
+            # ats type things
+            checkRestart=False,
             )
 
 #-------------------------------------------------------------------------------
 # file things
 #-------------------------------------------------------------------------------
-testName = "DEM-CompositeParticleCollision-2d"
+testName = "DEM-dropTest-2d"
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
@@ -95,7 +105,7 @@ nodes1 = makeDEMNodeList("nodeList1",
                           hmin = 1.0e-30,
                           hmax = 1.0e30,
                           hminratio = 100.0,
-                          nPerh = nPerh,
+                          neighborSearchBuffer = neighborSearchBuffer,
                           kernelExtent = WT.kernelExtent)
 nodeSet = [nodes1]
 for nodes in nodeSet:
@@ -109,31 +119,36 @@ for nodes in nodeSet:
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    generator1 = GenerateNodeDistribution2d(3, 1,
+    generator0 = GenerateNodeDistribution2d(numParticlePerLength, numParticlePerLength,
                                             rho = 1.0,
-                                            distributionType = "lattice",
-                                            xmin = (-0.5,  0.0),
-                                            xmax = ( 1.0,  0.5),
-                                            nNodePerh = nPerh)
+                                            distributionType = "xstaggeredLattice",
+                                            xmin = (-0.5,  0.05),
+                                            xmax = ( 0.5,  1.05),
+                                            rotation=0.001)
+    
+    # replaces each particle with a composite bar particle
+    # def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
+    #     xout = [xi+Ri/3.0,xi-Ri/3.0]
+    #     yout = [yi,yi]
+    #     mout = [mi/2.0,mi/2.0]
+    #     Rout = [Ri/2.0,Ri/2.0]
+    #     return xout,yout,mout,Rout
 
+    # reduces every particle's radius by 1/2
+    def DEMParticleGenerator(xi,yi,Hi,mi,Ri):
+        xout = [xi]
+        yout = [yi]
+        mout = [mi]
+        Rout = [Ri/2.0]
+        return xout,yout,mout,Rout
+
+    generator1 = GenerateDEMfromSPHGenerator2d(WT,
+                                               generator0,
+                                               particleRadius = 0.5/(numParticlePerLength+1),
+                                               DEMParticleGenerator=DEMParticleGenerator)
 
     distributeNodes2d((nodes1, generator1))
-
-    # initial conditions
-    velocity = nodes1.velocity()
-    particleRadius = nodes1.particleRadius()
-    position = nodes1.positions()
-
-    velocity[0] = Vector(vImpact,0.0)
-    velocity[1] = Vector(vImpact,0.0)
-    velocity[2] = Vector(-vImpact,0.0)
-
-    position[0] = Vector(0.0,position[0][1])
-
-    particleRadius[0] = radius
-    particleRadius[1] = radius
-    particleRadius[2] = radius
-
+   
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -147,27 +162,49 @@ output("db.numFluidNodeLists")
 
 
 #-------------------------------------------------------------------------------
-# DEM
+# PhysicsPackage : DEM
 #-------------------------------------------------------------------------------
-hydro = DEM(db,
-            normalSpringConstant,
-            restitutionCoefficient,
-            stepsPerCollision = stepsPerCollision)
+dem = DEM(db,
+          normalSpringConstant = normalSpringConstant,
+          normalRestitutionCoefficient = normalRestitutionCoefficient,
+          tangentialSpringConstant = tangentialSpringConstant,
+          tangentialRestitutionCoefficient = tangentialRestitutionCoefficient,
+          dynamicFrictionCoefficient = dynamicFriction,
+          staticFrictionCoefficient = staticFriction,
+          rollingFrictionCoefficient = rollingFriction,
+          torsionalFrictionCoefficient = torsionalFriction,
+          cohesiveTensileStrength = cohesiveTensileStrength,
+          shapeFactor = shapeFactor,
+          stepsPerCollision = stepsPerCollision)
 
-eqOverlap=hydro.equilibriumOverlap
-neighborIndices = hydro.neighborIndices
-uniqueIndices = hydro.uniqueIndices
-shearDisplacement = hydro.shearDisplacement
-DDtShearDisplacement = hydro.DDtShearDisplacement
-neighborIndices[0][0]=vector_of_int([uniqueIndices(0,1)])
-eqOverlap[0][0]=vector_of_double([0.25])
+packages = [dem]
 
-print((neighborIndices(0,0)))
-print(eqOverlap(0,0))
-print(eqOverlap(0,0))
-print(uniqueIndices(0,0))
-print(uniqueIndices(0,1))
-packages = [hydro]
+
+solidWall = SphereSolidBoundary(Vector(0.0, 0.0),        # center
+                                   0.4,                  # radius
+                                   Vector(  0.0, 0.0),   # clip plane point
+                                   Vector(  0.0, 1.0))   # clip plane normal
+dem.appendSolidBoundary(solidWall)
+
+#-------------------------------------------------------------------------------
+# PhysicsPackage : gravity
+#-------------------------------------------------------------------------------
+gravity = ConstantAcceleration(a0 = Vector(0.0,-1.0),
+                               nodeList = nodes1)
+packages += [gravity]
+
+#-------------------------------------------------------------------------------
+# Create boundary conditions.
+#-------------------------------------------------------------------------------
+# plane1 = Plane(Vector(0.0, 0.0), Vector(  0.0, 1.0))
+# #plane2 = Plane(Vector(0.0, 0.0), Vector( -1.0, 1.0))
+# bc1 = ReflectingBoundary(plane1)
+# #bc2 = ReflectingBoundary(plane2)
+# bcSet = [bc1]#, bc2]
+
+# for p in packages:
+#     for bc in bcSet:
+#         p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
@@ -187,7 +224,7 @@ integrator.rigorousBoundaries = rigorousBoundaries
 integrator.cullGhostNodes = False
 
 output("integrator")
-output("integrator.havePhysicsPackage(hydro)")
+output("integrator.havePhysicsPackage(dem)")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
@@ -196,28 +233,36 @@ output("integrator.domainDecompositionIndependent")
 output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
-def printFunc(cycle,time,dt):
-    print([eqOverlap(0,0),eqOverlap(0,1),eqOverlap(0,2)])
-    print([uniqueIndices(0,0),uniqueIndices(0,1),uniqueIndices(0,2)])
-    print([neighborIndices(0,0),neighborIndices(0,1),neighborIndices(0,2)])
-    print([shearDisplacement(0,0),shearDisplacement(0,1),shearDisplacement(0,2)])
-    print([DDtShearDisplacement(0,0),DDtShearDisplacement(0,1),DDtShearDisplacement(0,2)])
+#-------------------------------------------------------------------------------
+# Periodic Work Function: Track conservation
+#-------------------------------------------------------------------------------
+
+conservation = TrackConservation(db,
+                                  dem,
+                                  verbose=True)
+                                  
+periodicWork = [(conservation.periodicWorkFunction,1)]
+
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+from SpheralPointmeshSiloDump import dumpPhysicsState
 control = SpheralController(integrator, WT,
                             iterateInitialH = False,
                             initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
+                            redistributeStep=redistributeStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             vizBaseName = vizBaseName,
+                            vizMethod = dumpPhysicsState,
+                            vizGhosts=True,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             SPH = SPH,
-                            periodicWork=[(printFunc,1)])
+                            periodicWork=periodicWork)
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -232,9 +277,6 @@ else:
     control.advance(goalTime, maxSteps)
 
 
-#-------------------------------------------------------------------------------
-# Great success?
-#-------------------------------------------------------------------------------
 if checkRestart:
     control.setRestartBaseName(restartBaseName)
     state0 = State(db, integrator.physicsPackages())
@@ -245,13 +287,3 @@ if checkRestart:
         raise ValueError("The restarted state does not match!")
     else:
         print("Restart check PASSED.")
-
-if checkError:
-    # check our restitution coefficient is correct
-    #-------------------------------------------------------------
-    vijPostImpact = velocity[0].x - velocity[1].x
-    vijPreImpact = 2.0*vImpact
-    restitutionEff = vijPostImpact/vijPreImpact
-    restitutionError = abs(restitutionEff + restitutionCoefficient)/restitutionCoefficient
-    if  restitutionError > restitutionErrorThreshold:
-        raise ValueError("relative restitution coefficient error, %g, exceeds bounds" % restitutionError)
