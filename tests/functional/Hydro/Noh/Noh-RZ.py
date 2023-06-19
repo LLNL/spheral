@@ -63,11 +63,11 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             fcentroidal = 0.0,
             fcellPressure = 0.0,
             Qhmult = 1.0,
-            Cl = 1.0, 
-            Cq = 1.0,
-            Qlimiter = False,
-            balsaraCorrection = False,
-            epsilon2 = 1e-2,
+            Cl = None,
+            Cq = None,
+            Qlimiter = None,
+            balsaraCorrection = None,
+            epsilon2 = None,
             hmin = 0.0001, 
             hmax = 0.1,
             hminratio = 0.1,
@@ -311,18 +311,25 @@ packages = [hydro]
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
 q = hydro.Q
-q.Cl = Cl
-q.Cq = Cq
-q.epsilon2 = epsilon2
-q.limiter = Qlimiter
-q.balsaraShearCorrection = balsaraCorrection
-q.QcorrectionOrder = QcorrectionOrder
+if not Cl is None:
+    q.Cl = Cl
+if not Cq is None:
+    q.Cq = Cq
+if not epsilon2 is None:
+    q.epsilon2 = epsilon2
+if not Qlimiter is None:
+    q.limiter = Qlimiter
+if not balsaraCorrection is None:
+    q.balsaraShearCorrection = balsaraCorrection
+if not QcorrectionOrder is None:
+    q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
 output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
+output("q.QcorrectionOrder")
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.

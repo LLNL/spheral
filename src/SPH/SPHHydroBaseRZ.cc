@@ -394,7 +394,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       CHECK(zetai > 0.0);
       // CHECK(hri > 0.0);
       CHECK(ri > 0.0);
-      CHECK2(ri == abs(posi.y()), "BLAGO: " << i << " " << ri << " " << posi.y() << " " << mass[0]->nodeList().firstGhostNode());
 
       auto& rhoSumi = rhoSum_thread(nodeListi, i);
       auto& normi = normalization_thread(nodeListi, i);
@@ -434,7 +433,6 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       CHECK(zetaj > 0.0);
       // CHECK(hrj > 0.0);
       CHECK(rj > 0.0);
-      CHECK2(rj == abs(posj.y()), "BLAGO: " << j << " " << rj << " " << posj.y() << " " << mass[0]->nodeList().firstGhostNode());
 
       auto& rhoSumj = rhoSum_thread(nodeListj, j);
       auto& normj = normalization_thread(nodeListj, j);
