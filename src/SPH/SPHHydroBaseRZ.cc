@@ -167,17 +167,16 @@ dt(const DataBase<Dim<2>>& dataBase,
       const auto& posi = pos(k,i);
       const auto& veli = vel(k,i);
       const auto  ri = std::abs(posi.y());
-      const auto  vri = std::abs(veli.y());
-      const auto  dti = 0.5*ri*safeInv(vri);
+      const auto  vri = -std::min(0.0, veli.y());
+      const auto  dti = 0.5*ri*safeInvVar(vri);
       if (dti < result.first) {
         result = std::make_pair(dti,
                                 ("Axis crossing limit: dt = " + std::to_string(dti) + "\n" +
                                  "                     ri = " + std::to_string(ri) + "\n" +
-                                 "                    vri = " + std::to_string(vri) + "\n" +
+                                 "                    vri = " + std::to_string(veli.y()) + "\n" +
                                  "               material = " + fluidNodeList.name() + "\n" +
                                  "  (nodeListID, i, rank) = (" + std::to_string(k) + " " + std::to_string(i) + " " + std::to_string(rank) + ")\n" +
                                  "             @ position = " + vec_to_string(posi)));
-        std::cerr << result.second << std::endl;
       }
     }
   }
