@@ -71,9 +71,9 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             hmin = 0.0001, 
             hmax = 0.1,
             hminratio = 0.1,
-            cfl = 0.5,
+            cfl = 0.25,
             useVelocityMagnitudeForDt = False,
-            XSPH = True,
+            XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4.0,
             hourglass = None,
@@ -86,7 +86,7 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             goalTime = 0.6,
             steps = None,
             dt = 0.0001,
-            dtMin = 1.0e-5, 
+            dtMin = 1.0e-8, 
             dtMax = 0.1,
             dtGrowth = 2.0,
             dtverbose = False,
@@ -304,6 +304,7 @@ output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
+output("hydro.XSPH")
 
 packages = [hydro]
 

@@ -30,6 +30,7 @@ public:
   typedef Dimension::Tensor Tensor;
   typedef Dimension::SymTensor SymTensor;
 
+  typedef Physics<Dimension>::TimeStepType TimeStepType;
   typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
@@ -56,6 +57,12 @@ public:
 
   // Destructor.
   virtual ~SPHHydroBaseRZ();
+
+  // Override the generic hydro timestep choice
+  virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
+                          const State<Dimension>& state,
+                          const StateDerivatives<Dimension>& derivs,
+                          const Scalar currentTime) const override;
 
   // Tasks we do once on problem startup.
   virtual

@@ -54,7 +54,7 @@ public:
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const;
+                          const Scalar currentTime) const override;
 
   // Allow access to the artificial viscosity.
   ArtificialViscosity<Dimension>& artificialViscosity() const;

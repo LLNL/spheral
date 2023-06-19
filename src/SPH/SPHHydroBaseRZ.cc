@@ -55,16 +55,15 @@
 #include <limits.h>
 #include <float.h>
 #include <algorithm>
-#include <fstream>
-#include <map>
+#include <sstream>
 #include <vector>
 #include <memory>
 using std::vector;
-using std::map;
 using std::string;
 using std::pair;
 using std::make_pair;
 using std::make_shared;
+using std::to_string;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -73,6 +72,19 @@ using std::max;
 using std::abs;
 
 namespace Spheral {
+
+namespace {
+
+// Provide to_string for Spheral Vector
+template<typename Vector>
+std::string
+vec_to_string(const Vector& vec) {
+  std::ostringstream oss;
+  oss << vec << std::endl;
+  return oss.str();
+}
+
+}
 
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
@@ -127,6 +139,50 @@ SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
 //------------------------------------------------------------------------------
 SPHHydroBaseRZ::
 ~SPHHydroBaseRZ() {
+}
+
+//------------------------------------------------------------------------------
+// Determine the timestep requirements for a hydro step.
+//------------------------------------------------------------------------------
+typename SPHHydroBaseRZ::TimeStepType
+SPHHydroBaseRZ::
+dt(const DataBase<Dim<2>>& dataBase,
+   const State<Dim<2>>& state,
+   const StateDerivatives<Dim<2>>& derivs,
+   Dim<2>::Scalar currentTime) const {
+
+  // Base timestep choice
+  auto result = GenericHydro<Dim<2>>::dt(dataBase, state, derivs, currentTime);
+
+  // Now enforce a constraint that no point can cross the axis in a single timestep
+  const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto vel = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto numNodeLists = pos.numFields();
+  CHECK(vel.numFields() == numFields());
+  for (auto k = 0u; k < numNodeLists; ++k) {
+    const auto& fluidNodeList = **(dataBase.fluidNodeListBegin() + k);
+    const auto  n = pos[k]->numInternalElements();
+    const auto  rank = Process::getRank();
+    for (auto i = 0u; i < n; ++i) {
+      const auto& posi = pos(k,i);
+      const auto& veli = vel(k,i);
+      const auto  ri = std::abs(posi.y());
+      const auto  vri = std::abs(veli.y());
+      const auto  dti = 0.5*ri*safeInv(vri);
+      if (dti < result.first) {
+        result = std::make_pair(dti,
+                                ("Axis crossing limit: dt = " + std::to_string(dti) + "\n" +
+                                 "                     ri = " + std::to_string(ri) + "\n" +
+                                 "                    vri = " + std::to_string(vri) + "\n" +
+                                 "               material = " + fluidNodeList.name() + "\n" +
+                                 "  (nodeListID, i, rank) = (" + std::to_string(k) + " " + std::to_string(i) + " " + std::to_string(rank) + ")\n" +
+                                 "             @ position = " + vec_to_string(posi)));
+        std::cerr << result.second << std::endl;
+      }
+    }
+  }
+
+  return result;
 }
 
 //------------------------------------------------------------------------------
