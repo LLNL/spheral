@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
-// IncrementSpecificFromTotalPolicy -- replaces one fieldlist with the ratio of two
-// fieldlists from the state.
+// IncrementSpecificFromTotalPolicy -- replaces one fieldlist with the ratio 
+//                                     of two fieldlists from the state.
 //
 // J.M. Pearl 2022
 //----------------------------------------------------------------------------//
@@ -23,7 +23,7 @@ namespace Spheral {
 template<typename Dimension, typename Value>
 IncrementSpecificFromTotalPolicy<Dimension, Value>::
 IncrementSpecificFromTotalPolicy(const std::string& stateKey, const std::string& derivsKey):
-  FieldListUpdatePolicyBase<Dimension, Value>(HydroFieldNames::mass),
+  FieldListUpdatePolicyBase<Dimension, Value>(),
   mStateKey(stateKey),
   mDerivativeKey(derivsKey){
 }
@@ -31,7 +31,7 @@ IncrementSpecificFromTotalPolicy(const std::string& stateKey, const std::string&
 template<typename Dimension, typename Value>
 IncrementSpecificFromTotalPolicy<Dimension, Value>::
 IncrementSpecificFromTotalPolicy(const std::string& stateKey, const std::string&  derivsKey, const std::string& depend0):
-  FieldListUpdatePolicyBase<Dimension, Value>(HydroFieldNames::mass, depend0),
+  FieldListUpdatePolicyBase<Dimension, Value>(depend0),
   mStateKey(stateKey),
   mDerivativeKey(derivsKey) {
 }
@@ -42,7 +42,7 @@ IncrementSpecificFromTotalPolicy(const std::string& stateKey,
                               const std::string& derivsKey,
                               const std::string& depend0,
                               const std::string& depend1):
-  FieldListUpdatePolicyBase<Dimension, Value>(HydroFieldNames::mass, depend0, depend1),
+  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1),
   mStateKey(stateKey),
   mDerivativeKey(derivsKey) {
 }
@@ -54,7 +54,7 @@ IncrementSpecificFromTotalPolicy(const std::string& stateKey,
                               const std::string& depend0,
                               const std::string& depend1,
                               const std::string& depend2):
-  FieldListUpdatePolicyBase<Dimension, Value>(HydroFieldNames::mass, depend0, depend1, depend2),
+  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2),
   mStateKey(stateKey),
   mDerivativeKey(derivsKey){
 }
@@ -67,7 +67,7 @@ IncrementSpecificFromTotalPolicy(const std::string& stateKey,
                               const std::string& depend1,
                               const std::string& depend2,
                               const std::string& depend3):
-  FieldListUpdatePolicyBase<Dimension, Value>(HydroFieldNames::mass, depend0, depend1, depend2, depend3),
+  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3),
   mStateKey(stateKey),
   mDerivativeKey(derivsKey){
 }
@@ -81,7 +81,7 @@ IncrementSpecificFromTotalPolicy(const std::string& stateKey,
                               const std::string& depend2,
                               const std::string& depend3,
                               const std::string& depend4):
-  FieldListUpdatePolicyBase<Dimension, Value>(HydroFieldNames::mass, depend0, depend1, depend2, depend3, depend4),
+  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3, depend4),
   mStateKey(stateKey),
   mDerivativeKey(derivsKey){
 }
@@ -107,7 +107,7 @@ update(const KeyType& /*key*/,
        const double t,
        const double dt) {
 
-  const auto tiny = std::numeric_limits<typename Dimension::Scalar>::epsilon();
+  //const auto tiny = std::numeric_limits<typename Dimension::Scalar>::epsilon();
 
   const auto  m = state.fields(HydroFieldNames::mass, Scalar());
         auto  q = state.fields(mStateKey, Value());
@@ -115,21 +115,14 @@ update(const KeyType& /*key*/,
   const auto  DmDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::mass, Scalar());
   const auto  DQDt = derivs.fields(mDerivativeKey, Value());
 
-
-  // Get the field name portion of the key.
-  //KeyType fieldKey, nodeListKey;
-  //StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  //CHECK(nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-
-  // Find the matching replacement FieldList from the StateDerivatives.
-  //FieldList<Dimension, Value> f = state.fields(fieldKey, Value());
-
   // Loop over the internal values of the field.
   const unsigned numNodeLists = q.size();
   for (unsigned k = 0; k != numNodeLists; ++k) {
     const unsigned n = q[k]->numInternalElements();
     for (unsigned i = 0; i != n; ++i) {
-      q(k, i) += (DQDt(k, i) - DmDt(k, i)*q(k, i)) * multiplier/ (m(k,i)+DmDt(k,i)*multiplier);
+      //const auto m1 = m(k,i)+DmDt(k,i)*multiplier;
+      //q(k, i) = (DQDt(k, i) * multiplier + m(k,i)*q(k, i))*safeInv(m1);
+      q(k, i) += (DQDt(k, i) - DmDt(k, i)*q(k, i)) * multiplier * safeInv(m(k,i)+DmDt(k,i)*multiplier);
     }
   }
 }

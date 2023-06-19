@@ -29,6 +29,7 @@ class MFVHydroBase(GenericRiemannHydro):
                evolveTotalEnergy = "const bool",
                XSPH = "const bool",
                correctVelocityGradient = "const bool",
+               nodeMotionType = "const NodeMotionType",
                gradType = "const GradientType",
                densityUpdate = "const MassDensityType",
                HUpdate = "const HEvolutionType",
@@ -109,7 +110,7 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     DvolumeDt = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DvolumeDt", returnpolicy="reference_internal")
-    
+    nodeMotionType = PYB11property("NodeMotionType","nodeMotionType","nodeMotionType")
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------

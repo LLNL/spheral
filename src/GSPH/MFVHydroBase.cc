@@ -1,11 +1,37 @@
 //---------------------------------Spheral++----------------------------------//
-// MFVHydroBase -- spheralized verions of "Meshless Finite Mass" 
+// MFVHydroBase -- This is an Arbitrary Eulerian-Lagrangian extension of the
+//                 MFV approach of Hopkins 2015. Its got several node-motion
+//                 approaches which promote more regular particle distributions.
+//
+//                 Each of the ALE options defines the velocity of the nodes 
+//                 differently then the flux then results from the difference
+//                 between the nodes velocities and the fluid velocity.
+//                 The velocities are defined as follows for the 
+//                 NodeMotionTypes:
+//
+//                 1) Eulerian ---- static Nodes
+//                 2) Lagrangian -- nodal velocity = fluid velocity. (This is
+//                                  a spheralized version of MFV so there
+//                                  is some flux between nodes)
+//                 3) Fician ------ nodal velocity = fluid velocity + Fician
+//                                  PST correction
+//                 4) XSPH -------- nodal velocity = xsph velocity
+//                 5) BackgroundPressure -- nodal acceleration = fluid 
+//                                          acceleration + Background pressure
+//                                          force to drive regularization.
+//
 //   Hopkins P.F. (2015) "A New Class of Accurate, Mesh-Free Hydrodynamic 
 //   Simulation Methods," MNRAS, 450(1):53-110
 //
-// J.M. Pearl 2022
+// J.M. Pearl 2023
 //----------------------------------------------------------------------------//
-
+// TODO:
+//   1 mass flux should be limited so we don't get issues with neg mass
+//   2 need better timestep constraints
+//   3 maybe seperate flux polies for all conserved variables 
+//     similar to an advect step in ALE schemes. Might give better e-conserve
+//   4 compatible energy for MFV
+//---------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -28,8 +54,12 @@
 #include "GSPH/GSPHFieldNames.hh"
 #include "GSPH/computeSumVolume.hh"
 #include "GSPH/computeMFMDensity.hh"
+#include "GSPH/Policies/ALEPositionPolicy.hh"
+#include "GSPH/Policies/MassFluxPolicy.hh"
 #include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 #include "GSPH/Policies/IncrementSpecificFromTotalPolicy.hh"
+#include "GSPH/Policies/PureReplaceFieldList.hh"
+#include "GSPH/Policies/PureReplaceWithStateFieldList.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 #ifdef _OPENMP
@@ -60,6 +90,7 @@ MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              const bool evolveTotalEnergy,
              const bool XSPH,
              const bool correctVelocityGradient,
+             const NodeMotionType nodeMotionType,
              const GradientType gradType,
              const MassDensityType densityUpdate,
              const HEvolutionType HUpdate,
@@ -85,10 +116,13 @@ MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                                  nTensile,
                                  xmin,
                                  xmax),
+  mNodeMotionType(nodeMotionType),
+  mNodalVelocity(FieldStorageType::CopyFields),
   mDmassDt(FieldStorageType::CopyFields),
   mDthermalEnergyDt(FieldStorageType::CopyFields),
   mDmomentumDt(FieldStorageType::CopyFields),
   mDvolumeDt(FieldStorageType::CopyFields){
+    mNodalVelocity = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::nodalVelocity);
     mDmassDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::mass);
     mDthermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
     mDmomentumDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum);
@@ -122,15 +156,26 @@ MFVHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-
   GenericRiemannHydro<Dimension>::registerState(dataBase,state);
   
+  //state.removePolicy(HydroFieldNames::position);
+
+  dataBase.resizeFluidFieldList(mNodalVelocity, Vector::zero, GSPHFieldNames::nodalVelocity);
+
   auto massDensity = dataBase.fluidMassDensity();
+
+  auto position = dataBase.fluidPosition();//state.fields(HydroFieldNames::position,Vector::zero);
+  auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   auto volume = state.fields(HydroFieldNames::volume, 0.0);
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
   auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
 
+  CHECK(position.numFields() == dataBase.numFluidNodeLists());
+  CHECK(velocity.numFields() == dataBase.numFluidNodeLists());
+  CHECK(volume.numFields() == dataBase.numFluidNodeLists());
+  CHECK(mass.numFields() == dataBase.numFluidNodeLists());
+  CHECK(specificThermalEnergy.numFields() == dataBase.numFluidNodeLists());
+  
   std::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > volumePolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
   for (auto itr = dataBase.fluidNodeListBegin();
        itr != dataBase.fluidNodeListEnd();
@@ -143,16 +188,42 @@ registerState(DataBase<Dimension>& dataBase,
   }
 
   auto rhoPolicy = std::make_shared<ReplaceWithRatioPolicy<Dimension,Scalar>>(HydroFieldNames::mass,
-                                                                         HydroFieldNames::volume,
-                                                                         HydroFieldNames::volume);
+                                                                              HydroFieldNames::volume,
+                                                                              HydroFieldNames::volume);
 
-  auto massPolicy = std::make_shared<IncrementFieldList<Dimension, Vector>>(true);
+  auto massPolicy = std::make_shared<MassFluxPolicy<Dimension>>(GSPHFieldNames::momentumPolicy,GSPHFieldNames::thermalEnergyPolicy);
   auto momentumPolicy = std::make_shared<IncrementSpecificFromTotalPolicy<Dimension, Vector>>(HydroFieldNames::velocity, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum);
   auto thermalEnergyPolicy = std::make_shared<IncrementSpecificFromTotalPolicy<Dimension, Scalar>>(HydroFieldNames::specificThermalEnergy, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
 
   // special policies to get velocity update from momentum deriv
   state.enroll(GSPHFieldNames::momentumPolicy,momentumPolicy);
   state.enroll(GSPHFieldNames::thermalEnergyPolicy,thermalEnergyPolicy);
+
+  switch (mNodeMotionType){
+    case NodeMotionType::Eulerian:
+    {
+      std::cout <<"Eulerian" << std::endl;
+      state.enroll(mNodalVelocity); // Eulerian
+    }
+      break;
+    case NodeMotionType::Lagrangian:
+      {
+        std::cout <<"Lagrangian" << std::endl;
+        auto nodalVelocityPolicy = std::make_shared<PureReplaceWithStateFieldList<Dimension,Vector>>(HydroFieldNames::velocity,HydroFieldNames::velocity);
+        state.enroll(mNodalVelocity, nodalVelocityPolicy);
+      }
+      break;
+    case NodeMotionType::XSPH:
+      {
+        std::cout <<"XSPH" << std::endl;
+        auto nodalVelocityPolicy = std::make_shared<PureReplaceFieldList<Dimension,Vector>>(HydroFieldNames::XSPHDeltaV);
+        state.enroll(mNodalVelocity, nodalVelocityPolicy);
+      }
+      break;
+    default:
+      std::cout <<"default" << std::endl;
+      break;
+  }
 
   // normal state variables
   state.enroll(mass,        massPolicy);

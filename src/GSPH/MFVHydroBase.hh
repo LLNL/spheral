@@ -1,9 +1,29 @@
 //---------------------------------Spheral++----------------------------------//
-// MFVHydroBase -- spheralized verions of "Meshless Finite Mass" 
+// MFVHydroBase -- This is an Arbitrary Eulerian-Lagrangian extension of the
+//                 MFV approach of Hopkins 2015. Its got several node-motion
+//                 approaches which promote more regular particle distributions.
+//
+//                 Each of the ALE options defines the velocity of the nodes 
+//                 differently then the flux then results from the difference
+//                 between the nodes velocities and the fluid velocity.
+//                 The velocities are defined as follows for the 
+//                 NodeMotionTypes:
+//
+//                 1) Eulerian ---- static Nodes
+//                 2) Lagrangian -- nodal velocity = fluid velocity. (This is
+//                                  a spheralized version of MFV so there
+//                                  is some flux between nodes)
+//                 3) Fician ------ nodal velocity = fluid velocity + Fician
+//                                  PST correction
+//                 4) XSPH -------- nodal velocity = xsph velocity
+//                 5) BackgroundPressure -- nodal acceleration = fluid 
+//                                          acceleration + Background pressure
+//                                          force to drive regularization.
+//
 //   Hopkins P.F. (2015) "A New Class of Accurate, Mesh-Free Hydrodynamic 
 //   Simulation Methods," MNRAS, 450(1):53-110
 //
-// J.M. Pearl 2022
+// J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
 #ifndef __Spheral_MFVHydroBase_hh__
@@ -14,6 +34,14 @@
 #include "GSPH/GenericRiemannHydro.hh"
 
 namespace Spheral {
+
+enum class NodeMotionType {
+  Lagrangian = 0,
+  Eulerian = 1,
+  Fician = 2,
+  XSPH = 3,
+  BackgroundPressure = 4,
+};
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
@@ -51,6 +79,7 @@ public:
                const bool evolveTotalEnergy,
                const bool XSPH,
                const bool correctVelocityGradient,
+               const NodeMotionType nodeMotionType,
                const GradientType gradType,
                const MassDensityType densityUpdate,
                const HEvolutionType HUpdate,
@@ -123,6 +152,10 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
+  NodeMotionType nodeMotionType() const;
+  void nodeMotionType(NodeMotionType x);
+
+  const FieldList<Dimension,Vector>& nodalVelocity() const;
   const FieldList<Dimension,Scalar>& DmassDt() const;
   const FieldList<Dimension,Scalar>& DthermalEnergyDt() const;
   const FieldList<Dimension,Vector>& DmomentumDt() const;
@@ -135,6 +168,10 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************           
 private:
+
+  NodeMotionType mNodeMotionType;
+
+  FieldList<Dimension, Vector> mNodalVelocity;
   FieldList<Dimension, Scalar> mDmassDt;
   FieldList<Dimension, Scalar> mDthermalEnergyDt;
   FieldList<Dimension, Vector> mDmomentumDt;

@@ -126,6 +126,7 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDvDt(FieldStorageType::CopyFields),                       // move up one layer
   mDspecificThermalEnergyDt(FieldStorageType::CopyFields),   // move up one layer
   mDHDt(FieldStorageType::CopyFields), 
+  mDrhoDx(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields),
   mRiemannDpDx(FieldStorageType::CopyFields),
   mRiemannDvDx(FieldStorageType::CopyFields),
@@ -150,6 +151,7 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
   mDspecificThermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy);
   mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::H);
+  mDrhoDx = dataBase.newFluidFieldList(Vector::zero,GSPHFieldNames::densityGradient);
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mRiemannDpDx = dataBase.newFluidFieldList(Vector::zero,GSPHFieldNames::RiemannPressureGradient);
   mRiemannDvDx = dataBase.newFluidFieldList(Tensor::zero,GSPHFieldNames::RiemannVelocityGradient);
@@ -220,8 +222,6 @@ GenericRiemannHydro<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
-  //typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-
   VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
           "SPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
 
@@ -249,7 +249,7 @@ registerState(DataBase<Dimension>& dataBase,
       Hpolicy->push_back(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
     }
   }
-  //auto yieldStrengthPolicy = make_shared<YieldStrengthPolicy<Dimension>>()
+  
   auto positionPolicy = make_shared<IncrementFieldList<Dimension, Vector>>();
   auto pressurePolicy = make_shared<PressurePolicy<Dimension>>();
   auto csPolicy = make_shared<SoundSpeedPolicy<Dimension>>();
@@ -323,6 +323,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDspecificThermalEnergyDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, false);
   dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
+  dataBase.resizeFluidFieldList(mDrhoDx, Vector::zero, GSPHFieldNames::densityGradient, false);
   dataBase.resizeFluidFieldList(mM, Tensor::zero, HydroFieldNames::M_SPHCorrection, false);
   
   // Check if someone already registered DxDt.
@@ -332,6 +333,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   }
   // Check that no-one else is trying to control the hydro vote for DvDt.
   CHECK(not derivs.registered(mDvDt));
+  derivs.enroll(mDrhoDx);
   derivs.enroll(mNewRiemannDpDx);
   derivs.enroll(mNewRiemannDvDx);
   derivs.enroll(mDvDt);

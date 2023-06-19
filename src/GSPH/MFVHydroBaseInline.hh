@@ -1,7 +1,36 @@
 namespace Spheral {
+
+
+//------------------------------------------------------------------------------
+// set/get mesh motion type
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+NodeMotionType
+MFVHydroBase<Dimension>::
+nodeMotionType() const {
+  return mNodeMotionType;
+}
+
+template<typename Dimension>
+inline
+void
+MFVHydroBase<Dimension>::
+nodeMotionType(NodeMotionType x) {
+  mNodeMotionType=x;
+}
+
 //------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Vector>&
+MFVHydroBase<Dimension>::
+nodalVelocity() const {
+  return mNodalVelocity;
+}
+
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&

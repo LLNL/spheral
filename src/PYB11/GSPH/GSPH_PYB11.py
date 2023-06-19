@@ -34,6 +34,7 @@ PYB11includes += ['"GSPH/GenericRiemannHydro.hh"',
                   '"GSPH/Limiters/VanAlbaLimiter.hh"',
                   '"GSPH/Limiters/SuperbeeLimiter.hh"',
                   '"GSPH/Limiters/OspreLimiter.hh"',
+                  '"GSPH/Limiters/BarthJespersenLimiter.hh"',
                   '"GSPH/RiemannSolvers/RiemannSolverBase.hh"',
                   '"GSPH/RiemannSolvers/HLLC.hh"',
                   '"GSPH/RiemannSolvers/SecondOrderArtificialViscosity.hh"',
@@ -55,6 +56,12 @@ GradientType = PYB11enum(("RiemannGradient",
                           "SPHUncorrectedGradient",
                           "NoGradient"), export_values = True)
 
+NodeMotionType = PYB11enum(("Lagrangian",
+                            "Eulerian",
+                            "Fician",
+                            "XSPH",
+                            "BackgroundPressure"), export_values = False)
+
 #-------------------------------------------------------------------------------
 # Instantiate our types
 #-------------------------------------------------------------------------------
@@ -74,6 +81,7 @@ VanLeerLimiter%(ndim)id = PYB11TemplateClass(VanLeerLimiter, template_parameters
 VanAlbaLimiter%(ndim)id = PYB11TemplateClass(VanAlbaLimiter, template_parameters="%(Dimension)s")
 SuperbeeLimiter%(ndim)id = PYB11TemplateClass(SuperbeeLimiter, template_parameters="%(Dimension)s")
 OspreLimiter%(ndim)id = PYB11TemplateClass(OspreLimiter, template_parameters="%(Dimension)s")
+BarthJespersenLimiter%(ndim)id = PYB11TemplateClass(BarthJespersenLimiter, template_parameters="%(Dimension)s")
 RiemannSolverBase%(ndim)id = PYB11TemplateClass(RiemannSolverBase, template_parameters="%(Dimension)s")
 HLLC%(ndim)id = PYB11TemplateClass(HLLC, template_parameters="%(Dimension)s")
 SecondOrderArtificialViscosity%(ndim)id = PYB11TemplateClass(SecondOrderArtificialViscosity, template_parameters="%(Dimension)s")

@@ -6,6 +6,7 @@
 
 #include "GSPHFieldNames.hh"
 
+const std::string Spheral::GSPHFieldNames::nodalVelocity = "velocity of node";
 const std::string Spheral::GSPHFieldNames::momentum = "momentum";
 const std::string Spheral::GSPHFieldNames::thermalEnergy = "thermal energy";
 const std::string Spheral::GSPHFieldNames::densityGradient = "density gradient";

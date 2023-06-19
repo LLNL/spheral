@@ -9,6 +9,9 @@ set(GSPH_inst
     GSPHHydroBase
     MFMHydroBase
     MFVHydroBase
+    Policies/MassFluxPolicy
+    Policies/ALEPositionPolicy
+    Policies/PureReplaceWithStateFieldList
     Policies/PureReplaceFieldList
     Policies/ReplaceWithRatioPolicy
     Policies/IncrementSpecificFromTotalPolicy
@@ -18,6 +21,7 @@ set(GSPH_inst
     Limiters/MinModLimiter
     Limiters/VanAlbaLimiter
     Limiters/OspreLimiter
+    Limiters/BarthJespersenLimiter
     WaveSpeeds/WaveSpeedBase
     WaveSpeeds/AcousticWaveSpeed
     WaveSpeeds/DavisWaveSpeed
@@ -39,6 +43,9 @@ set(GSPH_headers
     GSPHHydroBase.hh
     MFMHydroBase.hh
     MFVHydroBase.hh
+    Policies/MassFluxPolicy.hh
+    Policies/ALEPositionPolicy.hh
+    Policies/PureReplaceWithStateFieldList.hh
     Policies/PureReplaceFieldList.hh
     Policies/ReplaceWithRatioPolicy.hh
     Policies/IncrementSpecificFromTotalPolicy.hh
@@ -48,6 +55,7 @@ set(GSPH_headers
     Limiters/MinModLimiter.hh
     Limiters/VanAlbaLimiter.hh
     Limiters/OspreLimiter.hh
+    Limiters/BarthJespersenLimiter.hh
     WaveSpeeds/WaveSpeedBase.hh
     WaveSpeeds/AcousticWaveSpeed.hh
     WaveSpeeds/DavisWaveSpeed.hh

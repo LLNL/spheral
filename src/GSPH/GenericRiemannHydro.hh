@@ -204,6 +204,7 @@ public:
   const std::vector<Vector>&             pairAccelerations() const;
   const std::vector<Scalar>&             pairDepsDt() const;
 
+  const FieldList<Dimension, Vector>&    DrhoDx() const;
   const FieldList<Dimension, Vector>&    riemannDpDx() const;
   const FieldList<Dimension, Tensor>&    riemannDvDx() const;
   const FieldList<Dimension, Vector>&    newRiemannDpDx() const;
@@ -264,6 +265,7 @@ private:
   FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
   FieldList<Dimension, SymTensor> mDHDt;
 
+  FieldList<Dimension, Vector>    mDrhoDx;
   FieldList<Dimension, Tensor>    mDvDx;
   FieldList<Dimension, Vector>    mRiemannDpDx;
   FieldList<Dimension, Tensor>    mRiemannDvDx;

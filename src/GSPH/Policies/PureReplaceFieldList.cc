@@ -115,6 +115,8 @@ update(const KeyType& key,
 
   // Find the matching replacement FieldList from the StateDerivatives.
   FieldList<Dimension, Value> f = state.fields(fieldKey, Value());
+
+  // field we're replacing it with
   const FieldList<Dimension, Value> df = derivs.fields(mReplaceKey, Value());
   CHECK(f.size() == df.size());
 
