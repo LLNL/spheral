@@ -25,7 +25,7 @@ if(ENABLE_2D)
   list(APPEND SPH_sources
        SPHHydroBaseRZ.cc
        SolidSPHHydroBaseRZ.cc
-       EffectiveRadiusPolicy.cc
+       # EffectiveRadiusPolicy.cc
       )
 endif()
 

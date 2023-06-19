@@ -65,7 +65,7 @@ struct HydroFieldNames {
   static const std::string specificHeat;
   static const std::string normal;
   static const std::string surfaceArea;
-  static const std::string reff;
+  //  static const std::string reff;
 };
 
 }

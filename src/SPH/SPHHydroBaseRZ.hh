@@ -104,17 +104,17 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
-  // The effective radius FieldList
-  const FieldList<Dimension, Scalar>& effectiveRadius() const;
+  // // The effective radius FieldList
+  // const FieldList<Dimension, Scalar>& effectiveRadius() const;
 
-  // Compute the effective radius used for area-weighting of points
-  static Scalar reff(const Scalar ri,
-                     const Scalar hri,
-                     const Scalar nPerh);
+  // // Compute the effective radius used for area-weighting of points
+  // static Scalar reff(const Scalar ri,
+  //                    const Scalar hri,
+  //                    const Scalar nPerh);
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  FieldList<Dimension, Scalar> mEffectiveRadius;
+  // FieldList<Dimension, Scalar> mEffectiveRadius;
 
   // No default constructor, copying, or assignment.
   SPHHydroBaseRZ();

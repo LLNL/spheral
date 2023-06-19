@@ -34,7 +34,7 @@
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Hydro/EntropyPolicy.hh"
-#include "SPH/EffectiveRadiusPolicy.hh"
+// #include "SPH/EffectiveRadiusPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
 #include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
@@ -129,9 +129,9 @@ SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                         epsTensile,
                         nTensile,
                         xmin,
-                        xmax),
-  mEffectiveRadius(FieldStorageType::CopyFields) {
-  mEffectiveRadius = dataBase.newFluidFieldList(0.0, HydroFieldNames::reff);
+                        xmax) {
+  // mEffectiveRadius(FieldStorageType::CopyFields) {
+  // mEffectiveRadius = dataBase.newFluidFieldList(0.0, HydroFieldNames::reff);
 }
 
 //------------------------------------------------------------------------------
@@ -194,26 +194,26 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
   // Set the coordinates globally
   GeometryRegistrar::coords(CoordinateType::RZ);
 
-  // Initialize the effective radius
-  dataBase.resizeFluidFieldList(mEffectiveRadius, 0.0, HydroFieldNames::reff, true);
-  const auto position = dataBase.fluidPosition();
-  const auto H = dataBase.fluidHfield();
-  const auto numFields = mEffectiveRadius.numFields();
-  CHECK(position.numFields() == numFields and
-        H.numFields() == numFields);
-  for (auto k = 0u; k < numFields; ++k) {
-    const auto& nodeList = mEffectiveRadius[k]->nodeList();
-    const auto  nPerh = nodeList.nodesPerSmoothingScale();
-    const auto  n = nodeList.numInternalNodes();
-#pragma omp parallel for
-    for (auto i = 0u; i < n; ++i) {
-      const auto& posi = position(k, i);
-      const auto& Hi = H(k, i);
-      const auto  zetai = abs((Hi*posi).y());
-      const auto  hri = abs(posi.y())*safeInv(zetai);
-      mEffectiveRadius(k, i) = SPHHydroBaseRZ::reff(posi.y(), hri, nPerh);
-    }
-  }
+//   // Initialize the effective radius
+//   dataBase.resizeFluidFieldList(mEffectiveRadius, 0.0, HydroFieldNames::reff, true);
+//   const auto position = dataBase.fluidPosition();
+//   const auto H = dataBase.fluidHfield();
+//   const auto numFields = mEffectiveRadius.numFields();
+//   CHECK(position.numFields() == numFields and
+//         H.numFields() == numFields);
+//   for (auto k = 0u; k < numFields; ++k) {
+//     const auto& nodeList = mEffectiveRadius[k]->nodeList();
+//     const auto  nPerh = nodeList.nodesPerSmoothingScale();
+//     const auto  n = nodeList.numInternalNodes();
+// #pragma omp parallel for
+//     for (auto i = 0u; i < n; ++i) {
+//       const auto& posi = position(k, i);
+//       const auto& Hi = H(k, i);
+//       const auto  zetai = abs((Hi*posi).y());
+//       const auto  hri = abs(posi.y())*safeInv(zetai);
+//       mEffectiveRadius(k, i) = SPHHydroBaseRZ::reff(posi.y(), hri, nPerh);
+//     }
+//   }
 
   // Base class startup
   SPHHydroBase<Dim<2> >::initializeProblemStartup(dataBase);
@@ -230,9 +230,9 @@ registerState(DataBase<Dim<2>>& dataBase,
   // The base class does most of it.
   SPHHydroBase<Dim<2>>::registerState(dataBase, state);
 
-  // Enroll the effective radius.
-  dataBase.resizeFluidFieldList(mEffectiveRadius, 0.0, HydroFieldNames::reff, false);
-  state.enroll(mEffectiveRadius, std::make_shared<EffectiveRadiusPolicy>());
+  // // Enroll the effective radius.
+  // dataBase.resizeFluidFieldList(mEffectiveRadius, 0.0, HydroFieldNames::reff, false);
+  // state.enroll(mEffectiveRadius, std::make_shared<EffectiveRadiusPolicy>());
 
   // Are we using the compatible energy evolution scheme?
   // If so we need to override the ordinary energy registration with a specialized version.
@@ -333,7 +333,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
-  const auto effectiveRadius = state.fields(HydroFieldNames::reff, 0.0);
+  // const auto effectiveRadius = state.fields(HydroFieldNames::reff, 0.0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -342,7 +342,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(omega.size() == numNodeLists);
-  CHECK(effectiveRadius.size() == numNodeLists);
+  // CHECK(effectiveRadius.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto  rhoSum = derivs.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -431,7 +431,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       // Get the state for node i.
       const auto& posi = position(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
-      const auto  ri = effectiveRadius(nodeListi, i);
+      const auto  ri = std::abs(posi.y()); // effectiveRadius(nodeListi, i);
       const auto  zetai = abs((Hi*posi).y());
       // const auto  hri = abs(posi.y())*safeInv(zetai);
       // const auto  ri = abs(posi.y()); // reff(posi.y(), hri, nPerh);
@@ -470,7 +470,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       // Get the state for node j
       const auto& posj = position(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
-      const auto  rj = effectiveRadius(nodeListj, j);
+      const auto  rj = std::abs(posj.y()); // effectiveRadius(nodeListj, j);
       const auto  zetaj = abs((Hj*posj).y());
       // const auto  hrj = abs(posj.y())*safeInv(zetaj);
       // const auto  rj = abs(posj.y()); // reff(posj.y(), hrj, nPerh);
@@ -640,7 +640,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
 
       // Get the state for node i.
       const auto& posi = position(nodeListi, i);
-      const auto  ri = effectiveRadius(nodeListi, i);
+      const auto  ri = std::abs(posi.y()); // effectiveRadius(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  zetai = abs((Hi*posi).y());
       const auto  hri = abs(posi.y())*safeInv(zetai);
@@ -756,37 +756,38 @@ SPHHydroBaseRZ::
 applyGhostBoundaries(State<Dim<2> >& state,
                      StateDerivatives<Dim<2> >& derivs) {
 
-  // First do reff
-  auto reff = state.fields(HydroFieldNames::reff, 0.0);
-  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
-  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto numNodeLists = reff.numFields();
-  for (auto k = 0u; k < numNodeLists; ++k) {
-    const auto n = reff[k]->numElements();
-    const auto nPerh = reff[k]->nodeListPtr()->nodesPerSmoothingScale();
-    for (auto i = 0u; i < n; ++i) {
-      const auto& posi = position(k, i);
-      const auto& Hi = H(k, i);
-      const auto  zetai = abs((Hi*posi).y());
-      const auto  hri = abs(posi.y())*safeInv(zetai);
-      reff(k,i) = SPHHydroBaseRZ::reff(posi.y(), hri, nPerh);
-    }
-  }
-  // for (auto boundaryItr = this->boundaryBegin(); 
-  //      boundaryItr != this->boundaryEnd();
-  //      ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(reff);
-  // for (auto boundItr = this->boundaryBegin();
-  //      boundItr != this->boundaryEnd();
-  //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  // // First do reff
+  // auto reff = state.fields(HydroFieldNames::reff, 0.0);
+  // const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  // const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  // const auto numNodeLists = reff.numFields();
+  // for (auto k = 0u; k < numNodeLists; ++k) {
+  //   const auto n = reff[k]->numElements();
+  //   const auto nPerh = reff[k]->nodeListPtr()->nodesPerSmoothingScale();
+  //   for (auto i = 0u; i < n; ++i) {
+  //     const auto& posi = position(k, i);
+  //     const auto& Hi = H(k, i);
+  //     const auto  zetai = abs((Hi*posi).y());
+  //     const auto  hri = abs(posi.y())*safeInv(zetai);
+  //     reff(k,i) = SPHHydroBaseRZ::reff(posi.y(), hri, nPerh);
+  //   }
+  // }
+  // // for (auto boundaryItr = this->boundaryBegin(); 
+  // //      boundaryItr != this->boundaryEnd();
+  // //      ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(reff);
+  // // for (auto boundItr = this->boundaryBegin();
+  // //      boundItr != this->boundaryEnd();
+  // //      ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Convert the mass to mass/length before BCs are applied.
-  FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  // const unsigned numNodeLists = mass.numFields();
+  auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto numNodeLists = mass.numFields();
   for (auto k = 0u; k < numNodeLists; ++k) {
     const auto n = mass[k]->numElements();
     for (auto i = 0u; i < n; ++i) {
-      const Scalar circi = 2.0*M_PI*reff(k, i);
-      // const Scalar circi = 2.0*M_PI*abs(position(k, i).y());
+      // const Scalar circi = 2.0*M_PI*reff(k, i);
+      const Scalar circi = 2.0*M_PI*abs(position(k, i).y());
       CHECK(circi > 0.0);
       mass(k, i) /= circi;
     }
@@ -802,8 +803,8 @@ applyGhostBoundaries(State<Dim<2> >& state,
   for (unsigned k = 0; k != numNodeLists; ++k) {
     const auto n = mass[k]->numElements();
     for (auto i = 0u; i < n; ++i) {
-      const Scalar circi = 2.0*M_PI*reff(k, i);
-      // const Scalar circi = 2.0*M_PI*abs(position(k, i).y());
+      // const Scalar circi = 2.0*M_PI*reff(k, i);
+      const Scalar circi = 2.0*M_PI*abs(position(k, i).y());
       CHECK(circi > 0.0);
       mass(k, i) *= circi;
     }
@@ -818,25 +819,27 @@ SPHHydroBaseRZ::
 enforceBoundaries(State<Dim<2> >& state,
                   StateDerivatives<Dim<2> >& derivs) {
 
-  // First do reff (positions may have changed during enforcement)
-  auto reff = state.fields(HydroFieldNames::reff, 0.0);
-  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
-  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto numNodeLists = reff.numFields();
-  for (auto k = 0u; k < numNodeLists; ++k) {
-    const auto n = reff[k]->numElements();
-    const auto nPerh = reff[k]->nodeListPtr()->nodesPerSmoothingScale();
-    for (auto i = 0u; i < n; ++i) {
-      const auto& posi = position(k, i);
-      const auto& Hi = H(k, i);
-      const auto  zetai = abs((Hi*posi).y());
-      const auto  hri = abs(posi.y())*safeInv(zetai);
-      reff(k,i) = SPHHydroBaseRZ::reff(posi.y(), hri, nPerh);
-    }
-  }
+  // // First do reff (positions may have changed during enforcement)
+  // auto reff = state.fields(HydroFieldNames::reff, 0.0);
+  // const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  // const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  // const auto numNodeLists = reff.numFields();
+  // for (auto k = 0u; k < numNodeLists; ++k) {
+  //   const auto n = reff[k]->numElements();
+  //   const auto nPerh = reff[k]->nodeListPtr()->nodesPerSmoothingScale();
+  //   for (auto i = 0u; i < n; ++i) {
+  //     const auto& posi = position(k, i);
+  //     const auto& Hi = H(k, i);
+  //     const auto  zetai = abs((Hi*posi).y());
+  //     const auto  hri = abs(posi.y())*safeInv(zetai);
+  //     reff(k,i) = SPHHydroBaseRZ::reff(posi.y(), hri, nPerh);
+  //   }
+  // }
 
   // Convert the mass to mass/length before BCs are applied.
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto numNodeLists = position.numFields();
   for (auto k = 0u; k < numNodeLists; ++k) {
     const auto n = mass[k]->numElements();
     // const auto  nPerh = mass[k]->nodeList().nodesPerSmoothingScale();
@@ -845,7 +848,8 @@ enforceBoundaries(State<Dim<2> >& state,
       // const auto& Hi = H(k, i);
       // const auto  zetai = abs((Hi*posi).y());
       // const auto  hri = abs(posi.y())*safeInv(zetai);
-      const Scalar circi = 2.0*M_PI*reff(k, i);
+      // const Scalar circi = 2.0*M_PI*reff(k, i);
+      const Scalar circi = 2.0*M_PI*std::abs(position(k, i).y());
       CHECK(circi > 0.0);
       mass(k, i) /= circi;
     }
@@ -859,7 +863,8 @@ enforceBoundaries(State<Dim<2> >& state,
   for (auto k = 0u; k < numNodeLists; ++k) {
     const auto n = mass[k]->numElements();
     for (auto i = 0u; i < n; ++i) {
-      const Scalar circi = 2.0*M_PI*reff(k,i);
+      // const Scalar circi = 2.0*M_PI*reff(k,i);
+      const Scalar circi = 2.0*M_PI*std::abs(position(k, i).y());
       mass(k, i) *= circi;
     }
   }
@@ -872,7 +877,7 @@ void
 SPHHydroBaseRZ::
 dumpState(FileIO& file, const string& pathName) const {
   SPHHydroBase<Dimension>::dumpState(file, pathName);
-  file.write(mEffectiveRadius, pathName + "/reff");
+  // file.write(mEffectiveRadius, pathName + "/reff");
 }
 
 //------------------------------------------------------------------------------
@@ -882,35 +887,35 @@ void
 SPHHydroBaseRZ::
 restoreState(const FileIO& file, const string& pathName) {
   SPHHydroBase<Dimension>::restoreState(file, pathName);
-  file.read(mEffectiveRadius, pathName + "/reff");
+  // file.read(mEffectiveRadius, pathName + "/reff");
 }
 
-//------------------------------------------------------------------------------
-// Compute the weighted definition of rz for a point
-//------------------------------------------------------------------------------
-const FieldList<Dim<2>, Dim<2>::Scalar>&
-SPHHydroBaseRZ::
-effectiveRadius() const {
-  return mEffectiveRadius;
-}
+// //------------------------------------------------------------------------------
+// // Compute the weighted definition of rz for a point
+// //------------------------------------------------------------------------------
+// const FieldList<Dim<2>, Dim<2>::Scalar>&
+// SPHHydroBaseRZ::
+// effectiveRadius() const {
+//   return mEffectiveRadius;
+// }
 
-//------------------------------------------------------------------------------
-// Compute the weighted definition of rz for a point
-//------------------------------------------------------------------------------
-Dim<2>::Scalar
-SPHHydroBaseRZ::
-reff(const Dim<2>::Scalar ri,
-     const Dim<2>::Scalar hri,
-     const Dim<2>::Scalar nPerh) {
-  REQUIRE2(hri > 0.0, "Bad hri: " << ri << " " << hri << " " << nPerh);
-  REQUIRE2(nPerh > 0.0, "Bad hri: " << ri << " " << hri << " " << nPerh);
-  return std::abs(ri);
-  // const auto deltai = 0.5*hri/nPerh;
-  // const auto a = std::max(0.0, std::abs(ri) - deltai);
-  // const auto b = std::abs(ri) + deltai;
-  // CHECK(b > a);
-  // return 0.5*(a + b);
-  // // return 2.0/3.0 * (b*b*b - a*a*a)/(b*b - a*a);
-}
+// //------------------------------------------------------------------------------
+// // Compute the weighted definition of rz for a point
+// //------------------------------------------------------------------------------
+// Dim<2>::Scalar
+// SPHHydroBaseRZ::
+// reff(const Dim<2>::Scalar ri,
+//      const Dim<2>::Scalar hri,
+//      const Dim<2>::Scalar nPerh) {
+//   REQUIRE2(hri > 0.0, "Bad hri: " << ri << " " << hri << " " << nPerh);
+//   REQUIRE2(nPerh > 0.0, "Bad hri: " << ri << " " << hri << " " << nPerh);
+//   return std::abs(ri);
+//   // const auto deltai = 0.5*hri/nPerh;
+//   // const auto a = std::max(0.0, std::abs(ri) - deltai);
+//   // const auto b = std::abs(ri) + deltai;
+//   // CHECK(b > a);
+//   // return 0.5*(a + b);
+//   // // return 2.0/3.0 * (b*b*b - a*a*a)/(b*b - a*a);
+// }
 
 }

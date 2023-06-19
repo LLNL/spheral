@@ -1518,10 +1518,11 @@ def RZGenerator(generator):
     for i in range(n):
         Hi = generator.localHtensor(i)
         posi = generator.localPosition(i)
-        zetai = (Hi*posi).y
-        assert zetai > 0.0
-        hri = posi.y/zetai
-        ri = SPHHydroBaseRZ.reff(posi.y, hri, generator.nNodePerh)
+        # zetai = (Hi*posi).y
+        # assert zetai > 0.0
+        # hri = posi.y/zetai
+        # ri = SPHHydroBaseRZ.reff(posi.y, hri, generator.nNodePerh)
+        ri = abs(posi.y)
         generator.m[i] *= 2.0*pi*ri
 
     return generator
