@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
 // HLLC -- approximate riemann solver
-//   Toro E.F., Spruce M., Speares W., (1994) "Restoration of the Contact
+//    Toro E.F., Spruce M., Speares W., (1994) "Restoration of the Contact
 //    Surface in the HLL-Riemann Solver," Shock Waves, 4:25-34
 //
 // J.M. Pearl 2021
@@ -57,14 +57,16 @@ interfaceState(const typename Dimension::Vector& ri,
                const typename Dimension::Scalar& Pj,
                const typename Dimension::Vector& vi,    
                const typename Dimension::Vector& vj,
+               const typename Dimension::Vector& DrhoDxi,
+               const typename Dimension::Vector& DrhoDxj,
                const typename Dimension::Vector& DpDxi,
                const typename Dimension::Vector& DpDxj,
                const typename Dimension::Tensor& DvDxi,
                const typename Dimension::Tensor& DvDxj,
                      typename Dimension::Scalar& Pstar,
                      typename Dimension::Vector& vstar,
-                     typename Dimension::Scalar& /*rhostari*/,
-                     typename Dimension::Scalar& /*rhostarj*/) const{
+                     typename Dimension::Scalar& rhostari,
+                     typename Dimension::Scalar& rhostarj) const{
 
   Scalar Si, Sj;
 
@@ -77,6 +79,8 @@ interfaceState(const typename Dimension::Vector& ri,
 
   vstar = 0.5*(vi+vj);
   Pstar = 0.5*(Pi+Pj);
+  rhostari = rhoi;
+  rhostarj = rhoj;
 
   if (ci > tiny or cj > tiny){
 
@@ -88,14 +92,19 @@ interfaceState(const typename Dimension::Vector& ri,
     auto p1i = Pi;
     auto p1j = Pj;
 
+    auto rho1i = rhoi;
+    auto rho1j = rhoj;
+
     // linear reconstruction
     if(this->linearReconstruction()){
 
       // gradients along line of action
-      this->linearReconstruction(ri,rj, Pi,Pj,DpDxi,DpDxj, //inputs
-                                 p1i,p1j);                 //outputs
-      this->linearReconstruction(ri,rj, vi,vj,DvDxi,DvDxj, //inputs
-                                 v1i,v1j);                 //outputs
+      this->linearReconstruction(ri,rj, rhoi,rhoj,DrhoDxi,DrhoDxj, //inputs
+                                 rho1i,rho1j);                     //outputs
+      this->linearReconstruction(ri,rj, Pi,Pj,DpDxi,DpDxj,         //inputs
+                                 p1i,p1j);                         //outputs
+      this->linearReconstruction(ri,rj, vi,vj,DvDxi,DvDxj,         //inputs
+                                 v1i,v1j);                         //outputs
   
     }
 
@@ -104,8 +113,8 @@ interfaceState(const typename Dimension::Vector& ri,
     const auto wi = v1i - ui*rhatij;
     const auto wj = v1j - uj*rhatij;
 
-    waveSpeedObject.waveSpeed(rhoi,rhoj,ci,cj,ui,uj,  //inputs
-                              Si,Sj);                 //outputs
+    waveSpeedObject.waveSpeed(rho1i,rho1j,ci,cj,ui,uj,  //inputs
+                              Si,Sj);                   //outputs
 
     const auto denom = safeInv(Si - Sj);
 
@@ -113,11 +122,14 @@ interfaceState(const typename Dimension::Vector& ri,
     const auto wstar = (Si*wi - Sj*wj)*denom;
     vstar = ustar*rhatij + wstar;
     Pstar = Sj * (ustar-uj) + p1j;
+    rhostari = rho1i;// * (Si - ui)*safeInv(Si-ustar);
+    rhostarj = rho1j;// * (Sj - uj)*safeInv(Sj-ustar);
 
   }else{ // if ci & cj too small punt to normal av
     const auto uij = std::min((vi-vj).dot(rhatij),0.0);
     Pstar += 0.25 * (rhoi+rhoj) * (uij*uij);
   }
+  
 }// Scalar interface class
 
 

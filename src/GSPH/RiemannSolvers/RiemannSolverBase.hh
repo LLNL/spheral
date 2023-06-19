@@ -60,6 +60,8 @@ public:
                       const Scalar& Pj,
                       const Vector& vi,    
                       const Vector& vj,
+                      const Vector& DrhoDxi,
+                      const Vector& DrhoDxj,
                       const Vector& DpDxi,    
                       const Vector& DpDxj,
                       const Tensor& DvDxi,    
