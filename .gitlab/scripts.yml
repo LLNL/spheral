@@ -33,6 +33,7 @@
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
 
+    - ml load python/3
     - cat build_gitlab/install/spheral-lcatstest
     - $TEST_ALLOC ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE --timelimit="45m"
     - cp -r test-logs $CI_PROJECT_DIR
