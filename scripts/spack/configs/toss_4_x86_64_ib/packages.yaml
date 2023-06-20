@@ -123,8 +123,3 @@ packages:
     - spec: hwloc@5.7.5
       prefix: /usr
     buildable: false
-  netlib-lapack:
-    buildable: false
-    externals:
-    - spec: netlib-lapack@3.9.0
-      prefix: /usr
