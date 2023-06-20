@@ -1,4 +1,13 @@
-Version vYYYY.MM.pp -- Release date 20YY-MM-DD
+Version v2023.03.1 -- Release date 2023-06-20
+=============================================
+
+This is a patch release. It propogates changes to allow 2023.03.0 to build and install on LC TOSS4 systems.
+
+Note:
+  This release fails to install py-scipy spack dependency for clang v14.0.6, LC release builds are installed w/ gcc.
+  The clang spack build will not be fixed for this patch release.
+
+Version v2023.03.0 -- Release date 2023-03-29
 ==============================================
 
 This release contains ...
