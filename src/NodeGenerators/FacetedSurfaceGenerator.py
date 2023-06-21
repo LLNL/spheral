@@ -33,7 +33,7 @@ class PolyhedralSurfaceGenerator(NodeGeneratorBase):
         xmin = surface.xmin
         xmax = surface.xmax
         box = xmax - xmin
-        assert box.minElement > 0.0
+        assert box.minElement() > 0.0
         nx = max(1, int(box.x/resolution + 0.5))
         ny = max(1, int(box.y/resolution + 0.5))
         nz = max(1, int(box.z/resolution + 0.5))
