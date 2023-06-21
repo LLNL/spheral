@@ -19,3 +19,4 @@ class PyNumpyStl(PythonPackage):
     extends('python@2.7:2.8', type=['build', 'run'])
     depends_on('py-enum34', type='build')
     depends_on('py-python-utils@2.4.0', type='build')
+    depends_on("py-setuptools", type="build")

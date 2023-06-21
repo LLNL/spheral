@@ -15,7 +15,7 @@ if (NOT ENABLE_CXXONLY)
   if (NOT ENABLE_MPI)
     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"np<2\"'")
   endif()
-  if (ENABLE_CUDA)
+  if ($ENV{SYS_TYPE} MATCHES ".*blueos.*")
     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--addOp --smpi_off")
   endif()
 
@@ -46,6 +46,7 @@ if (NOT ENABLE_CXXONLY)
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
+      "${CMAKE_CURRENT_SOURCE_DIR}/lc/lcats"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
     )
 
