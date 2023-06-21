@@ -16,6 +16,7 @@
 #include "State.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/globalBoundingVolumes.hh"
+#include "Utilities/globalNodeIDs.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
@@ -1414,7 +1415,23 @@ DataBase<Dimension>::DEMParticleRadius() const {
 
 
 //------------------------------------------------------------------------------
-// Return the DEM Particle Radii
+// Return the DEM unique particle index
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, int>
+DataBase<Dimension>::DEMUniqueIndex() const {
+  REQUIRE(valid());
+  FieldList<Dimension, int> result;
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->uniqueIndex());
+  }
+  return result;
+}
+
+
+//------------------------------------------------------------------------------
+// Return the DEM composite particle index
 //------------------------------------------------------------------------------
 template<typename Dimension>
 FieldList<Dimension, int>
@@ -1427,6 +1444,31 @@ DataBase<Dimension>::DEMCompositeParticleIndex() const {
   }
   return result;
 }
+
+//------------------------------------------------------------------------------
+// calculated appropriates H from a given radius for each nodelist
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DataBase<Dimension>::setDEMHfieldFromParticleRadius(const int startUniqueIndex) {
+  REQUIRE(valid());
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    (*nodeListItr)->setHfieldFromParticleRadius(startUniqueIndex);
+  }
+}
+
+//------------------------------------------------------------------------------
+// calculated appropriates H from a given radius for each nodelist
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DataBase<Dimension>::setDEMUniqueIndices() {
+  REQUIRE(valid());
+    auto uniqueIndices = this->DEMUniqueIndex();
+    uniqueIndices += globalNodeIDs<Dimension>(this->nodeListBegin(),this->nodeListEnd());
+}
+
 
 //------------------------------------------------------------------------------
 // Return the node extent for each NodeList.
@@ -1727,6 +1769,20 @@ maxKernelExtent() const {
   for (ConstNodeListIterator nodeListItr = nodeListBegin();
        nodeListItr != nodeListEnd();
        ++nodeListItr) result = std::max(result, (**nodeListItr).neighbor().kernelExtent());
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// The maximum kernel extent being used.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+DataBase<Dimension>::
+maxNeighborSearchBuffer() const {
+  Scalar result = 0.0;
+  for (ConstDEMNodeListIterator DEMNodeListItr = DEMNodeListBegin();
+       DEMNodeListItr != DEMNodeListEnd();
+       ++DEMNodeListItr) result = std::max(result, (**DEMNodeListItr).neighborSearchBuffer());
   return result;
 }
 

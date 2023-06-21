@@ -1,5 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
 // DEM type alias for the particle rotation
+//
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_DEMDimension_hh__
 #define __Spheral_DEMDimension_hh__
