@@ -17,20 +17,6 @@ shared_tpls_update_permissions:
 # ------------------------------------------------------------------------------
 # PROD BUILD JOBS
 
-### DEV ###
-toss_build_dev_pkg_dev:
-  extends: [.toss_resource_general, .gcc_mvapich2, .build_dev_pkg, .merge_pr_rule]
-
-toss_install_dev_pkg_dev:
-  extends: [.toss_resource_general, .gcc_mvapich2, .install_dev_pkg, .merge_pr_rule]
-  needs: [toss_build_dev_pkg_dev]
-
-toss_dev_permissions:
-  variables:
-    ALIAS: 'dev'
-  extends: [.toss_resource_general, .prod_permissions, .merge_pr_rule]
-  needs: [toss_install_dev_pkg_dev]
-
 ### TAG RELEASE ###
 toss_build_dev_pkg_release:
   extends: [.toss_resource_general, .gcc_mvapich2, .build_dev_pkg, .tag_release_rule]
@@ -44,6 +30,7 @@ toss_release_permissions:
     ALIAS: $CI_COMMIT_TAG
   extends: [.toss_resource_general, .prod_permissions, .tag_release_rule]
   needs: [toss_install_dev_pkg_release]
+
 # ------------------------------------------------------------------------------
 # CLEAN OLD BUILD DIRS
 
