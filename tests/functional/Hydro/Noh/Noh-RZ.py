@@ -65,6 +65,7 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             Qhmult = 1.0,
             Cl = None,
             Cq = None,
+            Qself = None,
             Qlimiter = None,
             balsaraCorrection = None,
             epsilon2 = None,
@@ -140,6 +141,7 @@ if solid:
     hydroname = "Solid" + hydroname
 
 dataDir = os.path.join(dataDirBase,
+                       problem,
                        hydroname,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
@@ -316,6 +318,8 @@ if not Cl is None:
     q.Cl = Cl
 if not Cq is None:
     q.Cq = Cq
+if not Qself is None:
+    hydro.Qself = Qself
 if not epsilon2 is None:
     q.epsilon2 = epsilon2
 if not Qlimiter is None:
@@ -327,6 +331,7 @@ if not QcorrectionOrder is None:
 output("q")
 output("q.Cl")
 output("q.Cq")
+output("hydro.Qself")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")

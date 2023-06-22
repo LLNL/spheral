@@ -129,7 +129,8 @@ SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                         epsTensile,
                         nTensile,
                         xmin,
-                        xmax) {
+                        xmax),
+         mQself(2.0) {
   // mEffectiveRadius(FieldStorageType::CopyFields) {
   // mEffectiveRadius = dataBase.newFluidFieldList(0.0, HydroFieldNames::reff);
 }
@@ -312,6 +313,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const auto& W = this->kernel();
   const auto& WQ = this->PiKernel();
   const auto  oneKernel = (W == WQ);
+  const auto  etamax = W.kernelExtent();
 
   // A few useful constants we'll use in the following loop.
   const auto tiny = 1.0e-30;
@@ -650,8 +652,9 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& Pi = pressure(nodeListi, i);
+      const auto& ci = soundSpeed(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
-      const auto  riInv = safeInv(ri, 0.25*hri);
+      const auto  riInv = safeInv(ri, 0.01*hri);
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -668,6 +671,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       auto& localDvDxi = localDvDx(nodeListi, i);
       auto& Mi = M(nodeListi, i);
       auto& localMi = localM(nodeListi, i);
+      auto& maxViscousPressurei = maxViscousPressure(nodeListi, i);
       auto& DHDti = DHDt(nodeListi, i);
       auto& Hideali = Hideal(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
@@ -705,6 +709,18 @@ evaluateDerivatives(const Dim<2>::Scalar time,
       XSPHDeltaVi /= XSPHWeightSumi;
       const auto vri = vi.y(); // + XSPHDeltaVi.y();
       DrhoDti = -rhoi*(DvDxi.Trace() + vri*riInv);
+
+      // Extra hoop terms for the artificial viscosity
+      Scalar Qi = 0.0;
+      if (vi.y() < 0.0) {
+        const auto riInv2 = safeInvVar(ri, 0.01*hri);
+        const auto mu = -std::min(0.0, vi.y()*riInv2); // * (1.0 - zetai/etamax);
+        VERIFY(mu >= 0.0);
+        Qi = mQself*rhoi*hri*mu*(hri*mu + ci);
+        VERIFY(Qi >= 0.0);
+        maxViscousPressurei = std::max(maxViscousPressurei, Qi);
+        DvDti[1] += Qi/rhoi*riInv2;
+      }
 
       // Finish the specific thermal energy evolution.
       DepsDti -= Pi/rhoi*vri*riInv;
@@ -916,5 +932,20 @@ restoreState(const FileIO& file, const string& pathName) {
 //   // return 0.5*(a + b);
 //   // // return 2.0/3.0 * (b*b*b - a*a*a)/(b*b - a*a);
 // }
+
+//------------------------------------------------------------------------------
+// The self-Q multiplier
+//------------------------------------------------------------------------------
+double
+SPHHydroBaseRZ::
+Qself() const {
+  return mQself;
+}
+
+void
+SPHHydroBaseRZ::
+Qself(const double x) {
+  mQself = x;
+}
 
 }

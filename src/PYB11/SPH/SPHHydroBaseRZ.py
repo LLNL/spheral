@@ -104,6 +104,7 @@ mass density, velocity, and specific thermal energy."""
     # #...........................................................................
     # # Properties
     # effectiveRadius = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "effectiveRadius", returnpolicy="reference_internal")
+    Qself = PYB11property("double", "Qself", "Qself", doc="Multiplier for Q self-interaction near the origin")
 
 #-------------------------------------------------------------------------------
 # Inject methods

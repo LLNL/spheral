@@ -112,9 +112,15 @@ public:
   //                    const Scalar hri,
   //                    const Scalar nPerh);
 
+  // We also have a funny self-Q term for interactions near the origin.
+  double Qself() const;
+  void Qself(const double x);
+
 private:
   //--------------------------- Private Interface ---------------------------//
   // FieldList<Dimension, Scalar> mEffectiveRadius;
+
+  double mQself;
 
   // No default constructor, copying, or assignment.
   SPHHydroBaseRZ();
