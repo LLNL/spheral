@@ -262,7 +262,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     auto       mass = state.fields(HydroFieldNames::mass, 0.0);
     const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
     const auto numNodeLists = mass.numFields();
-    for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
+    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
       const auto n = mass[nodeListi]->numElements();
       for (auto i = 0u; i < n; ++i) {
         const auto circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
@@ -279,13 +279,11 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   if (densityUpdate() == MassDensityType::RigorousSumDensity or
       densityUpdate() == MassDensityType::CorrectedSumDensity) {
     const auto position = state.fields(HydroFieldNames::position, Vector::zero);
-    const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
     auto       mass = state.fields(HydroFieldNames::mass, 0.0);
-    auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    const auto numNodeLists = massDensity.numFields();
+    const auto numNodeLists = mass.numFields();
     for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
-      const auto n = massDensity[nodeListi]->numElements();
-      for (auto i = 0u; i != n; ++i) {
+      const auto n = mass[nodeListi]->numElements();
+      for (auto i = 0u; i < n; ++i) {
         const auto& xi = position(nodeListi, i);
         const auto  circi = 2.0*M_PI*abs(xi.y());
         mass(nodeListi, i) *= circi;
@@ -810,7 +808,7 @@ applyGhostBoundaries(State<Dim<2> >& state,
 
   // Apply ordinary SPH BCs.
   SPHHydroBase<Dim<2> >::applyGhostBoundaries(state, derivs);
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  for (auto boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
 

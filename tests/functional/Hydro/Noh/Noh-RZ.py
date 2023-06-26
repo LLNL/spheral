@@ -184,6 +184,7 @@ else:
     Wbase = KernelConstructor()
 WT = TableKernel(Wbase, 1000)
 kernelExtent = WT.kernelExtent
+output("Wbase")
 output("WT")
 
 #-------------------------------------------------------------------------------
@@ -277,13 +278,13 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPH(dataBase = db,
+                   order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
-                   order = correctionOrder,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate)
 else:
@@ -318,7 +319,7 @@ if not Cl is None:
     q.Cl = Cl
 if not Cq is None:
     q.Cq = Cq
-if not Qself is None:
+if not crksph and not Qself is None:
     hydro.Qself = Qself
 if not epsilon2 is None:
     q.epsilon2 = epsilon2
@@ -331,7 +332,8 @@ if not QcorrectionOrder is None:
 output("q")
 output("q.Cl")
 output("q.Cq")
-output("hydro.Qself")
+if not crksph:
+    output("hydro.Qself")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")

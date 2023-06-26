@@ -178,12 +178,12 @@ preStepInitialize(const DataBase<Dim<2>>& dataBase,
                   StateDerivatives<Dim<2>>& derivs) {
 
   // Convert the mass to mass per unit length first.
-  auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  auto       mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
-  const unsigned numNodeLists = mass.numFields();
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = mass[nodeListi]->numElements();
-    for (unsigned i = 0; i != n; ++i) {
+  const auto numNodeLists = mass.numFields();
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+    const auto n = mass[nodeListi]->numElements();
+    for (auto i = 0u; i < n; ++i) {
       const auto circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
       mass(nodeListi, i) /= circi;
     }
@@ -193,11 +193,10 @@ preStepInitialize(const DataBase<Dim<2>>& dataBase,
   CRKSPHHydroBase<Dimension>::preStepInitialize(dataBase, state, derivs);
 
   // Now convert back to true masses.
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = mass[nodeListi]->numElements();
-    for (unsigned i = 0; i != n; ++i) {
-      const auto& xi = pos(nodeListi, i);
-      const auto circi = 2.0*M_PI*abs(xi.y());
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+    const auto n = mass[nodeListi]->numElements();
+    for (auto i = 0u; i < n; ++i) {
+      const auto circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
       mass(nodeListi, i) *= circi;
     }
   }
@@ -554,31 +553,40 @@ applyGhostBoundaries(State<Dim<2> >& state,
                      StateDerivatives<Dim<2> >& derivs) {
 
   // Convert the mass to mass/length before BCs are applied.
-  FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
-  const unsigned numNodeLists = mass.numFields();
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = mass[nodeListi]->numElements();
-    for (unsigned i = 0; i != n; ++i) {
-      const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+  auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto numNodeLists = mass.numFields();
+  for (auto k = 0u; k < numNodeLists; ++k) {
+    const auto n = mass[k]->numElements();
+    for (auto i = 0u; i < n; ++i) {
+      const auto circi = 2.0*M_PI*abs(pos(k, i).y());
       CHECK(circi > 0.0);
-      mass(nodeListi, i) /= circi;
+      mass(k, i) /= circi;
     }
   }
 
+  // RKCorrections already propagated the mass with values we don't want,
+  // so we repeat that here.
+  for (auto boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  for (auto boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->applyFieldListGhostBoundary(mass);
+
   // Apply ordinary CRKSPH BCs.
-  CRKSPHHydroBase<Dim<2> >::applyGhostBoundaries(state, derivs);
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
+  CRKSPHHydroBase<Dim<2>>::applyGhostBoundaries(state, derivs);
+  for (auto boundItr = this->boundaryBegin();
        boundItr != this->boundaryEnd();
        ++boundItr) (*boundItr)->finalizeGhostBoundary();
 
   // Scale back to mass.
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = mass[nodeListi]->numElements();
-    for (unsigned i = 0; i != n; ++i) {
-      const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+  for (auto k = 0u; k < numNodeLists; ++k) {
+    const auto n = mass[k]->numElements();
+    for (auto i = 0u; i < n; ++i) {
+      const auto circi = 2.0*M_PI*abs(pos(k, i).y());
       CHECK(circi > 0.0);
-      mass(nodeListi, i) *= circi;
+      mass(k, i) *= circi;
     }
   }
 }
@@ -592,31 +600,37 @@ enforceBoundaries(State<Dim<2> >& state,
                   StateDerivatives<Dim<2> >& derivs) {
 
   // Convert the mass to mass/length before BCs are applied.
-  FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  FieldList<Dimension, Vector> pos = state.fields(HydroFieldNames::position, Vector::zero);
-  const unsigned numNodeLists = mass.numFields();
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = mass[nodeListi]->numInternalElements();
-    for (unsigned i = 0; i != n; ++i) {
-      const Scalar circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
+  auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto numNodeLists = mass.numFields();
+  for (auto k = 0u; k < numNodeLists; ++k) {
+    const auto n = mass[k]->numInternalElements();
+    for (auto i = 0u; i < n; ++i) {
+      const auto circi = 2.0*M_PI*abs(pos(k, i).y());
       CHECK(circi > 0.0);
-      mass(nodeListi, i) /= circi;
+      mass(k, i) /= circi;
     }
   }
 
+  // RKCorrections already propagated the mass with values we don't want,
+  // so we repeat that here.
+  for (auto boundItr = this->boundaryBegin();
+       boundItr != this->boundaryEnd();
+       ++boundItr) (*boundItr)->enforceFieldListBoundary(mass);
+
   // Apply ordinary CRKSPH BCs.
-  CRKSPHHydroBase<Dim<2> >::enforceBoundaries(state, derivs);
+  CRKSPHHydroBase<Dim<2>>::enforceBoundaries(state, derivs);
 
   // Scale back to mass.
   // We also ensure no point approaches the z-axis too closely.
-  FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const unsigned n = mass[nodeListi]->numInternalElements();
-    //const Scalar nPerh = mass[nodeListi]->nodeList().nodesPerSmoothingScale();
-    for (unsigned i = 0; i != n; ++i) {
-      Vector& posi = pos(nodeListi, i);
-      const Scalar circi = 2.0*M_PI*abs(posi.y());
-      mass(nodeListi, i) *= circi;
+  // auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  for (auto k = 0u; k < numNodeLists; ++k) {
+    const auto n = mass[k]->numInternalElements();
+    //const Scalar nPerh = mass[k]->nodeList().nodesPerSmoothingScale();
+    for (auto i = 0u; i < n; ++i) {
+      const auto circi = 2.0*M_PI*abs(pos(k, i).y());
+      CHECK(circi > 0.0);
+      mass(k, i) *= circi;
     }
   }
 }
