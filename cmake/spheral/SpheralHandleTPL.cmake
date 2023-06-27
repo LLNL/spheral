@@ -90,7 +90,7 @@ function(Spheral_Handle_TPL lib_name dep_list target_type)
     else()
       message("Found: ${temp_abs_path}")
     endif()
-    unset(temp_abs_path CACHE) # Remove this line when using cmake 3.21+, same as find_file(NO_CACHE)
+    unset(temp_abs_path) # Remove this line when using cmake 3.21+, same as find_file(NO_CACHE)
   endforeach()
 
   # Register any libs/includes under a blt dir for later use/depends
