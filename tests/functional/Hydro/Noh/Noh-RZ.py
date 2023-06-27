@@ -10,20 +10,15 @@
 #ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (serial, SPH) RESTART CHECK")
 #ATS:t2 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh RZ problem (parallel, SPH)")
 #ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar RZ Noh problem -- (parallel, SPH) RESTART CHECK")
-
-# Suspending reproducing tests until we're happy with the discretizations
-##ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-reproducing' --domainIndependent True --outputFile 'Noh-rz-planar-1proc-reproducing.txt'", label="Planar RZ Noh problem -- (serial SPH reproducing test setup)")
-##ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDirBase 'dumps-rz-planar-reproducing' --domainIndependent True --outputFile 'Noh-rz-planar-4proc-reproducing.txt' --comparisonFile 'Noh-rz-planar-1proc-reproducing.txt'", np=4, label="Planar RZ Noh problem (4 proc SPH reproducing test)")
-
 #
 # CRKSPH
 #
 #ATS:t10 = test(      SELF, "--crksph True --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (serial, CRK)")
-#ATS:t11 = testif(t0, SELF, "--crksph True --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (serial, CRK) RESTART CHECK")
-#ATS:t12 = test(      SELF, "--crksph True --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh RZ problem (parallel, CRK)")
-#ATS:t13 = testif(t2, SELF, "--crksph True --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar RZ Noh problem -- (parallel, CRK) RESTART CHECK")
+#ATS:t11 = testif(t10, SELF, "--crksph True --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (serial, CRK) RESTART CHECK")
+#ATS:t12 = test(      SELF, "--crksph True --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-crk-restartcheck' --restartStep 20", np=2, label="Planar Noh RZ problem (parallel, CRK)")
+#ATS:t13 = testif(t12, SELF, "--crksph True --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-crk-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar RZ Noh problem -- (parallel, CRK) RESTART CHECK")
 
-import os, shutil, mpi
+import os, sys, shutil, mpi
 from SpheralRZ import *
 from SpheralTestUtilities import *
 
@@ -166,21 +161,21 @@ else:
 
 # Store reference L-norms for use in testing
 # Indexed by [crksph][norm_name]
-refLnorms = {False:  {"L1rho" :   0.0944907,     # SPH
-                      "L2rho" :   0.0147596,  
-                      "Linfrho" : 2.25826,    
-                                            
-                      "L1P" :     0.0310651,  
-                      "L2P" :     0.00558612, 
-                      "LinfP" :   0.978213,   
-                                            
+refLnorms = {False:  {"L1rho" :   0.0944916,     # SPH
+                      "L2rho" :   0.0147597,  
+                      "Linfrho" : 2.25827,    
+                                             
+                      "L1P" :     0.0310652,  
+                      "L2P" :     0.00558614, 
+                      "LinfP" :   0.978214,   
+                                             
                       "L1v" :     0.037834,   
                       "L2v" :     0.00752133, 
                       "Linfv" :   0.957683,   
-                                            
+                                             
                       "L1eps" :   0.0163973,  
                       "L2eps" :   0.0030983,  
-                      "Linfeps" : 0.450338},
+                      "Linfeps" : 0.450338},  
 
              True:   {"L1rho" :   0.0822529,     # CRKSPH
                       "L2rho" :   0.0117581,  
@@ -202,7 +197,6 @@ refLnorms = {False:  {"L1rho" :   0.0944907,     # SPH
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
