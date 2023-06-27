@@ -6,12 +6,22 @@
 #
 # Ordinary SPH
 #
-#ATS:t0 = test(      SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (serial)")
-#ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (serial) RESTART CHECK")
-#ATS:t2 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh RZ problem (parallel)")
-#ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar RZ Noh problem -- (parallel) RESTART CHECK")
-#ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-reproducing' --domainIndependent True --outputFile 'Noh-rz-planar-1proc-reproducing.txt'", label="Planar RZ Noh problem -- (serial reproducing test setup)")
-#ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDirBase 'dumps-rz-planar-reproducing' --domainIndependent True --outputFile 'Noh-rz-planar-4proc-reproducing.txt' --comparisonFile 'Noh-rz-planar-1proc-reproducing.txt'", np=4, label="Planar RZ Noh problem (4 proc reproducing test)")
+#ATS:t0 = test(      SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (serial, SPH)")
+#ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (serial, SPH) RESTART CHECK")
+#ATS:t2 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh RZ problem (parallel, SPH)")
+#ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar RZ Noh problem -- (parallel, SPH) RESTART CHECK")
+
+# Suspending reproducing tests until we're happy with the discretizations
+##ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-reproducing' --domainIndependent True --outputFile 'Noh-rz-planar-1proc-reproducing.txt'", label="Planar RZ Noh problem -- (serial SPH reproducing test setup)")
+##ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDirBase 'dumps-rz-planar-reproducing' --domainIndependent True --outputFile 'Noh-rz-planar-4proc-reproducing.txt' --comparisonFile 'Noh-rz-planar-1proc-reproducing.txt'", np=4, label="Planar RZ Noh problem (4 proc SPH reproducing test)")
+
+#
+# CRKSPH
+#
+#ATS:t10 = test(      SELF, "--crksph True --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (serial, CRK)")
+#ATS:t11 = testif(t0, SELF, "--crksph True --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (serial, CRK) RESTART CHECK")
+#ATS:t12 = test(      SELF, "--crksph True --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh RZ problem (parallel, CRK)")
+#ATS:t13 = testif(t2, SELF, "--crksph True --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar RZ Noh problem -- (parallel, CRK) RESTART CHECK")
 
 import os, shutil, mpi
 from SpheralRZ import *
@@ -114,14 +124,12 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             clearDirectories = True,
             checkError = False,
             checkRestart = False,
-            checkEnergy = False,
             restoreCycle = -1,
             restartStep = 10000,
             dataDirBase = "dumps-rz-Noh",
             outputFile = "Noh-RZ.gnu",
             comparisonFile = "None",
-            normOutputFile = "None",
-            writeOutputLabel = True,
+            tol = 1.0e-5,
 
             graphics = True,
             )
@@ -155,6 +163,41 @@ if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
     vizBaseName = "Noh-%s-RZ" % problem
+
+# Store reference L-norms for use in testing
+# Indexed by [crksph][norm_name]
+refLnorms = {False:  {"L1rho" :   0.0944907,     # SPH
+                      "L2rho" :   0.0147596,  
+                      "Linfrho" : 2.25826,    
+                                            
+                      "L1P" :     0.0310651,  
+                      "L2P" :     0.00558612, 
+                      "LinfP" :   0.978213,   
+                                            
+                      "L1v" :     0.037834,   
+                      "L2v" :     0.00752133, 
+                      "Linfv" :   0.957683,   
+                                            
+                      "L1eps" :   0.0163973,  
+                      "L2eps" :   0.0030983,  
+                      "Linfeps" : 0.450338},
+
+             True:   {"L1rho" :   0.0822529,     # CRKSPH
+                      "L2rho" :   0.0117581,  
+                      "Linfrho" : 1.32663,    
+                                              
+                      "L1P" :     0.0253906,  
+                      "L2P" :     0.00416766, 
+                      "LinfP" :   0.561896,   
+                                              
+                      "L1v" :     0.0254307,  
+                      "L2v" :     0.00571978, 
+                      "Linfv" :   0.745805,   
+                                              
+                      "L1eps" :   0.011791,   
+                      "L2eps" :   0.00263351, 
+                      "Linfeps" : 0.36226}
+             }
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -462,14 +505,14 @@ P = mpi.allreduce(Pf.internalValues(), mpi.SUM)
 A = [Pi/rhoi**gamma for (Pi, rhoi) in zip(P, rho)]
 
 # Solution profiles.
-xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
+xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 L1 = 0.0
 for i in range(len(rho)):
     L1 = L1 + abs(rho[i]-rhoans[i])
 L1_tot = L1 / len(rho)
 # if mpi.rank == 0 and outputFile != "None":
-#     print "L1=",L1_tot,"\n"
+#     print("L1=",L1_tot,"\n")
 #     with open("Converge.txt", "a") as myfile:
 #         myfile.write("%s %s\n" % (nz, L1_tot))
 
@@ -549,7 +592,6 @@ Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
 vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
 epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
 hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
-xprof = mpi.reduce([x.magnitude() for x in nodes1.positions().internalValues()], mpi.SUM)
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
@@ -567,13 +609,13 @@ if outputFile:
     hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
     if mpi.rank == 0:
         multiSort(xprof, rhoprof, Pprof, vprof, epsprof, hprof,
-                  rhoans, Pans, vans, uans, hans)
+                  rhoans, Pans, vans, epsans, hans)
         f = open(outputFile, "w")
         f.write(("#  " + 12*"'%s' " + "\n") % ("x", "m", "rho", "P", "v", "eps", "h",
                                                "rhoans", "Pans", "vans", "epsans", "hans"))
         for (xi, mi, rhoi, Pi, vi, epsi, hi, 
              rhoansi, Pansi, vansi, uansi, hansi) in zip(xprof, mprof, rhoprof, Pprof, vprof, epsprof, hprof, 
-                                                         rhoans, Pans, vans, uans, hans):
+                                                         rhoans, Pans, vans, epsans, hans):
             f.write((12*"%16.12e " + '\n') % 
                     (xi, mi, rhoi, Pi, vi, epsi, hi, 
                      rhoansi, Pansi, vansi, uansi, hansi))
@@ -587,69 +629,51 @@ if outputFile:
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
 
-# #------------------------------------------------------------------------------
-# # Compute the error.
-# #------------------------------------------------------------------------------
-# if mpi.rank == 0:
-#     xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-#     import Pnorm
-#     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
-#     failure = False
-#     hD = []
+#------------------------------------------------------------------------------
+# Compute the error.
+#------------------------------------------------------------------------------
+if mpi.rank == 0:
+    import Pnorm
+    print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
+    failure = False
 
-#     if normOutputFile != "None":
-#        f = open(normOutputFile, "a")
-#        if writeOutputLabel:
-#           f.write(("#" + 13*"%17s " + "\n") % ('"n"',
-#                                                '"rho L1"', '"rho L2"', '"rho Linf"',
-#                                                '"P L1"',   '"P L2"',   '"P Linf"',
-#                                                '"vel L1"', '"vel L2"', '"vel Linf"',
-#                                                '"E L1"', '"E L2"', '"E Linf"',
-#                                                '"h L1"',   '"h L2"',   '"h Linf"'))
-#        f.write("%5i " % nz)
-#     for (name, data, ans,
-#          L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
-#                                              ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
-#                                              ("Velocity", vprof, vans, L1v, L2v, Linfv),
-#                                              ("Thermal E", epsprof, epsans, L1eps, L2eps, Linfeps),
-#                                              ("h       ", hprof, hans, L1h, L2h, Linfh)]:
-#         assert len(data) == len(ans)
-#         error = [data[i] - ans[i] for i in xrange(len(data))]
-#         Pn = Pnorm.Pnorm(error, xprof)
-#         L1 = Pn.gridpnorm(1, rmin, rmax)
-#         L2 = Pn.gridpnorm(2, rmin, rmax)
-#         Linf = Pn.gridpnorm("inf", rmin, rmax)
-#         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
-#         if normOutputFile != "None":
-#            f.write((3*"%16.12e ") % (L1, L2, Linf))
-#         hD.append([L1,L2,Linf])
+    # Report the error norms.
+    rmin, rmax = 0.05, 0.35
+    from SpheralTestUtilities import multiSort
+    import Pnorm
+    #rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), r)
+    print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
+    Lnorms = refLnorms[crksph]
+    for (name, data, ans, L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, Lnorms["L1rho"], Lnorms["L2rho"], Lnorms["Linfrho"]),
+                                                              ("Pressure",     Pprof,   Pans,   Lnorms["L1P"],   Lnorms["L2P"],   Lnorms["LinfP"]),
+                                                              ("Velocity",     vprof,   vans,   Lnorms["L1v"],   Lnorms["L2v"],   Lnorms["Linfv"]),
+                                                              ("Thermal E",    epsprof, epsans, Lnorms["L1eps"], Lnorms["L2eps"], Lnorms["Linfeps"])]:
+        assert len(data) == len(ans)
+        error = [data[i] - ans[i] for i in range(len(data))]
+        Pn = Pnorm.Pnorm(error, xprof)
+        L1 = Pn.gridpnorm(1, rmin, rmax)
+        L2 = Pn.gridpnorm(2, rmin, rmax)
+        Linf = Pn.gridpnorm("inf", rmin, rmax)
+        print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
 
-# #         if checkError:
-# #             if not fuzzyEqual(L1, L1expect, tol):
-# #                 print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
-# #                                                                                       L1,
-# #                                                                                       L1expect)
-# #                 failure = True
-# #             if not fuzzyEqual(L2, L2expect, tol):
-# #                 print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
-# #                                                                                       L2,
-# #                                                                                       L2expect)
-# #                 failure = True
-# #             if not fuzzyEqual(Linf, Linfexpect, tol):
-# #                 print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
-# #                                                                                         Linf,
-# #                                                                                         Linfexpect)
-# #                 failure = True
-# #             if failure:
-# #                 raise ValueError, "Error bounds violated."
-# #     if normOutputFile != "None":
-# #        f.write("\n")
-                                             
-# #     # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nz,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
-# #     #                                                                             hD[0][1],hD[1][1],hD[2][1],hD[3][1],
-# #     #                                                                             hD[0][2],hD[1][2],hD[2][2],hD[3][2])
+        if checkError:
+            if not fuzzyEqual(L1, L1expect, tol):
+                print("L1 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                      L1,
+                                                                                      L1expect))
+                failure = True
+            if not fuzzyEqual(L2, L2expect, tol):
+                print("L2 error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                      L2,
+                                                                                      L2expect))
+                failure = True
+            if not fuzzyEqual(Linf, Linfexpect, tol):
+                print("Linf error estimate for %s outside expected bounds: %g != %g" % (name,
+                                                                                        Linf,
+                                                                                        Linfexpect))
+                failure = True
+            if failure:
+                raise ValueError("Error bounds violated.")
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print("Total energy error: %g" % Eerror)
-if checkEnergy and abs(Eerror) > 1e-13:
-    raise ValueError("Energy error outside allowed bounds.")
