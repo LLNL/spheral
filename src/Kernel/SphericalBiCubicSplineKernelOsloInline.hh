@@ -5,7 +5,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 inline
 bool
-SphericalBiCubicSplineKernel::operator==(const SphericalBiCubicSplineKernel& rhs) const {
+SphericalBiCubicSplineKernelOslo::operator==(const SphericalBiCubicSplineKernelOslo& rhs) const {
   return true;
 }
 
@@ -14,19 +14,19 @@ SphericalBiCubicSplineKernel::operator==(const SphericalBiCubicSplineKernel& rhs
 //------------------------------------------------------------------------------
 inline
 const TableKernel<Dim<3>>&
-SphericalBiCubicSplineKernel::baseKernel3d() const {
+SphericalBiCubicSplineKernelOslo::baseKernel3d() const {
   return mBaseKernel3d;
 }
 
 inline
 const TableKernel<Dim<1>>&
-SphericalBiCubicSplineKernel::baseKernel1d() const {
+SphericalBiCubicSplineKernelOslo::baseKernel1d() const {
   return mBaseKernel1d;
 }
 
 inline
 double
-SphericalBiCubicSplineKernel::etamax() const {
+SphericalBiCubicSplineKernelOslo::etamax() const {
   return metamax;
 }
 

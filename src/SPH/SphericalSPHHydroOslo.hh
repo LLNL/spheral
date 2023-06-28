@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SphericalSPHHydroBase -- An SPH/ASPH hydrodynamic package for Spheral++,
+// SphericalSPHHydroOslo -- An SPH/ASPH hydrodynamic package for Spheral++,
 //                          specialized for 1D Spherical (r) geometry.
 //
 // Based on the algorithm described in
@@ -11,18 +11,18 @@
 //
 // Created by JMO, Tue Dec 22 10:04:21 PST 2020
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SphericalSPHHydroBase_hh__
-#define __Spheral_SphericalSPHHydroBase_hh__
+#ifndef __Spheral_SphericalSPHHydroOslo_hh__
+#define __Spheral_SphericalSPHHydroOslo_hh__
 
 #include <string>
 
 #include "SPHHydroBase.hh"
-#include "Kernel/SphericalKernel.hh"
+#include "Kernel/SphericalKernelOslo.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
-class SphericalSPHHydroBase: public SPHHydroBase<Dim<1>> {
+class SphericalSPHHydroOslo: public SPHHydroBase<Dim<1>> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -35,11 +35,11 @@ public:
   typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  SphericalSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+  SphericalSPHHydroOslo(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                         DataBase<Dimension>& dataBase,
                         ArtificialViscosity<Dimension>& Q,
-                        const SphericalKernel& W,
-                        const SphericalKernel& WPi,
+                        const SphericalKernelOslo& W,
+                        const SphericalKernelOslo& WPi,
                         const double filter,
                         const double cfl,
                         const bool useVelocityMagnitudeForDt,
@@ -57,7 +57,7 @@ public:
                         const Vector& xmax);
 
   // Destructor.
-  virtual ~SphericalSPHHydroBase();
+  virtual ~SphericalSPHHydroOslo();
 
   // Register the state Hydro expects to use and evolve.
   virtual 
@@ -90,13 +90,13 @@ public:
                
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "SphericalSPHHydroBase" ; }
+  virtual std::string label() const override { return "SphericalSPHHydroOslo" ; }
   //****************************************************************************
 
   // Access the stored interpolation kernels.
   // These hide the base class "kernel" methods which return vanilla TableKernels.
-  const SphericalKernel& kernel() const;
-  const SphericalKernel& PiKernel() const;
+  const SphericalKernelOslo& kernel() const;
+  const SphericalKernelOslo& PiKernel() const;
 
   // We also have a funny self-Q term for interactions near the origin.
   double Qself() const;
@@ -105,15 +105,15 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
-  SphericalSPHHydroBase();
-  SphericalSPHHydroBase(const SphericalSPHHydroBase&);
-  SphericalSPHHydroBase& operator=(const SphericalSPHHydroBase&);
+  SphericalSPHHydroOslo();
+  SphericalSPHHydroOslo(const SphericalSPHHydroOslo&);
+  SphericalSPHHydroOslo& operator=(const SphericalSPHHydroOslo&);
 
   double mQself;
 
   // The specialized kernels
-  const SphericalKernel& mKernel;
-  const SphericalKernel& mPiKernel;
+  const SphericalKernelOslo& mKernel;
+  const SphericalKernelOslo& mPiKernel;
 };
 
 }
@@ -122,7 +122,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  class SphericalSPHHydroBase;
+  class SphericalSPHHydroOslo;
 }
 
 #endif

@@ -74,7 +74,7 @@ class SpheralController:
                     break
         if kernel is None:
             raise RuntimeError("SpheralController: unable to extract an appropriate interpolation kernel, please provide in constructor arguments")
-        if isinstance(kernel, SphericalKernel):
+        if isinstance(kernel, SphericalKernelOslo):
             self.kernel = kernel.baseKernel1d
         else:
             self.kernel = kernel

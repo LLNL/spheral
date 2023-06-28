@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SphericalKernel
+// SphericalKernelOslo
 //
 // Take a 3D Kernel and build a specialized 1D tabulated version appropriate
 // for use with the spherical SPH algorithm described in
@@ -9,7 +9,7 @@
 // Created by JMO, Wed Dec  2 16:41:20 PST 2020
 //----------------------------------------------------------------------------//
 
-#include "SphericalKernel.hh"
+#include "SphericalKernelOslo.hh"
 #include "Utilities/simpsonsIntegration.hh"
 #include "Utilities/DBC.hh"
 
@@ -70,10 +70,10 @@ struct W3S1Func {
 // Constructor
 //------------------------------------------------------------------------------
 template<typename KernelType>
-SphericalKernel::SphericalKernel(const KernelType& kernel,
-                                 const unsigned numIntegral,
-                                 const unsigned numKernel,
-                                 const bool useInterpolation):
+SphericalKernelOslo::SphericalKernelOslo(const KernelType& kernel,
+                                         const unsigned numIntegral,
+                                         const unsigned numKernel,
+                                         const bool useInterpolation):
   mInterp(0.0, kernel.kernelExtent(),
           0.0, kernel.kernelExtent(),
           numKernel, numKernel, 
@@ -89,7 +89,7 @@ SphericalKernel::SphericalKernel(const KernelType& kernel,
 //------------------------------------------------------------------------------
 // Copy constructor
 //------------------------------------------------------------------------------
-SphericalKernel::SphericalKernel(const SphericalKernel& rhs):
+SphericalKernelOslo::SphericalKernelOslo(const SphericalKernelOslo& rhs):
   mInterp(rhs.mInterp),
   mBaseKernel3d(rhs.mBaseKernel3d),
   mBaseKernel1d(rhs.mBaseKernel1d),
@@ -101,14 +101,14 @@ SphericalKernel::SphericalKernel(const SphericalKernel& rhs):
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-SphericalKernel::~SphericalKernel() {
+SphericalKernelOslo::~SphericalKernelOslo() {
 }
 
 //------------------------------------------------------------------------------
 // Assignment
 //------------------------------------------------------------------------------
-SphericalKernel&
-SphericalKernel::operator=(const SphericalKernel& rhs) {
+SphericalKernelOslo&
+SphericalKernelOslo::operator=(const SphericalKernelOslo& rhs) {
   if (this != &rhs) {
     mInterp = rhs.mInterp;
     mBaseKernel3d = rhs.mBaseKernel3d;
@@ -124,9 +124,9 @@ SphericalKernel::operator=(const SphericalKernel& rhs) {
 // Lookup the kernel for (rj/h, ri/h) = (etaj, etai)
 //------------------------------------------------------------------------------
 double
-SphericalKernel::operator()(const Dim<1>::Vector& etaj,
-                            const Dim<1>::Vector& etai,
-                            const Dim<1>::Scalar  Hdet) const {
+SphericalKernelOslo::operator()(const Dim<1>::Vector& etaj,
+                                const Dim<1>::Vector& etai,
+                                const Dim<1>::Scalar  Hdet) const {
   REQUIRE(Hdet >= 0.0);
   const auto ei = std::max(1e-5, etai[0]);
   const auto ej = std::max(1e-5, etaj[0]);
@@ -143,9 +143,9 @@ SphericalKernel::operator()(const Dim<1>::Vector& etaj,
 // Using the Leibniz integral rule to differentiate this integral.
 //------------------------------------------------------------------------------
 Dim<1>::Vector
-SphericalKernel::grad(const Dim<1>::Vector& etaj,
-                      const Dim<1>::Vector& etai,
-                      const Dim<1>::SymTensor& H) const {
+SphericalKernelOslo::grad(const Dim<1>::Vector& etaj,
+                          const Dim<1>::Vector& etai,
+                          const Dim<1>::SymTensor& H) const {
   const auto Hdet = H.Determinant();
   REQUIRE(Hdet >= 0.0);
   const auto ei = std::max(1e-5, etai[0]);
@@ -166,12 +166,12 @@ SphericalKernel::grad(const Dim<1>::Vector& etaj,
 // Simultaneously lookup (W,  grad W) for (rj/h, ri/h) = (etaj, etai)
 //------------------------------------------------------------------------------
 void
-SphericalKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
-                               const Dim<1>::Vector& etai,
-                               const Dim<1>::SymTensor& H,
-                               Dim<1>::Scalar& W,
-                               Dim<1>::Vector& gradW,
-                               Dim<1>::Scalar& deltaWsum) const {
+SphericalKernelOslo::kernelAndGrad(const Dim<1>::Vector& etaj,
+                                   const Dim<1>::Vector& etai,
+                                   const Dim<1>::SymTensor& H,
+                                   Dim<1>::Scalar& W,
+                                   Dim<1>::Vector& gradW,
+                                   Dim<1>::Scalar& deltaWsum) const {
   const auto Hdet = H.Determinant();
   REQUIRE(Hdet >= 0.0);
   const auto ei = std::max(1e-5, etai[0]);
@@ -202,31 +202,31 @@ SphericalKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
 //------------------------------------------------------------------------------
 inline
 double
-SphericalKernel::integralCorrection(const double a,
-                                    const double b,
-                                    const double ei,
-                                    const double ej) const {
+SphericalKernelOslo::integralCorrection(const double a,
+                                        const double b,
+                                        const double ei,
+                                        const double ej) const {
   return (mUseInterpolation and ei > 0.01 and ej > 0.01 ?
           mInterp(a, b) :
           W3S1Func<TableKernel<Dim<3>>>(mBaseKernel3d, mNumIntegral)(a, b));
 }
 
 // Constructor instantiations
-template SphericalKernel::SphericalKernel(const TableKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const BSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const NBSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const W4SplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const GaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const SuperGaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const PiGaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const HatKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const SincKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const NSincPolynomialKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const QuarticSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const QuinticSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const WendlandC2Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const WendlandC4Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
-template SphericalKernel::SphericalKernel(const WendlandC6Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const TableKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const BSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const NBSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const W4SplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const GaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const SuperGaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const PiGaussianKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const HatKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const SincKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const NSincPolynomialKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const QuarticSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const QuinticSplineKernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const WendlandC2Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const WendlandC4Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
+template SphericalKernelOslo::SphericalKernelOslo(const WendlandC6Kernel<Dim<3>>&, const unsigned, const unsigned, const bool);
 
 }
 

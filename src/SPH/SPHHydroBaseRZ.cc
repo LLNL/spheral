@@ -159,7 +159,7 @@ dt(const DataBase<Dim<2>>& dataBase,
   const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
   const auto vel = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto numNodeLists = pos.numFields();
-  CHECK(vel.numFields() == numFields());
+  CHECK(vel.numFields() == numNodeLists);
   for (auto k = 0u; k < numNodeLists; ++k) {
     const auto& fluidNodeList = **(dataBase.fluidNodeListBegin() + k);
     const auto  n = pos[k]->numInternalElements();

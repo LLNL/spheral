@@ -1,4 +1,4 @@
-#ATS:test(SELF, label="SphericalKernel (using Biquadratic interpolation) unit tests")
+#ATS:test(SELF, label="SphericalKernelOslo (using Biquadratic interpolation) unit tests")
 from math import *
 import unittest
 import numpy as np
@@ -6,13 +6,13 @@ import numpy as np
 from Spheral1d import *
 from SpheralTestUtilities import fuzzyEqual
 
-# Build the SphericalKernel
+# Build the SphericalKernelOslo
 t0 = time.time()
-W = SphericalKernel(BSplineKernel3d())
-#W = SphericalBiCubicSplineKernel()
+W = SphericalKernelOslo(BSplineKernel3d())
+#W = SphericalBiCubicSplineKernelOslo()
 t1 = time.time()
 etamax = W.etamax
-print(("Required %0.4f sec to construct SphericalKernel"% (t1 - t0)))
+print(("Required %0.4f sec to construct SphericalKernelOslo"% (t1 - t0)))
 
 # The r/h distance from the origin for point i (the central point we're probing around)
 etavals_i = ((i + 1)*0.1 for i in range(100))
@@ -123,10 +123,10 @@ def error(val0, val1, fuzz=1.0e-8):
     return min(abs(val1 - val0), abs(val1 - val0)/max(fuzz, abs(val0)))
 
 #-------------------------------------------------------------------------------
-# Unit tests for the SphericalKernel class using an ordinary bicubic spline base
+# Unit tests for the SphericalKernelOslo class using an ordinary bicubic spline base
 # kernel
 #-------------------------------------------------------------------------------
-class TestSphericalKernel(unittest.TestCase):
+class TestSphericalKernelOslo(unittest.TestCase):
 
     def test_kernel_vals(self):
         for hi in hvals_i:

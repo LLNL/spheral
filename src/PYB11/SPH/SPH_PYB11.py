@@ -12,7 +12,7 @@ dims = spheralDimensions()
 from SPHHydroBase import *
 from PSPHHydroBase import *
 from SolidSPHHydroBase import *
-from SolidSphericalSPHHydroBase import *
+from SolidSphericalSPHHydroOslo import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -22,10 +22,10 @@ PYB11includes += ['"SPH/SPHHydroBase.hh"',
                   '"SPH/computeSPHSumMassDensity.hh"',
                   '"SPH/computeSPHOmegaGradhCorrection.hh"',
                   '"SPH/SPHHydroBaseRZ.hh"',
-                  '"SPH/SphericalSPHHydroBase.hh"',
+                  '"SPH/SphericalSPHHydroOslo.hh"',
                   '"SPH/SolidSPHHydroBase.hh"',
                   '"SPH/SolidSPHHydroBaseRZ.hh"',
-                  '"SPH/SolidSphericalSPHHydroBase.hh"',
+                  '"SPH/SolidSphericalSPHHydroOslo.hh"',
                   '"FileIO/FileIO.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"']
 
@@ -72,8 +72,8 @@ computeSPHOmegaGradhCorrection%(ndim)id = PYB11TemplateFunction(computeSPHOmegaG
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
 if 1 in dims:
-    from SphericalSPHHydroBase import *
-    computeSPHSumMassDensity1d_spherical = PYB11TemplateFunction(computeSPHSumMassDensity, template_parameters=("Dim<1>", "SphericalKernel"), pyname="computeSPHSumMassDensity1d")
+    from SphericalSPHHydroOslo import *
+    computeSPHSumMassDensity1d_spherical = PYB11TemplateFunction(computeSPHSumMassDensity, template_parameters=("Dim<1>", "SphericalKernelOslo"), pyname="computeSPHSumMassDensity1d")
 
 if 2 in dims:
     from SPHHydroBaseRZ import *

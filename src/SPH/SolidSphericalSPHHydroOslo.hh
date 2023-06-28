@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidSphericalSPHHydroBase -- The SPH/ASPH solid material SPH hydrodynamic
+// SolidSphericalSPHHydroOslo -- The SPH/ASPH solid material SPH hydrodynamic
 //                               specialized for 1D Spherical (r) geometry.
 //
 // Based on the algorithm described in
@@ -11,19 +11,19 @@
 //
 // Created by JMO, Tue Apr 26 16:28:55 PDT 2022
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SolidSphericalSPHHydroBase_hh__
-#define __Spheral_SolidSphericalSPHHydroBase_hh__
+#ifndef __Spheral_SolidSphericalSPHHydroOslo_hh__
+#define __Spheral_SolidSphericalSPHHydroOslo_hh__
 
 #include <float.h>
 #include <string>
 
 #include "SPH/SolidSPHHydroBase.hh"
-#include "Kernel/SphericalKernel.hh"
+#include "Kernel/SphericalKernelOslo.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
-class SolidSphericalSPHHydroBase: public SolidSPHHydroBase<Dim<1>> {
+class SolidSphericalSPHHydroOslo: public SolidSPHHydroBase<Dim<1>> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -36,12 +36,12 @@ public:
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  SolidSphericalSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+  SolidSphericalSPHHydroOslo(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                              DataBase<Dimension>& dataBase,
                              ArtificialViscosity<Dimension>& Q,
-                             const SphericalKernel& W,
-                             const SphericalKernel& WPi,
-                             const SphericalKernel& WGrad,
+                             const SphericalKernelOslo& W,
+                             const SphericalKernelOslo& WPi,
+                             const SphericalKernelOslo& WGrad,
                              const double filter,
                              const double cfl,
                              const bool useVelocityMagnitudeForDt,
@@ -61,7 +61,7 @@ public:
                              const Vector& xmax);
 
   // Destructor.
-  virtual ~SolidSphericalSPHHydroBase();
+  virtual ~SolidSphericalSPHHydroOslo();
 
   // Register the state Hydro expects to use and evolve.
   virtual 
@@ -94,9 +94,9 @@ public:
 
   // Access the stored interpolation kernels.
   // These hide the base class "kernel" methods which return vanilla TableKernels.
-  const SphericalKernel& kernel() const;
-  const SphericalKernel& PiKernel() const;
-  const SphericalKernel& GradKernel() const;
+  const SphericalKernelOslo& kernel() const;
+  const SphericalKernelOslo& PiKernel() const;
+  const SphericalKernelOslo& GradKernel() const;
 
   // We also have a funny self-Q term for interactions near the origin.
   double Qself() const;
@@ -104,7 +104,7 @@ public:
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "SolidSphericalSPHHydroBase"; }
+  virtual std::string label() const override { return "SolidSphericalSPHHydroOslo"; }
   //****************************************************************************
 
 private:
@@ -112,14 +112,14 @@ private:
   double mQself;
 
   // The specialized kernels
-  const SphericalKernel& mKernel;
-  const SphericalKernel& mPiKernel;
-  const SphericalKernel& mGradKernel;
+  const SphericalKernelOslo& mKernel;
+  const SphericalKernelOslo& mPiKernel;
+  const SphericalKernelOslo& mGradKernel;
 
   // No default constructor, copying, or assignment.
-  SolidSphericalSPHHydroBase();
-  SolidSphericalSPHHydroBase(const SolidSphericalSPHHydroBase&);
-  SolidSphericalSPHHydroBase& operator=(const SolidSphericalSPHHydroBase&);
+  SolidSphericalSPHHydroOslo();
+  SolidSphericalSPHHydroOslo(const SolidSphericalSPHHydroOslo&);
+  SolidSphericalSPHHydroOslo& operator=(const SolidSphericalSPHHydroOslo&);
 };
 
 }
@@ -128,7 +128,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class SolidSphericalSPHHydroBase;
+  template<typename Dimension> class SolidSphericalSPHHydroOslo;
 }
 
 #endif

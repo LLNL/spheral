@@ -29,7 +29,8 @@ def SPH(W,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
         etaMinAxis = 0.1,
-        ASPH = False):
+        ASPH = False,
+        discretization = "Oslo"):
 
     # Check if we're running solid or fluid hydro
     nfluid = dataBase.numFluidNodeLists
@@ -45,19 +46,19 @@ def SPH(W,
     if GeometryRegistrar.coords() == CoordinateType.Spherical:
         assert ndim == 1
         if nsolid > 0:
-            constructor = SolidSphericalSPHHydroBase
+            constructor = SolidSphericalSPHHydroOslo
         else:
-            constructor = SphericalSPHHydroBase
+            constructor = SphericalSPHHydroOslo
 
         # Build the spherical kernels
         print("Constructing Spherical kernels...")
-        W3S1 = SphericalKernel(W)
+        W3S1 = SphericalKernelOslo(W)
         W = W3S1
         if WPi:
-            WPi3S1 = SphericalKernel(WPi)
+            WPi3S1 = SphericalKernelOslo(WPi)
             WPi = WPi3S1
         if WGrad:
-            WGrad3S1 = SphericalKernel(WGrad)
+            WGrad3S1 = SphericalKernelOslo(WGrad)
             WGrad = WGrad3S1
 
     elif GeometryRegistrar.coords() == CoordinateType.RZ:
@@ -131,7 +132,7 @@ def SPH(W,
     result.Q = Q
     result._smoothingScaleMethod = smoothingScaleMethod
 
-    # In spherical coordatinates, preserve our locally constructed spherical kernels
+    # In spherical coordinates, preserve our locally constructed spherical kernels
     # and add the origin enforcement boundary
     if GeometryRegistrar.coords() == CoordinateType.Spherical:
         result.originBC = SphericalOriginBoundary()

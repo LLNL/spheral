@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SphericalBiCubicSplineKernel
+// SphericalBiCubicSplineKernelOslo
 //
 // Take a 3D Kernel and build a specialized 1D tabulated version appropriate
 // for use with the spherical SPH algorithm described in
@@ -9,7 +9,7 @@
 // Created by JMO, Wed Dec  2 16:41:20 PST 2020
 //----------------------------------------------------------------------------//
 
-#include "SphericalBiCubicSplineKernel.hh"
+#include "SphericalBiCubicSplineKernelOslo.hh"
 #include "Kernel/BSplineKernel.hh"
 #include "Utilities/FastMath.hh"
 #include "Utilities/SpheralFunctions.hh"
@@ -108,7 +108,7 @@ gradW3S1(const double rj,
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-SphericalBiCubicSplineKernel::SphericalBiCubicSplineKernel(const unsigned numKernel):
+SphericalBiCubicSplineKernelOslo::SphericalBiCubicSplineKernelOslo(const unsigned numKernel):
   mBaseKernel3d(BSplineKernel<Dim<3>>(), numKernel),
   mBaseKernel1d(BSplineKernel<Dim<3>>(), numKernel),
   metamax(2.0) {
@@ -117,7 +117,7 @@ SphericalBiCubicSplineKernel::SphericalBiCubicSplineKernel(const unsigned numKer
 //------------------------------------------------------------------------------
 // Copy constructor
 //------------------------------------------------------------------------------
-SphericalBiCubicSplineKernel::SphericalBiCubicSplineKernel(const SphericalBiCubicSplineKernel& rhs):
+SphericalBiCubicSplineKernelOslo::SphericalBiCubicSplineKernelOslo(const SphericalBiCubicSplineKernelOslo& rhs):
   mBaseKernel3d(rhs.mBaseKernel3d),
   mBaseKernel1d(rhs.mBaseKernel1d),
   metamax(rhs.metamax) {
@@ -126,14 +126,14 @@ SphericalBiCubicSplineKernel::SphericalBiCubicSplineKernel(const SphericalBiCubi
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-SphericalBiCubicSplineKernel::~SphericalBiCubicSplineKernel() {
+SphericalBiCubicSplineKernelOslo::~SphericalBiCubicSplineKernelOslo() {
 }
 
 //------------------------------------------------------------------------------
 // Assignment
 //------------------------------------------------------------------------------
-SphericalBiCubicSplineKernel&
-SphericalBiCubicSplineKernel::operator=(const SphericalBiCubicSplineKernel& rhs) {
+SphericalBiCubicSplineKernelOslo&
+SphericalBiCubicSplineKernelOslo::operator=(const SphericalBiCubicSplineKernelOslo& rhs) {
   if (this != &rhs) {
     mBaseKernel3d = rhs.mBaseKernel3d;
     mBaseKernel1d = rhs.mBaseKernel1d;
@@ -146,9 +146,9 @@ SphericalBiCubicSplineKernel::operator=(const SphericalBiCubicSplineKernel& rhs)
 // Lookup the kernel for (rj/h, ri/h) = (etaj, etai)
 //------------------------------------------------------------------------------
 double
-SphericalBiCubicSplineKernel::operator()(const Dim<1>::Vector& etaj,
-                                         const Dim<1>::Vector& etai,
-                                         const Dim<1>::Scalar  Hdet) const {
+SphericalBiCubicSplineKernelOslo::operator()(const Dim<1>::Vector& etaj,
+                                             const Dim<1>::Vector& etai,
+                                             const Dim<1>::Scalar  Hdet) const {
   REQUIRE(Hdet >= 0.0);
   const auto h = 1.0/Hdet;
   return W3S1(h*etaj.x(), h*etai.x(), h);
@@ -159,9 +159,9 @@ SphericalBiCubicSplineKernel::operator()(const Dim<1>::Vector& etaj,
 // Using the Leibniz integral rule to differentiate this integral.
 //------------------------------------------------------------------------------
 Dim<1>::Vector
-SphericalBiCubicSplineKernel::grad(const Dim<1>::Vector& etaj,
-                                   const Dim<1>::Vector& etai,
-                                   const Dim<1>::SymTensor& H) const {
+SphericalBiCubicSplineKernelOslo::grad(const Dim<1>::Vector& etaj,
+                                       const Dim<1>::Vector& etai,
+                                       const Dim<1>::SymTensor& H) const {
   const auto Hdet = H.Determinant();
   REQUIRE(Hdet >= 0.0);
   const auto h = 1.0/Hdet;
@@ -172,12 +172,12 @@ SphericalBiCubicSplineKernel::grad(const Dim<1>::Vector& etaj,
 // Simultaneously lookup (W,  grad W) for (rj/h, ri/h) = (etaj, etai)
 //------------------------------------------------------------------------------
 void
-SphericalBiCubicSplineKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
-                                            const Dim<1>::Vector& etai,
-                                            const Dim<1>::SymTensor& H,
-                                            Dim<1>::Scalar& W,
-                                            Dim<1>::Vector& gradW,
-                                            Dim<1>::Scalar& deltaWsum) const {
+SphericalBiCubicSplineKernelOslo::kernelAndGrad(const Dim<1>::Vector& etaj,
+                                                const Dim<1>::Vector& etai,
+                                                const Dim<1>::SymTensor& H,
+                                                Dim<1>::Scalar& W,
+                                                Dim<1>::Vector& gradW,
+                                                Dim<1>::Scalar& deltaWsum) const {
   const auto Hdet = H.Determinant();
   REQUIRE(Hdet >= 0.0);
   const auto h = 1.0/Hdet;

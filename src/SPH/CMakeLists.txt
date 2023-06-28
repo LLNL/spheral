@@ -16,8 +16,8 @@ set(SPH_sources )
 if(ENABLE_1D)
   list(APPEND SPH_sources
        SphericalSPHInst.cc
-       SphericalSPHHydroBase.cc
-       SolidSphericalSPHHydroBase.cc
+       SphericalSPHHydroOslo.cc
+       SolidSphericalSPHHydroOslo.cc
       )
 endif()
 
@@ -44,11 +44,11 @@ set(SPH_headers
     SPHHydroBase.hh
     SPHHydroBaseInline.hh
     SPHHydroBaseRZ.hh
-    SphericalSPHHydroBase.hh
+    SphericalSPHHydroOslo.hh
     SolidSPHHydroBase.hh
     SolidSPHHydroBaseInline.hh
     SolidSPHHydroBaseRZ.hh
-    SolidSphericalSPHHydroBase.hh
+    SolidSphericalSPHHydroOslo.hh
     computeHydrostaticEquilibriumPressure.hh
     computePSPHCorrections.hh
     computeSPHOmegaGradhCorrection.hh

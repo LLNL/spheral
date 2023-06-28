@@ -6,7 +6,7 @@ import matplotlib.gridspec as gridspec
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
-from testBicubicSphericalKernel import W3S1, gradW3S1, rprange, error, W
+from testBicubicSphericalKernelOslo import W3S1, gradW3S1, rprange, error, W
 
 import time
 
@@ -43,7 +43,7 @@ for eta in etavals:
     ax.plot((rp - r)/h, yvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$r^2 \langle W_{3S1}(r^\prime, r, h)/h$ \rangle")
-ax.set_title("SphericalKernel approximation")
+ax.set_title("SphericalKernelOslo approximation")
 legend = ax.legend(loc="upper right", shadow=True)
 
 # Analytic kernel
@@ -75,7 +75,7 @@ ax.set_title("Error")
 fig20 = plt.figure(tight_layout=True, figsize=(10,8))
 gs = gridspec.GridSpec(nrows = 2, ncols = 2, height_ratios = [2,1], figure=fig1)
 
-# Plot SphericalKernel gradient
+# Plot SphericalKernelOslo gradient
 ax = fig20.add_subplot(gs[0,0])
 for eta in etavals:
     r = h*eta
@@ -85,7 +85,7 @@ for eta in etavals:
     ax.plot((rp - r)/h, gyvals, label = r"$r/h=%g$" % eta)
 ax.set_xlabel(r"$(r^\prime - r)/h$")
 ax.set_ylabel(r"$r^2 \; \langle \partial_r W_{3S1}(r^\prime, r, h) \rangle$")
-ax.set_title("SphericalKernel gradient approximation")
+ax.set_title("SphericalKernelOslo gradient approximation")
 legend = ax.legend(loc="upper right", shadow=True)
 
 # Analytic gradient

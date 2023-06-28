@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidSphericalSPHHydroBase -- The SPH/ASPH solid material SPH hydrodynamic
+// SolidSphericalSPHHydroOslo -- The SPH/ASPH solid material SPH hydrodynamic
 //                               specialized for 1D Spherical (r) geometry.
 //
 // Based on the algorithm described in
@@ -46,7 +46,7 @@
 #include "SolidMaterial/SolidEquationOfState.hh"
 #include "Utilities/Timer.hh"
 
-#include "SolidSphericalSPHHydroBase.hh"
+#include "SolidSphericalSPHHydroOslo.hh"
 
 #include <limits.h>
 #include <float.h>
@@ -89,13 +89,13 @@ tensileStressCorrection(const Dim<1>::SymTensor& sigma) {
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
-SolidSphericalSPHHydroBase::
-SolidSphericalSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+SolidSphericalSPHHydroOslo::
+SolidSphericalSPHHydroOslo(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                            DataBase<Dimension>& dataBase,
                            ArtificialViscosity<Dimension>& Q,
-                           const SphericalKernel& W,
-                           const SphericalKernel& WPi,
-                           const SphericalKernel& WGrad,
+                           const SphericalKernelOslo& W,
+                           const SphericalKernelOslo& WPi,
+                           const SphericalKernelOslo& WGrad,
                            const double filter,
                            const double cfl,
                            const bool useVelocityMagnitudeForDt,
@@ -145,15 +145,15 @@ SolidSphericalSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMe
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-SolidSphericalSPHHydroBase::
-~SolidSphericalSPHHydroBase() {
+SolidSphericalSPHHydroOslo::
+~SolidSphericalSPHHydroOslo() {
 }
 
 //------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
 void
-SolidSphericalSPHHydroBase::
+SolidSphericalSPHHydroOslo::
 registerState(DataBase<Dim<1>>& dataBase,
               State<Dim<1>>& state) {
 
@@ -178,7 +178,7 @@ registerState(DataBase<Dim<1>>& dataBase,
 // Stuff that occurs the beginning of a timestep
 //------------------------------------------------------------------------------
 void
-SolidSphericalSPHHydroBase::
+SolidSphericalSPHHydroOslo::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
@@ -229,7 +229,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 void
-SolidSphericalSPHHydroBase::
+SolidSphericalSPHHydroOslo::
 evaluateDerivatives(const Dim<1>::Scalar /*time*/,
                     const Dim<1>::Scalar dt,
                     const DataBase<Dim<1>>& dataBase,
@@ -457,7 +457,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       W.kernelAndGrad(etajj, etaij, Hj, Wjj, gradWjj, gWjj);
       W.kernelAndGrad(etaii, etaji, Hi, Wii, gradWii, gWii);
       W.kernelAndGrad(etaij, etajj, Hj, Wij, gradWij, gWij);
-      auto Wlookup = [](const bool copyVals, const SphericalKernel& W,
+      auto Wlookup = [](const bool copyVals, const SphericalKernelOslo& W,
                         const Vector& etaj, const Vector& etai, const SymTensor& H,
                         const Scalar& Wj0, const Vector& gradWj0, const Scalar& gWj0,
                         Scalar& Wj, Vector& gradWj, Scalar& gWj) {
@@ -774,7 +774,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 // Apply the ghost boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-SolidSphericalSPHHydroBase::
+SolidSphericalSPHHydroOslo::
 applyGhostBoundaries(State<Dim<1>>& state,
                      StateDerivatives<Dim<1>>& derivs) {
   // Convert the mass to mass/length^2 before BCs are applied.
@@ -811,7 +811,7 @@ applyGhostBoundaries(State<Dim<1>>& state,
 // Enforce the boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-SolidSphericalSPHHydroBase::
+SolidSphericalSPHHydroOslo::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   // Convert the mass to mass/length^2 before BCs are applied.
@@ -847,8 +847,8 @@ enforceBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 // Access the main kernel used for (A)SPH field estimates.
 //------------------------------------------------------------------------------
-const SphericalKernel&
-SolidSphericalSPHHydroBase::
+const SphericalKernelOslo&
+SolidSphericalSPHHydroOslo::
 kernel() const {
   return mKernel;
 }
@@ -856,8 +856,8 @@ kernel() const {
 //------------------------------------------------------------------------------
 // Access the kernel used for artificial viscosity gradients.
 //------------------------------------------------------------------------------
-const SphericalKernel&
-SolidSphericalSPHHydroBase::
+const SphericalKernelOslo&
+SolidSphericalSPHHydroOslo::
 PiKernel() const {
   return mPiKernel;
 }
@@ -865,8 +865,8 @@ PiKernel() const {
 //------------------------------------------------------------------------------
 // Access the kernel used for the velocity gradient
 //------------------------------------------------------------------------------
-const SphericalKernel&
-SolidSphericalSPHHydroBase::
+const SphericalKernelOslo&
+SolidSphericalSPHHydroOslo::
 GradKernel() const {
   return mGradKernel;
 }
@@ -875,13 +875,13 @@ GradKernel() const {
 // The self-Q multiplier
 //------------------------------------------------------------------------------
 double
-SolidSphericalSPHHydroBase::
+SolidSphericalSPHHydroOslo::
 Qself() const {
   return mQself;
 }
 
 void
-SolidSphericalSPHHydroBase::
+SolidSphericalSPHHydroOslo::
 Qself(const double x) {
   mQself = x;
 }

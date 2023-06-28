@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SphericalSPHHydroBase -- An SPH/ASPH hydrodynamic package for Spheral++,
+// SphericalSPHHydroOslo -- An SPH/ASPH hydrodynamic package for Spheral++,
 //                          specialized for 1D Spherical (r) geometry.
 //
 // Note this version is currently abusing our ordinary 1D geometric types,
@@ -49,7 +49,7 @@
 #include "CRKSPH/volumeSpacing.hh"
 #include "Utilities/Timer.hh"
 
-#include "SphericalSPHHydroBase.hh"
+#include "SphericalSPHHydroOslo.hh"
 
 #include <limits.h>
 #include <float.h>
@@ -76,12 +76,12 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
-SphericalSPHHydroBase::
-SphericalSPHHydroBase(const SmoothingScaleBase<Dim<1>>& smoothingScaleMethod,
+SphericalSPHHydroOslo::
+SphericalSPHHydroOslo(const SmoothingScaleBase<Dim<1>>& smoothingScaleMethod,
                       DataBase<Dimension>& dataBase,
                       ArtificialViscosity<Dim<1>>& Q,
-                      const SphericalKernel& W,
-                      const SphericalKernel& WPi,
+                      const SphericalKernelOslo& W,
+                      const SphericalKernelOslo& WPi,
                       const double filter,
                       const double cfl,
                       const bool useVelocityMagnitudeForDt,
@@ -125,15 +125,15 @@ SphericalSPHHydroBase(const SmoothingScaleBase<Dim<1>>& smoothingScaleMethod,
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-SphericalSPHHydroBase::
-~SphericalSPHHydroBase() {
+SphericalSPHHydroOslo::
+~SphericalSPHHydroOslo() {
 }
 
 //------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
 void
-SphericalSPHHydroBase::
+SphericalSPHHydroOslo::
 registerState(DataBase<Dim<1>>& dataBase,
               State<Dim<1>>& state) {
 
@@ -158,7 +158,7 @@ registerState(DataBase<Dim<1>>& dataBase,
 // Stuff that occurs the beginning of a timestep
 //------------------------------------------------------------------------------
 void
-SphericalSPHHydroBase::
+SphericalSPHHydroOslo::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
@@ -209,7 +209,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 void
-SphericalSPHHydroBase::
+SphericalSPHHydroOslo::
 evaluateDerivatives(const Dim<1>::Scalar time,
                     const Dim<1>::Scalar dt,
                     const DataBase<Dim<1>>& dataBase,
@@ -410,7 +410,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       W.kernelAndGrad(etajj, etaij, Hj, Wjj, gradWjj, gWjj);
       W.kernelAndGrad(etaii, etaji, Hi, Wii, gradWii, gWii);
       W.kernelAndGrad(etaij, etajj, Hj, Wij, gradWij, gWij);
-      auto Wlookup = [](const bool copyVals, const SphericalKernel& W,
+      auto Wlookup = [](const bool copyVals, const SphericalKernelOslo& W,
                         const Vector& etaj, const Vector& etai, const SymTensor& H,
                         const Scalar& Wj0, const Vector& gradWj0, const Scalar& gWj0,
                         Scalar& Wj, Vector& gradWj, Scalar& gWj) {
@@ -664,7 +664,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 // Apply the ghost boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-SphericalSPHHydroBase::
+SphericalSPHHydroOslo::
 applyGhostBoundaries(State<Dim<1>>& state,
                      StateDerivatives<Dim<1>>& derivs) {
 
@@ -702,7 +702,7 @@ applyGhostBoundaries(State<Dim<1>>& state,
 // Enforce the boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-SphericalSPHHydroBase::
+SphericalSPHHydroOslo::
 enforceBoundaries(State<Dim<1>>& state,
                   StateDerivatives<Dim<1>>& derivs) {
 
@@ -736,8 +736,8 @@ enforceBoundaries(State<Dim<1>>& state,
 //------------------------------------------------------------------------------
 // Access the main kernel used for (A)SPH field estimates.
 //------------------------------------------------------------------------------
-const SphericalKernel&
-SphericalSPHHydroBase::
+const SphericalKernelOslo&
+SphericalSPHHydroOslo::
 kernel() const {
   return mKernel;
 }
@@ -745,8 +745,8 @@ kernel() const {
 //------------------------------------------------------------------------------
 // Access the kernel used for artificial viscosity gradients.
 //------------------------------------------------------------------------------
-const SphericalKernel&
-SphericalSPHHydroBase::
+const SphericalKernelOslo&
+SphericalSPHHydroOslo::
 PiKernel() const {
   return mPiKernel;
 }
@@ -755,13 +755,13 @@ PiKernel() const {
 // The self-Q multiplier
 //------------------------------------------------------------------------------
 double
-SphericalSPHHydroBase::
+SphericalSPHHydroOslo::
 Qself() const {
   return mQself;
 }
 
 void
-SphericalSPHHydroBase::
+SphericalSPHHydroOslo::
 Qself(const double x) {
   mQself = x;
 }

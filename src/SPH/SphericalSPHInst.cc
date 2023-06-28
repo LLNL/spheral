@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // A collection of intantiations for SphericalSPH 
 //------------------------------------------------------------------------------
-#include "Kernel/SphericalKernel.hh"
+#include "Kernel/SphericalKernelOslo.hh"
 #include "Geometry/Dimension.hh"
 
 #include "computeSPHSumMassDensity.cc"
@@ -11,7 +11,7 @@
 namespace Spheral {
 
 template void computeSPHSumMassDensity(const ConnectivityMap<Dim<1>>&, 
-                                       const SphericalKernel&, 
+                                       const SphericalKernelOslo&, 
                                        const bool,
                                        const FieldList<Dim<1>, Dim<1>::Vector>&,
                                        const FieldList<Dim<1>, Dim<1>::Scalar>&,
@@ -19,7 +19,7 @@ template void computeSPHSumMassDensity(const ConnectivityMap<Dim<1>>&,
                                        FieldList<Dim<1>, Dim<1>::Scalar>&);
 
 template void correctSPHSumMassDensity(const ConnectivityMap<Dim<1>>&, 
-                                       const SphericalKernel&, 
+                                       const SphericalKernelOslo&, 
                                        const bool,
                                        const FieldList<Dim<1>, Dim<1>::Vector>&,
                                        const FieldList<Dim<1>, Dim<1>::Scalar>&,

@@ -1,14 +1,14 @@
 #-------------------------------------------------------------------------------
-# SphericalSPHHydroBase
+# SolidSphericalSPHHydroOslo
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from SPHHydroBase import *
+from SolidSPHHydroBase import *
 
-@PYB11template()            # Override the fact SPHHydroBase is templated
+@PYB11template()            # Override the fact SolidSPHHydroBase is templated
 @PYB11template_dict({"Dimension" : "Dim<1>"})
 @PYB11module("SpheralSPH")
 @PYB11dynamic_attr
-class SphericalSPHHydroBase(SPHHydroBase):
+class SolidSphericalSPHHydroOslo(SolidSPHHydroBase):
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -21,8 +21,9 @@ class SphericalSPHHydroBase(SPHHydroBase):
     def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
                dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
-               W = "const SphericalKernel&",
-               WPi = "const SphericalKernel&",
+               W = "const SphericalKernelOslo&",
+               WPi = "const SphericalKernelOslo&",
+               WGrad = "const SphericalKernelOslo&",
                filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
@@ -36,9 +37,11 @@ class SphericalSPHHydroBase(SPHHydroBase):
                HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
+               damageRelieveRubble = "const bool",
+               strengthInDamage = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "Spherical SPHHydroBase constructor"
+        "Solid Spherical SPHHydroBase constructor"
 
     #...........................................................................
     # Virtual methods
@@ -86,6 +89,7 @@ mass density, velocity, and specific thermal energy."""
 
     #...........................................................................
     # Properties
-    kernel = PYB11property("const SphericalKernel&", "kernel", doc="The interpolation kernel")
-    PiKernel = PYB11property("const SphericalKernel&", "PiKernel", doc="The interpolation kernel for the artificial viscosity")
+    kernel = PYB11property("const SphericalKernelOslo&", "kernel", doc="The interpolation kernel")
+    PiKernel = PYB11property("const SphericalKernelOslo&", "PiKernel", doc="The interpolation kernel for the artificial viscosity")
+    GradKernel = PYB11property("const SphericalKernelOslo&", "GradKernel", doc="The interpolation kernel for computing the velocity gradient")
     Qself = PYB11property("double", "Qself", "Qself", doc="Multiplier for Q self-interaction near the origin")
