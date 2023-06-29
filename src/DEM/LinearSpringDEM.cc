@@ -837,6 +837,7 @@ void
 LinearSpringDEM<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
+  DEMBase<Dimension>::applyGhostBoundaries(state,derivs);
   auto I = state.fields(DEMFieldNames::momentOfInertia,0.0);
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -853,6 +854,9 @@ void
 LinearSpringDEM<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
+
+  DEMBase<Dimension>::enforceBoundaries(state,derivs);
+
   auto I = state.fields(DEMFieldNames::momentOfInertia,0.0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
