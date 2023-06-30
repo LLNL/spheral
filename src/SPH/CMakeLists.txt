@@ -18,6 +18,7 @@ if(ENABLE_1D)
        SphericalSPHInst.cc
        SphericalSPHHydroOslo.cc
        SolidSphericalSPHHydroOslo.cc
+       SphericalSPHAreaWeighted.cc
       )
 endif()
 
@@ -45,6 +46,7 @@ set(SPH_headers
     SPHHydroBaseInline.hh
     SPHHydroBaseRZ.hh
     SphericalSPHHydroOslo.hh
+    SphericalSPHAreaWeighted.hh
     SolidSPHHydroBase.hh
     SolidSPHHydroBaseInline.hh
     SolidSPHHydroBaseRZ.hh

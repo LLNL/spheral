@@ -35,8 +35,7 @@ title("Spherical Noh test run in spherical coordinates")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(KernelConstructor = WendlandC4Kernel3d,
-            order = 5,
+commandLine(discretization = "Oslo",   #  Oslo, AreaWeighted
 
             nr = 100,
             rho1 = 1.0,
@@ -164,6 +163,7 @@ commandLine(KernelConstructor = WendlandC4Kernel3d,
             graphics = True,
             )
 
+assert discretization in ("Oslo", "AreaWeighted")
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert not(gsph and (boolReduceViscosity or boolCullenViscosity))
 assert not(fsisph and not solid)
@@ -182,7 +182,7 @@ elif gsph:
 elif psph:
     hydroname = "PSPH"
 else:
-    hydroname = "SPH"
+    hydroname = "SPH" + discretization
 if solid:
     hydroname = "Solid" + hydroname
 
@@ -214,14 +214,15 @@ eos = GammaLawGasMKS(gamma, mu)
 
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
-# Note since this is in spherical coordinates, we need to build the 3D kernel
 #-------------------------------------------------------------------------------
-if KernelConstructor==NBSplineKernel3d:
-    Wbase = NBSplineKernel3d(order)
+if discretization == "Oslo":
+    Wbase = WendlandC4Kernel3d()
+    WT = TableKernel3d(Wbase, 1000)
 else:
-    Wbase = KernelConstructor()
-WT = TableKernel3d(Wbase, 1000)
+    Wbase = WendlandC4Kernel1d()
+    WT = TableKernel1d(Wbase, 200)
 kernelExtent = WT.kernelExtent
+output("Wbase")
 output("WT")
 
 #-------------------------------------------------------------------------------
@@ -351,7 +352,8 @@ else:
                 HUpdate = HUpdate,
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
-                nTensile = nTensile)
+                nTensile = nTensile,
+                sphericalDiscretization = discretization)
     hydro.Qself = Qself
     output("hydro.Qself")
 output("hydro")
@@ -444,7 +446,7 @@ output("integrator.verbose")
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator,
-                            kernel = hydro.kernel.baseKernel1d,
+                            kernel = hydro.kernel.baseKernel1d if isinstance(hydro.kernel, SphericalKernelOslo) else hydro.kernel,
                             volumeType = volumeType,
                             statsStep = statsStep,
                             restartStep = restartStep,

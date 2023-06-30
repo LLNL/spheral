@@ -12,7 +12,9 @@ dims = spheralDimensions()
 from SPHHydroBase import *
 from PSPHHydroBase import *
 from SolidSPHHydroBase import *
+from SphericalSPHHydroOslo import *
 from SolidSphericalSPHHydroOslo import *
+from SphericalSPHAreaWeighted import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -23,6 +25,7 @@ PYB11includes += ['"SPH/SPHHydroBase.hh"',
                   '"SPH/computeSPHOmegaGradhCorrection.hh"',
                   '"SPH/SPHHydroBaseRZ.hh"',
                   '"SPH/SphericalSPHHydroOslo.hh"',
+                  '"SPH/SphericalSPHAreaWeighted.hh"',
                   '"SPH/SolidSPHHydroBase.hh"',
                   '"SPH/SolidSPHHydroBaseRZ.hh"',
                   '"SPH/SolidSphericalSPHHydroOslo.hh"',

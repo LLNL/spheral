@@ -30,7 +30,7 @@ def SPH(W,
         xmax = ( 1e100,  1e100,  1e100),
         etaMinAxis = 0.1,
         ASPH = False,
-        discretization = "Oslo"):
+        sphericalDiscretization = "Oslo"):
 
     # Check if we're running solid or fluid hydro
     nfluid = dataBase.numFluidNodeLists
@@ -45,21 +45,26 @@ def SPH(W,
     ndim = dataBase.nDim
     if GeometryRegistrar.coords() == CoordinateType.Spherical:
         assert ndim == 1
+        assert sphericalDiscretization in ("Oslo", "AreaWeighted")
         if nsolid > 0:
             constructor = SolidSphericalSPHHydroOslo
         else:
-            constructor = SphericalSPHHydroOslo
+            if sphericalDiscretization == "Oslo":
+                constructor = SphericalSPHHydroOslo
+            else:
+                constructor = SphericalSPHAreaWeighted
 
         # Build the spherical kernels
-        print("Constructing Spherical kernels...")
-        W3S1 = SphericalKernelOslo(W)
-        W = W3S1
-        if WPi:
-            WPi3S1 = SphericalKernelOslo(WPi)
-            WPi = WPi3S1
-        if WGrad:
-            WGrad3S1 = SphericalKernelOslo(WGrad)
-            WGrad = WGrad3S1
+        if sphericalDiscretization == "Oslo":
+            print("Constructing Spherical kernels...")
+            W3S1 = SphericalKernelOslo(W)
+            W = W3S1
+            if WPi:
+                WPi3S1 = SphericalKernelOslo(WPi)
+                WPi = WPi3S1
+            if WGrad:
+                WGrad3S1 = SphericalKernelOslo(WGrad)
+                WGrad = WGrad3S1
 
     elif GeometryRegistrar.coords() == CoordinateType.RZ:
         assert ndim == 2
@@ -132,14 +137,21 @@ def SPH(W,
     result.Q = Q
     result._smoothingScaleMethod = smoothingScaleMethod
 
-    # In spherical coordinates, preserve our locally constructed spherical kernels
-    # and add the origin enforcement boundary
+    # Check for spherical specializations
     if GeometryRegistrar.coords() == CoordinateType.Spherical:
-        result.originBC = SphericalOriginBoundary()
-        result.appendBoundary(result.originBC)
-        result._W3S1 = W
-        result._WPi3S1 = WPi
-        result._WGrad3S1 = WGrad
+
+        if sphericalDiscretization == "Oslo":
+            # Preserve our locally constructed spherical kernels and add the origin enforcement boundary
+            result.originBC = SphericalOriginBoundary()
+            result.appendBoundary(result.originBC)
+            result._W3S1 = W
+            result._WPi3S1 = WPi
+            result._WGrad3S1 = WGrad
+
+        else:
+            # For AreaWeighted, we need a reflecting boundary across the origin
+            result.raxisBC = ReflectingBoundary1d(Plane1d(Vector1d(0.0), Vector1d(1.0)))
+            result.appendBoundary(result.raxisBC)
 
     # If we're using area-weighted RZ, we need to reflect from the axis
     if GeometryRegistrar.coords() == CoordinateType.RZ:
