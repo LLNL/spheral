@@ -150,7 +150,8 @@ registerState(DataBase<Dim<1>>& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    auto thermalEnergyPolicy = make_shared<NonSymmetricSpecificThermalEnergyPolicy<Dim<1>>>(dataBase);  // TODO
+    auto thermalEnergyPolicy = make_shared<NonSymmetricSpecificThermalEnergyPolicy<Dim<1>>>(dataBase,
+                                                                                            [](const Scalar& mi, const Vector& posi) { return mi/FastMath::square(posi.x()); });
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
   }
 }

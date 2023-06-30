@@ -7,6 +7,10 @@
 // method in the case where we do *not* assume that pairwise forces are
 // equal and opposite.
 //
+// We also make this method entirely inlined so the user can specify a special
+// weighting function for determining the effective mass.  This is useful for
+// curvilinear coordinates.
+//
 // Created by JMO, Sat Aug 10 23:03:39 PDT 2013
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_NonSymmetricSpecificThermalEnergyPolicy_hh__
@@ -15,6 +19,7 @@
 #include "DataBase/IncrementFieldList.hh"
 
 #include <string>
+#include <functional>
 
 namespace Spheral {
 
@@ -36,7 +41,8 @@ public:
   typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
-  NonSymmetricSpecificThermalEnergyPolicy(const DataBase<Dimension>& db);
+  NonSymmetricSpecificThermalEnergyPolicy(const DataBase<Dimension>& db,
+                                          std::function<Scalar(const Scalar&, const Vector&)> effectiveMass = [](const Scalar& mi, const Vector& posi) { return mi; });
   virtual ~NonSymmetricSpecificThermalEnergyPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -69,12 +75,15 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   const DataBase<Dimension>* mDataBasePtr;
+  const std::function<Scalar(const Scalar&, const Vector&)> mEffectiveMassFunc;
 
   NonSymmetricSpecificThermalEnergyPolicy(const NonSymmetricSpecificThermalEnergyPolicy& rhs);
   NonSymmetricSpecificThermalEnergyPolicy& operator=(const NonSymmetricSpecificThermalEnergyPolicy& rhs);
 };
 
 }
+
+#include "Hydro/NonSymmetricSpecificThermalEnergyPolicyInline.hh"
 
 #else
 

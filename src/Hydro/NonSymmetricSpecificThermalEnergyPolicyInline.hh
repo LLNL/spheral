@@ -42,9 +42,11 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 NonSymmetricSpecificThermalEnergyPolicy<Dimension>::
-NonSymmetricSpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
+NonSymmetricSpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase,
+                                        std::function<Scalar(const Scalar&, const Vector&)> mfunc):
   IncrementFieldList<Dimension, typename Dimension::Scalar>(),
-  mDataBasePtr(&dataBase) {
+  mDataBasePtr(&dataBase),
+  mEffectiveMassFunc(mfunc) {
 }
 
 //------------------------------------------------------------------------------
@@ -80,6 +82,7 @@ update(const KeyType& key,
   const auto numFields = eps.numFields();
 
   // Get the state fields.
+  const auto  pos = state.fields(HydroFieldNames::position, Vector::zero);
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
@@ -120,14 +123,14 @@ update(const KeyType& key,
       const auto nodeListj = pairs[kk].j_list;
 
       // State for node i.
-      const auto  mi = mass(nodeListi, i);
+      const auto  mi = mEffectiveMassFunc(mass(nodeListi, i), pos(nodeListi, i));
       const auto& vi = velocity(nodeListi, i);
       const auto& ai = acceleration(nodeListi, i);
       const auto  vi12 = vi + ai*hdt;
       const auto& pacci = pairAccelerations[2*kk];
 
       // State for node j.
-      const auto  mj = mass(nodeListj, j);
+      const auto  mj = mEffectiveMassFunc(mass(nodeListj, j), pos(nodeListj, j));
       const auto& vj = velocity(nodeListj, j);
       const auto& aj = acceleration(nodeListj, j);
       const auto  vj12 = vj + aj*hdt;

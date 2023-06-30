@@ -2,7 +2,6 @@ include_directories(.)
 set(Hydro_inst
     EntropyPolicy
     CompatibleDifferenceSpecificThermalEnergyPolicy
-    NonSymmetricSpecificThermalEnergyPolicy
     PositionPolicy
     PressurePolicy
     SoundSpeedPolicy
