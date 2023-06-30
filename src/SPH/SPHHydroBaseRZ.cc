@@ -28,7 +28,7 @@
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
-#include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
@@ -238,7 +238,9 @@ registerState(DataBase<Dim<2>>& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    state.enroll(specificThermalEnergy, std::make_shared<RZNonSymmetricSpecificThermalEnergyPolicy>(dataBase));
+    auto thermalEnergyPolicy = make_shared<NonSymmetricSpecificThermalEnergyPolicy<Dim<2>>>(dataBase,
+                                                                                            [](const Scalar& mi, const Vector& posi) { return mi/std::abs(posi.y()); });
+    state.enroll(specificThermalEnergy, thermalEnergyPolicy);
 
     // Get the policy for the position, and add the specific energy as a dependency.
     auto positionPolicy = state.policy(state.buildFieldKey(HydroFieldNames::position, UpdatePolicyBase<Dimension>::wildcard()));

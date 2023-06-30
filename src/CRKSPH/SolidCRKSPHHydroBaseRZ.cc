@@ -14,7 +14,7 @@
 #include "Physics/GenericHydro.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
+#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Strength/BulkModulusPolicy.hh"
@@ -52,6 +52,7 @@ using std::vector;
 using std::string;
 using std::pair;
 using std::make_pair;
+using std::make_shared;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -206,7 +207,8 @@ registerState(DataBase<Dim<2>>& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new RZNonSymmetricSpecificThermalEnergyPolicy(dataBase));
+    auto thermalEnergyPolicy = make_shared<NonSymmetricSpecificThermalEnergyPolicy<Dim<2>>>(dataBase,
+                                                                                            [](const Scalar& mi, const Vector& posi) { return mi/std::abs(posi.y()); });
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
 
     // Get the policy for the position, and add the specific energy as a dependency.

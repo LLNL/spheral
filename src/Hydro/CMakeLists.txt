@@ -20,10 +20,6 @@ set(Hydro_sources
     HydroFieldNames.cc
     )
 
-if (ENABLE_2D)
-  list(APPEND Hydro_sources RZNonSymmetricSpecificThermalEnergyPolicy.cc)
-endif()
-
 if (ENABLE_1D AND ENABLE_2D)
   list(APPEND Hydro_sources SphericalPositionPolicy.cc)
 endif()
@@ -42,7 +38,6 @@ set(Hydro_headers
     NonSymmetricSpecificThermalEnergyPolicy.hh
     PositionPolicy.hh
     PressurePolicy.hh
-    RZNonSymmetricSpecificThermalEnergyPolicy.hh
     SecondMomentHourglassControl.hh
     SecondMomentHourglassControlInline.hh
     SoundSpeedPolicy.hh
