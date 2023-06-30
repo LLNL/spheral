@@ -6,17 +6,17 @@
 #
 # Ordinary SPH
 #
-#ATS:t0 = test(      SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (serial, SPH)")
-#ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (serial, SPH) RESTART CHECK")
-#ATS:t2 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh RZ problem (parallel, SPH)")
-#ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar RZ Noh problem -- (parallel, SPH) RESTART CHECK")
+#ATS:t0 = test(      SELF, np=1, level=100, clas="--graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (serial, SPH)")
+#ATS:t1 = testif(t0, SELF, np=1, level=100, clas="--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (serial, SPH) RESTART CHECK")
+#ATS:t2 = test(      SELF, np=2, level=100, clas="--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", label="Planar Noh RZ problem (parallel, SPH)")
+#ATS:t3 = testif(t2, SELF, np=2, level=100, clas="--graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem -- (parallel, SPH) RESTART CHECK")
 #
 # CRKSPH
 #
-#ATS:t10 = test(      SELF, "--crksph True --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (serial, CRK)")
-#ATS:t11 = testif(t10, SELF, "--crksph True --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (serial, CRK) RESTART CHECK")
-#ATS:t12 = test(      SELF, "--crksph True --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-crk-restartcheck' --restartStep 20", np=2, label="Planar Noh RZ problem (parallel, CRK)")
-#ATS:t13 = testif(t12, SELF, "--crksph True --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-crk-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar RZ Noh problem -- (parallel, CRK) RESTART CHECK")
+#ATS:t10 = test(       SELF, np=1, level=100, clas="--crksph True --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (serial, CRK)")
+#ATS:t11 = testif(t10, SELF, np=1, level=100, clas="--crksph True --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (serial, CRK) RESTART CHECK")
+#ATS:t12 = test(       SELF, np=2, level=100, clas="--crksph True --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-crk-restartcheck' --restartStep 20", label="Planar Noh RZ problem (parallel, CRK)")
+#ATS:t13 = testif(t12, SELF, np=2, level=100, clas="--crksph True --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-crk-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem -- (parallel, CRK) RESTART CHECK")
 
 import os, sys, shutil, mpi
 from SpheralRZ import *
