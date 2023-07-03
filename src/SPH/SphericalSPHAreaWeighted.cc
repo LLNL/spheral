@@ -32,7 +32,6 @@
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
 #include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
-#include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Hydro/EntropyPolicy.hh"
@@ -184,10 +183,10 @@ registerState(DataBase<Dim<1>>& dataBase,
   // The base class does most of it.
   SPHHydroBase<Dim<1>>::registerState(dataBase, state);
 
-  // // Re-regsiter the position update to prevent things going through the origin
-  // auto position = dataBase.fluidPosition();
-  // auto positionPolicy = make_shared<SphericalPositionPolicy>();
-  // state.enroll(position, positionPolicy);
+  // Re-register the position update to prevent things going through the origin
+  auto position = dataBase.fluidPosition();
+  auto positionPolicy = make_shared<SphericalPositionPolicy>();
+  state.enroll(position, positionPolicy);
 
   // Are we using the compatible energy evolution scheme?
   // If so we need to override the ordinary energy registration with a specialized version.
@@ -264,7 +263,6 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   const auto& W = this->kernel();
   const auto& WQ = this->PiKernel();
   const auto  oneKernel = (W == WQ);
-  const auto  etamax = W.kernelExtent();
 
   // A few useful constants we'll use in the following loop.
   const auto tiny = 1.0e-30;
@@ -342,7 +340,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   const auto  npairs = pairs.size();
 
   // Size up the pair-wise accelerations before we start.
-  if (mCompatibleEnergyEvolution) pairAccelerations.resize(2*npairs);
+  const auto nnodes = dataBase.numFluidInternalNodes();
+  if (mCompatibleEnergyEvolution) pairAccelerations.resize(2u*npairs + nnodes);
 
   // // Assume all NodeLists have the same nPerh;
   // const auto& nodeList = mass[0]->nodeList();
@@ -575,6 +574,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
 
   // Finish up the derivatives for each point.
+  size_t offset = 2u*npairs;
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto  hmin = nodeList.hmin();
@@ -657,19 +657,17 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       DrhoDti = -rhoi*(DvDxi.Trace() + 2.0*vri*riInv);
 
       // Extra hoop terms for the artificial viscosity
-      Scalar Qi = 0.0;
-      if (vri < 0.0) {
-        // const auto riInv = safeInvVar(ri, 0.01*hri);
-        const auto mu = std::max(0.0, -vri*riInv);
-        VERIFY2(mu >= 0.0, mu << " : " << vri << " " << riInv << " " << retai << " : " << vri*riInv << " " << (1.0 - retai/etamax));
-        Qi = mQself*rhoi*hri*mu*(hri*mu + ci) * std::max(0.0,  W(retai, 1.0)/W0);
-        VERIFY(Qi >= 0.0);
-        maxViscousPressurei = std::max(maxViscousPressurei, Qi);
-        DvDti[0] += Qi/rhoi*riInv;
-      }
+      const auto mu = std::max(0.0, -vri*riInv);
+      CHECK(mu >= 0.0);
+      const auto Qi = mQself*rhoi*hri*mu*(hri*mu + ci) * std::max(0.0,  W(retai, 1.0)/W0);
+      VERIFY(Qi >= 0.0);
+      maxViscousPressurei = std::max(maxViscousPressurei, Qi);
+      const auto deltaDvDti = Qi/rhoi*riInv;
+      DvDti[0] += deltaDvDti;
+      if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
 
       // Finish the specific thermal energy evolution.
-      DepsDti -= Pi/rhoi*2.0*vri*riInv;
+      DepsDti -= (Pi + Qi)/rhoi*2.0*vri*riInv;
 
       // If needed finish the total energy derivative.
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);

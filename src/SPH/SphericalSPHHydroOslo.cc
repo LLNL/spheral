@@ -140,7 +140,7 @@ registerState(DataBase<Dim<1>>& dataBase,
   // The base class does most of it.
   SPHHydroBase<Dim<1>>::registerState(dataBase, state);
 
-  // Re-regsiter the position update to prevent things going through the origin
+  // Re-register the position update to prevent things going through the origin
   auto position = dataBase.fluidPosition();
   auto positionPolicy = make_shared<SphericalPositionPolicy>();
   state.enroll(position, positionPolicy);
