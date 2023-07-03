@@ -120,7 +120,7 @@ SphericalSPHAreaWeighted(const SmoothingScaleBase<Dim<1>>& smoothingScaleMethod,
                        nTensile,
                        xmin,
                        xmax),
-  mQself(2.0) {
+  mQself(0.0) {
 }
 
 //------------------------------------------------------------------------------
@@ -128,6 +128,49 @@ SphericalSPHAreaWeighted(const SmoothingScaleBase<Dim<1>>& smoothingScaleMethod,
 //------------------------------------------------------------------------------
 SphericalSPHAreaWeighted::
 ~SphericalSPHAreaWeighted() {
+}
+
+//------------------------------------------------------------------------------
+// Determine the timestep requirements for a hydro step.
+//------------------------------------------------------------------------------
+typename SphericalSPHAreaWeighted::TimeStepType
+SphericalSPHAreaWeighted::
+dt(const DataBase<Dim<1>>& dataBase,
+   const State<Dim<1>>& state,
+   const StateDerivatives<Dim<1>>& derivs,
+   Dim<1>::Scalar currentTime) const {
+
+  // Base timestep choice
+  auto result = GenericHydro<Dim<1>>::dt(dataBase, state, derivs, currentTime);
+
+  // Now enforce a constraint that no point can cross the axis in a single timestep
+  const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto vel = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto numNodeLists = pos.numFields();
+  CHECK(vel.numFields() == numNodeLists);
+  for (auto k = 0u; k < numNodeLists; ++k) {
+    const auto& fluidNodeList = **(dataBase.fluidNodeListBegin() + k);
+    const auto  n = pos[k]->numInternalElements();
+    const auto  rank = Process::getRank();
+    for (auto i = 0u; i < n; ++i) {
+      const auto& posi = pos(k,i);
+      const auto& veli = vel(k,i);
+      const auto  ri = std::abs(posi.x());
+      const auto  vri = -std::min(0.0, veli.x());
+      const auto  dti = 0.5*ri*safeInvVar(vri);
+      if (dti < result.first) {
+        result = std::make_pair(dti,
+                                ("Axis crossing limit: dt = " + std::to_string(dti) + "\n" +
+                                 "                     ri = " + std::to_string(ri) + "\n" +
+                                 "                    vri = " + std::to_string(veli.x()) + "\n" +
+                                 "               material = " + fluidNodeList.name() + "\n" +
+                                 "  (nodeListID, i, rank) = (" + std::to_string(k) + " " + std::to_string(i) + " " + std::to_string(rank) + ")\n" +
+                                 "             @ position = " + std::to_string(posi.x())));
+      }
+    }
+  }
+
+  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -340,13 +383,11 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // Get the state for node i.
       const auto& posi = position(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
-      const auto  ri = std::abs(posi.x()); // effectiveRadius(nodeListi, i);
-      const auto  zetai = abs((Hi*posi).x());
-      // const auto  hri = abs(posi.x())*safeInv(zetai);
-      // const auto  ri = abs(posi.x()); // reff(posi.x(), hri, nPerh);
-      const auto  areai = ri*ri;
+      const auto  ri = std::abs(posi.x());
+      const auto  retai = abs((Hi*posi).x());
+      // const auto  hri = abs(posi.x())*safeInvVar(retai);
       const auto  mi = mass(nodeListi, i);
-      const auto  mRi = mi/areai;
+      const auto  mRi = mi*FastMath::square(safeInvVar(ri));
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& Pi = pressure(nodeListi, i);
@@ -356,7 +397,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       const auto  safeOmegai = safeInv(omegai, tiny);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
-      CHECK(zetai > 0.0);
+      CHECK(retai > 0.0);
       // CHECK(hri > 0.0);
       CHECK(ri > 0.0);
 
@@ -379,13 +420,11 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // Get the state for node j
       const auto& posj = position(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
-      const auto  rj = std::abs(posj.x()); // effectiveRadius(nodeListj, j);
-      const auto  zetaj = abs((Hj*posj).x());
-      // const auto  hrj = abs(posj.x())*safeInv(zetaj);
-      // const auto  rj = abs(posj.x()); // reff(posj.x(), hrj, nPerh);
-      const auto  areaj = rj*rj;
+      const auto  rj = std::abs(posj.x());
+      const auto  retaj = abs((Hj*posj).x());
+      // const auto  hrj = abs(posj.x())*safeInvVar(retaj);
       const auto  mj = mass(nodeListj, j);
-      const auto  mRj = mj/areaj;
+      const auto  mRj = mj*FastMath::square(safeInvVar(rj));
       const auto& vj = velocity(nodeListj, j);
       const auto& rhoj = massDensity(nodeListj, j);
       const auto& Pj = pressure(nodeListj, j);
@@ -395,7 +434,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       const auto  safeOmegaj = safeInv(omegaj, tiny);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
-      CHECK(zetaj > 0.0);
+      CHECK(retaj > 0.0);
       // CHECK(hrj > 0.0);
       CHECK(rj > 0.0);
 
@@ -511,7 +550,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Estimate of delta v (for XSPH).
-      if (sameMatij or min(zetai, zetaj) < 1.0) {
+      if (sameMatij or min(retai, retaj) < 1.0) {
         const auto wXSPHij = 0.5*(mRi/rhoi*Wi + mRj/rhoj*Wj);
         XSPHWeightSumi += wXSPHij;
         XSPHWeightSumj += wXSPHij;
@@ -549,24 +588,23 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
       // Get the state for node i.
       const auto& posi = position(nodeListi, i);
-      const auto  ri = std::abs(posi.x()); // effectiveRadius(nodeListi, i);
+      const auto  ri = std::abs(posi.x());
       const auto& Hi = H(nodeListi, i);
-      const auto  zetai = abs((Hi*posi).x());
-      const auto  hri = abs(posi.x())*safeInv(zetai);
-      // const auto  ri = reff(posi.x(), hri, nPerh);
-      const auto  areai = ri*ri;
+      const auto  retai = abs((Hi*posi).x());
+      const auto  hri = abs(posi.x())*safeInvVar(retai);
       const auto  mi = mass(nodeListi, i);
-      const auto  mRi = mi/areai;
+      const auto  areaInvi = FastMath::square(safeInvVar(ri));
+      const auto  mRi = mi*areaInvi;
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& Pi = pressure(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
-      const auto  riInv = safeInv(ri, 0.01*hri);
+      const auto  riInv = safeInvVar(ri);
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
-      CHECK(zetai > 0.0);
+      CHECK(retai > 0.0);
       CHECK(hri > 0.0);
 
       auto& rhoSumi = rhoSum(nodeListi, i);
@@ -589,7 +627,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
       // Add the self-contribution to density sum.
       rhoSumi += mRi*W0*Hdeti;
-      rhoSumi /= areai;
+      rhoSumi *= areaInvi;
       normi += mRi/rhoi*W0*Hdeti;
 
       // Finish the gradient of the velocity.
@@ -618,17 +656,17 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       const auto vri = vi.x(); // + XSPHDeltaVi.x();
       DrhoDti = -rhoi*(DvDxi.Trace() + 2.0*vri*riInv);
 
-      // // Extra hoop terms for the artificial viscosity
-      // Scalar Qi = 0.0;
-      // if (vi.y() < 0.0) {
-      //   const auto riInv2 = safeInvVar(ri, 0.01*hri);
-      //   const auto mu = -std::min(0.0, vi.y()*riInv2); // * (1.0 - zetai/etamax);
-      //   VERIFY(mu >= 0.0);
-      //   Qi = mQself*rhoi*hri*mu*(hri*mu + ci);
-      //   VERIFY(Qi >= 0.0);
-      //   maxViscousPressurei = std::max(maxViscousPressurei, Qi);
-      //   DvDti[1] += Qi/rhoi*riInv2;
-      // }
+      // Extra hoop terms for the artificial viscosity
+      Scalar Qi = 0.0;
+      if (vri < 0.0) {
+        // const auto riInv = safeInvVar(ri, 0.01*hri);
+        const auto mu = std::max(0.0, -vri*riInv);
+        VERIFY2(mu >= 0.0, mu << " : " << vri << " " << riInv << " " << retai << " : " << vri*riInv << " " << (1.0 - retai/etamax));
+        Qi = mQself*rhoi*hri*mu*(hri*mu + ci) * std::max(0.0,  W(retai, 1.0)/W0);
+        VERIFY(Qi >= 0.0);
+        maxViscousPressurei = std::max(maxViscousPressurei, Qi);
+        DvDti[0] += Qi/rhoi*riInv;
+      }
 
       // Finish the specific thermal energy evolution.
       DepsDti -= Pi/rhoi*2.0*vri*riInv;

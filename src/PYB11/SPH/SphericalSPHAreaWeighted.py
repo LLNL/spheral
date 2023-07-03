@@ -43,14 +43,14 @@ class SphericalSPHAreaWeighted(SPHHydroBase):
 
     #...........................................................................
     # Virtual methods
-    # @PYB11virtual
-    # @PYB11const
-    # def dt(dataBase = "const DataBase<%(Dimension)s>&", 
-    #        state = "const State<%(Dimension)s>&",
-    #        derivs = "const StateDerivatives<%(Dimension)s>&",
-    #        currentTime = "const Scalar"):
-    #     "Vote on a time step."
-    #     return "TimeStepType"
+    @PYB11virtual
+    @PYB11const
+    def dt(dataBase = "const DataBase<%(Dimension)s>&", 
+           state = "const State<%(Dimension)s>&",
+           derivs = "const StateDerivatives<%(Dimension)s>&",
+           currentTime = "const Scalar"):
+        "Vote on a time step."
+        return "TimeStepType"
 
     @PYB11virtual 
     def registerState(dataBase = "DataBase<%(Dimension)s>&",
