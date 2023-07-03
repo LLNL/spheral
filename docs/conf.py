@@ -26,9 +26,9 @@ copyright = u'2012, LLNS'
 author = u'J. Michael Owen'
 
 # The short X.Y version
-version = u'2022.06.0'
+version = u'2023.03.2'
 # The full version, including alpha/beta/rc tags
-release = u'2022.06.0'
+release = u'2023.03.2'
 
 
 # -- General configuration ---------------------------------------------------
