@@ -76,7 +76,7 @@ CubicHermiteInterpolator::operator()(const double x) const {
 inline
 double
 CubicHermiteInterpolator::operator()(const double x,
-                                       const size_t i0) const {
+                                     const size_t i0) const {
   REQUIRE(i0 <= mN - 2u);
   const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
   const auto t2 = t*t;
