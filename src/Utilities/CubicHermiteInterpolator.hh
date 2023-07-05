@@ -19,15 +19,15 @@ public:
   // Constructors, destructors
   template<typename Func>
   CubicHermiteInterpolator(const double xmin,
-                             const double xmax,
-                             const size_t n,
-                             const Func& F);
+                           const double xmax,
+                           const size_t n,
+                           const Func& F);
   template<typename Func, typename GradFunc>
   CubicHermiteInterpolator(const double xmin,
-                             const double xmax,
-                             const size_t n,
-                             const Func& F,
-                             const GradFunc& Fgrad);
+                           const double xmax,
+                           const size_t n,
+                           const Func& F,
+                           const GradFunc& Fgrad);
   CubicHermiteInterpolator();
   ~CubicHermiteInterpolator();
 
