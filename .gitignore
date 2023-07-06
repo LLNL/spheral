@@ -42,6 +42,7 @@ spack-build*
 rz*
 rz*
 toss_3*.cmake
+toss_4*.cmake
 blueos_3*.cmake
 
 
