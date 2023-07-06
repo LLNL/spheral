@@ -105,7 +105,7 @@ commandLine(NodeListConstructor = SphNodeList1d,
 
 # nx must be odd!
 if nx/2 != (nx-1)/2:
-   raise ValueError, 'nx must be odd!'
+   raise ValueError('nx must be odd!')
 
 # Boundaries of the simulation
 xmin = -0.5*L
@@ -194,7 +194,7 @@ nodes.specificThermalEnergy(ScalarField1d("tmp", nodes, u0))
 # Set node positions and velocities.
 k = 2*pi/(xmax-xmin)
 A = -5*(1+zc)/(2*k)
-for nodeID in xrange(nodes.numNodes):
+for nodeID in range(nodes.numNodes):
     q = nodes.positions()[nodeID].x
     nodes.positions()[nodeID] += Vector1d(0.4*a1*A*sin(k*q))
     nodes.velocity()[nodeID] += Vector1d(0.4*a1dot*A*sin(k*q))
@@ -308,7 +308,7 @@ dumpPhysicsState(integrator, dumpName, visitDir)
 #-------------------------------------------------------------------------------
 # Advance.
 #-------------------------------------------------------------------------------
-print 'Running from t = %g to %g'%(t1, t2)
+print('Running from t = %g to %g'%(t1, t2))
 control.advance(t2, maxSteps)
 dumpPhysicsState(integrator, dumpName, visitDir)
 psi = gravity.potential()[0]

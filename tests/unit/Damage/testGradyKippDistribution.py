@@ -71,7 +71,7 @@ def accumulateP(nodes, damageP):
     fcum = fP[-1]
     flaws.append(0.0)
     fcum.append(0.0)
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         epsmini, epsmaxi, Vi, nFlawsi = damageP.minFlaw[i], damageP.maxFlaw[i], damageP.initialVolume[i], damageP.numFlaws[i]
         jmin = bisect.bisect_left(flaws, epsmini)
         flaws.insert(jmin, epsmini)
@@ -81,11 +81,11 @@ def accumulateP(nodes, damageP):
         fcum.insert(jmax, fcum[jmax - 1])
         assert flaws[jmin] == epsmini
         assert flaws[jmax] == epsmaxi
-        for k in xrange(jmin, jmax):
+        for k in range(jmin, jmax):
             dN = Vi*kWeibull*(flaws[k]**mWeibull - epsmini**mWeibull) + 1.0
             fcum[k] += dN
         dN = Vi*kWeibull*(epsmaxi**mWeibull - epsmini**mWeibull) + 1.0
-        for k in xrange(jmax, len(fcum)):
+        for k in range(jmax, len(fcum)):
             fcum[k] += dN
     flaws = flaws[1:]
     fcum = fcum[1:]
@@ -101,12 +101,12 @@ if mpi.procs > 1:
 else:
     from DistributeNodes import distributeNodes2d
 
-for test in xrange(ntests):
+for test in range(ntests):
     nx = (test + 1)*nx0
     ny = (test + 1)*ny0
     nodes.numInternalNodes = 0
 
-    print "Generating node distribution."
+    print("Generating node distribution.")
     generator = GenerateNodeDistribution2d(nx,
                                            ny,
                                            rho0,
@@ -122,7 +122,7 @@ for test in xrange(ntests):
     m = nodes.mass()
     rho = nodes.massDensity()
     mask1 = IntField("mask1", nodes, 1)
-    print "Area sum: ", mpi.allreduce(sum([m[i]/rho[i] for i in xrange(nodes.numInternalNodes)]), mpi.SUM)
+    print("Area sum: ", mpi.allreduce(sum([m[i]/rho[i] for i in range(nodes.numInternalNodes)]), mpi.SUM))
 
     # Construct the flaws.
     localFlawsBA = weibullFlawDistributionBenzAsphaug(volume,
@@ -146,11 +146,11 @@ for test in xrange(ntests):
     for (localFlaws, energies, f) in [(localFlawsBA, energiesBA, fBA),
                                       (localFlawsO, energiesO, fO)]:
         flaws = []
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             flaws.extend(localFlaws[i])
         flaws.sort()
         energies.append(flaws)
-        f.append(range(len(flaws)))
+        f.append(list(range(len(flaws))))
 
     # Also the ProbabilisticDamageModel
     pdamage = ProbabilisticDamageModel(nodeList = nodes,
@@ -174,7 +174,7 @@ for test in xrange(ntests):
     ny2 = 2*ny1
     nodes.numInternalNodes = 0
 
-    print "Generating node distribution."
+    print("Generating node distribution.")
     generator1 = GenerateNodeDistribution2d(nx1,
                                             ny1,
                                             rho0,
@@ -198,7 +198,7 @@ for test in xrange(ntests):
     m = nodes.mass()
     rho = nodes.massDensity()
     mask2 = IntField("mask2", nodes, 1)
-    print "Area sum: ", mpi.allreduce(sum([m[i]/rho[i] for i in xrange(nodes.numInternalNodes)]), mpi.SUM)
+    print("Area sum: ", mpi.allreduce(sum([m[i]/rho[i] for i in range(nodes.numInternalNodes)]), mpi.SUM))
 
     # Collect the distribution function of flaws (BAO)
     localFlawsO = weibullFlawDistributionOwen(randomSeed,
@@ -210,11 +210,11 @@ for test in xrange(ntests):
                                               mask2)
     for (localFlaws, energies, f) in [(localFlawsO, energiesO, fO)]:
         flaws = []
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             flaws.extend(localFlaws[i])
         flaws.sort()
         energies.append(flaws)
-        f.append(range(len(flaws)))
+        f.append(list(range(len(flaws))))
 
     # Also the ProbabilisticDamageModel
     pdamage = ProbabilisticDamageModel(nodeList = nodes,
@@ -244,7 +244,7 @@ fig3 = plt.figure(3)
 plt.figure(1)
 plt.xscale("log")
 plt.yscale("log")
-for i in xrange(ntests):
+for i in range(ntests):
     plt.plot(energiesBA[i], fBA[i], "-", linewidth=2*(ntests - i) + 3, label=("N = %i" % ((i + 1)**2*nx0*ny0)))
 
 # Plot the expectation.
@@ -262,7 +262,7 @@ plt.ylabel(r"$n(\varepsilon^f < \varepsilon)$")
 plt.figure(2)
 plt.xscale("log")
 plt.yscale("log")
-for i in xrange(2*ntests):
+for i in range(2*ntests):
     if i % 2 == 1:
         nx1 = (i/2 + 1)*nx0/2
         ny1 = (i/2 + 1)*ny0
@@ -290,7 +290,7 @@ plt.ylabel(r"$n(\varepsilon^f < \varepsilon)$")
 plt.figure(3)
 plt.xscale("log")
 plt.yscale("log")
-for i in xrange(2*ntests):
+for i in range(2*ntests):
     if i % 2 == 1:
         nx1 = (i/2 + 1)*nx0/2
         ny1 = (i/2 + 1)*ny0

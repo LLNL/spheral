@@ -127,7 +127,7 @@ nodes1.massDensity(ScalarField("tmp", nodes1, rho1))
 # Optionally randomly jitter the node positions.
 #-------------------------------------------------------------------------------
 dx = (x1 - x0)/nx1
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     nodes1.positions()[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
 
 #-------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ if iterateH:
 # Initialize our field.
 #-------------------------------------------------------------------------------
 f = ScalarField("test field", nodes1)
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     x = nodes1.positions()[i].x
     if testCase == "constant":
         f[i] = y0
@@ -205,7 +205,7 @@ cm = db.connectivityMap()
 #-------------------------------------------------------------------------------
 G = ScalarField("test field FD linear gradient", nodes1)
 if linearConsistent:
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         ri = positions[i]
         zi = mesh.zone(i)
         normi = 0.0
@@ -228,7 +228,7 @@ if linearConsistent:
 #-------------------------------------------------------------------------------
 # Measure the interpolated values and gradients.
 #-------------------------------------------------------------------------------
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     ri = positions[i]
     Hi = H[i]
     Hdeti = H[i].Determinant()
@@ -282,7 +282,7 @@ for i in xrange(nodes1.numInternalNodes):
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
-xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
+xans = [positions[i].x for i in range(nodes1.numInternalNodes)]
 yans = [func(x) for x in xans]
 dyans = [dfunc(x) for x in xans]
 
@@ -305,8 +305,8 @@ errdySVPH = [y - z for y, z in zip(dySVPH, dyans)]
 maxdySPHerror = max([abs(x) for x in errdySPH])
 maxdySVPHerror = max([abs(x) for x in errdySVPH])
 
-print "Maximum errors (interpolation): SPH = %g, SVPH = %g" % (maxySPHerror, maxySVPHerror)
-print "Maximum errors   (derivatives): SPH = %g, SVPH = %g" % (maxdySPHerror, maxdySVPHerror)
+print("Maximum errors (interpolation): SPH = %g, SVPH = %g" % (maxySPHerror, maxySVPHerror))
+print("Maximum errors   (derivatives): SPH = %g, SVPH = %g" % (maxdySPHerror, maxdySVPHerror))
 
 #-------------------------------------------------------------------------------
 # Plot the things.
@@ -390,7 +390,7 @@ if graphics:
 if plotKernels:
     import Gnuplot
     pk = generateNewGnuPlot()
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         xi = positions[i].x
         Hi = H[i]
         Hdeti = Hi.Determinant()
@@ -399,7 +399,7 @@ if plotKernels:
         Bi = B[i]
 
         dx = 2.0*kernelExtent*hi/50
-        x = [xi - kernelExtent*hi + (i + 0.5)*dx for i in xrange(50)]
+        x = [xi - kernelExtent*hi + (i + 0.5)*dx for i in range(50)]
         y = [Ai*(1.0 + Bi.x*(xi - xj))*WT.kernelValue(abs(xi - xj)/hi, Hdeti) for xj in x]
         d = Gnuplot.Data(x, y, with_="lines", inline=True)
         pk.replot(d)
@@ -408,7 +408,7 @@ if plotKernels:
 # Check the maximum SVPH error and fail the test if it's out of bounds.
 #-------------------------------------------------------------------------------
 if maxySVPHerror > interpolationTolerance:
-    raise ValueError, "SVPH interpolation error out of bounds: %g > %g" % (maxySVPHerror, interpolationTolerance)
+    raise ValueError("SVPH interpolation error out of bounds: %g > %g" % (maxySVPHerror, interpolationTolerance))
 
 if maxdySVPHerror > derivativeTolerance:
-    raise ValueError, "SVPH derivative error out of bounds: %g > %g" % (maxdySVPHerror, derivativeTolerance)
+    raise ValueError("SVPH derivative error out of bounds: %g > %g" % (maxdySVPHerror, derivativeTolerance))

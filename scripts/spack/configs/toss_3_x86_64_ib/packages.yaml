@@ -129,6 +129,21 @@ packages:
     - spec: elfutils@0.176
       prefix: /usr
     buildable: false
+  tcl:
+     externals:
+     - spec: tcl@8.5.19
+       prefix: /usr
+     buildable: false
+  tk:
+     externals:
+     - spec: tk@8.5.19
+       prefix: /usr
+     buildable: false
+  fontconfig:
+    externals:
+    - spec: fontconfig@2.13.1
+      prefix: /usr
+    buildable: false
 
 #---- Extension Dependencies
 
@@ -137,8 +152,3 @@ packages:
     - spec: hwloc@5.7.5
       prefix: /usr
     buildable: false
-  netlib-lapack:
-    buildable: false
-    externals:
-    - spec: netlib-lapack@3.9.0
-      prefix: /usr/gapps/bdiv/toss_3_x86_64_ib/clang-10-mvapich2-2.3/lapack/3.9.0

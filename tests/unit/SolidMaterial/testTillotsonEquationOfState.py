@@ -140,16 +140,16 @@ class TestTillotsonEquationOfState(unittest.TestCase):
         etai = self.eos.boundedEta(rhoi)
         mui = etai - 1.0
         if mui >= 0.0:
-            print "Region 1"
+            print("Region 1")
             return self.P1(rhoi, epsi, etai, mui)
         elif epsi <= self.epsLiquid:
-            print "Region 2"
+            print("Region 2")
             return self.P2(rhoi, epsi, etai, mui)
         elif epsi <= self.epsVapor:
-            print "Region 3"
+            print("Region 3")
             return self.P3(rhoi, epsi, etai, mui)
         else:
-            print "Region 4"
+            print("Region 4")
             return self.P4(rhoi, epsi, etai, mui)
 
     #===========================================================================
@@ -231,9 +231,9 @@ class TestTillotsonEquationOfState(unittest.TestCase):
         rhof = ScalarField("rho", self.nodes)
         epsf = ScalarField("eps", self.nodes)
         Pf = ScalarField("pressure", self.nodes)
-        for irho in xrange(self.nsample):
+        for irho in range(self.nsample):
             rhof[0] = self.rho(irho)
-            for ieps in xrange(self.nsample):
+            for ieps in range(self.nsample):
                 epsf[0] = self.eps(ieps)
                 self.eos.setPressure(Pf, rhof, epsf)
                 Pi = Pf[0]
@@ -242,7 +242,7 @@ class TestTillotsonEquationOfState(unittest.TestCase):
                 mu = eta - 1.0
                 phi = self.eos.computePhi(eta, epsf[0])
                 P2 = self.eos.computeP2(phi, mu, rhof[0], epsf[0])
-                self.failUnless(fuzzyEqual(Pi, P0, self.Ptol),
+                self.assertTrue(fuzzyEqual(Pi, P0, self.Ptol),
                                 "Pressure do not match:  P(%g, %g) = %g != %g\n P1=(%g,%g) P2=(%g,%g), P4=(%g,%g)\n eta=%g mu=%g phi=%g" % 
                                 (rhof[0], epsf[0], Pi, P0,
                                  self.eos.computeP1(mu, P2), self.P1(rhof[0], epsf[0], eta, mu),
@@ -261,7 +261,7 @@ class TestTillotsonEquationOfState(unittest.TestCase):
     #             epsi = self.eps(ieps)
     #             dPdrhoi = self.eos.computeDPDrho(rhoi, epsi)
     #             dPdrho0 = self.dPdrhoans(rhoi, epsi)
-    #             self.failUnless(fuzzyEqual(dPdrhoi, dPdrho0, self.Ptol),
+    #             self.assertTrue(fuzzyEqual(dPdrhoi, dPdrho0, self.Ptol),
     #                             "dP/drho does not match:  dP/drho(%g, %g) = %g != %g" % (rhoi, epsi, dPdrhoi, dPdrho0))
     #     return
 

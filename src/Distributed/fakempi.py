@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # A fake version of the pyMPI mpi module for use in serial runs.
 #-------------------------------------------------------------------------------
-print "Invoking fake mpi module."
+print("Invoking fake mpi module.")
 rank = 0
 procs = 1
 MIN = -1

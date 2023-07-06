@@ -30,10 +30,10 @@ def newtonRaphson(functor,
 
     #- Make sure the root is bracketed by the input range.
     if distinctlyGreaterThan(xminValues.first * xmaxValues.first, 0.0, yaccuracy):
-        raise RuntimeError, "newtonRaphson ERROR: root must be bracketed by input range: (%g %g) (%g %g) " % (xminValues.first,
+        raise RuntimeError("newtonRaphson ERROR: root must be bracketed by input range: (%g %g) (%g %g) " % (xminValues.first,
                                                                                                               xminValues.second,
                                                                                                               xmaxValues.first,
-                                                                                                              xmaxValues.second)
+                                                                                                              xmaxValues.second))
 
 
     #- Initialize the searching parameters.

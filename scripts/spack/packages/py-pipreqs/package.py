@@ -14,6 +14,7 @@ class PyPipreqs(PythonPackage):
 
     #maintainers = ['mdavis36','jmikeowen']
 
-    version('0.4.10', sha256='9e351d644b28b98d7386b046a73806cbb3bb66b23a30e74feeb95ed9571db939')
+    version('0.4.11', sha256='c793b4e147ac437871b3a962c5ce467e129c859ece5ba79aca83c20f4d9c3aef')
 
-    extends('python@2.7:2.8', type=['build', 'run'])
+    extends('python@3:', type=['build', 'run'])
+    depends_on("py-setuptools", type="build")

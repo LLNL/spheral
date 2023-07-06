@@ -1,7 +1,7 @@
 # Initialize commonly used paths during TPL installs
 set(CACHE_DIR ${CMAKE_BINARY_DIR}/tpl/cache)
 set(PATCH_DIR ${SPHERAL_ROOT_DIR}/src/tpl/patch)
-set(TPL_CMAKE_DIR ${CMAKE_MODULE_PATH}/tpl)
+set(TPL_CMAKE_DIR ${SPHERAL_ROOT_DIR}/cmake/tpl)
 
 # Verboseness of TPL builds
 if (TPL_VERBOSE)
@@ -22,8 +22,6 @@ else()
   get_filename_component(DEFAULT_TPL_LOCATION ${SPHERAL_TPL_DIR} ABSOLUTE)
 endif()
 message("Default TPL location : ${DEFAULT_TPL_LOCATION}\n")
-
-
 
 #----------------------------------------------------------------------------------------
 #                                   Spheral_Handle_TPL
@@ -73,24 +71,37 @@ function(Spheral_Handle_TPL lib_name dep_list target_type)
 
   # Generate full path to lib file for output list
   set(${lib_name}_LIBRARIES )
-  foreach(lib ${${lib_name}_libs})
-    find_file(temp_abs_path
-      NAME ${lib}
-      PATHS ${${lib_name}_DIR}
-      PATH_SUFFIXES lib lib64
-      NO_CACHE
-      NO_DEFAULT_PATH
-      )
+  foreach(libpath ${${lib_name}_libs})
+    if(IS_ABSOLUTE ${libpath})
+      get_filename_component(lib ${libpath} NAME)
+      set(temp_abs_path ${libpath})
+    else()
+      set(lib ${libpath})
+      find_file(temp_abs_path
+        NAME ${lib}
+        PATHS ${${lib_name}_DIR}
+        PATH_SUFFIXES lib lib64
+        NO_CACHE
+        NO_DEFAULT_PATH
+        )
+    endif()
     # set(temp_abs_path "${${lib_name}_DIR}/lib/${lib}")
     list(APPEND ${lib_name}_LIBRARIES $<BUILD_INTERFACE:${temp_abs_path}>)
 
     # Check all necessary files exist during config time when not installing TPL
     if (NOT EXISTS ${temp_abs_path})
-      message(FATAL_ERROR "Cannot find ${lib} in ${${lib_name}_DIR} for TPL ${lib_name}.")
+      message(FATAL_ERROR "Cannot find ${lib} in ${${lib_name}_DIR} for TPL ${lib_name}.  Full path: ${tmp_abs_path}")
     else()
       message("Found: ${temp_abs_path}")
     endif()
-    unset(temp_abs_path CACHE) # Remove this line when using cmake 3.21+, same as find_file(NO_CACHE)
+
+    # find_file treats output as a standard variable from 3.21+ We get different behavior on later CMake versions.
+    if(${CMAKE_VERSION} VERSION_LESS "3.21.0")
+      unset(temp_abs_path CACHE)
+    else()
+      unset(temp_abs_path)
+    endif()
+
   endforeach()
 
   # Register any libs/includes under a blt dir for later use/depends

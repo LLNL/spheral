@@ -61,11 +61,11 @@ n = 50
 rhoMin, rhoMax = 0.9*etaMinGranite*rho0Granite, 1.1*etaMaxGranite*rho0Granite
 #rhoMin, rhoMax = rho0Granite, 1.1*etaMaxGranite*rho0Granite
 drho = (rhoMax - rhoMin)/n
-rho = [rhoMin + i*drho for i in xrange(n + 1)]
+rho = [rhoMin + i*drho for i in range(n + 1)]
 
 epsMin, epsMax = 0.0, 1.1*eosGranite.epsVapor
 deps = (epsMax - epsMin)/n
-eps = [epsMin + i*deps for i in xrange(n + 1)]
+eps = [epsMin + i*deps for i in range(n + 1)]
 
 # Write the (rho, eps, P, cs) set to a file.
 f = open("Granite_TillotsonEOS.txt", "w")

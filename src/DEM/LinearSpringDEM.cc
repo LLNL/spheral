@@ -1,7 +1,7 @@
 
 //---------------------------------Spheral++----------------------------------//
 // DEM -- damped linear spring contact model based on pkdgrav immplementation
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 // Schwartz, S.R. and Richards, D.C. "An implementation of the soft-sphere 
 // discrete element method in a high-performance parallel gravity tree-code,"
 // Granular Matter, (2012) 14:363–380, 10.1007/s10035-012-0346-z.
@@ -10,6 +10,7 @@
 // Shear and Cohesive Strengths," The Astrophysical Journal, (2018) 857:15, 20
 // 10.3847/1538-4357/aab5b2.
 //
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 
@@ -23,11 +24,14 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Hydro/HydroFieldNames.hh"
 
+#include "Boundary/Boundary.hh"
+
 #include "DEM/ReplaceAndIncrementPairFieldList.hh"
 #include "DEM/DEMFieldNames.hh"
 #include "DEM/DEMDimension.hh"
 #include "DEM/LinearSpringDEM.hh"
 #include "DEM/ContactStorageLocation.hh"
+#include "DEM/SolidBoundary/SolidBoundaryBase.hh"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -38,6 +42,7 @@
 #include <cmath>
 #include <limits>
 
+using std::string;
 using std::make_pair;
 using std::to_string;
 
@@ -87,7 +92,9 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
   mCohesiveTensileStrength(cohesiveTensileStrength),
   mShapeFactor(shapeFactor),
   mNormalBeta(M_PI/std::log(std::max(normalRestitutionCoefficient,1.0e-3))),
-  mTangentialBeta(M_PI/std::log(std::max(tangentialRestitutionCoefficient,1.0e-3))) { // everything but the mass
+  mTangentialBeta(M_PI/std::log(std::max(tangentialRestitutionCoefficient,1.0e-3))),
+  mMomentOfInertia(FieldStorageType::CopyFields) { 
+    mMomentOfInertia = dataBase.newDEMFieldList(0.0, DEMFieldNames::momentOfInertia);
 }
 
 //------------------------------------------------------------------------------
@@ -113,72 +120,142 @@ dt(const DataBase<Dimension>& dataBase,
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  r = state.fields(DEMFieldNames::particleRadius, 0.0);
-  const auto& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity(),
-                                                         this->requireOverlapConnectivity(),
-                                                         this->requireIntersectionConnectivity());
-  const auto& pairs = connectivityMap.nodePairList();
+  //const auto& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity(),
+  //                                                       this->requireOverlapConnectivity(),
+  //                                                       this->requireIntersectionConnectivity());
+  
+
+  const auto& contacts = this->contactStorageIndices();
+  const unsigned int numP2PContacts = this->numParticleParticleContacts();
+  const unsigned int numTotContacts = this->numContacts();
+
+  // vec of ptrs to our solid boundary conditions
+  const auto& solidBoundaries = this->solidBoundaryConditions();
+
+  // buffer distance used to set the max allowable timestep
+  const auto bufferDistance = dataBase.maxNeighborSearchBuffer();
 
   // Compute the spring timestep constraint (except for the mass)
   const auto nsteps = this->stepsPerCollision();
-  CHECK(nsteps > 0);
   const auto dtSpring0 = M_PI*std::sqrt(0.5/mNormalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)))/nsteps;
+
+  CHECK(nsteps > 0);
 
   // Check each pair to see how much they are closing.
   auto dtMin = std::numeric_limits<Scalar>::max();
   TimeStepType result(dtMin, "DEM error, this message should not get to the end");
-  for (const auto& pair: pairs) {
+
+  // start with the particle to particle contacts
+  for (auto kk = 0u; kk < numP2PContacts; ++kk) {
+
+    const auto nodeListi = contacts[kk].storeNodeList;
+    const auto nodeListj = contacts[kk].pairNodeList;
+    const auto  i = contacts[kk].storeNode;
+    const auto  j = contacts[kk].pairNode;
 
     // node i
-    const auto  mi = mass(pair.i_list, pair.i_node);
-    const auto& xi = position(pair.i_list, pair.i_node);
-    const auto& vi = velocity(pair.i_list, pair.i_node);
-    const auto  ri = r(pair.i_list, pair.i_node);
+    const auto  mi = mass(nodeListi, i);
+    const auto& ri = position(nodeListi, i);
+    const auto& vi = velocity(nodeListi, i);
+    const auto  Ri = r(nodeListi, i);
 
     // node j
-    const auto  mj = mass(pair.j_list, pair.j_node);
-    const auto& xj = position(pair.j_list, pair.j_node);
-    const auto& vj = velocity(pair.j_list, pair.j_node);
-    const auto  rj = r(pair.j_list, pair.j_node);
+    const auto  mj = mass(nodeListj, j);
+    const auto& rj = position(nodeListj, j);
+    const auto& vj = velocity(nodeListj, j);
+    const auto  Rj = r(nodeListj, j);
     
     // Spring constant timestep for this pair
-    const auto dtSpringij = dtSpring0*std::sqrt(std::min(mi, mj));
 
     // Compare closing speed to separation
-    const auto xji = xj - xi;
+    const auto rji = rj - ri;
     const auto vji = vj - vi;
-    const auto hatji = xji.unitVector();
-    const auto closing_speed = -min(0.0, vji.dot(hatji));
-    const auto overlap = max(0.0, 1.0 - (xi - xj).magnitude()/(ri + rj));
-    if (closing_speed > 0.0 or
-        overlap > 0.0) {
-      const auto dtji = (overlap > 0.0 ?
-                         dtSpringij :
-                         max(dtSpringij, 0.5*(xji.magnitude() - ri - rj)*safeInvVar(closing_speed)));
+    const auto rhatji = rji.unitVector();
+    const auto rmagji = rji.magnitude();
+    const auto closing_speed = -min(0.0, vji.dot(rhatji));
+    const auto overlap = (Ri + Rj) - rmagji;
+
+    if (closing_speed > 0.0 or overlap > 0.0) {
+      const auto dtSpringkk = dtSpring0*std::sqrt(std::min(mi, mj));
+      const auto dtji = ( overlap > 0.0 ?
+                          dtSpringkk :
+                          max(dtSpringkk, -0.5*overlap*safeInvVar(closing_speed)));
       if (dtji < dtMin) {
         dtMin = dtji;
         result = make_pair(dtji,
-                           (dtji > dtSpringij ?
+                           (dtji > dtSpringkk ?
                             std::string("DEM pairwise closing rate:\n") :
                             std::string("DEM spring constraint:\n")) +
-                           "  (listi, i, rank) = (" + to_string(pair.i_list) + " " + to_string(pair.i_node) + " " + to_string(Process::getRank()) + ")\n" +
-                           "  (listj, j, rank) = (" + to_string(pair.j_list) + " " + to_string(pair.j_node) + " " + to_string(Process::getRank()) + ")\n" +
-                           "        position_i = " + vec_to_string(xi) + "\n" +
+                           "  (listi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                           "  (listj, j, rank) = (" + to_string(nodeListj) + " " + to_string(j) + " " + to_string(Process::getRank()) + ")\n" +
+                           "        position_i = " + vec_to_string(ri) + "\n" +
                            "        velocity_i = " + vec_to_string(vi) +"\n" +
-                           "          radius_i = " + to_string(ri) + "\n" +
-                           "        position_j = " + vec_to_string(xj) + "\n" +
+                           "          radius_i = " + to_string(Ri) + "\n" +
+                           "        position_j = " + vec_to_string(rj) + "\n" +
                            "        velocity_j = " + vec_to_string(vj) + "\n" +
-                           "          radius_j = " + to_string(rj) + "\n" +
-                           "         spring_dt = " + to_string(dtSpringij) + "\n");
+                           "          radius_j = " + to_string(Rj) + "\n" +
+                           "         spring_dt = " + to_string(dtSpringkk) + "\n");
       }
     }
   }
 
-  // Ensure no point moves more than its own radius in a step
+  // particle to boundary contacts
+  for (auto kk = numP2PContacts; kk < numTotContacts; ++kk) {
+
+    const auto nodeListi = contacts[kk].storeNodeList;
+    const auto i = contacts[kk].storeNode;
+    const auto bci = contacts[kk].solidBoundary;
+
+    // node i
+    const auto  mi = mass(nodeListi, i);
+    const auto& ri = position(nodeListi, i);
+    const auto& vi = velocity(nodeListi, i);
+    const auto  Ri = r(nodeListi, i);
+
+    //solid boundary and distance vector to particle i
+    const auto& solidBoundary = solidBoundaries[bci];
+    const auto rib = solidBoundary->distance(ri);
+    const auto vb = solidBoundary->velocity(ri);
+
+    // Compare closing speed to separation
+    const auto vib = vi-vb;
+    const auto rhatib = rib.unitVector();
+    const auto rmagib = rib.magnitude();
+
+    const auto closing_speed = -min(0.0, vib.dot(rhatib));
+    const auto overlap =  Ri - rmagib;
+    
+    if (closing_speed > 0.0 or overlap > 0.0) {
+
+      const auto dtSpringkk = dtSpring0*std::sqrt(mi);
+      // Spring constant timestep for this pair
+      const auto dtji = (overlap > 0.0 ?
+                         dtSpringkk:
+                         max(dtSpringkk, -0.5*overlap*safeInvVar(closing_speed)));
+      if (dtji < dtMin) {
+        dtMin = dtji;
+        result = make_pair(dtji,
+                           (dtji > dtSpringkk ?
+                            std::string("DEM pairwise closing rate:\n") :
+                            std::string("DEM spring constraint:\n")) +
+                           "  (listi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
+                           "        position_i = " + vec_to_string(ri) + "\n" +
+                           "        velocity_i = " + vec_to_string(vi) +"\n" +
+                           "          radius_i = " + to_string(Ri) + "\n" +
+                           "    distance to bc = " + vec_to_string(rib) + "\n" +
+                           "    velocity of bc = " + vec_to_string(vb) + "\n" +
+                           "         spring_dt = " + to_string(dtSpringkk) + "\n");
+      }
+    }
+  }
+
+
+  // Ensure no point moves further than the buffer distance in one timestep
   const auto numNodeLists = position.size();
   for (auto k = 0u; k < numNodeLists; ++k) {
     const auto n = position[k]->size();
     for (auto i = 0u; i < n; ++i) {
-      const auto dti = 0.5*r(k,i)*safeInvVar(velocity(k,i).magnitude());
+      const auto dti = 0.5* bufferDistance *r(k,i)*safeInvVar(velocity(k,i).magnitude());
       if (dti < dtMin) {
         dtMin = dti;
         result = make_pair(dti,
@@ -194,8 +271,32 @@ dt(const DataBase<Dimension>& dataBase,
   return result;
 }
 
+
 //------------------------------------------------------------------------------
-// get our acceleration and other things
+// method that fires once on startup
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+initializeProblemStartup(DataBase<Dimension>& dataBase){
+  DEMBase<Dimension>::initializeProblemStartup(dataBase);
+  this->setMomentOfInertia();
+}
+
+//------------------------------------------------------------------------------
+// Register the state we need/are going to evolve.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+registerState(DataBase<Dimension>& dataBase,
+              State<Dimension>& state) {
+  DEMBase<Dimension>::registerState(dataBase,state);
+  dataBase.resizeDEMFieldList(mMomentOfInertia, 0.0, DEMFieldNames::momentOfInertia, false);
+  state.enroll(mMomentOfInertia);
+}
+//------------------------------------------------------------------------------
+// evaluate the derivatives
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -234,19 +335,23 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto tangentialDampingTerms = 4.0/5.0*ks/(1.0+mTangentialBeta*mTangentialBeta);
  
   // The connectivity.
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto& nodeLists = connectivityMap.nodeLists();
+  const auto& nodeLists = dataBase.DEMNodeListPtrs();
   const auto  numNodeLists = nodeLists.size();
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
   
+  // contact contacts for different types
+  const unsigned int numP2PContacts = this->numParticleParticleContacts();
+  //const unsigned int numP2BContacts = this->numParticleBoundaryContacts();
+  const unsigned int numTotContacts = this->numContacts();
+
   // Get the state FieldLists.
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto momentOfInertia = state.fields(DEMFieldNames::momentOfInertia, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto omega = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   const auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
   const auto uniqueIndices = state.fields(DEMFieldNames::uniqueIndices, (int)0);
+  const auto compositeIndex = state.fields(DEMFieldNames::compositeParticleIndex, (int)0);
   
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -254,6 +359,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(radius.size() == numNodeLists);
   CHECK(omega.size() == numNodeLists);
   CHECK(uniqueIndices.size() == numNodeLists);
+  CHECK(compositeIndex.size() == numNodeLists);
 
   // Get the state pairFieldLists.
   const auto equilibriumOverlap = state.fields(DEMFieldNames::equilibriumOverlap, std::vector<Scalar>());
@@ -295,72 +401,44 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // storage locations in our pairwise FieldLists
   const auto& contacts = this->contactStorageIndices();
 
+  // vec of ptrs to our solid boundary conditions
+  const auto& solidBoundaries = this->solidBoundaryConditions();
+
 #pragma omp parallel
   {
     // Thread private scratch variables
-    int i, j, nodeListi, nodeListj;
+    int i, j, nodeListi, nodeListj, contacti,bci;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
     auto DomegaDt_thread = DomegaDt.threadCopy(threadStack);
 
+    //------------------------------------
+    // particle-particle contacts
+    //------------------------------------
 #pragma omp for
-    for (auto kk = 0u; kk < npairs; ++kk) {
-
-      i = pairs[kk].i_node;
-      j = pairs[kk].j_node;
-      nodeListi = pairs[kk].i_list;
-      nodeListj = pairs[kk].j_list;
+    for (auto kk = 0u; kk < numP2PContacts; ++kk) {
       
-      const int storeNodeList = contacts[kk].storeNodeList;
-      const int storeNode = contacts[kk].storeNode;
-      const int storeContact = contacts[kk].storeContact;
-      const int pairNodeList = contacts[kk].pairNodeList;
-      const int pairNode = contacts[kk].pairNode;
+      CHECK(contacts[kk].storeNodeList >= 0)
+      CHECK(contacts[kk].storeNode >= 0)
+      CHECK(contacts[kk].pairNodeList >= 0)
+      CHECK(contacts[kk].pairNode >= 0)
+      CHECK(contacts[kk].solidBoundary == -1)
 
-      // simple test for our store/pair selection
-      const bool orientationOne = (storeNodeList==nodeListi and storeNode==i and pairNodeList==nodeListj and pairNode==j);
-      const bool orientationTwo = (storeNodeList==nodeListj and storeNode==j and pairNodeList==nodeListi and pairNode==i);
-      if(not(orientationOne or orientationTwo)) throw std::invalid_argument("AddPositiveIntegers arguments must be positive");
+      nodeListi = contacts[kk].storeNodeList;
+      nodeListj = contacts[kk].pairNodeList;
+      i = contacts[kk].storeNode;
+      j = contacts[kk].pairNode;
+      contacti = contacts[kk].storeContact;
 
-      
-      // storage sign, this makes pairwise values i-j independent
-      const auto uIdi = uniqueIndices(nodeListi,i);
-      const auto uIds = uniqueIndices(storeNodeList,storeNode);
-      const auto uIdp = uniqueIndices(pairNodeList,pairNode);
-      const int storageSign = (uIdi == std::min(uIds,uIdp) ? 1 : -1);
-
-      // stored pair-wise values
-      const auto overlapij = equilibriumOverlap(storeNodeList,storeNode)[storeContact];
-      const auto deltaSlidij = storageSign*shearDisplacement(storeNodeList,storeNode)[storeContact];
-      const auto deltaRollij =             rollingDisplacement(storeNodeList,storeNode)[storeContact];
-      const auto deltaTorsij =             torsionalDisplacement(storeNodeList,storeNode)[storeContact];
-
-      // Get the state for node i.
+      // Get the state vars for node i needed for prox check
       const auto& ri = position(nodeListi, i);
-      const auto& mi = mass(nodeListi, i);
-      const auto& vi = velocity(nodeListi, i);
-      const auto& omegai = omega(nodeListi, i);
-      const auto& Ri = radius(nodeListi, i);
-
-      // Get the state for node j
-      const auto& rj = position(nodeListj, j);
-      const auto& mj = mass(nodeListj, j);
-      const auto& vj = velocity(nodeListj, j);
-      const auto& omegaj = omega(nodeListj, j);
-      const auto& Rj = radius(nodeListj, j);
-
-      // Get the derivs from node i
-      auto& DvDti = DvDt_thread(nodeListi, i);
-      auto& DomegaDti = DomegaDt_thread(nodeListi, i);
-
-      // Get the derivs from node j
-      auto& DvDtj = DvDt_thread(nodeListj, j);
-      auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
-
-      CHECK(mi > 0.0);
-      CHECK(mj > 0.0);
+      const auto  Ri = radius(nodeListi, i);
       CHECK(Ri > 0.0);
+
+      // Get the state vars for node j needed for prox check
+      const auto& rj = position(nodeListj, j);
+      const auto  Rj = radius(nodeListj, j);
       CHECK(Rj > 0.0);
 
       // are we overlapping ? 
@@ -371,6 +449,46 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       
       // if so do the things
       if (delta0 > 0.0){
+
+        // get remaining state for node i
+        const auto  cIdi = compositeIndex(nodeListi,i);
+        const auto  uIdi = uniqueIndices(nodeListi,i);
+        const auto& vi = velocity(nodeListi, i);
+        const auto& omegai = omega(nodeListi, i);
+        const auto  mi = mass(nodeListi, i);
+        const auto  Ii = momentOfInertia(nodeListi,i);
+        CHECK(mi > 0.0);
+        CHECK(Ii > 0.0);
+
+        // get remaining state for node j
+        const auto  cIdj = compositeIndex(nodeListj,j);
+        const auto  uIdj = uniqueIndices(nodeListj,j);
+        const auto& vj = velocity(nodeListj, j);
+        const auto& omegaj = omega(nodeListj, j);
+        const auto  mj = mass(nodeListj, j);
+        const auto  Ij = momentOfInertia(nodeListj,j);
+        CHECK(mj > 0.0);
+        CHECK(Ij > 0.0);
+
+        // Get the derivs from node i
+        auto& DvDti = DvDt_thread(nodeListi, i);
+        auto& DomegaDti = DomegaDt_thread(nodeListi, i);
+
+        // Get the derivs from node j
+        auto& DvDtj = DvDt_thread(nodeListj, j);
+        auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
+
+        // storage sign, this makes pairwise values i-j independent
+        const int storageSign = (uIdi <= uIdj ? 1 : -1);
+
+        // stored pair-wise values
+        const auto  overlapij   = equilibriumOverlap(nodeListi,i)[contacti];
+        const auto& deltaSlidij = shearDisplacement(nodeListi,i)[contacti]*storageSign;
+        const auto& deltaRollij = rollingDisplacement(nodeListi,i)[contacti];
+        const auto  deltaTorsij = torsionalDisplacement(nodeListi,i)[contacti];
+
+        // boolean checks
+        const auto isBondedParticle = (cIdi == cIdj);
 
         // effective delta
         const auto delta = delta0 - overlapij;
@@ -420,7 +538,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
               Vector ft = ft0spring + ft0damp;
 
         // static friction limit
-        if  (ft.magnitude() > muS*fnMag){
+        if  (!isBondedParticle and (ft.magnitude() > muS*fnMag)){
 
           const Scalar ftDynamic = muD*fnMag;
           ft = ftDynamic*ft.unitVector();
@@ -443,7 +561,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const Scalar MtStatic = muT*shapeFactor*muS*fnMag;
 
         // limit to static
-        if  (std::abs(MtorsionMag) > MtStatic){
+        if  (!isBondedParticle and (std::abs(MtorsionMag) > MtStatic)){
          MtorsionMag =  (MtorsionMag > 0.0 ? 1.0 : -1.0)*MtStatic;
          newDeltaTorsij = (std::abs(Mt0damp) > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
         }
@@ -460,7 +578,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const Scalar MrStatic = muR*shapeFactor*fnMag;
 
         // limit to static
-        if  (effectiveRollingForce.magnitude() > MrStatic){
+        if  (!isBondedParticle and (effectiveRollingForce.magnitude() > MrStatic)){
          effectiveRollingForce =  MrStatic*effectiveRollingForce.unitVector();
          newDeltaRollij = (Mr0damp.magnitude() > MrStatic ?
                            Vector::zero :  
@@ -478,40 +596,296 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto Msliding = -DEMDimension<Dimension>::cross(rhatij,fij);
         const auto Mrolling = -DEMDimension<Dimension>::cross(rhatij,effectiveRollingForce);
         const auto Mtorsion = MtorsionMag * this->torsionMoment(rhatij,omegai,omegaj); // rename torsionDirection
-        DomegaDti += Msliding*li - (Mtorsion + Mrolling) * lij;
-        DomegaDtj += Msliding*lj + (Mtorsion + Mrolling) * lij;
+        DomegaDti += (Msliding*li - (Mtorsion + Mrolling) * lij)/Ii;
+        DomegaDtj += (Msliding*lj + (Mtorsion + Mrolling) * lij)/Ij;
 
         // for spring updates
-        newShearDisplacement(storeNodeList,storeNode)[storeContact] = storageSign*newDeltaSlidij;
-        DDtShearDisplacement(storeNodeList,storeNode)[storeContact] = storageSign*vs;
-        newTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaTorsij;
-        DDtTorsionalDisplacement(storeNodeList,storeNode)[storeContact] = vt;
-        newRollingDisplacement(storeNodeList,storeNode)[storeContact] = newDeltaRollij;
-        DDtRollingDisplacement(storeNodeList,storeNode)[storeContact] = vr;
+        newShearDisplacement(nodeListi,i)[contacti] = storageSign*newDeltaSlidij;
+        DDtShearDisplacement(nodeListi,i)[contacti] = storageSign*vs;
+        newTorsionalDisplacement(nodeListi,i)[contacti] = newDeltaTorsij;
+        DDtTorsionalDisplacement(nodeListi,i)[contacti] = vt;
+        newRollingDisplacement(nodeListi,i)[contacti] = newDeltaRollij;
+        DDtRollingDisplacement(nodeListi,i)[contacti] = vr;
     
-      }  
-    } // loop over pairs
-    threadReduceFieldLists<Dimension>(threadStack);
-  }   // OpenMP parallel region
+      } // if contacing
+    }   // loop over pairs
 
-  
+
+    //?????????????????????????????????????????????????????????????????//
+    //------------------------------------
+    // Loop the particle-boundary contacts
+    //------------------------------------
+    //?????????????????????????????????????????????????????????????????//
+    #pragma omp for
+    for (auto kk = numP2PContacts; kk < numTotContacts; ++kk) {
+    
+      CHECK(contacts[kk].storeNodeList >= 0)
+      CHECK(contacts[kk].storeNode >= 0)
+      CHECK(contacts[kk].pairNodeList == -1)
+      CHECK(contacts[kk].pairNode == -1)
+      CHECK(contacts[kk].solidBoundary >= 0)
+
+      nodeListi = contacts[kk].storeNodeList;
+      i = contacts[kk].storeNode;
+      contacti = contacts[kk].storeContact;
+      bci = contacts[kk].solidBoundary;
+
+      //Get the state vars for node i needed for prox check
+      const auto& ri = position(nodeListi, i);
+      const auto& Ri = radius(nodeListi, i);
+      CHECK(Ri > 0.0);
+
+      //solid boundary and distance vector to particle i
+      const auto& solidBoundary = solidBoundaries[bci];
+      const auto rib = solidBoundary->distance(ri);
+
+      //effective delta
+      const auto delta = Ri-rib.magnitude();
+
+      // are overlapping?
+      if (delta > 0.0){
+
+        // get remaining state for node i
+        const auto& vi = velocity(nodeListi, i);
+        const auto& omegai = omega(nodeListi, i);
+        const auto& mi = mass(nodeListi, i);
+        const auto& Ii = momentOfInertia(nodeListi, i);
+        CHECK(Ii > 0.0);
+        CHECK(mi > 0.0);
+
+        // Get the derivs from node i
+        auto& DvDti = DvDt_thread(nodeListi, i);
+        auto& DomegaDti = DomegaDt_thread(nodeListi, i);
+
+        // get pairwise variables
+        const auto& deltaSlidib = shearDisplacement(nodeListi,i)[contacti];
+        const auto& deltaRollib = rollingDisplacement(nodeListi,i)[contacti];
+        const auto  deltaTorsib = torsionalDisplacement(nodeListi,i)[contacti];
+
+        // velocity of boundary @ ri
+        const auto vb = solidBoundary->velocity(ri);
+
+        // line of action for the contact
+        const auto rhatib = rib.unitVector();
+
+        // lever arm 
+        const auto li = rib.magnitude();
+
+        // effective quantities
+        const auto mib = 2*mi;
+        const auto lib = 2*li;
+
+        // damping constants -- ct and cr derived quantities ala Zhang 2017
+        //----------------------------To-Do-----------------------------------
+        // oh man okay, solid bc's were overdamping. The 0.5 factor got the
+        // coeff of restitution right (i guess i missed a factor of 2 somewhere)
+        // need to go back and do the math later.
+        //--------------------------------------------------------------------
+        const auto Cn = std::sqrt(mib*normalDampingTerms);
+        const auto Cs = std::sqrt(mib*tangentialDampingTerms);
+        const auto Ct = 0.50 * Cs * shapeFactor2;
+        const auto Cr = 0.25 * Cn * shapeFactor2;
+
+        // velocities
+        const Vector vroti = -DEMDimension<Dimension>::cross(omegai,rhatib);
+
+        const Vector vib = vi-vb + li*vroti;
+
+        const Scalar vn = vib.dot(rhatib);                                  // normal velocity
+        const Vector vs = vib - vn*rhatib;                                  // sliding velocity
+        const Vector vr = -li*vroti;                                        // rolling velocity
+        const Scalar vt = -lib*DEMDimension<Dimension>::dot(omegai,rhatib); // torsion velocity
+
+        // normal forces 
+        //------------------------------------------------------------
+        const Vector fn = (kn*delta - Cn*vn)*rhatib;        // normal spring
+        const Vector fc = Cc*shapeFactor2*lib*lib*rhatib;     // normal cohesion
+        const Scalar fnMag = fn.magnitude();                // magnitude of normal spring force
+
+        // sliding
+        //------------------------------------------------------------
+        // project onto new tangential plane -- maintain magnitude
+        Vector newDeltaSlidib = (deltaSlidib - rhatib.dot(deltaSlidib)*rhatib).unitVector()*deltaSlidib.magnitude();
+        
+        // spring dashpot
+        const Vector ft0spring = - ks*newDeltaSlidib;
+        const Vector ft0damp = - Cs*vs;
+              Vector ft = ft0spring + ft0damp;
+
+        // static friction limit
+        if (ft.magnitude() > muS*fnMag){
+
+          const Scalar ftDynamic = muD*fnMag;
+          ft = ftDynamic*ft.unitVector();
+
+          newDeltaSlidib = ( ft0damp.magnitude() > ftDynamic ? 
+                                Vector::zero : 
+                               -(ft-ft0damp)*invKs );
+
+        }
+
+        // torsion
+        //------------------------------------------------------------
+        // since we use a scalar no need to modify here
+        auto newDeltaTorsib = deltaTorsib;
+        
+        // spring dashpot
+        const Scalar Mt0spring = - kt*newDeltaTorsib;
+        const Scalar Mt0damp = - Ct*vt;
+              Scalar MtorsionMag = (Mt0spring + Mt0damp); 
+        const Scalar MtStatic = muT*shapeFactor*muS*fnMag;
+
+        // limit to static
+        if (std::abs(MtorsionMag) > MtStatic){
+         MtorsionMag =  (MtorsionMag > 0.0 ? 1.0 : -1.0)*MtStatic;
+         newDeltaTorsib = (std::abs(Mt0damp) > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
+        }
+
+        // rolling
+        //------------------------------------------------------------
+        // project onto new tangential plane -- maintain magnitude
+        Vector newDeltaRollib = (deltaRollib - rhatib.dot(deltaRollib)*rhatib).unitVector()*deltaRollib.magnitude();
+    
+        // spring dashpot
+        const Vector Mr0spring = - kr*newDeltaRollib;
+        const Vector Mr0damp = - Cr*vr;
+              Vector effectiveRollingForce = (Mr0spring + Mr0damp); 
+        const Scalar MrStatic = muR*shapeFactor*fnMag;
+
+        // limit to static
+        if (effectiveRollingForce.magnitude() > MrStatic){
+         effectiveRollingForce =  MrStatic*effectiveRollingForce.unitVector();
+         newDeltaRollib = (Mr0damp.magnitude() > MrStatic ?
+                           Vector::zero :  
+                           -(effectiveRollingForce-Mr0damp)*invKr);
+        }
+
+        // accelerations
+        //------------------------------------------------------------
+        // Rectilinear Acceleration 
+        const Vector fib = fn - fc + ft;
+        DvDti += fib/mi;
+
+        // angular acceleration
+        const auto Msliding = -DEMDimension<Dimension>::cross(rhatib,fib);
+        const auto Mrolling = -DEMDimension<Dimension>::cross(rhatib,effectiveRollingForce);
+        const auto Mtorsion = MtorsionMag * this->torsionMoment(rhatib,omegai,0*omegai); // rename torsionDirection
+        DomegaDti += (Msliding*li - (Mtorsion + Mrolling) * lib)/Ii;
+
+        // for spring updates
+        newShearDisplacement(nodeListi,i)[contacti] = newDeltaSlidib;
+        DDtShearDisplacement(nodeListi,i)[contacti] = vs;
+        newTorsionalDisplacement(nodeListi,i)[contacti] = newDeltaTorsib;
+        DDtTorsionalDisplacement(nodeListi,i)[contacti] = vt;
+        newRollingDisplacement(nodeListi,i)[contacti] = newDeltaRollib;
+        DDtRollingDisplacement(nodeListi,i)[contacti] = vr;
+
+     } // if statement
+   }   // loop pairs
+  threadReduceFieldLists<Dimension>(threadStack);
+  }    // omp parfor
+
+  // finish with loop over nodelists
+  //-----------------------------------------------------------
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& nodeList = mass[nodeListi]->nodeList();
+    const auto& nodeList = nodeLists[nodeListi];
+    const auto ni = nodeList->numInternalNodes();
+#pragma omp parallel for
+    for (auto i = 0u; i < ni; ++i) {
+        const auto veli = velocity(nodeListi,i);
+        DxDt(nodeListi,i) = veli;
+    }   // loop nodes
+  }     // loop nodelists
+}       // method
 
-    const auto ni = nodeList.numInternalNodes();
+
+//------------------------------------------------------------------------------
+// method that fires once on startup
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+setMomentOfInertia() {
+
+  const auto& db = this->dataBase();
+  const auto  mass   = db.DEMMass();
+  const auto  radius = db.DEMParticleRadius();
+  const auto  numNodeLists = db.numNodeLists();
+  const auto& nodeLists = db.DEMNodeListPtrs();
+
+  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+    const auto& nodeList = nodeLists[nodeListi];
+    const auto ni = nodeList->numInternalNodes();
+
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
         const auto mi = mass(nodeListi,i);
         const auto Ri = radius(nodeListi,i);
-        const auto veli = velocity(nodeListi,i);
-        const auto Ii = this->momentOfInertia(mi,Ri);
+        mMomentOfInertia(nodeListi,i) = this->momentOfInertia(mi,Ri); 
 
-        DxDt(nodeListi,i) = veli;
-        DomegaDt(nodeListi,i) /= Ii;
-    }
+    }   // loop nodes
+  }     // loop nodelists
+}       // method
+
+
+
+//------------------------------------------------------------------------------
+// Apply the ghost boundary conditions for linear dem state fields.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+applyGhostBoundaries(State<Dimension>& state,
+                     StateDerivatives<Dimension>& derivs) {
+  DEMBase<Dimension>::applyGhostBoundaries(state,derivs);
+  auto I = state.fields(DEMFieldNames::momentOfInertia,0.0);
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->applyFieldListGhostBoundary(I);
   }
-
 }
 
+//------------------------------------------------------------------------------
+// Enforce the boundary conditions for linear dem state fields.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+enforceBoundaries(State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+
+  DEMBase<Dimension>::enforceBoundaries(state,derivs);
+
+  auto I = state.fields(DEMFieldNames::momentOfInertia,0.0);
+
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->enforceFieldListBoundary(I);
+  }
 }
+
+//------------------------------------------------------------------------------
+// Dump the current state to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+dumpState(FileIO& file, const string& pathName) const {
+  DEMBase<Dimension>::dumpState(file,pathName);
+  file.write(mMomentOfInertia, pathName + "/momentOfInertia");
+}
+
+//------------------------------------------------------------------------------
+// Restore the state from the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+restoreState(const FileIO& file, const string& pathName) {
+  DEMBase<Dimension>::restoreState(file,pathName);
+  file.read(mMomentOfInertia, pathName + "/momentOfInertia");
+}
+} // namespace
 

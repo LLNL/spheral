@@ -1,1 +1,1 @@
-print "|  %-76s|" % "Spheral version             : @spheralversion@"
+print("|  %-76s|" % "Spheral version             : @spheralversion@")

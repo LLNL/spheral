@@ -25,7 +25,7 @@ public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
-
+  typedef typename Dimension::SymTensor SymTensor;
   // Constructors.
   DEMNodeList(std::string name,
                 const int numInternal,
@@ -34,6 +34,7 @@ public:
                 const Scalar hmax,
                 const Scalar hminratio,
                 const Scalar nPerh,
+                const Scalar neighborSearchBuffer,
                 const int maxNumNeighbors);
 
   // Destructor
@@ -47,6 +48,15 @@ public:
   const Field<Dimension, int>& compositeParticleIndex() const;
   void compositeParticleIndex(const Field<Dimension, int>& compositeParticleIndex);
 
+  Field<Dimension, int>& uniqueIndex();
+  const Field<Dimension, int>& uniqueIndex() const;
+  void uniqueIndex(const Field<Dimension, int>& uniqueIndex);
+
+  Scalar neighborSearchBuffer() const;
+  void   neighborSearchBuffer(Scalar x);
+
+  void setHfieldFromParticleRadius(const int startUniqueIndex);
+
   //****************************************************************************
   // Methods required for restarting.
   // Dump and restore the NodeList state.
@@ -58,8 +68,10 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
 #ifndef __GCCXML__
+  Scalar mNeighborSearchBuffer;
   Field<Dimension, Scalar> mParticleRadius;
   Field<Dimension, int> mCompositeParticleIndex;
+  Field<Dimension, int> mUniqueIndex;
 #endif
 
   // No default constructor or copying.

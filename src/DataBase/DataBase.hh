@@ -264,7 +264,12 @@ public:
   FieldList<Dimension, SymTensor> DEMHfield() const;
   FieldList<Dimension, Scalar> DEMParticleRadius() const;
   FieldList<Dimension, int> DEMCompositeParticleIndex() const;
-  
+  FieldList<Dimension, int> DEMUniqueIndex() const;
+
+  void setDEMHfieldFromParticleRadius(const int startUniqueIndex);
+  void setDEMUniqueIndices();
+  Scalar maxNeighborSearchBuffer() const;
+
   // We can also return the node extent Fields stored in the Neighbor objects.
   FieldList<Dimension, Vector> globalNodeExtent() const;
   FieldList<Dimension, Vector> fluidNodeExtent() const;

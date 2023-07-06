@@ -496,7 +496,7 @@ del n
 # Set node properties (positions, velocites, etc.)
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    print "Generating node distribution."
+    print("Generating node distribution.")
     from GenerateNodeDistribution2d import *
     from CompositeNodeDistribution import *
     from VoronoiDistributeNodes import distributeNodes2d
@@ -566,13 +566,13 @@ if restoreCycle is None:
                       (nodesCuAnvil, generatorCuAnvil))
     nGlobalNodes = 0
     for n in nodeSet:
-        print "Generator info for %s" % n.name
+        print("Generator info for %s" % n.name)
         output("    mpi.allreduce(n.numInternalNodes, mpi.MIN)")
         output("    mpi.allreduce(n.numInternalNodes, mpi.MAX)")
         output("    mpi.allreduce(n.numInternalNodes, mpi.SUM)")
         nGlobalNodes += mpi.allreduce(n.numInternalNodes, mpi.SUM)
     del n
-    print "Total number of (internal) nodes in simulation: ", nGlobalNodes
+    print("Total number of (internal) nodes in simulation: ", nGlobalNodes)
 
     # Bevel the inner opening surface of the target tube.
     numNodesBeveled = bevelTubeEntrance(nodesSteel,
@@ -581,14 +581,14 @@ if restoreCycle is None:
                                         rtubeInner,
                                         tubeThickness,
                                         xBevelBegin)
-    print "Beveled %i nodes in the tube opening." % mpi.allreduce(numNodesBeveled,
-                                                                  mpi.SUM)
+    print("Beveled %i nodes in the tube opening." % mpi.allreduce(numNodesBeveled,
+                                                                  mpi.SUM))
 
     # Adjust the diameter of the projectile inward a bit, so it will slide
     # into the tube properly.
     drProj = 1.0*nPerh*rproj/nrproj
     projMultiplier = (rproj - drProj)/rproj
-    for i in xrange(nodesProj.numInternalNodes):
+    for i in range(nodesProj.numInternalNodes):
         nodesProj.positions()[i].y *= projMultiplier
 
 ##     # Adjust the plug to match.
@@ -606,8 +606,8 @@ if restoreCycle is None:
         # Set node specific thermal energies
         u0 = n.equationOfState().specificThermalEnergy(rho0, 300.0)
         n.specificThermalEnergy(ScalarField("tmp", n, u0))
-        print "Initial pressure for %s: %g" % (n.name,
-                                               n.equationOfState().pressure(rho0, u0))
+        print("Initial pressure for %s: %g" % (n.name,
+                                               n.equationOfState().pressure(rho0, u0)))
 
 ##         rho = n.massDensity()
 ##         eps = n.specificThermalEnergy()
@@ -782,9 +782,9 @@ nodesC = [i for i in range(nodesSteel.numInternalNodes)
                nodesSteel.positions()[i].x < xVISARc + dxVISAR) and
               (nodesSteel.positions()[i].y > yVISARc - dyVISAR and
                nodesSteel.positions()[i].y < yVISARc + dyVISAR))]
-print "Selected (%i, %i, %i) VISAR sampling points." % (mpi.allreduce(len(nodesA), mpi.SUM),
+print("Selected (%i, %i, %i) VISAR sampling points." % (mpi.allreduce(len(nodesA), mpi.SUM),
                                                         mpi.allreduce(len(nodesB), mpi.SUM),
-                                                        mpi.allreduce(len(nodesC), mpi.SUM))
+                                                        mpi.allreduce(len(nodesC), mpi.SUM)))
 
 VISARaSampler = AverageCylindricalRadialVelocity(xVISARa, dxVISAR)
 VISARbSampler = AverageCylindricalRadialVelocity(xVISARb, dxVISAR)
@@ -821,7 +821,7 @@ def viz(fields = [],
     maxedamage = ScalarField("effective damage magnitude max", nodesSteel)
     sstrain = ScalarField("strain average", nodesSteel)
     esstrain = ScalarField("effective strain average", nodesSteel)
-    for i in xrange(nodesSteel.numInternalNodes):
+    for i in range(nodesSteel.numInternalNodes):
         sdamage[i] = tdamage[i].Trace()
         esdamage[i] = etdamage[i].Trace()
         ev = tdamage[i].eigenValues()

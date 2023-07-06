@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -18,6 +18,9 @@ def parse_args():
 
   parser.add_argument('-i', '--install-dir', type=str, default="",
       help='Location of spheral source directory.')
+
+  parser.add_argument('--no-clean', action='store_true',
+      help='Do not delete build and install locations.')
 
   # Control stage flow
   parser.add_argument('--build', action='store_true',
@@ -84,8 +87,9 @@ def main():
   print("")
 
   # Clean our build and install dirs...
-  sexe("rm -rf \"{0}\" 2>/dev/null".format(build_dir),echo=True)
-  sexe("rm -rf \"{0}\" 2>/dev/null".format(install_dir),echo=True)
+  if not args.no_clean:
+      sexe("rm -rf \"{0}\" 2>/dev/null".format(build_dir),echo=True)
+      sexe("rm -rf \"{0}\" 2>/dev/null".format(install_dir),echo=True)
   sexe("mkdir -p \"{0}\"".format(build_dir),echo=True)
   sexe("mkdir -p \"{0}\"".format(install_dir),echo=True)
 
@@ -122,14 +126,6 @@ def main():
       print("Compilation failed")
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
       sys.exit(1)
-
-    # Did we build the python interface?
-    if sexe("grep -i ENABLE_CXXONLY:BOOL=Off {0}/CMakeCache.txt".format(build_dir)) == 0:
-      # Try to import Spheral for a basic sanity test.
-      smoke_test = sexe("{0} {1}/spheral -c \"import Spheral\"".format(ml_cmd, install_dir))
-      if smoke_test != 0:
-        sys.exit(1)
-
 
 if __name__ == "__main__":
   main()

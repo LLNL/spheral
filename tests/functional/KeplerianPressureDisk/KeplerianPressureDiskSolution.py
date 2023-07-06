@@ -41,7 +41,7 @@ class KeplerianPressureDiskSolution:
 
         dr = (self.rmax - self.rmin)/(self.nPoints - 1)
         velSupport = 1.0 - self.fractionPressureSupport
-        for i in xrange(self.nPoints):
+        for i in range(self.nPoints):
             ri = i*dr
             rhoi = (self.G*self.M/self.polytropicConstant *
                     (self.gamma - 1.0)/self.gamma /

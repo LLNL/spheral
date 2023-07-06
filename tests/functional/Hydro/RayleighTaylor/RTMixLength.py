@@ -21,7 +21,7 @@ class RTMixLength:
         #   pos.y > y0 ==> 1
         self.nodeFlags = Spheral2d.IntField("original node distribution", nodes, 0)
         pos = nodes.positions()
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             if pos[i].y > y0:
                 self.nodeFlags[i] = 1
         return
@@ -29,8 +29,8 @@ class RTMixLength:
     def __call__(self, nodes, nodeIndices):
         # Note we're going to ignore the nodeIndices handed in here.
         pos = nodes.positions()
-        y0 = np.array(mpi.reduce([pos[i].y for i in xrange(nodes.numInternalNodes) if self.nodeFlags[i] == 0], mpi.SUM, 0))
-        y1 = np.array(mpi.reduce([pos[i].y for i in xrange(nodes.numInternalNodes) if self.nodeFlags[i] == 1], mpi.SUM, 0))
+        y0 = np.array(mpi.reduce([pos[i].y for i in range(nodes.numInternalNodes) if self.nodeFlags[i] == 0], mpi.SUM, 0))
+        y1 = np.array(mpi.reduce([pos[i].y for i in range(nodes.numInternalNodes) if self.nodeFlags[i] == 1], mpi.SUM, 0))
         ylow, yhigh = 0.0, 0.0
         if mpi.rank == 0:
             yhigh = np.percentile(y0, self.percentile)

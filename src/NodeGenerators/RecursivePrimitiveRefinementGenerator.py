@@ -69,8 +69,8 @@ class RPRPSGenerator3d(NodeGeneratorBase):
                                                      thetaMin, thetaMax,
                                                      phiMin, phiMax)
 
-        print "Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
-            (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax)
+        print("Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
+            (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax))
 
         # Now set the nominal mass per node.
         if (m0 == 0.0):
@@ -79,7 +79,7 @@ class RPRPSGenerator3d(NodeGeneratorBase):
             self.m0 = m0
             n = int(self.totalMass/self.m0)
         assert self.m0 > 0.0
-        print "Nominal mass per node of %g for %d nodes." % (self.m0,n)
+        print("Nominal mass per node of %g for %d nodes." % (self.m0,n))
         
         from Spheral import SymTensor3d
         self.x = []
@@ -191,7 +191,7 @@ class RPRPSGenerator3d(NodeGeneratorBase):
             
             if (nshell > 4 and nshell<163):
                 if (mpi.rank == 0):
-                    for i in xrange(len(shapeData)):
+                    for i in range(len(shapeData)):
                         nc  = 0
                         nco = 0
                         nrf = 0
@@ -203,7 +203,7 @@ class RPRPSGenerator3d(NodeGeneratorBase):
                         counts.append([i,nrf,nc])
 
                     diff = 1e13
-                    for i in xrange(len(counts)):
+                    for i in range(len(counts)):
                         dd = abs(counts[i][2] - nshell)
                         if (dd < diff):
                             diff = dd
@@ -222,7 +222,7 @@ class RPRPSGenerator3d(NodeGeneratorBase):
                     else:
                         self.createIcoSphere(nr)
 
-                    for n in xrange(len(self.positions)):
+                    for n in range(len(self.positions)):
                         self.positions[n] = self.rotater(self.positions[n],rot,rot2)
             elif(nshell==1 and mi> 0.5 * self.m0):
                 if (mpi.rank == 0):
@@ -286,20 +286,20 @@ class RPRPSGenerator3d(NodeGeneratorBase):
                     p = 0
                     npp = 0
                     if mpi.procs > 2:
-                        npp = nshell/(mpi.procs -1)
+                        npp = nshell//(mpi.procs -1)
                     else:
-                        npp = (nshell/2) if (rank == 0) else (nshell - nshell/2)
-                    print "npp = %d"%npp
+                        npp = (nshell//2) if (rank == 0) else (nshell - nshell//2)
+                    print("npp = %d"%npp)
                     
                     if(rank>0 and rank*npp!=nshell):
                         imax = rank*npp + 1
-                        for i in xrange(1,imax):
+                        for i in range(1,imax):
                             h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
                             if(i>1 and i<nshell):
                                 p = (p+3.8/sqrt(nshell)*1.0/sqrt(1.0-h*h))%(2.0*pi)
                     rankmin = rank*npp + 1
                     rankmax = ((rank+1)*npp + 1) if (rank != procs -1) else (nshell + 1)
-                    for i in xrange(rankmin, rankmax):
+                    for i in range(rankmin, rankmax):
                         h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
                         t = acos(h)
                         if(i>1 and i<nshell):
@@ -324,7 +324,7 @@ class RPRPSGenerator3d(NodeGeneratorBase):
                     # let rank 0 do all the work
                     p = 0
                     if (mpi.rank == 0):
-                        for i in xrange(1, nshell+1):
+                        for i in range(1, nshell+1):
                             h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
                             t = acos(h)
                             if(i>1 and i<nshell):
@@ -348,8 +348,8 @@ class RPRPSGenerator3d(NodeGeneratorBase):
             # now reduce some lengths for output
             numNodes = mpi.allreduce(len(self.positions),mpi.SUM)
 
-            print "at r=%3.4g\t wanted %d;\t computed %d total nodes with\t mass=%3.4g" %(rii,nshell,numNodes,mi)
-            for n in xrange(len(self.positions)):
+            print("at r=%3.4g\t wanted %d;\t computed %d total nodes with\t mass=%3.4g" %(rii,nshell,numNodes,mi))
+            for n in range(len(self.positions)):
                 x       = rii*self.positions[n][0]
                 y       = rii*self.positions[n][1]
                 z       = rii*self.positions[n][2]
@@ -383,20 +383,20 @@ class RPRPSGenerator3d(NodeGeneratorBase):
     
         # If requested, shift the nodes.
         if offset:
-            for i in xrange(len(self.x)):
+            for i in range(len(self.x)):
                 self.x[i] += offset[0]
                 self.y[i] += offset[1]
                 self.z[i] += offset[2]
             
-        print "Generated a total of %i nodes." % mpi.allreduce(len(self.x),mpi.SUM)
+        print("Generated a total of %i nodes." % mpi.allreduce(len(self.x),mpi.SUM))
         NodeGeneratorBase.__init__(self, False,
                                    self.x, self.y, self.z, self.m, self.H)
         return
 
     def rotater(self,pos,rot1,rot2):
         posp = [0,0,0]
-        for k in xrange(3):
-            for j in xrange(3):
+        for k in range(3):
+            for j in range(3):
                 posp[k] += pos[j]*rot1[k][j]
                 
         x = posp[0]
@@ -405,8 +405,8 @@ class RPRPSGenerator3d(NodeGeneratorBase):
         
         pos = [x,y,z]
         posp= [0,0,0]
-        for k in xrange(3):
-            for j in xrange(3):
+        for k in range(3):
+            for j in range(3):
                 posp[k] += pos[j]*rot2[k][j]
         return posp
 
@@ -477,10 +477,10 @@ class RPRPSGenerator3d(NodeGeneratorBase):
         
         result = 0
         dr = (rmax-rmin)/nbins
-        nbp = nbins/procs
+        nbp = nbins//procs
         binmin = nbp*rank if (rank!=0) else (1)
         binmax = nbp*(rank+1) if (rank!=procs-1) else (nbins)
-        for i in xrange(binmin,binmax):
+        for i in range(binmin,binmax):
             r1 = rmin + (i-1)*dr
             r2 = rmin + i*dr
             result += 0.5*dr*(r2*r2*densityProfileMethod(r2)+r1*r1*densityProfileMethod(r1))
@@ -500,7 +500,7 @@ class RPRPSGenerator3d(NodeGeneratorBase):
     def checkMiddlePoint(self,key):
         exists  = 0
         myidx   = 0
-        for i in xrange(len(self.middlePoints)):
+        for i in range(len(self.middlePoints)):
             if (self.middlePoints[i][0] == key):
                 exists = 1
                 myidx = self.middlePoints[i][1]
@@ -579,9 +579,9 @@ class RPRPSGenerator3d(NodeGeneratorBase):
         self.faces.append([ 9, 8, 1])
         
         # now refine triangles until you're done
-        for i in xrange(np):
+        for i in range(np):
             faces2 = []
-            for j in xrange(len(self.faces)):
+            for j in range(len(self.faces)):
                 x,y,z = self.faces[j][0], self.faces[j][1], self.faces[j][2]
                 a = self.getMiddlePoint(x,y)
                 b = self.getMiddlePoint(y,z)
@@ -618,9 +618,9 @@ class RPRPSGenerator3d(NodeGeneratorBase):
         self.faces.append([ 5, 1, 4])
         
         # now refine triangles until you're done
-        for i in xrange(np):
+        for i in range(np):
             faces2 = []
-            for j in xrange(len(self.faces)):
+            for j in range(len(self.faces)):
                 x,y,z = self.faces[j][0], self.faces[j][1], self.faces[j][2]
                 a = self.getMiddlePoint(x,y)
                 b = self.getMiddlePoint(y,z)
@@ -654,9 +654,9 @@ class RPRPSGenerator3d(NodeGeneratorBase):
         self.faces.append([ 4, 1, 3])
         
         # now refine triangles until you're done
-        for i in xrange(np):
+        for i in range(np):
             faces2 = []
-            for j in xrange(len(self.faces)):
+            for j in range(len(self.faces)):
                 x,y,z = self.faces[j][0], self.faces[j][1], self.faces[j][2]
                 a = self.getMiddlePoint(x,y)
                 b = self.getMiddlePoint(y,z)
@@ -700,9 +700,9 @@ class RPRPSGenerator3d(NodeGeneratorBase):
         self.faces.append([ 1, 2, 6])
         
         # now refine triangles until you're done
-        for i in xrange(np):
+        for i in range(np):
             faces2 = []
-            for j in xrange(len(self.faces)):
+            for j in range(len(self.faces)):
                 x,y,z = self.faces[j][0], self.faces[j][1], self.faces[j][2]
                 a = self.getMiddlePoint(x,y)
                 b = self.getMiddlePoint(y,z)

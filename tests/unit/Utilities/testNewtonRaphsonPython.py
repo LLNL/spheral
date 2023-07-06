@@ -47,7 +47,7 @@ class TestNewtonRaphson(unittest.TestCase):
     # known roots.
     #===========================================================================
     def testRoots(self):
-        for i in xrange(self.ntests):
+        for i in range(self.ntests):
 
             # Randomly pick three roots.  We want to know them
             # in sorted order too.
@@ -67,28 +67,28 @@ class TestNewtonRaphson(unittest.TestCase):
             x0test = newtonRaphson(func,
                                    self.xmin,
                                    0.5*(x0 + x1))
-            self.failUnless(fuzzyEqual(x0test, x0, self.xaccuracy),
+            self.assertTrue(fuzzyEqual(x0test, x0, self.xaccuracy),
                             "Failed to find root %g != %g of (%g, %g, %g)" % (x0test, x0, x0, x1, x2))
 
             # x1
             x1test = newtonRaphson(func,
                                    0.5*(x0 + x1),
                                    0.5*(x1 + x2))
-            self.failUnless(fuzzyEqual(x1test, x1, self.xaccuracy),
+            self.assertTrue(fuzzyEqual(x1test, x1, self.xaccuracy),
                             "Failed to find root %g != %g of (%g, %g, %g)" % (x1test, x1, x0, x1, x2))
 
             # x2
             x2test = newtonRaphson(func,
                                    0.5*(x1 + x2),
                                    self.xmax)
-            self.failUnless(fuzzyEqual(x2test, x2, self.xaccuracy),
+            self.assertTrue(fuzzyEqual(x2test, x2, self.xaccuracy),
                             "Failed to find root %g != %g of (%g, %g, %g)" % (x2test, x2, x0, x1, x2))
 
             # Do we find one of the roots if we span all three?
             xalltest = newtonRaphson(func,
                                      self.xmin,
                                      self.xmax)
-            self.failUnless(fuzzyEqual(xalltest, x0, self.xaccuracy) or
+            self.assertTrue(fuzzyEqual(xalltest, x0, self.xaccuracy) or
                             fuzzyEqual(xalltest, x1, self.xaccuracy) or
                             fuzzyEqual(xalltest, x2, self.xaccuracy),
                             "Failed to find root in full range: %g != (%g, %g, %g)" % (xalltest, x0, x1, x2))

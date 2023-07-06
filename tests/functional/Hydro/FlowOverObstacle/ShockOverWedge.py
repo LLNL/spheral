@@ -142,7 +142,7 @@ output("nodes.numNodes")
 # Set node initial conditions
 pos = nodes.positions()
 eps = nodes.specificThermalEnergy()
-for i in xrange(nodes.numInternalNodes):
+for i in range(nodes.numInternalNodes):
     eps[i] = epsfunc(pos[i])
 
 #-------------------------------------------------------------------------------

@@ -10,7 +10,7 @@ from Spheral import pair_double_double
 from Spheral import vector_of_int, vector_of_double, vector_of_SymTensor2d, vector_of_vector_of_double
 from SpheralTestUtilities import *
 from Spheral import PairScalarFunctor, newtonRaphsonFindRoot
-from SpheralGnuPlotUtilities import multiSort
+from SpheralTestUtilities import multiSort
 
 import mpi
 procID = mpi.rank
@@ -98,7 +98,7 @@ class GenerateStretchedLattice2d(NodeGeneratorBase):
             self.m0 = m0ForMassMatching
             self.rho0 = targetN*self.m0/self.vol
         
-        print "Found total mass = {0:3.3e} with rho0 = {1:3.3e}".format(targetMass,self.rho0)
+        print("Found total mass = {0:3.3e} with rho0 = {1:3.3e}".format(targetMass,self.rho0))
     
         # compute kappa first
         # k = 3/(self.rho0*rmax**3) * targetMass/(4.0*pi)
@@ -118,10 +118,10 @@ class GenerateStretchedLattice2d(NodeGeneratorBase):
 
 
         self.rl = []
-        for i in xrange(len(self.xl)):
+        for i in range(len(self.xl)):
             self.rl.append(sqrt(self.xl[i]**2+self.yl[i]**2))
         
-        print "Sorting unstretched lattice... %d elements" % len(self.rl)
+        print("Sorting unstretched lattice... %d elements" % len(self.rl))
         
         multiSort(self.rl,self.xl,self.yl)
         
@@ -133,20 +133,20 @@ class GenerateStretchedLattice2d(NodeGeneratorBase):
         nx  = 2*nlat+1
         eta = (self.xmax[0] - self.xmin[0])/nx
         
-        print "Stretching lattice..."
+        print("Stretching lattice...")
 
         dr  = eta * 0.01    # this will essentially be the error in the new dumb way
         r0p = 0
         rp  = 0
         rn  = 0
-        for i in xrange(1,len(self.rl)):
+        for i in range(1,len(self.rl)):
             #print "%d / %d" % (i,len(self.rl))
             r0 = self.rl[i]
             if (abs(r0-r0p)/r0>1e-10):
                 sol     = r0**2*self.rho0/2.0
                 iter    = int(10*rmax // dr)
                 fn      = 0
-                for j in xrange(iter+1):
+                for j in range(iter+1):
                     rj  = dr*j
                     rjj = dr*(j+1)
                     fj  = rj * densityProfileMethod(rj)
@@ -165,7 +165,7 @@ class GenerateStretchedLattice2d(NodeGeneratorBase):
         seededMass = sum(self.m)
         
         mAdj = targetMass / seededMass
-        for i in xrange(len(self.m)):
+        for i in range(len(self.m)):
             self.m[i] = self.m[i] * mAdj
 
         
@@ -221,7 +221,7 @@ class GenerateStretchedLattice2d(NodeGeneratorBase):
         
         result = 0
         dr = (rmax-rmin)/nbins
-        for i in xrange(1,nbins):
+        for i in range(1,nbins):
             r1 = rmin + (i-1)*dr
             r2 = rmin + i*dr
             result += 0.5*dr*(r2*densityProfileMethod(r2)+r1*densityProfileMethod(r1))
@@ -258,8 +258,8 @@ class GenerateStretchedLattice2d(NodeGeneratorBase):
         m = []
         H = []
 
-        for j in xrange(ny):
-            for i in xrange(nx):
+        for j in range(ny):
+            for i in range(nx):
                 xx = xmin[0] + (i + 0.5)*dx
                 yy = xmin[1] + (j + 0.5)*dy
                 x.append(xx)

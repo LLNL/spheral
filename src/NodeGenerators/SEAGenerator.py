@@ -69,8 +69,8 @@ class SEAGenerator3d(NodeGeneratorBase):
                                                      thetaMin, thetaMax,
                                                      phiMin, phiMax)
 
-        print "Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
-            (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax)
+        print("Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
+            (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax))
 
         # Now set the nominal mass per node.
         if (m0 == 0.0):
@@ -79,7 +79,7 @@ class SEAGenerator3d(NodeGeneratorBase):
             self.m0 = float(m0)
             n = int(self.totalMass/self.m0)
         assert self.m0 > 0.0
-        print "Nominal mass per node of %f for %d nodes." % (self.m0,n)
+        print("Nominal mass per node of %f for %d nodes." % (self.m0,n))
         
         from Spheral import SymTensor3d
         self.x = []
@@ -92,10 +92,10 @@ class SEAGenerator3d(NodeGeneratorBase):
         self.positions = []
         nshell = 4
         rhoc = self.densityProfileMethod(0.0)
-        print rhoc,self.m0
+        print(rhoc,self.m0)
         mi   = self.m0
         drc  = pow(0.333*mi/rhoc,1.0/3.0)
-        print drc
+        print(drc)
         hi   = nNodePerh*(drc)
 
         random.seed(nshell)
@@ -145,20 +145,20 @@ class SEAGenerator3d(NodeGeneratorBase):
     
         # If requested, shift the nodes.
         if offset:
-            for i in xrange(len(self.x)):
+            for i in range(len(self.x)):
                 self.x[i] += offset[0]
                 self.y[i] += offset[1]
                 self.z[i] += offset[2]
             
-        print "Generated a total of %i nodes." % mpi.allreduce(len(self.x),mpi.SUM)
+        print("Generated a total of %i nodes." % mpi.allreduce(len(self.x),mpi.SUM))
         NodeGeneratorBase.__init__(self, False,
                                    self.x, self.y, self.z, self.m, self.H)
         return
 
     def rotater(self,pos,rot1,rot2):
         posp = [0,0,0]
-        for k in xrange(3):
-            for j in xrange(3):
+        for k in range(3):
+            for j in range(3):
                 posp[k] += pos[j]*rot1[k][j]
                 
         x = posp[0]
@@ -167,8 +167,8 @@ class SEAGenerator3d(NodeGeneratorBase):
         
         pos = [x,y,z]
         posp= [0,0,0]
-        for k in xrange(3):
-            for j in xrange(3):
+        for k in range(3):
+            for j in range(3):
                 posp[k] += pos[j]*rot2[k][j]
         return posp
 
@@ -242,7 +242,7 @@ class SEAGenerator3d(NodeGeneratorBase):
         nbp = nbins/procs
         binmin = nbp*rank if (rank!=0) else (1)
         binmax = nbp*(rank+1) if (rank!=procs-1) else (nbins)
-        for i in xrange(binmin,binmax):
+        for i in range(binmin,binmax):
             r1 = rmin + (i-1)*dr
             r2 = rmin + i*dr
             result += 0.5*dr*(r2*r2*densityProfileMethod(r2)+r1*r1*densityProfileMethod(r1))

@@ -6,7 +6,7 @@ class DummySphNodeList1d(SphNodeList1d):
                  numInternal = 100,
                  numGhost = 0):
         SphNodeList1d(numInternal, numGhost)
-        print "Instantiating dummy sph node list."
+        print("Instantiating dummy sph node list.")
         return
 
 nodes = SphNodeList1d(100)
