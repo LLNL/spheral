@@ -35,7 +35,8 @@ public:
   typedef typename Dimension::Vector Vector;
 
   typedef typename DEMBase<Dimension>::TimeStepType TimeStepType;
-
+  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  
   LinearSpringDEM(const DataBase<Dimension>& dataBase,
                   const Scalar normalSpringConstant,
                   const Scalar normalRestitutionCoefficient,
@@ -69,6 +70,12 @@ public:
                                    const DataBase<Dimension>& dataBase,
                                    const State<Dimension>& state,
                                          StateDerivatives<Dimension>& derivs) const override;
+  virtual
+  void applyGhostBoundaries(State<Dimension>& state,
+                            StateDerivatives<Dimension>& derivs) override;
+  virtual
+  void enforceBoundaries(State<Dimension>& state,
+                         StateDerivatives<Dimension>& derivs) override;
 
   // set/gets
   Scalar normalSpringConstant() const;
@@ -121,8 +128,8 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "LinearSpringDEM" ; }
-  //virtual void dumpState(FileIO& file, const std::string& pathName) const;
-  //virtual void restoreState(const FileIO& file, const std::string& pathName);
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 private:
   //--------------------------- Private Interface ---------------------------//

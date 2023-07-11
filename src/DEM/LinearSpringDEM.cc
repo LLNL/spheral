@@ -24,6 +24,8 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Hydro/HydroFieldNames.hh"
 
+#include "Boundary/Boundary.hh"
+
 #include "DEM/ReplaceAndIncrementPairFieldList.hh"
 #include "DEM/DEMFieldNames.hh"
 #include "DEM/DEMDimension.hh"
@@ -40,6 +42,7 @@
 #include <cmath>
 #include <limits>
 
+using std::string;
 using std::make_pair;
 using std::to_string;
 
@@ -823,5 +826,66 @@ setMomentOfInertia() {
     }   // loop nodes
   }     // loop nodelists
 }       // method
-}       // namespace
+
+
+
+//------------------------------------------------------------------------------
+// Apply the ghost boundary conditions for linear dem state fields.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+applyGhostBoundaries(State<Dimension>& state,
+                     StateDerivatives<Dimension>& derivs) {
+  DEMBase<Dimension>::applyGhostBoundaries(state,derivs);
+  auto I = state.fields(DEMFieldNames::momentOfInertia,0.0);
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->applyFieldListGhostBoundary(I);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Enforce the boundary conditions for linear dem state fields.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+enforceBoundaries(State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+
+  DEMBase<Dimension>::enforceBoundaries(state,derivs);
+
+  auto I = state.fields(DEMFieldNames::momentOfInertia,0.0);
+
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->enforceFieldListBoundary(I);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Dump the current state to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+dumpState(FileIO& file, const string& pathName) const {
+  DEMBase<Dimension>::dumpState(file,pathName);
+  file.write(mMomentOfInertia, pathName + "/momentOfInertia");
+}
+
+//------------------------------------------------------------------------------
+// Restore the state from the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+restoreState(const FileIO& file, const string& pathName) {
+  DEMBase<Dimension>::restoreState(file,pathName);
+  file.read(mMomentOfInertia, pathName + "/momentOfInertia");
+}
+} // namespace
 

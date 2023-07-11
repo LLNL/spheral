@@ -1,34 +1,23 @@
 Continuous Deployment (CD)
 ##########################
 
-Spheral uses Gitlab CI to continuously deploy installations of our develop 
-branch, risky tag and release tags to Livermore Computing (LC) machines.
+Spheral uses Gitlab CI to continuously deploy installations of the risky tag,
+and release tags to Livermore Computing (LC) machines.
 
 At any one time a developer/user will able to ``module load Spheral/...``
 to their environment.
 
 On LC systems we maintain:
-  * ``Spheral/dev``
   * ``Spheral/risky``
+  * ``Spheral/2023.06.0``
+  * ``Spheral/2023.03.1``
   * ``Spheral/2023.03.0`` (deprecated as of TOSS4 upgrade)
   * ``Spheral/2022.06.0`` (deprecated as of TOSS4 upgrade)
-
-Spheral/dev 
-===========
-
-What it says on the tin... This is the most up-to-date version of Spheral 
-available. Once a PR is merged to develop, gitlab will launch an automated 
-pipeline to install Spheral to the ``dev`` LC module on CZ and RZ systems.
-
-.. warning::
-   ``Spheral/dev`` will move as develop does. This means if API breaking 
-   changes or bugs are pushed to develop then they will exist in ``dev`` until 
-   a fix can be deployed or your scripts are updated to comply with the new API.
 
 Spheral/risky
 =============
 
-``risky`` will always sit somewhere between ``dev`` and the latest release on 
+``risky`` will always sit somewhere between ``develop`` and the latest release on 
 LC systems. This version of Spheral is made available for users between 
 releases and although it is not as up to date as develop, should still be 
 considered expermintal and used with caution.
@@ -37,6 +26,11 @@ The ``risky`` module can be updated by developers by deleting the current risky
 tag and pointing it at a new commit. After deletion, the creation of a new tag 
 will generate a pipeline that must be manually run by a developer through the 
 gitlab CI interface.
+
+.. warning::
+   ``Spheral/risky`` will move between releases. This means if API breaking 
+   changes are pushed to develop/risky then user will need to updated scripts 
+   to be compatible with the new API.
 
 Experimental Tags
 =================
