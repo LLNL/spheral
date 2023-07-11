@@ -33,8 +33,8 @@ class InteriorGenerator2d(NodeGeneratorBase):
         nx = max(1, int((xmax.x - xmin.x)/dx + 0.5))
         ny = max(1, int((xmax.y - xmin.y)/dx + 0.5))
         self.x, self.y = [], []
-        for iy in xrange(ny):
-            for ix in xrange(nx):
+        for iy in range(ny):
+            for ix in range(nx):
                 posi = Vector2d(xmin.x + (ix + 0.5 + jitter*rangen.uniform(0,1))*dx,
                                 xmin.y + (iy + 0.5 + jitter*rangen.uniform(0,1))*dx)
                 if boundary.contains(posi):
@@ -50,7 +50,7 @@ class InteriorGenerator2d(NodeGeneratorBase):
             self.rho = rho
 
         # Mass per node.
-        self.m = [self.rho(Vector2d(self.x[i], self.y[i])) for i in xrange(n)]
+        self.m = [self.rho(Vector2d(self.x[i], self.y[i])) for i in range(n)]
 
         # Set H.
         h0 = nNodePerh * dx

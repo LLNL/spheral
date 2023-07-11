@@ -30,10 +30,10 @@ class sDump(object):
         rank = mpi.rank
         serialData = []
         i,j = 0,0
-        for i in xrange(procs):
+        for i in range(procs):
             for nodeL in self.nodeSet:
                 if rank == i:
-                    for j in xrange(nodeL.numInternalNodes):
+                    for j in range(nodeL.numInternalNodes):
                         serialData.append([nodeL.positions()[j],
                                            3.0/(nodeL.Hfield()[j].Trace()),
                                            nodeL.mass()[j],nodeL.massDensity()[j],
@@ -42,7 +42,7 @@ class sDump(object):
         serialData = mpi.reduce(serialData,mpi.SUM)
         if rank == 0:
             f = open(self.directory + "/serialDump" + str(cycle) + ".ascii",'w')
-            for i in xrange(len(serialData)):
+            for i in range(len(serialData)):
                 f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4]))
             f.close()
 
@@ -254,7 +254,7 @@ diskProfile = KeplerianPressureDiskProfile(G0, M0, polytropicConstant, Rc)
 # Set node positions, masses, and H's for this domain.
 if restoreCycle is None:
     from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
-    print "Generating node distribution."
+    print("Generating node distribution.")
     generator = GenerateNodesMatchingProfile2d(n, diskProfile,
                                                rmin = rmin,
                                                rmax = rmax,
@@ -263,7 +263,7 @@ if restoreCycle is None:
                                                nNodePerh = nPerh)
     n1 = generator.globalNumNodes()
 
-    print "Distributing nodes amongst processors."
+    print("Distributing nodes amongst processors.")
     distributeNodes((diskNodes, generator))
     output('mpi.reduce(diskNodes.numInternalNodes, mpi.MIN)')
     output('mpi.reduce(diskNodes.numInternalNodes, mpi.MAX)')
@@ -271,7 +271,7 @@ if restoreCycle is None:
 
     # Loop over the nodes, and set the specific energies and velocities.
     for nodes in [diskNodes]:
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             r = nodes.positions()[i].magnitude()
             runit = nodes.positions()[i].unitVector()
             vunit = Vector(-runit.y, runit.x)

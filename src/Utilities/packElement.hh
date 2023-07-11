@@ -358,7 +358,7 @@ unpackElement(DataType& value,
   for (typename DataType::iterator valueItr = value.begin();
        valueItr != value.end();
        ++valueItr) {
-    char* data = reinterpret_cast<char*>(&(*valueItr));
+    volatile char* data = reinterpret_cast<char*>(&(*valueItr));
     for (int i = 0; i != packSize; ++i, ++itr) {
       CHECK(itr < endPackedVector);
       *(data + i) = *itr;

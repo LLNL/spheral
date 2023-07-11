@@ -3,17 +3,28 @@ variables:
   ALLOC_NAME: ${CI_PROJECT_NAME}_ci_${CI_PIPELINE_ID}
   BUILD_ROOT: ${CI_PROJECT_DIR}
   SPHERAL_BUILDS_DIR: /usr/WS2/sphapp/.jacamar-ci/spheral-builds
+
   SCRIPT_DIR: "scripts"
   ATS_FILE: "tests/integration.ats"
   PERF_FILE: "tests/perf.ats"
+  SPHERAL_MODULE: "Spheral"
+  SPACK_NAME: spheral
+  SPACK_PKG_NAME: spheral
+
+.spheral_rev_str:
+  before_script:
+    - SPHERAL_REV=$(git rev-list --count HEAD)
+    - SPHERAL_REV_STR="$SPHERAL_REV"
 
 stages:
   - build_and_install
   - run_ats
   - perf_suite
-  - cleanup
   - update_tpls
+  - generate_buildcache
+  - install_production
   - update_permissions
+  - cleanup
 
 include:
   - local: .gitlab/os.yml
@@ -22,3 +33,4 @@ include:
   - local: .gitlab/specs.yml
   - local: .gitlab/jobs-mpi.yml
   - local: .gitlab/jobs-seq.yml
+  - local: .gitlab/jobs-prod.yml

@@ -1,3 +1,4 @@
+from functools import reduce
 #-------------------------------------------------------------------------------
 # Take a set of lattice sampled data (such as from sampleMultipleFields2Lattice)
 # and write out to a set of silo files in Quadvar format.
@@ -47,7 +48,7 @@ def writeSiloQuadMesh(scalar_data,
         else:
             import Spheral3d as sph
 
-        dx = [(xmax[j] - xmin[j])/nglobal[j] for j in xrange(ndim)]
+        dx = [(xmax[j] - xmin[j])/nglobal[j] for j in range(ndim)]
         ntot = reduce(mul, nglobal)
 
         # Which dimension should we divide up into?
@@ -58,7 +59,7 @@ def writeSiloQuadMesh(scalar_data,
         # accoriding to (i + j*nx + k*nx*ny), and simply divides that 1D serialization sequentially
         # between processors.
         offset = 0
-        for sendproc in xrange(mpi.procs):
+        for sendproc in range(mpi.procs):
             n = mpi.bcast(len(vals), root=sendproc)
             if sendproc < mpi.rank:
                 offset += n
@@ -74,7 +75,7 @@ def writeSiloQuadMesh(scalar_data,
         # A function to tell us which block to assign a global index to
         slabsperblock = max(1, nglobal[jsplit] // mpi.procs)
         remainder = max(0, nglobal[jsplit] - mpi.procs*slabsperblock)
-        islabdomain = [min(nglobal[jsplit], iproc*slabsperblock + min(iproc, remainder)) for iproc in xrange(mpi.procs + 1)]
+        islabdomain = [min(nglobal[jsplit], iproc*slabsperblock + min(iproc, remainder)) for iproc in range(mpi.procs + 1)]
         #sys.stderr.write("Domain splitting: %s %i %s\n" % (nglobal, jsplit, islabdomain))
         #sys.stderr.write("islabdomain : %s\n" % str(islabdomain))
         def targetBlock(index):
@@ -89,7 +90,7 @@ def writeSiloQuadMesh(scalar_data,
 
         # Send our values to other domains.
         sendreqs, sendvals = [], []
-        for iproc in xrange(mpi.procs):
+        for iproc in range(mpi.procs):
             if iproc != mpi.rank:
                 sendvals.append([(i, val) for (i, val, proc) in id_val_procs if proc == iproc])
                 sendreqs.append(mpi.isend(sendvals[-1], dest=iproc, tag=100))
@@ -102,7 +103,7 @@ def writeSiloQuadMesh(scalar_data,
         nblock[jsplit] = islabdomain[mpi.rank + 1] - islabdomain[mpi.rank]
         #sys.stderr.write("nblock : %s\n" % str(nblock))
         newvals = []
-        for iproc in xrange(mpi.procs):
+        for iproc in range(mpi.procs):
             if iproc == mpi.rank:
                 recvvals = [(i, val) for (i, val, proc) in id_val_procs if proc == mpi.rank]
             else:
@@ -140,11 +141,11 @@ def writeSiloQuadMesh(scalar_data,
         assert maxproc <= mpi.procs
 
         # Pattern for constructing per domain variables.
-        domainNamePatterns = [os.path.join(procDir, "domain%i.silo:%%s" % i) for i in xrange(maxproc)]
+        domainNamePatterns = [os.path.join(procDir, "domain%i.silo:%%s" % i) for i in range(maxproc)]
 
         # We need each domains nblock info.
         nblocks = [nblock]
-        for sendproc in xrange(1, maxproc):
+        for sendproc in range(1, maxproc):
             if mpi.rank == sendproc:
                 mpi.send(nblock, dest=0, tag=50)
             if mpi.rank == 0:
@@ -169,7 +170,7 @@ def writeSiloQuadMesh(scalar_data,
             if materials:
                 material_names = Spheral.vector_of_string([p % "/hblk0/Materials" for p in domainNamePatterns])
                 matnames = Spheral.vector_of_string(["void"] + [x.name for x in materials])
-                matnos = Spheral.vector_of_int(range(len(materials) + 1))
+                matnos = Spheral.vector_of_int(list(range(len(materials) + 1)))
                 assert len(material_names) == maxproc
                 assert len(matnames) == len(materials) + 1
                 assert len(matnos) == len(materials) + 1
@@ -207,15 +208,15 @@ def writeSiloQuadMesh(scalar_data,
             assert silo.DBWrite(f, "Decomposition/NumLocalDomains", maxproc) == 0
             assert silo.DBWrite(f, "Decomposition/NumBlocks", 1) == 0
             #assert silo.DBWrite(f, "Decomposition/LocalName", "hblk") == 0
-            localDomains = Spheral.vector_of_int(range(maxproc))
-            domainFiles = Spheral.vector_of_vector_of_int([Spheral.vector_of_int(range(maxproc))])
+            localDomains = Spheral.vector_of_int(list(range(maxproc)))
+            domainFiles = Spheral.vector_of_vector_of_int([Spheral.vector_of_int(list(range(maxproc)))])
             assert silo.DBWrite(f, "Decomposition/LocalDomains", localDomains) == 0
             assert silo.DBWrite(f, "DomainFiles", domainFiles) == 0
 
-            for iproc in xrange(maxproc):
+            for iproc in range(maxproc):
                 assert silo.DBMkDir(f, "Decomposition/gmap%i" % iproc) == 0
                 stuff = Spheral.vector_of_int([0]*12)
-                for jdim in xrange(ndim):
+                for jdim in range(ndim):
                     stuff[6+jdim] = nblocks[iproc][jdim]
                 if iproc in (0, maxproc-1):
                     assert silo.DBWrite(f, "Decomposition/gmap%i/NumNeighbors" % iproc, 1) == 0
@@ -244,7 +245,7 @@ def writeSiloQuadMesh(scalar_data,
 
         # Make sure the directories are there.
         if mpi.rank == 0:
-            for iproc in xrange(maxproc):
+            for iproc in range(maxproc):
                 pth = os.path.join(baseDirectory, procDir)
                 if not os.path.exists(pth):
                     os.makedirs(pth)
@@ -275,10 +276,10 @@ def writeSiloQuadMesh(scalar_data,
 
             # Write the domain mesh.
             coords = Spheral.vector_of_vector_of_double([Spheral.vector_of_double()]*ndim)
-            for jdim in xrange(ndim):
+            for jdim in range(ndim):
                 coords[jdim] = Spheral.vector_of_double([0.0]*nblocknodes[jdim])
                 dx = (xmaxblock[jdim] - xminblock[jdim])/nblock[jdim]
-                for i in xrange(nblocknodes[jdim]):
+                for i in range(nblocknodes[jdim]):
                     coords[jdim][i] = xminblock[jdim] + i*dx
             optlist = silo.DBoptlist()
             assert optlist.addOption(silo.DBOPT_CYCLE, cycle) == 0
@@ -291,12 +292,12 @@ def writeSiloQuadMesh(scalar_data,
 
             # Write materials.
             if materials:
-                matnos = Spheral.vector_of_int(range(len(materials)+1))
+                matnos = Spheral.vector_of_int(list(range(len(materials)+1)))
                 assert len(matnos) == len(materials) + 1
                 matlist = Spheral.vector_of_int([0]*numZones)
                 matnames = Spheral.vector_of_string(["void"])
                 for imat, nodeList in enumerate(materials):
-                    for i in xrange(numZones):
+                    for i in range(numZones):
                         if vars[0][0][i] > 0.0:
                             matlist[i] = imat + 1
                     matnames.append(nodeList.name)
@@ -333,7 +334,7 @@ def writeSiloQuadMesh(scalar_data,
     if scalar_names:
         assert len(scalar_names) == len(scalar_data)
     else:
-        scalar_names = ["scalar%i" % i for i in xrange(len(scalar_names))]
+        scalar_names = ["scalar%i" % i for i in range(len(scalar_names))]
 
     # Shuffle the scalar data into the block array structure required by silo.
     scalar_blocks = []
@@ -351,7 +352,7 @@ def writeSiloQuadMesh(scalar_data,
                                   baseName = filename,
                                   procDir = procDir,
                                   materials = materials,
-                                  vars = zip(scalar_blocks, scalar_names),
+                                  vars = list(zip(scalar_blocks, scalar_names)),
                                   label = "Spheral++ cartesian sampled output",
                                   time = time,
                                   cycle = cycle)
@@ -362,7 +363,7 @@ def writeSiloQuadMesh(scalar_data,
                         baseName = filename,
                         procDir = procDir,
                         materials = materials,
-                        vars = zip(scalar_blocks, scalar_names),
+                        vars = list(zip(scalar_blocks, scalar_names)),
                         xminblock = xminblock,
                         xmaxblock = xmaxblock,
                         nblock = nblock,

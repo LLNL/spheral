@@ -223,6 +223,15 @@ Mesh(const vector<Vector>& nodePositions,
 }
 
 //------------------------------------------------------------------------------
+// Copy
+//------------------------------------------------------------------------------
+template<typename Dimension>
+Mesh<Dimension>::
+Mesh(const Mesh<Dimension>& rhs) {
+  *this = rhs;
+}
+
+//------------------------------------------------------------------------------
 // Assignment.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -531,7 +540,9 @@ cleanEdges(const double edgeTol) {
         nodeMap[n2] = n1;
       }
     }
-    replace_if(nodeMask.begin(), nodeMask.end(), std::bind2nd(std::equal_to<unsigned>(), 2), 1);
+    replace_if(nodeMask.begin(), nodeMask.end(),
+               [] (unsigned val) { return val == 2; },
+               1);
     
     // Reassign the nodes we're renumbering before they get deleted.
     {

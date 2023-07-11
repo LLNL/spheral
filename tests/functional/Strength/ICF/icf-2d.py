@@ -158,7 +158,7 @@ if restoreCycle is None:
 
     # Get the outer node flags.
     nodesDrive.numInternalNodes = generatorDrive.numLocalNodes()
-    for i in xrange(generatorDrive.numLocalNodes()):
+    for i in range(generatorDrive.numLocalNodes()):
         outerNodeFlags[i] = int(generatorDrive.outerNodes[i] + 0.1)
 
     from ParMETISDistributeNodes import distributeNodes2d
@@ -305,7 +305,7 @@ if graphics:
         assert hrfield.numElements() == n
         assert htfield.numElements() == n
         positions = Hfield.nodeList().positions()
-        for i in xrange(n):
+        for i in range(n):
             runit = positions[i].unitVector()
             tunit = Vector2d(-(positions[i].y), positions[i].x).unitVector()
             hrfield[i] = (Hfield[i]*runit).magnitude()

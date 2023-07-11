@@ -282,7 +282,7 @@ if restoreCycle is None:
                       (topNodes,generatorTop),
                       (bottomNodes, generatorBottom))
     for nodes in nodeSet:
-        print nodes.name, ":"
+        print(nodes.name, ":")
         output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
         output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
         output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
@@ -495,7 +495,7 @@ if relaxInitialDensity and control.totalSteps == 0:
                         (bottomNodes, P3)):
         rhof = nodes.massDensity()
         epsf = nodes.specificThermalEnergy()
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             epsf[i] = P0/((gamma1 - 1.0)*rhof[i])
 
     # Force another visit dumps so we can see what changed.
@@ -513,23 +513,23 @@ else:
     control.dropRestartFile()
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e-30, control.conserve.EHistory[0])
-print "Total energy error: %g" % Eerror
+print("Total energy error: %g" % Eerror)
 
 if serialDump:
   procs = mpi.procs
   rank = mpi.rank
   serialData = []
   i,j,k = 0,0,0
-  for i in xrange(procs):
+  for i in range(procs):
     if rank == i:
         k = 0
         for nodeL in nodeSet:
-            for j in xrange(nodeL.numInternalNodes):
+            for j in range(nodeL.numInternalNodes):
                 serialData.append([nodeL.positions()[j],3.0/(nodeL.Hfield()[j].Trace()),nodeL.mass()[j],nodeL.massDensity()[j],nodeL.specificThermalEnergy()[j],k])
             k = k + 1
   serialData = mpi.reduce(serialData,mpi.SUM)
   if rank == 0:
     f = open(baseDir + "/serialDump.ascii",'w')
-    for i in xrange(len(serialData)):
+    for i in range(len(serialData)):
       f.write("{0} {1} {2} {3} {4} {5} {6} {7}\n".format(i,serialData[i][0][0],serialData[i][0][1],0.0,serialData[i][1],serialData[i][2],serialData[i][5],serialData[i][4]))
     f.close()

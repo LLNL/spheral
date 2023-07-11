@@ -58,8 +58,8 @@ private:
   void buildSendNodes(const DataBase<Dimension>& dataBase);
   void packNodeListBuffers(const DataBase<Dimension>& dataBase,
                            std::vector<int>& numNodesPerNodes,
-                           std::vector<std::string>& positionBuffers,
-                           std::vector<std::string>& Hbuffers) const;
+                           std::vector<std::vector<char>>& positionBuffers,
+                           std::vector<std::vector<char>>& Hbuffers) const;
 };
 
 }

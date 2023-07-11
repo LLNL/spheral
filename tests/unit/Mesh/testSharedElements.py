@@ -9,7 +9,7 @@ def testSharedNodes(mesh):
 
     # First check that everyone agrees about who is talking to who.
     myNeighborDomains = list(mesh.neighborDomains)
-    for sendProc in xrange(mpi.procs):
+    for sendProc in range(mpi.procs):
         otherProcs = mpi.bcast(myNeighborDomains, root=sendProc)
         if mpi.rank != sendProc:
             assert (mpi.rank in otherProcs) == (sendProc in mesh.neighborDomains)
@@ -30,7 +30,7 @@ def testSharedNodes(mesh):
     # Check that all shared nodes have been found.
     localSharedNodes = [[i for i in localNodes] for localNodes in mesh.sharedNodes]
     positions = vector_of_Vector()
-    for i in xrange(mesh.numNodes):
+    for i in range(mesh.numNodes):
         positions.append(mesh.node(i).position())
     xmin, xmax = Vector(), Vector()
     boundingBox(positions, xmin, xmax)
@@ -38,11 +38,11 @@ def testSharedNodes(mesh):
     xmax = Vector(mpi.allreduce(xmax.x, mpi.MAX), mpi.allreduce(xmax.y, mpi.MAX))
     boxInv = Vector(1.0/(xmax.x - xmin.x),
                     1.0/(xmax.y - xmin.y))
-    nodeHashes = [hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in xrange(mesh.numNodes)]
+    nodeHashes = [hashPosition(mesh.node(i).position(), xmin, xmax, boxInv) for i in range(mesh.numNodes)]
     nodeHashes2ID = {}
-    for i in xrange(len(nodeHashes)):
+    for i in range(len(nodeHashes)):
         nodeHashes2ID[nodeHashes[i]] = i
-    for sendProc in xrange(mpi.procs):
+    for sendProc in range(mpi.procs):
         otherNodeHashes = mpi.bcast(nodeHashes, root=sendProc)
         if sendProc != mpi.rank:
             for hashi in otherNodeHashes:
@@ -55,13 +55,13 @@ def testSharedNodes(mesh):
     # Same for faces.
     localSharedFaces = [[i for i in localFaces] for localFaces in mesh.sharedFaces]
     positions = vector_of_Vector()
-    for i in xrange(mesh.numFaces):
+    for i in range(mesh.numFaces):
         positions.append(mesh.face(i).position())
-    faceHashes = [hashPosition(mesh.face(i).position(), xmin, xmax, boxInv) for i in xrange(mesh.numFaces)]
+    faceHashes = [hashPosition(mesh.face(i).position(), xmin, xmax, boxInv) for i in range(mesh.numFaces)]
     faceHashes2ID = {}
-    for i in xrange(len(faceHashes)):
+    for i in range(len(faceHashes)):
         faceHashes2ID[faceHashes[i]] = i
-    for sendProc in xrange(mpi.procs):
+    for sendProc in range(mpi.procs):
         otherFaceHashes = mpi.bcast(faceHashes, root=sendProc)
         if sendProc != mpi.rank:
             for hashi in otherFaceHashes:

@@ -22,7 +22,7 @@ def createNodes(gens, dx):
     rho = nodes.massDensity()
     vel = nodes.velocity()
     H0 = 1.0/(dx*nodes.nodesPerSmoothingScale) * SymTensor.one
-    for i in xrange(len(gens)):
+    for i in range(len(gens)):
         xi = gens[i]
         pos[i] = xi
         H[i] = H0
@@ -47,13 +47,13 @@ def createNodes(gens, dx):
 generators = vector_of_Vector()
 nx = 30
 dx = 1.0
-print "Creating generators for regular mesh."
-for iy in xrange(nx):
-    for ix in xrange(nx):
+print("Creating generators for regular mesh.")
+for iy in range(nx):
+    for ix in range(nx):
         generators.append(Vector((ix + 0.5)*dx,
                                  (iy + 0.5)*dx))
 nodes, db = createNodes(generators, dx)
-print "Generating regular mesh."
+print("Generating regular mesh.")
 mesh, void = generatePolygonalMesh([nodes], bcs,
                                    generateVoid = False,
                                    removeBoundaryZones = True)

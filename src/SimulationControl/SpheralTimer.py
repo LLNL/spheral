@@ -20,14 +20,14 @@ class SpheralTimer:
 
     def start(self):
         if self.inTimeCycle:
-            print "Error in timer, attempt to start before last stop."
+            print("Error in timer, attempt to start before last stop.")
         else:
             self.lastStartTime = time.time()
             self.inTimeCycle = 1
 
     def stop(self):
         if not self.inTimeCycle:
-            print "Error in timer, attempt to stop before start."
+            print("Error in timer, attempt to stop before start.")
         else:
             self.lastStopTime = time.time()
             self.inTimeCycle = 0
@@ -36,15 +36,15 @@ class SpheralTimer:
             self.elapsedTime = self.elapsedTime + self.lastInterval
 
     def printStatus(self):
-        print "################################################################################"
+        print("################################################################################")
         if self.__label:
-            print "Timing statistics for ", self.__label
-        print "All reports listed as (min, max, avg) across processors."
-        print "Last interval time: \t", self.globalStatistics(self.lastInterval)
-        print "Total elapsed time: \t", self.globalStatistics(self.elapsedTime)
-        print "Total number of times invoked: \t", self.numInvocations
-        print "Average time interval: \t", self.globalStatistics(self.elapsedTime/(self.numInvocations + 1.0e-30))
-        print "################################################################################"
+            print("Timing statistics for ", self.__label)
+        print("All reports listed as (min, max, avg) across processors.")
+        print("Last interval time: \t", self.globalStatistics(self.lastInterval))
+        print("Total elapsed time: \t", self.globalStatistics(self.elapsedTime))
+        print("Total number of times invoked: \t", self.numInvocations)
+        print("Average time interval: \t", self.globalStatistics(self.elapsedTime/(self.numInvocations + 1.0e-30)))
+        print("################################################################################")
 
     def globalStatistics(self, var):
         minVar = mpi.allreduce(var, mpi.MIN)

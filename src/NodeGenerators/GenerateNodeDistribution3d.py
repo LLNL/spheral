@@ -211,7 +211,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
 
         # If requested, shift the nodes.
         if offset:
-            for i in xrange(len(self.x)):
+            for i in range(len(self.x)):
                 self.x[i] += offset[0]
                 self.y[i] += offset[1]
                 self.z[i] += offset[2]
@@ -226,7 +226,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                                                               self.H)
 
         # Make rho a list
-        self.rho = [self.rhofunc(Vector3d(self.x[i], self.y[i], self.z[i])) for i in xrange(len(self.m))]
+        self.rho = [self.rhofunc(Vector3d(self.x[i], self.y[i], self.z[i])) for i in range(len(self.m))]
 
         # Initialize the base class.  If "serialInitialization" is True, this
         # is where the points are broken up between processors as well.
@@ -287,12 +287,12 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         r0 = rmin + 2**(log(nTheta*theta/(2.0*pi))/log(2))*dr/theta
         #r0 = rmin + dr/dTheta
 
-        print 'optimalSphericalDistribution: Cutoff radius is ', r0
+        print('optimalSphericalDistribution: Cutoff radius is ', r0)
         nRadial0 = max(0, min(nRadial, int((r0 - rmin)/dr)))
         nRadial1 = nRadial - nRadial0
         r0 = rmin + nRadial0*dr
-        print 'Shifted to ', r0
-        print nRadial0, nRadial1
+        print('Shifted to ', r0)
+        print(nRadial0, nRadial1)
 
         if nRadial0 and not nRadial1:
             # Only use constant spacing for the nodes.
@@ -394,7 +394,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         # Loop over each shell.
         rinner = 0.0
         router = 0.0
-        for ishell in xrange(nRadial):
+        for ishell in range(nRadial):
 
             # Radii of this shell.
             rinner = router
@@ -471,7 +471,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         phi = []
         import random
         g = random.Random(seed)
-        for i in xrange(n):
+        for i in range(n):
             theta.append(g.uniform(thetamin, thetamax))
             phi.append(g.uniform(phimin, phimax))
 
@@ -484,18 +484,18 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         tolDisplacement = tolerance*meanSpacing
         maxDisplacement = 2.0*tolDisplacement
         while iter < maxIterations and maxDisplacement > tolDisplacement:
-            print 'Iteration %i for shell @ r=%f' % (iter, r)
+            print('Iteration %i for shell @ r=%f' % (iter, r))
             maxDisplacement = 0.0
             iter += 1
 
             # Loop over each point in the shell.
-            for i in xrange(n):
+            for i in range(n):
                 xi = r*theta[i]
                 yi = r*phi[i]
 
                 # Loop over every other point, and push it away if it's
                 # within the mean seperation from this point.
-                for j in xrange(n):
+                for j in range(n):
                     dx = r*theta[j] - xi
                     dy = r*phi[j] - yi
                     sep = sqrt(dx*dx + dy*dy)
@@ -512,7 +512,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         x = []
         y = []
         z = []
-        for i in xrange(n):
+        for i in range(n):
             x.append(r*sin(phi[i])*cos(theta[i]))
             y.append(r*sin(phi[i])*sin(theta[i]))
             z.append(r*cos(phi[i]))
@@ -544,7 +544,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         assert isinstance(rhofunc, ConstantRho)
         rho = rhofunc(Vector3d.zero)
 
-        for i in xrange(0, nRadial):
+        for i in range(0, nRadial):
             rInner = rmin + i*dr
             rOuter = rmin + (i + 1)*dr
             ri = rmin + (i + 0.5)*dr
@@ -554,7 +554,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
 
             hTheta = 1.0/(nNodePerh*ri*dTheta)
 
-            for j in xrange(nTheta):
+            for j in range(nTheta):
                 thetai = (j + 0.5)*dTheta
                 x.append(ri*cos(thetai))
                 y.append(ri*sin(thetai))
@@ -605,7 +605,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         H = []
 
         imin, imax = self.globalIDRange(nx*ny*nz)
-        for iglobal in xrange(imin, imax):
+        for iglobal in range(imin, imax):
             i = iglobal % nx
             j = (iglobal // nx) % ny
             k = iglobal // (nx*ny)
@@ -663,15 +663,15 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         m = []
         H = []
 
-        for k in xrange(nz):
-            for j in xrange(ny):
-                for i in xrange(nx):
+        for k in range(nz):
+            for j in range(ny):
+                for i in range(nx):
                     xx = xmin[0] + (i + 0.5)*dx
                     yy = xmin[1] + (j + 0.5)*dy
                     zz = xmin[2] + (k + 0.5)*dz
                     r = sqrt(xx*xx + yy*yy + zz*zz)
-                    if ((r >= rmin or rmin is None) and
-                        (r <= rmax or rmax is None)):
+                    if ((rmin is None or r >= rmin) and
+                        (rmax is None or r <= rmax)):
                         x.append(xx)
                         y.append(yy)
                         z.append(zz)
@@ -715,9 +715,9 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         assert isinstance(rhofunc, ConstantRho)
         rho = rhofunc(Vector3d.zero)
 
-        for iz in xrange(nz):
+        for iz in range(nz):
             zi = zmin + (iz + 0.5)*dz
-            for ir in xrange(nr):
+            for ir in range(nr):
                 rInner = rmin + ir*dr
                 rOuter = rInner + dr
                 ri = 0.5*(rInner + rOuter)
@@ -728,7 +728,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                 mring = 0.5*(rOuter**2 - rInner**2)*Dtheta*dz*rho
                 mi = mring/ntheta
                 htheta = 1.0/(nNodePerh*dtheta*ri)
-                for itheta in xrange(ntheta):
+                for itheta in range(ntheta):
                     thetai = thetamin + (itheta + 0.5)*dtheta
                     x.append(ri*cos(thetai))
                     y.append(ri*sin(thetai))
@@ -781,9 +781,9 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         m = []
         H = []
 
-        for iz in xrange(nz):
+        for iz in range(nz):
             zi = zmin + (iz + 0.5)*dz
-            for ir in xrange(nr):
+            for ir in range(nr):
                 rInner = rmin + ir*dr
                 rOuter = rInner + dr
                 ri = 0.5*(rInner + rOuter)
@@ -791,7 +791,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
                 mring = 0.5*(rOuter**2 - rInner**2)*Dtheta*dz*rho
                 mi = mring/ntheta
                 htheta = 1.0/(nNodePerh*dtheta*ri)
-                for itheta in xrange(ntheta):
+                for itheta in range(ntheta):
                     thetai = thetamin + (itheta + 0.5)*dtheta
                     x.append(ri*cos(thetai))
                     y.append(ri*sin(thetai))
@@ -846,7 +846,7 @@ class GenerateNodeDistribution3d(NodeGeneratorBase):
         H = []
 
         imin, imax = self.globalIDRange(nx*ny*nz)
-        for iglobal in xrange(imin, imax):
+        for iglobal in range(imin, imax):
             i = iglobal % nx
             j = (iglobal // nx) % ny
             k = iglobal // (nx*ny)
@@ -904,7 +904,7 @@ class CylindricalSpunGenerator3d(NodeGeneratorBase):
         self.globalIDs = [0]*n
 
         # Convert the 2-D H tensors to 3-D, and correct the masses.
-        for i in xrange(n):
+        for i in range(n):
             xi = self.x[i]
             yi = self.y[i]
             H2d = self.H[i]
@@ -945,7 +945,7 @@ class CylindricalSpunGenerator3d(NodeGeneratorBase):
         # Allow some 3D rejecter logic.
         if rejecter:
             self.x, self.y, self.z, self.m, self.H, self.globalIDs = [], [], [], [], [], []
-            for i in xrange(len(xvec)):
+            for i in range(len(xvec)):
                 if rejecter.accept(xvec[i],yvec[i],zvec[i]):
                     self.x.append(xvec[i])
                     self.y.append(yvec[i])
@@ -1105,14 +1105,14 @@ class GenerateMonteCarloProfile3d(NodeGeneratorBase):
             self.m0 = m0
             n = self.totalMass/m0
         assert self.m0 > 0.0
-        print "Nominal mass per node of %g for %d nodes" % (self.m0,n)
+        print("Nominal mass per node of %g for %d nodes" % (self.m0,n))
         
         # Get the normalization constant for radial probability distribution
         norm = self.integrateDensityFunction(self.densityProfileMethod,rmin,rmax)
         pMax = 0
         
         dr = (rmax-rmin)/10000.0
-        for i in xrange(10000):
+        for i in range(10000):
             ri = rmin + dr*i
             pMax = max(self.densityProfileMethod(ri)/norm,pMax)
 
@@ -1178,7 +1178,7 @@ class GenerateMonteCarloProfile3d(NodeGeneratorBase):
                         self.H.append(Hi)
 
 
-        print "Generated a total of %i nodes." % len(self.x)
+        print("Generated a total of %i nodes." % len(self.x))
 
         # Make sure the total mass is what we intend it to be, by applying
         # a multiplier to the particle masses.
@@ -1236,7 +1236,7 @@ class GenerateMonteCarloProfile3d(NodeGeneratorBase):
         
         result = 0
         dr = (rmax-rmin)/nbins
-        for i in xrange(1,nbins):
+        for i in range(1,nbins):
             r1 = rmin + (i-1)*dr
             r2 = rmin + i*dr
             result += 0.5*dr*(r2*r2*densityProfileMethod(r2)+r1*r1*densityProfileMethod(r1))
@@ -1252,7 +1252,7 @@ class GenerateMonteCarloProfile3d(NodeGeneratorBase):
 
         result = 0
         dr = (rmax-rmin)/nbins
-        for i in xrange(1,nbins):
+        for i in range(1,nbins):
             r1 = rmin + (i-1)*dr
             r2 = rmin + i*dr
             result += 0.5*dr*norm*(densityProfileMethod(r2)+densityProfileMethod(r1))
@@ -1314,15 +1314,15 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
                                                  rmin, rmax,
                                                  thetaMin, thetaMax,
                                                  phiMin, phiMax)
-        print "Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
-            (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax)
+        print("Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
+            (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax))
 
         # Now set the nominal mass per node.
         self.m0 = self.totalMass/(4.0/3.0*pi*pow(self.n,3))
         if m0 > 0:
             self.m0 = m0
         assert self.m0 > 0.0
-        print "Nominal mass per node of %g." % self.m0
+        print("Nominal mass per node of %g." % self.m0)
 
         # OK, we now know enough to generate the node positions.
         from Spheral import SymTensor3d
@@ -1347,7 +1347,7 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
             #print "nshell=%d mshell=%f m0=%f" % (nshell,mshell,self.m0)
             #mi      = self.m0 * (mshell/(nshell*self.m0))
             
-            for n in xrange(nshell):
+            for n in range(nshell):
                 random.seed()
                 u       = random.random()
                 v       = random.random()
@@ -1366,7 +1366,7 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
             ri = max(0.0, ri - dr)
 
 
-        print "Generated a total of %i nodes." % len(self.x)
+        print("Generated a total of %i nodes." % len(self.x))
 
         # Make sure the total mass is what we intend it to be, by applying
         # a multiplier to the particle masses.
@@ -1375,9 +1375,9 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
             sumMass += m
         assert sumMass > 0.0
         massCorrection = self.totalMass/sumMass
-        for i in xrange(len(self.m)):
+        for i in range(len(self.m)):
             self.m[i] *= massCorrection
-        print "Applied a mass correction of %f to ensure total mass is %f." % (massCorrection, self.totalMass)
+        print("Applied a mass correction of %f to ensure total mass is %f." % (massCorrection, self.totalMass))
 
         # Have the base class break up the serial node distribution
         # for parallel cases.
@@ -1428,7 +1428,7 @@ class GenerateRandomNodesMatchingProfile3d(NodeGeneratorBase):
         
         result = 0
         dr = (rmax-rmin)/nbins
-        for i in xrange(1,nbins):
+        for i in range(1,nbins):
             r1 = rmin + (i-1)*dr
             r2 = rmin + i*dr
             result += 0.5*dr*(r2*r2*densityProfileMethod(r2)+r1*r1*densityProfileMethod(r1))
@@ -1486,13 +1486,13 @@ class GenerateLongitudinalNodesMatchingProfile3d(NodeGeneratorBase):
                                                  rmin, rmax,
                                                  thetaMin, thetaMax,
                                                  phiMin, phiMax)
-        print "Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
-            (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax)
+        print("Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
+            (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax))
                 
         # Now set the nominal mass per node.
         self.m0 = self.totalMass/(4.0/3.0*pi*pow(self.n,3))
         assert self.m0 > 0.0
-        print "Nominal mass per node of %g." % self.m0
+        print("Nominal mass per node of %g." % self.m0)
             
         # OK, we now know enough to generate the node positions.
         self.x, self.y, self.z, self.m, self.H = \
@@ -1502,7 +1502,7 @@ class GenerateLongitudinalNodesMatchingProfile3d(NodeGeneratorBase):
                                                 thetaMin, thetaMax,
                                                 phiMin, phiMax,
                                                 nNodePerh)
-        print "Generated a total of %i nodes." % len(self.x)
+        print("Generated a total of %i nodes." % len(self.x))
             
         # Make sure the total mass is what we intend it to be, by applying
         # a multiplier to the particle masses.
@@ -1511,9 +1511,9 @@ class GenerateLongitudinalNodesMatchingProfile3d(NodeGeneratorBase):
             sumMass += m
         assert sumMass > 0.0
         massCorrection = self.totalMass/sumMass
-        for i in xrange(len(self.m)):
+        for i in range(len(self.m)):
             self.m[i] *= massCorrection
-        print "Applied a mass correction of %f to ensure total mass is %f." % (massCorrection, self.totalMass)
+        print("Applied a mass correction of %f to ensure total mass is %f." % (massCorrection, self.totalMass))
 
         # Have the base class break up the serial node distribution
         # for parallel cases.
@@ -1564,7 +1564,7 @@ class GenerateLongitudinalNodesMatchingProfile3d(NodeGeneratorBase):
         
         result = 0
         dr = (rmax-rmin)/nbins
-        for i in xrange(1,nbins):
+        for i in range(1,nbins):
             r1 = rmin + (i-1)*dr
             r2 = rmin + i*dr
             result += 0.5*dr*(r2*r2*densityProfileMethod(r2)+r1*r1*densityProfileMethod(r1))
@@ -1615,14 +1615,14 @@ class GenerateLongitudinalNodesMatchingProfile3d(NodeGeneratorBase):
             
                              
             # Now assign the nodes for this radius.
-            for i in xrange(nTheta):
+            for i in range(nTheta):
                 thetai = thetaMin + (i + 0.5)*dTheta
                 rp = ri*sin(thetai)
                 arclength = arcPhi * rp
                 nPhi = max(1,int(arclength/dPhi))
                 dPhij = arcPhi/nPhi
                 #print "at r=%g theta=%g rp=%g nTheta=%d nPhi=%d" % (ri,thetai,rp,nTheta,nPhi)
-                for j in xrange(nPhi):
+                for j in range(nPhi):
                     phij = phiMin + (j+0.5)*dPhij
                     x.append(ri*cos(thetai)*sin(phij))
                     y.append(ri*sin(thetai)*sin(phij))
@@ -1668,8 +1668,8 @@ class GenerateIdealDiskMatchingProfile3d(NodeGeneratorBase):
         self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
                                                  rmin, rmax,
                                                  zmax)
-        print "Total mass of %g in the range r = (%g, %g), z = (0, %g)" % \
-            (self.totalMass, rmin, rmax, zmax)
+        print("Total mass of %g in the range r = (%g, %g), z = (0, %g)" % \
+            (self.totalMass, rmin, rmax, zmax))
         
         self.laminarMass = self.integrateLaminarMass(self.densityProfileMethod,rmin,rmax)
 
@@ -1699,7 +1699,7 @@ class GenerateIdealDiskMatchingProfile3d(NodeGeneratorBase):
                                           0.0,0.0,1.0/hi)
                                           
                 # Now assign the nodes for this radius.
-                for i in xrange(nTheta):
+                for i in range(nTheta):
                     thetai = (i + 0.5)*dTheta
                     self.x.append(ri*cos(thetai))
                     self.y.append(ri*sin(thetai))
@@ -1746,11 +1746,11 @@ class GenerateIdealDiskMatchingProfile3d(NodeGeneratorBase):
         dz = zmax/nzbins
         I = []
         
-        for i in xrange(1,nrbins):
+        for i in range(1,nrbins):
             r1 = rmin + (i-1)*dr
             r2 = rmin + i*dr
             ij = 0
-            for j in xrange(1,nzbins):
+            for j in range(1,nzbins):
                 z1 = (j-1)*dz
                 z2 = j*dz
                 ij += 0.5*r1*dz*(densityProfileMethod(r1,z1)+densityProfileMethod(r1,z2))
@@ -1769,7 +1769,7 @@ class GenerateIdealDiskMatchingProfile3d(NodeGeneratorBase):
         h = (rmax - rmin)/nrbins
         result = (rmin*densityProfileMethod(rmin,0) +
                   rmax*densityProfileMethod(rmax,0))
-        for i in xrange(1, nrbins):
+        for i in range(1, nrbins):
             ri = rmin + i*h
             if i % 2 == 0:
                 result += 4.0*ri*densityProfileMethod(ri,0)
@@ -1831,8 +1831,8 @@ class GenerateIcosahedronMatchingProfile3d(NodeGeneratorBase):
                  rejecter=None,
                  m0 = 0.0):
         
-        print "This generator has been deprecated and will always fail."
-        print "Please import * from RecursivePrimitiveRefinementGenerator.py and use RPRPSGenerator()"
+        print("This generator has been deprecated and will always fail.")
+        print("Please import * from RecursivePrimitiveRefinementGenerator.py and use RPRPSGenerator()")
         return
 
 class GenerateSpiralMatchingProfile3d(NodeGeneratorBase):
@@ -1896,13 +1896,13 @@ class GenerateSpiralMatchingProfile3d(NodeGeneratorBase):
                                                      0.0, rMaxForMassMatching,
                                                      thetaMin, thetaMax,
                                                      phiMin, phiMax)
-        print "Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
-            (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax)
+        print("Total mass of %g in the range r = (%g, %g), theta = (%g, %g), phi = (%g, %g)" % \
+            (self.totalMass, rmin, rmax, thetaMin, thetaMax, phiMin, phiMax))
 
         # Now set the nominal mass per node.
         self.m0 = self.totalMass/(4.0/3.0*pi*pow(self.n,3))
         assert self.m0 > 0.0
-        print "Nominal mass per node of %g." % self.m0
+        print("Nominal mass per node of %g." % self.m0)
 
         from Spheral import SymTensor3d
         self.x = []
@@ -1944,7 +1944,7 @@ class GenerateSpiralMatchingProfile3d(NodeGeneratorBase):
             
             if (nshell > 1):
                 p = 0
-                for i in xrange(1,nshell+1):
+                for i in range(1,nshell+1):
                     h = -1.0+(2.0*(i-1.0)/(nshell-1.0))
                     t = acos(h)
                     
@@ -1964,8 +1964,8 @@ class GenerateSpiralMatchingProfile3d(NodeGeneratorBase):
             #mi = self.m0 * (float(nshell)/float(len(self.positions)))
             
             rii = ri - 0.5*dr
-            print "at r=%g, wanted %d; computed %d total nodes with mass=%g" %(rii,nshell,len(self.positions),mi)
-            for n in xrange(len(self.positions)):
+            print("at r=%g, wanted %d; computed %d total nodes with mass=%g" %(rii,nshell,len(self.positions),mi))
+            for n in range(len(self.positions)):
                 x       = rii*self.positions[n][0]
                 y       = rii*self.positions[n][1]
                 z       = rii*self.positions[n][2]
@@ -1979,8 +1979,8 @@ class GenerateSpiralMatchingProfile3d(NodeGeneratorBase):
                 rot2 = [[cos(dt2),0.0,sin(dt2)],[0.0,1.0,0.0],[-sin(dt2),0.0,cos(dt2)]]
                 pos = [x,y,z]
                 posp= [0,0,0]
-                for k in xrange(3):
-                    for j in xrange(3):
+                for k in range(3):
+                    for j in range(3):
                         posp[k] += pos[j]*rot[k][j]
                 
                 x = posp[0]
@@ -1989,8 +1989,8 @@ class GenerateSpiralMatchingProfile3d(NodeGeneratorBase):
                 
                 pos = [x,y,z]
                 posp= [0,0,0]
-                for k in xrange(3):
-                    for j in xrange(3):
+                for k in range(3):
+                    for j in range(3):
                         posp[k] += pos[j]*rot2[k][j]
                 x = posp[0]
                 y = posp[1]
@@ -2015,12 +2015,12 @@ class GenerateSpiralMatchingProfile3d(NodeGeneratorBase):
                 
         # If requested, shift the nodes.
         if offset:
-            for i in xrange(len(self.x)):
+            for i in range(len(self.x)):
                 self.x[i] += offset[0]
                 self.y[i] += offset[1]
                 self.z[i] += offset[2]
         
-        print "Generated a total of %i nodes." % len(self.x)
+        print("Generated a total of %i nodes." % len(self.x))
         NodeGeneratorBase.__init__(self, True,
                                    self.x, self.y, self.z, self.m, self.H)
         return
@@ -2070,7 +2070,7 @@ class GenerateSpiralMatchingProfile3d(NodeGeneratorBase):
         
         result = 0
         dr = (rmax-rmin)/nbins
-        for i in xrange(1,nbins):
+        for i in range(1,nbins):
             r1 = rmin + (i-1)*dr
             r2 = rmin + i*dr
             result += 0.5*dr*(r2*r2*densityProfileMethod(r2)+r1*r1*densityProfileMethod(r1))

@@ -16,15 +16,15 @@ title("1-D integrated hydro test -- planar LeBlanc shock tube problem")
 def geometricNodeDistribution(nx, x0, x1, rho, hmultiplier, m0, m1):
     f = (m1/m0)**(1.0/nx) - 1
     integral = 0.0
-    for i in xrange(nx):
+    for i in range(nx):
         integral = integral + (1.0 + f)**i
     dx0 = (x1 - x0)/integral
-    print "x0, x1", x0, x0 + integral*dx0
+    print("x0, x1", x0, x0 + integral*dx0)
 
     x = [x0]
     m = [m0]
     h = [1.0/(hmultiplier*dx0)]
-    for i in xrange(1, nx):
+    for i in range(1, nx):
         facprev = (1.0 + f)**(i - 1)
         dxprev = dx0*facprev
         fac = (1.0 + f)**i

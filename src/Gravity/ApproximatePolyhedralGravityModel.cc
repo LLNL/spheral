@@ -21,18 +21,21 @@ ApproximatePolyhedralGravityModel::
 ApproximatePolyhedralGravityModel(const GeomPolyhedron & poly, const double Mass, const double G):
   mNumQuadraturePoints(poly.facets().size()),
   mQuadraturePoints(poly.facetCentroids()),
-  mValues(poly.facetAreaVectors()){
+  mValues(poly.facetAreaVectors()),
+  mResolutions(poly.facets().size(), std::numeric_limits<double>::max()) {
     
-	  auto rho = Mass/poly.volume();
-
-    mResolutions.reserve(this->numQuadraturePoints());
-
-	  for(unsigned int i=0; i < this->numQuadraturePoints(); i++){
-      Scalar A = mValues[i].magnitude(); 
-      mResolutions[i] = std::sqrt(A);
-      mValues[i] *= G*rho;
+  auto rho = Mass/poly.volume();
+  const auto& facets = poly.facets();
+  const auto& verts = poly.vertices();
+  for (auto i = 0u; i < facets.size(); ++i) {
+    const auto centroid = facets[i].position();
+    const auto& iverts = facets[i].ipoints();
+    const auto nverts = iverts.size();
+    for (auto j = 0u; j < nverts; ++j) {
+      mResolutions[i] = std::min(mResolutions[i], (0.5*(verts[iverts[j]] + verts[iverts[(j+1u)%nverts]]) - centroid).magnitude());
     }
-
+    mValues[i] *= G*rho;
+  }
 }
 
 //--------------------------------------------------------------------------------------------
@@ -56,7 +59,7 @@ acceleration(const Dim<3>::Vector& position) const {
   const std::vector<Scalar>& res = this->resolutions();
 
   for(unsigned int i=0; i < this->numQuadraturePoints(); i++){
-    Scalar r = (position - quadPoints[i]).magnitude();
+    Scalar r = (quadPoints[i] - position).magnitude();
     acceleration -= GrhoAn[i]/std::max(r,res[i]);
   }
 
@@ -77,8 +80,8 @@ potential(const Dim<3>::Vector& position) const {
   const std::vector<Scalar>& res = this->resolutions();
 
   for(unsigned int i=0; i < this->numQuadraturePoints(); i++){
-    Vector r = (position - quadPoints[i]);
-    potential -= GrhoAn[i].dot(r)/std::max(r.magnitude(),0.001*res[i]);
+    Vector r = (quadPoints[i] - position);
+    potential -= GrhoAn[i].dot(r)/std::max(r.magnitude(),0.1*res[i]);
   }
 
   return 0.5*potential;

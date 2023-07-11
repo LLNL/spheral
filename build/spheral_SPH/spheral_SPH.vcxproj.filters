@@ -36,9 +36,6 @@
     <ClCompile Include="..\..\src\SPH\SPHHydroBaseRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\SPH\SPHHydroBaseGSRZ.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\SPH\correctSPHSumMassDensityInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>

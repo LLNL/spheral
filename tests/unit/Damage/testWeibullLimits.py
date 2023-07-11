@@ -31,30 +31,30 @@ chi = (Nflaws/(k*V))**mInv
 #-------------------------------------------------------------------------------
 random.seed(seed)
 minflaws0, maxflaws0 = [2.0]*Ntrials, [-1.0]*Ntrials
-for itrial in xrange(Ntrials):
-    for i in xrange(Nflaws):
+for itrial in range(Ntrials):
+    for i in range(Nflaws):
         fi = chi*random.random()**mInv
         minflaws0[itrial] = min(minflaws0[itrial], fi)
         maxflaws0[itrial] = max(maxflaws0[itrial], fi)
     #print "    %5i/%5i: Min/max flaws: [%g : %g]" % (itrial, Ntrials, minflaws0[itrial], maxflaws0[itrial])
-print "After creating flaw distributions the hard way:"
-print "  Range of minflaws: [%g : %g]" % (min(minflaws0), max(minflaws0))
-print "  Range of maxflaws: [%g : %g]" % (min(maxflaws0), max(maxflaws0))
+print("After creating flaw distributions the hard way:")
+print("  Range of minflaws: [%g : %g]" % (min(minflaws0), max(minflaws0)))
+print("  Range of maxflaws: [%g : %g]" % (min(maxflaws0), max(maxflaws0)))
 
 #-------------------------------------------------------------------------------
 # Generate distributions of the expected min/max flaws for comparison
 #-------------------------------------------------------------------------------
-minflaws = [chi * (1.0 - random.random()**(1.0/Nflaws))**mInv for i in xrange(Ntrials)]
-maxflaws = [chi * random.random()**(1.0/(m*Nflaws)) for i in xrange(Ntrials)]
-print "Using math to estimate min/max flaw ranges:"
-print "  Range of minflaws: [%g : %g]" % (min(minflaws), max(minflaws))
-print "  Range of maxflaws: [%g : %g]" % (min(maxflaws), max(maxflaws))
+minflaws = [chi * (1.0 - random.random()**(1.0/Nflaws))**mInv for i in range(Ntrials)]
+maxflaws = [chi * random.random()**(1.0/(m*Nflaws)) for i in range(Ntrials)]
+print("Using math to estimate min/max flaw ranges:")
+print("  Range of minflaws: [%g : %g]" % (min(minflaws), max(minflaws)))
+print("  Range of maxflaws: [%g : %g]" % (min(maxflaws), max(maxflaws)))
 
 #-------------------------------------------------------------------------------
 # Compute the ratio of the effective number of flaws to our target number
 #-------------------------------------------------------------------------------
 Neffratio = [(1.0 + k*V*(epsmax**m - epsmin**m))/Nflaws for epsmin, epsmax in zip(minflaws, maxflaws)]
-print "  Range of Neff/Nflaws: [%g : %g]" % (min(Neffratio), max(Neffratio))
+print("  Range of Neff/Nflaws: [%g : %g]" % (min(Neffratio), max(Neffratio)))
 
 #-------------------------------------------------------------------------------
 # Now plot the results.

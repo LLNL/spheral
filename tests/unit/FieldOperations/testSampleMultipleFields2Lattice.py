@@ -90,25 +90,25 @@ class TestSampleMultipleFields2Lattice:
         gradvelarray = tensor_samples[0]
 
         # See if the resulting fields are constant enough.
-        self.failUnless(min([fuzzyEqual(x, self.rho0, self.scalarTol) for x in rhoarray]),
+        self.assertTrue(min([fuzzyEqual(x, self.rho0, self.scalarTol) for x in rhoarray]),
                         "Failing rho comparison: expect=%g min=%g, max=%g, tol=%g" % (self.rho0,
                                                                                       min(rhoarray),
                                                                                       max(rhoarray),
                                                                                       self.scalarTol))
-        self.failUnless(min([fuzzyEqual(x, self.eps0, self.scalarTol) for x in epsarray]),
+        self.assertTrue(min([fuzzyEqual(x, self.eps0, self.scalarTol) for x in epsarray]),
                         "Failing eps comparison: expect=%g min=%g, max=%g, tol=%g" % (self.eps0,
                                                                                       min(epsarray),
                                                                                       max(epsarray),
                                                                                       self.scalarTol))
-        self.failUnless(min([fuzzyEqual((x - self.v0).magnitude(), 0.0, self.vectorTol) for x in velarray]),
+        self.assertTrue(min([fuzzyEqual((x - self.v0).magnitude(), 0.0, self.vectorTol) for x in velarray]),
                         "Failing vel comparison: min=%g, max=%g, tol=%g" % (min((x - self.v0).magnitude() for x in velarray),
                                                                             max((x - self.v0).magnitude() for x in velarray),
                                                                             self.vectorTol))
-        self.failUnless(min([fuzzyEqual((x - self.gradv0).doubledot(x - self.gradv0), 0.0, self.tensorTol) for x in gradvelarray]),
+        self.assertTrue(min([fuzzyEqual((x - self.gradv0).doubledot(x - self.gradv0), 0.0, self.tensorTol) for x in gradvelarray]),
                         "Failing gradv comparison: min=%g, max=%g, tol=%g" % (min([(x - self.gradv0).doubledot(x - self.gradv0) for x in gradvelarray]),
                                                                               max([(x - self.gradv0).doubledot(x - self.gradv0) for x in gradvelarray]),
                                                                               self.tensorTol))
-        self.failUnless(min([fuzzyEqual((x - self.H0).doubledot(x - self.H0), 0.0, self.tensorTol) for x in Harray]),
+        self.assertTrue(min([fuzzyEqual((x - self.H0).doubledot(x - self.H0), 0.0, self.tensorTol) for x in Harray]),
                         "Failing H comparison: min=%g, max=%g, tol=%g" % (min([(x - self.H0).doubledot(x - self.H0) for x in Harray]),
                                                                           max([(x - self.H0).doubledot(x - self.H0) for x in Harray]),
                                                                           self.tensorTol))

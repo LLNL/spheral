@@ -34,7 +34,7 @@ class SphericalRejecterBlob:
         assert (len(y) == n and len(z) == n and len(m) == n and len(H) == n)
         xnew, ynew, znew, mnew, Hnew = [], [], [], [], []
         R2 = self.radius**2
-        for i in xrange(n):
+        for i in range(n):
             if ((x[i] - self.origin[0])**2 +
                 (y[i] - self.origin[1])**2 +
                 (z[i] - self.origin[2])**2 < R2):
@@ -59,7 +59,7 @@ class SphericalRejecter:
         assert (len(y) == n and len(z) == n and len(m) == n and len(H) == n)
         xnew, ynew, znew, mnew, Hnew = [], [], [], [], []
         R2 = self.radius**2
-        for i in xrange(n):
+        for i in range(n):
             if ((x[i] - self.origin[0])**2 +
                 (y[i] - self.origin[1])**2 +
                 (z[i] - self.origin[2])**2 >= R2):
@@ -243,7 +243,7 @@ tCrush = 2.0*br*sqrt(chi)/vext
 tKH = 1.6*tCrush
 goalTime = goalTKH * tKH
 
-print "Computed times (tCrush, tKH, goalTime) = (%g, %g, %g)" % (tCrush, tKH, goalTime)
+print("Computed times (tCrush, tKH, goalTime) = (%g, %g, %g)" % (tCrush, tKH, goalTime))
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -358,7 +358,7 @@ else:
 distributeNodes3d((outerNodes, generatorOuter),
                   (innerNodes, generatorInner))
 for nodes in nodeSet:
-    print nodes.name, ":"
+    print(nodes.name, ":")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
@@ -377,7 +377,7 @@ del nodes
 #    vel[i]=Vector(velx,vely)
 
 vel = outerNodes.velocity() #wind velocity
-for i in xrange(outerNodes.numInternalNodes):
+for i in range(outerNodes.numInternalNodes):
     vel[i].z = vext
 
 #-------------------------------------------------------------------------------

@@ -1,7 +1,8 @@
 # ------------------------------------------------------------------------------
-# JOB TEMPLATES
+# CI Job Scripts
+# ------------------------------------------------------------------------------
 
-.build_and_test:
+.build:
   stage: build_and_install
   script:
     - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID
@@ -9,10 +10,18 @@
     - echo $CI_BUILD_DIR && echo $CI_PROJECT_DIR
     - mkdir -p $CI_BUILD_DIR && cp -a $CI_PROJECT_DIR/. $CI_BUILD_DIR
     - cd $CI_BUILD_DIR
+    - echo $SPEC
 
-    - ml load python/3.8.2
-    - ml load $LC_MODULES
-    - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --lc-modules="$LC_MODULES" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - ml load python/3
+    - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+
+.build_and_test:
+  extends: [.build]
+  after_script:
+    - CI_BUILD_DIR=$(cat ci-dir.txt)
+    - cd $CI_BUILD_DIR && cat job-name.txt
+
+    - ./build_gitlab/install/spheral -c "import $SPHERAL_MODULE"
   artifacts:
     paths:
       - ci-dir.txt
@@ -49,17 +58,9 @@
       - job-name.txt
       - perf-logs/
 
-# This job searches our SPHERAL_BUILDS_DIR and deletes all but the N most recent builds.
-# This should be enough of a buffer that we likely won't delete a build mid pipeline,
-# and never fill the sphapp workspace storage.
-.clean_dirs:
-  stage: cleanup
-  script:
-    - ml load mpifileutils
-    - cd $SPHERAL_BUILDS_DIR
-    - source $CI_PROJECT_DIR/$SCRIPT_DIR/gitlab/clean_spheral_builds.sh 50
-  extends: [.toss_resource_general]
-  when: always
+# ------------------------------------------------------------------------------
+# Shared TPL scripts.
+# ------------------------------------------------------------------------------
 
 .update_tpls:
   stage: update_tpls
@@ -71,9 +72,120 @@
   script:
     - ml load mpifileutils
     - srun -N 1 -p $PARTITION -n 20 -t 10 dchmod --mode go+rx $UPSTREAM_DIR
+
+# ------------------------------------------------------------------------------
+# Production Installation scripts
+# ------------------------------------------------------------------------------
+
+### Create a tar file containing:
+#
+# dev-pkg/
+#   *cloned spheral repo.*
+#   resources/
+#     mirror/
+#     build_cache/
+#     bootstrap/
+#       metadata/
+#       bootstrap_cache/
+
+.build_dev_pkg:
+  stage: generate_buildcache
+  extends: [.spheral_rev_str]
+  script:
+    - INSTALL_DIR=/usr/gapps/Spheral/$SYS_TYPE/spheral-$SPHERAL_REV_STR
+    - DEV_PKG_NAME=$SYS_TYPE-spheral-dev-pkg-$SPHERAL_REV_STR
+    - DEV_PKG_PATH=$INSTALL_DIR/$DEV_PKG_NAME
+    - echo $INSTALL_DIR &> install-dir.txt
+    - echo $DEV_PKG_NAME &> dev-pkg-name.txt
+    
+    # *** Copy spheral src and all submodules. ***
+    - mkdir -p $DEV_PKG_PATH/resources && cp -a $CI_PROJECT_DIR/. $DEV_PKG_PATH
+
+    ### Initialize the upstream spack instance for this platform.
+    ###   - We do this to load system configs / externals for this machine.
+    - ./$SCRIPT_DIR/devtools/tpl-manager.py --init-only --spheral-spack-dir=$UPSTREAM_DIR --spec=none
+    - source $UPSTREAM_DIR/spack/share/spack/setup-env.sh
+
+    ### Installation Directory w/ Spheral rev numbers.
+
+    ### Create a temporary spack environement with only the TPL specs for this specific commit of Spheral
+    - spack env create -d $INSTALL_DIR
+    - spack env activate $INSTALL_DIR
+    - spack add $SPACK_PKG_NAME@develop%$SPEC
+    - spack concretize --fresh -f
+
+    # *** Pre-built binaries for $SYS_TYPE. ***
+    - spack buildcache create -auf -d $DEV_PKG_PATH/resources $(spack find --format /{hash})
+    # *** All TPL tar files. ***
+    - spack mirror create -a -d $DEV_PKG_PATH/resources/mirror --exclude-specs "llnlspheral spheral"
+    # *** Spack bootstrapping resources. ***
+    - spack bootstrap mirror --binary-packages $DEV_PKG_PATH/resources
+
+    ### Wrap it all up. 
+    - tar -czvf "$DEV_PKG_PATH".tar.gz -C $INSTALL_DIR $DEV_PKG_NAME
+
+    ### Cleanup
+    - rm -rf $DEV_PKG_PATH
+
+  artifacts:
+    paths:
+      - install-dir.txt
+      - dev-pkg-name.txt
+
+
+.install_dev_pkg:
+  stage: install_production
+  script:
+    - INSTALL_DIR=$(cat install-dir.txt)
+    - DEV_PKG_NAME=$(cat dev-pkg-name.txt)
+
+    - cp $INSTALL_DIR/$DEV_PKG_NAME.tar.gz .
+    - tar -xzf $DEV_PKG_NAME.tar.gz
+    - cd $DEV_PKG_NAME
+
+    - env INSTALL_DIR=$INSTALL_DIR SPEC=$SPEC SPACK_PKG_NAME=$SPACK_PKG_NAME BUILD_ALLOC="$BUILD_ALLOC" SCRIPT_DIR=$SCRIPT_DIR
+      bash ./$SCRIPT_DIR/lc/install-from-dev-pkg.sh
+
+  artifacts:
+    paths:
+      - install-dir.txt
+
+
+.prod_permissions:
+  stage: update_permissions
+  script:
+    - INSTALL_DIR=$(cat install-dir.txt)
+
+    - sed 's/YYYY\.MM\.p/'"$ALIAS"'/g' $SCRIPT_DIR/lc/modulefile-template.lua > /usr/gapps/Spheral/modulefiles/Spheral/"$ALIAS".lua
+    - chmod go+r /usr/gapps/Spheral/modulefiles/Spheral/"$ALIAS".lua
+
+    - ml load mpifileutils
+    - srun -N 1 -p $PARTITION -n 20 -t 10 dchmod --mode go+rx $INSTALL_DIR
+    - ln -sfn $INSTALL_DIR /usr/gapps/Spheral/$SYS_TYPE/$ALIAS
+
+
+# ------------------------------------------------------------------------------
+# Script Utilities
+# ------------------------------------------------------------------------------
+
+# This job searches our SPHERAL_BUILDS_DIR and deletes all but the N most recent builds.
+# This should be enough of a buffer that we likely won't delete a build mid pipeline,
+# and never fill the sphapp workspace storage.
+.clean_dirs:
+  stage: cleanup
+  script:
+    - ml load mpifileutils
+    - cd $SPHERAL_BUILDS_DIR
+    - source $CI_PROJECT_DIR/$SCRIPT_DIR/gitlab/clean_spheral_builds.sh 40
+  extends: [.toss_resource_general]
+  when: always
+
 .merge_pr_rule:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "develop"'
       when: always
 
-
+.tag_release_rule:
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: manual

@@ -233,7 +233,7 @@ if restoreCycle is None:
     distributeNodes2d((outerNodes, generatorOuter),
                       (innerNodes, generatorInner))
     for nodes in nodeSet:
-        print nodes.name, ":"
+        print(nodes.name, ":")
         output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
         output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
         output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
@@ -252,10 +252,10 @@ if restoreCycle is None:
     #  for i in xrange(nodes.numInternalNodes):
     #    vel[i]=Vector(velx,vely)
     vel = outerNodes.velocity()
-    for i in xrange(outerNodes.numInternalNodes):
+    for i in range(outerNodes.numInternalNodes):
         vel[i]=Vector(velx,vely)
     vel = innerNodes.velocity()
-    for i in xrange(innerNodes.numInternalNodes):
+    for i in range(innerNodes.numInternalNodes):
         vel[i]=Vector(velx,vely)
 
 
@@ -427,13 +427,13 @@ def computeTv():
     db.updateConnectivityMap(True)
     cm = db.connectivityMap()
     for nodes in nodeSet:
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             ri = nodes.positions()[i]
             hh = 2.0/nodes.Hfield()[i].Trace()
             neighbors = cm.connectivityForNode(nodes, i)
             for j in neighbors[0]:
                 ri = ri - nodes.positions()[j]
-            print i,hh,ri
+            print(i,hh,ri)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.

@@ -9,7 +9,7 @@ from NodeHistory import *
 from SpheralVisitDump import dumpPhysicsState
 from math import *
 
-print "3-D N-Body Gravity test -- two particle problem"
+print("3-D N-Body Gravity test -- two particle problem")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -39,7 +39,7 @@ commandLine(
 G = MKS().G
 v0 = 0.25*G*m0
 orbitTime = 2.0*pi*r0/v0
-print "Calcualted (velocity, orbit time) = (%g, %g)" % (v0, orbitTime)
+print("Calcualted (velocity, orbit time) = (%g, %g)" % (v0, orbitTime))
 
 # Miscellaneous problem control parameters.
 dt = orbitTime / 180

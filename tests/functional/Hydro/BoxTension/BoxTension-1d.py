@@ -188,7 +188,7 @@ distributeNodesInRange1d([(outerNodes1, [(nx1/2, rho1, (x0, x1))]),
                           (innerNodes,  [(nx2, rho2, (x1, x2))]),
                           (outerNodes2, [(nx1/2, rho1, (x2, x3))])])
 for nodes in nodeSet:
-    print nodes.name, ":"
+    print(nodes.name, ":")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
@@ -201,7 +201,7 @@ for (nodes, gamma, rho, P) in ((outerNodes1, gamma1, rho1, P1),
     eps0 = P/((gamma - 1.0)*rho)
     nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
     vels = nodes.velocity()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
        vels[i]=Vector(vel)
 del nodes
 
@@ -349,9 +349,9 @@ if not steps is None:
 else:
     control.advance(goalTime, maxSteps)
 
-print "Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
+print("Energy conservation: original=%g, final=%g, error=%g" % (control.conserve.EHistory[0],
                                                                 control.conserve.EHistory[-1],
-                                                                (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0])
+                                                                (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]))
 procs = mpi.procs
 rank = mpi.rank
 serialData = []
@@ -361,14 +361,14 @@ xdata = []
 velError = []
 i,j = 0,0
 from Pnorm import Pnorm
-for i in xrange(procs):
+for i in range(procs):
     for (nodeL, gamma, rho, P) in ((outerNodes1, gamma1, rho1, P1),
                                    (outerNodes2, gamma1, rho1, P1),
                                    (innerNodes, gamma2, rho2, P2)):
       if rank == i:
         Pfield = ScalarField("pressure", nodeL)
         nodeL.pressure(Pfield)
-        for j in xrange(nodeL.numInternalNodes):
+        for j in range(nodeL.numInternalNodes):
           pError.append(Pfield[j]-P)
           rhoError.append(nodeL.massDensity()[j] - rho)
           velError.append(nodeL.velocity()[j][0]) #Velcoity is supposed to be zero
@@ -382,14 +382,14 @@ velError = mpi.reduce(velError,mpi.SUM)
 xdata = mpi.reduce(xdata,mpi.SUM)
 if rank == 0 and serialDump:
     f = open(os.path.join(dataDir, "./serialDump.ascii"),'w')
-    for i in xrange(len(serialData)):
+    for i in range(len(serialData)):
       f.write("{0} {1} {2} {3} {4} {5} {6}\n".format(i,serialData[i][0][0],serialData[i][1],serialData[i][2],serialData[i][3],serialData[i][4], serialData[i][5]))
     f.close()
 if rank == 0:
- print len(pError)
- print "Pressure results: L1 error = %g, L2 Error = %g, L inf Error = %g \n" % (Pnorm(pError, xdata).pnorm(1), Pnorm(pError, xdata).pnorm(2),Pnorm(pError, xdata).pnorm("inf"))
- print "Density results: L1 error = %g, L2 Error = %g, L inf Error = %g \n" % (Pnorm(rhoError, xdata).pnorm(1), Pnorm(rhoError, xdata).pnorm(2),Pnorm(rhoError, xdata).pnorm("inf"))
- print "Velocity results: L1 error = %g, L2 Error = %g, L inf Error = %g \n" % (Pnorm(velError, xdata).pnorm(1), Pnorm(velError, xdata).pnorm(2),Pnorm(velError, xdata).pnorm("inf"))
+ print(len(pError))
+ print("Pressure results: L1 error = %g, L2 Error = %g, L inf Error = %g \n" % (Pnorm(pError, xdata).pnorm(1), Pnorm(pError, xdata).pnorm(2),Pnorm(pError, xdata).pnorm("inf")))
+ print("Density results: L1 error = %g, L2 Error = %g, L inf Error = %g \n" % (Pnorm(rhoError, xdata).pnorm(1), Pnorm(rhoError, xdata).pnorm(2),Pnorm(rhoError, xdata).pnorm("inf")))
+ print("Velocity results: L1 error = %g, L2 Error = %g, L inf Error = %g \n" % (Pnorm(velError, xdata).pnorm(1), Pnorm(velError, xdata).pnorm(2),Pnorm(velError, xdata).pnorm("inf")))
 #-------------------------------------------------------------------------------
 # Plot the results.
 #-------------------------------------------------------------------------------

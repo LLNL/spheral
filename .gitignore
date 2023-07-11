@@ -41,8 +41,8 @@ spack-build*
 *.logs
 rz*
 rz*
-blueos*
-toss*
+toss_3*.cmake
+blueos_3*.cmake
 
 
 # These are files automatically generated in our configure process.
@@ -89,3 +89,9 @@ src/PBGWraps/SpheralModules_Silo.C
 src/PBGWraps/SpheralModules_Utilities.C
 src/PBGWraps/SpheralModules_WildMagic.C
 
+build-*
+src/*/*cc.2.cc
+src/*/*cc.3.cc
+/build/*/x64
+/build/*/*.user
+*.aps

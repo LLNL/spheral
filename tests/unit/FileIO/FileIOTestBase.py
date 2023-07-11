@@ -24,6 +24,117 @@ nodes3d = makeFluidNodeList3d("nodes3d", eos3d)
 class FileIOTestBase:
 
     #---------------------------------------------------------------------------
+    # Generic test of writing/reading a type (assumes operator== is the
+    # appropriate test).
+    #---------------------------------------------------------------------------
+    def boilerPlate(self, filename, path, x0, x1):
+        f = self.constructor(filename, Write)
+        #print("boilerPlate: Attempting to write ", x0)
+        f.write(x0, path)
+        f.close()
+        f = self.constructor(filename, Read)
+        f.read(x1, path)
+        f.close()
+        if x1 == x0:
+            self.removeFile(filename)
+        return x1 == x0
+        self.assertTrue(x1 == x0,
+                        "FAIL: %s != %s" % (str(x1), str(x0)))
+
+    #---------------------------------------------------------------------------
+    # random Vector
+    #---------------------------------------------------------------------------
+    def randomVector1d(self):
+        return Vector1d(random.uniform(self.doublemin, self.doublemax))
+    
+    def randomVector2d(self):
+        return Vector2d(random.uniform(self.doublemin, self.doublemax),
+                        random.uniform(self.doublemin, self.doublemax))
+    
+    def randomVector3d(self):
+        return Vector3d(random.uniform(self.doublemin, self.doublemax),
+                        random.uniform(self.doublemin, self.doublemax),
+                        random.uniform(self.doublemin, self.doublemax))
+
+    #---------------------------------------------------------------------------
+    # random Tensor
+    #---------------------------------------------------------------------------
+    def randomTensor1d(self):
+        return Tensor1d(random.uniform(self.doublemin, self.doublemax))
+    
+    def randomTensor2d(self):
+        return Tensor2d(random.uniform(self.doublemin, self.doublemax), random.uniform(self.doublemin, self.doublemax),
+                        random.uniform(self.doublemin, self.doublemax), random.uniform(self.doublemin, self.doublemax))
+    
+    def randomTensor3d(self):
+        return Tensor3d(random.uniform(self.doublemin, self.doublemax), random.uniform(self.doublemin, self.doublemax), random.uniform(self.doublemin, self.doublemax),
+                        random.uniform(self.doublemin, self.doublemax), random.uniform(self.doublemin, self.doublemax), random.uniform(self.doublemin, self.doublemax),
+                        random.uniform(self.doublemin, self.doublemax), random.uniform(self.doublemin, self.doublemax), random.uniform(self.doublemin, self.doublemax))
+
+    #---------------------------------------------------------------------------
+    # random SymTensor
+    #---------------------------------------------------------------------------
+    def randomSymTensor1d(self):
+        return SymTensor1d(random.uniform(self.doublemin, self.doublemax))
+    
+    def randomSymTensor2d(self):
+        xx = random.uniform(self.doublemin, self.doublemax)
+        xy = random.uniform(self.doublemin, self.doublemax)
+        yy = random.uniform(self.doublemin, self.doublemax)
+        return SymTensor2d(xx, xy, xy, yy)
+    
+    def randomSymTensor3d(self):
+        xx = random.uniform(self.doublemin, self.doublemax)
+        xy = random.uniform(self.doublemin, self.doublemax)
+        xz = random.uniform(self.doublemin, self.doublemax)
+        yy = random.uniform(self.doublemin, self.doublemax)
+        yz = random.uniform(self.doublemin, self.doublemax)
+        zz = random.uniform(self.doublemin, self.doublemax)
+        return SymTensor3d(xx, xy, xz,
+                           xy, yy, yz,
+                           xz, yz, zz)
+
+    #---------------------------------------------------------------------------
+    # random ThirdRankTensor
+    #---------------------------------------------------------------------------
+    def randomThirdRankTensor(self, TRT):
+        result = TRT()
+        for i in range(TRT.nDimensions):
+            for j in range(TRT.nDimensions):
+                for k in range(TRT.nDimensions):
+                    result(i, j, k, g.uniform(self.doublemin, self.doublemax))
+        return result
+
+    #---------------------------------------------------------------------------
+    # random Plane
+    #---------------------------------------------------------------------------
+    def randomPlane1d(self):
+        return Plane1d(self.randomVector1d(), self.randomVector1d().unitVector())
+
+    def randomPlane2d(self):
+        return Plane2d(self.randomVector2d(), self.randomVector2d().unitVector())
+
+    def randomPlane3d(self):
+        return Plane3d(self.randomVector3d(), self.randomVector3d().unitVector())
+
+    #---------------------------------------------------------------------------
+    # random FacetedVolume
+    #---------------------------------------------------------------------------
+    def randomBox(self):
+        points = [self.randomVector1d(), self.randomVector1d()]
+        return Box1d(vector_of_Vector1d(points))
+
+    def randomPolygon(self):
+        N = 10
+        points = [self.randomVector2d() for i in range(N)]
+        return Polygon(vector_of_Vector2d(points))
+
+    def randomPolyhedron(self):
+        N = 50
+        points = [self.randomVector3d() for i in range(N)]
+        return Polyhedron(vector_of_Vector3d(points))
+
+    #---------------------------------------------------------------------------
     # int
     #---------------------------------------------------------------------------
     def testInt(self):
@@ -34,7 +145,7 @@ class FileIOTestBase:
         f = self.constructor("TestInt", Read)
         x1 = f.read_int("FileIOTestBase/a/b/c/d/TestInt")
         f.close()
-        self.failUnless(x1 == x0,
+        self.assertTrue(x1 == x0,
                         "%i != %i in int test" % (x1, x0))
         self.removeFile("TestInt")
         return
@@ -50,7 +161,7 @@ class FileIOTestBase:
         f = self.constructor("TestBool", Read)
         x1 = f.read_bool("FileIOTestBase/TestBool")
         f.close()
-        self.failUnless(x1 == x0,
+        self.assertTrue(x1 == x0,
                         "%s != %s in bool test" % (x1, x0))
         self.removeFile("TestBool")
         return
@@ -66,7 +177,7 @@ class FileIOTestBase:
         f = self.constructor("TestFloat", Read)
         x1 = f.read_double("FileIOTestBase/TestFloat")
         f.close()
-        self.failUnless(x1 == x0,
+        self.assertTrue(x1 == x0,
                         "%s != %s in float test" % (x1, x0))
         self.removeFile("TestFloat")
         return
@@ -82,7 +193,7 @@ class FileIOTestBase:
         f = self.constructor("TestString", Read)
         x1 = f.read_string("FileIOTestBase/TestString")
         f.close()
-        self.failUnless(x1 == x0,
+        self.assertTrue(x1 == x0,
                         "%s != %s in string test" % (x1, x0))
         self.removeFile("TestString")
         return
@@ -98,7 +209,7 @@ class FileIOTestBase:
         f = self.constructor("TestEmptyString", Read)
         x1 = f.read_string("FileIOTestBase/TestEmptyString")
         f.close()
-        self.failUnless(x1 == x0,
+        self.assertTrue(x1 == x0,
                         "%s != %s in empty string test" % (x1, x0))
         self.removeFile("TestEmptyString")
         return
@@ -107,300 +218,223 @@ class FileIOTestBase:
     # Vector1d
     #---------------------------------------------------------------------------
     def testVector1d(self):
-        x0 = Vector1d(g.uniform(self.doublemin, self.doublemax))
+        x0 = self.randomVector1d()
         x1 = Vector1d()
-        f = self.constructor("TestVector1d", Write)
-        f.write(x0, "FileIOTestBase/TestVector1d")
-        f.close()
-        f = self.constructor("TestVector1d", Read)
-        f.read(x1, "FileIOTestBase/TestVector1d")
-        f.close()
-        f = self.constructor("TestVector1d-check", Write)
-        f.write(x1, "FileIOTestBase/TestVector1d")
-        f.close()
-        self.failUnless(x1 == x0,
-                        "%s != %s in Vector1d test" % (str(x1), str(x0)))
-        self.removeFile("TestVector1d")
-        self.removeFile("TestVector1d-check")
-        return
+        result = self.boilerPlate("TestVector1d",
+                                  "FileIOTestBase/TestVector1d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # Tensor1d
     #---------------------------------------------------------------------------
     def testTensor1d(self):
-        x0 = Tensor1d(g.uniform(self.doublemin, self.doublemax))
+        x0 = self.randomTensor1d()
         x1 = Tensor1d()
-        f = self.constructor("TestTensor1d", Write)
-        f.write(x0, "FileIOTestBase/TestTensor1d")
-        f.close()
-        f = self.constructor("TestTensor1d", Read)
-        f.read(x1, "FileIOTestBase/TestTensor1d")
-        f.close()
-        self.failUnless(x1 == x0,
-                        "%s != %s in Tensor1d test" % (str(x1), str(x0)))
-        self.removeFile("TestTensor1d")
-        return
+        result = self.boilerPlate("TestTensor1d",
+                                  "FileIOTestBase/TestTensor1d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # SymTensor1d
     #---------------------------------------------------------------------------
     def testSymTensor1d(self):
-        x0 = SymTensor1d(g.uniform(self.doublemin, self.doublemax))
+        x0 = self.randomSymTensor1d()
         x1 = SymTensor1d()
-        f = self.constructor("TestSymTensor1d", Write)
-        f.write(x0, "FileIOTestBase/TestSymTensor1d")
-        f.close()
-        f = self.constructor("TestSymTensor1d", Read)
-        f.read(x1, "FileIOTestBase/TestSymTensor1d")
-        f.close()
-        self.failUnless(x1 == x0,
-                        "%s != %s in SymTensor1d test" % (str(x1), str(x0)))
-        self.removeFile("TestSymTensor1d")
-        return
+        result = self.boilerPlate("TestSymTensor1d",
+                                  "FileIOTestBase/TestSymTensor1d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # ThirdRankTensor1d
     #---------------------------------------------------------------------------
     def testThirdRankTensor1d(self):
-        x0 = ThirdRankTensor1d()
-        for i in xrange(ThirdRankTensor1d.nDimensions):
-            for j in xrange(ThirdRankTensor1d.nDimensions):
-                for k in xrange(ThirdRankTensor1d.nDimensions):
-                    x0(i, j, k, g.uniform(self.doublemin, self.doublemax))
+        x0 = self.randomThirdRankTensor(ThirdRankTensor1d)
         x1 = ThirdRankTensor1d()
-        f = self.constructor("TestThirdRankTensor1d", Write)
-        f.write(x0, "FileIOTestBase/TestThirdRankTensor1d")
-        f.close()
-        f = self.constructor("TestThirdRankTensor1d", Read)
-        f.read(x1, "FileIOTestBase/TestThirdRankTensor1d")
-        f.close()
-        self.failUnless(x1 == x0,
-                        "%s != %s in ThirdRankTensor1d test" % (str(x1), str(x0)))
-        self.removeFile("TestThirdRankTensor1d")
-        return
+        result = self.boilerPlate("TestThirdRankTensor1d",
+                                  "FileIOTestBase/TestThirdRankTensor1d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # Vector2d
     #---------------------------------------------------------------------------
     def testVector2d(self):
-        x0 = Vector2d(g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax))
+        x0 = self.randomVector2d()
         x1 = Vector2d()
-        f = self.constructor("TestVector2d", Write)
-        f.write(x0, "FileIOTestBase/TestVector2d")
-        f.close()
-        f = self.constructor("TestVector2d", Read)
-        f.read(x1, "FileIOTestBase/TestVector2d")
-        f.close()
-        self.failUnless(x1 == x0,
-                        "%s != %s in Vector2d test" % (str(x1), str(x0)))
-        self.removeFile("TestVector2d")
-        return
+        result = self.boilerPlate("TestVector2d",
+                                  "FileIOTestBase/TestVector2d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # Tensor2d
     #---------------------------------------------------------------------------
     def testTensor2d(self):
-        x0 = Tensor2d(g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax))
+        x0 = self.randomTensor2d()
         x1 = Tensor2d()
-        f = self.constructor("TestTensor2d", Write)
-        f.write(x0, "FileIOTestBase/TestTensor2d")
-        f.close()
-        f = self.constructor("TestTensor2d", Read)
-        f.read(x1, "FileIOTestBase/TestTensor2d")
-        f.close()
-        self.failUnless(x1 == x0,
-                        "%s != %s in Tensor2d test" % (str(x1), str(x0)))
-        self.removeFile("TestTensor2d")
-        return
+        result = self.boilerPlate("TestTensor2d",
+                                  "FileIOTestBase/TestTensor2d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # SymTensor2d
     #---------------------------------------------------------------------------
     def testSymTensor2d(self):
-        xy = g.uniform(self.doublemin, self.doublemax)
-        x0 = SymTensor2d(g.uniform(self.doublemin, self.doublemax),
-                         xy,
-                         xy,
-                         g.uniform(self.doublemin, self.doublemax))
+        x0 = self.randomSymTensor2d()
         x1 = SymTensor2d()
-        f = self.constructor("TestSymTensor2d", Write)
-        f.write(x0, "FileIOTestBase/TestSymTensor2d")
-        f.close()
-        f = self.constructor("TestSymTensor2d", Read)
-        f.read(x1, "FileIOTestBase/TestSymTensor2d")
-        f.close()
-        self.failUnless(x1 == x0,
-                        "%s != %s in SymTensor2d test" % (str(x1), str(x0)))
-        self.removeFile("TestSymTensor2d")
-        return
+        result = self.boilerPlate("TestSymTensor2d",
+                                  "FileIOTestBase/TestSymTensor2d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # ThirdRankTensor2d
     #---------------------------------------------------------------------------
     def testThirdRankTensor2d(self):
-        x0 = ThirdRankTensor2d()
-        for i in xrange(ThirdRankTensor2d.nDimensions):
-            for j in xrange(ThirdRankTensor2d.nDimensions):
-                for k in xrange(ThirdRankTensor2d.nDimensions):
-                    x0(i, j, k, g.uniform(self.doublemin, self.doublemax))
+        x0 = self.randomThirdRankTensor(ThirdRankTensor2d)
         x1 = ThirdRankTensor2d()
-        f = self.constructor("TestThirdRankTensor2d", Write)
-        f.write(x0, "FileIOTestBase/TestThirdRankTensor2d")
-        f.close()
-        f = self.constructor("TestThirdRankTensor2d", Read)
-        f.read(x1, "FileIOTestBase/TestThirdRankTensor2d")
-        f.close()
-        self.failUnless(x1 == x0,
-                        "%s != %s in ThirdRankTensor2d test" % (str(x1), str(x0)))
-        self.removeFile("TestThirdRankTensor2d")
-        return
+        result = self.boilerPlate("TestThirdRankTensor2d",
+                                  "FileIOTestBase/TestThirdRankTensor2d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # Vector3d
     #---------------------------------------------------------------------------
     def testVector3d(self):
-        x0 = Vector3d(g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax))
+        x0 = self.randomVector3d()
         x1 = Vector3d()
-        f = self.constructor("TestVector3d", Write)
-        f.write(x0, "FileIOTestBase/TestVector3d")
-        f.close()
-        f = self.constructor("TestVector3d", Read)
-        f.read(x1, "FileIOTestBase/TestVector3d")
-        f.close()
-        self.failUnless(x1 == x0,
-                        "%s != %s in Vector3d test" % (str(x1), str(x0)))
-        self.removeFile("TestVector3d")
-        return
+        result = self.boilerPlate("TestVector3d",
+                                  "FileIOTestBase/TestVector3d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # Tensor3d
     #---------------------------------------------------------------------------
     def testTensor3d(self):
-        x0 = Tensor3d(g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax),
-                      g.uniform(self.doublemin, self.doublemax))
+        x0 = self.randomTensor3d()
         x1 = Tensor3d()
-        f = self.constructor("TestTensor3d", Write)
-        f.write(x0, "FileIOTestBase/TestTensor3d")
-        f.close()
-        f = self.constructor("TestTensor3d", Read)
-        f.read(x1, "FileIOTestBase/TestTensor3d")
-        f.close()
-        self.failUnless(x1 == x0,
-                        "%s != %s in Tensor3d test" % (str(x1), str(x0)))
-        self.removeFile("TestTensor3d")
-        return
+        result = self.boilerPlate("TestTensor3d",
+                                  "FileIOTestBase/TestTensor3d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # SymTensor3d
     #---------------------------------------------------------------------------
     def testSymTensor3d(self):
-        xy = g.uniform(self.doublemin, self.doublemax)
-        xz = g.uniform(self.doublemin, self.doublemax)
-        yz = g.uniform(self.doublemin, self.doublemax)
-        x0 = SymTensor3d(g.uniform(self.doublemin, self.doublemax),
-                         xy,
-                         xz,
-                         xy,
-                         g.uniform(self.doublemin, self.doublemax),
-                         yz,
-                         xz,
-                         yz,
-                         g.uniform(self.doublemin, self.doublemax))
+        x0 = self.randomSymTensor3d()
         x1 = SymTensor3d()
-        f = self.constructor("TestSymTensor3d", Write)
-        f.write(x0, "FileIOTestBase/TestSymTensor3d")
-        f.close()
-        f = self.constructor("TestSymTensor3d", Read)
-        f.read(x1, "FileIOTestBase/TestSymTensor3d")
-        f.close()
-        self.failUnless(x1 == x0,
-                        "%s != %s in SymTensor3d test" % (str(x1), str(x0)))
-        self.removeFile("TestSymTensor3d")
-        return
+        result = self.boilerPlate("TestSymTensor3d",
+                                  "FileIOTestBase/TestSymTensor3d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # ThirdRankTensor3d
     #---------------------------------------------------------------------------
     def testThirdRankTensor3d(self):
-        x0 = ThirdRankTensor3d()
-        for i in xrange(ThirdRankTensor3d.nDimensions):
-            for j in xrange(ThirdRankTensor3d.nDimensions):
-                for k in xrange(ThirdRankTensor3d.nDimensions):
-                    x0(i, j, k, g.uniform(self.doublemin, self.doublemax))
+        x0 = self.randomThirdRankTensor(ThirdRankTensor3d)
         x1 = ThirdRankTensor3d()
-        f = self.constructor("TestThirdRankTensor3d", Write)
-        f.write(x0, "FileIOTestBase/TestThirdRankTensor3d")
-        f.close()
-        f = self.constructor("TestThirdRankTensor3d", Read)
-        f.read(x1, "FileIOTestBase/TestThirdRankTensor3d")
-        f.close()
-        self.failUnless(x1 == x0,
-                        "%s != %s in ThirdRankTensor3d test" % (str(x1), str(x0)))
-        self.removeFile("TestThirdRankTensor3d")
-        return
+        result = self.boilerPlate("TestThirdRankTensor3d",
+                                  "FileIOTestBase/TestThirdRankTensor3d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+
+    #---------------------------------------------------------------------------
+    # Plane1d
+    #---------------------------------------------------------------------------
+    def testPlane1d(self):
+        x0 = self.randomPlane1d()
+        x1 = Plane1d()
+        result = self.boilerPlate("TestPlane1d",
+                                  "FileIOTestBase/TestPlane1d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+
+    #---------------------------------------------------------------------------
+    # Plane2d
+    #---------------------------------------------------------------------------
+    def testPlane2d(self):
+        x0 = self.randomPlane2d()
+        x1 = Plane2d()
+        result = self.boilerPlate("TestPlane2d",
+                                  "FileIOTestBase/TestPlane2d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+
+    #---------------------------------------------------------------------------
+    # Plane3d
+    #---------------------------------------------------------------------------
+    def testPlane3d(self):
+        x0 = self.randomPlane3d()
+        x1 = Plane3d()
+        result = self.boilerPlate("TestPlane3d",
+                                  "FileIOTestBase/TestPlane3d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+
+    #---------------------------------------------------------------------------
+    # FacetedVolume1d
+    #---------------------------------------------------------------------------
+    def testFacetedVolume1d(self):
+        x0 = self.randomBox()
+        x1 = Box1d()
+        result = self.boilerPlate("TestFacetedVolume1d",
+                                  "FileIOTestBase/TestFacetedVolume1d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+
+    #---------------------------------------------------------------------------
+    # FacetedVolume2d
+    #---------------------------------------------------------------------------
+    def testFacetedVolume2d(self):
+        x0 = self.randomPolygon()
+        x1 = Polygon()
+        result = self.boilerPlate("TestFacetedVolume2d",
+                                  "FileIOTestBase/TestFacetedVolume2d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+
+    #---------------------------------------------------------------------------
+    # FacetedVolume3d
+    #---------------------------------------------------------------------------
+    def testFacetedVolume3d(self):
+        x0 = self.randomPolyhedron()
+        x1 = Polyhedron()
+        result = self.boilerPlate("TestFacetedVolume3d",
+                                  "FileIOTestBase/TestFacetedVolume3d",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<int>
     #---------------------------------------------------------------------------
     def testVectorInt(self):
         for n in (0, self.n):
-            filename = "TestVectorInt_%i" % n
-            v0 = vector_of_int()
-            for i in xrange(n):
-                v0.append(g.randint(self.intmin, self.intmax))
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_int")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_int()
-            f.read(v, "FileIOTestBase/vector_of_int")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
-                                "%i != %i @ %i of %i in vector<int> test" %
-                                (v[i], v0[i], i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_int([g.randint(self.intmin, self.intmax) for i in range(n)])
+            x1 = vector_of_int()
+            result = self.boilerPlate("TestVectorInt_%i" % n,
+                                      "FileIOTestBase/vector_of_int",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<double>
     #---------------------------------------------------------------------------
     def testVectorDouble(self):
-        v0 = vector_of_double()
         for n in (0, self.n):
-            filename = "TestVectorDouble_%i" % n
-            for i in xrange(n):
-                v0.append(g.uniform(self.doublemin, self.doublemax))
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_double")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_double()
-            f.read(v, "FileIOTestBase/vector_of_double")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
-                                "%g != %g @ %i of %i in vector<double> test" %
-                                (v[i], v0[i], i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_double([g.uniform(self.doublemin, self.doublemax) for i in range(n)])
+            x1 = vector_of_double()
+            result = self.boilerPlate("TestVectorDouble_%i" % n,
+                                      "FileIOTestBase/vector_of_double",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<string>
@@ -408,377 +442,205 @@ class FileIOTestBase:
     def testVectorString(self):
         chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+"
         for n in (0, self.n):
-            filename = "TestVectorString_%i" % n
-            v0 = vector_of_string()
-            for i in xrange(n):
+            x0, x1 = vector_of_string(), vector_of_string()
+            for i in range(n):
                 word = ""
                 wordlen = g.randint(2, 10)
-                for j in xrange(wordlen):
+                for j in range(wordlen):
                     word += g.choice(chars)
-                v0.append(word)
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_string")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_string()
-            f.read(v, "FileIOTestBase/vector_of_string")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(str(v[i]) == str(v0[i]),
-                                ".%s. != .%s. @ %i of %i in vector<string> test" %
-                                (v[i], v0[i], i, n))
-            self.removeFile(filename)
-        return
+                x0.append(word)
+            assert len(x0) == n
+            result = self.boilerPlate("TestVectorString_%i" % n,
+                                      "FileIOTestBase/vector_of_string",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<Vector1d>
     #---------------------------------------------------------------------------
     def testVectorVector1d(self):
         for n in (0, self.n):
-            filename = "TestVectorVector1d_%i" % n
-            v0 = vector_of_Vector1d()
-            for i in xrange(n):
-                v0.append(Vector1d(g.uniform(self.doublemin, self.doublemax)))
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_Vector1d")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_Vector1d()
-            f.read(v, "FileIOTestBase/vector_of_Vector1d")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(v[i] == v0[i],
-                                "%s != %s @ %i of %i in vector<Vector1d> test" %
-                                (str(v[i]), str(v0[i]), i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_Vector1d([self.randomVector1d() for i in range(n)])
+            x1 = vector_of_Vector1d()
+            result = self.boilerPlate("Test_vector_of_Vector1d_%i" % n,
+                                      "FileIOTestBase/vector_of_Vector1d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<Vector2d>
     #---------------------------------------------------------------------------
     def testVectorVector2d(self):
         for n in (0, self.n):
-            filename = "TestVectorVector2d_%i" % n
-            v0 = vector_of_Vector2d()
-            for i in xrange(n):
-                v0.append(Vector2d(g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax)))
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_Vector2d")
-            f.close()
-            f = self.constructor(filename, Read)
-            v1 = vector_of_Vector2d()
-            f.read(v1, "FileIOTestBase/vector_of_Vector2d")
-            f.close()
-            assert len(v1) == len(v0)
-            for i in xrange(n):
-                self.failUnless(fuzzyEqual(list(v1[i]), list(v0[i])),
-                                "%s != %s @ %i of %i in vector<Vector2d> test" %
-                                (str(v1[i]), str(v0[i]), i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_Vector2d([self.randomVector2d() for i in range(n)])
+            x1 = vector_of_Vector2d()
+            result = self.boilerPlate("Test_vector_of_Vector2d_%i" % n,
+                                      "FileIOTestBase/vector_of_Vector2d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
-    # Vector<Vector3d>
+    # vector<Vector3d>
     #---------------------------------------------------------------------------
     def testVectorVector3d(self):
         for n in (0, self.n):
-            filename = "TestVectorVector3d_%i" % n
-            v0 = vector_of_Vector3d()
-            for i in xrange(n):
-                v0.append(Vector3d(g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax)))
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_Vector3d")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_Vector3d()
-            f.read(v, "FileIOTestBase/vector_of_Vector3d")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-                                "%s != %s @ %i of %i in vector<Vector3d> test" %
-                                (str(v[i]), str(v0[i]), i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_Vector3d([self.randomVector3d() for i in range(n)])
+            x1 = vector_of_Vector3d()
+            result = self.boilerPlate("Test_vector_of_Vector3d_%i" % n,
+                                      "FileIOTestBase/vector_of_Vector3d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<Tensor1d>
     #---------------------------------------------------------------------------
     def testVectorTensor1d(self):
         for n in (0, self.n):
-            filename = "TestVectorTensor1d_%i" % n
-            v0 = vector_of_Tensor1d()
-            for i in xrange(n):
-                v0.append(Tensor1d(g.uniform(self.doublemin, self.doublemax)))
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_Tensor1d")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_Tensor1d()
-            f.read(v, "FileIOTestBase/vector_of_Tensor1d")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-                                "%s != %s @ %i of %i in vector<Tensor1d> test" %
-                                (str(v[i]), str(v0[i]), i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_Tensor1d([self.randomTensor1d() for i in range(n)])
+            x1 = vector_of_Tensor1d()
+            result = self.boilerPlate("Test_vector_of_Tensor1d_%i" % n,
+                                      "FileIOTestBase/vector_of_Tensor1d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<Tensor2d>
     #---------------------------------------------------------------------------
     def testVectorTensor2d(self):
         for n in (0, self.n):
-            filename = "TestVectorTensor2d_%i" % n
-            v0 = vector_of_Tensor2d()
-            for i in xrange(n):
-                v0.append(Tensor2d(g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax)))
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_Tensor2d")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_Tensor2d()
-            f.read(v, "FileIOTestBase/vector_of_Tensor2d")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-                                "%s != %s @ %i of %i in vector<Tensor2d> test" %
-                                (str(v[i]), str(v0[i]), i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_Tensor2d([self.randomTensor2d() for i in range(n)])
+            x1 = vector_of_Tensor2d()
+            result = self.boilerPlate("Test_vector_of_Tensor2d_%i" % n,
+                                      "FileIOTestBase/vector_of_Tensor2d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<Tensor3d>
     #---------------------------------------------------------------------------
     def testVectorTensor3d(self):
         for n in (0, self.n):
-            filename = "TestVectorTensor3d_%i" % n
-            v0 = vector_of_Tensor3d()
-            for i in xrange(n):
-                v0.append(Tensor3d(g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax),
-                                   g.uniform(self.doublemin, self.doublemax)))
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_Tensor3d")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_Tensor3d()
-            f.read(v, "FileIOTestBase/vector_of_Tensor3d")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-                                "%s != %s @ %i of %i in vector<Tensor3d> test" %
-                                (str(v[i]), str(v0[i]), i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_Tensor3d([self.randomTensor3d() for i in range(n)])
+            x1 = vector_of_Tensor3d()
+            result = self.boilerPlate("Test_vector_of_Tensor3d_%i" % n,
+                                      "FileIOTestBase/vector_of_Tensor3d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<SymTensor1d>
     #---------------------------------------------------------------------------
     def testVectorSymTensor1d(self):
         for n in (0, self.n):
-            filename = "TestVectorSymTensor1d_%i" % n
-            v0 = vector_of_SymTensor1d()
-            for i in xrange(n):
-                v0.append(SymTensor1d(g.uniform(self.doublemin, self.doublemax)))
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_SymTensor1d")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_SymTensor1d()
-            f.read(v, "FileIOTestBase/vector_of_SymTensor1d")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-                                "%s != %s @ %i of %i in vector<SymTensor1d> test" %
-                                (str(v[i]), str(v0[i]), i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_SymTensor1d([self.randomSymTensor1d() for i in range(n)])
+            x1 = vector_of_SymTensor1d()
+            result = self.boilerPlate("TestVectorSymTensor1d_%i" % n,
+                                      "FileIOTestBase/vector_of_SymTensor1d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<SymTensor2d>
     #---------------------------------------------------------------------------
     def testVectorSymTensor2d(self):
         for n in (0, self.n):
-            filename = "TestVectorSymTensor2d_%i" % n
-            v0 = vector_of_SymTensor2d()
-            for i in xrange(n):
-                xx = g.uniform(self.doublemin, self.doublemax)
-                xy = g.uniform(self.doublemin, self.doublemax)
-                yy = g.uniform(self.doublemin, self.doublemax)
-                v0.append(SymTensor2d(xx, xy,
-                                      xy, yy))
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_SymTensor2d")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_SymTensor2d()
-            f.read(v, "FileIOTestBase/vector_of_SymTensor2d")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-                                "%s != %s @ %i of %i in vector<SymTensor2d> test" %
-                                (str(v[i]), str(v0[i]), i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_SymTensor2d([self.randomSymTensor2d() for i in range(n)])
+            x1 = vector_of_SymTensor2d()
+            result = self.boilerPlate("TestVectorSymTensor2d_%i" % n,
+                                      "FileIOTestBase/vector_of_SymTensor2d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<SymTensor3d>
     #---------------------------------------------------------------------------
     def testVectorSymTensor3d(self):
         for n in (0, self.n):
-            filename = "TestVectorSymTensor3d_%i" % n
-            v0 = vector_of_SymTensor3d()
-            for i in xrange(n):
-                xx = g.uniform(self.doublemin, self.doublemax)
-                xy = g.uniform(self.doublemin, self.doublemax)
-                xz = g.uniform(self.doublemin, self.doublemax)
-                yy = g.uniform(self.doublemin, self.doublemax)
-                yz = g.uniform(self.doublemin, self.doublemax)
-                zz = g.uniform(self.doublemin, self.doublemax)
-                v0.append(SymTensor3d(xx, xy, xz,
-                                      xy, yy, yz,
-                                      xz, yz, zz))
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_SymTensor3d")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_SymTensor3d()
-            f.read(v, "FileIOTestBase/vector_of_SymTensor3d")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-                                "%s != %s @ %i of %i in vector<SymTensor3d> test" %
-                                (str(v[i]), str(v0[i]), i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_SymTensor3d([self.randomSymTensor3d() for i in range(n)])
+            x1 = vector_of_SymTensor3d()
+            result = self.boilerPlate("TestVectorSymTensor3d_%i" % n,
+                                      "FileIOTestBase/vector_of_SymTensor3d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<ThirdRankTensor1d>
     #---------------------------------------------------------------------------
     def testVectorThirdRankTensor1d(self):
         for n in (0, self.n):
-            filename = "TestVectorThirdRankTensor1d_%i" % n
-            v0 = vector_of_ThirdRankTensor1d()
-            for i in xrange(n):
-                val = ThirdRankTensor1d()
-                for i in xrange(ThirdRankTensor1d.nDimensions):
-                    for j in xrange(ThirdRankTensor1d.nDimensions):
-                        for k in xrange(ThirdRankTensor1d.nDimensions):
-                            val(i, j, k, g.uniform(self.doublemin, self.doublemax))
-                v0.append(val)
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_ThirdRankTensor1d")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_ThirdRankTensor1d()
-            f.read(v, "FileIOTestBase/vector_of_ThirdRankTensor1d")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-                                "%s != %s @ %i of %i in vector<ThirdRankTensor1d> test" %
-                                (str(v[i]), str(v0[i]), i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_ThirdRankTensor1d([self.randomThirdRankTensor(ThirdRankTensor1d) for i in range(n)])
+            x1 = vector_of_ThirdRankTensor1d()
+            result = self.boilerPlate("TestVectorThirdRankTensor1d_%i" % n,
+                                      "FileIOTestBase/vector_of_ThirdRankTensor1d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<ThirdRankTensor2d>
     #---------------------------------------------------------------------------
     def testVectorThirdRankTensor2d(self):
         for n in (0, self.n):
-            filename = "TestVectorThirdRankTensor2d_%i" % n
-            v0 = vector_of_ThirdRankTensor2d()
-            for i in xrange(n):
-                val = ThirdRankTensor2d()
-                for i in xrange(ThirdRankTensor2d.nDimensions):
-                    for j in xrange(ThirdRankTensor2d.nDimensions):
-                        for k in xrange(ThirdRankTensor2d.nDimensions):
-                            val(i, j, k, g.uniform(self.doublemin, self.doublemax))
-                v0.append(val)
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_ThirdRankTensor2d")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_ThirdRankTensor2d()
-            f.read(v, "FileIOTestBase/vector_of_ThirdRankTensor2d")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-                                "%s != %s @ %i of %i in vector<ThirdRankTensor2d> test" %
-                                (str(v[i]), str(v0[i]), i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_ThirdRankTensor2d([self.randomThirdRankTensor(ThirdRankTensor2d) for i in range(n)])
+            x1 = vector_of_ThirdRankTensor2d()
+            result = self.boilerPlate("TestVectorThirdRankTensor2d_%i" % n,
+                                      "FileIOTestBase/vector_of_ThirdRankTensor2d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # vector<ThirdRankTensor3d>
     #---------------------------------------------------------------------------
     def testVectorThirdRankTensor3d(self):
         for n in (0, self.n):
-            filename = "TestVectorThirdRankTensor3d_%i" % n
-            v0 = vector_of_ThirdRankTensor3d()
-            for i in xrange(n):
-                val = ThirdRankTensor3d()
-                for i in xrange(ThirdRankTensor2d.nDimensions):
-                    for j in xrange(ThirdRankTensor2d.nDimensions):
-                        for k in xrange(ThirdRankTensor2d.nDimensions):
-                            val(i, j, k, g.uniform(self.doublemin, self.doublemax))
-                v0.append(val)
-            assert len(v0) == n
-            f = self.constructor(filename, Write)
-            f.write(v0, "FileIOTestBase/vector_of_ThirdRankTensor3d")
-            f.close()
-            f = self.constructor(filename, Read)
-            v = vector_of_ThirdRankTensor3d()
-            f.read(v, "FileIOTestBase/vector_of_ThirdRankTensor3d")
-            f.close()
-            assert len(v) == len(v0)
-            for i in xrange(n):
-                self.failUnless(fuzzyEqual(list(v[i]), list(v0[i])),
-                                "%s != %s @ %i of %i in vector<ThirdRankTensor3d> test" %
-                                (str(v[i]), str(v0[i]), i, n))
-            self.removeFile(filename)
-        return
+            x0 = vector_of_ThirdRankTensor3d([self.randomThirdRankTensor(ThirdRankTensor3d) for i in range(n)])
+            x1 = vector_of_ThirdRankTensor3d()
+            result = self.boilerPlate("TestVectorThirdRankTensor3d_%i" % n,
+                                      "FileIOTestBase/vector_of_ThirdRankTensor3d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+
+    #---------------------------------------------------------------------------
+    # vector<FacetedVolume1d>
+    #---------------------------------------------------------------------------
+    def testVectorFacetedVolume1d(self):
+        for n in (0, self.n):
+            x0 = vector_of_FacetedVolume1d([self.randomBox() for i in range(n)])
+            x1 = vector_of_FacetedVolume1d()
+            result = self.boilerPlate("TestVectorFacetedVolume1d_%i" % n,
+                                      "FileIOTestBase/vector_of_FacetedVolume1d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+
+    #---------------------------------------------------------------------------
+    # vector<FacetedVolume2d>
+    #---------------------------------------------------------------------------
+    def testVectorFacetedVolume2d(self):
+        for n in (0, self.n):
+            x0 = vector_of_FacetedVolume2d([self.randomPolygon() for i in range(n)])
+            x1 = vector_of_FacetedVolume2d()
+            result = self.boilerPlate("TestVectorFacetedVolume2d_%i" % n,
+                                      "FileIOTestBase/vector_of_FacetedVolume2d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+
+    #---------------------------------------------------------------------------
+    # vector<FacetedVolume3d>
+    #---------------------------------------------------------------------------
+    def testVectorFacetedVolume3d(self):
+        for n in (0, self.n):
+            x0 = vector_of_FacetedVolume3d([self.randomPolyhedron() for i in range(n)])
+            x1 = vector_of_FacetedVolume3d()
+            result = self.boilerPlate("TestVectorFacetedVolume3d_%i" % n,
+                                      "FileIOTestBase/vector_of_FacetedVolume3d",
+                                      x0, x1)
+            self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # Intfield1d
     #---------------------------------------------------------------------------
     def testIntField1d(self):
         v0 = IntField1d("int field 1d control", nodes1d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = g.randint(self.intmin, self.intmax)
         assert len(v0) == self.n
         f = self.constructor("TestIntField1d", Write)
@@ -789,8 +651,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/IntField1d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%i != %i @ %i of %i in IntField1d test" %
                             (v[i], v0[i], i, self.n))
         self.removeFile("TestIntField1d")
@@ -801,7 +663,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testIntField2d(self):
         v0 = IntField2d("int field 2d control", nodes2d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = g.randint(self.intmin, self.intmax)
         assert len(v0) == self.n
         f = self.constructor("TestIntField2d", Write)
@@ -812,8 +674,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/IntField2d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%i != %i @ %i of %i in IntField2d test" %
                             (v[i], v0[i], i, self.n))
         self.removeFile("TestIntField2d")
@@ -824,7 +686,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testIntField3d(self):
         v0 = IntField3d("int field 3d control", nodes3d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = g.randint(self.intmin, self.intmax)
         assert len(v0) == self.n
         f = self.constructor("TestIntField3d", Write)
@@ -835,8 +697,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/IntField3d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%i != %i @ %i of %i in IntField3d test" %
                             (v[i], v0[i], i, self.n))
         self.removeFile("TestIntField3d")
@@ -847,7 +709,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testUnsignedField1d(self):
         v0 = UnsignedField1d("unsigned field 1d control", nodes1d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = g.randint(self.unsignedmin, self.unsignedmax)
         assert len(v0) == self.n
         f = self.constructor("TestUnsignedField1d", Write)
@@ -858,8 +720,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/UnsignedField1d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%i != %i @ %i of %i in UnsignedField1d test" %
                             (v[i], v0[i], i, self.n))
         self.removeFile("TestUnsignedField1d")
@@ -870,7 +732,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testScalarField1d(self):
         v0 = ScalarField1d("scalar field 1d control", nodes1d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = g.uniform(self.doublemin, self.doublemax)
         assert len(v0) == self.n
         f = self.constructor("TestScalarField1d", Write)
@@ -881,8 +743,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/ScalarField1d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%g != %g @ %i of %i in ScalarField1d test" %
                             (v[i], v0[i], i, self.n))
         self.removeFile("TestScalarField1d")
@@ -893,7 +755,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testScalarField2d(self):
         v0 = ScalarField2d("scalar field 2d control", nodes2d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = g.uniform(self.doublemin, self.doublemax)
         assert len(v0) == self.n
         f = self.constructor("TestScalarField2d", Write)
@@ -904,8 +766,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/ScalarField2d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%g != %g @ %i of %i in ScalarField2d test" %
                             (v[i], v0[i], i, self.n))
         self.removeFile("TestScalarField2d")
@@ -916,7 +778,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testScalarField3d(self):
         v0 = ScalarField3d("scalar field 3d control", nodes3d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = g.uniform(self.doublemin, self.doublemax)
         assert len(v0) == self.n
         f = self.constructor("TestScalarField3d", Write)
@@ -927,8 +789,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/ScalarField3d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%g != %g @ %i of %i in ScalarField3d test" %
                             (v[i], v0[i], i, self.n))
         self.removeFile("TestScalarField3d")
@@ -939,7 +801,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testVectorField1d(self):
         v0 = VectorField1d("vector field 1d control", nodes1d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = Vector1d(g.uniform(self.doublemin, self.doublemax))
         assert len(v0) == self.n
         f = self.constructor("TestVectorField1d", Write)
@@ -950,8 +812,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/VectorField1d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%s != %s @ %i of %i in VectorField1d test" %
                             (str(v[i]), str(v0[i]), i, self.n))
         self.removeFile("TestVectorField1d")
@@ -962,7 +824,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testVectorField2d(self):
         v0 = VectorField2d("vector field 2d control", nodes2d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = Vector2d(g.uniform(self.doublemin, self.doublemax),
                              g.uniform(self.doublemin, self.doublemax))
         assert len(v0) == self.n
@@ -974,8 +836,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/VectorField2d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%s != %s @ %i of %i in VectorField2d test" %
                             (str(v[i]), str(v0[i]), i, self.n))
         self.removeFile("TestVectorField2d")
@@ -986,7 +848,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testVectorField3d(self):
         v0 = VectorField3d("vector field 3d control", nodes3d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = Vector3d(g.uniform(self.doublemin, self.doublemax),
                              g.uniform(self.doublemin, self.doublemax),
                              g.uniform(self.doublemin, self.doublemax))
@@ -999,8 +861,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/VectorField3d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%s != %s @ %i of %i in VectorField3d test" %
                             (str(v[i]), str(v0[i]), i, self.n))
         self.removeFile("TestVectorField3d")
@@ -1011,7 +873,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testTensorField1d(self):
         v0 = TensorField1d("tensor field 1d control", nodes1d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = Tensor1d(g.uniform(self.doublemin, self.doublemax))
         assert len(v0) == self.n
         f = self.constructor("TestTensorField1d", Write)
@@ -1022,8 +884,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/TensorField1d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%s != %s @ %i of %i in TensorField1d test" %
                             (str(v[i]), str(v0[i]), i, self.n))
         self.removeFile("TestTensorField1d")
@@ -1034,7 +896,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testTensorField2d(self):
         v0 = TensorField2d("tensor field 2d control", nodes2d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = Tensor2d(g.uniform(self.doublemin, self.doublemax),
                              g.uniform(self.doublemin, self.doublemax),
                              g.uniform(self.doublemin, self.doublemax),
@@ -1048,8 +910,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/TensorField2d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%s != %s @ %i of %i in TensorField2d test" %
                             (str(v[i]), str(v0[i]), i, self.n))
         self.removeFile("TestTensorField2d")
@@ -1060,7 +922,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testTensorField3d(self):
         v0 = TensorField3d("tensor field 3d control", nodes3d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = Tensor3d(g.uniform(self.doublemin, self.doublemax),
                              g.uniform(self.doublemin, self.doublemax),
                              g.uniform(self.doublemin, self.doublemax),
@@ -1079,8 +941,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/TensorField3d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%s != %s @ %i of %i in TensorField3d test" %
                             (str(v[i]), str(v0[i]), i, self.n))
         self.removeFile("TestTensorField3d")
@@ -1091,7 +953,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testSymTensorField1d(self):
         v0 = SymTensorField1d("symtensor field 1d control", nodes1d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             v0[i] = SymTensor1d(g.uniform(self.doublemin, self.doublemax))
         assert len(v0) == self.n
         f = self.constructor("TestSymTensorField1d", Write)
@@ -1102,8 +964,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/SymTensorField1d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%s != %s @ %i of %i in SymTensorField1d test" %
                             (str(v[i]), str(v0[i]), i, self.n))
         self.removeFile("TestSymTensorField1d")
@@ -1114,7 +976,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testSymTensorField2d(self):
         v0 = SymTensorField2d("symtensor field 2d control", nodes2d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             xx = g.uniform(self.doublemin, self.doublemax)
             xy = g.uniform(self.doublemin, self.doublemax)
             yy = g.uniform(self.doublemin, self.doublemax)
@@ -1129,8 +991,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/SymTensorField2d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%s != %s @ %i of %i in SymTensorField2d test" %
                             (str(v[i]), str(v0[i]), i, self.n))
         self.removeFile("TestSymTensorField2d")
@@ -1141,7 +1003,7 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testSymTensorField3d(self):
         v0 = SymTensorField3d("symtensor field 3d control", nodes3d)
-        for i in xrange(self.n):
+        for i in range(self.n):
             xx = g.uniform(self.doublemin, self.doublemax)
             xy = g.uniform(self.doublemin, self.doublemax)
             xz = g.uniform(self.doublemin, self.doublemax)
@@ -1160,8 +1022,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/SymTensorField3d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%s != %s @ %i of %i in SymTensorField3d test" %
                             (str(v[i]), str(v0[i]), i, self.n))
         self.removeFile("TestSymTensorField3d")
@@ -1172,11 +1034,11 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testThirdRankTensorField1d(self):
         v0 = ThirdRankTensorField1d("third rank tensor field 1d control", nodes1d)
-        for ii in xrange(self.n):
+        for ii in range(self.n):
             v0[ii] = ThirdRankTensor1d()
-            for i in xrange(ThirdRankTensor1d.nDimensions):
-                for j in xrange(ThirdRankTensor1d.nDimensions):
-                    for k in xrange(ThirdRankTensor1d.nDimensions):
+            for i in range(ThirdRankTensor1d.nDimensions):
+                for j in range(ThirdRankTensor1d.nDimensions):
+                    for k in range(ThirdRankTensor1d.nDimensions):
                         v0[ii](i, j, k, g.uniform(self.doublemin, self.doublemax))
         assert len(v0) == self.n
         f = self.constructor("TestThirdRankTensorField1d", Write)
@@ -1187,8 +1049,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/ThirdRankTensorField1d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%s != %s @ %i of %i in ThirdRankTensorField1d test" %
                             (str(v[i]), str(v0[i]), i, self.n))
         self.removeFile("TestThirdRankTensorField1d")
@@ -1199,11 +1061,11 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testThirdRankTensorField2d(self):
         v0 = ThirdRankTensorField2d("third rank tensor field 2d control", nodes2d)
-        for ii in xrange(self.n):
+        for ii in range(self.n):
             v0[ii] = ThirdRankTensor2d()
-            for i in xrange(ThirdRankTensor2d.nDimensions):
-                for j in xrange(ThirdRankTensor2d.nDimensions):
-                    for k in xrange(ThirdRankTensor2d.nDimensions):
+            for i in range(ThirdRankTensor2d.nDimensions):
+                for j in range(ThirdRankTensor2d.nDimensions):
+                    for k in range(ThirdRankTensor2d.nDimensions):
                         v0[ii](i, j, k, g.uniform(self.doublemin, self.doublemax))
         assert len(v0) == self.n
         f = self.constructor("TestThirdRankTensorField2d", Write)
@@ -1214,8 +1076,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/ThirdRankTensorField2d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%s != %s @ %i of %i in ThirdRankTensorField2d test" %
                             (str(v[i]), str(v0[i]), i, self.n))
         self.removeFile("TestThirdRankTensorField2d")
@@ -1226,11 +1088,11 @@ class FileIOTestBase:
     #---------------------------------------------------------------------------
     def testThirdRankTensorField3d(self):
         v0 = ThirdRankTensorField3d("third rank tensor field 3d control", nodes3d)
-        for ii in xrange(self.n):
+        for ii in range(self.n):
             v0[ii] = ThirdRankTensor3d()
-            for i in xrange(ThirdRankTensor3d.nDimensions):
-                for j in xrange(ThirdRankTensor3d.nDimensions):
-                    for k in xrange(ThirdRankTensor3d.nDimensions):
+            for i in range(ThirdRankTensor3d.nDimensions):
+                for j in range(ThirdRankTensor3d.nDimensions):
+                    for k in range(ThirdRankTensor3d.nDimensions):
                         v0[ii](i, j, k, g.uniform(self.doublemin, self.doublemax))
         assert len(v0) == self.n
         f = self.constructor("TestThirdRankTensorField3d", Write)
@@ -1241,8 +1103,8 @@ class FileIOTestBase:
         f.read(v, "FileIOTestBase/ThirdRankTensorField3d")
         f.close()
         assert len(v) == len(v0)
-        for i in xrange(self.n):
-            self.failUnless(v[i] == v0[i],
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
                             "%s != %s @ %i of %i in ThirdRankTensorField3d test" %
                             (str(v[i]), str(v0[i]), i, self.n))
         self.removeFile("TestThirdRankTensorField3d")
@@ -1255,7 +1117,7 @@ class FileIOTestBase:
         fl0 = IntFieldList1d()
         fl0.copyFields()
         fl0.appendNewField("int field 1d control", nodes1d, 0)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = g.randint(self.intmin, self.intmax)
         assert len(fl0) == 1
         assert len(fl0[0]) == self.n
@@ -1269,8 +1131,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%i != %i @ %i of %i in IntFieldList1d test" %
                             (fl[0][i], fl0[0][i], i, self.n))
         self.removeFile("TestIntFieldList1d")
@@ -1283,7 +1145,7 @@ class FileIOTestBase:
         fl0 = IntFieldList2d()
         fl0.copyFields()
         fl0.appendNewField("int field 2d control", nodes2d, 0)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = g.randint(self.intmin, self.intmax)
         assert len(fl0) == 1
         assert len(fl0[0]) == self.n
@@ -1297,8 +1159,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%i != %i @ %i of %i in IntFieldList2d test" %
                             (fl[0][i], fl0[0][i], i, self.n))
         self.removeFile("TestIntFieldList2d")
@@ -1311,7 +1173,7 @@ class FileIOTestBase:
         fl0 = IntFieldList3d()
         fl0.copyFields()
         fl0.appendNewField("int field 3d control", nodes3d, 0)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = g.randint(self.intmin, self.intmax)
         assert len(fl0) == 1
         assert len(fl0[0]) == self.n
@@ -1325,8 +1187,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%i != %i @ %i of %i in IntFieldList3d test" %
                             (fl[0][i], fl0[0][i], i, self.n))
         self.removeFile("TestIntFieldList3d")
@@ -1339,7 +1201,7 @@ class FileIOTestBase:
         fl0 = ScalarFieldList1d()
         fl0.copyFields()
         fl0.appendNewField("scalar field 1d control", nodes1d, 0.0)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = g.uniform(self.doublemin, self.doublemax)
         assert len(fl0) == 1
         assert len(fl0[0]) == self.n
@@ -1353,8 +1215,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%g != %g @ %i of %i in ScalarFieldList1d test" %
                             (fl[0][i], fl0[0][i], i, self.n))
         self.removeFile("TestScalarFieldList1d")
@@ -1367,7 +1229,7 @@ class FileIOTestBase:
         fl0 = ScalarFieldList2d()
         fl0.copyFields()
         fl0.appendNewField("scalar field 2d control", nodes2d, 0.0)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = g.uniform(self.doublemin, self.doublemax)
         assert len(fl0) == 1
         assert len(fl0[0]) == self.n
@@ -1381,8 +1243,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%g != %g @ %i of %i in ScalarFieldList2d test" %
                             (fl[0][i], fl0[0][i], i, self.n))
         self.removeFile("TestScalarFieldList2d")
@@ -1395,7 +1257,7 @@ class FileIOTestBase:
         fl0 = ScalarFieldList3d()
         fl0.copyFields()
         fl0.appendNewField("scalar field 3d control", nodes3d, 0.0)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = g.uniform(self.doublemin, self.doublemax)
         assert len(fl0) == 1
         assert len(fl0[0]) == self.n
@@ -1409,8 +1271,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%g != %g @ %i of %i in ScalarFieldList3d test" %
                             (fl[0][i], fl0[0][i], i, self.n))
         self.removeFile("TestScalarFieldList3d")
@@ -1423,7 +1285,7 @@ class FileIOTestBase:
         fl0 = VectorFieldList1d()
         fl0.copyFields()
         fl0.appendNewField("vector field 1d control", nodes1d, Vector1d.zero)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = Vector1d(g.uniform(self.doublemin, self.doublemax))
         assert len(fl0) == 1
         assert len(fl0[0]) == self.n
@@ -1437,8 +1299,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl0[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%s != %s @ %i of %i in VectorFieldList1d test" %
                             (str(fl[0][i]), str(fl0[0][i]), i, self.n))
         self.removeFile("TestVectorFieldList1d")
@@ -1451,7 +1313,7 @@ class FileIOTestBase:
         fl0 = VectorFieldList2d()
         fl0.copyFields()
         fl0.appendNewField("vector field 2d control", nodes2d, Vector2d.zero)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = Vector2d(g.uniform(self.doublemin, self.doublemax),
                                  g.uniform(self.doublemin, self.doublemax))
         assert len(fl0) == 1
@@ -1466,8 +1328,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%s != %s @ %i of %i in VectorFieldList2d test" %
                             (str(fl[0][i]), str(fl0[0][i]), i, self.n))
         self.removeFile("TestVectorFieldList2d")
@@ -1480,7 +1342,7 @@ class FileIOTestBase:
         fl0 = VectorFieldList3d()
         fl0.copyFields()
         fl0.appendNewField("vector field 3d control", nodes3d, Vector3d.zero)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = Vector3d(g.uniform(self.doublemin, self.doublemax),
                                  g.uniform(self.doublemin, self.doublemax),
                                  g.uniform(self.doublemin, self.doublemax))
@@ -1496,8 +1358,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%s != %s @ %i of %i in VectorFieldList3d test" %
                             (str(fl[0][i]), str(fl0[0][i]), i, self.n))
         self.removeFile("TestVectorFieldList3d")
@@ -1510,7 +1372,7 @@ class FileIOTestBase:
         fl0 = TensorFieldList1d()
         fl0.copyFields()
         fl0.appendNewField("vector field 1d control", nodes1d, Tensor1d.zero)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = Tensor1d(g.uniform(self.doublemin, self.doublemax))
         assert len(fl0) == 1
         assert len(fl0[0]) == self.n
@@ -1524,8 +1386,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl0[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%s != %s @ %i of %i in TensorFieldList1d test" %
                             (str(fl[0][i]), str(fl0[0][i]), i, self.n))
         self.removeFile("TestTensorFieldList1d")
@@ -1538,7 +1400,7 @@ class FileIOTestBase:
         fl0 = TensorFieldList2d()
         fl0.copyFields()
         fl0.appendNewField("vector field 2d control", nodes2d, Tensor2d.zero)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = Tensor2d(g.uniform(self.doublemin, self.doublemax),
                                  g.uniform(self.doublemin, self.doublemax),
                                  g.uniform(self.doublemin, self.doublemax),
@@ -1555,8 +1417,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%s != %s @ %i of %i in TensorFieldList2d test" %
                             (str(fl[0][i]), str(fl0[0][i]), i, self.n))
         self.removeFile("TestTensorFieldList2d")
@@ -1569,7 +1431,7 @@ class FileIOTestBase:
         fl0 = TensorFieldList3d()
         fl0.copyFields()
         fl0.appendNewField("vector field 3d control", nodes3d, Tensor3d.zero)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = Tensor3d(g.uniform(self.doublemin, self.doublemax),
                                  g.uniform(self.doublemin, self.doublemax),
                                  g.uniform(self.doublemin, self.doublemax),
@@ -1591,8 +1453,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%s != %s @ %i of %i in TensorFieldList3d test" %
                             (str(fl[0][i]), str(fl0[0][i]), i, self.n))
         self.removeFile("TestTensorFieldList3d")
@@ -1605,7 +1467,7 @@ class FileIOTestBase:
         fl0 = SymTensorFieldList1d()
         fl0.copyFields()
         fl0.appendNewField("vector field 1d control", nodes1d, SymTensor1d.zero)
-        for i in xrange(self.n):
+        for i in range(self.n):
             fl0[0][i] = SymTensor1d(g.uniform(self.doublemin, self.doublemax))
         assert len(fl0) == 1
         assert len(fl0[0]) == self.n
@@ -1619,8 +1481,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl0[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%s != %s @ %i of %i in SymTensorFieldList1d test" %
                             (str(fl[0][i]), str(fl0[0][i]), i, self.n))
         self.removeFile("TestSymTensorFieldList1d")
@@ -1633,7 +1495,7 @@ class FileIOTestBase:
         fl0 = SymTensorFieldList2d()
         fl0.copyFields()
         fl0.appendNewField("vector field 2d control", nodes2d, SymTensor2d.zero)
-        for i in xrange(self.n):
+        for i in range(self.n):
             xx = g.uniform(self.doublemin, self.doublemax)
             xy = g.uniform(self.doublemin, self.doublemax)
             yy = g.uniform(self.doublemin, self.doublemax)
@@ -1651,8 +1513,8 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%s != %s @ %i of %i in SymTensorFieldList2d test" %
                             (str(fl[0][i]), str(fl0[0][i]), i, self.n))
         self.removeFile("TestSymTensorFieldList2d")
@@ -1665,7 +1527,7 @@ class FileIOTestBase:
         fl0 = SymTensorFieldList3d()
         fl0.copyFields()
         fl0.appendNewField("vector field 3d control", nodes3d, SymTensor3d.zero)
-        for i in xrange(self.n):
+        for i in range(self.n):
             xx = g.uniform(self.doublemin, self.doublemax)
             xy = g.uniform(self.doublemin, self.doublemax)
             xz = g.uniform(self.doublemin, self.doublemax)
@@ -1687,12 +1549,45 @@ class FileIOTestBase:
         f.close()
         assert len(fl) == len(fl0)
         assert len(fl[0]) == len(fl0[0])
-        for i in xrange(self.n):
-            self.failUnless(fl[0][i] == fl0[0][i],
+        for i in range(self.n):
+            self.assertTrue(fl[0][i] == fl0[0][i],
                             "%s != %s @ %i of %i in SymTensorFieldList3d test" %
                             (str(fl[0][i]), str(fl0[0][i]), i, self.n))
         self.removeFile("TestSymTensorFieldList3d")
         return
+
+    #---------------------------------------------------------------------------
+    # testWriteBox
+    #---------------------------------------------------------------------------
+    def testWriteBox(self):
+        x0 = self.randomBox()
+        x1 = Box1d()
+        result = self.boilerPlate("TestBox",
+                                  "FileIOTestBase/TestBox",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+
+    #---------------------------------------------------------------------------
+    # testWritePolygon
+    #---------------------------------------------------------------------------
+    def testWritePolygon(self):
+        x0 = self.randomPolygon()
+        x1 = Polygon()
+        result = self.boilerPlate("TestPolygon",
+                                  "FileIOTestBase/TestPolygon",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
+
+    #---------------------------------------------------------------------------
+    # testWritePolyhedron
+    #---------------------------------------------------------------------------
+    def testWritePolyhedron(self):
+        x0 = self.randomPolyhedron()
+        x1 = Polyhedron()
+        result = self.boilerPlate("TestPolyhedron", 
+                                  "FileIOTestBase/TestPolyhedron",
+                                  x0, x1)
+        self.assertTrue(result, "FAIL: %s != %s" % (str(x1), str(x0)))
 
     #---------------------------------------------------------------------------
     # writeObject(int)
@@ -1705,9 +1600,25 @@ class FileIOTestBase:
         f = self.constructor("TestInt", Read)
         x1 = f.readObject("FileIOTestBase/TestInt")
         f.close()
-        self.failUnless(x1 == x0,
+        self.assertTrue(x1 == x0,
                         "%i != %i in int OBJECT test" % (x1, x0))
         self.removeFile("TestInt")
+        return
+
+    #---------------------------------------------------------------------------
+    # writeObject(bool)
+    #---------------------------------------------------------------------------
+    def testWriteObjectBool(self):
+        x0 = g.choice([True, False])
+        f = self.constructor("TestBool", Write)
+        f.writeObject(x0, "FileIOTestBase/TestBool")
+        f.close()
+        f = self.constructor("TestBool", Read)
+        x1 = f.readObject("FileIOTestBase/TestBool")
+        f.close()
+        self.assertTrue(x1 == x0,
+                        "%s != %s in bool OBJECT test" % (x1, x0))
+        self.removeFile("TestBool")
         return
 
     #---------------------------------------------------------------------------
@@ -1721,7 +1632,7 @@ class FileIOTestBase:
         f = self.constructor("TestObject", Read)
         x1 = f.readObject("FileIOTestBase/TestObject")
         f.close()
-        self.failUnless(x1 == x0,
+        self.assertTrue(x1 == x0,
                         "%s != %s in string OBJECT test" % (x1, x0))
         self.removeFile("TestObject")
         return
@@ -1737,7 +1648,7 @@ class FileIOTestBase:
         f = self.constructor("TestObject", Read)
         x1 = f.readObject("FileIOTestBase/TestObject")
         f.close()
-        self.failUnless(x1 == x0,
+        self.assertTrue(x1 == x0,
                         "%s != %s in list OBJECT test" % (x1, x0))
         self.removeFile("TestObject")
         return
@@ -1756,7 +1667,7 @@ class FileIOTestBase:
         f = self.constructor("TestVector3d", Read)
         x1 = f.readObject("FileIOTestBase/TestVector3d")
         f.close()
-        self.failUnless(x1 == x0,
+        self.assertTrue(x1 == x0,
                         "%s != %s in Vector3d OBJECT test" % (str(x1), str(x0)))
         self.removeFile("TestVector3d")
         return

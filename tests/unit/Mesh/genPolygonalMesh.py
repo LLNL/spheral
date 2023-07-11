@@ -24,7 +24,7 @@ xmaxproc = Vector(x0 + (ixproc + 1)*dxproc, y0 + (iyproc + 1)*dyproc)
 
 fname = "generators_domain_%i_of_%i.txt" % (mpi.rank, mpi.procs)
 if os.path.exists(fname):
-    print "Reading existing gens."
+    print("Reading existing gens.")
     f = open(fname, "r")
     xynodes = []
     for line in f:
@@ -43,7 +43,7 @@ else:
     dycell = (y1 - y0)/nycell
     xynodes_all = []
     occupiedCells = set()
-    for k in xrange(nx*nx):
+    for k in range(nx*nx):
         i = rangen.randint(0, ncell)
         while i in occupiedCells:
             i = rangen.randint(0, ncell)
@@ -88,7 +88,7 @@ def createNodes(gens, dx):
     rho = nodes.massDensity()
     vel = nodes.velocity()
     H0 = 1.0/(dx*nodes.nodesPerSmoothingScale) * SymTensor.one
-    for i in xrange(len(gens)):
+    for i in range(len(gens)):
         xi = gens[i]
         pos[i] = xi
         H[i] = H0

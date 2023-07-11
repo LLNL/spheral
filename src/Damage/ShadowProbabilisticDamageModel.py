@@ -1,7 +1,4 @@
 import sys
-import mpi
-from math import *
-from io import BytesIO as StringIO
 from SpheralCompiledPackages import *
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 
@@ -9,9 +6,15 @@ from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
 #-------------------------------------------------------------------------------
-# Define help strings for our constructors.
+# ProbabilisticDamageModel factory function
 #-------------------------------------------------------------------------------
-expectedUsageString = """
+def PDMFactory(ndim):
+    IntField = eval("IntField{}d".format(ndim))
+    CXXProbabilisticDamageModel = eval("ProbabilisticDamageModel{}d".format(ndim))
+    class ProbabilisticDamageModel(CXXProbabilisticDamageModel):
+
+        def __init__(self, *args, **kwargs):
+            """
 ProbabilisticDamageModel is constructed with the following arguments (any 
 default values listed in parens):
 
@@ -43,120 +46,93 @@ default values listed in parens):
                                   on that point
 """
 
-#-------------------------------------------------------------------------------
-# ProbabilisticDamageModel
-#-------------------------------------------------------------------------------
-ProbabilisticDamageModelGenString = """
-class ProbabilisticDamageModel%(dim)s(CXXProbabilisticDamageModel%(dim)s):
-    '''%(help)s'''
+            # The material library values are in CGS, so build a units object for 
+            # conversions.
+            cgs = PhysicalConstants(0.01,   # unit length in m
+                                    0.001,  # unit mass in kg
+                                    1.0)    # unit time in sec
 
-    def __init__(self, *args_in, **kwargs):
+            # Arguments needed to build the damage model.
+            damage_kwargs = {"nodeList"                 : None,
+                             "kernel"                   : None,
+                             "kWeibull"                 : None,
+                             "mWeibull"                 : None,
+                             "seed"                     : 48927592,
+                             "minFlawsPerNode"          : 1,
+                             "crackGrowthMultiplier"    : 0.4,
+                             "volumeMultiplier"         : 1.0,
+                             "damageCouplingAlgorithm"  : PairMaxDamage,
+                             "strainAlgorithm"          : PseudoPlasticStrain,
+                             "damageInCompression"      : False,
+                             "criticalDamageThreshold"  : 4.0,
+                             "mask"                     : None}
 
-        args = list(args_in)
+            # Extra arguments for our convenient constructor.
+            convenient_kwargs = {"materialName"          : None,
+                                 "units"                 : None}
 
-        # The material library values are in CGS, so build a units object for 
-        # conversions.
-        cgs = PhysicalConstants(0.01,   # unit length in m
-                                0.001,  # unit mass in kg
-                                1.0)    # unit time in sec
+            # Check the input arguments.
+            validKeys = list(damage_kwargs.keys()) + list(convenient_kwargs.keys())
+            for argname in kwargs:
+                if not argname in validKeys:
+                    raise ValueError("ERROR: argument {} not a valid option.\n".format(argname))
 
-        # Arguments needed to build the damage model.
-        damage_kwargs = {"nodeList"                 : None,
-                         "kernel"                   : None,
-                         "kWeibull"                 : None,
-                         "mWeibull"                 : None,
-                         "seed"                     : 48927592,
-                         "minFlawsPerNode"          : 1,
-                         "crackGrowthMultiplier"    : 0.4,
-                         "volumeMultiplier"         : 1.0,
-                         "damageCouplingAlgorithm"  : PairMaxDamage,
-                         "strainAlgorithm"          : PseudoPlasticStrain,
-                         "damageInCompression"      : False,
-                         "criticalDamageThreshold"  : 4.0,
-                         "mask"                     : None}
+            # Did the user try any convenient constructor operations?
+            if ((len(args) > 0 and type(args[0]) == str) or
+                "materialName" in kwargs):
+                if len(args) > 0 and type(args[0]) == str:
+                    materialName = args[0]
+                    args = args[1:]
+                else:
+                    materialName = kwargs["materialName"]
+                    del kwargs["materialName"]
+                if not materialName in SpheralMaterialPropertiesLib:
+                    raise ValueError("ERROR: material {} is not in the library of material values.\n".format(materialName))
+                matprops = SpheralMaterialPropertiesLib[materialName]
+                if not ("kWeibull" in matprops and "mWeibull" in matprops):
+                    raise ValueError("ERROR : material {} does not provide the required values for kWeibull and mWeibull.\n".format(materialName))
+                damage_kwargs["kWeibull"] = matprops["kWeibull"]
+                damage_kwargs["mWeibull"] = matprops["mWeibull"]
 
-        # Extra arguments for our convenient constructor.
-        convenient_kwargs = {"materialName"          : None,
-                             "units"                 : None}
+                # Any attempt to specify units?
+                if "units" in kwargs:
+                    units = kwargs["units"]
+                    damage_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
+                    del kwargs["units"]
+                elif len(args) > 1 and isinstance(args[1], PhysicalConstants):
+                    units = args[1]
+                    damage_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
+                    args = args[1:]
 
-        # Check the input arguments.
-        validKeys = damage_kwargs.keys() + convenient_kwargs.keys()
-        for argname in kwargs:
-            if not argname in validKeys:
-                raise ValueError, ("ERROR: argument %%s not a valid option.\\n" %% argname +
-                                   expectedUsageString)
+            # Process remaining user arguments.
+            kwarg_order = ["nodeList", "kernel", "kWeibull", "mWeibull", "seed", "minFlawsPerNode", "crackGrowthMultiplier",
+                           "volumeMultiplier", "damageCouplingAlgorithm", "strainAlgorithm", "damageInCompression",
+                           "criticalDamageThreshold", "mask"]
+            for iarg, argval in enumerate(args):
+                damage_kwargs[kward_order[iarg]] = argval
 
-        # Did the user try any convenient constructor operations?
-        if ((len(args) > 0 and type(args[0]) == str) or
-            "materialName" in kwargs):
-            if len(args) > 0 and type(args[0]) == str:
-                materialName = args[0]
-                del args[0]
-            else:
-                materialName = kwargs["materialName"]
-                del kwargs["materialName"]
-            if not materialName in SpheralMaterialPropertiesLib:
-                raise ValueError, (("ERROR: material %%s is not in the library of material values.\\n" %% materialName) +
-                                   expectedUsageString)
-            matprops = SpheralMaterialPropertiesLib[materialName]
-            if not ("kWeibull" in matprops and "mWeibull" in matprops):
-                raise ValueError, (("ERROR : material %%s does not provide the required values for kWeibull and mWeibull.\\n" %% materialName) + 
-                                   expectedUsageString)
-            damage_kwargs["kWeibull"] = matprops["kWeibull"]
-            damage_kwargs["mWeibull"] = matprops["mWeibull"]
+            # Process any keyword arguments.  Note we already removed any deprecated keywords.
+            for argname in kwargs:
+                if argname in damage_kwargs:
+                    damage_kwargs[argname] = kwargs[argname]
+                else:
+                    raise ValueError("ERROR : unknown kwarg {}.\n".format(argname))
 
-            # Any attempt to specify units?
-            if "units" in kwargs:
-                units = kwargs["units"]
-                damage_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
-                del kwargs["units"]
-            elif len(args) > 1 and isinstance(args[1], PhysicalConstants):
-                units = args[1]
-                damage_kwargs["kWeibull"] *= (cgs.unitLengthMeters/units.unitLengthMeters)**3
-                del args[1]
+            # If no mask was provided, deafult to all points active
+            if damage_kwargs["mask"] is None:
+                damage_kwargs["mask"] = IntField("damage mask", damage_kwargs["nodeList"], 1)
 
-        # Process remaining user arguments.
-        kwarg_order = ["nodeList", "kernel", "kWeibull", "mWeibull", "seed", "minFlawsPerNode", "crackGrowthMultiplier",
-                       "volumeMultiplier", "damageCouplingAlgorithm", "strainAlgorithm", "damageInCompression",
-                       "criticalDamageThreshold", "mask"]
-        for iarg, argval in enumerate(args):
-            damage_kwargs[kward_order[iarg]] = argval
+            # # If no minFlawsPerNode was specified, set it to a fraction of log(N_points)
+            # if damage_kwargs["minFlawsPerNode"] is None:
+            #     damage_kwargs["minFlawsPerNode"] = max(1, int(log(mpi.allreduce(damage_kwargs["nodeList"].numInternalNodes, mpi.SUM))))
 
-        # Process any keyword arguments.  Note we already removed any deprecated keywords.
-        for argname in kwargs:
-            if argname in damage_kwargs:
-                damage_kwargs[argname] = kwargs[argname]
-            else:
-                raise ValueError, (("ERROR : unknown kwarg %%s.\\n" %% argname) + expectedUsageString)
+            # Invoke the parent constructor
+            CXXProbabilisticDamageModel.__init__(self, **damage_kwargs)
 
-        # If no mask was provided, deafult to all points active
-        if damage_kwargs["mask"] is None:
-            damage_kwargs["mask"] = IntField%(dim)s("damage mask", damage_kwargs["nodeList"], 1)
-
-        # # If no minFlawsPerNode was specified, set it to a fraction of log(N_points)
-        # if damage_kwargs["minFlawsPerNode"] is None:
-        #     damage_kwargs["minFlawsPerNode"] = max(1, int(log(mpi.allreduce(damage_kwargs["nodeList"].numInternalNodes, mpi.SUM))))
-
-        # Build the damage model.
-        CXXProbabilisticDamageModel%(dim)s.__init__(self, **damage_kwargs)
-        return
-
-"""
+    return ProbabilisticDamageModel
 
 #-------------------------------------------------------------------------------
-# Make 'em
+# Create the different dimension implementations.
 #-------------------------------------------------------------------------------
-for dim in dims:
-    exec("from SpheralCompiledPackages import ProbabilisticDamageModel%id as CXXProbabilisticDamageModel%id" % (dim, dim))
-
-    # Capture the full class help string
-    save_stdout = sys.stdout
-    ss = StringIO()
-    sys.stdout = ss
-    eval("help(CXXProbabilisticDamageModel%id)" % dim)
-    sys.stdout = save_stdout
-    ss.seek(0)
-    class_help = ss.read()
-
-    exec(ProbabilisticDamageModelGenString % {"dim": "%id" % dim,
-                                              "help": (expectedUsageString + "\n\n Class help:\n\n" + class_help)})
+for ndim in dims:
+    exec("ProbabilisticDamageModel{ndim}d = PDMFactory({ndim})".format(ndim=ndim))

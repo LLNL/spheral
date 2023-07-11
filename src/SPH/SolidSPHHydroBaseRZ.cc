@@ -195,11 +195,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto n = mass[nodeListi]->numElements();
       for (auto i = 0u; i < n; ++i) {
         const auto circi = 2.0*M_PI*abs(pos(nodeListi, i).y());
-#ifdef WIN32
-        if (circi > 0.0) mass(nodeListi, i) /= circi;
-#else
         mass(nodeListi, i) /= circi;
-#endif
       }
     }
   }
@@ -221,11 +217,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       for (auto i = 0u; i != n; ++i) {
         const auto& xi = position(nodeListi, i);
         const auto  circi = 2.0*M_PI*abs(xi.y());
-#ifdef WIN32
-        if (circi > 0.0) mass(nodeListi, i) *= circi;
-#else
         mass(nodeListi, i) *= circi;
-#endif
       }
     }
   }

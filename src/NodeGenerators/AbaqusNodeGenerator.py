@@ -42,16 +42,16 @@ class AbaqusNodeGenerator(NodeGeneratorBase):
                    lines[iline][:5] != "*NODE"):
                 iline += 1
             if iline == len(lines):
-                raise RuntimeError, "Unable to find *NODE specification in %s" % fileName
+                raise RuntimeError("Unable to find *NODE specification in %s" % fileName)
             iline += 1
             while lines[iline][0] != "*":
                 stuff = lines[iline].split(",")
                 assert len(stuff) == 4
                 i = int(stuff[0])
-                xi, yi, zi = (float(stuff[j]) for j in xrange(1,4))
+                xi, yi, zi = (float(stuff[j]) for j in range(1,4))
                 vertices[i] = scale*Vector(xi, yi, zi)
                 iline += 1
-            print "AbaqusNodeGenerator : Read %i vertices from file %s" % (len(vertices), fileName)
+            print("AbaqusNodeGenerator : Read %i vertices from file %s" % (len(vertices), fileName))
         lines = mpi.bcast(lines, root=0)
         vertices = mpi.bcast(vertices, root=0)
         return cls(lines, vertices, materialLabel, elsetLabel, serialFile, nNodePerh, SPH, scale)
@@ -80,7 +80,7 @@ class AbaqusNodeGenerator(NodeGeneratorBase):
                    not elset in lines[iline].replace(" ", "")):
                 iline += 1
             if iline == len(lines):
-                raise RuntimeError, "Unable to find *ELEMENT section for %s in %s" % (elset, fileName)
+                raise RuntimeError("Unable to find *ELEMENT section for %s in %s" % (elset, fileName))
             iline += 1
             while lines[iline][0] != "*":
                 stuff = lines[iline].split(",")
@@ -98,7 +98,7 @@ class AbaqusNodeGenerator(NodeGeneratorBase):
                 psi = psi.Inverse()
                 self.H.append(psi)
                 iline += 1
-            print "AbaqusNodeGenerator : Read %i cells for element set %s" % (len(self.x), elsetLabel)
+            print("AbaqusNodeGenerator : Read %i cells for element set %s" % (len(self.x), elsetLabel))
         self.x = mpi.bcast(self.x, root=0)
         self.y = mpi.bcast(self.y, root=0)
         self.z = mpi.bcast(self.z, root=0)
@@ -112,12 +112,12 @@ class AbaqusNodeGenerator(NodeGeneratorBase):
                not material in lines[iline].replace(" ", "")):
             iline += 1
         if iline == len(lines):
-            raise RuntimeError, "Unable to find *MATERIAL section for %s" % (materialLabel)
+            raise RuntimeError("Unable to find *MATERIAL section for %s" % (materialLabel))
         while (iline < len(lines) and
                lines[iline][:8] != "*DENSITY"):
             iline += 1
         if iline == len(lines):
-            raise RuntimeError, "Unable to find *DENSITY section for %s" % (materialLabel)
+            raise RuntimeError("Unable to find *DENSITY section for %s" % (materialLabel))
         iline += 1
         assert iline < len(lines)
         self.rho0 = float(lines[iline]) / scale**3
@@ -291,16 +291,16 @@ def abaqusNodeGenerators(fileName,
                lines[iline][:5] != "*NODE"):
             iline += 1
         if iline == len(lines):
-            raise RuntimeError, "Unable to find *NODE specification in %s" % fileName
+            raise RuntimeError("Unable to find *NODE specification in %s" % fileName)
         iline += 1
         while lines[iline][0] != "*":
             stuff = lines[iline].split(",")
             assert len(stuff) == 4
             i = int(stuff[0])
-            xi, yi, zi = (float(stuff[j]) for j in xrange(1,4))
+            xi, yi, zi = (float(stuff[j]) for j in range(1,4))
             vertices[i] = scale*Vector(xi, yi, zi)
             iline += 1
-        print "AbaqusNodeGenerator : Read %i vertices from file %s" % (len(vertices), fileName)
+        print("AbaqusNodeGenerator : Read %i vertices from file %s" % (len(vertices), fileName))
         
         # Find the subrange of lines for each element set and its material.
         iline = 0
@@ -326,7 +326,7 @@ def abaqusNodeGenerators(fileName,
     lines = mpi.bcast(lines, root=0)
     ipartline = mpi.bcast(ipartline, root=0)
     elsetProps = mpi.bcast(elsetProps, root=0)
-    print "AbaqusNodeGenerator : Found %i element sets in file %s" % (len(elsetProps), fileName)
+    print("AbaqusNodeGenerator : Found %i element sets in file %s" % (len(elsetProps), fileName))
 
     # Now build the generators for each element set.
     result = {}

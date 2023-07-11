@@ -9,7 +9,10 @@
 #ifndef __Spheral_NodeSpace_SmooothingScaleBase__
 #define __Spheral_NodeSpace_SmooothingScaleBase__
 
+#include "Geometry/Dimension.hh"
 #include "Mesh/Mesh.hh"
+
+#include <cmath>
 
 namespace Spheral {
 
@@ -49,6 +52,9 @@ public:
                                       const Scalar nPerh,
                                       Field<Dimension, SymTensor>& DHDt,
                                       Field<Dimension, SymTensor>& Hideal) const;
+
+  // Given the volume and target nperh, compute an effective target hmax
+  Scalar hmax(const Scalar Vi, const Scalar nPerh) const;
 
   //*****************************************************************************
   // Required methods for descendents.
@@ -113,5 +119,7 @@ private:
 };
 
 }
+
+#include "SmoothingScaleBaseInline.hh"
 
 #endif

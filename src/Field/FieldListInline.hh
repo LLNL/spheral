@@ -1411,7 +1411,7 @@ inline
 DataType
 FieldList<Dimension, DataType>::
 localMax() const {
-  auto result = -std::numeric_limits<DataType>::max() < std::numeric_limits<DataType>::min() ? -std::numeric_limits<DataType>::max() : std::numeric_limits<DataType>::min();
+  auto result = std::numeric_limits<DataType>::lowest();
   for (auto itr = begin(); itr < end(); ++itr) result = std::max(result, (*itr)->localMax());
   return result;
 }
