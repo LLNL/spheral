@@ -66,9 +66,9 @@ foreach(_tgt umpire RAJA mfem conduit
     list(APPEND spheral_blt_cxx_depends ${_tgt})
     # Do we need the following line?
     # blt_patch_target(NAME ${_tgt} TREAT_INCLUDES_AS_SYSTEM On)
-    message(WARNING "${_tgt} is a target.")
+    message(DEBUG "${_tgt} is a target.")
   else()
-    message(WARNING "${_tgt} **IS NOT** a target.")
+    message(DEBUG "${_tgt} **IS NOT** a target.")
   endif()
 endforeach()
 
