@@ -57,13 +57,22 @@ Spheral_Handle_TPL(qhull spheral_depends cxx)
 Spheral_Handle_TPL(silo spheral_depends cxx)
 
 # AXOM PUlls in HDF5 and Conduit for us
-#Spheral_Handle_TPL(conduit spheral_depends cxx)
-find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
-if(axom_FOUND)
-  list(APPEND spheral_blt_cxx_depends axom axom::fmt)
-  blt_patch_target(NAME axom::fmt TREAT_INCLUDES_AS_SYSTEM On)
-  message(STATUS "Found axom: ${axom_DIR} (found version ${axom_VERSION})")
-endif()
+include(CMakeFindDependencyMacro)
+find_dependency(axom REQUIRED NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
+foreach(_tgt umpire RAJA mfem conduit
+             axom::c2c axom::fmt axom::core axom::slic
+             axom::sidre axom::mint axom::quest axom)
+  if(TARGET ${_tgt})
+    list(APPEND spheral_blt_cxx_depends ${_tgt})
+    # Do we need the following line?
+    # blt_patch_target(NAME ${_tgt} TREAT_INCLUDES_AS_SYSTEM On)
+    message(WARNING "${_tgt} is a target.")
+  else()
+    message(WARNING "${_tgt} **IS NOT** a target.")
+  endif()
+endforeach()
+
+blt_print_target_properties(TARGET umpire)
 
 # Axom imports hdf5 lib but Spheral also requires hdf5_hl
 Spheral_Handle_TPL(hdf5 spheral_depends cxx)
