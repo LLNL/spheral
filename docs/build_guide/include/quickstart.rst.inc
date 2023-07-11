@@ -10,7 +10,7 @@ Update and install necessary package dependencies.
 
   sudo apt update
   sudo apt upgrade
-  sudo apt install build-essential git gfortran mpich autotools-dev autoconf sqlite pkg-config uuid gettext cmake libncurses4-dev libgdbm-dev libffi-dev libssl-dev libexpat-dev libreadline-dev
+  sudo apt install build-essential git gfortran mpich autotools-dev autoconf sqlite pkg-config uuid gettext cmake libncurses-dev libgdbm-dev libffi-dev libssl-dev libexpat-dev libreadline-dev liblapack-dev libbz2-dev locales python python3 unzip libtool wget curl tk-dev
 
 .. warning::
    For alternative Linux distros your mileage may vary, ensure you are installing compatible packages to the ones listed above.
