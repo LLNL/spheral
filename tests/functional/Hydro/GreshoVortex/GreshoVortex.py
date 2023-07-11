@@ -265,7 +265,7 @@ if restoreCycle is None:
         from DistributeNodes import distributeNodes2d
 
     distributeNodes2d((nodes, generator))
-    print nodes.name, ":"
+    print(nodes.name, ":")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
     output("    mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
@@ -274,7 +274,7 @@ if restoreCycle is None:
     vel = nodes.velocity()
     eps = nodes.specificThermalEnergy()
     pos = nodes.positions()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         xi, yi = pos[i]
         r2=(xi-xc)*(xi-xc)+(yi-yc)*(yi-yc)
         ri=sqrt(r2)
@@ -459,7 +459,7 @@ output("integrator.verbose")
 # If requested, smooth the initial conditions.
 #-------------------------------------------------------------------------------
 if smooth:
-    for iter in xrange(smooth):
+    for iter in range(smooth):
         db.updateConnectivityMap(False)
         cm = db.connectivityMap()
         position_fl = db.fluidPosition
@@ -525,7 +525,7 @@ if graphics:
     pos = nodes.positions()
     vel = nodes.velocity()
     vaz = db.newFluidScalarFieldList(0.0, "azimuthal velocity")
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         rhat = (pos[i] - Vector(xc, yc)).unitVector()
         vaz[0][i] = (vel[i] - vel[i].dot(rhat)*rhat).magnitude()
     paz = plotFieldList(vaz, xFunction="(%%s - Vector2d(%g,%g)).magnitude()" % (xc, yc), plotStyle="points", lineTitle="Simulation", winTitle="Azimuthal velocity")
@@ -549,7 +549,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(baseDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes)
     nodes.pressure(P)
     xprof = mpi.reduce([x.x for x in nodes.positions().internalValues()], mpi.SUM)
@@ -569,7 +569,7 @@ if outputFile != "None":
         multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof,velx,vely)
         L1 = 0.0
         vazprof = []
-        for i in xrange(len(xprof)):
+        for i in range(len(xprof)):
            rhat = (Vector(xprof[i],yprof[i]) - Vector(xc, yc)).unitVector()
            vel_vec = Vector(velx[i],vely[i])
            vazprof.append((vel_vec - vel_vec.dot(rhat)*rhat).magnitude())

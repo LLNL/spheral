@@ -167,7 +167,7 @@ elif testDim == "3d":
                       (nodes2, gen2))
 
 else:
-    raise ValueError, "Only tests cases for 1d,2d and 3d." 
+    raise ValueError("Only tests cases for 1d,2d and 3d.") 
 
 for nodes in nodeSet:
     output("nodes.name, nodes.numNodes")
@@ -176,7 +176,7 @@ for nodes in nodeSet:
 for nodes, eps0 in ((nodes1, eps1),
                     (nodes2, eps2)):
     eps = nodes.specificThermalEnergy()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         eps[i] = eps0
 
 #-------------------------------------------------------------------------------
@@ -189,7 +189,7 @@ dz = (x2 - x0)/(nx1 + nx2)
 for nodes, dx in ((nodes1, dx1),
                   (nodes2, dx2)):
     pos = nodes.positions()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         if testDim == "1d":
             pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
         elif testDim == "2d":
@@ -229,7 +229,7 @@ if iterateH:
 f = db.newFluidScalarFieldList(name="test field")
 pos = db.fluidPosition
 for iNodeList, nodes in enumerate(db.nodeLists()):
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         x = pos(iNodeList, i).x
         if testCase == "linear":
             f[iNodeList][i] = y0 + m0*x
@@ -291,7 +291,7 @@ computeCRKSPHCorrections(M0, M1, M2, M3, M4, gradM0, gradM1, gradM2, gradM3, gra
 #-------------------------------------------------------------------------------
 if testSPH:
     for iNodeList, nodes in enumerate(db.nodeLists()):
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             ri = position(iNodeList, i)
             Hi = H(iNodeList, i)
             Hdeti = Hi.Determinant()
@@ -339,9 +339,9 @@ dfRK = gradientCRKSPH(f, position, weight, H,
 #-------------------------------------------------------------------------------
 yans = db.newFluidScalarFieldList(name="interpolation answer")
 dyans = db.newFluidScalarFieldList(name="derivative answer")
-for iNodeList in xrange(db.numNodeLists):
+for iNodeList in range(db.numNodeLists):
     n = yans[iNodeList].numInternalElements
-    for i in xrange(n):
+    for i in range(n):
         xi = position(iNodeList, i).x
         if testCase == "linear":
             yans[iNodeList][i] = y0 + m0*xi
@@ -370,9 +370,9 @@ erryRK = flattenFieldList(fRK - yans)
 
 errdySPH = []
 errdyRK = []
-for iNodeList in xrange(db.numNodeLists):
+for iNodeList in range(db.numNodeLists):
     n = fSPH[iNodeList].numInternalElements
-    for i in xrange(n):
+    for i in range(n):
         errdySPH.append(dfSPH(iNodeList, i).x - dyans(iNodeList, i))
         errdyRK.append(dfRK(iNodeList, i).x - dyans(iNodeList, i))
 
@@ -381,8 +381,8 @@ maxdySPHerror = max([abs(x) for x in errdySPH])
 maxyRKerror = max([abs(x) for x in erryRK])
 maxdyRKerror = max([abs(x) for x in errdyRK])
 
-print "Maximum errors (interpolation): SPH = %g, RK = %g" % (maxySPHerror, maxyRKerror)
-print "Maximum errors   (derivatives): SPH = %g, RK = %g" % (maxdySPHerror, maxdyRKerror)
+print("Maximum errors (interpolation): SPH = %g, RK = %g" % (maxySPHerror, maxyRKerror))
+print("Maximum errors   (derivatives): SPH = %g, RK = %g" % (maxdySPHerror, maxdyRKerror))
 
 # Output timing tables.
 Timer.TimerSummary()
@@ -459,7 +459,7 @@ if graphics:
         Cj = C[1][j].xx
         nsamp = 100
         dx = 4.0/nsamp
-        xvals = [i*dx - 2.0 for i in xrange(nsamp)]
+        xvals = [i*dx - 2.0 for i in range(nsamp)]
         W = [WT.kernelValue(abs(xi), Hdetj) for xi in xvals]
         WR = [Wi*Aj*(1.0 + Bj*(xi)*hj+Cj*(xi)*(xi)*hj*hj) for xi, Wi in zip(xvals, W)]
         p7.plot(xvals, W, "r-", label="SPH")
@@ -478,7 +478,7 @@ if graphics:
         of = open(outputFile, "w")
         of.write(('#' + 7*' "%20s"' + '\n') % ("x", "interp answer", "grad answer", "interp SPH", "interp CRK", "grad SPH", "grad CRK"))
         for iNodeList, nodes in enumerate(db.nodeLists()):
-            for i in xrange(nodes.numInternalNodes):
+            for i in range(nodes.numInternalNodes):
                 of.write((7*" %20g" + "\n") %
                          (position(iNodeList,i), yans(iNodeList,i), dyans(iNodeList,i), fSPH(iNodeList,i), fRK(iNodeList,i), dfSPH(iNodeList,i).x, dfRK(iNodeList,i).x))
         of.close()
@@ -496,7 +496,7 @@ if plotKernels:
     import Gnuplot
     pk = generateNewGnuPlot()
     for iNodeList, nodes in enumerate(db.nodeLists()):
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             xi = positions(iNodeList,i).x
             Hi = H(iNodeList,i)
             Hdeti = Hi.Determinant()
@@ -506,7 +506,7 @@ if plotKernels:
             Ci = C(iNodeList,i)
 
             dx = 2.0*kernelExtent*hi/50
-            x = [xi - kernelExtent*hi + (i + 0.5)*dx for i in xrange(50)]
+            x = [xi - kernelExtent*hi + (i + 0.5)*dx for i in range(50)]
             #y = [Ai*(1.0 + Bi.x*(xi - xj))*WT.kernelValue(abs(xi - xj)/hi, Hdeti) for xj in x]
             y = [Ai*(1.0 + Bi.x*(xi - xj)+Ci.xx*(xi-xj)*(xi-xj))*WT.kernelValue(abs(xi - xj)/hi, Hdeti) for xj in x]
             d = Gnuplot.Data(x, y, with_="lines", inline=True)
@@ -516,7 +516,7 @@ if plotKernels:
 # Check the maximum RK error and fail the test if it's out of bounds.
 #-------------------------------------------------------------------------------
 if maxyRKerror > interpolationTolerance:
-    raise ValueError, "RK interpolation error out of bounds: %g > %g" % (maxyRKerror, interpolationTolerance)
+    raise ValueError("RK interpolation error out of bounds: %g > %g" % (maxyRKerror, interpolationTolerance))
 
 if maxdyRKerror > derivativeTolerance:
-    raise ValueError, "RK derivative error out of bounds: %g > %g" % (maxdyRKerror, derivativeTolerance)
+    raise ValueError("RK derivative error out of bounds: %g > %g" % (maxdyRKerror, derivativeTolerance))

@@ -15,18 +15,6 @@
     <ClCompile Include="..\..\src\CRKSPH\centerOfMass.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHEvaluationInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHEvaluationInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHIntegralInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHIntegralInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -77,12 +65,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHEvaluationInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHIntegralInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>

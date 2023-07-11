@@ -24,7 +24,7 @@ def distributeNodesGeneric(listOfNodeTuples,
         nodes, generator, extralists = tup[0], tup[1], tup[2:]
         nglobal = generator.globalNumNodes()
         nlocal = generator.localNumNodes()
-        print "distributeNodesGeneric: working on %s, (local, global) number nodes %i %i" % (nodes.name, nlocal, nglobal)
+        print("distributeNodesGeneric: working on %s, (local, global) number nodes %i %i" % (nodes.name, nlocal, nglobal))
         numNodesPerProcess[0] += nlocal
         totalNumGlobalNodes += nglobal
         nodes.numGhostNodes = 0
@@ -32,11 +32,23 @@ def distributeNodesGeneric(listOfNodeTuples,
 
         # Prepare to preserve any extra per point values
         extrafields[nodes.name] = []
+        IntField = eval("Spheral.IntField%id" % db.nDim)
         ScalarField = eval("Spheral.ScalarField%id" % db.nDim)
         for iextra, vals in enumerate(extralists):
             assert len(vals) == nlocal
-            extrafields[nodes.name].append(ScalarField("extra%i" % iextra, nodes))
-            for i in xrange(nlocal):
+            for iproc in range(mpi.procs):    # Figure out whether we're doing ints or scalars
+                tinfo = -1
+                if nlocal > 0:
+                    tinfo = (1 if type(vals[0]) == int else 2)
+                tinfo = mpi.bcast(tinfo, iproc)
+                if tinfo != -1:
+                    break
+            assert tinfo in (1,2)
+            if tinfo == 1:
+                extrafields[nodes.name].append(IntField("extra%i" % iextra, nodes))
+            else:
+                extrafields[nodes.name].append(ScalarField("extra%i" % iextra, nodes))
+            for i in range(nlocal):
                 extrafields[nodes.name][iextra][i] = vals[i]
 
         # Find the maximum kernel extent for all NodeLists.
@@ -47,12 +59,12 @@ def distributeNodesGeneric(listOfNodeTuples,
 
         # We start with the initial crappy distribution used in the generator.
         assert mpi.allreduce(nodes.numInternalNodes, mpi.SUM) == nglobal
-        print "  distributeNodesGeneric: performing initial crappy distribution."
+        print("  distributeNodesGeneric: performing initial crappy distribution.")
         r = nodes.positions()
         m = nodes.mass()
         vel = nodes.velocity()
         H = nodes.Hfield()
-        for i in xrange(nlocal):
+        for i in range(nlocal):
             r[i] = generator.localPosition(i)
             m[i] = generator.localMass(i)
             vel[i] = generator.localVelocity(i)
@@ -62,21 +74,21 @@ def distributeNodesGeneric(listOfNodeTuples,
         #------------------------------------------------------
         try:
             rho = nodes.massDensity()
-            for i in xrange(nlocal):
+            for i in range(nlocal):
                 rho[i] = generator.localMassDensity(i)
         except:
             pass
 
         try:
             rad = nodes.particleRadius()
-            for i in xrange(nlocal):
+            for i in range(nlocal):
                 rad[i] = generator.localParticleRadius(i)
         except:
             pass
 
         try:
             compID = nodes.compositeParticleIndex()
-            for i in xrange(nlocal):
+            for i in range(nlocal):
                 compID[i] = generator.localCompositeParticleIndex(i)
         except:
             pass
@@ -87,7 +99,7 @@ def distributeNodesGeneric(listOfNodeTuples,
 
         # Put this NodeList into the DataBase.
         db.appendNodeList(nodes)
-        print "  distributeNodesGeneric: %s initially finished" % nodes.name
+        print("  distributeNodesGeneric: %s initially finished" % nodes.name)
 
     # # Update Neighbor information.
     # exec("Spheral.Neighbor%id.setBoundingBox()" % db.nDim)
@@ -100,16 +112,16 @@ def distributeNodesGeneric(listOfNodeTuples,
 
     # Report the initial breakdown.
     numNodesPerProcess = mpi.allreduce(numNodesPerProcess, mpi.SUM)
-    print "(min, max, avg) nodes per process initially:  ", min(numNodesPerProcess), max(numNodesPerProcess), sum(numNodesPerProcess)/len(numNodesPerProcess)
-    print "Total number of nodes: ", totalNumGlobalNodes
+    print("(min, max, avg) nodes per process initially:  ", min(numNodesPerProcess), max(numNodesPerProcess), sum(numNodesPerProcess)/len(numNodesPerProcess))
+    print("Total number of nodes: ", totalNumGlobalNodes)
 
     # Now have the Redistributer repartition the nodes into something sensible.  Note this
     # automatically redistributes the globalNodeListID fields as well.
-    print "distributeNodesGeneric: calling for redistribution."
+    print("distributeNodesGeneric: calling for redistribution.")
     if RedistributeNodesType:
         repartition = RedistributeNodesType(kernelExtent)
         repartition.redistributeNodes(db)
-    print "distributeNodesGeneric: redistribution done."
+    print("distributeNodesGeneric: redistribution done.")
 
     # Update the neighboring info.
     #exec("Spheral.Neighbor%id.setBoundingBox()" % db.nDim)

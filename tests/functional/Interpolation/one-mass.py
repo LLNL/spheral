@@ -260,7 +260,7 @@ if bArtificialConduction:
 if hourglass:
     mask = db.newFluidIntFieldList(1, "mask")
     pos = nodes1.positions()
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         if pos[i].x > (x1 - dx):
             mask[0][i] = 0
     hg = hourglass(WT,
@@ -319,7 +319,7 @@ output("control")
 if restoreCycle is None:
     control.smoothState(smoothIters)
     if densityUpdate in (VoronoiCellDensity, SumVoronoiCellDensity):
-        print "Reinitializing node masses."
+        print("Reinitializing node masses.")
         control.voronoiInitializeMass()
 ##     rho = db.fluidMassDensity
 ##     pos = db.fluidPosition
@@ -342,9 +342,9 @@ if not steps is None:
         control.loadRestartFile(control.totalSteps)
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
-            raise ValueError, "The restarted state does not match!"
+            raise ValueError("The restarted state does not match!")
         else:
-            print "Restart check PASSED."
+            print("Restart check PASSED.")
 
 else:
     if control.time() < goalTime:
@@ -356,7 +356,7 @@ else:
 #-------------------------------------------------------------------------------
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
-    from SpheralGnuPlotUtilities import multiSort
+    from SpheralTestUtilities import multiSort
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
@@ -404,7 +404,7 @@ if serialDump:
     
     f = open(dataDir + "/noh-planar-1d-CRKSPH-" + str(CRKSPH) + "-rv-" + str(boolReduceViscosity) + ".ascii",'w')
     f.write("# i x m rho u v rhoans uans vans visc\n")
-    for j in xrange(nodes1.numInternalNodes):
+    for j in range(nodes1.numInternalNodes):
         f.write("{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}\n".format(j,nodes1.positions()[j][0],
                                                                    nodes1.mass()[j],
                                                                    nodes1.massDensity()[j],

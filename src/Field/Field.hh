@@ -16,7 +16,6 @@
 #include "axom/sidre.hpp"
 #include "FieldView.hh"
 
-#include <string>
 #include <vector>
 
 #ifdef USE_UVM
@@ -137,14 +136,17 @@ public:
 //   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
 //   operator*(const OtherDataType& rhs) const;
 
-  Field<Dimension, DataType>& operator*=(const Field<Dimension, Scalar>& rhs);
-  Field<Dimension, DataType>& operator*=(const Scalar& rhs);
-
-  // Division.  Only meaningful when dividing by a scalar field.
+  // Multiplication and division by scalar(s)
+  Field<Dimension, DataType> operator*(const Field<Dimension, Scalar>& rhs) const;
   Field<Dimension, DataType> operator/(const Field<Dimension, Scalar>& rhs) const;
+
+  Field<Dimension, DataType>& operator*=(const Field<Dimension, Scalar>& rhs);
   Field<Dimension, DataType>& operator/=(const Field<Dimension, Scalar>& rhs);
-       
+
+  Field<Dimension, DataType> operator*(const Scalar& rhs) const;
   Field<Dimension, DataType> operator/(const Scalar& rhs) const;
+
+  Field<Dimension, DataType>& operator*=(const Scalar& rhs);
   Field<Dimension, DataType>& operator/=(const Scalar& rhs);
 
   // Some useful reduction operations.
@@ -232,9 +234,9 @@ public:
                                     const int sendProc,
                                     const int recvProc) const override;
 
-  // Methods to use the iostream methods converting a Field to/from a string.
-  std::string string(const int precision = 20) const;
-  void string(const std::string& s);
+  // Serialization methods
+  std::vector<char> serialize() const;
+  void deserialize(const std::vector<char>& buf);
 
   // Provide std::vector copies of the data.  This is mostly useful for the
   // python interface.

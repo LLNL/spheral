@@ -111,7 +111,7 @@ void SpheralEvalDerivTest()
   for (unsigned int i = 0; i < n_pairs; i++) pair_data[i] = rand() % DATA_SZ;
   PRINT_DATA(pair_data, N_PAIRS)
   const Spheral::FieldView<DIM, unsigned> pairs(pair_data);
-  pairs.move(strat.platform);
+  //pairs.move(strat.platform);
 
   // Setting up our "Field Data", this is done through simulation setup in spheral e.g. node generation.
   Spheral::NodeList<DIM> data_node_list("DataNodeList", data_sz, 0);
@@ -153,9 +153,9 @@ void SpheralEvalDerivTest()
   
   const LvFieldListView<DIM, DATA_TYPE> fl_one(flo);
 
-  flv.move(strat.platform);
-  flv2.move(strat.platform);
-  fl_one.move(strat.platform);
+  //flv.move(strat.platform);
+  //flv2.move(strat.platform);
+  //fl_one.move(strat.platform);
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------

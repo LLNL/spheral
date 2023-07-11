@@ -7,7 +7,7 @@ from spack import *
 import socket
 import os
 
-class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
+class Spheral(CachedCMakePackage, CudaPackage):
     """Spheral++ provides a steerable parallel environment for performing coupled hydrodynamical and gravitational numerical simulations."""
 
     homepage = "https://spheral.readthedocs.io/"
@@ -36,13 +36,12 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('mpi', when='+mpi')
     depends_on('cmake@3.10.0:', type='build')
 
-    depends_on('zlib@1.2.11 -shared +pic', type='build')
+    depends_on('zlib@1.2.11 +shared +pic', type='build')
 
-    depends_on('boost@1.74.0 -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
+    depends_on('boost@1.74.0 +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
     depends_on('qhull@2020.1 +pic', type='build')
-    depends_on('m-aneos')
-    depends_on('py-polyclipper')
+    depends_on('m-aneos@1.0')
     depends_on('eigen@3.4.0', type='build')
     depends_on('hdf5@1.8.19 ~mpi +hl', type='build', when='~mpi')
     depends_on('hdf5@1.8.19 +mpi +hl', type='build', when='+mpi')
@@ -50,11 +49,11 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('silo@4.10.2 +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
-    depends_on('conduit@0.8.2 +shared +mpi +hdf5 -test', type='build', when='+mpi')
-    depends_on('conduit@0.8.2 +shared ~mpi +hdf5 -test', type='build', when='~mpi')
+    depends_on('conduit@0.8.2 +shared +mpi +hdf5 -test ~parmetis', type='build', when='+mpi')
+    depends_on('conduit@0.8.2 +shared ~mpi +hdf5 -test ~parmetis', type='build', when='~mpi')
 
-    depends_on('axom@0.5.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
-    depends_on('axom@0.5.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
+    depends_on('axom@0.7.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
+    depends_on('axom@0.7.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
     depends_on('lvarray@develop +umpire +chai ~tests +cuda cuda_arch=70', when='+cuda')
     depends_on('raja@2022.10.4 +desul ~shared +cuda cuda_arch=70', when='+cuda')
@@ -68,39 +67,33 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
     depends_on('chai@2022.03.0+raja~shared+openmp', when='~cuda')
     depends_on('umpire@2022.03.0~shared', when='~cuda')
 
-    depends_on('caliper ~shared +adiak ~libdw ~papi ~libunwind +pic', type='build')
+    depends_on('caliper@2.8.0 ~shared +adiak ~libdw ~papi ~libunwind +pic', type='build')
     depends_on('adiak ~shared', type='build')
 
     depends_on('opensubdiv@3.4.3', type='build')
-    depends_on('polytope', type='build')
+    depends_on('polytope@0.7 +python', type='build')
 
-    extends('python@2.7.16 +zlib +shared +ssl', type='build')
+    extends('python@3.9.10 +zlib +shared +ssl +tkinter', type='build')
 
-    depends_on('py-pip@20.2', type='build')
-    depends_on('py-setuptools@44.1.0', type='build')
-    depends_on('py-pybind11@2.4.3', type='build')
-    depends_on('py-pyb11generator@1.0.12', type='build')
-    depends_on('py-virtualenv', type='build')
-
-    depends_on('py-numpy@1.16.5', type='build')
-    depends_on('py-numpy-stl@2.11.2', type='build')
-    depends_on('py-enum34', type='build')
+    depends_on('py-numpy@1.23.4', type='build')
+    depends_on('py-numpy-stl@3.0.0', type='build')
     depends_on('py-python-utils@2.4.0', type='build')
-    depends_on('py-matplotlib@2.2.5', type='build')
-    depends_on('py-pillow@6.2.2', type='build')
-    depends_on('py-decorator@4.4.2', type='build')
-    depends_on('py-h5py@2.10.0', type='build')
-    depends_on('py-docutils@0.17.1', type='build')
-    depends_on('py-cython@0.29.21', type='build')
-    depends_on('py-scipy@1.2.3', type='build')
-    depends_on('py-pipreqs@0.4.10', type='build')
-    depends_on('py-importlib-metadata@2.0.0', type='build')
-    depends_on('py-gnuplot@1.8', type='build')
-    depends_on('py-ats@7.0.9', type='build')
-    depends_on('py-mpi4py@3.0.3', type='build', when='+mpi')
+    depends_on('py-matplotlib@3.3.4 backend=tkagg +fonts', type='build')
+    depends_on('py-pillow@9.2.0', type='build')
+    depends_on('py-decorator@5.1.1', type='build')
+    depends_on('py-h5py@3.7.0', type='build')
+    depends_on('py-docutils@0.19', type='build')
+    depends_on('py-cython@0.29.32', type='build')
+    depends_on('py-scipy@1.8.1', type='build')
+    depends_on('py-importlib-metadata@4.12.0', type='build')
+    depends_on('py-ats@exit', type='build')
+    depends_on('py-mpi4py@3.1.4', type='build', when='+mpi')
 
-    depends_on('py-sphinx@1.8.5', type='build')
-    depends_on('py-sphinx-rtd-theme@0.5.0', type='build')
+    depends_on('py-sphinx@5.3.0', type='build')
+    depends_on('py-sphinx-rtd-theme@0.5.1', type='build')
+
+    depends_on('netlib-lapack', type='build')
+
     # -------------------------------------------------------------------------
     # DEPENDS
     # -------------------------------------------------------------------------
@@ -202,12 +195,7 @@ class Spheral(CachedCMakePackage, CudaPackage, PythonPackage):
 
         entries.append(cmake_cache_path('opensubdiv_DIR', spec['opensubdiv'].prefix))
 
-        entries.append(cmake_cache_path('pybind11_DIR', spec['py-pybind11'].prefix))
-
-        entries.append(cmake_cache_path('polyclipper_DIR', spec['py-polyclipper'].prefix))
-
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))
-        os.environ['PYTHONPATH'] += ':' + spec['polytope'].prefix + '/lib/python2.7/site-packages/polytope/'
 
         entries.append(cmake_cache_option('raja_BUILD', False))
         entries.append(cmake_cache_path('raja_DIR', spec['raja'].prefix))

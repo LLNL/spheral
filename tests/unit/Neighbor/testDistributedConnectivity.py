@@ -138,7 +138,7 @@ if randomizeNodes:
     rangen.seed(seed)
     delta = (x1 - x0) / nx
     pos = nodes.positions()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         if dimension == 1:
             pos[i].x += ranfrac * delta * rangen.uniform(-1.0, 1.0)
         elif dimension == 2:
@@ -206,7 +206,7 @@ output("dataBase.numInternalNodes")
 #-------------------------------------------------------------------------------
 if standardGlobalIDs:
     if dimension > 1:
-        print "warning: test will likely fail, as global IDs depends on mpi.procs"
+        print("warning: test will likely fail, as global IDs depends on mpi.procs")
     globalIndicesFL = globalNodeIDsAll(dataBase)
 else:
     globalIndicesFL = mortonOrderIndices(dataBase)
@@ -234,10 +234,10 @@ for ni, nodeList in enumerate(dataBase.nodeLists()):
 # if mpi.procs > 1:
 #     globalIndices = mpi.allreduce(globalIndices)
 #     globalConnectivity = mpi.allreduce(globalConnectivity)
-globalData = dict(zip(globalIndices, globalConnectivity))
+globalData = dict(list(zip(globalIndices, globalConnectivity)))
 
-for key, vals in globalData.items():
-    print key, " : ", vals
+for key, vals in list(globalData.items()):
+    print(key, " : ", vals)
 
 #-------------------------------------------------------------------------------
 # Save connectivity if serial, load if parallel
@@ -245,14 +245,14 @@ for key, vals in globalData.items():
 import pickle
 dataFilename = os.path.join(dataDir, "connectivity")
 if mpi.procs == 1:
-    with open(dataFilename, 'w') as f:
-        pickle.dump(globalData, f)
+    with open(dataFilename, 'wb') as f:
+        pickle.dump(globalData, file = f)
 else:
     if os.path.exists(dataFilename):
-        with open(dataFilename, 'r') as f:
+        with open(dataFilename, 'rb') as f:
             serialData = pickle.load(f)
     else:
-        raise IOError, "need to run in serial first"
+        raise IOError("need to run in serial first")
 
 #-------------------------------------------------------------------------------
 # Check connectivity
@@ -263,7 +263,7 @@ if mpi.procs > 1:
     # for connectivity as well
     numFailures = 0
     localKeys = set(globalData.keys())
-    for i, cp in globalData.items():
+    for i, cp in list(globalData.items()):
         if i in serialData:
             cs = serialData[i]
 
@@ -278,21 +278,21 @@ if mpi.procs > 1:
                 if not cp.issuperset(cs):
                     if printErrors:
                         diff = cs.difference(cp)
-                        print "missing for point {}: {}".format(i, diff)
+                        print("missing for point {}: {}".format(i, diff))
                     numFailures += 1
             else:
                 diff = answer.symmetric_difference(cp)
                 if diff:
                     if printErrors:
-                        print "diff for point {}: {}".format(i, diff)
+                        print("diff for point {}: {}".format(i, diff))
                     numFailures += 1
         else:
             numFailures += 1
-            print "point {} not found in serial data".format(i)
+            print("point {} not found in serial data".format(i))
     if numFailures > 0:
-        raise ValueError, "num points with connectivity differences: {}".format(numFailures)
+        raise ValueError("num points with connectivity differences: {}".format(numFailures))
     else:
-        print "test passed"
+        print("test passed")
         
     
 

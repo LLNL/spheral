@@ -118,7 +118,7 @@ elif testDim == "3d":
     distributeNodes3d((nodes1, gen))
 
 else:
-    raise ValueError, "Only tests cases for 1d, 2d and 3d." 
+    raise ValueError("Only tests cases for 1d, 2d and 3d.") 
 
 output("nodes1.numNodes")
 
@@ -126,7 +126,7 @@ output("nodes1.numNodes")
 # Optionally randomly jitter the node positions.
 #-------------------------------------------------------------------------------
 dx = (x1 - x0)/nx1
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     nodes1.positions()[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
 
 #-------------------------------------------------------------------------------
@@ -216,8 +216,8 @@ computeVoronoiVolume(db.fluidPosition,
 #-------------------------------------------------------------------------------
 # Amalgamate the cell face flags into a single value per cell.  Not the best visualization yet...
 cellFaceFlagsSum = db.newGlobalIntFieldList(0, HydroFieldNames.cellFaceFlags + "_sum")
-for k in xrange(len(cellFaceFlagsSum)):
-    for i in xrange(len(cellFaceFlagsSum[k])):
+for k in range(len(cellFaceFlagsSum)):
+    for i in range(len(cellFaceFlagsSum[k])):
         cellFaceFlagsSum[k][i] = sum([x.nodeListj for x in cellFaceFlags[k][i]] + [0])
 
 if vizFile:
@@ -282,4 +282,4 @@ if ranfrac == 0.0:
         else:
             assert Vi == 0.0
 else:
-    print "random displacments -- no error check."
+    print("random displacments -- no error check.")

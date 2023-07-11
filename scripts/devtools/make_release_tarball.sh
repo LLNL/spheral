@@ -8,7 +8,7 @@
 ###############################################################################
 
 TAR_CMD=`which gtar`
-VERSION=`git describe --tags`
+VERSION=`git describe --tags --always`
 
 git archive --prefix=Spheral-${VERSION}/ -o Spheral-${VERSION}.tar HEAD 2> /dev/null
 

@@ -1,26 +1,26 @@
 # ------------------------------------------------------------------------------
 # BUILD JOBS
 
-toss_gcc_8_3_1_mvapich2_Debug_build:
-  extends: [.gcc_8_3_1_mvapich2_CXXONLY, .build_and_test, .toss_resource1]
+toss_gcc_mvapich2_cxxonly_build:
+  extends: [.toss_resource1, .gcc_mvapich2_cxxonly, .build]
 
 
 
-toss_gcc_8_3_1_mvapich2_build:
-  extends: [.gcc_8_3_1_mvapich2, .build_and_test, .toss_resource2]
+toss_gcc_mvapich2_build:
+  extends: [.toss_resource2, .gcc_mvapich2, .build_and_test]
 
-toss_gcc_8_3_1_mvapich2_test:
-  extends: [.gcc_8_3_1_mvapich2, .run_ats, .toss_resource2]
-  needs: [toss_gcc_8_3_1_mvapich2_build]
+toss_gcc_mvapich2_test:
+  extends: [.toss_resource2, .gcc_mvapich2, .run_ats]
+  needs: [toss_gcc_mvapich2_build]
 
 
 
-toss_clang_9_0_0_mvapich2_build:
-  extends: [.clang_9_0_0_mvapich2, .build_and_test, .toss_resource1]
+toss_clang_mvapich2_build:
+  extends: [.toss_resource1, .clang_mvapich2, .build_and_test]
 
-toss_clang_9_0_0_mvapich2_test:
-  extends: [.clang_9_0_0_mvapich2, .run_ats, .toss_resource2]
-  needs: [toss_clang_9_0_0_mvapich2_build]
+toss_clang_mvapich2_test:
+  extends: [.toss_resource2, .clang_mvapich2, .run_ats]
+  needs: [toss_clang_mvapich2_build]
 
 
 
@@ -29,46 +29,26 @@ toss_clang_9_0_0_mvapich2_test:
 
 
 
-blueos_gcc_8_3_1_spectrum_build:
-  extends: [.gcc_8_3_1_spectrum, .build_and_test, .blueos_resource1]
+blueos_gcc_spectrum_build:
+  extends: [.blueos_resource1, .gcc_spectrum, .build_and_test]
 
-blueos_gcc_8_3_1_spectrum_test:
-  extends: [.gcc_8_3_1_spectrum, .run_ats, .blueos_resource1]
-  needs: [blueos_gcc_8_3_1_spectrum_build]
+blueos_gcc_spectrum_test:
+  extends: [.blueos_resource1, .gcc_spectrum, .run_ats]
+  needs: [blueos_gcc_spectrum_build]
 
 
 
-blueos_cuda_11_gcc_8_3_1_spectrum_build:
-  extends: [.cuda_11_gcc_8_3_1_spectrum, .build_and_test, .blueos_resource2]
+blueos_cuda_11_gcc_spectrum_build:
+  extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .build_and_test]
 
-blueos_cuda_11_gcc_8_3_1_spectrum_test:
-  extends: [.cuda_11_gcc_8_3_1_spectrum, .run_ats, .blueos_resource2]
-  needs: [blueos_cuda_11_gcc_8_3_1_spectrum_build]
+blueos_cuda_11_gcc_spectrum_test:
+  extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .run_ats]
+  needs: [blueos_cuda_11_gcc_spectrum_build]
   allow_failure: true
 
-blueos_cuda_11_gcc_8_3_1_spectrum_perf:
-  extends: [.cuda_11_gcc_8_3_1_spectrum, .run_perf_suite, .blueos_resource2]
-  needs: [blueos_cuda_11_gcc_8_3_1_spectrum_test]
-  
-
-# ------------------------------------------------------------------------------
-# CLEAN OLD BUILD DIRS
-
-cleanup_build_dirs:
-  extends: [.clean_dirs]
+blueos_cuda_11_gcc_spectrum_perf:
+  extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .run_perf_suite]
+  needs: [blueos_cuda_11_gcc_spectrum_build]
 
 
-# ------------------------------------------------------------------------------
-# UPDATE TPL JOBS
 
-blueos_update_tpls:
-  extends: [.blueos_resource2, .update_tpls, .merge_pr_rule]
-
-toss_update_tpls:
-  extends: [.toss_resource2, .update_tpls, .merge_pr_rule]
-
-# ------------------------------------------------------------------------------
-# UPDATE PERM JOBS
-
-toss_update_permissions:
-  extends: [.toss_resource_general, .toss_update_permissions, .merge_pr_rule]

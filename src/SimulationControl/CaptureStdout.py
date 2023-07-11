@@ -1,5 +1,5 @@
 try:
-    from cStringIO import StringIO       # Python 2
+    from io import StringIO       # Python 2
 except ImportError:
     from io import StringIO              # Python 3
 import sys

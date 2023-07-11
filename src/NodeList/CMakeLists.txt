@@ -29,6 +29,7 @@ set(NodeList_headers
     NodeListRegistrarInline.hh
     SPHSmoothingScale.hh
     SmoothingScaleBase.hh
+    SmoothingScaleBaseInline.hh
     SolidNodeList.hh
     SolidNodeListInline.hh
     generateVoidNodes.hh

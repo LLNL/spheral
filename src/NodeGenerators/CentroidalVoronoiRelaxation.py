@@ -21,7 +21,7 @@ class RadialCentroidalRelaxation:
                                  numInternal = n)
         pos = nodes.positions()
         rnodes = []
-        for i in xrange(n):
+        for i in range(n):
             pos[i] = Vector(generator.x[i], generator.y[i])
             rnodes.append((pos[i] - self.origin).magnitude())
         assert len(rnodes) == n
@@ -46,7 +46,7 @@ class RadialCentroidalRelaxation:
                                                generateVoid = False,
                                                removeBoundaryZones = True)
             assert mesh.numZones == n
-            for izone in xrange(n):
+            for izone in range(n):
                 zone = mesh.zone(izone)
                 centroid = zone.position()
                 rhat = (centroid - self.origin).unitVector()
@@ -54,10 +54,10 @@ class RadialCentroidalRelaxation:
                 maxDelta = max(maxDelta, (newpos - pos[izone]).magnitude())
                 pos[izone] = newpos
             maxDelta = mpi.allreduce(maxDelta, mpi.MAX)
-            print "Iteration %i : max delta = %g" % (iter, maxDelta)
+            print("Iteration %i : max delta = %g" % (iter, maxDelta))
 
         # Assign the postions.
-        generator.x = [pos[i].x for i in xrange(nodes.numInternalNodes)]
-        generator.y = [pos[i].y for i in xrange(nodes.numInternalNodes)]
+        generator.x = [pos[i].x for i in range(nodes.numInternalNodes)]
+        generator.y = [pos[i].y for i in range(nodes.numInternalNodes)]
 
         return

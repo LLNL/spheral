@@ -10,30 +10,29 @@ import os
 class Polytope(CMakePackage):
     """Polytope is a C++ library for generating polygonal and polyhedral meshes."""
 
-    url = "https://github.com/pbtoast/polytope/archive/0.6.2.tar.gz"
     git = "https://github.com/pbtoast/polytope.git"
-
-    version('0.6.2', sha256='e9ed18c3ebc7b4b231a0563235cc032c26daa7de88839c64141975170e55bcfd')
-
-    patch('polytope-PYB11-CMakeLists.patch')
+    url = "https://github.com/pbtoast/polytope/archive/0.7.3.tar.gz"
+    version('0.7.3', tag='0.7.3', submodules=True)
 
     variant('python', default=True, description='Enable Python Support.')
 
-    depends_on('python@2.7:2.8 +zlib +shared', type=['build', 'run'], when='+python')
-    depends_on('boost')
-    depends_on('py-pybind11@2.4.3')
-    depends_on('py-pyb11generator')
+    extends('python', when='+python')
+    depends_on('python@3: +zlib +shared', type=('build', 'run'), when='+python')
+    depends_on('py-decorator', type=('build', 'run'), when='+python')
+    depends_on('boost', type=('build', 'run'))
+
+    parallel = False      # Should be able to remove this at some point
 
     def cmake_args(self):
         options = []
         spec = self.spec
 
-        options.append(self.define('PYBIND11_INCLUDE_DIRS', spec['py-pybind11'].prefix.include))
-        options.append(self.define('Boost_INCLUDE_DIR', spec['boost'].prefix.include))
+        options.append(self.define('USE_MPI', 'Off'))   # Turn back on when polytope fixes parallel generation
+        options.append(self.define('BOOST_ROOT', spec['boost'].prefix.include))
 
         if "+python" in spec:
             options.append(self.define('USE_PYTHON', True))
-            options.append(self.define('PYTHON_EXE', os.path.join(self.spec['python'].prefix.bin, 'python') ) )
+            options.append(self.define('Python3_EXECUTABLE', os.path.join(self.spec['python'].prefix.bin, 'python3') ) )
 
         options.append(self.define('TESTING', False))
 

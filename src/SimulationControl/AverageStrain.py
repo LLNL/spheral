@@ -33,10 +33,10 @@ class AverageStrain:
         n = nodes.numInternalNodes
         massSum = mpi.allreduce(sum(mass.internalValues()), mpi.SUM)
         assert massSum > 0.0
-        volstrain = mpi.allreduce(sum([mass[i]*(strain[i].Trace()/3.0) for i in xrange(n)]), mpi.SUM)/massSum
-        maxstrain = mpi.allreduce(sum([mass[i]*(strain[i].eigenValues().maxElement()) for i in xrange(n)]), mpi.SUM)/massSum
-        minstrain = mpi.allreduce(sum([mass[i]*(strain[i].eigenValues().minElement()) for i in xrange(n)]), mpi.SUM)/massSum
-        J2 = 0.5*mpi.allreduce(sum([mass[i]*(stress[i].doubledot(stress[i])) for i in xrange(n)] + [0.0]), mpi.SUM)/massSum
+        volstrain = mpi.allreduce(sum([mass[i]*(strain[i].Trace()/3.0) for i in range(n)]), mpi.SUM)/massSum
+        maxstrain = mpi.allreduce(sum([mass[i]*(strain[i].eigenValues().maxElement()) for i in range(n)]), mpi.SUM)/massSum
+        minstrain = mpi.allreduce(sum([mass[i]*(strain[i].eigenValues().minElement()) for i in range(n)]), mpi.SUM)/massSum
+        J2 = 0.5*mpi.allreduce(sum([mass[i]*(stress[i].doubledot(stress[i])) for i in range(n)] + [0.0]), mpi.SUM)/massSum
 
         self.timeHistory.append(atime)
         self.volstrainHistory.append(volstrain)
@@ -59,7 +59,7 @@ class AverageStrain:
             assert len(self.minstrainHistory) == n
             assert len(self.J2History) == n
             if mpi.rank == 0:
-                for i in xrange(n):
+                for i in range(n):
                     self.file.write((5*"%g           " + "\n") % (self.timeHistory[i],
                                                                   self.volstrainHistory[i],
                                                                   self.maxstrainHistory[i],

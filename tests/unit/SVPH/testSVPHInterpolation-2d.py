@@ -206,7 +206,7 @@ if iterateH:
 #-------------------------------------------------------------------------------
 f = ScalarField("test field", nodes1)
 positions = nodes1.positions()
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     f[i] = func(positions[i])
 
 #-------------------------------------------------------------------------------
@@ -226,7 +226,7 @@ db.updateConnectivityMap(True)
 mass = nodes1.mass()
 rho = nodes1.massDensity()
 weight = db.newFluidScalarFieldList(0.0, "weight")
-for i in xrange(nodes1.numNodes):
+for i in range(nodes1.numNodes):
     weight[0][i] = mass[i]/rho[i]
 fSPHfl = smoothScalarFields(fl,
                             db.globalPosition,
@@ -256,8 +256,8 @@ dfSVPH = dfSVPHfl[0]
 #-------------------------------------------------------------------------------
 # Prepare the answer to check against.
 #-------------------------------------------------------------------------------
-fans = [func(positions[i]) for i in xrange(nodes1.numInternalNodes)]
-dfans = [dfunc(positions[i]) for i in xrange(nodes1.numInternalNodes)]
+fans = [func(positions[i]) for i in range(nodes1.numInternalNodes)]
+dfans = [dfunc(positions[i]) for i in range(nodes1.numInternalNodes)]
 
 #-------------------------------------------------------------------------------
 # Check our answers accuracy.
@@ -271,9 +271,9 @@ maxfSVPHerror = max([abs(x) for x in errfSVPH])
 errdfSVPH = [y - z for y, z in zip(dfSVPH, dfans)]
 maxdfSVPHerror = max([x.magnitude() for x in errdfSVPH])
 
-print "Maximum errors (interpolation): SPH = %g" % maxfSVPHerror
-print "Maximum errors (interpolation, gradient): SVPH = (%g, %g)" % (maxfSVPHerror,
-                                                                     maxdfSVPHerror)
+print("Maximum errors (interpolation): SPH = %g" % maxfSVPHerror)
+print("Maximum errors (interpolation, gradient): SVPH = (%g, %g)" % (maxfSVPHerror,
+                                                                     maxdfSVPHerror))
 
 #-------------------------------------------------------------------------------
 # Plot the things.
@@ -284,7 +284,7 @@ if graphics:
     dfansField = VectorField("answer gradient", nodes1)
     errfSPHfield = ScalarField("SPH interpolation error", nodes1)
     errfSVPHfield = ScalarField("SVPH interpolation error", nodes1)
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         fansField[i] = fans[i]
         dfansField[i] = dfans[i]
         errfSPHfield[i] = errfSPH[i]
@@ -304,7 +304,7 @@ if graphics:
     f = open(outfile, "w")
     f.write(("#" + 7*"'%s'   " + "\n") % 
             ("x", "y", "fans", "fSPH", "fSVPH", "errSPH", "errSVPH"))
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         f.write((7*"%16.13e " + "\n") %
                 (positions[i].x, positions[i].y, 
                  fans[i], fSPH[i], fSVPH[i], 
@@ -318,9 +318,9 @@ if graphics:
     from SpheralGnuPlotUtilities import *
     import Gnuplot
 
-    xans = [positions[i].x for i in xrange(nodes1.numInternalNodes)]
-    yans = [fansField[i]   for i in xrange(nodes1.numInternalNodes)]
-    dyans = [dfansField[i].x for i in xrange(nodes1.numInternalNodes)]
+    xans = [positions[i].x for i in range(nodes1.numInternalNodes)]
+    yans = [fansField[i]   for i in range(nodes1.numInternalNodes)]
+    dyans = [dfansField[i].x for i in range(nodes1.numInternalNodes)]
     ySVPH = fSVPH.internalValues()
     dySVPH = [x.x for x in dfSVPH.internalValues()]
     errySVPH = [y - z for y, z in zip(ySVPH, yans)]
@@ -384,6 +384,6 @@ if graphics:
 # Check the maximum SVPH error and fail the test if it's out of bounds.
 #-------------------------------------------------------------------------------
 if maxfSVPHerror > interpolationTolerance:
-    raise ValueError, "SVPH interpolation error out of bounds: %g > %g" % (maxfSVPHerror, interpolationTolerance)
+    raise ValueError("SVPH interpolation error out of bounds: %g > %g" % (maxfSVPHerror, interpolationTolerance))
 # if maxdfSVPHerror > interpolationTolerance:
 #     raise ValueError, "SVPH gradient error out of bounds: %g > %g" % (maxdfSVPHerror, interpolationTolerance)

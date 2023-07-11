@@ -16,6 +16,7 @@
 #include "State.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/globalBoundingVolumes.hh"
+#include "Utilities/globalNodeIDs.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
@@ -503,7 +504,7 @@ reinitializeNeighbors() const {
 
   // Find the current bounding box and average node extent in one loop.
   // Compute the average node extent.
-  auto xmin = Vector(std::numeric_limits<Scalar>::max()), xmax = Vector(std::numeric_limits<Scalar>::lowest());
+  auto xmin = Vector(0.1*std::numeric_limits<Scalar>::max()), xmax = 0.1*Vector(std::numeric_limits<Scalar>::lowest());
   unsigned ntot = 0;
   Scalar havg = 0.0, hmax = 0.0, maxExtent = 0.0;
   for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
@@ -532,20 +533,22 @@ reinitializeNeighbors() const {
   }
   havg = allReduce(havg, MPI_SUM, Communicator::communicator());
   ntot = allReduce(ntot, MPI_SUM, Communicator::communicator());
-  if (ntot > 0) havg /= ntot;
   hmax = allReduce(hmax, MPI_MAX, Communicator::communicator());
+  if (ntot > 0) {
+    havg /= ntot;
 
-  box = std::max(box, maxExtent*hmax);
-  for (auto i = 0; i < Dimension::nDim; ++i) {
-    xmin(i) -= box;
-    xmax(i) += box;
-  }
+    box = std::max(box, maxExtent*hmax);
+    for (auto i = 0; i < Dimension::nDim; ++i) {
+      xmin(i) -= box;
+      xmax(i) += box;
+    }
 
-  // Now initialize the neighbors.
-  for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
-    auto& neighbor = (*itr)->neighbor();
-    neighbor.reinitialize(xmin, xmax, havg);
-    neighbor.updateNodes();
+    // Now initialize the neighbors.
+    for (auto itr = this->nodeListBegin(); itr != this->nodeListEnd(); ++itr) {
+      auto& neighbor = (*itr)->neighbor();
+      neighbor.reinitialize(xmin, xmax, havg);
+      neighbor.updateNodes();
+    }
   }
 }
 
@@ -1412,7 +1415,23 @@ DataBase<Dimension>::DEMParticleRadius() const {
 
 
 //------------------------------------------------------------------------------
-// Return the DEM Particle Radii
+// Return the DEM unique particle index
+//------------------------------------------------------------------------------
+template<typename Dimension>
+FieldList<Dimension, int>
+DataBase<Dimension>::DEMUniqueIndex() const {
+  REQUIRE(valid());
+  FieldList<Dimension, int> result;
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    result.appendField((*nodeListItr)->uniqueIndex());
+  }
+  return result;
+}
+
+
+//------------------------------------------------------------------------------
+// Return the DEM composite particle index
 //------------------------------------------------------------------------------
 template<typename Dimension>
 FieldList<Dimension, int>
@@ -1425,6 +1444,31 @@ DataBase<Dimension>::DEMCompositeParticleIndex() const {
   }
   return result;
 }
+
+//------------------------------------------------------------------------------
+// calculated appropriates H from a given radius for each nodelist
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DataBase<Dimension>::setDEMHfieldFromParticleRadius(const int startUniqueIndex) {
+  REQUIRE(valid());
+  for (ConstDEMNodeListIterator nodeListItr = DEMNodeListBegin();
+       nodeListItr < DEMNodeListEnd(); ++nodeListItr) {
+    (*nodeListItr)->setHfieldFromParticleRadius(startUniqueIndex);
+  }
+}
+
+//------------------------------------------------------------------------------
+// calculated appropriates H from a given radius for each nodelist
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DataBase<Dimension>::setDEMUniqueIndices() {
+  REQUIRE(valid());
+    auto uniqueIndices = this->DEMUniqueIndex();
+    uniqueIndices += globalNodeIDs<Dimension>(this->nodeListBegin(),this->nodeListEnd());
+}
+
 
 //------------------------------------------------------------------------------
 // Return the node extent for each NodeList.
@@ -1725,6 +1769,20 @@ maxKernelExtent() const {
   for (ConstNodeListIterator nodeListItr = nodeListBegin();
        nodeListItr != nodeListEnd();
        ++nodeListItr) result = std::max(result, (**nodeListItr).neighbor().kernelExtent());
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// The maximum kernel extent being used.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+DataBase<Dimension>::
+maxNeighborSearchBuffer() const {
+  Scalar result = 0.0;
+  for (ConstDEMNodeListIterator DEMNodeListItr = DEMNodeListBegin();
+       DEMNodeListItr != DEMNodeListEnd();
+       ++DEMNodeListItr) result = std::max(result, (**DEMNodeListItr).neighborSearchBuffer());
   return result;
 }
 

@@ -5,12 +5,12 @@ include(ExternalProject)
 #-------------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
-
-if (NOT CMAKE_MODULE_PATH)
-  set(CMAKE_MODULE_PATH "${SPHERAL_ROOT_DIR}/cmake")
-endif()
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
+
+if (NOT SPHERAL_CMAKE_MODULE_PATH)
+  set(SPHERAL_CMAKE_MODULE_PATH "${SPHERAL_ROOT_DIR}/cmake")
+endif()
+list(APPEND CMAKE_MODULE_PATH "${SPHERAL_CMAKE_MODULE_PATH}")
 
 
 #-------------------------------------------------------------------------------#
@@ -72,10 +72,6 @@ if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_SHARED OFF)
 endif()
 
-if(ENABLE_CXXONLY)
-  set(ENABLE_TESTS OFF)
-endif()
-
 if(ENABLE_MPI)
   set(BLT_MPI_COMPILE_FLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX)
   list(APPEND spheral_blt_depends mpi)
@@ -99,16 +95,8 @@ option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
 set(ENABLE_DOCS OFF CACHE BOOL "enable sphinx Spheral documentation")
 
 #-------------------------------------------------------------------------------
-# Install / Locate third party libraries
+# Locate third party libraries
 #-------------------------------------------------------------------------------
-set(SPHERAL_TPL_DIR "" CACHE STRING "Directory to install Spheral TPLs and/or Spheral libs.")
-if (CMAKE_INSTALL_PREFIX)
-  if (SPHERAL_TPL_DIR STREQUAL "")
-    set(SPHERAL_TPL_DIR ${CMAKE_INSTALL_PREFIX}/tpl)
-    message("-- Setting SPHERAL_TPL_DIR ${SPHERAL_TPL_DIR}")
-  endif()
-endif()
-
 include(${SPHERAL_ROOT_DIR}/cmake/InstallTPLs.cmake)
 
 include(${SPHERAL_ROOT_DIR}/cmake/CMakeDefinitions.cmake)
@@ -139,15 +127,6 @@ set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 # each library into
 #-------------------------------------------------------------------------------
 set_property(GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
-
-#-------------------------------------------------------------------------------
-# Install symlink for spheral->python
-#-------------------------------------------------------------------------------
-if (NOT ENABLE_CXXONLY)
-  install(CODE "execute_process( \
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PYTHON_EXE} spheral \
-    WORKING_DIRECTORY ${SPHERAL_TPL_DIR})")
-endif()
 
 #-------------------------------------------------------------------------------
 # Prepare to build the src

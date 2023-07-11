@@ -224,7 +224,7 @@ def digitrevorder(x,base):
             break
         intd = rem // base
         if base*intd != rem:
-            raise ValueError, "Length of data must be power of base."
+            raise ValueError("Length of data must be power of base.")
         rem = intd
         L += 1
     vec = r_[[base**n for n in range(L)]]
@@ -263,7 +263,7 @@ def wht(data):
     N = len(data)
     L=log2(N);
     if ((L-floor(L)) > 0.0):
-        raise ValueError, "Length must be power of 2"
+        raise ValueError("Length must be power of 2")
     x=bitrevorder(data);
 
     k1=N; k2=1; k3=N/2;

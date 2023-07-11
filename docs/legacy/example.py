@@ -128,7 +128,7 @@ if restoreCycle is None:
     Esum = 0.0
     i = -1
     rmin = 1e50
-    for nodeID in xrange(nodes1.numInternalNodes):
+    for nodeID in range(nodes1.numInternalNodes):
         rij = pos[nodeID].magnitude()
         if rij < rmin:
             i = nodeID
@@ -140,7 +140,7 @@ if restoreCycle is None:
         eps[i] += Espike/mass[i]
         Esum += Espike
     Eglobal = mpi.allreduce(Esum, mpi.SUM)
-    print "Initialized a total energy of", Eglobal
+    print("Initialized a total energy of", Eglobal)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -234,6 +234,6 @@ else:
     control.step(steps)
 
 # Output the energy conservation.
-print "Energy conservation: ", ((control.conserve.EHistory[-1] -
+print("Energy conservation: ", ((control.conserve.EHistory[-1] -
                                  control.conserve.EHistory[0])/
-                                control.conserve.EHistory[0])
+                                control.conserve.EHistory[0]))

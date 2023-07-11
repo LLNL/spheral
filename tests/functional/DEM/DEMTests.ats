@@ -1,6 +1,15 @@
-source("LinearSpringDEM/twoParticleCollision-1d.py")
-source("LinearSpringDEM/twoParticleCollision-2d.py")
-source("LinearSpringDEM/twoParticleCollision-3d.py")
-source("LinearSpringDEM/impactingSquares-2d.py")
-source("LinearSpringDEM/impactingSquares-3d.py")
-source("LinearSpringDEM/fiveParticleCollision-2d.py")
+# direct tests of the pairwise spring-damper implementation 
+source("LinearSpringDEM/TwoParticleCollision/twoParticleCollision-1d.py")
+source("LinearSpringDEM/TwoParticleCollision/twoParticleCollision-2d.py")
+source("LinearSpringDEM/TwoParticleCollision/twoParticleCollision-3d.py")
+
+# test for neighbor structure required for integrated pairwise values
+source("LinearSpringDEM/TwoParticleCollision/fiveParticleCollision-2d.py")
+
+# tests conservation of linear & rotational momentum in 2d and 3d
+source("LinearSpringDEM/ImpactingSquares/impactingSquares-2d.py")
+source("LinearSpringDEM/ImpactingSquares/impactingSquares-3d.py")
+
+# test restitution coefficient and friction against solid boundaries
+source("LinearSpringDEM/SolidBoundaryCondition/singleParticleBoundaryCollision-3d.py")
+source("LinearSpringDEM/SolidBoundaryCondition/finiteSolidPlanes-3d.py")

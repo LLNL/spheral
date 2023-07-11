@@ -75,7 +75,7 @@ def plotField(x, F, titleStr, filename):
    xhat = Vector3d(1, 0, 0)
    yhat = Vector3d(0, 1, 0)
    numInternalNodes = len(x.internalValues())
-   indices = [i for i in xrange(numInternalNodes) if abs(x[i].z) < 1e-8]
+   indices = [i for i in range(numInternalNodes) if abs(x[i].z) < 1e-8]
    xs = numpy.array([x[i].dot(xhat) for i in indices])
    ys = numpy.array([x[i].dot(yhat) for i in indices])
    x1 = p.linspace(-0.5, 1.5, 50)
@@ -182,7 +182,7 @@ if restoreCycle is None:
 
     # Set nodal magnetic inductions.
     r = [sqrt(xi.x**2 + xi.y**2) for xi in x.internalValues()]
-    for nodeID in xrange(nodes.numInternalNodes):
+    for nodeID in range(nodes.numInternalNodes):
         ri = r[nodeID]/r0
         if ri < 1.0:
            Bx = (ri**8 - 2*ri**4 + 1)/sqrt(4*pi)
@@ -274,7 +274,7 @@ elif divBCleaner == 'GreensFn':
 elif divBCleaner == 'BiotSavart':
    mhd.divBCleaner = MHD.BDivergenceCleanerType.BiotSavartProjCleaner
 else:
-   raise ValueError, "divBCleaner must be 'hyperBolic', 'GreensFn', 'BiotSavart', or 'none'."
+   raise ValueError("divBCleaner must be 'hyperBolic', 'GreensFn', 'BiotSavart', or 'none'.")
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -345,7 +345,7 @@ else:
       control.dropRestartFile()
       dumpPhysicsState(integrator, simName, visitDir, dumpDerivatives = True)
       maxDivB1 = max(mhd.maxDivB(), abs(mhd.minDivB()))
-print 'max |div B| (1):', maxDivB1
+print('max |div B| (1):', maxDivB1)
 
 # Plot the final field configuration (and its divergence).
 #plotField(x, B, 'B after div cleaning', 'B-after.png')

@@ -79,7 +79,7 @@ class TestDistributedBoundary1d:
         self.dataBase.appendNodeList(self.nodes1)
         self.dataBase.appendNodeList(self.nodes2)
         self.dataBase.appendNodeList(self.nodes3)
-        print "Finished genericSetup"
+        print("Finished genericSetup")
 
         return
 
@@ -89,8 +89,8 @@ class TestDistributedBoundary1d:
     # the communicated ghost nodes.
     #===========================================================================
     def testIt(self):
-        print "Testing TreeDistributedBoundary1d on domain %i of %i domains" % \
-              (domainID, nDomains)
+        print("Testing TreeDistributedBoundary1d on domain %i of %i domains" % \
+              (domainID, nDomains))
 
         # Set the ghost nodes for each domain distributed NodeList.
         self.domainbc.setAllGhostNodes(self.dataBase)
@@ -105,7 +105,7 @@ class TestDistributedBoundary1d:
         self.domainbc.finalizeGhostBoundary()
 
         # Iterate over each domain.
-        for testProc in xrange(mpi.procs):
+        for testProc in range(mpi.procs):
 
             # Test each NodeList.
             for (nodes, globalIDField) in ((self.nodes1, self.globalIDField1),
@@ -115,7 +115,7 @@ class TestDistributedBoundary1d:
                 # Tell everyone how many nodes we'll be testing, and iterate
                 # over them
                 n = mpi.bcast(nodes.numInternalNodes, testProc)
-                for i in xrange(n):
+                for i in range(n):
 
                     # Broadcast the position and H from the testing processor.
                     rilocal = Vector1d()

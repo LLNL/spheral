@@ -127,11 +127,6 @@ public:
   double energyMultiplier() const;
   void energyMultiplier(double val);
 
-  // If requested, the user can specify an external pressure to be applied
-  // in the pressure calculation.
-  double externalPressure() const;
-  void externalPressure(double P);
-
   // Compute (\partial P)/(\partial rho) for use in sound speed and bulk modulus.
   Scalar computeDPDrho(const Scalar massDensity,
                        const Scalar specificThermalEnergy) const;
@@ -149,7 +144,6 @@ private:
   double mb;
   double mAtomicWeight;
   double mCv;
-  double mExternalPressure;
   double mEnergyMultiplier;
 
   // No default constructor, copying, or assignment.

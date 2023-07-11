@@ -29,13 +29,13 @@ def commandLine(**options):
 
     # Verbose output?
     if opts.__verbose:
-        print "All parameters set:"
+        print("All parameters set:")
         for key in options:
             val = eval("opts.%s" % key)
             if val != options[key]:
-                print "  *  ", key, " = ", val
+                print("  *  ", key, " = ", val)
             else:
-                print "     ", key, " = ", val
+                print("     ", key, " = ", val)
                 
     # Set all the variables.
     gd = globalFrame().f_globals

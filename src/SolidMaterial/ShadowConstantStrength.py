@@ -4,7 +4,8 @@
 # Provides convenient constructors for the ConstantStrength model using the canned
 # values in MaterialPropertiesLib.py.
 #-------------------------------------------------------------------------------
-from SpheralCompiledPackages import PhysicalConstants
+import types
+from SpheralCompiledPackages import *
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
 from CaptureStdout import helpString
 from spheralDimensions import spheralDimensions
@@ -35,91 +36,89 @@ ConstantStrength can be constructed one of two ways:
 # This one is for internal use only -- people will actually call the dimension
 # specific front-ends at the end of this script.
 #-------------------------------------------------------------------------------
-def _ConstantStrengthFactory(*args, 
-                              **kwargs):
+def _ConstantStrengthFactory(ndim):
+    CXXConstantStrength = eval("ConstantStrength{}d".format(ndim))
 
-    # The calling routine must provide the appropriate C++ constructor.
-    CSConstructor = kwargs["CSConstructor"]
+    class ConstantStrength(CXXConstantStrength):
 
-    # The arguments that need to be passed to this method.
-    expectedArgs = ["materialName", "units"]
-    optionalKwArgs = {"mu0" : None,
-                      "Y0" : None}
+        def __init__(self,
+                     *args, 
+                     **kwargs):
+            
+            # The arguments that need to be passed to this method.
+            expectedArgs = ["materialName", "units"]
+            optionalKwArgs = {"mu0" : None,
+                              "Y0" : None}
 
-    # The base units for parameters in this file.
-    cgs = PhysicalConstants(0.01,    # Length in m
-                            0.001,   # Mass in kg
-                            1.0)     # Time in sec
+            # The base units for parameters in this file.
+            cgs = PhysicalConstants(0.01,    # Length in m
+                                    0.001,   # Mass in kg
+                                    1.0)     # Time in sec
 
-    # What sort of information did the user pass in?
-    if ("materialName" in kwargs or 
-        len(args) > 0 and type(args[0]) is str):
+            # What sort of information did the user pass in?
+            if ("materialName" in kwargs or 
+                len(args) > 0 and type(args[0]) is str):
 
-        # It looks like the user is trying to use one of the libarary canned values.
-        # Evaluate the arguments to the method.
-        if len(args) > 0:
-            if len(args) != len(expectedArgs):
-                raise ValueError, expectedUsageString
-            for i in xrange(len(expectedArgs)):
-                exec("%s = args[i]" % expectedArgs[i])
-            for arg in optionalKwArgs:
-                exec("%s = optionalKwArgs['%s']" % (arg, arg))
-        else:
-            for arg in kwargs:
-                if arg not in (expectedArgs + optionalKwArgs.keys() + ["CSConstructor"]):
-                    raise ValueError, expectedUsageString
-                exec("%s = kwargs['%s']" % (arg, arg))
-            for arg in optionalKwArgs:
-                if arg not in kwargs:
-                    exec("%s = optionalKwArgs['%s']" % (arg, arg))
+                # It looks like the user is trying to use one of the libarary canned values.
+                # Evaluate the arguments to the method.
+                if (len(args) > len(expectedArgs) or 
+                    (len(args) + len(kwargs) < len(expectedArgs))): # insist on formal mandatory arguments 
+                    raise ValueError(expectedUsageString)
 
-        # Check that the caller specified a valid material label.
-        mat = materialName.lower()
-        if mat not in SpheralMaterialPropertiesLib:
-            raise ValueError, "You must specify one of %s" % str(SpheralMaterialPropertiesLib.keys())
-        if ("mu0" not in SpheralMaterialPropertiesLib[mat] or
-            "Y0"  not in SpheralMaterialPropertiesLib[mat]):
-            raise ValueError, "The material %s does not provide strength paramters." % materialName
+                # Check for any invalid keywords
+                for arg in kwargs: # deal with optional args
+                    if arg not in (expectedArgs + list(optionalKwArgs.keys()) + ["TillConstructor"]):
+                        raise ValueError(expectedUsageString)
 
-        # Extract the parameters for this material.
-        if mu0 is None:
-            mu0 = SpheralMaterialPropertiesLib[mat]["mu0"]
-        if Y0 is None:
-            Y0 = SpheralMaterialPropertiesLib[mat]["Y0"]
-    
-        # Figure out the conversions to the requested units.
-        lconv = cgs.unitLengthMeters / units.unitLengthMeters
-        mconv = cgs.unitMassKg / units.unitMassKg
-        tconv = cgs.unitTimeSec / units.unitTimeSec
-        rhoConv = mconv/(lconv*lconv*lconv)
-        Pconv = mconv/(lconv*tconv*tconv)
-        specificEconv = (lconv/tconv)**2
+                # Set the arguments dictionary
+                dargs = {expectedArgs[i] : args[i] for i in range(len(args))}          # Mandatory args
+                dargs.update(optionalKwArgs)
+                dargs.update(kwargs)
+                print(dargs)
+                ARGS = types.SimpleNamespace(**dargs)
 
-        # Build the arguments for constructing the ConstantStrength.
-        passargs = [mu0 * Pconv,
-                    Y0 * Pconv]
-        passkwargs = {}
+                # Check that the caller specified a valid material label.
+                mat = ARGS.materialName.lower()
+                if mat not in SpheralMaterialPropertiesLib:
+                    raise ValueError("You must specify one of %s" % str(list(SpheralMaterialPropertiesLib.keys())))
+                if ("mu0" not in SpheralMaterialPropertiesLib[mat] or
+                    "Y0"  not in SpheralMaterialPropertiesLib[mat]):
+                    raise ValueError("The material %s does not provide strength paramters." % materialName)
 
-    else:
+                # Extract the parameters for this material.
+                if ARGS.mu0 is None:
+                    ARGS.mu0 = SpheralMaterialPropertiesLib[mat]["mu0"]
+                if ARGS.Y0 is None:
+                    ARGS.Y0 = SpheralMaterialPropertiesLib[mat]["Y0"]
 
-        # Just pass through the arguments.
-        passargs = args
-        passkwargs = kwargs
-        del passkwargs["CSConstructor"]
-    
-    # Return the EOS.
-    return CSConstructor(*tuple(passargs), **passkwargs)
+                # Figure out the conversions to the requested units.
+                lconv = cgs.unitLengthMeters / ARGS.units.unitLengthMeters
+                mconv = cgs.unitMassKg / ARGS.units.unitMassKg
+                tconv = cgs.unitTimeSec / ARGS.units.unitTimeSec
+                rhoConv = mconv/(lconv*lconv*lconv)
+                Pconv = mconv/(lconv*tconv*tconv)
+                specificEconv = (lconv/tconv)**2
+
+                # Build the arguments for constructing the ConstantStrength.
+                passargs = [ARGS.mu0 * Pconv,
+                            ARGS.Y0 * Pconv]
+                passkwargs = {}
+
+            else:
+
+                # Just pass through the arguments.
+                passargs = args
+                passkwargs = kwargs
+
+            # Invoke the C++ constructor
+            CXXConstantStrength.__init__(self, *tuple(passargs), **passkwargs)
+            return
+
+    return ConstantStrength
 
 #-------------------------------------------------------------------------------
 # Create the dimension specific ConstantStrength factories.  These are the ones
 # you actually use.
 #-------------------------------------------------------------------------------
-for dim in dims:
-    exec("""
-def ConstantStrength%(dim)sd(*args, **kwargs):
-    expectedUsageString
-    kwargs["CSConstructor"] = RealConstantStrength%(dim)sd
-    return _ConstantStrengthFactory(*args, **kwargs)
-
-ConstantStrength%(dim)sd.__doc__ = expectedUsageString + "\\n\\n" + helpString(RealConstantStrength%(dim)sd)
-""" % {"dim" : dim})
+for ndim in dims:
+    exec("ConstantStrength{ndim}d = _ConstantStrengthFactory({ndim})".format(ndim = ndim))

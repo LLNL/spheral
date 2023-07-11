@@ -193,14 +193,14 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         if rotation:
             nhat = Vector2d(cos(rotation), -sin(rotation))
             R = rotationMatrix2d(nhat)
-            for i in xrange(len(self.x)):
+            for i in range(len(self.x)):
                 v = R*Vector2d(self.x[i], self.y[i])
                 self.x[i], self.y[i] = v.x, v.y
                 self.H[i].rotationalTransform(R)
 
         # If requested, shift the nodes.
         if offset:
-            for i in xrange(len(self.x)):
+            for i in range(len(self.x)):
                 self.x[i] += offset[0]
                 self.y[i] += offset[1]
 
@@ -317,12 +317,12 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         r0 = rmin + 2**(log(nTheta*theta/(2.0*pi))/log(2))*dr/theta
         #r0 = rmin + dr/dTheta
 
-        print "optimalCylindricalDistribution: Cutoff radius is ", r0
+        print("optimalCylindricalDistribution: Cutoff radius is ", r0)
         nRadial0 = max(0, min(nRadial, int((r0 - rmin)/dr)))
         nRadial1 = nRadial - nRadial0
         r0 = rmin + nRadial0*dr
-        print "Shifted to ", r0
-        print nRadial0, nRadial1
+        print("Shifted to ", r0)
+        print(nRadial0, nRadial1)
 
         if nRadial0 and not nRadial1:
             # Only use constant spacing for the nodes.
@@ -393,7 +393,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         h = 1.0/(nNodePerh*dr)
         Hi = SymTensor2d(h, 0.0, 0.0, h)
 
-        for i in xrange(0, nRadial):
+        for i in range(0, nRadial):
             rInner = rmin + i*dr
             rOuter = rmin + (i + 1)*dr
             ri = rmin + (i + 0.5)*dr
@@ -404,7 +404,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
             dTheta = theta/nTheta
             mRing = (rOuter**2 - rInner**2) * theta/2.0 * rho(Vector2d(ri, 0.0))
             mi = mRing/nTheta
-            for j in xrange(nTheta):
+            for j in range(nTheta):
                 thetai = (j + 0.5 + i*azimuthalOffsetFraction)*dTheta
                 xi = ri*cos(thetai)
                 yi = ri*sin(thetai)
@@ -448,7 +448,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         m = []
         H = []
 
-        for i in xrange(0, nRadial):
+        for i in range(0, nRadial):
             rInner = rmin + i*dr
             rOuter = rmin + (i + 1)*dr
             ri = rmin + (i + 0.5)*dr
@@ -458,7 +458,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
 
             hTheta = 1.0/(nNodePerh*ri*dTheta)
 
-            for j in xrange(nTheta):
+            for j in range(nTheta):
                 thetai = (j + 0.5 + i*azimuthalOffsetFraction)*dTheta
                 xi = ri*cos(thetai)
                 yi = ri*sin(thetai)
@@ -514,7 +514,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         li = theta*ri
         baseNTheta = max(1, int(li/dr + 0.5))
 
-        for i in xrange(0, nRadial):
+        for i in range(0, nRadial):
             rInner = rmin + i*dr
             rOuter = rmin + (i + 1)*dr
             ri = rmin + (i + 0.5)*dr
@@ -524,7 +524,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
             dTheta = theta/nTheta
             mRing = (rOuter**2 - rInner**2) * theta/2.0 * rho(Vector2d(ri, 0.0))
             mi = mRing/nTheta
-            for j in xrange(nTheta):
+            for j in range(nTheta):
                 thetai = (j + 0.5 + i*azimuthalOffsetFraction)*dTheta
                 xi = ri*cos(thetai)
                 yi = ri*sin(thetai)
@@ -568,7 +568,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         m = []
         H = []
 
-        for iy in xrange(ny):
+        for iy in range(ny):
             yi = y1 + (iy + 0.5)*dy
             x1 = c1 + sqrt(rmin*rmin - yi*yi)
             x2 = c2 + sqrt(rmax*rmax - yi*yi)
@@ -580,7 +580,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                                                     y1 + iy*dy,
                                                     y1 + (iy + 1)*dy)
             mi = volrow*rho(Vector2d(0.5*(x1 + x2), yi))/nr
-            for ix in xrange(nr):
+            for ix in range(nr):
                 xi = x1 + (ix + 0.5)*dx
                 assert xi > x1 and xi < x2
                 x.append(xi)
@@ -612,14 +612,14 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         m = []
         H = []
 
-        for j in xrange(ny):
-            for i in xrange(nx):
+        for j in range(ny):
+            for i in range(nx):
                 xx = xmin[0] + (i + 0.5)*dx
                 yy = xmin[1] + (j + 0.5)*dy
                 r = sqrt(xx*xx + yy*yy)
                 m0 = dx*dy*rho(Vector2d(xx, yy))
-                if ((r >= rmin or rmin is None) and
-                    (r <= rmax or rmax is None)):
+                if ((rmin is None or r >= rmin) and
+                    (rmax is None or r <= rmax)):
                     x.append(xx)
                     y.append(yy)
                     m.append(m0)
@@ -662,8 +662,8 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         mc = []
         Hc = []
         
-        for j in xrange(ny):
-            for i in xrange(nx):
+        for j in range(ny):
+            for i in range(nx):
                 xx = xmin[0] + (i + 0.5)*dx
                 yy = xmin[1] + (j + 0.5)*dy
                 r = sqrt(xx*xx + yy*yy)
@@ -704,7 +704,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                              0.0, 1.0/hi)
 
             # Now assign the nodes for this radius.
-            for i in xrange(nTheta):
+            for i in range(nTheta):
                 thetai = (i + 0.5)*dTheta
                 xc.append(ri*cos(thetai))
                 yc.append(ri*sin(thetai))
@@ -735,7 +735,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                     #else:
                     minddr = nx
                     mink = 2*k
-                    for j in xrange(k):
+                    for j in range(k):
                         ddr = sqrt((xl[j]-xi)**2+(yl[j]-yi)**2)
                         if (ddr < minddr):
                             minddr = ddr
@@ -744,7 +744,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                     yi = yi+(yl[mink]-yi)*func
                     
                     minddr = nx
-                    for j in xrange(np):
+                    for j in range(np):
                         ddr = sqrt((x[j]-xi)**2 + (y[j]-yi)**2)
                         if (ddr < minddr):
                             minddr = ddr
@@ -783,7 +783,7 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
 
         assert len(x) == len(y)
         assert dy > 0.0
-        for i in xrange(len(x)):
+        for i in range(len(x)):
             x[i] += ddx * (-1.0)**int((y[i] - xmin[1])/dy + 0.1)
 
         return x, y, m, H
@@ -810,10 +810,10 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
         m = []
         H = []
 
-        for j in xrange(ny + 1):
+        for j in range(ny + 1):
             jmod = (j + 1) % 2
             nxrow = nx + jmod
-            for i in xrange(nxrow):
+            for i in range(nxrow):
                 xx = xmin[0] + (i + 0.5 - 0.5*jmod)*dx
                 yy = xmin[1] + j*dy
                 r = sqrt(xx*xx + yy*yy)
@@ -822,8 +822,8 @@ class GenerateNodeDistribution2d(NodeGeneratorBase):
                     m0 /= 2.0
                 if jmod == 1 and (i == 0 or i == nxrow - 1):
                     m0 /= 2.0
-                if ((r >= rmin or rmin is None) and
-                    (r <= rmax or rmax is None)):
+                if ((rmin is None or r >= rmin) and
+                    (rmax is None or r <= rmax)):
                     x.append(xx)
                     y.append(yy)
                     m.append(m0)
@@ -895,15 +895,15 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
         self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
                                                  rmin, rmax,
                                                  thetaMin, thetaMax)
-        print "Total mass of %g in the range r = (%g, %g), theta = (%g, %g)" % \
-            (self.totalMass, rmin, rmax, thetaMin, thetaMax)
+        print("Total mass of %g in the range r = (%g, %g), theta = (%g, %g)" % \
+            (self.totalMass, rmin, rmax, thetaMin, thetaMax))
 
         # Now set the nominal mass per node.
         self.m0 = self.totalMass/(self.n*self.n*pi)
         if (m0 > 0.0):
             self.m0 = m0
         assert self.m0 > 0.0
-        print "Nominal mass per node of %g." % self.m0
+        print("Nominal mass per node of %g." % self.m0)
 
         # OK, we now know enough to generate the node positions.
         self.x, self.y, self.m, self.H = \
@@ -912,7 +912,7 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
                                                        rmin, rmax,
                                                        thetaMin, thetaMax,
                                                        nNodePerh)
-        print "Generated a total of %i nodes." % len(self.x)
+        print("Generated a total of %i nodes." % len(self.x))
 
         # Make sure the total mass is what we intend it to be, by applying
         # a multiplier to the particle masses.
@@ -921,15 +921,15 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
             sumMass += m
         assert sumMass > 0.0
         massCorrection = self.totalMass/sumMass
-        for i in xrange(len(self.m)):
+        for i in range(len(self.m)):
             self.m[i] *= massCorrection
-        print "Applied a mass correction of %f to ensure total mass is %f." % (
-                                                                               massCorrection, self.totalMass)
+        print("Applied a mass correction of %f to ensure total mass is %f." % (
+                                                                               massCorrection, self.totalMass))
 
         # Have the base class break up the serial node distribution
         # for parallel cases.
         
-        for i in xrange(len(self.m)):
+        for i in range(len(self.m)):
             self.x[i] = self.x[i] + self.offset[0]
             self.y[i] = self.y[i] + self.offset[1]
         
@@ -981,7 +981,7 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
         h = (rmax - rmin)/nbins
         result = (rmin*densityProfileMethod(rmin) +
                   rmax*densityProfileMethod(rmax))
-        for i in xrange(1, nbins):
+        for i in range(1, nbins):
             ri = rmin + i*h
             if i % 2 == 0:
                 result += 4.0*ri*densityProfileMethod(ri)
@@ -1032,7 +1032,7 @@ class GenerateNodesMatchingProfile2d(NodeGeneratorBase):
                              0.0, 1.0/hi)
                              
             # Now assign the nodes for this radius.
-            for i in xrange(nTheta):
+            for i in range(nTheta):
                 thetai = thetaMin + (i + 0.5)*dTheta
                 x.append(rii*cos(thetai))
                 y.append(rii*sin(thetai))
@@ -1095,13 +1095,13 @@ class GenerateNodesMatchingMassProfile2d(NodeGeneratorBase):
         self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
                                                  rmin, rmax,
                                                  thetaMin, thetaMax)
-        print "Total mass of %g in the range r = (%g, %g), theta = (%g, %g)" % \
-              (self.totalMass, rmin, rmax, thetaMin, thetaMax)
+        print("Total mass of %g in the range r = (%g, %g), theta = (%g, %g)" % \
+              (self.totalMass, rmin, rmax, thetaMin, thetaMax))
 
         # Now set the nominal mass per node.
         self.m0 = self.totalMass/self.n
         assert self.m0 > 0.0
-        print "Nominal mass per node of %g." % self.m0
+        print("Nominal mass per node of %g." % self.m0)
 
         # OK, we now know enough to generate the node positions.
         self.x, self.y, self.m, self.H = \
@@ -1110,7 +1110,7 @@ class GenerateNodesMatchingMassProfile2d(NodeGeneratorBase):
                                                            rmin, rmax,
                                                            thetaMin, thetaMax,
                                                            nNodePerh)
-        print "Generated a total of %i nodes." % len(self.x)
+        print("Generated a total of %i nodes." % len(self.x))
 
         # Make sure the total mass is what we intend it to be, by applying
         # a multiplier to the particle masses.
@@ -1119,10 +1119,10 @@ class GenerateNodesMatchingMassProfile2d(NodeGeneratorBase):
             sumMass += m
         assert sumMass > 0.0
         massCorrection = self.totalMass/sumMass
-        for i in xrange(len(self.m)):
+        for i in range(len(self.m)):
             self.m[i] *= massCorrection
-        print "Applied a mass correction of %f to ensure total mass is %f." % (
-            massCorrection, self.totalMass)
+        print("Applied a mass correction of %f to ensure total mass is %f." % (
+            massCorrection, self.totalMass))
 
         # Have the base class break up the serial node distribution
         # for parallel cases.
@@ -1173,7 +1173,7 @@ class GenerateNodesMatchingMassProfile2d(NodeGeneratorBase):
         h = (rmax - rmin)/nbins
         result = (rmin*densityProfileMethod(rmin) +
                   rmax*densityProfileMethod(rmax))
-        for i in xrange(1, nbins):
+        for i in range(1, nbins):
             ri = rmin + i*h
             if i % 2 == 0:
                 result += 4.0*ri*densityProfileMethod(ri)
@@ -1221,7 +1221,7 @@ class GenerateNodesMatchingMassProfile2d(NodeGeneratorBase):
                              0.0, 1.0/hi)
 
             # Now assign the nodes for this radius.
-            for i in xrange(nTheta):
+            for i in range(nTheta):
                 if nTheta > 1:
                     thetai = thetaMin + (i + 0.5)*dTheta
                     x.append(ri*cos(thetai))
@@ -1281,13 +1281,13 @@ class GenerateNodesMatchingYProfile2d(GenerateNodeDistribution2d):
         # Determine how much total mass there is in the system.
         self.totalMass = self.integrateTotalMass(self.densityProfileMethod,
                                                  xmin, xmax)
-        print "Total mass of %g in the range xmin = (%g, %g), xmax = (%g, %g)" % \
-              (self.totalMass, xmin[0], xmin[1], xmax[0], xmax[1])
+        print("Total mass of %g in the range xmin = (%g, %g), xmax = (%g, %g)" % \
+              (self.totalMass, xmin[0], xmin[1], xmax[0], xmax[1]))
 
         # Now set the nominal mass per node.
         self.m0 = self.totalMass/(nx*ny)
         assert self.m0 > 0.0
-        print "Nominal mass per node of %g." % self.m0
+        print("Nominal mass per node of %g." % self.m0)
 
         # Generate the internal sets of positions, masses, and H
         if distributionType == "lattice":
@@ -1334,7 +1334,7 @@ class GenerateNodesMatchingYProfile2d(GenerateNodeDistribution2d):
         ymin = xmin[1]
         result = (xmin[1]*densityProfileMethod(Vector2d(*xmin)) +
                   xmax[1]*densityProfileMethod(Vector2d(*xmax)))
-        for i in xrange(1, nbins):
+        for i in range(1, nbins):
             yi = ymin + i*h
             if i % 2 == 0:
                 result += 4.0*yi*densityProfileMethod(Vector2d(0.0, yi))
@@ -1367,7 +1367,7 @@ class GenerateNodesMatchingYProfile2d(GenerateNodeDistribution2d):
             dy = sqrt(self.m0/rhoi)
             hy = 1.0/(nNodePerh*dy)
             H0 = SymTensor2d(hx, 0.0, 0.0, hy)
-            for i in xrange(nx):
+            for i in range(nx):
                 xx = xmin[0] + (i + 0.5)*dx
                 m0 = dx*dy*rho(Vector2d(xx, yy))
                 x.append(xx)
@@ -1399,7 +1399,7 @@ class GenerateNodesMatchingYProfile2d(GenerateNodeDistribution2d):
 
         assert len(x) == len(y)
         assert dy > 0.0
-        for i in xrange(len(x)):
+        for i in range(len(x)):
             x[i] += ddx * (-1.0)**int((y[i] - xmin[1])/dy + 0.1)
 
         return x, y, m, H
@@ -1439,8 +1439,8 @@ class SlantedBoxNodeDistribution2d(NodeGeneratorBase):
         # Seed the points.
         self.x = []
         self.y = []
-        for i01 in xrange(n01):
-            for i12 in xrange(n12):
+        for i01 in range(n01):
+            for i12 in range(n12):
                 r = x0 + (i01 + 0.5)*d01*nhat01 + (i12 + 0.5)*d12*nhat12
                 self.x.append(r.x)
                 self.y.append(r.y)
@@ -1458,7 +1458,7 @@ class SlantedBoxNodeDistribution2d(NodeGeneratorBase):
         assert voli > 0.0
         mtot = sum([self.rho(Vector2d(xi, yi)) for xi, yi in zip(self.x, self.y)])*voli
         mi = mtot/ntot
-        self.m = [mi for i in xrange(ntot)]
+        self.m = [mi for i in range(ntot)]
 
         # Seed the H tensors.
         Hi = SymTensor2d(1.0/(nNodePerh*d01), 
@@ -1470,7 +1470,7 @@ class SlantedBoxNodeDistribution2d(NodeGeneratorBase):
         if SPH:
             hi = sqrt(Hi.Determinant())
             Hi = SymTensor2d(hi, 0.0, 0.0, hi)
-        self.H = [SymTensor2d(Hi) for i in xrange(ntot)]
+        self.H = [SymTensor2d(Hi) for i in range(ntot)]
 
         # Have the base class break up the serial node distribution
         # for parallel cases.
@@ -1515,7 +1515,7 @@ def RZGenerator(generator):
 
     # Correct the mass.
     n = len(generator.m)
-    for i in xrange(n):
+    for i in range(n):
         generator.m[i] *= 2.0*pi*generator.localPosition(i).y
 
     return generator

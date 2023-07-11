@@ -6,7 +6,7 @@ if (NOT ENABLE_CXXONLY)
   # site-packages so we strip away site-packages pack and 
   # copy the full contents of the python library prefix to
   # our virtual env in spheral-setup-venv.sh
-  string(REGEX REPLACE "lib\/python2.7\/site-packages\/?[A-Za-z]*:" "* " VIRTUALENV_PYTHONPATH_COPY "${SPACK_PYTHONPATH}:")
+  string(REGEX REPLACE "lib\/python3.9\/site-packages\/?[A-Za-z]*:" "* " VIRTUALENV_PYTHONPATH_COPY "${SPACK_PYTHONPATH}:")
 
   set(SPHERAL_ATS_BUILD_CONFIG_ARGS )
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -15,11 +15,8 @@ if (NOT ENABLE_CXXONLY)
   if (NOT ENABLE_MPI)
     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"np<2\"'")
   endif()
-
-  set(SPHERAL_LCATS_BUILD_CONFIG_ARGS ${SPHERAL_ATS_BUILD_CONFIG_ARGS})
-  if (ENABLE_CUDA)
-    list(APPEND SPHERAL_LCATS_BUILD_CONFIG_ARGS "--addOp --smpi_off")
-    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--smpi_off")
+  if ($ENV{SYS_TYPE} MATCHES ".*blueos.*")
+    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--addOp --smpi_off")
   endif()
 
   string(REPLACE ";" " " SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING "${SPHERAL_ATS_BUILD_CONFIG_ARGS}")
@@ -50,6 +47,7 @@ if (NOT ENABLE_CXXONLY)
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
+      "${CMAKE_CURRENT_SOURCE_DIR}/lc/lcats"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
     )
 

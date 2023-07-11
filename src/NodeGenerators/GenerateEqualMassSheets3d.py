@@ -9,7 +9,7 @@ from Spheral import pair_double_double
 
 from Spheral import vector_of_int, vector_of_double, vector_of_SymTensor3d, vector_of_vector_of_double
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import multiSort
+from SpheralTestUtilities import multiSort
 
 import mpi
 procID = mpi.rank
@@ -43,8 +43,8 @@ class GenerateEqualMassSheets3d(NodeGeneratorBase):
         if rhoMin is None:
             rhoMin = densityProfileMethod.rhoMin    # hopefully your density method supports this!
 
-        print xmax
-        print xmin
+        print(xmax)
+        print(xmin)
         dz = float((xmax[0] - xmin[0])*(xmax[1]-xmin[1]))/(float(nx)*float(ny))
         self.m0 = rhoMin*dz*dz
 
@@ -72,9 +72,9 @@ class GenerateEqualMassSheets3d(NodeGeneratorBase):
                              0.0, 0.0, hz)
             nxz = int((xmax[0]-xmin[0])/dx)
             nyz = int((xmax[1]-xmin[1])/dy)
-            print "z = %f" % zz
-            for i in xrange(nxz):
-                for j in xrange(nyz):
+            print("z = %f" % zz)
+            for i in range(nxz):
+                for j in range(nyz):
                     xx = xmin[0] + (i+0.5)*dx
                     yy = xmin[1] + (j+0.5)*dy
                     xl.append(xx)
@@ -89,7 +89,7 @@ class GenerateEqualMassSheets3d(NodeGeneratorBase):
         self.m = []
         self.H = []
         
-        for i in xrange(len(xl)):
+        for i in range(len(xl)):
             if self.within(Vector3d(xl[i],yl[i],zl[i]),xmin,xmax):
                 self.x.append(xl[i])
                 self.y.append(yl[i])
@@ -145,6 +145,6 @@ class GenerateEqualMassSheets3d(NodeGeneratorBase):
     #---------------------------------------------------------------------------
     def within(self,pos,xmin,xmax):
         a = 1
-        for i in xrange(3):
+        for i in range(3):
             a = a*((pos[i]<xmax[i]) and (pos[i]>xmin[i]))
         return a

@@ -237,7 +237,7 @@ if restoreCycle is None:
     m = nodes1.mass()
     e = nodes1.specificThermalEnergy()
     omega = sqrt(G0*M0/rmax**3)
-    for i in xrange(nodes1.numInternalNodes):
+    for i in range(nodes1.numInternalNodes):
         x = r[i].x
         y = r[i].y
         z = r[i].z
@@ -393,7 +393,7 @@ v = nodes1.velocity()
 r = nodes1.positions()
 m = nodes1.mass()
 totalL = 0
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     x = r[i].x
     y = r[i].y
     z = r[i].z
@@ -402,7 +402,7 @@ for i in xrange(nodes1.numInternalNodes):
     vz = v[i].z
     totalL += m[i]*sqrt((y*vz-z*vy)**2+(z*vx-x*vz)**2+(x*vy-y*vx)**2)
 
-print "Total L=%e" % totalL
+print("Total L=%e" % totalL)
 
 if steps is None:
     control.advance(goalTime, maxSteps)
@@ -415,12 +415,12 @@ else:
 control.conserve.writeHistory("collapseHistory-CRK-%s" % CRKSPH)
 
 # Output the energy conservation.
-print "Energy conservation: ", ((control.conserve.EHistory[-1] -
+print("Energy conservation: ", ((control.conserve.EHistory[-1] -
                                  control.conserve.EHistory[0])/
-                                control.conserve.EHistory[0])
+                                control.conserve.EHistory[0]))
 
 totalL = 0
-for i in xrange(nodes1.numInternalNodes):
+for i in range(nodes1.numInternalNodes):
     x = r[i].x
     y = r[i].y
     z = r[i].z
@@ -429,5 +429,5 @@ for i in xrange(nodes1.numInternalNodes):
     vz = v[i].z
     totalL += m[i]*sqrt((y*vz-z*vy)**2+(z*vx-x*vz)**2+(x*vy-y*vx)**2)
 
-print "Total L=%e" % totalL
+print("Total L=%e" % totalL)
 

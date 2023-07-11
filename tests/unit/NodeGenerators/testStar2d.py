@@ -14,7 +14,7 @@ theta0 = 2*pi/5
 outerRadius = 2.0
 innerRadius = outerRadius*( sin(theta0/4.0) / sin(3*theta0/4.0) )
 center = Vector(1,1)
-for p in xrange(5):
+for p in range(5):
     # For the pointy bits of the star
     theta = pi/2 + p*theta0
     points.push_back(center + Vector(outerRadius*cos(theta),
@@ -24,7 +24,7 @@ for p in xrange(5):
     points.push_back(center + Vector(innerRadius*cos(theta),
                                      innerRadius*sin(theta)))
 
-for f in xrange(10):
+for f in range(10):
     facets.push_back(vector_of_unsigned(2))
     facets[-1][0] = f
     facets[-1][1] = (f + 1) % 10
@@ -79,7 +79,7 @@ boundaryWeight = ScalarField("boundary weight", nodes)
 func1 = PositionWeightingFunctor(1.0, 1.0e-1, 2)
 def updateFields():
     pos = nodes.positions()
-    for i in xrange(nodes.numInternalNodes):
+    for i in range(nodes.numInternalNodes):
         boundaryDistance[i] = starBoundary.distance(pos[i])
         boundaryWeight[i] = func1(pos[i], starBoundary)
 

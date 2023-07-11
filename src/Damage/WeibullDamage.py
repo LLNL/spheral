@@ -49,7 +49,7 @@ def flawDistribution(seed,
             while (numCompletedNodes < n) or (iflaw <= minTotalFlaws):
                 iflaw += 1
                 if (iflaw % 100 == 0):
-                    print "Flaw %i of estimated %i" % (iflaw, n * log(n))
+                    print("Flaw %i of estimated %i" % (iflaw, n * log(n)))
 
                 # Randomly select a global node.
                 iglobal = g.randint(0, n - 1)
@@ -73,19 +73,19 @@ def flawDistribution(seed,
                     flaws[i].append(epsij);
 
         # Sort the flaws on each node by energy.
-        for i in xrange(nodeList.numInternalNodes):
+        for i in range(nodeList.numInternalNodes):
             v = list(flaws[i])
             v.sort()
-            for j in xrange(len(v)):
+            for j in range(len(v)):
                 flaws[i][j] = v[j]
 
         # Post-conditions.
         checkFlaws = 0
-        for i in xrange(nodeList.numInternalNodes):
+        for i in range(nodeList.numInternalNodes):
             nn = len(flaws[i])
             checkFlaws += nn
             assert nn >= minFlawsPerNode
-            for j in xrange(nn - 1):
+            for j in range(nn - 1):
                 assert flaws[i][j] <= flaws[i][j + 1]
 
         # That's it.

@@ -39,7 +39,7 @@ class CloudMassFraction(NodeHistory):
         elif isinstance(nodes, Spheral.NodeList3d):
             self.ndim = 3
         else:
-            raise RuntimeError, "What the heck is %s?" % nodes
+            raise RuntimeError("What the heck is %s?" % nodes)
 
         # Find the starting mass of the cloud.
         self.M0 = nodes.mass().sumElements()
@@ -53,7 +53,7 @@ class CloudMassFraction(NodeHistory):
         rho = nodes.massDensity()
         eps = nodes.specificThermalEnergy()
         msum, volsum = 0.0, 0.0
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             if rho[i] > self.rho0 and eps[i] < self.eps0:
                 msum += mass[i]
                 volsum += mass[i]/rho[i]

@@ -33,7 +33,7 @@ class TrackConservation1d:
         self.conservedQuantities.append([cycle,time,Ptotx])
 
         if self.verbose:
-            print(" Total Linear Momentum     : %.15f" % Ptotx)
+            print((" Total Linear Momentum     : %.15f" % Ptotx))
 
     def deltaLinearMomentumX(self):
         return abs(self.conservedQuantities[-1][2] - self.conservedQuantities[1][2])
@@ -87,9 +87,9 @@ class TrackConservation2d:
         self.conservedQuantities.append([cycle,time,Ptotx,Ptoty,Rtot])
 
         if self.verbose:
-            print(" Total Linear Momentum X     : %.18f" % Ptotx)
-            print(" Total Linear Momentum y     : %.18f" % Ptoty)
-            print(" Total Rotational Momentum z : %.18f" % Rtot)
+            print((" Total Linear Momentum X     : %.18f" % Ptotx))
+            print((" Total Linear Momentum y     : %.18f" % Ptoty))
+            print((" Total Rotational Momentum z : %.18f" % Rtot))
 
     def deltaLinearMomentumX(self):
         return abs(self.conservedQuantities[-1][2] - self.conservedQuantities[1][2])
@@ -140,12 +140,12 @@ class TrackConservation3d:
         self.conservedQuantities.append([cycle,time,Ptot[0],Ptot[1],Ptot[2],Rtot[0],Rtot[1],Rtot[2]])
 
         if self.verbose:
-            print(" Total Linear Momentum X   : %.15f" % Ptot[0])
-            print(" Total Linear Momentum Y   : %.15f" % Ptot[1])
-            print(" Total Linear Momentum Z   : %.15f" % Ptot[2])
-            print(" Rotational Momentum X     : %.15f" % Rtot[0])
-            print(" Rotational Momentum Y     : %.15f" % Rtot[1])
-            print(" Rotational Momentum Z     : %.15f" % Rtot[2])
+            print((" Total Linear Momentum X   : %.15f" % Ptot[0]))
+            print((" Total Linear Momentum Y   : %.15f" % Ptot[1]))
+            print((" Total Linear Momentum Z   : %.15f" % Ptot[2]))
+            print((" Rotational Momentum X     : %.15f" % Rtot[0]))
+            print((" Rotational Momentum Y     : %.15f" % Rtot[1]))
+            print((" Rotational Momentum Z     : %.15f" % Rtot[2]))
 
     def deltaLinearMomentumX(self):
         return abs(self.conservedQuantities[-1][2] - self.conservedQuantities[1][2])

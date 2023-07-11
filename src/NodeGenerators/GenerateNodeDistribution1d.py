@@ -31,9 +31,9 @@ class GenerateNodeDistribution1d(NodeGeneratorBase):
         dx = (xmax - xmin)/n
         assert dx > 0.0
         h0 = nNodePerh*dx
-        self.x = [xmin + (i + 0.5)*dx for i in xrange(n)]
+        self.x = [xmin + (i + 0.5)*dx for i in range(n)]
         self.m = [self.rho(xi)*dx for xi in self.x]
-        self.H = [SymTensor1d(1.0/h0) for i in xrange(n)]
+        self.H = [SymTensor1d(1.0/h0) for i in range(n)]
         
         # Apply any rejection
         if rejecter:

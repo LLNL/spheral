@@ -88,7 +88,7 @@ if seed == "cubic":
     nx *= nxdomains
     ny *= nxdomains
     nz *= nxdomains
-    print nxdomains, nx, ny, nz
+    print(nxdomains, nx, ny, nz)
 
 #-------------------------------------------------------------------------------
 # A few derived variables.
@@ -181,7 +181,7 @@ if restoreCycle is None:
     nodes.specificThermalEnergy(ScalarField3d("tmp", nodes, eps1))
 
     # Set node velocities
-    for nodeID in xrange(nodes.numNodes):
+    for nodeID in range(nodes.numNodes):
         nodes.velocity()[nodeID] = nodes.positions()[nodeID].unitVector()*vr1
 
 #-------------------------------------------------------------------------------
@@ -316,7 +316,7 @@ if graphics:
 rmin = 0.05
 rmax = 0.35
 rall = [x.magnitude() for x in nodes.positions().internalValues()]
-imask = [i for i in xrange(nodes.numInternalNodes)
+imask = [i for i in range(nodes.numInternalNodes)
          if (rall[i] > rmin and rall[i]  < rmax)]
 Nlocal = len(imask)
 Nglobal = mpi.allreduce(Nlocal, mpi.SUM)
@@ -361,7 +361,7 @@ for (name, L1, L10) in [("Velocity    ", L1v, L1v0),
                         ("Pressure    ", L1P, L1P0),
                         ("Entropy     ", L1A, L1A0)]:
     L1exp = L10 * (nx/25.0)**(-0.8)
-    print "\t%s L1 = %g < %g" % (name, L1, L1exp)
+    print("\t%s L1 = %g < %g" % (name, L1, L1exp))
     if L1 > L1exp:
         raise "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
                                                                               L1,

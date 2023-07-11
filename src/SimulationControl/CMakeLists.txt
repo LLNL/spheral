@@ -57,7 +57,6 @@ spheral_install_python_files(
   SpheralVoronoiSiloDump.py
   SpheralPolytopeSiloDump.py
   Spheral1dVizDump.py
-  SpheralGnuPlotUtilities.py
   SpheralMatplotlib.py
   findLastRestart.py
   Pnorm.py

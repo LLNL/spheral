@@ -253,7 +253,7 @@ if restoreCycle is None:
         rho = nodes.massDensity()
         eps = nodes.specificThermalEnergy()
         mass = nodes.mass()
-        for i in xrange(nodes.numInternalNodes):
+        for i in range(nodes.numInternalNodes):
             yval = pos[i].y
             xval = pos[i].x
             zval = pos[i].z
@@ -456,7 +456,7 @@ def mixingScale(cycle, t, dt):
      vely = mpi.reduce([v.y for v in nodeL.velocity().internalValues()], mpi.SUM)
      hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodeL.Hfield().internalValues()], mpi.SUM)
      if mpi.rank == 0:
-      for j in xrange (len(xprof)):
+      for j in range (len(xprof)):
         if yprof[j] < 0.5:
           si.append(vely[j]*hprof[j]*hprof[j]*sin(4*pi*xprof[j])*exp(-4.0*pi*abs(yprof[j]-0.25)))
           ci.append(vely[j]*hprof[j]*hprof[j]*cos(4*pi*xprof[j])*exp(-4.0*pi*abs(yprof[j]-0.25)))
@@ -470,7 +470,7 @@ def mixingScale(cycle, t, dt):
       C=sum(ci)
       D=sum(di)
       M=sqrt((S/D)*(S/D)+(C/D)*(C/D))*2.0
-      print "At time t = %s, Mixing Amp M = %s \n" % (t,M)
+      print("At time t = %s, Mixing Amp M = %s \n" % (t,M))
       with open(mixFile, "a") as myfile:
         myfile.write("%s\t %s\n" % (t, M))
 

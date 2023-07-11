@@ -252,4 +252,39 @@ computeNormal() {
   mNormal = mNormal.unitVector();
 }
 
+//------------------------------------------------------------------------------
+// ==
+//------------------------------------------------------------------------------
+bool
+GeomFacet3d::
+operator==(const GeomFacet3d& rhs) const {
+  return (*mVerticesPtr == *(rhs.mVerticesPtr) and
+          mPoints == rhs.mPoints and
+          fuzzyEqual(mNormal.dot(rhs.mNormal), 1.0));
+}
+
+//------------------------------------------------------------------------------
+// !=
+//------------------------------------------------------------------------------
+bool
+GeomFacet3d::
+operator!=(const GeomFacet3d& rhs) const {
+  return not (*this == rhs);
+}
+
+//------------------------------------------------------------------------------
+// Output (ostream) operator.
+//------------------------------------------------------------------------------
+std::ostream&
+operator<<(std::ostream& os, const GeomFacet3d& facet) {
+  os << "GeomFacet3d( ivertices : ";
+  const std::vector<unsigned>& ipoints = facet.ipoints();
+  for (unsigned i = 0; i != ipoints.size(); ++i) os << ipoints[i] << " ";
+  os << "\n              vertices : ";
+  for (unsigned i = 0; i != ipoints.size(); ++i) os << facet.point(i) << " ";
+  os << "\n                normal : " << facet.normal() 
+     << "\n)";
+  return os;
+}
+
 }

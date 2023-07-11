@@ -2,7 +2,7 @@
 // IncrementPairFieldList -- An implementation of FieldListUpdatePolicyBase appropriate for
 // when 'ya just want to increment by derivatives:  x1 = x0 + A*dx/dt
 //
-// Created by JMO, Sun Oct 27 11:32:51 PDT 2013
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_IncrementPairFieldList_hh__
 #define __Spheral_IncrementPairFieldList_hh__
@@ -30,7 +30,7 @@ public:
   
   static const std::string prefix() { return "delta "; }
   
-  bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
   // Overload the methods describing how to update FieldLists.
   virtual void update(const KeyType& key,
