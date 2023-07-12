@@ -14,6 +14,8 @@
 #include "Utilities/OpenMP_wrapper.hh"
 #include "FieldView.hh"
 
+#include "CXXTests/tests/LvField.hh"
+
 #include <vector>
 #include <list>
 #include <map>
@@ -42,6 +44,10 @@ enum class FieldStorageType {
 template<typename Dimension, typename DataType>
 class FieldList: public FieldListBase<Dimension> {
 public:
+
+  friend class ::LvFieldListView<Dimension, DataType>;
+
+
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -98,7 +104,9 @@ public:
   void referenceFields(const FieldList& fieldList);
 
   // Convenience methods to add and delete Fields.
+  void appendField(const FieldView<Dimension, DataType>& field);
   void appendField(const Field<Dimension, DataType>& field);
+
   void deleteField(const Field<Dimension, DataType>& field);
 
   // Construct a new field and add it to the FieldList.

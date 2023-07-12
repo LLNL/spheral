@@ -4,6 +4,7 @@
 #include "LvArray/bufferManipulation.hpp"
 #include "Field/SphArray.hh"
 #include "Field/FieldView.hh"
+#include "Field/FieldList.hh"
 
 
 //template<typename Dimension, typename DATA_TYPE>
@@ -147,7 +148,7 @@ public:
 #endif
 
   RAJA_HOST_DEVICE
-  LvFieldListView(const LvFieldList<Dimension, DATA_TYPE>& field) : mFieldViewsView{field.mFieldArray.toView()} {}
+  LvFieldListView(const Spheral::FieldList<Dimension, DATA_TYPE>& field) : mFieldViewsView{field.mFieldPtrs.toView()} {}
 
   void move(LvArray::MemorySpace const& space, bool touch = true) const {
     mFieldViewsView.move(space,touch);

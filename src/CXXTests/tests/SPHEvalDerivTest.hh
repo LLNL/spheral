@@ -75,6 +75,8 @@ void SpheralEvalDerivTest()
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
   using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
+
+  using FIELDLIST_TYPE = Spheral::FieldList<DIM, DATA_TYPE>;
   //using VIEW_TYPE = FIELD_TYPE::view_type;
 
   //---------------------------------------------------------------------------
@@ -126,8 +128,10 @@ void SpheralEvalDerivTest()
   // Creating "FieldLists" In evalDerivs we call STATE_TYPE::fields(...) to return a fieldList.
   // In evalderivs we will want to return Something like LvFieldListView types for RAJA lambda 
   // capture and chai data migration. 
-  LvFieldList<DIM, DATA_TYPE> fl("MyFirstFieldList");
-  LvFieldList<DIM, DATA_TYPE> fl2("MySecondFieldList");
+  //FIELDLIST_TYPE fl("MyFirstFieldList");
+  //FIELDLIST_TYPE fl2("MySecondFieldList");
+  FIELDLIST_TYPE fl;
+  FIELDLIST_TYPE fl2;
 
   // Setting up global device pool memory for each Field...
   auto g_A = A.make_pool_field(strat.n_data_pools, strat.platform);
@@ -144,7 +148,7 @@ void SpheralEvalDerivTest()
   fl2.appendField(Cv);
   fl2.appendField(Av);
 
-  LvFieldList<DIM, DATA_TYPE> flo("const FL One");
+  FIELDLIST_TYPE flo;
   flo.appendField(One);
 
   // The FieldList types used in evalderivs.

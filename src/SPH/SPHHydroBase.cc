@@ -928,8 +928,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       //effViscousPressurej += mi*Qj*WQj/rhoi;
       //viscousWorki += mj*workQi;
       //viscousWorkj += mi*workQj;
-      ATOMIC_MAX(&a_maxViscousPressurei, max(maxViscousPressurei, Qi));
-      ATOMIC_MAX(&a_maxViscousPressurej, max(maxViscousPressurej, Qj));
+      ATOMIC_MAX(&a_maxViscousPressurei, max(a_maxViscousPressurei, Qi));
+      ATOMIC_MAX(&a_maxViscousPressurej, max(a_maxViscousPressurej, Qj));
       ATOMIC_ADD(&a_effViscousPressurei, -mj*Qi*WQi/rhoj);
       ATOMIC_ADD(&a_effViscousPressurej, -mi*Qj*WQj/rhoi);
       ATOMIC_ADD(&a_viscousWorki, -mj*workQi);

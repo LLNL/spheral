@@ -328,8 +328,8 @@ referenceFields(const FieldList<Dimension, DataType>& fieldList) {
 template<typename Dimension, typename DataType>
 inline
 void
-FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& field) {
-  if (haveField(field)) {
+FieldList<Dimension, DataType>::appendField(const FieldView<Dimension, DataType>& field) {
+  if (haveField(field.get())) {
     std::cerr << "FieldList::appendField Warning: attempt to append field " << &field
               << " to FieldList " << this
               << " which already has it." << std::endl;
@@ -338,7 +338,7 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
 
   // Determine the order this Field should be in.
   const NodeListRegistrar<Dimension>& nlr = NodeListRegistrar<Dimension>::instance();
-  auto orderItr = nlr.findInsertionPoint(&field,
+  auto orderItr = nlr.findInsertionPoint(&field.get(),
                                          begin(),
                                          end());
 
@@ -350,7 +350,7 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
     break;
 
   case FieldStorageType::CopyFields:
-    auto newField = std::make_shared<Field<Dimension, DataType>>(field);
+    auto newField = std::make_shared<Field<Dimension, DataType>>(field.get());
     mFieldCache.push_back(newField);
     mFieldPtrs.emplace(idx, ElementType(*newField.get()));
   }
@@ -372,6 +372,13 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
   ENSURE(this->size() == mNodeListPtrs.size());
   END_CONTRACT_SCOPE
 
+}
+
+template<typename Dimension, typename DataType>
+inline
+void
+FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& field) {
+  appendField(ElementType(field));
 }
 
 //------------------------------------------------------------------------------
