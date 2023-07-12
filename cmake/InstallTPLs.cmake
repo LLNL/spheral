@@ -72,8 +72,6 @@ foreach(_tgt umpire RAJA mfem conduit
   endif()
 endforeach()
 
-blt_print_target_properties(TARGET umpire)
-
 # Axom imports hdf5 lib but Spheral also requires hdf5_hl
 Spheral_Handle_TPL(hdf5 spheral_depends cxx)
 
