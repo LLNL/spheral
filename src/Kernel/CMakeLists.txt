@@ -22,6 +22,7 @@ set(Kernel_inst
 
 set(Kernel_sources
     SphericalKernelOslo.cc
+    SphericalRadialKernel.cc
     SphericalBiCubicSplineKernelOslo.cc)
 
 instantiate(Kernel_inst Kernel_sources)
@@ -57,6 +58,8 @@ set(Kernel_headers
     SphericalKernelOsloInline.hh
     SphericalBiCubicSplineKernelOslo.hh
     SphericalBiCubicSplineKernelOsloInline.hh
+    SphericalRadialKernel.hh
+    SphericalRadialKernelInline.hh
     VolumeIntegrationFunctions.hh
     W4SplineKernel.hh
     W4SplineKernelInline.hh
