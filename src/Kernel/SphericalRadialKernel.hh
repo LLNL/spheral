@@ -51,12 +51,16 @@ public:
   //  etaj : Vector normalized coordinate: etaj = H*posj
   //  etai : Vector normalized coordinate: etai = H*posi
   //  Hdet  : Determinant of the H tensor used to compute eta
-  double operator()(const Vector& etaj, const Vector& etai, const Scalar Hdet) const;
+  Scalar operator()(const Vector& etaj, const Vector& etai, const Scalar Hdet) const;
   Vector grad(const Vector& etaj, const Vector& etai, const SymTensor& H) const;
   void kernelAndGrad(const Vector& etaj, const Vector& etai, const SymTensor& H,
                      Scalar& W,
                      Vector& gradW,
                      Scalar& deltaWsum) const;
+
+  // Look up/compute the volume nornalization (using interpolation or not based on switch)
+  Scalar volumeNormalization(const Scalar eta) const;
+  Scalar gradAInv(const Scalar eta) const;
 
   // Access our internal data.
   const InterpolatorType& Ainterpolator() const;
@@ -72,13 +76,9 @@ private:
   // Data for the kernel tabulation.
   InterpolatorType mAInterp, mGradAInvInterp;
   TableKernel<Dim<1>> mBaseKernel;
-  Scalar metamax, metacutoff;
+  Scalar metamax, metacutoff, mAetacutoff, mGradAInvEtacutoff;
   unsigned mNumIntegral;
   bool mUseInterpolation;
-
-  // Look up/compute the volume nornalization (using interpolation or not based on switch)
-  double volumeNormalization(const double eta0) const;
-  double gradAInv(const double eta0) const;
 };
 
 }

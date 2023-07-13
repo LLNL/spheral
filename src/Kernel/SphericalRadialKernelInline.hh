@@ -44,6 +44,12 @@ SphericalRadialKernel::etamax() const {
 }
 
 inline
+double
+SphericalRadialKernel::etacutoff() const {
+  return metacutoff;
+}
+
+inline
 bool
 SphericalRadialKernel::useInterpolation() const {
   return mUseInterpolation;

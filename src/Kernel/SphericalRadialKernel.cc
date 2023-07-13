@@ -46,17 +46,19 @@ struct RadialKernelNormalization {
   // an (etaj, etai) lookup.
   struct VolFunc {
     const KernelType& mW;
-    VolFunc(const KernelType& W): mW(W) {}
+    const double meta;
+    VolFunc(const KernelType& W,
+            const double eta): mW(W), meta(eta) {}
     double operator()(const double q) const {
-      return q*q*mW(std::abs(q), 1.0);
+      return q*q*mW(std::abs(q - meta), 1.0);
     }
   };
 
   // Integrate the volume function over the radial kernel extent for the given eta0 = R/h
-  double operator()(const double eta0) const {
-    const auto Ainv = simpsonsIntegration<VolFunc, double, double>(VolFunc(mW),
-                                                                   eta0 - metamax,
-                                                                   eta0 + metamax,
+  double operator()(const double eta) const {
+    const auto Ainv = simpsonsIntegration<VolFunc, double, double>(VolFunc(mW, eta),
+                                                                   eta - metamax,
+                                                                   eta + metamax,
                                                                    mn);
     ENSURE(Ainv > 0.0);
     return 1.0/Ainv;
@@ -72,23 +74,24 @@ struct RadialKernelNormalizationGradient {
   const KernelType& mW;
   double metamax;
   size_t mn;
-  RadialKernelNormalizationGradient(const KernelType& W, const size_t n): mW(W), mn(n) {}
+  RadialKernelNormalizationGradient(const KernelType& W, const size_t n): mW(W), metamax(W.kernelExtent()), mn(n) {}
 
   // Define a local nested functor we'll use to do the volume integral for
   // an (etaj, etai) lookup.
   struct VolFunc {
     const KernelType& mW;
-    VolFunc(const KernelType& W): mW(W) {}
+    const double meta;
+    VolFunc(const KernelType& W, const double eta): mW(W), meta(eta) {}
     double operator()(const double q) const {
-      return q*q*mW.grad(std::abs(q), 1.0);
+      return q*q*mW.grad(std::abs(q - meta), 1.0) * sgn(meta - q);
     }
   };
 
   // Integrate the volume function over the radial kernel extent for the given eta0 = R/h
-  double operator()(const double eta0) const {
-    const auto gradAInv = simpsonsIntegration<VolFunc, double, double>(VolFunc(mW),
-                                                                       eta0 - metamax,
-                                                                       eta0 + metamax,
+  double operator()(const double eta) const {
+    const auto gradAInv = simpsonsIntegration<VolFunc, double, double>(VolFunc(mW, eta),
+                                                                       eta - metamax,
+                                                                       eta + metamax,
                                                                        mn);
     ENSURE(gradAInv > 0.0);
     return gradAInv;
@@ -108,16 +111,18 @@ SphericalRadialKernel::SphericalRadialKernel(const KernelType& kernel,
 
 
   mAInterp(0.0,
-           10.0*kernel.kernelExtent(),
+           20.0*kernel.kernelExtent(),
            numKernel,
            RadialKernelNormalization<KernelType>(kernel, numIntegral)),
   mGradAInvInterp(0.0,
-                  10.0*kernel.kernelExtent(),
+                  20.0*kernel.kernelExtent(),
                   numKernel,
                   RadialKernelNormalizationGradient<KernelType>(kernel, numIntegral)),
   mBaseKernel(kernel),
   metamax(kernel.kernelExtent()),
-  metacutoff(10.0*kernel.kernelExtent()),
+  metacutoff(20.0*kernel.kernelExtent()),
+  mAetacutoff(RadialKernelNormalization<KernelType>(kernel, numIntegral)(20.0*kernel.kernelExtent())),
+  mGradAInvEtacutoff(RadialKernelNormalizationGradient<KernelType>(kernel, numIntegral)(20.0*kernel.kernelExtent())),
   mNumIntegral(numIntegral),
   mUseInterpolation(useInterpolation) {
 }
@@ -161,7 +166,7 @@ SphericalRadialKernel::operator=(const SphericalRadialKernel& rhs) {
 //------------------------------------------------------------------------------
 // Lookup the kernel for (rj/h, ri/h) = (etaj, etai)
 //------------------------------------------------------------------------------
-double
+Dim<1>::Scalar
 SphericalRadialKernel::operator()(const Dim<1>::Vector& etaj,
                                   const Dim<1>::Vector& etai,
                                   const Dim<1>::Scalar  Hdet) const {
@@ -221,24 +226,22 @@ SphericalRadialKernel::kernelAndGrad(const Dim<1>::Vector& etaj,
 //------------------------------------------------------------------------------
 // Return the volume normalization as a function of eta
 //------------------------------------------------------------------------------
-inline
-double
-SphericalRadialKernel::volumeNormalization(const double eta) const {
+Dim<1>::Scalar
+SphericalRadialKernel::volumeNormalization(const Scalar eta) const {
   return (mUseInterpolation ? (eta <= metacutoff ?
                                mAInterp(eta) :
-                               mAInterp(eta) * FastMath::pow2(eta/metacutoff)) :
+                               mAetacutoff * FastMath::pow2(metacutoff/eta)) :
           RadialKernelNormalization<TableKernel<Dim<1>>>(mBaseKernel, mNumIntegral)(eta));
 }
 
 //------------------------------------------------------------------------------
 // Return gradA(eta)
 //------------------------------------------------------------------------------
-inline
-double
-SphericalRadialKernel::gradAInv(const double eta) const {
+Dim<1>::Scalar
+SphericalRadialKernel::gradAInv(const Scalar eta) const {
   return (mUseInterpolation ? (eta <= metacutoff ?
                                mGradAInvInterp(eta) :
-                               mGradAInvInterp(eta) * FastMath::pow2(eta/metacutoff)) :
+                               mGradAInvEtacutoff * std::abs(eta/metacutoff)) :
           RadialKernelNormalizationGradient<TableKernel<Dim<1>>>(mBaseKernel, mNumIntegral)(eta));
 }
 
