@@ -42,57 +42,57 @@
     <ProjectGuid>{57E414C0-180A-4838-A08A-6BE69FCF6675}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>spheral</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 2022</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 2023</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CUDADebug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 2022</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 2023</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 2022</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 2023</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 2022</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 2023</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 2022</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 2023</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CUDARelease|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 2022</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 2023</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 2022</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 2023</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 2022</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 2023</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 2022</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 2023</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -100,65 +100,100 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CUDADebug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='CUDARelease|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
     <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CUDADebug|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='CUDARelease|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'">
+    <CustomBuildAfterTargets>PrepareForBuild</CustomBuildAfterTargets>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>
@@ -172,7 +207,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -181,6 +215,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CUDADebug|x64'">
     <ClCompile>
@@ -195,7 +235,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -204,6 +243,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'">
     <ClCompile>
@@ -218,7 +263,6 @@
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <Cpp0xSupport>true</Cpp0xSupport>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -228,6 +272,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'">
     <ClCompile>
@@ -243,7 +293,6 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <Cpp0xSupport>true</Cpp0xSupport>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -253,6 +302,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -268,7 +323,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -279,6 +333,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='CUDARelease|x64'">
     <ClCompile>
@@ -295,7 +355,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -306,6 +365,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'">
     <ClCompile>
@@ -321,7 +386,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -332,6 +396,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'">
     <ClCompile>
@@ -347,7 +417,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -359,6 +428,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'">
     <ClCompile>
@@ -374,7 +449,6 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <CCppSupport>Cpp17Support</CCppSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -386,6 +460,12 @@
     <PostBuildEvent>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
+      <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
+      <Command>powershell -NoProfile  -ExecutionPolicy Unrestricted $(SolutionRootDir)scripts\WinScripts\SetVersionHeader.ps1 -BaseLibraryInfo $(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake -Package SPHERAL -VersionOut $(ProjectDir)..\Spheral_Version.h</Command>
+      <Message>Build Spheral_Version.h</Message>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\CInterface\SpheralC.cc" />

@@ -15,8 +15,10 @@ set(SPHERAL_EXTERN_INCLUDES )
 # PolyClipper
 if (NOT polyclipper_DIR)
   set(polyclipper_DIR "${SPHERAL_ROOT_DIR}/extern/PolyClipper" CACHE PATH "")
+  set(polyclipper_INCLUDES "${polyclipper_DIR}/src")
+else()
+  set(polyclipper_INCLUDES "${polyclipper_DIR}/include")
 endif()
-set(polyclipper_INCLUDES "${polyclipper_DIR}/src")
 
 list(APPEND SPHERAL_EXTERN_INCLUDES ${polyclipper_INCLUDES})
 
@@ -58,8 +60,8 @@ Spheral_Handle_TPL(silo spheral_depends cxx)
 #Spheral_Handle_TPL(conduit spheral_depends cxx)
 find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
 if(axom_FOUND)
-  list(APPEND spheral_blt_cxx_depends axom fmt)
-  blt_patch_target(NAME fmt TREAT_INCLUDES_AS_SYSTEM On)
+  list(APPEND spheral_blt_cxx_depends axom axom::fmt)
+  blt_patch_target(NAME axom::fmt TREAT_INCLUDES_AS_SYSTEM On)
   message(STATUS "Found axom: ${axom_DIR} (found version ${axom_VERSION})")
 endif()
 

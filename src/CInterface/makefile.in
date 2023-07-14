@@ -1,0 +1,17 @@
+# -*-makefile-*-
+# Spheral++ CInterface package makefile
+#-------------------------------------------------------------------------------
+srcdir = @abs_srcdir@
+VPATH = @abs_srcdir@
+SPHERALTOP = @abs_top_srcdir@
+BUILDTOP = @abs_top_builddir@
+
+PKGNAME = CInterface
+PKGDIR = $(PKGNAME)/
+LIBTARGET = libSpheral_$(PKGNAME).$(DYLIBEXT)
+SRCTARGETS = \
+	$(srcdir)/SpheralC.cc \
+	$(srcdir)/SpheralPseudoScript.cc
+
+#-------------------------------------------------------------------------------
+include $(BUILDTOP)/helpers/makefile_master
