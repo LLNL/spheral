@@ -5,28 +5,28 @@
 #include "Field.hh"
 
 template<typename Dimension, typename DataType>
-class LvFieldListView;
+class FieldListView;
 
 namespace Spheral {
 
 template<typename Dimension, typename DataType>
 class FieldView {
 public:
-  using ARRAY_VIEW_TYPE = SphArrayView<DataType>;
-  using FIELD_TYPE = Field<Dimension, DataType>;
+  using ArrayViewType = SphArrayView<DataType>;
+  using FieldType = Field<Dimension, DataType>;
 
-  friend class ::LvFieldListView<Dimension, DataType>;
+  friend class FieldListView<Dimension, DataType>;
 
   FieldView();
-  FieldView(const FIELD_TYPE& field);
-  FieldView(const FIELD_TYPE& field, const FIELD_TYPE& pool);
+  FieldView(const FieldType& field);
+  FieldView(const FieldType& field, const FieldType& pool);
 
   void move(LvArray::MemorySpace const& space, bool touch = true) const;
 
-  ARRAY_VIEW_TYPE& getView();
-  FIELD_TYPE& get() const;
-  FIELD_TYPE& operator*() const;
-  FIELD_TYPE* operator->() const;
+  ArrayViewType& getView();
+  FieldType& get() const;
+  FieldType& operator*() const;
+  FieldType* operator->() const;
 
   RAJA_HOST_DEVICE
   DataType& operator[](const unsigned int index);
@@ -41,13 +41,13 @@ public:
   inline constexpr FieldView( FieldView const & source) noexcept;
 
   FieldView& operator=(const FieldView& rhs);
-  bool operator==(const FIELD_TYPE& rhs) const;
+  bool operator==(const FieldType& rhs) const;
   bool operator==(const FieldView& rhs) const;
 
 private:
-  ARRAY_VIEW_TYPE mDataView;
-  ARRAY_VIEW_TYPE mDataPoolView;
-  FIELD_TYPE* mFieldPtr = nullptr;
+  ArrayViewType mDataView;
+  ArrayViewType mDataPoolView;
+  FieldType* mFieldPtr = nullptr;
 };
 
 } // namespace Spheral

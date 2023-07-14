@@ -80,6 +80,30 @@ fields(const std::string& name, const Value& dummy) const {
   return result;
 }
 
+////------------------------------------------------------------------------------
+//// Return a FieldList containing all registered fields of the given name.
+////------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename Value>
+inline
+FieldListView<Dimension, Value>
+StateBase<Dimension>::
+pooledFieldViews(const std::string& name, const Value& dummy) const {
+  FieldList<Dimension, Value> result;
+  KeyType fieldName, nodeListName;
+  for (auto itr = mStorage.begin();
+       itr != mStorage.end();
+       ++itr) {
+    splitFieldKey(itr->first, fieldName, nodeListName);
+    if (fieldName == name) {
+      CHECK(nodeListName != "");
+      result.appendField(this->field<Value>(itr->first, dummy));
+    }
+  }
+  FieldListView<Dimension, Value> resultView(result);
+  return resultView;
+}
+
 //------------------------------------------------------------------------------
 // Add the fields from a FieldList.
 //------------------------------------------------------------------------------

@@ -10,20 +10,20 @@ FieldView() {}
 template<typename Dimension, typename DataType>
 inline
 FieldView<Dimension, DataType>::
-FieldView(const FieldView::FIELD_TYPE& field) :
+FieldView(const FieldView::FieldType& field) :
   mDataView{field.mDataArray},
   mDataPoolView{field.mDataArray},
-  mFieldPtr{const_cast<FIELD_TYPE*>(&field)}
+  mFieldPtr{const_cast<FieldType*>(&field)}
 {}
 
 template<typename Dimension, typename DataType>
 inline
 FieldView<Dimension, DataType>::
-FieldView(const FieldView::FIELD_TYPE& field,
-          const FieldView::FIELD_TYPE& pool) :
+FieldView(const FieldView::FieldType& field,
+          const FieldView::FieldType& pool) :
   mDataView{field.mDataArray},
   mDataPoolView{pool.mDataArray},
-  mFieldPtr{const_cast<FIELD_TYPE*>(&field)}
+  mFieldPtr{const_cast<FieldType*>(&field)}
 {}
 
 template<typename Dimension, typename DataType>
@@ -36,7 +36,7 @@ move(LvArray::MemorySpace const& space, bool touch) const {
 
 template<typename Dimension, typename DataType>
 inline
-typename FieldView<Dimension, DataType>::ARRAY_VIEW_TYPE&
+typename FieldView<Dimension, DataType>::ArrayViewType&
 FieldView<Dimension, DataType>::
 getView() {
   return mDataView;
@@ -44,7 +44,7 @@ getView() {
 
 template<typename Dimension, typename DataType>
 inline
-typename FieldView<Dimension, DataType>::FIELD_TYPE&
+typename FieldView<Dimension, DataType>::FieldType&
 FieldView<Dimension, DataType>::
 operator*() const{
   return *mFieldPtr;
@@ -52,7 +52,7 @@ operator*() const{
 
 template<typename Dimension, typename DataType>
 inline
-typename FieldView<Dimension, DataType>::FIELD_TYPE&
+typename FieldView<Dimension, DataType>::FieldType&
 FieldView<Dimension, DataType>::
 get() const {
   return *mFieldPtr;
@@ -60,7 +60,7 @@ get() const {
 
 template<typename Dimension, typename DataType>
 inline
-typename FieldView<Dimension, DataType>::FIELD_TYPE*
+typename FieldView<Dimension, DataType>::FieldType*
 FieldView<Dimension, DataType>::
 operator->() const {
   return mFieldPtr;
@@ -114,8 +114,8 @@ template<typename Dimension, typename DataType>
 inline
 bool
 FieldView<Dimension, DataType>::
-operator==(const FIELD_TYPE& rhs) const { 
-  const FieldView temp(const_cast<FIELD_TYPE&>(rhs));
+operator==(const FieldType& rhs) const { 
+  const FieldView temp(const_cast<FieldType&>(rhs));
   return *this == temp;
 }
 

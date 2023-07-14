@@ -50,6 +50,7 @@
 #include "omp.h"
 #endif
 
+#define USE_ATOMIC
 #define RAJA_ENABLE_DESUL_ATOMICS
 #include "RAJA/RAJA.hpp"
 #define ATOMIC_ADD RAJA::atomicAdd<RAJA::omp_atomic>
@@ -723,6 +724,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivs.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   auto  massSecondMoment = derivs.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
+
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
@@ -743,6 +745,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
 
+  auto  rhoSum_v = FieldListView<Dimension, Scalar>(rhoSum);
+  auto  normalization_v = FieldListView<Dimension, Scalar>(normalization);
+  auto  DxDt_v = FieldListView<Dimension, Vector>(DxDt);
+  auto  DrhoDt_v = FieldListView<Dimension, Scalar>(rhoSum);
+  auto  DvDt_v = FieldListView<Dimension, Vector>(DvDt);
+  auto  DepsDt_v = FieldListView<Dimension, Scalar>(DepsDt);
+  auto  DvDx_v = FieldListView<Dimension, Tensor>(DvDx);
+  auto  localDvDx_v = FieldListView<Dimension, Tensor>(localDvDx);
+  auto  M_v = FieldListView<Dimension, Tensor>(M);
+  auto  localM_v = FieldListView<Dimension, Tensor>(localM);
+  auto  DHDt_v = FieldListView<Dimension, SymTensor>(DHDt);
+  auto  Hideal_v = FieldListView<Dimension, SymTensor>(Hideal);
+  auto  maxViscousPressure_v = FieldListView<Dimension, Scalar>(maxViscousPressure);
+  auto  effViscousPressure_v = FieldListView<Dimension, Scalar>(effViscousPressure);
+  auto  viscousWork_v = FieldListView<Dimension, Scalar>(viscousWork);
+  //auto& pairAccelerations_v = FieldListView<Dimension, Scalar>(pairAccelerations);derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto  XSPHWeightSum_v = FieldListView<Dimension, Scalar>(XSPHWeightSum);
+  auto  XSPHDeltaV_v = FieldListView<Dimension, Vector>(XSPHDeltaV);
+  auto  weightedNeighborSum_v = FieldListView<Dimension, Scalar>(weightedNeighborSum);
+  auto  massSecondMoment_v = FieldListView<Dimension, SymTensor>(massSecondMoment);
+
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
@@ -760,32 +783,35 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   TIME_BEGIN("SPHevalDerivs_pairs");
 //#pragma omp parallel
   {
-    // Thread private scratch variables
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+
+#ifndef USE_ATOMIC
+    auto rhoSum_thread = rhoSum.threadCopy(threadStack);
+    auto normalization_thread = normalization.threadCopy(threadStack);
+    auto DvDt_thread = DvDt.threadCopy(threadStack);
+    auto DepsDt_thread = DepsDt.threadCopy(threadStack);
+    auto DvDx_thread = DvDx.threadCopy(threadStack);
+    auto localDvDx_thread = localDvDx.threadCopy(threadStack);
+    auto M_thread = M.threadCopy(threadStack);
+    auto localM_thread = localM.threadCopy(threadStack);
+    auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
+    auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
+    auto viscousWork_thread = viscousWork.threadCopy(threadStack);
+    auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
+    auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
+    auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
+    auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
+#endif
+
+    RAJA::forall<RAJA::omp_parallel_for_exec>(RAJA::RangeSegment(0, npairs), [&] (int kk) {
     int i, j, nodeListi, nodeListj;
     Vector gradWi, gradWj, gradWQi, gradWQj;
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
     Tensor QPiij, QPiji;
 
-    typename SpheralThreads<Dimension>::FieldListStack threadStack;
-    //auto rhoSum_thread = rhoSum.threadCopy(threadStack);
-    //auto normalization_thread = normalization.threadCopy(threadStack);
-    //auto DvDt_thread = DvDt.threadCopy(threadStack);
-    //auto DepsDt_thread = DepsDt.threadCopy(threadStack);
-    //auto DvDx_thread = DvDx.threadCopy(threadStack);
-    //auto localDvDx_thread = localDvDx.threadCopy(threadStack);
-    //auto M_thread = M.threadCopy(threadStack);
-    //auto localM_thread = localM.threadCopy(threadStack);
-    //auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
-    //auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
-    //auto viscousWork_thread = viscousWork.threadCopy(threadStack);
-    //auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
-    //auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
-    //auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
-    //auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
-
+    // Thread private scratch variables
 //#pragma omp for
-    RAJA::forall<RAJA::omp_parallel_for_exec>(RAJA::RangeSegment(0, npairs), [&] (int kk) {
-    //for (auto kk = 0u; kk < npairs; ++kk) {
+//    for (auto kk = 0u; kk < npairs; ++kk) {
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
       nodeListi = pairs[kk].i_list;
@@ -806,21 +832,39 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
-      auto& a_rhoSumi = rhoSum(nodeListi, i);
-      auto& a_normi = normalization(nodeListi, i);
-      auto& a_DvDti = DvDt(nodeListi, i);
-      auto& a_DepsDti = DepsDt(nodeListi, i);
-      auto& a_DvDxi = DvDx(nodeListi, i);
-      auto& a_localDvDxi = localDvDx(nodeListi, i);
-      auto& a_Mi = M(nodeListi, i);
-      auto& a_localMi = localM(nodeListi, i);
-      auto& a_maxViscousPressurei = maxViscousPressure(nodeListi, i);
-      auto& a_effViscousPressurei = effViscousPressure(nodeListi, i);
-      auto& a_viscousWorki = viscousWork(nodeListi, i);
-      auto& a_XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
-      auto& a_XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
-      auto& a_weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      auto& a_massSecondMomenti = massSecondMoment(nodeListi, i);
+#ifdef USE_ATOMIC
+      auto& a_rhoSumi = rhoSum_v.atomic(nodeListi, i);
+      auto& a_normi = normalization_v(nodeListi, i);
+      auto& a_DvDti = DvDt_v(nodeListi, i);
+      auto& a_DepsDti = DepsDt_v(nodeListi, i);
+      auto& a_DvDxi = DvDx_v(nodeListi, i);
+      auto& a_localDvDxi = localDvDx_v(nodeListi, i);
+      auto& a_Mi = M_v(nodeListi, i);
+      auto& a_localMi = localM_v(nodeListi, i);
+      auto& a_maxViscousPressurei = maxViscousPressure_v(nodeListi, i);
+      auto& a_effViscousPressurei = effViscousPressure_v(nodeListi, i);
+      auto& a_viscousWorki = viscousWork_v(nodeListi, i);
+      auto& a_XSPHWeightSumi = XSPHWeightSum_v(nodeListi, i);
+      auto& a_XSPHDeltaVi = XSPHDeltaV_v(nodeListi, i);
+      auto& a_weightedNeighborSumi = weightedNeighborSum_v(nodeListi, i);
+      auto& a_massSecondMomenti = massSecondMoment_v(nodeListi, i);
+#else
+      auto& rhoSumi = rhoSum_thread(nodeListi, i);
+      auto& normi = normalization_thread(nodeListi, i);
+      auto& DvDti = DvDt_thread(nodeListi, i);
+      auto& DepsDti = DepsDt_thread(nodeListi, i);
+      auto& DvDxi = DvDx_thread(nodeListi, i);
+      auto& localDvDxi = localDvDx_thread(nodeListi, i);
+      auto& Mi = M_thread(nodeListi, i);
+      auto& localMi = localM_thread(nodeListi, i);
+      auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
+      auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
+      auto& viscousWorki = viscousWork_thread(nodeListi, i);
+      auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
+      auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
+      auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
+      auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
+#endif
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
@@ -837,21 +881,40 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
-      auto& a_rhoSumj = rhoSum(nodeListj, j);
-      auto& a_normj = normalization(nodeListj, j);
-      auto& a_DvDtj = DvDt(nodeListj, j);
-      auto& a_DepsDtj = DepsDt(nodeListj, j);
-      auto& a_DvDxj = DvDx(nodeListj, j);
-      auto& a_localDvDxj = localDvDx(nodeListj, j);
-      auto& a_Mj = M(nodeListj, j);
-      auto& a_localMj = localM(nodeListj, j);
-      auto& a_maxViscousPressurej = maxViscousPressure(nodeListj, j);
-      auto& a_effViscousPressurej = effViscousPressure(nodeListj, j);
-      auto& a_viscousWorkj = viscousWork(nodeListj, j);
-      auto& a_XSPHWeightSumj = XSPHWeightSum(nodeListj, j);
-      auto& a_XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
-      auto& a_weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
-      auto& a_massSecondMomentj = massSecondMoment(nodeListj, j);
+#ifdef USE_ATOMIC
+      auto& a_rhoSumj = rhoSum_v(nodeListj, j);
+      auto& a_normj = normalization_v(nodeListj, j);
+      auto& a_DvDtj = DvDt_v(nodeListj, j);
+      auto& a_DepsDtj = DepsDt_v(nodeListj, j);
+      auto& a_DvDxj = DvDx_v(nodeListj, j);
+      auto& a_localDvDxj = localDvDx_v(nodeListj, j);
+      auto& a_Mj = M_v(nodeListj, j);
+      auto& a_localMj = localM_v(nodeListj, j);
+      auto& a_maxViscousPressurej = maxViscousPressure_v(nodeListj, j);
+      auto& a_effViscousPressurej = effViscousPressure_v(nodeListj, j);
+      auto& a_viscousWorkj = viscousWork_v(nodeListj, j);
+      auto& a_XSPHWeightSumj = XSPHWeightSum_v(nodeListj, j);
+      auto& a_XSPHDeltaVj = XSPHDeltaV_v(nodeListj, j);
+      auto& a_weightedNeighborSumj = weightedNeighborSum_v(nodeListj, j);
+      auto& a_massSecondMomentj = massSecondMoment_v(nodeListj, j);
+#else
+      auto& rhoSumj = rhoSum_thread(nodeListj, j);
+      auto& normj = normalization_thread(nodeListj, j);
+      auto& DvDtj = DvDt_thread(nodeListj, j);
+      auto& DepsDtj = DepsDt_thread(nodeListj, j);
+      auto& DvDxj = DvDx_thread(nodeListj, j);
+      auto& localDvDxj = localDvDx_thread(nodeListj, j);
+      auto& Mj = M_thread(nodeListj, j);
+      auto& localMj = localM_thread(nodeListj, j);
+      auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
+      auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
+      auto& viscousWorkj = viscousWork_thread(nodeListj, j);
+      auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
+      auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
+      auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
+      auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
+#endif
+
 
       // Flag if this is a contiguous material pair or not.
       const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
@@ -888,25 +951,32 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
       const auto rij2 = rij.magnitude2();
       const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
-      //weightedNeighborSumi +=     fweightij*std::abs(gWi);
-      //weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
-      //massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
-      //massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
+      
+#ifdef USE_ATOMIC
       ATOMIC_ADD(&a_weightedNeighborSumi,     fweightij*std::abs(gWi));
       ATOMIC_ADD(&a_weightedNeighborSumj, 1.0/fweightij*std::abs(gWj));
       ATOMIC_ADD(&a_massSecondMomenti,     fweightij*gradWi.magnitude2()*thpt);
       ATOMIC_ADD(&a_massSecondMomentj, 1.0/fweightij*gradWj.magnitude2()*thpt);
+#else
+      weightedNeighborSumi +=     fweightij*std::abs(gWi);
+      weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
+      massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
+      massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
+#endif
 
       // Contribution to the sum density.
       if (nodeListi == nodeListj) {
-        ATOMIC_ADD(&a_rhoSumi, mj*Wi);
-        ATOMIC_ADD(&a_rhoSumj, mi*Wj);
-        //rhoSumi += mj*Wi;
-        //rhoSumj += mi*Wj;
+#ifdef USE_ATOMIC
+        a_rhoSumi += mj*Wi;
+        a_rhoSumj += mi*Wj;
         ATOMIC_ADD(&a_normi, mi/rhoi*Wi);
         ATOMIC_ADD(&a_normj, mj/rhoj*Wj);
-        //normi += mi/rhoi*Wi;
-        //normj += mj/rhoj*Wj;
+#else
+        rhoSumi += mj*Wi;
+        rhoSumj += mi*Wj;
+        normi += mi/rhoi*Wi;
+        normj += mj/rhoj*Wj;
+#endif
       }
 
       // Compute the pair-wise artificial viscosity.
@@ -922,18 +992,22 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto workQj = vij.dot(Qaccj);
       const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
       const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
-      //maxViscousPressurei = max(maxViscousPressurei, Qi);
-      //maxViscousPressurej = max(maxViscousPressurej, Qj);
-      //effViscousPressurei += mj*Qi*WQi/rhoj;
-      //effViscousPressurej += mi*Qj*WQj/rhoi;
-      //viscousWorki += mj*workQi;
-      //viscousWorkj += mi*workQj;
+
+#ifdef USE_ATOMIC
       ATOMIC_MAX(&a_maxViscousPressurei, max(a_maxViscousPressurei, Qi));
       ATOMIC_MAX(&a_maxViscousPressurej, max(a_maxViscousPressurej, Qj));
       ATOMIC_ADD(&a_effViscousPressurei, -mj*Qi*WQi/rhoj);
       ATOMIC_ADD(&a_effViscousPressurej, -mi*Qj*WQj/rhoi);
       ATOMIC_ADD(&a_viscousWorki, -mj*workQi);
       ATOMIC_ADD(&a_viscousWorkj, -mi*workQj);
+#else
+      maxViscousPressurei = max(maxViscousPressurei, Qi);
+      maxViscousPressurej = max(maxViscousPressurej, Qj);
+      effViscousPressurei += mj*Qi*WQi/rhoj;
+      effViscousPressurej += mi*Qj*WQj/rhoi;
+      viscousWorki += mj*workQi;
+      viscousWorkj += mi*workQj;
+#endif
 
       // Determine an effective pressure including a term to fight the tensile instability.
       const auto Ri = mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh))*(Pi < 0.0 ? -Pi : 0.0);
@@ -947,56 +1021,79 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto Prhoi = safeOmegai*Peffi/(rhoi*rhoi);
       const auto Prhoj = safeOmegaj*Peffj/(rhoj*rhoj);
       const auto deltaDvDt = Prhoi*gradWi + Prhoj*gradWj + Qacci + Qaccj;
-      //DvDti -= mj*deltaDvDt;
-      //DvDtj += mi*deltaDvDt;
+
+#ifdef USE_ATOMIC
       ATOMIC_ADD(&a_DvDti, -mj*deltaDvDt);
       ATOMIC_ADD(&a_DvDtj, mi*deltaDvDt);
-      if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
+#else
+      DvDti -= mj*deltaDvDt;
+      DvDtj += mi*deltaDvDt;
+#endif
+      //if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
       // Specific thermal energy evolution.
       // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
-      //DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
-      //DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
+#ifdef USE_ATOMIC
       ATOMIC_ADD(&a_DepsDti, mj*(Prhoi*vij.dot(gradWi) + workQi));
       ATOMIC_ADD(&a_DepsDtj, mi*(Prhoj*vij.dot(gradWj) + workQj));
+#else
+      DepsDti += mj*(Prhoi*vij.dot(gradWi) + workQi);
+      DepsDtj += mi*(Prhoj*vij.dot(gradWj) + workQj);
+#endif
 
       // Velocity gradient.
       const auto deltaDvDxi = mj*vij.dyad(gradWi);
       const auto deltaDvDxj = mi*vij.dyad(gradWj);
-      //DvDxi -= deltaDvDxi; 
-      //DvDxj -= deltaDvDxj;
+
+#ifdef USE_ATOMIC
       ATOMIC_ADD(&a_DvDxi, -deltaDvDxi); 
       ATOMIC_ADD(&a_DvDxj, -deltaDvDxj);
+#else
+      DvDxi -= deltaDvDxi; 
+      DvDxj -= deltaDvDxj;
+#endif
       if (sameMatij) {
-        //localDvDxi -= deltaDvDxi; 
-        //localDvDxj -= deltaDvDxj;
+#ifdef USE_ATOMIC
         ATOMIC_ADD(&a_localDvDxi, -deltaDvDxi); 
         ATOMIC_ADD(&a_localDvDxj, -deltaDvDxj);
+#else
+        localDvDxi -= deltaDvDxi; 
+        localDvDxj -= deltaDvDxj;
+#endif
       }
 
       // Estimate of delta v (for XSPH).
       if (mXSPH and (sameMatij)) {
         const auto wXSPHij = 0.5*(mi/rhoi*Wi + mj/rhoj*Wj);
+#ifdef USE_ATOMIC
         ATOMIC_ADD(&a_XSPHWeightSumi, wXSPHij);
         ATOMIC_ADD(&a_XSPHWeightSumj, wXSPHij);
         ATOMIC_ADD(&a_XSPHDeltaVi, -wXSPHij*vij);
         ATOMIC_ADD(&a_XSPHDeltaVj, wXSPHij*vij);
-        //XSPHWeightSumi += wXSPHij;
-        //XSPHWeightSumj += wXSPHij;
-        //XSPHDeltaVi -= wXSPHij*vij;
-        //XSPHDeltaVj += wXSPHij*vij;
+#else
+        XSPHWeightSumi += wXSPHij;
+        XSPHWeightSumj += wXSPHij;
+        XSPHDeltaVi -= wXSPHij*vij;
+        XSPHDeltaVj += wXSPHij*vij;
+#endif
       }
 
       // Linear gradient correction term.
-      //Mi -= mj*rij.dyad(gradWi);
-      //Mj -= mi*rij.dyad(gradWj);
+#ifdef USE_ATOMIC
       ATOMIC_ADD(&a_Mi, -mj*rij.dyad(gradWi));
       ATOMIC_ADD(&a_Mj, -mi*rij.dyad(gradWj));
+#else
+      Mi -= mj*rij.dyad(gradWi);
+      Mj -= mi*rij.dyad(gradWj);
+#endif
       if (sameMatij) {
-        //localMi -= mj*rij.dyad(gradWi);
-        //localMj -= mi*rij.dyad(gradWj);
+#ifdef USE_ATOMIC
         ATOMIC_ADD(&a_localMi, -mj*rij.dyad(gradWi));
         ATOMIC_ADD(&a_localMj, -mi*rij.dyad(gradWj));
+#else
+        localMi -= mj*rij.dyad(gradWi);
+        localMj -= mi*rij.dyad(gradWj);
+#endif
       }
 
     } // loop over pairs

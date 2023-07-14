@@ -5,6 +5,7 @@
 #include "Field/SphArray.hh"
 #include "Field/FieldView.hh"
 #include "Field/FieldList.hh"
+#include "Field/FieldListView.hh"
 
 
 //template<typename Dimension, typename DATA_TYPE>
@@ -100,81 +101,81 @@ class LvFieldListView;
 //};
 
 
-template<typename Dimension, typename DATA_TYPE>
-class LvFieldList{
-public:
+//template<typename Dimension, typename DATA_TYPE>
+//class LvFieldList{
+//public:
+//
+//  friend class LvFieldListView<Dimension, DATA_TYPE>;
+//
+//  using FIELD_TYPE = Spheral::Field<Dimension, DATA_TYPE>;
+//  //using FIELD_TYPE = LvField<DATA_TYPE>;
+//  using FIELD_VIEW_TYPE = Spheral::FieldView<Dimension, DATA_TYPE>;
+//  using ARRAY_TYPE = Spheral::SphArray<FIELD_VIEW_TYPE>;
+//
+//  LvFieldList() {}
+//
+//  LvFieldList(std::string name) {
+//    mFieldArray.setName(name);
+//  }
+//
+//  void appendField(const FIELD_TYPE& field) { 
+//    mFieldArray.emplace_back(field.toView());
+//  }
+//
+//  void appendField(const FIELD_TYPE& field, const FIELD_TYPE& pool) { 
+//    mFieldArray.emplace_back(field.toViewWithPool(pool));
+//  }
+//
+//  void appendField(const FIELD_VIEW_TYPE& field) { 
+//    mFieldArray.emplace_back(field);
+//  }
+//
+//private:
+//  ARRAY_TYPE mFieldArray;
+//};
 
-  friend class LvFieldListView<Dimension, DATA_TYPE>;
 
-  using FIELD_TYPE = Spheral::Field<Dimension, DATA_TYPE>;
-  //using FIELD_TYPE = LvField<DATA_TYPE>;
-  using FIELD_VIEW_TYPE = Spheral::FieldView<Dimension, DATA_TYPE>;
-  using ARRAY_TYPE = Spheral::SphArray<FIELD_VIEW_TYPE>;
-
-  LvFieldList() {}
-
-  LvFieldList(std::string name) {
-    mFieldArray.setName(name);
-  }
-
-  void appendField(const FIELD_TYPE& field) { 
-    mFieldArray.emplace_back(field.toView());
-  }
-
-  void appendField(const FIELD_TYPE& field, const FIELD_TYPE& pool) { 
-    mFieldArray.emplace_back(field.toViewWithPool(pool));
-  }
-
-  void appendField(const FIELD_VIEW_TYPE& field) { 
-    mFieldArray.emplace_back(field);
-  }
-
-private:
-  ARRAY_TYPE mFieldArray;
-};
-
-
-template<typename Dimension, typename DATA_TYPE>
-class LvFieldListView{
-public:
-
-  using FIELD_VIEW_TYPE = Spheral::FieldView<Dimension, DATA_TYPE>;
-  using ARRAY_VIEW_TYPE = Spheral::SphArrayView<FIELD_VIEW_TYPE>;
-
-#if USE_DEVICE
-  using ATOMIC_DATA_TYPE = typename DATA_TYPE::atomic_type;
-#else
-  using ATOMIC_DATA_TYPE = DATA_TYPE;
-#endif
-
-  RAJA_HOST_DEVICE
-  LvFieldListView(const Spheral::FieldList<Dimension, DATA_TYPE>& field) : mFieldViewsView{field.mFieldPtrs.toView()} {}
-
-  void move(LvArray::MemorySpace const& space, bool touch = true) const {
-    mFieldViewsView.move(space,touch);
-  }
-
-  RAJA_HOST_DEVICE
-  DATA_TYPE& operator()(const unsigned int field_id, const unsigned int idx) const { return mFieldViewsView(field_id)[idx]; }
-
-  RAJA_HOST_DEVICE
-  FIELD_VIEW_TYPE& operator[](const unsigned int index) {return mFieldViewsView(index);}
-
-  RAJA_HOST_DEVICE
-  FIELD_VIEW_TYPE& operator[](const unsigned int index) const {return mFieldViewsView(index);}
-
-  RAJA_HOST_DEVICE
-  DATA_TYPE& pool(const unsigned field_id, const unsigned idx) const {return mFieldViewsView(field_id).pool(idx); }
-
-  RAJA_HOST_DEVICE
-  ATOMIC_DATA_TYPE& pool_atomic(const unsigned field_id, const unsigned idx) const { return *reinterpret_cast<ATOMIC_DATA_TYPE*>(&mFieldViewsView(field_id).pool(idx)); }
-
-  RAJA_HOST_DEVICE
-  inline LvFieldListView( LvFieldListView const & source) noexcept : mFieldViewsView{source.mFieldViewsView} {}
-
-private:
-  ARRAY_VIEW_TYPE mFieldViewsView;
-};
+//template<typename Dimension, typename DATA_TYPE>
+//class LvFieldListView{
+//public:
+//
+//  using FIELD_VIEW_TYPE = Spheral::FieldView<Dimension, DATA_TYPE>;
+//  using ARRAY_VIEW_TYPE = Spheral::SphArrayView<FIELD_VIEW_TYPE>;
+//
+//#if USE_DEVICE
+//  using ATOMIC_DATA_TYPE = typename DATA_TYPE::atomic_type;
+//#else
+//  using ATOMIC_DATA_TYPE = DATA_TYPE;
+//#endif
+//
+//  RAJA_HOST_DEVICE
+//  LvFieldListView(const Spheral::FieldList<Dimension, DATA_TYPE>& field) : mFieldViewsView{field.mFieldPtrs.toView()} {}
+//
+//  void move(LvArray::MemorySpace const& space, bool touch = true) const {
+//    mFieldViewsView.move(space,touch);
+//  }
+//
+//  RAJA_HOST_DEVICE
+//  DATA_TYPE& operator()(const unsigned int field_id, const unsigned int idx) const { return mFieldViewsView(field_id)[idx]; }
+//
+//  RAJA_HOST_DEVICE
+//  FIELD_VIEW_TYPE& operator[](const unsigned int index) {return mFieldViewsView(index);}
+//
+//  RAJA_HOST_DEVICE
+//  FIELD_VIEW_TYPE& operator[](const unsigned int index) const {return mFieldViewsView(index);}
+//
+//  RAJA_HOST_DEVICE
+//  DATA_TYPE& pool(const unsigned field_id, const unsigned idx) const {return mFieldViewsView(field_id).pool(idx); }
+//
+//  RAJA_HOST_DEVICE
+//  ATOMIC_DATA_TYPE& pool_atomic(const unsigned field_id, const unsigned idx) const { return *reinterpret_cast<ATOMIC_DATA_TYPE*>(&mFieldViewsView(field_id).pool(idx)); }
+//
+//  RAJA_HOST_DEVICE
+//  inline LvFieldListView( LvFieldListView const & source) noexcept : mFieldViewsView{source.mFieldViewsView} {}
+//
+//private:
+//  ARRAY_VIEW_TYPE mFieldViewsView;
+//};
 
 
 #endif

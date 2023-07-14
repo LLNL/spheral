@@ -77,6 +77,7 @@ void SpheralEvalDerivTest()
   using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
 
   using FIELDLIST_TYPE = Spheral::FieldList<DIM, DATA_TYPE>;
+  using FIELDLISTVIEW_TYPE = Spheral::FieldListView<DIM, DATA_TYPE>;
   //using VIEW_TYPE = FIELD_TYPE::view_type;
 
   //---------------------------------------------------------------------------
@@ -152,10 +153,10 @@ void SpheralEvalDerivTest()
   flo.appendField(One);
 
   // The FieldList types used in evalderivs.
-  LvFieldListView<DIM, DATA_TYPE> flv(fl);
-  LvFieldListView<DIM, DATA_TYPE> flv2(fl2);
+  FIELDLISTVIEW_TYPE flv(fl);
+  FIELDLISTVIEW_TYPE flv2(fl2);
   
-  const LvFieldListView<DIM, DATA_TYPE> fl_one(flo);
+  const FIELDLISTVIEW_TYPE fl_one(flo);
 
   //flv.move(strat.platform);
   //flv2.move(strat.platform);

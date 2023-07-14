@@ -13,6 +13,7 @@
 #include "FieldListBase.hh"
 #include "Utilities/OpenMP_wrapper.hh"
 #include "FieldView.hh"
+#include "FieldListView.hh"
 
 #include "CXXTests/tests/LvField.hh"
 
@@ -45,7 +46,8 @@ template<typename Dimension, typename DataType>
 class FieldList: public FieldListBase<Dimension> {
 public:
 
-  friend class ::LvFieldListView<Dimension, DataType>;
+  friend class FieldListView<Dimension, DataType>;
+  //friend class ::LvFieldListView<Dimension, DataType>;
 
 
   //--------------------------- Public Interface ---------------------------//

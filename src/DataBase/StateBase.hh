@@ -17,6 +17,7 @@
 #define __Spheral_StateBase_hh__
 
 #include "Field/FieldBase.hh"
+#include "Field/FieldList.hh"
 
 #include "boost/any.hpp"
 
@@ -28,7 +29,6 @@
 #include <list>
 #include <set>
 
-#include "Field/FieldBase.hh"
 
 namespace Spheral {
 
@@ -104,6 +104,13 @@ public:
   template<typename Value>
   FieldList<Dimension, Value> fields(const std::string& name, 
                                      const Value& dummy) const;
+
+  //// Return FieldListsView constructed from all registered Fields with the given name.
+  //// Allocate Temporary pools to fields.
+  template<typename Value>
+  FieldListView<Dimension, Value> pooledFieldViews(const std::string& name, 
+                                                   const Value& dummy 
+                                                   ) const;
 
   //............................................................................
   // Enroll an arbitrary type

@@ -6,11 +6,11 @@
 
 namespace Spheral {
 
-template<typename DATA_TYPE>
-using SphArray = LvArray::Array<DATA_TYPE, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
+template<typename DataType>
+using SphArray = LvArray::Array<DataType, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
 
-template<typename DATA_TYPE>
-using SphArrayView = LvArray::ArrayView<DATA_TYPE, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
+template<typename DataType>
+using SphArrayView = LvArray::ArrayView<DataType, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
 
 template<typename sph_array_t>
 class SphArrayIterator {
@@ -61,7 +61,7 @@ public:
   using pointer = value_type*;
   using reference = value_type&;
 
-  using field_type = typename value_type::FIELD_TYPE;
+  using field_type = typename value_type::FieldType;
   using field_pointer = field_type*;
   using field_reference = field_type&;
 
