@@ -46,6 +46,8 @@
 
 #include "SPHHydroBase.hh"
 
+#include "axom/core/utilities/Utilities.hpp"
+
 #ifdef _OPENMP
 #include "omp.h"
 #endif
@@ -55,6 +57,8 @@
 #include "RAJA/RAJA.hpp"
 #define ATOMIC_ADD RAJA::atomicAdd<RAJA::omp_atomic>
 #define ATOMIC_MAX RAJA::atomicMax<RAJA::omp_atomic>
+
+#define SPHERAL_ABS axom::utilities::abs
 
 #include <limits.h>
 #include <float.h>
@@ -71,7 +75,6 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
-using std::abs;
 
 namespace Spheral {
 
@@ -893,8 +896,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto rij2 = rij.magnitude2();
       const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
       
-      ATOMIC_ADD(&a_weightedNeighborSumi,     fweightij*std::abs(gWi));
-      ATOMIC_ADD(&a_weightedNeighborSumj, 1.0/fweightij*std::abs(gWj));
+      ATOMIC_ADD(&a_weightedNeighborSumi,     fweightij*SPHERAL_ABS(gWi));
+      ATOMIC_ADD(&a_weightedNeighborSumj, 1.0/fweightij*SPHERAL_ABS(gWj));
       ATOMIC_ADD(&a_massSecondMomenti,     fweightij*gradWi.magnitude2()*thpt);
       ATOMIC_ADD(&a_massSecondMomentj, 1.0/fweightij*gradWj.magnitude2()*thpt);
 
@@ -1035,7 +1038,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
       if (this->mCorrectVelocityGradient and
-          std::abs(Mi.Determinant()) > 1.0e-10 and
+          SPHERAL_ABS(Mi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {
         Mi = Mi.Inverse();
         DvDxi = DvDxi*Mi;
@@ -1043,7 +1046,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         DvDxi /= rhoi;
       }
       if (this->mCorrectVelocityGradient and
-          std::abs(localMi.Determinant()) > 1.0e-10 and
+          SPHERAL_ABS(localMi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {
         localMi = localMi.Inverse();
         localDvDxi = localDvDxi*localMi;
