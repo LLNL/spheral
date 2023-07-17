@@ -173,7 +173,7 @@ public:
   GeomSymmetricTensor Inverse() const;
   GeomVector<nDim> diagonalElements() const;
   double Trace() const;
-  double Determinant() const;
+  RAJA_HOST_DEVICE double Determinant() const;
   GeomVector<nDim> dot(const GeomVector<nDim>& rhs) const;
   GeomTensor<nDim> dot(const GeomTensor<nDim>& rhs) const;
   GeomTensor<nDim> dot(const GeomSymmetricTensor& rhs) const;

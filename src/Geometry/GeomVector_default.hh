@@ -22,6 +22,13 @@
 #include <iostream>
 #include "Eigen/Dense"
 
+#include "axom/core/utilities/Utilities.hpp"
+
+#define SPHERAL_ABS axom::utilities::abs
+#define SPHERAL_MAX axom::utilities::max
+#define SPHERAL_MIN axom::utilities::min
+
+
 namespace Spheral {
 
 template<int nDim>
@@ -123,20 +130,20 @@ public:
   RAJA_HOST_DEVICE bool operator<=(const double val) const;
   RAJA_HOST_DEVICE bool operator>=(const double val) const;
 
-  double dot(const GeomVector& vec) const;
-  GeomVector<3> cross(const GeomVector& vec) const;
-  GeomTensor<nDim> dyad(const GeomVector& rhs) const;
-  GeomSymmetricTensor<nDim> selfdyad() const;
-  GeomTensor<nDim> operator*(const GeomVector& vec) const;
+  RAJA_HOST_DEVICE double dot(const GeomVector& vec) const;
+  RAJA_HOST_DEVICE GeomVector<3> cross(const GeomVector& vec) const;
+  RAJA_HOST_DEVICE GeomTensor<nDim> dyad(const GeomVector& rhs) const;
+  RAJA_HOST_DEVICE GeomSymmetricTensor<nDim> selfdyad() const;
+  RAJA_HOST_DEVICE GeomTensor<nDim> operator*(const GeomVector& vec) const;
 
   GeomVector unitVector() const;
 
-  double magnitude() const;
-  double magnitude2() const;
-  double minElement() const;
-  double maxElement() const;
-  double maxAbsElement() const;
-  double sumElements() const;
+  RAJA_HOST_DEVICE double magnitude() const;
+  RAJA_HOST_DEVICE double magnitude2() const;
+  RAJA_HOST_DEVICE double minElement() const;
+  RAJA_HOST_DEVICE double maxElement() const;
+  RAJA_HOST_DEVICE double maxAbsElement() const;
+  RAJA_HOST_DEVICE double sumElements() const;
   
   //  Convert to an Eigen Vector
   EigenType eigen() const;

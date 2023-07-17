@@ -11,6 +11,7 @@
 namespace Spheral {
 
 template<typename Value>
+RAJA_HOST_DEVICE
 inline
 Value
 safeInv(const Value& x,
@@ -19,11 +20,12 @@ safeInv(const Value& x,
 }
 
 template<typename Value>
+RAJA_HOST_DEVICE
 inline
 Value
 safeInvVar(const Value& x,
            const double fuzz = 1.0e-30) {
-  return sgn(x)/std::max(fuzz, std::abs(x));
+  return sgn(x)/SPHERAL_MAX(fuzz, SPHERAL_ABS(x));
 }
 
 }

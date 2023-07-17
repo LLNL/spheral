@@ -52,13 +52,21 @@
 #include "omp.h"
 #endif
 
-#define USE_ATOMIC
 #define RAJA_ENABLE_DESUL_ATOMICS
 #include "RAJA/RAJA.hpp"
 #define ATOMIC_ADD RAJA::atomicAdd<RAJA::omp_atomic>
 #define ATOMIC_MAX RAJA::atomicMax<RAJA::omp_atomic>
 
 #define SPHERAL_ABS axom::utilities::abs
+#define SPHERAL_MAX axom::utilities::max
+#define SPHERAL_MIN axom::utilities::min
+
+#define USE_DEVICE 0
+#if USE_DEVICE && defined(RAJA_ENABLE_CUDA)
+  using PAIR_EXEC_POL = RAJA::cuda_exec<1024>;
+#else
+  using PAIR_EXEC_POL = RAJA::omp_parallel_for_exec;
+#endif
 
 #include <limits.h>
 #include <float.h>
@@ -74,7 +82,6 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::min;
-using std::max;
 
 namespace Spheral {
 
@@ -748,6 +755,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
 
+  const auto mass_v = FieldListView<Dimension, Scalar>(mass);
+  const auto position_v = FieldListView<Dimension, Vector>(position);
+  const auto velocity_v = FieldListView<Dimension, Vector>(velocity);
+  const auto massDensity_v = FieldListView<Dimension, Scalar>(massDensity);
+  const auto H_v = FieldListView<Dimension, SymTensor>(H);
+  const auto pressure_v = FieldListView<Dimension, Scalar>(pressure);
+  const auto soundSpeed_v = FieldListView<Dimension, Scalar>(soundSpeed);
+  const auto omega_v = FieldListView<Dimension, Scalar>(omega);
+
   auto  rhoSum_v = FieldListView<Dimension, Scalar>(rhoSum);
   auto  normalization_v = FieldListView<Dimension, Scalar>(normalization);
   auto  DxDt_v = FieldListView<Dimension, Vector>(DxDt);
@@ -785,7 +801,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Walk all the interacting pairs.
   TIME_BEGIN("SPHevalDerivs_pairs");
   {
-    RAJA::forall<RAJA::omp_parallel_for_exec>(RAJA::RangeSegment(0, npairs), [&] (int kk) {
+    RAJA::forall<PAIR_EXEC_POL>(RAJA::RangeSegment(0, npairs), [&] RAJA_HOST_DEVICE (int kk) {
     int i, j, nodeListi, nodeListj;
     Vector gradWi, gradWj, gradWQi, gradWQj;
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
@@ -798,19 +814,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
-      const auto& ri = position(nodeListi, i);
-      const auto& mi = mass(nodeListi, i);
-      const auto& vi = velocity(nodeListi, i);
-      const auto& rhoi = massDensity(nodeListi, i);
-      const auto& Pi = pressure(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
-      const auto& ci = soundSpeed(nodeListi, i);
-      const auto& omegai = omega(nodeListi, i);
+      const auto& ri = position_v(nodeListi, i);
+      const auto& mi = mass_v(nodeListi, i);
+      const auto& vi = velocity_v(nodeListi, i);
+      const auto& rhoi = massDensity_v(nodeListi, i);
+      const auto& Pi = pressure_v(nodeListi, i);
+      const auto& Hi = H_v(nodeListi, i);
+      const auto& ci = soundSpeed_v(nodeListi, i);
+      const auto& omegai = omega_v(nodeListi, i);
       const auto  safeOmegai = safeInv(omegai, tiny);
       const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
+#if USE_DEVICE
+#else
 
       auto& a_rhoSumi = rhoSum_v.atomic(nodeListi, i);
       auto& a_normi = normalization_v(nodeListi, i);
@@ -829,14 +847,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& a_massSecondMomenti = massSecondMoment_v(nodeListi, i);
 
       // Get the state for node j
-      const auto& rj = position(nodeListj, j);
-      const auto& mj = mass(nodeListj, j);
-      const auto& vj = velocity(nodeListj, j);
-      const auto& rhoj = massDensity(nodeListj, j);
-      const auto& Pj = pressure(nodeListj, j);
-      const auto& Hj = H(nodeListj, j);
-      const auto& cj = soundSpeed(nodeListj, j);
-      const auto& omegaj = omega(nodeListj, j);
+      const auto& rj = position_v(nodeListj, j);
+      const auto& mj = mass_v(nodeListj, j);
+      const auto& vj = velocity_v(nodeListj, j);
+      const auto& rhoj = massDensity_v(nodeListj, j);
+      const auto& Pj = pressure_v(nodeListj, j);
+      const auto& Hj = H_v(nodeListj, j);
+      const auto& cj = soundSpeed_v(nodeListj, j);
+      const auto& omegaj = omega_v(nodeListj, j);
       const auto  safeOmegaj = safeInv(omegaj, tiny);
       const auto  Hdetj = Hj.Determinant();
       CHECK(mj > 0.0);
@@ -872,7 +890,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto etaUnit = etai*safeInvVar(etaMagi);
       CHECK(etaMagi >= 0.0);
       CHECK(etaMagj >= 0.0);
-
       // Symmetrized kernel weight and gradient.
       W.kernelAndGradValue(etaMagi, Hdeti, Wi, gWi);
       W.kernelAndGradValue(etaMagj, Hdetj, Wj, gWj);
@@ -923,8 +940,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
       const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
 
-      ATOMIC_MAX(&a_maxViscousPressurei, max(a_maxViscousPressurei, Qi));
-      ATOMIC_MAX(&a_maxViscousPressurej, max(a_maxViscousPressurej, Qj));
+      ATOMIC_MAX(&a_maxViscousPressurei, SPHERAL_MAX(a_maxViscousPressurei, Qi));
+      ATOMIC_MAX(&a_maxViscousPressurej, SPHERAL_MAX(a_maxViscousPressurej, Qj));
       ATOMIC_ADD(&a_effViscousPressurei, -mj*Qi*WQi/rhoj);
       ATOMIC_ADD(&a_effViscousPressurej, -mi*Qj*WQj/rhoi);
       ATOMIC_ADD(&a_viscousWorki, -mj*workQi);
@@ -979,7 +996,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         ATOMIC_ADD(&a_localMi, -mj*rij.dyad(gradWi));
         ATOMIC_ADD(&a_localMj, -mi*rij.dyad(gradWj));
       }
-
+#endif
     } // loop over pairs
     );
 
@@ -1061,14 +1078,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
-      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
+      weightedNeighborSumi = Dimension::rootnu(SPHERAL_MAX(0.0, weightedNeighborSumi/Hdeti));
       massSecondMomenti /= Hdeti*Hdeti;
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (mXSPH) {
         XSPHWeightSumi += Hdeti*mi/rhoi*W0;
         CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
-        DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
+        DxDti = vi + XSPHDeltaVi/SPHERAL_MAX(tiny, XSPHWeightSumi);
       } else {
         DxDti = vi;
       }

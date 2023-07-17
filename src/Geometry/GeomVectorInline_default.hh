@@ -1000,7 +1000,7 @@ template<>
 inline
 double
 GeomVector<1>::magnitude() const {
-  return std::abs(this->mx);
+  return SPHERAL_ABS(this->mx);
 }
 
 template<>
@@ -1055,14 +1055,14 @@ template<>
 inline
 double
 GeomVector<2>::minElement() const {
-  return std::min(this->mx, this->my);
+  return SPHERAL_MIN(this->mx, this->my);
 }
 
 template<>
 inline
 double
 GeomVector<3>::minElement() const {
-  return std::min(this->mx, std::min(this->my, this->mz));
+  return SPHERAL_MIN(this->mx, SPHERAL_MIN(this->my, this->mz));
 }
 
 //------------------------------------------------------------------------------
@@ -1079,14 +1079,14 @@ template<>
 inline
 double
 GeomVector<2>::maxElement() const {
-  return std::max(this->mx, this->my);
+  return SPHERAL_MAX(this->mx, this->my);
 }
 
 template<>
 inline
 double
 GeomVector<3>::maxElement() const {
-  return std::max(this->mx, std::max(this->my, this->mz));
+  return SPHERAL_MAX(this->mx, SPHERAL_MAX(this->my, this->mz));
 }
 
 //------------------------------------------------------------------------------
@@ -1096,24 +1096,24 @@ template<>
 inline
 double
 GeomVector<1>::maxAbsElement() const {
-  return std::abs(this->mx);
+  return SPHERAL_ABS(this->mx);
 }
 
 template<>
 inline
 double
 GeomVector<2>::maxAbsElement() const {
-  return std::max(std::abs(this->mx), 
-                  std::abs(this->my));
+  return SPHERAL_MAX(SPHERAL_ABS(this->mx), 
+             SPHERAL_ABS(this->my));
 }
 
 template<>
 inline
 double
 GeomVector<3>::maxAbsElement() const {
-  return std::max(std::abs(this->mx),
-                  std::max(std::abs(this->my),
-                           std::abs(this->mz)));
+  return SPHERAL_MAX(SPHERAL_ABS(this->mx),
+                  SPHERAL_MAX(SPHERAL_ABS(this->my),
+                      SPHERAL_ABS(this->mz)));
 }
 
 //------------------------------------------------------------------------------
@@ -1185,24 +1185,24 @@ template<>
 inline
 GeomVector<1>
 elementWiseMin(const GeomVector<1>& lhs, const GeomVector<1>& rhs) {
-  return GeomVector<1>(std::min(lhs.x(), rhs.x()));
+  return GeomVector<1>(SPHERAL_MIN(lhs.x(), rhs.x()));
 }
 
 template<>
 inline
 GeomVector<2>
 elementWiseMin(const GeomVector<2>& lhs, const GeomVector<2>& rhs) {
-  return GeomVector<2>(std::min(lhs.x(), rhs.x()),
-                       std::min(lhs.y(), rhs.y()));
+  return GeomVector<2>(SPHERAL_MIN(lhs.x(), rhs.x()),
+                       SPHERAL_MIN(lhs.y(), rhs.y()));
 }
 
 template<>
 inline
 GeomVector<3>
 elementWiseMin(const GeomVector<3>& lhs, const GeomVector<3>& rhs) {
-  return GeomVector<3>(std::min(lhs.x(), rhs.x()),
-                       std::min(lhs.y(), rhs.y()),
-                       std::min(lhs.z(), rhs.z()));
+  return GeomVector<3>(SPHERAL_MIN(lhs.x(), rhs.x()),
+                       SPHERAL_MIN(lhs.y(), rhs.y()),
+                       SPHERAL_MIN(lhs.z(), rhs.z()));
 }
 
 //------------------------------------------------------------------------------
@@ -1212,24 +1212,24 @@ template<>
 inline
 GeomVector<1>
 elementWiseMax(const GeomVector<1>& lhs, const GeomVector<1>& rhs) {
-  return GeomVector<1>(std::max(lhs.x(), rhs.x()));
+  return GeomVector<1>(SPHERAL_MAX(lhs.x(), rhs.x()));
 }
 
 template<>
 inline
 GeomVector<2>
 elementWiseMax(const GeomVector<2>& lhs, const GeomVector<2>& rhs) {
-  return GeomVector<2>(std::max(lhs.x(), rhs.x()),
-                       std::max(lhs.y(), rhs.y()));
+  return GeomVector<2>(SPHERAL_MAX(lhs.x(), rhs.x()),
+                       SPHERAL_MAX(lhs.y(), rhs.y()));
 }
 
 template<>
 inline
 GeomVector<3>
 elementWiseMax(const GeomVector<3>& lhs, const GeomVector<3>& rhs) {
-  return GeomVector<3>(std::max(lhs.x(), rhs.x()),
-                       std::max(lhs.y(), rhs.y()),
-                       std::max(lhs.z(), rhs.z()));
+  return GeomVector<3>(SPHERAL_MAX(lhs.x(), rhs.x()),
+                       SPHERAL_MAX(lhs.y(), rhs.y()),
+                       SPHERAL_MAX(lhs.z(), rhs.z()));
 }
 
 //------------------------------------------------------------------------------
