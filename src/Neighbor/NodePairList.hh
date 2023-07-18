@@ -48,12 +48,15 @@ struct NodePairIdxType {
 //------------------------------------------------------------------------------
 class NodePairList {
 public:
-  typedef SphArray<NodePairIdxType> ContainerType;
   typedef NodePairIdxType value_type;
   typedef NodePairIdxType& reference;
   typedef const reference const_reference;
-  typedef SphArrayIterator<SphArrayView<value_type>> iterator;
-  typedef SphArrayIterator<typename SphArrayView<value_type>::ViewTypeConst> const_iterator;
+
+  typedef SphArray<value_type> ContainerType;
+  typedef SphArrayView<value_type> ViewType;
+
+  typedef SphArrayIterator<ViewType> iterator;
+  typedef SphArrayIterator<typename ViewType::ViewTypeConst> const_iterator;
   //typedef typename ContainerType::iterator iterator;
   //typedef typename ContainerType::const_iterator const_iterator;
   //typedef typename ContainerType::reverse_iterator reverse_iterator;
@@ -63,6 +66,8 @@ public:
   void push_back(NodePairIdxType nodePair);
   void clear(); 
   size_t size() const { return mNodePairList.size(); }
+
+  ViewType toView() const {return mNodePairList.toView(); }
 
   // Iterators
   iterator begin() { return mNodePairList.begin(); }
