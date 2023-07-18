@@ -61,12 +61,13 @@
 #define SPHERAL_MAX axom::utilities::max
 #define SPHERAL_MIN axom::utilities::min
 
-#define USE_DEVICE 0
-#if USE_DEVICE && defined(RAJA_ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
+  #define USE_DEVICE
   using PAIR_EXEC_POL = RAJA::cuda_exec<1024>;
 #else
   using PAIR_EXEC_POL = RAJA::omp_parallel_for_exec;
 #endif
+using FINAL_EXEC_POL = RAJA::omp_parallel_for_exec;
 
 #include <limits.h>
 #include <float.h>
@@ -676,9 +677,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   TIME_BEGIN("SPHevalDerivs");
   TIME_BEGIN("SPHevalDerivs_initial");
 
-  //static double totalLoopTime = 0.0;
-  // Get the ArtificialViscosity.
-  auto& Q = this->artificialViscosity();
 
   // The kernels and such.
   const auto& W = this->kernel();
@@ -787,6 +785,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
+  const auto pairs_v = pairs.toView();
   const auto  npairs = pairs.size();
 
   // Size up the pair-wise accelerations before we start.
@@ -801,17 +800,23 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Walk all the interacting pairs.
   TIME_BEGIN("SPHevalDerivs_pairs");
   {
-    RAJA::forall<PAIR_EXEC_POL>(RAJA::RangeSegment(0, npairs), [&] RAJA_HOST_DEVICE (int kk) {
-    int i, j, nodeListi, nodeListj;
-    Vector gradWi, gradWj, gradWQi, gradWQj;
-    Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
-    Tensor QPiij, QPiji;
+    RAJA::forall<PAIR_EXEC_POL>(RAJA::RangeSegment(0, npairs), [=] RAJA_HOST_DEVICE (int kk) {
+      //static double totalLoopTime = 0.0;
+      // Get the ArtificialViscosity.
+#ifndef USE_DEVICE
+      auto& Q = this->artificialViscosity();
+#endif
+
+      int i, j, nodeListi, nodeListj;
+      Vector gradWi, gradWj, gradWQi, gradWQj;
+      Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
+      Tensor QPiij, QPiji;
 
     // Thread private scratch variables
-      i = pairs[kk].i_node;
-      j = pairs[kk].j_node;
-      nodeListi = pairs[kk].i_list;
-      nodeListj = pairs[kk].j_list;
+      i = pairs_v[kk].i_node;
+      j = pairs_v[kk].j_node;
+      nodeListi = pairs_v[kk].i_list;
+      nodeListj = pairs_v[kk].j_list;
 
       // Get the state for node i.
       const auto& ri = position_v(nodeListi, i);
@@ -827,8 +832,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
-#if USE_DEVICE
-#else
 
       auto& a_rhoSumi = rhoSum_v.atomic(nodeListi, i);
       auto& a_normi = normalization_v(nodeListi, i);
@@ -890,6 +893,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto etaUnit = etai*safeInvVar(etaMagi);
       CHECK(etaMagi >= 0.0);
       CHECK(etaMagj >= 0.0);
+
+#ifndef USE_DEVICE
       // Symmetrized kernel weight and gradient.
       W.kernelAndGradValue(etaMagi, Hdeti, Wi, gWi);
       W.kernelAndGradValue(etaMagj, Hdetj, Wj, gWj);
@@ -1006,6 +1011,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }   // OpenMP parallel region
   TIME_END("SPHevalDerivs_pairs");
 
+  pairs_v.move(RAJA::Platform::host);
+
   // Finish up the derivatives for each point.
   TIME_BEGIN("SPHevalDerivs_final");
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
@@ -1016,37 +1023,38 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
     const auto ni = nodeList.numInternalNodes();
-#pragma omp parallel for
-    for (auto i = 0u; i < ni; ++i) {
+//#pragma omp parallel for
+//    for (auto i = 0u; i < ni; ++i) {
+    RAJA::forall<FINAL_EXEC_POL>(RAJA::RangeSegment(0, ni), [=, &connectivityMap] (int i) {
 
       // Get the state for node i.
-      const auto& ri = position(nodeListi, i);
-      const auto& mi = mass(nodeListi, i);
-      const auto& vi = velocity(nodeListi, i);
-      const auto& rhoi = massDensity(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
+      const auto& ri = position_v(nodeListi, i);
+      const auto& mi = mass_v(nodeListi, i);
+      const auto& vi = velocity_v(nodeListi, i);
+      const auto& rhoi = massDensity_v(nodeListi, i);
+      const auto& Hi = H_v(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
-      auto& rhoSumi = rhoSum(nodeListi, i);
-      auto& normi = normalization(nodeListi, i);
-      auto& DxDti = DxDt(nodeListi, i);
-      auto& DrhoDti = DrhoDt(nodeListi, i);
-      auto& DvDti = DvDt(nodeListi, i);
-      auto& DepsDti = DepsDt(nodeListi, i);
-      auto& DvDxi = DvDx(nodeListi, i);
-      auto& localDvDxi = localDvDx(nodeListi, i);
-      auto& Mi = M(nodeListi, i);
-      auto& localMi = localM(nodeListi, i);
-      auto& DHDti = DHDt(nodeListi, i);
-      auto& Hideali = Hideal(nodeListi, i);
-      auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
-      auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
-      auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment(nodeListi, i);
+      auto& rhoSumi = rhoSum_v(nodeListi, i);
+      auto& normi = normalization_v(nodeListi, i);
+      auto& DxDti = DxDt_v(nodeListi, i);
+      auto& DrhoDti = DrhoDt_v(nodeListi, i);
+      auto& DvDti = DvDt_v(nodeListi, i);
+      auto& DepsDti = DepsDt_v(nodeListi, i);
+      auto& DvDxi = DvDx_v(nodeListi, i);
+      auto& localDvDxi = localDvDx_v(nodeListi, i);
+      auto& Mi = M_v(nodeListi, i);
+      auto& localMi = localM_v(nodeListi, i);
+      auto& DHDti = DHDt_v(nodeListi, i);
+      auto& Hideali = Hideal_v(nodeListi, i);
+      auto& XSPHWeightSumi = XSPHWeightSum_v(nodeListi, i);
+      auto& XSPHDeltaVi = XSPHDeltaV_v(nodeListi, i);
+      auto& weightedNeighborSumi = weightedNeighborSum_v(nodeListi, i);
+      auto& massSecondMomenti = massSecondMoment_v(nodeListi, i);
 
       // Add the self-contribution to density sum.
       rhoSumi += mi*W0*Hdeti;
@@ -1111,6 +1119,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                         nodeListi,
                                                         i);
     }
+    );
   }
   TIME_END("SPHevalDerivs_final");
   TIME_END("SPHevalDerivs");
