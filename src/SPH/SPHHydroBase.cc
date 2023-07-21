@@ -46,7 +46,6 @@
 
 #include "SPHHydroBase.hh"
 
-#include "axom/core/utilities/Utilities.hpp"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -57,6 +56,7 @@
 #define ATOMIC_ADD RAJA::atomicAdd<RAJA::omp_atomic>
 #define ATOMIC_MAX RAJA::atomicMax<RAJA::omp_atomic>
 
+#include "axom/core/utilities/Utilities.hpp"
 #define SPHERAL_ABS axom::utilities::abs
 #define SPHERAL_MAX axom::utilities::max
 #define SPHERAL_MIN axom::utilities::min
@@ -777,7 +777,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  maxViscousPressure_v = FieldListView<Dimension, Scalar>(maxViscousPressure);
   auto  effViscousPressure_v = FieldListView<Dimension, Scalar>(effViscousPressure);
   auto  viscousWork_v = FieldListView<Dimension, Scalar>(viscousWork);
-  //auto& pairAccelerations_v = FieldListView<Dimension, Scalar>(pairAccelerations);derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+//  auto& pairAccelerations_v = FieldListView<Dimension, Scalar>(pairAccelerations);derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto  XSPHWeightSum_v = FieldListView<Dimension, Scalar>(XSPHWeightSum);
   auto  XSPHDeltaV_v = FieldListView<Dimension, Vector>(XSPHDeltaV);
   auto  weightedNeighborSum_v = FieldListView<Dimension, Scalar>(weightedNeighborSum);
@@ -800,7 +800,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Walk all the interacting pairs.
   TIME_BEGIN("SPHevalDerivs_pairs");
   {
+#ifndef USE_DEVICE
+    RAJA::forall<PAIR_EXEC_POL>(RAJA::RangeSegment(0, npairs), [=, &pairAccelerations] RAJA_HOST_DEVICE (int kk) {
+#else
     RAJA::forall<PAIR_EXEC_POL>(RAJA::RangeSegment(0, npairs), [=] RAJA_HOST_DEVICE (int kk) {
+#endif
       //static double totalLoopTime = 0.0;
       // Get the ArtificialViscosity.
 #ifndef USE_DEVICE
@@ -967,7 +971,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       ATOMIC_ADD(&a_DvDti, -mj*deltaDvDt);
       ATOMIC_ADD(&a_DvDtj, mi*deltaDvDt);
+#ifndef USE_DEVICE
       //if (mCompatibleEnergyEvolution) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
+#endif
 
       // Specific thermal energy evolution.
       // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);
