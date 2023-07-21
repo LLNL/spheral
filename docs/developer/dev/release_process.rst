@@ -21,7 +21,11 @@ The Spheral release process typically involves the following sequence of steps:
      release description to remind users to download the gzipped tarfile for 
      the release instead of the assets GitHub creates for the release.
      The GitHub-created assets do not contain the Spheral submodules and will
-     cause issues for users as a result.
+     cause issues for users as a result. Be sure to update and commit the file
+     ``spheral/cmake/SpheralVersion.cmake`` to:
+     ::
+
+	set(SPHERAL_VERSION YYYY.MM.pp
 
      .. important:: For consistency, please follow a similar description 
                     pattern for all Spheral releases.
