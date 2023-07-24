@@ -313,7 +313,7 @@ evaluateDerivatives(const Dim<2>::Scalar time,
   const auto& W = this->kernel();
   const auto& WQ = this->PiKernel();
   const auto  oneKernel = (W == WQ);
-  const auto  etamax = W.kernelExtent();
+  // const auto  etamax = W.kernelExtent();
 
   // A few useful constants we'll use in the following loop.
   const auto tiny = 1.0e-30;
