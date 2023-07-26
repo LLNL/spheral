@@ -64,7 +64,6 @@ foreach(_tgt umpire RAJA mfem conduit
              axom::sidre axom::mint axom::quest axom)
   if(TARGET ${_tgt})
     list(APPEND spheral_blt_cxx_depends ${_tgt})
-    blt_patch_target(NAME ${_tgt} TREAT_INCLUDES_AS_SYSTEM On)
   else()
     message(WARNING "${_tgt} **IS NOT** a target.")
   endif()
