@@ -158,10 +158,18 @@ if (ENABLE_TESTS)
   endmacro(install_with_directory)
 
   # Find the test files we want to install
-  execute_process(
-    COMMAND git ls-files tests
-    WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
-    OUTPUT_VARIABLE test_files1)
+  set(test_files1 "")
+  if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
+    execute_process(
+      COMMAND git ls-files tests
+      WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
+      OUTPUT_VARIABLE test_files1)
+  else()
+    execute_process(
+      COMMAND find tests -type f
+      WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
+      OUTPUT_VARIABLE test_files1)
+  endif()
   string(REPLACE "\n" " " test_files ${test_files1})
   separate_arguments(test_files)
   list(REMOVE_ITEM test_files tests/unit/CXXTests/runCXXTests.ats)
