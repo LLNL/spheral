@@ -61,8 +61,8 @@ commandLine(# materials properties
             mfm = False,      # moving finite mass -- hopkins 2015
 
             # FSI parameters
-            fsiRhoStabilizeCoeff = 0.0,         # diffusion operating through the vel-gradient
-            fsiEpsDiffuseCoeff = 0.0,           # diffusion coeff for specific thermal energy
+            fsiRhoStabilizeCoeff = 0.1,         # diffusion operating through the vel-gradient
+            fsiEpsDiffuseCoeff = 0.1,           # diffusion coeff for specific thermal energy
             fsiXSPHCoeff = 0.0,                 # ramps xsph up
             fsiInterfaceMethod = HLLCInterface, # (HLLCInterface, ModulusInterface, NoInterface)
             fsiPlaneStrain = True,
@@ -110,7 +110,7 @@ commandLine(# materials properties
             boolHopkinsCorrection = True,
             
             # integrator settings
-            IntegratorConstructor = SynchronousRK1Integrator,            
+            IntegratorConstructor = VerletIntegrator,            
             cfl = 0.25,
             goalTime = 150e-6,
             dt = 1.0e-13,
