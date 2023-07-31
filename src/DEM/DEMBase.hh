@@ -1,12 +1,18 @@
 //---------------------------------Spheral++----------------------------------//
-// DEMBase -- basic DEM package for Spheral++.
+// DEMBase -- The DEM base class package for Spheral++. THis class implements
+//            much of the machinery needs for DEM physics packages which 
+//            should all be derived from this class or one of its daughters
+//
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_DEMBase_hh__
 #define __Spheral_DEMBase_hh__
 
 #include <string>
 #include "Physics/Physics.hh"
 #include "DEM/DEMDimension.hh"
+#include "DEM/ContactStorageLocation.hh"
 
 namespace Spheral {
 
@@ -15,9 +21,10 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension> class SolidBoundaryBase;
 class FileIO;
 class RedistributionNotificationHandle;
-struct ContactIndex;
+//struct ContactIndex;
 
 template<typename Dimension>
 class DEMBase: public Physics<Dimension> {
@@ -32,6 +39,8 @@ public:
 
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  typedef typename std::vector<SolidBoundaryBase<Dimension>*>::iterator SolidBoundaryIterator;
+  typedef typename std::vector<SolidBoundaryBase<Dimension>*>::const_iterator ConstSolidBoundaryIterator;
   typedef std::shared_ptr<RedistributionNotificationHandle> RedistributionRegistrationType;
   
   // Constructors.
@@ -109,6 +118,9 @@ public:
   // special methods for the pair fields if you add pairFieldLists 
   // make sure to follow the pattern in these methods.
   virtual
+  void resizePairFieldLists();
+
+  virtual
   void resizeDerivativePairFieldLists(StateDerivatives<Dimension>& derivs) const;
 
   virtual
@@ -121,9 +133,7 @@ public:
   void removeInactiveContactsFromDerivativePairFieldLists(StateDerivatives<Dimension>& derivs) const;
   //#############################################################################
 
-  void initializeOverlap(const DataBase<Dimension>& dataBase);
-
-  void updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase);
+  void initializeOverlap(const DataBase<Dimension>& dataBase, const int startingCompositeParticleIndex);
 
   void updateContactMap(const DataBase<Dimension>& dataBase);
   
@@ -145,8 +155,8 @@ public:
   int  contactRemovalFrequency() const;
   void contactRemovalFrequency(int x);
 
-  bool firstCycle() const;
-  void firstCycle(bool x);
+  // access the dataBase 
+  const DataBase<Dimension>& dataBase() const;
 
   // access for node fieldLists
   const FieldList<Dimension, int>&    timeStepMask() const;
@@ -154,7 +164,6 @@ public:
   const FieldList<Dimension, Vector>& DvDt() const;
   const FieldList<Dimension, RotationType>& omega() const;
   const FieldList<Dimension, RotationType>& DomegaDt() const;
-  const FieldList<Dimension, int>& uniqueIndices() const;
 
   // access for pair fieldLists
   const FieldList<Dimension, std::vector<int>>&    isActiveContact() const;
@@ -174,9 +183,6 @@ public:
 
 
   // inlined and specialized for different dimensions
-  Scalar momentOfInertia(const Scalar massi,
-                         const Scalar particleRadiusi) const;
-
   RotationType torsionMoment(const Vector rhatij,
                              const RotationType omegai,
                              const RotationType omegaj) const;
@@ -184,7 +190,20 @@ public:
   RotationType rollingMoment(const Vector rhatij,
                              const Vector vroti,
                              const Vector vrotj) const;
-                             
+
+  // Solid Bounderies 
+  void appendSolidBoundary(SolidBoundaryBase<Dimension>& boundary);
+  void clearSolidBoundaries();
+  bool haveSolidBoundary(const SolidBoundaryBase<Dimension>& boundary) const;
+  unsigned int numSolidBoundaries() const;
+  const std::vector<SolidBoundaryBase<Dimension>*>& solidBoundaryConditions() const;
+  int getSolidBoundaryUniqueIndex(const int x) const;
+
+  // counts
+  unsigned int numParticleParticleContacts() const;
+  unsigned int numParticleBoundaryContacts() const;
+  unsigned int numContacts() const;
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "DEMBase" ; }
@@ -197,11 +216,11 @@ protected:
 
   const DataBase<Dimension>& mDataBase;
 
-  bool mFirstCycle;
+  std::vector<SolidBoundaryBase<Dimension>*> mSolidBoundaries;
 
   int mCycle;
   int mContactRemovalFrequency;
-  
+
   // number of steps per collision time-scale
   Scalar mStepsPerCollision;              
 
@@ -214,7 +233,6 @@ protected:
   FieldList<Dimension, Vector>       mDvDt;           // linear acceleration
   FieldList<Dimension, RotationType> mOmega;          // angular velocity
   FieldList<Dimension, RotationType> mDomegaDt;       // angular acceleration
-  FieldList<Dimension,int>           mUniqueIndices;  // each node gets a global unique index
 
   // state fields attached to the pair interactions
   FieldList<Dimension,std::vector<int>>    mNeighborIndices;           // tracks unique indices of contacts-we upate these (note treated specially compared to other state pair field lists)

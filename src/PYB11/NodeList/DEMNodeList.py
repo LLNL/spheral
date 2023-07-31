@@ -25,6 +25,7 @@ class DEMNodeList(NodeList):
                hmax = ("double", "1e20"),
                hminratio = ("double", "0.1"),
                nPerh = ("double", "2.01"),
+               neighborSearchBuffer = ("Scalar","0.1"),
                maxNumNeighbors = ("int", "500")):
         "Constructor for a DEMNodeList class."
         return
@@ -50,6 +51,21 @@ class DEMNodeList(NodeList):
     @PYB11pycppname("compositeParticleIndex")
     def setCompositeParticleIndex(self, val="const intField&"):
         "set the composite particle indices"
+        return "void"
+
+    @PYB11const
+    @PYB11returnpolicy("reference_internal")
+    def uniqueIndex(self):
+        "the unique particle index field"
+        return "const intField&"
+
+    @PYB11pycppname("uniqueIndex")
+    def setUniqueIndex(self, val="const intField&"):
+        "set the unique particle indices"
+        return "void"
+
+    def setHfieldFromParticleRadius(uniqueIndex = "const int"):
+        "set a good H value for the neighbor search based on the particle radius"
         return "void"
 
     #...........................................................................

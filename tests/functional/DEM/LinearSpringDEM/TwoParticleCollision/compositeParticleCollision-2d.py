@@ -1,49 +1,40 @@
-#ATS:DEM1d = test(        SELF, "--clearDirectories True  --checkError True --checkConservation True  --normalRestitutionCoefficient 1.0 --steps 100", label="DEM individual particle collision -- 1-D (serial)")
+#ATS:DEM2d0COMP = test(              SELF, "--clearDirectories True  --checkError True  --restartStep 10 --steps 100", label="DEM composite particle collision -- 2-D (serial)")
+#ATS:DEM2d1COMP = testif(DEM2d0COMP, SELF, "--clearDirectories False --checkError False  --restartStep 10 --restoreCycle 10 --steps 90 --checkRestart True", label="DEM composite particle collision -- 2-D (serial) RESTART CHECK")
+#ATS:DEM2d2COMP = test(              SELF, "--clearDirectories True  --checkError True  --restitutionCoefficient=1.0 --steps 100", label="DEM composite particle collision -- 2-D (serial)")
 
 import os, sys, shutil, mpi
 from math import *
-from Spheral1d import *
+from Spheral2d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
-from GenerateNodeDistribution1d import *
-from DEMConservationTracker import TrackConservation1d as TrackConservation
-from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator1d
+from GenerateNodeDistribution2d import *
 
 if mpi.procs > 1:
-    from PeanoHilbertDistributeNodes import distributeNodes1d
+    from PeanoHilbertDistributeNodes import distributeNodes2d
 else:
-    from DistributeNodes import distributeNodes1d
+    from DistributeNodes import distributeNodes2d
 
-title("DEM Restitution Coefficient Test")
+title("DEM Composite-Particle Restitution Coefficient Test")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(vImpact = 1.0,                       # impact velocity
-
-            radius = 0.25,                          # particle radius
-            normalSpringConstant=10000.0,           # spring constant for LDS model
-            normalRestitutionCoefficient=0.55,      # restitution coefficient to get damping const
-            tangentialSpringConstant=2857.0,        # spring constant for LDS model
-            tangentialRestitutionCoefficient=0.55,  # restitution coefficient to get damping const
-            dynamicFriction = 1.0,
-            staticFriction = 1.0,
-            rollingFriction = 1.05,
-            torsionalFriction = 1.3,
-            cohesiveTensileStrength = 0.0,
-            shapeFactor = 0.5,
+commandLine(vImpact = 1.0,                 # impact velocity
+            normalSpringConstant=10000.0,  # spring constant for LDS model
+            restitutionCoefficient=0.8,    # restitution coefficient to get damping const
+            radius = 0.25,                 # particle radius
             
-            nPerh = 1.01,                        # this should basically always be 1 for DEM
+            neighborSearchBuffer = 0.1,    # multiplicative buffer to radius for neighbor search algo
 
             # integration
-            IntegratorConstructor = VerletIntegrator,   # Verlet integrator currently needed for rot momentum conservation w/ DEM
-            stepsPerCollision = 50,                     # replaces CFL for DEM
+            IntegratorConstructor = Verlet,
+            stepsPerCollision = 50,  # replaces CFL for DEM
             goalTime = None,
             dt = 1e-8,
             dtMin = 1.0e-8, 
             dtMax = 0.1,
             dtGrowth = 2.0,
-            steps = 120,
+            steps = 100,
             maxSteps = None,
             statsStep = 10,
             domainIndependent = False,
@@ -51,45 +42,28 @@ commandLine(vImpact = 1.0,                       # impact velocity
             dtverbose = False,
             
             # output control
-            vizCycle = None,
+            vizCycle = 10,#None,
             vizTime = None,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 1000,
             redistributeStep = 500,
-            dataDir = "dumps-DEM-2particle-1d",
+            dataDir = "dumps-DEM-2d-CompositeParticleCollision",
 
             # ats parameters
-            checkError = False,                # turn on error checking for restitution coefficient
-            checkRestart = False,              # turn on error checking for restartability
-            checkConservation = False,         # turn on error checking for momentum conservation
-            restitutionErrorThreshold = 0.02,  # relative error actual restitution vs nominal
-            conservationErrorThreshold = 1e-15 # relative error for momentum conservation
+            checkError = False,
+            checkRestart = False,
+            restitutionErrorThreshold = 0.01, # relative error
             )
-
-#-------------------------------------------------------------------------------
-# check for bad inputs
-#-------------------------------------------------------------------------------
-assert mpi.procs == 1 
-assert nPerh >= 1
-assert shapeFactor <= 1.0 and shapeFactor >= 0.0
-assert dynamicFriction >= 0.0
-assert staticFriction >= 0.0
-assert torsionalFriction >= 0.0
-assert rollingFriction >= 0.0
-assert cohesiveTensileStrength >= 0.0
 
 #-------------------------------------------------------------------------------
 # file things
 #-------------------------------------------------------------------------------
-testName = "DEM-twoParticleCollision-1d"
+testName = "DEM-CompositeParticleCollision-2d"
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
 vizBaseName = testName
-
-if vizCycle is None and vizTime is None:
-    vizBaseName=None
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -122,7 +96,6 @@ nodes1 = makeDEMNodeList("nodeList1",
                           hmin = 1.0e-30,
                           hmax = 1.0e30,
                           hminratio = 100.0,
-                          nPerh = nPerh,
                           kernelExtent = WT.kernelExtent)
 nodeSet = [nodes1]
 for nodes in nodeSet:
@@ -135,29 +108,30 @@ for nodes in nodeSet:
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
-generator0 = GenerateNodeDistribution1d(2,
-                                        rho = 1.0,
-                                        xmin = 0.0,
-                                        xmax = 1.0,
-                                        nNodePerh = nPerh)
+if restoreCycle is None:
+    generator1 = GenerateNodeDistribution2d(3, 1,
+                                            rho = 1.0,
+                                            distributionType = "lattice",
+                                            xmin = (-0.5,  0.0),
+                                            xmax = ( 1.0,  0.5))
 
 
-generator1 = GenerateDEMfromSPHGenerator1d(WT,
-                                           generator0,
-                                           nPerh=nPerh)
+    distributeNodes2d((nodes1, generator1))
 
-distributeNodes1d((nodes1, generator1))
+    # initial conditions
+    velocity = nodes1.velocity()
+    particleRadius = nodes1.particleRadius()
+    position = nodes1.positions()
 
-# initial conditions
-velocity = nodes1.velocity()
-velocity[0] = Vector(vImpact,0.0)
-velocity[1] = Vector(-vImpact,0.0)
+    velocity[0] = Vector(vImpact,0.0)
+    velocity[1] = Vector(vImpact,0.0)
+    velocity[2] = Vector(-vImpact,0.0)
 
-# set particle radius by hand (SPH generator won't do this)
-particleRadius = nodes1.particleRadius()
+    position[0] = Vector(0.0,position[0][1])
 
-particleRadius[0] = radius
-particleRadius[1] = radius
+    particleRadius[0] = radius
+    particleRadius[1] = radius
+    particleRadius[2] = radius
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -174,20 +148,25 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # DEM
 #-------------------------------------------------------------------------------
-dem = DEM(db,
-          normalSpringConstant = normalSpringConstant,
-          normalRestitutionCoefficient = normalRestitutionCoefficient,
-          tangentialSpringConstant = tangentialSpringConstant,
-          tangentialRestitutionCoefficient = tangentialRestitutionCoefficient,
-          dynamicFrictionCoefficient = dynamicFriction,
-          staticFrictionCoefficient = staticFriction,
-          rollingFrictionCoefficient = rollingFriction,
-          torsionalFrictionCoefficient = torsionalFriction,
-          cohesiveTensileStrength =cohesiveTensileStrength,
-          shapeFactor = shapeFactor,
-          stepsPerCollision = stepsPerCollision)
+hydro = DEM(db,
+            normalSpringConstant,
+            restitutionCoefficient,
+            stepsPerCollision = stepsPerCollision)
 
-packages = [dem]
+eqOverlap=hydro.equilibriumOverlap
+neighborIndices = hydro.neighborIndices
+uniqueIndices = hydro.uniqueIndices
+shearDisplacement = hydro.shearDisplacement
+DDtShearDisplacement = hydro.DDtShearDisplacement
+neighborIndices[0][0]=vector_of_int([uniqueIndices(0,1)])
+eqOverlap[0][0]=vector_of_double([0.25])
+
+print((neighborIndices(0,0)))
+print(eqOverlap(0,0))
+print(eqOverlap(0,0))
+print(uniqueIndices(0,0))
+print(uniqueIndices(0,1))
+packages = [hydro]
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
@@ -207,7 +186,7 @@ integrator.rigorousBoundaries = rigorousBoundaries
 integrator.cullGhostNodes = False
 
 output("integrator")
-output("integrator.havePhysicsPackage(dem)")
+output("integrator.havePhysicsPackage(hydro)")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
@@ -216,16 +195,12 @@ output("integrator.domainDecompositionIndependent")
 output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
-
-#-------------------------------------------------------------------------------
-# Periodic Work Function : track conservation
-#-------------------------------------------------------------------------------
-conservation = TrackConservation(db,
-                                  dem,
-                                  verbose=False)
-                                  
-periodicWork = [(conservation.periodicWorkFunction,1)]
-
+def printFunc(cycle,time,dt):
+    print([eqOverlap(0,0),eqOverlap(0,1),eqOverlap(0,2)])
+    print([uniqueIndices(0,0),uniqueIndices(0,1),uniqueIndices(0,2)])
+    print([neighborIndices(0,0),neighborIndices(0,1),neighborIndices(0,2)])
+    print([shearDisplacement(0,0),shearDisplacement(0,1),shearDisplacement(0,2)])
+    print([DDtShearDisplacement(0,0),DDtShearDisplacement(0,1),DDtShearDisplacement(0,2)])
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
@@ -240,7 +215,8 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            periodicWork=periodicWork)
+                            SPH = SPH,
+                            periodicWork=[(printFunc,1)])
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -275,12 +251,6 @@ if checkError:
     vijPostImpact = velocity[0].x - velocity[1].x
     vijPreImpact = 2.0*vImpact
     restitutionEff = vijPostImpact/vijPreImpact
-    restitutionError = abs(restitutionEff + normalRestitutionCoefficient)/normalRestitutionCoefficient
+    restitutionError = abs(restitutionEff + restitutionCoefficient)/restitutionCoefficient
     if  restitutionError > restitutionErrorThreshold:
         raise ValueError("relative restitution coefficient error, %g, exceeds bounds" % restitutionError)
-
-
-if checkConservation:
-    if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
-        raise ValueError("linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX())
-    
