@@ -36,6 +36,7 @@
 #include "FSISPH/computeHWeightedFSISPHSumMassDensity.hh"
 #include "FSISPH/SlideSurface.hh"
 
+#include "FSISPH/Policies/PairwisePlasticStrainPolicy.hh"
 
 #include <limits.h>
 #include <float.h>
@@ -44,6 +45,7 @@
 #include <map>
 #include <vector>
 
+using std::make_shared;
 using std::vector;
 using std::string;
 using std::pair;
@@ -171,7 +173,8 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mNewInterfaceNormals(FieldStorageType::CopyFields),
   mSmoothedInterfaceNormals(FieldStorageType::CopyFields),
   mNewInterfaceFraction(FieldStorageType::CopyFields),
-  mNewInterfaceSmoothness(FieldStorageType::CopyFields){
+  mNewInterfaceSmoothness(FieldStorageType::CopyFields),
+  mInverseEquivalentDeviatoricStress(FieldStorageType::CopyFields){
 
     mPairDepsDt.clear();
 
@@ -193,7 +196,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mSmoothedInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::smoothedInterfaceNormals);
     mNewInterfaceFraction = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction);
     mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
-    
+    mInverseEquivalentDeviatoricStress = dataBase.newFluidFieldList(0.0, FSIFieldNames::inverseEquivalentDeviatoricStress);
   }
 
 //------------------------------------------------------------------------------
@@ -230,14 +233,20 @@ registerState(DataBase<Dimension>& dataBase,
 
   SolidSPHHydroBase<Dimension>::registerState(dataBase,state);
   
-
   typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-  
+
+  FieldList<Dimension, Scalar> plasticStrain = dataBase.solidPlasticStrain();
+
+  CHECK(plasticStrain.numFields() == dataBase.numFluidNodeLists());
+
   dataBase.resizeFluidFieldList(mRawPressure, 0.0, FSIFieldNames::rawPressure, false);
-  dataBase.resizeFluidFieldList(mInterfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals,false);
-  dataBase.resizeFluidFieldList(mInterfaceFraction, 0.0, FSIFieldNames::interfaceFraction,false); 
-  dataBase.resizeFluidFieldList(mInterfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness,false);
-   
+  dataBase.resizeFluidFieldList(mInterfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals, false);
+  dataBase.resizeFluidFieldList(mInterfaceFraction, 0.0, FSIFieldNames::interfaceFraction, false); 
+  dataBase.resizeFluidFieldList(mInterfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness, false);
+  dataBase.resizeFluidFieldList(mInverseEquivalentDeviatoricStress, 0.0, FSIFieldNames::inverseEquivalentDeviatoricStress, false);
+
+  auto plasticStrainPolicy = make_shared<PairwisePlasticStrainPolicy<Dimension>>();
+
   PolicyPointer rawPressurePolicy(new PressurePolicy<Dimension>());
   PolicyPointer interfaceNormalsPolicy(new PureReplaceFieldList<Dimension,Vector>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals));
   PolicyPointer interfaceFractionPolicy(new PureReplaceFieldList<Dimension,Scalar>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction));
@@ -251,7 +260,9 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(specificThermalEnergy, epsPolicy);
   }
 
+  state.enroll(mInverseEquivalentDeviatoricStress);
   state.enroll(mRawPressure,rawPressurePolicy);
+  state.enroll(plasticStrain, plasticStrainPolicy);
   state.enroll(mInterfaceNormals,interfaceNormalsPolicy); 
   state.enroll(mInterfaceFraction,interfaceFractionPolicy);
   state.enroll(mInterfaceSmoothness,interfaceSmoothnessPolicy); 
@@ -389,7 +400,8 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
   FieldList<Dimension, Scalar> rawPressure = state.fields(FSIFieldNames::rawPressure, 0.0);
-
+  //FieldList<Dimension, Scalar> yield = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  FieldList<Dimension, Scalar> invSqrtJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
@@ -397,6 +409,8 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceNormals);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceSmoothness);
     (*boundaryItr)->applyFieldListGhostBoundary(rawPressure);
+    //(*boundaryItr)->applyFieldListGhostBoundary(yield);
+    (*boundaryItr)->applyFieldListGhostBoundary(invSqrtJ2);
   }
 }
 
@@ -415,6 +429,8 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
   FieldList<Dimension, Scalar> rawPressure = state.fields(FSIFieldNames::rawPressure, 0.0);
+  //FieldList<Dimension, Scalar> yield = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  FieldList<Dimension, Scalar> invSqrtJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -423,6 +439,8 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(interfaceNormals);
     (*boundaryItr)->enforceFieldListBoundary(interfaceSmoothness);
     (*boundaryItr)->enforceFieldListBoundary(rawPressure);
+    //(*boundaryItr)->enforceFieldListBoundary(yield);
+    (*boundaryItr)->enforceFieldListBoundary(invSqrtJ2);
   }
 
 }
@@ -447,6 +465,8 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mSmoothedInterfaceNormals, pathName + "/smoothedInterfaceNormals");
   file.write(mNewInterfaceFraction, pathName + "/newInterfaceFraction");
   file.write(mNewInterfaceSmoothness, pathName + "/newInterfaceSmoothness");
+
+  file.write(mInverseEquivalentDeviatoricStress, pathName + "/inverseEquivalentDeviatoricStress");
 }
 
 
@@ -470,6 +490,8 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mSmoothedInterfaceNormals, pathName + "/smoothedInterfaceNormals");
   file.read(mNewInterfaceFraction, pathName + "/newInterfaceFraction");
   file.read(mNewInterfaceSmoothness, pathName + "/newInterfaceSmoothness");
+
+  file.read(mInverseEquivalentDeviatoricStress, pathName + "/inverseEquivalentDeviatoricStress");
 }
 
 //------------------------------------------------------------------------------

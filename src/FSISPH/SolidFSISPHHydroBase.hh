@@ -38,6 +38,7 @@ template<typename Dimension>
 class SolidFSISPHHydroBase: public SolidSPHHydroBase<Dimension> {
 
 public:
+
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -175,6 +176,8 @@ public:
   const FieldList<Dimension, Scalar>& newInterfaceFraction() const;
   const FieldList<Dimension, Scalar>& newInterfaceSmoothness() const;
 
+  const FieldList<Dimension, Scalar>& inverseEquivalentDeviatoricStress() const;
+  
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "SolidFSISPHHydroBase"; }
@@ -183,6 +186,7 @@ public:
  //****************************************************************************
 
 private:
+
   SlideSurface<Dimension>& mSlideSurface;             // ref to the obj tracking slideSurfs between nodelists
   double mSurfaceForceCoefficient;                    // Monaghan 2013 force increase @ interface
   double mDensityStabilizationCoefficient;            // adjusts DvDx to stabilize rho
@@ -196,16 +200,18 @@ private:
   
   std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
  
-  FieldList<Dimension, Scalar> mRawPressure;                  // material interface normals
-  FieldList<Dimension, Vector> mDPDx;                         // pressure gradient     
-  FieldList<Dimension, Vector> mDepsDx;                       // specific thermal energy gradient    
-  FieldList<Dimension, Vector> mInterfaceNormals;             // surface normals between nodelists     
-  FieldList<Dimension, Scalar> mInterfaceFraction;            // fraction of dissimilar neighbor volume     
-  FieldList<Dimension, Scalar> mInterfaceSmoothness;          // smoothness metric (0-1)    
-  FieldList<Dimension, Vector> mNewInterfaceNormals;          // surface normals between nodelists next time step    
-  FieldList<Dimension, Vector> mSmoothedInterfaceNormals;     // SPH interp of surface normal
-  FieldList<Dimension, Scalar> mNewInterfaceFraction;         // fraction of dissimilar neighbor volume     
-  FieldList<Dimension, Scalar> mNewInterfaceSmoothness;       // smoothness metric (0-1) next time step 
+  FieldList<Dimension, Scalar> mRawPressure;                       // material interface normals
+  FieldList<Dimension, Vector> mDPDx;                              // pressure gradient     
+  FieldList<Dimension, Vector> mDepsDx;                            // specific thermal energy gradient    
+  FieldList<Dimension, Vector> mInterfaceNormals;                  // surface normals between nodelists     
+  FieldList<Dimension, Scalar> mInterfaceFraction;                 // fraction of dissimilar neighbor volume     
+  FieldList<Dimension, Scalar> mInterfaceSmoothness;               // smoothness metric (0-1)    
+  FieldList<Dimension, Vector> mNewInterfaceNormals;               // surface normals between nodelists next time step    
+  FieldList<Dimension, Vector> mSmoothedInterfaceNormals;          // SPH interp of surface normal
+  FieldList<Dimension, Scalar> mNewInterfaceFraction;              // fraction of dissimilar neighbor volume     
+  FieldList<Dimension, Scalar> mNewInterfaceSmoothness;            // smoothness metric (0-1) next time step 
+
+  FieldList<Dimension, Scalar> mInverseEquivalentDeviatoricStress; // equivalent stress deviator
 
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();

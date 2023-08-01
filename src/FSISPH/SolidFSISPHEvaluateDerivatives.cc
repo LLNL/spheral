@@ -71,6 +71,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
+  const auto yield = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  const auto invJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
 
   CHECK(fragIDs.size()==numNodeLists);
   CHECK(interfaceFraction.size() == numNodeLists);
@@ -89,8 +91,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(K.size() == numNodeLists);
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
-  //CHECK(fragIDs.size() == numNodeLists);
+  CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
+  CHECK(yieldStrength.size() == numNodeLists);
+  CHECK(invJ2.size() == numNodeLists);
 
   // Derivative FieldLists.
   const auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
@@ -201,11 +205,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& ci = soundSpeed(nodeListi, i);
       const auto& Si = S(nodeListi, i);
       const auto& pTypei = pTypes(nodeListi, i);
+      const auto  fragIDi = fragIDs(nodeListi, i);
+      const auto  Yi = yield(nodeListi, i);
+      const auto  invJ2i = invJ2(nodeListi, i);
       const auto  voli = mi/rhoi;
       const auto  mui = max(mu(nodeListi,i),tiny);
       const auto  Ki = max(tiny,K(nodeListi,i))+4.0/3.0*mui;
       const auto  Hdeti = Hi.Determinant();
-      const auto fragIDi = fragIDs(nodeListi, i);
+      
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -243,11 +250,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& cj = soundSpeed(nodeListj, j);
       const auto& Sj = S(nodeListj, j);
       const auto& pTypej = pTypes(nodeListj, j);
+      const auto  fragIDj = fragIDs(nodeListj, j);
+      const auto  Yj = yield(nodeListj, j);
+      const auto  invJ2j = invJ2(nodeListj, j);
       const auto  volj = mj/rhoj;
       const auto  muj = max(mu(nodeListj,j),tiny);
       const auto  Kj = max(tiny,K(nodeListj,j))+4.0/3.0*muj;
       const auto  Hdetj = Hj.Determinant();
-      const auto fragIDj = fragIDs(nodeListj, j);
+
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
@@ -285,11 +295,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
       
       // pairwise damage and nodal damage
-      const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
+      //const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
       const auto Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
       const auto Dj = max(0.0, min(1.0, damage(nodeListj, j).dot(rhatij).magnitude()));
-      const auto fDi =  (sameMatij ? max((1.0-Di)*(1.0-Di),tiny) : 0.0 );
-      const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 0.0 );
+      const auto fDi =  (sameMatij ? (1.0-Di)*(1.0-Di) : 0.0 );
+      const auto fDj =  (sameMatij ? (1.0-Dj)*(1.0-Dj) : 0.0 );
+      const auto fDij = (sameMatij ? pow(1.0-std::abs(Di-Dj),2.0) : 0.0 );
 
       // is Pmin being activated (Pmin->zero for material interfaces)
       const auto pLimiti = (sameMatij ? (Pi-rhoi*ci*ci*1e-5) : 0.0);
@@ -410,14 +421,18 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         maxViscousPressurej = max(maxViscousPressurej, rhoi*rhoj * QPiji.diagonalElements().maxAbsElement());
 
         // stress tensor
-        {
-          const auto Seffi = (damageReduceStress ? fDij : 1.0) * Si;
-          const auto Seffj = (damageReduceStress ? fDij : 1.0) * Sj;
+//        {
+          // apply yield pairwise 
+          const auto Yij = std::max(0.0,std::min(Yi,Yj));
+          const auto fYieldi = std::min(Yij*invJ2i,1.0);
+          const auto fYieldj = std::min(Yij*invJ2j,1.0);
+          const auto Seffi = (damageReduceStress ? fDij : 1.0) * fYieldi * Si;
+          const auto Seffj = (damageReduceStress ? fDij : 1.0) * fYieldj * Sj;
           const auto Peffi = (differentMatij ? max(Pi,0.0) : Pi);
           const auto Peffj = (differentMatij ? max(Pj,0.0) : Pj);
           sigmai = Seffi - Peffi * SymTensor::one;
           sigmaj = Seffj - Peffj * SymTensor::one;
-        }
+//        }
 
         // Compute the tensile correction to add to the stress as described in 
         // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -453,6 +468,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
         // construct our interface velocity 
         auto vstar = 0.5*(vi+vj);
+        linearReconstruction(ri,rj,Pi,Pj,DPDxi,DPDxj,PLineari,PLinearj);
+
         if (constructInterface){
           
           // components
@@ -466,16 +483,31 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj)  : Kj  ) + tiny;
           const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : mui ) + tiny;
           const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : muj ) + tiny;
+          const auto CiCjInv = safeInv(Ci+Cj,tiny);
+          const auto CsiCsjInv = safeInv(Csi+Csj,tiny);
 
-          const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
+          // weights
+          const auto weightUi = max(0.0, min(1.0, Ci*CiCjInv));
           const auto weightUj = 1.0 - weightUi;
-          const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, Csi/(Csi+Csj) )) );
+          const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, Csi*CsiCsjInv )) );
           const auto weightWj = 1.0 - weightWi;
 
-          // get our eff pressure
-          const auto ustar = weightUi*ui + weightUj*uj; 
-          const auto wstar = weightWi*wi + weightWj*wj;
+          // interface velocity
+          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ? (PLinearj - PLineari)*CiCjInv : 0.0); 
+          const auto wstar = weightWi*wi + weightWj*wj + (constructHLLC ? (Seffi - Seffj).dot(rhatij)*CsiCsjInv : Vector::zero); ;
           vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
+
+          
+
+          // const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
+          // const auto weightUj = 1.0 - weightUi;
+          // const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, Csi/(Csi+Csj) )) );
+          // const auto weightWj = 1.0 - weightWi;
+
+          // // get our eff pressure
+          // const auto ustar = weightUi*ui + weightUj*uj; 
+          // const auto wstar = weightWi*wi + weightWj*wj + fDij*(Si - Sj).dot(rhatij)/;
+          // vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
   
         }
 
@@ -487,10 +519,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         
         // diffuse to stabilize things
         if (stabilizeDensity and (ci>tiny and cj>tiny)){
-          linearReconstruction(ri,rj,Pi,Pj,DPDxi,DPDxj,PLineari,PLinearj);
           const auto cFactor = 1.0 + max(min( (vi-vj).dot(rhatij)/max(cij,tiny), 0.0), -1.0);
           const auto effCoeff = (differentMatij ? 1.0 : rhoStabilizeCoeff*cFactor);
-          vstar += effCoeff * rhatij * cij * min(max((PLinearj-PLineari)/(Ki + Kj),-0.25),0.25);
+          vstar += (constructHLLC ? fDij : 1.0) * effCoeff * rhatij * cij * min(max((PLinearj-PLineari)/(Ki + Kj),-0.25),0.25);
         }
 
         // global velocity gradient
