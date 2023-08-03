@@ -14,7 +14,6 @@ list(APPEND _packages
   ArtificialViscosity
   ArtificialConduction
   Boundary
-  CInterface
   CRKSPH
   CXXTests
   Damage
@@ -47,6 +46,10 @@ list(APPEND _packages
   SVPH
   Utilities
   )
+
+if (SPHERAL_ENABLE_C)
+  list(APPEND _packages CInterface)
+endif()
 
 if(NOT ENABLE_CXXONLY)
   list(APPEND _packages 
