@@ -82,7 +82,7 @@ interfaceState(const typename Dimension::Vector& ri,
   rhostari = rhoi;
   rhostarj = rhoj;
 
-  if (ci > tiny or cj > tiny){
+  if (rhoi*ci > tiny or rhoj*cj > tiny){
 
 
     // default to nodal values
