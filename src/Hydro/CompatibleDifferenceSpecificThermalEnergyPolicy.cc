@@ -90,7 +90,7 @@ update(const KeyType& key,
   CHECK(pairAccelerations.size() == npairs);
   CHECK(pairDepsDt.size() == 2*npairs);
 
-  auto  DepsDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DepsDt = derivs.fields(IncrementFieldList<Dimension, Scalar >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   DepsDt.Zero();
 
   const auto hdt = 0.5*multiplier;
